@@ -11,6 +11,7 @@ import {open_breadcrumb_picker,type breadcrumb_item} from "./workspace_breadcrum
 import {read_breadcrumb_settings,observe_breadcrumb_settings,open_breadcrumb_settings,set_breadcrumb_enabled,type breadcrumb_settings} from "./workspace_breadcrumbs_settings";
 import {subscribe_document_symbols,document_symbol_chain,type document_symbols} from "./workspace_document_symbols";
 import {reading_viewport_bounds} from "./reading_viewport";
+import {acquire_reading_blocks,reading_block_snapshot} from "./reading_blocks";
 import type {source_symbol} from "./source_symbols";
 import type {workspace_file_host} from "./workspace_files";
 import type {graph_core} from "./git_graph_host";
@@ -34,7 +35,8 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
   const group_active=(state:group_state)=>state.leaf?.parent?.activeLeaf||state.leaf;
   const valid=(state:group_state,leaf=state.leaf,model=state.model,version=model?.getVersionId())=>!disposed&&state.group.isConnected&&state.leaf===leaf&&group_active(state)===leaf&&(!model||state.model===model&&!model.isDisposed()&&model.getVersionId()===version);
   const file_path=(leaf:any)=>{const path=source_file_path(leaf.state.path)||(!String(leaf.state.path).startsWith("typ://")?leaf.state.path:"");if(path&&files.path_api.isAbsolute(path))return path;const document=leaf.view?.document,editor=leaf.view?.editor,name=editor?.data?.file||document?.options?.file,root=document?.options?.root||leaf.state.git_cwd;if(name&&root)return files.path_api.resolve(root,name);return "";};
-  const clear_model=(state:group_state)=>{state.symbols?.dispose();state.symbols=undefined;state.symbol_state=undefined;for(const listener of state.listeners)listener.dispose();state.listeners=[];};
+  const markdown_trees=new Map<group_state,{root:HTMLElement;lease:ReturnType<typeof acquire_reading_blocks>;revision:unknown;roots:heading[];elements:HTMLElement[];chains:Map<HTMLElement,heading[]>}>();
+  const clear_model=(state:group_state)=>{markdown_trees.get(state)?.lease.dispose();markdown_trees.delete(state);state.symbols?.dispose();state.symbols=undefined;state.symbol_state=undefined;for(const listener of state.listeners)listener.dispose();state.listeners=[];};
   const open_items=(state:group_state,anchor:HTMLElement,items:breadcrumb_item[]|Promise<breadcrumb_item[]>,label:string,selected?:string)=>{
     close_picker(false);const leaf=state.leaf,model=state.model,version=model?.getVersionId();picker_owner=state;
     picker=open_breadcrumb_picker(anchor,items,{label,selected,focus:state.focus,valid:()=>valid(state,leaf,model,version),closed:()=>{picker=undefined;picker_owner=undefined;},error});
@@ -53,11 +55,19 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
     if(native&&(!host_file||host.isFileLoading?.()||files.path_api.relative(state.file,host_file)!==""))return [];
     const container=native?document.querySelector<HTMLElement>("#write"):state.leaf.view?.containerEl as HTMLElement|undefined;
     if(!container||(!native&&!container.matches(".typ-markdown-view")))return [];
-    const elements=[...container.querySelectorAll<HTMLElement>("h1,h2,h3,h4,h5,h6")].filter(node=>!node.closest("pre,code,.workspace-breadcrumbs")),roots:heading[]=[],stack:{depth:number;symbol:heading}[]=[];
-    for(const [index,element]of elements.entries()){const depth=Number(element.tagName[1]);while(stack.length&&stack.at(-1)!.depth>=depth)stack.pop();const name=element.textContent||"",symbol:heading={name,kind:"string",detail:"#".repeat(depth)+" "+name,start:index,end:elements.length,selection_start:index,selection_end:index,element,children:[]};(stack.at(-1)?.symbol.children||roots).push(symbol);stack.push({depth,symbol});}
+    let tree=markdown_trees.get(state);
+    if(tree?.root!==container){tree?.lease.dispose();tree={root:container,lease:acquire_reading_blocks(container),revision:undefined,roots:[],elements:[],chains:new Map()};markdown_trees.set(state,tree);}
+    const revision=reading_block_snapshot(container).items;
+    if(tree.revision!==revision){
+      tree.revision=revision;tree.roots=[];tree.chains.clear();
+      tree.elements=[...container.querySelectorAll<HTMLElement>("h1,h2,h3,h4,h5,h6")].filter(node=>!node.closest("pre,code,.workspace-breadcrumbs"));
+      const stack:{depth:number;symbol:heading}[]=[];
+      for(const [index,element]of tree.elements.entries()){const depth=Number(element.tagName[1]);while(stack.length&&stack.at(-1)!.depth>=depth)stack.pop();const name=element.textContent||"",symbol:heading={name,kind:"string",detail:"#".repeat(depth)+" "+name,start:index,end:tree.elements.length,selection_start:index,selection_end:index,element,children:[]};(stack.at(-1)?.symbol.children||tree.roots).push(symbol);stack.push({depth,symbol});tree.chains.set(element,stack.map(item=>item.symbol));}
+    }
+    const {elements,roots}=tree;
     const selected=native?outline?.current_heading?.():undefined,scroller=native?document.querySelector<HTMLElement>("content"):state.leaf.containerEl as HTMLElement;
     let current=selected;if(!current&&scroller){const top=reading_viewport_bounds(scroller).top+12;current=elements[0];for(const element of elements){if(element.getBoundingClientRect().top<=top)current=element;else break;}}
-    const chain=(items:heading[]):heading[]=>{for(const item of items){if(item.element===current)return[item];const result=chain(item.children);if(result.length)return[item,...result];}return[];};state.chain=chain(roots);return roots;
+    state.chain=current?tree.chains.get(current)||[]:[];return roots;
   };
   const reveal=(state:group_state,symbol:heading)=>{
     if(!valid(state))return;
@@ -117,6 +127,7 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
   const mutation=new MutationObserver(records=>{if(records.some(record=>!(record.target instanceof Element)||!record.target.closest(".workspace-breadcrumbs,.workspace-breadcrumb-picker,.workspace-breadcrumb-settings")))schedule();});mutation.observe(document.body,{childList:true,subtree:true,characterData:true});
   const unsubscribe=core.app.workspace.on("active-leaf:change",schedule),settings=observe_breadcrumb_settings(()=>{close_picker(false);for(const state of groups.values())state.signature="";schedule();});
   const config=core.app.commands.register({id:"linux_note:breadcrumbs_settings",title:"视图：面包屑导航设置",scope:"global",callback:()=>open_breadcrumb_settings(files.context_root(),(core.app.workspace.activeLeaf as any)?.view?.editor?.focused_editor?.()?.getModel()?.getLanguageId()||"markdown")});
-  window.addEventListener("keydown",key,true);document.addEventListener("focusin",schedule,true);document.addEventListener("selectionchange",schedule);document.addEventListener("scroll",schedule,true);window.addEventListener("linux-note-workspace-context-changed",schedule);refresh();
-  return{refresh,dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);close_picker(false);mutation.disconnect();if(typeof unsubscribe==="function")unsubscribe();if(typeof config==="function")config();settings();window.removeEventListener("keydown",key,true);document.removeEventListener("focusin",schedule,true);document.removeEventListener("selectionchange",schedule);document.removeEventListener("scroll",schedule,true);window.removeEventListener("linux-note-workspace-context-changed",schedule);for(const state of groups.values()){clear_model(state);state.interaction.remove();state.bar.remove();state.group.classList.remove("workspace-breadcrumbs-managed");}groups.clear();style.remove();file_icons.remove();}};
+  const scroll=(event:Event)=>{const target=event.target;if(target instanceof HTMLElement&&(target.matches('content')||[...groups.values()].some(state=>state.leaf?.containerEl===target)))schedule();};
+  window.addEventListener("keydown",key,true);document.addEventListener("focusin",schedule,true);document.addEventListener("selectionchange",schedule);document.addEventListener("scroll",scroll,true);window.addEventListener("linux-note-workspace-context-changed",schedule);refresh();
+  return{refresh,dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);close_picker(false);mutation.disconnect();if(typeof unsubscribe==="function")unsubscribe();if(typeof config==="function")config();settings();window.removeEventListener("keydown",key,true);document.removeEventListener("focusin",schedule,true);document.removeEventListener("selectionchange",schedule);document.removeEventListener("scroll",scroll,true);window.removeEventListener("linux-note-workspace-context-changed",schedule);for(const state of groups.values()){clear_model(state);state.interaction.remove();state.bar.remove();state.group.classList.remove("workspace-breadcrumbs-managed");}groups.clear();style.remove();file_icons.remove();}};
 }

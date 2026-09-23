@@ -6901,6 +6901,75 @@
       ],
       "runner": "enhancements/scripts/prepare_stability_native.py",
       "fixture": "enhancements/fixtures/git_markdown_diff_native.js"
+    },
+    {
+      "id": "TC-reading-performance-ui-001",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R071.3"
+      ],
+      "design": "docs/workspace_responsiveness.md",
+      "implementation": [
+        "enhancements/src/reading_blocks.ts",
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
+      ],
+      "related_modules": [
+        "reading",
+        "workspace",
+        "git"
+      ],
+      "script": "enhancements/scripts/test_reading_performance.cjs",
+      "environment": "Windows / Electron真实布局 / 临时文档",
+      "preconditions": "只使用临时文档和隔离用户目录",
+      "steps": [
+        "20/100/1000节各1000次位置采样；内容/主题/宽度/分数缩放失效与字符锚点恢复；1000次主题通知及销毁"
+      ],
+      "expected": [
+        "离屏块几何读取有界；正文变化后的块身份与独立线性参考相同；缩放保留字符，主题失效及销毁准确"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [],
+      "runner": "enhancements/scripts/test_ui.mjs"
+    },
+    {
+      "id": "TC-reading-performance-native-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R071.3"
+      ],
+      "design": "docs/workspace_responsiveness.md",
+      "implementation": [
+        "enhancements/src/reading_blocks.ts",
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
+      ],
+      "related_modules": [
+        "reading",
+        "workspace",
+        "git"
+      ],
+      "script": "enhancements/fixtures/reading_performance_native.js",
+      "environment": "Windows原始Typora1.14.10 / 真实Git后台差异 / 私有桌面",
+      "preconditions": "只使用临时文档和隔离用户目录",
+      "steps": [
+        "prepare_stability_native.py使用reading_performance_native.js和提前夹具reading_performance_early.js；相同夹具分别加载旧发行与候选资产，串行运行并读取checks.json",
+        "正文20/100/1000节，各100步正文/预览滚动及空闲，1000节下另测100次body状态变化；比较布局读取与回调成本"
+      ],
+      "expected": [
+        "旧/新夹具摘要相同；正文身份不变，候选每组100步滚动元素几何读取小于12000；回调成本和私有桌面节拍如实记录"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ],
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "fixture": "enhancements/fixtures/reading_performance_native.js",
+      "manual_reason": "须使用已核对的原始Typora独立副本、提前插桩与旧/新候选串行对照；按steps准备并读取checks.json，不能直接执行网页夹具。"
     }
   ]
 }

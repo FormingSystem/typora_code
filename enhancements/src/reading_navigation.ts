@@ -164,6 +164,10 @@ export function bind_reading_navigation(): () => void {
   const navigate = async (path: string, hash?: string, location?: reading_location, options: reading_target_options = {}): Promise<boolean> => {
     const signal = options.signal ?? controller.signal;
     if (disposed || navigating || signal.aborted) return false;
+    // 预检远程物化含await，必须在第一个等待前占有导航事务，避免连续点击同时进入宿主。
+    finish_pending();navigating=true;
+    let held_path:string|undefined;
+    try {
     const source = workspace.active()?.file_path || native_path();
     if (path_api) {
       const target = resolve_host_open_file_target(path_api, source, path);
@@ -177,12 +181,10 @@ export function bind_reading_navigation(): () => void {
       if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");
     }
     if (disposed || signal.aborted) return false;
-    finish_pending();
     const from = capture() ?? last_location;
     workspace.checkpoint();
-    navigating = true;
     workspace.hold(path, true);
-    try {
+    held_path=path;
       let target: reading_context | undefined;
       if (app && options.group && options.group !== "active") {
         if (disposed || signal.aborted) return false;
@@ -243,7 +245,7 @@ export function bind_reading_navigation(): () => void {
       }
       return true;
     } finally {
-      workspace.hold(path, false);
+      if(held_path)workspace.hold(held_path, false);
       navigating = false;
     }
   };

@@ -321,3 +321,13 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - TEST-preview-native-inline：原生夹具中的HTML关闭script字面量会截断运行器内联脚本；拆分字面量后重跑。初次无checks回执的运行不算通过。
 
 本轮结果与平台限制见[预览隔离证据](../enhancements/tests/evidence/preview_isolation_20260923.json)。
+
+## R071.3 阅读滚动与刷新串扰（2026-09-23）
+
+- BUG-reading-geometry-scan：普通滚动每次扫描所有块/标题和离屏字符节点；按根节点共享排版几何，失效才测量，滚动复用坐标。
+- BUG-reading-scroll-owner：预览scroll触发主文面包屑与阅读服务；入口先判实际滚动所有者，标题树不在每帧重建。
+- BUG-preview-theme-work：每个预览/后台比较在无关body状态变化时重新序列化全部样式；共享样式缓存和主题通知，消除同值写入及无变化概览刷新。
+- BUG-navigation-preflight-race：旧发行版生命周期测试复现异步预检期间两个导航同时进入；事务在首次await前占有，退出统一清理，现有取消用例回归通过。
+- TEST-breadcrumb-theme：旧暗色测试只设变量但实际背景仍为浅色，主题服务将其纠正；夹具补齐实际背景，保留原颜色断言。
+
+运行样本和边界见[性能证据](../enhancements/tests/evidence/reading_performance_20260923.json)。原生鼠标硬件与Win10现场未覆盖；用户暂缓的未编辑保存提示仍保持暂停。

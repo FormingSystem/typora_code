@@ -1,0 +1,1103 @@
+{
+  "requirement": "R071.3",
+  "date": "2026-09-23",
+  "release": "2026.09.23.14",
+  "sequence": 2026092314,
+  "status": "PASS_WITH_RECORDED_LIMITS",
+  "design": "docs/workspace_responsiveness.md#r0713-阅读滚动性能与跨视图刷新审计",
+  "test_cases": [
+    "TC-reading-performance-ui-001",
+    "TC-reading-performance-native-001"
+  ],
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "typora": "1.14.10",
+    "node": "24.19.0",
+    "ui_electron": "43.2.0"
+  },
+  "candidate_sha256": {
+    "enhancements/dist/SHA256SUMS": "291e60cee41484bd0f5cf3dbf0eba2295b560de046f99a5379a7759f912196fa",
+    "enhancements/dist/workbench.js": "ca273d414b8be18f4e91896c9e447cd4526ec90676f285f4359aa44e9fb75ad8",
+    "enhancements/dist/workspace.css": "a4365a5f918e23b231c8bf7bb2122613d21a8433075b55cc4dcc8401bb846a08",
+    "enhancements/fixtures/reading_performance_native.js": "2bee5939e6fb20633953f4c3ae7c942a29783df28a38e1199c82541e8a2d760c",
+    "enhancements/fixtures/reading_performance_early.js": "36a7fcbaa9d4e34b11adafd35969299d561bd103e45fa98d82c050ff9361bc24",
+    "enhancements/fixtures/link_preview_native.js": "6d68c5a7115ad6bea8d0df0206368d9aa605e924464bc3a57329c24c8ed27549"
+  },
+  "comparison": {
+    "method": "相同原始宿主和夹具，两个真实Markdown Git比较、一个源码比较后台，100节浮动预览；正文20/100/1000节，每种阶段100步、每步等待16ms，最终旧/新采样串行无并发重负载。host-state为100次body状态class变更。",
+    "measurement_boundary": "插桩覆盖scroll/wheel、rAF、MutationObserver和ResizeObserver。回调累计时间可能含嵌套成本，不等于独占CPU时间；私有桌面约31ms帧节拍不是物理屏幕FPS。",
+    "before": {
+      "version": "2026.09.23.13",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "1cc2bb9f599a498f5cd107f6ca2c8615ff6c217e5367d8e0336e9933a29c01bb",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "2bee5939e6fb20633953f4c3ae7c942a29783df28a38e1199c82541e8a2d760c",
+        "early_fixture_sha256": "36a7fcbaa9d4e34b11adafd35969299d561bd103e45fa98d82c050ff9361bc24",
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "checks": 11,
+      "raw": ".cache/issue_tracking/native/73a1402f7d724b91a1abcda59456e9d1/checks.json",
+      "samples": [
+        {
+          "sections": 20,
+          "phase": "main",
+          "element_bounds": 5265,
+          "range_bounds": 529,
+          "computed_styles": 565,
+          "callback_count": 2923,
+          "callback_total_ms": 77.0,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 54,
+              "total_ms": 30.3,
+              "max_ms": 2.3
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 54,
+              "total_ms": 12.6,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 54,
+              "total_ms": 12.0,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.6,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 2.9,
+              "max_ms": 0.2
+            }
+          ]
+        },
+        {
+          "sections": 20,
+          "phase": "preview",
+          "element_bounds": 1956,
+          "range_bounds": 577,
+          "computed_styles": 558,
+          "callback_count": 2130,
+          "callback_total_ms": 85.3,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 35.22,
+          "top_callbacks": [
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 28.2,
+              "max_ms": 1.6
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 54,
+              "total_ms": 27.2,
+              "max_ms": 1.2
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 54,
+              "total_ms": 10.3,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.4,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 54,
+              "total_ms": 5.3,
+              "max_ms": 0.4
+            }
+          ]
+        },
+        {
+          "sections": 20,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 98,
+          "callback_total_ms": 1.7,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 54,
+              "total_ms": 1.3,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.3,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0,
+              "max_ms": 0
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0,
+              "max_ms": 0
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "main",
+          "element_bounds": 35506,
+          "range_bounds": 519,
+          "computed_styles": 564,
+          "callback_count": 2915,
+          "callback_total_ms": 129.9,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 35.49,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 54,
+              "total_ms": 43.3,
+              "max_ms": 2.6
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 54,
+              "total_ms": 39.2,
+              "max_ms": 1.6
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 54,
+              "total_ms": 23.3,
+              "max_ms": 1
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.5,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 3.0,
+              "max_ms": 0.2
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "preview",
+          "element_bounds": 6392,
+          "range_bounds": 589,
+          "computed_styles": 569,
+          "callback_count": 2169,
+          "callback_total_ms": 111.1,
+          "frame_p95_ms": 31.4,
+          "frame_max_ms": 35.9,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 55,
+              "total_ms": 49.1,
+              "max_ms": 2.5
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 55,
+              "total_ms": 28.2,
+              "max_ms": 2.6
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 55,
+              "total_ms": 11.6,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 55,
+              "total_ms": 6.6,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 275,
+              "total_ms": 6.0,
+              "max_ms": 0.4
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 98,
+          "callback_total_ms": 2.2,
+          "frame_p95_ms": 31.4,
+          "frame_max_ms": 32.02,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 54,
+              "total_ms": 1.5,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.5,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0,
+              "max_ms": 0
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "main",
+          "element_bounds": 403534,
+          "range_bounds": 568,
+          "computed_styles": 604,
+          "callback_count": 3118,
+          "callback_total_ms": 464.9,
+          "frame_p95_ms": 31.4,
+          "frame_max_ms": 34.8,
+          "top_callbacks": [
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 58,
+              "total_ms": 204.0,
+              "max_ms": 4.8
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 58,
+              "total_ms": 128.1,
+              "max_ms": 3.1
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 58,
+              "total_ms": 104.3,
+              "max_ms": 3.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 290,
+              "total_ms": 5.8,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [root, entry] of bindings9) if (!root.isConnected) {\n        entry.binding.dispose();\n        bindings9.delete(root);\n      }\n      for (const root o",
+              "count": 8,
+              "total_ms": 3.7,
+              "max_ms": 0.6
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "preview",
+          "element_bounds": 56909,
+          "range_bounds": 613,
+          "computed_styles": 579,
+          "callback_count": 2208,
+          "callback_total_ms": 261.1,
+          "frame_p95_ms": 31.4,
+          "frame_max_ms": 34.12,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 56,
+              "total_ms": 182.2,
+              "max_ms": 6.6
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 56,
+              "total_ms": 38.2,
+              "max_ms": 1.9
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const context = all().find((candidate) => elements(candidate)?.scroller === event.target);\n      if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;\n ",
+              "count": 56,
+              "total_ms": 12.2,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (size() !== geometry) return;\n      capture();\n    }",
+              "count": 56,
+              "total_ms": 11.8,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 280,
+              "total_ms": 3.8,
+              "max_ms": 0.2
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 98,
+          "callback_total_ms": 2.7,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 54,
+              "total_ms": 1.5,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.8,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 2,
+              "total_ms": 0.3,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0,
+              "max_ms": 0
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "host-state",
+          "element_bounds": 2697,
+          "range_bounds": 0,
+          "computed_styles": 2895,
+          "callback_count": 4754,
+          "callback_total_ms": 3308.8,
+          "frame_p95_ms": 62.5,
+          "frame_max_ms": 62.5,
+          "top_callbacks": [
+            {
+              "kind": "MutationObserver",
+              "source": "() => {\n      const content = markdown_theme_rules() + \"\\n\" + git_markdown_diff_shadow_default;\n      if (style.textContent !== content) style.textContent = content;\n      const color = getComputedStyle(document.body).co",
+              "count": 198,
+              "total_ms": 2091.6,
+              "max_ms": 12.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "() => {\n      if (selected && is_markdown_file(selected.file.file_path)) update_theme();\n      else apply_scale();\n    }",
+              "count": 198,
+              "total_ms": 1036.6,
+              "max_ms": 11.4
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      cancel();\n      if (disposed || running) return;\n      running = true;\n      try {\n        layout2();\n      } finally {\n        mutation.takeRecords();\n        for (const node of sizes.keys()) sizes.set(nod",
+              "count": 198,
+              "total_ms": 42.9,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 98,
+              "total_ms": 30.6,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      frame = 0;\n      for (const listener of palette_listeners) listener();\n      for (const listener of listeners) listener();\n    }",
+              "count": 99,
+              "total_ms": 28.0,
+              "max_ms": 0.4
+            }
+          ]
+        }
+      ]
+    },
+    "after": {
+      "version": "2026.09.23.14",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "291e60cee41484bd0f5cf3dbf0eba2295b560de046f99a5379a7759f912196fa",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "2bee5939e6fb20633953f4c3ae7c942a29783df28a38e1199c82541e8a2d760c",
+        "early_fixture_sha256": "36a7fcbaa9d4e34b11adafd35969299d561bd103e45fa98d82c050ff9361bc24",
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "checks": 17,
+      "raw": ".cache/issue_tracking/native/093c3ee9b34948208b8132ea441a8555/checks.json",
+      "samples": [
+        {
+          "sections": 20,
+          "phase": "main",
+          "element_bounds": 935,
+          "range_bounds": 524,
+          "computed_styles": 457,
+          "callback_count": 2914,
+          "callback_total_ms": 59.8,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.8,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 54,
+              "total_ms": 22.6,
+              "max_ms": 1.3
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 54,
+              "total_ms": 8.9,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const target = event.target;\n      if (!(target instanceof HTMLElement) || !(target.matches(\"content\") || target.querySelector(\":scope > .typ-markdown-preview\"))) return;\n      const context = all().fi",
+              "count": 54,
+              "total_ms": 6.6,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.4,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 3.3,
+              "max_ms": 0.2
+            }
+          ]
+        },
+        {
+          "sections": 20,
+          "phase": "preview",
+          "element_bounds": 394,
+          "range_bounds": 590,
+          "computed_styles": 180,
+          "callback_count": 2076,
+          "callback_total_ms": 50.6,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 31.2,
+              "max_ms": 2
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 54,
+              "total_ms": 9,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 3.7,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 666,
+              "total_ms": 1.4,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(\".linux-note-reading-minimap\"))) schedule();\n    }",
+              "count": 111,
+              "total_ms": 0.9,
+              "max_ms": 0.1
+            }
+          ]
+        },
+        {
+          "sections": 20,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 98,
+          "callback_total_ms": 1.8,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.52,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 54,
+              "total_ms": 1.3,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.3,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0,
+              "max_ms": 0
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "main",
+          "element_bounds": 934,
+          "range_bounds": 519,
+          "computed_styles": 456,
+          "callback_count": 2914,
+          "callback_total_ms": 79.7,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 33.3,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 54,
+              "total_ms": 34.2,
+              "max_ms": 2.1
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 54,
+              "total_ms": 11.5,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const target = event.target;\n      if (!(target instanceof HTMLElement) || !(target.matches(\"content\") || target.querySelector(\":scope > .typ-markdown-preview\"))) return;\n      const context = all().fi",
+              "count": 54,
+              "total_ms": 9.2,
+              "max_ms": 0.5
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.5,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 3.3,
+              "max_ms": 0.2
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "preview",
+          "element_bounds": 393,
+          "range_bounds": 579,
+          "computed_styles": 179,
+          "callback_count": 2077,
+          "callback_total_ms": 55.7,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.3,
+          "top_callbacks": [
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 54,
+              "total_ms": 30.5,
+              "max_ms": 2.1
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 54,
+              "total_ms": 11.5,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 270,
+              "total_ms": 5.4,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      if (!(event.target instanceof Node && tip.contains(event.target))) hide2();\n    }",
+              "count": 54,
+              "total_ms": 1.4,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      if (!(event.target instanceof Node && tip?.contains(event.target))) hide2();\n    }",
+              "count": 216,
+              "total_ms": 1.2,
+              "max_ms": 0.1
+            }
+          ]
+        },
+        {
+          "sections": 100,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 98,
+          "callback_total_ms": 2.6,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 33.69,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 54,
+              "total_ms": 1.5,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.7,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0.2,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(\".linux-note-reading-minimap\"))) schedule();\n    }",
+              "count": 4,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "main",
+          "element_bounds": 952,
+          "range_bounds": 525,
+          "computed_styles": 465,
+          "callback_count": 2965,
+          "callback_total_ms": 119.3,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 55,
+              "total_ms": 63.6,
+              "max_ms": 2.4
+            },
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const target = event.target;\n      if (!(target instanceof HTMLElement) || !(target.matches(\"content\") || target.querySelector(\":scope > .typ-markdown-preview\"))) return;\n      const context = all().fi",
+              "count": 55,
+              "total_ms": 16.0,
+              "max_ms": 0.7
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 55,
+              "total_ms": 9.3,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 275,
+              "total_ms": 6.6,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [root, entry] of bindings9) if (!root.isConnected) {\n        entry.binding.dispose();\n        bindings9.delete(root);\n      }\n      for (const root o",
+              "count": 8,
+              "total_ms": 4.6,
+              "max_ms": 0.7
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "preview",
+          "element_bounds": 408,
+          "range_bounds": 607,
+          "computed_styles": 186,
+          "callback_count": 2152,
+          "callback_total_ms": 77.7,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 32.02,
+          "top_callbacks": [
+            {
+              "kind": "scroll",
+              "source": "(event) => {\n      const node = event.target === document ? document.scrollingElement : event.target;\n      if (node instanceof HTMLElement && is_native_scroll(node)) obtain(node).pulse();\n    }",
+              "count": 56,
+              "total_ms": 40.7,
+              "max_ms": 3.2
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      const next = size();\n      if (next !== geometry) return;\n      anchor = capture_reflow_anchor(scroller, root);\n    }",
+              "count": 56,
+              "total_ms": 14.0,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 280,
+              "total_ms": 7.6,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 56,
+              "total_ms": 5.1,
+              "max_ms": 0.3
+            },
+            {
+              "kind": "scroll",
+              "source": "() => {\n      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);\n    }",
+              "count": 280,
+              "total_ms": 2.0,
+              "max_ms": 0.3
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "idle",
+          "element_bounds": 16,
+          "range_bounds": 0,
+          "computed_styles": 21,
+          "callback_count": 99,
+          "callback_total_ms": 2.8,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "now=>{frames.push(now-last);last=now;if(running)requestAnimationFrame(frame);}",
+              "count": 55,
+              "total_ms": 1.4,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      for (const [button, entry] of entries3) {\n        const { source } = entry.options, rect = source.getBoundingClientRect(), width2 = rect.width;\n   ",
+              "count": 10,
+              "total_ms": 0.8,
+              "max_ms": 0.4
+            },
+            {
+              "kind": "frame",
+              "source": "function update2() {\n      frame3 = 0;\n      if (disposed) return;\n      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(\".md-diagram-panel-preview,.reading-media-viewer,.Code",
+              "count": 2,
+              "total_ms": 0.2,
+              "max_ms": 0.2
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(changes) => {\n      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(\".reading-media-entries,.reading-media-viewer\")))) schedule();\n    }",
+              "count": 24,
+              "total_ms": 0.2,
+              "max_ms": 0.1
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "(records) => {\n      if (records.some((record) => {\n        const target = record.target instanceof Element ? record.target : record.target.parentElement;\n        if (target?.closest(selector)) return true;\n        retur",
+              "count": 2,
+              "total_ms": 0.1,
+              "max_ms": 0.1
+            }
+          ]
+        },
+        {
+          "sections": 1000,
+          "phase": "host-state",
+          "element_bounds": 1745,
+          "range_bounds": 0,
+          "computed_styles": 1898,
+          "callback_count": 3267,
+          "callback_total_ms": 190.2,
+          "frame_p95_ms": 31.3,
+          "frame_max_ms": 31.4,
+          "top_callbacks": [
+            {
+              "kind": "frame",
+              "source": "() => {\n      frame = 0;\n      for (const listener of palette_listeners) listener();\n      for (const listener of listeners) listener();\n    }",
+              "count": 54,
+              "total_ms": 45.2,
+              "max_ms": 2.9
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      cancel();\n      if (disposed || running) return;\n      running = true;\n      try {\n        layout2();\n      } finally {\n        mutation.takeRecords();\n        for (const node of sizes.keys()) sizes.set(nod",
+              "count": 108,
+              "total_ms": 31.5,
+              "max_ms": 1.3
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n        frame3 = 0;\n        refresh();\n      }",
+              "count": 53,
+              "total_ms": 31.5,
+              "max_ms": 1.3
+            },
+            {
+              "kind": "MutationObserver",
+              "source": "() => {\n      if (disposed || dock.hidden) return;\n      const style = getComputedStyle(body), ribbon = Number.parseFloat(style.getPropertyValue(\"--typ-ribbon-width\")) || 0;\n      const top = Number.parseFloat(style.getP",
+              "count": 99,
+              "total_ms": 22.3,
+              "max_ms": 0.6
+            },
+            {
+              "kind": "frame",
+              "source": "() => {\n      frame3 = 0;\n      if (disposed) return;\n      for (const tab of tabs.keys()) if (!tab.isConnected) release_tab(tab);\n      for (const [header, entry] of strips) if (!header.isConnected) {\n        if (entry.",
+              "count": 54,
+              "total_ms": 15.5,
+              "max_ms": 0.8
+            }
+          ]
+        }
+      ]
+    }
+  },
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS; 最后标题树缓存与head load失效补充后，最终静态/部署/目录、6组UI及原生220+17项补验通过。",
+    "catalog_suites": 204,
+    "final_ui": {
+      "status": "PASS",
+      "suites": [
+        "test_reading_performance.cjs",
+        "test_wheel_zoom.cjs",
+        "test_workspace_link_preview.cjs",
+        "test_git_markdown_diff.cjs",
+        "test_reading_lifecycle.cjs",
+        "test_workspace_breadcrumbs.cjs"
+      ],
+      "counts": [
+        15,
+        30,
+        65,
+        37,
+        null,
+        39
+      ],
+      "log": ".cache/issue_tracking/reading_performance_final_ui.log"
+    },
+    "related_ui": {
+      "status": "PASS",
+      "suites": [
+        "test_workspace_outline.cjs",
+        "test_reading_minimap.cjs",
+        "test_reading_code_geometry.cjs",
+        "test_workspace_lookup_preview.cjs"
+      ],
+      "boundary": "本轮相关修改后的专项通过；最终标题树/head load补充由最终UI和原生检查覆盖。"
+    },
+    "native_preview": {
+      "status": "PASS",
+      "checks": 220,
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "291e60cee41484bd0f5cf3dbf0eba2295b560de046f99a5379a7759f912196fa",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "6d68c5a7115ad6bea8d0df0206368d9aa605e924464bc3a57329c24c8ed27549",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "raw": ".cache/issue_tracking/native/4d4b22ce7c054564b6c2f42fbfb93086/checks.json"
+    },
+    "isolated_install": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; 文档、设置及备份保留",
+    "uninstall_regression": "PASS: 65 assertions; 失败、取消和回滚",
+    "installation": {
+      "version": "2026.09.23.14",
+      "installed_assets": [
+        38,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    },
+    "final_history_positions": "PASS: history anchors/reentrancy/branching, 20/100/1000 callback invalidation, independent position records"
+  },
+  "failures_and_followups": [
+    "旧资产同样复现reading lifecycle连续导航竞态，修复首个await之前占有事务，最终专项通过。",
+    "旧暗色面包屑夹具只改变量未改变实际背景；纠正夹具主题状态，保留原断言，最终39项通过。",
+    "早期新增性能夹具返回函数导致Electron不可克隆；改为返回void，最终15项通过。",
+    "并行高负载中的wheel zoom终端平滑滚动等待超时保留日志；同代码最终串行30项通过，未宣称修复新的终端问题。"
+  ],
+  "limits": [
+    "本轮Win11原始Typora与Electron自动化；未实测Win10现场及用户物理鼠标硬件。",
+    "初次渲染和几何索引重建仍随文档规模增长；任意大文档、所有第三方插件及仅用CSSOM改规则的主题未完整验收。",
+    "当前样本未发现空闲忙等待或普通滚轮触发Ctrl缩放；不推广为所有场景无停顿。",
+    "本机磁盘已安装，用户现有窗口未重启；旧未编辑保存提示按用户要求继续暂缓。"
+  ]
+}

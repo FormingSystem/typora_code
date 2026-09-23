@@ -2,6 +2,7 @@ import {install_workspace_source_outline} from "./workspace_source_outline";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
 import {reading_viewport_bounds} from "./reading_viewport";
+import {reading_block_snapshot} from "./reading_blocks";
 import outline_css from "./workspace_outline.css";
 
 export type workspace_outline_host = {
@@ -53,14 +54,15 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const content = document.querySelector<HTMLElement>("content");
     const write = document.querySelector<HTMLElement>("#write");
     if (!content || !write) return;
-    const headings = Array.from(write.children).filter((node): node is HTMLElement => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
+    const snapshot=reading_block_snapshot(write),heading_blocks=snapshot.items.filter(item=>item.node.matches("h1,h2,h3,h4,h5,h6"));
+    const headings=heading_blocks.map(item=>item.node);
     if (!headings.length) return;
     // offsetTop 的参照物会随正文容器定位变化；与滚动视口在同一坐标系比较。
     const {top, bottom} = reading_viewport_bounds(content);
     const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
     if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
     explicit_position = undefined;
-    const bounds = headings.map(heading => heading.getBoundingClientRect());
+    const bounds = heading_blocks.map(item=>({top:item.top+snapshot.top,bottom:item.bottom+snapshot.top,height:item.bottom-item.top}));
     const readable_top = top + heading_boundary_slack;
     const readable_bottom = bottom - heading_boundary_slack;
     const readable_height = Math.max(0, readable_bottom - readable_top);
@@ -173,8 +175,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   };
   if (native_outline && native_highlight) native_outline.highlightVisibleHeader = coordinated_highlight;
   const on_document_scroll = (event: Event) => {
-    const target = event.target;
-    if (target instanceof Node && sidebar.contains(target)) return;
+    if(!(event.target instanceof HTMLElement)||!event.target.matches('content'))return;
     schedule_sync();
   };
   const refresh = () => {

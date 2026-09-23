@@ -1,6 +1,6 @@
 import {marked,type TokensList} from 'marked';
 import DOMPurify from 'dompurify';
-import {markdown_theme_rules} from './workspace_markdown_theme';
+import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {create_preview_diagrams,highlight_preview_code} from './workspace_markdown_preview_render';
 import {git_yield} from './git_status_snapshot';
 import {create_markdown_overview} from './git_markdown_overview';
@@ -61,8 +61,8 @@ export function create_git_markdown_diff(){
   scroll.tabIndex=0;reader.id='write';shadow.append(style,reader);
   const overview=create_markdown_overview(scroll,reader);container.append(overview.container);
   let generation=0,disposed=false,active=-1;let changed:HTMLElement[]=[];const diagrams=create_preview_diagrams();
-  const theme=()=>{const content=markdown_theme_rules()+'\n'+css;if(style.textContent!==content)style.textContent=content;const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];container.dataset.theme=color[0]+color[1]+color[2]>450?'dark':'light';scroll.dataset.theme=container.dataset.theme;overview.refresh();};
-  const observer=new MutationObserver(theme);observer.observe(document.head,{childList:true,subtree:true,characterData:true});observer.observe(document.body,{attributes:true,attributeFilter:['class','style']});theme();
+  const theme=()=>{const content=markdown_theme_rules()+'\n'+css;const changed=style.textContent!==content;if(changed)style.textContent=content;const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0],mode=color[0]+color[1]+color[2]>450?'dark':'light';if(container.dataset.theme!==mode){container.dataset.theme=mode;scroll.dataset.theme=mode;}if(changed)overview.refresh();};
+  const observer=observe_markdown_theme(theme);theme();
   const navigate=(direction:'previous'|'next')=>{if(!changed.length)return;active=(active+(direction==='next'?1:-1)+changed.length)%changed.length;const target=changed[active];scroll.scrollTop=target.offsetTop-reader.offsetTop;target.focus({preventScroll:true});};
   shadow.addEventListener('click',event=>{if((event.target as Element).closest('a,input'))event.preventDefault();});
   return {container,shadow,scroll,navigate,theme,
@@ -91,6 +91,6 @@ export function create_git_markdown_diff(){
       for(const code of code_tasks){if(!current())return;if(code.classList.contains('language-mermaid'))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
     },
     invalidate(){generation++;container.dataset.ready='false';overview.suspend();},
-    dispose(){disposed=true;generation++;observer.disconnect();overview.dispose();diagrams.dispose();container.remove();}
+    dispose(){disposed=true;generation++;observer();overview.dispose();diagrams.dispose();container.remove();}
   };
 }

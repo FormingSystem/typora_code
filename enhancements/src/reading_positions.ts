@@ -1,4 +1,5 @@
 import { file_key } from "./workspace_file_uri";
+import {reading_block_at,reading_block_snapshot} from "./reading_blocks";
 
 export type reading_position = {
   scroll_top: number;
@@ -59,8 +60,7 @@ export function create_position_store(storage: Pick<Storage, "getItem" | "setIte
 }
 
 function blocks(root: HTMLElement): HTMLElement[] {
-  return Array.from(root.children).filter((node): node is HTMLElement => node instanceof HTMLElement
-    && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button"));
+  return reading_block_snapshot(root).items.map(item=>item.node);
 }
 
 function block_text(block: HTMLElement): string {
@@ -70,12 +70,9 @@ function block_text(block: HTMLElement): string {
 
 export function capture_position(scroller: HTMLElement, root: HTMLElement): reading_position {
   const position: reading_position = { scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft };
-  const children = blocks(root);
   const top = scroller.getBoundingClientRect().top;
-  let index = children.findIndex((block) => block.getBoundingClientRect().bottom > top + 16);
-  if (index < 0) index = children.length - 1;
-  const block = children[index];
-  if (block) position.block = { tag: block.tagName, text: block_text(block), index, offset: block.getBoundingClientRect().top - top };
+  const block = reading_block_at(root,top+16);
+  if (block) position.block = { tag: block.node.tagName, text: block_text(block.node), index:block.index, offset:block.top-top };
   return position;
 }
 

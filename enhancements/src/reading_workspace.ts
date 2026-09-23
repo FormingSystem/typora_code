@@ -192,6 +192,8 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     if (position && !held_paths.has(file_key(context.file_path))) void restore(context, position);
   }));
   document.addEventListener("scroll", (event) => {
+    const target=event.target;
+    if(!(target instanceof HTMLElement)||!(target.matches('content')||target.querySelector(':scope > .typ-markdown-preview')))return;
     const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
     if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
     const position = capture(context);
@@ -200,6 +202,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
   for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
     window.addEventListener(name, (event) => {
       if (!event.isTrusted) return;
+      if(!restoring.size)return;
       // 只取消发生输入的栏；切换到另一栏不能取消来源预览的恢复。
       const target = event.target;
       for (const context of all()) {

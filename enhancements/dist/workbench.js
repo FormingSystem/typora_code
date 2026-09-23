@@ -5725,15 +5725,15 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         function fromObservable(obs, store) {
-          const observer2 = new EmitterObserver(obs, store);
-          return observer2.emitter.event;
+          const observer3 = new EmitterObserver(obs, store);
+          return observer3.emitter.event;
         }
         Event3.fromObservable = fromObservable;
         function fromObservableLight(observable) {
           return (listener, thisArgs, disposables) => {
             let count = 0;
             let didChange = false;
-            const observer2 = {
+            const observer3 = {
               beginUpdate() {
                 count++;
               },
@@ -5753,11 +5753,11 @@ https://creativecommons.org/licenses/by/4.0/
                 didChange = true;
               }
             };
-            observable.addObserver(observer2);
+            observable.addObserver(observer3);
             observable.reportChanges();
             const disposable = {
               dispose() {
-                observable.removeObserver(observer2);
+                observable.removeObserver(observer3);
               }
             };
             addToDisposables(disposable, disposables);
@@ -11120,9 +11120,9 @@ https://creativecommons.org/licenses/by/4.0/
           this._observers = /* @__PURE__ */ new Set();
           getLogger()?.handleObservableCreated(this, debugLocation);
         }
-        addObserver(observer2) {
+        addObserver(observer3) {
           const len = this._observers.size;
-          this._observers.add(observer2);
+          this._observers.add(observer3);
           if (len === 0) {
             this.onFirstObserverAdded();
           }
@@ -11130,8 +11130,8 @@ https://creativecommons.org/licenses/by/4.0/
             getLogger()?.handleOnListenerCountChanged(this, this._observers.size);
           }
         }
-        removeObserver(observer2) {
-          const deleted = this._observers.delete(observer2);
+        removeObserver(observer3) {
+          const deleted = this._observers.delete(observer3);
           if (deleted && this._observers.size === 0) {
             this.onLastObserverRemoved();
           }
@@ -11417,23 +11417,23 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return this._store;
         }
-        addObserver(observer2) {
-          const shouldCallBeginUpdate = !this._observers.has(observer2) && this._updateCount > 0;
-          super.addObserver(observer2);
+        addObserver(observer3) {
+          const shouldCallBeginUpdate = !this._observers.has(observer3) && this._updateCount > 0;
+          super.addObserver(observer3);
           if (shouldCallBeginUpdate) {
-            if (!this._removedObserverToCallEndUpdateOn?.delete(observer2)) {
-              observer2.beginUpdate(this);
+            if (!this._removedObserverToCallEndUpdateOn?.delete(observer3)) {
+              observer3.beginUpdate(this);
             }
           }
         }
-        removeObserver(observer2) {
-          if (this._observers.has(observer2) && this._updateCount > 0) {
+        removeObserver(observer3) {
+          if (this._observers.has(observer3) && this._updateCount > 0) {
             if (!this._removedObserverToCallEndUpdateOn) {
               this._removedObserverToCallEndUpdateOn = /* @__PURE__ */ new Set();
             }
-            this._removedObserverToCallEndUpdateOn.add(observer2);
+            this._removedObserverToCallEndUpdateOn.add(observer3);
           }
-          super.removeObserver(observer2);
+          super.removeObserver(observer3);
         }
         debugGetState() {
           return {
@@ -11883,16 +11883,16 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return getFunctionName(this._fn);
         }
-        updateObserver(observer2, observable) {
+        updateObserver(observer3, observable) {
           if (!this._updatingObservers) {
             handleBugIndicatingErrorRecovery("Transaction already finished!");
             transaction((tx) => {
-              tx.updateObserver(observer2, observable);
+              tx.updateObserver(observer3, observable);
             });
             return;
           }
-          this._updatingObservers.push({ observer: observer2, observable });
-          observer2.beginUpdate(observable);
+          this._updatingObservers.push({ observer: observer3, observable });
+          observer3.beginUpdate(observable);
         }
         finish() {
           const updatingObservers = this._updatingObservers;
@@ -11901,8 +11901,8 @@ https://creativecommons.org/licenses/by/4.0/
             return;
           }
           for (let i = 0; i < updatingObservers.length; i++) {
-            const { observer: observer2, observable } = updatingObservers[i];
-            observer2.endUpdate(observable);
+            const { observer: observer3, observable } = updatingObservers[i];
+            observer3.endUpdate(observable);
           }
           this._updatingObservers = null;
           getLogger()?.handleEndTransaction(this);
@@ -11971,9 +11971,9 @@ https://creativecommons.org/licenses/by/4.0/
             const oldValue = this._value;
             this._setValue(value);
             getLogger()?.handleObservableUpdated(this, { oldValue, newValue: value, change, didChange: true, hadValue: true });
-            for (const observer2 of this._observers) {
-              tx.updateObserver(observer2, this);
-              observer2.handleChange(this, change);
+            for (const observer3 of this._observers) {
+              tx.updateObserver(observer3, this);
+              observer3.handleChange(this, change);
             }
           } finally {
             if (_tx) {
@@ -12519,12 +12519,12 @@ https://creativecommons.org/licenses/by/4.0/
           const observerQueue = txs.flatMap((t) => t.debugGetUpdatingObservers() ?? []).map((o2) => o2.observer);
           const processedObservers = /* @__PURE__ */ new Set();
           while (observerQueue.length > 0) {
-            const observer2 = observerQueue.shift();
-            if (processedObservers.has(observer2)) {
+            const observer3 = observerQueue.shift();
+            if (processedObservers.has(observer3)) {
               continue;
             }
-            processedObservers.add(observer2);
-            const state = this._getInfo(observer2, (d) => {
+            processedObservers.add(observer3);
+            const state = this._getInfo(observer3, (d) => {
               if (!processedObservers.has(d)) {
                 observerQueue.push(d);
               }
@@ -12551,18 +12551,18 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return info;
         }
-        _getInfo(observer2, queue2) {
-          if (observer2 instanceof Derived) {
-            const observersToUpdate = [...observer2.debugGetObservers()];
+        _getInfo(observer3, queue2) {
+          if (observer3 instanceof Derived) {
+            const observersToUpdate = [...observer3.debugGetObservers()];
             for (const o2 of observersToUpdate) {
               queue2(o2);
             }
-            const info = this._getObservableInfo(observer2);
+            const info = this._getObservableInfo(observer3);
             if (!info) {
               return;
             }
-            const observerState = observer2.debugGetState();
-            const base = { name: observer2.debugName, instanceId: info.instanceId, updateCount: observerState.updateCount };
+            const observerState = observer3.debugGetState();
+            const base = { name: observer3.debugName, instanceId: info.instanceId, updateCount: observerState.updateCount };
             const changedDependencies = [...info.changedObservables].map((o2) => this._instanceInfos.get(o2)?.instanceId).filter(isDefined);
             if (observerState.isComputing) {
               return { ...base, type: "observable/derived", state: "updating", changedDependencies, initialComputation: false };
@@ -12577,17 +12577,17 @@ https://creativecommons.org/licenses/by/4.0/
               case 1:
                 return { ...base, type: "observable/derived", state: "possiblyStale" };
             }
-          } else if (observer2 instanceof AutorunObserver) {
-            const info = this._getAutorunInfo(observer2);
+          } else if (observer3 instanceof AutorunObserver) {
+            const info = this._getAutorunInfo(observer3);
             if (!info) {
               return void 0;
             }
-            const base = { name: observer2.debugName, instanceId: info.instanceId, updateCount: info.updateCount };
+            const base = { name: observer3.debugName, instanceId: info.instanceId, updateCount: info.updateCount };
             const changedDependencies = [...info.changedObservables].map((o2) => this._instanceInfos.get(o2).instanceId);
-            if (observer2.debugGetState().isRunning) {
+            if (observer3.debugGetState().isRunning) {
               return { ...base, type: "autorun", state: "updating", changedDependencies };
             }
-            switch (observer2.debugGetState().state) {
+            switch (observer3.debugGetState().state) {
               case 3:
                 return { ...base, type: "autorun", state: "upToDate" };
               case 2:
@@ -13703,18 +13703,18 @@ https://creativecommons.org/licenses/by/4.0/
           let mutationObserverPerOptions = mutationObserversPerTarget.get(optionsHash);
           if (!mutationObserverPerOptions) {
             const onDidMutate = new Emitter();
-            const observer2 = new MutationObserver((mutations) => onDidMutate.fire(mutations));
-            observer2.observe(target, options2);
+            const observer3 = new MutationObserver((mutations) => onDidMutate.fire(mutations));
+            observer3.observe(target, options2);
             const resolvedMutationObserverPerOptions = mutationObserverPerOptions = {
               users: 1,
-              observer: observer2,
+              observer: observer3,
               onDidMutate: onDidMutate.event
             };
             disposables.add(toDisposable(() => {
               resolvedMutationObserverPerOptions.users -= 1;
               if (resolvedMutationObserverPerOptions.users === 0) {
                 onDidMutate.dispose();
-                observer2.disconnect();
+                observer3.disconnect();
                 mutationObserversPerTarget?.delete(optionsHash);
                 if (mutationObserversPerTarget?.size === 0) {
                   this.mutationObservers.delete(target);
@@ -26300,10 +26300,10 @@ https://creativecommons.org/licenses/by/4.0/
             }
           }
           if ("IntersectionObserver" in mainWindow) {
-            const observer2 = new IntersectionObserver((e) => this._intersectionChange(e, hover), { threshold: 0 });
+            const observer3 = new IntersectionObserver((e) => this._intersectionChange(e, hover), { threshold: 0 });
             const firstTargetElement = "targetElements" in options2.target ? options2.target.targetElements[0] : options2.target;
-            observer2.observe(firstTargetElement);
-            hoverDisposables.add(toDisposable(() => observer2.disconnect()));
+            observer3.observe(firstTargetElement);
+            hoverDisposables.add(toDisposable(() => observer3.disconnect()));
           }
           return { hover, lastFocusedElementBeforeOpen, store: hoverDisposables };
         }
@@ -37912,9 +37912,9 @@ https://creativecommons.org/licenses/by/4.0/
         get() {
           return this.value;
         }
-        addObserver(observer2) {
+        addObserver(observer3) {
         }
-        removeObserver(observer2) {
+        removeObserver(observer3) {
         }
         toString() {
           return "Const: ".concat(this.value);
@@ -38101,9 +38101,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           this.renderedElements = rendered;
         }
-        renderIndexes(indexes) {
+        renderIndexes(indexes2) {
           for (const { index, templateData } of this.renderedElements) {
-            if (indexes.indexOf(index) > -1) {
+            if (indexes2.indexOf(index) > -1) {
               this.trait.renderIndex(index, templateData);
             }
           }
@@ -38163,17 +38163,17 @@ https://creativecommons.org/licenses/by/4.0/
          * @param indexes Indexes which should have this trait.
          * @return The old indexes which had this trait.
          */
-        set(indexes, browserEvent) {
-          return this._set(indexes, [...indexes].sort(numericSort), browserEvent);
+        set(indexes2, browserEvent) {
+          return this._set(indexes2, [...indexes2].sort(numericSort), browserEvent);
         }
-        _set(indexes, sortedIndexes, browserEvent) {
+        _set(indexes2, sortedIndexes, browserEvent) {
           const result = this.indexes;
           const sortedResult = this.sortedIndexes;
-          this.indexes = indexes;
+          this.indexes = indexes2;
           this.sortedIndexes = sortedIndexes;
-          const toRender = disjunction(sortedResult, indexes);
+          const toRender = disjunction(sortedResult, indexes2);
           this.renderer.renderIndexes(toRender);
-          this._onChange.fire({ indexes, browserEvent });
+          this._onChange.fire({ indexes: indexes2, browserEvent });
           return result;
         }
         get() {
@@ -39115,14 +39115,14 @@ https://creativecommons.org/licenses/by/4.0/
         layout(height, width2) {
           this.view.layout(height, width2);
         }
-        setSelection(indexes, browserEvent) {
-          for (const index of indexes) {
+        setSelection(indexes2, browserEvent) {
+          for (const index of indexes2) {
             if (index < 0 || index >= this.length) {
               throw new ListError(this.user, "Invalid index ".concat(index));
             }
           }
-          indexes = indexes.filter((i) => this.getElementGroupId(i) !== NotSelectableGroupId);
-          this.selection.set(indexes, browserEvent);
+          indexes2 = indexes2.filter((i) => this.getElementGroupId(i) !== NotSelectableGroupId);
+          this.selection.set(indexes2, browserEvent);
         }
         getSelection() {
           return this.selection.get();
@@ -39178,13 +39178,13 @@ https://creativecommons.org/licenses/by/4.0/
             return groupId === referenceGroupId;
           });
         }
-        setFocus(indexes, browserEvent) {
-          for (const index of indexes) {
+        setFocus(indexes2, browserEvent) {
+          for (const index of indexes2) {
             if (index < 0 || index >= this.length) {
               throw new ListError(this.user, "Invalid index ".concat(index));
             }
           }
-          this.focus.set(indexes, browserEvent);
+          this.focus.set(indexes2, browserEvent);
         }
         focusNext(n2 = 1, loop = false, browserEvent, filter) {
           if (this.length === 0) {
@@ -39364,8 +39364,8 @@ https://creativecommons.org/licenses/by/4.0/
         style(styles) {
           this.styleController.style(styles);
         }
-        toListEvent({ indexes, browserEvent }) {
-          return { indexes, elements: indexes.map((i) => this.view.element(i)), browserEvent };
+        toListEvent({ indexes: indexes2, browserEvent }) {
+          return { indexes: indexes2, elements: indexes2.map((i) => this.view.element(i)), browserEvent };
         }
         _onFocusChange() {
           const focus = this.focus.get();
@@ -45361,7 +45361,7 @@ https://creativecommons.org/licenses/by/4.0/
           return Event2.map(this.list.onPointer, ({ element, index, browserEvent }) => ({ element: element === void 0 ? void 0 : this._model.get(element), index, browserEvent }));
         }
         get onDidChangeSelection() {
-          return Event2.map(this.list.onDidChangeSelection, ({ elements, indexes, browserEvent }) => ({ elements: elements.map((e) => this._model.get(e)), indexes, browserEvent }));
+          return Event2.map(this.list.onDidChangeSelection, ({ elements, indexes: indexes2, browserEvent }) => ({ elements: elements.map((e) => this._model.get(e)), indexes: indexes2, browserEvent }));
         }
         get model() {
           return this._model;
@@ -46124,12 +46124,12 @@ https://creativecommons.org/licenses/by/4.0/
           this.size = size;
           this.layoutContext = layoutContext;
           if (!this.proportions) {
-            const indexes = range(this.viewItems.length);
-            const lowPriorityIndexes = indexes.filter(
+            const indexes2 = range(this.viewItems.length);
+            const lowPriorityIndexes = indexes2.filter(
               (i) => this.viewItems[i].priority === 1
               /* LayoutPriority.Low */
             );
-            const highPriorityIndexes = indexes.filter(
+            const highPriorityIndexes = indexes2.filter(
               (i) => this.viewItems[i].priority === 2
               /* LayoutPriority.High */
             );
@@ -46279,12 +46279,12 @@ https://creativecommons.org/licenses/by/4.0/
           }
           this.state = State.Busy;
           try {
-            const indexes = range(this.viewItems.length).filter((i) => i !== index);
-            const lowPriorityIndexes = [...indexes.filter(
+            const indexes2 = range(this.viewItems.length).filter((i) => i !== index);
+            const lowPriorityIndexes = [...indexes2.filter(
               (i) => this.viewItems[i].priority === 1
               /* LayoutPriority.Low */
             ), index];
-            const highPriorityIndexes = indexes.filter(
+            const highPriorityIndexes = indexes2.filter(
               (i) => this.viewItems[i].priority === 2
               /* LayoutPriority.High */
             );
@@ -46313,12 +46313,12 @@ https://creativecommons.org/licenses/by/4.0/
           for (const item of flexibleViewItems) {
             item.size = clamp(size, item.minimumSize, item.maximumSize);
           }
-          const indexes = range(this.viewItems.length);
-          const lowPriorityIndexes = indexes.filter(
+          const indexes2 = range(this.viewItems.length);
+          const lowPriorityIndexes = indexes2.filter(
             (i) => this.viewItems[i].priority === 1
             /* LayoutPriority.Low */
           );
-          const highPriorityIndexes = indexes.filter(
+          const highPriorityIndexes = indexes2.filter(
             (i) => this.viewItems[i].priority === 2
             /* LayoutPriority.High */
           );
@@ -46491,26 +46491,26 @@ https://creativecommons.org/licenses/by/4.0/
         distributeEmptySpace(lowPriorityIndex) {
           const contentSize = this.viewItems.reduce((r4, i) => r4 + i.size, 0);
           let emptyDelta = this.size - contentSize;
-          const indexes = range(this.viewItems.length - 1, -1);
-          const lowPriorityIndexes = indexes.filter(
+          const indexes2 = range(this.viewItems.length - 1, -1);
+          const lowPriorityIndexes = indexes2.filter(
             (i) => this.viewItems[i].priority === 1
             /* LayoutPriority.Low */
           );
-          const highPriorityIndexes = indexes.filter(
+          const highPriorityIndexes = indexes2.filter(
             (i) => this.viewItems[i].priority === 2
             /* LayoutPriority.High */
           );
           for (const index of highPriorityIndexes) {
-            pushToStart(indexes, index);
+            pushToStart(indexes2, index);
           }
           for (const index of lowPriorityIndexes) {
-            pushToEnd(indexes, index);
+            pushToEnd(indexes2, index);
           }
           if (typeof lowPriorityIndex === "number") {
-            pushToEnd(indexes, lowPriorityIndex);
+            pushToEnd(indexes2, lowPriorityIndex);
           }
-          for (let i = 0; emptyDelta !== 0 && i < indexes.length; i++) {
-            const item = this.viewItems[indexes[i]];
+          for (let i = 0; emptyDelta !== 0 && i < indexes2.length; i++) {
+            const item = this.viewItems[indexes2[i]];
             const size = clamp(item.size + emptyDelta, item.minimumSize, item.maximumSize);
             const viewDelta = size - item.size;
             emptyDelta -= viewDelta;
@@ -46591,8 +46591,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return 0;
         }
-        findFirstSnapIndex(indexes) {
-          for (const index of indexes) {
+        findFirstSnapIndex(indexes2) {
+          for (const index of indexes2) {
             const viewItem = this.viewItems[index];
             if (!viewItem.visible) {
               continue;
@@ -46601,7 +46601,7 @@ https://creativecommons.org/licenses/by/4.0/
               return index;
             }
           }
-          for (const index of indexes) {
+          for (const index of indexes2) {
             const viewItem = this.viewItems[index];
             if (viewItem.visible && viewItem.maximumSize - viewItem.minimumSize > 0) {
               return void 0;
@@ -47943,7 +47943,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
           };
-          this.observer = new MutationObserver((mutationList, observer2) => {
+          this.observer = new MutationObserver((mutationList, observer3) => {
             mutationList.forEach((mutation) => {
               if (!mutation.target.textContent) {
                 addSuffix();
@@ -48178,21 +48178,21 @@ https://creativecommons.org/licenses/by/4.0/
                 9
                 /* KeyCode.Escape */
               )) {
-                const indexes = this.getToggleDomNodes();
-                const index = indexes.indexOf(this.domNode.ownerDocument.activeElement);
+                const indexes2 = this.getToggleDomNodes();
+                const index = indexes2.indexOf(this.domNode.ownerDocument.activeElement);
                 if (index >= 0) {
                   let newIndex = -1;
                   if (event.equals(
                     17
                     /* KeyCode.RightArrow */
                   )) {
-                    newIndex = (index + 1) % indexes.length;
+                    newIndex = (index + 1) % indexes2.length;
                   } else if (event.equals(
                     15
                     /* KeyCode.LeftArrow */
                   )) {
                     if (index === 0) {
-                      newIndex = indexes.length - 1;
+                      newIndex = indexes2.length - 1;
                     } else {
                       newIndex = index - 1;
                     }
@@ -48201,10 +48201,10 @@ https://creativecommons.org/licenses/by/4.0/
                     9
                     /* KeyCode.Escape */
                   )) {
-                    indexes[index].blur();
+                    indexes2[index].blur();
                     this.inputBox.focus();
                   } else if (newIndex >= 0) {
-                    indexes[newIndex].focus();
+                    indexes2[newIndex].focus();
                   }
                   EventHelper.stop(event, true);
                 }
@@ -51315,16 +51315,16 @@ https://creativecommons.org/licenses/by/4.0/
             super.setAnchor(anchor);
           }
         }
-        setFocus(indexes, browserEvent, fromAPI = false) {
-          super.setFocus(indexes, browserEvent);
+        setFocus(indexes2, browserEvent, fromAPI = false) {
+          super.setFocus(indexes2, browserEvent);
           if (!fromAPI) {
-            this.focusTrait.set(indexes.map((i) => this.element(i)), browserEvent);
+            this.focusTrait.set(indexes2.map((i) => this.element(i)), browserEvent);
           }
         }
-        setSelection(indexes, browserEvent, fromAPI = false) {
-          super.setSelection(indexes, browserEvent);
+        setSelection(indexes2, browserEvent, fromAPI = false) {
+          super.setSelection(indexes2, browserEvent);
           if (!fromAPI) {
-            this.selectionTrait.set(indexes.map((i) => this.element(i)), browserEvent);
+            this.selectionTrait.set(indexes2.map((i) => this.element(i)), browserEvent);
           }
         }
         setAnchor(index, fromAPI = false) {
@@ -51597,8 +51597,8 @@ https://creativecommons.org/licenses/by/4.0/
           this.eventBufferer.bufferEvents(() => {
             const nodes = elements.map((e) => this.model.getNode(e));
             this.selection.set(nodes, browserEvent);
-            const indexes = elements.map((e) => this.model.getListIndex(e)).filter((i) => i > -1);
-            this.view.setSelection(indexes, browserEvent, true);
+            const indexes2 = elements.map((e) => this.model.getListIndex(e)).filter((i) => i > -1);
+            this.view.setSelection(indexes2, browserEvent, true);
           });
         }
         getSelection() {
@@ -51608,8 +51608,8 @@ https://creativecommons.org/licenses/by/4.0/
           this.eventBufferer.bufferEvents(() => {
             const nodes = elements.map((e) => this.model.getNode(e));
             this.focus.set(nodes, browserEvent);
-            const indexes = elements.map((e) => this.model.getListIndex(e)).filter((i) => i > -1);
-            this.view.setFocus(indexes, browserEvent, true);
+            const indexes2 = elements.map((e) => this.model.getListIndex(e)).filter((i) => i > -1);
+            this.view.setFocus(indexes2, browserEvent, true);
           });
         }
         focusNext(n2 = 1, loop = false, browserEvent, filter = isKeyboardEvent(browserEvent) && browserEvent.altKey ? void 0 : this.focusNavigationFilter) {
@@ -72272,23 +72272,23 @@ https://creativecommons.org/licenses/by/4.0/
           if (this._deltas.length > 0) {
             for (const change of this._deltas) {
               getLogger()?.handleObservableUpdated(this, { change, didChange: true, oldValue: "(unknown)", newValue: this._value, hadValue: true });
-              for (const observer2 of this._observers) {
-                observer2.handleChange(this, change);
+              for (const observer3 of this._observers) {
+                observer3.handleChange(this, change);
               }
             }
             this._deltas.length = 0;
           } else {
             getLogger()?.handleObservableUpdated(this, { change: void 0, didChange: true, oldValue: "(unknown)", newValue: this._value, hadValue: true });
-            for (const observer2 of this._observers) {
-              observer2.handleChange(this, void 0);
+            for (const observer3 of this._observers) {
+              observer3.handleChange(this, void 0);
             }
           }
         }
         _beginUpdate() {
           this._updateCounter++;
           if (this._updateCounter === 1) {
-            for (const observer2 of this._observers) {
-              observer2.beginUpdate(this);
+            for (const observer3 of this._observers) {
+              observer3.beginUpdate(this);
             }
           }
         }
@@ -72302,18 +72302,18 @@ https://creativecommons.org/licenses/by/4.0/
             }
           }
         }
-        addObserver(observer2) {
-          const shouldCallBeginUpdate = !this._observers.has(observer2) && this._updateCounter > 0;
-          super.addObserver(observer2);
+        addObserver(observer3) {
+          const shouldCallBeginUpdate = !this._observers.has(observer3) && this._updateCounter > 0;
+          super.addObserver(observer3);
           if (shouldCallBeginUpdate) {
-            observer2.beginUpdate(this);
+            observer3.beginUpdate(this);
           }
         }
-        removeObserver(observer2) {
-          const shouldCallEndUpdate = this._observers.has(observer2) && this._updateCounter > 0;
-          super.removeObserver(observer2);
+        removeObserver(observer3) {
+          const shouldCallEndUpdate = this._observers.has(observer3) && this._updateCounter > 0;
+          super.removeObserver(observer3);
           if (shouldCallEndUpdate) {
-            observer2.endUpdate(this);
+            observer3.endUpdate(this);
           }
         }
         set(value, tx, change) {
@@ -72340,8 +72340,8 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }, this);
             if (this._updateCounter > 1) {
-              for (const observer2 of this._observers) {
-                observer2.handlePossibleChange(this);
+              for (const observer3 of this._observers) {
+                observer3.handlePossibleChange(this);
               }
             }
           } finally {
@@ -81312,11 +81312,11 @@ https://creativecommons.org/licenses/by/4.0/
             this.element.classList.toggle("responsive-all", this.options.responsiveBehavior.kind === "all");
             this.element.classList.toggle("responsive-last", this.options.responsiveBehavior.kind === "last");
             this.element.style.setProperty(ACTION_MIN_WIDTH_VAR, "".concat(this.getConfiguredActionMinWidth(), "px"));
-            const observer2 = new ResizeObserver(() => {
+            const observer3 = new ResizeObserver(() => {
               this.updateActions(this.getAvailableWidth());
             });
-            observer2.observe(this.options.responsiveBehavior?.observedElement ?? this.element);
-            this._store.add(toDisposable(() => observer2.disconnect()));
+            observer3.observe(this.options.responsiveBehavior?.observedElement ?? this.element);
+            this._store.add(toDisposable(() => observer3.disconnect()));
           }
         }
         set actionRunner(actionRunner) {
@@ -117255,14 +117255,14 @@ https://creativecommons.org/licenses/by/4.0/
     return value;
   }
   function observeDevicePixelDimensions(element, parentWindow, callback) {
-    let observer2 = new parentWindow.ResizeObserver((entries3) => {
+    let observer3 = new parentWindow.ResizeObserver((entries3) => {
       const entry = entries3.find((entry2) => entry2.target === element);
       if (!entry) {
         return;
       }
       if (!("devicePixelContentBoxSize" in entry)) {
-        observer2?.disconnect();
-        observer2 = void 0;
+        observer3?.disconnect();
+        observer3 = void 0;
         return;
       }
       const width2 = entry.devicePixelContentBoxSize[0].inlineSize;
@@ -117272,13 +117272,13 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     try {
-      observer2.observe(element, { box: ["device-pixel-content-box"] });
+      observer3.observe(element, { box: ["device-pixel-content-box"] });
     } catch {
-      observer2.disconnect();
-      observer2 = void 0;
+      observer3.disconnect();
+      observer3 = void 0;
       throw new BugIndicatingError("Could not observe device pixel dimensions");
     }
-    return toDisposable(() => observer2?.disconnect());
+    return toDisposable(() => observer3?.disconnect());
   }
   var quadVertices;
   var init_gpuUtils = __esm({
@@ -158161,11 +158161,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     });
-    const invalidate = () => {
+    const invalidate2 = () => {
       for (const fence of entries3.keys()) enqueue(fence);
     };
-    window.addEventListener("resize", invalidate, { passive: true });
-    document.fonts?.addEventListener("loadingdone", invalidate);
+    window.addEventListener("resize", invalidate2, { passive: true });
+    document.fonts?.addEventListener("loadingdone", invalidate2);
     const remove = (fence, entry) => {
       intersection2.unobserve(fence);
       resize.unobserve(entry.wrapper);
@@ -158202,8 +158202,8 @@ https://creativecommons.org/licenses/by/4.0/
         queued.clear();
         entries3.clear();
         wrappers.clear();
-        window.removeEventListener("resize", invalidate);
-        document.fonts?.removeEventListener("loadingdone", invalidate);
+        window.removeEventListener("resize", invalidate2);
+        document.fonts?.removeEventListener("loadingdone", invalidate2);
       }
     };
   }
@@ -158430,21 +158430,21 @@ https://creativecommons.org/licenses/by/4.0/
     }
     entry.users++;
     let removed = false;
-    let observer2;
+    let observer3;
     const handle = { remove() {
       if (removed) return;
       removed = true;
-      observer2?.disconnect();
+      observer3?.disconnect();
       if (--entry.users === 0) {
         entry.node.remove();
         owned.delete(id);
       }
     } };
     if (owner2) {
-      observer2 = new MutationObserver(() => {
+      observer3 = new MutationObserver(() => {
         if (!owner2.isConnected) handle.remove();
       });
-      observer2.observe(document.documentElement, { childList: true, subtree: true });
+      observer3.observe(document.documentElement, { childList: true, subtree: true });
     }
     return handle;
   }
@@ -160717,11 +160717,11 @@ https://creativecommons.org/licenses/by/4.0/
         entry.toolbar.style.width = "".concat(entry_width, "px");
       }
     }
-    const observer2 = new MutationObserver((changes) => {
+    const observer3 = new MutationObserver((changes) => {
       if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
     });
-    observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
-    if (root.getRootNode() instanceof ShadowRoot) observer2.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    observer3.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    if (root.getRootNode() instanceof ShadowRoot) observer3.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     document.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
     if (root !== document.body) root.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
     window.addEventListener("resize", schedule, { passive: true, signal });
@@ -160786,7 +160786,7 @@ https://creativecommons.org/licenses/by/4.0/
         disposed = true;
         controller.abort();
         cancelAnimationFrame(frame3);
-        observer2.disconnect();
+        observer3.disconnect();
         resize.disconnect();
         for (const entry of entries3.values()) {
           entry.events.abort();
@@ -161166,10 +161166,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
     }
-    const observer2 = new MutationObserver((changes) => {
+    const observer3 = new MutationObserver((changes) => {
       if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
     });
-    observer2.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
+    observer3.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
     root.addEventListener("load", schedule, { capture: true, signal });
     root.addEventListener("error", schedule, { capture: true, signal });
     root.addEventListener("dblclick", (event) => {
@@ -161187,7 +161187,7 @@ https://creativecommons.org/licenses/by/4.0/
       close_session();
       controller.abort();
       cancelAnimationFrame(frame3);
-      observer2.disconnect();
+      observer3.disconnect();
       for (const [image, entry] of entries3) entry.control.dispose();
       entries3.clear();
       controls.dispose();
@@ -161470,19 +161470,19 @@ https://creativecommons.org/licenses/by/4.0/
       });
     };
     const selector = "#write,[data-workspace-color-preview]";
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       if (records.some((record) => {
         const target = record.target instanceof Element ? record.target : record.target.parentElement;
         if (target?.closest(selector)) return true;
         return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches(selector) || node.querySelector(selector)));
       })) schedule();
     });
-    observer2.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
+    observer3.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
     const release_theme2 = observe_workspace_theme(schedule);
     schedule();
     return { refresh, dispose() {
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       release_theme2();
       cancelAnimationFrame(frame3);
       for (const [root, entries3] of owned2) for (const [key2, entry] of entries3) release(root, key2, entry);
@@ -162376,6 +162376,104 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/reading_blocks.ts
+  var indexes = /* @__PURE__ */ new WeakMap();
+  function create_block_index(root) {
+    let dirty = true, width2 = -1, height = -1, items = [], ordered = true;
+    const invalidate2 = () => {
+      dirty = true;
+    };
+    const mutation = new MutationObserver(invalidate2);
+    mutation.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    const resize = new ResizeObserver(invalidate2);
+    resize.observe(root);
+    const styles = new MutationObserver(invalidate2);
+    styles.observe(document.head, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+    styles.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    styles.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+    document.fonts?.addEventListener("loadingdone", invalidate2);
+    document.head.addEventListener("load", invalidate2, true);
+    return {
+      read() {
+        if (mutation.takeRecords().length || styles.takeRecords().length) dirty = true;
+        const box = root.getBoundingClientRect();
+        if (dirty || width2 !== box.width || height !== box.height) {
+          dirty = false;
+          width2 = box.width;
+          height = box.height;
+          items = [];
+          ordered = true;
+          let previous = -Infinity;
+          for (const node of root.children) {
+            if (!(node instanceof HTMLElement) || node.matches("script,style,button")) continue;
+            const rect = node.getBoundingClientRect();
+            if (!rect.height) continue;
+            const bottom = rect.bottom - box.top;
+            if (bottom < previous) ordered = false;
+            previous = bottom;
+            items.push({ node, top: rect.top - box.top, bottom });
+          }
+        }
+        return { items, top: box.top, ordered };
+      },
+      invalidate: invalidate2,
+      dispose() {
+        mutation.disconnect();
+        resize.disconnect();
+        styles.disconnect();
+        document.fonts?.removeEventListener("loadingdone", invalidate2);
+        document.head.removeEventListener("load", invalidate2, true);
+        items = [];
+      }
+    };
+  }
+  function acquire_reading_blocks(root) {
+    let entry = indexes.get(root);
+    if (!entry) {
+      entry = { index: create_block_index(root), users: 0 };
+      indexes.set(root, entry);
+    }
+    entry.users++;
+    let disposed = false;
+    return { invalidate: entry.index.invalidate, dispose() {
+      if (disposed) return;
+      disposed = true;
+      if (!--entry.users) {
+        entry.index.dispose();
+        indexes.delete(root);
+      }
+    } };
+  }
+  function reading_block_at(root, target) {
+    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root), index = owned2 || temporary;
+    try {
+      const { items, top, ordered } = index.read(), relative2 = target - top;
+      let low = 0, high = items.length;
+      if (ordered) {
+        while (low < high) {
+          const mid = low + high >>> 1;
+          if (items[mid].bottom <= relative2) low = mid + 1;
+          else high = mid;
+        }
+      } else {
+        low = items.findIndex((item2) => item2.bottom > relative2);
+        if (low < 0) low = items.length;
+      }
+      const at3 = Math.min(low, items.length - 1), item = items[at3];
+      return item ? { node: item.node, index: at3, top: item.top + top } : void 0;
+    } finally {
+      temporary?.dispose();
+    }
+  }
+  function reading_block_snapshot(root) {
+    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root);
+    try {
+      return (owned2 || temporary).read();
+    } finally {
+      temporary?.dispose();
+    }
+  }
+
   // src/reading_reflow.ts
   var active_bindings = /* @__PURE__ */ new WeakMap();
   function character_rect(node, offset) {
@@ -162411,7 +162509,13 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     };
-    return find(root);
+    const block3 = reading_block_at(root, target);
+    if (!block3) return find(root);
+    for (let node = block3.node; node; node = node.nextElementSibling) {
+      if (node.getBoundingClientRect().top >= viewport.bottom) break;
+      const anchor = find(node);
+      if (anchor) return anchor;
+    }
   }
   function restore_reflow_anchor(scroller, root, anchor) {
     if (!anchor || !root.contains(anchor.node) || !root.getClientRects().length) return;
@@ -162435,6 +162539,7 @@ https://creativecommons.org/licenses/by/4.0/
     restore_reflow_anchor(scroller, root, anchor);
   }
   function bind_reading_reflow(scroller, root) {
+    const blocks3 = acquire_reading_blocks(root);
     let disposed = false, frame3 = 0, anchor;
     let geometry = "";
     const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
@@ -162455,8 +162560,9 @@ https://creativecommons.org/licenses/by/4.0/
     resize.observe(scroller);
     resize.observe(root);
     const scroll = () => {
-      if (size() !== geometry) return;
-      capture();
+      const next = size();
+      if (next !== geometry) return;
+      anchor = capture_reflow_anchor(scroller, root);
     };
     scroller.addEventListener("scroll", scroll, { passive: true });
     capture();
@@ -162464,6 +162570,7 @@ https://creativecommons.org/licenses/by/4.0/
       stop_native_reading_scroll(scroller);
       capture();
       action();
+      blocks3.invalidate();
       restore_reflow_anchor(scroller, root, anchor);
       cancelAnimationFrame(frame3);
       frame3 = requestAnimationFrame(restore);
@@ -162471,6 +162578,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       cancelAnimationFrame(frame3);
       resize.disconnect();
+      blocks3.dispose();
       scroller.removeEventListener("scroll", scroll);
       anchor = void 0;
       if (active_bindings.get(root) === binding) active_bindings.delete(root);
@@ -162499,14 +162607,14 @@ https://creativecommons.org/licenses/by/4.0/
         bindings9.set(root, { scroller, binding: bind_reading_reflow(scroller, root) });
       }
     };
-    const observer2 = new MutationObserver(() => {
+    const observer3 = new MutationObserver(() => {
       if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
     });
-    observer2.observe(document.body, { childList: true, subtree: true });
+    observer3.observe(document.body, { childList: true, subtree: true });
     refresh();
     return { dispose() {
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       cancelAnimationFrame(frame3);
       for (const { binding } of bindings9.values()) binding.dispose();
       bindings9.clear();
@@ -162683,14 +162791,14 @@ https://creativecommons.org/licenses/by/4.0/
         originals.delete(node);
       }
     };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
+    const observer3 = new MutationObserver(refresh);
+    observer3.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
     refresh();
     const release = core.app.workspace.on("active-leaf:change", refresh);
     return { dispose() {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       release?.();
       for (const [node, old] of originals) {
         node.className = old.class_name;
@@ -164144,13 +164252,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (!snapshot || !Array.isArray(snapshot.paths) || snapshot.paths.length > 512 || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || path.length > 32767 || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
       return snapshot;
     };
-    const invalidate = () => {
+    const invalidate2 = () => {
       cut = void 0;
       notify();
     };
     const read2 = async () => {
       const expected_cut = cut, snapshot = validate(await adapter.read());
-      if (cut === expected_cut && cut && (cut.snapshot.version !== snapshot.version || JSON.stringify(cut.snapshot.paths) !== JSON.stringify(snapshot.paths))) invalidate();
+      if (cut === expected_cut && cut && (cut.snapshot.version !== snapshot.version || JSON.stringify(cut.snapshot.paths) !== JSON.stringify(snapshot.paths))) invalidate2();
       return snapshot;
     };
     const perform = async (action) => {
@@ -164166,7 +164274,7 @@ https://creativecommons.org/licenses/by/4.0/
     return {
       is_busy: () => busy,
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
-      invalidate,
+      invalidate: invalidate2,
       subscribe(listener) {
         listeners6.add(listener);
         return () => listeners6.delete(listener);
@@ -164177,7 +164285,7 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           await read2();
         } catch {
-          if (cut === expected_cut) invalidate();
+          if (cut === expected_cut) invalidate2();
         }
       },
       copy: (root, paths, move, valid = () => true) => perform(async () => {
@@ -164186,7 +164294,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!selected.length) return;
         await actions.validate(root, selected);
         if (disposed || !valid()) throw new Error("\u64CD\u4F5C\u4E0A\u4E0B\u6587\u5DF2\u6539\u53D8\uFF0C\u672A\u590D\u5236\u6587\u4EF6\u3002");
-        invalidate();
+        invalidate2();
         const snapshot = validate(await adapter.write(selected));
         if (JSON.stringify(snapshot.paths) !== JSON.stringify(selected)) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u590D\u5236\u6587\u4EF6\u3002");
         if (!disposed && move && valid()) {
@@ -164201,7 +164309,7 @@ https://creativecommons.org/licenses/by/4.0/
         const move = Boolean(cut && cut.root === root && cut.snapshot.version === snapshot.version), paths = await actions.transfer(root, snapshot.paths, target, move, !move);
         let warning = "";
         if (move) {
-          invalidate();
+          invalidate2();
           try {
             await adapter.clear(snapshot.version);
           } catch {
@@ -166966,7 +167074,7 @@ https://creativecommons.org/licenses/by/4.0/
       } else {
         this.cachedOptionsWidth = 0;
       }
-      const indexes = [this.preserveCase.domNode];
+      const indexes2 = [this.preserveCase.domNode];
       this.onkeydown(this.domNode, (event) => {
         if (event.equals(
           15
@@ -166978,20 +167086,20 @@ https://creativecommons.org/licenses/by/4.0/
           9
           /* KeyCode.Escape */
         )) {
-          const index = indexes.indexOf(this.domNode.ownerDocument.activeElement);
+          const index = indexes2.indexOf(this.domNode.ownerDocument.activeElement);
           if (index >= 0) {
             let newIndex = -1;
             if (event.equals(
               17
               /* KeyCode.RightArrow */
             )) {
-              newIndex = (index + 1) % indexes.length;
+              newIndex = (index + 1) % indexes2.length;
             } else if (event.equals(
               15
               /* KeyCode.LeftArrow */
             )) {
               if (index === 0) {
-                newIndex = indexes.length - 1;
+                newIndex = indexes2.length - 1;
               } else {
                 newIndex = index - 1;
               }
@@ -167000,10 +167108,10 @@ https://creativecommons.org/licenses/by/4.0/
               9
               /* KeyCode.Escape */
             )) {
-              indexes[index].blur();
+              indexes2[index].blur();
               this.inputBox.focus();
             } else if (newIndex >= 0) {
-              indexes[newIndex].focus();
+              indexes2[newIndex].focus();
             }
             EventHelper.stop(event, true);
           }
@@ -184383,16 +184491,46 @@ https://creativecommons.org/licenses/by/4.0/
   var purify2 = createDOMPurify2();
 
   // src/workspace_markdown_theme.ts
+  var cached_rules;
+  var observer2;
+  var users = 0;
+  var invalidate = () => {
+    cached_rules = void 0;
+  };
+  function observe_markdown_theme(listener) {
+    if (!users++) {
+      observer2 = new MutationObserver(invalidate);
+      observer2.observe(document.head, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+      document.head.addEventListener("load", invalidate, true);
+    }
+    const unsubscribe = observe_workspace_theme(listener);
+    let disposed = false;
+    return () => {
+      if (disposed) return;
+      disposed = true;
+      unsubscribe();
+      if (!--users) {
+        observer2?.disconnect();
+        observer2 = void 0;
+        document.head.removeEventListener("load", invalidate, true);
+        invalidate();
+      }
+    };
+  }
   function markdown_theme_rules() {
+    if (observer2?.takeRecords().length) invalidate();
+    if (users && cached_rules !== void 0) return cached_rules;
     const rules = [];
     for (const sheet of [...document.styleSheets]) {
       try {
-        const text3 = [...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
-        if (text3) rules.push(text3.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
+        const text4 = [...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
+        if (text4) rules.push(text4.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
       } catch {
       }
     }
-    return rules.join("\n");
+    const text3 = rules.join("\n");
+    if (users) cached_rules = text3;
+    return text3;
   }
 
   // src/workspace_markdown_preview_render.ts
@@ -184707,10 +184845,10 @@ https://creativecommons.org/licenses/by/4.0/
       schedule();
     }, { signal, passive: false });
     scroll.addEventListener("scroll", () => schedule(), { signal, passive: true });
-    const observer2 = new ResizeObserver(() => schedule(true));
-    observer2.observe(scroll);
-    observer2.observe(reader);
-    observer2.observe(container);
+    const observer3 = new ResizeObserver(() => schedule(true));
+    observer3.observe(scroll);
+    observer3.observe(reader);
+    observer3.observe(container);
     return { container, refresh() {
       schedule(true);
     }, set_rows(value) {
@@ -184725,7 +184863,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       end_drag();
       if (frame3) cancelAnimationFrame(frame3);
-      observer2.disconnect();
+      observer3.disconnect();
       events.abort();
       container.remove();
       rows = [];
@@ -184808,15 +184946,16 @@ https://creativecommons.org/licenses/by/4.0/
     const diagrams = create_preview_diagrams();
     const theme2 = () => {
       const content = markdown_theme_rules() + "\n" + git_markdown_diff_shadow_default;
-      if (style.textContent !== content) style.textContent = content;
-      const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
-      container.dataset.theme = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
-      scroll.dataset.theme = container.dataset.theme;
-      overview.refresh();
+      const changed3 = style.textContent !== content;
+      if (changed3) style.textContent = content;
+      const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0], mode = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
+      if (container.dataset.theme !== mode) {
+        container.dataset.theme = mode;
+        scroll.dataset.theme = mode;
+      }
+      if (changed3) overview.refresh();
     };
-    const observer2 = new MutationObserver(theme2);
-    observer2.observe(document.head, { childList: true, subtree: true, characterData: true });
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    const observer3 = observe_markdown_theme(theme2);
     theme2();
     const navigate = (direction) => {
       if (!changed2.length) return;
@@ -184911,7 +185050,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         generation++;
-        observer2.disconnect();
+        observer3();
         overview.dispose();
         diagrams.dispose();
         container.remove();
@@ -185736,19 +185875,16 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
   function blocks2(root) {
-    return Array.from(root.children).filter((node) => node instanceof HTMLElement && node.getBoundingClientRect().height > 0 && !node.matches("script, style, button"));
+    return reading_block_snapshot(root).items.map((item) => item.node);
   }
   function block_text(block3) {
     return (block3.textContent ?? "").trim().slice(0, 160);
   }
   function capture_position(scroller, root) {
     const position2 = { scroll_top: scroller.scrollTop, scroll_left: scroller.scrollLeft };
-    const children = blocks2(root);
     const top = scroller.getBoundingClientRect().top;
-    let index = children.findIndex((block4) => block4.getBoundingClientRect().bottom > top + 16);
-    if (index < 0) index = children.length - 1;
-    const block3 = children[index];
-    if (block3) position2.block = { tag: block3.tagName, text: block_text(block3), index, offset: block3.getBoundingClientRect().top - top };
+    const block3 = reading_block_at(root, top + 16);
+    if (block3) position2.block = { tag: block3.node.tagName, text: block_text(block3.node), index: block3.index, offset: block3.top - top };
     return position2;
   }
   function position_block(root, position2) {
@@ -186328,6 +186464,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (position2 && !held_paths.has(file_key(context.file_path))) void restore(context, position2);
     }));
     document.addEventListener("scroll", (event) => {
+      const target = event.target;
+      if (!(target instanceof HTMLElement) || !(target.matches("content") || target.querySelector(":scope > .typ-markdown-preview"))) return;
       const context = all().find((candidate) => elements(candidate)?.scroller === event.target);
       if (!context || restoring.has(context.view_id) || held_paths.has(file_key(context.file_path))) return;
       const position2 = capture(context);
@@ -186336,6 +186474,7 @@ https://creativecommons.org/licenses/by/4.0/
     for (const name of ["wheel", "touchstart", "pointerdown", "keydown"]) {
       window.addEventListener(name, (event) => {
         if (!event.isTrusted) return;
+        if (!restoring.size) return;
         const target = event.target;
         for (const context of all()) {
           const nodes = elements(context);
@@ -186637,24 +186776,26 @@ https://creativecommons.org/licenses/by/4.0/
     const navigate = async (path, hash2, location, options2 = {}) => {
       const signal = options2.signal ?? controller.signal;
       if (disposed || navigating || signal.aborted) return false;
-      const source = workspace.active()?.file_path || native_path();
-      if (path_api) {
-        const target = resolve_host_open_file_target(path_api, source, path);
-        const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target);
-        if (!resolved) throw new Error("\u65E0\u6CD5\u89E3\u6790\u76EE\u6807 Markdown \u8DEF\u5F84\u3002");
-        path = resolved;
-        assert_remote_owner(path);
-        await remote_files_for(path)?.prepare(path, false, () => !disposed && !signal.aborted);
-        const fs2 = runtime2.reqnode("fs");
-        if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
-      }
-      if (disposed || signal.aborted) return false;
       finish_pending();
-      const from = capture() ?? last_location;
-      workspace.checkpoint();
       navigating = true;
-      workspace.hold(path, true);
+      let held_path;
       try {
+        const source = workspace.active()?.file_path || native_path();
+        if (path_api) {
+          const target2 = resolve_host_open_file_target(path_api, source, path);
+          const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target2);
+          if (!resolved) throw new Error("\u65E0\u6CD5\u89E3\u6790\u76EE\u6807 Markdown \u8DEF\u5F84\u3002");
+          path = resolved;
+          assert_remote_owner(path);
+          await remote_files_for(path)?.prepare(path, false, () => !disposed && !signal.aborted);
+          const fs2 = runtime2.reqnode("fs");
+          if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
+        }
+        if (disposed || signal.aborted) return false;
+        const from = capture() ?? last_location;
+        workspace.checkpoint();
+        workspace.hold(path, true);
+        held_path = path;
         let target;
         if (app && options2.group && options2.group !== "active") {
           if (disposed || signal.aborted) return false;
@@ -186718,7 +186859,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         return true;
       } finally {
-        workspace.hold(path, false);
+        if (held_path) workspace.hold(held_path, false);
         navigating = false;
       }
     };
@@ -202896,7 +203037,7 @@ https://creativecommons.org/licenses/by/4.0/
       pending = void 0;
       normalize4(record);
     };
-    const invalidate = () => {
+    const invalidate2 = () => {
       clearTimeout(timer);
       timer = 0;
       pending = void 0;
@@ -202919,8 +203060,8 @@ https://creativecommons.org/licenses/by/4.0/
       normalize4(record);
       timer = window.setTimeout(() => flush(record), 0);
     }, true);
-    lifetime.listen(textarea, "blur", invalidate);
-    lifetime.add(invalidate);
+    lifetime.listen(textarea, "blur", invalidate2);
+    lifetime.add(invalidate2);
     return lifetime;
   }
 
@@ -203037,9 +203178,9 @@ https://creativecommons.org/licenses/by/4.0/
         event.stopImmediatePropagation();
         if (event.clipboardData) this.paste_text(event.clipboardData.getData("text/plain"));
       }, true);
-      const observer2 = new ResizeObserver(() => this.resize());
-      observer2.observe(this.viewport);
-      this.lifetime.add(() => observer2.disconnect());
+      const observer3 = new ResizeObserver(() => this.resize());
+      observer3.observe(this.viewport);
+      this.lifetime.add(() => observer3.disconnect());
       this.lifetime.add(() => {
         cancelAnimationFrame(this.frame);
         cancelAnimationFrame(this.font_frame);
@@ -203322,9 +203463,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       changed2();
     }
-    const observer2 = new ResizeObserver(schedule);
-    observer2.observe(body);
-    lifetime.add(() => observer2.disconnect());
+    const observer3 = new ResizeObserver(schedule);
+    observer3.observe(body);
+    lifetime.add(() => observer3.disconnect());
     function update2(nodes) {
       for (const [id, group] of groups) if (!nodes.has(id)) {
         group.clear();
@@ -204562,9 +204703,9 @@ https://creativecommons.org/licenses/by/4.0/
         image.replaceWith(fallback2);
       }
     });
-    const observer2 = new MutationObserver(update_theme);
-    observer2.observe(document.documentElement, { attributes: true });
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    const observer3 = new MutationObserver(update_theme);
+    observer3.observe(document.documentElement, { attributes: true });
+    observer3.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
     void (async () => {
       for (const code of article.querySelectorAll("pre > code")) {
         if (disposed) return;
@@ -204577,7 +204718,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       image_viewer.dispose();
-      observer2.disconnect();
+      observer3.disconnect();
       diagrams.dispose();
     } };
   }
@@ -205582,7 +205723,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const header = options2.columns[0]?.node.parentElement;
     let header_width = header?.getBoundingClientRect().width;
-    const observer2 = new ResizeObserver(() => {
+    const observer3 = new ResizeObserver(() => {
       const width2 = header?.getBoundingClientRect().width;
       if (width2 !== header_width) {
         header_width = width2;
@@ -205590,12 +205731,12 @@ https://creativecommons.org/licenses/by/4.0/
       }
       paint();
     });
-    if (header) observer2.observe(header);
+    if (header) observer3.observe(header);
     window.addEventListener("blur", cancel);
     window.addEventListener("resize", resize);
     paint();
     return { cancel, dispose() {
-      observer2.disconnect();
+      observer3.disconnect();
       cancel();
       window.removeEventListener("blur", cancel);
       window.removeEventListener("resize", resize);
@@ -233372,11 +233513,11 @@ https://creativecommons.org/licenses/by/4.0/
     });
     lifetime.listen(window, "resize", schedule);
     lifetime.listen(window, "focus", schedule);
-    const hint = document.querySelector("#zoom-hint-current"), observer2 = new MutationObserver(schedule);
-    if (hint) observer2.observe(hint, { childList: true, characterData: true, subtree: true });
+    const hint = document.querySelector("#zoom-hint-current"), observer3 = new MutationObserver(schedule);
+    if (hint) observer3.observe(hint, { childList: true, characterData: true, subtree: true });
     lifetime.add(() => {
       cancelAnimationFrame(update_frame);
-      observer2.disconnect();
+      observer3.disconnect();
       hover.dispose();
       group.remove();
       bindings.delete(footer);
@@ -234401,7 +234542,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (name && root) return files.path_api.resolve(root, name);
       return "";
     };
+    const markdown_trees = /* @__PURE__ */ new Map();
     const clear_model = (state) => {
+      markdown_trees.get(state)?.lease.dispose();
+      markdown_trees.delete(state);
       state.symbols?.dispose();
       state.symbols = void 0;
       state.symbol_state = void 0;
@@ -234434,14 +234578,29 @@ https://creativecommons.org/licenses/by/4.0/
       if (native && (!host_file || host.isFileLoading?.() || files.path_api.relative(state.file, host_file) !== "")) return [];
       const container = native ? document.querySelector("#write") : state.leaf.view?.containerEl;
       if (!container || !native && !container.matches(".typ-markdown-view")) return [];
-      const elements = [...container.querySelectorAll("h1,h2,h3,h4,h5,h6")].filter((node) => !node.closest("pre,code,.workspace-breadcrumbs")), roots = [], stack = [];
-      for (const [index, element] of elements.entries()) {
-        const depth = Number(element.tagName[1]);
-        while (stack.length && stack.at(-1).depth >= depth) stack.pop();
-        const name = element.textContent || "", symbol = { name, kind: "string", detail: "#".repeat(depth) + " " + name, start: index, end: elements.length, selection_start: index, selection_end: index, element, children: [] };
-        (stack.at(-1)?.symbol.children || roots).push(symbol);
-        stack.push({ depth, symbol });
+      let tree = markdown_trees.get(state);
+      if (tree?.root !== container) {
+        tree?.lease.dispose();
+        tree = { root: container, lease: acquire_reading_blocks(container), revision: void 0, roots: [], elements: [], chains: /* @__PURE__ */ new Map() };
+        markdown_trees.set(state, tree);
       }
+      const revision = reading_block_snapshot(container).items;
+      if (tree.revision !== revision) {
+        tree.revision = revision;
+        tree.roots = [];
+        tree.chains.clear();
+        tree.elements = [...container.querySelectorAll("h1,h2,h3,h4,h5,h6")].filter((node) => !node.closest("pre,code,.workspace-breadcrumbs"));
+        const stack = [];
+        for (const [index, element] of tree.elements.entries()) {
+          const depth = Number(element.tagName[1]);
+          while (stack.length && stack.at(-1).depth >= depth) stack.pop();
+          const name = element.textContent || "", symbol = { name, kind: "string", detail: "#".repeat(depth) + " " + name, start: index, end: tree.elements.length, selection_start: index, selection_end: index, element, children: [] };
+          (stack.at(-1)?.symbol.children || tree.roots).push(symbol);
+          stack.push({ depth, symbol });
+          tree.chains.set(element, stack.map((item) => item.symbol));
+        }
+      }
+      const { elements, roots } = tree;
       const selected = native ? outline?.current_heading?.() : void 0, scroller = native ? document.querySelector("content") : state.leaf.containerEl;
       let current = selected;
       if (!current && scroller) {
@@ -234452,15 +234611,7 @@ https://creativecommons.org/licenses/by/4.0/
           else break;
         }
       }
-      const chain = (items) => {
-        for (const item of items) {
-          if (item.element === current) return [item];
-          const result = chain(item.children);
-          if (result.length) return [item, ...result];
-        }
-        return [];
-      };
-      state.chain = chain(roots);
+      state.chain = current ? tree.chains.get(current) || [] : [];
       return roots;
     };
     const reveal = (state, symbol) => {
@@ -234702,10 +234853,14 @@ https://creativecommons.org/licenses/by/4.0/
       schedule();
     });
     const config = core.app.commands.register({ id: "linux_note:breadcrumbs_settings", title: "\u89C6\u56FE\uFF1A\u9762\u5305\u5C51\u5BFC\u822A\u8BBE\u7F6E", scope: "global", callback: () => open_breadcrumb_settings(files.context_root(), core.app.workspace.activeLeaf?.view?.editor?.focused_editor?.()?.getModel()?.getLanguageId() || "markdown") });
+    const scroll = (event) => {
+      const target = event.target;
+      if (target instanceof HTMLElement && (target.matches("content") || [...groups.values()].some((state) => state.leaf?.containerEl === target))) schedule();
+    };
     window.addEventListener("keydown", key2, true);
     document.addEventListener("focusin", schedule, true);
     document.addEventListener("selectionchange", schedule);
-    document.addEventListener("scroll", schedule, true);
+    document.addEventListener("scroll", scroll, true);
     window.addEventListener("linux-note-workspace-context-changed", schedule);
     refresh();
     return { refresh, dispose() {
@@ -234720,7 +234875,7 @@ https://creativecommons.org/licenses/by/4.0/
       window.removeEventListener("keydown", key2, true);
       document.removeEventListener("focusin", schedule, true);
       document.removeEventListener("selectionchange", schedule);
-      document.removeEventListener("scroll", schedule, true);
+      document.removeEventListener("scroll", scroll, true);
       window.removeEventListener("linux-note-workspace-context-changed", schedule);
       for (const state of groups.values()) {
         clear_model(state);
@@ -234900,11 +235055,11 @@ https://creativecommons.org/licenses/by/4.0/
     const schedule = () => {
       if (!disposed && !frame3) frame3 = requestAnimationFrame(refresh);
     };
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       if (records.some((record) => !(record.target instanceof Element) || !record.target.closest(".monaco-editor,.workspace-file-header,.git-graph-menu"))) schedule();
     });
     const root = document.querySelector(".typ-workspace-root");
-    if (root) observer2.observe(root, { childList: true, subtree: true });
+    if (root) observer3.observe(root, { childList: true, subtree: true });
     const unsubscribers = [workspace.on("layout-changed", schedule), workspace.on("active-leaf:change", () => {
       cancel();
       schedule();
@@ -234916,7 +235071,7 @@ https://creativecommons.org/licenses/by/4.0/
       cancel();
       disposed = true;
       cancelAnimationFrame(frame3);
-      observer2.disconnect();
+      observer3.disconnect();
       events.abort();
       for (const unsubscribe of unsubscribers) unsubscribe?.();
       for (const state of [...groups.values()]) release(state);
@@ -235049,14 +235204,14 @@ https://creativecommons.org/licenses/by/4.0/
       const bottom = document.querySelector(".typ-ribbon > .group.bottom");
       if (bottom && button.parentElement !== bottom) bottom.prepend(button);
     };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(document.body, { childList: true, subtree: true });
+    const observer3 = new MutationObserver(refresh);
+    observer3.observe(document.body, { childList: true, subtree: true });
     refresh();
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
       close_menu?.();
-      observer2.disconnect();
+      observer3.disconnect();
       button.onclick = null;
       button.remove();
       style.remove();
@@ -235168,8 +235323,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
     };
     const sizes = new ResizeObserver(schedule);
-    const observer2 = new MutationObserver(schedule);
-    observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
+    const observer3 = new MutationObserver(schedule);
+    observer3.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "data-id"] });
     const cleanups = [core.app.workspace.on("active-leaf:change", schedule), core.app.workspace.on("layout-changed", schedule), observe_workspace_editor_settings(schedule)];
     window.addEventListener("resize", schedule, { signal: events.signal });
     document.addEventListener("input", schedule, { capture: true, signal: events.signal });
@@ -235206,7 +235361,7 @@ https://creativecommons.org/licenses/by/4.0/
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       sizes.disconnect();
       cancelAnimationFrame(frame3);
       events.abort();
@@ -236555,11 +236710,11 @@ https://creativecommons.org/licenses/by/4.0/
       larger.disabled = scale >= 150;
     };
     container.append(smaller, slider, value, larger);
-    const observer2 = new MutationObserver(sync);
-    observer2.observe(owner2.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
+    const observer3 = new MutationObserver(sync);
+    observer3.observe(owner2.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
     sync();
     return { container, dispose() {
-      observer2.disconnect();
+      observer3.disconnect();
       slider.oninput = null;
       container.remove();
       style.remove();
@@ -236772,8 +236927,8 @@ https://creativecommons.org/licenses/by/4.0/
       apply_width(preferred_width);
       persist();
     };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    const observer3 = new MutationObserver(refresh);
+    observer3.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
     const resize_observer = new ResizeObserver(refresh);
     resize_observer.observe(root);
     resize_observer.observe(ribbon);
@@ -236797,7 +236952,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       finish();
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       resize_observer.disconnect();
       cancelAnimationFrame(frame3);
       sash.removeEventListener("pointerdown", pointer_down, true);
@@ -237557,10 +237712,11 @@ https://creativecommons.org/licenses/by/4.0/
       else if (end && end.left > right && end.left - start.left < right - layout2.contentLeft) view.setScrollLeft(view.getScrollLeft() + end.left - right);
     };
     const apply_scale = () => {
-      container.dataset.previewScale = String(scale);
-      reader.style.setProperty("font-size", "".concat(base_font(), "px"), "important");
-      reader.style.zoom = String(scale / 100);
-      editor2?.focused_editor().updateOptions({ fontSize: base_font() * scale / 100, lineHeight: Math.round(base_font() * 1.5 * scale / 100), minimap: { enabled: false } });
+      if (container.dataset.previewScale !== String(scale)) container.dataset.previewScale = String(scale);
+      const font = base_font();
+      if (reader.style.fontSize !== "".concat(font, "px")) reader.style.setProperty("font-size", "".concat(font, "px"), "important");
+      if (reader.style.zoom !== String(scale / 100)) reader.style.zoom = String(scale / 100);
+      editor2?.focused_editor().updateOptions({ fontSize: font * scale / 100, lineHeight: Math.round(font * 1.5 * scale / 100), minimap: { enabled: false } });
       editor2?.sync_theme();
     };
     const update_theme = () => {
@@ -237573,7 +237729,8 @@ https://creativecommons.org/licenses/by/4.0/
       const text3 = rules.join("\n");
       if (theme_style.textContent !== text3) theme_style.textContent = text3;
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
-      reader.dataset.previewTheme = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
+      const mode = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
+      if (reader.dataset.previewTheme !== mode) reader.dataset.previewTheme = mode;
       apply_scale();
     };
     const reveal = () => {
@@ -237822,12 +237979,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       reflow.capture();
     };
-    const theme_observer = new MutationObserver(() => {
+    const theme_observer = observe_markdown_theme(() => {
       if (selected && is_markdown_file(selected.file.file_path)) update_theme();
       else apply_scale();
     });
-    theme_observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
-    theme_observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
     const resize_observer = new ResizeObserver(() => {
       const view = editor2?.focused_editor();
       if (view) {
@@ -237861,7 +238016,7 @@ https://creativecommons.org/licenses/by/4.0/
       body.removeEventListener("wheel", wheel, true);
       editor2?.dispose();
       diagrams.dispose();
-      theme_observer.disconnect();
+      theme_observer();
       resize_observer.disconnect();
       style.remove();
       container.remove();
@@ -238888,14 +239043,14 @@ https://creativecommons.org/licenses/by/4.0/
     const origin = source.getBoundingClientRect(), previous_cursor = doc.documentElement.style.cursor, previous_select = doc.documentElement.style.userSelect, previous_opacity = source.style.opacity;
     let started = false, ended = false, preview, drop_hint;
     const events = new AbortController();
-    const observer2 = new MutationObserver(() => {
+    const observer3 = new MutationObserver(() => {
       if (!source.isConnected) cancel("source-removed");
     });
     const point = (input) => ({ event: input, client_x: input.clientX, client_y: input.clientY, screen_x: input.screenX, screen_y: input.screenY, delta_x: input.clientX - start_x, delta_y: input.clientY - start_y, target: doc.elementFromPoint(input.clientX, input.clientY) });
     const cleanup = () => {
       ended = true;
       events.abort();
-      observer2.disconnect();
+      observer3.disconnect();
       preview?.remove();
       source.removeAttribute("data-workspace-drag-source");
       if (started) {
@@ -238975,7 +239130,7 @@ https://creativecommons.org/licenses/by/4.0/
             source.setPointerCapture(pointer_id);
           } catch {
           }
-          observer2.observe(doc.documentElement, { childList: true, subtree: true });
+          observer3.observe(doc.documentElement, { childList: true, subtree: true });
           options2.on_start?.(state);
         } catch (error) {
           cancel("error");
@@ -239336,11 +239491,11 @@ https://creativecommons.org/licenses/by/4.0/
     const on_motion_change = () => {
       if (reduced_motion.matches) cancel_animations();
     };
-    const observer2 = new MutationObserver(schedule);
-    observer2.observe(ribbon, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "title", "hidden"] });
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    const observer3 = new MutationObserver(schedule);
+    observer3.observe(ribbon, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "title", "hidden"] });
+    observer3.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     const sidebar = document.querySelector("#typora-sidebar");
-    if (sidebar) observer2.observe(sidebar, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    if (sidebar) observer3.observe(sidebar, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
     ribbon.addEventListener("mousedown", on_mouse_down, true);
     ribbon.addEventListener("contextmenu", on_context_menu, true);
     ribbon.addEventListener("click", on_click, true);
@@ -239354,7 +239509,7 @@ https://creativecommons.org/licenses/by/4.0/
       drag?.session?.cancel("dispose");
       marker.dispose();
       close_menu();
-      observer2.disconnect();
+      observer3.disconnect();
       if (scheduled) cancelAnimationFrame(scheduled);
       cancel_animations();
       style.remove();
@@ -239516,14 +239671,14 @@ https://creativecommons.org/licenses/by/4.0/
         });
       }
     };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(document.body, { childList: true, subtree: true });
+    const observer3 = new MutationObserver(refresh);
+    observer3.observe(document.body, { childList: true, subtree: true });
     const unsubscribe = get_workspace_app()?.workspace.on("active-leaf:change", refresh);
     refresh();
     return { available: () => Boolean(source()), refresh, configure, dispose() {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       if (typeof unsubscribe === "function") unsubscribe();
       symbols_binding?.dispose();
       release_theme2();
@@ -239547,13 +239702,13 @@ https://creativecommons.org/licenses/by/4.0/
         if (node.childNodes.length !== 1 || node.firstElementChild?.getAttribute("data-git-icon") !== name) node.replaceChildren(git_icon(name));
       }
     };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(root, { childList: true, subtree: true });
+    const observer3 = new MutationObserver(refresh);
+    observer3.observe(root, { childList: true, subtree: true });
     refresh();
     return { dispose() {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       for (const [node, original] of originals) {
         node.replaceChildren(...original.nodes);
         if (!original.marked) node.classList.remove("workspace-official-icon-slot");
@@ -239604,13 +239759,14 @@ https://creativecommons.org/licenses/by/4.0/
       const content = document.querySelector("content");
       const write = document.querySelector("#write");
       if (!content || !write) return;
-      const headings = Array.from(write.children).filter((node) => node instanceof HTMLElement && node.matches("h1,h2,h3,h4,h5,h6"));
+      const snapshot = reading_block_snapshot(write), heading_blocks = snapshot.items.filter((item) => item.node.matches("h1,h2,h3,h4,h5,h6"));
+      const headings = heading_blocks.map((item) => item.node);
       if (!headings.length) return;
       const { top, bottom } = reading_viewport_bounds(content);
       const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
       if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
       explicit_position = void 0;
-      const bounds = headings.map((heading3) => heading3.getBoundingClientRect());
+      const bounds = heading_blocks.map((item) => ({ top: item.top + snapshot.top, bottom: item.bottom + snapshot.top, height: item.bottom - item.top }));
       const readable_top = top + heading_boundary_slack;
       const readable_bottom = bottom - heading_boundary_slack;
       const readable_height = Math.max(0, readable_bottom - readable_top);
@@ -239717,8 +239873,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     if (native_outline && native_highlight) native_outline.highlightVisibleHeader = coordinated_highlight;
     const on_document_scroll = (event) => {
-      const target = event.target;
-      if (target instanceof Node && sidebar.contains(target)) return;
+      if (!(event.target instanceof HTMLElement) || !event.target.matches("content")) return;
       schedule_sync();
     };
     const refresh = () => {
@@ -239744,7 +239899,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const belongs_to_outline = (node) => node instanceof Element && (node.matches("#outline-content") || Boolean(node.closest("#outline-content")) || Boolean(node.querySelector("#outline-content")));
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       refresh();
       const open = is_outline_open();
       const opened = open && !outline_open;
@@ -239753,7 +239908,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (opened || rebuilt) schedule_sync();
       else if (!open) cancel_sync();
     });
-    observer2.observe(sidebar, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden"] });
+    observer3.observe(sidebar, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden"] });
     document.addEventListener("scroll", on_document_scroll, true);
     refresh();
     outline_open = is_outline_open();
@@ -239773,7 +239928,7 @@ https://creativecommons.org/licenses/by/4.0/
       disposed = true;
       source_outline.dispose();
       control_icons.dispose();
-      observer2.disconnect();
+      observer3.disconnect();
       document.removeEventListener("scroll", on_document_scroll, true);
       cancel_sync();
       style.remove();
@@ -240050,13 +240205,13 @@ https://creativecommons.org/licenses/by/4.0/
       for (const name of mirrored_classes) actions.classList.toggle(name, has_mode ? sidebar.classList.contains(name) : typeof native_tree === "boolean" && name === "use-file-tree-style" === native_tree);
     };
     update_context();
-    const observer2 = new MutationObserver(update_context);
-    observer2.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
+    const observer3 = new MutationObserver(update_context);
+    observer3.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
     let disposed = false;
     const binding = { dispose() {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       popups.dispose();
       control_icons.dispose();
       document_margin.dispose();
@@ -240359,8 +240514,8 @@ https://creativecommons.org/licenses/by/4.0/
       });
     };
     const interaction = acquire_workspace_interaction(element);
-    const observer2 = new ResizeObserver(refresh);
-    observer2.observe(element);
+    const observer3 = new ResizeObserver(refresh);
+    observer3.observe(element);
     window.addEventListener("keydown", (event) => {
       if (is_composing_key(event)) return;
       if (event.altKey && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
@@ -240392,7 +240547,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       close();
-      observer2.disconnect();
+      observer3.disconnect();
       events.abort();
       interaction.remove();
       element.remove();
@@ -241302,9 +241457,9 @@ https://creativecommons.org/licenses/by/4.0/
     refresh_label();
     window.addEventListener("linux-note-workspace-context-changed", refresh_label, { signal: events.signal });
     window.addEventListener("typora-code-remote-state-changed", refresh_label, { signal: events.signal });
-    const observer2 = new MutationObserver(refresh_label);
-    if (title) observer2.observe(title, { childList: true, characterData: true, subtree: true });
-    cleanup.push(() => observer2.disconnect());
+    const observer3 = new MutationObserver(refresh_label);
+    if (title) observer3.observe(title, { childList: true, characterData: true, subtree: true });
+    cleanup.push(() => observer3.disconnect());
     const release = files.core.app.workspace.on("active-leaf:change", refresh_label);
     if (typeof release === "function") cleanup.push(release);
     const native_state = document.createElement("div");
@@ -243133,14 +243288,14 @@ https://creativecommons.org/licenses/by/4.0/
             window.removeEventListener("blur", clear);
             close(restore);
           };
-          const observer2 = new MutationObserver(() => {
+          const observer3 = new MutationObserver(() => {
             if (!view.root.isConnected) {
               clear();
               window.removeEventListener("blur", clear);
-              observer2.disconnect();
+              observer3.disconnect();
             }
           });
-          observer2.observe(document.body, { childList: true });
+          observer3.observe(document.body, { childList: true });
         }
         const next = field(view.content, "\u65B0\u4FDD\u9669\u5BC6\u7801\uFF08\u4FEE\u6539\u65F6\u586B\u5199\uFF09", "", "password");
         const change = workspace_button("\u4FEE\u6539\u4FDD\u9669\u5BC6\u7801", () => run(change, error, async () => {
@@ -243670,12 +243825,12 @@ https://creativecommons.org/licenses/by/4.0/
       for (const [name, value] of Object.entries(values)) surface.style.setProperty(name, value, "important");
     };
     surface.setAttribute("data-workspace-settings-surface", "true");
-    const observer2 = new ResizeObserver(sync);
-    observer2.observe(anchor);
+    const observer3 = new ResizeObserver(sync);
+    observer3.observe(anchor);
     window.addEventListener("resize", sync);
     sync();
     return () => {
-      observer2.disconnect();
+      observer3.disconnect();
       window.removeEventListener("resize", sync);
       for (const [name, value, priority] of previous) {
         if (value) surface.style.setProperty(name, value, priority);
@@ -243711,12 +243866,12 @@ https://creativecommons.org/licenses/by/4.0/
     if (!panel || !runtime2.ClientCommand?.showPreferencePanel || !menu?.closePreferencePanel) throw Error("\u5F53\u524D\u5BBF\u4E3B\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
     runtime2.ClientCommand.showPreferencePanel();
     const release_geometry = bind_owner_geometry(anchor, panel);
-    const observer2 = new MutationObserver(() => {
+    const observer3 = new MutationObserver(() => {
       if (!document.body.classList.contains("show-preference-panel")) on_return();
     });
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    observer3.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     return { surface: panel, dispose() {
-      observer2.disconnect();
+      observer3.disconnect();
       try {
         if (document.body.classList.contains("show-preference-panel")) menu.closePreferencePanel();
       } finally {
@@ -244521,16 +244676,16 @@ https://creativecommons.org/licenses/by/4.0/
       close();
       selection.reset();
     };
-    const observer2 = new MutationObserver(layout2);
-    observer2.observe(body, { attributes: true, attributeFilter: ["class", "style"] });
-    observer2.observe(root, { attributes: true, attributeFilter: ["style"] });
+    const observer3 = new MutationObserver(layout2);
+    observer3.observe(body, { attributes: true, attributeFilter: ["class", "style"] });
+    observer3.observe(root, { attributes: true, attributeFilter: ["style"] });
     window.addEventListener("resize", layout2);
     window.addEventListener("linux-note-workspace-context-changed", context_changed);
     return { dispose() {
       if (disposed) return;
       disposed = true;
       settings();
-      observer2.disconnect();
+      observer3.disconnect();
       cancelAnimationFrame(frame3);
       resize.dispose();
       window.removeEventListener("resize", layout2);
@@ -244609,12 +244764,12 @@ https://creativecommons.org/licenses/by/4.0/
       scheduled = true;
       queueMicrotask(() => void scan());
     };
-    const observer2 = new MutationObserver(schedule);
-    observer2.observe(document.querySelector("#write") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+    const observer3 = new MutationObserver(schedule);
+    observer3.observe(document.querySelector("#write") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
     schedule();
     return { dispose() {
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       for (const url of urls.values()) URL.revokeObjectURL(url);
       urls.clear();
     } };
@@ -244754,6 +244909,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092314,
+        version: "2026.09.23.14",
+        date: "2026-09-23",
+        notes: [
+          "\u4FEE\u590D\u957FMarkdown\u6EDA\u52A8\u65F6\u53CD\u590D\u626B\u63CF\u5168\u90E8\u6BB5\u843D\u548C\u6807\u9898\uFF0C\u4F4D\u7F6E\u8BB0\u5F55\u3001\u5927\u7EB2\u53CA\u91CD\u6392\u5171\u7528\u6309\u5E03\u5C40\u5931\u6548\u7684\u5757\u51E0\u4F55\uFF1B\u9884\u89C8\u6EDA\u52A8\u4E0D\u518D\u89E6\u53D1\u6B63\u6587\u5BFC\u822A\u5237\u65B0\u3002",
+          "\u591A\u4E2A\u9884\u89C8\u5171\u7528\u4E3B\u9898\u6837\u5F0F\u7F13\u5B58\uFF0C\u51CF\u5C11\u65E0\u53D8\u5316\u5237\u65B0\uFF1B\u4FEE\u590D\u8FDE\u7EED\u94FE\u63A5\u8DF3\u8F6C\u5728\u5F02\u6B65\u9884\u68C0\u671F\u95F4\u5E76\u53D1\u8FDB\u5165\u5BBF\u4E3B\u7684\u95EE\u9898\uFF0C\u4FDD\u7559\u9605\u8BFB\u4F4D\u7F6E\u4E0E\u53D6\u6D88\u884C\u4E3A\u3002"
+        ]
+      },
       {
         sequence: 2026092313,
         version: "2026.09.23.13",
@@ -246381,10 +246545,10 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const refresh = () => schedule_render(true);
     const reconcile = () => schedule_render(false);
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) refresh();
     });
-    if (!target.source) observer2.observe(target.root, { subtree: true, childList: true, characterData: true });
+    if (!target.source) observer3.observe(target.root, { subtree: true, childList: true, characterData: true });
     const inner_scroll = (event) => {
       if (event.target !== target.scroller) refresh();
     };
@@ -246437,7 +246601,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       cancel_render();
-      observer2.disconnect();
+      observer3.disconnect();
       resize.disconnect();
       target.scroller.removeEventListener("scroll", update_viewport);
       target.source?.off("changes", refresh);
@@ -246479,15 +246643,15 @@ https://creativecommons.org/licenses/by/4.0/
       if (scan_timer2) clearTimeout(scan_timer2);
       scan_timer2 = window.setTimeout(scan, 100);
     };
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) schedule();
     });
-    observer2.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    observer3.observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     window.addEventListener("resize", schedule, { passive: true });
     const dispose2 = () => {
       if (disposed) return;
       disposed = true;
-      observer2.disconnect();
+      observer3.disconnect();
       clearTimeout(scan_timer2);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("pagehide", dispose2);
@@ -246548,7 +246712,7 @@ https://creativecommons.org/licenses/by/4.0/
     const hide2 = () => {
       window.clearTimeout(timer);
       keep();
-      observer2.disconnect();
+      observer3.disconnect();
       anchor = void 0;
       tip.hidden = true;
       tip.textContent = "";
@@ -246559,7 +246723,7 @@ https://creativecommons.org/licenses/by/4.0/
       keep();
       close_timer = window.setTimeout(hide2, 250);
     };
-    const observer2 = new MutationObserver((records) => {
+    const observer3 = new MutationObserver((records) => {
       if (anchor && (!anchor.isConnected || records.some((record) => record.target === anchor && record.type === "attributes"))) hide2();
     });
     const source_file = (link3) => {
@@ -246653,7 +246817,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       hide2();
       anchor = target;
-      observer2.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["href", "data-ref"] });
+      observer3.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["href", "data-ref"] });
       timer = window.setTimeout(() => {
         if (anchor !== target || !target.isConnected) return hide2();
         render(target);

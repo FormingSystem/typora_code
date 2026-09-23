@@ -1,4 +1,4 @@
-import {markdown_theme_rules} from './workspace_markdown_theme';
+import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -51,11 +51,12 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     else if(end&&end.left>right&&end.left-start.left<right-layout.contentLeft)view.setScrollLeft(view.getScrollLeft()+end.left-right);
   };
   const apply_scale = () => {
-    container.dataset.previewScale = String(scale);
-    reader.style.setProperty("font-size", `${base_font()}px`, "important");
+    if(container.dataset.previewScale!==String(scale))container.dataset.previewScale = String(scale);
+    const font=base_font();
+    if(reader.style.fontSize!==`${font}px`)reader.style.setProperty("font-size", `${font}px`, "important");
     // zoom 保留主题中的 rem/em、表格和代码尺寸关系，容器据缩放后的宽度重新排版。
-    reader.style.zoom = String(scale / 100);
-    editor?.focused_editor().updateOptions({fontSize: base_font() * scale / 100, lineHeight: Math.round(base_font() * 1.5 * scale / 100), minimap: {enabled: false}});
+    if(reader.style.zoom!==String(scale/100))reader.style.zoom = String(scale / 100);
+    editor?.focused_editor().updateOptions({fontSize: font * scale / 100, lineHeight: Math.round(font * 1.5 * scale / 100), minimap: {enabled: false}});
     editor?.sync_theme();
 
   };
@@ -69,7 +70,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     // 原生侧栏反复修改 body.class。只更新样式，不能移走 reader 令预览滚动位置归零。
     if(theme_style.textContent!==text)theme_style.textContent=text;
     const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];
-    reader.dataset.previewTheme=color[0]+color[1]+color[2]>450?"dark":"light";
+    const mode=color[0]+color[1]+color[2]>450?"dark":"light";if(reader.dataset.previewTheme!==mode)reader.dataset.previewTheme=mode;
     apply_scale();
   };
   const reveal = () => {
@@ -231,10 +232,9 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     if(anchor){for(const index of anchor.path)node=node?.childNodes[index];if(node instanceof Text&&node.textContent===anchor.text)restore_reflow_anchor(body,reader,{node,offset:anchor.offset,top:anchor.top});}
     reflow.capture();
   };
-  const theme_observer = new MutationObserver(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
-  theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
+  const theme_observer = observe_markdown_theme(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
   const clear=()=>{close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true; close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  return {container, show, clear, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true; close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

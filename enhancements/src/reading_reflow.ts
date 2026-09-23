@@ -1,4 +1,5 @@
 import {stop_native_reading_scroll} from "./reading_native_scroll";
+import {acquire_reading_blocks,reading_block_at} from "./reading_blocks";
 /** 活着的文档使用字符锚点；不写磁盘，不持有已关闭文档。 */
 type text_anchor={node:Text;offset:number;top:number};
 const active_bindings=new WeakMap<HTMLElement,ReturnType<typeof bind_reading_reflow>>();
@@ -21,7 +22,13 @@ export function capture_reflow_anchor(scroller:HTMLElement,root:HTMLElement):tex
       }
     }
   };
-  return find(root);
+  const block=reading_block_at(root,target);
+  // 常规Markdown只遍历目标块内文字；原始HTML/根文本仍按实际结构回退。
+  if(!block)return find(root);
+  for(let node:Element|null=block.node;node;node=node.nextElementSibling){
+    if(node.getBoundingClientRect().top>=viewport.bottom)break;
+    const anchor=find(node);if(anchor)return anchor;
+  }
 }
 export function restore_reflow_anchor(scroller:HTMLElement,root:HTMLElement,anchor:text_anchor|undefined){
   if(!anchor||!root.contains(anchor.node)||!root.getClientRects().length)return;
@@ -39,15 +46,16 @@ export function change_reading_geometry(scroller:HTMLElement,root:HTMLElement,ac
   const anchor=capture_reflow_anchor(scroller,root);action();restore_reflow_anchor(scroller,root,anchor);
 }
 export function bind_reading_reflow(scroller:HTMLElement,root:HTMLElement){
+  const blocks=acquire_reading_blocks(root);
   let disposed=false,frame=0,anchor:text_anchor|undefined;
   let geometry="";
   const size=()=>`${scroller.clientWidth}:${scroller.clientHeight}:${root.getBoundingClientRect().width}:${getComputedStyle(root).fontSize}:${getComputedStyle(root).zoom}`;
   const capture=()=>{if(disposed)return;geometry=size();anchor=capture_reflow_anchor(scroller,root);};
   const restore=()=>{if(disposed)return;stop_native_reading_scroll(scroller);restore_reflow_anchor(scroller,root,anchor);capture();};
   const resize=new ResizeObserver(()=>{if(size()!==geometry)restore();});resize.observe(scroller);resize.observe(root);
-  const scroll=()=>{if(size()!==geometry)return;capture();};
+  const scroll=()=>{const next=size();if(next!==geometry)return;anchor=capture_reflow_anchor(scroller,root);};
   scroller.addEventListener("scroll",scroll,{passive:true});capture();
-  const binding={capture,change(action:()=>void){stop_native_reading_scroll(scroller);capture();action();restore_reflow_anchor(scroller,root,anchor);cancelAnimationFrame(frame);frame=requestAnimationFrame(restore);},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();scroller.removeEventListener("scroll",scroll);anchor=undefined;if(active_bindings.get(root)===binding)active_bindings.delete(root);}};
+  const binding={capture,change(action:()=>void){stop_native_reading_scroll(scroller);capture();action();blocks.invalidate();restore_reflow_anchor(scroller,root,anchor);cancelAnimationFrame(frame);frame=requestAnimationFrame(restore);},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();blocks.dispose();scroller.removeEventListener("scroll",scroll);anchor=undefined;if(active_bindings.get(root)===binding)active_bindings.delete(root);}};
   active_bindings.set(root,binding);return binding;
 }
 
