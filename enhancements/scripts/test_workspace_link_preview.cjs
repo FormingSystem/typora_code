@@ -26,6 +26,8 @@ app.whenReady().then(async()=>{
   check('1000轮解析与协议边界',await evaluate(`(()=>{const p=require('path').win32;for(let i=0;i<1000;i++){if(qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','sub/a%20b.md#标题').path!=='C:\\\\docs\\\\sub\\\\a b.md')return false;}return qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','#标题').hash==='#标题';})()`));
   await evaluate('link("target.md#target-heading")');
   check('Markdown标题定位并渲染',await evaluate(`view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('Target heading')`));
+  await evaluate(`document.querySelector('#write').style.fontFamily='monospace';document.body.classList.add('qa-selected-theme')`);await new Promise(r=>setTimeout(r,60));
+  check('链接及搜索共用阅读器继承当前正文主题字体',await evaluate(`getComputedStyle(view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('#write')).fontFamily===getComputedStyle(document.querySelector('#write')).fontFamily`));
   check('预览没有可编辑区域',await evaluate(`!view.container.querySelector('[contenteditable=true]')&&opened.length===0`));
   await evaluate(`window.scale_slider=view.container.querySelector('[aria-label="预览字号比例"]');scale_slider.value='115';scale_slider.dispatchEvent(new Event('input',{bubbles:true}));`);
   check('链接Markdown滑条比例与文字同步',await evaluate(`view.container.querySelector('.workspace-preview-scale-value').value==='115%'&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='115'`));

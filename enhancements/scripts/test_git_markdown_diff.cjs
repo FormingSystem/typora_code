@@ -5,12 +5,12 @@ let win;const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),run=async s=>
 app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1200,height:820,webPreferences:{contextIsolation:false,offscreen:true,backgroundThrottling:false}});
   win.webContents.on('console-message',(_event,_level,message)=>console.log(message));
-  const file=path.join(root,'test.html');fs.writeFileSync(file,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden;background:white;color:#222}body{display:flex}#write{font:16px/1.6 system-ui}#write h1{color:#0066bb}#write table{border-collapse:collapse}#write td,#write th{border:1px solid #999;padding:4px}</style>');await win.loadFile(file);
+  const file=path.join(root,'test.html');fs.writeFileSync(file,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden;background:white;color:#222}body{display:flex;font:16px/1.6 "Courier New"}#write{font-size:16px}#write h1{color:#0066bb}#write table{border-collapse:collapse}#write td,#write th{border:1px solid #999;padding:4px}</style>');await win.loadFile(file);
   await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
   const bundle=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export {git_diff_editor} from "./src/git_diff_editor";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'qa'});await run(bundle.outputFiles[0].text);
   const left='---\ntitle: old\n---\n\n# 标题\n\n普通 **旧文字**。\n\n- 一\n- 删除\n\n| 名称 | 值 |\n| --- | --- |\n| 数字 | 1 |\n\n> 原引用\n\n```js\nconst value = 1;\n```\n\n![图片](old.png)\n\n结尾相同\n';
   const right=left.replace('old','new').replace('旧文字','新文字').replace('- 删除','- 新增').replace('| 1 |','| 2 |').replace('原引用','新引用').replace('value = 1','value = 2').replace('old.png','new.png');
-  await run(`window.left_text=${JSON.stringify(left)};window.right_text=${JSON.stringify(right)};window.preview=new qa.git_diff_editor({title:'说明.md',file:'说明.md',left:left_text,right:right_text,left_label:'HEAD',right_label:'工作区'});document.body.append(preview.container);window.shadow=preview.markdown_preview.shadow;`);
+  await run(`window.left_text=${JSON.stringify(left)};window.right_text=${JSON.stringify(right)};window.preview=new qa.git_diff_editor({title:'说明.md',file:'说明.md',left:left_text,right:right_text,left_label:'HEAD',right_label:'工作区'});preview.container.style.fontFamily='Arial';document.body.append(preview.container);window.shadow=preview.markdown_preview.shadow;`);
   await wait('preview.markdown_preview.container.dataset.ready==="true"');await pause(300);
   await check('preview.rendered_markdown&&preview.body.hidden','Markdown默认进入渲染比较');
   await check('shadow.querySelectorAll("h1").length===2&&shadow.querySelectorAll("table").length===2&&shadow.querySelectorAll("ul").length===2&&shadow.querySelectorAll("blockquote").length===2','标题列表表格引用保持完整排版');
@@ -19,6 +19,12 @@ app.whenReady().then(async()=>{
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=left]")).backgroundColor!==getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right]")).backgroundColor','左右实际绘制红绿差异色');
   await check('[...shadow.querySelectorAll(".markdown-diff-row")].every(row=>Math.abs(row.children[0].getBoundingClientRect().top-row.children[1].getBoundingClientRect().top)<1&&Math.abs(row.children[0].getBoundingClientRect().height-row.children[1].getBoundingClientRect().height)<1)','两侧每个对应块顶部及高度对齐');
   await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"','复用当前正文主题');
+  await check('getComputedStyle(shadow.querySelector("#write")).fontFamily===getComputedStyle(document.body).fontFamily','功能区字体不能覆盖正文继承的主题字体');
+  await run('window.theme_node=document.createElement("style");theme_node.textContent=":root{--qa-heading:rgb(120,30,80)}#write h1{color:var(--qa-heading)}";document.head.append(theme_node)');
+  await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(120, 30, 80)"');checks.push('主题根变量在Shadow中生效并响应异步插入');
+  await run('theme_node.media="not all"');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('未生效的主题media不能覆盖有效样式');
+  await run('theme_node.media="all";theme_node.sheet.disabled=true;document.body.classList.add("qa-theme-change")');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('禁用主题不进入阅读样式');
+  await run('theme_node.remove()');
   await run('preview.range_action=async()=>{};preview.range_available=()=>true;preview.editor.getModifiedEditor().setSelection({startLineNumber:7,startColumn:1,endLineNumber:8,endColumn:1});');
   await check('preview.range_snapshot()===undefined','渲染态不能对隐藏源码选区暂存');
   await run('preview.navigate("next")');await check('preview.markdown_preview.scroll.scrollTop>0||shadow.activeElement?.dataset.changed==="true"','下一处更改定位当前渲染块');

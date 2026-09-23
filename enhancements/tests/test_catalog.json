@@ -749,12 +749,16 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R034.3",
+        "R067.1"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
         "enhancements/src/git_graph_host.ts",
-        "enhancements/src/git_source_control.ts"
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/reading_navigation_ports.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
       ],
       "related_modules": [
         "scm",
@@ -6853,14 +6857,18 @@
       "purpose": "implementation",
       "requirements": [
         "R034.1",
-        "R034.2"
+        "R034.2",
+        "R034.3",
+        "R067.1"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
         "enhancements/src/git_markdown_diff.ts",
         "enhancements/src/git_diff_editor.ts",
         "enhancements/src/workspace_markdown_theme.ts",
-        "enhancements/src/git_markdown_overview.ts"
+        "enhancements/src/git_markdown_overview.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/reading_navigation_ports.ts"
       ],
       "related_modules": [
         "scm",
@@ -6886,13 +6894,18 @@
       "purpose": "stress",
       "requirements": [
         "R034.1",
-        "R034.2"
+        "R034.2",
+        "R034.3",
+        "R067.1"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
         "enhancements/src/git_diff_editor.ts",
         "enhancements/src/git_markdown_diff.ts",
-        "enhancements/src/git_markdown_overview.ts"
+        "enhancements/src/git_markdown_overview.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/reading_navigation_ports.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
       ],
       "related_modules": [
         "git",

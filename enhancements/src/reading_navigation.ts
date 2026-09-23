@@ -275,7 +275,7 @@ export function bind_reading_navigation(): () => void {
     const current = capture();
     if (!current) return false;
     const pending = history.travel(direction, current, async location => {
-      const result = location.kind === "source"
+      const result = location.kind != null
         ? await navigation_editor()?.restore(location, context_controller.signal) ?? false
         : await navigate(location.file_path, undefined, location,{signal:context_controller.signal});
       if (result) last_location = capture();
@@ -375,7 +375,7 @@ export function bind_reading_navigation(): () => void {
     if(event.composedPath().some(node=>node instanceof Element&&node.matches(".workspace-link-preview")))return;
     if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
         || editor.sourceView?.inSourceMode
-        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file"))) return;
+        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file, .git-graph-document"))) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     if (event.repeat) return;

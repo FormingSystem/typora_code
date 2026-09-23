@@ -29,6 +29,8 @@ flowchart LR
 | 代码大纲 | 大纲控制器与相应解析服务 | C/C++ 使用 clangd；Markdown 保留标题服务；展示与解析生命周期分别管理 |
 | SCM 工具栏、仓库列表与菜单 | `git_scm_toolbar`、`git_scm_repositories`、`git_scm_menus` | 同一控制器持有当前可写仓库；摘要只读、切库取消，按钮／更多／快捷键共享动作状态，见[SCM 设计](git_scm_actions.md#r027) |
 | Git 操作与差异文档 | Git runner、仓库模型与差异视图 | 历史版本身份来自 Git 文档，不能由“打开文件”按钮猜测为工作区当前版本 |
+| 编辑器导航历史 | `reading_history`、`reading_navigation`及领域导航端口 | 可编辑正文、源码、只读版本和差异均按资源/版本/组身份进入主导航；视图提供位置与重开能力，不各自绑定全局Alt键。浮动预览按会话隔离，功能面板不伪造文件记录，见[分类与接入契约](navigation_history.md#视图分类与新增接入契约) |
+| Markdown阅读皮肤 | `workspace_markdown_theme`共用有效主题规则、正文继承值及失效通知 | 搜索/链接、Git历史和渲染比较接入同一适配；领域仅维护布局与业务着色，不固定覆盖主题字体、标题和表格。滚动不重新提取CSS，见[R034.3](git_markdown_diff.md#r0343-当前主题继承2026-09-23) |
 | 终端进程和缓冲 | `terminal_session` 管进程，`terminal_surface` 管 xterm | 移动或隐藏视图复用同一实例；终止由会话协调器执行 |
 | 终端配置与面板几何 | `terminal_settings` 与 `terminal_panel` | 配置整体校验并通知视图；几何模块只调整占用空间，不管理 Shell |
 | 即时悬停与键盘焦点 | `workspace_interaction` | 工厂默认接入，视图登记根范围；几何与业务状态由UI拥有，局部差异通过角色/变量/独立边界表达 |

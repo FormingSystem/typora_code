@@ -20,6 +20,7 @@ import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n
 import {is_markdown_file} from "./file_language";
 import {create_git_revision_reader} from "./git_revision_reader";
 import {create_text_document} from "./workspace_text_document";
+import {register_navigation_editor, notify_navigation_selection} from './reading_navigation_ports';
 
 const graph_dialog = (title: string) => workspace_dialog(title, text("common.close"));
 
@@ -49,10 +50,11 @@ export function create_graph_host(core: graph_core) {
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void};
+  type document_options = {range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void;
+    navigation?:{capture:()=>{scroll_top:number;scroll_left:number};restore:(state:{scroll_top:number;scroll_left:number})=>void;reopen:(parent?:graph_leaf['parent'])=>void}};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
-  let serial = 0, disposed = false;
+  let serial = 0, view_serial = 0, disposed = false;
   const views=new Set<graph_document_view>();
   const runners=new Set<ReturnType<typeof create_git_runner>>();
   const output_lines = new Map<string, string[]>();
@@ -62,13 +64,14 @@ export function create_graph_host(core: graph_core) {
     if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error(text("host.outside_repository"));
     return absolute;
   };
-  const add_tab = (type: string, uri: string, group: string) => {
+  const add_tab = (type: string, uri: string, group: string, previous_parent?:graph_leaf['parent']) => {
     if(disposed)return;
     if (group !== "active") { core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]); return; }
-    const parent = select_workspace_editor_group(core, uri);
+    const parent = previous_parent?.containerEl?.isConnected ? previous_parent : select_workspace_editor_group(core, uri);
     const leaf = core.app.workspace.createLeaf({ type, state: { path: uri } }); parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
   };
   class graph_document_view extends core.WorkspaceView {
+    readonly navigation_id=++view_serial;
     containerEl = workspace_element("section", "git-graph-document"); icon = "fa-code-fork";
     editor?: git_diff_editor; document?: typeof contents extends Map<string, infer value> ? value : never;
     constructor(leaf: graph_leaf) { super(leaf); views.add(this); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* 无效 URI 由打开入口处理。 */ } }
@@ -90,6 +93,7 @@ export function create_graph_host(core: graph_core) {
     }
     onOpen() {
       if(disposed)return;
+      queueMicrotask(()=>{if(!disposed&&core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection();});
       const payload = contents.get(this.leaf.state.path);
       this.sync_tab();
       if (!payload) { this.containerEl.textContent = text("host.expired_view"); return; }
@@ -141,7 +145,7 @@ export function create_graph_host(core: graph_core) {
     core, fs, path_api, process_api,
     install_git(report:(message:string)=>void){return install_missing_git({child_process,process:process_api},report);},
     dispose(){
-      if(disposed)return;disposed=true;if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();
+      if(disposed)return;disposed=true;unregister_navigation();if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
       for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
       views.clear();for(const payload of contents.values())payload.options.dispose?.();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
@@ -237,18 +241,19 @@ export function create_graph_host(core: graph_core) {
       const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
       return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object]));
     },
-    open_document(data: diff_document, group = "active", options: document_options = {}) {
+    open_document(data: diff_document, group = "active", options: document_options = {}, previous_parent?:graph_leaf['parent']) {
+      notify_navigation_selection();
       const uri = `typ://linux_note.git_document/${encodeURIComponent(options.root || "")}/${encodeURIComponent(options.key || String(++serial))}/${encodeURIComponent(data.title)}`;
       contents.set(uri, {data, options});
       let existing: graph_leaf | undefined;
       core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === uri) existing = leaf; });
       if (existing && group === "active") { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
-      else add_tab("linux_note.git_document", uri, group);
+      else add_tab("linux_note.git_document", uri, group,previous_parent);
     },
     workspace_path():string {
       return get_workspace_files()?.context_root() || this.context_path() || process_api.env.USERPROFILE || process_api.env.HOME || process_api.cwd();
     },
-    open_revision_document(root: string, revision: string, file: string, content: string, settings: graph_settings, fragment = "") {
+    open_revision_document(root: string, revision: string, file: string, content: string, settings: graph_settings, fragment = "", previous_parent?:graph_leaf['parent']) {
       const group = settings.new_tab_group; let reader_disposed = false;
       const title = `${revision.slice(0, 8)} · ${file}`, label = text("scm.readonly_label", {file, revision: revision.slice(0, 8)});
       if (!is_markdown_file(file)) { this.open_document({title, file, left: content, left_label: label}, group, {root, key: JSON.stringify(["revision", revision, file])}); return; }
@@ -269,16 +274,18 @@ export function create_graph_host(core: graph_core) {
         if (!mime[extension]) throw new Error(text("host.historical_image_unsupported"));
         const data = await this.runner(settings).run_bytes(root, ['show',`${require_revision(revision)}:${target}`]);
         return `data:${mime[extension]};base64,${runtime.reqnode('buffer').Buffer.from(data).toString('base64')}`;
-      });
-      this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {file, dispose: () => {reader_disposed = true; reader.dispose();}}, group);
+      },explicit=>{if(core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container))notify_navigation_selection(explicit);});
+      this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {file, dispose: () => {reader_disposed = true; reader.dispose();},
+        navigation:{capture:reader.capture,restore:reader.restore,reopen:parent=>this.open_revision_document(root,revision,file,content,{...settings,new_tab_group:'active'},'',parent)}}, group,previous_parent);
       reader.reveal_fragment(fragment);
     },
-    open_panel(title: string, key: string, root: string, panel: HTMLElement, options: document_options = {}, group = "active") {
+    open_panel(title: string, key: string, root: string, panel: HTMLElement, options: document_options = {}, group = "active",previous_parent?:graph_leaf['parent']) {
+      notify_navigation_selection();
       const uri = `typ://linux_note.git_document/${encodeURIComponent(root)}/${encodeURIComponent(key)}/${encodeURIComponent(title)}`;
       contents.get(uri)?.options.dispose?.(); contents.set(uri, {panel, options: {...options, root}}); let existing: graph_leaf | undefined;
       core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === uri) existing = leaf; });
       if (existing) { core.app.workspace.activeLeaf = existing.parent.toggleTab(uri); (existing.view as unknown as {onOpen(): void}).onOpen(); }
-      else add_tab("linux_note.git_document", uri, group);
+      else add_tab("linux_note.git_document", uri, group,previous_parent);
     },
     async discover(root: string, depth: number, signal?: AbortSignal) {
       const resources=git_workspace_resources(path_api);resources.assert(root);
@@ -314,6 +321,37 @@ export function create_graph_host(core: graph_core) {
       }));
     },
   };
+  type navigation_state={data?:diff_document;options?:document_options;reopen?:NonNullable<document_options['navigation']>['reopen'];parent:graph_leaf['parent'];position:ReturnType<git_diff_editor['capture_navigation_state']>|{scroll_top:number;scroll_left:number}};
+  const unregister_navigation=register_navigation_editor({
+    capture(){
+      const view=core.app.workspace.activeLeaf?.view;
+      if(!(view instanceof graph_document_view)||!view.document)return null;
+      const position=view.editor?.capture_navigation_state()??view.document.options.navigation?.capture();
+      if(!position)return null;
+      const cursor='cursor' in position&&position.cursor?{...position.cursor,rendered_markdown:false}:{rendered_markdown:'rendered_markdown' in position?position.rendered_markdown:true};
+      const state:navigation_state={data:view.document.data,options:view.document.data?view.document.options:undefined,reopen:view.document.options.navigation?.reopen,parent:view.leaf.parent,position};
+      return {kind:'git',file_path:view.leaf.state.path,view_id:view.navigation_id,scroll_top:position.scroll_top,scroll_left:position.scroll_left,cursor,editor_state:state};
+    },
+    async restore(location,signal){
+      if(disposed||signal.aborted||location.kind!=='git')return false;
+      const state=location.editor_state as navigation_state|undefined;if(!state)return false;
+      let target:graph_document_view|undefined,fallback:graph_document_view|undefined;
+      core.app.workspace.eachLeaves(leaf=>{if(leaf.state.path===location.file_path&&leaf.view instanceof graph_document_view){fallback=leaf.view;if(leaf.view.navigation_id===location.view_id)target=leaf.view;}});
+      target??=fallback;
+      if(!target){
+        if(state.data){
+          // 快照随50项导航栈回收；重开比较保留同一资源身份，不额外维护内容归档。
+          contents.set(location.file_path,{data:state.data,options:state.options??{}});add_tab('linux_note.git_document',location.file_path,'active',state.parent);
+        }else state.reopen?.(state.parent);
+        const view=core.app.workspace.activeLeaf?.view;if(view instanceof graph_document_view)target=view;
+      }
+      if(disposed||signal.aborted||!target)return false;
+      core.app.workspace.activeLeaf=target.leaf.parent.toggleTab(target.leaf.state.path);target.onOpen();
+      if(target.editor&&'view_state' in state.position){const restored=await target.editor.restore_navigation_state(state.position,signal);if(restored)location.view_id=target.navigation_id;return restored;}
+      if(target.document?.options.navigation){target.document.options.navigation.restore(state.position);location.view_id=target.navigation_id;return true;}
+      return false;
+    }
+  },'git');
   const unregister_compare=core.app.commands.register({id:"linux_note:compare_files",title:"文件：比较所选文件",scope:"global",showInCommandPanel:false,callback:(left:string,right:string)=>{
     void (async()=>{
       const files=get_workspace_files();

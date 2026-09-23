@@ -10,13 +10,18 @@ export function observe_markdown_theme(listener:()=>void){
 /** 只读Markdown复用当前正文主题，规则进入各自Shadow DOM，不重建正文。 */
 export function markdown_theme_rules():string {
   if(observer?.takeRecords().length)invalidate();
-  if(users&&cached_rules!==undefined)return cached_rules;
+  // Shadow宿主位于功能区，继承的是界面字体；以真实正文计算值建立阅读继承基线。
+  const native=document.querySelector('content > #write')||document.querySelector('#write')||document.body;
+  const computed=getComputedStyle(native),properties=['font-family','font-size','font-weight','font-style','line-height','letter-spacing','word-spacing','color','text-align','text-indent','text-transform'];
+  const inherited='#write{'+properties.map(name=>name+':'+computed.getPropertyValue(name)+';').join('')+'}\n';
+  if(users&&cached_rules!==undefined)return inherited+cached_rules;
   const rules:string[]=[];
   for(const sheet of [...document.styleSheets]){
+    if(sheet.disabled)continue;
     try{
-      const text=[...sheet.cssRules].map(rule=>rule.cssText).filter(rule=>rule.includes('#write')||rule.startsWith(':root')||/^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join('\n');
-      if(text)rules.push(text.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) '));
+      const text=[...sheet.cssRules].map(rule=>rule.cssText).filter(rule=>rule.includes('#write')||rule.startsWith(':root')||rule.startsWith('@font-face')||/^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join('\n');
+      if(text){const adapted=text.replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');rules.push(sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted);}
     }catch{/* 外部样式不可读时由只读视图的基本样式接续。 */}
   }
-  const text=rules.join('\n');if(users)cached_rules=text;return text;
+  const text=rules.join('\n');if(users)cached_rules=text;return inherited+text;
 }

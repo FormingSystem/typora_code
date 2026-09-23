@@ -184529,18 +184529,25 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function markdown_theme_rules() {
     if (observer2?.takeRecords().length) invalidate();
-    if (users && cached_rules !== void 0) return cached_rules;
+    const native = document.querySelector("content > #write") || document.querySelector("#write") || document.body;
+    const computed = getComputedStyle(native), properties2 = ["font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "word-spacing", "color", "text-align", "text-indent", "text-transform"];
+    const inherited = "#write{" + properties2.map((name) => name + ":" + computed.getPropertyValue(name) + ";").join("") + "}\n";
+    if (users && cached_rules !== void 0) return inherited + cached_rules;
     const rules = [];
     for (const sheet of [...document.styleSheets]) {
+      if (sheet.disabled) continue;
       try {
-        const text4 = [...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
-        if (text4) rules.push(text4.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
+        const text4 = [...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || rule.startsWith("@font-face") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
+        if (text4) {
+          const adapted = text4.replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
+          rules.push(sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted);
+        }
       } catch {
       }
     }
     const text3 = rules.join("\n");
     if (users) cached_rules = text3;
-    return text3;
+    return inherited + text3;
   }
 
   // src/workspace_markdown_preview_render.ts
@@ -185127,7 +185134,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (changes && this.rendered_markdown) void this.render_markdown();
           if (!revealed2 && changes) {
             revealed2 = true;
-            editor2.revealFirstDiff();
+            if (!this.restoring_navigation) editor2.revealFirstDiff();
           }
         }));
         this.toolbar.append(git_icon_button("arrow-up", git_graph_text("diff.previous_change_button"), () => this.navigate("previous")), git_icon_button("arrow-down", git_graph_text("diff.next_change_button"), () => this.navigate("next")));
@@ -185231,6 +185238,7 @@ https://creativecommons.org/licenses/by/4.0/
     range_available = () => false;
     range_pending = false;
     disposed = false;
+    restoring_navigation = false;
     range_chord_until = 0;
     close_menu;
     release_settings;
@@ -185292,20 +185300,62 @@ https://creativecommons.org/licenses/by/4.0/
         else this.editor.accessibleDiffViewerNext();
       }
     }
-    set_markdown_mode(value) {
+    async set_markdown_mode(value) {
       if (!this.markdown_preview) return;
       this.rendered_markdown = value;
       this.body.hidden = value;
       this.markdown_preview.container.hidden = !value;
       this.container.dataset.markdownDiff = String(value);
       this.toolbar.querySelector('[data-diff-action="markdown_preview"]')?.setAttribute("aria-pressed", String(value));
-      if (value) void this.render_markdown();
+      this.refresh_labels();
+      if (value) await this.render_markdown();
       else {
         this.markdown_epoch++;
         this.markdown_preview.invalidate();
         this.editor.layout();
       }
-      this.refresh_labels();
+    }
+    /** 呈现方式及两侧编辑器位置归比较视图所有，导航服务只保存和交还快照。 */
+    capture_navigation_state() {
+      const view = this.focused_editor(), scroll = this.rendered_markdown ? this.markdown_preview?.scroll : void 0;
+      return {
+        rendered_markdown: this.rendered_markdown,
+        view_state: this.editor.saveViewState(),
+        original: "getOriginalEditor" in this.editor && view === this.editor.getOriginalEditor(),
+        scroll_top: scroll?.scrollTop ?? view.getScrollTop(),
+        scroll_left: scroll?.scrollLeft ?? view.getScrollLeft(),
+        cursor: this.rendered_markdown ? null : view.getPosition()
+      };
+    }
+    async restore_navigation_state(state, signal) {
+      if (signal.aborted || this.disposed) return false;
+      this.restoring_navigation = true;
+      try {
+        if (this.rendered_markdown !== state.rendered_markdown) await this.set_markdown_mode(state.rendered_markdown);
+        const start = Date.now();
+        while ("getLineChanges" in this.editor && this.editor.getLineChanges() === null || this.rendered_markdown && this.markdown_preview?.container.dataset.ready !== "true") {
+          if (signal.aborted || this.disposed || Date.now() - start > 15e3) return false;
+          await new Promise((resolve3) => setTimeout(resolve3, 40));
+        }
+        if (signal.aborted || this.disposed) return false;
+        this.editor.layout();
+        this.editor.restoreViewState(state.view_state);
+        const scroll = this.rendered_markdown ? this.markdown_preview?.scroll : void 0;
+        if (scroll) {
+          scroll.scrollTop = state.scroll_top;
+          scroll.scrollLeft = state.scroll_left;
+          scroll.tabIndex = -1;
+          scroll.focus({ preventScroll: true });
+        } else {
+          const view = "getOriginalEditor" in this.editor ? state.original ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor() : this.editor;
+          view.setScrollTop(state.scroll_top);
+          view.setScrollLeft(state.scroll_left);
+          view.focus();
+        }
+        return true;
+      } finally {
+        this.restoring_navigation = false;
+      }
     }
     async render_markdown() {
       if (!this.markdown_preview || !this.rendered_markdown || !("getLineChanges" in this.editor)) return;
@@ -186629,16 +186679,28 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/reading_navigation_ports.ts
-  var source_port;
+  var ports = /* @__PURE__ */ new Map();
   var listeners3 = /* @__PURE__ */ new Set();
-  function register_navigation_editor(port) {
-    source_port = port;
+  function register_navigation_editor(port, kind = "source") {
+    ports.set(kind, port);
     return () => {
-      if (source_port === port) source_port = void 0;
+      if (ports.get(kind) === port) ports.delete(kind);
     };
   }
+  var editor_port = {
+    capture() {
+      for (const port of ports.values()) {
+        const location = port.capture();
+        if (location) return location;
+      }
+      return null;
+    },
+    async restore(location, signal) {
+      return location.kind ? await ports.get(location.kind)?.restore(location, signal) ?? false : false;
+    }
+  };
   function navigation_editor() {
-    return source_port;
+    return editor_port;
   }
   function notify_navigation_selection(explicit = false) {
     for (const listener of listeners3) listener(explicit);
@@ -186900,7 +186962,7 @@ https://creativecommons.org/licenses/by/4.0/
       const current = capture();
       if (!current) return false;
       const pending = history.travel(direction, current, async (location) => {
-        const result = location.kind === "source" ? await navigation_editor()?.restore(location, context_controller.signal) ?? false : await navigate(location.file_path, void 0, location, { signal: context_controller.signal });
+        const result = location.kind != null ? await navigation_editor()?.restore(location, context_controller.signal) ?? false : await navigate(location.file_path, void 0, location, { signal: context_controller.signal });
         if (result) last_location = capture();
         return result;
       });
@@ -187005,7 +187067,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active2 = document.activeElement;
       if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
-      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, .linux-note-source-file")) return;
+      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, .linux-note-source-file, .git-graph-document")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (event.repeat) return;
@@ -205594,7 +205656,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/git_revision_reader.ts
-  function create_git_revision_reader(source, label, on_link, on_image) {
+  function create_git_revision_reader(source, label, on_link, on_image, on_location) {
     const container = workspace_element("section", "git-revision-reader"), heading3 = workspace_element("div", "git-revision-reader-heading", label);
     heading3.title = label;
     const body = workspace_element("div", "git-revision-reader-body"), host = workspace_element("div", "git-revision-markdown");
@@ -205611,17 +205673,8 @@ https://creativecommons.org/licenses/by/4.0/
     let disposed = false;
     const image_viewer = bind_reading_images(article);
     const update_theme = () => {
-      const rules = [];
-      for (const sheet of [...document.styleSheets]) {
-        try {
-          rules.push([...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root")).join("\n"));
-        } catch {
-        }
-      }
-      style.textContent = rules.join("\n") + "\n      :host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:18px 24px!important;inset:auto!important;color:inherit!important;overflow-wrap:anywhere;line-height:1.6;user-select:text}\n      #write h1{font-size:1.8em}#write h2{font-size:1.5em}#write h3{font-size:1.25em}#write p{margin:.7em 0}#write pre{overflow:auto;background:rgba(127,127,127,.08);padding:8px}#write pre code{white-space:pre}#write table{border-collapse:collapse;width:100%}#write th,#write td{border:1px solid rgba(127,127,127,.3);padding:5px 8px}#write input{pointer-events:none}#write img{max-width:100%;height:auto}#write .lookup-diagram svg{max-width:100%;height:auto}\n      #write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--revision-keyword,#0000ff)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--revision-string,#a31515)}#write .lookup-code-comment{color:var(--revision-comment,#008000)}#write .lookup-code-number{color:var(--revision-number,#098658)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--revision-type,#267f99)}\n    ";
-      const native = document.querySelector("content > #write"), font = getComputedStyle(native || document.body);
-      article.style.fontSize = font.fontSize;
-      article.style.fontFamily = font.fontFamily;
+      const theme2 = markdown_theme_rules() + "\n      :host{display:block}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:18px 24px!important;inset:auto!important;overflow-wrap:anywhere;user-select:text}\n      #write pre{overflow:auto}#write pre code{white-space:pre}#write input{pointer-events:none}#write img{max-width:100%;height:auto}#write .lookup-diagram svg{max-width:100%;height:auto}\n      #write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--revision-keyword,#0000ff)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--revision-string,#a31515)}#write .lookup-code-comment{color:var(--revision-comment,#008000)}#write .lookup-code-number{color:var(--revision-number,#098658)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--revision-type,#267f99)}\n    ";
+      if (style.textContent !== theme2) style.textContent = theme2;
       const rgb = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0], dark = rgb[0] + rgb[1] + rgb[2] > 450;
       for (const [name, value] of Object.entries(dark ? { keyword: "#569cd6", string: "#ce9178", comment: "#6a9955", number: "#b5cea8", type: "#4ec9b0" } : { keyword: "#0000ff", string: "#a31515", comment: "#008000", number: "#098658", type: "#267f99" })) article.style.setProperty("--revision-" + name, value);
     };
@@ -205662,7 +205715,9 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopPropagation();
       const href = link3.getAttribute("href") || "";
       if (href.startsWith("#")) {
+        on_location?.(false);
         reveal_fragment(href);
+        on_location?.(true);
         return;
       }
       void on_link(href).catch((error) => {
@@ -205679,9 +205734,7 @@ https://creativecommons.org/licenses/by/4.0/
         image.replaceWith(fallback2);
       }
     });
-    const observer3 = new MutationObserver(update_theme);
-    observer3.observe(document.documentElement, { attributes: true });
-    observer3.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    const release_theme2 = observe_markdown_theme(update_theme);
     void (async () => {
       for (const code of article.querySelectorAll("pre > code")) {
         if (disposed) return;
@@ -205690,13 +205743,23 @@ https://creativecommons.org/licenses/by/4.0/
       }
     })().catch(() => {
     });
-    return { container, reveal_fragment, dispose() {
-      if (disposed) return;
-      disposed = true;
-      image_viewer.dispose();
-      observer3.disconnect();
-      diagrams.dispose();
-    } };
+    return {
+      container,
+      reveal_fragment,
+      capture: () => ({ scroll_top: body.scrollTop, scroll_left: body.scrollLeft }),
+      restore: (state) => {
+        body.scrollTop = state.scroll_top;
+        body.scrollLeft = state.scroll_left;
+        body.focus({ preventScroll: true });
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        image_viewer.dispose();
+        release_theme2();
+        diagrams.dispose();
+      }
+    };
   }
 
   // src/git_graph_host.ts
@@ -205712,7 +205775,7 @@ https://creativecommons.org/licenses/by/4.0/
     const crypto2 = runtime2.reqnode("crypto");
     const contents = /* @__PURE__ */ new Map();
     const cache_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
-    let serial2 = 0, disposed = false;
+    let serial2 = 0, view_serial = 0, disposed = false;
     const views = /* @__PURE__ */ new Set();
     const runners = /* @__PURE__ */ new Set();
     const output_lines = /* @__PURE__ */ new Map();
@@ -205723,18 +205786,19 @@ https://creativecommons.org/licenses/by/4.0/
       if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error(git_graph_text("host.outside_repository"));
       return absolute;
     };
-    const add_tab = (type, uri, group) => {
+    const add_tab = (type, uri, group, previous_parent) => {
       if (disposed) return;
       if (group !== "active") {
         core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]);
         return;
       }
-      const parent = select_workspace_editor_group(core, uri);
+      const parent = previous_parent?.containerEl?.isConnected ? previous_parent : select_workspace_editor_group(core, uri);
       const leaf = core.app.workspace.createLeaf({ type, state: { path: uri } });
       parent.appendChild(leaf);
       core.app.workspace.activeLeaf = leaf;
     };
     class graph_document_view extends core.WorkspaceView {
+      navigation_id = ++view_serial;
       containerEl = workspace_element("section", "git-graph-document");
       icon = "fa-code-fork";
       editor;
@@ -205769,6 +205833,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       onOpen() {
         if (disposed) return;
+        queueMicrotask(() => {
+          if (!disposed && core.app.workspace.activeLeaf === this.leaf) notify_navigation_selection();
+        });
         const payload = contents.get(this.leaf.state.path);
         this.sync_tab();
         if (!payload) {
@@ -205887,6 +205954,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         if (disposed) return;
         disposed = true;
+        unregister_navigation();
         if (typeof unregister_compare === "function") unregister_compare();
         file_icon_style.remove();
         terminal_workspace.dispose();
@@ -206060,7 +206128,8 @@ https://creativecommons.org/licenses/by/4.0/
         const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
         return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object2]));
       },
-      open_document(data, group = "active", options2 = {}) {
+      open_document(data, group = "active", options2 = {}, previous_parent) {
+        notify_navigation_selection();
         const uri = "typ://linux_note.git_document/".concat(encodeURIComponent(options2.root || ""), "/").concat(encodeURIComponent(options2.key || String(++serial2)), "/").concat(encodeURIComponent(data.title));
         contents.set(uri, { data, options: options2 });
         let existing;
@@ -206070,12 +206139,12 @@ https://creativecommons.org/licenses/by/4.0/
         if (existing && group === "active") {
           core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
           existing.view.onOpen();
-        } else add_tab("linux_note.git_document", uri, group);
+        } else add_tab("linux_note.git_document", uri, group, previous_parent);
       },
       workspace_path() {
         return get_workspace_files()?.context_root() || this.context_path() || process_api.env.USERPROFILE || process_api.env.HOME || process_api.cwd();
       },
-      open_revision_document(root, revision, file, content, settings, fragment = "") {
+      open_revision_document(root, revision, file, content, settings, fragment = "", previous_parent) {
         const group = settings.new_tab_group;
         let reader_disposed = false;
         const title = "".concat(revision.slice(0, 8), " \xB7 ").concat(file), label = git_graph_text("scm.readonly_label", { file, revision: revision.slice(0, 8) });
@@ -206104,14 +206173,21 @@ https://creativecommons.org/licenses/by/4.0/
           if (!mime[extension]) throw new Error(git_graph_text("host.historical_image_unsupported"));
           const data = await this.runner(settings).run_bytes(root, ["show", "".concat(require_revision(revision), ":").concat(target)]);
           return "data:".concat(mime[extension], ";base64,").concat(runtime2.reqnode("buffer").Buffer.from(data).toString("base64"));
+        }, (explicit) => {
+          if (core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container)) notify_navigation_selection(explicit);
         });
-        this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, { file, dispose: () => {
-          reader_disposed = true;
-          reader.dispose();
-        } }, group);
+        this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {
+          file,
+          dispose: () => {
+            reader_disposed = true;
+            reader.dispose();
+          },
+          navigation: { capture: reader.capture, restore: reader.restore, reopen: (parent) => this.open_revision_document(root, revision, file, content, { ...settings, new_tab_group: "active" }, "", parent) }
+        }, group, previous_parent);
         reader.reveal_fragment(fragment);
       },
-      open_panel(title, key2, root, panel, options2 = {}, group = "active") {
+      open_panel(title, key2, root, panel, options2 = {}, group = "active", previous_parent) {
+        notify_navigation_selection();
         const uri = "typ://linux_note.git_document/".concat(encodeURIComponent(root), "/").concat(encodeURIComponent(key2), "/").concat(encodeURIComponent(title));
         contents.get(uri)?.options.dispose?.();
         contents.set(uri, { panel, options: { ...options2, root } });
@@ -206122,7 +206198,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (existing) {
           core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
           existing.view.onOpen();
-        } else add_tab("linux_note.git_document", uri, group);
+        } else add_tab("linux_note.git_document", uri, group, previous_parent);
       },
       async discover(root, depth, signal) {
         const resources = git_workspace_resources(path_api);
@@ -206196,6 +206272,52 @@ https://creativecommons.org/licenses/by/4.0/
         }));
       }
     };
+    const unregister_navigation = register_navigation_editor({
+      capture() {
+        const view = core.app.workspace.activeLeaf?.view;
+        if (!(view instanceof graph_document_view) || !view.document) return null;
+        const position2 = view.editor?.capture_navigation_state() ?? view.document.options.navigation?.capture();
+        if (!position2) return null;
+        const cursor = "cursor" in position2 && position2.cursor ? { ...position2.cursor, rendered_markdown: false } : { rendered_markdown: "rendered_markdown" in position2 ? position2.rendered_markdown : true };
+        const state = { data: view.document.data, options: view.document.data ? view.document.options : void 0, reopen: view.document.options.navigation?.reopen, parent: view.leaf.parent, position: position2 };
+        return { kind: "git", file_path: view.leaf.state.path, view_id: view.navigation_id, scroll_top: position2.scroll_top, scroll_left: position2.scroll_left, cursor, editor_state: state };
+      },
+      async restore(location, signal) {
+        if (disposed || signal.aborted || location.kind !== "git") return false;
+        const state = location.editor_state;
+        if (!state) return false;
+        let target, fallback2;
+        core.app.workspace.eachLeaves((leaf) => {
+          if (leaf.state.path === location.file_path && leaf.view instanceof graph_document_view) {
+            fallback2 = leaf.view;
+            if (leaf.view.navigation_id === location.view_id) target = leaf.view;
+          }
+        });
+        target ??= fallback2;
+        if (!target) {
+          if (state.data) {
+            contents.set(location.file_path, { data: state.data, options: state.options ?? {} });
+            add_tab("linux_note.git_document", location.file_path, "active", state.parent);
+          } else state.reopen?.(state.parent);
+          const view = core.app.workspace.activeLeaf?.view;
+          if (view instanceof graph_document_view) target = view;
+        }
+        if (disposed || signal.aborted || !target) return false;
+        core.app.workspace.activeLeaf = target.leaf.parent.toggleTab(target.leaf.state.path);
+        target.onOpen();
+        if (target.editor && "view_state" in state.position) {
+          const restored = await target.editor.restore_navigation_state(state.position, signal);
+          if (restored) location.view_id = target.navigation_id;
+          return restored;
+        }
+        if (target.document?.options.navigation) {
+          target.document.options.navigation.restore(state.position);
+          location.view_id = target.navigation_id;
+          return true;
+        }
+        return false;
+      }
+    }, "git");
     const unregister_compare = core.app.commands.register({ id: "linux_note:compare_files", title: "\u6587\u4EF6\uFF1A\u6BD4\u8F83\u6240\u9009\u6587\u4EF6", scope: "global", showInCommandPanel: false, callback: (left, right) => {
       void (async () => {
         const files = get_workspace_files();
@@ -240814,22 +240936,22 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_recent_service.ts
-  function create_recent_service(ports) {
+  function create_recent_service(ports2) {
     let disposed = false, pending = false;
     const bounded = (operation) => new Promise((resolve3, reject) => {
-      const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports.timeout_ms ?? 2500);
+      const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports2.timeout_ms ?? 2500);
       operation.then(resolve3, reject).finally(() => clearTimeout(timer));
     });
-    const key2 = (item) => item.kind + ":" + (ports.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
+    const key2 = (item) => item.kind + ":" + (ports2.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
     const read2 = async () => {
-      const data = await bounded(ports.invoke("setting.getRecentFiles"));
+      const data = await bounded(ports2.invoke("setting.getRecentFiles"));
       if (disposed) return [];
       const seen = /* @__PURE__ */ new Set(), result = [];
       for (const [group, kind] of [["folders", "folder"], ["files", "file"]]) {
         const items = [];
         for (const item of Array.isArray(data?.[group]) ? data[group] : []) {
-          if (typeof item?.path !== "string" || !ports.path_api.isAbsolute(item.path)) continue;
-          const entry = { path: ports.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
+          if (typeof item?.path !== "string" || !ports2.path_api.isAbsolute(item.path)) continue;
+          const entry = { path: ports2.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
           if (!seen.has(key2(entry))) {
             seen.add(key2(entry));
             items.push(entry);
@@ -240841,18 +240963,18 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const remove = async (item) => {
       if (disposed) return;
-      await ports.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
+      await ports2.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
     };
     const missing2 = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
     const available = async (item) => {
       try {
-        const stat = await bounded(ports.fs.promises.stat(item.path));
+        const stat = await bounded(ports2.fs.promises.stat(item.path));
         return item.kind === "folder" ? stat.isDirectory() : stat.isFile();
       } catch (error) {
         if (!missing2(error)) throw error;
-        const root = ports.path_api.parse(item.path).root;
+        const root = ports2.path_api.parse(item.path).root;
         try {
-          const stat = await bounded(ports.fs.promises.stat(root));
+          const stat = await bounded(ports2.fs.promises.stat(root));
           if (!stat.isDirectory()) throw error;
         } catch {
           throw new Error("\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u5DF2\u4FDD\u7559\u6700\u8FD1\u8BB0\u5F55\uFF1A" + item.path);
@@ -240862,14 +240984,14 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const forget_missing = async (item) => {
       await remove(item);
-      ports.notice("\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728\u6216\u7C7B\u578B\u5DF2\u6539\u53D8\uFF0C\u5DF2\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664\uFF1A" + item.path);
+      ports2.notice("\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728\u6216\u7C7B\u578B\u5DF2\u6539\u53D8\uFF0C\u5DF2\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664\uFF1A" + item.path);
     };
     const open = async (item, valid = () => true) => {
-      if (disposed || pending || ports.context_switching() || !valid()) return false;
-      if (!ports.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
+      if (disposed || pending || ports2.context_switching() || !valid()) return false;
+      if (!ports2.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
       pending = true;
-      const epoch2 = ports.context_epoch();
-      const active2 = () => !disposed && valid() && !ports.context_switching() && ports.context_epoch() === epoch2;
+      const epoch2 = ports2.context_epoch();
+      const active2 = () => !disposed && valid() && !ports2.context_switching() && ports2.context_epoch() === epoch2;
       try {
         const exists = await available(item);
         if (!active2()) return false;
@@ -240878,8 +241000,8 @@ https://creativecommons.org/licenses/by/4.0/
           return false;
         }
         try {
-          if (item.kind === "folder") await ports.open_folder(item.path);
-          else await ports.open_file(item.path);
+          if (item.kind === "folder") await ports2.open_folder(item.path);
+          else await ports2.open_file(item.path);
         } catch (error) {
           if (active2() && missing2(error) && !await available(item)) {
             if (active2()) await forget_missing(item);
@@ -245196,6 +245318,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092318,
+        version: "2026.09.23.18",
+        date: "2026-09-23",
+        notes: [
+          "\u641C\u7D22/\u94FE\u63A5\u9884\u89C8\u3001Git\u5386\u53F2\u4E0EMarkdown\u6E32\u67D3\u6BD4\u8F83\u5171\u7528\u5F53\u524D\u4E3B\u9898\uFF0C\u4FEE\u590D\u529F\u80FD\u533A\u5B57\u4F53\u8986\u76D6\u6B63\u6587\u53CA\u5386\u53F2\u9875\u56FA\u5B9A\u6807\u9898\u3001\u8868\u683C\u6837\u5F0F\u7684\u95EE\u9898\u3002",
+          "Git\u6BD4\u8F83\u548C\u53EA\u8BFB\u5386\u53F2\u63A5\u5165\u7EDF\u4E00\u7F16\u8F91\u5668\u5BFC\u822A\uFF1B\u6253\u5F00\u539F\u6587\u4EF6\u540E\u53EF\u7528Alt\u5DE6\u53F3\u952E\u6216\u4E3B\u9876\u680F\u8FD4\u56DE\uFF0C\u4FDD\u7559\u6BD4\u8F83\u6A21\u5F0F\u3001\u4F4D\u7F6E\u548C\u6E90\u7801\u9009\u533A\uFF0C\u5173\u95ED\u6807\u7B7E\u540E\u53EF\u91CD\u5F00\u53EA\u8BFB\u5FEB\u7167\u3002"
+        ]
+      },
       {
         sequence: 2026092317,
         version: "2026.09.23.17",

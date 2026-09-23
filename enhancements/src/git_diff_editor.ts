@@ -75,6 +75,7 @@ export class git_diff_editor {
   range_available:()=>boolean = ()=>false;
   range_pending=false;
   private disposed=false;
+  private restoring_navigation=false;
   private range_chord_until=0;
   private close_menu?:()=>void;
   private release_settings?:()=>void;
@@ -113,7 +114,7 @@ export class git_diff_editor {
         const changes = editor.getLineChanges(); this.status.textContent = changes ? text("diff.change_count", {count: changes.length}) : text("diff.incomplete");
         this.container.setAttribute("data-diff-ready", String(changes !== null));
         if(changes&&this.rendered_markdown)void this.render_markdown();
-        if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
+        if (!revealed && changes) { revealed = true; if(!this.restoring_navigation)editor.revealFirstDiff(); }
       }));
       this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => this.navigate("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => this.navigate("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
@@ -177,12 +178,40 @@ export class git_diff_editor {
     }
   }
   accessible_diff(previous=false):void {this.set_markdown_mode(false);if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
-  set_markdown_mode(value:boolean):void {
+  async set_markdown_mode(value:boolean):Promise<void> {
     if(!this.markdown_preview)return;
     this.rendered_markdown=value;this.body.hidden=value;this.markdown_preview.container.hidden=!value;
     this.container.dataset.markdownDiff=String(value);this.toolbar.querySelector('[data-diff-action="markdown_preview"]')?.setAttribute('aria-pressed',String(value));
-    if(value)void this.render_markdown();else{this.markdown_epoch++;this.markdown_preview.invalidate();this.editor.layout();}
     this.refresh_labels();
+    if(value)await this.render_markdown();else{this.markdown_epoch++;this.markdown_preview.invalidate();this.editor.layout();}
+  }
+  /** 呈现方式及两侧编辑器位置归比较视图所有，导航服务只保存和交还快照。 */
+  capture_navigation_state(){
+    const view=this.focused_editor(),scroll=this.rendered_markdown?this.markdown_preview?.scroll:undefined;
+    return {rendered_markdown:this.rendered_markdown,view_state:this.editor.saveViewState(),
+      original:'getOriginalEditor' in this.editor&&view===this.editor.getOriginalEditor(),
+      scroll_top:scroll?.scrollTop??view.getScrollTop(),scroll_left:scroll?.scrollLeft??view.getScrollLeft(),
+      cursor:this.rendered_markdown?null:view.getPosition()};
+  }
+  async restore_navigation_state(state:ReturnType<git_diff_editor['capture_navigation_state']>,signal:AbortSignal):Promise<boolean>{
+    if(signal.aborted||this.disposed)return false;
+    this.restoring_navigation=true;
+    try{
+    if(this.rendered_markdown!==state.rendered_markdown)await this.set_markdown_mode(state.rendered_markdown);
+    const start=Date.now();
+    while(('getLineChanges' in this.editor&&this.editor.getLineChanges()===null)||(this.rendered_markdown&&this.markdown_preview?.container.dataset.ready!=='true')){
+      if(signal.aborted||this.disposed||Date.now()-start>15000)return false;
+      await new Promise(resolve=>setTimeout(resolve,40));
+    }
+    if(signal.aborted||this.disposed)return false;
+    this.editor.layout();
+    // Monaco的单编辑器与差异编辑器分别接受自己保存的状态。
+    this.editor.restoreViewState(state.view_state as never);
+    const scroll=this.rendered_markdown?this.markdown_preview?.scroll:undefined;
+    if(scroll){scroll.scrollTop=state.scroll_top;scroll.scrollLeft=state.scroll_left;scroll.tabIndex=-1;scroll.focus({preventScroll:true});}
+    else{const view='getOriginalEditor' in this.editor?(state.original?this.editor.getOriginalEditor():this.editor.getModifiedEditor()):this.editor;view.setScrollTop(state.scroll_top);view.setScrollLeft(state.scroll_left);view.focus();}
+    return true;
+    }finally{this.restoring_navigation=false;}
   }
   private async render_markdown():Promise<void>{
     if(!this.markdown_preview||!this.rendered_markdown||!('getLineChanges' in this.editor))return;
