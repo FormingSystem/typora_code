@@ -1,4 +1,4 @@
-import {bind_reading_reflow} from "./reading_reflow";
+import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {acquire_workspace_style} from "./workspace_styles";
 import { marked, type TokensList } from "marked";
@@ -17,7 +17,7 @@ const clamp_scale = (value: number) => Number.isFinite(value) ? Math.min(150, Ma
 const markdown_source = (text: string) => text.replace(/\r\n?/gu,"\n").replace(/^( *)(\t+)/gmu,(_,leading:string,tabs:string)=>leading+"    ".repeat(tabs.length));
 
 /** 侧栏预览独立于中央编辑器，不切换文档、不创建工作区标签，也不改变正文选区。 */
-export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>) {
+export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>, options:{navigate?:(href:string)=>void}={}) {
   const container = el("section", "workspace-lookup-preview");
   const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", preview_css, {});
   const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", "命中内容预览");
@@ -67,7 +67,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
         if (text) rules.push(text.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
       } catch { /* 不可读取的外部样式不阻塞内容，下面提供基本正文样式。 */ }
     }
-    const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:default}#write input{pointer-events:none}`;
+    const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:${options.navigate?"pointer":"default"}}#write input{pointer-events:none}`;
     local.textContent += `#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}`;
     rules.push(local.textContent||"");const text=rules.join("\n");
     // 原生侧栏反复修改 body.class。只更新样式，不能移走 reader 令预览滚动位置归零。
@@ -122,8 +122,11 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       const block = el("div"); block.dataset.sourceStart = String(safe_start);
       const single = Object.assign([token], {links: tokens.links}) as TokensList;
       block.innerHTML = DOMPurify.sanitize(marked.parser(single, {gfm: true}), {FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false});
-      // 预览中的链接仅作阅读，不让一次单击间接导航或离开当前文档。
-      for (const link of block.querySelectorAll("a")) { link.removeAttribute("href"); link.removeAttribute("target"); }
+      // 仅由预览所有者处理；不把默认浏览器导航交给宿主正文。
+      for (const link of block.querySelectorAll("a")) {
+        const href=link.getAttribute("href");link.removeAttribute("href");link.removeAttribute("target");
+        if(options.navigate&&href){link.dataset.previewHref=href;link.tabIndex=0;link.setAttribute("role","link");}
+      }
       const target=start >= safe_start && start < safe_start + token.raw.length;
       if (target) { target_block = block; block.classList.add("lookup-target-block"); }
       for(const code of block.querySelectorAll<HTMLElement>("pre code")){
@@ -154,7 +157,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
         if (from && to) { const range = document.createRange(); range.setStart(from.node, found - from.start); range.setEnd(to.node, found + needle.length - to.start); const mark = el("mark"); mark.append(range.extractContents()); range.insertNode(mark); selected_block = mark; }
       }
     }
-    body.replaceChildren(markdown_host); apply_scale(); requestAnimationFrame(reveal);
+    body.replaceChildren(markdown_host); apply_scale(); reveal();reflow.capture();
   };
   const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
@@ -195,13 +198,35 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       }
       if(!disposed&&request===generation){
         Object.assign(body.dataset,{previewPath:file.file_path,previewKind:is_markdown_file(file.file_path)?"markdown":"source",previewLine:String(match.line),previewColumn:String(match.column),previewEndLine:String(match.end_line),previewEndColumn:String(match.end_column),previewText:match.text});
+        return true;
       }
-    } catch (error) { if (!disposed && request === generation) body.replaceChildren(el("p", "workspace-lookup-preview-message", String(error))); }
+    } catch (error) { if (!disposed && request === generation) body.replaceChildren(el("p", "workspace-lookup-preview-message", String(error))); return false; }
+  };
+  const follow_link=(event:MouseEvent|KeyboardEvent)=>{
+    if(event instanceof KeyboardEvent&&event.key!=="Enter")return;
+    const link=(event.target instanceof Element?event.target:event.target instanceof Node?event.target.parentElement:null)?.closest<HTMLElement>('[data-preview-href]');
+    if(!link||!reader.contains(link)||!options.navigate)return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(event.ctrlKey||event.metaKey||event.altKey||event.shiftKey||(event instanceof MouseEvent&&event.button!==0)||(event instanceof KeyboardEvent&&event.repeat))return;
+    options.navigate(link.dataset.previewHref!);
+  };
+  reader.addEventListener('click',follow_link);reader.addEventListener('keydown',follow_link);
+  const capture_position=()=>{
+    const anchor=capture_reflow_anchor(body,reader),path:number[]=[];
+    if(anchor){let node:Node=anchor.node;while(node!==reader&&node.parentNode){path.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes,node));node=node.parentNode;}}
+    return {scroll_top:body.scrollTop,scroll_left:body.scrollLeft,editor_state:editor?.focused_editor().saveViewState(),anchor:anchor?{path,offset:anchor.offset,top:anchor.top,text:anchor.node.textContent}:undefined};
+  };
+  const restore_position=(position:ReturnType<typeof capture_position>)=>{
+    const view=editor?.focused_editor();if(view&&position.editor_state)view.restoreViewState(position.editor_state);
+    body.scrollTop=position.scroll_top;body.scrollLeft=position.scroll_left;
+    const anchor=position.anchor;let node:Node|undefined=reader;
+    if(anchor){for(const index of anchor.path)node=node?.childNodes[index];if(node instanceof Text&&node.textContent===anchor.text)restore_reflow_anchor(body,reader,{node,offset:anchor.offset,top:anchor.top});}
+    reflow.capture();
   };
   const theme_observer = new MutationObserver(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
   theme_observer.observe(document.documentElement, {attributes: true, attributeFilter: ["class", "style"]}); theme_observer.observe(document.body, {attributes: true, attributeFilter: ["class", "style"]});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
   const clear=()=>{generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, reveal_match, get_scale:()=>scale, set_scale, dispose() {disposed = true; code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  return {container, show, clear, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true; reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer.disconnect(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

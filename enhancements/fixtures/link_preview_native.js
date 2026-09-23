@@ -6,7 +6,8 @@
  const wait=async(fn,label)=>{for(let i=0;i<400;i++){if(fn())return;await pause(50);}throw Error(label);};
  const source=path.join(base,'workspace/links.md'),target=path.join(base,'workspace/target.md');
  const text='# Links\n\n[目标](target.md#目标标题)\n\n[引用][ref]\n\n[ref]: target.md#目标标题\n';
- fs.writeFileSync(source,text);fs.writeFileSync(target,'# 起点\n\n'+Array.from({length:30},(_,i)=>'段落'+i+' '+ 'reading anchor long paragraph content '.repeat(40)+'\n\n').join('')+'## 目标标题\n\n**目标正文**\n');
+ fs.writeFileSync(source,text);fs.writeFileSync(target,'# 起点\n\n[下一页](next.md#终点) [文内](#目标标题) [失败](missing.md)\n\n'+Array.from({length:30},(_,i)=>'段落'+i+' '+ 'reading anchor long paragraph content '.repeat(40)+'\n\n').join('')+'## 目标标题\n\n**目标正文**\n');
+ fs.writeFileSync(path.join(base,'workspace/next.md'),'# 下一页\n\n[返回](target.md)\n\n'+Array.from({length:50},(_,i)=>'下一页段落 '+i+'\n\n').join('')+'## 终点\n\n结束');
  try{
   await pause(2400);await files.open_file(source);await wait(()=>document.querySelector('#write a[href],#write a[data-ref]'),'原生链接未出现');await pause(500);
   const source_leaf=core.app.workspace.activeLeaf;
@@ -29,8 +30,32 @@
    slider.value='80';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);
   };
   await verify_scale(sidebar,'独立预览');
+  const nav_panel=sidebar.querySelector('.workspace-link-preview'),preview_body=()=>nav_panel.querySelector('.workspace-lookup-preview-body');
+  const follow=async label=>{const anchor=[...nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelectorAll('[role=link]')].find(n=>n.textContent===label);anchor.dispatchEvent(new MouseEvent('pointerdown',{bubbles:true,composed:true}));anchor.click();await wait(()=>nav_panel.dataset.state!=='loading','内部链接超时');await pause(100);};
+  const travel=async direction=>{preview_body().focus({preventScroll:true});preview_body().dispatchEvent(new KeyboardEvent('keydown',{key:direction<0?'ArrowLeft':'ArrowRight',altKey:true,bubbles:true,composed:true,cancelable:true}));await wait(()=>nav_panel.dataset.state!=='loading','预览历史超时');await pause(100);};
+  let main_events=0;const on_history=()=>main_events++;window.addEventListener('linux-note-reading-history-state',on_history);
+  await pause(180);main_events=0;
+  const main_before={file:File.bundle.filePath,top:document.querySelector('content').scrollTop,cursor:JSON.stringify(File.editor.selection.buildUndo())};
+  preview_body().scrollTop=260;await pause(100);const saved_top=preview_body().scrollTop;
+  await follow('下一页');assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生预览内部链接导航');
+  await travel(-1);assert(preview_body().dataset.previewPath===target&&Math.abs(preview_body().scrollTop-saved_top)<3,'原生Alt左恢复文件及滚动');
+  await travel(1);assert(preview_body().dataset.previewPath.endsWith('next.md'),'原生Alt右恢复目标');await travel(-1);
+  for(let i=0;i<20;i++){await follow('下一页');await travel(-1);assert(Math.abs(preview_body().scrollTop-saved_top)<3,'原生预览往返位置 '+i);}
+  await follow('文内');assert(nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('目标标题'),'原生文内标题导航');await travel(-1);
+  await follow('失败');assert(nav_panel.dataset.state==='error'&&preview_body().dataset.previewPath===target,'原生失败保留正文');
+  fs.writeFileSync(path.join(base,'workspace/missing.md'),'# 重试成功');nav_panel.querySelector('[aria-label="重新加载"]').click();await wait(()=>nav_panel.dataset.state==='ready','重试失败');assert(preview_body().dataset.previewPath.endsWith('missing.md'),'失败目标修复后重试成功');await travel(-1);assert(preview_body().dataset.previewPath===target,'重试成功仍可返回');
+  assert(File.bundle.filePath===main_before.file&&Math.abs(document.querySelector('content').scrollTop-main_before.top)<3,'预览导航不移动主正文');
+  assert(main_events===0,'预览导航不写主历史状态');window.removeEventListener('linux-note-reading-history-state',on_history);
+  const scale_box=nav_panel.querySelector('.workspace-preview-scale-controls').getBoundingClientRect(),open_box=nav_panel.querySelector('[aria-label="打开源文件"]').getBoundingClientRect();
+  assert(Math.abs(scale_box.top-open_box.top)<4&&scale_box.right<=open_box.left,'原生缩放位于打开源文件左侧同一行');
+  getSelection().removeAllRanges();document.dispatchEvent(new Event('selectionchange'));await pause(120);select();await pause(160);await wait(()=>nav_panel.dataset.state==='ready','重选未就绪');await travel(-1);assert(preview_body().dataset.previewPath===target,'新选择没有上一预览历史');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_navigation_toolbar'}));await pause(400);
+
   for(let i=0;i<20;i++)sidebar.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await pause(100);
   await verify_scale(sidebar,'170px窄预览');
+  const tools=nav_panel.querySelector('[role=toolbar]'),tool_bounds=tools.getBoundingClientRect();
+  assert([...tools.querySelectorAll('input,output,.git-icon-button')].filter(n=>n.getClientRects().length&&getComputedStyle(n).display!=='none').every(n=>{const b=n.getBoundingClientRect();return b.left>=tool_bounds.left-1&&b.right<=tool_bounds.right+1&&b.bottom<=tool_bounds.bottom+1}),'170px全部必要操作在同一行且不裁切');
+
   for(let i=0;i<9;i++)sidebar.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));await pause(100);
 
   core.app.workspace.sidebar.hide();await pause(400);

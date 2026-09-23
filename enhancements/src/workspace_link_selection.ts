@@ -16,6 +16,7 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   const request_for=(node:Node|null):workspace_link_request|undefined=>{
     const element=node instanceof Element?node:node?.parentElement;
     const link=element?.closest<HTMLAnchorElement>("a[href],a[data-href],a[data-ref]");
+    if(link?.getRootNode() instanceof ShadowRoot)return;
     if(!link?.closest("#write,.typ-markdown-preview")||link.closest(".workspace-link-preview,.workspace-lookup-preview"))return;
     let href=link.getAttribute("href")||link.getAttribute("data-href")||"";
     if(link.dataset.ref&&link.closest("#write"))href=runtime.File?.editor?.nodeMap?.link_list?.getHrefByRef?.(link.dataset.ref,true,true)||"";

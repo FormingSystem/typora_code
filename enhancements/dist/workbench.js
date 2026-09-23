@@ -182613,15 +182613,18 @@ https://creativecommons.org/licenses/by/4.0/
       clearTimeout(selection_timer);
       selection_timer = window.setTimeout(() => record_selection(), 100);
     };
-    document.addEventListener("pointerdown", () => record_selection(), { capture: true, signal: controller.signal });
+    document.addEventListener("pointerdown", (event) => {
+      if (!(event.target instanceof Element && event.target.closest(".workspace-link-preview"))) record_selection();
+    }, { capture: true, signal: controller.signal });
     document.addEventListener("selectionchange", () => {
-      if (window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
+      if (window.getSelection()?.anchorNode?.getRootNode() === document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
     }, { signal: controller.signal });
     if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
     schedule_selection();
     window.addEventListener("keydown", (event) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active = document.activeElement;
+      if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
       if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
@@ -236694,7 +236697,7 @@ https://creativecommons.org/licenses/by/4.0/
   var SCALE_KEY = "linux-note:lookup:preview-scale:v1";
   var clamp_scale = (value) => Number.isFinite(value) ? Math.min(150, Math.max(50, Math.round(value))) : 80;
   var markdown_source = (text3) => text3.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
-  function create_lookup_preview(files, read_content) {
+  function create_lookup_preview(files, read_content, options2 = {}) {
     const container = workspace_element("section", "workspace-lookup-preview");
     const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
     const body = workspace_element("div", "workspace-lookup-preview-body");
@@ -236761,7 +236764,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       const local = workspace_element("style");
-      local.textContent = ":host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:default}#write input{pointer-events:none}";
+      local.textContent = ":host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:".concat(options2.navigate ? "pointer" : "default", "}#write input{pointer-events:none}");
       local.textContent += "#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}";
       rules.push(local.textContent || "");
       const text3 = rules.join("\n");
@@ -236828,8 +236831,14 @@ https://creativecommons.org/licenses/by/4.0/
         const single = Object.assign([token], { links: tokens.links });
         block3.innerHTML = purify2.sanitize(marked2.parser(single, { gfm: true }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false });
         for (const link3 of block3.querySelectorAll("a")) {
+          const href = link3.getAttribute("href");
           link3.removeAttribute("href");
           link3.removeAttribute("target");
+          if (options2.navigate && href) {
+            link3.dataset.previewHref = href;
+            link3.tabIndex = 0;
+            link3.setAttribute("role", "link");
+          }
         }
         const target = start >= safe_start && start < safe_start + token.raw.length;
         if (target) {
@@ -236889,7 +236898,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
       body.replaceChildren(markdown_host);
       apply_scale();
-      requestAnimationFrame(reveal);
+      reveal();
+      reflow.capture();
     };
     const show2 = async (file, match2, hash2 = "", live = false) => {
       const request = ++generation;
@@ -236947,10 +236957,47 @@ https://creativecommons.org/licenses/by/4.0/
         }
         if (!disposed && request === generation) {
           Object.assign(body.dataset, { previewPath: file.file_path, previewKind: is_markdown_file(file.file_path) ? "markdown" : "source", previewLine: String(match2.line), previewColumn: String(match2.column), previewEndLine: String(match2.end_line), previewEndColumn: String(match2.end_column), previewText: match2.text });
+          return true;
         }
       } catch (error) {
         if (!disposed && request === generation) body.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", String(error)));
+        return false;
       }
+    };
+    const follow_link = (event) => {
+      if (event instanceof KeyboardEvent && event.key !== "Enter") return;
+      const link3 = (event.target instanceof Element ? event.target : event.target instanceof Node ? event.target.parentElement : null)?.closest("[data-preview-href]");
+      if (!link3 || !reader.contains(link3) || !options2.navigate) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey || event instanceof MouseEvent && event.button !== 0 || event instanceof KeyboardEvent && event.repeat) return;
+      options2.navigate(link3.dataset.previewHref);
+    };
+    reader.addEventListener("click", follow_link);
+    reader.addEventListener("keydown", follow_link);
+    const capture_position2 = () => {
+      const anchor = capture_reflow_anchor(body, reader), path = [];
+      if (anchor) {
+        let node = anchor.node;
+        while (node !== reader && node.parentNode) {
+          path.unshift(Array.prototype.indexOf.call(node.parentNode.childNodes, node));
+          node = node.parentNode;
+        }
+      }
+      return { scroll_top: body.scrollTop, scroll_left: body.scrollLeft, editor_state: editor2?.focused_editor().saveViewState(), anchor: anchor ? { path, offset: anchor.offset, top: anchor.top, text: anchor.node.textContent } : void 0 };
+    };
+    const restore_position = (position2) => {
+      const view = editor2?.focused_editor();
+      if (view && position2.editor_state) view.restoreViewState(position2.editor_state);
+      body.scrollTop = position2.scroll_top;
+      body.scrollLeft = position2.scroll_left;
+      const anchor = position2.anchor;
+      let node = reader;
+      if (anchor) {
+        for (const index of anchor.path) node = node?.childNodes[index];
+        if (node instanceof Text && node.textContent === anchor.text) restore_reflow_anchor(body, reader, { node, offset: anchor.offset, top: anchor.top });
+      }
+      reflow.capture();
     };
     const theme_observer = new MutationObserver(() => {
       if (selected && is_markdown_file(selected.file.file_path)) update_theme();
@@ -236978,8 +237025,10 @@ https://creativecommons.org/licenses/by/4.0/
       editor2 = void 0;
       body.replaceChildren();
     };
-    return { container, show: show2, clear, reveal_match, get_scale: () => scale, set_scale, dispose() {
+    return { container, show: show2, clear, reveal_match, capture_position: capture_position2, restore_position, focus: () => body.focus({ preventScroll: true }), get_scale: () => scale, set_scale, dispose() {
       disposed = true;
+      reader.removeEventListener("click", follow_link);
+      reader.removeEventListener("keydown", follow_link);
       code_copy2.dispose();
       reflow.dispose();
       generation++;
@@ -243072,12 +243121,20 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_link_preview.ts
   function create_link_preview(files, options2 = {}) {
     const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title = workspace_element("span", "workspace-link-preview-title");
-    const content = workspace_element("div", "workspace-link-preview-content"), reader = create_lookup_preview(files);
-    const scale = create_preview_scale_controls(reader), scale_row = workspace_element("div", "workspace-link-preview-scale-row");
-    scale_row.append(scale.container);
-    scale_row.hidden = true;
-    const runtime2 = window, interaction = acquire_workspace_interaction(container);
-    let target, request, generation = 0, disposed = false;
+    const content = workspace_element("div", "workspace-link-preview-content"), message = workspace_element("p", "workspace-lookup-preview-message");
+    message.hidden = true;
+    message.setAttribute("role", "status");
+    const runtime2 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
+    let target, request, failed_request, generation = 0, disposed = false;
+    let reader, pending_reader, pending_stage;
+    const scale = create_preview_scale_controls({ container, get_scale: () => reader?.get_scale() || 80, set_scale: (value) => reader?.set_scale(value) });
+    scale.container.hidden = true;
+    const sync_scale = () => {
+      const value = String(reader?.get_scale() || 80);
+      if (container.dataset.previewScale !== value) container.dataset.previewScale = value;
+    };
+    const scale_observer = new MutationObserver(sync_scale);
+    scale_observer.observe(content, { subtree: true, attributes: true, attributeFilter: ["data-preview-scale"] });
     const open = git_icon_button("go-to-file", "\u6253\u5F00\u6E90\u6587\u4EF6", async () => {
       const version = generation;
       if (open.disabled) return;
@@ -243092,48 +243149,86 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     const retry = git_icon_button("refresh", "\u91CD\u65B0\u52A0\u8F7D", () => {
-      if (request) void show2(request);
+      const value = failed_request || request;
+      if (!value) return;
+      if (failed_request) void navigate(value);
+      else void load(value, capture()?.editor_state);
     });
-    const mode = workspace_element("span", "workspace-link-preview-mode", "\u53EA\u8BFB\u9884\u89C8");
     const fail = (error) => {
-      content.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", String(error)));
+      message.textContent = String(error);
+      message.hidden = false;
       container.dataset.state = "error";
     };
     toolbar.setAttribute("role", "toolbar");
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
-    toolbar.append(title, open, retry, mode);
-    container.append(toolbar, scale_row, content);
+    toolbar.append(title, scale.container, open, retry);
+    container.append(toolbar, message, content);
     if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
-    const clear = () => {
+    const cancel_pending = () => {
       ++generation;
-      reader.clear();
+      pending_reader?.dispose();
+      pending_reader = void 0;
+      pending_stage?.remove();
+      pending_stage = void 0;
+    };
+    const clear = () => {
+      cancel_pending();
+      history.clear();
+      reader?.dispose();
+      reader = void 0;
       content.replaceChildren();
-      scale_row.hidden = true;
+      scale.container.hidden = true;
       request = void 0;
       target = void 0;
+      failed_request = void 0;
+      message.hidden = true;
     };
-    const show2 = async (value) => {
-      clear();
-      if (disposed) return;
-      request = { ...value };
+    const capture = () => {
+      if (!target || !request) return;
+      const position2 = reader?.capture_position();
+      return { file_path: target.kind === "file" ? target.path : target.url, scroll_top: position2?.scroll_top || 0, scroll_left: position2?.scroll_left || 0, cursor: { href: request.href }, editor_state: { request: { ...request }, position: position2 } };
+    };
+    const navigate = async (value) => {
+      if (history.is_navigating()) return;
+      const from = capture();
+      if (await load(value)) {
+        const to = capture();
+        if (to) {
+          if (from) history.record_jump(from, to);
+          else history.record_selection(to);
+        }
+        reader?.focus();
+      }
+    };
+    const follow = (href) => {
+      if (target?.kind === "file") return navigate({ source: target.path, href });
+    };
+    const load = async (value, restore) => {
+      cancel_pending();
+      if (disposed) return false;
       const version = generation;
       container.dataset.state = "loading";
-      title.textContent = value.href;
-      title.title = value.href;
-      open.disabled = true;
-      content.replaceChildren(workspace_element("p", "workspace-lookup-preview-message", "\u6B63\u5728\u52A0\u8F7D\u94FE\u63A5\u9884\u89C8\u2026"));
+      message.textContent = "\u6B63\u5728\u52A0\u8F7D\u94FE\u63A5\u9884\u89C8\u2026";
+      message.hidden = false;
+      failed_request = void 0;
+      if (!target) {
+        title.textContent = value.href;
+        title.title = value.href;
+        open.disabled = true;
+      }
+      let next;
+      const stage = workspace_element("div", "workspace-link-preview-stage");
+      stage.style.cssText = "position:absolute;inset:0;visibility:hidden;display:flex;min-height:0";
+      pending_stage = stage;
+      content.append(stage);
       try {
-        target = resolve_preview_link(files.path_api, value.source, value.href);
-        const resolved = target;
-        open.title = resolved.kind === "file" ? "\u6253\u5F00\u6E90\u6587\u4EF6" : "\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00";
-        open.setAttribute("aria-label", open.title);
-        open.disabled = resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
-        title.textContent = resolved.kind === "file" ? files.path_api.basename(resolved.path) : new URL(resolved.url).hostname;
-        mode.textContent = resolved.kind === "file" ? "\u53EA\u8BFB\u9884\u89C8" : "\u7F51\u9875\u9884\u89C8";
+        const resolved = resolve_preview_link(files.path_api, value.source, value.href);
         if (resolved.kind === "file") {
-          scale_row.hidden = false;
-          content.replaceChildren(reader.container);
-          await reader.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
+          next = create_lookup_preview(files, void 0, { navigate: (href) => void follow(href) });
+          pending_reader = next;
+          stage.append(next.container);
+          const ok2 = await next.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
+          if (!ok2) throw new Error(next.container.textContent || "\u65E0\u6CD5\u8BFB\u53D6\u94FE\u63A5\u76EE\u6807\u3002");
         } else {
           const frame3 = workspace_element("iframe", "workspace-link-web");
           frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
@@ -243147,19 +243242,75 @@ https://creativecommons.org/licenses/by/4.0/
           frame3.onerror = () => {
             if (!disposed && version === generation) status2.textContent = "\u7F51\u9875\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u91CD\u8BD5\u6216\u5728\u6D4F\u89C8\u5668\u6253\u5F00\u3002";
           };
-          content.replaceChildren(frame3, status2);
+          stage.append(frame3, status2);
         }
-        if (!disposed && version === generation) container.dataset.state = "ready";
+        if (disposed || version !== generation) {
+          next?.dispose();
+          stage.remove();
+          return false;
+        }
+        reader?.dispose();
+        reader = next;
+        pending_reader = void 0;
+        pending_stage = void 0;
+        content.replaceChildren(...stage.childNodes);
+        stage.remove();
+        target = resolved;
+        request = { ...value };
+        message.hidden = true;
+        if (restore?.position) reader?.restore_position(restore.position);
+        title.textContent = resolved.kind === "file" ? files.path_api.basename(resolved.path) : new URL(resolved.url).hostname;
+        title.title = resolved.kind === "file" ? resolved.path + resolved.hash : resolved.url;
+        open.title = resolved.kind === "file" ? "\u6253\u5F00\u6E90\u6587\u4EF6" : "\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00";
+        open.setAttribute("aria-label", open.title);
+        open.disabled = resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
+        scale.container.hidden = resolved.kind !== "file";
+        sync_scale();
+        container.dataset.state = "ready";
+        return true;
       } catch (error) {
-        if (!disposed && version === generation) fail(error);
+        next?.dispose();
+        stage.remove();
+        if (!disposed && version === generation) {
+          pending_reader = void 0;
+          pending_stage = void 0;
+          failed_request = { ...value };
+          fail(error);
+        }
+        return false;
       }
     };
+    const show2 = async (value) => {
+      clear();
+      if (await load(value)) {
+        const location = capture();
+        if (location) history.record_selection(location);
+      }
+    };
+    const travel = async (direction) => {
+      const current = capture();
+      if (!current) return false;
+      const ok2 = await history.travel(direction, current, async (location) => {
+        const saved = location.editor_state;
+        return load(saved.request, saved);
+      });
+      if (ok2) reader?.focus();
+      return ok2;
+    };
+    const keydown = (event) => {
+      if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (!event.repeat) void travel(event.key === "ArrowLeft" ? -1 : 1);
+    };
+    container.addEventListener("keydown", keydown, true);
     return { container, show: show2, clear, dispose() {
       if (disposed) return;
       disposed = true;
       clear();
+      container.removeEventListener("keydown", keydown, true);
+      scale_observer.disconnect();
       scale.dispose();
-      reader.dispose();
       interaction.remove();
       container.remove();
     } };
@@ -243181,6 +243332,7 @@ https://creativecommons.org/licenses/by/4.0/
     const request_for = (node) => {
       const element = node instanceof Element ? node : node?.parentElement;
       const link3 = element?.closest("a[href],a[data-href],a[data-ref]");
+      if (link3?.getRootNode() instanceof ShadowRoot) return;
       if (!link3?.closest("#write,.typ-markdown-preview") || link3.closest(".workspace-link-preview,.workspace-lookup-preview")) return;
       let href = link3.getAttribute("href") || link3.getAttribute("data-href") || "";
       if (link3.dataset.ref && link3.closest("#write")) href = runtime2.File?.editor?.nodeMap?.link_list?.getHrefByRef?.(link3.dataset.ref, true, true) || "";
@@ -243638,6 +243790,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092308,
+        version: "2026.09.23.8",
+        date: "2026-09-23",
+        notes: [
+          "Markdown\u94FE\u63A5\u53EF\u5728\u5F53\u524D\u53EA\u8BFB\u9884\u89C8\u7EE7\u7EED\u8DF3\u8F6C\uFF0CAlt+\u5DE6\u53F3\u952E\u6062\u590D\u8BE5\u9884\u89C8\u4F1A\u8BDD\u7684\u76EE\u6807\u548C\u9605\u8BFB\u4F4D\u7F6E\uFF1B\u65B0\u9009\u62E9\u91CD\u7F6E\u5386\u53F2\uFF0C\u4E0E\u6B63\u6587\u53CA\u5176\u4ED6\u9884\u89C8\u9694\u79BB\u3002",
+          "\u9884\u89C8\u7F29\u653E\u6ED1\u6761\u548C\u767E\u5206\u6BD4\u5E76\u5165\u9876\u680F\u3001\u4F4D\u4E8E\u6253\u5F00\u6E90\u6587\u4EF6\u5DE6\u4FA7\uFF0C\u53D6\u6D88\u989D\u5916\u7F29\u653E\u884C\uFF1B\u76EE\u6807\u8BFB\u53D6\u5931\u8D25\u4FDD\u7559\u5F53\u524D\u5185\u5BB9\u5E76\u652F\u6301\u91CD\u8BD5\u3002"
+        ]
+      },
       {
         sequence: 2026092307,
         version: "2026.09.23.7",

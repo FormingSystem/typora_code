@@ -19,3 +19,9 @@ body.has-workspace-link-preview #typora-sidebar > #sidebar-content{bottom:0!impo
 body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility:hidden}
 .workspace-link-dock .workspace-link-preview-mode{display:none}
 .workspace-link-web{flex:1;width:100%;min-height:0;border:0;background:white}
+
+.workspace-link-preview-content{position:relative}
+.workspace-link-preview{container-type:inline-size;container-name:workspace-link-toolbar}
+.workspace-link-preview .workspace-preview-scale-controls[hidden]{display:none}
+@container workspace-link-toolbar (max-width:360px){.workspace-link-preview-title{flex:1 1 0}.workspace-link-preview .workspace-preview-scale-controls>.git-icon-button{display:none}}
+@container workspace-link-toolbar (max-width:240px){.workspace-link-preview-title{display:none}.workspace-link-preview>[role=toolbar]{gap:2px;padding:0 4px}.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{width:48px}.workspace-link-preview [role=toolbar]>.git-icon-button{width:22px;padding:3px}}

@@ -360,9 +360,9 @@ export function bind_reading_navigation(): () => void {
     selection_timer = window.setTimeout(() => record_selection(), 100);
   };
   // 点击前更新来源的滚动位置；定位由对应入口提交，滚轮本身不新增记录。
-  document.addEventListener("pointerdown", () => record_selection(), {capture: true, signal: controller.signal});
+  document.addEventListener("pointerdown", event => {if(!(event.target instanceof Element&&event.target.closest(".workspace-link-preview")))record_selection();}, {capture: true, signal: controller.signal});
   document.addEventListener("selectionchange", () => {
-    if (window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
+    if (window.getSelection()?.anchorNode?.getRootNode()===document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
   }, {signal: controller.signal});
   if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
   schedule_selection();
@@ -370,6 +370,7 @@ export function bind_reading_navigation(): () => void {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing
         || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
     const active = document.activeElement;
+    if(event.composedPath().some(node=>node instanceof Element&&node.matches(".workspace-link-preview")))return;
     if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
         || editor.sourceView?.inSourceMode
         || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file"))) return;
