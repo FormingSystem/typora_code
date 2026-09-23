@@ -19,8 +19,23 @@ export function bind_workspace_update(){
  type check_request={controller:AbortController;manual:boolean;dialog?:ReturnType<typeof workspace_dialog>};
  let active_check:check_request|undefined;
  const write_log=(error:unknown)=>{try{fs.mkdirSync(state_root,{recursive:true});fs.appendFileSync(path.join(state_root,"checks.log"),new Date().toISOString()+" "+String(error)+"\n","utf8");}catch{};};
+ const show_version=(target:ReturnType<typeof workspace_dialog>)=>{
+  load();
+  let version=target.content.querySelector<HTMLElement>(".workspace-update-version");
+  if(!version){version=el("div","workspace-update-version");target.content.prepend(version);}
+  version.replaceChildren(el("p","","当前运行版本："+current.releases[0].version));
+  try{
+   const installed=service.release_info(JSON.parse(fs.readFileSync(path.join(installed_root,"assets/update/release.json"),"utf8"))).releases[0];
+   const identity=service.installed_identity(user_data);
+   if(installed.sequence!==current.releases[0].sequence||installed.version!==current.releases[0].version
+      ||identity?.basis==="installed-archive"&&identity.commit!==loaded_identity){
+    version.append(el("p","","已安装版本："+installed.version+"（重启后生效）"));
+   }
+  }catch{version.append(el("p","","已安装版本：暂时无法读取"));}
+ };
  const message=(title:string,text:string,can_retry=false)=>{
   dialog?.close();const target=dialog=workspace_dialog(title,"关闭",()=>{if(dialog===target)dialog=undefined;});target.content.append(el("p","",text));
+  show_version(target);
   if(can_retry){const retry=workspace_button("重试",()=>{
    if(disposed||dialog!==target||retry.disabled)return;
    retry.disabled=true;target.close();void check(true);
@@ -36,6 +51,7 @@ export function bind_workspace_update(){
   dialog=workspace_dialog("Typora Code 更新进度","关闭",()=>{clearInterval(poll);poll=undefined;progress.dispose();dialog=undefined;});
   let cancelling=false;const started=Date.now();
   const target=dialog,status=el("p","","正在启动更新…"),detail=el("p"),log=el("p","","日志："+path.join(state_root,job));
+  show_version(target);
   log.style.overflowWrap="anywhere";
   const cancel=workspace_button("取消下载",()=>{
    try{service.cancel_update(state_root,job);cancelling=true;cancel.disabled=true;status.textContent="正在取消更新，请稍候…";}
@@ -55,7 +71,7 @@ export function bind_workspace_update(){
     ?"已下载 "+bytes_text(bytes)+(total!==undefined?" / "+bytes_text(total)+"（"+percentage+"%）":"；服务器未提供总大小")
     :"已等待 "+Math.floor((Date.now()-started)/1000)+" 秒";
    target.content.setAttribute("aria-busy",String(!finished));
-   if(finished){clearInterval(poll);poll=undefined;cancel.remove();if(value.phase==='succeeded')progress.update("更新安装完成",100);else progress.hide();}
+   if(finished){clearInterval(poll);poll=undefined;cancel.remove();if(value.phase==='succeeded'){show_version(target);progress.update("更新安装完成",100);}else progress.hide();}
    else progress.update(status.textContent||"正在更新",percentage);
   }catch(error){status.textContent="暂时无法读取更新状态："+String(error);progress.hide();target.content.setAttribute("aria-busy","false");cancel.disabled=true;}};
   poll=setInterval(refresh,350);refresh();
@@ -77,6 +93,7 @@ export function bind_workspace_update(){
    request.controller.abort();
   });
   request.dialog=target;
+  show_version(target);
   const status=el("p","","正在检查更新…");status.setAttribute("role","status");
   progress.update("正在检查 Typora Code 更新");
   target.content.setAttribute("aria-busy","true");
@@ -104,7 +121,8 @@ export function bind_workspace_update(){
    close_checking(request);
    if(!plan){if(request.manual){message("Typora Code 更新","当前安装已是最新发布版本（"+current.releases[0].version+"）。");}return;}
    const target=dialog=workspace_dialog("Typora Code 有新版本","稍后",()=>{dialog=undefined;});
-   target.content.append(el("p","","当前版本 "+current.releases[0].version+" → "+plan.release.releases[0].version));
+   show_version(target);
+   target.content.append(el("p","","可更新版本："+plan.release.releases[0].version));
    target.content.append(el("p","","目标提交 "+plan.commit.slice(0,12)));
    if(plan.commit_message)target.content.append(el("p","",plan.commit_message));
    target.content.append(el("p","","更新将立即下载并安装。请保存文档后手动重启 Typora；不会自动关闭窗口。"));

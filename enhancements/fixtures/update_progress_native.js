@@ -32,19 +32,26 @@
   }finally{JSBridge.showInBrowser=browser_open;}
   core.app.commands.run('typora_code:check_update');
   assert(bars().length===1&&!bars()[0].hidden,'检查命令立即呈现活动条');
+  const verify_version=label=>assert(popup().querySelector('.workspace-update-version')?.textContent.includes('当前运行版本：'+release.releases[0].version),label);
+  verify_version('原生检查状态显示本窗口运行版本');
   const transform=()=>getComputedStyle(bars()[0].firstElementChild).transform;
   const initial=transform();await pause(200);assert(transform()!==initial,'正式CSS在原生主题中实际运动');
   const candidate=JSON.parse(JSON.stringify(release));candidate.releases[0].sequence++;candidate.releases[0].version='9999.1';
   resolve_check({release:candidate,commit:'a'.repeat(40)});await pause(80);
+  verify_version('原生新版公告显示本窗口运行版本');
+  assert(popup().textContent.includes('可更新版本：9999.1'),'原生新版公告独立显示目标版本');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'update_version'}));
+  for(let i=0;i<80&&!fs.existsSync(path.join(base,'capture_done.json'));i++)await pause(50);
   [...popup().querySelectorAll('button')].find(b=>b.textContent==='立即更新').click();
   for(const stage of ['starting','downloading','verifying','installing']){
    phase=stage;bytes=524288;total_bytes=stage==='downloading'?1048576:undefined;await pause(400);
+   verify_version(stage+'保留当前运行版本');
    const bar=bars()[0],rect=bar.getBoundingClientRect(),style=getComputedStyle(bar),bit=getComputedStyle(bar.firstElementChild);
    assert(!bar.hidden&&rect.width>0&&style.height==='2px',stage+'进度可见且保持共享2px轨道');
    assert(stage==='downloading'?bar.getAttribute('aria-valuenow')==='50':!bar.hasAttribute('aria-valuenow'),stage+'百分比符合真实阶段');
    samples.push({phase:stage,bar:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},color:bit.backgroundColor,animation:bit.animationName});
   }
-  phase='succeeded';await pause(400);assert(bars()[0].getAttribute('aria-valuenow')==='100','安装完成显示100%并结束活动');
+  phase='succeeded';await pause(400);assert(bars()[0].getAttribute('aria-valuenow')==='100','安装完成显示100%并结束活动');verify_version('原生安装完成仍显示实际运行版本');
   popup().querySelector('button').click();assert(bars().length===0&&install_count===1,'关闭清理且只提交一次安装');
   for(let i=0;i<20;i++){
    core.app.commands.run('typora_code:check_update');await pause(0);
@@ -54,6 +61,7 @@
   assert(bars().length===0,'20次打开取消无遗留进度节点');
   for(let i=0;i<20;i++){
    core.app.commands.run('typora_code:check_update');await pause(0);reject_check(Error('原生重试验收：网络超时'));await pause(20);
+   verify_version('原生失败结果保留运行版本 '+i);
    const retry=[...popup().querySelectorAll('button')].find(b=>b.textContent==='重试');assert(!!retry,'失败存在重试按钮 '+i);
    const rect=retry.getBoundingClientRect(),parent=retry.parentElement.getBoundingClientRect();assert(rect.width>0&&rect.height>0&&rect.left>=parent.left&&rect.right<=parent.right,'重试按钮完整位于操作区 '+i);
    const prior=check_count;retry.click();retry.click();await pause(0);assert(check_count===prior+1&&bars().length===1&&!bars()[0].hidden,'重试立即检查且只发一次 '+i);

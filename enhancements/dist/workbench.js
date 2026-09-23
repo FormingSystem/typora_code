@@ -244910,6 +244910,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092315,
+        version: "2026.09.23.15",
+        date: "2026-09-23",
+        notes: [
+          "\u66F4\u65B0\u9875\u5728\u68C0\u67E5\u4E2D\u3001\u5931\u8D25\u3001\u6700\u65B0\u7248\u672C\u3001\u65B0\u7248\u516C\u544A\u548C\u5B89\u88C5\u8FDB\u5EA6\u4E2D\u660E\u786E\u663E\u793A\u5F53\u524D\u8FD0\u884C\u7248\u672C\uFF1B\u5DF2\u5B89\u88C5\u4F46\u5C1A\u672A\u91CD\u542F\u65F6\u53E6\u884C\u6807\u660E\u5B89\u88C5\u7248\u672C\u548C\u91CD\u542F\u540E\u751F\u6548\u3002"
+        ]
+      },
+      {
         sequence: 2026092314,
         version: "2026.09.23.14",
         date: "2026-09-23",
@@ -245541,12 +245549,31 @@ https://creativecommons.org/licenses/by/4.0/
       }
       ;
     };
+    const show_version = (target) => {
+      load();
+      let version = target.content.querySelector(".workspace-update-version");
+      if (!version) {
+        version = workspace_element("div", "workspace-update-version");
+        target.content.prepend(version);
+      }
+      version.replaceChildren(workspace_element("p", "", "\u5F53\u524D\u8FD0\u884C\u7248\u672C\uFF1A" + current.releases[0].version));
+      try {
+        const installed = service.release_info(JSON.parse(fs2.readFileSync(path.join(installed_root, "assets/update/release.json"), "utf8"))).releases[0];
+        const identity5 = service.installed_identity(user_data);
+        if (installed.sequence !== current.releases[0].sequence || installed.version !== current.releases[0].version || identity5?.basis === "installed-archive" && identity5.commit !== loaded_identity) {
+          version.append(workspace_element("p", "", "\u5DF2\u5B89\u88C5\u7248\u672C\uFF1A" + installed.version + "\uFF08\u91CD\u542F\u540E\u751F\u6548\uFF09"));
+        }
+      } catch {
+        version.append(workspace_element("p", "", "\u5DF2\u5B89\u88C5\u7248\u672C\uFF1A\u6682\u65F6\u65E0\u6CD5\u8BFB\u53D6"));
+      }
+    };
     const message = (title, text3, can_retry = false) => {
       dialog2?.close();
       const target = dialog2 = workspace_dialog(title, "\u5173\u95ED", () => {
         if (dialog2 === target) dialog2 = void 0;
       });
       target.content.append(workspace_element("p", "", text3));
+      show_version(target);
       if (can_retry) {
         const retry = workspace_button("\u91CD\u8BD5", () => {
           if (disposed || dialog2 !== target || retry.disabled) return;
@@ -245572,6 +245599,7 @@ https://creativecommons.org/licenses/by/4.0/
       let cancelling = false;
       const started = Date.now();
       const target = dialog2, status2 = workspace_element("p", "", "\u6B63\u5728\u542F\u52A8\u66F4\u65B0\u2026"), detail = workspace_element("p"), log2 = workspace_element("p", "", "\u65E5\u5FD7\uFF1A" + path.join(state_root, job));
+      show_version(target);
       log2.style.overflowWrap = "anywhere";
       const cancel = workspace_button("\u53D6\u6D88\u4E0B\u8F7D", () => {
         try {
@@ -245603,8 +245631,10 @@ https://creativecommons.org/licenses/by/4.0/
             clearInterval(poll);
             poll = void 0;
             cancel.remove();
-            if (value.phase === "succeeded") progress.update("\u66F4\u65B0\u5B89\u88C5\u5B8C\u6210", 100);
-            else progress.hide();
+            if (value.phase === "succeeded") {
+              show_version(target);
+              progress.update("\u66F4\u65B0\u5B89\u88C5\u5B8C\u6210", 100);
+            } else progress.hide();
           } else progress.update(status2.textContent || "\u6B63\u5728\u66F4\u65B0", percentage);
         } catch (error) {
           status2.textContent = "\u6682\u65F6\u65E0\u6CD5\u8BFB\u53D6\u66F4\u65B0\u72B6\u6001\uFF1A" + String(error);
@@ -245635,6 +245665,7 @@ https://creativecommons.org/licenses/by/4.0/
         request.controller.abort();
       });
       request.dialog = target;
+      show_version(target);
       const status2 = workspace_element("p", "", "\u6B63\u5728\u68C0\u67E5\u66F4\u65B0\u2026");
       status2.setAttribute("role", "status");
       progress.update("\u6B63\u5728\u68C0\u67E5 Typora Code \u66F4\u65B0");
@@ -245701,7 +245732,8 @@ https://creativecommons.org/licenses/by/4.0/
         const target = dialog2 = workspace_dialog("Typora Code \u6709\u65B0\u7248\u672C", "\u7A0D\u540E", () => {
           dialog2 = void 0;
         });
-        target.content.append(workspace_element("p", "", "\u5F53\u524D\u7248\u672C " + current.releases[0].version + " \u2192 " + plan.release.releases[0].version));
+        show_version(target);
+        target.content.append(workspace_element("p", "", "\u53EF\u66F4\u65B0\u7248\u672C\uFF1A" + plan.release.releases[0].version));
         target.content.append(workspace_element("p", "", "\u76EE\u6807\u63D0\u4EA4 " + plan.commit.slice(0, 12)));
         if (plan.commit_message) target.content.append(workspace_element("p", "", plan.commit_message));
         target.content.append(workspace_element("p", "", "\u66F4\u65B0\u5C06\u7ACB\u5373\u4E0B\u8F7D\u5E76\u5B89\u88C5\u3002\u8BF7\u4FDD\u5B58\u6587\u6863\u540E\u624B\u52A8\u91CD\u542F Typora\uFF1B\u4E0D\u4F1A\u81EA\u52A8\u5173\u95ED\u7A97\u53E3\u3002"));
