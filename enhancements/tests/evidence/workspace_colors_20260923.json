@@ -1,0 +1,1166 @@
+{
+  "requirement": "R074",
+  "date": "2026-09-23",
+  "release": "2026.09.23.7",
+  "status": "PASS",
+  "design": "docs/workspace_colors.md",
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "typora": "1.14.10",
+    "node": "24.19.0",
+    "ui_electron": "43.2.0"
+  },
+  "candidate_sha256": {
+    "enhancements/dist/workbench.js": "fef933e83574e9c906558ba37c57a4a685ab9afdc7f524ecd72b37eee2ec4e04",
+    "enhancements/dist/workspace.css": "71f221363c173dda19cdce307a57fa90c0c7a76bd32c38118c44061f5662c74d",
+    "enhancements/dist/SHA256SUMS": "52b7b144a24e5b8c45aff83f8289519ed0d40787c5afda096d99865fa599e39f"
+  },
+  "validation": {
+    "build": "PASS",
+    "check": "PASS",
+    "catalog_suites": 198,
+    "ui_regression": [
+      "workspace_colors",
+      "workspace_popup_refresh",
+      "workspace_footer",
+      "workspace_settings",
+      "workspace_widgets",
+      "community_plugins_ui",
+      "workspace_link_preview",
+      "terminal_theme",
+      "terminal_panel",
+      "workspace_zoom"
+    ],
+    "colors_final": {
+      "status": "PASS",
+      "checks": [
+        "正文与嵌套第三方设置主题保持",
+        "同层框架共享背景 false [\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\",\"rgb(248, 248, 248)\"]",
+        "功能内容与工具层区分 false",
+        "输入控件区分 false",
+        "终端消费者在颜色更新后收到当前主题 false",
+        "自定义正文底色未被覆盖 false",
+        "输入焦点与当前分类有独立状态 false",
+        "主操作成对着色且禁用保持 false",
+        "正文以外的主要/次要文字及主操作对比度至少4.5 false",
+        "同层框架共享背景 true [\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\",\"rgb(24, 24, 24)\"]",
+        "功能内容与工具层区分 true",
+        "输入控件区分 true",
+        "终端消费者在颜色更新后收到当前主题 true",
+        "自定义正文底色未被覆盖 true",
+        "输入焦点与当前分类有独立状态 true",
+        "主操作成对着色且禁用保持 true",
+        "正文以外的主要/次要文字及主操作对比度至少4.5 true",
+        "1000次同值通知无调色板写入或终端重绘",
+        "20次主题切换保持节点、焦点、滚动及几何",
+        "窄窗125%仍按相同角色着色",
+        "动态面板立即使用当前色表",
+        "销毁恢复标记与正文主题"
+      ],
+      "samples": [
+        {
+          "mode": "light",
+          "frames": [
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 104,
+                "width": 280,
+                "height": 68,
+                "top": 104,
+                "right": 280,
+                "bottom": 172,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 142,
+                "width": 280,
+                "height": 30,
+                "top": 142,
+                "right": 280,
+                "bottom": 172,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 616.5,
+                "width": 1202,
+                "height": 36,
+                "top": 616.5,
+                "right": 1202,
+                "bottom": 652.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(59, 59, 59)",
+              "box": {
+                "x": 0,
+                "y": 652.5,
+                "width": 1202,
+                "height": 25,
+                "top": 652.5,
+                "right": 1202,
+                "bottom": 677.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 677.5,
+                "width": 1202,
+                "height": 25,
+                "top": 677.5,
+                "right": 1202,
+                "bottom": 702.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 702.5,
+                "width": 1202,
+                "height": 25,
+                "top": 702.5,
+                "right": 1202,
+                "bottom": 727.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "box": {
+                "x": 0,
+                "y": 204,
+                "width": 192,
+                "height": 220,
+                "top": 204,
+                "right": 192,
+                "bottom": 424,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(25, 41, 57)",
+              "border": "rgb(25, 41, 57)",
+              "box": {
+                "x": 0,
+                "y": 172,
+                "width": 500,
+                "height": 32,
+                "top": 172,
+                "right": 500,
+                "bottom": 204,
+                "left": 0
+              }
+            }
+          ],
+          "contents": [
+            {
+              "bg": "rgb(255, 255, 255)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(59, 59, 59)",
+              "box": {
+                "x": 0,
+                "y": 204,
+                "width": 1202,
+                "height": 220,
+                "top": 204,
+                "right": 1202,
+                "bottom": 424,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(255, 255, 255)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(206, 206, 206)",
+              "box": {
+                "x": 0,
+                "y": 424,
+                "width": 760,
+                "height": 192.5,
+                "top": 424,
+                "right": 760,
+                "bottom": 616.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(255, 255, 255)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(206, 206, 206)",
+              "box": {
+                "x": 0,
+                "y": 753.5,
+                "width": 202,
+                "height": 37,
+                "top": 753.5,
+                "right": 202,
+                "bottom": 790.5,
+                "left": 0
+              }
+            }
+          ],
+          "input": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(206, 206, 206)",
+            "box": {
+              "x": 216,
+              "y": 240.1875,
+              "width": 480,
+              "height": 26,
+              "top": 240.1875,
+              "right": 696,
+              "bottom": 266.1875,
+              "left": 216
+            }
+          },
+          "title": {
+            "bg": "rgb(248, 248, 248)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(229, 229, 229)",
+            "box": {
+              "x": 0,
+              "y": 727.5,
+              "width": 1202,
+              "height": 26,
+              "top": 727.5,
+              "right": 1202,
+              "bottom": 753.5,
+              "left": 0
+            }
+          },
+          "term": {
+            "background": "#F8F8F8",
+            "foreground": "#3B3B3B",
+            "cursor": "#3B3B3B",
+            "cursorAccent": "#F8F8F8",
+            "selectionBackground": "#add6ff",
+            "selectionInactiveBackground": "#d3d3d3",
+            "black": "#24292f",
+            "red": "#a31515",
+            "green": "#16713b",
+            "yellow": "#795e26",
+            "blue": "#0451a5",
+            "magenta": "#af00db",
+            "cyan": "#0070a8",
+            "white": "#555555",
+            "brightBlack": "#666666",
+            "brightRed": "#c72e2e",
+            "brightGreen": "#16825d",
+            "brightYellow": "#8a6500",
+            "brightBlue": "#0065b3",
+            "brightMagenta": "#a626a4",
+            "brightCyan": "#007f8b",
+            "brightWhite": "#333333"
+          },
+          "body": {
+            "bg": "rgb(255, 247, 223)",
+            "fg": "rgb(25, 41, 57)",
+            "border": "rgb(25, 41, 57)",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 400,
+              "height": 80,
+              "top": 0,
+              "right": 400,
+              "bottom": 80,
+              "left": 0
+            }
+          }
+        },
+        {
+          "mode": "dark",
+          "frames": [
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 104,
+                "width": 280,
+                "height": 68,
+                "top": 104,
+                "right": 280,
+                "bottom": 172,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 142,
+                "width": 280,
+                "height": 30,
+                "top": 142,
+                "right": 280,
+                "bottom": 172,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 616.5,
+                "width": 1202,
+                "height": 36,
+                "top": 616.5,
+                "right": 1202,
+                "bottom": 652.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(204, 204, 204)",
+              "box": {
+                "x": 0,
+                "y": 652.5,
+                "width": 1202,
+                "height": 25,
+                "top": 652.5,
+                "right": 1202,
+                "bottom": 677.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 677.5,
+                "width": 1202,
+                "height": 25,
+                "top": 677.5,
+                "right": 1202,
+                "bottom": 702.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 702.5,
+                "width": 1202,
+                "height": 25,
+                "top": 702.5,
+                "right": 1202,
+                "bottom": 727.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "box": {
+                "x": 0,
+                "y": 204,
+                "width": 192,
+                "height": 220,
+                "top": 204,
+                "right": 192,
+                "bottom": 424,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(221, 239, 223)",
+              "border": "rgb(221, 239, 223)",
+              "box": {
+                "x": 0,
+                "y": 172,
+                "width": 500,
+                "height": 32,
+                "top": 172,
+                "right": 500,
+                "bottom": 204,
+                "left": 0
+              }
+            }
+          ],
+          "contents": [
+            {
+              "bg": "rgb(31, 31, 31)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(204, 204, 204)",
+              "box": {
+                "x": 0,
+                "y": 204,
+                "width": 1202,
+                "height": 220,
+                "top": 204,
+                "right": 1202,
+                "bottom": 424,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(31, 31, 31)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(60, 60, 60)",
+              "box": {
+                "x": 0,
+                "y": 424,
+                "width": 760,
+                "height": 192.5,
+                "top": 424,
+                "right": 760,
+                "bottom": 616.5,
+                "left": 0
+              }
+            },
+            {
+              "bg": "rgb(31, 31, 31)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(60, 60, 60)",
+              "box": {
+                "x": 0,
+                "y": 753.5,
+                "width": 202,
+                "height": 37,
+                "top": 753.5,
+                "right": 202,
+                "bottom": 790.5,
+                "left": 0
+              }
+            }
+          ],
+          "input": {
+            "bg": "rgb(49, 49, 49)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(60, 60, 60)",
+            "box": {
+              "x": 216,
+              "y": 240.1875,
+              "width": 480,
+              "height": 26,
+              "top": 240.1875,
+              "right": 696,
+              "bottom": 266.1875,
+              "left": 216
+            }
+          },
+          "title": {
+            "bg": "rgb(24, 24, 24)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(43, 43, 43)",
+            "box": {
+              "x": 0,
+              "y": 727.5,
+              "width": 1202,
+              "height": 26,
+              "top": 727.5,
+              "right": 1202,
+              "bottom": 753.5,
+              "left": 0
+            }
+          },
+          "term": {
+            "background": "#181818",
+            "foreground": "#CCCCCC",
+            "cursor": "#CCCCCC",
+            "cursorAccent": "#181818",
+            "selectionBackground": "#264f78",
+            "selectionInactiveBackground": "#3a3d41",
+            "black": "#000000",
+            "red": "#cd3131",
+            "green": "#0dbc79",
+            "yellow": "#e5e510",
+            "blue": "#3b8eea",
+            "magenta": "#bc3fbc",
+            "cyan": "#11a8cd",
+            "white": "#e5e5e5",
+            "brightBlack": "#666666",
+            "brightRed": "#f14c4c",
+            "brightGreen": "#23d18b",
+            "brightYellow": "#f5f543",
+            "brightBlue": "#3b8eea",
+            "brightMagenta": "#d670d6",
+            "brightCyan": "#29b8db",
+            "brightWhite": "#ffffff"
+          },
+          "body": {
+            "bg": "rgb(38, 50, 56)",
+            "fg": "rgb(221, 239, 223)",
+            "border": "rgb(221, 239, 223)",
+            "box": {
+              "x": 0,
+              "y": 0,
+              "width": 400,
+              "height": 80,
+              "top": 0,
+              "right": 400,
+              "bottom": 80,
+              "left": 0
+            }
+          }
+        }
+      ]
+    },
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "宿主实际主题 light",
+        "活动栏入口 core.file-explorer",
+        "点击入口展开 core.file-explorer",
+        "面板框架背景 light core.file-explorer rgb(248, 248, 248)",
+        "真实连接面板 core.file-explorer",
+        "实际可见命中 core.file-explorer",
+        "活动栏入口 core.search",
+        "点击入口展开 core.search",
+        "面板框架背景 light core.search rgb(248, 248, 248)",
+        "真实连接面板 core.search",
+        "实际可见命中 core.search",
+        "活动栏入口 core.outline",
+        "点击入口展开 core.outline",
+        "面板框架背景 light core.outline rgb(248, 248, 248)",
+        "真实连接面板 core.outline",
+        "实际可见命中 core.outline",
+        "活动栏入口 linux_note:source_control",
+        "点击入口展开 linux_note:source_control",
+        "面板框架背景 light linux_note:source_control rgb(248, 248, 248)",
+        "真实连接面板 linux_note:source_control",
+        "实际可见命中 linux_note:source_control",
+        "活动栏入口 typora_code:community_plugins",
+        "点击入口展开 typora_code:community_plugins",
+        "面板框架背景 light typora_code:community_plugins rgb(248, 248, 248)",
+        "真实连接面板 typora_code:community_plugins",
+        "实际可见命中 typora_code:community_plugins",
+        "活动栏入口 typora_code:remote_ssh",
+        "点击入口展开 typora_code:remote_ssh",
+        "面板框架背景 light typora_code:remote_ssh rgb(248, 248, 248)",
+        "真实连接面板 typora_code:remote_ssh",
+        "实际可见命中 typora_code:remote_ssh",
+        "终端主题更新且实例保持 light",
+        "标签/底栏框架一致 light",
+        "设置分类与内容层次 light",
+        "打开功能不改正文样式 light",
+        "原生文件菜单浮层配色 light",
+        "静止主题无刷新且菜单节点保持 light",
+        "宿主实际主题 dark",
+        "活动栏入口 core.file-explorer",
+        "点击入口展开 core.file-explorer",
+        "面板框架背景 dark core.file-explorer rgb(24, 24, 24)",
+        "真实连接面板 core.file-explorer",
+        "实际可见命中 core.file-explorer",
+        "活动栏入口 core.search",
+        "点击入口展开 core.search",
+        "面板框架背景 dark core.search rgb(24, 24, 24)",
+        "真实连接面板 core.search",
+        "实际可见命中 core.search",
+        "活动栏入口 core.outline",
+        "点击入口展开 core.outline",
+        "面板框架背景 dark core.outline rgb(24, 24, 24)",
+        "真实连接面板 core.outline",
+        "实际可见命中 core.outline",
+        "活动栏入口 linux_note:source_control",
+        "点击入口展开 linux_note:source_control",
+        "面板框架背景 dark linux_note:source_control rgb(24, 24, 24)",
+        "真实连接面板 linux_note:source_control",
+        "实际可见命中 linux_note:source_control",
+        "活动栏入口 typora_code:community_plugins",
+        "点击入口展开 typora_code:community_plugins",
+        "面板框架背景 dark typora_code:community_plugins rgb(24, 24, 24)",
+        "真实连接面板 typora_code:community_plugins",
+        "实际可见命中 typora_code:community_plugins",
+        "活动栏入口 typora_code:remote_ssh",
+        "点击入口展开 typora_code:remote_ssh",
+        "面板框架背景 dark typora_code:remote_ssh rgb(24, 24, 24)",
+        "真实连接面板 typora_code:remote_ssh",
+        "实际可见命中 typora_code:remote_ssh",
+        "终端主题更新且实例保持 dark",
+        "标签/底栏框架一致 dark",
+        "设置分类与内容层次 dark",
+        "打开功能不改正文样式 dark",
+        "原生文件菜单浮层配色 dark",
+        "静止主题无刷新且菜单节点保持 dark",
+        "正文磁盘字节不变"
+      ],
+      "samples": [
+        {
+          "mode": "light",
+          "body": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(51, 51, 51)",
+            "border": "rgb(51, 51, 51)",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1666.4000244140625,
+              "height": 0,
+              "top": 0,
+              "right": 1666.4000244140625,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "write": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(51, 51, 51)",
+            "border": "rgb(51, 51, 51)",
+            "rect": {
+              "x": 47.79999923706055,
+              "y": 89,
+              "width": 1521.5999755859375,
+              "height": 526.7625122070312,
+              "top": 89,
+              "right": 1569.399974822998,
+              "bottom": 615.7625122070312,
+              "left": 47.79999923706055
+            }
+          },
+          "panels": [
+            {
+              "id": "core.file-explorer",
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            },
+            {
+              "id": "core.search",
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            },
+            {
+              "id": "core.outline",
+              "bg": "rgba(0, 0, 0, 0)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(59, 59, 59)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            },
+            {
+              "id": "linux_note:source_control",
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            },
+            {
+              "id": "typora_code:community_plugins",
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "rect": {
+                "x": 48,
+                "y": 70,
+                "width": 239.1999969482422,
+                "height": 963.6000366210938,
+                "top": 70,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            },
+            {
+              "id": "typora_code:remote_ssh",
+              "bg": "rgb(248, 248, 248)",
+              "fg": "rgb(59, 59, 59)",
+              "border": "rgb(229, 229, 229)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(248, 248, 248)"
+            }
+          ],
+          "terminal": {
+            "bg": "rgb(248, 248, 248)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(229, 229, 229)",
+            "rect": {
+              "x": 287,
+              "y": 651.5750122070312,
+              "width": 1378,
+              "height": 351.63751220703125,
+              "top": 651.5750122070312,
+              "right": 1665,
+              "bottom": 1003.2125244140625,
+              "left": 287
+            }
+          },
+          "tab": {
+            "bg": "rgb(248, 248, 248)",
+            "fg": "rgb(51, 51, 51)",
+            "border": "rgb(51, 51, 51)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 35,
+              "width": 1377.5999755859375,
+              "height": 32,
+              "top": 35,
+              "right": 1665.3999938964844,
+              "bottom": 67,
+              "left": 287.8000183105469
+            }
+          },
+          "footer": {
+            "bg": "rgb(248, 248, 248)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(229, 229, 229)",
+            "rect": {
+              "x": 288,
+              "y": 1003.6000366210938,
+              "width": 1366.4000244140625,
+              "height": 30,
+              "top": 1003.6000366210938,
+              "right": 1654.4000244140625,
+              "bottom": 1033.6000366210938,
+              "left": 288
+            }
+          },
+          "settings": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(59, 59, 59)",
+            "rect": {
+              "x": 167.4375,
+              "y": 137.16250610351562,
+              "width": 1331.5125732421875,
+              "height": 792.2750244140625,
+              "top": 137.16250610351562,
+              "right": 1498.9500732421875,
+              "bottom": 929.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "categories": {
+            "bg": "rgb(248, 248, 248)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(229, 229, 229)",
+            "rect": {
+              "x": 167.4375,
+              "y": 191.16250610351562,
+              "width": 210,
+              "height": 726.2750244140625,
+              "top": 191.16250610351562,
+              "right": 377.4375,
+              "bottom": 917.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "dialog": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(206, 206, 206)",
+            "rect": {
+              "x": 166.6374969482422,
+              "y": 103.36250305175781,
+              "width": 1333.112548828125,
+              "height": 826.875,
+              "top": 103.36250305175781,
+              "right": 1499.7500457763672,
+              "bottom": 930.2375030517578,
+              "left": 166.6374969482422
+            }
+          },
+          "menu": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(59, 59, 59)",
+            "border": "rgb(233, 233, 233)",
+            "rect": {
+              "x": 1052.300048828125,
+              "y": 783.4249877929688,
+              "width": 320,
+              "height": 217.1750030517578,
+              "top": 783.4249877929688,
+              "right": 1372.300048828125,
+              "bottom": 1000.5999908447266,
+              "left": 1052.300048828125
+            }
+          }
+        },
+        {
+          "mode": "dark",
+          "body": {
+            "bg": "rgb(54, 59, 64)",
+            "fg": "rgb(184, 191, 198)",
+            "border": "rgba(0, 0, 0, 0)",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1666.4000244140625,
+              "height": 0,
+              "top": 0,
+              "right": 1666.4000244140625,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "write": {
+            "bg": "rgb(54, 59, 64)",
+            "fg": "rgb(184, 191, 198)",
+            "border": "rgb(184, 191, 198)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 79.4000015258789,
+              "width": 1273.5999755859375,
+              "height": 542,
+              "top": 79.4000015258789,
+              "right": 1561.3999938964844,
+              "bottom": 621.4000015258789,
+              "left": 287.8000183105469
+            }
+          },
+          "panels": [
+            {
+              "id": "core.file-explorer",
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            },
+            {
+              "id": "core.search",
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            },
+            {
+              "id": "core.outline",
+              "bg": "rgba(0, 0, 0, 0)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(204, 204, 204)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            },
+            {
+              "id": "linux_note:source_control",
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            },
+            {
+              "id": "typora_code:community_plugins",
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "rect": {
+                "x": 48,
+                "y": 70,
+                "width": 240,
+                "height": 963.6000366210938,
+                "top": 70,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            },
+            {
+              "id": "typora_code:remote_ssh",
+              "bg": "rgb(24, 24, 24)",
+              "fg": "rgb(204, 204, 204)",
+              "border": "rgb(43, 43, 43)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(24, 24, 24)"
+            }
+          ],
+          "terminal": {
+            "bg": "rgb(24, 24, 24)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(43, 43, 43)",
+            "rect": {
+              "x": 287,
+              "y": 651.5750122070312,
+              "width": 1378,
+              "height": 351.63751220703125,
+              "top": 651.5750122070312,
+              "right": 1665,
+              "bottom": 1003.2125244140625,
+              "left": 287
+            }
+          },
+          "tab": {
+            "bg": "rgb(24, 24, 24)",
+            "fg": "rgb(184, 191, 198)",
+            "border": "rgb(184, 191, 198)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 35,
+              "width": 1377.5999755859375,
+              "height": 32,
+              "top": 35,
+              "right": 1665.3999938964844,
+              "bottom": 67,
+              "left": 287.8000183105469
+            }
+          },
+          "footer": {
+            "bg": "rgb(24, 24, 24)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(43, 43, 43)",
+            "rect": {
+              "x": 288,
+              "y": 1003.6000366210938,
+              "width": 1366.4000244140625,
+              "height": 30,
+              "top": 1003.6000366210938,
+              "right": 1654.4000244140625,
+              "bottom": 1033.6000366210938,
+              "left": 288
+            }
+          },
+          "settings": {
+            "bg": "rgb(31, 31, 31)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(204, 204, 204)",
+            "rect": {
+              "x": 167.4375,
+              "y": 137.16250610351562,
+              "width": 1331.5125732421875,
+              "height": 792.2750244140625,
+              "top": 137.16250610351562,
+              "right": 1498.9500732421875,
+              "bottom": 929.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "categories": {
+            "bg": "rgb(24, 24, 24)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(43, 43, 43)",
+            "rect": {
+              "x": 167.4375,
+              "y": 191.16250610351562,
+              "width": 210,
+              "height": 726.2750244140625,
+              "top": 191.16250610351562,
+              "right": 377.4375,
+              "bottom": 917.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "dialog": {
+            "bg": "rgb(31, 31, 31)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(60, 60, 60)",
+            "rect": {
+              "x": 166.6374969482422,
+              "y": 103.36250305175781,
+              "width": 1333.112548828125,
+              "height": 826.875,
+              "top": 103.36250305175781,
+              "right": 1499.7500457763672,
+              "bottom": 930.2375030517578,
+              "left": 166.6374969482422
+            }
+          },
+          "menu": {
+            "bg": "rgb(31, 31, 31)",
+            "fg": "rgb(204, 204, 204)",
+            "border": "rgb(204, 204, 204)",
+            "rect": {
+              "x": 1051.2125244140625,
+              "y": 783.4249877929688,
+              "width": 320,
+              "height": 217.1750030517578,
+              "top": 783.4249877929688,
+              "right": 1371.2125244140625,
+              "bottom": 1000.5999908447266,
+              "left": 1051.2125244140625
+            }
+          }
+        }
+      ],
+      "limits": "原始Typora1.14.10、Windows11独立副本；通过宿主命令/合成事件，未现场Win10或物理鼠标验收"
+    },
+    "screenshots": [
+      {
+        "name": "stage_colors_menu_dark_12915456.png",
+        "sha256": "d460069383345e33480ae9480781560043c2b4d02ffb09a3c688241f6498a51c"
+      },
+      {
+        "name": "stage_colors_menu_light_12915456.png",
+        "sha256": "9e6207e75862b8aadf2e9934a33074ffc0d4a0c48acadb18e7c330377aa7e812"
+      },
+      {
+        "name": "stage_colors_settings_dark_12915456.png",
+        "sha256": "f9bc5090aab8bdb0694e0a8618933a1a0b798a61daf9e148bcd061c378631026"
+      },
+      {
+        "name": "stage_colors_settings_light_12915456.png",
+        "sha256": "a2779b8fc11069d1e6268b67455cfcbe6f7cb249423d7bf047f86416c4128518"
+      },
+      {
+        "name": "stage_colors_workspace_dark_12915456.png",
+        "sha256": "29dfcc0371f034c8761adbe79ffcde26b8d8c9182d89397f76443c355f60c517"
+      },
+      {
+        "name": "stage_colors_workspace_light_12915456.png",
+        "sha256": "90634fad2701521175abfd8288f61b9490a33998ed72a36022eb1d1e1cd128bb"
+      }
+    ]
+  },
+  "installation": {
+    "isolated_cycle": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved",
+    "uninstall_regression_assertions": 65,
+    "actual": {
+      "version": "2026.09.23.7",
+      "installed_assets": [
+        38,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "limits": [
+    "原始宿主在独立测试副本和私有桌面运行；程序入口及合成事件，非物理鼠标。",
+    "未现场覆盖Windows10及全部第三方主题。",
+    "当前用户窗口未重启；磁盘候选安装不等于运行窗口已加载。",
+    "假阳性夹具已加可见区域命中检查，旧失败记录不作为产品通过证据。"
+  ]
+}

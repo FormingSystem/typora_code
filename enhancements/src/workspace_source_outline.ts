@@ -2,7 +2,7 @@ import {get_workspace_app} from "./workspace_bootstrap";
 import {is_source_file_uri,source_file_path} from "./workspace_file_uri";
 import {subscribe_document_symbols} from "./workspace_document_symbols";
 import {open_source_outline_settings} from "./source_outline_settings";
-import {observe_terminal_theme} from "./terminal_theme";
+import {observe_workspace_theme,workspace_theme_mode} from "./workspace_theme";
 import {git_icon,git_icon_button, type git_icon_name} from "./git_icons";
 import type {source_symbol} from "./source_symbols";
 
@@ -16,7 +16,7 @@ export function install_workspace_source_outline(sidebar:HTMLElement,context_roo
   toolbar.append(provider,git_icon_button("settings-gear","代码大纲：解析环境设置",configure));pane.append(toolbar,tree);
   (sidebar.querySelector("#sidebar-content")||sidebar).append(pane);
   let symbols_binding:ReturnType<typeof subscribe_document_symbols>|undefined;
-  const release_theme=observe_terminal_theme(theme=>{const rgb=String(theme.background).match(/[\d.]+/g)?.map(Number)||[255,255,255];pane.dataset.theme=rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722<128?"dark":"light";});
+  const release_theme=observe_workspace_theme(()=>{const mode=workspace_theme_mode();if(pane.dataset.theme!==mode)pane.dataset.theme=mode;});
   let disposed=false,model:any,editor:any,leaf:any,version=-1;
   const collapsed=new Set<string>();
   const active=()=>get_workspace_app()?.workspace.activeLeaf;

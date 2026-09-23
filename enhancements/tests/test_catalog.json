@@ -6667,6 +6667,76 @@
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-workspace-colors-ui",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R074"
+      ],
+      "design": "docs/workspace_colors.md",
+      "implementation": [
+        "enhancements/src/workspace_colors.ts",
+        "enhancements/src/workspace_colors.css",
+        "enhancements/src/workspace_theme.ts",
+        "enhancements/src/terminal_theme.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "sidebar",
+        "terminal",
+        "settings",
+        "menu",
+        "preview"
+      ],
+      "script": "enhancements/scripts/test_workspace_colors.cjs",
+      "environment": "独立Electron/正式CSS",
+      "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
+      "steps": [
+        "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
+      ],
+      "expected": [
+        "同角色共享颜色，相邻角色可辨；正文、节点、焦点、滚动及几何保持，静止零主题标记写入"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/test_ui.mjs"
+    },
+    {
+      "id": "TC-workspace-colors-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R074"
+      ],
+      "design": "docs/workspace_colors.md",
+      "implementation": [
+        "enhancements/src/workspace_colors.ts",
+        "enhancements/src/workspace_colors.css",
+        "enhancements/src/workspace_theme.ts",
+        "enhancements/src/terminal_theme.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "sidebar",
+        "terminal",
+        "settings",
+        "menu",
+        "preview"
+      ],
+      "script": "enhancements/fixtures/workspace_colors_native.js",
+      "environment": "原始Typora1.14.10独立副本/Windows私有桌面",
+      "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
+      "steps": [
+        "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
+      ],
+      "expected": [
+        "同角色共享颜色，相邻角色可辨；正文、节点、焦点、滚动及几何保持，静止零主题标记写入"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

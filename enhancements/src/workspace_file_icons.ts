@@ -1,4 +1,4 @@
-import {observe_terminal_theme} from "./terminal_theme";
+import {observe_workspace_theme,workspace_theme_mode} from "./workspace_theme";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {source_file_path} from "./workspace_file_uri";
 import theme_data from "../vendor/vscode_seti/icon_theme.json";
@@ -10,7 +10,7 @@ const theme=theme_data as unknown as associations & {light:associations;iconDefi
 let theme_users=0;let release_theme:(()=>void)|undefined;let previous_theme:string|null=null;
 export function acquire_workspace_file_icons(){
   const style=acquire_workspace_style("typora-code-style:workspace_file_icons",file_icon_css);let removed=false;
-  if(theme_users++===0){previous_theme=document.documentElement.getAttribute("data-workspace-file-icon-theme");release_theme=observe_terminal_theme(value=>{const rgb=String(value.background).match(/[\d.]+/g)?.map(Number)||[255,255,255];document.documentElement.setAttribute("data-workspace-file-icon-theme",rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722<128?"dark":"light");});}
+  if(theme_users++===0){previous_theme=document.documentElement.getAttribute("data-workspace-file-icon-theme");release_theme=observe_workspace_theme(()=>{const mode=workspace_theme_mode();if(document.documentElement.getAttribute("data-workspace-file-icon-theme")!==mode)document.documentElement.setAttribute("data-workspace-file-icon-theme",mode);});}
   return{remove(){if(removed)return;removed=true;style.remove();if(--theme_users===0){release_theme?.();release_theme=undefined;if(previous_theme===null)document.documentElement.removeAttribute("data-workspace-file-icon-theme");else document.documentElement.setAttribute("data-workspace-file-icon-theme",previous_theme);}}};
 }
 function definition(file_path:string,light:boolean):string{

@@ -101,6 +101,18 @@
     {
       "path": "src/vs/workbench/browser/parts/compositeBarActions.ts",
       "sha256": "e6f4ab4bf4c17ecb673242075587525a42b21f84dd501af03bb0bcf98cec5edc"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/light_modern.json",
+      "sha256": "406c25d58488f8b6b291ed31b0db01f0c0ec16bb4a863bdfe8dd5e73bca5ecc3"
+    },
+    {
+      "path": "extensions/theme-defaults/themes/dark_modern.json",
+      "sha256": "5bde9b00b8e040e46ba32428fea47499a09373a4c893d4071a9156a34287eea3"
+    },
+    {
+      "path": "src/vs/platform/theme/common/colors/listColors.ts",
+      "sha256": "f717bb69621f2dd9d871867a74801a3c66c7888b1534ac9f8ec52ea9d916e73f"
     }
   ],
   "scrollbars_20260919": {
@@ -532,5 +544,15 @@
       ".cache/vscode_workbench_1_136_2/src/vs/workbench/contrib/terminal/browser/terminalInstance.ts": "0814b324675678eb11096cbd4d3e4ec864aadc290da5cd352c7fe50e53f3ae4d",
       "enhancements/node_modules/@xterm/addon-fit/src/FitAddon.ts": "fdf85d2fe929cbdd71fa1382f66f209069812eaa0f106a0c67ef3fcd1e105e9a"
     }
+  },
+  "workspace_colors_20260923": {
+    "requirement": "R074",
+    "themes": [
+      "Light Modern",
+      "Dark Modern"
+    ],
+    "design": "docs/workspace_colors.md",
+    "adoption": "仅工作台语义色；覆盖旧2026色值，保留布局和Markdown主题；不修改记录中的VS Code用户配置。",
+    "validation": "enhancements/tests/evidence/workspace_colors_20260923.json"
   }
 }

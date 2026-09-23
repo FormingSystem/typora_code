@@ -2,18 +2,18 @@
    32px连续命中区包住24px圆角背景；动作覆盖，不参与标题测量。 */
 :root {
   --workspace-tab-height:32px;
-  --workspace-tab-strip-bg:var(--vscode-editor-background,#fff);
+  --workspace-tab-strip-bg:var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-editor-background,#fff));
   --workspace-tab-active-bg:var(--vscode-modernEditorTab-activeBackground,var(--vscode-list-inactiveSelectionBackground,#dadada99));
   --workspace-tab-active-fg:var(--vscode-modernEditorTab-activeForeground,var(--vscode-foreground,#202020));
   --workspace-tab-hover-bg:var(--vscode-modernEditorTab-hoverBackground,var(--workspace-hover-background));
-  --workspace-tab-inactive-fg:color-mix(in srgb,var(--vscode-foreground,#202020) 50%,transparent);
+  --workspace-tab-inactive-fg:var(--vscode-descriptionForeground,color-mix(in srgb,var(--vscode-foreground,#202020) 50%,transparent));
   --workspace-tab-action-bg:var(--vscode-modernEditorTab-hoverActionBackground,#ebebeb);
 }
 :root[data-workspace-file-icon-theme="dark"] {
-  --workspace-tab-strip-bg:var(--vscode-editor-background,#121314);
+  --workspace-tab-strip-bg:var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-editor-background,#121314));
   --workspace-tab-active-bg:var(--vscode-modernEditorTab-activeBackground,var(--vscode-list-inactiveSelectionBackground,#2c2d2e));
   --workspace-tab-active-fg:var(--vscode-modernEditorTab-activeForeground,var(--vscode-foreground,#bfbfbf));
-  --workspace-tab-inactive-fg:color-mix(in srgb,var(--vscode-foreground,#bfbfbf) 50%,transparent);
+  --workspace-tab-inactive-fg:var(--vscode-descriptionForeground,color-mix(in srgb,var(--vscode-foreground,#bfbfbf) 50%,transparent));
   --workspace-tab-action-bg:var(--vscode-modernEditorTab-hoverActionBackground,#252627);
 }
 .workspace-tab-strip {

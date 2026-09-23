@@ -1,5 +1,7 @@
 # VS Code 界面设计基线
 
+2026-09-23 R074：用户重新授权统一功能区域的颜色层次。工作台颜色改用同一固定提交的 Light Modern／Dark Modern，框架 `#F8F8F8`／`#181818`、功能内容 `#FFFFFF`／`#1F1F1F`、分隔 `#E5E5E5`／`#2B2B2B`；以下旧2026颜色记录被本项覆盖，几何与布局约定保留。Markdown、原生偏好与社区设置仍由原主题/所有者呈现。范围、状态映射及验证见[颜色设计](workspace_colors.md)。
+
 2026-09-10 顶栏回归修复：Windows／Linux 活动栏采用与编辑区相同的 `--typ-workspace-top` 上边界及可用窗口底边，修正核心 `100vh` 从 y=0 开始被35px顶栏遮住首个按钮的问题；48px功能行与24px官方图标保持。Typora原始64px标识位图含透明边距，按用户要求将图像框由16px改为24px，左右边距改为4px，总占位仍为32px。
 
 模块边界采用固定 Light 2026／Dark 2026 的 `sideBar.border`、`editorGroupHeader.tabsBorder`、`statusBar.border` 共用值 `#F0F1F2`／`#2A2B2C`，侧栏和状态栏背景取 `sideBar.background` 的 `#FAFAFD`／`#191A1B`。实现见 `workspace_chrome.css`：侧栏拖拽线不再读取最大化时会变透明的宿主 `--window-border-color`，标签条下沿与状态栏上沿使用1px细线，不新增卡片、圆角或全局留白。活动栏目标验证覆盖0／35px顶距、窗口尺寸变化、125%／150%缩放、Explorer与底部按钮真实点击以及最大化明暗主题边界；标题栏目标核对24px标识和原菜单占位。

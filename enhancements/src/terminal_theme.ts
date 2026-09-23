@@ -5,9 +5,11 @@ import type { ITheme } from "@xterm/xterm";
 export function terminal_theme(): ITheme {
   const body = getComputedStyle(document.body);
   const rgb = workspace_surface_background(document.body);
-  const background = `rgb(${rgb.join(", ")})`;
+  const palette=document.documentElement.hasAttribute('data-workspace-colors')?getComputedStyle(document.documentElement):undefined;
+  const palette_background=palette?.getPropertyValue('--workspace-ui-chrome').trim();
+  const background = palette_background || `rgb(${rgb.join(", ")})`;
   const dark = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 < 128;
-  const foreground = body.color || (dark ? "#d4d4d4" : "#333333");
+  const foreground = palette?.getPropertyValue('--workspace-ui-foreground').trim() || body.color || (dark ? "#d4d4d4" : "#333333");
   return {background, foreground, cursor: foreground, cursorAccent: background,
     selectionBackground: dark ? "#264f78" : "#add6ff", selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
     black: dark ? "#000000" : "#24292f", red: dark ? "#cd3131" : "#a31515", green: dark ? "#0dbc79" : "#16713b", yellow: dark ? "#e5e510" : "#795e26",

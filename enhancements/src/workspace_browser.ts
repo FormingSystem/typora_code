@@ -1,4 +1,5 @@
 import {workspace_context_switching} from "./workspace_context";
+import {bind_workspace_colors} from './workspace_colors';
 import {is_composing_key} from "./workspace_keyboard";
 import {bind_workspace_zoom_status} from "./workspace_zoom_status";
 import {bind_workspace_breadcrumbs} from "./workspace_breadcrumbs";
@@ -35,6 +36,7 @@ export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
   const lifetime=create_workspace_lifetime();
   try {
+  lifetime.own(bind_workspace_colors());
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
   lifetime.own(bind_remote_workspace_media());
