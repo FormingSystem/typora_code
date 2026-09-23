@@ -58,8 +58,8 @@ app.whenReady().then(async()=>{
  await ev('for(const k of ["date","author","hash"])panel.settings["show_"+k]=true;panel.settings.column_widths={...qa.graph_defaults.column_widths};panel.render_history();panel.container.style.width="420px";panel.list.scrollLeft=panel.list.scrollWidth;void 0');await pause(60);await aligned();
  const narrow=await start('author');await move(narrow,-20);await end(narrow,-20);await aligned();checks.push('narrow scrolled viewport preserves matching columns');
  await ev('window.previous_state=panel.state;window.original_refresh=panel.refresh;panel.refresh=async()=>{};void 0');
- const switching=await start('author'),switch_saves=await ev('saves');await move(switching,-20);await ev('panel.switch_repo("second-fixture")');await end(switching,-20);
- await check('switch repository discards old drag and handlers','panel.root==="second-fixture"&&document.querySelectorAll(".git-graph-column-resize").length===0&&JSON.stringify(panel.settings.column_widths)===JSON.stringify(qa.graph_defaults.column_widths)');assert.equal(await ev('saves'),switch_saves);
+ const switching=await start('author'),switch_saves=await ev('saves');await move(switching,-20);await ev('panel.switch_repo(require("node:path").resolve("second-fixture"))');await end(switching,-20);
+ await check('switch repository discards old drag and handlers','panel.root===require("node:path").resolve("second-fixture")&&document.querySelectorAll(".git-graph-column-resize").length===0&&JSON.stringify(panel.settings.column_widths)===JSON.stringify(qa.graph_defaults.column_widths)');assert.equal(await ev('saves'),switch_saves);
  await ev('panel.state={...previous_state,root:panel.root};panel.refresh=original_refresh;panel.render_history();void 0');
  await ev('panel.container.style.width="1100px";panel.list.scrollLeft=0;panel.render_history();document.querySelector("[data-left-column=author]").focus();void 0');await pause(30);
  const iterations=process.env.TYPORA_TEST_PURPOSE==='stress'?Number(process.env.TYPORA_STRESS_ITERATIONS||20):20;

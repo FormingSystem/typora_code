@@ -385,3 +385,13 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 - TEST-existing-search-interaction部分收敛：搜索等待夹具改为延迟实际spawn进程的close，替代已失效的execFile拦截，files_search已通过；旧SCM节点夹具问题未在本轮关闭。
 
 当次证据见[地址栏验证](../enhancements/tests/evidence/address_picker_20260924.json)，平台边界不以旧结果补齐。
+
+## 2026-09-24 R034.5–R034.8 呈现与选择职责
+
+- BUG-text-wrap-owner：换行由各实例持有，默认关闭，菜单与设置未共享；统一版本化呈现服务，首次/旧契约采用新默认，当前及未来契约保留。
+- BUG-diff-layout-anchor：渲染和源码各记像素，切换后回到旧位置；跨布局改用源行/列/语义块比例，相同布局导航仍保留精确像素，输入优先。
+- BUG-markdown-range：块尾空行误算进标题范围；删除尾部空行，并细化连续同类块、表格单元格与列表项，概览/下一处同步目标。
+- BUG-git-expanded-selection：父提交aria-expanded被误用为选中样式，展开区域padding与普通/虚拟缩进不一致导致背景长短不一；展开/焦点/当前文件来源分离，整行背景仅内容缩进。
+- TEST-presentation-migration：旧布局测试测容器边界而非文件内容起点、旧交互测试要求展开底色，按新契约分别检查；列宽夹具的相对仓库路径被服务身份验证拒绝，改用绝对临时路径，未放松产品验证。
+
+本次验证状态和平台边界见[候选证据](../enhancements/tests/evidence/git_presentation_20260924.json)。

@@ -307,6 +307,9 @@ function start_typora_elevated_install {
     $cycle_settings=Join-Path $env:APPDATA 'Typora/typora_code/settings/workspace.json'
     write_fixture $cycle_document '# 用户文档保持'
     write_fixture $cycle_settings '{"user_setting":"保留"}'
+    $cycle_storage=Join-Path $env:APPDATA 'Typora/Local Storage/leveldb/presentation.log'
+    write_fixture $cycle_storage '{"schema":2026092403,"word_wrap":false}'
+    $storage_hash=(Get-FileHash -LiteralPath $cycle_storage).Hash
     $document_hash=(Get-FileHash -LiteralPath $cycle_document).Hash
     $settings_hash=(Get-FileHash -LiteralPath $cycle_settings).Hash
     $cycle_backup=Join-Path $test_root 'lifecycle original backup'
@@ -326,6 +329,7 @@ function start_typora_elevated_install {
     & $checker -typora_root $cycle_root -non_interactive
     assert_equal (Get-FileHash -LiteralPath $cycle_document).Hash $document_hash 'Lifecycle changed document'
     assert_equal (Get-FileHash -LiteralPath $cycle_settings).Hash $settings_hash 'Lifecycle changed workspace settings'
+    assert_equal (Get-FileHash -LiteralPath $cycle_storage).Hash $storage_hash 'Lifecycle changed local storage configuration contract'
     assert_equal (Test-Path -LiteralPath (Join-Path $cycle_backup 'manifest.json')) $true 'Lifecycle removed original backup'
     Write-Host 'PASS: candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved.'
     Write-Host "Fixtures: $test_root"

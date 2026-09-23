@@ -52,9 +52,9 @@
     async function finish_comparison(current_leaf){
     const leaf=current_leaf,diff=leaf.view.editor,preview=diff.markdown_preview,shadow=preview.shadow;
     const overview=preview.container.querySelector('.git-markdown-overview'),thumb=overview.querySelector('.git-markdown-overview-viewport');
-    await wait(()=>overview.dataset.markCount==='3');
+    await wait(()=>Number(overview.dataset.markCount)>=3);
     assert(Math.abs(overview.getBoundingClientRect().width-30)<1,'原始宿主右侧30px概览常驻');
-    const jump=()=>{const row=[...shadow.querySelectorAll('[data-changed=true]')][1],box=overview.getBoundingClientRect(),origin=shadow.querySelector('#write').getBoundingClientRect().top;overview.dispatchEvent(new PointerEvent('pointerdown',{button:0,pointerId:5,clientX:box.right-2,clientY:box.top+(row.getBoundingClientRect().top-origin+2)/preview.scroll.scrollHeight*box.height,bubbles:true}));};
+    const jump=()=>{const row=[...shadow.querySelectorAll('[data-changed=true]')].find(row=>row.textContent.includes('中间修改 90')),box=overview.getBoundingClientRect(),origin=shadow.querySelector('#write').getBoundingClientRect().top;overview.dispatchEvent(new PointerEvent('pointerdown',{button:0,pointerId:5,clientX:box.right-2,clientY:box.top+(row.getBoundingClientRect().top-origin+2)/preview.scroll.scrollHeight*box.height,bubbles:true}));};
     jump();await pause(50);assert(preview.scroll.scrollTop>1000,'原始宿主点击概览跳转中间变更');
     overview.dispatchEvent(new KeyboardEvent('keydown',{key:'Home',bubbles:true}));await pause(50);assert(preview.scroll.scrollTop===0,'原始宿主概览键盘回到开头');
     const thumb_box=thumb.getBoundingClientRect();thumb.dispatchEvent(new PointerEvent('pointerdown',{button:0,pointerId:7,clientX:thumb_box.left+2,clientY:thumb_box.top+2,bubbles:true}));overview.dispatchEvent(new PointerEvent('pointermove',{pointerId:7,clientY:overview.getBoundingClientRect().bottom,bubbles:true}));overview.dispatchEvent(new PointerEvent('pointerup',{pointerId:7,bubbles:true}));await pause(50);
@@ -63,10 +63,10 @@
       diff.toolbar.querySelector('[data-diff-action=markdown_preview]').click();assert(!diff.rendered_markdown&&!diff.body.hidden,'切回源码 '+i);
       diff.toolbar.querySelector('[data-diff-action=markdown_preview]').click();await wait(()=>preview.container.dataset.ready==='true');assert(diff.rendered_markdown&&shadow.querySelectorAll('table').length===2,'恢复排版 '+i);
     }
-    for(const zoom of [0.8,1,1.25]){await reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);jump();await pause(50);const row=[...shadow.querySelectorAll('[data-changed=true]')][1].getBoundingClientRect(),box=preview.scroll.getBoundingClientRect();assert(row.top>=box.top-1&&row.top<box.bottom,'原生缩放概览准确定位 '+zoom);assert([...shadow.querySelectorAll('.markdown-diff-row')].every(row=>Math.abs(row.children[0].getBoundingClientRect().top-row.children[1].getBoundingClientRect().top)<1),'缩放对应块对齐 '+zoom);}
+    for(const zoom of [0.8,1,1.25]){await reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);jump();await pause(50);const row=[...shadow.querySelectorAll('[data-changed=true]')].find(row=>row.textContent.includes('中间修改 90')).getBoundingClientRect(),box=preview.scroll.getBoundingClientRect();assert(row.top>=box.top-1&&row.top<box.bottom,'原生缩放概览准确定位 '+zoom);assert([...shadow.querySelectorAll('.markdown-diff-row')].every(row=>Math.abs(row.children[0].getBoundingClientRect().top-row.children[1].getBoundingClientRect().top)<1),'缩放对应块对齐 '+zoom);}
     await reqnode('electron').webFrame.setZoomFactor(1);
-    diff.navigate('next');assert(shadow.activeElement?.dataset.changed==='true','下一处更改定位渲染行');
-    diff.container.dispatchEvent(new KeyboardEvent('keydown',{key:'F7',bubbles:true}));assert(shadow.activeElement?.dataset.changed==='true','F7继续定位渲染行');
+    diff.navigate('next');assert((shadow.activeElement?.dataset.changed==='true'||!!shadow.activeElement?.dataset.diffFragment),'下一处更改定位渲染行');
+    diff.container.dispatchEvent(new KeyboardEvent('keydown',{key:'F7',bubbles:true}));assert((shadow.activeElement?.dataset.changed==='true'||!!shadow.activeElement?.dataset.diffFragment),'F7继续定位渲染行');
     const newest=after.replace('新段落','刷新后的段落');fs.writeFileSync(path.join(root,filename),newest);
     await diff.extra_menu().find(entry=>entry.id==='refresh_diff').action();await wait(()=>shadow.textContent.includes('刷新后的段落'));
     assert(app.workspace.activeLeaf===leaf,'刷新保持当前比较标签');
@@ -83,6 +83,9 @@
     assert(source_row.dataset.historyFile===filename&&source_row.closest('[data-commit]').dataset.commit===second,'定位入口展开准确提交与文件');
     assert(app.workspace.activeLeaf===historical,'定位来源不切换比较正文');
     assert(getComputedStyle(source_row).backgroundColor!=='rgba(0, 0, 0, 0)','Git历史来源有实际选中底色');
+    const commit_row=document.querySelector('.git-scm-history-commit[aria-expanded=true]');
+    assert(getComputedStyle(commit_row).backgroundColor==='rgba(0, 0, 0, 0)','父提交只展开，不添加第二条选中底色');
+    assert(Math.abs(source_row.getBoundingClientRect().left-document.querySelector('.git-scm-history-list').getBoundingClientRect().left)<1,'原生来源选中背景覆盖完整历史行');
     historical.view.containerEl.tabIndex=-1;historical.view.containerEl.focus();
     assert(source_row.dataset.gitSourceSelected==='true','焦点离开提交图仍保留比较文件选中');
 
@@ -100,6 +103,25 @@
     historical.view.editor.toolbar.querySelector('[data-diff-action=split_editor]').click();await wait(()=>app.workspace.activeLeaf!==historical&&app.workspace.activeLeaf?.view.editor);await settled();
     const split_leaf=app.workspace.activeLeaf;assert(split_leaf.parent!==historical.parent,'同版本比较可进入独立编辑组');
     split_leaf.view.editor.toolbar.querySelector('[data-diff-open-file]').click();await wait(()=>app.workspace.activeLeaf!==split_leaf);await settled();alt('ArrowLeft');await wait(()=>app.workspace.activeLeaf===split_leaf);await settled();assert(app.workspace.activeLeaf.parent===split_leaf.parent,'跨组导航恢复来源组实例');
+
+    const probe=new diff.constructor({title:'wrap.cpp',file:'wrap.cpp',left:Array.from({length:100},(_,i)=>'int value_'+i+' = '+('123456789 + '.repeat(40))+'0;').join('\n')});
+    Object.assign(probe.container.style,{position:'fixed',inset:'100px 80px 80px 400px',zIndex:'10000'});document.body.append(probe.container);await pause(150);
+    assert(probe.wrapped&&probe.models[0].getLineCount()===100,'原生C++默认软换行保持逻辑行数');
+    probe.editor.setScrollTop(probe.editor.getTopForPosition(40,140));const anchor=probe.capture_content_anchor();
+    probe.context_menu(new MouseEvent('contextmenu',{clientX:500,clientY:200}));document.querySelector('[data-action=word_wrap]').click();await pause(100);
+    assert(!probe.wrapped&&!historical.view.editor.wrapped&&Math.abs(probe.capture_content_anchor().line-anchor.line)<=1,'菜单关闭换行跨现有编辑器同步并保持内容 '+JSON.stringify({wrapped:probe.wrapped,other:historical.view.editor.wrapped,anchor,after:probe.capture_content_anchor(),height:probe.container.clientHeight,scroll:probe.editor.getScrollTop()} ));
+    probe.context_menu(new MouseEvent('contextmenu',{clientX:500,clientY:200}));document.querySelector('[data-action=word_wrap]').click();probe.dispose();
+    const sample='# 未修改标题\n\n原段落\n\n'+Array.from({length:100},(_,i)=>'## 章节 '+i+'\n\n正文 '+i+'\n\n').join('');
+    const sample_diff=new diff.constructor({title:'mapping.md',file:'mapping.md',left:sample,right:sample.replace('原段落','插入段落\n\n原段落')});
+    Object.assign(sample_diff.container.style,{position:'fixed',inset:'100px 80px 80px 400px',zIndex:'10000'});document.body.append(sample_diff.container);await wait(()=>sample_diff.markdown_preview.container.dataset.ready==='true');
+    assert([...sample_diff.markdown_preview.shadow.querySelectorAll('h1')].every(node=>node.closest('[data-changed]').dataset.changed==='false'),'原生新增段落不误染未修改标题');
+    for(let i=0;i<20;i++){
+      const preview=sample_diff.markdown_preview;preview.restore({side:i%2?'left':'right',line:125+i*4,fraction:0});const before=sample_diff.capture_content_anchor();
+      await sample_diff.set_markdown_mode(false);assert(Math.abs(sample_diff.capture_content_anchor().line-before.line)<=2,'原生渲染切源码保持当前内容 '+i);
+      const editor=sample_diff.focused_editor();editor.setScrollTop(editor.getTopForLineNumber(61+i*4));const current=sample_diff.capture_content_anchor();
+      await sample_diff.set_markdown_mode(true);await wait(()=>preview.container.dataset.ready==='true');assert(Math.abs(sample_diff.capture_content_anchor().line-current.line)<=2,'原生源码滚动后切渲染采用新位置 '+i);
+    }
+    sample_diff.dispose();
     fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,limits:'原始Typora1.14.10/Win11，真实Git；renderer点击/键盘，不是物理鼠标或Win10现场。'},null,2));
     }
   }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'FAIL',checks,error:String(error),stack:error.stack},null,2));}

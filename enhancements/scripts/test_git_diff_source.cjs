@@ -34,11 +34,14 @@ app.whenReady().then(async()=>{
   await evaluate(`window.source={root:state.root,from:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',to:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',file:'README.md'};owner.panel.host.diff_source=()=>source;owner.sync_source_selection=()=>history_qa.sync_git_source_rows(owner.sidebar,source);owner.apply_history_layout=()=>history_view.set_open(true);owner.panel.runner={run:async()=> ['M','README.md',''].join(String.fromCharCode(0))};history_view.selected='aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';history_view.render(state);`);
   await check(`document.querySelector('[data-history-file="README.md"]').getAttribute('aria-current')==='true'`,'rendered row projects active diff identity');
   for(const theme of ['light','dark']){
+    await check(`getComputedStyle(document.querySelector('.git-scm-history-commit[aria-expanded=true]')).backgroundColor==='rgba(0, 0, 0, 0)'&&document.querySelectorAll('[data-git-source-selected=true]').length===1`,'expanded parent never adds a second selection '+theme);
+
     await evaluate(`document.documentElement.dataset.workspaceColors='${theme}';document.querySelector('[data-history-file="README.md"]').focus()`);
     await check(`getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(4, 57, 94)':'rgb(232, 232, 232)'}'`,'focused selected colour '+theme);
     await evaluate(`document.activeElement.blur()`);
-    await check(`document.querySelector('[data-history-file="README.md"]').classList.contains('selected')&&getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(55, 55, 61)':'rgb(232, 232, 232)'}'`,'selection survives blur '+theme);
+    await check(`document.querySelector('[data-history-file="README.md"]').classList.contains('selected')&&getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(55, 55, 61)':'rgb(232, 232, 232)'}'`,'selection survives blur '+theme);await capture('single_source_'+theme);
   }
+  await check(`(()=>{const row=document.querySelector('[data-history-file="README.md"]').getBoundingClientRect(),list=history_view.list.getBoundingClientRect();return Math.abs(row.left-list.left)<1&&Math.abs(row.right-list.right)<1&&row.height===22})()`,'file selection spans complete history width');
   await evaluate(`source={...source,to:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',from:'cccccccccccccccccccccccccccccccccccccccc'};owner.sync_source_selection()`);
   await check(`!document.querySelector('[data-git-source-selected=true]')`,'same file in different commit cannot inherit selection');
   await evaluate(`source=undefined;owner.sync_source_selection()`);
@@ -49,6 +52,7 @@ app.whenReady().then(async()=>{
   for(const size of [20,100,1000]){console.log("reveal scale",size);
     await evaluate(`window.files=Array.from({length:${size}},(_,i)=>({path:'dir/file'+String(i).padStart(4,'0')+'.md',status:'M'}));owner.panel.runner.run=async()=>files.flatMap(f=>['M',f.path]).concat('').join(String.fromCharCode(0));source={root:state.root,from:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',to:'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa',file:files.at(-1).path};owner.history_tree=true;history_view.collapsed_directories.add('aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:dir');await history_view.reveal_source(source,()=>true)`);
     await check(`document.activeElement.dataset.historyFile===source.file&&document.activeElement.dataset.gitSourceSelected==='true'`,'reveal final file and collapsed ancestors '+size);
+    await check(`(()=>{const row=document.activeElement.getBoundingClientRect(),list=history_view.list.getBoundingClientRect();return Math.abs(row.left-list.left)<1&&row.width>=history_view.list.clientWidth-1&&row.height===22})()`,'nested and virtual selection shares full row '+size);
     if(size===1000)await check(`document.querySelectorAll('[data-history-file]').length<100`,'1000 files remain virtualized');
   }
   await evaluate(`window.release;owner.panel.runner.run=()=>new Promise(resolve=>release=resolve);window.live=true;window.pending=history_view.reveal_source(source,()=>live);live=false;release(['M','README.md',''].join(String.fromCharCode(0)));await pending`);

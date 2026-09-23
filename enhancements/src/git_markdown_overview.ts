@@ -20,7 +20,7 @@ export function create_markdown_overview(scroll:HTMLElement,reader:HTMLElement){
     if(layout_dirty){
       layout_dirty=false;height=container.clientHeight;total=Math.max(scroll.scrollHeight,scroll.clientHeight,1);
       const origin=reader.getBoundingClientRect().top;
-      marks=rows.map(row=>{const box=row.getBoundingClientRect();return {top:box.top-origin,height:box.height,left:row.children[0]?.getAttribute('data-empty')!=='true',right:row.children[1]?.getAttribute('data-empty')!=='true'};});
+      marks=rows.map(row=>{const box=row.getBoundingClientRect();return {top:box.top-origin,height:box.height,left:row.dataset.diffFragment?row.dataset.diffFragment==='left':row.children[0]?.getAttribute('data-empty')!=='true',right:row.dataset.diffFragment?row.dataset.diffFragment==='right':row.children[1]?.getAttribute('data-empty')!=='true'};});
       const ratio=window.devicePixelRatio||1;canvas.width=Math.round(30*ratio);canvas.height=Math.round(height*ratio);
       const ctx=canvas.getContext('2d');if(ctx){
         ctx.scale(ratio,ratio);const style=getComputedStyle(container);

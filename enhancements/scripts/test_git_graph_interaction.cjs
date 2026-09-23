@@ -316,8 +316,8 @@ app.whenReady().then(async () => {
   await click('[data-history-file]'); await wait('!!document.querySelector("[data-diff-ready=true]")');
   assert.equal(await evaluate('core.app.workspace.activeLeaf.view.editor.models[1].getValue()'),git(['show','HEAD:example.md']));
   const selected_background = await evaluate('getComputedStyle(document.querySelector(".git-scm-history-commit[aria-expanded=true]")).backgroundColor');
-  hover_metrics.history_selected = await hover('.git-scm-history-commit[aria-expanded=true]'); assert.equal(hover_metrics.history_selected.background,selected_background); assert.notEqual(selected_background,hover_metrics.history_closed.background);
-  hover_metrics.history_file = await hover('[data-history-file]'); assert.equal(hover_metrics.history_file.background,'rgba(0, 0, 0, 0.08)');
+  hover_metrics.history_selected = await hover('.git-scm-history-commit[aria-expanded=true]'); assert.equal(selected_background,'rgba(0, 0, 0, 0)'); assert.notEqual(hover_metrics.history_selected.background,selected_background);
+  const file_background=await evaluate('getComputedStyle(document.querySelector("[data-history-file]")).backgroundColor'); hover_metrics.history_file = await hover('[data-history-file]'); assert.equal(hover_metrics.history_file.background,file_background,'selected source keeps its colour on hover');
   await click('.git-scm-history-more-menu'); await click('[data-action=history_tree]');
   await wait('document.querySelectorAll("[data-history-directory]").length === 2'); assert.equal((await saved_layout()).history_tree,true);
   const nested_directory = '[data-history-directory="z_docs/nested"]';

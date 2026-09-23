@@ -183,7 +183,7 @@ export class git_scm_history {
       if (!this.owner.history_tree || !path) return target;
       if (directories.has(path)) return directories.get(path)!;
       const parts = path.split("/"); const parent = parent_for(parts.slice(0, -1).join("/"));
-      const directory = el("details", "git-scm-history-directory"); const key = commit.hash + ":" + path;
+      const directory = el("details", "git-scm-history-directory"); directory.style.setProperty("--git-history-indent", (parts.length * 8) + "px"); const key = commit.hash + ":" + path;
       directory.open = !this.collapsed_directories.has(key); directory.setAttribute("data-history-directory", path); const heading = el("summary", "", parts.at(-1)!); heading.prepend(git_disclosure()); directory.append(heading);
       directory.ontoggle = () => { if (directory.open) this.collapsed_directories.delete(key); else this.collapsed_directories.add(key); };
       parent.append(directory); directories.set(path, directory); return directory;
@@ -208,7 +208,7 @@ export class git_scm_history {
       const collapsed = new Set([...this.collapsed_directories].filter(key => key.startsWith(commit.hash + ":")).map(key => key.slice(commit.hash.length + 1)));
       const entries = () => this.owner.history_tree ? workspace_tree_rows(sorted, file => file.path, collapsed) : sorted.map(item => ({item, depth: 0, directory: undefined as string | undefined}));
       const list = create_workspace_virtual_list({root: target, scroller: this.list, items: entries(), row_height: 22, render: item => {
-        if (item.item) { const wrapper = create_row(item.item); wrapper.tabIndex = 0; wrapper.style.paddingLeft = item.depth * 12 + "px";
+        if (item.item) { const wrapper = create_row(item.item); wrapper.tabIndex = 0; wrapper.style.setProperty("--git-history-indent", item.depth * 8 + "px");
           const row = wrapper.querySelector<HTMLButtonElement>(".git-scm-history-file")!; row.tabIndex = -1;
           wrapper.onkeydown = event => { if (event.target === wrapper && ["Enter", " "].includes(event.key)) {event.preventDefault(); row.click();} }; return wrapper;
         }
@@ -216,7 +216,7 @@ export class git_scm_history {
         const row = button(directory.split("/").at(-1)!, () => {
           if (collapsed.has(directory)) {collapsed.delete(directory); this.collapsed_directories.delete(key);} else {collapsed.add(directory); this.collapsed_directories.add(key);}
           list.set_items(entries());
-        }, "git-scm-virtual-directory"); row.prepend(git_icon(collapsed.has(directory) ? "chevron-right" : "chevron-down")); row.style.paddingLeft = item.depth * 12 + "px"; row.setAttribute("aria-expanded", String(!collapsed.has(directory))); return row;
+        }, "git-scm-virtual-directory"); row.prepend(git_icon(collapsed.has(directory) ? "chevron-right" : "chevron-down")); row.style.setProperty("--git-history-indent", item.depth * 8 + "px"); row.setAttribute("aria-expanded", String(!collapsed.has(directory))); return row;
       }}); this.file_lists.set(target, list);
     } else for (const file of sorted) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_row(file));
   }

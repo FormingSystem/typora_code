@@ -1,0 +1,90 @@
+{
+  "date": "2026-09-24",
+  "release": "2026.09.24.3",
+  "requirements": [
+    "R034.5",
+    "R034.6",
+    "R034.7",
+    "R034.8"
+  ],
+  "design": [
+    "docs/git_markdown_diff.md",
+    "docs/navigation_history.md#同一内容的呈现转换",
+    "docs/installation.md#文本呈现默认值迁移r0345"
+  ],
+  "asset_manifest_sha256": "55e60eb52f2bd8f26b33a858a3025aa161d367d5dcdee0a1c8ef46ae6f0a608a",
+  "bundle_sha256": "624f414c25c43fba0368aff5baa42ca11ae3dde46b18fb65e21c800600f7ae29",
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS; 最后整行背景与配置写失败回退修正后补跑静态/部署、关联UI及原始宿主",
+    "catalog_suites": 210,
+    "ui_suites": [
+      "git_presentation",
+      "git_diff_source",
+      "scm_history_layout",
+      "git_markdown_diff",
+      "workspace_settings",
+      "git_graph_columns",
+      "git_graph_interaction",
+      "git_diff_toolbar",
+      "git_revision_reader",
+      "workspace_source_lifecycle"
+    ],
+    "presentation_checks": 57,
+    "source_checks": 22,
+    "stress_file_counts": [
+      20,
+      100,
+      1000
+    ],
+    "presentation_rounds": 20,
+    "native": {
+      "case_id": "abbcd87296fb44bab51f5fd15b0ccc9c",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "55e60eb52f2bd8f26b33a858a3025aa161d367d5dcdee0a1c8ef46ae6f0a608a",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "3625bd1d235c2b8c9e4053b8beab9a391ba99479b6bb1a6fc1cb5f255993b64c",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "status": "PASS",
+      "checks": 155,
+      "scope": "原始Typora1.14.10/Win11，真实Git；renderer点击/键盘，不是物理鼠标或Win10现场。"
+    },
+    "install_cycle": "PASS 同一最终候选安装/检查/有备份卸载/重装/检查/无兼容备份撤销入口/重装/检查；文档、配置、Local Storage契约文件与备份保留",
+    "uninstall_assertions": 65
+  },
+  "retained_failures": [
+    "新UI夹具早期转义/全局重复const及不可克隆返回值已修正，未作为产品通过证据",
+    "历史布局旧断言测容器左边界；新契约测文件内容缩进并独立检查整行背景。旧交互断言把展开作为选中，已改为互不混淆",
+    "列宽夹具相对路径被服务身份校验拒绝，改用绝对路径，不修改产品校验",
+    "原生F7旧断言只接受整块目标，细化后接受真实变更单元格/项",
+    "原生高窗口文末测试无法把第60行保持顶端（滚动范围已到底），改用非文末位置验证映射，保留自然文末边界",
+    "审查发现存储只读但写失败时内存偏好丢失，最终修复并以失败注入验证"
+  ],
+  "limits": [
+    "Win11 Typora1.14.10；未覆盖Win10、真实SSH Git现场或物理键鼠",
+    "复杂HTML/嵌套列表等无法可靠细化时保留块级差异；复杂渲染位置采用最近语义块与块内比例，不承诺逐字符像素等价",
+    "首次加载只迁移软换行配置，不重置其他用户偏好；卸载保留Local Storage文件，运行时读取/重载单独验证",
+    "用户窗口未重启，安装不代表已加载；文末可用滚动范围不足时内容保持可见，不制造额外空白"
+  ],
+  "installation": {
+    "version": "2026.09.24.3",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  }
+}

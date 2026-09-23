@@ -462,7 +462,8 @@
       "purpose": "implementation",
       "requirements": [
         "R041",
-        "R045"
+        "R045",
+        "R034.8"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -1368,7 +1369,8 @@
       "requirements": [
         "R027",
         "R045",
-        "R034.4"
+        "R034.4",
+        "R034.8"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -6173,7 +6175,10 @@
         "R070",
         "R072.2",
         "R073",
-        "R072.3"
+        "R072.3",
+        "R034.5",
+        "R034.6",
+        "R034.7"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6869,7 +6874,10 @@
         "R034.1",
         "R034.2",
         "R034.3",
-        "R067.1"
+        "R067.1",
+        "R034.5",
+        "R034.6",
+        "R034.7"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -6907,7 +6915,11 @@
         "R034.2",
         "R034.3",
         "R067.1",
-        "R034.4"
+        "R034.4",
+        "R034.5",
+        "R034.6",
+        "R034.7",
+        "R034.8"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7153,7 +7165,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R034.4"
+        "R034.4",
+        "R034.8"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7171,6 +7184,40 @@
         "files"
       ],
       "script": "enhancements/scripts/test_git_diff_source.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-030",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R034.5",
+        "R034.6",
+        "R034.7"
+      ],
+      "design": "docs/git_markdown_diff.md",
+      "implementation": [
+        "enhancements/src/workspace_text_presentation.ts",
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/git_markdown_diff.ts",
+        "enhancements/src/git_markdown_semantics.ts"
+      ],
+      "related_modules": [
+        "editor",
+        "settings",
+        "diff",
+        "navigation"
+      ],
+      "script": "enhancements/scripts/test_git_presentation.cjs",
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [

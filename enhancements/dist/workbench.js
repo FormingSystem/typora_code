@@ -370,9 +370,9 @@ https://creativecommons.org/licenses/by/4.0/
   };
   var __copyProps = (to, from, except, desc) => {
     if (from && typeof from === "object" || typeof from === "function") {
-      for (let key2 of __getOwnPropNames(from))
-        if (!__hasOwnProp.call(to, key2) && key2 !== except)
-          __defProp(to, key2, { get: () => from[key2], enumerable: !(desc = __getOwnPropDesc(from, key2)) || desc.enumerable });
+      for (let key3 of __getOwnPropNames(from))
+        if (!__hasOwnProp.call(to, key3) && key3 !== except)
+          __defProp(to, key3, { get: () => from[key3], enumerable: !(desc = __getOwnPropDesc(from, key3)) || desc.enumerable });
     }
     return to;
   };
@@ -1967,7 +1967,7 @@ https://creativecommons.org/licenses/by/4.0/
           return this._map.delete(value);
         }
         forEach(callbackfn, thisArg) {
-          this._map.forEach((_value, key2) => callbackfn.call(thisArg, key2, key2, this));
+          this._map.forEach((_value, key3) => callbackfn.call(thisArg, key3, key3, this));
         }
         has(value) {
           return this._map.has(value);
@@ -2013,11 +2013,11 @@ https://creativecommons.org/licenses/by/4.0/
         get last() {
           return this._tail?.value;
         }
-        has(key2) {
-          return this._map.has(key2);
+        has(key3) {
+          return this._map.has(key3);
         }
-        get(key2, touch = 0) {
-          const item = this._map.get(key2);
+        get(key3, touch = 0) {
+          const item = this._map.get(key3);
           if (!item) {
             return void 0;
           }
@@ -2026,15 +2026,15 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return item.value;
         }
-        set(key2, value, touch = 0) {
-          let item = this._map.get(key2);
+        set(key3, value, touch = 0) {
+          let item = this._map.get(key3);
           if (item) {
             item.value = value;
             if (touch !== 0) {
               this.touch(item, touch);
             }
           } else {
-            item = { key: key2, value, next: void 0, previous: void 0 };
+            item = { key: key3, value, next: void 0, previous: void 0 };
             switch (touch) {
               case 0:
                 this.addItemLast(item);
@@ -2049,20 +2049,20 @@ https://creativecommons.org/licenses/by/4.0/
                 this.addItemLast(item);
                 break;
             }
-            this._map.set(key2, item);
+            this._map.set(key3, item);
             this._size++;
           }
           return this;
         }
-        delete(key2) {
-          return !!this.remove(key2);
+        delete(key3) {
+          return !!this.remove(key3);
         }
-        remove(key2) {
-          const item = this._map.get(key2);
+        remove(key3) {
+          const item = this._map.get(key3);
           if (!item) {
             return void 0;
           }
-          this._map.delete(key2);
+          this._map.delete(key3);
           this.removeItem(item);
           this._size--;
           return item.value;
@@ -2317,15 +2317,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
         toJSON() {
           const data = [];
-          this.forEach((value, key2) => {
-            data.push([key2, value]);
+          this.forEach((value, key3) => {
+            data.push([key3, value]);
           });
           return data;
         }
         fromJSON(data) {
           this.clear();
-          for (const [key2, value] of data) {
-            this.set(key2, value);
+          for (const [key3, value] of data) {
+            this.set(key3, value);
           }
         }
       };
@@ -2342,19 +2342,19 @@ https://creativecommons.org/licenses/by/4.0/
           this._limit = limit;
           this.checkTrim();
         }
-        get(key2, touch = 2) {
-          return super.get(key2, touch);
+        get(key3, touch = 2) {
+          return super.get(key3, touch);
         }
-        peek(key2) {
+        peek(key3) {
           return super.get(
-            key2,
+            key3,
             0
             /* Touch.None */
           );
         }
-        set(key2, value) {
+        set(key3, value) {
           super.set(
-            key2,
+            key3,
             value,
             2
             /* Touch.AsNew */
@@ -2374,8 +2374,8 @@ https://creativecommons.org/licenses/by/4.0/
         trim(newSize) {
           this.trimOld(newSize);
         }
-        set(key2, value) {
-          super.set(key2, value);
+        set(key3, value) {
+          super.set(key3, value);
           this.checkTrim();
           return this;
         }
@@ -2385,8 +2385,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._m1 = /* @__PURE__ */ new Map();
           this._m2 = /* @__PURE__ */ new Map();
           if (entries3) {
-            for (const [key2, value] of entries3) {
-              this.set(key2, value);
+            for (const [key3, value] of entries3) {
+              this.set(key3, value);
             }
           }
         }
@@ -2394,22 +2394,22 @@ https://creativecommons.org/licenses/by/4.0/
           this._m1.clear();
           this._m2.clear();
         }
-        set(key2, value) {
-          this._m1.set(key2, value);
-          this._m2.set(value, key2);
+        set(key3, value) {
+          this._m1.set(key3, value);
+          this._m2.set(value, key3);
         }
-        get(key2) {
-          return this._m1.get(key2);
+        get(key3) {
+          return this._m1.get(key3);
         }
         getKey(value) {
           return this._m2.get(value);
         }
-        delete(key2) {
-          const value = this._m1.get(key2);
+        delete(key3) {
+          const value = this._m1.get(key3);
           if (value === void 0) {
             return false;
           }
-          this._m1.delete(key2);
+          this._m1.delete(key3);
           this._m2.delete(value);
           return true;
         }
@@ -2424,26 +2424,26 @@ https://creativecommons.org/licenses/by/4.0/
         constructor() {
           this.map = /* @__PURE__ */ new Map();
         }
-        add(key2, value) {
-          let values = this.map.get(key2);
+        add(key3, value) {
+          let values = this.map.get(key3);
           if (!values) {
             values = /* @__PURE__ */ new Set();
-            this.map.set(key2, values);
+            this.map.set(key3, values);
           }
           values.add(value);
         }
-        delete(key2, value) {
-          const values = this.map.get(key2);
+        delete(key3, value) {
+          const values = this.map.get(key3);
           if (!values) {
             return;
           }
           values.delete(value);
           if (values.size === 0) {
-            this.map.delete(key2);
+            this.map.delete(key3);
           }
         }
-        forEach(key2, fn2) {
-          const values = this.map.get(key2);
+        forEach(key3, fn2) {
+          const values = this.map.get(key3);
           if (!values) {
             return;
           }
@@ -2492,8 +2492,8 @@ https://creativecommons.org/licenses/by/4.0/
         toString() {
           const printMap = (map, depth) => {
             let result = "";
-            for (const [key2, value] of map) {
-              result += "".concat("  ".repeat(depth)).concat(key2, ": ");
+            for (const [key3, value] of map) {
+              result += "".concat("  ".repeat(depth)).concat(key3, ": ");
               if (value instanceof Map) {
                 result += "\n" + printMap(value, depth + 1);
               } else {
@@ -2867,9 +2867,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         get(arg) {
-          const key2 = this._computeKey(arg);
-          if (this.lastArgKey !== key2) {
-            this.lastArgKey = key2;
+          const key3 = this._computeKey(arg);
+          if (this.lastArgKey !== key3) {
+            this.lastArgKey = key3;
             this.lastCache = this._fn(arg);
           }
           return this.lastCache;
@@ -2891,13 +2891,13 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         get(arg) {
-          const key2 = this._computeKey(arg);
-          if (this._map2.has(key2)) {
-            return this._map2.get(key2);
+          const key3 = this._computeKey(arg);
+          if (this._map2.has(key3)) {
+            return this._map2.get(key3);
           }
           const value = this._fn(arg);
           this._map.set(arg, value);
-          this._map2.set(key2, value);
+          this._map2.set(key3, value);
           return value;
         }
       };
@@ -3483,8 +3483,8 @@ https://creativecommons.org/licenses/by/4.0/
             }
             function mergeMaps(map1, map2) {
               const result = new Map(map1);
-              for (const [key2, value] of map2) {
-                result.set(key2, value);
+              for (const [key3, value] of map2) {
+                result.set(key3, value);
               }
               return result;
             }
@@ -3493,9 +3493,9 @@ https://creativecommons.org/licenses/by/4.0/
                 return map2;
               }
               const result = /* @__PURE__ */ new Map();
-              for (const [key2, value] of map1) {
-                if (map2.has(key2)) {
-                  result.set(key2, value);
+              for (const [key3, value] of map1) {
+                if (map2.has(key3)) {
+                  result.set(key3, value);
                 }
               }
               return result;
@@ -4170,9 +4170,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function objectHash(obj, initialHashVal) {
     initialHashVal = numberHash(181387, initialHashVal);
-    return Object.keys(obj).sort().reduce((hashVal, key2) => {
-      hashVal = stringHash(key2, hashVal);
-      return doHash(obj[key2], hashVal);
+    return Object.keys(obj).sort().reduce((hashVal, key3) => {
+      hashVal = stringHash(key3, hashVal);
+      return doHash(obj[key3], hashVal);
     }, initialHashVal);
   }
   function leftRotate(value, bits, totalBits = 32) {
@@ -5078,24 +5078,24 @@ https://creativecommons.org/licenses/by/4.0/
             this._store.clear();
           }
         }
-        get(key2) {
-          return this._store.get(key2);
+        get(key3) {
+          return this._store.get(key3);
         }
-        set(key2, value, skipDisposeOnOverwrite = false) {
+        set(key3, value, skipDisposeOnOverwrite = false) {
           if (this._isDisposed) {
             console.warn(new Error("Trying to add a disposable to a DisposableMap that has already been disposed of. The added object will be leaked!").stack);
           }
           if (!skipDisposeOnOverwrite) {
-            this._store.get(key2)?.dispose();
+            this._store.get(key3)?.dispose();
           }
-          this._store.set(key2, value);
+          this._store.set(key3, value);
         }
         /**
          * Delete the value stored for `key` from this map and also dispose of it.
          */
-        deleteAndDispose(key2) {
-          this._store.get(key2)?.dispose();
-          this._store.delete(key2);
+        deleteAndDispose(key3) {
+          this._store.get(key3)?.dispose();
+          this._store.delete(key3);
         }
         keys() {
           return this._store.keys();
@@ -6271,7 +6271,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (_util.serviceIds.has(serviceId)) {
       return _util.serviceIds.get(serviceId);
     }
-    const id = function(target, key2, index) {
+    const id = function(target, key3, index) {
       if (arguments.length !== 3) {
         throw new Error("@IServiceName-decorator can only be used to decorate a parameter");
       }
@@ -8712,13 +8712,13 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/platform/configuration/common/configuration.js
   function toValuesTree(properties2, conflictReporter) {
     const root = /* @__PURE__ */ Object.create(null);
-    for (const key2 in properties2) {
-      addToValueTree(root, key2, properties2[key2], conflictReporter);
+    for (const key3 in properties2) {
+      addToValueTree(root, key3, properties2[key3], conflictReporter);
     }
     return root;
   }
-  function addToValueTree(settingsTreeRoot, key2, value, conflictReporter) {
-    const segments = key2.split(".");
+  function addToValueTree(settingsTreeRoot, key3, value, conflictReporter) {
+    const segments = key3.split(".");
     const last = segments.pop();
     let curr = settingsTreeRoot;
     for (let i = 0; i < segments.length; i++) {
@@ -8730,12 +8730,12 @@ https://creativecommons.org/licenses/by/4.0/
           break;
         case "object":
           if (obj === null) {
-            conflictReporter("Ignoring ".concat(key2, " as ").concat(segments.slice(0, i + 1).join("."), " is null"));
+            conflictReporter("Ignoring ".concat(key3, " as ").concat(segments.slice(0, i + 1).join("."), " is null"));
             return;
           }
           break;
         default:
-          conflictReporter("Ignoring ".concat(key2, " as ").concat(segments.slice(0, i + 1).join("."), " is ").concat(JSON.stringify(obj)));
+          conflictReporter("Ignoring ".concat(key3, " as ").concat(segments.slice(0, i + 1).join("."), " is ").concat(JSON.stringify(obj)));
           return;
       }
       curr = obj;
@@ -8744,14 +8744,14 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         curr[last] = value;
       } catch (e) {
-        conflictReporter("Ignoring ".concat(key2, " as ").concat(segments.join("."), " is ").concat(JSON.stringify(curr)));
+        conflictReporter("Ignoring ".concat(key3, " as ").concat(segments.join("."), " is ").concat(JSON.stringify(curr)));
       }
     } else {
-      conflictReporter("Ignoring ".concat(key2, " as ").concat(segments.join("."), " is ").concat(JSON.stringify(curr)));
+      conflictReporter("Ignoring ".concat(key3, " as ").concat(segments.join("."), " is ").concat(JSON.stringify(curr)));
     }
   }
-  function removeFromValueTree(valueTree, key2) {
-    const segments = key2.split(".");
+  function removeFromValueTree(valueTree, key3) {
+    const segments = key3.split(".");
     doRemoveFromValueTree(valueTree, segments);
   }
   function doRemoveFromValueTree(valueTree, segments) {
@@ -9192,8 +9192,8 @@ https://creativecommons.org/licenses/by/4.0/
           return uiMap.keyCodeToStr(keyCode);
         }
         KeyCodeUtils2.toString = toString;
-        function fromString(key2) {
-          return uiMap.strToKeyCode(key2);
+        function fromString(key3) {
+          return uiMap.strToKeyCode(key3);
         }
         KeyCodeUtils2.fromString = fromString;
         function toUserSettingsUS(keyCode) {
@@ -9204,8 +9204,8 @@ https://creativecommons.org/licenses/by/4.0/
           return userSettingsGeneralMap.keyCodeToStr(keyCode);
         }
         KeyCodeUtils2.toUserSettingsGeneral = toUserSettingsGeneral;
-        function fromUserSettings(key2) {
-          return userSettingsUSMap.strToKeyCode(key2) || userSettingsGeneralMap.strToKeyCode(key2);
+        function fromUserSettings(key3) {
+          return userSettingsUSMap.strToKeyCode(key3) || userSettingsGeneralMap.strToKeyCode(key3);
         }
         KeyCodeUtils2.fromUserSettings = fromUserSettings;
         function toElectronAccelerator(keyCode) {
@@ -9399,9 +9399,9 @@ https://creativecommons.org/licenses/by/4.0/
           return this._asKeybinding === other;
         }
         _computeKeybinding() {
-          let key2 = 0;
+          let key3 = 0;
           if (!isModifierKey(this.keyCode)) {
-            key2 = this.keyCode;
+            key3 = this.keyCode;
           }
           let result = 0;
           if (this.ctrlKey) {
@@ -9416,15 +9416,15 @@ https://creativecommons.org/licenses/by/4.0/
           if (this.metaKey) {
             result |= metaKeyMod;
           }
-          result |= key2;
+          result |= key3;
           return result;
         }
         _computeKeyCodeChord() {
-          let key2 = 0;
+          let key3 = 0;
           if (!isModifierKey(this.keyCode)) {
-            key2 = this.keyCode;
+            key3 = this.keyCode;
           }
-          return new KeyCodeChord(this.ctrlKey, this.shiftKey, this.altKey, this.metaKey, key2);
+          return new KeyCodeChord(this.ctrlKey, this.shiftKey, this.altKey, this.metaKey, key3);
         }
       };
     }
@@ -10418,8 +10418,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     array.pop();
   }
-  function binarySearch(array, key2, comparator) {
-    return binarySearch2(array.length, (i) => comparator(array[i], key2));
+  function binarySearch(array, key3, comparator) {
+    return binarySearch2(array.length, (i) => comparator(array[i], key3));
   }
   function binarySearch2(length, compareToKey) {
     let low = 0, high = length - 1;
@@ -10486,11 +10486,11 @@ https://creativecommons.org/licenses/by/4.0/
   function distinct(array, keyFn = (value) => value) {
     const seen = /* @__PURE__ */ new Set();
     return array.filter((element) => {
-      const key2 = keyFn(element);
-      if (seen.has(key2)) {
+      const key3 = keyFn(element);
+      if (seen.has(key3)) {
         return false;
       }
-      seen.add(key2);
+      seen.add(key3);
       return true;
     });
   }
@@ -10733,11 +10733,11 @@ https://creativecommons.org/licenses/by/4.0/
         if (keysA.length !== keysB.length) {
           return false;
         }
-        for (const key2 of keysA) {
-          if (!keysBSet.has(key2)) {
+        for (const key3 of keysA) {
+          if (!keysBSet.has(key3)) {
             return false;
           }
-          if (!structuralEquals(aObj[key2], bObj[key2])) {
+          if (!structuralEquals(aObj[key3], bObj[key3])) {
             return false;
           }
         }
@@ -10983,17 +10983,17 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     if (data.owner !== void 0) {
-      const key2 = findKey(data.owner, self2);
-      if (key2 !== void 0) {
-        return ownerStr + key2;
+      const key3 = findKey(data.owner, self2);
+      if (key3 !== void 0) {
+        return ownerStr + key3;
       }
     }
     return void 0;
   }
   function findKey(obj, value) {
-    for (const key2 in obj) {
-      if (obj[key2] === value) {
-        return key2;
+    for (const key3 in obj) {
+      if (obj[key3] === value) {
+        return key3;
       }
     }
     return void 0;
@@ -12299,7 +12299,7 @@ https://creativecommons.org/licenses/by/4.0/
     const className2 = getClassName(value);
     let result = className2 ? className2 + "(" : "{ ";
     let first = true;
-    for (const [key2, val] of Object.entries(value)) {
+    for (const [key3, val] of Object.entries(value)) {
       if (!first) {
         result += ", ";
       }
@@ -12308,7 +12308,7 @@ https://creativecommons.org/licenses/by/4.0/
         break;
       }
       first = false;
-      result += "".concat(key2, ": ").concat(formatValue(val, availableLen - result.length));
+      result += "".concat(key3, ": ").concat(formatValue(val, availableLen - result.length));
     }
     result += className2 ? ")" : " }";
     return result;
@@ -12354,9 +12354,9 @@ https://creativecommons.org/licenses/by/4.0/
             }
           });
           const requests = new Proxy({}, {
-            get: (target, key2) => {
+            get: (target, key3) => {
               return async (...args) => {
-                const result = await this._channel.sendRequest([key2, args]);
+                const result = await this._channel.sendRequest([key3, args]);
                 if (result.type === "error") {
                   throw result.value;
                 } else {
@@ -12366,9 +12366,9 @@ https://creativecommons.org/licenses/by/4.0/
             }
           });
           const notifications = new Proxy({}, {
-            get: (target, key2) => {
+            get: (target, key3) => {
               return (...args) => {
-                this._channel.sendNotification([key2, args]);
+                this._channel.sendNotification([key3, args]);
               };
             }
           });
@@ -12443,22 +12443,22 @@ https://creativecommons.org/licenses/by/4.0/
 
   // node_modules/monaco-editor/esm/vs/base/common/observableInternal/logging/debugger/utils.js
   function deepAssign(target, source) {
-    for (const key2 in source) {
-      if (!!target[key2] && typeof target[key2] === "object" && !!source[key2] && typeof source[key2] === "object") {
-        deepAssign(target[key2], source[key2]);
+    for (const key3 in source) {
+      if (!!target[key3] && typeof target[key3] === "object" && !!source[key3] && typeof source[key3] === "object") {
+        deepAssign(target[key3], source[key3]);
       } else {
-        target[key2] = source[key2];
+        target[key3] = source[key3];
       }
     }
   }
   function deepAssignDeleteNulls(target, source) {
-    for (const key2 in source) {
-      if (source[key2] === null) {
-        delete target[key2];
-      } else if (!!target[key2] && typeof target[key2] === "object" && !!source[key2] && typeof source[key2] === "object") {
-        deepAssignDeleteNulls(target[key2], source[key2]);
+    for (const key3 in source) {
+      if (source[key3] === null) {
+        delete target[key3];
+      } else if (!!target[key3] && typeof target[key3] === "object" && !!source[key3] && typeof source[key3] === "object") {
+        deepAssignDeleteNulls(target[key3], source[key3]);
       } else {
-        target[key2] = source[key2];
+        target[key3] = source[key3];
       }
     }
   }
@@ -13322,17 +13322,17 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     }
-    for (const [key2, value] of Object.entries(attributes)) {
-      if (key2 === "className") {
+    for (const [key3, value] of Object.entries(attributes)) {
+      if (key3 === "className") {
         continue;
-      } else if (key2 === "style") {
+      } else if (key3 === "style") {
         for (const [cssKey, cssValue] of Object.entries(value)) {
           el2.style.setProperty(camelCaseToHyphenCase(cssKey), typeof cssValue === "number" ? cssValue + "px" : "" + cssValue);
         }
-      } else if (key2 === "tabIndex") {
+      } else if (key3 === "tabIndex") {
         el2.tabIndex = value;
       } else {
-        el2.setAttribute(camelCaseToHyphenCase(key2), value.toString());
+        el2.setAttribute(camelCaseToHyphenCase(key3), value.toString());
       }
     }
     result["root"] = el2;
@@ -13401,11 +13401,11 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return false;
   }
-  function setOrRemoveAttribute(element, key2, value) {
+  function setOrRemoveAttribute(element, key3, value) {
     if (value === null || value === void 0) {
-      element.removeAttribute(camelCaseToHyphenCase(key2));
+      element.removeAttribute(camelCaseToHyphenCase(key3));
     } else {
-      element.setAttribute(camelCaseToHyphenCase(key2), String(value));
+      element.setAttribute(camelCaseToHyphenCase(key3), String(value));
     }
   }
   var getWindow, getDocument, getWindows, getWindowsCount, getWindowId, getWindowById, onDidRegisterWindow, onWillUnregisterWindow, onDidUnregisterWindow, externalFocusCheckers, DomListener, addStandardDisposableListener, runAtThisOrScheduleAtNextAnimationFrame, scheduleAtNextAnimationFrame, WindowIntervalTimer, AnimationFrameQueueItem, SizeUtils, Dimension, sharedMutationObserver, EventType, EventHelper, FocusTracker, SELECTOR_REGEX, Namespace, ModifierKeyEmitter, DragAndDropObserver, H_REGEX, n, ObserverNode, LiveElement, ObserverNodeWithElement, ConnectionObserverElement;
@@ -14073,19 +14073,19 @@ https://creativecommons.org/licenses/by/4.0/
               setClassName(this._element, getClassName2(className2, void 0));
             }
           }
-          for (const [key2, value] of Object.entries(attributes)) {
-            if (key2 === "style") {
+          for (const [key3, value] of Object.entries(attributes)) {
+            if (key3 === "style") {
               for (const [cssKey, cssValue] of Object.entries(value)) {
-                const key3 = camelCaseToHyphenCase(cssKey);
+                const key4 = camelCaseToHyphenCase(cssKey);
                 if (isObservable(cssValue)) {
-                  this._deriveds.push(derivedOpts({ owner: this, debugName: () => "set.style.".concat(key3) }, (reader) => {
-                    this._element.style.setProperty(key3, convertCssValue(cssValue.read(reader)));
+                  this._deriveds.push(derivedOpts({ owner: this, debugName: () => "set.style.".concat(key4) }, (reader) => {
+                    this._element.style.setProperty(key4, convertCssValue(cssValue.read(reader)));
                   }));
                 } else {
-                  this._element.style.setProperty(key3, convertCssValue(cssValue));
+                  this._element.style.setProperty(key4, convertCssValue(cssValue));
                 }
               }
-            } else if (key2 === "tabIndex") {
+            } else if (key3 === "tabIndex") {
               if (isObservable(value)) {
                 this._deriveds.push(derived(this, (reader) => {
                   this._element.tabIndex = value.read(reader);
@@ -14093,15 +14093,15 @@ https://creativecommons.org/licenses/by/4.0/
               } else {
                 this._element.tabIndex = value;
               }
-            } else if (key2.startsWith("on")) {
-              this._element[key2] = value;
+            } else if (key3.startsWith("on")) {
+              this._element[key3] = value;
             } else {
               if (isObservable(value)) {
-                this._deriveds.push(derivedOpts({ owner: this, debugName: () => "set.".concat(key2) }, (reader) => {
-                  setOrRemoveAttribute(this._element, key2, value.read(reader));
+                this._deriveds.push(derivedOpts({ owner: this, debugName: () => "set.".concat(key3) }, (reader) => {
+                  setOrRemoveAttribute(this._element, key3, value.read(reader));
                 }));
               } else {
-                setOrRemoveAttribute(this._element, key2, value);
+                setOrRemoveAttribute(this._element, key3, value);
               }
             }
           }
@@ -14218,15 +14218,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_configuration();
       init_dom();
-      __decorate = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       IHoverService = createDecorator("hoverService");
@@ -14650,7 +14650,7 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/base/common/decorators.js
-  function memoize(_target, key2, descriptor) {
+  function memoize(_target, key3, descriptor) {
     let fnKey = null;
     let fn2 = null;
     if (typeof descriptor.value === "function") {
@@ -14666,7 +14666,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!fn2) {
       throw new Error("not supported");
     }
-    const memoizeKey = "$memoize$".concat(key2);
+    const memoizeKey = "$memoize$".concat(key3);
     descriptor[fnKey] = function(...args) {
       if (!this.hasOwnProperty(memoizeKey)) {
         Object.defineProperty(this, memoizeKey, {
@@ -14694,11 +14694,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_event();
       init_lifecycle();
       init_linkedList();
-      __decorate2 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate2 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       (function(EventType3) {
         EventType3.Tap = "-monaco-gesturetap";
@@ -17953,9 +17953,9 @@ https://creativecommons.org/licenses/by/4.0/
           const metadata = /* @__PURE__ */ new Map();
           const meta = dataUri.path.substring(dataUri.path.indexOf(";") + 1, dataUri.path.lastIndexOf(";"));
           meta.split(";").forEach((property) => {
-            const [key2, value] = property.split(":");
-            if (key2 && value) {
-              metadata.set(key2, value);
+            const [key3, value] = property.split(":");
+            if (key3 && value) {
+              metadata.set(key3, value);
             }
           });
           const mime = dataUri.path.substring(0, dataUri.path.indexOf(";"));
@@ -20163,7 +20163,7 @@ https://creativecommons.org/licenses/by/4.0/
     data = revive(data);
     return data;
   }
-  function replacer(key2, value) {
+  function replacer(key3, value) {
     if (value instanceof RegExp) {
       return {
         $mid: 2,
@@ -20197,9 +20197,9 @@ https://creativecommons.org/licenses/by/4.0/
           obj[i] = revive(obj[i], depth + 1);
         }
       } else {
-        for (const key2 in obj) {
-          if (Object.hasOwnProperty.call(obj, key2)) {
-            obj[key2] = revive(obj[key2], depth + 1);
+        for (const key3 in obj) {
+          if (Object.hasOwnProperty.call(obj, key3)) {
+            obj[key3] = revive(obj[key3], depth + 1);
           }
         }
       }
@@ -20222,8 +20222,8 @@ https://creativecommons.org/licenses/by/4.0/
       return obj;
     }
     const result = Array.isArray(obj) ? [] : {};
-    Object.entries(obj).forEach(([key2, value]) => {
-      result[key2] = value && typeof value === "object" ? deepClone(value) : value;
+    Object.entries(obj).forEach(([key3, value]) => {
+      result[key3] = value && typeof value === "object" ? deepClone(value) : value;
     });
     return result;
   }
@@ -20235,9 +20235,9 @@ https://creativecommons.org/licenses/by/4.0/
     while (stack.length > 0) {
       const obj2 = stack.shift();
       Object.freeze(obj2);
-      for (const key2 in obj2) {
-        if (_hasOwnProperty.call(obj2, key2)) {
-          const prop = obj2[key2];
+      for (const key3 in obj2) {
+        if (_hasOwnProperty.call(obj2, key3)) {
+          const prop = obj2[key3];
           if (typeof prop === "object" && !Object.isFrozen(prop) && !isTypedArray(prop)) {
             stack.push(prop);
           }
@@ -20297,7 +20297,7 @@ https://creativecommons.org/licenses/by/4.0/
       return false;
     }
     let i;
-    let key2;
+    let key3;
     if (Array.isArray(one)) {
       if (one.length !== other.length) {
         return false;
@@ -20309,13 +20309,13 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } else {
       const oneKeys = [];
-      for (key2 in one) {
-        oneKeys.push(key2);
+      for (key3 in one) {
+        oneKeys.push(key3);
       }
       oneKeys.sort();
       const otherKeys = [];
-      for (key2 in other) {
-        otherKeys.push(key2);
+      for (key3 in other) {
+        otherKeys.push(key3);
       }
       otherKeys.sort();
       if (!equals4(oneKeys, otherKeys)) {
@@ -22727,15 +22727,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_extensions();
       init_instantiation();
       init_opener();
-      __decorate3 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate3 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param2 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       IMarkdownRendererService = createDecorator("markdownRendererService");
@@ -23145,20 +23145,20 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return newArr;
   }
-  function cmp1(key1, key2) {
-    if (key1 < key2) {
+  function cmp1(key1, key22) {
+    if (key1 < key22) {
       return -1;
     }
-    if (key1 > key2) {
+    if (key1 > key22) {
       return 1;
     }
     return 0;
   }
-  function cmp2(key1, value1, key2, value2) {
-    if (key1 < key2) {
+  function cmp2(key1, value1, key22, value2) {
+    if (key1 < key22) {
       return -1;
     }
-    if (key1 > key2) {
+    if (key1 > key22) {
       return 1;
     }
     if (value1 < value2) {
@@ -23365,7 +23365,7 @@ https://creativecommons.org/licenses/by/4.0/
               return expr;
             }
             case 17: {
-              const key2 = peek.lexeme;
+              const key3 = peek.lexeme;
               this._advance();
               if (this._matchOne(
                 9
@@ -23386,7 +23386,7 @@ https://creativecommons.org/licenses/by/4.0/
                   } catch (e) {
                     throw this._errExpectedButGot("REGEX", expr);
                   }
-                  return ContextKeyRegexExpr.create(key2, regexp);
+                  return ContextKeyRegexExpr.create(key3, regexp);
                 }
                 switch (expr.type) {
                   case 10:
@@ -23436,7 +23436,7 @@ https://creativecommons.org/licenses/by/4.0/
                     } catch (e) {
                       throw this._errExpectedButGot("REGEX", expr);
                     }
-                    return ContextKeyExpr.regex(key2, regexp);
+                    return ContextKeyExpr.regex(key3, regexp);
                   }
                   case 18: {
                     const serializedValue = expr.lexeme;
@@ -23458,7 +23458,7 @@ https://creativecommons.org/licenses/by/4.0/
                     if (regex === null) {
                       throw this._errExpectedButGot("REGEX", expr);
                     }
-                    return ContextKeyRegexExpr.create(key2, regex);
+                    return ContextKeyRegexExpr.create(key3, regex);
                   }
                   default:
                     throw this._errExpectedButGot("REGEX", this._peek());
@@ -23470,7 +23470,7 @@ https://creativecommons.org/licenses/by/4.0/
               )) {
                 this._consume(13, errorNoInAfterNot);
                 const right = this._value();
-                return ContextKeyExpr.notIn(key2, right);
+                return ContextKeyExpr.notIn(key3, right);
               }
               const maybeOp = this._peek().type;
               switch (maybeOp) {
@@ -23478,51 +23478,51 @@ https://creativecommons.org/licenses/by/4.0/
                   this._advance();
                   const right = this._value();
                   if (this._previous().type === 18) {
-                    return ContextKeyExpr.equals(key2, right);
+                    return ContextKeyExpr.equals(key3, right);
                   }
                   switch (right) {
                     case "true":
-                      return ContextKeyExpr.has(key2);
+                      return ContextKeyExpr.has(key3);
                     case "false":
-                      return ContextKeyExpr.not(key2);
+                      return ContextKeyExpr.not(key3);
                     default:
-                      return ContextKeyExpr.equals(key2, right);
+                      return ContextKeyExpr.equals(key3, right);
                   }
                 }
                 case 4: {
                   this._advance();
                   const right = this._value();
                   if (this._previous().type === 18) {
-                    return ContextKeyExpr.notEquals(key2, right);
+                    return ContextKeyExpr.notEquals(key3, right);
                   }
                   switch (right) {
                     case "true":
-                      return ContextKeyExpr.not(key2);
+                      return ContextKeyExpr.not(key3);
                     case "false":
-                      return ContextKeyExpr.has(key2);
+                      return ContextKeyExpr.has(key3);
                     default:
-                      return ContextKeyExpr.notEquals(key2, right);
+                      return ContextKeyExpr.notEquals(key3, right);
                   }
                 }
                 // TODO: ContextKeyExpr.smaller(key, right) accepts only `number` as `right` AND during eval of this node, we just eval to `false` if `right` is not a number
                 // consequently, package.json linter should _warn_ the user if they're passing undesired things to ops
                 case 5:
                   this._advance();
-                  return ContextKeySmallerExpr.create(key2, this._value());
+                  return ContextKeySmallerExpr.create(key3, this._value());
                 case 6:
                   this._advance();
-                  return ContextKeySmallerEqualsExpr.create(key2, this._value());
+                  return ContextKeySmallerEqualsExpr.create(key3, this._value());
                 case 7:
                   this._advance();
-                  return ContextKeyGreaterExpr.create(key2, this._value());
+                  return ContextKeyGreaterExpr.create(key3, this._value());
                 case 8:
                   this._advance();
-                  return ContextKeyGreaterEqualsExpr.create(key2, this._value());
+                  return ContextKeyGreaterEqualsExpr.create(key3, this._value());
                 case 13:
                   this._advance();
-                  return ContextKeyExpr.in(key2, this._value());
+                  return ContextKeyExpr.in(key3, this._value());
                 default:
-                  return ContextKeyExpr.has(key2);
+                  return ContextKeyExpr.has(key3);
               }
             }
             case 20:
@@ -23602,26 +23602,26 @@ https://creativecommons.org/licenses/by/4.0/
         static true() {
           return ContextKeyTrueExpr.INSTANCE;
         }
-        static has(key2) {
-          return ContextKeyDefinedExpr.create(key2);
+        static has(key3) {
+          return ContextKeyDefinedExpr.create(key3);
         }
-        static equals(key2, value) {
-          return ContextKeyEqualsExpr.create(key2, value);
+        static equals(key3, value) {
+          return ContextKeyEqualsExpr.create(key3, value);
         }
-        static notEquals(key2, value) {
-          return ContextKeyNotEqualsExpr.create(key2, value);
+        static notEquals(key3, value) {
+          return ContextKeyNotEqualsExpr.create(key3, value);
         }
-        static regex(key2, value) {
-          return ContextKeyRegexExpr.create(key2, value);
+        static regex(key3, value) {
+          return ContextKeyRegexExpr.create(key3, value);
         }
-        static in(key2, value) {
-          return ContextKeyInExpr.create(key2, value);
+        static in(key3, value) {
+          return ContextKeyInExpr.create(key3, value);
         }
-        static notIn(key2, value) {
-          return ContextKeyNotInExpr.create(key2, value);
+        static notIn(key3, value) {
+          return ContextKeyNotInExpr.create(key3, value);
         }
-        static not(key2) {
-          return ContextKeyNotExpr.create(key2);
+        static not(key3) {
+          return ContextKeyNotExpr.create(key3);
         }
         static and(...expr) {
           return ContextKeyAndExpr.create(expr, null, true);
@@ -23699,15 +23699,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyDefinedExpr = class _ContextKeyDefinedExpr {
-        static create(key2, negated = null) {
-          const constantValue = CONSTANT_VALUES.get(key2);
+        static create(key3, negated = null) {
+          const constantValue = CONSTANT_VALUES.get(key3);
           if (typeof constantValue === "boolean") {
             return constantValue ? ContextKeyTrueExpr.INSTANCE : ContextKeyFalseExpr.INSTANCE;
           }
-          return new _ContextKeyDefinedExpr(key2, negated);
+          return new _ContextKeyDefinedExpr(key3, negated);
         }
-        constructor(key2, negated) {
-          this.key = key2;
+        constructor(key3, negated) {
+          this.key = key3;
           this.negated = negated;
           this.type = 2;
         }
@@ -23747,19 +23747,19 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyEqualsExpr = class _ContextKeyEqualsExpr {
-        static create(key2, value, negated = null) {
+        static create(key3, value, negated = null) {
           if (typeof value === "boolean") {
-            return value ? ContextKeyDefinedExpr.create(key2, negated) : ContextKeyNotExpr.create(key2, negated);
+            return value ? ContextKeyDefinedExpr.create(key3, negated) : ContextKeyNotExpr.create(key3, negated);
           }
-          const constantValue = CONSTANT_VALUES.get(key2);
+          const constantValue = CONSTANT_VALUES.get(key3);
           if (typeof constantValue === "boolean") {
             const trueValue = constantValue ? "true" : "false";
             return value === trueValue ? ContextKeyTrueExpr.INSTANCE : ContextKeyFalseExpr.INSTANCE;
           }
-          return new _ContextKeyEqualsExpr(key2, value, negated);
+          return new _ContextKeyEqualsExpr(key3, value, negated);
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 4;
@@ -23801,11 +23801,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyInExpr = class _ContextKeyInExpr {
-        static create(key2, valueKey) {
-          return new _ContextKeyInExpr(key2, valueKey);
+        static create(key3, valueKey) {
+          return new _ContextKeyInExpr(key3, valueKey);
         }
-        constructor(key2, valueKey) {
-          this.key = key2;
+        constructor(key3, valueKey) {
+          this.key = key3;
           this.valueKey = valueKey;
           this.type = 10;
           this.negated = null;
@@ -23844,7 +23844,7 @@ https://creativecommons.org/licenses/by/4.0/
             }
             if (isWindows && item.startsWith("file:///")) {
               const itemLower = item.toLowerCase();
-              return Object.keys(source).some((key2) => key2.toLowerCase() === itemLower);
+              return Object.keys(source).some((key3) => key3.toLowerCase() === itemLower);
             }
             return false;
           }
@@ -23864,14 +23864,14 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyNotInExpr = class _ContextKeyNotInExpr {
-        static create(key2, valueKey) {
-          return new _ContextKeyNotInExpr(key2, valueKey);
+        static create(key3, valueKey) {
+          return new _ContextKeyNotInExpr(key3, valueKey);
         }
-        constructor(key2, valueKey) {
-          this.key = key2;
+        constructor(key3, valueKey) {
+          this.key = key3;
           this.valueKey = valueKey;
           this.type = 11;
-          this._negated = ContextKeyInExpr.create(key2, valueKey);
+          this._negated = ContextKeyInExpr.create(key3, valueKey);
         }
         cmp(other) {
           if (other.type !== this.type) {
@@ -23902,22 +23902,22 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyNotEqualsExpr = class _ContextKeyNotEqualsExpr {
-        static create(key2, value, negated = null) {
+        static create(key3, value, negated = null) {
           if (typeof value === "boolean") {
             if (value) {
-              return ContextKeyNotExpr.create(key2, negated);
+              return ContextKeyNotExpr.create(key3, negated);
             }
-            return ContextKeyDefinedExpr.create(key2, negated);
+            return ContextKeyDefinedExpr.create(key3, negated);
           }
-          const constantValue = CONSTANT_VALUES.get(key2);
+          const constantValue = CONSTANT_VALUES.get(key3);
           if (typeof constantValue === "boolean") {
             const falseValue = constantValue ? "true" : "false";
             return value === falseValue ? ContextKeyFalseExpr.INSTANCE : ContextKeyTrueExpr.INSTANCE;
           }
-          return new _ContextKeyNotEqualsExpr(key2, value, negated);
+          return new _ContextKeyNotEqualsExpr(key3, value, negated);
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 5;
@@ -23959,15 +23959,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyNotExpr = class _ContextKeyNotExpr {
-        static create(key2, negated = null) {
-          const constantValue = CONSTANT_VALUES.get(key2);
+        static create(key3, negated = null) {
+          const constantValue = CONSTANT_VALUES.get(key3);
           if (typeof constantValue === "boolean") {
             return constantValue ? ContextKeyFalseExpr.INSTANCE : ContextKeyTrueExpr.INSTANCE;
           }
-          return new _ContextKeyNotExpr(key2, negated);
+          return new _ContextKeyNotExpr(key3, negated);
         }
-        constructor(key2, negated) {
-          this.key = key2;
+        constructor(key3, negated) {
+          this.key = key3;
           this.negated = negated;
           this.type = 3;
         }
@@ -24007,11 +24007,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyGreaterExpr = class _ContextKeyGreaterExpr {
-        static create(key2, _value, negated = null) {
-          return withFloatOrStr(_value, (value) => new _ContextKeyGreaterExpr(key2, value, negated));
+        static create(key3, _value, negated = null) {
+          return withFloatOrStr(_value, (value) => new _ContextKeyGreaterExpr(key3, value, negated));
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 12;
@@ -24051,11 +24051,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyGreaterEqualsExpr = class _ContextKeyGreaterEqualsExpr {
-        static create(key2, _value, negated = null) {
-          return withFloatOrStr(_value, (value) => new _ContextKeyGreaterEqualsExpr(key2, value, negated));
+        static create(key3, _value, negated = null) {
+          return withFloatOrStr(_value, (value) => new _ContextKeyGreaterEqualsExpr(key3, value, negated));
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 13;
@@ -24095,11 +24095,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeySmallerExpr = class _ContextKeySmallerExpr {
-        static create(key2, _value, negated = null) {
-          return withFloatOrStr(_value, (value) => new _ContextKeySmallerExpr(key2, value, negated));
+        static create(key3, _value, negated = null) {
+          return withFloatOrStr(_value, (value) => new _ContextKeySmallerExpr(key3, value, negated));
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 14;
@@ -24139,11 +24139,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeySmallerEqualsExpr = class _ContextKeySmallerEqualsExpr {
-        static create(key2, _value, negated = null) {
-          return withFloatOrStr(_value, (value) => new _ContextKeySmallerEqualsExpr(key2, value, negated));
+        static create(key3, _value, negated = null) {
+          return withFloatOrStr(_value, (value) => new _ContextKeySmallerEqualsExpr(key3, value, negated));
         }
-        constructor(key2, value, negated) {
-          this.key = key2;
+        constructor(key3, value, negated) {
+          this.key = key3;
           this.value = value;
           this.negated = negated;
           this.type = 15;
@@ -24183,11 +24183,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ContextKeyRegexExpr = class _ContextKeyRegexExpr {
-        static create(key2, regexp) {
-          return new _ContextKeyRegexExpr(key2, regexp);
+        static create(key3, regexp) {
+          return new _ContextKeyRegexExpr(key3, regexp);
         }
-        constructor(key2, regexp) {
-          this.key = key2;
+        constructor(key3, regexp) {
+          this.key = key3;
           this.regexp = regexp;
           this.type = 7;
           this.negated = null;
@@ -24575,13 +24575,13 @@ https://creativecommons.org/licenses/by/4.0/
         static all() {
           return _RawContextKey._info.values();
         }
-        constructor(key2, defaultValue, metaOrHide) {
-          super(key2, null);
+        constructor(key3, defaultValue, metaOrHide) {
+          super(key3, null);
           this._defaultValue = defaultValue;
           if (typeof metaOrHide === "object") {
-            _RawContextKey._info.push({ ...metaOrHide, key: key2 });
+            _RawContextKey._info.push({ ...metaOrHide, key: key3 });
           } else if (metaOrHide !== true) {
-            _RawContextKey._info.push({ key: key2, description: metaOrHide, type: defaultValue !== null && defaultValue !== void 0 ? typeof defaultValue : void 0 });
+            _RawContextKey._info.push({ key: key3, description: metaOrHide, type: defaultValue !== null && defaultValue !== void 0 ? typeof defaultValue : void 0 });
           }
         }
         bindTo(target) {
@@ -24706,15 +24706,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_aria2();
       init_async();
       init_types();
-      __decorate4 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate4 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param3 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       $3 = $;
@@ -25824,10 +25824,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
         getCommands() {
           const result = /* @__PURE__ */ new Map();
-          for (const key2 of this._commands.keys()) {
-            const command = this.getCommand(key2);
+          for (const key3 of this._commands.keys()) {
+            const command = this.getCommand(key3);
             if (command) {
-              result.set(key2, command);
+              result.set(key3, command);
             }
           }
           return result;
@@ -26047,15 +26047,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_keyCodes();
       init_keybindingsRegistry();
       init_iconLabels();
-      __decorate5 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate5 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param4 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MAX_HOVER_NESTING_DEPTH = 3;
@@ -26766,15 +26766,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_extensions();
       init_notification();
       init_undoRedo();
-      __decorate6 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate6 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param5 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       stackElementCounter = 0;
@@ -28097,15 +28097,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_contextkey();
       init_instantiation();
       init_keybindingsRegistry();
-      __decorate7 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate7 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param6 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MenuId = class _MenuId {
@@ -28946,7 +28946,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         getCommands() {
           const map = /* @__PURE__ */ new Map();
-          this._commands.forEach((value, key2) => map.set(key2, value));
+          this._commands.forEach((value, key3) => map.set(key3, value));
           return map;
         }
         appendMenuItem(id, item) {
@@ -29145,82 +29145,82 @@ https://creativecommons.org/licenses/by/4.0/
         onDidChangeItemsExternal(e) {
           this._onDidChangeStorage.pause();
           try {
-            e.changed?.forEach((value, key2) => this.acceptExternal(key2, value));
-            e.deleted?.forEach((key2) => this.acceptExternal(key2, void 0));
+            e.changed?.forEach((value, key3) => this.acceptExternal(key3, value));
+            e.deleted?.forEach((key3) => this.acceptExternal(key3, void 0));
           } finally {
             this._onDidChangeStorage.resume();
           }
         }
-        acceptExternal(key2, value) {
+        acceptExternal(key3, value) {
           if (this.state === StorageState.Closed) {
             return;
           }
           let changed2 = false;
           if (isUndefinedOrNull(value)) {
-            changed2 = this.cache.delete(key2);
+            changed2 = this.cache.delete(key3);
           } else {
-            const currentValue = this.cache.get(key2);
+            const currentValue = this.cache.get(key3);
             if (currentValue !== value) {
-              this.cache.set(key2, value);
+              this.cache.set(key3, value);
               changed2 = true;
             }
           }
           if (changed2) {
-            this._onDidChangeStorage.fire({ key: key2, external: true });
+            this._onDidChangeStorage.fire({ key: key3, external: true });
           }
         }
-        get(key2, fallbackValue) {
-          const value = this.cache.get(key2);
+        get(key3, fallbackValue) {
+          const value = this.cache.get(key3);
           if (isUndefinedOrNull(value)) {
             return fallbackValue;
           }
           return value;
         }
-        getBoolean(key2, fallbackValue) {
-          const value = this.get(key2);
+        getBoolean(key3, fallbackValue) {
+          const value = this.get(key3);
           if (isUndefinedOrNull(value)) {
             return fallbackValue;
           }
           return value === "true";
         }
-        getNumber(key2, fallbackValue) {
-          const value = this.get(key2);
+        getNumber(key3, fallbackValue) {
+          const value = this.get(key3);
           if (isUndefinedOrNull(value)) {
             return fallbackValue;
           }
           return parseInt(value, 10);
         }
-        async set(key2, value, external = false) {
+        async set(key3, value, external = false) {
           if (this.state === StorageState.Closed) {
             return;
           }
           if (isUndefinedOrNull(value)) {
-            return this.delete(key2, external);
+            return this.delete(key3, external);
           }
           const valueStr = isObject(value) || Array.isArray(value) ? stringify(value) : String(value);
-          const currentValue = this.cache.get(key2);
+          const currentValue = this.cache.get(key3);
           if (currentValue === valueStr) {
             return;
           }
-          this.cache.set(key2, valueStr);
-          this.pendingInserts.set(key2, valueStr);
-          this.pendingDeletes.delete(key2);
-          this._onDidChangeStorage.fire({ key: key2, external });
+          this.cache.set(key3, valueStr);
+          this.pendingInserts.set(key3, valueStr);
+          this.pendingDeletes.delete(key3);
+          this._onDidChangeStorage.fire({ key: key3, external });
           return this.doFlush();
         }
-        async delete(key2, external = false) {
+        async delete(key3, external = false) {
           if (this.state === StorageState.Closed) {
             return;
           }
-          const wasDeleted = this.cache.delete(key2);
+          const wasDeleted = this.cache.delete(key3);
           if (!wasDeleted) {
             return;
           }
-          if (!this.pendingDeletes.has(key2)) {
-            this.pendingDeletes.add(key2);
+          if (!this.pendingDeletes.has(key3)) {
+            this.pendingDeletes.add(key3);
           }
-          this.pendingInserts.delete(key2);
-          this._onDidChangeStorage.fire({ key: key2, external });
+          this.pendingInserts.delete(key3);
+          this._onDidChangeStorage.fire({ key: key3, external });
           return this.doFlush();
         }
         get hasPending() {
@@ -29267,8 +29267,8 @@ https://creativecommons.org/licenses/by/4.0/
           this.items = /* @__PURE__ */ new Map();
         }
         async updateItems(request) {
-          request.insert?.forEach((value, key2) => this.items.set(key2, value));
-          request.delete?.forEach((key2) => this.items.delete(key2));
+          request.insert?.forEach((value, key3) => this.items.set(key3, value));
+          request.delete?.forEach((key3) => this.items.delete(key3));
         }
       };
     }
@@ -29318,8 +29318,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._applicationSharedKeyTargets = void 0;
           this.flushWhenIdleScheduler = this._register(new RunOnceScheduler(() => this.doFlushWhenIdle(), options2.flushInterval));
         }
-        onDidChangeValue(scope, key2, disposable) {
-          return Event2.filter(this._onDidChangeValue.event, (e) => e.scope === scope && (key2 === void 0 || e.key === key2), disposable);
+        onDidChangeValue(scope, key3, disposable) {
+          return Event2.filter(this._onDidChangeValue.event, (e) => e.scope === scope && (key3 === void 0 || e.key === key3), disposable);
         }
         doFlushWhenIdle() {
           this.runFlushWhenIdle.value = runWhenGlobalIdle(() => {
@@ -29333,8 +29333,8 @@ https://creativecommons.org/licenses/by/4.0/
           return true;
         }
         emitDidChangeValue(scope, event) {
-          const { key: key2, external } = event;
-          if (key2 === TARGET_KEY) {
+          const { key: key3, external } = event;
+          if (key3 === TARGET_KEY) {
             switch (scope) {
               case -2:
                 this._applicationSharedKeyTargets = void 0;
@@ -29351,32 +29351,32 @@ https://creativecommons.org/licenses/by/4.0/
             }
             this._onDidChangeTarget.fire({ scope });
           } else {
-            this._onDidChangeValue.fire({ scope, key: key2, target: this.getKeyTargets(scope)[key2], external });
+            this._onDidChangeValue.fire({ scope, key: key3, target: this.getKeyTargets(scope)[key3], external });
           }
         }
-        get(key2, scope, fallbackValue) {
-          return this.getStorage(scope)?.get(key2, fallbackValue);
+        get(key3, scope, fallbackValue) {
+          return this.getStorage(scope)?.get(key3, fallbackValue);
         }
-        getBoolean(key2, scope, fallbackValue) {
-          return this.getStorage(scope)?.getBoolean(key2, fallbackValue);
+        getBoolean(key3, scope, fallbackValue) {
+          return this.getStorage(scope)?.getBoolean(key3, fallbackValue);
         }
-        getNumber(key2, scope, fallbackValue) {
-          return this.getStorage(scope)?.getNumber(key2, fallbackValue);
+        getNumber(key3, scope, fallbackValue) {
+          return this.getStorage(scope)?.getNumber(key3, fallbackValue);
         }
-        store(key2, value, scope, target, external = false) {
+        store(key3, value, scope, target, external = false) {
           if (isUndefinedOrNull(value)) {
-            this.remove(key2, scope, external);
+            this.remove(key3, scope, external);
             return;
           }
           this.withPausedEmitters(() => {
-            this.updateKeyTarget(key2, scope, target);
-            this.getStorage(scope)?.set(key2, value, external);
+            this.updateKeyTarget(key3, scope, target);
+            this.getStorage(scope)?.set(key3, value, external);
           });
         }
-        remove(key2, scope, external = false) {
+        remove(key3, scope, external = false) {
           this.withPausedEmitters(() => {
-            this.updateKeyTarget(key2, scope, void 0);
-            this.getStorage(scope)?.delete(key2, external);
+            this.updateKeyTarget(key3, scope, void 0);
+            this.getStorage(scope)?.delete(key3, external);
           });
         }
         withPausedEmitters(fn2) {
@@ -29389,16 +29389,16 @@ https://creativecommons.org/licenses/by/4.0/
             this._onDidChangeTarget.resume();
           }
         }
-        updateKeyTarget(key2, scope, target, external = false) {
+        updateKeyTarget(key3, scope, target, external = false) {
           const keyTargets = this.getKeyTargets(scope);
           if (typeof target === "number") {
-            if (keyTargets[key2] !== target) {
-              keyTargets[key2] = target;
+            if (keyTargets[key3] !== target) {
+              keyTargets[key3] = target;
               this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
             }
           } else {
-            if (typeof keyTargets[key2] === "number") {
-              delete keyTargets[key2];
+            if (typeof keyTargets[key3] === "number") {
+              delete keyTargets[key3];
               this.getStorage(scope)?.set(TARGET_KEY, JSON.stringify(keyTargets), external);
             }
           }
@@ -29552,15 +29552,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_quickInput();
       init_storage2();
       init_telemetry();
-      __decorate8 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate8 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param7 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       IInlineCompletionsService = createDecorator("IInlineCompletionsService");
@@ -30141,15 +30141,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_instantiation();
       init_log();
       init_network();
-      __decorate9 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate9 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param8 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ILanguageFeatureDebounceService = createDecorator("ILanguageFeatureDebounceService");
@@ -30194,16 +30194,16 @@ https://creativecommons.org/licenses/by/4.0/
           return model.id + this._registry.all(model).reduce((hashVal, obj) => doHash(IdentityHash.of(obj), hashVal), 0);
         }
         get(model) {
-          const key2 = this._key(model);
-          const avg = this._cache.get(key2);
+          const key3 = this._key(model);
+          const avg = this._cache.get(key3);
           return avg ? clamp(avg.value, this._min, this._max) : this.default();
         }
         update(model, value) {
-          const key2 = this._key(model);
-          let avg = this._cache.get(key2);
+          const key3 = this._key(model);
+          let avg = this._cache.get(key3);
           if (!avg) {
             avg = new SlidingWindowAverage(6);
-            this._cache.set(key2, avg);
+            this._cache.set(key3, avg);
           }
           const newValue = clamp(avg.update(value), this._min, this._max);
           if (!matchesScheme(model.uri, "output")) {
@@ -30233,8 +30233,8 @@ https://creativecommons.org/licenses/by/4.0/
           const min = config?.min ?? 50;
           const max = config?.max ?? min ** 2;
           const extra = config?.key ?? void 0;
-          const key2 = "".concat(IdentityHash.of(feature), ",").concat(min).concat(extra ? "," + extra : "");
-          let info = this._data.get(key2);
+          const key3 = "".concat(IdentityHash.of(feature), ",").concat(min).concat(extra ? "," + extra : "");
+          let info = this._data.get(key3);
           if (!info) {
             if (this._isDev) {
               this._logService.debug("[DEBOUNCE: ".concat(name, "] is disabled in developed mode"));
@@ -30250,7 +30250,7 @@ https://creativecommons.org/licenses/by/4.0/
                 max
               );
             }
-            this._data.set(key2, info);
+            this._data.set(key3, info);
           }
           return info;
         }
@@ -32107,15 +32107,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_log();
       init_sparseMultilineTokens();
       init_language();
-      __decorate10 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate10 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param9 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       SemanticTokensProviderStyling = class SemanticTokensProviderStyling2 {
@@ -32300,15 +32300,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_semanticTokensProviderStyling();
       init_semanticTokensStyling();
       init_extensions();
-      __decorate11 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate11 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param10 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       SemanticTokensStylingService = class SemanticTokensStylingService2 extends Disposable {
@@ -32351,15 +32351,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_linkedList();
       init_themeService();
-      __decorate12 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate12 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param11 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       AbstractCodeEditorService = class AbstractCodeEditorService2 extends Disposable {
@@ -32426,18 +32426,18 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return editorWithWidgetFocus;
         }
-        removeDecorationType(key2) {
-          const provider = this._decorationOptionProviders.get(key2);
+        removeDecorationType(key3) {
+          const provider = this._decorationOptionProviders.get(key3);
           if (provider) {
             provider.refCount--;
             if (provider.refCount <= 0) {
-              this._decorationOptionProviders.delete(key2);
+              this._decorationOptionProviders.delete(key3);
               provider.dispose();
-              this.listCodeEditors().forEach((ed) => ed.removeDecorationsByType(key2));
+              this.listCodeEditors().forEach((ed) => ed.removeDecorationsByType(key3));
             }
           }
         }
-        setModelProperty(resource, key2, value) {
+        setModelProperty(resource, key3, value) {
           const key1 = resource.toString();
           let dest;
           if (this._modelProperties.has(key1)) {
@@ -32446,13 +32446,13 @@ https://creativecommons.org/licenses/by/4.0/
             dest = /* @__PURE__ */ new Map();
             this._modelProperties.set(key1, dest);
           }
-          dest.set(key2, value);
+          dest.set(key3, value);
         }
-        getModelProperty(resource, key2) {
+        getModelProperty(resource, key3) {
           const key1 = resource.toString();
           if (this._modelProperties.has(key1)) {
             const innerMap = this._modelProperties.get(key1);
-            return innerMap.get(key2);
+            return innerMap.get(key3);
           }
           return void 0;
         }
@@ -32496,15 +32496,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_contextkey();
       init_extensions();
       init_themeService();
-      __decorate13 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate13 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param12 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       StandaloneCodeEditorService = class StandaloneCodeEditorService2 extends AbstractCodeEditorService {
@@ -32605,15 +32605,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_codeEditorService();
       init_extensions();
       init_layoutService();
-      __decorate14 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate14 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param13 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       StandaloneLayoutService = class StandaloneLayoutService2 {
@@ -32689,15 +32689,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_configuration();
       init_contextkey();
       init_layoutService();
-      __decorate15 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate15 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param14 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       AccessibilityService = class AccessibilityService2 extends Disposable {
@@ -33344,15 +33344,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_arrays();
       init_nls();
       init_keybinding();
-      __decorate16 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate16 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param15 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MenuService = class MenuService2 extends Disposable {
@@ -33549,8 +33549,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
         static _fillInKbExprKeys(exp, set) {
           if (exp) {
-            for (const key2 of exp.keys()) {
-              set.add(key2);
+            for (const key3 of exp.keys()) {
+              set.add(key3);
             }
           }
         }
@@ -33720,15 +33720,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_uri();
       init_layoutService();
       init_log();
-      __decorate17 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate17 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param16 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       vscodeResourcesMime = "application/vnd.code.resources";
@@ -33965,16 +33965,16 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/platform/configuration/common/configurationRegistry.js
-  function overrideIdentifiersFromKey(key2) {
+  function overrideIdentifiersFromKey(key3) {
     const identifiers = [];
-    if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
-      let matches = OVERRIDE_IDENTIFIER_REGEX.exec(key2);
+    if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
+      let matches = OVERRIDE_IDENTIFIER_REGEX.exec(key3);
       while (matches?.length) {
         const identifier2 = matches[1].trim();
         if (identifier2) {
           identifiers.push(identifier2);
         }
-        matches = OVERRIDE_IDENTIFIER_REGEX.exec(key2);
+        matches = OVERRIDE_IDENTIFIER_REGEX.exec(key3);
       }
     }
     return distinct(identifiers);
@@ -34081,36 +34081,36 @@ https://creativecommons.org/licenses/by/4.0/
           this.registeredConfigurationDefaults.push(...configurationDefaults);
           const overrideIdentifiers = [];
           for (const { overrides, source } of configurationDefaults) {
-            for (const key2 in overrides) {
-              bucket.add(key2);
-              const configurationDefaultOverridesForKey = this.configurationDefaultsOverrides.get(key2) ?? this.configurationDefaultsOverrides.set(key2, { configurationDefaultOverrides: [] }).get(key2);
-              const value = overrides[key2];
+            for (const key3 in overrides) {
+              bucket.add(key3);
+              const configurationDefaultOverridesForKey = this.configurationDefaultsOverrides.get(key3) ?? this.configurationDefaultsOverrides.set(key3, { configurationDefaultOverrides: [] }).get(key3);
+              const value = overrides[key3];
               configurationDefaultOverridesForKey.configurationDefaultOverrides.push({ value, source });
-              if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
-                const newDefaultOverride = this.mergeDefaultConfigurationsForOverrideIdentifier(key2, value, source, configurationDefaultOverridesForKey.configurationDefaultOverrideValue);
+              if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
+                const newDefaultOverride = this.mergeDefaultConfigurationsForOverrideIdentifier(key3, value, source, configurationDefaultOverridesForKey.configurationDefaultOverrideValue);
                 if (!newDefaultOverride) {
                   continue;
                 }
                 configurationDefaultOverridesForKey.configurationDefaultOverrideValue = newDefaultOverride;
-                this.updateDefaultOverrideProperty(key2, newDefaultOverride, source);
-                overrideIdentifiers.push(...overrideIdentifiersFromKey(key2));
+                this.updateDefaultOverrideProperty(key3, newDefaultOverride, source);
+                overrideIdentifiers.push(...overrideIdentifiersFromKey(key3));
               } else {
-                const newDefaultOverride = this.mergeDefaultConfigurationsForConfigurationProperty(key2, value, source, configurationDefaultOverridesForKey.configurationDefaultOverrideValue);
+                const newDefaultOverride = this.mergeDefaultConfigurationsForConfigurationProperty(key3, value, source, configurationDefaultOverridesForKey.configurationDefaultOverrideValue);
                 if (!newDefaultOverride) {
                   continue;
                 }
                 configurationDefaultOverridesForKey.configurationDefaultOverrideValue = newDefaultOverride;
-                const property = this.configurationProperties[key2];
+                const property = this.configurationProperties[key3];
                 if (property) {
-                  this.updatePropertyDefaultValue(key2, property);
-                  this.updateSchema(key2, property);
+                  this.updatePropertyDefaultValue(key3, property);
+                  this.updateSchema(key3, property);
                 }
               }
             }
           }
           this.doRegisterOverrideIdentifiers(overrideIdentifiers);
         }
-        updateDefaultOverrideProperty(key2, newDefaultOverride, source) {
+        updateDefaultOverrideProperty(key3, newDefaultOverride, source) {
           const property = {
             section: {
               id: this.defaultLanguageConfigurationOverridesNode.id,
@@ -34120,14 +34120,14 @@ https://creativecommons.org/licenses/by/4.0/
             },
             type: "object",
             default: newDefaultOverride.value,
-            description: localize(1726, "Configure settings to be overridden for {0}.", getLanguageTagSettingPlainKey(key2)),
+            description: localize(1726, "Configure settings to be overridden for {0}.", getLanguageTagSettingPlainKey(key3)),
             $ref: resourceLanguageSettingsSchemaId,
             defaultDefaultValue: newDefaultOverride.value,
             source,
             defaultValueSource: source
           };
-          this.configurationProperties[key2] = property;
-          this.defaultLanguageConfigurationOverridesNode.properties[key2] = property;
+          this.configurationProperties[key3] = property;
+          this.defaultLanguageConfigurationOverridesNode.properties[key3] = property;
         }
         mergeDefaultConfigurationsForOverrideIdentifier(overrideIdentifier, configurationValueObject, valueSource, existingDefaultOverride) {
           const defaultValue = existingDefaultOverride?.value || {};
@@ -34198,26 +34198,26 @@ https://creativecommons.org/licenses/by/4.0/
           scope = isUndefinedOrNull(configuration.scope) ? scope : configuration.scope;
           const properties2 = configuration.properties;
           if (properties2) {
-            for (const key2 in properties2) {
-              const property = properties2[key2];
+            for (const key3 in properties2) {
+              const property = properties2[key3];
               property.section = {
                 id: configuration.id,
                 title: configuration.title,
                 order: configuration.order,
                 extensionInfo: configuration.extensionInfo
               };
-              if (validate && validateProperty(key2, property, extensionInfo?.id)) {
-                delete properties2[key2];
+              if (validate && validateProperty(key3, property, extensionInfo?.id)) {
+                delete properties2[key3];
                 continue;
               }
               property.source = extensionInfo;
-              property.defaultDefaultValue = properties2[key2].default;
-              this.updatePropertyDefaultValue(key2, property);
-              if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
+              property.defaultDefaultValue = properties2[key3].default;
+              this.updatePropertyDefaultValue(key3, property);
+              if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
                 property.scope = void 0;
               } else {
                 property.scope = isUndefinedOrNull(property.scope) ? scope : property.scope;
-                property.restricted = isUndefinedOrNull(property.restricted) ? !!restrictedProperties?.includes(key2) : property.restricted;
+                property.restricted = isUndefinedOrNull(property.restricted) ? !!restrictedProperties?.includes(key3) : property.restricted;
               }
               if (property.experiment) {
                 if (!property.tags?.some((tag3) => tag3.toLowerCase() === "onexp")) {
@@ -34225,34 +34225,34 @@ https://creativecommons.org/licenses/by/4.0/
                   property.tags.push("onExP");
                 }
               } else if (property.tags?.some((tag3) => tag3.toLowerCase() === "onexp")) {
-                console.error("Invalid tag 'onExP' found for property '".concat(key2, "'. Please use 'experiment' property instead."));
+                console.error("Invalid tag 'onExP' found for property '".concat(key3, "'. Please use 'experiment' property instead."));
                 property.experiment = { mode: "startup" };
               }
-              const excluded = properties2[key2].hasOwnProperty("included") && !properties2[key2].included;
-              const policyName = properties2[key2].policy?.name;
-              const policyReferenceName = properties2[key2].policyReference?.name;
+              const excluded = properties2[key3].hasOwnProperty("included") && !properties2[key3].included;
+              const policyName = properties2[key3].policy?.name;
+              const policyReferenceName = properties2[key3].policyReference?.name;
               if (excluded) {
-                this.excludedConfigurationProperties[key2] = properties2[key2];
+                this.excludedConfigurationProperties[key3] = properties2[key3];
                 if (policyName) {
-                  this.policyConfigurations.set(policyName, key2);
-                  bucket.add(key2);
+                  this.policyConfigurations.set(policyName, key3);
+                  bucket.add(key3);
                 }
                 if (policyReferenceName) {
-                  this.addPolicyReferenceConfiguration(policyReferenceName, key2);
-                  bucket.add(key2);
+                  this.addPolicyReferenceConfiguration(policyReferenceName, key3);
+                  bucket.add(key3);
                 }
-                delete properties2[key2];
+                delete properties2[key3];
               } else {
-                bucket.add(key2);
+                bucket.add(key3);
                 if (policyName) {
-                  this.policyConfigurations.set(policyName, key2);
+                  this.policyConfigurations.set(policyName, key3);
                 }
                 if (policyReferenceName) {
-                  this.addPolicyReferenceConfiguration(policyReferenceName, key2);
+                  this.addPolicyReferenceConfiguration(policyReferenceName, key3);
                 }
-                this.configurationProperties[key2] = properties2[key2];
-                if (!properties2[key2].deprecationMessage && properties2[key2].markdownDeprecationMessage) {
-                  properties2[key2].deprecationMessage = properties2[key2].markdownDeprecationMessage;
+                this.configurationProperties[key3] = properties2[key3];
+                if (!properties2[key3].deprecationMessage && properties2[key3].markdownDeprecationMessage) {
+                  properties2[key3].deprecationMessage = properties2[key3].markdownDeprecationMessage;
                 }
               }
             }
@@ -34264,13 +34264,13 @@ https://creativecommons.org/licenses/by/4.0/
             }
           }
         }
-        addPolicyReferenceConfiguration(policyName, key2) {
+        addPolicyReferenceConfiguration(policyName, key3) {
           let keys = this.policyReferenceConfigurations.get(policyName);
           if (!keys) {
             keys = /* @__PURE__ */ new Set();
             this.policyReferenceConfigurations.set(policyName, keys);
           }
-          keys.add(key2);
+          keys.add(key3);
         }
         getConfigurationProperties() {
           return this.configurationProperties;
@@ -34285,8 +34285,8 @@ https://creativecommons.org/licenses/by/4.0/
           const register4 = (configuration2) => {
             const properties2 = configuration2.properties;
             if (properties2) {
-              for (const key2 in properties2) {
-                this.updateSchema(key2, properties2[key2]);
+              for (const key3 in properties2) {
+                this.updateSchema(key3, properties2[key3]);
               }
             }
             const subNodes = configuration2.allOf;
@@ -34294,7 +34294,7 @@ https://creativecommons.org/licenses/by/4.0/
           };
           register4(configuration);
         }
-        updateSchema(key2, property) {
+        updateSchema(key3, property) {
           switch (property.scope) {
             case 1:
               break;
@@ -34309,7 +34309,7 @@ https://creativecommons.org/licenses/by/4.0/
             case 5:
               break;
             case 6:
-              this.resourceLanguageSettingsSchema.properties[key2] = property;
+              this.resourceLanguageSettingsSchema.properties[key3] = property;
               break;
           }
         }
@@ -34332,8 +34332,8 @@ https://creativecommons.org/licenses/by/4.0/
           });
           this._onDidSchemaChange.fire();
         }
-        updatePropertyDefaultValue(key2, property) {
-          const configurationdefaultOverride = this.configurationDefaultsOverrides.get(key2)?.configurationDefaultOverrideValue;
+        updatePropertyDefaultValue(key3, property) {
+          const configurationdefaultOverride = this.configurationDefaultsOverrides.get(key3)?.configurationDefaultOverrideValue;
           let defaultValue = void 0;
           let defaultSource = void 0;
           if (configurationdefaultOverride && (!property.disallowConfigurationDefault || !configurationdefaultOverride.source)) {
@@ -34487,9 +34487,9 @@ https://creativecommons.org/licenses/by/4.0/
                 overrides.push(deepClone(otherOverride));
               }
             }
-            for (const key2 of other.keys) {
-              if (keys.indexOf(key2) === -1) {
-                keys.push(key2);
+            for (const key3 of other.keys) {
+              if (keys.indexOf(key3) === -1) {
+                keys.push(key3);
               }
             }
           }
@@ -34501,9 +34501,9 @@ https://creativecommons.org/licenses/by/4.0/
             return this;
           }
           const contents = {};
-          for (const key2 of distinct([...Object.keys(this.contents), ...Object.keys(overrideContents)])) {
-            let contentsForKey = this.contents[key2];
-            const overrideContentsForKey = overrideContents[key2];
+          for (const key3 of distinct([...Object.keys(this.contents), ...Object.keys(overrideContents)])) {
+            let contentsForKey = this.contents[key3];
+            const overrideContentsForKey = overrideContents[key3];
             if (overrideContentsForKey) {
               if (typeof contentsForKey === "object" && typeof overrideContentsForKey === "object") {
                 contentsForKey = deepClone(contentsForKey);
@@ -34512,19 +34512,19 @@ https://creativecommons.org/licenses/by/4.0/
                 contentsForKey = overrideContentsForKey;
               }
             }
-            contents[key2] = contentsForKey;
+            contents[key3] = contentsForKey;
           }
           return new _ConfigurationModel(contents, this.keys, this.overrides, void 0, this.logService);
         }
         mergeContents(source, target) {
-          for (const key2 of Object.keys(target)) {
-            if (key2 in source) {
-              if (isObject(source[key2]) && isObject(target[key2])) {
-                this.mergeContents(source[key2], target[key2]);
+          for (const key3 of Object.keys(target)) {
+            if (key3 in source) {
+              if (isObject(source[key3]) && isObject(target[key3])) {
+                this.mergeContents(source[key3], target[key3]);
                 continue;
               }
             }
-            source[key2] = deepClone(target[key2]);
+            source[key3] = deepClone(target[key3]);
           }
         }
         getContentsForOverrideIdentifer(identifier2) {
@@ -34556,29 +34556,29 @@ https://creativecommons.org/licenses/by/4.0/
             keys: this.keys
           };
         }
-        setValue(key2, value) {
-          this.updateValue(key2, value, false);
+        setValue(key3, value) {
+          this.updateValue(key3, value, false);
         }
-        removeValue(key2) {
-          const index = this.keys.indexOf(key2);
+        removeValue(key3) {
+          const index = this.keys.indexOf(key3);
           if (index === -1) {
             return;
           }
           this.keys.splice(index, 1);
-          removeFromValueTree(this.contents, key2);
-          if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
-            this.overrides.splice(this.overrides.findIndex((o2) => equals2(o2.identifiers, overrideIdentifiersFromKey(key2))), 1);
+          removeFromValueTree(this.contents, key3);
+          if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
+            this.overrides.splice(this.overrides.findIndex((o2) => equals2(o2.identifiers, overrideIdentifiersFromKey(key3))), 1);
           }
         }
-        updateValue(key2, value, add) {
-          addToValueTree(this.contents, key2, value, (e) => this.logService.error(e));
-          add = add || this.keys.indexOf(key2) === -1;
+        updateValue(key3, value, add) {
+          addToValueTree(this.contents, key3, value, (e) => this.logService.error(e));
+          add = add || this.keys.indexOf(key3) === -1;
           if (add) {
-            this.keys.push(key2);
+            this.keys.push(key3);
           }
-          if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
-            const overrideContents = this.contents[key2];
-            const identifiers = overrideIdentifiersFromKey(key2);
+          if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
+            const overrideContents = this.contents[key3];
+            const identifiers = overrideIdentifiersFromKey(key3);
             const override = {
               identifiers,
               keys: Object.keys(overrideContents),
@@ -34628,19 +34628,19 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const raw = {};
           const restricted = [];
-          for (const key2 in properties2) {
-            if (OVERRIDE_PROPERTY_REGEX.test(key2) && filterOverriddenProperties) {
-              const result = this.filter(properties2[key2], configurationProperties, excludedConfigurationProperties, false, options2);
-              raw[key2] = result.raw;
+          for (const key3 in properties2) {
+            if (OVERRIDE_PROPERTY_REGEX.test(key3) && filterOverriddenProperties) {
+              const result = this.filter(properties2[key3], configurationProperties, excludedConfigurationProperties, false, options2);
+              raw[key3] = result.raw;
               hasExcludedProperties = hasExcludedProperties || result.hasExcludedProperties;
               restricted.push(...result.restricted);
             } else {
-              const propertySchema = configurationProperties[key2];
+              const propertySchema = configurationProperties[key3];
               if (propertySchema?.restricted) {
-                restricted.push(key2);
+                restricted.push(key3);
               }
-              if (this.shouldInclude(key2, propertySchema, excludedConfigurationProperties, options2)) {
-                raw[key2] = properties2[key2];
+              if (this.shouldInclude(key3, propertySchema, excludedConfigurationProperties, options2)) {
+                raw[key3] = properties2[key3];
               } else {
                 hasExcludedProperties = true;
               }
@@ -34648,11 +34648,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return { raw, restricted, hasExcludedProperties };
         }
-        shouldInclude(key2, propertySchema, excludedConfigurationProperties, options2) {
-          if (options2.exclude?.includes(key2)) {
+        shouldInclude(key3, propertySchema, excludedConfigurationProperties, options2) {
+          if (options2.exclude?.includes(key3)) {
             return false;
           }
-          if (options2.include?.includes(key2)) {
+          if (options2.include?.includes(key3)) {
             return true;
           }
           if (options2.skipRestricted && propertySchema?.restricted) {
@@ -34661,7 +34661,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (options2.skipUnregistered && !propertySchema) {
             return false;
           }
-          const schema = propertySchema ?? excludedConfigurationProperties[key2];
+          const schema = propertySchema ?? excludedConfigurationProperties[key3];
           const scope = schema ? typeof schema.scope !== "undefined" ? schema.scope : 4 : void 0;
           if (scope === void 0 || options2.scopes === void 0) {
             return true;
@@ -34670,15 +34670,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
         toOverrides(raw, conflictReporter) {
           const overrides = [];
-          for (const key2 of Object.keys(raw)) {
-            if (OVERRIDE_PROPERTY_REGEX.test(key2)) {
+          for (const key3 of Object.keys(raw)) {
+            if (OVERRIDE_PROPERTY_REGEX.test(key3)) {
               const overrideRaw = {};
-              const rawKey = raw[key2];
+              const rawKey = raw[key3];
               for (const keyInOverrideRaw in rawKey) {
                 overrideRaw[keyInOverrideRaw] = rawKey[keyInOverrideRaw];
               }
               overrides.push({
-                identifiers: overrideIdentifiersFromKey(key2),
+                identifiers: overrideIdentifiersFromKey(key3),
                 keys: Object.keys(overrideRaw),
                 contents: toValuesTree(overrideRaw, conflictReporter)
               });
@@ -34688,8 +34688,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ConfigurationInspectValue = class {
-        constructor(key2, overrides, _value, overrideIdentifiers, defaultConfiguration, policyConfiguration, applicationConfiguration, userConfiguration, localUserConfiguration, remoteUserConfiguration, workspaceConfiguration, folderConfigurationModel, memoryConfigurationModel) {
-          this.key = key2;
+        constructor(key3, overrides, _value, overrideIdentifiers, defaultConfiguration, policyConfiguration, applicationConfiguration, userConfiguration, localUserConfiguration, remoteUserConfiguration, workspaceConfiguration, folderConfigurationModel, memoryConfigurationModel) {
+          this.key = key3;
           this.overrides = overrides;
           this._value = _value;
           this.overrideIdentifiers = overrideIdentifiers;
@@ -34793,7 +34793,7 @@ https://creativecommons.org/licenses/by/4.0/
           const consolidateConfigurationModel = this.getConsolidatedConfigurationModel(section, overrides, workspace);
           return consolidateConfigurationModel.getValue(section);
         }
-        updateValue(key2, value, overrides = {}) {
+        updateValue(key3, value, overrides = {}) {
           let memoryConfiguration;
           if (overrides.resource) {
             memoryConfiguration = this._memoryConfigurationByResource.get(overrides.resource);
@@ -34805,27 +34805,27 @@ https://creativecommons.org/licenses/by/4.0/
             memoryConfiguration = this._memoryConfiguration;
           }
           if (value === void 0) {
-            memoryConfiguration.removeValue(key2);
+            memoryConfiguration.removeValue(key3);
           } else {
-            memoryConfiguration.setValue(key2, value);
+            memoryConfiguration.setValue(key3, value);
           }
           if (!overrides.resource) {
             this._workspaceConsolidatedConfiguration = null;
           }
         }
-        inspect(key2, overrides, workspace) {
-          const consolidateConfigurationModel = this.getConsolidatedConfigurationModel(key2, overrides, workspace);
+        inspect(key3, overrides, workspace) {
+          const consolidateConfigurationModel = this.getConsolidatedConfigurationModel(key3, overrides, workspace);
           const folderConfigurationModel = this.getFolderConfigurationModelForResource(overrides.resource, workspace);
           const memoryConfigurationModel = overrides.resource ? this._memoryConfigurationByResource.get(overrides.resource) || this._memoryConfiguration : this._memoryConfiguration;
           const overrideIdentifiers = /* @__PURE__ */ new Set();
           for (const override of consolidateConfigurationModel.overrides) {
             for (const overrideIdentifier of override.identifiers) {
-              if (consolidateConfigurationModel.getOverrideValue(key2, overrideIdentifier) !== void 0) {
+              if (consolidateConfigurationModel.getOverrideValue(key3, overrideIdentifier) !== void 0) {
                 overrideIdentifiers.add(overrideIdentifier);
               }
             }
           }
-          return new ConfigurationInspectValue(key2, overrides, consolidateConfigurationModel.getValue(key2), overrideIdentifiers.size ? [...overrideIdentifiers] : void 0, this._defaultConfiguration, this._policyConfiguration.isEmpty() ? void 0 : this._policyConfiguration, this.applicationConfiguration.isEmpty() ? void 0 : this.applicationConfiguration, this.userConfiguration, this.localUserConfiguration, this.remoteUserConfiguration, workspace ? this._workspaceConfiguration : void 0, folderConfigurationModel ? folderConfigurationModel : void 0, memoryConfigurationModel);
+          return new ConfigurationInspectValue(key3, overrides, consolidateConfigurationModel.getValue(key3), overrideIdentifiers.size ? [...overrideIdentifiers] : void 0, this._defaultConfiguration, this._policyConfiguration.isEmpty() ? void 0 : this._policyConfiguration, this.applicationConfiguration.isEmpty() ? void 0 : this.applicationConfiguration, this.userConfiguration, this.localUserConfiguration, this.remoteUserConfiguration, workspace ? this._workspaceConfiguration : void 0, folderConfigurationModel ? folderConfigurationModel : void 0, memoryConfigurationModel);
         }
         get applicationConfiguration() {
           return this._applicationConfiguration;
@@ -34854,8 +34854,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
           if (!this._policyConfiguration.isEmpty() && this._policyConfiguration.getValue(section) !== void 0) {
             configurationModel = configurationModel.merge();
-            for (const key2 of this._policyConfiguration.keys) {
-              configurationModel.setValue(key2, this._policyConfiguration.getValue(key2));
+            for (const key3 of this._policyConfiguration.keys) {
+              configurationModel.setValue(key3, this._policyConfiguration.getValue(key3));
             }
           }
           return configurationModel;
@@ -34974,17 +34974,17 @@ https://creativecommons.org/licenses/by/4.0/
           this._markerCode2 = ".".charCodeAt(0);
           this.affectedKeys = /* @__PURE__ */ new Set();
           this._previousConfiguration = void 0;
-          for (const key2 of change.keys) {
-            this.affectedKeys.add(key2);
+          for (const key3 of change.keys) {
+            this.affectedKeys.add(key3);
           }
           for (const [, keys] of change.overrides) {
-            for (const key2 of keys) {
-              this.affectedKeys.add(key2);
+            for (const key3 of keys) {
+              this.affectedKeys.add(key3);
             }
           }
           this._affectsConfigStr = this._marker;
-          for (const key2 of this.affectedKeys) {
-            this._affectsConfigStr += key2 + this._marker;
+          for (const key3 of this.affectedKeys) {
+            this._affectsConfigStr += key3 + this._marker;
           }
         }
         get previousConfiguration() {
@@ -35050,15 +35050,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
         updateConfigurationModel(properties2, configurationProperties) {
           const configurationDefaultsOverrides = this.getConfigurationDefaultOverrides();
-          for (const key2 of properties2) {
-            const defaultOverrideValue = configurationDefaultsOverrides[key2];
-            const propertySchema = configurationProperties[key2];
+          for (const key3 of properties2) {
+            const defaultOverrideValue = configurationDefaultsOverrides[key3];
+            const propertySchema = configurationProperties[key3];
             if (defaultOverrideValue !== void 0) {
-              this._configurationModel.setValue(key2, defaultOverrideValue);
+              this._configurationModel.setValue(key3, defaultOverrideValue);
             } else if (propertySchema) {
-              this._configurationModel.setValue(key2, this.getDefaultValue(key2, propertySchema));
+              this._configurationModel.setValue(key3, this.getDefaultValue(key3, propertySchema));
             } else {
-              this._configurationModel.removeValue(key2);
+              this._configurationModel.removeValue(key3);
             }
           }
         }
@@ -35080,8 +35080,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._value = "";
           this._pos = 0;
         }
-        reset(key2) {
-          this._value = key2;
+        reset(key3) {
+          this._value = key3;
           this._pos = 0;
           return this;
         }
@@ -35105,8 +35105,8 @@ https://creativecommons.org/licenses/by/4.0/
         constructor(_caseSensitive = true) {
           this._caseSensitive = _caseSensitive;
         }
-        reset(key2) {
-          this._value = key2;
+        reset(key3) {
+          this._value = key3;
           this._from = 0;
           this._to = 0;
           return this.next();
@@ -35143,12 +35143,12 @@ https://creativecommons.org/licenses/by/4.0/
           this._splitOnBackslash = _splitOnBackslash;
           this._caseSensitive = _caseSensitive;
         }
-        reset(key2) {
+        reset(key3) {
           this._from = 0;
           this._to = 0;
-          this._value = key2;
-          this._valueLen = key2.length;
-          for (let pos = key2.length - 1; pos >= 0; pos--, this._valueLen--) {
+          this._value = key3;
+          this._valueLen = key3.length;
+          for (let pos = key3.length - 1; pos >= 0; pos--, this._valueLen--) {
             const ch = this._value.charCodeAt(pos);
             if (!(ch === 47 || this._splitOnBackslash && ch === 92)) {
               break;
@@ -35190,8 +35190,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._states = [];
           this._stateIdx = 0;
         }
-        reset(key2) {
-          this._value = key2;
+        reset(key3) {
+          this._value = key3;
           this._states = [];
           if (this._value.scheme) {
             this._states.push(
@@ -35206,8 +35206,8 @@ https://creativecommons.org/licenses/by/4.0/
             );
           }
           if (this._value.path) {
-            this._pathIterator = new PathIterator(false, !this._ignorePathCasing(key2));
-            this._pathIterator.reset(key2.path);
+            this._pathIterator = new PathIterator(false, !this._ignorePathCasing(key3));
+            this._pathIterator.reset(key3.path);
             if (this._pathIterator.value()) {
               this._states.push(
                 3
@@ -35215,7 +35215,7 @@ https://creativecommons.org/licenses/by/4.0/
               );
             }
           }
-          if (!this._ignoreQueryAndFragment(key2)) {
+          if (!this._ignoreQueryAndFragment(key3)) {
             if (this._value.query) {
               this._states.push(
                 4
@@ -35337,8 +35337,8 @@ https://creativecommons.org/licenses/by/4.0/
         clear() {
           this._root = void 0;
         }
-        set(key2, element) {
-          const iter = this._iter.reset(key2);
+        set(key3, element) {
+          const iter = this._iter.reset(key3);
           let node;
           if (!this._root) {
             this._root = new TernarySearchTreeNode();
@@ -35376,7 +35376,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const oldElement = Undef.unwrap(node.value);
           node.value = Undef.wrap(element);
-          node.key = key2;
+          node.key = key3;
           for (let i = stack.length - 1; i >= 0; i--) {
             const node2 = stack[i][1];
             node2.updateHeight();
@@ -35416,11 +35416,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return oldElement;
         }
-        get(key2) {
-          return Undef.unwrap(this._getNode(key2)?.value);
+        get(key3) {
+          return Undef.unwrap(this._getNode(key3)?.value);
         }
-        _getNode(key2) {
-          const iter = this._iter.reset(key2);
+        _getNode(key3) {
+          const iter = this._iter.reset(key3);
           let node = this._root;
           while (node) {
             const val = iter.cmp(node.segment);
@@ -35437,18 +35437,18 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return node;
         }
-        has(key2) {
-          const node = this._getNode(key2);
+        has(key3) {
+          const node = this._getNode(key3);
           return !(node?.value === void 0 && node?.mid === void 0);
         }
-        delete(key2) {
-          return this._delete(key2, false);
+        delete(key3) {
+          return this._delete(key3, false);
         }
-        deleteSuperstr(key2) {
-          return this._delete(key2, true);
+        deleteSuperstr(key3) {
+          return this._delete(key3, true);
         }
-        _delete(key2, superStr) {
-          const iter = this._iter.reset(key2);
+        _delete(key3, superStr) {
+          const iter = this._iter.reset(key3);
           const stack = [];
           let node = this._root;
           while (node) {
@@ -35587,8 +35587,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return void 0;
         }
-        findSubstr(key2) {
-          const iter = this._iter.reset(key2);
+        findSubstr(key3) {
+          const iter = this._iter.reset(key3);
           let node = this._root;
           let candidate = void 0;
           while (node) {
@@ -35607,11 +35607,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return node && Undef.unwrap(node.value) || candidate;
         }
-        findSuperstr(key2) {
-          return this._findSuperstrOrElement(key2, false);
+        findSuperstr(key3) {
+          return this._findSuperstrOrElement(key3, false);
         }
-        _findSuperstrOrElement(key2, allowValue) {
-          const iter = this._iter.reset(key2);
+        _findSuperstrOrElement(key3, allowValue) {
+          const iter = this._iter.reset(key3);
           let node = this._root;
           while (node) {
             const val = iter.cmp(node.segment);
@@ -35637,8 +35637,8 @@ https://creativecommons.org/licenses/by/4.0/
           return void 0;
         }
         forEach(callback) {
-          for (const [key2, value] of this) {
-            callback(value, key2);
+          for (const [key3, value] of this) {
+            callback(value, key3);
           }
         }
         *[Symbol.iterator]() {
@@ -35739,15 +35739,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_contextkeys();
       init_window();
       init_dom();
-      __decorate18 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate18 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param17 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       KEYBINDING_CONTEXT_ATTR = "data-keybinding-context";
@@ -35761,24 +35761,24 @@ https://creativecommons.org/licenses/by/4.0/
         get value() {
           return { ...this._value };
         }
-        setValue(key2, value) {
-          if (!equals4(this._value[key2], value)) {
-            this._value[key2] = value;
+        setValue(key3, value) {
+          if (!equals4(this._value[key3], value)) {
+            this._value[key3] = value;
             return true;
           }
           return false;
         }
-        removeValue(key2) {
-          if (key2 in this._value) {
-            delete this._value[key2];
+        removeValue(key3) {
+          if (key3 in this._value) {
+            delete this._value[key3];
             return true;
           }
           return false;
         }
-        getValue(key2) {
-          const ret = this._value[key2];
+        getValue(key3) {
+          const ret = this._value[key3];
           if (typeof ret === "undefined" && this._parent) {
-            return this._parent.getValue(key2);
+            return this._parent.getValue(key3);
           }
           return ret;
         }
@@ -35790,13 +35790,13 @@ https://creativecommons.org/licenses/by/4.0/
         constructor() {
           super(-1, null);
         }
-        setValue(key2, value) {
+        setValue(key3, value) {
           return false;
         }
-        removeValue(key2) {
+        removeValue(key3) {
           return false;
         }
-        getValue(key2) {
+        getValue(key3) {
           return void 0;
         }
       };
@@ -35819,7 +35819,7 @@ https://creativecommons.org/licenses/by/4.0/
                 const contextKey = "config.".concat(configKey);
                 const cachedItems = this._values.findSuperstr(contextKey);
                 if (cachedItems !== void 0) {
-                  changedKeys.push(...Iterable.map(cachedItems, ([key2]) => key2));
+                  changedKeys.push(...Iterable.map(cachedItems, ([key3]) => key3));
                   this._values.deleteSuperstr(contextKey);
                 }
                 if (this._values.has(contextKey)) {
@@ -35834,14 +35834,14 @@ https://creativecommons.org/licenses/by/4.0/
         dispose() {
           this._listener.dispose();
         }
-        getValue(key2) {
-          if (key2.indexOf(_ConfigAwareContextValuesContainer._keyPrefix) !== 0) {
-            return super.getValue(key2);
+        getValue(key3) {
+          if (key3.indexOf(_ConfigAwareContextValuesContainer._keyPrefix) !== 0) {
+            return super.getValue(key3);
           }
-          if (this._values.has(key2)) {
-            return this._values.get(key2);
+          if (this._values.has(key3)) {
+            return this._values.get(key3);
           }
-          const configKey = key2.substr(_ConfigAwareContextValuesContainer._keyPrefix.length);
+          const configKey = key3.substr(_ConfigAwareContextValuesContainer._keyPrefix.length);
           const configValue = this._configurationService.getValue(configKey);
           let value = void 0;
           switch (typeof configValue) {
@@ -35857,20 +35857,20 @@ https://creativecommons.org/licenses/by/4.0/
                 value = configValue;
               }
           }
-          this._values.set(key2, value);
+          this._values.set(key3, value);
           return value;
         }
-        setValue(key2, value) {
-          return super.setValue(key2, value);
+        setValue(key3, value) {
+          return super.setValue(key3, value);
         }
-        removeValue(key2) {
-          return super.removeValue(key2);
+        removeValue(key3) {
+          return super.removeValue(key3);
         }
       };
       ContextKey = class {
-        constructor(service, key2, defaultValue) {
+        constructor(service, key3, defaultValue) {
           this._service = service;
-          this._key = key2;
+          this._key = key3;
           this._defaultValue = defaultValue;
           this.reset();
         }
@@ -35889,8 +35889,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       SimpleContextKeyChangeEvent = class {
-        constructor(key2) {
-          this.key = key2;
+        constructor(key3) {
+          this.key = key3;
         }
         affectsSome(keys) {
           return keys.has(this.key);
@@ -35904,15 +35904,15 @@ https://creativecommons.org/licenses/by/4.0/
           this.keys = keys;
         }
         affectsSome(keys) {
-          for (const key2 of this.keys) {
-            if (keys.has(key2)) {
+          for (const key3 of this.keys) {
+            if (keys.has(key3)) {
               return true;
             }
           }
           return false;
         }
         allKeysContainedIn(keys) {
-          return this.keys.every((key2) => keys.has(key2));
+          return this.keys.every((key3) => keys.has(key3));
         }
       };
       CompositeContextKeyChangeEvent = class {
@@ -35941,11 +35941,11 @@ https://creativecommons.org/licenses/by/4.0/
           this._isDisposed = false;
           this._myContextId = myContextId;
         }
-        createKey(key2, defaultValue) {
+        createKey(key3, defaultValue) {
           if (this._isDisposed) {
             throw new Error("AbstractContextKeyService has been disposed");
           }
-          return new ContextKey(this, key2, defaultValue);
+          return new ContextKey(this, key3, defaultValue);
         }
         bufferChangeEvents(callback) {
           this._onDidChangeContext.pause();
@@ -35969,13 +35969,13 @@ https://creativecommons.org/licenses/by/4.0/
           const result = rules ? rules.evaluate(context) : true;
           return result;
         }
-        getContextKeyValue(key2) {
+        getContextKeyValue(key3) {
           if (this._isDisposed) {
             return void 0;
           }
-          return this.getContextValuesContainer(this._myContextId).getValue(key2);
+          return this.getContextValuesContainer(this._myContextId).getValue(key3);
         }
-        setContext(key2, value) {
+        setContext(key3, value) {
           if (this._isDisposed) {
             return;
           }
@@ -35983,16 +35983,16 @@ https://creativecommons.org/licenses/by/4.0/
           if (!myContext) {
             return;
           }
-          if (myContext.setValue(key2, value)) {
-            this._onDidChangeContext.fire(new SimpleContextKeyChangeEvent(key2));
+          if (myContext.setValue(key3, value)) {
+            this._onDidChangeContext.fire(new SimpleContextKeyChangeEvent(key3));
           }
         }
-        removeContext(key2) {
+        removeContext(key3) {
           if (this._isDisposed) {
             return;
           }
-          if (this.getContextValuesContainer(this._myContextId).removeValue(key2)) {
-            this._onDidChangeContext.fire(new SimpleContextKeyChangeEvent(key2));
+          if (this.getContextValuesContainer(this._myContextId).removeValue(key3)) {
+            this._onDidChangeContext.fire(new SimpleContextKeyChangeEvent(key3));
           }
         }
         getContext(target) {
@@ -36743,11 +36743,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_errors();
       init_numbers();
       init_dnd3();
-      __decorate19 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate19 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       StaticDND = {
         CurrentDragAndDropData: void 0
@@ -38058,11 +38058,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableInternal();
       init_constObservable();
       init_autorun();
-      __decorate20 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate20 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       TraitRenderer = class {
         constructor(trait) {
@@ -41046,8 +41046,8 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/base/common/keybindingLabels.js
-  function _simpleAsString(modifiers, key2, labels) {
-    if (key2 === null) {
+  function _simpleAsString(modifiers, key3, labels) {
+    if (key3 === null) {
       return "";
     }
     const result = [];
@@ -41063,8 +41063,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (modifiers.metaKey) {
       result.push(labels.metaKey);
     }
-    if (key2 !== "") {
-      result.push(key2);
+    if (key3 !== "") {
+      result.push(key3);
     }
     return result.join(labels.separator);
   }
@@ -41189,9 +41189,9 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/platform/theme/browser/defaultStyles.js
   function overrideStyles(override, styles) {
     const result = { ...styles };
-    for (const key2 in override) {
-      const val = override[key2];
-      result[key2] = val !== void 0 ? asCssVariable(val) : void 0;
+    for (const key3 in override) {
+      const val = override[key3];
+      result[key3] = val !== void 0 ? asCssVariable(val) : void 0;
     }
     return result;
   }
@@ -41944,15 +41944,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_window2();
       init_actions2();
       init_menuEntryActionViewItem();
-      __decorate21 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate21 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param18 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MenuEntryActionViewItem = class MenuEntryActionViewItem2 extends ActionViewItem {
@@ -42885,8 +42885,8 @@ https://creativecommons.org/licenses/by/4.0/
           }));
           if (options2.enableMnemonics) {
             this._register(addDisposableListener(menuElement, EventType.KEY_DOWN, (e) => {
-              const key2 = e.key.toLocaleLowerCase();
-              const actions2 = this.mnemonics.get(key2);
+              const key3 = e.key.toLocaleLowerCase();
+              const actions2 = this.mnemonics.get(key3);
               if (actions2 !== void 0) {
                 EventHelper.stop(e, true);
                 if (actions2.length === 1) {
@@ -42901,7 +42901,7 @@ https://creativecommons.org/licenses/by/4.0/
                     this.focusItemByElement(action.container);
                     actions2.push(action);
                   }
-                  this.mnemonics.set(key2, actions2);
+                  this.mnemonics.set(key3, actions2);
                 }
               }
             }));
@@ -43668,15 +43668,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_telemetry();
       init_contextMenuHandler();
       init_contextView();
-      __decorate22 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate22 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param19 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ContextMenuService = class ContextMenuService2 extends Disposable {
@@ -43763,15 +43763,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_layoutService();
       init_dom();
-      __decorate23 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate23 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param20 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ContextViewHandler = class ContextViewHandler2 extends Disposable {
@@ -43862,8 +43862,8 @@ https://creativecommons.org/licenses/by/4.0/
   var init_graph = __esm({
     "node_modules/monaco-editor/esm/vs/platform/instantiation/common/graph.js"() {
       Node3 = class {
-        constructor(key2, data) {
-          this.key = key2;
+        constructor(key3, data) {
+          this.key = key3;
           this.data = data;
           this.incoming = /* @__PURE__ */ new Map();
           this.outgoing = /* @__PURE__ */ new Map();
@@ -43890,19 +43890,19 @@ https://creativecommons.org/licenses/by/4.0/
           toNode.incoming.set(fromNode.key, fromNode);
         }
         removeNode(data) {
-          const key2 = this._hashFn(data);
-          this._nodes.delete(key2);
+          const key3 = this._hashFn(data);
+          this._nodes.delete(key3);
           for (const node of this._nodes.values()) {
-            node.outgoing.delete(key2);
-            node.incoming.delete(key2);
+            node.outgoing.delete(key3);
+            node.incoming.delete(key3);
           }
         }
         lookupOrInsertNode(data) {
-          const key2 = this._hashFn(data);
-          let node = this._nodes.get(key2);
+          const key3 = this._hashFn(data);
+          let node = this._nodes.get(key3);
           if (!node) {
-            node = new Node3(key2, data);
-            this._nodes.set(key2, node);
+            node = new Node3(key3, data);
+            this._nodes.set(key3, node);
           }
           return node;
         }
@@ -43911,8 +43911,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
         toString() {
           const data = [];
-          for (const [key2, value] of this._nodes) {
-            data.push("".concat(key2, "\n	(-> incoming)[").concat([...value.incoming.keys()].join(", "), "]\n	(outgoing ->)[").concat([...value.outgoing.keys()].join(","), "]\n"));
+          for (const [key3, value] of this._nodes) {
+            data.push("".concat(key3, "\n	(-> incoming)[").concat([...value.incoming.keys()].join(", "), "]\n	(outgoing ->)[").concat([...value.outgoing.keys()].join(","), "]\n"));
           }
           return data.join("\n");
         }
@@ -44200,8 +44200,8 @@ https://creativecommons.org/licenses/by/4.0/
             const earlyListeners = /* @__PURE__ */ new Map();
             const idle = new GlobalIdleValue(() => {
               const result = child._createInstance(ctor, args, _trace);
-              for (const [key2, values] of earlyListeners) {
-                const candidate = result[key2];
+              for (const [key3, values] of earlyListeners) {
+                const candidate = result[key3];
                 if (typeof candidate === "function") {
                   for (const value of values) {
                     value.disposable = candidate.apply(result, value.listener);
@@ -44213,17 +44213,17 @@ https://creativecommons.org/licenses/by/4.0/
               return result;
             });
             return new Proxy(/* @__PURE__ */ Object.create(null), {
-              get(target, key2) {
+              get(target, key3) {
                 if (!idle.isInitialized) {
-                  if (typeof key2 === "string" && (key2.startsWith("onDid") || key2.startsWith("onWill"))) {
-                    let list3 = earlyListeners.get(key2);
+                  if (typeof key3 === "string" && (key3.startsWith("onDid") || key3.startsWith("onWill"))) {
+                    let list3 = earlyListeners.get(key3);
                     if (!list3) {
                       list3 = new LinkedList();
-                      earlyListeners.set(key2, list3);
+                      earlyListeners.set(key3, list3);
                     }
                     const event = (callback, thisArg, disposables) => {
                       if (idle.isInitialized) {
-                        return idle.value[key2](callback, thisArg, disposables);
+                        return idle.value[key3](callback, thisArg, disposables);
                       } else {
                         const entry = { listener: [callback, thisArg, disposables], disposable: void 0 };
                         const rm = list3.push(entry);
@@ -44237,16 +44237,16 @@ https://creativecommons.org/licenses/by/4.0/
                     return event;
                   }
                 }
-                if (key2 in target) {
-                  return target[key2];
+                if (key3 in target) {
+                  return target[key3];
                 }
                 const obj = idle.value;
-                let prop = obj[key2];
+                let prop = obj[key3];
                 if (typeof prop !== "function") {
                   return prop;
                 }
                 prop = prop.bind(obj);
-                target[key2] = prop;
+                target[key3] = prop;
                 return prop;
               },
               set(_target, p, value) {
@@ -45412,11 +45412,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_platform();
       init_sash();
-      __decorate24 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate24 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       DEBUG = false;
       (function(OrthogonalEdge2) {
@@ -48409,11 +48409,11 @@ https://creativecommons.org/licenses/by/4.0/
           this.fn = fn2;
           this._map = /* @__PURE__ */ new WeakMap();
         }
-        map(key2) {
-          let result = this._map.get(key2);
+        map(key3) {
+          let result = this._map.get(key3);
           if (!result) {
-            result = this.fn(key2);
-            this._map.set(key2, result);
+            result = this.fn(key3);
+            this._map.set(key3, result);
           }
           return result;
         }
@@ -52394,11 +52394,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_objectTreeModel();
       init_decorators();
       init_iterator();
-      __decorate25 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate25 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       ObjectTree = class extends AbstractTree {
         get onDidChangeCollapseState() {
@@ -53727,15 +53727,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_keybinding();
       init_platform2();
       init_defaultStyles();
-      __decorate26 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate26 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param21 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       IListService = createDecorator("listService");
@@ -54786,12 +54786,12 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return removedA && removedB;
         }
-        values(key2) {
-          if (typeof key2 === "string") {
-            return this._byOwner.get(key2)?.values() ?? Iterable.empty();
+        values(key3) {
+          if (typeof key3 === "string") {
+            return this._byOwner.get(key3)?.values() ?? Iterable.empty();
           }
-          if (URI.isUri(key2)) {
-            return this._byResource.get(key2)?.values() ?? Iterable.empty();
+          if (URI.isUri(key3)) {
+            return this._byResource.get(key3)?.values() ?? Iterable.empty();
           }
           return Iterable.map(Iterable.concat(...this._byOwner.values()), (map) => map[1]);
         }
@@ -55283,15 +55283,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_commands();
       init_editor();
       init_opener();
-      __decorate27 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate27 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param22 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       CommandOpener = class CommandOpener2 {
@@ -55814,11 +55814,11 @@ https://creativecommons.org/licenses/by/4.0/
       return new ApplyUpdateResult(update2, !arrayEquals2);
     }
     let didChange = false;
-    for (const key2 in update2) {
-      if (update2.hasOwnProperty(key2)) {
-        const result = applyUpdate(value[key2], update2[key2]);
+    for (const key3 in update2) {
+      if (update2.hasOwnProperty(key3)) {
+        const result = applyUpdate(value[key3], update2[key3]);
         if (result.didChange) {
-          value[key2] = result.newValue;
+          value[key3] = result.newValue;
           didChange = true;
         }
       }
@@ -57914,9 +57914,9 @@ https://creativecommons.org/licenses/by/4.0/
             return defaultValue;
           }
           const result = {};
-          for (const [key2, value] of Object.entries(map)) {
+          for (const [key3, value] of Object.entries(map)) {
             if (value === true) {
-              result[key2] = true;
+              result[key3] = true;
             }
           }
           return result;
@@ -59196,13 +59196,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return cachedEditorConfigurationKeys;
   }
-  function isEditorConfigurationKey(key2) {
+  function isEditorConfigurationKey(key3) {
     const editorConfigurationKeys = getEditorConfigurationKeys();
-    return editorConfigurationKeys["editor.".concat(key2)] || false;
+    return editorConfigurationKeys["editor.".concat(key3)] || false;
   }
-  function isDiffEditorConfigurationKey(key2) {
+  function isDiffEditorConfigurationKey(key3) {
     const editorConfigurationKeys = getEditorConfigurationKeys();
-    return editorConfigurationKeys["diffEditor.".concat(key2)] || false;
+    return editorConfigurationKeys["diffEditor.".concat(key3)] || false;
   }
   var editorConfigurationBaseNode, editorConfiguration, cachedEditorConfigurationKeys, configurationRegistry3;
   var init_editorConfigurationSchema = __esm({
@@ -59520,9 +59520,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (isConfigurationPropertySchema(schema)) {
             editorConfiguration.properties["editor.".concat(editorOption.name)] = schema;
           } else {
-            for (const key2 in schema) {
-              if (Object.hasOwnProperty.call(schema, key2)) {
-                editorConfiguration.properties[key2] = schema[key2];
+            for (const key3 in schema) {
+              if (Object.hasOwnProperty.call(schema, key3)) {
+                editorConfiguration.properties[key3] = schema[key3];
               }
             }
           }
@@ -61149,8 +61149,8 @@ https://creativecommons.org/licenses/by/4.0/
           return this._map.size;
         }
         add(value) {
-          const key2 = this.toKey(value);
-          this._map.set(key2, value);
+          const key3 = this.toKey(value);
+          this._map.set(key3, value);
           return this;
         }
         delete(value) {
@@ -61212,15 +61212,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_map();
       init_collections();
       init_iterator();
-      __decorate28 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate28 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param23 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MarkerDecorationsService = class MarkerDecorationsService2 extends Disposable {
@@ -62757,14 +62757,14 @@ https://creativecommons.org/licenses/by/4.0/
         */
         toKey(level, filter = {}) {
           const metadata = this.metadata;
-          const keys = Object.entries(metadata).filter(([key2, value]) => {
-            const filterVal = filter[key2];
+          const keys = Object.entries(metadata).filter(([key3, value]) => {
+            const filterVal = filter[key3];
             if (filterVal !== void 0) {
               return filterVal;
             }
-            const prefixCount = (key2.match(/\$/g) || []).length;
+            const prefixCount = (key3.match(/\$/g) || []).length;
             return prefixCount <= level && value !== void 0 && value !== null && value !== "";
-          }).map(([key2, value]) => "".concat(key2, ":").concat(value));
+          }).map(([key3, value]) => "".concat(key3, ":").concat(value));
           return keys.join("-");
         }
       };
@@ -63087,8 +63087,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._editStackElementsArr = editStackElements.slice(0);
           this._editStackElementsMap = /* @__PURE__ */ new Map();
           for (const editStackElement of this._editStackElementsArr) {
-            const key2 = uriGetComparisonKey(editStackElement.resource);
-            this._editStackElementsMap.set(key2, editStackElement);
+            const key3 = uriGetComparisonKey(editStackElement.resource);
+            this._editStackElementsMap.set(key3, editStackElement);
           }
           this._delegate = null;
         }
@@ -63098,29 +63098,29 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         matchesResource(resource) {
-          const key2 = uriGetComparisonKey(resource);
-          return this._editStackElementsMap.has(key2);
+          const key3 = uriGetComparisonKey(resource);
+          return this._editStackElementsMap.has(key3);
         }
         setModel(model) {
-          const key2 = uriGetComparisonKey(URI.isUri(model) ? model : model.uri);
-          if (this._editStackElementsMap.has(key2)) {
-            this._editStackElementsMap.get(key2).setModel(model);
+          const key3 = uriGetComparisonKey(URI.isUri(model) ? model : model.uri);
+          if (this._editStackElementsMap.has(key3)) {
+            this._editStackElementsMap.get(key3).setModel(model);
           }
         }
         canAppend(model) {
           if (!this._isOpen) {
             return false;
           }
-          const key2 = uriGetComparisonKey(model.uri);
-          if (this._editStackElementsMap.has(key2)) {
-            const editStackElement = this._editStackElementsMap.get(key2);
+          const key3 = uriGetComparisonKey(model.uri);
+          if (this._editStackElementsMap.has(key3)) {
+            const editStackElement = this._editStackElementsMap.get(key3);
             return editStackElement.canAppend(model);
           }
           return false;
         }
         append(model, textChanges, afterEOL, afterVersionId, afterCursorState) {
-          const key2 = uriGetComparisonKey(model.uri);
-          const editStackElement = this._editStackElementsMap.get(key2);
+          const key3 = uriGetComparisonKey(model.uri);
+          const editStackElement = this._editStackElementsMap.get(key3);
           editStackElement.append(model, textChanges, afterEOL, afterVersionId, afterCursorState);
         }
         close() {
@@ -63140,9 +63140,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         heapSize(resource) {
-          const key2 = uriGetComparisonKey(resource);
-          if (this._editStackElementsMap.has(key2)) {
-            const editStackElement = this._editStackElementsMap.get(key2);
+          const key3 = uriGetComparisonKey(resource);
+          if (this._editStackElementsMap.has(key3)) {
+            const editStackElement = this._editStackElementsMap.get(key3);
             return editStackElement.heapSize();
           }
           return 0;
@@ -63350,11 +63350,11 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/common/languages/languageConfiguration.js
-  function appendEntry(target, key2, value) {
-    if (target.has(key2)) {
-      target.get(key2).push(value);
+  function appendEntry(target, key3, value) {
+    if (target.has(key3)) {
+      target.get(key3).push(value);
     } else {
-      target.set(key2, [value]);
+      target.set(key3, [value]);
     }
   }
   var IndentAction, StandardAutoClosingPairConditional, AutoClosingPairs;
@@ -64271,15 +64271,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_extensions();
       init_modesRegistry();
       init_languageBracketsConfiguration();
-      __decorate29 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate29 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param24 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       LanguageConfigurationServiceChangeEvent = class {
@@ -65426,10 +65426,10 @@ https://creativecommons.org/licenses/by/4.0/
           this.additionalItems = additionalItems;
         }
         add(value, keyProvider) {
-          const key2 = keyProvider.getKey(value);
-          let idx = key2 >> 5;
+          const key3 = keyProvider.getKey(value);
+          let idx = key3 >> 5;
           if (idx === 0) {
-            const newItem = 1 << key2 | this.items;
+            const newItem = 1 << key3 | this.items;
             if (newItem === this.items) {
               return this;
             }
@@ -65440,7 +65440,7 @@ https://creativecommons.org/licenses/by/4.0/
           while (newItems.length < idx) {
             newItems.push(0);
           }
-          newItems[idx] |= 1 << (key2 & 31);
+          newItems[idx] |= 1 << (key3 & 31);
           return _SmallImmutableSet.create(this.items, newItems);
         }
         merge(other) {
@@ -69788,11 +69788,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // node_modules/monaco-editor/esm/vs/editor/common/core/wordCharacterClassifier.js
   function getMapForWordSeparators(wordSeparators2, intlSegmenterLocales) {
-    const key2 = "".concat(wordSeparators2, "/").concat(intlSegmenterLocales.join(","));
-    let result = wordClassifierCache.get(key2);
+    const key3 = "".concat(wordSeparators2, "/").concat(intlSegmenterLocales.join(","));
+    let result = wordClassifierCache.get(key3);
     if (!result) {
       result = new WordCharacterClassifier(wordSeparators2, intlSegmenterLocales);
-      wordClassifierCache.set(key2, result);
+      wordClassifierCache.set(key3, result);
     }
     return result;
   }
@@ -73553,15 +73553,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_range2();
       init_transaction();
       init_observableValue();
-      __decorate30 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate30 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param25 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TreeSitterTree = class TreeSitterTree2 extends Disposable {
@@ -74870,19 +74870,19 @@ https://creativecommons.org/licenses/by/4.0/
         };
       },
       handleChange(ctx, changeSummary) {
-        for (const key2 in obs) {
-          if (ctx.didChange(obs[key2])) {
-            changeSummary.changes.push({ key: key2, change: ctx.change });
+        for (const key3 in obs) {
+          if (ctx.didChange(obs[key3])) {
+            changeSummary.changes.push({ key: key3, change: ctx.change });
           }
         }
         return true;
       },
       beforeUpdate(reader, changeSummary) {
-        for (const key2 in obs) {
-          if (key2 === "changes") {
+        for (const key3 in obs) {
+          if (key3 === "changes") {
             throw new BugIndicatingError('property name "changes" is reserved for change tracking');
           }
-          changeSummary[key2] = obs[key2].read(reader);
+          changeSummary[key3] = obs[key3].read(reader);
         }
       }
     };
@@ -74916,15 +74916,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_runOnChange();
       init_autorun();
       init_changeTracker();
-      __decorate31 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate31 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param26 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TreeSitterTokenizationImpl = class TreeSitterTokenizationImpl2 extends Disposable {
@@ -75627,15 +75627,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_promise();
       init_derived();
       init_autorun();
-      __decorate32 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate32 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param27 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TreeSitterSyntaxTokenBackend = class TreeSitterSyntaxTokenBackend2 extends AbstractSyntaxTokenBackend {
@@ -76546,15 +76546,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableInternal();
       init_observableValue();
       init_derived();
-      __decorate33 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate33 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param28 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TokenizationTextModelPart = TokenizationTextModelPart_1 = class TokenizationTextModelPart2 extends TextModelPart {
@@ -76924,15 +76924,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_tokenizationFontDecorationsProvider();
       init_decorationProvider();
       init_tokenizationTextModelPart();
-      __decorate34 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate34 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param29 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MODEL_ID = 0;
@@ -78918,15 +78918,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_editStack();
       init_textModel();
       init_textResourceConfiguration();
-      __decorate35 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate35 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param30 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ModelData = class {
@@ -79872,15 +79872,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_quickAccess();
       init_quickInput();
       init_platform2();
-      __decorate36 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate36 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param31 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       QuickAccessController = class QuickAccessController2 extends Disposable {
@@ -80069,11 +80069,11 @@ https://creativecommons.org/licenses/by/4.0/
   var init_linkedText = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/linkedText.js"() {
       init_decorators();
-      __decorate37 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate37 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       LinkedText = class {
         constructor(nodes) {
@@ -80096,14 +80096,14 @@ https://creativecommons.org/licenses/by/4.0/
       return void 0;
     }
     let iconClass;
-    const key2 = iconPath.dark.toString();
-    if (iconPathToClass[key2]) {
-      iconClass = iconPathToClass[key2];
+    const key3 = iconPath.dark.toString();
+    if (iconPathToClass[key3]) {
+      iconClass = iconPathToClass[key3];
     } else {
       iconClass = iconClassGenerator.nextId();
       createCSSRule(".".concat(iconClass, ", .hc-light .").concat(iconClass), "background-image: ".concat(asCSSUrl(iconPath.light || iconPath.dark)));
       createCSSRule(".vs-dark .".concat(iconClass, ", .hc-black .").concat(iconClass), "background-image: ".concat(asCSSUrl(iconPath.dark)));
-      iconPathToClass[key2] = iconClass;
+      iconPathToClass[key3] = iconClass;
     }
     return iconClass;
   }
@@ -80250,15 +80250,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_contextkey();
       init_observableInternal();
       init_observableValue();
-      __decorate38 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate38 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param32 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       inQuickInputContextKeyValue = "inQuickInput";
@@ -81382,8 +81382,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         getKeybindingLabel(action) {
-          const key2 = this.options.getKeyBinding?.(action);
-          return key2?.getLabel() ?? void 0;
+          const key3 = this.options.getKeyBinding?.(action);
+          return key3?.getLabel() ?? void 0;
         }
         getConfiguredActionMinWidth(action) {
           if (action?.id === ToggleMenuAction.ID) {
@@ -82776,15 +82776,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableValue();
       init_observableValueOpts();
       init_transaction();
-      __decorate39 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate39 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param33 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       $8 = $;
@@ -84213,15 +84213,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_strings();
       init_themeService();
       init_quickInputUtils();
-      __decorate40 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate40 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param34 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       $9 = $;
@@ -84531,15 +84531,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_quickInputTreeRenderer();
       init_quickInputTreeSorter();
       init_toggle2();
-      __decorate41 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate41 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param35 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       $10 = $;
@@ -85067,15 +85067,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_contextview2();
       init_observableValue();
       init_autorun();
-      __decorate42 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate42 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param36 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       $11 = $;
@@ -86074,15 +86074,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableInternal();
       init_observableValue();
       init_autorun();
-      __decorate43 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate43 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param37 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       QuickInputService = class QuickInputService2 extends Themable {
@@ -86162,19 +86162,19 @@ https://creativecommons.org/licenses/by/4.0/
           return controller;
         }
         setContextKey(id) {
-          let key2;
+          let key3;
           if (id) {
-            key2 = this.contexts.get(id);
-            if (!key2) {
-              key2 = new RawContextKey(id, false).bindTo(this.contextKeyService);
-              this.contexts.set(id, key2);
+            key3 = this.contexts.get(id);
+            if (!key3) {
+              key3 = new RawContextKey(id, false).bindTo(this.contextKeyService);
+              this.contexts.set(id, key3);
             }
           }
-          if (key2 && key2.get()) {
+          if (key3 && key3.get()) {
             return;
           }
           this.resetContextKeys();
-          key2?.set(true);
+          key3?.set(true);
         }
         resetContextKeys() {
           this.contexts.forEach((context) => {
@@ -86270,15 +86270,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_quickInputService();
       init_functional();
       init_configuration();
-      __decorate44 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate44 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param38 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       EditorScopedQuickInputService = class EditorScopedQuickInputService2 extends QuickInputService {
@@ -87355,7 +87355,7 @@ https://creativecommons.org/licenses/by/4.0/
           const reference = [];
           reference.push("| preview     | identifier                        | default codicon ID                | description");
           reference.push("| ----------- | --------------------------------- | --------------------------------- | --------------------------------- |");
-          const contributions = Object.keys(this.iconsById).map((key2) => this.iconsById[key2]);
+          const contributions = Object.keys(this.iconsById).map((key3) => this.iconsById[key3]);
           for (const i of contributions.filter((i2) => !!i2.description).sort(sorter2)) {
             reference.push('|<i class="'.concat(classNames(i), '"></i>|').concat(i.id, "|").concat(ThemeIcon.isThemeIcon(i.defaults) ? i.defaults.id : i.id, "|").concat(i.description || "", "|"));
           }
@@ -87864,12 +87864,12 @@ https://creativecommons.org/licenses/by/4.0/
       return;
     }
     const toUpdate = [];
-    Object.keys(source).forEach((key2) => {
-      if (isEditorConfigurationKey(key2)) {
-        toUpdate.push(["editor.".concat(key2), source[key2]]);
+    Object.keys(source).forEach((key3) => {
+      if (isEditorConfigurationKey(key3)) {
+        toUpdate.push(["editor.".concat(key3), source[key3]]);
       }
-      if (isDiffEditor && isDiffEditorConfigurationKey(key2)) {
-        toUpdate.push(["diffEditor.".concat(key2), source[key2]]);
+      if (isDiffEditor && isDiffEditorConfigurationKey(key3)) {
+        toUpdate.push(["diffEditor.".concat(key3), source[key3]]);
       }
     });
     if (toUpdate.length > 0) {
@@ -87973,15 +87973,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_standaloneWebWorkerService();
       init_standaloneThemeService();
       init_standaloneTreeSitterLibraryService();
-      __decorate45 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate45 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param39 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       SimpleModel = class {
@@ -88305,12 +88305,12 @@ https://creativecommons.org/licenses/by/4.0/
           const previous = { data: this._configuration.toData() };
           const changedKeys = [];
           for (const entry of values) {
-            const [key2, value] = entry;
-            if (this.getValue(key2) === value) {
+            const [key3, value] = entry;
+            if (this.getValue(key3) === value) {
               continue;
             }
-            this._configuration.updateValue(key2, value);
-            changedKeys.push(key2);
+            this._configuration.updateValue(key3, value);
+            changedKeys.push(key3);
           }
           if (changedKeys.length > 0) {
             const configurationChangeEvent = new ConfigurationChangeEvent({ keys: changedKeys, overrides: [] }, previous, this._configuration, void 0, this.logService);
@@ -88319,11 +88319,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return Promise.resolve();
         }
-        updateValue(key2, value, arg3, arg4) {
-          return this.updateValues([[key2, value]]);
+        updateValue(key3, value, arg3, arg4) {
+          return this.updateValues([[key3, value]]);
         }
-        inspect(key2, options2 = {}) {
-          return this._configuration.inspect(key2, options2, void 0);
+        inspect(key3, options2 = {}) {
+          return this._configuration.inspect(key3, options2, void 0);
         }
       };
       StandaloneConfigurationService = __decorate45([
@@ -91822,12 +91822,12 @@ https://creativecommons.org/licenses/by/4.0/
           this.chrKeys = /* @__PURE__ */ new Map();
         }
         static getKey(chr) {
-          let key2 = this.chrKeys.get(chr);
-          if (key2 === void 0) {
-            key2 = this.chrKeys.size;
-            this.chrKeys.set(chr, key2);
+          let key3 = this.chrKeys.get(chr);
+          if (key3 === void 0) {
+            key3 = this.chrKeys.size;
+            this.chrKeys.set(chr, key3);
           }
-          return key2;
+          return key3;
         }
         constructor(range2, lines, source) {
           this.range = range2;
@@ -91840,12 +91840,12 @@ https://creativecommons.org/licenses/by/4.0/
             for (let j3 = 0; j3 < line.length; j3++) {
               counter++;
               const chr = line[j3];
-              const key3 = _LineRangeFragment.getKey(chr);
-              this.histogram[key3] = (this.histogram[key3] || 0) + 1;
+              const key4 = _LineRangeFragment.getKey(chr);
+              this.histogram[key4] = (this.histogram[key4] || 0) + 1;
             }
             counter++;
-            const key2 = _LineRangeFragment.getKey("\n");
-            this.histogram[key2] = (this.histogram[key2] || 0) + 1;
+            const key3 = _LineRangeFragment.getKey("\n");
+            this.histogram[key3] = (this.histogram[key3] || 0) + 1;
           }
           this.totalCount = counter;
         }
@@ -92353,8 +92353,8 @@ https://creativecommons.org/licenses/by/4.0/
     const original3LineHashes = new SetMap();
     for (const change of changes) {
       for (let i = change.original.startLineNumber; i < change.original.endLineNumberExclusive - 2; i++) {
-        const key2 = "".concat(hashedOriginalLines[i - 1], ":").concat(hashedOriginalLines[i + 1 - 1], ":").concat(hashedOriginalLines[i + 2 - 1]);
-        original3LineHashes.add(key2, { range: new LineRange(i, i + 3) });
+        const key3 = "".concat(hashedOriginalLines[i - 1], ":").concat(hashedOriginalLines[i + 1 - 1], ":").concat(hashedOriginalLines[i + 2 - 1]);
+        original3LineHashes.add(key3, { range: new LineRange(i, i + 3) });
       }
     }
     const possibleMappings = [];
@@ -92362,10 +92362,10 @@ https://creativecommons.org/licenses/by/4.0/
     for (const change of changes) {
       let lastMappings = [];
       for (let i = change.modified.startLineNumber; i < change.modified.endLineNumberExclusive - 2; i++) {
-        const key2 = "".concat(hashedModifiedLines[i - 1], ":").concat(hashedModifiedLines[i + 1 - 1], ":").concat(hashedModifiedLines[i + 2 - 1]);
+        const key3 = "".concat(hashedModifiedLines[i - 1], ":").concat(hashedModifiedLines[i + 1 - 1], ":").concat(hashedModifiedLines[i + 2 - 1]);
         const currentModifiedRange = new LineRange(i, i + 3);
         const nextMappings = [];
-        original3LineHashes.forEach(key2, ({ range: range2 }) => {
+        original3LineHashes.forEach(key3, ({ range: range2 }) => {
           for (const lastMapping of lastMappings) {
             if (lastMapping.originalLineRange.endLineNumberExclusive + 1 === range2.endLineNumberExclusive && lastMapping.modifiedLineRange.endLineNumberExclusive + 1 === currentModifiedRange.endLineNumberExclusive) {
               lastMapping.originalLineRange = new LineRange(lastMapping.originalLineRange.startLineNumber, range2.endLineNumberExclusive);
@@ -93850,7 +93850,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         getModels() {
           const all = [];
-          Object.keys(this._models).forEach((key2) => all.push(this._models[key2]));
+          Object.keys(this._models).forEach((key3) => all.push(this._models[key3]));
           return all;
         }
         $acceptNewModel(data) {
@@ -94427,15 +94427,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_network();
       init_completionsEnablement();
       import_meta = {};
-      __decorate46 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate46 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param40 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       STOP_WORKER_DELTA_TIME_MS = 5 * 60 * 1e3;
@@ -96074,15 +96074,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_nullTokenize();
       init_monarchCommon();
       init_configuration();
-      __decorate47 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate47 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param41 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       CACHE_STACK_DEPTH = 5;
@@ -96893,15 +96893,15 @@ https://creativecommons.org/licenses/by/4.0/
   var init_markerDecorations2 = __esm({
     "node_modules/monaco-editor/esm/vs/editor/browser/services/markerDecorations.js"() {
       init_markerDecorations();
-      __decorate48 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate48 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param42 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MarkerDecorationsContribution = class MarkerDecorationsContribution2 {
@@ -97048,15 +97048,15 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/browser/config/migrateOptions.js
-  function registerEditorSettingMigration(key2, migrate) {
-    EditorSettingMigration.items.push(new EditorSettingMigration(key2, migrate));
+  function registerEditorSettingMigration(key3, migrate) {
+    EditorSettingMigration.items.push(new EditorSettingMigration(key3, migrate));
   }
-  function registerSimpleEditorSettingMigration(key2, values) {
-    registerEditorSettingMigration(key2, (value, read2, write) => {
+  function registerSimpleEditorSettingMigration(key3, values) {
+    registerEditorSettingMigration(key3, (value, read2, write) => {
       if (typeof value !== "undefined") {
         for (const [oldValue, newValue] of values) {
           if (value === oldValue) {
-            write(key2, newValue);
+            write(key3, newValue);
             return;
           }
         }
@@ -97073,36 +97073,36 @@ https://creativecommons.org/licenses/by/4.0/
         static {
           this.items = [];
         }
-        constructor(key2, migrate) {
-          this.key = key2;
+        constructor(key3, migrate) {
+          this.key = key3;
           this.migrate = migrate;
         }
         apply(options2) {
           const value = _EditorSettingMigration._read(options2, this.key);
-          const read2 = (key2) => _EditorSettingMigration._read(options2, key2);
-          const write = (key2, value2) => _EditorSettingMigration._write(options2, key2, value2);
+          const read2 = (key3) => _EditorSettingMigration._read(options2, key3);
+          const write = (key3, value2) => _EditorSettingMigration._write(options2, key3, value2);
           this.migrate(value, read2, write);
         }
-        static _read(source, key2) {
+        static _read(source, key3) {
           if (typeof source === "undefined" || source === null) {
             return void 0;
           }
-          const firstDotIndex = key2.indexOf(".");
+          const firstDotIndex = key3.indexOf(".");
           if (firstDotIndex >= 0) {
-            const firstSegment = key2.substring(0, firstDotIndex);
-            return this._read(source[firstSegment], key2.substring(firstDotIndex + 1));
+            const firstSegment = key3.substring(0, firstDotIndex);
+            return this._read(source[firstSegment], key3.substring(firstDotIndex + 1));
           }
-          return source[key2];
+          return source[key3];
         }
-        static _write(target, key2, value) {
-          const firstDotIndex = key2.indexOf(".");
+        static _write(target, key3, value) {
+          const firstDotIndex = key3.indexOf(".");
           if (firstDotIndex >= 0) {
-            const firstSegment = key2.substring(0, firstDotIndex);
+            const firstSegment = key3.substring(0, firstDotIndex);
             target[firstSegment] = target[firstSegment] || {};
-            this._write(target[firstSegment], key2.substring(firstDotIndex + 1), value);
+            this._write(target[firstSegment], key3.substring(firstDotIndex + 1), value);
             return;
           }
-          target[key2] = value;
+          target[key3] = value;
         }
       };
       registerSimpleEditorSettingMigration("wordWrap", [[true, "on"], [false, "off"]]);
@@ -97405,15 +97405,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_dom();
       init_pixelRatio();
       init_inputMode();
-      __decorate49 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate49 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param43 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       EditorConfiguration = class EditorConfiguration2 extends Disposable {
@@ -97614,8 +97614,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (Object.keys(a).length !== Object.keys(b2).length) {
             return false;
           }
-          for (const key2 in a) {
-            if (!_EditorOptionsUtil._deepEquals(a[key2], b2[key2])) {
+          for (const key3 in a) {
+            if (!_EditorOptionsUtil._deepEquals(a[key3], b2[key3])) {
               return false;
             }
           }
@@ -98014,12 +98014,12 @@ https://creativecommons.org/licenses/by/4.0/
           };
         }
         getOrCreateRule(properties2) {
-          const key2 = this.computeUniqueKey(properties2);
-          let existingRule = this._rules.get(key2);
+          const key3 = this.computeUniqueKey(properties2);
+          let existingRule = this._rules.get(key3);
           if (!existingRule) {
             const counter = this._counter++;
-            existingRule = new RefCountedCssRule(key2, "dyn-rule-".concat(this._instanceId, "-").concat(counter), isInShadowDOM(this._editor.getContainerDomNode()) ? this._editor.getContainerDomNode() : void 0, properties2);
-            this._rules.set(key2, existingRule);
+            existingRule = new RefCountedCssRule(key3, "dyn-rule-".concat(this._instanceId, "-").concat(counter), isInShadowDOM(this._editor.getContainerDomNode()) ? this._editor.getContainerDomNode() : void 0, properties2);
+            this._rules.set(key3, existingRule);
           }
           return existingRule;
         }
@@ -98035,8 +98035,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       RefCountedCssRule = class {
-        constructor(key2, className2, _containerElement, properties2) {
-          this.key = key2;
+        constructor(key3, className2, _containerElement, properties2) {
+          this.key = key3;
           this.className = className2;
           this.properties = properties2;
           this._referenceCount = 0;
@@ -101419,15 +101419,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_log();
       init_clipboardUtils();
       init_textAreaEditContextState();
-      __decorate50 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate50 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param44 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       (function(TextAreaSyntethicEvents2) {
@@ -104682,15 +104682,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_selection();
       init_enterAction();
       init_languageConfigurationRegistry();
-      __decorate51 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate51 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param45 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       repeatCache = /* @__PURE__ */ Object.create(null);
@@ -117312,11 +117312,11 @@ https://creativecommons.org/licenses/by/4.0/
       init_stringBuilder();
       init_encodedTokenAttributes();
       init_gpuUtils();
-      __decorate52 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate52 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       nextId = 0;
       GlyphRasterizer = class extends Disposable {
@@ -117540,15 +117540,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_dom();
       init_lifecycle();
       init_log();
-      __decorate53 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate53 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param46 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TaskQueue2 = class TaskQueue3 extends Disposable {
@@ -117757,11 +117757,11 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/browser/gpu/atlas/textureAtlasSlabAllocator.js
-  function addEntryToMapArray(map, key2, entry) {
-    let list3 = map.get(key2);
+  function addEntryToMapArray(map, key3, entry) {
+    let list3 = map.get(key3);
     if (!list3) {
       list3 = [];
-      map.set(key2, list3);
+      map.set(key3, list3);
     }
     list3.push(entry);
   }
@@ -118067,15 +118067,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_themeService();
       init_textureAtlasShelfAllocator();
       init_textureAtlasSlabAllocator();
-      __decorate54 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate54 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param47 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TextureAtlasPage = class TextureAtlasPage2 extends Disposable {
@@ -118178,15 +118178,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_glyphRasterizer();
       init_taskQueue();
       init_textureAtlasPage();
-      __decorate55 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate55 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param48 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TextureAtlas = class TextureAtlas2 extends Disposable {
@@ -118943,15 +118943,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_decorationStyleCache();
       init_observableValue();
       init_runOnChange();
-      __decorate56 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate56 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param49 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ViewGpuContext = class ViewGpuContext2 extends Disposable {
@@ -120043,15 +120043,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_glyphRasterizer();
       init_autorun();
       init_runOnChange();
-      __decorate57 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate57 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param50 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ViewLinesGpu = class ViewLinesGpu2 extends ViewPart {
@@ -120928,15 +120928,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_textAreaEditContextState();
       init_wordCharacterClassifier();
       init_textAreaEditContextRegistry();
-      __decorate58 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate58 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param51 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       VisibleTextAreaData = class {
@@ -121622,15 +121622,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_dom();
       init_lifecycle();
       init_log();
-      __decorate59 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate59 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param52 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       FocusTracker2 = class FocusTracker3 extends Disposable {
@@ -121705,15 +121705,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_ime();
       init_viewLine();
-      __decorate60 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate60 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param53 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ttPolicy3 = createTrustedTypesPolicy("richScreenReaderContent", { createHTML: (value) => value });
@@ -122052,15 +122052,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_lifecycle();
       init_ime();
       init_positionToOffsetImpl();
-      __decorate61 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate61 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param54 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       SimpleScreenReaderContent = class SimpleScreenReaderContent2 extends Disposable {
@@ -122247,15 +122247,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_screenReaderUtils();
       init_screenReaderContentRich();
       init_screenReaderContentSimple();
-      __decorate62 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate62 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param55 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       ScreenReaderSupport = class ScreenReaderSupport2 extends Disposable {
@@ -122494,15 +122494,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_log();
       init_performance();
       init_positionToOffsetImpl();
-      __decorate63 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate63 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param56 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       (function(CompositionClassName2) {
@@ -123222,15 +123222,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_gpuMark2();
       init_event();
       init_userInteractionService();
-      __decorate64 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate64 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param57 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       View = class View2 extends ViewEventHandler {
@@ -127297,19 +127297,19 @@ https://creativecommons.org/licenses/by/4.0/
         constructor() {
           this._map = /* @__PURE__ */ new Map();
         }
-        add(key2, value) {
-          const array = this._map.get(key2);
+        add(key3, value) {
+          const array = this._map.get(key3);
           if (!array) {
-            this._map.set(key2, [value]);
+            this._map.set(key3, [value]);
           } else {
             array.push(value);
           }
         }
-        get(key2) {
-          return this._map.get(key2);
+        get(key3) {
+          return this._map.get(key3);
         }
-        delete(key2) {
-          this._map.delete(key2);
+        delete(key3) {
+          this._map.delete(key3);
         }
         clear() {
           this._map.clear();
@@ -131329,15 +131329,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_textModelEditSource();
       init_types();
       init_userInteractionService();
-      __decorate65 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate65 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param58 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       CodeEditorWidget = class CodeEditorWidget2 extends Disposable {
@@ -131503,8 +131503,8 @@ https://creativecommons.org/licenses/by/4.0/
           }));
           this._contextKeyService = this._register(contextKeyService.createScoped(this._domElement));
           if (codeEditorWidgetOptions.contextKeyValues) {
-            for (const [key2, value] of Object.entries(codeEditorWidgetOptions.contextKeyValues)) {
-              this._contextKeyService.createKey(key2, value);
+            for (const [key3, value] of Object.entries(codeEditorWidgetOptions.contextKeyValues)) {
+              this._contextKeyService.createKey(key3, value);
             }
           }
           this._notificationService = notificationService;
@@ -132814,8 +132814,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return model;
         }
-        _removeDecorationType(key2) {
-          this._codeEditorService.removeDecorationType(key2);
+        _removeDecorationType(key3) {
+          this._codeEditorService.removeDecorationType(key3);
         }
         hasModel() {
           return this._modelData !== null;
@@ -133208,10 +133208,10 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/platform/observable/common/platformObservableUtils.js
-  function bindContextKey(key2, service, computeValue, debugLocation = DebugLocation.ofCaller()) {
-    const boundKey = key2.bindTo(service);
+  function bindContextKey(key3, service, computeValue, debugLocation = DebugLocation.ofCaller()) {
+    const boundKey = key3.bindTo(service);
     const store = new DisposableStore();
-    derivedOpts({ debugName: () => 'Set Context Key "'.concat(key2.key, '"') }, (reader) => {
+    derivedOpts({ debugName: () => 'Set Context Key "'.concat(key3.key, '"') }, (reader) => {
       const value = computeValue(reader);
       boundKey.set(value);
       return value;
@@ -133297,11 +133297,11 @@ https://creativecommons.org/licenses/by/4.0/
       const val1 = arr1[i];
       const val2 = arr2[j3];
       const key1 = keySelector(val1);
-      const key2 = keySelector(val2);
-      if (key1 < key2) {
+      const key22 = keySelector(val2);
+      if (key1 < key22) {
         result.push(val1);
         i++;
-      } else if (key1 > key2) {
+      } else if (key1 > key22) {
         result.push(val2);
         j3++;
       } else {
@@ -133395,15 +133395,15 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function applyStyle(domNode, style) {
     return autorun((reader) => {
-      for (let [key2, val] of Object.entries(style)) {
+      for (let [key3, val] of Object.entries(style)) {
         if (val && typeof val === "object" && "read" in val) {
           val = val.read(reader);
         }
         if (typeof val === "number") {
           val = "".concat(val, "px");
         }
-        key2 = key2.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
-        domNode.style[key2] = val;
+        key3 = key3.replace(/[A-Z]/g, (m) => "-" + m.toLowerCase());
+        domNode.style[key3] = val;
       }
     });
   }
@@ -133773,15 +133773,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_derived();
       init_observableValue();
       init_autorun();
-      __decorate66 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate66 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param59 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       accessibleDiffViewerInsertIcon = registerIcon("diff-review-insert", Codicon.add, localize(113, "Icon for 'Insert' in accessible diff viewer."));
@@ -134438,15 +134438,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_rangeMapping();
       init_editorWorker();
       init_telemetry();
-      __decorate67 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate67 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param60 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       IDiffProviderFactoryService = createDecorator("diffProviderFactoryService");
@@ -134723,15 +134723,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableSignalFromEvent();
       init_observableSignal();
       init_autorun();
-      __decorate68 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate68 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param61 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       DiffEditorViewModel = class DiffEditorViewModel2 extends Disposable {
@@ -135702,15 +135702,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableFromEvent();
       init_derived();
       init_autorun();
-      __decorate69 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate69 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param62 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       DiffEditorViewZones = class DiffEditorViewZones2 extends Disposable {
@@ -136995,15 +136995,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_derived();
       init_autorun();
       init_observableSignalFromEvent();
-      __decorate70 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate70 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param63 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       OverviewRulerFeature = class OverviewRulerFeature2 extends Disposable {
@@ -137152,15 +137152,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableFromEvent();
       init_derived();
       init_autorun();
-      __decorate71 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate71 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param64 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       DiffEditorEditors = class DiffEditorEditors2 extends Disposable {
@@ -137631,15 +137631,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableValue();
       init_observableFromEvent();
       init_derived();
-      __decorate72 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate72 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param65 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       DiffEditorOptions = class DiffEditorOptions2 {
@@ -137784,15 +137784,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_telemetry();
       init_actionViewItemService();
       init_instantiation();
-      __decorate73 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate73 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param66 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       WorkbenchToolBar = class WorkbenchToolBar2 extends ToolBar {
@@ -138209,15 +138209,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableFromEvent();
       init_observableValue();
       init_autorun();
-      __decorate74 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate74 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param67 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       emptyArr2 = [];
@@ -138453,15 +138453,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_derived();
       init_transaction();
       init_autorun();
-      __decorate75 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate75 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param68 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       HideUnchangedRegionsFeature = class HideUnchangedRegionsFeature2 extends Disposable {
@@ -139109,15 +139109,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_utils();
       init_transaction();
       init_observableFromEvent();
-      __decorate76 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate76 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param69 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       DiffEditorWidget = class DiffEditorWidget2 extends DelegatingEditor {
@@ -139650,15 +139650,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_domFontInfo();
       init_editorBrowser();
       init_renderedMarkdown();
-      __decorate77 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate77 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param70 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       EditorMarkdownCodeBlockRenderer = class EditorMarkdownCodeBlockRenderer2 {
@@ -139781,15 +139781,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_markdownRenderer2();
       init_editorMarkdownCodeBlockRenderer();
       init_userInteractionService();
-      __decorate78 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate78 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param71 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       LAST_GENERATED_COMMAND_ID = 0;
@@ -139819,8 +139819,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._standaloneKeybindingService.addDynamicKeybinding(commandId, keybinding, handler, whenExpression);
           return commandId;
         }
-        createContextKey(key2, defaultValue) {
-          return this._contextKeyService.createKey(key2, defaultValue);
+        createContextKey(key3, defaultValue) {
+          return this._contextKeyService.createKey(key3, defaultValue);
         }
         addAction(_descriptor) {
           if (typeof _descriptor.id !== "string" || typeof _descriptor.label !== "string" || typeof _descriptor.run !== "function") {
@@ -140004,8 +140004,8 @@ https://creativecommons.org/licenses/by/4.0/
         addCommand(keybinding, handler, context) {
           return this.getModifiedEditor().addCommand(keybinding, handler, context);
         }
-        createContextKey(key2, defaultValue) {
-          return this.getModifiedEditor().createContextKey(key2, defaultValue);
+        createContextKey(key3, defaultValue) {
+          return this.getModifiedEditor().createContextKey(key3, defaultValue);
         }
         addAction(descriptor) {
           return this.getModifiedEditor().addAction(descriptor);
@@ -140069,15 +140069,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableValue();
       init_derived();
       init_autorun();
-      __decorate79 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate79 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param72 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       TemplateData = class {
@@ -140301,8 +140301,8 @@ https://creativecommons.org/licenses/by/4.0/
             }
           });
           if (data.viewModel.documentDiffItem.contextKeys) {
-            for (const [key2, value2] of Object.entries(data.viewModel.documentDiffItem.contextKeys)) {
-              this._contextKeyService.createKey(key2, value2);
+            for (const [key3, value2] of Object.entries(data.viewModel.documentDiffItem.contextKeys)) {
+              this._contextKeyService.createKey(key3, value2);
             }
           }
         }
@@ -140436,15 +140436,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_transaction();
       init_autorun();
       init_observableValue();
-      __decorate80 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate80 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param73 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MultiDiffEditorWidgetImpl = class MultiDiffEditorWidgetImpl2 extends Disposable {
@@ -140534,8 +140534,8 @@ https://creativecommons.org/licenses/by/4.0/
           this._register(autorunWithStore((reader, store) => {
             const viewModel = this._viewModel.read(reader);
             if (viewModel && viewModel.contextKeys) {
-              for (const [key2, value] of Object.entries(viewModel.contextKeys)) {
-                const contextKey = this._contextKeyService.createKey(key2, void 0);
+              for (const [key3, value] of Object.entries(viewModel.contextKeys)) {
+                const contextKey = this._contextKeyService.createKey(key3, void 0);
                 contextKey.set(value);
                 store.add(toDisposable(() => contextKey.reset()));
               }
@@ -140833,15 +140833,15 @@ https://creativecommons.org/licenses/by/4.0/
       init_observableValue();
       init_derived();
       init_utils();
-      __decorate81 = function(decorators, target, key2, desc) {
-        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-        return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+      __decorate81 = function(decorators, target, key3, desc) {
+        var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+        if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+        else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+        return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
       };
       __param74 = function(paramIndex, decorator) {
-        return function(target, key2) {
-          decorator(target, key2, paramIndex);
+        return function(target, key3) {
+          decorator(target, key3, paramIndex);
         };
       };
       MultiDiffEditorWidget = class MultiDiffEditorWidget2 extends Disposable {
@@ -141637,14 +141637,14 @@ https://creativecommons.org/licenses/by/4.0/
       throw createError(lexer3, "a language definition must define the 'tokenizer' attribute as an object");
     }
     lexer3.tokenizer = [];
-    for (const key2 in json.tokenizer) {
-      if (json.tokenizer.hasOwnProperty(key2)) {
+    for (const key3 in json.tokenizer) {
+      if (json.tokenizer.hasOwnProperty(key3)) {
         if (!lexer3.start) {
-          lexer3.start = key2;
+          lexer3.start = key3;
         }
-        const rules = json.tokenizer[key2];
-        lexer3.tokenizer[key2] = new Array();
-        addRules("tokenizer." + key2, lexer3.tokenizer[key2], rules);
+        const rules = json.tokenizer[key3];
+        lexer3.tokenizer[key3] = new Array();
+        addRules("tokenizer." + key3, lexer3.tokenizer[key3], rules);
       }
     }
     lexer3.usesEmbedded = lexerMin.usesEmbedded;
@@ -142207,9 +142207,9 @@ https://creativecommons.org/licenses/by/4.0/
             let data = this._tokens.get(editor2);
             if (!data) {
               data = editor2.invokeWithinContext((accessor) => {
-                const key2 = ctxCancellableOperation.bindTo(accessor.get(IContextKeyService));
+                const key3 = ctxCancellableOperation.bindTo(accessor.get(IContextKeyService));
                 const tokens = new LinkedList();
-                return { key: key2, tokens };
+                return { key: key3, tokens };
               });
               this._tokens.set(editor2, data);
             }
@@ -160303,8 +160303,8 @@ https://creativecommons.org/licenses/by/4.0/
     const selected = language44 || language_candidates()[0] || "zh-cn";
     return /^zh(?:-|_|$)/iu.test(selected.trim()) ? "zh-cn" : "en";
   }
-  function git_graph_text(key2, values = {}, locale = resolve_git_graph_locale()) {
-    const template = dictionaries[locale]?.[key2] ?? dictionaries.en?.[key2] ?? String(key2);
+  function git_graph_text(key3, values = {}, locale = resolve_git_graph_locale()) {
+    const template = dictionaries[locale]?.[key3] ?? dictionaries.en?.[key3] ?? String(key3);
     return template.replace(/\{([a-z_]+)\}/giu, (match2, name) => Object.hasOwn(values, name) ? String(values[name]) : match2);
   }
   function git_graph_language_tag(locale = resolve_git_graph_locale()) {
@@ -160556,7 +160556,7 @@ https://creativecommons.org/licenses/by/4.0/
       const shortcut_width = Math.ceil(text_width(".git-menu-shortcut"));
       menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
       const row = menu.querySelector("button"), row_style = row && getComputedStyle(row), menu_style2 = getComputedStyle(menu);
-      const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key2) => sum + (parseFloat(style[key2]) || 0), 0);
+      const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key3) => sum + (parseFloat(style[key3]) || 0), 0);
       if (row_style) menu.style.width = Math.ceil(text_width(".git-menu-label") + shortcut_width + 32 + 3 * (parseFloat(row_style.columnGap) || 0) + horizontal(row_style) + horizontal(menu_style2)) + "px";
       const bounds = menu.getBoundingClientRect();
       if (!parent && options2.anchor?.isConnected) {
@@ -161422,10 +161422,10 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_markdown_color_theme() {
     let frame3 = 0, disposed = false;
     const owned2 = /* @__PURE__ */ new Map();
-    const release = (root, key2, entry) => {
-      if (root.style.getPropertyValue(key2) === entry.value) {
-        if (entry.previous) root.style.setProperty(key2, entry.previous, entry.priority);
-        else root.style.removeProperty(key2);
+    const release = (root, key3, entry) => {
+      if (root.style.getPropertyValue(key3) === entry.value) {
+        if (entry.previous) root.style.setProperty(key3, entry.previous, entry.priority);
+        else root.style.removeProperty(key3);
       }
     };
     const refresh = () => {
@@ -161442,9 +161442,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       for (const [root, entries3] of owned2) {
         const active2 = roots.get(root);
-        for (const [key2, entry] of entries3) if (!active2?.has(key2.slice(text_color_prefix.length))) {
-          release(root, key2, entry);
-          entries3.delete(key2);
+        for (const [key3, entry] of entries3) if (!active2?.has(key3.slice(text_color_prefix.length))) {
+          release(root, key3, entry);
+          entries3.delete(key3);
         }
         if (!entries3.size) owned2.delete(root);
       }
@@ -161456,13 +161456,13 @@ https://creativecommons.org/licenses/by/4.0/
           owned2.set(root, entries3);
         }
         for (const color of colors) {
-          const key2 = text_color_prefix + color, value = adaptive_text_color(color, background);
-          let entry = entries3.get(key2);
+          const key3 = text_color_prefix + color, value = adaptive_text_color(color, background);
+          let entry = entries3.get(key3);
           if (!entry) {
-            entry = { previous: root.style.getPropertyValue(key2), priority: root.style.getPropertyPriority(key2), value };
-            entries3.set(key2, entry);
+            entry = { previous: root.style.getPropertyValue(key3), priority: root.style.getPropertyPriority(key3), value };
+            entries3.set(key3, entry);
           }
-          if (root.style.getPropertyValue(key2) !== value) root.style.setProperty(key2, value);
+          if (root.style.getPropertyValue(key3) !== value) root.style.setProperty(key3, value);
           entry.value = value;
         }
       }
@@ -161489,7 +161489,7 @@ https://creativecommons.org/licenses/by/4.0/
       observer3.disconnect();
       release_theme2();
       cancelAnimationFrame(frame3);
-      for (const [root, entries3] of owned2) for (const [key2, entry] of entries3) release(root, key2, entry);
+      for (const [root, entries3] of owned2) for (const [key3, entry] of entries3) release(root, key3, entry);
       owned2.clear();
     } };
   }
@@ -161867,10 +161867,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (typeof path !== "string" || !path.startsWith("/") || path.includes("\0")) throw Error("\u8FDC\u7A0B\u8DEF\u5F84\u65E0\u6548");
       const normalized2 = this.path_api.posix.normalize(path), parts = normalized2.split("/").filter(Boolean);
       if (this.path_api.sep === "\\" && parts.some((part) => /[<>:"\\|?*\x00-\x1f]/u.test(part) || /[ .]$/u.test(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(part))) throw Error("\u6B64\u8FDC\u7A0B\u540D\u79F0\u65E0\u6CD5\u4EA4\u7ED9Windows\u539F\u751F\u7F16\u8F91\u5668\uFF0C\u672A\u6539\u5199\u6216\u5408\u5E76\u6587\u4EF6\u540D\u3002");
-      const local = this.path_api.join(this.cache_root, ...parts), key2 = this.path_api.sep === "\\" ? local.toLowerCase() : local;
-      const prior = this.names.get(key2);
+      const local = this.path_api.join(this.cache_root, ...parts), key3 = this.path_api.sep === "\\" ? local.toLowerCase() : local;
+      const prior = this.names.get(key3);
       if (prior && prior !== normalized2) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u5B58\u5728\u4EC5\u5927\u5C0F\u5199\u4E0D\u540C\u7684\u540D\u79F0\uFF0C\u5BBF\u4E3B\u7F13\u5B58\u4E0D\u80FD\u5408\u5E76\u8FD9\u4E24\u4E2A\u6587\u4EF6\u3002");
-      this.names.set(key2, normalized2);
+      this.names.set(key3, normalized2);
       return local;
     }
     call(operation, values) {
@@ -161955,21 +161955,21 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
   function workspace_resource_fs(native_fs) {
-    const route = (owner2, key2, promise) => {
-      const original = owner2[key2];
+    const route = (owner2, key3, promise) => {
+      const original = owner2[key3];
       return (...args) => {
         const provider = typeof args[0] === "string" ? remote_files_for(args[0]) : void 0;
         if (!provider) {
           assert_remote_owner(args[0]);
           return original.apply(owner2, args);
         }
-        const method = (promise ? provider.fs.promises : provider.fs)[key2];
-        if (!method) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u652F\u6301\u6B64\u64CD\u4F5C\uFF1A" + key2);
+        const method = (promise ? provider.fs.promises : provider.fs)[key3];
+        if (!method) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u652F\u6301\u6B64\u64CD\u4F5C\uFF1A" + key3);
         return method(...args);
       };
     };
-    const promises = new Proxy(native_fs.promises, { get: (owner2, key2) => typeof owner2[key2] === "function" ? route(owner2, key2, true) : owner2[key2] });
-    return new Proxy(native_fs, { get: (owner2, key2) => key2 === "promises" ? promises : typeof owner2[key2] === "function" ? route(owner2, key2, false) : owner2[key2] });
+    const promises = new Proxy(native_fs.promises, { get: (owner2, key3) => typeof owner2[key3] === "function" ? route(owner2, key3, true) : owner2[key3] });
+    return new Proxy(native_fs, { get: (owner2, key3) => key3 === "promises" ? promises : typeof owner2[key3] === "function" ? route(owner2, key3, false) : owner2[key3] });
   }
 
   // src/file_language.ts
@@ -164247,8 +164247,8 @@ https://creativecommons.org/licenses/by/4.0/
     const app = core.app;
     if (!app) throw new Error("Typora Code workspace did not initialize.");
     if (!app.settings || !app.workspace?.rootSplit?.containerEl?.isConnected) throw new Error("Typora Code ready contract is incomplete.");
-    for (const [key2, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
-      if (app.settings.get(key2) !== value) app.settings.set(key2, value);
+    for (const [key3, value] of Object.entries({ openLinkInCurrentWin: true, useAutoSwap: true, hideExtensionInFileTab: false })) {
+      if (app.settings.get(key3) !== value) app.settings.set(key3, value);
     }
     const reconcile_sidebar = (event) => {
       const item = event.target instanceof Element ? event.target.closest(".typ-ribbon-item[data-id]") : null;
@@ -164277,19 +164277,19 @@ https://creativecommons.org/licenses/by/4.0/
   var locked_groups = /* @__PURE__ */ new WeakSet();
   function read_workspace_editor_settings() {
     const value = get_workspace_app()?.settings.get(KEY);
-    return Object.fromEntries(Object.entries(WORKSPACE_EDITOR_DEFAULTS).map(([key2, fallback2]) => [key2, typeof value?.[key2] === "boolean" ? value[key2] : fallback2]));
+    return Object.fromEntries(Object.entries(WORKSPACE_EDITOR_DEFAULTS).map(([key3, fallback2]) => [key3, typeof value?.[key3] === "boolean" ? value[key3] : fallback2]));
   }
   function set_workspace_editor_preview(enabled) {
     set_workspace_editor_setting("enable_preview", enabled);
   }
-  function set_workspace_editor_setting(key2, enabled) {
-    if (!Object.hasOwn(WORKSPACE_EDITOR_DEFAULTS, key2)) throw new Error("\u672A\u77E5\u7F16\u8F91\u5668\u8BBE\u7F6E\u3002");
+  function set_workspace_editor_setting(key3, enabled) {
+    if (!Object.hasOwn(WORKSPACE_EDITOR_DEFAULTS, key3)) throw new Error("\u672A\u77E5\u7F16\u8F91\u5668\u8BBE\u7F6E\u3002");
     if (enabled !== void 0 && typeof enabled !== "boolean") throw new Error("\u7F16\u8F91\u5668\u9884\u89C8\u8BBE\u7F6E\u65E0\u6548\u3002");
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     const value = { ...settings.get(KEY) || {} };
-    if (enabled === void 0) delete value[key2];
-    else value[key2] = enabled;
+    if (enabled === void 0) delete value[key3];
+    else value[key3] = enabled;
     settings.set_and_save(KEY, value);
     for (const listener of listeners2) listener();
   }
@@ -164321,8 +164321,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     if (workspace.rootSplit) workspace.rootSplit.eachLeaves(collect);
     else workspace.eachLeaves(collect);
-    const key2 = editor_identity(target_path);
-    const contains = (group) => (groups.get(group) || group.children || []).some((leaf) => editor_identity(leaf.state.path) === key2);
+    const key3 = editor_identity(target_path);
+    const contains = (group) => (groups.get(group) || group.children || []).some((leaf) => editor_identity(leaf.state.path) === key3);
     const preferred = preferred_group;
     if (preferred && (!workspace_editor_group_locked(preferred) || contains(preferred))) return preferred;
     const existing = [...groups].find(([group]) => contains(group))?.[0];
@@ -164603,9 +164603,9 @@ https://creativecommons.org/licenses/by/4.0/
       validate_name(path_api, path_api.basename(source));
       const entry = await check_entry(modules, source_root, source, false), target = path_api.join(destination.path, path_api.basename(source));
       if (entry.stat.isDirectory() && within2(path_api, source, destination.path)) throw new Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u590D\u5236\u6216\u79FB\u5165\u81EA\u8EAB\u3002");
-      const key2 = path_api.sep === "\\" ? target.toLowerCase() : target;
-      if (targets.has(key2)) throw new Error("\u6240\u9009\u9879\u76EE\u5305\u542B\u540C\u540D\u76EE\u6807\uFF0C\u672A\u6267\u884C\u64CD\u4F5C\u3002");
-      targets.add(key2);
+      const key3 = path_api.sep === "\\" ? target.toLowerCase() : target;
+      if (targets.has(key3)) throw new Error("\u6240\u9009\u9879\u76EE\u5305\u542B\u540C\u540D\u76EE\u6807\uFF0C\u672A\u6267\u884C\u64CD\u4F5C\u3002");
+      targets.add(key3);
       await require_absent(fs2, target);
       plans.push({ source, source_root, target, identity: entry_identity(entry.stat) });
     }
@@ -164688,6 +164688,67 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_text_presentation.ts
+  var TEXT_PRESENTATION_DEFAULTS = Object.freeze({ word_wrap: true });
+  var TEXT_PRESENTATION_SCHEMA = 2026092403;
+  var key = "typora-code:text-presentation";
+  var event_name = "typora-code:text-presentation-changed";
+  var volatile_value = null;
+  var warned = false;
+  var volatile_pending = false;
+  var stored = () => {
+    if (volatile_pending) return volatile_value;
+    try {
+      return localStorage.getItem(key);
+    } catch {
+      return volatile_value;
+    }
+  };
+  var save = (value) => {
+    volatile_value = value;
+    try {
+      localStorage.setItem(key, value);
+      volatile_pending = false;
+    } catch {
+      volatile_pending = true;
+      if (!warned) {
+        warned = true;
+        console.warn("\u6587\u672C\u5448\u73B0\u914D\u7F6E\u6682\u65F6\u65E0\u6CD5\u6301\u4E45\u5316\uFF0C\u672C\u7A97\u53E3\u7EE7\u7EED\u4F7F\u7528\u5F53\u524D\u8BBE\u7F6E\u3002");
+      }
+    }
+  };
+  function read_text_presentation() {
+    const raw = stored();
+    let value;
+    try {
+      value = JSON.parse(raw || "null");
+    } catch {
+    }
+    if (!value || !Number.isInteger(value.schema) || value.schema < TEXT_PRESENTATION_SCHEMA) {
+      value = { schema: TEXT_PRESENTATION_SCHEMA, ...TEXT_PRESENTATION_DEFAULTS };
+      save(JSON.stringify(value));
+    }
+    return { word_wrap: typeof value.word_wrap === "boolean" ? value.word_wrap : true };
+  }
+  function update_text_presentation(word_wrap) {
+    if (typeof word_wrap !== "boolean") throw Error("\u81EA\u52A8\u6362\u884C\u8BBE\u7F6E\u5FC5\u987B\u4E3A\u5E03\u5C14\u503C\u3002");
+    read_text_presentation();
+    const value = JSON.parse(stored() || "{}");
+    save(JSON.stringify({ ...value, schema: Math.max(value.schema || 0, TEXT_PRESENTATION_SCHEMA), word_wrap }));
+    window.dispatchEvent(new Event(event_name));
+  }
+  function observe_text_presentation(apply3) {
+    const refresh = () => apply3(read_text_presentation()), storage = (event) => {
+      if (event.key === key || event.key === null) refresh();
+    };
+    window.addEventListener(event_name, refresh);
+    window.addEventListener("storage", storage);
+    return () => {
+      window.removeEventListener(event_name, refresh);
+      window.removeEventListener("storage", storage);
+    };
+  }
+
   // src/git_diff_editor.ts
   init_standaloneServices();
   init_instantiation();
@@ -164696,12 +164757,12 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_diff_settings.ts
   var git_diff_defaults = Object.freeze({ render_side_by_side: true, inline_when_narrow: true, ignore_trim_whitespace: true, hide_unchanged: false, show_moves: false, render_markdown: true });
-  var key = "typora-code:diff-editor-settings";
-  var event_name = "typora-code:diff-editor-settings-changed";
+  var key2 = "typora-code:diff-editor-settings";
+  var event_name2 = "typora-code:diff-editor-settings-changed";
   function read_git_diff_preferences() {
     const result = { ...git_diff_defaults };
     try {
-      const value = JSON.parse(localStorage.getItem(key) || "{}");
+      const value = JSON.parse(localStorage.getItem(key2) || "{}");
       for (const name of Object.keys(result)) if (typeof value?.[name] === "boolean") result[name] = value[name];
     } catch {
     }
@@ -164710,17 +164771,17 @@ https://creativecommons.org/licenses/by/4.0/
   function update_git_diff_preferences(change) {
     const value = read_git_diff_preferences();
     for (const name of Object.keys(value)) if (typeof change[name] === "boolean") value[name] = change[name];
-    localStorage.setItem(key, JSON.stringify(value));
-    window.dispatchEvent(new Event(event_name));
+    localStorage.setItem(key2, JSON.stringify(value));
+    window.dispatchEvent(new Event(event_name2));
   }
   function watch_git_diff_preferences(apply3) {
     const refresh = () => apply3(read_git_diff_preferences()), storage = (event) => {
-      if (event.key === key || event.key === null) refresh();
+      if (event.key === key2 || event.key === null) refresh();
     };
-    window.addEventListener(event_name, refresh);
+    window.addEventListener(event_name2, refresh);
     window.addEventListener("storage", storage);
     return () => {
-      window.removeEventListener(event_name, refresh);
+      window.removeEventListener(event_name2, refresh);
       window.removeEventListener("storage", storage);
     };
   }
@@ -164850,19 +164911,19 @@ https://creativecommons.org/licenses/by/4.0/
           break;
         }
         if (bracket.bracketInfo.isOpeningBracket) {
-          const key2 = bracket.bracketInfo.bracketText;
-          const val = counts.has(key2) ? counts.get(key2) : 0;
-          counts.set(key2, val + 1);
+          const key3 = bracket.bracketInfo.bracketText;
+          const val = counts.has(key3) ? counts.get(key3) : 0;
+          counts.set(key3, val + 1);
         } else {
-          const key2 = bracket.bracketInfo.getOpeningBrackets()[0].bracketText;
-          let val = counts.has(key2) ? counts.get(key2) : 0;
+          const key3 = bracket.bracketInfo.getOpeningBrackets()[0].bracketText;
+          let val = counts.has(key3) ? counts.get(key3) : 0;
           val -= 1;
-          counts.set(key2, Math.max(0, val));
+          counts.set(key3, Math.max(0, val));
           if (val < 0) {
-            let list3 = ranges2.get(key2);
+            let list3 = ranges2.get(key3);
             if (!list3) {
               list3 = new LinkedList();
-              ranges2.set(key2, list3);
+              ranges2.set(key3, list3);
             }
             list3.push(bracket.range);
           }
@@ -164893,20 +164954,20 @@ https://creativecommons.org/licenses/by/4.0/
           break;
         }
         if (!bracket.bracketInfo.isOpeningBracket) {
-          const key2 = bracket.bracketInfo.getOpeningBrackets()[0].bracketText;
-          const val = counts.has(key2) ? counts.get(key2) : 0;
-          counts.set(key2, val + 1);
+          const key3 = bracket.bracketInfo.getOpeningBrackets()[0].bracketText;
+          const val = counts.has(key3) ? counts.get(key3) : 0;
+          counts.set(key3, val + 1);
         } else {
-          const key2 = bracket.bracketInfo.bracketText;
-          let val = counts.has(key2) ? counts.get(key2) : 0;
+          const key3 = bracket.bracketInfo.bracketText;
+          let val = counts.has(key3) ? counts.get(key3) : 0;
           val -= 1;
-          counts.set(key2, Math.max(0, val));
+          counts.set(key3, Math.max(0, val));
           if (val < 0) {
-            const list3 = ranges2.get(key2);
+            const list3 = ranges2.get(key3);
             if (list3) {
               const closing = list3.shift();
               if (list3.size === 0) {
-                ranges2.delete(key2);
+                ranges2.delete(key3);
               }
               const innerBracket = Range2.fromPositions(bracket.range.getEndPosition(), closing.getStartPosition());
               const outerBracket = Range2.fromPositions(bracket.range.getStartPosition(), closing.getEndPosition());
@@ -165015,15 +165076,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_resolverService();
   init_types();
   init_uri();
-  var __decorate82 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate82 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param75 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var SmartSelectController_1;
@@ -167367,15 +167428,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_nls();
   init_lifecycle();
   init_dom();
-  var __decorate83 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate83 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param76 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var historyNavigationVisible = new RawContextKey("suggestWidgetVisible", false, localize(1760, "Whether suggestion are visible"));
@@ -168737,15 +168798,15 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/findWidgetSearchHistory.js
   init_event();
   init_storage2();
-  var __decorate84 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate84 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param77 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var FindWidgetSearchHistory_1;
@@ -168832,15 +168893,15 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/replaceWidgetHistory.js
   init_event();
   init_storage2();
-  var __decorate85 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate85 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param78 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var ReplaceWidgetHistory_1;
@@ -168927,15 +168988,15 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/findController.js
   init_configuration();
   init_accessibility();
-  var __decorate86 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate86 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param79 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var CommonFindController_1;
@@ -170061,15 +170122,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_range2();
   init_textModel();
   init_instantiation();
-  var __decorate87 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate87 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param80 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var inlineProgressDecoration = ModelDecorationOptions.register({
@@ -170211,15 +170272,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_contextkey();
   init_opener();
   init_dom();
-  var __decorate88 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate88 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param81 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var MessageController_1;
@@ -170404,15 +170465,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_workspace();
   init_languages();
   init_languageFeatures();
-  var __decorate89 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate89 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param82 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var SimplePasteAndDropProvider = class {
@@ -171729,15 +171790,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_searchColors();
   init_layoutService();
   init_instantiation();
-  var __decorate90 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate90 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param83 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var ActionListWidget_1;
@@ -173167,15 +173228,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_miscColors();
   init_quickpickColors();
   init_searchColors();
-  var __decorate91 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate91 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param84 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   registerColor("actionBar.toggledBackground", inputActiveOptionBackground, localize(1713, "Background color for toggled action items in action bar."));
@@ -173531,15 +173592,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_notification();
   init_bulkEditService();
   init_editorState();
-  var __decorate92 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate92 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param85 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var PostEditWidget_1;
@@ -173734,15 +173795,15 @@ https://creativecommons.org/licenses/by/4.0/
   ], PostEditWidgetManager);
 
   // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
-  var __decorate93 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate93 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param86 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var CopyPasteController_1;
@@ -174120,8 +174181,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
         for (const toMergeData of toMergeResults.reverse()) {
           if (toMergeData) {
-            for (const [key2, value] of toMergeData) {
-              dataTransfer.replace(key2, value);
+            for (const [key3, value] of toMergeData) {
+              dataTransfer.replace(key3, value);
             }
           }
         }
@@ -174549,15 +174610,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_keybinding();
   init_configuration();
   init_workspace();
-  var __decorate94 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate94 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param87 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var ContextMenuController_1;
@@ -176339,15 +176400,15 @@ https://creativecommons.org/licenses/by/4.0/
   init_uri();
   init_model2();
   init_configuration();
-  var __decorate95 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate95 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param88 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var FoldingController_1;
@@ -178271,15 +178332,15 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/editor/contrib/linesOperations/browser/moveLinesCommand.js
   init_autoIndent();
   init_enterAction();
-  var __decorate96 = function(decorators, target, key2, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key2) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key2, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key2, r4) : d(target, key2)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key2, r4), r4;
+  var __decorate96 = function(decorators, target, key3, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key3) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key3, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key3, r4) : d(target, key3)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key3, r4), r4;
   };
   var __param89 = function(paramIndex, decorator) {
-    return function(target, key2) {
-      decorator(target, key2, paramIndex);
+    return function(target, key3) {
+      decorator(target, key3, paramIndex);
     };
   };
   var MoveLinesCommand = class MoveLinesCommand2 {
@@ -181057,6 +181118,58 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/git_markdown_semantics.ts
+  function refine_markdown_change(row) {
+    const left = row.children[0], right = row.children[1];
+    const a = left.querySelector(":scope > [data-source-line] > table,:scope > [data-source-line] > ul,:scope > [data-source-line] > ol");
+    const b2 = right.querySelector(":scope > [data-source-line] > table,:scope > [data-source-line] > ul,:scope > [data-source-line] > ol");
+    if (!a || !b2 || a.tagName !== b2.tagName || left.querySelectorAll(":scope > [data-source-line]").length !== 1 || right.querySelectorAll(":scope > [data-source-line]").length !== 1) return [row];
+    const table = a.tagName === "TABLE";
+    if (!table && (a.querySelector("li ul,li ol") || b2.querySelector("li ul,li ol") || a.getAttribute("start") !== b2.getAttribute("start"))) return [row];
+    const aa2 = [...a.querySelectorAll(table ? ":scope > thead > tr,:scope > tbody > tr" : ":scope > li")], bb = [...b2.querySelectorAll(table ? ":scope > thead > tr,:scope > tbody > tr" : ":scope > li")];
+    const targets = [], paint = (node, side) => {
+      node.dataset.diffFragment = side;
+      node.tabIndex = -1;
+      targets.push(node);
+    };
+    const indexes2 = /* @__PURE__ */ new Map();
+    bb.forEach((node, index) => {
+      const key3 = node.innerHTML;
+      const entry = indexes2.get(key3) || { positions: [], cursor: 0 };
+      entry.positions.push(index);
+      indexes2.set(key3, entry);
+    });
+    const replacement = (xs2, ys2) => {
+      for (let k2 = 0; k2 < Math.max(xs2.length, ys2.length); k2++) {
+        const x = xs2[k2], y = ys2[k2];
+        if (table && x && y && x.children.length === y.children.length) {
+          for (let c = 0; c < x.children.length; c++) if (x.children[c].outerHTML !== y.children[c].outerHTML) {
+            paint(x.children[c], "left");
+            paint(y.children[c], "right");
+          }
+        } else {
+          if (x) paint(x, "left");
+          if (y) paint(y, "right");
+        }
+      }
+    };
+    let ai2 = 0, bi2 = 0;
+    for (let i = 0; i < aa2.length; i++) {
+      const entry = indexes2.get(aa2[i].innerHTML);
+      if (!entry) continue;
+      while (entry.cursor < entry.positions.length && entry.positions[entry.cursor] < bi2) entry.cursor++;
+      const j3 = entry.positions[entry.cursor];
+      if (j3 === void 0) continue;
+      replacement(aa2.slice(ai2, i), bb.slice(bi2, j3));
+      ai2 = i + 1;
+      bi2 = j3 + 1;
+    }
+    replacement(aa2.slice(ai2), bb.slice(bi2));
+    if (!targets.length) return [row];
+    row.dataset.refined = "true";
+    return targets;
+  }
+
   // node_modules/marked/lib/marked.esm.js
   function _getDefaults2() {
     return {
@@ -183428,11 +183541,11 @@ https://creativecommons.org/licenses/by/4.0/
       uponSanitizeShadowNode: []
     };
   };
-  var _resolveSetOption = function _resolveSetOption2(cfg, key2, fallback2, options2) {
-    return objectHasOwnProperty2(cfg, key2) && arrayIsArray2(cfg[key2]) ? addToSet2(options2.base ? clone3(options2.base) : {}, cfg[key2], options2.transform) : fallback2;
+  var _resolveSetOption = function _resolveSetOption2(cfg, key3, fallback2, options2) {
+    return objectHasOwnProperty2(cfg, key3) && arrayIsArray2(cfg[key3]) ? addToSet2(options2.base ? clone3(options2.base) : {}, cfg[key3], options2.transform) : fallback2;
   };
-  var _resolveObjectOption = function _resolveObjectOption2(cfg, key2, makeFallback) {
-    const value = objectHasOwnProperty2(cfg, key2) ? cfg[key2] : void 0;
+  var _resolveObjectOption = function _resolveObjectOption2(cfg, key3, makeFallback) {
+    const value = objectHasOwnProperty2(cfg, key3) ? cfg[key3] : void 0;
     return value && typeof value === "object" ? clone3(value) : makeFallback();
   };
   function createDOMPurify2() {
@@ -184971,7 +185084,7 @@ https://creativecommons.org/licenses/by/4.0/
         const origin = reader.getBoundingClientRect().top;
         marks = rows.map((row) => {
           const box = row.getBoundingClientRect();
-          return { top: box.top - origin, height: box.height, left: row.children[0]?.getAttribute("data-empty") !== "true", right: row.children[1]?.getAttribute("data-empty") !== "true" };
+          return { top: box.top - origin, height: box.height, left: row.dataset.diffFragment ? row.dataset.diffFragment === "left" : row.children[0]?.getAttribute("data-empty") !== "true", right: row.dataset.diffFragment ? row.dataset.diffFragment === "right" : row.children[1]?.getAttribute("data-empty") !== "true" };
         });
         const ratio = window.devicePixelRatio || 1;
         canvas.width = Math.round(30 * ratio);
@@ -185077,7 +185190,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/git_markdown_diff_shadow.css
-  var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}\n.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}\n:host([data-theme=dark]) .markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{display:block;opacity:.8}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n";
+  var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}\n:host([data-theme=dark]) .markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{display:block;opacity:.8}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n\n[data-diff-fragment=left]{background:var(--vscode-diffEditor-removedTextBackground,#ff000033)!important}\n[data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)!important}\n:host([data-theme=dark]) [data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)!important}\n.markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}\n#write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}\n#write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}\n";
 
   // src/git_markdown_diff.ts
   var normalize3 = (value) => value.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
@@ -185095,9 +185208,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (!current()) return [];
       const found = text3.indexOf(token.raw, offset), start = found < 0 ? offset : found;
       const gap = text3.slice(offset, start);
-      if (gap.trim()) result.push({ raw: gap, html: "<pre><code>" + escape4(gap) + "</code></pre>", start: line, end: line + gap.replace(/\n$/u, "").split("\n").length - 1 });
+      if (gap.trim()) result.push({ raw: gap, html: "<pre><code>" + escape4(gap) + "</code></pre>", start: line, end: line + gap.replace(/\n+$/u, "").split("\n").length - 1 });
       line += gap.split("\n").length - 1;
-      const end = line + token.raw.replace(/\n$/u, "").split("\n").length - 1;
+      const end = line + token.raw.replace(/\n+$/u, "").split("\n").length - 1;
       const single = Object.assign([token], { links: tokens.links });
       let html5 = purify2.sanitize(marked2.parser(single, { gfm: true, renderer }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source", "svg", "math"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false });
       if (!html5.trim() && token.raw.trim()) html5 = "<pre><code>" + escape4(token.raw) + "</code></pre>";
@@ -185107,7 +185220,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (result.length % 32 === 0) await git_yield();
     }
     const tail2 = text3.slice(offset);
-    if (tail2.trim()) result.push({ raw: tail2, html: "<pre><code>" + escape4(tail2) + "</code></pre>", start: line, end: line + tail2.replace(/\n$/u, "").split("\n").length - 1 });
+    if (tail2.trim()) result.push({ raw: tail2, html: "<pre><code>" + escape4(tail2) + "</code></pre>", start: line, end: line + tail2.replace(/\n+$/u, "").split("\n").length - 1 });
     return result;
   }
   function pair_blocks(left, right, changes) {
@@ -185131,7 +185244,8 @@ https://creativecommons.org/licenses/by/4.0/
       b2 = j3 + 1;
     }
     if (a < left.length || b2 < right.length) pairs.push({ left: left.slice(a), right: right.slice(b2), changed: true });
-    return pairs;
+    const kind = (block3) => block3.html.match(/^\s*<([a-z0-9]+)/iu)?.[1];
+    return pairs.flatMap((pair) => pair.changed && pair.left.length > 1 && pair.left.length === pair.right.length && pair.left.every((block3, index) => kind(block3) === kind(pair.right[index])) ? pair.left.map((block3, index) => ({ left: [block3], right: [pair.right[index]], changed: true })) : [pair]);
   }
   function create_git_markdown_diff() {
     const container = document.createElement("section");
@@ -185146,6 +185260,11 @@ https://creativecommons.org/licenses/by/4.0/
     shadow.append(style, reader);
     const overview = create_markdown_overview(scroll, reader);
     container.append(overview.container);
+    let last_side = "right";
+    for (const name of ["pointerdown", "wheel"]) shadow.addEventListener(name, (event) => {
+      const side = event.target?.closest("[data-side]")?.dataset.side;
+      if (side === "left" || side === "right") last_side = side;
+    }, { passive: true });
     let generation = 0, disposed = false, active2 = -1;
     let changed2 = [];
     const diagrams = create_preview_diagrams();
@@ -185166,18 +185285,55 @@ https://creativecommons.org/licenses/by/4.0/
       if (!changed2.length) return;
       active2 = (active2 + (direction === "next" ? 1 : -1) + changed2.length) % changed2.length;
       const target = changed2[active2];
-      scroll.scrollTop = target.offsetTop - reader.offsetTop;
+      scroll.scrollTop += target.getBoundingClientRect().top - scroll.getBoundingClientRect().top - (reader.querySelector(".markdown-diff-head")?.getBoundingClientRect().height || 0);
       target.focus({ preventScroll: true });
     };
     shadow.addEventListener("click", (event) => {
       if (event.target.closest("a,input")) event.preventDefault();
     });
+    const nodes = (side) => [...reader.querySelectorAll("[data-side=".concat(side, "] [data-source-line]"))];
+    const capture = (side = last_side) => {
+      if (container.dataset.ready !== "true") return;
+      const y = scroll.getBoundingClientRect().top + (reader.querySelector(".markdown-diff-head")?.getBoundingClientRect().height || 0);
+      const candidates = nodes(side);
+      let node = candidates[0];
+      for (const candidate of candidates) {
+        if (candidate.getBoundingClientRect().top <= y + 1) node = candidate;
+        else break;
+      }
+      if (!node) return;
+      const box = node.getBoundingClientRect(), start = Number(node.dataset.sourceLine), end = Number(node.dataset.sourceEnd || start);
+      const offset = Math.max(0, Math.min(0.999999, (y - box.top) / Math.max(1, box.height))) * (end - start + 1);
+      return { side, line: start + Math.floor(offset), fraction: offset % 1 };
+    };
+    const restore = (anchor) => {
+      last_side = anchor.side;
+      const candidates = nodes(anchor.side);
+      let node = candidates[0];
+      for (const candidate of candidates) {
+        if (Number(candidate.dataset.sourceLine) <= anchor.line) node = candidate;
+        else break;
+      }
+      if (!node) return;
+      const start = Number(node.dataset.sourceLine), end = Number(node.dataset.sourceEnd || start);
+      const ratio = Math.max(0, Math.min(1, (anchor.line - start + anchor.fraction) / Math.max(1, end - start + 1)));
+      const box = node.getBoundingClientRect(), head = reader.querySelector(".markdown-diff-head")?.getBoundingClientRect().height || 0;
+      scroll.scrollTop += box.top - scroll.getBoundingClientRect().top + box.height * ratio - head;
+    };
     return {
       container,
       shadow,
       scroll,
       navigate,
       theme: theme2,
+      capture,
+      restore,
+      set_wrap(value) {
+        const anchor = capture();
+        reader.dataset.wordWrap = String(value);
+        if (anchor) restore(anchor);
+        overview.refresh();
+      },
       async render(left, right, changes, labels) {
         const request = ++generation, current = () => !disposed && generation === request;
         container.dataset.ready = "false";
@@ -185201,7 +185357,6 @@ https://creativecommons.org/licenses/by/4.0/
           row.className = "markdown-diff-row";
           row.dataset.changed = String(pair.changed);
           row.tabIndex = -1;
-          if (pair.changed) targets.push(row);
           for (const side of ["left", "right"]) {
             const cell = document.createElement("div");
             cell.className = "markdown-diff-cell";
@@ -185216,7 +185371,13 @@ https://creativecommons.org/licenses/by/4.0/
             for (const block3 of pair[side]) {
               const node = document.createElement("div");
               node.dataset.sourceLine = String(block3.start);
+              node.dataset.sourceEnd = String(block3.end);
               node.innerHTML = block3.html;
+              const table_rows = [...node.querySelectorAll("table > thead > tr,table > tbody > tr")];
+              table_rows.forEach((item, index) => {
+                item.dataset.sourceLine = String(block3.start + (index === 0 ? 0 : index + 1));
+                item.dataset.sourceEnd = item.dataset.sourceLine;
+              });
               for (const link3 of node.querySelectorAll("a")) {
                 link3.title = link3.getAttribute("href") || "";
                 link3.removeAttribute("href");
@@ -185228,6 +185389,7 @@ https://creativecommons.org/licenses/by/4.0/
             }
             row.append(cell);
           }
+          if (pair.changed) targets.push(...refine_markdown_change(row));
           fragment.append(row);
           if (i % 24 === 23) await git_yield();
         }
@@ -185281,6 +185443,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.data = data;
       this.extra_menu = extra_menu;
       if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(git_graph_text("diff.binary_file"));
+      this.wrapped = read_text_presentation().word_wrap;
       const preferences = read_git_diff_preferences();
       this.side_by_side = preferences.render_side_by_side;
       this.inline_when_narrow = preferences.inline_when_narrow;
@@ -185308,10 +185471,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
       const minimap = { enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1 };
-      const options2 = { automaticLayout: true, readOnly: true, fontSize: vscode_design_baseline_default.editor_font_size, lineHeight: vscode_design_baseline_default.editor_line_height, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
+      const options2 = { wordWrap: this.wrapped ? "on" : "off", automaticLayout: true, readOnly: true, fontSize: vscode_design_baseline_default.editor_font_size, lineHeight: vscode_design_baseline_default.editor_line_height, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
       if (data.right != null) {
         const modified = model(data.right, "modified");
-        const editor2 = editor.createDiffEditor(this.body, { ...options2, renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 1e4 });
+        const editor2 = editor.createDiffEditor(this.body, { ...options2, diffWordWrap: this.wrapped ? "on" : "off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 1e4 });
         this.editor = editor2;
         editor2.setModel({ original, modified });
         let revealed2 = false;
@@ -185338,10 +185501,12 @@ https://creativecommons.org/licenses/by/4.0/
       this.toolbar.setAttribute("aria-label", git_graph_text("diff.editor_actions"));
       if (data.right != null && is_markdown_file(data.file || data.title)) {
         this.markdown_preview = create_git_markdown_diff();
+        this.markdown_preview.container.hidden = true;
         this.container.append(this.markdown_preview.container);
         const preview = git_icon_button("preview", "Markdown\u6E32\u67D3\u5BF9\u6BD4 / \u6E90\u7801\u5BF9\u6BD4", () => this.set_preferences({ render_markdown: !this.rendered_markdown }));
         preview.dataset.diffAction = "markdown_preview";
         this.toolbar.append(preview);
+        this.markdown_preview.set_wrap(this.wrapped);
         this.set_markdown_mode(preferences.render_markdown);
       }
       const find = git_icon_button("search", git_graph_text("diff.find"), () => {
@@ -185361,6 +185526,11 @@ https://creativecommons.org/licenses/by/4.0/
       });
       more.dataset.diffAction = "more";
       this.toolbar.append(find, more, this.status);
+      this.release_presentation = observe_text_presentation((value) => this.apply_wrap(value.word_wrap));
+      for (const name of ["wheel", "pointerdown", "keydown"]) this.container.addEventListener(name, () => {
+        this.input_epoch++;
+        this.pending_anchor = void 0;
+      }, { capture: true, passive: true });
       this.release_settings = watch_git_diff_preferences((value) => this.apply_preferences(value));
       this.observer = new ResizeObserver(() => this.editor.layout());
       this.observer.observe(this.body);
@@ -185411,7 +185581,7 @@ https://creativecommons.org/licenses/by/4.0/
     observer;
     subscriptions = [];
     side_by_side = true;
-    wrapped = false;
+    wrapped = true;
     collapsed = false;
     ignore_whitespace = true;
     show_moves = false;
@@ -185433,6 +185603,9 @@ https://creativecommons.org/licenses/by/4.0/
     markdown_preview;
     rendered_markdown = false;
     markdown_epoch = 0;
+    pending_anchor;
+    release_presentation;
+    input_epoch = 0;
     /** 右侧动作属于此编辑组，与标签共享一行；不使用跨组定位或负偏移。 */
     attach_toolbar(header) {
       this.detach_toolbar();
@@ -185488,8 +185661,40 @@ https://creativecommons.org/licenses/by/4.0/
         else this.editor.accessibleDiffViewerNext();
       }
     }
+    capture_content_anchor() {
+      if (this.rendered_markdown) return this.markdown_preview?.capture();
+      const view = this.focused_editor(), range2 = view.getVisibleRanges()[0];
+      if (!range2) return;
+      const line = range2.startLineNumber, top = view.getTopForLineNumber(line), height = Math.max(1, view.getTopForLineNumber(line + 1) - top);
+      const box = view.getDomNode().getBoundingClientRect(), layout2 = view.getLayoutInfo(), hit = view.getTargetAtClientPoint(box.left + layout2.contentLeft + 2, box.top + 2)?.position;
+      const column = hit?.lineNumber === line ? hit.column : range2.startColumn;
+      return { column, delta: view.getScrollTop() - view.getTopForPosition(line, column), side: "getOriginalEditor" in this.editor && view === this.editor.getOriginalEditor() ? "left" : "right", line, fraction: Math.max(0, Math.min(0.999999, (view.getScrollTop() - top) / height)) };
+    }
+    restore_content_anchor(anchor) {
+      if (this.rendered_markdown) {
+        this.markdown_preview?.restore(anchor);
+        return;
+      }
+      const view = "getOriginalEditor" in this.editor ? anchor.side === "left" ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor() : this.editor;
+      const line = Math.min(anchor.line, view.getModel()?.getLineCount() || 1), top = view.getTopForLineNumber(line), height = Math.max(1, view.getTopForLineNumber(line + 1) - top);
+      const column = Math.min(anchor.column ?? Math.max(1, Math.round((view.getModel()?.getLineMaxColumn(line) || 1) * anchor.fraction)), view.getModel()?.getLineMaxColumn(line) || 1);
+      view.revealPosition({ lineNumber: line, column });
+      view.setScrollTop(anchor.column !== void 0 ? view.getTopForPosition(line, column) + (anchor.delta || 0) : top + height * anchor.fraction);
+      this.last_focused_editor = view;
+    }
+    apply_wrap(value) {
+      if (this.wrapped === value) return;
+      const anchor = this.capture_content_anchor();
+      this.wrapped = value;
+      this.editor.updateOptions({ wordWrap: value ? "on" : "off", ..."getOriginalEditor" in this.editor ? { diffWordWrap: value ? "on" : "off" } : {} });
+      this.editor.layout();
+      this.markdown_preview?.set_wrap(value);
+      if (anchor) this.restore_content_anchor(anchor);
+    }
     async set_markdown_mode(value) {
-      if (!this.markdown_preview) return;
+      if (!this.markdown_preview || value === this.rendered_markdown) return;
+      const anchor = this.capture_content_anchor();
+      this.pending_anchor = anchor;
       this.rendered_markdown = value;
       this.body.hidden = value;
       this.markdown_preview.container.hidden = !value;
@@ -185501,12 +185706,16 @@ https://creativecommons.org/licenses/by/4.0/
         this.markdown_epoch++;
         this.markdown_preview.invalidate();
         this.editor.layout();
+        if (anchor) this.restore_content_anchor(anchor);
+        this.pending_anchor = void 0;
       }
     }
     /** 呈现方式及两侧编辑器位置归比较视图所有，导航服务只保存和交还快照。 */
     capture_navigation_state() {
       const view = this.focused_editor(), scroll = this.rendered_markdown ? this.markdown_preview?.scroll : void 0;
       return {
+        word_wrap: this.wrapped,
+        content_anchor: this.capture_content_anchor(),
         rendered_markdown: this.rendered_markdown,
         view_state: this.editor.saveViewState(),
         original: "getOriginalEditor" in this.editor && view === this.editor.getOriginalEditor(),
@@ -185540,6 +185749,7 @@ https://creativecommons.org/licenses/by/4.0/
           view.setScrollLeft(state.scroll_left);
           view.focus();
         }
+        if (state.content_anchor && typeof state.word_wrap === "boolean" && state.word_wrap !== this.wrapped) this.restore_content_anchor(state.content_anchor);
         return true;
       } finally {
         this.restoring_navigation = false;
@@ -185552,9 +185762,11 @@ https://creativecommons.org/licenses/by/4.0/
         this.status.textContent = git_graph_text("diff.calculating");
         return;
       }
-      const epoch2 = ++this.markdown_epoch;
+      const epoch2 = ++this.markdown_epoch, input_epoch = this.input_epoch, anchor = this.pending_anchor || this.markdown_preview.capture();
       try {
         await this.markdown_preview.render(this.models[0].getValue(), this.models[1].getValue(), changes, [this.data.left_label || git_graph_text("diff.original"), this.data.right_label || git_graph_text("diff.modified")]);
+        if (!this.disposed && epoch2 === this.markdown_epoch && input_epoch === this.input_epoch && anchor) this.restore_content_anchor(anchor);
+        if (epoch2 === this.markdown_epoch) this.pending_anchor = void 0;
       } catch (error) {
         if (!this.disposed && epoch2 === this.markdown_epoch) {
           this.set_markdown_mode(false);
@@ -185576,9 +185788,10 @@ https://creativecommons.org/licenses/by/4.0/
       this.collapsed = value.hide_unchanged;
       this.show_moves = value.show_moves;
       if ("getModifiedEditor" in this.editor) {
-        const state = this.editor.saveViewState();
+        const anchor = this.capture_content_anchor(), state = this.editor.saveViewState();
         this.editor.updateOptions({ renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves } });
         this.editor.restoreViewState(state);
+        if (anchor) this.restore_content_anchor(anchor);
         this.refresh_labels();
       }
       this.toolbar.querySelector('[data-diff-action="ignore_whitespace"]')?.setAttribute("aria-pressed", String(this.ignore_whitespace));
@@ -185633,6 +185846,7 @@ https://creativecommons.org/licenses/by/4.0/
           { id: "revert_ranges", title: git_graph_text("diff.revert_ranges"), shortcut: "Ctrl+K Ctrl+Alt+R", disabled: !snapshot, action: () => void this.run_ranges("revert", snapshot) }
         );
       }
+      entries3.push({ id: "word_wrap", title: git_graph_text("diff.word_wrap"), checked: this.wrapped, action: () => update_text_presentation(!this.wrapped) });
       entries3.push(...this.title_entries());
       this.close_menu = workspace_menu(event, entries3, "workspace-menu-compact git-diff-title-menu");
     }
@@ -185759,10 +185973,7 @@ https://creativecommons.org/licenses/by/4.0/
         { id: "copy", title: git_graph_text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run() },
         { id: "select_all", title: git_graph_text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null) },
         { id: "find", title: git_graph_text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run() },
-        { id: "word_wrap", title: git_graph_text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => {
-          this.wrapped = !this.wrapped;
-          this.editor.updateOptions({ wordWrap: this.wrapped ? "on" : "off" });
-        } }
+        { id: "word_wrap", title: git_graph_text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => update_text_presentation(!this.wrapped) }
       ];
       if ("getModifiedEditor" in this.editor) {
         const editor2 = this.editor;
@@ -185797,6 +186008,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.title_entries = () => [];
       this.close_menu?.();
       this.release_settings?.();
+      this.release_presentation?.();
       this.detach_toolbar();
       this.mode_observer?.disconnect();
       this.observer.disconnect();
@@ -185928,7 +186140,7 @@ https://creativecommons.org/licenses/by/4.0/
         busy = false;
       }
     };
-    const save = async (text3, settings = {}) => {
+    const save2 = async (text3, settings = {}) => {
       if (busy) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u7B49\u5F85\u5F53\u524D\u64CD\u4F5C\u5B8C\u6210\u3002");
       if (!baseline) throw new Error("\u8BF7\u5148\u8BFB\u53D6\u6587\u4EF6\uFF0C\u518D\u4FDD\u5B58\u7F16\u8F91\u5185\u5BB9\u3002");
       busy = true;
@@ -186021,7 +186233,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     return { get file_path() {
       return file_path;
-    }, load, save, prepare_relocation };
+    }, load, save: save2, prepare_relocation };
   }
   async function save_text_document_as(modules, target, text3, source) {
     const { path_api } = modules, fs2 = modules.fs.promises;
@@ -186071,9 +186283,9 @@ https://creativecommons.org/licenses/by/4.0/
   // src/reading_positions.ts
   var POSITION_PREFIX = "linux-note-reading-position:v1:";
   function create_position_store(storage, maximum_entries = 500) {
-    const read_entry = (key2) => {
+    const read_entry = (key3) => {
       try {
-        const entry = JSON.parse(storage.getItem(key2) ?? "null");
+        const entry = JSON.parse(storage.getItem(key3) ?? "null");
         const position2 = entry?.position;
         if (!Number.isFinite(entry?.updated_at) || !Number.isFinite(position2?.scroll_top) || !Number.isFinite(position2?.scroll_left) || position2.scroll_top < 0 || position2.scroll_left < 0) return null;
         if (position2.block && (typeof position2.block.text !== "string" || typeof position2.block.tag !== "string" || !Number.isInteger(position2.block.index) || !Number.isFinite(position2.block.offset))) delete position2.block;
@@ -186087,11 +186299,11 @@ https://creativecommons.org/licenses/by/4.0/
         const updates = [];
         try {
           for (let index = 0; index < storage.length; index++) {
-            const key2 = storage.key(index);
-            if (!key2?.startsWith(POSITION_PREFIX)) continue;
-            const target = map(decodeURIComponent(key2.slice(POSITION_PREFIX.length)));
-            const value = storage.getItem(key2);
-            if (target && value && read_entry(key2)) updates.push({ old_key: key2, new_key: POSITION_PREFIX + encodeURIComponent(file_key(target)), value });
+            const key3 = storage.key(index);
+            if (!key3?.startsWith(POSITION_PREFIX)) continue;
+            const target = map(decodeURIComponent(key3.slice(POSITION_PREFIX.length)));
+            const value = storage.getItem(key3);
+            if (target && value && read_entry(key3)) updates.push({ old_key: key3, new_key: POSITION_PREFIX + encodeURIComponent(file_key(target)), value });
           }
           for (const update2 of updates) {
             storage.setItem(update2.new_key, update2.value);
@@ -186107,14 +186319,14 @@ https://creativecommons.org/licenses/by/4.0/
       set(path, position2) {
         if (!path || path.startsWith("typ://")) return;
         try {
-          const key2 = POSITION_PREFIX + encodeURIComponent(file_key(path));
-          storage.setItem(key2, JSON.stringify({ updated_at: Date.now(), position: position2 }));
+          const key3 = POSITION_PREFIX + encodeURIComponent(file_key(path));
+          storage.setItem(key3, JSON.stringify({ updated_at: Date.now(), position: position2 }));
           const entries3 = [];
           for (let index = 0; index < storage.length; index += 1) {
             const candidate = storage.key(index);
             if (candidate?.startsWith(POSITION_PREFIX)) entries3.push({ key: candidate, updated_at: read_entry(candidate)?.updated_at ?? 0 });
           }
-          entries3.sort((left, right) => left.key === key2 ? -1 : right.key === key2 ? 1 : right.updated_at - left.updated_at);
+          entries3.sort((left, right) => left.key === key3 ? -1 : right.key === key3 ? 1 : right.updated_at - left.updated_at);
           for (const entry of entries3.slice(maximum_entries)) storage.removeItem(entry.key);
         } catch (error) {
           console.warn("[linux-note reading positions] cannot persist position", error);
@@ -186562,9 +186774,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return [];
       if (!app) {
         const path = native_path();
-        const key2 = file_key(path);
-        if (!native_contexts.has(key2)) native_contexts.set(key2, { view_id: next_id++, file_path: path });
-        return [native_contexts.get(key2)];
+        const key3 = file_key(path);
+        if (!native_contexts.has(key3)) native_contexts.set(key3, { view_id: next_id++, file_path: path });
+        return [native_contexts.get(key3)];
       }
       const result = [];
       app.workspace.eachLeaves((leaf) => {
@@ -186760,10 +186972,10 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed) return;
         flush();
         store?.remap_paths(map);
-        for (const [key2, context] of [...native_contexts]) {
+        for (const [key3, context] of [...native_contexts]) {
           const target = map(context.file_path);
           if (!target) continue;
-          native_contexts.delete(key2);
+          native_contexts.delete(key3);
           context.file_path = target;
           native_contexts.set(file_key(target), context);
         }
@@ -188095,16 +188307,16 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.altKey) return;
       if (options2.selection && (event.ctrlKey || event.metaKey || ["Delete", "F2", "F10"].includes(event.key))) return;
       if (event.ctrlKey || event.metaKey) {
-        const key2 = event.key.toLowerCase();
-        if (!["c", "x", "v", "a"].includes(key2)) return;
+        const key3 = event.key.toLowerCase();
+        if (!["c", "x", "v", "a"].includes(key3)) return;
         event.preventDefault();
         event.stopPropagation();
-        if (key2 === "v") run(() => paste());
-        else if (key2 === "a") {
+        if (key3 === "v") run(() => paste());
+        else if (key3 === "a") {
           selection_paths.clear();
           for (const node2 of flat_nodes) selection_paths.add(node2.path);
           render();
-        } else run(() => set_clipboard(key2 === "x"));
+        } else run(() => set_clipboard(key3 === "x"));
         return;
       }
       if (event.key === "Delete") {
@@ -189858,10 +190070,10 @@ https://creativecommons.org/licenses/by/4.0/
       dialog2.content.append(workspace_element("p", "", "\u6B64\u6587\u6863\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u4FDD\u5B58\u540E\u7EE7\u7EED\u5207\u6362\u7F16\u8F91\u65B9\u5F0F\u3002"));
       const message = workspace_element("p");
       dialog2.content.append(message);
-      const save = workspace_button("\u4FDD\u5B58\u5E76\u7EE7\u7EED", () => {
+      const save2 = workspace_button("\u4FDD\u5B58\u5E76\u7EE7\u7EED", () => {
         if (saving) return;
         saving = true;
-        save.disabled = true;
+        save2.disabled = true;
         void save_leaf(leaf).then((saved) => {
           if (!dialog2.root.isConnected) return;
           completed = saved && transfer_present(leaf) && leaf.parent === group && leaf.state.path === path && !editor_state(leaf).dirty;
@@ -189871,10 +190083,10 @@ https://creativecommons.org/licenses/by/4.0/
           message.textContent = String(error);
         }).finally(() => {
           saving = false;
-          save.disabled = false;
+          save2.disabled = false;
         });
       });
-      dialog2.footer.prepend(save);
+      dialog2.footer.prepend(save2);
       return result;
     };
     const reopen_leaf = async (leaf, source) => {
@@ -190726,10 +190938,10 @@ https://creativecommons.org/licenses/by/4.0/
       separator2.setAttribute("for-folder", "");
       menu.append(separator2);
       owned_items.add(separator2);
-      for (const [relative2, label, key2] of [[false, "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", "absolute"], [true, "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", "relative"]]) {
+      for (const [relative2, label, key3] of [[false, "\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", "absolute"], [true, "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", "relative"]]) {
         const item = document.createElement("li");
         item.className = "typ-menuitem linux-note-path-item";
-        item.setAttribute("data-linux-note-copy-path", key2);
+        item.setAttribute("data-linux-note-copy-path", key3);
         item.setAttribute("for-file", "");
         item.setAttribute("for-folder", "");
         const anchor = document.createElement("a");
@@ -190893,10 +191105,10 @@ https://creativecommons.org/licenses/by/4.0/
   function validate_history_shortcuts(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(git_graph_text("scm.invalid_shortcut"));
     const used = /* @__PURE__ */ new Set();
-    for (const [id, key2] of Object.entries(value)) {
-      if (!HISTORY_ACTION_IDS.includes(id) || typeof key2 !== "string") throw new Error(git_graph_text("scm.invalid_shortcut"));
-      if (!key2) continue;
-      const parts = key2.toLowerCase().split("+");
+    for (const [id, key3] of Object.entries(value)) {
+      if (!HISTORY_ACTION_IDS.includes(id) || typeof key3 !== "string") throw new Error(git_graph_text("scm.invalid_shortcut"));
+      if (!key3) continue;
+      const parts = key3.toLowerCase().split("+");
       const modifiers = parts.slice(0, -1);
       if (!/^(?:[a-z0-9]|f(?:[1-9]|1[0-2]))$/u.test(parts.at(-1)) || modifiers.some((part) => !["mod", "alt", "shift"].includes(part)) || new Set(modifiers).size !== modifiers.length || !modifiers.includes("mod") && !modifiers.includes("alt") && !/^f\d+$/u.test(parts.at(-1))) throw new Error(git_graph_text("scm.invalid_shortcut"));
       const normalized2 = [...modifiers.sort(), parts.at(-1)].join("+");
@@ -190931,9 +191143,9 @@ https://creativecommons.org/licenses/by/4.0/
     for (const entry of raw_config.split("\0")) {
       if (!entry) continue;
       const separator2 = entry.indexOf("\n");
-      const key2 = separator2 < 0 ? entry : entry.slice(0, separator2), values = config.get(key2) || [];
+      const key3 = separator2 < 0 ? entry : entry.slice(0, separator2), values = config.get(key3) || [];
       values.push(separator2 < 0 ? "true" : entry.slice(separator2 + 1));
-      config.set(key2, values);
+      config.set(key3, values);
     }
     const remotes = await Promise.all(names.trim().split(/\r?\n/u).filter(Boolean).map(async (name) => ({
       name,
@@ -190945,7 +191157,7 @@ https://creativecommons.org/licenses/by/4.0/
     const parts = refs.trimEnd().split("\n").find((line) => line.split("\0")[0] === ref)?.split("\0");
     return { branch, branch_hash: parts?.[4] || "", head: head.trim(), guard, config, remotes, upstream: parts?.[1] || "", upstream_remote: parts?.[2] || "", upstream_ref: parts?.[3] || "" };
   }
-  var git_network_config = (state, key2) => state.config.get(key2)?.at(-1) || "";
+  var git_network_config = (state, key3) => state.config.get(key3)?.at(-1) || "";
   async function resolve_git_remote_ref(run, root, remotes, target) {
     const match2 = remotes.filter((remote) => target === remote.name || target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0];
     if (!match2) return void 0;
@@ -190973,11 +191185,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_graph_actions.ts
   function graph_actions_for(locale) {
-    const label = (key2) => git_graph_text(key2, {}, locale);
-    const field = (key2, title, optional3 = false) => ({ key: key2, title: label(title), optional: optional3 });
-    const check = (key2, title, initial = false) => ({ key: key2, title: label(title), type: "boolean", initial });
-    const choice = (key2, title, choices) => ({
-      key: key2,
+    const label = (key3) => git_graph_text(key3, {}, locale);
+    const field = (key3, title, optional3 = false) => ({ key: key3, title: label(title), optional: optional3 });
+    const check = (key3, title, initial = false) => ({ key: key3, title: label(title), type: "boolean", initial });
+    const choice = (key3, title, choices) => ({
+      key: key3,
       title: label(title),
       type: "choice",
       choices,
@@ -191050,8 +191262,8 @@ https://creativecommons.org/licenses/by/4.0/
     rebase: "action.choice.rebase"
   };
   function graph_action_choice_label(value, locale) {
-    const key2 = action_choice_label_keys[value];
-    return key2 ? git_graph_text(key2, {}, locale) : value;
+    const key3 = action_choice_label_keys[value];
+    return key3 ? git_graph_text(key3, {}, locale) : value;
   }
   var graph_actions = graph_actions_for();
   var busy_repositories = /* @__PURE__ */ new Set();
@@ -191165,16 +191377,16 @@ https://creativecommons.org/licenses/by/4.0/
     const paths = context.paths || [target];
     if ((file_action || context.paths) && (!paths.length || paths.some((path) => !path || path.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(path) || path.split(/[\\/]/u).includes("..")))) throw new Error(git_graph_text("action.error.invalid_file_path"));
     const hash2 = text_value(context.hash, git_graph_text("action.label.commit"), false);
-    const value = (key2, required = true) => {
-      if (key2 !== "message" && key2 !== "todo") return text_value(values[key2], action.fields.find((item) => item.key === key2)?.title || key2, required);
-      const message = typeof values[key2] === "string" ? values[key2].trim() : "";
+    const value = (key3, required = true) => {
+      if (key3 !== "message" && key3 !== "todo") return text_value(values[key3], action.fields.find((item) => item.key === key3)?.title || key3, required);
+      const message = typeof values[key3] === "string" ? values[key3].trim() : "";
       if (required && !message || message.includes("\0")) throw new Error(git_graph_text("action.error.invalid_commit_message"));
       return message;
     };
     const remote = () => value("remote");
     const reference = (value2) => typeof value2 === "string" && ["-", "_"].includes(context.reference_space || "") ? value2.replace(/ /gu, context.reference_space) : value2;
     const branch = () => valid_ref(run, root, reference(values.branch));
-    const flag = (key2) => values[key2] === true;
+    const flag = (key3) => values[key3] === true;
     const sign = context.sign_commits ? ["-S"] : [];
     const mainline = () => {
       const n2 = value("mainline", false);
@@ -191620,7 +191832,7 @@ https://creativecommons.org/licenses/by/4.0/
     icon_color: "auto"
   };
   function settings_labels_for(locale) {
-    const label = (key2) => git_graph_text(key2, {}, locale);
+    const label = (key3) => git_graph_text(key3, {}, locale);
     return {
       show_progress: label("progress.show"),
       pr_providers: label("settings.label.pr_providers"),
@@ -191707,14 +191919,14 @@ https://creativecommons.org/licenses/by/4.0/
     new_tab_group: { active: "settings.choice.new_tab_group.active", right: "settings.choice.new_tab_group.right", down: "settings.choice.new_tab_group.down" },
     repository_order: { name: "settings.choice.repository_order.name", path: "settings.choice.repository_order.path", recent: "settings.choice.repository_order.recent" }
   };
-  function settings_choice_label(key2, value, locale) {
-    const label_key = settings_choice_label_keys[key2]?.[value];
+  function settings_choice_label(key3, value, locale) {
+    const label_key = settings_choice_label_keys[key3]?.[value];
     return label_key ? git_graph_text(label_key, {}, locale) : value;
   }
   function settings_choice_labels_for(locale) {
-    return Object.fromEntries(Object.entries(settings_choices).map(([key2, values]) => [
-      key2,
-      Object.fromEntries(values.map((value) => [value, settings_choice_label(key2, value, locale)]))
+    return Object.fromEntries(Object.entries(settings_choices).map(([key3, values]) => [
+      key3,
+      Object.fromEntries(values.map((value) => [value, settings_choice_label(key3, value, locale)]))
     ]));
   }
   var settings_labels = settings_labels_for();
@@ -191722,26 +191934,26 @@ https://creativecommons.org/licenses/by/4.0/
   function validate_settings(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(git_graph_text("settings.error.object_required"));
     const result = structuredClone(graph_defaults);
-    for (const [key2, item] of Object.entries(value)) {
-      if (!Object.hasOwn(graph_defaults, key2)) throw new Error(git_graph_text("settings.error.unknown", { key: key2 }));
-      const expected = graph_defaults[key2];
-      if (typeof expected !== typeof item || Array.isArray(expected) !== Array.isArray(item) || item == null) throw new Error(git_graph_text("settings.error.invalid_type", { key: key2 }));
-      result[key2] = item;
+    for (const [key3, item] of Object.entries(value)) {
+      if (!Object.hasOwn(graph_defaults, key3)) throw new Error(git_graph_text("settings.error.unknown", { key: key3 }));
+      const expected = graph_defaults[key3];
+      if (typeof expected !== typeof item || Array.isArray(expected) !== Array.isArray(item) || item == null) throw new Error(git_graph_text("settings.error.invalid_type", { key: key3 }));
+      result[key3] = item;
     }
-    for (const key2 of ["initial_count", "page_count", "search_depth"]) {
-      if (!Number.isInteger(result[key2]) || result[key2] < (key2 === "search_depth" ? 0 : 1) || result[key2] > (key2 === "search_depth" ? 5 : 2e3)) throw new Error(git_graph_text("settings.error.out_of_range", { key: key2 }));
+    for (const key3 of ["initial_count", "page_count", "search_depth"]) {
+      if (!Number.isInteger(result[key3]) || result[key3] < (key3 === "search_depth" ? 0 : 1) || result[key3] > (key3 === "search_depth" ? 5 : 2e3)) throw new Error(git_graph_text("settings.error.out_of_range", { key: key3 }));
     }
-    for (const [key2, allowed] of Object.entries(settings_choices)) {
-      if (!allowed.includes(String(result[key2]))) throw new Error(git_graph_text("settings.error.invalid_choice", { key: key2 }));
+    for (const [key3, allowed] of Object.entries(settings_choices)) {
+      if (!allowed.includes(String(result[key3]))) throw new Error(git_graph_text("settings.error.invalid_choice", { key: key3 }));
     }
     if (!result.colors.length || result.colors.some((color) => !/^#[a-f\d]{6}$/iu.test(color))) throw new Error(git_graph_text("settings.error.invalid_colors"));
     if (result.branch_globs.some((item) => !item || typeof item.name !== "string" || typeof item.glob !== "string")) throw new Error(git_graph_text("settings.error.invalid_branch_globs"));
     validate_history_shortcuts(result.history_shortcuts);
     if (result.history_toolbar_hidden.some((id) => !HISTORY_ACTION_IDS.includes(id))) throw new Error(git_graph_text("scm.invalid_toolbar"));
-    for (const key2 of ["hidden_actions", "on_load_branches"]) if (result[key2].some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.text_array", { key: key2 }));
+    for (const key3 of ["hidden_actions", "on_load_branches"]) if (result[key3].some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.text_array", { key: key3 }));
     for (const map of [result.emoji, result.shortcuts]) if (Object.values(map).some((item) => typeof item !== "string")) throw new Error(git_graph_text("settings.error.string_maps"));
-    for (const key2 of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key2)) throw new Error(git_graph_text("settings.error.missing_shortcut", { key: key2 }));
-    for (const key2 of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key2)) throw new Error(git_graph_text("settings.error.missing_column_width", { key: key2 }));
+    for (const key3 of Object.keys(graph_defaults.shortcuts)) if (!Object.hasOwn(result.shortcuts, key3)) throw new Error(git_graph_text("settings.error.missing_shortcut", { key: key3 }));
+    for (const key3 of Object.keys(graph_defaults.column_widths)) if (!Object.hasOwn(result.column_widths, key3)) throw new Error(git_graph_text("settings.error.missing_column_width", { key: key3 }));
     for (const item of Object.values(result.dialog_defaults)) if (!item || typeof item !== "object" || Array.isArray(item) || Object.values(item).some((value2) => typeof value2 !== "string" && typeof value2 !== "boolean")) throw new Error(git_graph_text("settings.error.invalid_dialog_defaults"));
     const actions = graph_actions_for();
     for (const [id, values] of Object.entries(result.dialog_defaults)) {
@@ -191753,7 +191965,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     for (const width2 of Object.values(result.column_widths)) if (!Number.isFinite(width2) || width2 < 40 || width2 > 1500) throw new Error(git_graph_text("settings.error.invalid_column_width"));
     validate_pull_request_providers(result.pr_providers);
-    if (Object.keys(pull_request_defaults).some((key2) => typeof result.pr_config[key2] !== "string")) throw new Error("PR integration fields must be strings.");
+    if (Object.keys(pull_request_defaults).some((key3) => typeof result.pr_config[key3] !== "string")) throw new Error("PR integration fields must be strings.");
     try {
       new TextDecoder(result.encoding);
     } catch {
@@ -191769,9 +191981,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function load_graph_settings(storage, root) {
     try {
-      const stored = JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "settings:" + root) || "{}");
-      for (const key2 of RETIRED_GRAPH_SETTING_KEYS) delete stored[key2];
-      return validate_settings(stored);
+      const stored2 = JSON.parse(storage.getItem(GRAPH_SETTINGS_KEY + "settings:" + root) || "{}");
+      for (const key3 of RETIRED_GRAPH_SETTING_KEYS) delete stored2[key3];
+      return validate_settings(stored2);
     } catch {
       return structuredClone(graph_defaults);
     }
@@ -192245,7 +192457,7 @@ https://creativecommons.org/licenses/by/4.0/
     const task = (async () => {
       const candidates = [], env2 = modules.process.env;
       if (configured === "git" && modules.process.platform === "win32") {
-        const path_value = Object.entries(env2).find(([key2]) => key2.toLowerCase() === "path")?.[1] || "";
+        const path_value = Object.entries(env2).find(([key3]) => key3.toLowerCase() === "path")?.[1] || "";
         for (const directory of path_value.split(";")) {
           const base = directory.replace(/^"|"$/gu, "");
           if (/^(?:[a-z]:[\\/]|\\\\)/iu.test(base)) candidates.push(base + "\\git.exe");
@@ -192315,9 +192527,9 @@ https://creativecommons.org/licenses/by/4.0/
     const verify = async (directory) => {
       try {
         const root = (await options2.run(directory, ["rev-parse", "--show-toplevel"])).trim();
-        const key2 = options2.path.normalize(root);
-        if (!known.has(key2)) {
-          known.add(key2);
+        const key3 = options2.path.normalize(root);
+        if (!known.has(key3)) {
+          known.add(key3);
           result.roots.push(root);
         }
       } catch (error) {
@@ -192641,13 +192853,13 @@ https://creativecommons.org/licenses/by/4.0/
   // src/terminal_runtime.ts
   function terminal_environment(source) {
     const result = {};
-    for (const [key2, value] of Object.entries(source)) if (value != null && !/^(?:ELECTRON_RUN_AS_NODE|NODE_OPTIONS|GIT_(?:DIR|WORK_TREE|INDEX_FILE|COMMON_DIR|NAMESPACE))$/iu.test(key2)) result[key2] = value;
+    for (const [key3, value] of Object.entries(source)) if (value != null && !/^(?:ELECTRON_RUN_AS_NODE|NODE_OPTIONS|GIT_(?:DIR|WORK_TREE|INDEX_FILE|COMMON_DIR|NAMESPACE))$/iu.test(key3)) result[key3] = value;
     return { ...result, TERM: "xterm-256color", COLORTERM: "truecolor", TERM_PROGRAM: "Typora" };
   }
   function administrator_launch(root, process_api, path_api) {
     if (process_api.platform !== "win32") throw new Error("\u7BA1\u7406\u5458\u7EC8\u7AEF\u5165\u53E3\u5F53\u524D\u4EC5\u652F\u6301 Windows\u3002");
     if (!root || root.includes("\0")) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u65E0\u6548\u3002");
-    const system_root = Object.entries(process_api.env).find(([key2]) => key2.toLowerCase() === "systemroot")?.[1];
+    const system_root = Object.entries(process_api.env).find(([key3]) => key3.toLowerCase() === "systemroot")?.[1];
     if (typeof system_root !== "string" || !system_root) throw new Error("\u672A\u627E\u5230 Windows \u7CFB\u7EDF\u76EE\u5F55\u3002");
     const powershell = path_api.join(system_root, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
     const quote = (value) => "'" + value.replace(/'/gu, "''") + "'";
@@ -192721,15 +192933,15 @@ https://creativecommons.org/licenses/by/4.0/
     }
     async function stat(file_path) {
       if (disposed || !file_path || file_path.includes("\0")) return null;
-      const key2 = normalize4(file_path);
-      if (scan_stats.has(key2)) return scan_stats.get(key2);
+      const key3 = normalize4(file_path);
+      if (scan_stats.has(key3)) return scan_stats.get(key3);
       if (remaining_time() <= 0) {
         warn("\u90E8\u5206\u5B89\u88C5\u4F4D\u7F6E\u67E5\u8BE2\u8D85\u65F6\uFF0C\u53EF\u91CD\u65B0\u68C0\u6D4B\u3002");
         return null;
       }
       try {
         const result = await bounded(fs2.promises.stat(file_path), null);
-        if (result) scan_stats.set(key2, result);
+        if (result) scan_stats.set(key3, result);
         return result;
       } catch {
         return null;
@@ -192852,7 +193064,7 @@ https://creativecommons.org/licenses/by/4.0/
           for (const folder of ["msys64", "msys32", "msys2"]) add_root(msys_roots, path_api.join(drive + "\\", folder));
           for (const folder of ["cygwin64", "cygwin"]) add_root(cygwin_roots, path_api.join(drive + "\\", folder));
         }
-        for (const key2 of ["msys2_root", "msys_root"]) add_root(msys_roots, env2[key2]);
+        for (const key3 of ["msys2_root", "msys_root"]) add_root(msys_roots, env2[key3]);
         add_root(cygwin_roots, env2.cygwin_root);
         const path_bash = [];
         await map_bounded([...path_entries], async (prefix) => {
@@ -192951,11 +193163,11 @@ https://creativecommons.org/licenses/by/4.0/
       valid.sort((left, right) => left.priority - right.priority || left.executable.localeCompare(right.executable, void 0, { numeric: true }) || left.id.localeCompare(right.id));
       const keys = /* @__PURE__ */ new Set(), ids = /* @__PURE__ */ new Set(), result = [];
       for (const candidate of valid) {
-        const key2 = JSON.stringify([normalize4(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
-        if (keys.has(key2)) continue;
-        keys.add(key2);
+        const key3 = JSON.stringify([normalize4(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
+        if (keys.has(key3)) continue;
+        keys.add(key3);
         const { priority, canonical_path, ...profile } = candidate;
-        if (ids.has(profile.id)) profile.id += "_" + stable_suffix(key2);
+        if (ids.has(profile.id)) profile.id += "_" + stable_suffix(key3);
         ids.add(profile.id);
         result.push(profile);
       }
@@ -193033,9 +193245,9 @@ https://creativecommons.org/licenses/by/4.0/
   function observe_terminal_theme(apply3) {
     let previous = "";
     return observe_workspace_theme(() => {
-      const theme2 = terminal_theme(), key2 = JSON.stringify(theme2);
-      if (key2 !== previous) {
-        previous = key2;
+      const theme2 = terminal_theme(), key3 = JSON.stringify(theme2);
+      if (key3 !== previous) {
+        previous = key3;
         apply3(theme2);
       }
     });
@@ -193093,29 +193305,29 @@ https://creativecommons.org/licenses/by/4.0/
   function environment_map(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("\u73AF\u5883\u53D8\u91CF\u5FC5\u987B\u662F JSON \u5BF9\u8C61\u3002");
     const result = {};
-    for (const [key2, item] of Object.entries(value)) {
-      if (!key2 || /[=\0]/u.test(key2) || !(item === null || typeof item === "string" && !item.includes("\0"))) throw new Error("\u73AF\u5883\u53D8\u91CF\u540D\u79F0\u6216\u503C\u65E0\u6548\uFF1A" + key2);
-      Object.defineProperty(result, key2, { value: item, enumerable: true, writable: true, configurable: true });
+    for (const [key3, item] of Object.entries(value)) {
+      if (!key3 || /[=\0]/u.test(key3) || !(item === null || typeof item === "string" && !item.includes("\0"))) throw new Error("\u73AF\u5883\u53D8\u91CF\u540D\u79F0\u6216\u503C\u65E0\u6548\uFF1A" + key3);
+      Object.defineProperty(result, key3, { value: item, enumerable: true, writable: true, configurable: true });
     }
     return result;
   }
   function validate_terminal_settings(value) {
     if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("\u7EC8\u7AEF\u8BBE\u7F6E\u5FC5\u987B\u662F JSON \u5BF9\u8C61\u3002");
     const candidate = value, result = structuredClone(terminal_defaults);
-    for (const key2 of Object.keys(result)) {
-      if (!(key2 in candidate)) continue;
-      const item = candidate[key2];
-      if (ranges[key2]) {
-        const [min, max, integer] = ranges[key2];
-        if (typeof item !== "number" || !Number.isFinite(item) || item < min || item > max || integer && !Number.isInteger(item)) throw new Error("".concat(key2, " \u5FC5\u987B\u5728 ").concat(min, "\u2013").concat(max, " \u8303\u56F4\u5185\u3002"));
-      } else if (terminal_setting_choices[key2]) {
-        if (!terminal_setting_choices[key2].includes(item)) throw new Error(key2 + " \u7684\u9009\u9879\u65E0\u6548\u3002");
-      } else if (typeof result[key2] === "boolean") {
-        if (typeof item !== "boolean") throw new Error(key2 + " \u5FC5\u987B\u662F\u5E03\u5C14\u503C\u3002");
-      } else if (typeof result[key2] === "string") {
-        if (typeof item !== "string" || item.includes("\0")) throw new Error(key2 + " \u5FC5\u987B\u662F\u6709\u6548\u6587\u672C\u3002");
+    for (const key3 of Object.keys(result)) {
+      if (!(key3 in candidate)) continue;
+      const item = candidate[key3];
+      if (ranges[key3]) {
+        const [min, max, integer] = ranges[key3];
+        if (typeof item !== "number" || !Number.isFinite(item) || item < min || item > max || integer && !Number.isInteger(item)) throw new Error("".concat(key3, " \u5FC5\u987B\u5728 ").concat(min, "\u2013").concat(max, " \u8303\u56F4\u5185\u3002"));
+      } else if (terminal_setting_choices[key3]) {
+        if (!terminal_setting_choices[key3].includes(item)) throw new Error(key3 + " \u7684\u9009\u9879\u65E0\u6548\u3002");
+      } else if (typeof result[key3] === "boolean") {
+        if (typeof item !== "boolean") throw new Error(key3 + " \u5FC5\u987B\u662F\u5E03\u5C14\u503C\u3002");
+      } else if (typeof result[key3] === "string") {
+        if (typeof item !== "string" || item.includes("\0")) throw new Error(key3 + " \u5FC5\u987B\u662F\u6709\u6548\u6587\u672C\u3002");
       }
-      if (key2 !== "profiles" && key2 !== "env") result[key2] = item;
+      if (key3 !== "profiles" && key3 !== "env") result[key3] = item;
     }
     result.env = environment_map(candidate.env ?? {});
     if (candidate.profiles !== void 0) {
@@ -193125,7 +193337,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!item || typeof item.id !== "string" || !item.id.trim() || ids.has(item.id) || typeof item.title !== "string" || !item.title.trim() || typeof item.executable !== "string" || !item.executable.trim() || item.executable.includes("\0")) throw new Error("Shell \u914D\u7F6E\u9700\u8981\u552F\u4E00 id\u3001\u540D\u79F0\u548C\u53EF\u6267\u884C\u6587\u4EF6\u3002");
         ids.add(item.id);
         if (!Array.isArray(item.args) || item.args.some((arg) => typeof arg !== "string" || arg.includes("\0"))) throw new Error(item.title + " \u7684\u53C2\u6570\u5FC5\u987B\u662F\u5B57\u7B26\u4E32\u6570\u7EC4\u3002");
-        for (const key2 of ["cwd", "icon", "color"]) if (item[key2] !== void 0 && typeof item[key2] !== "string") throw new Error(item.title + " \u7684 " + key2 + " \u65E0\u6548\u3002");
+        for (const key3 of ["cwd", "icon", "color"]) if (item[key3] !== void 0 && typeof item[key3] !== "string") throw new Error(item.title + " \u7684 " + key3 + " \u65E0\u6548\u3002");
         if (item.color && !/^#[\da-f]{6}$/iu.test(item.color)) throw new Error("\u914D\u7F6E\u989C\u8272\u5FC5\u987B\u662F #RRGGBB\u3002");
         return { id: item.id, title: item.title, executable: item.executable, args: [...item.args], env: environment_map(item.env ?? {}), cwd: item.cwd || "", icon: item.icon || "terminal", color: item.color || "" };
       });
@@ -193136,8 +193348,8 @@ https://creativecommons.org/licenses/by/4.0/
     let current = structuredClone(terminal_defaults);
     try {
       const data = JSON.parse(storage.getItem(TERMINAL_SETTINGS_KEY) || "{}");
-      for (const key2 of Object.keys(terminal_defaults)) try {
-        current = validate_terminal_settings({ ...current, [key2]: data[key2] ?? current[key2] });
+      for (const key3 of Object.keys(terminal_defaults)) try {
+        current = validate_terminal_settings({ ...current, [key3]: data[key3] ?? current[key3] });
       } catch {
       }
     } catch {
@@ -193183,18 +193395,18 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
   function resolve_terminal_launch(settings, profile, root, process_api, path_api, explicit_cwd = false, literal_profile = false) {
-    const lookup = (name) => Object.entries(process_api.env).find(([key2]) => process_api.platform === "win32" ? key2.toLowerCase() === name.toLowerCase() : key2 === name)?.[1];
-    const expand = (text3) => text3.replace(/\$\{(workspaceFolder|env:[^}]+)\}/gu, (_2, key2) => {
-      const value = key2 === "workspaceFolder" ? root : lookup(key2.slice(4));
-      if (typeof value !== "string") throw new Error("\u65E0\u6CD5\u89E3\u6790\u914D\u7F6E\u53D8\u91CF\uFF1A" + key2);
+    const lookup = (name) => Object.entries(process_api.env).find(([key3]) => process_api.platform === "win32" ? key3.toLowerCase() === name.toLowerCase() : key3 === name)?.[1];
+    const expand = (text3) => text3.replace(/\$\{(workspaceFolder|env:[^}]+)\}/gu, (_2, key3) => {
+      const value = key3 === "workspaceFolder" ? root : lookup(key3.slice(4));
+      if (typeof value !== "string") throw new Error("\u65E0\u6CD5\u89E3\u6790\u914D\u7F6E\u53D8\u91CF\uFF1A" + key3);
       return value;
     });
     const cwd2 = explicit_cwd ? root : expand(profile.cwd || settings.cwd || root);
     const env2 = terminal_environment(process_api.env);
-    for (const [key2, value] of Object.entries({ ...settings.env, ...profile.env })) {
-      const existing = Object.keys(env2).find((name) => process_api.platform === "win32" ? name.toLowerCase() === key2.toLowerCase() : name === key2);
+    for (const [key3, value] of Object.entries({ ...settings.env, ...profile.env })) {
+      const existing = Object.keys(env2).find((name) => process_api.platform === "win32" ? name.toLowerCase() === key3.toLowerCase() : name === key3);
       if (existing) delete env2[existing];
-      if (value !== null) Object.defineProperty(env2, key2, { value: expand(value), enumerable: true, writable: true, configurable: true });
+      if (value !== null) Object.defineProperty(env2, key3, { value: expand(value), enumerable: true, writable: true, configurable: true });
     }
     const resolved_cwd = path_api.isAbsolute(cwd2) ? cwd2 : path_api.resolve(root, cwd2);
     const args = profile.args.map((value) => literal_profile ? value : expand(value));
@@ -193235,14 +193447,14 @@ https://creativecommons.org/licenses/by/4.0/
     filter.placeholder = "\u641C\u7D22\u7EC8\u7AEF\u8BBE\u7F6E";
     filter.setAttribute("aria-label", "\u641C\u7D22\u7EC8\u7AEF\u8BBE\u7F6E");
     const current = store.get(), inputs = /* @__PURE__ */ new Map();
-    const row = (key2, label, control, help = "") => {
-      control.dataset.setting = key2;
+    const row = (key3, label, control, help = "") => {
+      control.dataset.setting = key3;
       control.setAttribute("aria-label", label);
       const label_node = workspace_element("label", "terminal-setting", label);
       label_node.append(control);
       if (help) label_node.append(workspace_element("small", "", help));
       form.append(label_node);
-      inputs.set(key2, control);
+      inputs.set(key3, control);
     };
     const profile = workspace_element("select"), detection_status = workspace_element("small");
     detection_status.setAttribute("role", "status");
@@ -193267,16 +193479,16 @@ https://creativecommons.org/licenses/by/4.0/
       });
     });
     profile.parentElement?.append(detect, detection_status);
-    for (const [key2, label, min, max, step] of [["font_size", "\u5B57\u4F53\u5927\u5C0F", 6, 100, 1], ["line_height", "\u884C\u9AD8\u500D\u6570", 1, 3, 0.1], ["letter_spacing", "\u5B57\u7B26\u95F4\u8DDD", -5, 10, 0.1], ["cursor_width", "\u5149\u6807\u5BBD\u5EA6", 1, 10, 1], ["scrollback", "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", 0, 1e5, 1], ["scroll_sensitivity", "\u6EDA\u8F6E\u901F\u5EA6", 0.1, 20, 0.1], ["fast_scroll_sensitivity", "Alt \u6EDA\u8F6E\u500D\u901F", 1, 20, 1], ["minimum_contrast", "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", 1, 21, 0.5], ["tab_stop_width", "\u5236\u8868\u7B26\u5BBD\u5EA6", 1, 32, 1]]) {
+    for (const [key3, label, min, max, step] of [["font_size", "\u5B57\u4F53\u5927\u5C0F", 6, 100, 1], ["line_height", "\u884C\u9AD8\u500D\u6570", 1, 3, 0.1], ["letter_spacing", "\u5B57\u7B26\u95F4\u8DDD", -5, 10, 0.1], ["cursor_width", "\u5149\u6807\u5BBD\u5EA6", 1, 10, 1], ["scrollback", "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", 0, 1e5, 1], ["scroll_sensitivity", "\u6EDA\u8F6E\u901F\u5EA6", 0.1, 20, 0.1], ["fast_scroll_sensitivity", "Alt \u6EDA\u8F6E\u500D\u901F", 1, 20, 1], ["minimum_contrast", "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", 1, 21, 0.5], ["tab_stop_width", "\u5236\u8868\u7B26\u5BBD\u5EA6", 1, 32, 1]]) {
       const input = workspace_element("input");
       input.type = "number";
       input.min = String(min);
       input.max = String(max);
       input.step = String(step);
-      input.value = String(current[key2]);
-      row(key2, label, input);
+      input.value = String(current[key3]);
+      row(key3, label, input);
     }
-    for (const [key2, label, values] of [
+    for (const [key3, label, values] of [
       ["location", "\u9ED8\u8BA4\u7EC8\u7AEF\u4F4D\u7F6E", [["panel", "\u5E95\u90E8\u9762\u677F"], ["editor", "\u7F16\u8F91\u5668\u6807\u7B7E"]]],
       ["font_weight", "\u5B57\u91CD", [["normal", "\u6B63\u5E38"], ["bold", "\u7C97\u4F53"]]],
       ["cursor_style", "\u5149\u6807\u6837\u5F0F", [["block", "\u65B9\u5757"], ["bar", "\u7AD6\u7EBF"], ["underline", "\u4E0B\u5212\u7EBF"]]],
@@ -193287,26 +193499,26 @@ https://creativecommons.org/licenses/by/4.0/
     ]) {
       const control = workspace_element("select");
       for (const [value, title] of values) control.append(workspace_option(value, title));
-      control.value = current[key2];
-      row(key2, label, control);
+      control.value = current[key3];
+      row(key3, label, control);
     }
-    for (const [key2, label] of [["cursor_blink", "\u5149\u6807\u95EA\u70C1"], ["smooth_scrolling", "\u5E73\u6ED1\u6EDA\u52A8"], ["copy_on_selection", "\u9009\u4E2D\u5373\u590D\u5236"], ["confirm_multiline", "\u7C98\u8D34\u591A\u884C\u524D\u786E\u8BA4"]]) {
+    for (const [key3, label] of [["cursor_blink", "\u5149\u6807\u95EA\u70C1"], ["smooth_scrolling", "\u5E73\u6ED1\u6EDA\u52A8"], ["copy_on_selection", "\u9009\u4E2D\u5373\u590D\u5236"], ["confirm_multiline", "\u7C98\u8D34\u591A\u884C\u524D\u786E\u8BA4"]]) {
       const control = workspace_element("input");
       control.type = "checkbox";
-      control.checked = current[key2];
-      row(key2, label, control);
+      control.checked = current[key3];
+      row(key3, label, control);
     }
-    for (const [key2, label] of [["font_family", "\u5B57\u4F53\u7CFB\u5217"], ["cwd", "\u9ED8\u8BA4\u5DE5\u4F5C\u76EE\u5F55"]]) {
+    for (const [key3, label] of [["font_family", "\u5B57\u4F53\u7CFB\u5217"], ["cwd", "\u9ED8\u8BA4\u5DE5\u4F5C\u76EE\u5F55"]]) {
       const control = workspace_element("input");
-      control.value = current[key2];
-      row(key2, label, control, key2 === "cwd" ? "\u7559\u7A7A\u4F7F\u7528\u5F53\u524D\u5DE5\u4F5C\u533A\uFF1B\u76F8\u5BF9\u8DEF\u5F84\u4EE5\u5DE5\u4F5C\u533A\u6839\u76EE\u5F55\u4E3A\u8D77\u70B9\u3002\u652F\u6301 ${workspaceFolder} \u4E0E ${env:\u53D8\u91CF\u540D}\u3002" : "");
+      control.value = current[key3];
+      row(key3, label, control, key3 === "cwd" ? "\u7559\u7A7A\u4F7F\u7528\u5F53\u524D\u5DE5\u4F5C\u533A\uFF1B\u76F8\u5BF9\u8DEF\u5F84\u4EE5\u5DE5\u4F5C\u533A\u6839\u76EE\u5F55\u4E3A\u8D77\u70B9\u3002\u652F\u6301 ${workspaceFolder} \u4E0E ${env:\u53D8\u91CF\u540D}\u3002" : "");
     }
-    for (const [key2, label, help] of [["env", "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", "\u5B57\u7B26\u4E32\u8BBE\u7F6E\u53D8\u91CF\uFF0Cnull \u5220\u9664\u53D8\u91CF\uFF1B\u66F4\u6539\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u540E\u751F\u6548\u3002"], ["profiles", "\u81EA\u5B9A\u4E49 Shell \u914D\u7F6E\uFF08JSON\uFF09", "\u6BCF\u9879\u5305\u542B id\u3001title\u3001executable\u3001args\uFF0C\u53EF\u9644 cwd\u3001env\u3001icon\u3001color\u3002\u76F8\u540C id \u8986\u76D6\u81EA\u52A8\u68C0\u6D4B\u914D\u7F6E\u3002"]]) {
+    for (const [key3, label, help] of [["env", "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", "\u5B57\u7B26\u4E32\u8BBE\u7F6E\u53D8\u91CF\uFF0Cnull \u5220\u9664\u53D8\u91CF\uFF1B\u66F4\u6539\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u540E\u751F\u6548\u3002"], ["profiles", "\u81EA\u5B9A\u4E49 Shell \u914D\u7F6E\uFF08JSON\uFF09", "\u6BCF\u9879\u5305\u542B id\u3001title\u3001executable\u3001args\uFF0C\u53EF\u9644 cwd\u3001env\u3001icon\u3001color\u3002\u76F8\u540C id \u8986\u76D6\u81EA\u52A8\u68C0\u6D4B\u914D\u7F6E\u3002"]]) {
       const control = workspace_element("textarea");
-      control.rows = key2 === "profiles" ? 10 : 4;
-      control.value = JSON.stringify(current[key2], null, 2);
+      control.rows = key3 === "profiles" ? 10 : 4;
+      control.value = JSON.stringify(current[key3], null, 2);
       control.spellcheck = false;
-      row(key2, label, control, help);
+      row(key3, label, control, help);
     }
     const example = workspace_element("details", "terminal-profile-example"), summary = workspace_element("summary", "", "\u914D\u7F6E\u793A\u4F8B");
     example.append(summary, workspace_element("pre", "", JSON.stringify({ id: "project_shell", title: "\u9879\u76EE Shell", executable: "${env:SystemRoot}/System32/WindowsPowerShell/v1.0/powershell.exe", args: ["-NoLogo"], cwd: "${workspaceFolder}", env: { PROJECT_MODE: "dev" }, icon: "terminal", color: "#007ACC" }, null, 2)));
@@ -193319,7 +193531,7 @@ https://creativecommons.org/licenses/by/4.0/
     dialog2.footer.prepend(workspace_button("\u5E94\u7528", () => {
       try {
         const result = { ...current };
-        for (const [key2, input] of inputs) result[key2] = input instanceof HTMLTextAreaElement ? JSON.parse(input.value) : input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input instanceof HTMLInputElement && input.type === "number" ? Number(input.value) : input.value;
+        for (const [key3, input] of inputs) result[key3] = input instanceof HTMLTextAreaElement ? JSON.parse(input.value) : input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input instanceof HTMLInputElement && input.type === "number" ? Number(input.value) : input.value;
         store.update(result);
         dialog2.close();
       } catch (failure2) {
@@ -204442,8 +204654,8 @@ https://creativecommons.org/licenses/by/4.0/
     let prefix = "", composing = false, timer = 0;
     const input_parent = textarea.parentElement;
     if (input_parent) lifetime.listen(input_parent, "keydown", (event) => {
-      const key2 = event;
-      if (event.target === textarea && !composing && !key2.isComposing && key2.keyCode !== 229 && !key2.ctrlKey && !key2.altKey && !key2.metaKey && !key2.getModifierState("AltGraph") && (key2.key === "Shift" || key2.keyCode === 16)) event.stopPropagation();
+      const key3 = event;
+      if (event.target === textarea && !composing && !key3.isComposing && key3.keyCode !== 229 && !key3.ctrlKey && !key3.altKey && !key3.metaKey && !key3.getModifierState("AltGraph") && (key3.key === "Shift" || key3.keyCode === 16)) event.stopPropagation();
     }, true);
     let pending;
     const normalize4 = (record) => {
@@ -204521,10 +204733,10 @@ https://creativecommons.org/licenses/by/4.0/
           count.textContent = "\u8868\u8FBE\u5F0F\u65E0\u6548";
         }
       };
-      const toggles = [["case-sensitive", "\u533A\u5206\u5927\u5C0F\u5199", "caseSensitive"], ["whole-word", "\u5168\u5B57\u5339\u914D", "wholeWord"], ["regex", "\u6B63\u5219\u8868\u8FBE\u5F0F", "regex"]].map(([icon, title, key2]) => {
+      const toggles = [["case-sensitive", "\u533A\u5206\u5927\u5C0F\u5199", "caseSensitive"], ["whole-word", "\u5168\u5B57\u5339\u914D", "wholeWord"], ["regex", "\u6B63\u5219\u8868\u8FBE\u5F0F", "regex"]].map(([icon, title, key3]) => {
         const control = git_icon_button(icon, title, () => {
-          options2[key2] = !options2[key2];
-          control.setAttribute("aria-pressed", String(options2[key2]));
+          options2[key3] = !options2[key3];
+          control.setAttribute("aria-pressed", String(options2[key3]));
           find();
         });
         control.setAttribute("aria-pressed", "false");
@@ -204554,12 +204766,12 @@ https://creativecommons.org/licenses/by/4.0/
       }));
       this.term.attachCustomKeyEventHandler((event) => {
         if (is_composing_key(event)) return true;
-        const key2 = event.key.toLowerCase(), control = event.ctrlKey || event.metaKey;
-        if (control && (event.shiftKey && ["c", "v", "f"].includes(key2) || key2 === "c" && this.term.hasSelection())) {
+        const key3 = event.key.toLowerCase(), control = event.ctrlKey || event.metaKey;
+        if (control && (event.shiftKey && ["c", "v", "f"].includes(key3) || key3 === "c" && this.term.hasSelection())) {
           if (event.type === "keydown") {
             event.preventDefault();
-            if (key2 === "c") void actions.copy(this.term.getSelection()).catch(actions.error);
-            else if (key2 === "v") void this.paste();
+            if (key3 === "c") void actions.copy(this.term.getSelection()).catch(actions.error);
+            else if (key3 === "v") void this.paste();
             else this.find();
           }
           return false;
@@ -204639,7 +204851,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.resize();
     }
     apply_settings(settings) {
-      if (this.opened && !this.resize_anchor && ["font_family", "font_size", "font_weight", "line_height", "letter_spacing"].some((key2) => settings[key2] !== this.settings[key2])) {
+      if (this.opened && !this.resize_anchor && ["font_family", "font_size", "font_weight", "line_height", "letter_spacing"].some((key3) => settings[key3] !== this.settings[key3])) {
         const buffer = this.term.buffer.active;
         if (buffer.type === "normal") {
           let start = buffer.viewportY;
@@ -204818,7 +205030,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (Number.isFinite(saved) && saved >= 46 && saved <= 500) width2 = saved;
     } catch {
     }
-    const save = () => {
+    const save2 = () => {
       try {
         localStorage.setItem(LIST_WIDTH_KEY, String(width2));
       } catch {
@@ -204834,7 +205046,7 @@ https://creativecommons.org/licenses/by/4.0/
     }, write: (value) => {
       width2 = list_width(value * direction);
       layout2();
-    }, commit: save, reset: () => {
+    }, commit: save2, reset: () => {
       width2 = 120;
       layout2();
     } }));
@@ -204902,7 +205114,7 @@ https://creativecommons.org/licenses/by/4.0/
         const retained = panes.filter((pane) => previous.has(pane.dataset.session)), retained_weight = retained.reduce((sum2, pane) => sum2 + (previous.get(pane.dataset.session) || 0), 0);
         for (const pane of panes) weights.set(pane.dataset.session, previous.has(pane.dataset.session) ? (previous.get(pane.dataset.session) || 0) * retained.length / Math.max(1, panes.length) / Math.max(Number.EPSILON, retained_weight) : 1 / Math.max(1, panes.length));
         const sum = [...weights.values()].reduce((a, b2) => a + b2, 0) || 1;
-        for (const [key2, value] of weights) weights.set(key2, value / sum);
+        for (const [key3, value] of weights) weights.set(key3, value / sum);
         const bindings9 = create_workspace_lifetime();
         group = { node, panes, signature, weights, clear: bindings9.dispose };
         groups.set(id, group);
@@ -205150,15 +205362,15 @@ https://creativecommons.org/licenses/by/4.0/
   var KEY2 = "remote_ssh";
   function validate_remote_ssh_settings(value) {
     const input = value, result = { ...REMOTE_SSH_DEFAULTS };
-    for (const key2 of ["ssh_path", "config_file"]) {
-      const entry = input?.[key2] ?? "";
+    for (const key3 of ["ssh_path", "config_file"]) {
+      const entry = input?.[key3] ?? "";
       if (typeof entry !== "string" || /[\0\r\n]/u.test(entry)) throw Error("SSH\u8DEF\u5F84\u5FC5\u987B\u662F\u5355\u884C\u6587\u672C");
-      result[key2] = entry.trim();
+      result[key3] = entry.trim();
     }
-    for (const [key2, min, max] of [["connect_timeout", 1, 300], ["server_alive_interval", 0, 300], ["server_alive_count", 1, 10], ["request_timeout", 16, 300], ["refresh_interval", 0, 300]]) {
-      const entry = input?.[key2] ?? REMOTE_SSH_DEFAULTS[key2];
-      if (typeof entry !== "number" || !Number.isInteger(entry) || entry < min || entry > max) throw Error("".concat(key2, " \u5FC5\u987B\u4E3A ").concat(min, "\u2013").concat(max, " \u7684\u6574\u6570"));
-      result[key2] = entry;
+    for (const [key3, min, max] of [["connect_timeout", 1, 300], ["server_alive_interval", 0, 300], ["server_alive_count", 1, 10], ["request_timeout", 16, 300], ["refresh_interval", 0, 300]]) {
+      const entry = input?.[key3] ?? REMOTE_SSH_DEFAULTS[key3];
+      if (typeof entry !== "number" || !Number.isInteger(entry) || entry < min || entry > max) throw Error("".concat(key3, " \u5FC5\u987B\u4E3A ").concat(min, "\u2013").concat(max, " \u7684\u6574\u6570"));
+      result[key3] = entry;
     }
     return result;
   }
@@ -205169,11 +205381,11 @@ https://creativecommons.org/licenses/by/4.0/
       return { ...REMOTE_SSH_DEFAULTS };
     }
   }
-  function write_remote_ssh_setting(key2, value) {
-    if (!Object.hasOwn(REMOTE_SSH_DEFAULTS, key2)) throw Error("\u672A\u77E5SSH\u914D\u7F6E\u9879");
+  function write_remote_ssh_setting(key3, value) {
+    if (!Object.hasOwn(REMOTE_SSH_DEFAULTS, key3)) throw Error("\u672A\u77E5SSH\u914D\u7F6E\u9879");
     const settings = get_workspace_app()?.settings;
     if (!settings) throw Error("\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA");
-    settings.set_and_save(KEY2, validate_remote_ssh_settings({ ...read_remote_ssh_settings(), [key2]: value }));
+    settings.set_and_save(KEY2, validate_remote_ssh_settings({ ...read_remote_ssh_settings(), [key3]: value }));
     window.dispatchEvent(new Event("typora-code-ssh-settings-changed"));
   }
 
@@ -205307,7 +205519,7 @@ https://creativecommons.org/licenses/by/4.0/
       const profile_service = lifetime.own(create_terminal_profile_service({ process_api: host.process_api, path_api: host.path_api, fs: host.fs, child_process: runtime2.reqnode("child_process") }));
       const settings = lifetime.own(create_terminal_settings(localStorage, profile_service));
       const setting_titles = { profile: "\u9ED8\u8BA4Shell\u914D\u7F6E", profiles: "\u81EA\u5B9A\u4E49Shell\u914D\u7F6E\uFF08JSON\uFF09", cwd: "\u9ED8\u8BA4\u5DE5\u4F5C\u76EE\u5F55", env: "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", font_family: "\u5B57\u4F53\u7CFB\u5217", font_size: "\u5B57\u4F53\u5927\u5C0F", font_weight: "\u5B57\u91CD", line_height: "\u884C\u9AD8\u500D\u6570", letter_spacing: "\u5B57\u7B26\u95F4\u8DDD", cursor_style: "\u5149\u6807\u6837\u5F0F", cursor_blink: "\u5149\u6807\u95EA\u70C1", cursor_width: "\u5149\u6807\u5BBD\u5EA6", scrollback: "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", smooth_scrolling: "\u5E73\u6ED1\u6EDA\u52A8", scroll_sensitivity: "\u6EDA\u8F6E\u901F\u5EA6", fast_scroll_sensitivity: "Alt\u6EDA\u8F6E\u500D\u901F", minimum_contrast: "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", tab_stop_width: "\u5236\u8868\u7B26\u5BBD\u5EA6", right_click: "\u53F3\u952E\u64CD\u4F5C", copy_on_selection: "\u9009\u4E2D\u5373\u590D\u5236", confirm_multiline: "\u7C98\u8D34\u591A\u884C\u524D\u786E\u8BA4", tabs_location: "\u4F1A\u8BDD\u5217\u8868\u4F4D\u7F6E", tabs_hide: "\u81EA\u52A8\u9690\u85CF\u4F1A\u8BDD\u5217\u8868", split_cwd: "\u62C6\u5206\u540E\u7684\u5DE5\u4F5C\u76EE\u5F55", location: "\u9ED8\u8BA4\u7EC8\u7AEF\u4F4D\u7F6E" };
-      lifetime.add(register_workspace_settings({ id: "terminal", title: "\u7EC8\u7AEF", scope: () => "\u7528\u6237\u8BBE\u7F6E", defaults: terminal_defaults, fields: Object.keys(terminal_defaults).map((key2) => ({ key: key2, title: setting_titles[key2], choices: terminal_setting_choices[key2], description: ["profile", "profiles", "env", "cwd"].includes(key2) ? "Shell\u3001\u73AF\u5883\u4E0E\u521D\u59CB\u76EE\u5F55\u7684\u53D8\u66F4\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u4F1A\u8BDD\u65F6\u751F\u6548\u3002" : void 0 })), read: settings.get, write: (key2, value) => settings.update({ ...settings.get(), [key2]: value }) }));
+      lifetime.add(register_workspace_settings({ id: "terminal", title: "\u7EC8\u7AEF", scope: () => "\u7528\u6237\u8BBE\u7F6E", defaults: terminal_defaults, fields: Object.keys(terminal_defaults).map((key3) => ({ key: key3, title: setting_titles[key3], choices: terminal_setting_choices[key3], description: ["profile", "profiles", "env", "cwd"].includes(key3) ? "Shell\u3001\u73AF\u5883\u4E0E\u521D\u59CB\u76EE\u5F55\u7684\u53D8\u66F4\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u4F1A\u8BDD\u65F6\u751F\u6548\u3002" : void 0 })), read: settings.get, write: (key3, value) => settings.update({ ...settings.get(), [key3]: value }) }));
       lifetime.add(settings.subscribe(notify_workspace_settings));
       const sessions = /* @__PURE__ */ new Map(), groups = /* @__PURE__ */ new Map();
       let serial2 = 0, group_serial = 0, active_id = "", render_frame = 0;
@@ -205965,7 +206177,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_git_runner(modules, options2 = {}) {
     const children = /* @__PURE__ */ new Set();
     const env2 = { ...modules.process.env, LC_ALL: "C", LANG: "C", GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options2.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
-    for (const key2 of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env2[key2];
+    for (const key3 of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env2[key3];
     const execute = (cwd2, args, binary = false, todo = "", input, consume) => {
       const controller = new AbortController(), job = { kill() {
         controller.abort();
@@ -206581,9 +206793,9 @@ https://creativecommons.org/licenses/by/4.0/
         }, group, previous_parent);
         reader.reveal_fragment(fragment);
       },
-      open_panel(title, key2, root, panel, options2 = {}, group = "active", previous_parent) {
+      open_panel(title, key3, root, panel, options2 = {}, group = "active", previous_parent) {
         notify_navigation_selection();
-        const uri = "typ://linux_note.git_document/".concat(encodeURIComponent(root), "/").concat(encodeURIComponent(key2), "/").concat(encodeURIComponent(title));
+        const uri = "typ://linux_note.git_document/".concat(encodeURIComponent(root), "/").concat(encodeURIComponent(key3), "/").concat(encodeURIComponent(title));
         contents.get(uri)?.options.dispose?.();
         contents.set(uri, { panel, options: { ...options2, root } });
         let existing;
@@ -206738,9 +206950,9 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_diff_source.ts
   var git_diff_source_key = (source) => source ? JSON.stringify([source.root, source.from, source.to, source.file, source.old_path || ""]) : "";
   function sync_git_source_rows(root, source) {
-    const key2 = git_diff_source_key(source);
+    const key3 = git_diff_source_key(source);
     for (const row of root.querySelectorAll("[data-git-source]")) {
-      const selected = !!key2 && row.dataset.gitSource === key2;
+      const selected = !!key3 && row.dataset.gitSource === key3;
       row.classList.toggle("selected", selected);
       row.dataset.gitSourceSelected = String(selected);
       if (selected) row.setAttribute("aria-current", "true");
@@ -206758,15 +206970,15 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
   function acquire_git_repository_operation(owner2, root, normalize4) {
-    const key2 = normalize4(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
-    if (active2.has(key2)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
+    const key3 = normalize4(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
+    if (active2.has(key3)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
     repository_operations.set(owner2, active2);
-    active2.add(key2);
+    active2.add(key3);
     let released = false;
     return () => {
       if (!released) {
         released = true;
-        active2.delete(key2);
+        active2.delete(key3);
         if (!active2.size) repository_operations.delete(owner2);
       }
     };
@@ -207171,7 +207383,7 @@ https://creativecommons.org/licenses/by/4.0/
       return result;
     };
     const paint = () => {
-      for (const [key2, width2] of Object.entries(options2.widths)) options2.container.style.setProperty("--git-".concat(key2, "-width"), width2 + "px");
+      for (const [key3, width2] of Object.entries(options2.widths)) options2.container.style.setProperty("--git-".concat(key3, "-width"), width2 + "px");
       handles.forEach((handle, index) => {
         const left = options2.columns[index], right = options2.columns[index + 1], left_width = left.node.getBoundingClientRect().width, right_width = right.node.getBoundingClientRect().width;
         if (left_width <= 0 || right_width <= 0) return;
@@ -207185,8 +207397,8 @@ https://creativecommons.org/licenses/by/4.0/
       Object.assign(options2.widths, before);
       paint();
     };
-    const save = (before) => {
-      if (Object.keys(before).every((key2) => before[key2] === options2.widths[key2])) return;
+    const save2 = (before) => {
+      if (Object.keys(before).every((key3) => before[key3] === options2.widths[key3])) return;
       try {
         options2.save();
       } catch (error) {
@@ -207200,7 +207412,7 @@ https://creativecommons.org/licenses/by/4.0/
       active2 = void 0;
       drag.handle.classList.remove("dragging");
       if (drag.handle.hasPointerCapture(drag.pointer)) drag.handle.releasePointerCapture(drag.pointer);
-      if (commit) save(drag.before);
+      if (commit) save2(drag.before);
       else restore(drag.before);
     };
     const cancel = () => finish(false);
@@ -207246,7 +207458,7 @@ https://creativecommons.org/licenses/by/4.0/
         event.stopPropagation();
         const before = { ...options2.widths };
         apply3(left, right, left.node.getBoundingClientRect().width, right.node.getBoundingClientRect().width, (event.key === "ArrowLeft" ? -1 : 1) * (event.shiftKey ? 50 : 10), before);
-        save(before);
+        save2(before);
       };
       handle.onfocus = paint;
       left.node.append(handle);
@@ -207615,8 +207827,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function rebase_setting(state) {
     const branch_key = "branch.".concat(state.branch, ".rebase");
-    const key2 = state.config.has(branch_key) ? branch_key : "pull.rebase";
-    return state.config.has(key2) ? git_network_config(state, key2) || "false" : "";
+    const key3 = state.config.has(branch_key) ? branch_key : "pull.rebase";
+    return state.config.has(key3) ? git_network_config(state, key3) || "false" : "";
   }
   function pull_mode(state, settings, id) {
     const configured = rebase_setting(state);
@@ -208241,10 +208453,10 @@ https://creativecommons.org/licenses/by/4.0/
       const dialog2 = form(git_graph_text("pr.configure_second"));
       const fields = [["host", "pr.host"], ["source_owner", "pr.source_owner"], ["source_repository", "pr.source_repository"], ["destination_owner", "pr.target_owner"], ["destination_repository", "pr.target_repository"], ["destination_project", "pr.target_project"], ["destination_branch", "pr.target_branch"]];
       const inputs = /* @__PURE__ */ new Map();
-      for (const [key2, label] of fields) {
+      for (const [key3, label] of fields) {
         const input = workspace_element("input");
-        input.value = candidate[key2];
-        inputs.set(key2, input);
+        input.value = candidate[key3];
+        inputs.set(key3, input);
         row(dialog2.content, git_graph_text(label), input);
       }
       const error = workspace_element("p");
@@ -208254,7 +208466,7 @@ https://creativecommons.org/licenses/by/4.0/
         step_one();
       }), workspace_button(git_graph_text("pr.save"), () => {
         try {
-          for (const [key2, input] of inputs) candidate[key2] = input.value.trim();
+          for (const [key3, input] of inputs) candidate[key3] = input.value.trim();
           create_pull_request_url(candidate, branch || "HEAD", panel.settings.pr_providers);
           Object.assign(config, candidate);
           panel.settings.pr_config = structuredClone(config);
@@ -208802,10 +209014,10 @@ https://creativecommons.org/licenses/by/4.0/
     context_menu(event, id) {
       const panel = this.history.owner.panel, root = panel.root, runner = panel.runner;
       const valid = () => !panel.disposed && root === panel.root && runner === panel.runner;
-      const toggle = (key2) => {
+      const toggle = (key3) => {
         if (!valid()) return;
         const hidden = panel.settings.history_toolbar_hidden;
-        panel.settings.history_toolbar_hidden = hidden.includes(key2) ? hidden.filter((value) => value !== key2) : [...hidden, key2];
+        panel.settings.history_toolbar_hidden = hidden.includes(key3) ? hidden.filter((value) => value !== key3) : [...hidden, key3];
         panel.persist_settings();
         this.update();
       };
@@ -208816,7 +209028,7 @@ https://creativecommons.org/licenses/by/4.0/
         { id: "hide_action", title: id ? git_graph_text("scm.hide_action", { name: this.title(id) }) : git_graph_text("scm.hide"), disabled: !id, action: () => {
           if (id) toggle(id);
         } },
-        ...HISTORY_ACTION_IDS.map((key2, index) => ({ id: "toggle_" + key2, title: this.title(key2), separator: index === 0, checked: !panel.settings.history_toolbar_hidden?.includes(key2), action: () => toggle(key2) })),
+        ...HISTORY_ACTION_IDS.map((key3, index) => ({ id: "toggle_" + key3, title: this.title(key3), separator: index === 0, checked: !panel.settings.history_toolbar_hidden?.includes(key3), action: () => toggle(key3) })),
         { id: "restore_toolbar", title: git_graph_text("scm.restore_toolbar"), separator: true, disabled: !panel.settings.history_toolbar_hidden?.length, action: () => {
           if (valid()) {
             panel.settings.history_toolbar_hidden = [];
@@ -209013,7 +209225,7 @@ https://creativecommons.org/licenses/by/4.0/
       tip.style.maxWidth = "";
       tip.style.maxHeight = "";
       const natural = tip.getBoundingClientRect(), style2 = getComputedStyle(tip);
-      const pixels = (key2) => parseFloat(style2.getPropertyValue(key2)) || 0;
+      const pixels = (key3) => parseFloat(style2.getPropertyValue(key3)) || 0;
       const min_width = pixels("padding-left") + pixels("padding-right") + pixels("border-left-width") + pixels("border-right-width") + pixels("font-size");
       const min_height = pixels("padding-top") + pixels("padding-bottom") + pixels("border-top-width") + pixels("border-bottom-width") + pixels("line-height");
       const areas = [
@@ -209237,13 +209449,13 @@ https://creativecommons.org/licenses/by/4.0/
         tip.append(heading3, message, stats);
         if (labels.childNodes.length) tip.append(labels);
         tip.append(commands);
-        const key2 = state.root + "\0" + commit.hash;
+        const key3 = state.root + "\0" + commit.hash;
         const apply3 = (detail) => {
           if (signal.aborted || panel.root !== state.root) return;
           render_message(detail.message || commit.subject);
           stats.replaceChildren(workspace_element("span", "", git_graph_text("history.stats_files", { count: detail.files })), workspace_element("span", "git-commit-hover-added", "+" + detail.insertions), workspace_element("span", "git-commit-hover-deleted", "\u2212" + detail.deletions));
         };
-        const cached = cache.get(key2);
+        const cached = cache.get(key3);
         if (cached) {
           apply3(cached);
           return;
@@ -209251,7 +209463,7 @@ https://creativecommons.org/licenses/by/4.0/
         void read_commit_hover_detail(panel.runner.run, state, commit).then((detail) => {
           if (signal.aborted || panel.root !== state.root) return;
           if (cache.size >= 128) cache.delete(cache.keys().next().value);
-          cache.set(key2, detail);
+          cache.set(key3, detail);
           apply3(detail);
         }).catch(() => {
           if (!signal.aborted) stats.textContent = git_graph_text("history.stats_unavailable");
@@ -209545,15 +209757,16 @@ https://creativecommons.org/licenses/by/4.0/
         const parts = path.split("/");
         const parent = parent_for(parts.slice(0, -1).join("/"));
         const directory = workspace_element("details", "git-scm-history-directory");
-        const key2 = commit.hash + ":" + path;
-        directory.open = !this.collapsed_directories.has(key2);
+        directory.style.setProperty("--git-history-indent", parts.length * 8 + "px");
+        const key3 = commit.hash + ":" + path;
+        directory.open = !this.collapsed_directories.has(key3);
         directory.setAttribute("data-history-directory", path);
         const heading3 = workspace_element("summary", "", parts.at(-1));
         heading3.prepend(git_disclosure());
         directory.append(heading3);
         directory.ontoggle = () => {
-          if (directory.open) this.collapsed_directories.delete(key2);
-          else this.collapsed_directories.add(key2);
+          if (directory.open) this.collapsed_directories.delete(key3);
+          else this.collapsed_directories.add(key3);
         };
         parent.append(directory);
         directories.set(path, directory);
@@ -209590,13 +209803,13 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const collator = new Intl.Collator(), sorted = [...files].sort((a, b2) => collator.compare(a.path, b2.path));
       if (sorted.length > 200) {
-        const collapsed2 = new Set([...this.collapsed_directories].filter((key2) => key2.startsWith(commit.hash + ":")).map((key2) => key2.slice(commit.hash.length + 1)));
+        const collapsed2 = new Set([...this.collapsed_directories].filter((key3) => key3.startsWith(commit.hash + ":")).map((key3) => key3.slice(commit.hash.length + 1)));
         const entries3 = () => this.owner.history_tree ? workspace_tree_rows(sorted, (file) => file.path, collapsed2) : sorted.map((item) => ({ item, depth: 0, directory: void 0 }));
         const list3 = create_workspace_virtual_list({ root: target, scroller: this.list, items: entries3(), row_height: 22, render: (item) => {
           if (item.item) {
             const wrapper = create_row(item.item);
             wrapper.tabIndex = 0;
-            wrapper.style.paddingLeft = item.depth * 12 + "px";
+            wrapper.style.setProperty("--git-history-indent", item.depth * 8 + "px");
             const row2 = wrapper.querySelector(".git-scm-history-file");
             row2.tabIndex = -1;
             wrapper.onkeydown = (event) => {
@@ -209607,19 +209820,19 @@ https://creativecommons.org/licenses/by/4.0/
             };
             return wrapper;
           }
-          const directory = item.directory, key2 = commit.hash + ":" + directory;
+          const directory = item.directory, key3 = commit.hash + ":" + directory;
           const row = workspace_button(directory.split("/").at(-1), () => {
             if (collapsed2.has(directory)) {
               collapsed2.delete(directory);
-              this.collapsed_directories.delete(key2);
+              this.collapsed_directories.delete(key3);
             } else {
               collapsed2.add(directory);
-              this.collapsed_directories.add(key2);
+              this.collapsed_directories.add(key3);
             }
             list3.set_items(entries3());
           }, "git-scm-virtual-directory");
           row.prepend(git_icon(collapsed2.has(directory) ? "chevron-right" : "chevron-down"));
-          row.style.paddingLeft = item.depth * 12 + "px";
+          row.style.setProperty("--git-history-indent", item.depth * 8 + "px");
           row.setAttribute("aria-expanded", String(!collapsed2.has(directory)));
           return row;
         } });
@@ -209645,7 +209858,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.files_cache.set(commit.hash, files);
       this.comparison_from.set(commit.hash, source.from);
       this.selected = commit.hash;
-      for (const key2 of [...this.collapsed_directories]) if (key2.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key2);
+      for (const key3 of [...this.collapsed_directories]) if (key3.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key3);
       this.owner.history_open = true;
       this.owner.show_history = true;
       this.owner.apply_history_layout();
@@ -209989,16 +210202,16 @@ https://creativecommons.org/licenses/by/4.0/
     }
     view_menu(event, current) {
       const views = [["show_repositories", git_graph_text("scm.repositories")], ["show_changes", git_graph_text("scm.changes")], ["show_history", git_graph_text("scm.graph")]];
-      const count = views.filter(([key2]) => this[key2]).length;
+      const count = views.filter(([key3]) => this[key3]).length;
       const root = this.panel.root, runner = this.panel.runner;
-      const entries3 = views.map(([key2, title]) => ({ id: key2, title, checked: this[key2], disabled: count === 1 && this[key2], action: () => {
+      const entries3 = views.map(([key3, title]) => ({ id: key3, title, checked: this[key3], disabled: count === 1 && this[key3], action: () => {
         if (root !== this.panel.root || runner !== this.panel.runner || this.panel.disposed) return;
-        this[key2] = !this[key2];
+        this[key3] = !this[key3];
         this.apply_history_layout();
         this.save_layout();
         if (this.show_repositories) this.repositories.refresh();
       } }));
-      if (current) entries3.unshift({ id: "hide_section", title: git_graph_text("scm.hide_action", { name: views.find(([key2]) => key2 === current)[1] }), disabled: count === 1, action: () => {
+      if (current) entries3.unshift({ id: "hide_section", title: git_graph_text("scm.hide_action", { name: views.find(([key3]) => key3 === current)[1] }), disabled: count === 1, action: () => {
         if (root !== this.panel.root || runner !== this.panel.runner || this.panel.disposed) return;
         this[current] = false;
         this.apply_history_layout();
@@ -210216,10 +210429,10 @@ https://creativecommons.org/licenses/by/4.0/
               if (this.tree) row2.style.paddingLeft = item.depth * 12 + "px";
               return row2;
             }
-            const key2 = item.directory, collapsed2 = this.collapsed_directories.has(key2);
+            const key3 = item.directory, collapsed2 = this.collapsed_directories.has(key3);
             const row = workspace_button(item.directory.split("/").at(-1), () => {
-              if (this.collapsed_directories.has(key2)) this.collapsed_directories.delete(key2);
-              else this.collapsed_directories.add(key2);
+              if (this.collapsed_directories.has(key3)) this.collapsed_directories.delete(key3);
+              else this.collapsed_directories.add(key3);
               list3.set_items(entries3());
             }, "git-scm-virtual-directory");
             row.prepend(git_icon(collapsed2 ? "chevron-right" : "chevron-down"));
@@ -232605,8 +232818,8 @@ https://creativecommons.org/licenses/by/4.0/
   var revision_label = (revision) => revision === WORKTREE ? git_graph_text("graph.revision.worktree") : revision === INDEX ? git_graph_text("graph.revision.index") : revision === EMPTY ? git_graph_text("graph.revision.empty") : revision;
   var short_revision_label = (revision) => revision === WORKTREE || revision === INDEX || revision === EMPTY ? revision_label(revision) : revision.slice(0, 8);
   var operation_label = (operation) => {
-    const key2 = { merge: "graph.operation.merge", rebase: "graph.operation.rebase", "cherry-pick": "graph.operation.cherry_pick", revert: "graph.operation.revert" }[operation];
-    return key2 ? git_graph_text(key2) : operation;
+    const key3 = { merge: "graph.operation.merge", rebase: "graph.operation.rebase", "cherry-pick": "graph.operation.cherry_pick", revert: "graph.operation.revert" }[operation];
+    return key3 ? git_graph_text(key3) : operation;
   };
   var target_kind_label = (kind) => git_graph_text({
     repository: "graph.target.repository",
@@ -232697,7 +232910,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       });
       this.key_handler = (event) => this.keydown(event);
-      this.release_settings = register_workspace_settings({ id: "git_" + ++settings_serial, title: "Git", scope: () => "\u4ED3\u5E93\uFF1A".concat(this.root), defaults: graph_defaults, fields: Object.keys(graph_defaults).map((key2) => ({ key: key2, title: settings_labels_for()[key2], choices: settings_choices[key2] })), read: () => ({ ...this.settings }), write: (key2, value) => this.apply_settings(validate_settings({ ...this.settings, [key2]: value }), this.root) });
+      this.release_settings = register_workspace_settings({ id: "git_" + ++settings_serial, title: "Git", scope: () => "\u4ED3\u5E93\uFF1A".concat(this.root), defaults: graph_defaults, fields: Object.keys(graph_defaults).map((key3) => ({ key: key3, title: settings_labels_for()[key3], choices: settings_choices[key3] })), read: () => ({ ...this.settings }), write: (key3, value) => this.apply_settings(validate_settings({ ...this.settings, [key3]: value }), this.root) });
     }
     release_settings = () => {
     };
@@ -232854,10 +233067,10 @@ https://creativecommons.org/licenses/by/4.0/
       const found = /* @__PURE__ */ new Set();
       return repos.filter((root) => {
         if (typeof root !== "string" || !root || !this.resources.accepts(root)) return false;
-        let key2 = this.host.path_api.normalize(root);
-        if (this.host.path_api.sep === "\\") key2 = key2.toLowerCase();
-        if (found.has(key2)) return false;
-        found.add(key2);
+        let key3 = this.host.path_api.normalize(root);
+        if (this.host.path_api.sep === "\\") key3 = key3.toLowerCase();
+        if (found.has(key3)) return false;
+        found.add(key3);
         return true;
       });
     }
@@ -232989,7 +233202,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.workbench.message.value = "";
         }
         if (!this.loaded) {
-          const stored = load_graph_settings(localStorage, state.root);
+          const stored2 = load_graph_settings(localStorage, state.root);
           const config_path = this.host.path_api.join(state.root, ".typora_git_graph.json");
           if (!localStorage.getItem(GRAPH_SETTINGS_KEY + "settings:" + state.root)) {
             const info = await this.host.fs.promises.stat(config_path).catch((error) => {
@@ -233000,16 +233213,16 @@ https://creativecommons.org/licenses/by/4.0/
             if (info && info.size < 1e5) {
               const imported = validate_settings(JSON.parse(await this.host.fs.promises.readFile(config_path, "utf8")));
               if (epoch2 !== this.epoch) return;
-              Object.assign(stored, imported, { git_path: stored.git_path, terminal_shell: stored.terminal_shell, fetch_avatars: stored.fetch_avatars });
+              Object.assign(stored2, imported, { git_path: stored2.git_path, terminal_shell: stored2.terminal_shell, fetch_avatars: stored2.fetch_avatars });
             }
           }
-          if (JSON.stringify(stored) !== JSON.stringify(this.settings)) {
-            this.settings = stored;
-            this.count = stored.initial_count;
-            this.runner = this.host.runner(stored);
-            this.writer = this.host.runner(stored, true);
-            this.branches = stored.on_load_branch ? ["HEAD"] : [...stored.on_load_branches];
-            state = await read_repository(this.runner.run, state.root, stored, this.count, this.branches);
+          if (JSON.stringify(stored2) !== JSON.stringify(this.settings)) {
+            this.settings = stored2;
+            this.count = stored2.initial_count;
+            this.runner = this.host.runner(stored2);
+            this.writer = this.host.runner(stored2, true);
+            this.branches = stored2.on_load_branch ? ["HEAD"] : [...stored2.on_load_branches];
+            state = await read_repository(this.runner.run, state.root, stored2, this.count, this.branches);
             if (epoch2 !== this.epoch) return;
           }
         }
@@ -233209,10 +233422,10 @@ https://creativecommons.org/licenses/by/4.0/
       const state = this.state;
       this.container.setAttribute("data-details-location", this.settings.details_location);
       this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
-      for (const key2 of ["date", "author", "hash"]) this.container.dataset["show" + key2] = String(this.settings["show_" + key2]);
-      const columns = ["var(--git-graph-width)", "minmax(var(--git-subject-width), 1fr)", ...["date", "author", "hash"].filter((key2) => this.settings["show_" + key2]).map((key2) => "var(--git-".concat(key2, "-width)"))];
+      for (const key3 of ["date", "author", "hash"]) this.container.dataset["show" + key3] = String(this.settings["show_" + key3]);
+      const columns = ["var(--git-graph-width)", "minmax(var(--git-subject-width), 1fr)", ...["date", "author", "hash"].filter((key3) => this.settings["show_" + key3]).map((key3) => "var(--git-".concat(key3, "-width)"))];
       this.container.style.setProperty("--git-visible-columns", columns.join(" "));
-      this.container.style.setProperty("--git-visible-min-width", "calc(var(--git-graph-width) + var(--git-subject-width)".concat(["date", "author", "hash"].filter((key2) => this.settings["show_" + key2]).map((key2) => " + var(--git-".concat(key2, "-width)")).join(""), ")"));
+      this.container.style.setProperty("--git-visible-min-width", "calc(var(--git-graph-width) + var(--git-subject-width)".concat(["date", "author", "hash"].filter((key3) => this.settings["show_" + key3]).map((key3) => " + var(--git-".concat(key3, "-width)")).join(""), ")"));
       const connected = state.changes.length > 0 && this.settings.show_changes;
       const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
       this.detail_graph_rows.clear();
@@ -233221,14 +233434,14 @@ https://creativecommons.org/licenses/by/4.0/
       const fragment = document.createDocumentFragment();
       const graph_width = Math.max(58, (graph.width - 1) * 16 + 20) + (this.settings.label_alignment === "graph" ? 140 : 0);
       this.container.style.setProperty("--git-graph-width", graph_width + "px");
-      for (const [key2, width2] of Object.entries(this.settings.column_widths)) this.container.style.setProperty("--git-".concat(key2, "-width"), width2 + "px");
+      for (const [key3, width2] of Object.entries(this.settings.column_widths)) this.container.style.setProperty("--git-".concat(key3, "-width"), width2 + "px");
       this.header.replaceChildren();
       this.header.append(workspace_element("div", "git-graph-column git-graph-column-graph", git_graph_text("graph.column.graph")));
       const resize_columns = [];
-      for (const [key2, title] of [["subject", git_graph_text("graph.column.description")], ["date", git_graph_text("graph.column.date")], ["author", git_graph_text("graph.column.author")], ["hash", git_graph_text("graph.column.commit")]]) {
-        const label = workspace_element("div", "git-graph-column git-graph-column-" + key2, title);
+      for (const [key3, title] of [["subject", git_graph_text("graph.column.description")], ["date", git_graph_text("graph.column.date")], ["author", git_graph_text("graph.column.author")], ["hash", git_graph_text("graph.column.commit")]]) {
+        const label = workspace_element("div", "git-graph-column git-graph-column-" + key3, title);
         this.header.append(label);
-        if (key2 === "subject" || this.settings["show_" + key2]) resize_columns.push({ key: key2, node: label, title });
+        if (key3 === "subject" || this.settings["show_" + key3]) resize_columns.push({ key: key3, node: label, title });
       }
       if (state.changes.length && this.settings.show_changes) {
         const row = workspace_element("div", "git-graph-row git-graph-worktree");
@@ -233732,8 +233945,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     layout_entries() {
       return [
-        ...["date", "author", "hash"].map((key2) => ({ id: "show_" + key2, title: git_graph_text(key2 === "hash" ? "graph.column.commit" : key2 === "date" ? "graph.column.date" : "graph.column.author"), checked: this.settings["show_" + key2], action: () => {
-          const setting = "show_" + key2;
+        ...["date", "author", "hash"].map((key3) => ({ id: "show_" + key3, title: git_graph_text(key3 === "hash" ? "graph.column.commit" : key3 === "date" ? "graph.column.date" : "graph.column.author"), checked: this.settings["show_" + key3], action: () => {
+          const setting = "show_" + key3;
           this.settings[setting] = !this.settings[setting];
           this.persist_settings();
           if (this.state) this.render_history();
@@ -234021,7 +234234,7 @@ https://creativecommons.org/licenses/by/4.0/
         for (const input of fields.values()) input.disabled = true;
         try {
           const values = {};
-          for (const [key2, input] of fields) values[key2] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
+          for (const [key3, input] of fields) values[key3] = input instanceof HTMLInputElement && input.type === "checkbox" ? input.checked : input.value;
           if (id === "rebase" && values.interactive && !values.todo) {
             const todo = await runner.run(root, ["log", "--reverse", "--no-merges", "--format=pick %H %s", "".concat(hash2, "..HEAD"), "--"]);
             if (available()) {
@@ -234166,11 +234379,11 @@ https://creativecommons.org/licenses/by/4.0/
       error.setAttribute("role", "alert");
       const fields = /* @__PURE__ */ new Map();
       const labels = settings_labels_for();
-      for (const [key2, value] of Object.entries(this.settings)) {
-        const input = settings_choices[key2] ? workspace_element("select") : typeof value === "object" ? workspace_element("textarea") : workspace_element("input");
-        input.dataset.setting = key2;
-        input.setAttribute("aria-label", labels[key2]);
-        if (input instanceof HTMLSelectElement) for (const choice of settings_choices[key2]) input.append(workspace_option(choice, settings_choice_label(key2, choice)));
+      for (const [key3, value] of Object.entries(this.settings)) {
+        const input = settings_choices[key3] ? workspace_element("select") : typeof value === "object" ? workspace_element("textarea") : workspace_element("input");
+        input.dataset.setting = key3;
+        input.setAttribute("aria-label", labels[key3]);
+        if (input instanceof HTMLSelectElement) for (const choice of settings_choices[key3]) input.append(workspace_option(choice, settings_choice_label(key3, choice)));
         if (typeof value === "boolean") {
           input.type = "checkbox";
           input.checked = value;
@@ -234178,10 +234391,10 @@ https://creativecommons.org/licenses/by/4.0/
           input.value = typeof value === "object" ? JSON.stringify(value, null, 2) : String(value);
           if (typeof value === "number") input.type = "number";
         }
-        const label = workspace_element("label", "", labels[key2]);
+        const label = workspace_element("label", "", labels[key3]);
         label.append(input);
         form.append(label);
-        fields.set(key2, input);
+        fields.set(key3, input);
       }
       dialog2.content.append(form, error);
       const apply3 = (settings) => {
@@ -234202,16 +234415,16 @@ https://creativecommons.org/licenses/by/4.0/
         }
       });
       dialog2.content.append(file);
-      const save = workspace_button(git_graph_text("graph.save_settings"), () => {
+      const save2 = workspace_button(git_graph_text("graph.save_settings"), () => {
         try {
           const values = {};
-          for (const [key2, input] of fields) {
-            const baseline = graph_defaults[key2];
+          for (const [key3, input] of fields) {
+            const baseline = graph_defaults[key3];
             try {
-              values[key2] = typeof baseline === "boolean" ? input.checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
+              values[key3] = typeof baseline === "boolean" ? input.checked : typeof baseline === "number" ? Number(input.value) : typeof baseline === "object" ? JSON.parse(input.value) : input.value;
             } catch (problem) {
               input.focus();
-              throw new Error(labels[key2] + ": " + String(problem));
+              throw new Error(labels[key3] + ": " + String(problem));
             }
           }
           apply3(validate_settings(values));
@@ -234219,9 +234432,9 @@ https://creativecommons.org/licenses/by/4.0/
           error.textContent = String(problem);
         }
       });
-      save.dataset.settingsAction = "save";
+      save2.dataset.settingsAction = "save";
       dialog2.footer.prepend(
-        save,
+        save2,
         workspace_button(git_graph_text("graph.restore_defaults"), () => {
           try {
             apply3(structuredClone(graph_defaults));
@@ -235387,8 +235600,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function clean(value) {
     const source = object(value), result = {};
-    for (const key2 of ["enabled", "icons", "show_editor_type"]) if (typeof source[key2] === "boolean") result[key2] = source[key2];
-    for (const key2 of ["file_path", "symbol_path"]) if (["on", "off", "last"].includes(source[key2])) result[key2] = source[key2];
+    for (const key3 of ["enabled", "icons", "show_editor_type"]) if (typeof source[key3] === "boolean") result[key3] = source[key3];
+    for (const key3 of ["file_path", "symbol_path"]) if (["on", "off", "last"].includes(source[key3])) result[key3] = source[key3];
     if (["position", "name", "type"].includes(source.symbol_sort_order)) result.symbol_sort_order = source.symbol_sort_order;
     if (typeof source.symbol_path_separator === "string" && source.symbol_path_separator.length <= 16 && !/[\r\n\0]/.test(source.symbol_path_separator)) result.symbol_path_separator = source.symbol_path_separator;
     const kinds = object(source.symbol_kinds);
@@ -235401,7 +235614,7 @@ https://creativecommons.org/licenses/by/4.0/
     const merge = (v2, language_only = false) => {
       const next = clean(v2);
       if (language_only) {
-        for (const key2 of Object.keys(next)) if (!["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key2)) delete next[key2];
+        for (const key3 of Object.keys(next)) if (!["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key3)) delete next[key3];
       }
       Object.assign(result, { ...next, symbol_kinds: { ...result.symbol_kinds, ...next.symbol_kinds } });
     };
@@ -235413,18 +235626,18 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return result;
   }
-  function update_breadcrumb_settings(root, scope, key2, value, language44 = "") {
+  function update_breadcrumb_settings(root, scope, key3, value, language44 = "") {
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     if (scope === "workspace" && !root) throw new Error("\u8BF7\u5148\u6253\u5F00\u6587\u4EF6\u5939\u518D\u914D\u7F6E\u5DE5\u4F5C\u533A\u3002");
-    if (language44 && !["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key2)) throw new Error("\u6B64\u9009\u9879\u4E0D\u652F\u6301\u8BED\u8A00\u8986\u76D6\u3002");
+    if (language44 && !["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key3)) throw new Error("\u6B64\u9009\u9879\u4E0D\u652F\u6301\u8BED\u8A00\u8986\u76D6\u3002");
     const next = JSON.parse(JSON.stringify(stored_settings()));
     const owner2 = scope === "user" ? next.user ??= {} : (next.workspaces ??= {})[root_key(root)] ??= {};
     const target = language44 ? (owner2.languages ??= {})[language44] ??= {} : owner2.values ??= {};
-    if (value === void 0) delete target[key2];
+    if (value === void 0) delete target[key3];
     else {
-      const valid = clean({ [key2]: value });
-      if (!(key2 in valid)) throw new Error("\u914D\u7F6E\u503C\u65E0\u6548\u3002");
+      const valid = clean({ [key3]: value });
+      if (!(key3 in valid)) throw new Error("\u914D\u7F6E\u503C\u65E0\u6548\u3002");
       Object.assign(target, valid);
     }
     settings.set_and_save(KEY3, next);
@@ -235471,9 +235684,9 @@ https://creativecommons.org/licenses/by/4.0/
       rows.replaceChildren();
       const current = read_breadcrumb_settings(scope.value === "user" ? "" : root, language_scope.value);
       const data = stored_settings(), owner2 = scope.value === "user" ? object(data.user) : object(object(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object(owner2.languages)[language_scope.value] : owner2.values);
-      const change = (key2, value) => {
+      const change = (key3, value) => {
         try {
-          update_breadcrumb_settings(root, scope.value, key2, value, language_scope.value);
+          update_breadcrumb_settings(root, scope.value, key3, value, language_scope.value);
           status2.textContent = "\u8BBE\u7F6E\u5DF2\u4FDD\u5B58\u5E76\u751F\u6548\u3002";
         } catch (error) {
           status2.textContent = String(error instanceof Error ? error.message : error);
@@ -235482,8 +235695,8 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const definitions = [["enabled", "\u663E\u793A\u9762\u5305\u5C51"], ["file_path", "\u6587\u4EF6\u8DEF\u5F84", ["on", "off", "last"]], ["symbol_path", "\u7B26\u53F7\u8DEF\u5F84", ["on", "off", "last"]], ["icons", "\u663E\u793A\u56FE\u6807"], ["show_editor_type", "\u663E\u793A\u7F16\u8F91\u5668\u7C7B\u578B"], ["symbol_sort_order", "\u7B26\u53F7\u6392\u5E8F", ["position", "name", "type"]], ["symbol_path_separator", "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84\u5206\u9694\u7B26"]];
       const labels = { on: "\u5B8C\u6574\u8DEF\u5F84", off: "\u5173\u95ED", last: "\u4EC5\u672B\u7EA7", position: "\u6587\u6863\u4F4D\u7F6E", name: "\u540D\u79F0", type: "\u7C7B\u578B" };
-      for (const [key2, label, options2] of definitions) {
-        if (language_scope.value && !["symbol_sort_order", "symbol_path_separator"].includes(key2)) continue;
+      for (const [key3, label, options2] of definitions) {
+        if (language_scope.value && !["symbol_sort_order", "symbol_path_separator"].includes(key3)) continue;
         const row = workspace_element("label", "workspace-breadcrumb-setting"), name = workspace_element("span", "", label);
         let control;
         if (options2) {
@@ -235493,18 +235706,18 @@ https://creativecommons.org/licenses/by/4.0/
             option.value = value;
             select.append(option);
           }
-          select.value = String(current[key2]);
+          select.value = String(current[key3]);
           control = select;
         } else {
           const input = workspace_element("input");
-          input.type = typeof current[key2] === "boolean" ? "checkbox" : "text";
-          input.checked = current[key2] === true;
-          input.value = String(current[key2]);
+          input.type = typeof current[key3] === "boolean" ? "checkbox" : "text";
+          input.checked = current[key3] === true;
+          input.value = String(current[key3]);
           control = input;
         }
         control.setAttribute("aria-label", label);
-        control.onchange = () => change(key2, control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : control.value);
-        row.append(name, control, workspace_button("\u91CD\u7F6E", () => change(key2, void 0)));
+        control.onchange = () => change(key3, control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : control.value);
+        row.append(name, control, workspace_button("\u91CD\u7F6E", () => change(key3, void 0)));
         rows.append(row);
       }
       const kinds = workspace_element("details"), summary = workspace_element("summary", "", "\u663E\u793A\u7684\u7B26\u53F7\u7C7B\u578B");
@@ -235737,9 +235950,9 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const add = (file) => {
       if (!file) return;
-      const resolved = path.resolve(file), key2 = is_windows ? resolved.toLowerCase() : resolved;
-      if (!seen.has(key2)) {
-        seen.add(key2);
+      const resolved = path.resolve(file), key3 = is_windows ? resolved.toLowerCase() : resolved;
+      if (!seen.has(key3)) {
+        seen.add(key3);
         candidates.push(resolved);
       }
     };
@@ -235851,8 +236064,8 @@ https://creativecommons.org/licenses/by/4.0/
       }).then(async () => {
         check();
         const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? options2.workspace_root : path.dirname(options2.file_path);
-        const key2 = JSON.stringify([root, options2.executable || "", options2.compile_commands_dir || "", options2.fallback_flags || []]);
-        if (key2 !== configuration || !transport || transport.failure) {
+        const key3 = JSON.stringify([root, options2.executable || "", options2.compile_commands_dir || "", options2.fallback_flags || []]);
+        if (key3 !== configuration || !transport || transport.failure) {
           await close();
           check();
           environment = await discover_clangd_environment({ ...options2, workspace_root: root }, node);
@@ -235868,7 +236081,7 @@ https://creativecommons.org/licenses/by/4.0/
             if (encoding !== "utf-16") throw new Error("clangd \u672A\u63A5\u53D7 UTF-16 \u5B9A\u4F4D\u534F\u8BAE\u3002");
             if (!response?.capabilities?.documentSymbolProvider) throw new Error("\u6240\u9009 clangd \u672A\u63D0\u4F9B\u6587\u6863\u7B26\u53F7\u5206\u6790\u80FD\u529B\u3002");
             transport.notify("initialized", {});
-            configuration = key2;
+            configuration = key3;
           } catch (error) {
             await close();
             throw error;
@@ -235942,18 +236155,18 @@ https://creativecommons.org/licenses/by/4.0/
     return { clangd_path: value.clangd_path.trim(), compile_commands_dir: value.compile_commands_dir.trim(), fallback_flags: value.fallback_flags.map((flag) => flag.trim()).filter(Boolean) };
   }
   function read_source_outline_settings(root) {
-    const stored = read_stored_settings(), key2 = workspace_key(root);
-    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
-    const project = Object.hasOwn(projects, key2) ? projects[key2] : void 0;
-    return { clangd_path: typeof stored.clangd_path === "string" ? stored.clangd_path : "", compile_commands_dir: typeof project?.compile_commands_dir === "string" ? relative_database(root, project.compile_commands_dir) : "", fallback_flags: Array.isArray(project?.fallback_flags) ? project.fallback_flags.filter((flag) => typeof flag === "string") : [] };
+    const stored2 = read_stored_settings(), key3 = workspace_key(root);
+    const projects = stored2.workspaces && typeof stored2.workspaces === "object" && !Array.isArray(stored2.workspaces) ? stored2.workspaces : {};
+    const project = Object.hasOwn(projects, key3) ? projects[key3] : void 0;
+    return { clangd_path: typeof stored2.clangd_path === "string" ? stored2.clangd_path : "", compile_commands_dir: typeof project?.compile_commands_dir === "string" ? relative_database(root, project.compile_commands_dir) : "", fallback_flags: Array.isArray(project?.fallback_flags) ? project.fallback_flags.filter((flag) => typeof flag === "string") : [] };
   }
   function save_source_outline_settings(root, value) {
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u533A\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
-    const next = validate_settings2(value), stored = read_stored_settings(), key2 = workspace_key(root);
+    const next = validate_settings2(value), stored2 = read_stored_settings(), key3 = workspace_key(root);
     next.compile_commands_dir = relative_database(root, next.compile_commands_dir);
-    const projects = stored.workspaces && typeof stored.workspaces === "object" && !Array.isArray(stored.workspaces) ? stored.workspaces : {};
-    settings.set_and_save(SETTINGS_KEY, { ...stored, clangd_path: next.clangd_path, workspaces: { ...projects, [key2]: { compile_commands_dir: next.compile_commands_dir, fallback_flags: next.fallback_flags } } });
+    const projects = stored2.workspaces && typeof stored2.workspaces === "object" && !Array.isArray(stored2.workspaces) ? stored2.workspaces : {};
+    settings.set_and_save(SETTINGS_KEY, { ...stored2, clangd_path: next.clangd_path, workspaces: { ...projects, [key3]: { compile_commands_dir: next.compile_commands_dir, fallback_flags: next.fallback_flags } } });
   }
   function open_source_outline_settings(root, on_saved) {
     current_dialog?.close();
@@ -236016,7 +236229,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
     });
     detect.dataset.action = "detect";
-    const save = workspace_button("\u4FDD\u5B58", () => {
+    const save2 = workspace_button("\u4FDD\u5B58", () => {
       try {
         const value = read_form();
         if (value.clangd_path === initial.clangd_path) value.clangd_path = read_source_outline_settings(root).clangd_path;
@@ -236031,8 +236244,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (current_dialog === dialog2) current_dialog = void 0;
       on_saved?.();
     }, "source-outline-settings-save");
-    save.dataset.action = "save";
-    dialog2.footer.prepend(detect, save);
+    save2.dataset.action = "save";
+    dialog2.footer.prepend(detect, save2);
     for (const input of [executable, database, flags]) input.addEventListener("input", () => {
       generation++;
       detect.disabled = false;
@@ -236070,8 +236283,8 @@ https://creativecommons.org/licenses/by/4.0/
   function subscribe_document_symbols(model, file_path, workspace_root, listener) {
     let entries3 = models.get(model);
     if (!entries3) models.set(model, entries3 = /* @__PURE__ */ new Map());
-    const key2 = file_path + "\0" + workspace_root;
-    let owner2 = entries3.get(key2);
+    const key3 = file_path + "\0" + workspace_root;
+    let owner2 = entries3.get(key3);
     if (!owner2) {
       const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners6 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
@@ -236117,7 +236330,7 @@ https://creativecommons.org/licenses/by/4.0/
         void clangd?.dispose();
         listeners6.clear();
       } };
-      entries3.set(key2, owner2);
+      entries3.set(key3, owner2);
       refresh();
     }
     const target = owner2;
@@ -236132,7 +236345,7 @@ https://creativecommons.org/licenses/by/4.0/
       target.listeners.delete(listener);
       if (!target.listeners.size) {
         target.dispose();
-        entries3.delete(key2);
+        entries3.delete(key3);
         if (!entries3.size) models.delete(model);
       }
     } };
@@ -236474,7 +236687,7 @@ https://creativecommons.org/licenses/by/4.0/
       button?.focus({ preventScroll: true });
       if (open) button?.click();
     };
-    const key2 = (event) => {
+    const key3 = (event) => {
       if (is_composing_key(event)) return;
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && !event.altKey && ["Period", "Semicolon"].includes(event.code) && !document.querySelector("[aria-modal=true]")) {
         event.preventDefault();
@@ -236496,7 +236709,7 @@ https://creativecommons.org/licenses/by/4.0/
       const target = event.target;
       if (target instanceof HTMLElement && (target.matches("content") || [...groups.values()].some((state) => state.leaf?.containerEl === target))) schedule();
     };
-    window.addEventListener("keydown", key2, true);
+    window.addEventListener("keydown", key3, true);
     document.addEventListener("focusin", schedule, true);
     document.addEventListener("selectionchange", schedule);
     document.addEventListener("scroll", scroll, true);
@@ -236511,7 +236724,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (typeof unsubscribe === "function") unsubscribe();
       if (typeof config === "function") config();
       settings();
-      window.removeEventListener("keydown", key2, true);
+      window.removeEventListener("keydown", key3, true);
       document.removeEventListener("focusin", schedule, true);
       document.removeEventListener("selectionchange", schedule);
       document.removeEventListener("scroll", scroll, true);
@@ -238639,7 +238852,7 @@ https://creativecommons.org/licenses/by/4.0/
       const request = ++generation;
       selected = { file, match: match2 };
       body.setAttribute("aria-label", "\u547D\u4E2D\u5185\u5BB9\u9884\u89C8\uFF1A".concat(file.relative_path, "\uFF0C\u884C ").concat(match2.line, "\uFF0C\u5217 ").concat(match2.column));
-      for (const key2 of ["previewPath", "previewKind", "previewLine", "previewColumn", "previewEndLine", "previewEndColumn", "previewText"]) delete body.dataset[key2];
+      for (const key3 of ["previewPath", "previewKind", "previewLine", "previewColumn", "previewEndLine", "previewEndColumn", "previewText"]) delete body.dataset[key3];
       code_copy2.reconcile([]);
       editor2?.dispose();
       editor2 = void 0;
@@ -239015,16 +239228,16 @@ https://creativecommons.org/licenses/by/4.0/
           const query_box = workspace_element("div", "workspace-search-query-box");
           query_box.append(this.query);
           const toggles = workspace_element("div", "workspace-search-input-actions");
-          const toggle = (label, key2, icon) => {
+          const toggle = (label, key3, icon) => {
             const node = workspace_button("", () => {
-              this.options[key2] = !this.options[key2];
-              node.setAttribute("aria-pressed", String(Boolean(this.options[key2])));
+              this.options[key3] = !this.options[key3];
+              node.setAttribute("aria-pressed", String(Boolean(this.options[key3])));
               this.schedule();
             });
             node.title = label;
             node.setAttribute("aria-label", label);
-            node.setAttribute("aria-pressed", String(Boolean(this.options[key2])));
-            node.dataset.searchOption = key2;
+            node.setAttribute("aria-pressed", String(Boolean(this.options[key3])));
+            node.dataset.searchOption = key3;
             node.replaceChildren(git_icon(icon));
             return node;
           };
@@ -239391,20 +239604,20 @@ https://creativecommons.org/licenses/by/4.0/
             let parent = target;
             if (this.tree) {
               const parts = file.relative_path.split("/").slice(0, -1);
-              let key2 = "";
+              let key3 = "";
               for (const part of parts) {
-                key2 += part + "/";
-                let nested = directories.get(key2);
+                key3 += part + "/";
+                let nested = directories.get(key3);
                 if (!nested) {
                   const folder = workspace_element("details", "workspace-search-directory");
-                  const state_key2 = "directory:" + key2;
+                  const state_key2 = "directory:" + key3;
                   folder.setAttribute("data-search-group", state_key2);
                   folder.open = open_states.get(state_key2) ?? true;
                   const summary2 = workspace_element("summary");
                   summary2.append(git_disclosure(), workspace_element("span", "", part));
                   folder.append(summary2);
                   parent.append(folder);
-                  directories.set(key2, folder);
+                  directories.set(key3, folder);
                   nested = folder;
                 }
                 parent = nested;
@@ -240352,7 +240565,7 @@ https://creativecommons.org/licenses/by/4.0/
     const render = (symbols, target, target_model) => {
       tree.replaceChildren();
       const append4 = (items, container, depth, parent_key) => items.forEach((symbol, index) => {
-        const key2 = parent_key + "/" + symbol.kind + ":" + symbol.name + ":" + index;
+        const key3 = parent_key + "/" + symbol.kind + ":" + symbol.name + ":" + index;
         const row = document.createElement("div");
         row.className = "workspace-source-symbol";
         row.setAttribute("role", "treeitem");
@@ -240368,13 +240581,13 @@ https://creativecommons.org/licenses/by/4.0/
           disclosure.append(git_icon("chevron-right"));
           disclosure.setAttribute("aria-label", "\u6298\u53E0\u6216\u5C55\u5F00 ".concat(symbol.name));
           const update2 = () => {
-            children.hidden = collapsed2.has(key2);
+            children.hidden = collapsed2.has(key3);
             row.setAttribute("aria-expanded", String(!children.hidden));
           };
           update2();
           disclosure.onclick = () => {
             if (disposed) return;
-            collapsed2.has(key2) ? collapsed2.delete(key2) : collapsed2.add(key2);
+            collapsed2.has(key3) ? collapsed2.delete(key3) : collapsed2.add(key3);
             update2();
           };
         }
@@ -240400,7 +240613,7 @@ https://creativecommons.org/licenses/by/4.0/
         container.append(row);
         if (symbol.children.length) {
           container.append(children);
-          append4(symbol.children, children, depth + 1, key2);
+          append4(symbol.children, children, depth + 1, key3);
         }
       });
       append4(symbols, tree, 0, "");
@@ -241334,7 +241547,7 @@ https://creativecommons.org/licenses/by/4.0/
       const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports2.timeout_ms ?? 2500);
       operation.then(resolve3, reject).finally(() => clearTimeout(timer));
     });
-    const key2 = (item) => item.kind + ":" + (ports2.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
+    const key3 = (item) => item.kind + ":" + (ports2.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
     const read2 = async () => {
       const data = await bounded(ports2.invoke("setting.getRecentFiles"));
       if (disposed) return [];
@@ -241344,8 +241557,8 @@ https://creativecommons.org/licenses/by/4.0/
         for (const item of Array.isArray(data?.[group]) ? data[group] : []) {
           if (typeof item?.path !== "string" || !ports2.path_api.isAbsolute(item.path)) continue;
           const entry = { path: ports2.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
-          if (!seen.has(key2(entry))) {
-            seen.add(key2(entry));
+          if (!seen.has(key3(entry))) {
+            seen.add(key3(entry));
             items.push(entry);
           }
         }
@@ -241736,17 +241949,17 @@ https://creativecommons.org/licenses/by/4.0/
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
-    for (const key2 of Object.keys(result)) {
-      const entry = input[key2], fallback2 = result[key2];
-      if (typeof fallback2 === "boolean" && typeof entry === "boolean") result[key2] = entry;
-      if (typeof fallback2 === "number" && typeof entry === "number" && Number.isFinite(entry) && entry >= 0) result[key2] = Math.floor(entry);
+    for (const key3 of Object.keys(result)) {
+      const entry = input[key3], fallback2 = result[key3];
+      if (typeof fallback2 === "boolean" && typeof entry === "boolean") result[key3] = entry;
+      if (typeof fallback2 === "number" && typeof entry === "number" && Number.isFinite(entry) && entry >= 0) result[key3] = Math.floor(entry);
     }
     if (["off", "afterDelay", "onFocusChange", "onWindowChange"].includes(String(input["files.autoSave"]))) result["files.autoSave"] = String(input["files.autoSave"]);
     if (["editorOrder", "alphabetical", "fullPath"].includes(String(input["explorer.openEditors.sortOrder"]))) result["explorer.openEditors.sortOrder"] = String(input["explorer.openEditors.sortOrder"]);
     result["explorer.openEditors.visible"] = Math.max(1, result["explorer.openEditors.visible"]);
     result["workbench.localHistory.maxFileEntries"] = Math.max(1, result["workbench.localHistory.maxFileEntries"]);
     const exclude = input["workbench.localHistory.exclude"];
-    if (exclude && typeof exclude === "object" && !Array.isArray(exclude)) result["workbench.localHistory.exclude"] = Object.fromEntries(Object.entries(exclude).filter(([key2, value2]) => key2.length <= 1024 && typeof value2 === "boolean"));
+    if (exclude && typeof exclude === "object" && !Array.isArray(exclude)) result["workbench.localHistory.exclude"] = Object.fromEntries(Object.entries(exclude).filter(([key3, value2]) => key3.length <= 1024 && typeof value2 === "boolean"));
     return result;
   }
   function read_workspace_save_settings() {
@@ -241787,25 +242000,25 @@ https://creativecommons.org/licenses/by/4.0/
     ];
     const error = workspace_element("p");
     error.setAttribute("role", "status");
-    for (const [key2, title, choices] of rows) {
+    for (const [key3, title, choices] of rows) {
       const row = workspace_element("label", "workspace-save-setting"), label2 = workspace_element("span", "", title), control = choices ? workspace_element("select") : workspace_element("input");
       control.setAttribute("aria-label", title);
-      control.title = key2;
+      control.title = key3;
       if (control instanceof HTMLSelectElement) {
         for (const value of choices) control.append(new Option({ off: "\u5173\u95ED", afterDelay: "\u5EF6\u8FDF\u4FDD\u5B58", onFocusChange: "\u7F16\u8F91\u5668\u5931\u7126\u65F6", onWindowChange: "\u7A97\u53E3\u5931\u7126\u65F6", editorOrder: "\u7F16\u8F91\u5668\u987A\u5E8F", alphabetical: "\u540D\u79F0", fullPath: "\u5B8C\u6574\u8DEF\u5F84" }[value], value));
-        control.value = String(settings[key2]);
-      } else if (typeof settings[key2] === "boolean") {
+        control.value = String(settings[key3]);
+      } else if (typeof settings[key3] === "boolean") {
         control.type = "checkbox";
-        control.checked = Boolean(settings[key2]);
+        control.checked = Boolean(settings[key3]);
       } else {
         control.type = "number";
-        control.min = key2.endsWith("maxFileEntries") || key2.endsWith(".visible") ? "1" : "0";
-        control.value = String(settings[key2]);
+        control.min = key3.endsWith("maxFileEntries") || key3.endsWith(".visible") ? "1" : "0";
+        control.value = String(settings[key3]);
       }
       control.onchange = () => {
         try {
           if (control instanceof HTMLInputElement && !control.checkValidity()) throw new Error("\u8BF7\u8F93\u5165\u6709\u6548\u6570\u503C\u3002");
-          set_workspace_save_settings({ [key2]: control instanceof HTMLInputElement ? control.type === "checkbox" ? control.checked : Number(control.value) : control.value });
+          set_workspace_save_settings({ [key3]: control instanceof HTMLInputElement ? control.type === "checkbox" ? control.checked : Number(control.value) : control.value });
           error.textContent = "";
         } catch (problem) {
           error.textContent = String(problem);
@@ -241878,8 +242091,8 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         const data = await runtime2.JSBridge?.invoke("setting.loadExports");
         const [builtin, custom] = typeof data === "string" ? JSON.parse(data) : data;
-        return Object.entries({ ...builtin, ...custom }).filter(([, value]) => value && typeof value === "object").map(([key2, value]) => {
-          const item = native_entry(value.name || key2, () => runtime2.ClientCommand, "export", [value], void 0, false);
+        return Object.entries({ ...builtin, ...custom }).filter(([, value]) => value && typeof value === "object").map(([key3, value]) => {
+          const item = native_entry(value.name || key3, () => runtime2.ClientCommand, "export", [value], void 0, false);
           return item;
         });
       } catch {
@@ -242098,13 +242311,13 @@ https://creativecommons.org/licenses/by/4.0/
   var settings_object = (value) => value && typeof value === "object" && !Array.isArray(value) ? value : {};
   function read_titlebar_settings(store) {
     const saved = settings_object(store?.get(TITLEBAR_SETTINGS_KEY)), result = { ...TITLEBAR_DEFAULTS };
-    for (const key2 of Object.keys(result)) if (typeof saved[key2] === "boolean") result[key2] = saved[key2];
+    for (const key3 of Object.keys(result)) if (typeof saved[key3] === "boolean") result[key3] = saved[key3];
     return result;
   }
-  function toggle_titlebar_setting(store, key2) {
+  function toggle_titlebar_setting(store, key3) {
     if (!store) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     const saved = settings_object(store.get(TITLEBAR_SETTINGS_KEY));
-    store.set_and_save(TITLEBAR_SETTINGS_KEY, { ...saved, [key2]: !read_titlebar_settings(store)[key2] });
+    store.set_and_save(TITLEBAR_SETTINGS_KEY, { ...saved, [key3]: !read_titlebar_settings(store)[key3] });
   }
 
   // src/workspace_titlebar.css
@@ -242261,10 +242474,10 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopImmediatePropagation();
       menu.close(true);
       const value = read_titlebar_settings(settings);
-      const toggle = (key2, label) => ({ id: key2, title: label, checked: value[key2], disabled: !settings, action: () => {
+      const toggle = (key3, label) => ({ id: key3, title: label, checked: value[key3], disabled: !settings, action: () => {
         if (disposed) return;
         try {
-          toggle_titlebar_setting(settings, key2);
+          toggle_titlebar_setting(settings, key3);
           apply_settings();
         } catch (error) {
           setting_error?.close(false);
@@ -242404,7 +242617,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return { entries: entries3, active: active2 };
     };
-    const save = () => {
+    const save2 = () => {
       if (!owns_session) return;
       const { entries: entries3, active: active2 } = snapshot();
       store.write(files.context_root(), entries3, active2);
@@ -242413,7 +242626,7 @@ https://creativecommons.org/licenses/by/4.0/
       clearTimeout(timer);
       if (disposed || paused || workspace_context_switching()) return;
       try {
-        save();
+        save2();
         reported = false;
       } catch (error) {
         if (!reported) notice(error);
@@ -242478,7 +242691,7 @@ https://creativecommons.org/licenses/by/4.0/
         restore_controller.abort();
         activation_controller.abort();
         clearTimeout(timer);
-        save();
+        save2();
         paused = true;
       },
       async resume(restore_files) {
@@ -242586,11 +242799,11 @@ https://creativecommons.org/licenses/by/4.0/
     const { path_api, crypto: crypto2 } = modules, fs2 = modules.fs.promises;
     const queues = /* @__PURE__ */ new Map();
     const hash2 = (bytes) => crypto2.createHash("sha256").update(bytes).digest("hex");
-    const key2 = (path) => {
+    const key3 = (path) => {
       const value = path_api.resolve(path);
       return path_api.sep === "\\" ? value.toLowerCase() : value;
     };
-    const bucket = (path) => path_api.join(directory, hash2(key2(path)));
+    const bucket = (path) => path_api.join(directory, hash2(key3(path)));
     const id = () => crypto2.randomBytes(16).toString("hex");
     async function bounded_read(path, limit) {
       const handle = await fs2.open(path, "r");
@@ -242654,7 +242867,7 @@ https://creativecommons.org/licenses/by/4.0/
       return result.sort((a, b2) => b2.timestamp - a.timestamp || b2.id.localeCompare(a.id));
     }
     const serialize = (file_path, action) => {
-      const resource = key2(file_path), previous = queues.get(resource) || Promise.resolve();
+      const resource = key3(file_path), previous = queues.get(resource) || Promise.resolve();
       const result = previous.catch(() => {
       }).then(action);
       queues.set(resource, result);
@@ -242727,7 +242940,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!/^[a-f0-9]{64}$/u.test(name)) continue;
         try {
           const resource = await json(path_api.join(directory, name, "resource.json"));
-          if (typeof resource.file_path !== "string" || !path_api.isAbsolute(resource.file_path) || hash2(key2(resource.file_path)) !== name) throw new Error("\u672C\u5730\u5386\u53F2\u6587\u4EF6\u8EAB\u4EFD\u65E0\u6548\u3002");
+          if (typeof resource.file_path !== "string" || !path_api.isAbsolute(resource.file_path) || hash2(key3(resource.file_path)) !== name) throw new Error("\u672C\u5730\u5386\u53F2\u6587\u4EF6\u8EAB\u4EFD\u65E0\u6548\u3002");
           const entries3 = await list3(resource.file_path);
           if (entries3.length) result.push({ file_path: resource.file_path, timestamp: entries3[0].timestamp });
         } catch (error) {
@@ -242751,7 +242964,7 @@ https://creativecommons.org/licenses/by/4.0/
         const relative2 = path_api.relative(old_path, source);
         if (directory_move && (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep))) continue;
         const target = directory_move ? path_api.join(new_path, relative2) : new_path;
-        if (key2(source) === key2(target)) {
+        if (key3(source) === key3(target)) {
           if ((await list3(source)).length) await atomic_write(path_api.join(bucket(source), "resource.json"), JSON.stringify({ file_path: target }));
           continue;
         }
@@ -242856,13 +243069,13 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_native_save(runtime2, hooks) {
     const file = runtime2.File, bridge = runtime2.JSBridge, releases = [];
     let disposed = false, save_depth = 0, option;
-    function replace(owner2, key2, wrap) {
-      const original = owner2?.[key2];
+    function replace(owner2, key3, wrap) {
+      const original = owner2?.[key3];
       if (typeof original !== "function") return;
       const wrapped = wrap(original);
-      owner2[key2] = wrapped;
+      owner2[key3] = wrapped;
       releases.push(() => {
-        if (owner2[key2] === wrapped) owner2[key2] = original;
+        if (owner2[key3] === wrapped) owner2[key3] = original;
       });
     }
     function sync_options() {
@@ -243598,8 +243811,8 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace, container = explorer.container;
     lifetime.add(acquire_workspace_style("typora-code-explorer-sections", workspace_explorer_sections_default).remove);
     const viewer = lifetime.own(bind_workspace_history_view(files, saves)), settings = get_workspace_app().settings;
-    const stored = settings.get("workspace_explorer_sections");
-    const collapsed2 = { open: stored?.open === true, folders: stored?.folders === true };
+    const stored2 = settings.get("workspace_explorer_sections");
+    const collapsed2 = { open: stored2?.open === true, folders: stored2?.folders === true };
     const remember = () => settings.set_and_save("workspace_explorer_sections", collapsed2);
     const root = container.querySelector(".workspace-explorer-root"), tree = container.querySelector(".workspace-explorer-tree"), status2 = container.querySelector(".workspace-explorer-status");
     const folders = workspace_element("section", "workspace-explorer-folders");
@@ -243830,7 +244043,7 @@ https://creativecommons.org/licenses/by/4.0/
     const sessions = /* @__PURE__ */ new Map();
     let disposed = false, queue2 = Promise.resolve(), active_dialog;
     const identity5 = (target, port = 0) => api2.resolve_connection_identity(target, { ...read_remote_ssh_settings(), port });
-    const save = async (target, port, password) => {
+    const save2 = async (target, port, password) => {
       const owner2 = await identity5(target, port);
       await credentials.save(owner2.key, password);
       await vault.remember(owner2.key, password);
@@ -243897,16 +244110,16 @@ https://creativecommons.org/licenses/by/4.0/
         const matches = password_prompt && (message.includes(expected + "'s password") || message.includes("(" + expected + ") Password"));
         if (matches && !used) {
           used = true;
-          let stored = sessions.get(owner2.key) || (credentials.supported ? await credentials.read(owner2.key) : void 0);
-          if (!stored && credentials.supported && !port && !read_remote_ssh_settings().config_file) {
-            stored = await credentials.read(target);
-            legacy = Boolean(stored);
+          let stored2 = sessions.get(owner2.key) || (credentials.supported ? await credentials.read(owner2.key) : void 0);
+          if (!stored2 && credentials.supported && !port && !read_remote_ssh_settings().config_file) {
+            stored2 = await credentials.read(target);
+            legacy = Boolean(stored2);
             if (legacy) {
-              pending = stored;
+              pending = stored2;
               remember = true;
             }
           }
-          if (stored && valid()) return stored;
+          if (stored2 && valid()) return stored2;
         }
         const result = await prompt(message, matches, valid);
         if (!valid()) return;
@@ -243914,7 +244127,7 @@ https://creativecommons.org/licenses/by/4.0/
           pending = result.answer;
           remember = result.remember;
           entered = true;
-          if (persist_immediately && remember) await save(target, port, pending);
+          if (persist_immediately && remember) await save2(target, port, pending);
         }
         return result.answer;
       }, async complete() {
@@ -243922,7 +244135,7 @@ https://creativecommons.org/licenses/by/4.0/
           sessions.set(owner2.key, pending);
           if (remember) {
             if (legacy && !entered) await credentials.save(owner2.key, pending);
-            else await save(target, port, pending);
+            else await save2(target, port, pending);
             if (legacy) await credentials.remove(target);
           }
         }
@@ -243947,7 +244160,7 @@ https://creativecommons.org/licenses/by/4.0/
         bridge.dispose();
       } };
     } });
-    return { directory, credentials, vault, identity: identity5, save, attempt, async forget(target, port) {
+    return { directory, credentials, vault, identity: identity5, save: save2, attempt, async forget(target, port) {
       const owner2 = await identity5(target, port);
       sessions.delete(owner2.key);
       await credentials.remove(owner2.key);
@@ -244012,14 +244225,14 @@ https://creativecommons.org/licenses/by/4.0/
       if (!state.configured) {
         view.content.append(workspace_element("p", "", state.reset ? "\u4FDD\u9669\u7BB1\u5DF2\u6E05\u7A7A\uFF0C\u91CD\u65B0\u914D\u7F6E\u4E0D\u4F1A\u6062\u590D\u5DF2\u5220\u9664\u7684\u67E5\u770B\u8BB0\u5F55\u3002\u8BF7\u5728\u8D26\u53F7\u7F16\u8F91\u4E2D\u91CD\u65B0\u8F93\u5165\u5BC6\u7801\u52A0\u5165\u4FDD\u9669\u7BB1\u3002" : "\u9996\u6B21\u8BBE\u7F6E\u5C06\u628A\u5DF2\u6709\u8D26\u53F7\u7684\u81EA\u52A8\u767B\u5F55\u5BC6\u7801\u52A0\u5165\u67E5\u770B\u4FDD\u9669\u7BB1\u3002"));
         const master = field(view.content, "\u4FDD\u9669\u5BC6\u7801\uFF08\u81F3\u5C1112\u4E2A\u5B57\u7B26\uFF09", "", "password"), repeat = field(view.content, "\u518D\u6B21\u8F93\u5165\u4FDD\u9669\u5BC6\u7801", "", "password");
-        const save = workspace_button("\u8BBE\u7F6E\u4FDD\u9669\u5BC6\u7801", () => run(save, error, async () => {
+        const save2 = workspace_button("\u8BBE\u7F6E\u4FDD\u9669\u5BC6\u7801", () => run(save2, error, async () => {
           if (master.value !== repeat.value) throw Error("\u4E24\u6B21\u4FDD\u9669\u5BC6\u7801\u4E0D\u4E00\u81F4");
           const identities = await Promise.all(records.map((item) => auth.identity(item.target, item.port)));
           await auth.vault.setup(master.value, identities.map((item) => item.key));
           view.close();
           await vault(record);
         }));
-        view.footer.prepend(save);
+        view.footer.prepend(save2);
       } else {
         const master = field(view.content, "\u4FDD\u9669\u5BC6\u7801", "", "password");
         if (record) {
@@ -244093,7 +244306,7 @@ https://creativecommons.org/licenses/by/4.0/
       view.content.append(workspace_element("p", "workspace-ssh-hint", "\u5BC6\u7801\u4FDD\u5B58\u5230\u64CD\u4F5C\u7CFB\u7EDF\u51ED\u636E\u7BA1\u7406\u5668\uFF1B\u4E0D\u586B\u5199\u5BC6\u7801\u65F6\u4ECD\u652F\u6301SSH\u5BC6\u94A5\u3001\u4EE3\u7406\u548C\u5F53\u6B21\u8BA4\u8BC1\u3002\u4E3B\u673A\u4E0E\u8D26\u53F7\u522B\u540D\u4EC5\u7528\u4E8E\u663E\u793A\u3002"));
       const error = workspace_element("p", "workspace-ssh-message");
       view.content.append(error);
-      const save = workspace_button("\u4FDD\u5B58", () => run(save, error, async () => {
+      const save2 = workspace_button("\u4FDD\u5B58", () => run(save2, error, async () => {
         const address = host.value.trim();
         if (address.includes("@")) throw Error("\u4E3B\u673A\u5730\u5740\u4E0D\u5E94\u5305\u542B\u7528\u6237\u540D\uFF0C\u8BF7\u5728\u7528\u6237\u540D\u5B57\u6BB5\u586B\u5199");
         const target = (user.value.trim() ? user.value.trim() + "@" : "") + address;
@@ -244104,7 +244317,7 @@ https://creativecommons.org/licenses/by/4.0/
         view.close();
         await refresh();
       }));
-      view.footer.prepend(save);
+      view.footer.prepend(save2);
     };
     const select = (record) => {
       void connect(record).catch(notice);
@@ -244115,10 +244328,10 @@ https://creativecommons.org/licenses/by/4.0/
       const filtered = records.filter((item) => [item.host_name, item.name, item.target, String(item.port)].join(" ").toLocaleLowerCase().includes(term));
       const groups = /* @__PURE__ */ new Map();
       for (const item of filtered) {
-        const key2 = item.target.split("@").at(-1) + ":" + item.port;
-        const group = groups.get(key2) || [];
+        const key3 = item.target.split("@").at(-1) + ":" + item.port;
+        const group = groups.get(key3) || [];
         group.push(item);
-        groups.set(key2, group);
+        groups.set(key3, group);
       }
       for (const group of groups.values()) {
         const first = group[0], section = workspace_element("section", "workspace-ssh-host"), title = workspace_element("div", "workspace-ssh-host-title");
@@ -244566,25 +244779,25 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_settings_sections(files) {
     const releases = [], user = () => "\u7528\u6237\u8BBE\u7F6E", root = () => files.context_root(), project = () => "\u5DE5\u4F5C\u533A\uFF1A".concat(root() || "\u672A\u6253\u5F00\u6587\u4EF6\u5939");
     const add = (section) => releases.push(register_workspace_settings(section));
-    add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: WORKSPACE_EDITOR_DEFAULTS, fields: [{ key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }, { key: "wrap_tabs", title: "\u6807\u7B7E\u6362\u884C\uFF08Wrap Tabs\uFF09", description: "\u6807\u7B7E\u8D85\u8FC7\u53EF\u7528\u5BBD\u5EA6\u65F6\u663E\u793A\u4E3A\u591A\u884C\uFF1B\u5173\u95ED\u65F6\u4F7F\u7528\u5355\u884C\u6EDA\u52A8\u3002" }, { key: "link_preview_enabled", title: "\u9009\u4E2D\u94FE\u63A5\u81EA\u52A8\u9884\u89C8", description: "\u5728\u5DE6\u4FA7\u4E0B\u65B9\u53EA\u8BFB\u9884\u89C8\u9009\u4E2D\u7684\u94FE\u63A5\uFF0C\u4E0D\u5F71\u54CD\u641C\u7D22\u7ED3\u679C\u9884\u89C8\u548C\u624B\u52A8\u5206\u5C4F\u9884\u89C8\u3002" }], read: read_workspace_editor_settings, write: (key2, value) => set_workspace_editor_setting(key2, value) });
+    add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: { ...WORKSPACE_EDITOR_DEFAULTS, ...TEXT_PRESENTATION_DEFAULTS }, fields: [{ key: "word_wrap", title: "\u6587\u672C\u81EA\u52A8\u6362\u884C", description: "\u6E90\u7801\u3001\u5386\u53F2\u7248\u672C\u3001\u5DEE\u5F02\u548C\u6E90\u7801\u9884\u89C8\u6309\u53EF\u7528\u5BBD\u5EA6\u8F6F\u6362\u884C\uFF1B\u4E0D\u66F4\u6539\u6B63\u6587\u6216\u903B\u8F91\u884C\u53F7\u3002\u5173\u95ED\u540E\u53EF\u6A2A\u5411\u6EDA\u52A8\u3002" }, { key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }, { key: "wrap_tabs", title: "\u6807\u7B7E\u6362\u884C\uFF08Wrap Tabs\uFF09", description: "\u6807\u7B7E\u8D85\u8FC7\u53EF\u7528\u5BBD\u5EA6\u65F6\u663E\u793A\u4E3A\u591A\u884C\uFF1B\u5173\u95ED\u65F6\u4F7F\u7528\u5355\u884C\u6EDA\u52A8\u3002" }, { key: "link_preview_enabled", title: "\u9009\u4E2D\u94FE\u63A5\u81EA\u52A8\u9884\u89C8", description: "\u5728\u5DE6\u4FA7\u4E0B\u65B9\u53EA\u8BFB\u9884\u89C8\u9009\u4E2D\u7684\u94FE\u63A5\uFF0C\u4E0D\u5F71\u54CD\u641C\u7D22\u7ED3\u679C\u9884\u89C8\u548C\u624B\u52A8\u5206\u5C4F\u9884\u89C8\u3002" }], read: () => ({ ...read_workspace_editor_settings(), ...read_text_presentation() }), write: (key3, value) => key3 === "word_wrap" ? update_text_presentation(value) : set_workspace_editor_setting(key3, value) });
     const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u4E0A\u9650\uFF08KB\uFF09", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
-    add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key2, index) => ({ key: key2, title: file_labels[index] || key2, choices: key2 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key2 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key2, value) => {
-      const baseline = FILE_SETTING_DEFAULTS[key2];
+    add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key3, index) => ({ key: key3, title: file_labels[index] || key3, choices: key3 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key3 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key3, value) => {
+      const baseline = FILE_SETTING_DEFAULTS[key3];
       if (typeof baseline === "number" && (typeof value !== "number" || value < 0 || !Number.isInteger(value))) throw Error("\u8BF7\u8F93\u5165\u975E\u8D1F\u6574\u6570");
-      if (key2.endsWith("exclude") && (!value || Array.isArray(value) || typeof value !== "object" || Object.values(value).some((item) => typeof item !== "boolean"))) throw Error("\u6392\u9664\u89C4\u5219\u5FC5\u987B\u4E3Aglob\u5230\u5E03\u5C14\u503C\u7684JSON\u5BF9\u8C61");
-      set_workspace_save_settings({ [key2]: value });
+      if (key3.endsWith("exclude") && (!value || Array.isArray(value) || typeof value !== "object" || Object.values(value).some((item) => typeof item !== "boolean"))) throw Error("\u6392\u9664\u89C4\u5219\u5FC5\u987B\u4E3Aglob\u5230\u5E03\u5C14\u503C\u7684JSON\u5BF9\u8C61");
+      set_workspace_save_settings({ [key3]: value });
     } });
-    add({ id: "titlebar", title: "\u9876\u680F", scope: user, defaults: TITLEBAR_DEFAULTS, fields: [{ key: "menu_bar", title: "\u663E\u793A\u83DC\u5355\u680F" }, { key: "command_center", title: "\u663E\u793A\u6587\u4EF6\u641C\u7D22" }, { key: "navigation_controls", title: "\u663E\u793A\u540E\u9000\u4E0E\u524D\u8FDB" }], read: () => read_titlebar_settings(get_workspace_app()?.settings), write: (key2, value) => {
-      if (read_titlebar_settings(get_workspace_app()?.settings)[key2] !== value) toggle_titlebar_setting(get_workspace_app()?.settings, key2);
+    add({ id: "titlebar", title: "\u9876\u680F", scope: user, defaults: TITLEBAR_DEFAULTS, fields: [{ key: "menu_bar", title: "\u663E\u793A\u83DC\u5355\u680F" }, { key: "command_center", title: "\u663E\u793A\u6587\u4EF6\u641C\u7D22" }, { key: "navigation_controls", title: "\u663E\u793A\u540E\u9000\u4E0E\u524D\u8FDB" }], read: () => read_titlebar_settings(get_workspace_app()?.settings), write: (key3, value) => {
+      if (read_titlebar_settings(get_workspace_app()?.settings)[key3] !== value) toggle_titlebar_setting(get_workspace_app()?.settings, key3);
     } });
     const crumb_labels = { enabled: "\u663E\u793A\u9762\u5305\u5C51", file_path: "\u6587\u4EF6\u8DEF\u5F84", symbol_path: "\u7B26\u53F7\u8DEF\u5F84", icons: "\u663E\u793A\u56FE\u6807", show_editor_type: "\u663E\u793A\u7F16\u8F91\u5668\u7C7B\u578B", symbol_sort_order: "\u7B26\u53F7\u6392\u5E8F", symbol_path_separator: "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84\u5206\u9694\u7B26" };
-    add({ id: "breadcrumbs", title: "\u9762\u5305\u5C51\uFF08\u5DE5\u4F5C\u533A\uFF09", scope: project, defaults: BREADCRUMB_DEFAULTS, fields: Object.keys(BREADCRUMB_DEFAULTS).map((key2) => ({ key: key2, title: crumb_labels[key2], choices: key2 === "file_path" || key2 === "symbol_path" ? ["on", "off", "last"] : key2 === "symbol_sort_order" ? ["position", "name", "type"] : void 0 })), read: () => read_breadcrumb_settings(root()), write: (key2, value) => update_breadcrumb_settings(root(), root() ? "workspace" : "user", key2, value) });
+    add({ id: "breadcrumbs", title: "\u9762\u5305\u5C51\uFF08\u5DE5\u4F5C\u533A\uFF09", scope: project, defaults: BREADCRUMB_DEFAULTS, fields: Object.keys(BREADCRUMB_DEFAULTS).map((key3) => ({ key: key3, title: crumb_labels[key3], choices: key3 === "file_path" || key3 === "symbol_path" ? ["on", "off", "last"] : key3 === "symbol_sort_order" ? ["position", "name", "type"] : void 0 })), read: () => read_breadcrumb_settings(root()), write: (key3, value) => update_breadcrumb_settings(root(), root() ? "workspace" : "user", key3, value) });
     const diff_labels = { render_side_by_side: "\u5E76\u6392\u6BD4\u8F83", inline_when_narrow: "\u7A84\u5BBD\u5EA6\u81EA\u52A8\u5185\u8054", ignore_trim_whitespace: "\u5FFD\u7565\u9996\u5C3E\u7A7A\u767D\u5DEE\u5F02", hide_unchanged: "\u9690\u85CF\u672A\u4FEE\u6539\u533A\u57DF", show_moves: "\u663E\u793A\u79FB\u52A8\u4EE3\u7801", render_markdown: "Markdown\u9ED8\u8BA4\u6E32\u67D3\u5BF9\u6BD4" };
-    add({ id: "diff", title: "\u5DEE\u5F02\u7F16\u8F91\u5668", scope: user, defaults: { ...git_diff_defaults }, fields: Object.keys(git_diff_defaults).map((key2) => ({ key: key2, title: diff_labels[key2] })), read: read_git_diff_preferences, write: (key2, value) => update_git_diff_preferences({ [key2]: value }) });
+    add({ id: "diff", title: "\u5DEE\u5F02\u7F16\u8F91\u5668", scope: user, defaults: { ...git_diff_defaults }, fields: Object.keys(git_diff_defaults).map((key3) => ({ key: key3, title: diff_labels[key3] })), read: read_git_diff_preferences, write: (key3, value) => update_git_diff_preferences({ [key3]: value }) });
     const ssh_labels = { ssh_path: "OpenSSH\u7A0B\u5E8F\u8DEF\u5F84\uFF08\u7A7A\u4E3A\u7CFB\u7EDF\u9ED8\u8BA4\uFF09", config_file: "SSH\u914D\u7F6E\u6587\u4EF6\u8DEF\u5F84\uFF08\u7A7A\u4E3AOpenSSH\u9ED8\u8BA4\uFF09", connect_timeout: "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09", server_alive_interval: "\u8FDE\u63A5\u4FDD\u6D3B\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09", server_alive_count: "\u4FDD\u6D3B\u8FDE\u7EED\u5931\u8D25\u6B21\u6570", request_timeout: "\u6587\u4EF6\u8BF7\u6C42\u8D85\u65F6\uFF08\u79D2\uFF09", refresh_interval: "\u53EF\u89C1\u8FDC\u7A0B\u76EE\u5F55\u5237\u65B0\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09" };
-    add({ id: "ssh", title: "SSH\u8FDC\u7A0B", scope: user, defaults: REMOTE_SSH_DEFAULTS, fields: Object.keys(REMOTE_SSH_DEFAULTS).map((key2) => ({ key: key2, title: ssh_labels[key2], description: key2 === "config_file" ? "\u7AEF\u53E3\u3001\u5BC6\u94A5\u3001\u4EE3\u7406\u53CA\u8D26\u6237\u7531OpenSSH\u914D\u7F6E\u7BA1\u7406\uFF0C\u59CB\u7EC8\u6821\u9A8C\u4E3B\u673A\u5BC6\u94A5\u3002\u8FDE\u63A5\u53C2\u6570\u4E0B\u6B21\u8FDE\u63A5\u751F\u6548\u3002" : void 0 })), read: read_remote_ssh_settings, write: write_remote_ssh_setting });
-    add({ id: "outline", title: "C/C++\u8BED\u8A00\u670D\u52A1", scope: project, defaults: { clangd_path: "", compile_commands_dir: "", fallback_flags: [] }, fields: [{ key: "clangd_path", title: "clangd\u8DEF\u5F84\uFF08\u7528\u6237\u7EA7\uFF09" }, { key: "compile_commands_dir", title: "\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\uFF08\u5DE5\u4F5C\u533A\uFF09" }, { key: "fallback_flags", title: "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08JSON\u6570\u7EC4\uFF09" }], read: () => read_source_outline_settings(root()), write: (key2, value) => save_source_outline_settings(root(), { ...read_source_outline_settings(root()), [key2]: value }) });
-    releases.push(observe_workspace_save_settings(notify_workspace_settings), observe_workspace_editor_settings(notify_workspace_settings), observe_breadcrumb_settings(notify_workspace_settings), watch_git_diff_preferences(notify_workspace_settings));
+    add({ id: "ssh", title: "SSH\u8FDC\u7A0B", scope: user, defaults: REMOTE_SSH_DEFAULTS, fields: Object.keys(REMOTE_SSH_DEFAULTS).map((key3) => ({ key: key3, title: ssh_labels[key3], description: key3 === "config_file" ? "\u7AEF\u53E3\u3001\u5BC6\u94A5\u3001\u4EE3\u7406\u53CA\u8D26\u6237\u7531OpenSSH\u914D\u7F6E\u7BA1\u7406\uFF0C\u59CB\u7EC8\u6821\u9A8C\u4E3B\u673A\u5BC6\u94A5\u3002\u8FDE\u63A5\u53C2\u6570\u4E0B\u6B21\u8FDE\u63A5\u751F\u6548\u3002" : void 0 })), read: read_remote_ssh_settings, write: write_remote_ssh_setting });
+    add({ id: "outline", title: "C/C++\u8BED\u8A00\u670D\u52A1", scope: project, defaults: { clangd_path: "", compile_commands_dir: "", fallback_flags: [] }, fields: [{ key: "clangd_path", title: "clangd\u8DEF\u5F84\uFF08\u7528\u6237\u7EA7\uFF09" }, { key: "compile_commands_dir", title: "\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\uFF08\u5DE5\u4F5C\u533A\uFF09" }, { key: "fallback_flags", title: "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08JSON\u6570\u7EC4\uFF09" }], read: () => read_source_outline_settings(root()), write: (key3, value) => save_source_outline_settings(root(), { ...read_source_outline_settings(root()), [key3]: value }) });
+    releases.push(observe_text_presentation(notify_workspace_settings), observe_workspace_save_settings(notify_workspace_settings), observe_workspace_editor_settings(notify_workspace_settings), observe_breadcrumb_settings(notify_workspace_settings), watch_git_diff_preferences(notify_workspace_settings));
     window.addEventListener("linux-note-workspace-context-changed", notify_workspace_settings);
     return { dispose() {
       window.removeEventListener("linux-note-workspace-context-changed", notify_workspace_settings);
@@ -244761,7 +244974,7 @@ https://creativecommons.org/licenses/by/4.0/
           for (const field of fields) {
             count++;
             const value = values[field.key], baseline = section.defaults[field.key];
-            const row = workspace_element("div", "workspace-setting-row"), label = workspace_element("label", "workspace-setting-label", field.title), key2 = workspace_element("small", "", field.key);
+            const row = workspace_element("div", "workspace-setting-row"), label = workspace_element("label", "workspace-setting-label", field.title), key3 = workspace_element("small", "", field.key);
             const control = field.choices ? workspace_element("select") : typeof baseline === "object" ? workspace_element("textarea") : workspace_element("input");
             control.dataset.setting = section.id + "." + field.key;
             control.setAttribute("aria-label", field.title);
@@ -244777,7 +244990,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             };
             fill();
-            const save = (next) => {
+            const save2 = (next) => {
               try {
                 if (section.scope() !== scope) throw Error("\u914D\u7F6E\u76EE\u6807\u5DF2\u5207\u6362\uFF0C\u8BF7\u5237\u65B0\u8BBE\u7F6E\u9875\u540E\u91CD\u8BD5\u3002");
                 section.write(field.key, next);
@@ -244792,13 +245005,13 @@ https://creativecommons.org/licenses/by/4.0/
               try {
                 const next = control instanceof HTMLInputElement && control.type === "checkbox" ? control.checked : typeof baseline === "number" ? Number(control.value) : typeof baseline === "object" ? JSON.parse(control.value) : control.value;
                 if (typeof baseline === "number" && (!control.value.trim() || !Number.isFinite(next))) throw Error("\u8BF7\u8F93\u5165\u6709\u6548\u6570\u503C\u3002");
-                save(next);
+                save2(next);
               } catch (error) {
                 this.status.textContent = String(error);
               }
             };
-            label.append(key2, control);
-            row.append(label, workspace_button("\u6062\u590D\u9ED8\u8BA4", () => save(structuredClone(baseline))));
+            label.append(key3, control);
+            row.append(label, workspace_button("\u6062\u590D\u9ED8\u8BA4", () => save2(structuredClone(baseline))));
             if (field.description) row.append(workspace_element("p", "", field.description));
             this.body.append(row);
           }
@@ -245303,9 +245516,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (element?.getRootNode() === document && element.closest("#write,.typ-markdown-preview")) interaction?.outside();
           return;
         }
-        const key2 = JSON.stringify(request);
-        if (key2 === last) return;
-        last = key2;
+        const key3 = JSON.stringify(request);
+        if (key3 === last) return;
+        last = key3;
         preview(request);
       }, 80);
     };
@@ -245754,6 +245967,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092403,
+        version: "2026.09.24.3",
+        date: "2026-09-24",
+        notes: [
+          "\u6E90\u7801\u3001\u5386\u53F2\u6587\u672C\u4E0EGit\u5DEE\u5F02\u5171\u7528\u81EA\u52A8\u6362\u884C\u914D\u7F6E\uFF0C\u9ED8\u8BA4\u6309\u7A97\u53E3\u5BBD\u5EA6\u8F6F\u6298\u884C\uFF1B\u672C\u7248\u8D77\u4FDD\u7559\u7528\u6237\u9009\u62E9\uFF0C\u4E0D\u6539\u53D8\u6B63\u6587\u6216\u903B\u8F91\u884C\u53F7\u3002",
+          "\u6362\u884C\u548CMarkdown\u6E90\u7801/\u6E32\u67D3\u5207\u6362\u8DDF\u968F\u5F53\u524D\u5185\u5BB9\u4F4D\u7F6E\uFF0C\u4FEE\u590D\u6EDA\u52A8\u540E\u5207\u6362\u56DE\u65E7\u4F4D\u7F6E\uFF1B\u672A\u6539\u6807\u9898\u4E0D\u518D\u8BEF\u67D3\u8272\uFF0C\u8868\u683C\u548C\u5217\u8868\u8FDB\u4E00\u6B65\u5B9A\u4F4D\u5230\u53D8\u66F4\u5355\u5143\u683C\u4E0E\u9879\u76EE\u3002",
+          "Git\u63D0\u4EA4\u5C55\u5F00\u4E0E\u6587\u4EF6\u9009\u4E2D\u5206\u79BB\uFF0C\u53EA\u4FDD\u7559\u5F53\u524D\u6BD4\u8F83\u6587\u4EF6\u7684\u9009\u4E2D\u6761\uFF1B\u5386\u53F2\u6587\u4EF6\u3001\u76EE\u5F55\u548C\u865A\u62DF\u5217\u8868\u7EDF\u4E00\u6574\u884C\u80CC\u666F\u3001\u5B57\u53F7\u4E0E\u7F29\u8FDB\u3002"
+        ]
+      },
       {
         sequence: 2026092402,
         version: "2026.09.24.2",
@@ -246890,8 +247113,8 @@ https://creativecommons.org/licenses/by/4.0/
       setDefault(value) {
         super.setDefault(JSON.parse(JSON.stringify(value)));
       }
-      set(key2, value) {
-        super.set(key2, value && typeof value === "object" && this.get(key2) === value ? JSON.parse(JSON.stringify(value)) : value);
+      set(key3, value) {
+        super.set(key3, value && typeof value === "object" && this.get(key3) === value ? JSON.parse(JSON.stringify(value)) : value);
       }
     };
   }
@@ -247989,12 +248212,12 @@ https://creativecommons.org/licenses/by/4.0/
         set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
       }
     };
-    for (const event_name2 of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
-      document.addEventListener(event_name2, handle_event, true);
+    for (const event_name3 of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
+      document.addEventListener(event_name3, handle_event, true);
     }
     return () => {
-      for (const event_name2 of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
-        document.removeEventListener(event_name2, handle_event, true);
+      for (const event_name3 of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
+        document.removeEventListener(event_name3, handle_event, true);
       }
     };
   }

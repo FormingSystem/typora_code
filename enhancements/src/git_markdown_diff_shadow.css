@@ -8,9 +8,9 @@
 .markdown-diff-cell table{display:block;overflow:auto}
 .markdown-diff-cell input{pointer-events:none}
 .markdown-diff-cell a{cursor:text}
-.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}
-.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}
-:host([data-theme=dark]) .markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}
+.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}
+.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}
+:host([data-theme=dark]) .markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}
 .markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}
 .markdown-diff-sign{display:block;opacity:.8}
 .markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}
@@ -18,3 +18,10 @@
 .markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .lookup-diagram svg{max-width:100%;height:auto}
 .markdown-diff-attachment{font-style:italic}
+
+[data-diff-fragment=left]{background:var(--vscode-diffEditor-removedTextBackground,#ff000033)!important}
+[data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)!important}
+:host([data-theme=dark]) [data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)!important}
+.markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}
+#write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}
+#write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}

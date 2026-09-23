@@ -57,8 +57,6 @@
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row, .git-graph-columns { display: grid; grid-template-columns: var(--git-visible-columns, var(--git-graph-width) minmax(var(--git-subject-width), 1fr) var(--git-date-width) var(--git-author-width) var(--git-hash-width)); align-items: center; width: 100%; min-width: var(--git-visible-min-width, calc(var(--git-graph-width) + var(--git-subject-width) + var(--git-date-width) + var(--git-author-width) + var(--git-hash-width))); padding: 0; border: 0; text-align: left; white-space: nowrap; column-gap: 0; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row { height: var(--git-graph-row-height, 22px); line-height: var(--git-graph-row-height, 22px); }
 .git-graph-row > svg { justify-self: start; overflow: visible; }
-.git-graph-row[aria-pressed=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
-.git-graph-row[aria-pressed=true]:hover { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); }
 :is(.linux-note-git-graph, .linux-note-git-source-control) button.git-graph-file.selected { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-graph-subject, .git-graph-author, .git-graph-date, .git-graph-hash { display: flex; align-items: center; min-width: 0; height:var(--git-graph-row-height,22px); padding:0 4px; overflow:hidden; text-overflow:ellipsis; }
 .git-graph-subject-text, .git-graph-author, .git-graph-date, .git-graph-hash { overflow: hidden; text-overflow: ellipsis; }
@@ -276,7 +274,6 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 }
 .git-scm-history-list { overflow-x:hidden;overflow-y:auto; min-width: 0; min-height: 0; flex: 1; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
-.git-scm-history-commit[aria-expanded=true] { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8) !important; color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }
@@ -293,16 +290,18 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .95; }
 .git-scm-history-commit:focus .git-scm-history-author { opacity: 1; }
 .git-scm-history-commit[data-head=true] :is(.git-scm-history-subject, .git-scm-history-author) { font-weight: 600; }
-.git-scm-history-expansion { position: relative; min-width: 0; padding-left: var(--git-history-lanes); }
+.git-scm-history-expansion { position: relative; min-width: 0; --git-history-indent:0px; }
 .git-scm-history-continuation { position: absolute; left: 0; top: 0; height: 100%; pointer-events: none; }
-.git-scm-history-files { min-width: 0; font-size: .923em; }
+.git-scm-history-files { min-width: 0; font-size: inherit; }
 .git-scm-history-entry, .git-scm-history-file-row { position: relative; min-width: 0; }
 .git-scm-history-entry {display:grid;grid-template-columns:minmax(0,1fr) 0;}
-.git-scm-history-entry > .git-scm-history-commit {grid-column:1;grid-row:1;}
+.git-scm-history-entry > .git-scm-history-commit {grid-column:1 / -1;grid-row:1;box-sizing:border-box;}
 .git-scm-history-entry > .git-scm-history-expansion {grid-column:1 / -1;grid-row:2;}
 .git-scm-history[data-history-always-show-actions=true] .git-scm-history-entry,
 .git-scm-history-entry:has(> .git-scm-history-commit:is(:hover,:focus)),.git-scm-history-entry:has(> .git-scm-history-commit-action:is(:hover,:focus)) {grid-template-columns:minmax(0,1fr) 22px;}
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { padding-right: 0; }
+:is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history[data-history-always-show-actions=true] button.git-scm-history-commit,
+:is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history .git-scm-history-entry:has(> .git-scm-history-commit:is(:hover,:focus),> .git-scm-history-commit-action:is(:hover,:focus)) > button.git-scm-history-commit {padding-right:22px;}
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history :is(button.git-scm-history-commit-action,button.git-scm-history-file-action) { position: absolute; top: 0; right: 0; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 3px; margin: 0; border: 0; color: inherit; background: transparent; opacity: 0; box-shadow: none; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit-action {position:static;grid-column:2;grid-row:1;min-width:0;max-width:100%;overflow:hidden;padding:0;}
 .git-scm-history :is(.git-scm-history-commit-action,.git-scm-history-file-action) .git-icon { width: 16px; height: 16px; flex: 0 0 16px; }
@@ -312,9 +311,9 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history :is(button.git-scm-history-commit-action,button.git-scm-history-file-action):is(:hover,:focus) { opacity: 1; }
 
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history :is(button.git-scm-history-commit-action,button.git-scm-history-file-action):focus-visible { outline: 1px solid var(--linux-note-shell-focus-border, #0078d4); outline-offset: -1px; }
-:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; box-shadow: none; width: 100%; height: 22px; padding: 0 var(--git-scm-row-right) 0 0; margin: 0; text-align: left; background: transparent; white-space: nowrap; }
-.git-scm-history-directory { margin-left: 8px; }
-.git-scm-history-directory > summary { cursor: pointer; padding: 3px 6px 3px 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+:is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-file { display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: 6px; border: 0; box-shadow: none; width: 100%; height: 22px; padding: 0 var(--git-scm-row-right) 0 calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px)); margin: 0; text-align: left; background: transparent; white-space: nowrap; box-sizing:border-box; }
+.git-scm-history-directory { margin-left: 0; }
+.git-scm-history-directory > summary { cursor: pointer; height:22px;line-height:22px;box-sizing:border-box;padding:0 6px 0 calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px) - 8px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-more { width: 100%; border: 0; box-shadow: none; font-size: .923em; }
 .git-scm-history-sash { grid-row: 2; grid-column: 1; top: 0; }
 .git-scm-repository { max-width: 100%; }
@@ -384,7 +383,6 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
   .git-graph-detail-content { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .git-graph-detail-summary { border-bottom: 1px solid #8883; }
 }
-.git-graph-row[aria-pressed=true]:focus-visible,
 :is(.linux-note-git-graph, .linux-note-git-source-control) button.git-graph-file.selected:focus-visible {
   background: var(--linux-note-shell-selection-background, #0060c0);
   color: var(--linux-note-shell-selection-foreground, #fff);
@@ -560,3 +558,9 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
   --git-source-foreground:var(--vscode-list-activeSelectionForeground,#000);
 }
 [data-git-source][data-git-source-selected=true]:focus-visible {outline:1px solid var(--workspace-focus-border,#0078d4);outline-offset:-1px;}
+
+/* 拓扑与目录只缩进内容，所有历史行的状态背景保持相同边界。 */
+.git-scm-history-continuation {z-index:1;}
+:is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history .git-scm-virtual-directory {padding-left:calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px));width:100%;box-sizing:border-box;}
+
+.git-graph-row:focus-visible {outline:1px solid var(--linux-note-shell-focus-border,#0078d4);outline-offset:-1px;}
