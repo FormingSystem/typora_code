@@ -554,5 +554,48 @@
     "design": "docs/workspace_colors.md",
     "adoption": "仅工作台语义色；覆盖旧2026色值，保留布局和Markdown主题；不修改记录中的VS Code用户配置。",
     "validation": "enhancements/tests/evidence/workspace_colors_20260923.json"
+  },
+  "reading_response_20260923": {
+    "commit": "88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f",
+    "defaults": {
+      "editor.smoothScrolling": false,
+      "editor.mouseWheelScrollSensitivity": 1,
+      "editor.fastScrollSensitivity": 5,
+      "editor.scrollPredominantAxis": true,
+      "editor.cursorSmoothCaretAnimation": "off"
+    },
+    "effective_settings": "本机Code/User/settings.json无对应键覆写；本工程Monaco沿用相同默认值。",
+    "source_files": [
+      {
+        "path": "src/vs/base/browser/dom.ts",
+        "sha256": "a760c1d2ebfddeaf3845ce4d6fc6397baa819b26b9701f3173d9c4ac21fdc2e0"
+      },
+      {
+        "path": "src/vs/base/browser/ui/scrollbar/scrollableElement.ts",
+        "sha256": "ca8b55a67cd3052a9a2cbdfe3ac7e380797fa686f0210f5296c9aabdc4f3617e"
+      },
+      {
+        "path": "src/vs/base/common/scrollable.ts",
+        "sha256": "d4a854a492bc686758c9dfe46599648099e81768d8bbcd1f54ba99917525277b"
+      },
+      {
+        "path": "src/vs/editor/browser/controller/editContext/native/nativeEditContext.ts",
+        "sha256": "b38bf4ec9c00a932105f2c57425e153bce609e6f9170529adb297920e9cda622"
+      },
+      {
+        "path": "src/vs/editor/browser/view.ts",
+        "sha256": "22edb04795705b7fc8675ba40d89c448a62141201f1a16b1f20d8b26e82771e2"
+      },
+      {
+        "path": "src/vs/editor/common/config/editorOptions.ts",
+        "sha256": "1f158ceb95f84b43796c253f808361ff9dbfbff4eb3f7fa3383467116d7d15c3"
+      },
+      {
+        "path": "src/vs/base/browser/mouseEvent.ts",
+        "sha256": "560747ed70add1908279ccb7a2ba3834540077231258eb0430b04c388f2f16ff"
+      }
+    ],
+    "adoption": "正文输入由原生宿主管理；按视图所有者处理输入、按动画帧合并可见更新，缓存失效与取消独立。禁止直接把VS Code标准化后的50倍率用于原始delta。",
+    "status": "本轮仅固化依据，用户要求多版本观察；未新增滚动适配或发行。"
   }
 }
