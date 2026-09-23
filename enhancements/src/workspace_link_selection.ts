@@ -22,7 +22,7 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
     return {source:source_for(link),href};
   };
   const selected=()=>{const selection=window.getSelection();if(!selection?.rangeCount)return;const first=request_for(selection.anchorNode),last=request_for(selection.focusNode);if(first&&last&&first.source===last.source&&first.href===last.href)return first;};
-  const update=()=>{clearTimeout(timer);timer=window.setTimeout(()=>{if(disposed||!visible())return;const request=selected();if(!request)return;const key=JSON.stringify(request);if(key===last)return;last=key;preview(request);},80);};
+  const update=()=>{clearTimeout(timer);timer=window.setTimeout(()=>{if(disposed||!visible())return;const request=selected();if(!request){last='';return;}const key=JSON.stringify(request);if(key===last)return;last=key;preview(request);},80);};
   class link_view extends core.WorkspaceView{
     containerEl=el("section","workspace-link-preview");icon="";
     reader=create_link_preview(files);loaded=false;
@@ -67,5 +67,5 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   lifetime.listen(document,"selectionchange",update);
   lifetime.listen(document,"pointerup",update);
   const reset=()=>{last="";clearTimeout(timer);close_menu?.();menu_request=undefined;};
-  return {refresh(){last="";update();},reset,dispose(){if(disposed)return;disposed=true;reset();lifetime.dispose();for(const view of views){view.reader.dispose();view.leaf.parent.removeTab?.(view.leaf.state.path);}views.clear();payloads.clear();}};
+  return {refresh(){last="";update();},dismiss(){clearTimeout(timer);const request=selected();if(request)last=JSON.stringify(request);},reset,dispose(){if(disposed)return;disposed=true;reset();lifetime.dispose();for(const view of views){view.reader.dispose();view.leaf.parent.removeTab?.(view.leaf.state.path);}views.clear();payloads.clear();}};
 }

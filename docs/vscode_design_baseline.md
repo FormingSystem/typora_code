@@ -121,3 +121,8 @@ R014核对固定VS Code1.137.0提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c的W
 ## 2026-09-22 设置浮层、标签换行和已打开编辑器
 
 R072.2/R073沿用1.137.0固定提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c。`modalEditorPart.ts`取默认上限1400×900、最小400×300、33px标题、最大化16px边距；不移植通用编辑器迁移和拖动。`multiEditorTabsControl.ts#doLayoutTabsWrapping`用于开启换行后按组宽及可用高度回退，默认`workbench.editor.wrapTabs=false`。`editorQuickAccess.ts`取`edt active `、当前组最近激活顺序、名称/路径筛选及逐行关闭。几何保留本工作台已采用32px标签及24px工具按钮，源文件图标复用已有go-to-file；主题和缩放实际回归见[本轮证据](../enhancements/tests/evidence/preview_settings_20260922.json)。
+
+
+## 2026-09-23 独立预览的边缘与角落调整
+
+R069.2读取固定1.137.0提交的[sash.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/sash/sash.css)，采用4px边缘和8px正交角落、方向光标；170px侧栏最小宽度和220px编辑区保留既有共享契约。初始40%/最低120px高度沿用本项目预览，独立左下停靠由用户本次需求定义，不称为上游默认布局。关闭使用已有官方close图标及24px共同操作容器。原生验证包含矩形和elementFromPoint真实命中，避免侧栏背景遮挡被外框检查遗漏。

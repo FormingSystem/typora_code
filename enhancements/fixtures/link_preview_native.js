@@ -18,6 +18,29 @@
   assert(core.app.workspace.activeLeaf===source_leaf,'侧栏预览保留来源活动标签');
   assert(getSelection().toString()==='目标','侧栏预览保留原生选区');
   assert(!sidebar.querySelector('.workspace-link-preview [contenteditable=true]'),'侧栏只读');
+  const geometry=()=>({dock:sidebar.getBoundingClientRect().toJSON(),editor:document.querySelector('.typ-workspace-root').getBoundingClientRect().toJSON(),panel:document.querySelector('#sidebar-content').getBoundingClientRect().toJSON(),shown:core.app.workspace.sidebar.isShown});
+  assert(sidebar.parentElement===document.body,'链接预览独立挂载不属于功能侧栏');
+  core.app.workspace.sidebar.hide();await pause(400);
+  assert(!sidebar.hidden&&!core.app.workspace.sidebar.isShown,'收起功能侧栏仍保留独立预览');
+  assert(geometry().editor.left>=geometry().dock.right-2,'收起时编辑区避让预览');
+  core.app.workspace.sidebar.show();await pause(400);
+  assert(geometry().panel.bottom<=geometry().dock.top+2,'展开时功能面板不与预览重叠');
+  const painted=()=>{const box=sidebar.getBoundingClientRect();return [10,box.width/2,box.width-14].every(x=>sidebar.contains(document.elementFromPoint(box.left+x,box.top+14)));};
+  assert(painted(),'预览工具栏真实命中不被侧栏背景遮挡');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_dock_expanded'}));await pause(400);
+  core.app.workspace.sidebar.hide();await pause(350);assert(painted(),'侧栏收起后预览工具栏仍可点击');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_dock_alone'}));await pause(400);core.app.workspace.sidebar.show();await pause(350);
+
+  for(const zoom of [1,1.25,1.5]){
+   reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);
+   for(const edge of ['north','east','north-east']){const handle=sidebar.querySelector(`[data-edge="${edge}"]`),before=sidebar.getBoundingClientRect();handle.dispatchEvent(new KeyboardEvent('keydown',{key:edge==='north'?'ArrowUp':'ArrowRight',bubbles:true}));await pause(60);const after=sidebar.getBoundingClientRect();assert(edge==='north'?after.height>before.height:after.width>before.width,'原生预览尺寸调整 '+edge+' '+zoom);}
+   assert(geometry().editor.left>=geometry().dock.right-2,'缩放后编辑区保持避让 '+zoom);samples.push({preview_geometry:geometry(),zoom});
+  }
+  reqnode('electron').webFrame.setZoomFactor(1);await pause(150);
+  sidebar.querySelector('[aria-label="关闭链接预览"]').click();document.dispatchEvent(new Event('pointerup'));await pause(150);
+  assert(sidebar.hidden&&!document.body.classList.contains('has-workspace-link-preview'),'关闭后释放预览占位且旧选区不复活');
+  getSelection().removeAllRanges();document.dispatchEvent(new Event('selectionchange'));await pause(100);select();await pause(150);assert(!sidebar.hidden,'重新选择链接再次显示');
+
   const open_menu=async(index)=>{core.app.workspace.activeLeaf=source_leaf.parent.toggleTab(source_leaf.state.path);await wait(()=>File.bundle.filePath===source&&document.querySelector('#write a[href]')||source_leaf.view.containerEl.querySelector('a[href],a[data-ref]'),'来源文档链接尚未恢复');const current=select(),event=new MouseEvent('contextmenu',{bubbles:true,clientX:current.getBoundingClientRect().left,clientY:current.getBoundingClientRect().bottom});if(current.closest('#write')){File.editor.contextMenu.show(event,current);const item=document.querySelector(`[data-key="typora-code-link-preview-${index}"]`);assert(item&&!item.classList.contains('hide'),'原生右键含分屏动作'+index);item.querySelector('a').click();}else{current.dispatchEvent(event);const item=[...document.querySelectorAll('[role=menuitem]')].find(n=>n.textContent.includes(index?'上下分屏':'左右分屏'));assert(item,'阅读栏右键含分屏动作'+index);item.click();}};
   for(let i=0;i<20;i++){
    const direction=i%2;await open_menu(direction);
@@ -47,6 +70,7 @@
     const margin=document.querySelector('.linux-note-document-margin input');margin.value='18';margin.dispatchEvent(new Event('input',{bubbles:true}));await pause(150);
     samples.push({anchor_before:offset,anchor_after:point.getBoundingClientRect().top-scroller.getBoundingClientRect().top,scroll:scroller.scrollTop,root_parent:write.parentElement.tagName,margin:margin.value,line_height:getComputedStyle(point.startContainer.parentElement).lineHeight});assert(Math.abs(point.getBoundingClientRect().top-scroller.getBoundingClientRect().top-offset)<3,'原生边距重排保持当前字符');
     reqnode('electron').webFrame.setZoomFactor(1.25);await pause(200);
+    samples.push({zoom_anchor_before:offset,zoom_anchor_after:point.getBoundingClientRect().top-scroller.getBoundingClientRect().top,scroll:scroller.scrollTop,viewport:scroller.getBoundingClientRect().toJSON(),point:point.toString()});
     assert(Math.abs(point.getBoundingClientRect().top-scroller.getBoundingClientRect().top-offset)<30,'原生窗口缩放仍保留当前文字行');
     reqnode('electron').webFrame.setZoomFactor(1);margin.value='0';margin.dispatchEvent(new Event('input',{bubbles:true}));await pause(100);await files.close_leaf(core.app.workspace.activeLeaf);}
    await files.close_leaf(leaf);await pause(40);
@@ -64,6 +88,17 @@
   const wrap=modal.querySelector('[data-setting="editor.wrap_tabs"]');wrap.checked=true;wrap.dispatchEvent(new Event('change'));
   modal.querySelector('.workspace-dialog-close').click();await pause(80);assert(!document.querySelector('.workspace-settings-modal'),'右上关闭释放浮层');
   core.app.commands.run('linux_note:search');await pause(80);assert(document.querySelector('.linux-note-workspace-search'),'自动链接预览关闭不影响搜索侧栏');
+  const search_panel=document.querySelector('.linux-note-workspace-search'),query=search_panel.querySelector('[aria-label="搜索内容"]');query.value='目标正文';query.dispatchEvent(new Event('input',{bubbles:true}));query.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));
+  await wait(()=>search_panel.dataset.state==='ready'&&search_panel.querySelector('.workspace-search-match'),'搜索匹配未就绪');search_panel.querySelector('.workspace-search-match').click();await pause(120);
+  const search_preview=search_panel.querySelector('.workspace-search-preview-section'),search_before=search_preview.getBoundingClientRect();
+  search_preview.querySelector('[data-edge="north-east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}));await pause(120);
+  assert(search_preview.getBoundingClientRect().height>search_before.height,'搜索预览角落调整高度');
+  const height_before_width=search_preview.offsetHeight;
+  search_preview.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));await pause(120);
+  assert(Math.abs(search_preview.getBoundingClientRect().width-search_before.width-10)<2,'搜索预览宽度由主侧栏所有者精确保持');
+  assert(Math.abs(search_preview.offsetHeight-height_before_width)<2,'仅横向调整不改变搜索预览高度');
+  window.dispatchEvent(new Event('resize'));await pause(100);assert(search_preview.getBoundingClientRect().width>search_before.width,'后续resize不回退搜索宽度');
+  assert(sidebar.hidden,'搜索预览不恢复已关闭链接预览');
   assert(fs.readFileSync(source,'utf8')===text,'来源磁盘正文不变');
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio,zoom:reqnode('electron').webFrame.getZoomFactor()},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex')});
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,iterations:20,limits:'原生renderer选区/菜单；物理鼠标、其他系统及远端网页登录未覆盖'},null,2));

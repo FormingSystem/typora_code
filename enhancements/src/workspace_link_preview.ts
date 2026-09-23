@@ -7,7 +7,7 @@ import {git_icon_button} from "./git_icons";
 
 export type workspace_link_request={source:string;href:string};
 
-export function create_link_preview(files:workspace_file_host){
+export function create_link_preview(files:workspace_file_host,options:{close?:()=>void}={}){
   const container=el("section","workspace-link-preview"),toolbar=el("div","workspace-search-preview-heading"),title=el("span","workspace-link-preview-title");
   const content=el("div","workspace-link-preview-content"),reader=create_lookup_preview(files);
   const runtime=window as any,interaction=acquire_workspace_interaction(container);
@@ -17,6 +17,7 @@ export function create_link_preview(files:workspace_file_host){
   const mode=el("span","workspace-link-preview-mode","只读预览");
   const fail=(error:unknown)=>{content.replaceChildren(el("p","workspace-lookup-preview-message",String(error)));container.dataset.state="error";};
   toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,open,retry,mode);container.append(toolbar,content);
+  if(options.close)toolbar.append(git_icon_button('close','关闭链接预览',options.close));
   const clear=()=>{++generation;reader.clear();content.replaceChildren();request=undefined;target=undefined;};
   const show=async(value:workspace_link_request)=>{
     clear();if(disposed)return;request={...value};const version=generation;

@@ -11,7 +11,13 @@
 .workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
-.workspace-link-dock{position:absolute;bottom:0;left:0;right:0;height:40%;min-height:120px;display:flex;flex-direction:column;overflow:hidden;border-top:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:2}
+/* 独立预览和主侧栏共享左列占位；收起主侧栏不会收起预览。 */
+.workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:2}
 .workspace-link-dock[hidden]{display:none}
-#typora-sidebar.has-workspace-link-preview > #sidebar-content,#typora-sidebar.has-workspace-link-preview[data-workspace-footer=moved] > #sidebar-content{bottom:max(40%,120px)!important}
+body.has-workspace-link-preview #typora-sidebar{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important;height:auto!important}
+body.has-workspace-link-preview #typora-sidebar > #sidebar-content{bottom:0!important}
+body.has-workspace-link-preview:not(.megamenu-opened):not(.show-preference-panel) :is(content,footer.ty-footer,.md-notification-container,#md-searchpanel){left:calc(var(--typ-ribbon-width,48px) + var(--workspace-preview-column))!important}
+body.has-workspace-link-preview div.typ-workspace-root{left:calc(var(--typ-ribbon-width,48px) + var(--workspace-preview-column));width:calc(100% - var(--typ-ribbon-width,48px) - var(--workspace-preview-column) - var(--typ-sidedock-width,0px))}
+body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility:hidden}
+.workspace-link-dock .workspace-link-preview-mode{display:none}
 .workspace-link-web{flex:1;width:100%;min-height:0;border:0;background:white}

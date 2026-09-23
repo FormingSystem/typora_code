@@ -5872,7 +5872,8 @@
         "R069",
         "R069.1",
         "R072.2",
-        "R073"
+        "R073",
+        "R069.2"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6398,6 +6399,38 @@
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "id": "TC-preview-dock-001",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R069.2"
+      ],
+      "design": "docs/link_preview.md",
+      "implementation": [
+        "enhancements/src/workspace_link_dock.ts",
+        "enhancements/src/workspace_preview_resize.ts",
+        "enhancements/src/workspace_search.ts"
+      ],
+      "related_modules": [
+        "search",
+        "reading",
+        "split",
+        "preview"
+      ],
+      "script": "enhancements/scripts/test_workspace_preview_dock.cjs",
+      "environment": "隔离Electron、临时文档与本地HTTP服务器",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
     }
   ]
 }

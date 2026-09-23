@@ -12,7 +12,7 @@ export const EDITOR_MIN_WIDTH = 220;
 
 type sidebar_host = { isShown: boolean; show(): void; hide(): void };
 type sidebar_sash_options = { sidebar: sidebar_host; save_width(width: number): void };
-type sidebar_sash_binding = { element: HTMLElement; refresh(): void; dispose(): void };
+type sidebar_sash_binding = { element: HTMLElement; set_width(width:number):void; refresh(): void; dispose(): void };
 const bindings = new WeakMap<HTMLElement, sidebar_sash_binding>();
 
 /** 替换原生分界线的拖影行为；继续通过社区核心开关面板，保持所有面板的生命周期一致。 */
@@ -126,5 +126,8 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
     for (const [name, value] of original_attributes) { if (value === null) sash.removeAttribute(name); else sash.setAttribute(name, value); }
     delete sash.dataset.workspaceSidebarSash; root.style.removeProperty("--linux-note-sidebar-sash-left"); style.remove(); bindings.delete(sash);
   };
-  const binding = { element: sash, refresh, dispose }; bindings.set(sash, binding); window.addEventListener("pagehide", dispose, { once: true }); refresh(); return binding;
+  const binding = { element: sash, set_width(width:number){preferred_width=clamp_width(width);apply_width(preferred_width);persist();}, refresh, dispose }; bindings.set(sash, binding); window.addEventListener("pagehide", dispose, { once: true }); refresh(); return binding;
 }
+
+/** 同列中的预览拖动复用侧栏宽度所有者，避免下一次 resize 恢复旧宽度。 */
+export function resize_workspace_sidebar(width:number){const sash=document.getElementById("typora-sidebar-resizer");const binding=sash&&bindings.get(sash);if(binding){binding.set_width(width);return true;}return false;}

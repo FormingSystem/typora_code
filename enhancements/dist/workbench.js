@@ -235315,6 +235315,278 @@ https://creativecommons.org/licenses/by/4.0/
     return { container, refresh, reveal, show: show2, dispose: dispose2 };
   }
 
+  // src/workspace_preview_resize.css
+  var workspace_preview_resize_default = "";
+
+  // src/workspace_preview_resize.ts
+  function bind_preview_resize(root, read2, change, edges = ["north", "east", "north-east"]) {
+    const style = acquire_workspace_style("typora-code-style:workspace_preview_resize", workspace_preview_resize_default, {});
+    const handles = [];
+    let active;
+    const finish = () => {
+      const previous = active;
+      active = void 0;
+      if (previous) {
+        previous.handle.classList.remove("is-dragging");
+        if (previous.handle.hasPointerCapture(previous.id)) previous.handle.releasePointerCapture(previous.id);
+      }
+    };
+    for (const edge of edges) {
+      const handle = document.createElement("div");
+      handle.className = "workspace-preview-sash";
+      handle.dataset.edge = edge;
+      handle.tabIndex = 0;
+      handle.setAttribute("role", "separator");
+      handle.setAttribute("aria-label", edge === "north" ? "\u8C03\u6574\u9884\u89C8\u9AD8\u5EA6" : edge === "east" ? "\u8C03\u6574\u9884\u89C8\u5BBD\u5EA6" : "\u540C\u65F6\u8C03\u6574\u9884\u89C8\u5BBD\u9AD8");
+      handle.setAttribute("aria-orientation", edge === "north" ? "horizontal" : "vertical");
+      const resize = (size, x, y) => change({ width: size.width + (edge.includes("east") ? x : 0), height: size.height - (edge.includes("north") ? y : 0) });
+      handle.onpointerdown = (event) => {
+        if (event.button !== 0) return;
+        event.preventDefault();
+        event.stopPropagation();
+        finish();
+        handle.focus({ preventScroll: true });
+        active = { handle, id: event.pointerId, x: event.clientX, y: event.clientY, size: read2(), scale: root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1 };
+        handle.setPointerCapture(event.pointerId);
+        handle.classList.add("is-dragging");
+      };
+      handle.onpointermove = (event) => {
+        if (active?.handle !== handle || active.id !== event.pointerId) return;
+        event.preventDefault();
+        resize(active.size, (event.clientX - active.x) / active.scale, (event.clientY - active.y) / active.scale);
+      };
+      handle.onpointerup = handle.onpointercancel = handle.onlostpointercapture = finish;
+      handle.onkeydown = (event) => {
+        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        const step = event.shiftKey ? 50 : 10;
+        resize(read2(), event.key === "ArrowLeft" ? -step : event.key === "ArrowRight" ? step : 0, event.key === "ArrowUp" ? -step : event.key === "ArrowDown" ? step : 0);
+      };
+      root.append(handle);
+      handles.push(handle);
+    }
+    window.addEventListener("blur", finish);
+    return { cancel: finish, dispose() {
+      finish();
+      window.removeEventListener("blur", finish);
+      handles.forEach((handle) => handle.remove());
+      style.remove();
+    } };
+  }
+
+  // src/workspace_sidebar_sash.css
+  var workspace_sidebar_sash_default = "";
+
+  // src/workspace_sidebar_sash.ts
+  var SIDEBAR_MIN_WIDTH = 170;
+  var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
+  var EDITOR_MIN_WIDTH = 220;
+  var bindings6 = /* @__PURE__ */ new WeakMap();
+  function install_workspace_sidebar_sash(options2) {
+    const sash = document.querySelector("#typora-sidebar-resizer");
+    const sidebar_element = document.querySelector("#typora-sidebar");
+    const ribbon = document.querySelector(".typ-ribbon");
+    if (!sash || !sidebar_element || !ribbon) return;
+    const existing = bindings6.get(sash);
+    if (existing) return existing;
+    const root = document.documentElement;
+    const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
+    const attributes = ["role", "aria-hidden", "aria-label", "aria-orientation", "aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-valuetext", "tabindex", "title"];
+    const original_attributes = new Map(attributes.map((name) => [name, sash.getAttribute(name)]));
+    const read_width = () => Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar_element.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
+    let preferred_width = Math.max(SIDEBAR_MIN_WIDTH, Math.round(read_width()));
+    let disposed = false, notifying = false, frame3 = 0;
+    let drag;
+    const activity_width = () => ribbon.getBoundingClientRect().width;
+    const available_width = () => Math.max(0, root.clientWidth - activity_width() - (Number.parseFloat(getComputedStyle(document.body).getPropertyValue("--typ-sidedock-width")) || 0) - EDITOR_MIN_WIDTH);
+    const clamp_width = (width2) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available_width(), width2)));
+    const notify_layout = () => {
+      if (frame3 || disposed) return;
+      frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        notifying = true;
+        window.dispatchEvent(new Event("resize"));
+        window.dispatchEvent(new Event("optimizedResize"));
+        notifying = false;
+      });
+    };
+    const sync_sash = () => {
+      const width2 = options2.sidebar.isShown ? read_width() : 0;
+      root.style.setProperty("--linux-note-sidebar-sash-left", "".concat(activity_width() + width2, "px"));
+      sash.setAttribute("aria-valuenow", String(Math.round(width2)));
+      sash.setAttribute("aria-valuemax", String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available_width()))));
+      sash.setAttribute("aria-valuetext", width2 ? "\u4FA7\u680F\u5BBD\u5EA6 ".concat(Math.round(width2), " \u50CF\u7D20") : "\u4FA7\u680F\u5DF2\u6536\u8D77\uFF1B\u6309 Enter \u6216\u5411\u53F3\u952E\u5C55\u5F00");
+    };
+    const apply_width = (width2) => {
+      const value = "".concat(Math.round(width2), "px");
+      if (root.style.getPropertyValue("--sidebar-width") !== value) {
+        window.dispatchEvent(new Event("beforeResize"));
+        root.style.setProperty("--sidebar-width", value);
+        notify_layout();
+      }
+      sync_sash();
+    };
+    const set_visible = (visible3) => {
+      if (options2.sidebar.isShown === visible3) return;
+      if (visible3) options2.sidebar.show();
+      else options2.sidebar.hide();
+      if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
+      notify_layout();
+      sync_sash();
+    };
+    const persist = () => {
+      try {
+        options2.save_width(preferred_width);
+      } catch (error) {
+        console.warn("\u4FDD\u5B58\u4FA7\u680F\u5BBD\u5EA6\u5931\u8D25", error);
+      }
+    };
+    const refresh = () => {
+      if (disposed || notifying) return;
+      if (options2.sidebar.isShown) {
+        if (available_width() < SIDEBAR_MIN_WIDTH) {
+          set_visible(false);
+          apply_width(preferred_width);
+        } else if (!drag) apply_width(clamp_width(preferred_width));
+      }
+      sync_sash();
+    };
+    const finish = () => {
+      if (!drag) return;
+      const previous = drag;
+      drag = void 0;
+      if (options2.sidebar.isShown) {
+        preferred_width = clamp_width(read_width());
+        persist();
+      } else {
+        preferred_width = previous.saved_width;
+        apply_width(preferred_width);
+      }
+      document.body.classList.remove("linux-note-sidebar-dragging");
+      if (sash.hasPointerCapture(previous.pointer_id)) sash.releasePointerCapture(previous.pointer_id);
+      sync_sash();
+      notify_layout();
+    };
+    const pointer_down = (event) => {
+      if (event.button !== 0 || drag) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      sash.focus({ preventScroll: true });
+      drag = { pointer_id: event.pointerId, start_x: event.clientX, start_width: options2.sidebar.isShown ? read_width() : 0, saved_width: preferred_width };
+      sash.setPointerCapture(event.pointerId);
+      document.body.classList.add("linux-note-sidebar-dragging");
+    };
+    const pointer_move = (event) => {
+      if (!drag || drag.pointer_id !== event.pointerId) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      const width2 = drag.start_width + event.clientX - drag.start_x;
+      if (width2 < SIDEBAR_SNAP_WIDTH || available_width() < SIDEBAR_MIN_WIDTH) {
+        set_visible(false);
+        apply_width(drag.saved_width);
+      } else {
+        apply_width(clamp_width(width2));
+        set_visible(true);
+      }
+    };
+    const pointer_finish = (event) => {
+      if (drag?.pointer_id === event.pointerId) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        finish();
+      }
+    };
+    const suppress_native_mouse = (event) => {
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    };
+    const keydown = (event) => {
+      if (!["ArrowLeft", "ArrowRight", "Home", "End", "Enter"].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      if (event.key === "Enter" && options2.sidebar.isShown) {
+        set_visible(false);
+        apply_width(preferred_width);
+        return;
+      }
+      if (available_width() < SIDEBAR_MIN_WIDTH) return;
+      if (!options2.sidebar.isShown) {
+        apply_width(clamp_width(preferred_width));
+        set_visible(true);
+        return;
+      }
+      const width2 = event.key === "Home" ? SIDEBAR_MIN_WIDTH : event.key === "End" ? available_width() : read_width() + (event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0) * (event.shiftKey ? 50 : 10);
+      preferred_width = clamp_width(width2);
+      apply_width(preferred_width);
+      persist();
+    };
+    const observer2 = new MutationObserver(refresh);
+    observer2.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    const resize_observer = new ResizeObserver(refresh);
+    resize_observer.observe(root);
+    resize_observer.observe(ribbon);
+    sash.dataset.workspaceSidebarSash = "ready";
+    sash.tabIndex = 0;
+    sash.removeAttribute("aria-hidden");
+    sash.setAttribute("role", "separator");
+    sash.setAttribute("aria-orientation", "vertical");
+    sash.setAttribute("aria-valuemin", "0");
+    sash.title = "\u8C03\u6574\u4E3B\u4FA7\u680F\u5BBD\u5EA6\uFF1B\u62D6\u5230 85 \u50CF\u7D20\u4EE5\u4E0B\u6536\u8D77\uFF0C\u5411\u5916\u62D6\u52A8\u6216\u6309 Enter \u5C55\u5F00";
+    sash.setAttribute("aria-label", "\u8C03\u6574\u4E3B\u4FA7\u680F\u5BBD\u5EA6");
+    sash.addEventListener("pointerdown", pointer_down, true);
+    document.addEventListener("pointermove", pointer_move, true);
+    for (const name of ["pointerup", "pointercancel"]) document.addEventListener(name, pointer_finish, true);
+    sash.addEventListener("lostpointercapture", pointer_finish, true);
+    for (const name of ["mousedown", "mousemove", "mouseup"]) sash.addEventListener(name, suppress_native_mouse, true);
+    sash.addEventListener("keydown", keydown, true);
+    window.addEventListener("resize", refresh);
+    window.addEventListener("blur", finish);
+    const dispose2 = () => {
+      if (disposed) return;
+      finish();
+      disposed = true;
+      observer2.disconnect();
+      resize_observer.disconnect();
+      cancelAnimationFrame(frame3);
+      sash.removeEventListener("pointerdown", pointer_down, true);
+      document.removeEventListener("pointermove", pointer_move, true);
+      for (const name of ["pointerup", "pointercancel"]) document.removeEventListener(name, pointer_finish, true);
+      sash.removeEventListener("lostpointercapture", pointer_finish, true);
+      for (const name of ["mousedown", "mousemove", "mouseup"]) sash.removeEventListener(name, suppress_native_mouse, true);
+      sash.removeEventListener("keydown", keydown, true);
+      window.removeEventListener("resize", refresh);
+      window.removeEventListener("blur", finish);
+      window.removeEventListener("pagehide", dispose2);
+      for (const [name, value] of original_attributes) {
+        if (value === null) sash.removeAttribute(name);
+        else sash.setAttribute(name, value);
+      }
+      delete sash.dataset.workspaceSidebarSash;
+      root.style.removeProperty("--linux-note-sidebar-sash-left");
+      style.remove();
+      bindings6.delete(sash);
+    };
+    const binding = { element: sash, set_width(width2) {
+      preferred_width = clamp_width(width2);
+      apply_width(preferred_width);
+      persist();
+    }, refresh, dispose: dispose2 };
+    bindings6.set(sash, binding);
+    window.addEventListener("pagehide", dispose2, { once: true });
+    refresh();
+    return binding;
+  }
+  function resize_workspace_sidebar(width2) {
+    const sash = document.getElementById("typora-sidebar-resizer");
+    const binding = sash && bindings6.get(sash);
+    if (binding) {
+      binding.set_width(width2);
+      return true;
+    }
+    return false;
+  }
+
   // src/workspace_search_matcher.ts
   var escape_regex = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   function query_expression(options2) {
@@ -236735,6 +237007,14 @@ https://creativecommons.org/licenses/by/4.0/
           this.split.hidden = true;
           this.set_split(40);
           this.body.append(this.results, this.split, this.preview_section);
+          lifetime.own(bind_preview_resize(this.preview_section, () => ({ width: native_sidebar?.contains(this.containerEl) ? native_sidebar.offsetWidth : this.preview_section.offsetWidth, height: this.preview_section.offsetHeight }), (size) => {
+            if (Math.abs(size.height - this.preview_section.offsetHeight) > 1) this.set_split(100 - (size.height + this.split.offsetHeight) / Math.max(1, this.body.clientHeight) * 100);
+            if (native_sidebar?.contains(this.containerEl)) {
+              const ribbon = document.querySelector(".typ-ribbon")?.offsetWidth || 48;
+              const width2 = Math.max(SIDEBAR_MIN_WIDTH, Math.min(document.documentElement.clientWidth - ribbon - EDITOR_MIN_WIDTH, size.width));
+              resize_workspace_sidebar(width2);
+            } else this.preview_section.style.width = Math.max(SIDEBAR_MIN_WIDTH, Math.min(this.body.clientWidth, size.width)) + "px";
+          }, ["east", "north-east"]));
           this.status.setAttribute("role", "status");
           this.results.setAttribute("aria-label", "\u6587\u4EF6\u641C\u7D22\u7ED3\u679C");
           this.containerEl.append(heading3, this.form, this.body);
@@ -238365,7 +238645,7 @@ https://creativecommons.org/licenses/by/4.0/
   var MAXIMUM_MARGIN = 24;
   var ROOT_ATTRIBUTE = "data-linux-note-document-margin";
   var properties = ["--linux-note-document-margin", "--linux-note-document-width"];
-  var bindings6 = /* @__PURE__ */ new WeakMap();
+  var bindings7 = /* @__PURE__ */ new WeakMap();
   function normalize_margin(value) {
     const margin = Number(value);
     return Number.isFinite(margin) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(margin))) : 0;
@@ -238391,7 +238671,7 @@ https://creativecommons.org/licenses/by/4.0/
     else change();
   }
   function install_workspace_document_margin(footer) {
-    const existing = bindings6.get(footer);
+    const existing = bindings7.get(footer);
     if (existing) return existing;
     const root = document.documentElement;
     const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
@@ -238473,9 +238753,9 @@ https://creativecommons.org/licenses/by/4.0/
         layout2.remove();
         style.remove();
       });
-      bindings6.delete(footer);
+      bindings7.delete(footer);
     } };
-    bindings6.set(footer, binding);
+    bindings7.set(footer, binding);
     return binding;
   }
 
@@ -239302,9 +239582,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_recent.ts
-  var bindings7 = /* @__PURE__ */ new WeakMap();
+  var bindings8 = /* @__PURE__ */ new WeakMap();
   function get_workspace_recents(files) {
-    return bindings7.get(files);
+    return bindings8.get(files);
   }
   function bind_workspace_recents(files, open_folder) {
     const runtime2 = window;
@@ -239353,9 +239633,9 @@ https://creativecommons.org/licenses/by/4.0/
     const binding = { entries: entries3, open: view.open, open_item: service.open, dispose() {
       view.dispose();
       service.dispose();
-      bindings7.delete(files);
+      bindings8.delete(files);
     } };
-    bindings7.set(files, binding);
+    bindings8.set(files, binding);
     return binding;
   }
 
@@ -239951,205 +240231,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (previous_state === null) bar.removeAttribute("data-workspace-titlebar");
       else bar.setAttribute("data-workspace-titlebar", previous_state);
     });
-    return binding;
-  }
-
-  // src/workspace_sidebar_sash.css
-  var workspace_sidebar_sash_default = "";
-
-  // src/workspace_sidebar_sash.ts
-  var SIDEBAR_MIN_WIDTH = 170;
-  var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
-  var EDITOR_MIN_WIDTH = 220;
-  var bindings8 = /* @__PURE__ */ new WeakMap();
-  function install_workspace_sidebar_sash(options2) {
-    const sash = document.querySelector("#typora-sidebar-resizer");
-    const sidebar_element = document.querySelector("#typora-sidebar");
-    const ribbon = document.querySelector(".typ-ribbon");
-    if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings8.get(sash);
-    if (existing) return existing;
-    const root = document.documentElement;
-    const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
-    const attributes = ["role", "aria-hidden", "aria-label", "aria-orientation", "aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-valuetext", "tabindex", "title"];
-    const original_attributes = new Map(attributes.map((name) => [name, sash.getAttribute(name)]));
-    const read_width = () => Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar_element.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
-    let preferred_width = Math.max(SIDEBAR_MIN_WIDTH, Math.round(read_width()));
-    let disposed = false, notifying = false, frame3 = 0;
-    let drag;
-    const activity_width = () => ribbon.getBoundingClientRect().width;
-    const available_width = () => Math.max(0, root.clientWidth - activity_width() - (Number.parseFloat(getComputedStyle(document.body).getPropertyValue("--typ-sidedock-width")) || 0) - EDITOR_MIN_WIDTH);
-    const clamp_width = (width2) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available_width(), width2)));
-    const notify_layout = () => {
-      if (frame3 || disposed) return;
-      frame3 = requestAnimationFrame(() => {
-        frame3 = 0;
-        notifying = true;
-        window.dispatchEvent(new Event("resize"));
-        window.dispatchEvent(new Event("optimizedResize"));
-        notifying = false;
-      });
-    };
-    const sync_sash = () => {
-      const width2 = options2.sidebar.isShown ? read_width() : 0;
-      root.style.setProperty("--linux-note-sidebar-sash-left", "".concat(activity_width() + width2, "px"));
-      sash.setAttribute("aria-valuenow", String(Math.round(width2)));
-      sash.setAttribute("aria-valuemax", String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available_width()))));
-      sash.setAttribute("aria-valuetext", width2 ? "\u4FA7\u680F\u5BBD\u5EA6 ".concat(Math.round(width2), " \u50CF\u7D20") : "\u4FA7\u680F\u5DF2\u6536\u8D77\uFF1B\u6309 Enter \u6216\u5411\u53F3\u952E\u5C55\u5F00");
-    };
-    const apply_width = (width2) => {
-      const value = "".concat(Math.round(width2), "px");
-      if (root.style.getPropertyValue("--sidebar-width") !== value) {
-        window.dispatchEvent(new Event("beforeResize"));
-        root.style.setProperty("--sidebar-width", value);
-        notify_layout();
-      }
-      sync_sash();
-    };
-    const set_visible = (visible3) => {
-      if (options2.sidebar.isShown === visible3) return;
-      if (visible3) options2.sidebar.show();
-      else options2.sidebar.hide();
-      if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
-      notify_layout();
-      sync_sash();
-    };
-    const persist = () => {
-      try {
-        options2.save_width(preferred_width);
-      } catch (error) {
-        console.warn("\u4FDD\u5B58\u4FA7\u680F\u5BBD\u5EA6\u5931\u8D25", error);
-      }
-    };
-    const refresh = () => {
-      if (disposed || notifying) return;
-      if (options2.sidebar.isShown) {
-        if (available_width() < SIDEBAR_MIN_WIDTH) {
-          set_visible(false);
-          apply_width(preferred_width);
-        } else if (!drag) apply_width(clamp_width(preferred_width));
-      }
-      sync_sash();
-    };
-    const finish = () => {
-      if (!drag) return;
-      const previous = drag;
-      drag = void 0;
-      if (options2.sidebar.isShown) {
-        preferred_width = clamp_width(read_width());
-        persist();
-      } else {
-        preferred_width = previous.saved_width;
-        apply_width(preferred_width);
-      }
-      document.body.classList.remove("linux-note-sidebar-dragging");
-      if (sash.hasPointerCapture(previous.pointer_id)) sash.releasePointerCapture(previous.pointer_id);
-      sync_sash();
-      notify_layout();
-    };
-    const pointer_down = (event) => {
-      if (event.button !== 0 || drag) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      sash.focus({ preventScroll: true });
-      drag = { pointer_id: event.pointerId, start_x: event.clientX, start_width: options2.sidebar.isShown ? read_width() : 0, saved_width: preferred_width };
-      sash.setPointerCapture(event.pointerId);
-      document.body.classList.add("linux-note-sidebar-dragging");
-    };
-    const pointer_move = (event) => {
-      if (!drag || drag.pointer_id !== event.pointerId) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      const width2 = drag.start_width + event.clientX - drag.start_x;
-      if (width2 < SIDEBAR_SNAP_WIDTH || available_width() < SIDEBAR_MIN_WIDTH) {
-        set_visible(false);
-        apply_width(drag.saved_width);
-      } else {
-        apply_width(clamp_width(width2));
-        set_visible(true);
-      }
-    };
-    const pointer_finish = (event) => {
-      if (drag?.pointer_id === event.pointerId) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        finish();
-      }
-    };
-    const suppress_native_mouse = (event) => {
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    };
-    const keydown = (event) => {
-      if (!["ArrowLeft", "ArrowRight", "Home", "End", "Enter"].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      if (event.key === "Enter" && options2.sidebar.isShown) {
-        set_visible(false);
-        apply_width(preferred_width);
-        return;
-      }
-      if (available_width() < SIDEBAR_MIN_WIDTH) return;
-      if (!options2.sidebar.isShown) {
-        apply_width(clamp_width(preferred_width));
-        set_visible(true);
-        return;
-      }
-      const width2 = event.key === "Home" ? SIDEBAR_MIN_WIDTH : event.key === "End" ? available_width() : read_width() + (event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0) * (event.shiftKey ? 50 : 10);
-      preferred_width = clamp_width(width2);
-      apply_width(preferred_width);
-      persist();
-    };
-    const observer2 = new MutationObserver(refresh);
-    observer2.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-    const resize_observer = new ResizeObserver(refresh);
-    resize_observer.observe(root);
-    resize_observer.observe(ribbon);
-    sash.dataset.workspaceSidebarSash = "ready";
-    sash.tabIndex = 0;
-    sash.removeAttribute("aria-hidden");
-    sash.setAttribute("role", "separator");
-    sash.setAttribute("aria-orientation", "vertical");
-    sash.setAttribute("aria-valuemin", "0");
-    sash.title = "\u8C03\u6574\u4E3B\u4FA7\u680F\u5BBD\u5EA6\uFF1B\u62D6\u5230 85 \u50CF\u7D20\u4EE5\u4E0B\u6536\u8D77\uFF0C\u5411\u5916\u62D6\u52A8\u6216\u6309 Enter \u5C55\u5F00";
-    sash.setAttribute("aria-label", "\u8C03\u6574\u4E3B\u4FA7\u680F\u5BBD\u5EA6");
-    sash.addEventListener("pointerdown", pointer_down, true);
-    document.addEventListener("pointermove", pointer_move, true);
-    for (const name of ["pointerup", "pointercancel"]) document.addEventListener(name, pointer_finish, true);
-    sash.addEventListener("lostpointercapture", pointer_finish, true);
-    for (const name of ["mousedown", "mousemove", "mouseup"]) sash.addEventListener(name, suppress_native_mouse, true);
-    sash.addEventListener("keydown", keydown, true);
-    window.addEventListener("resize", refresh);
-    window.addEventListener("blur", finish);
-    const dispose2 = () => {
-      if (disposed) return;
-      finish();
-      disposed = true;
-      observer2.disconnect();
-      resize_observer.disconnect();
-      cancelAnimationFrame(frame3);
-      sash.removeEventListener("pointerdown", pointer_down, true);
-      document.removeEventListener("pointermove", pointer_move, true);
-      for (const name of ["pointerup", "pointercancel"]) document.removeEventListener(name, pointer_finish, true);
-      sash.removeEventListener("lostpointercapture", pointer_finish, true);
-      for (const name of ["mousedown", "mousemove", "mouseup"]) sash.removeEventListener(name, suppress_native_mouse, true);
-      sash.removeEventListener("keydown", keydown, true);
-      window.removeEventListener("resize", refresh);
-      window.removeEventListener("blur", finish);
-      window.removeEventListener("pagehide", dispose2);
-      for (const [name, value] of original_attributes) {
-        if (value === null) sash.removeAttribute(name);
-        else sash.setAttribute(name, value);
-      }
-      delete sash.dataset.workspaceSidebarSash;
-      root.style.removeProperty("--linux-note-sidebar-sash-left");
-      style.remove();
-      bindings8.delete(sash);
-    };
-    const binding = { element: sash, refresh, dispose: dispose2 };
-    bindings8.set(sash, binding);
-    window.addEventListener("pagehide", dispose2, { once: true });
-    refresh();
     return binding;
   }
 
@@ -242286,7 +242367,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_link_preview.ts
-  function create_link_preview(files) {
+  function create_link_preview(files, options2 = {}) {
     const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title = workspace_element("span", "workspace-link-preview-title");
     const content = workspace_element("div", "workspace-link-preview-content"), reader = create_lookup_preview(files);
     const runtime2 = window, interaction = acquire_workspace_interaction(container);
@@ -242316,6 +242397,7 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
     toolbar.append(title, open, retry, mode);
     container.append(toolbar, content);
+    if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
     const clear = () => {
       ++generation;
       reader.clear();
@@ -242406,7 +242488,10 @@ https://creativecommons.org/licenses/by/4.0/
       timer = window.setTimeout(() => {
         if (disposed || !visible3()) return;
         const request = selected();
-        if (!request) return;
+        if (!request) {
+          last = "";
+          return;
+        }
         const key2 = JSON.stringify(request);
         if (key2 === last) return;
         last = key2;
@@ -242525,6 +242610,10 @@ https://creativecommons.org/licenses/by/4.0/
     return { refresh() {
       last = "";
       update2();
+    }, dismiss() {
+      clearTimeout(timer);
+      const request = selected();
+      if (request) last = JSON.stringify(request);
     }, reset: reset2, dispose() {
       if (disposed) return;
       disposed = true;
@@ -242541,38 +242630,94 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_link_dock.ts
   function bind_workspace_link_dock(core, files) {
-    const sidebar = document.getElementById("typora-sidebar"), preview = create_link_preview(files);
+    const sidebar = document.getElementById("typora-sidebar"), root = document.documentElement, body = document.body;
     const dock = document.createElement("section");
     dock.className = "workspace-link-dock";
     dock.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8");
     dock.hidden = true;
+    const preview = create_link_preview(files, { close: () => {
+      close();
+      selection.dismiss();
+    } });
     dock.append(preview.container);
-    sidebar?.append(dock);
+    body.append(dock);
+    let width2 = Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || 300, height = 0, disposed = false, frame3 = 0;
+    const set = (name, value) => {
+      if (body.style.getPropertyValue(name) !== value) body.style.setProperty(name, value);
+    };
+    const layout2 = () => {
+      if (disposed || dock.hidden) return;
+      const style = getComputedStyle(body), ribbon = Number.parseFloat(style.getPropertyValue("--typ-ribbon-width")) || 0;
+      const top = Number.parseFloat(style.getPropertyValue("--typ-workspace-top")) || 35, footer = Number.parseFloat(style.getPropertyValue("--typ-footer-height")) || 30;
+      const available = Math.max(0, root.clientWidth - ribbon - (Number.parseFloat(style.getPropertyValue("--typ-sidedock-width")) || 0) - EDITOR_MIN_WIDTH);
+      const max_height = Math.max(0, root.clientHeight - top - footer);
+      width2 = Math.min(available, Math.max(SIDEBAR_MIN_WIDTH, width2));
+      height = Math.min(max_height, Math.max(Math.min(120, max_height), height || max_height * 0.4));
+      const sidebar_width = body.classList.contains("pin-outline") ? Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar?.offsetWidth || 0 : 0;
+      set("--workspace-preview-width", width2 + "px");
+      set("--workspace-preview-height", height + "px");
+      set("--workspace-preview-column", Math.max(width2, sidebar_width) + "px");
+    };
+    const notify = () => {
+      if (frame3 || disposed) return;
+      frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        window.dispatchEvent(new Event("resize"));
+        window.dispatchEvent(new Event("optimizedResize"));
+      });
+    };
+    const resize = bind_preview_resize(dock, () => ({ width: width2, height }), (size) => {
+      window.dispatchEvent(new Event("beforeResize"));
+      width2 = size.width;
+      height = size.height;
+      layout2();
+      notify();
+    });
     const close = () => {
+      resize.cancel();
       dock.hidden = true;
-      sidebar?.classList.remove("has-workspace-link-preview");
+      body.classList.remove("has-workspace-link-preview");
       preview.clear();
-      selection.reset();
+      notify();
     };
     const selection = bind_workspace_link_selection(core, files, () => read_workspace_editor_settings().link_preview_enabled, (request) => {
-      if (!sidebar) return;
+      window.dispatchEvent(new Event("beforeResize"));
       dock.hidden = false;
-      sidebar.classList.add("has-workspace-link-preview");
-      core.app.workspace.sidebar.show();
+      body.classList.add("has-workspace-link-preview");
+      layout2();
+      notify();
       void preview.show(request);
     });
     const settings = observe_workspace_editor_settings(() => {
-      if (!read_workspace_editor_settings().link_preview_enabled) close();
-      else selection.refresh();
+      if (!read_workspace_editor_settings().link_preview_enabled) {
+        close();
+        selection.dismiss();
+      }
     });
-    window.addEventListener("linux-note-workspace-context-changed", close);
+    const context_changed = () => {
+      close();
+      selection.reset();
+    };
+    const observer2 = new MutationObserver(layout2);
+    observer2.observe(body, { attributes: true, attributeFilter: ["class", "style"] });
+    observer2.observe(root, { attributes: true, attributeFilter: ["style"] });
+    window.addEventListener("resize", layout2);
+    window.addEventListener("linux-note-workspace-context-changed", context_changed);
     return { dispose() {
+      if (disposed) return;
+      disposed = true;
       settings();
-      window.removeEventListener("linux-note-workspace-context-changed", close);
+      observer2.disconnect();
+      cancelAnimationFrame(frame3);
+      resize.dispose();
+      window.removeEventListener("resize", layout2);
+      window.removeEventListener("linux-note-workspace-context-changed", context_changed);
       selection.dispose();
       preview.dispose();
       dock.remove();
-      sidebar?.classList.remove("has-workspace-link-preview");
+      body.classList.remove("has-workspace-link-preview");
+      for (const name of ["width", "height", "column"]) body.style.removeProperty("--workspace-preview-" + name);
+      window.dispatchEvent(new Event("resize"));
     } };
   }
 
@@ -242785,6 +242930,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092301,
+        version: "2026.09.23.1",
+        date: "2026-09-23",
+        notes: [
+          "\u94FE\u63A5\u9884\u89C8\u53EF\u72EC\u7ACB\u5173\u95ED\uFF0C\u6536\u8D77\u529F\u80FD\u4FA7\u680F\u540E\u4ECD\u53EF\u5355\u72EC\u9605\u8BFB\uFF1B\u5173\u95ED\u540E\u91CA\u653E\u5360\u4F4D\uFF0C\u4E0D\u518D\u5F3A\u5236\u5C55\u5F00\u529F\u80FD\u680F\u3002",
+          "\u62D6\u52A8\u9884\u89C8\u9876\u90E8\u3001\u53F3\u8FB9\u6216\u53F3\u4E0A\u89D2\u53EF\u8C03\u6574\u9AD8\u5EA6\u3001\u5BBD\u5EA6\u6216\u540C\u65F6\u8C03\u6574\u5BBD\u9AD8\uFF1B\u7A97\u53E3\u7F29\u653E\u65F6\u4FDD\u6301\u53EF\u7528\u8FB9\u754C\u3002",
+          "\u641C\u7D22\u547D\u4E2D\u9884\u89C8\u8865\u5145\u5BBD\u5EA6\u53CA\u89D2\u843D\u8C03\u6574\uFF0C\u4FDD\u7559Ctrl\u9009\u62E9\u6587\u5B57\u3001\u5355\u51FB\u9884\u89C8\u548C\u53CC\u51FB\u6253\u5F00\u7684\u539F\u6709\u6D41\u7A0B\u3002"
+        ]
+      },
       {
         sequence: 2026092214,
         version: "2026.09.22.14",

@@ -1,0 +1,373 @@
+{
+  "schema": 1,
+  "date": "2026-09-23",
+  "version": "2026.09.23.1",
+  "requirements": [
+    "R069.2",
+    "R039",
+    "R025"
+  ],
+  "assets": {
+    "SHA256SUMS": "c75b5a5a3d6ae895f25047ca6b5271c0480133d2ed873eb7c042dc09d86612c4",
+    "workbench.js": "849e90c92ab05929057d16406af95f8502e9f64dd4bb01596dcfb3ff2fee717a",
+    "workspace.css": "7c7f41d8d136df21f65da04adb0db7520ca357911af7ae592ee7e8ae9348f996"
+  },
+  "checks": {
+    "full_check": "PASS",
+    "ui_suites": [
+      "test_workspace_preview_dock.cjs",
+      "test_workspace_link_preview.cjs",
+      "test_workspace_files_search.cjs",
+      "test_workspace_sidebar_sash.cjs",
+      "test_workspace_lookup_preview.cjs",
+      "test_terminal_panel.cjs"
+    ],
+    "native": {
+      "status": "PASS",
+      "count": 107,
+      "checks": [
+        "首次选择前未打开搜索侧栏",
+        "侧栏预览保留来源活动标签",
+        "侧栏预览保留原生选区",
+        "侧栏只读",
+        "链接预览独立挂载不属于功能侧栏",
+        "收起功能侧栏仍保留独立预览",
+        "收起时编辑区避让预览",
+        "展开时功能面板不与预览重叠",
+        "预览工具栏真实命中不被侧栏背景遮挡",
+        "侧栏收起后预览工具栏仍可点击",
+        "原生预览尺寸调整 north 1",
+        "原生预览尺寸调整 east 1",
+        "原生预览尺寸调整 north-east 1",
+        "缩放后编辑区保持避让 1",
+        "原生预览尺寸调整 north 1.25",
+        "原生预览尺寸调整 east 1.25",
+        "原生预览尺寸调整 north-east 1.25",
+        "缩放后编辑区保持避让 1.25",
+        "原生预览尺寸调整 north 1.5",
+        "原生预览尺寸调整 east 1.5",
+        "原生预览尺寸调整 north-east 1.5",
+        "缩放后编辑区保持避让 1.5",
+        "关闭后释放预览占位且旧选区不复活",
+        "重新选择链接再次显示",
+        "原生右键含分屏动作0",
+        "真实编辑组方向正确0",
+        "分屏只读0",
+        "主题缩放工具按钮完整 Github/1",
+        "主题缩放工具按钮完整 Github/1.25",
+        "主题缩放工具按钮完整 Night/1",
+        "主题缩放工具按钮完整 Night/1.25",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1.25",
+        "源文件入口进入可编辑文档",
+        "原生长段落可捕获字符位置",
+        "原生边距重排保持当前字符",
+        "原生窗口缩放仍保留当前文字行",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确1",
+        "分屏只读1",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确2",
+        "分屏只读2",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确3",
+        "分屏只读3",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确4",
+        "分屏只读4",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确5",
+        "分屏只读5",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确6",
+        "分屏只读6",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确7",
+        "分屏只读7",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确8",
+        "分屏只读8",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确9",
+        "分屏只读9",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确10",
+        "分屏只读10",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确11",
+        "分屏只读11",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确12",
+        "分屏只读12",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确13",
+        "分屏只读13",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确14",
+        "分屏只读14",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确15",
+        "分屏只读15",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确16",
+        "分屏只读16",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确17",
+        "分屏只读17",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确18",
+        "分屏只读18",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确19",
+        "分屏只读19",
+        "20次关闭无残留预览标签",
+        "设置出现时没有遗留链接菜单",
+        "设置浮层跨越资源管理器独立布局",
+        "设置最大化保留16px边距",
+        "关闭自动链接预览立即隐藏阅读dock",
+        "右上关闭释放浮层",
+        "自动链接预览关闭不影响搜索侧栏",
+        "搜索预览角落调整高度",
+        "搜索预览宽度由主侧栏所有者精确保持",
+        "仅横向调整不改变搜索预览高度",
+        "后续resize不回退搜索宽度",
+        "搜索预览不恢复已关闭链接预览",
+        "来源磁盘正文不变"
+      ],
+      "samples": [
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48,
+              "y": 998,
+              "width": 260,
+              "height": 264,
+              "top": 998,
+              "right": 308,
+              "bottom": 1262,
+              "left": 48
+            },
+            "editor": {
+              "x": 307,
+              "y": 35,
+              "width": 1776,
+              "height": 1227,
+              "top": 35,
+              "right": 2083,
+              "bottom": 1262,
+              "left": 307
+            },
+            "panel": {
+              "x": 48,
+              "y": 35,
+              "width": 239,
+              "height": 963,
+              "top": 35,
+              "right": 287,
+              "bottom": 998,
+              "left": 48
+            },
+            "shown": true
+          },
+          "zoom": 1
+        },
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48,
+              "y": 729.6000366210938,
+              "width": 280,
+              "height": 274,
+              "top": 729.6000366210938,
+              "right": 328,
+              "bottom": 1003.6000366210938,
+              "left": 48
+            },
+            "editor": {
+              "x": 327,
+              "y": 35,
+              "width": 1339.2000732421875,
+              "height": 968.6000366210938,
+              "top": 35,
+              "right": 1666.2000732421875,
+              "bottom": 1003.6000366210938,
+              "left": 327
+            },
+            "panel": {
+              "x": 48,
+              "y": 35,
+              "width": 239.1999969482422,
+              "height": 694.6000366210938,
+              "top": 35,
+              "right": 287.1999969482422,
+              "bottom": 729.6000366210938,
+              "left": 48
+            },
+            "shown": true
+          },
+          "zoom": 1.25
+        },
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48,
+              "y": 547.3333740234375,
+              "width": 300,
+              "height": 284,
+              "top": 547.3333740234375,
+              "right": 348,
+              "bottom": 831.3333740234375,
+              "left": 48
+            },
+            "editor": {
+              "x": 347,
+              "y": 35,
+              "width": 1041.3333740234375,
+              "height": 796.3333740234375,
+              "top": 35,
+              "right": 1388.3333740234375,
+              "bottom": 831.3333740234375,
+              "left": 347
+            },
+            "panel": {
+              "x": 48,
+              "y": 35,
+              "width": 239.33334350585938,
+              "height": 512.3333740234375,
+              "top": 35,
+              "right": 287.3333435058594,
+              "bottom": 547.3333740234375,
+              "left": 48
+            },
+            "shown": true
+          },
+          "zoom": 1.5
+        },
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "toolbar": {
+            "width": 867,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 658.7999877929688,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "toolbar": {
+            "width": 867,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 658.7999877929688,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1,
+          "toolbar": {
+            "width": 867,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 658.7999877929688,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "anchor_before": 384.984375,
+          "anchor_after": 384.640625,
+          "scroll": 20801,
+          "root_parent": "CONTENT",
+          "margin": "18",
+          "line_height": "25.6px"
+        },
+        {
+          "zoom_anchor_before": 384.984375,
+          "zoom_anchor_after": 390,
+          "scroll": 31194.400390625,
+          "viewport": {
+            "x": 348,
+            "y": 92,
+            "width": 658.7999877929688,
+            "height": 914.6000366210938,
+            "top": 92,
+            "right": 1006.7999877929688,
+            "bottom": 1006.6000366210938,
+            "left": 348
+          },
+          "point": "o"
+        },
+        {
+          "viewport": {
+            "width": 2084,
+            "height": 1292,
+            "dpi": 1,
+            "zoom": 1
+          },
+          "asset_sha256": "849e90c92ab05929057d16406af95f8502e9f64dd4bb01596dcfb3ff2fee717a"
+        }
+      ]
+    },
+    "pointer_tests": "37 assertions: real Chromium pointer capture at zoom 1/1.25/1.5; 20 close/reselect cycles",
+    "isolated_install_uninstall": "PASS: public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; protected documents/settings/backups retained",
+    "uninstall_regression": "65 assertions PASS",
+    "local_install": {
+      "version": "2026.09.23.1",
+      "installed_assets": [
+        35,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "initial_findings": [
+    "Native screenshot found sidebar background covering preview despite valid rectangles; fixed sidebar body bounds and verified elementFromPoint at three toolbar positions.",
+    "Initial native character zoom assertion failed without recording actual delta. Added diagnostic samples; subsequent native runs including final candidate passed. Initial failure retained; no claim of all host zoom paths covered."
+  ],
+  "limits": [
+    "Windows current host and private Typora 1.14.10; Windows 10 physical mouse not verified this round.",
+    "Independent preview means in-app dock, not a separate operating-system window.",
+    "User windows were not restarted. Merely browsing causing save prompt remains explicitly deferred."
+  ],
+  "logs": {
+    "preview_dock_build_delivery.log": "e0c4eeb36fc4e4270447c220c373b65d993cc82a082dbc581b6aa5ef4ca5f4de",
+    "preview_dock_check_delivery.log": "4e77b2f5eaeafaaeec6d2cbdf437def4bbd291f85895059f1ee3c4c9167e2dbf",
+    "preview_dock_ui_delivery.log": "7869f616107237588fd9b7631924328a43503f64a5281f6100b35ab9c432201c",
+    "preview_dock_install_cycle_delivery.log": "7e6c3c33ac4510c30c36f7a076fb09ebab3a00d1d01a9bbb238de525b30062c7",
+    "preview_dock_uninstall_delivery.log": "f3756da283d0d1bb93b1e87e0f5b208233d167db5bc5f0f4c0da9bf343617c6b",
+    "preview_dock_native_delivery.log": "ac993fc667efb345c7941fa7af78265c89e444792c083b36bd410923cbbc4786"
+  }
+}

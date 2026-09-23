@@ -1,3 +1,5 @@
+import {bind_preview_resize} from "./workspace_preview_resize";
+import {SIDEBAR_MIN_WIDTH,EDITOR_MIN_WIDTH,resize_workspace_sidebar} from "./workspace_sidebar_sash";
 import {register_workspace_context_guard} from "./workspace_context";
 import {is_composing_key,is_terminal_input} from "./workspace_keyboard";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -114,6 +116,14 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       this.scale_observer.observe(this.preview.container,{attributes:true,attributeFilter:["data-preview-scale"]});this.update_preview_scale();
       this.split.tabIndex=0;this.split.setAttribute("role","separator");this.split.setAttribute("aria-orientation","horizontal");this.split.setAttribute("aria-label","调整搜索结果与预览高度");this.split.setAttribute("aria-valuemin","15");this.split.setAttribute("aria-valuemax","75");this.split.hidden=true;this.set_split(40);
       this.body.append(this.results,this.split,this.preview_section);
+      lifetime.own(bind_preview_resize(this.preview_section,()=>({width:native_sidebar?.contains(this.containerEl)?native_sidebar.offsetWidth:this.preview_section.offsetWidth,height:this.preview_section.offsetHeight}),size=>{
+        if(Math.abs(size.height-this.preview_section.offsetHeight)>1)this.set_split(100-(size.height+this.split.offsetHeight)/Math.max(1,this.body.clientHeight)*100);
+        if(native_sidebar?.contains(this.containerEl)){
+          const ribbon=document.querySelector<HTMLElement>('.typ-ribbon')?.offsetWidth||48;
+          const width=Math.max(SIDEBAR_MIN_WIDTH,Math.min(document.documentElement.clientWidth-ribbon-EDITOR_MIN_WIDTH,size.width));
+          resize_workspace_sidebar(width);
+        }else this.preview_section.style.width=Math.max(SIDEBAR_MIN_WIDTH,Math.min(this.body.clientWidth,size.width))+'px';
+      },['east','north-east']));
       this.status.setAttribute("role","status");this.results.setAttribute("aria-label","文件搜索结果");this.containerEl.append(heading,this.form,this.body);
       this.query.oninput=()=>{this.query.style.height="auto";this.query.style.height=Math.min(100,this.query.scrollHeight)+"px";this.schedule();};
       this.includes.oninput=this.excludes.oninput=()=>this.schedule();
