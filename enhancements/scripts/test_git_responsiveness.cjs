@@ -103,25 +103,35 @@ app.whenReady().then(async () => {
   record('real mouse and keyboard work outside pending Git',await evaluate('independent_clicks===1&&independent.value==="x"&&panel.writing'));
   await evaluate('release_write()');await wait('!panel.writing&&!panel.pending');await evaluate('void (panel.writer.run=saved_run)');
   record('real branch command completes once',git(['branch','--list','responsive-branch']).trim()==='responsive-branch');
+  await evaluate(`window.original_read=panel.runner.run;window.original_cancel=panel.runner.cancel;window.reject_read=null;window.prior_state=panel.state;
+    panel.runner.run=async(...args)=>args[1][0]==='status'?new Promise((_resolve,reject)=>reject_read=reject):original_read(...args);
+    panel.runner.cancel=()=>{original_cancel();reject_read?.(Object.assign(Error('fixture cancelled'),{code:'ABORT_ERR'}));};void panel.refresh();`);
+  await wait('!!reject_read');await delay(1150);
+  record('slow Git shows elapsed waiting and local cancel',await evaluate('panel.workbench.notice.textContent.includes("已等待")&&!panel.workbench.sidebar.querySelector("[aria-label=取消Git状态读取]").hidden'));
+  await click('[aria-label=取消Git状态读取]');await wait('!panel.pending');
+  record('cancel retains previous snapshot and tells user it is stale',await evaluate('panel.state===prior_state&&panel.workbench.notice.textContent.includes("上次状态")'));
+  await evaluate(`panel.runner.cancel=original_cancel;panel.runner.run=async()=>{throw Object.assign(Error('missing Git fixture'),{code:'GIT_NOT_FOUND'});};void panel.refresh();`);await wait('!panel.pending');
+  record('missing Git offers installer instead of init',await evaluate('[...panel.workbench.sidebar.querySelectorAll("button")].some(node=>node.textContent==="安装Git"&&!node.hidden)&&panel.workbench.sidebar.dataset.repositoryState==="error"'));
+  await evaluate('panel.runner.run=original_read;void panel.refresh()');await wait('!panel.pending&&panel.loaded');
   const metrics = await evaluate(`(async()=>{
     const intervals=[];let last=performance.now();const timer=setInterval(()=>{const now=performance.now();intervals.push(now-last);last=now;},8);
     const saved=panel.workbench.groups_state;const files=Array.from({length:50000},(_,index)=>({path:'folder/file-'+String(index).padStart(5,'0')+'.md',status:'??'}));
     const wait=()=>new Promise(resolve=>setTimeout(resolve,25));await wait();
-    const started=performance.now();panel.workbench.groups_state=[{id:'changes',title:'更改',from:'INDEX',to:'WORKTREE',files}];panel.workbench.render_groups();await wait();
+    const started=performance.now();panel.workbench.groups_state=[{id:'changes',title:'更改',from:'INDEX',to:'WORKTREE',files}];await panel.workbench.render_groups();await wait();
     const render_ms=performance.now()-started;
     const nodes=panel.workbench.groups.querySelectorAll('[data-file]').length;
     panel.workbench.groups.scrollTop=panel.workbench.groups.scrollHeight;await wait();
     const last_visible=!!panel.workbench.groups.querySelector('[data-file="folder/file-49999.md"]');
     panel.workbench.groups.scrollTop=0;await wait();const row=panel.workbench.groups.querySelector('[data-file]');row.focus();row.dispatchEvent(new KeyboardEvent('keydown',{key:'End',bubbles:true,cancelable:true}));await wait();
     const keyboard_last=document.activeElement.dataset.file==='folder/file-49999.md';
-    panel.workbench.tree=true;panel.workbench.groups.scrollTop=0;panel.workbench.render_groups();await wait();
+    panel.workbench.tree=true;panel.workbench.groups.scrollTop=0;await panel.workbench.render_groups();await wait();
     const directory=panel.workbench.groups.querySelector('.git-scm-virtual-directory');directory.click();await wait();const collapsed=panel.workbench.groups.querySelectorAll('[data-file]').length===0;directory.click();await wait();
     panel.workbench.tree=false;
     let peak_nodes=0;
-    for(let i=0;i<20;i++){panel.workbench.render_groups();await wait();peak_nodes=Math.max(peak_nodes,panel.workbench.groups.querySelectorAll('[data-file]').length);}
+    for(let i=0;i<20;i++){await panel.workbench.render_groups();await wait();peak_nodes=Math.max(peak_nodes,panel.workbench.groups.querySelectorAll('[data-file]').length);}
     panel.files=files;panel.from='INDEX';panel.to='WORKTREE';const detail=document.createElement('div');detail.style.cssText='height:240px;overflow:auto';document.querySelector('#editors').prepend(detail);panel.render_files(detail);await wait();const detail_nodes=detail.querySelectorAll('[data-file]').length;detail.scrollTop=detail.scrollHeight;await wait();const detail_last=!!detail.querySelector('[data-file="folder/file-49999.md"]');panel.close_details();detail.remove();
     const history_target=document.createElement('div');panel.workbench.history.list.replaceChildren(history_target);panel.workbench.history.render_files(history_target,panel.state.commits[0],files);await wait();const history_nodes=history_target.querySelectorAll('[data-history-file]').length;panel.workbench.history.list.scrollTop=panel.workbench.history.list.scrollHeight;await wait();const history_last=!!history_target.querySelector('[data-history-file="folder/file-49999.md"]');panel.workbench.history.reset();
-    panel.workbench.groups_state=saved;panel.workbench.render_groups();await wait();clearInterval(timer);
+    panel.workbench.groups_state=saved;await panel.workbench.render_groups();await wait();clearInterval(timer);
     intervals.sort((a,b)=>a-b);return {render_ms,nodes,last_visible,keyboard_last,collapsed,peak_nodes,detail_nodes,detail_last,history_nodes,history_last,max_ms:intervals.at(-1),p95_ms:intervals[Math.floor(intervals.length*.95)],samples:intervals.length};
   })()`);
   record('50k SCM rows bounded without truncating last file',metrics.nodes>0&&metrics.nodes<150&&metrics.last_visible);

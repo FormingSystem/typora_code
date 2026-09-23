@@ -1,3 +1,4 @@
+import {install_missing_git} from './git_runtime_environment';
 import {workspace_resource_fs} from './remote_workspace_files';
 import {discover_git_repositories} from "./git_repository_discovery";
 import {trash_native_path} from "./workspace_native_trash";
@@ -137,6 +138,7 @@ export function create_graph_host(core: graph_core) {
   let terminal_workspace: ReturnType<typeof bind_terminal_workspace>;
   const host = {
     core, fs, path_api, process_api,
+    install_git(report:(message:string)=>void){return install_missing_git({child_process,process:process_api},report);},
     dispose(){
       if(disposed)return;disposed=true;if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
@@ -151,7 +153,7 @@ export function create_graph_host(core: graph_core) {
       const run: typeof runner.run = async (root, args, execution) => {
         if(disposed)throw new Error("Typora Code 已停用。");
         const record = (text: string) => { const lines = output_lines.get(root) || []; lines.push(redact(text)); output_lines.set(root, lines.slice(-100)); };
-        const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.map(arg => JSON.stringify(arg)).join(" "));
+        const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.slice(0,40).map(arg => JSON.stringify(arg.slice(0,1000))).join(" ")+(args.length>40?` …（共${args.length}个参数）`:""));
         try { const result = await runner.run(root, args, execution); record(text("host.run_complete", {duration: Date.now() - start}) + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
         catch (error) { record(String(error)); throw error; }
       };

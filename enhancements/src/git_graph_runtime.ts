@@ -2,19 +2,25 @@ import type { git_run } from "./git_graph_data";
 import { git_graph_text as text } from "./git_graph_i18n";
 import {remote_files_for,assert_remote_owner} from './remote_workspace_files';
 
-type git_child = { kill(): void; stdin?: { end(input?: string): void; on?(event: string, listener: (error: Error) => void): void } };
-type process_error = Error & { code?: string | number; killed?: boolean };
-type native_modules = {
-  child_process: { execFile(file: string, args: string[], options: Record<string, unknown>, callback: (error: process_error | null, stdout: any, stderr: any) => void): git_child };
-  process: { env: Record<string, string | undefined> };
-};
+import {discover_git} from './git_runtime_environment';
+import {acquire_git_process, spawn_git_process} from './git_process_transport';
+type native_modules = {child_process:any; process:{env:Record<string,string|undefined>;platform?:string}};
 
 /** 直接传递参数，不经过 shell；每个视图单独管理进程，隐藏或刷新时取消旧请求。 */
 export function create_git_runner(modules: native_modules, options: { executable?: string; writable?: boolean } = {}): { run: git_run; run_bytes(cwd: string, args: string[]): Promise<Uint8Array>; cancel(): void } {
-  const children = new Set<git_child>();
+  const children = new Set<{kill():void}>();
   const env: Record<string, string | undefined> = { ...modules.process.env, LC_ALL: "C", LANG: "C", GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
   for (const key of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env[key];
-  const execute = (cwd: string, args: string[], binary = false, todo = "", input?: string): Promise<any> => new Promise((resolve, reject) => {
+  const execute = (cwd: string, args: string[], binary = false, todo = "", input?: string, consume?: (chunk:string)=>Promise<void>|void): Promise<any> => {
+    const controller=new AbortController(), job={kill(){controller.abort();}};children.add(job);
+    return (async()=>{
+      const release=await acquire_git_process(controller.signal);
+      try {
+      // 大量文件由NUL输入传递，避免Windows命令行长度限制；不改变一次Git操作的原子边界。
+      const separator=args.indexOf("--");
+      if(input===undefined&&["add","reset","restore"].includes(args[0])&&separator>=0&&args.slice(separator+1).join(" ").length>16000){
+        input=args.slice(separator+1).join("\0")+"\0";args=[...args.slice(0,separator),"--pathspec-from-file=-","--pathspec-file-nul"];
+      }
       // 命令文本固定；用户批准的 todo 仅通过被双引号保护的环境数据传入 Git 自带的 shell。
       const sequence_editor = `sh -c 'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"' --`;
       const message_editor = `sh -c 'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi' --`;
@@ -27,33 +33,24 @@ export function create_git_runner(modules: native_modules, options: { executable
       const remote=remote_files_for(cwd);
       assert_remote_owner(cwd);
       if(remote){
-        const controller=new AbortController(),job={kill(){controller.abort();}};children.add(job);
-        void remote.git(cwd,command_args,execution_env,Boolean(options.writable),input,controller.signal).then(data=>{
-          if(controller.signal.aborted)throw Error(text('runtime.cancelled_or_timed_out'));
-          if(binary){resolve(data);return;}
-          let output=data.toString('utf8');
-          // 只有返回绝对资源地址的查询需要映射，正文与提交信息不能替换路径字符串。
-          if(args[0]==='rev-parse'&&args.some(arg=>['--show-toplevel','--absolute-git-dir','--git-dir','--git-common-dir'].includes(arg)))output=output.split('\n').map((line:string)=>line.startsWith('/')?remote.local_path(line):line).join('\n');
-          resolve(output);
-        }).catch(reject).finally(()=>children.delete(job));return;
+        const data=await remote.git(cwd,command_args,execution_env,Boolean(options.writable),input,controller.signal);
+        if(controller.signal.aborted)throw Object.assign(Error('Git读取已取消。'),{code:'ABORT_ERR'});
+        if(binary)return data;
+        let output=data.toString('utf8');
+        if(args[0]==='rev-parse'&&args.some(arg=>['--show-toplevel','--absolute-git-dir','--git-dir','--git-common-dir'].includes(arg)))output=output.split('\n').map((line:string)=>line.startsWith('/')?remote.local_path(line):line).join('\n');
+        if(consume){for(let i=0;i<output.length;i+=65536){if(controller.signal.aborted)throw Error('Git读取已取消。');await consume(output.slice(i,i+65536));}return '';}
+        return output;
       }
-      const child = modules.child_process.execFile(options.executable || "git", command_args, {
-        cwd, env: execution_env, encoding: binary ? null : "utf8", windowsHide: true, shell: false, timeout: options.writable ? 300000 : 30000, maxBuffer: 16 * 1024 * 1024,
-      }, (error, stdout, stderr) => {
-        children.delete(child);
-        if (!error) { resolve(stdout); return; }
-        const message = error.code === "ENOENT" ? text("runtime.git_not_found")
-          : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? text("runtime.result_too_large")
-          : error.killed ? text("runtime.cancelled_or_timed_out")
-          : (String(stderr || "") || error.message).trim();
-        reject(Object.assign(new Error(message), { code: error.code }));
+      const executable=await discover_git(modules,options.executable||'git');
+      return await spawn_git_process(modules.child_process,executable,command_args,{
+        cwd,env:execution_env,binary,writable:Boolean(options.writable),input,consume,signal:controller.signal,
       });
-      children.add(child);
-      child.stdin?.on?.("error", () => { /* Git 提前失败时由 execFile 回调报告；防止 stdin EPIPE 成为未捕获异常。 */ });
-      child.stdin?.end(input);
-    });
+      } finally {release();}
+    })().finally(()=>children.delete(job));
+  };
+
   return {
-    run: (cwd, args, execution) => execute(cwd, args, false, execution?.todo, execution?.stdin),
+    run: (cwd, args, execution) => execute(cwd, args, false, execution?.todo, execution?.stdin, execution?.stdout),
     run_bytes: (cwd, args) => execute(cwd, args, true),
     cancel() { for (const child of children) child.kill(); children.clear(); },
   };

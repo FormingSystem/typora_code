@@ -300,3 +300,12 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - TEST-preview-directory：隐藏Electron窗口可能不产生绘制帧，虚拟列表测试改用离屏渲染；固定语言的排序假设改为验证实际最后索引。原生列表保留获焦离屏行，选择文件的断言须按文件语义匹配。普通Markdown标签可能是工作台渲染视图，不能只用File.bundle判断打开失败；实际验证活动标签、正文内容和非链接预览视图。首次失败日志保留，不作为最终验收。
 
 本次用例、实际结果及平台边界见[目录预览证据](../enhancements/tests/evidence/preview_directory_20260923.json)。
+
+## R071.2 Git大清单与执行背压（2026-09-23）
+
+- PERF-git-snapshot-copies：整段execFile、重复status/diff、全量JSON副本和同步排序共同造成压力；改为流式背压、单次状态快照与协作投影，界面保持虚拟行。
+- BUG-git-pathspec-length：多文件路径不能直接塞入Windows命令行；add/reset/restore共用NUL stdin，仍是一笔Git操作。
+- TEST-git-byte-contract：新TextDecoder默认去除BOM，首次完整回归在混合换行选区暂存中检出摘要变化；最终保留BOM并回归原选区用例。不得为通过测试跳过字节保真。
+- TEST-git-ui-snapshot：原UI测试按两份status和全部按钮计数；改为验证单份status、非等待时取消按钮隐藏及慢读取实际取消。分批任务需等待生命周期完成再检查DOM。
+
+本轮完整证据及平台边界见[大仓库Git验证](../enhancements/tests/evidence/git_scale_20260923.json)。

@@ -1,3 +1,4 @@
+import {project_git_changes,same_git_changes,sort_git_changes} from './git_status_snapshot';
 import {workspace_tree_rows} from "./workspace_tree_rows";
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
 import {plan_git_diff_ranges} from "./git_diff_ranges";
@@ -45,6 +46,11 @@ export class git_source_control {
   private initialize_button = button("初始化仓库", () => void this.panel.initialize());
   private discover_button = button("查找子文件夹中的仓库…", () => this.panel.manage_repositories());
   private retry_button = button("重试", () => void this.panel.refresh(false));
+  private install_button=button('安装Git',()=>void this.panel.install_git());
+  private cancel_read=icon_button('close','取消Git状态读取',()=>this.panel.cancel_refresh());
+  private cancel_empty=button('取消读取',()=>this.panel.cancel_refresh());
+  set_git_missing(missing:boolean):void{this.install_button.hidden=!missing;}
+  update_read_controls():void{this.cancel_read.hidden=this.cancel_empty.hidden=!this.panel.pending||this.panel.writing||this.panel.installing_git;this.install_button.disabled=this.panel.pending;}
   private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");
@@ -89,7 +95,7 @@ export class git_source_control {
       this.input_actions.set(id, control); input_actions.append(control);
     }
     input_menu.onclick = event => { event.preventDefault(); event.stopPropagation(); this.more_menu(event); };
-    input_actions.append(input_menu);
+    input_actions.append(this.cancel_read,input_menu);
     const input_title = el("span", "git-scm-input-title", text("scm.changes")); input_title.title = text("scm.changes");
     input_heading.append(git_disclosure(), input_title, input_actions);
     const inputs = el("div", "git-scm-inputs"); inputs.append(this.message, commit_bar);
@@ -117,7 +123,8 @@ export class git_source_control {
     };
     this.initialize_button.dataset.workspaceInteraction = "primary";
     this.empty_view.setAttribute("role", "region"); this.empty_view.setAttribute("aria-label", text("scm.source_control"));
-    this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button);
+    this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button,this.install_button,this.cancel_empty);
+    this.set_git_missing(false);this.update_read_controls();
     this.sidebar.append(this.empty_view);
     this.set_repository_state(panel.state ? "ready" : "loading");
     this.load_layout(); this.update_actions();
@@ -206,19 +213,23 @@ export class git_source_control {
     this.fit_message();
     if (history_changed) this.history.render(state);
     try {
-      const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
+      const {staged,unstaged}=await project_git_changes(state.changes);
       if (epoch !== this.groups_epoch || state !== this.panel.state) return;
-      const conflicts = new Set(state.changes.filter(file => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map(file => file.path));
       const groups_state = [
-        {id: "staged", title: text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter(file => !conflicts.has(file.path))},
+        {id: "staged", title: text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged},
         {id: "changes", title: text("scm.changes"), from: INDEX, to: WORKTREE, files: unstaged},
       ];
-      const changed = JSON.stringify(groups_state) !== JSON.stringify(this.groups_state);
+      const changed = this.groups_state.length!==2 || !(await same_git_changes(staged,this.groups_state[0].files)) || !(await same_git_changes(unstaged,this.groups_state[1].files));
+      if(epoch!==this.groups_epoch||state!==this.panel.state)return;
       this.groups_state = groups_state;
-      if (changed || this.groups_layout_changed || !this.groups.childElementCount) this.render_groups();
+      if (changed || this.groups_layout_changed || !this.groups.childElementCount) await this.render_groups();
     } catch (error) { if (epoch === this.groups_epoch) this.panel.report(error); }
   }
-  render_groups(): void {
+  private render_epoch=0;
+  async render_groups(): Promise<void> {
+    const epoch=++this.render_epoch,groups=this.groups_state;
+    const sorted=await Promise.all(groups.map(group=>sort_git_changes(group.files,(a,b)=>this.sort_files(a,b))));
+    if(epoch!==this.render_epoch||groups!==this.groups_state||this.panel.disposed)return;
     this.groups_layout_changed = false;
     const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll; for (const list of this.virtual_lists) list.dispose(); this.virtual_lists = []; this.groups.replaceChildren();
     for (const group of this.groups_state) {
@@ -266,7 +277,7 @@ export class git_source_control {
         row.oncontextmenu = event => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
         return row;
       };
-      const files = [...group.files].sort((a, b) => this.sort_files(a, b));
+      const files = sorted[groups.indexOf(group)];
       if (files.length <= 200) for (const file of files) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_file_row(file));
       else {
         // 沿用固定 VS Code SCM ListDelegate 的22px行高。展开状态属于SCM，窗口化仅负责绘制。

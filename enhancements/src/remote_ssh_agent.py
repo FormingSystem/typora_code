@@ -144,10 +144,10 @@ def run_git(request):
                                      stdin=input_file, stdout=output, stderr=error, start_new_session=True)
             git_processes[token] = child
         try:
-            deadline = time.monotonic() + (300 if request.get("writable") else 30)
+            deadline = time.monotonic() + (1800 if request.get("writable") else 300)
             while child.poll() is None:
                 if time.monotonic() > deadline or os.fstat(output.fileno()).st_size > MAX_BYTES or os.fstat(error.fileno()).st_size > MAX_BYTES:
-                    raise ValueError("远程Git超时或输出超过16 MiB")
+                    raise ValueError("远程Git超时（读取5分钟/写入30分钟）或输出超过16 MiB；文件连接仍可使用")
                 time.sleep(0.02)
             if os.fstat(output.fileno()).st_size > MAX_BYTES:
                 raise ValueError("远程Git输出超过16 MiB")

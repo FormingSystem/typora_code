@@ -1,3 +1,4 @@
+import {read_git_records} from './git_status_snapshot';
 import type {git_run, git_ref} from "./git_graph_data";
 import {git_graph_text as text} from "./git_graph_i18n";
 
@@ -16,7 +17,13 @@ export function parse_branch_status(source:string):branch_status {
   }
   return status;
 }
-export const read_branch_status=async(run:git_run,root:string):Promise<branch_status>=>parse_branch_status(await run(root,["status","--porcelain=v2","--branch","-z","--untracked-files=normal"]));
+export async function read_branch_status(run:git_run,root:string):Promise<branch_status>{
+  let headers='',dirty=false,rename=false;
+  await read_git_records(run,root,['status','--porcelain=v2','--branch','-z','--untracked-files=normal'],record=>{
+    if(rename){rename=false;return;}if(record.startsWith('# branch.'))headers+=record+'\0';
+    else if(/^[12u?] /u.test(record)){dirty=true;rename=record.startsWith('2 ');}
+  });return {...parse_branch_status(headers),dirty};
+}
 export type scm_tracking={upstream:string; upstream_hash:string; remote:string; remote_ref:string; base:string; base_hash:string; ahead:number; behind:number};
 const optional=async(run:git_run,root:string,args:string[])=>run(root,args).then(value=>value.trim()).catch(error=>{if(error.code===1)return "";throw error;});
 /** 读取真实上游和 VS Code 分支基线；只读本地引用，不因显示菜单写 Git 配置或联网。 */

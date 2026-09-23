@@ -1,3 +1,4 @@
+import {same_git_changes} from './git_status_snapshot';
 import {acquire_git_repository_operation} from "./git_repository_operation";
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
 import {workspace_tree_rows} from "./workspace_tree_rows";
@@ -200,6 +201,12 @@ export class git_graph_panel {
     const previous_progress=this.read_progress,activity=this.progress.begin("refresh",text("graph.loading_repository"));this.read_progress=activity;previous_progress?.finish();
     if (reset) this.count = this.settings.initial_count;
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");this.update_scm_actions();
+    const waiting=setInterval(()=>{
+      if(epoch!==this.epoch||!this.pending||this.disposed)return;
+      const message='正在读取Git状态，已等待'+Math.floor((Date.now()-this.refresh_started_at)/1000)+'秒；大仓库可能需要更久。';
+      this.status.textContent=message;this.workbench.notice.textContent=message;activity.phase(message);
+    },1000);
+    this.workbench.update_read_controls();
     try {
       if (!this.root) throw new Error(text("graph.open_repository_first"));
       let state = await read_repository(this.runner.run, this.context_directory, this.settings, this.count, this.branches);
@@ -229,8 +236,9 @@ export class git_graph_panel {
       state.operation = await this.host.operation(state.operation);
       if(epoch!==this.epoch)return;
       const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
-      const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
-      const changed = first_load || snapshot !== this.rendered_snapshot;
+      const snapshot = JSON.stringify([{...state,changes:undefined}, this.settings, this.branches, this.count, repository_paths]);
+      const changed = first_load || snapshot !== this.rendered_snapshot || !(await same_git_changes(state.changes,this.state?.changes||[]));
+      if(epoch!==this.epoch)return;
       this.state = state; this.root = state.root; this.loaded = true;
       this.workbench.set_repository_state("ready");
       if (changed) {
@@ -257,7 +265,7 @@ export class git_graph_panel {
       await this.workbench.refresh(changed); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
       this.rendered_snapshot = snapshot;
       this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
-      this.container.dataset.state = "ready";
+      this.container.dataset.state = "ready";this.workbench.set_git_missing(false);this.workbench.notice.textContent="";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
       if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) {
         // 文件仍为M不代表内容未变；可变版本继续取内容，历史版本保留阅读位置。
@@ -266,6 +274,8 @@ export class git_graph_panel {
       else this.close_details();
       this.detail_refresh_needed = false;
     } catch (error) { if (epoch === this.epoch) {
+      if((error as any).code==='ABORT_ERR'&&this.state){this.container.dataset.state='ready';this.report('Git读取已取消，显示上次状态；请刷新获取最新结果。');return;}
+      this.workbench.set_git_missing((error as any).code==='GIT_NOT_FOUND');
       this.state = undefined; this.loaded = false; this.close_details(); this.list.replaceChildren();
       this.workbench.clear_changes(); this.workbench.history.reset();
       const missing = is_missing_repository(error);
@@ -274,7 +284,21 @@ export class git_graph_panel {
       if (missing) this.status.textContent = "当前文件夹尚未初始化 Git 仓库。";
       this.container.dataset.state = missing ? "empty" : "error";
     } }
-    finally { if (epoch === this.epoch) { this.pending = false; this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
+    finally { clearInterval(waiting);if (epoch === this.epoch) { this.pending = false;this.workbench.update_read_controls(); this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
+  }
+  cancel_refresh():void{if(this.pending&&!this.writing)this.runner.cancel();}
+  installing_git=false;
+  async install_git():Promise<void>{
+    if(this.pending||this.writing||this.disposed)return;
+    this.pending=true;this.installing_git=true;this.workbench.update_read_controls();
+    const activity=this.progress.begin('install_git','正在检查Git安装环境…');
+    try{const executable=await this.host.install_git(message=>{if(!this.disposed){this.report(message);activity.phase(message);}});
+      if(this.disposed)return;
+      this.settings.git_path=executable;this.persist_settings();this.runner.dispose();this.writer.dispose();this.runner=this.host.runner(this.settings);this.writer=this.host.runner(this.settings,true);
+    }
+    catch(error){if(!this.disposed)this.report(error);return;}
+    finally{activity.finish();this.installing_git=false;this.pending=false;this.workbench.update_read_controls();}
+    if(!this.disposed)await this.refresh();
   }
   private acquire_operation(root: string): () => void {
     return acquire_git_repository_operation(this.host, root, value => { const normalized = this.host.path_api.normalize(value); return this.host.path_api.sep === "\\" ? normalized.toLowerCase() : normalized; });

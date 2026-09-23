@@ -2,7 +2,7 @@ import { git_graph_text as text } from "./git_graph_i18n";
 
 export const GIT_GRAPH_COMMAND = "linux_note:git_graph";
 export const GIT_GRAPH_TYPE = "linux_note.git_graph";
-export type git_run = (cwd: string, args: string[], execution?: { todo?: string; stdin?: string }) => Promise<string>;
+export type git_run = (cwd: string, args: string[], execution?: { todo?: string; stdin?: string; stdout?: (chunk: string) => Promise<void> | void }) => Promise<string>;
 export type git_commit = { hash: string; parents: string[]; author: string; date: string; subject: string };
 export type git_ref = { hash: string; name: string };
 

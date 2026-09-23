@@ -12551,11 +12551,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return info;
         }
-        _getInfo(observer2, queue) {
+        _getInfo(observer2, queue2) {
           if (observer2 instanceof Derived) {
             const observersToUpdate = [...observer2.debugGetObservers()];
             for (const o2 of observersToUpdate) {
-              queue(o2);
+              queue2(o2);
             }
             const info = this._getObservableInfo(observer2);
             if (!info) {
@@ -161437,8 +161437,8 @@ https://creativecommons.org/licenses/by/4.0/
         roots.get(root).add(match2[1]);
       }
       for (const [root, entries3] of owned2) {
-        const active = roots.get(root);
-        for (const [key2, entry] of entries3) if (!active?.has(key2.slice(text_color_prefix.length))) {
+        const active2 = roots.get(root);
+        for (const [key2, entry] of entries3) if (!active2?.has(key2.slice(text_color_prefix.length))) {
           release(root, key2, entry);
           entries3.delete(key2);
         }
@@ -181763,9 +181763,9 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const refresh = () => {
       if (disposed) return;
-      const active = core.app.workspace.activeLeaf;
-      const controls = active ? owners.get(active) : void 0;
-      footer?.toggleAttribute("data-empty-editor", !active || is_empty_editor_path(active.state.path));
+      const active2 = core.app.workspace.activeLeaf;
+      const controls = active2 ? owners.get(active2) : void 0;
+      footer?.toggleAttribute("data-empty-editor", !active2 || is_empty_editor_path(active2.state.path));
       if (observed_controls !== controls) {
         contents.disconnect();
         observed_controls = controls;
@@ -181774,7 +181774,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (controls) {
         if (container.firstChild !== controls) container.replaceChildren(controls);
         container.hidden = false;
-        container.setAttribute("data-editor-path", active.state.path);
+        container.setAttribute("data-editor-path", active2.state.path);
       } else {
         container.replaceChildren();
         container.hidden = true;
@@ -181959,7 +181959,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return result;
     };
-    const active = () => {
+    const active2 = () => {
       const leaf = app?.workspace.activeLeaf;
       return leaf && typeof leaf.view?.isEditor === "function" ? context_for(leaf) : all().find((context) => file_key(context.file_path) === file_key(native_path()));
     };
@@ -181986,7 +181986,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       saved.set(context.view_id, position2);
       if (context.leaf) context.leaf.state.linux_note_position = position2;
-      const active_context = active();
+      const active_context = active2();
       if (persist && (!active_context || file_key(active_context.file_path) !== file_key(context.file_path) || active_context.view_id === context.view_id)) {
         dirty.set(context.file_path, position2);
         window.clearTimeout(save_timer);
@@ -182132,7 +182132,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     return {
       all,
-      active,
+      active: active2,
       elements,
       capture,
       checkpoint,
@@ -182623,9 +182623,9 @@ https://creativecommons.org/licenses/by/4.0/
     schedule_selection();
     window.addEventListener("keydown", (event) => {
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
-      const active = document.activeElement;
+      const active2 = document.activeElement;
       if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
-      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file")) return;
+      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, .linux-note-source-file")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       if (event.repeat) return;
@@ -182965,9 +182965,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const group = select_workspace_editor_group(core, file_path);
       if (group === core.app.workspace.activeLeaf?.parent) return;
-      const active = group.activeLeaf || group.children?.[0];
-      if (active) {
-        core.app.workspace.activeLeaf = group.toggleTab(active.state.path);
+      const active2 = group.activeLeaf || group.children?.[0];
+      if (active2) {
+        core.app.workspace.activeLeaf = group.toggleTab(active2.state.path);
         return;
       }
       const placeholder = core.app.workspace.createLeaf({ type: "core.empty", state: { path: "typ://core.empty/" + globalThis.crypto.randomUUID() + "/New tab" } });
@@ -184145,8 +184145,8 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh_renamed_editors = async () => {
       if (refreshing_renamed_editors || renaming || runtime2.File?.changeCounter?.isDocumentEdited()) return;
       refreshing_renamed_editors = true;
-      const active = core.app.workspace.activeLeaf;
-      let desired_active = active;
+      const active2 = core.app.workspace.activeLeaf;
+      let desired_active = active2;
       try {
         for (const leaf of [...renamed_markdown_leaves]) {
           if (!transfer_present(leaf)) {
@@ -184157,7 +184157,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (state.dirty || state.busy) continue;
           if (await reopen_leaf(leaf, false)) {
             renamed_markdown_leaves.delete(leaf);
-            if (leaf === active) desired_active = core.app.workspace.activeLeaf;
+            if (leaf === active2) desired_active = core.app.workspace.activeLeaf;
           }
         }
       } catch (error) {
@@ -185022,6 +185022,114 @@ https://creativecommons.org/licenses/by/4.0/
     return dispose2;
   }
 
+  // src/git_status_snapshot.ts
+  var git_yield = () => new Promise((resolve3) => {
+    if (typeof MessageChannel === "undefined") {
+      setTimeout(resolve3, 0);
+      return;
+    }
+    const channel = new MessageChannel();
+    channel.port1.onmessage = () => {
+      channel.port1.close();
+      channel.port2.close();
+      resolve3();
+    };
+    channel.port2.postMessage(null);
+  });
+  async function read_git_records(run, root, args, record) {
+    let carry = "", count = 0;
+    const consume = async (chunk) => {
+      const value = carry + chunk;
+      let start = 0, end;
+      while ((end = value.indexOf("\0", start)) >= 0) {
+        record(value.slice(start, end));
+        start = end + 1;
+        if (++count % 512 === 0) await git_yield();
+      }
+      carry = value.slice(start);
+      if (carry.length > 1024 * 1024) throw Error("Git\u72B6\u6001\u8BB0\u5F55\u8D85\u8FC71 MiB\uFF0C\u534F\u8BAE\u65E0\u6548\u3002");
+    };
+    const source = await run(root, args, { stdout: consume });
+    for (let i = 0; i < source.length; i += 65536) await consume(source.slice(i, i + 65536));
+    if (carry) throw Error("Git\u72B6\u6001\u8BB0\u5F55\u4E0D\u5B8C\u6574\uFF0C\u4FDD\u7559\u4E0A\u6B21\u72B6\u6001\u3002");
+  }
+  async function read_status_snapshot(run, root, untracked) {
+    const result = [];
+    let renamed;
+    await read_git_records(run, root, ["status", "--porcelain=v1", "-z", untracked ? "--untracked-files=all" : "--untracked-files=no"], (value) => {
+      if (renamed) {
+        renamed.old_path = value;
+        renamed = void 0;
+        return;
+      }
+      if (!value) return;
+      const status2 = value.slice(0, 2);
+      const item = { status: status2.trim(), index_status: status2[0], work_status: status2[1], path: value.slice(3) };
+      if (result.length >= 5e5) throw Error("Git\u6539\u52A8\u8D85\u8FC750\u4E07\u9879\uFF0C\u5DF2\u505C\u6B62\u8BFB\u53D6\u4EE5\u4FDD\u62A4\u754C\u9762\u5185\u5B58\uFF1B\u8BF7\u5728Git\u8BBE\u7F6E\u4E2D\u5173\u95ED\u672A\u8DDF\u8E2A\u6587\u4EF6\u5C55\u793A\u6216\u4F7F\u7528\u5916\u90E8Git\u5904\u7406\u3002\u672A\u5C55\u793A\u90E8\u5206\u4E0D\u4F1A\u5192\u5145\u5B8C\u6574\u72B6\u6001\u3002");
+      result.push(item);
+      if (/[RC]/u.test(status2)) renamed = item;
+    });
+    if (renamed) throw Error("Git\u91CD\u547D\u540D\u8BB0\u5F55\u4E0D\u5B8C\u6574\u3002");
+    return result;
+  }
+  async function same_git_changes(left, right) {
+    if (left.length !== right.length) return false;
+    for (let i = 0; i < left.length; i++) {
+      const a = left[i], b2 = right[i];
+      if (a.path !== b2.path || a.status !== b2.status || a.old_path !== b2.old_path || a.index_status !== b2.index_status || a.work_status !== b2.work_status) return false;
+      if (i % 1024 === 1023) await git_yield();
+    }
+    return true;
+  }
+  async function project_git_changes(changes) {
+    const staged = [], unstaged = [];
+    for (let i = 0; i < changes.length; i++) {
+      const file = changes[i], conflict2 = ["DD", "AU", "UD", "UA", "DU", "AA", "UU"].includes(file.status);
+      const x = file.index_status || file.status[0], y = file.work_status || " ";
+      if (conflict2 || file.status === "??") unstaged.push(file);
+      else {
+        if (x && x !== " " && x !== "?") staged.push({ ...file, status: x, old_path: /[RC]/u.test(x) ? file.old_path : void 0 });
+        if (y && y !== " ") unstaged.push({ ...file, status: y, old_path: /[RC]/u.test(y) ? file.old_path : void 0 });
+      }
+      if (i % 1024 === 1023) await git_yield();
+    }
+    return { staged, unstaged };
+  }
+  async function sort_git_changes(items, compare2) {
+    let current = items.slice(), next = new Array(items.length), steps = 0;
+    for (let width2 = 1; width2 < items.length; width2 *= 2) {
+      for (let start = 0; start < items.length; start += width2 * 2) {
+        let a = start, b2 = Math.min(start + width2, items.length), end = b2, limit = Math.min(start + width2 * 2, items.length);
+        for (let i = start; i < limit; i++) {
+          next[i] = a < end && (b2 >= limit || compare2(current[a], current[b2]) <= 0) ? current[a++] : current[b2++];
+          if (++steps % 2048 === 0) await git_yield();
+        }
+      }
+      [current, next] = [next, current];
+    }
+    return current;
+  }
+  async function read_changes_snapshot(run, root, args) {
+    const result = [];
+    let status2 = "", old_path;
+    await read_git_records(run, root, args, (value) => {
+      if (!status2) {
+        status2 = value;
+        return;
+      }
+      if (/^[RC]/u.test(status2) && old_path === void 0) {
+        old_path = value;
+        return;
+      }
+      if (result.length >= 5e5) throw Error("Git\u5DEE\u5F02\u6587\u4EF6\u8D85\u8FC750\u4E07\u9879\uFF0C\u672A\u52A0\u8F7D\u4E0D\u5B8C\u6574\u6E05\u5355\u3002");
+      result.push({ status: status2, path: value, ...old_path !== void 0 ? { old_path } : {} });
+      status2 = "";
+      old_path = void 0;
+    });
+    if (status2) throw Error("Git\u5DEE\u5F02\u8BB0\u5F55\u4E0D\u5B8C\u6574\u3002");
+    return result;
+  }
+
   // src/git_scm_data.ts
   function parse_branch_status(source) {
     const status2 = { branch: "", head: "", upstream: "", ahead: 0, behind: 0, dirty: false };
@@ -185044,7 +185152,21 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return status2;
   }
-  var read_branch_status = async (run, root) => parse_branch_status(await run(root, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"]));
+  async function read_branch_status(run, root) {
+    let headers = "", dirty = false, rename = false;
+    await read_git_records(run, root, ["status", "--porcelain=v2", "--branch", "-z", "--untracked-files=normal"], (record) => {
+      if (rename) {
+        rename = false;
+        return;
+      }
+      if (record.startsWith("# branch.")) headers += record + "\0";
+      else if (/^[12u?] /u.test(record)) {
+        dirty = true;
+        rename = record.startsWith("2 ");
+      }
+    });
+    return { ...parse_branch_status(headers), dirty };
+  }
   var optional = async (run, root, args) => run(root, args).then((value) => value.trim()).catch((error) => {
     if (error.code === 1) return "";
     throw error;
@@ -186116,18 +186238,6 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return result;
   }
-  function parse_changes(source) {
-    const fields = source.split("\0");
-    const result = [];
-    for (let i = 0; i < fields.length && fields[i]; ) {
-      const status2 = fields[i++];
-      const old_path = /^[RC]/u.test(status2) ? fields[i++] : void 0;
-      const path = fields[i++];
-      if (!path) throw new Error(git_graph_text("repository.incomplete_diff"));
-      result.push({ status: status2, path, ...old_path ? { old_path } : {} });
-    }
-    return result;
-  }
   var quiet_head = async (run, root) => run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).then((value) => value.trim()).catch((error) => {
     if (error.code === 1) return "";
     throw error;
@@ -186146,7 +186256,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function read_repository(run, cwd2, settings, count, branches = []) {
     const root = (await run(cwd2, ["rev-parse", "--show-toplevel"])).replace(/[\r\n]+$/u, "");
-    const [head, branch, ref_text, stash_text, status_text, remote_text, git_path, status2] = await Promise.all([
+    const [head, branch, ref_text, stash_text, changes, remote_text, git_path, branch_only] = await Promise.all([
       quiet_head(run, root),
       run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).then((value) => value.trim()).catch((error) => {
         if (error.code === 1) return "";
@@ -186154,10 +186264,10 @@ https://creativecommons.org/licenses/by/4.0/
       }),
       run(root, ["for-each-ref", "--format=%(objectname)%00%(*objectname)%00%(refname)%00%(objecttype)%00%(*objecttype)", "refs/heads", "refs/remotes", "refs/tags"]),
       settings.show_stashes ? run(root, ["stash", "list", "--format=%H%x00%gd%x00%gs%x00%aI", "-z"]) : "",
-      settings.show_changes ? run(root, ["status", "--porcelain=v1", "-z", settings.show_untracked ? "--untracked-files=all" : "--untracked-files=no"]) : "",
+      settings.show_changes ? read_status_snapshot(run, root, settings.show_untracked) : [],
       run(root, ["remote", "-v"]),
       run(root, ["rev-parse", "--absolute-git-dir"]),
-      read_branch_status(run, root)
+      settings.show_changes ? void 0 : read_branch_status(run, root)
     ]);
     const refs = ref_text.split("\n").filter((line) => /\0commit(?:\0|$)/u.test(line)).map((line) => {
       const [hash2, peeled, name] = line.replace(/\r$/u, "").split("\0");
@@ -186178,6 +186288,7 @@ https://creativecommons.org/licenses/by/4.0/
       entry[match2[3]] = match2[2];
     }
     const tracking = await read_scm_tracking(run, root, branch, head, refs);
+    const status2 = branch_only || { head: head || "(initial)", branch: branch || "(detached)", upstream: tracking.upstream.replace(/^refs\/remotes\//u, ""), ahead: tracking.ahead, behind: tracking.behind, dirty: changes.length > 0 };
     const automatic = branches.length === 1 && branches[0] === "AUTO";
     const selected_refs = refs.filter((ref) => {
       if (automatic) return ["refs/heads/" + branch, tracking.upstream, tracking.base].includes(ref.name);
@@ -186219,7 +186330,7 @@ https://creativecommons.org/licenses/by/4.0/
       commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
     }
     const operation = git_path.trim();
-    return { root, head, branch, refs, tracking, status: status2, commits: commits.slice(0, count), more: commits.length > count, stashes, changes: parse_status(status_text), remotes, operation };
+    return { root, head, branch, refs, tracking, status: status2, commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
   }
   function comparison_args(from, to, head) {
     if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
@@ -186230,7 +186341,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function compare_files(run, state, from, to) {
     if (from === EMPTY && to === WORKTREE) return state.changes.filter((file) => file.work_status !== "D").map((file) => ({ ...file, status: "A" }));
-    const changes = parse_changes(await run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]));
+    const changes = await read_changes_snapshot(run, state.root, [...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]);
     if (to === WORKTREE) {
       const paths = new Set(changes.map((file) => file.path));
       for (const file of state.changes) if (file.status === "??" && !paths.has(file.path)) {
@@ -186424,6 +186535,95 @@ https://creativecommons.org/licenses/by/4.0/
     return svg3;
   }
 
+  // src/git_runtime_environment.ts
+  var discoveries = /* @__PURE__ */ new WeakMap();
+  function clear_git_discovery(child_process) {
+    discoveries.delete(child_process);
+  }
+  function discover_git(modules, configured = "git") {
+    let cache = discoveries.get(modules.child_process);
+    if (!cache) {
+      cache = /* @__PURE__ */ new Map();
+      discoveries.set(modules.child_process, cache);
+    }
+    if (cache.has(configured)) return cache.get(configured);
+    let unavailable;
+    const probe = (file) => new Promise((resolve3, reject) => modules.child_process.execFile(file, ["--version"], { windowsHide: true, shell: false, timeout: 1e4, maxBuffer: 65536 }, (error, output) => {
+      if (error) {
+        if (!["ENOENT", "ENOTDIR"].includes(error.code)) unavailable = error;
+        reject(error);
+      } else if (/^git version /u.test(String(output))) resolve3(file);
+      else {
+        unavailable = Error("\u7A0B\u5E8F\u672A\u8FD4\u56DEGit\u7248\u672C\u3002");
+        reject(unavailable);
+      }
+    }));
+    const task = (async () => {
+      const candidates = [], env2 = modules.process.env;
+      if (configured === "git" && modules.process.platform === "win32") {
+        const path_value = Object.entries(env2).find(([key2]) => key2.toLowerCase() === "path")?.[1] || "";
+        for (const directory of path_value.split(";")) {
+          const base = directory.replace(/^"|"$/gu, "");
+          if (/^(?:[a-z]:[\\/]|\\\\)/iu.test(base)) candidates.push(base + "\\git.exe");
+        }
+        for (const candidate of candidates) {
+          try {
+            return await probe(candidate);
+          } catch {
+          }
+        }
+      } else {
+        try {
+          return await probe(configured);
+        } catch {
+        }
+      }
+      if (configured === "git" && modules.process.platform === "win32") {
+        for (const base of [env2.ProgramW6432, env2.ProgramFiles, env2["ProgramFiles(x86)"], env2.LOCALAPPDATA && env2.LOCALAPPDATA + "\\Programs"]) if (base) candidates.push(base + "\\Git\\cmd\\git.exe");
+        const registry = await new Promise((resolve3) => modules.child_process.execFile("reg.exe", ["query", "HKLM\\SOFTWARE\\GitForWindows", "/v", "InstallPath"], { windowsHide: true, timeout: 5e3, maxBuffer: 65536 }, (_error, out) => resolve3(String(out || "").match(/InstallPath\s+REG_SZ\s+(.+)/u)?.[1]?.trim() || "")));
+        if (registry) candidates.push(registry + "\\cmd\\git.exe");
+      }
+      let last;
+      for (const candidate of new Set(candidates)) {
+        try {
+          return await probe(candidate);
+        } catch (error) {
+          last = error;
+        }
+      }
+      if (unavailable) throw Object.assign(Error("\u5DF2\u6709Git\u65E0\u6CD5\u8FD0\u884C\uFF0C\u8BF7\u68C0\u67E5\u6743\u9650\u6216\u7A0B\u5E8F\u8DEF\u5F84\uFF1A" + unavailable.message), { code: "GIT_UNAVAILABLE" });
+      throw Object.assign(Error("\u672A\u627E\u5230\u53EF\u7528Git\u3002\u8BF7\u5B89\u88C5Git\uFF0C\u6216\u5728\u8BBE\u7F6E\u4E2D\u4FEE\u6B63Git\u7A0B\u5E8F\u8DEF\u5F84\u3002" + (configured !== "git" ? " \u914D\u7F6E\uFF1A" + configured : "")), { code: "GIT_NOT_FOUND", cause: last });
+    })();
+    cache.set(configured, task);
+    void task.catch(() => {
+      if (cache.get(configured) === task) cache.delete(configured);
+    });
+    return task;
+  }
+  async function install_missing_git(modules, report) {
+    clear_git_discovery(modules.child_process);
+    try {
+      return await discover_git(modules);
+    } catch (error) {
+      if (error.code !== "GIT_NOT_FOUND") throw error;
+    }
+    if (modules.process.platform !== "win32") throw Error("\u8BF7\u4F7F\u7528\u7CFB\u7EDF\u8F6F\u4EF6\u7BA1\u7406\u5668\u5B89\u88C5Git\uFF0C\u7136\u540E\u70B9\u51FB\u91CD\u8BD5\u3002\u5B98\u65B9\u5B89\u88C5\u8BF4\u660E\uFF1Ahttps://git-scm.com/install/");
+    report("\u6B63\u5728\u901A\u8FC7Windows\u8F6F\u4EF6\u7BA1\u7406\u5668\u5B89\u88C5Git\uFF1B\u5982\u51FA\u73B0\u7CFB\u7EDF\u6388\u6743\u6216\u5B89\u88C5\u7A97\u53E3\uFF0C\u8BF7\u5B8C\u6210\u64CD\u4F5C\u2026");
+    await new Promise((resolve3, reject) => {
+      const child = modules.child_process.spawn("winget", ["install", "--id", "Git.Git", "--exact", "--source", "winget", "--interactive", "--disable-interactivity"], { windowsHide: true, shell: false, stdio: ["ignore", "pipe", "pipe"] });
+      let tail2 = "";
+      const collect = (data) => {
+        tail2 = (tail2 + String(data)).slice(-4096);
+      };
+      child.stdout.on("data", collect);
+      child.stderr.on("data", collect);
+      child.once("error", (error) => reject(Error("\u65E0\u6CD5\u542F\u52A8winget\uFF0C\u8BF7\u901A\u8FC7Git\u5B98\u7F51\u5B89\u88C5\u540E\u91CD\u8BD5\u3002" + error.message)));
+      child.once("close", (code) => code === 0 ? resolve3() : reject(Error("Git\u5B89\u88C5\u672A\u5B8C\u6210\uFF08\u9000\u51FA\u7801" + code + "\uFF09\u3002" + tail2)));
+    });
+    clear_git_discovery(modules.child_process);
+    return discover_git(modules);
+  }
+
   // src/git_repository_discovery.ts
   async function discover_git_repositories(options2) {
     const result = { roots: [], visited: 0, truncated: false, errors: [] };
@@ -186510,10 +186710,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (!present(leaf)) return;
       files.keep_open(leaf);
       leaf.state.workspace_pinned = value;
-      const active = workspace.activeLeaf, group = leaf.parent;
+      const active2 = workspace.activeLeaf, group = leaf.parent;
       const fixed = group.children.filter((item) => item !== leaf && item.state.workspace_pinned).length;
       core.move_workspace_leaf(leaf, group, fixed);
-      if (active && present(active)) workspace.activeLeaf = active.parent.toggleTab(active.state.path);
+      if (active2 && present(active2)) workspace.activeLeaf = active2.parent.toggleTab(active2.state.path);
       refresh();
     };
     const candidates = (leaf, mode) => {
@@ -186585,8 +186785,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const preview = async (leaf) => {
       if (!await files.reopen_leaf(leaf, false)) return;
-      const active = workspace.activeLeaf;
-      if (active && files.editor_state(active).kind === "markdown" && runtime2.File?.editor?.sourceView?.inSourceMode && runtime2.File?.bundle?.filePath === active.state.path) runtime2.File.toggleSourceMode();
+      const active2 = workspace.activeLeaf;
+      if (active2 && files.editor_state(active2).kind === "markdown" && runtime2.File?.editor?.sourceView?.inSourceMode && runtime2.File?.bundle?.filePath === active2.state.path) runtime2.File.toggleSourceMode();
       refresh();
     };
     const entries3 = (leaf) => {
@@ -199349,7 +199549,7 @@ https://creativecommons.org/licenses/by/4.0/
       }, render = function() {
         if (lifetime.disposed || tab_drag.active) return;
         const config = settings.get(), entries3 = ordered_panel_entries();
-        const group_ids = new Set(entries3.map((item) => item.session.group)), active_group = active()?.location === "panel" ? active().session.group : entries3[0]?.session.group;
+        const group_ids = new Set(entries3.map((item) => item.session.group)), active_group = active2()?.location === "panel" ? active2().session.group : entries3[0]?.session.group;
         panel.body.dataset.tabsLocation = config.tabs_location;
         panel.tabs.hidden = config.tabs_hide === "single_terminal" ? entries3.length < 2 : config.tabs_hide === "single_group" ? group_ids.size < 2 : false;
         const panel_active = entries3.find((item) => item.session.id === active_id) || entries3[0];
@@ -199453,8 +199653,8 @@ https://creativecommons.org/licenses/by/4.0/
       }, () => {
         if (!lifetime.disposed) render();
       }));
-      const active = () => sessions.get(active_id);
-      lifetime.add(bind_terminal_state(core.app, () => ({ active_id, location: active()?.location, panel_visible: panel.visible })));
+      const active2 = () => sessions.get(active_id);
+      lifetime.add(bind_terminal_state(core.app, () => ({ active_id, location: active2()?.location, panel_visible: panel.visible })));
       const overlays = /* @__PURE__ */ new Set();
       lifetime.add(() => {
         for (const close of [...overlays]) close();
@@ -199715,7 +199915,7 @@ https://creativecommons.org/licenses/by/4.0/
       const toggle = () => {
         const remote = current_remote_workspace();
         const matches = (entry2) => entry2.location === "panel" && (remote ? entry2.session.launch_profile?.remote?.target === remote.target && (entry2.session.launch_profile.remote.port || 0) === (remote.port || 0) : !entry2.session.launch_profile?.remote);
-        if (panel.visible && active() && matches(active())) {
+        if (panel.visible && active2() && matches(active2())) {
           panel.hide();
           return;
         }
@@ -199767,7 +199967,7 @@ https://creativecommons.org/licenses/by/4.0/
       action("chevron-down", "\u9009\u62E9\u7EC8\u7AEF\u914D\u7F6E", (node) => profile_menu(at3(node)));
       action("split-horizontal", "\u62C6\u5206\u7EC8\u7AEF", () => split());
       action("trash", "\u7EC8\u6B62\u7EC8\u7AEF", () => kill());
-      action("more", "\u66F4\u591A\u7EC8\u7AEF\u64CD\u4F5C", (node) => menu(at3(node), active() ? session_menu(active_id) : [{ title: "\u7EC8\u7AEF\u8BBE\u7F6E\u2026", action: configure }]));
+      action("more", "\u66F4\u591A\u7EC8\u7AEF\u64CD\u4F5C", (node) => menu(at3(node), active2() ? session_menu(active_id) : [{ title: "\u7EC8\u7AEF\u8BBE\u7F6E\u2026", action: configure }]));
       action("screen-full", "\u6700\u5927\u5316\uFF0F\u8FD8\u539F\u9762\u677F", (node) => {
         panel.maximize();
         node.replaceChildren(git_icon(panel.maximized ? "screen-normal" : "screen-full"));
@@ -199782,10 +199982,10 @@ https://creativecommons.org/licenses/by/4.0/
         ["terminal_split", "\u7EC8\u7AEF\uFF1A\u62C6\u5206", () => split()],
         ["terminal_kill", "\u7EC8\u7AEF\uFF1A\u7EC8\u6B62", () => kill()],
         ["terminal_restart", "\u7EC8\u7AEF\uFF1A\u91CD\u542F", () => {
-          void active()?.session.start();
+          void active2()?.session.start();
         }],
-        ["terminal_find", "\u7EC8\u7AEF\uFF1A\u67E5\u627E", () => active()?.surface.find()],
-        ["terminal_clear", "\u7EC8\u7AEF\uFF1A\u6E05\u5C4F", () => active()?.surface.term.clear()],
+        ["terminal_find", "\u7EC8\u7AEF\uFF1A\u67E5\u627E", () => active2()?.surface.find()],
+        ["terminal_clear", "\u7EC8\u7AEF\uFF1A\u6E05\u5C4F", () => active2()?.surface.term.clear()],
         ["terminal_rename", "\u7EC8\u7AEF\uFF1A\u91CD\u547D\u540D", () => edit_identity("title")],
         ["terminal_move_editor", "\u7EC8\u7AEF\uFF1A\u79FB\u5230\u7F16\u8F91\u5668", () => move("editor")],
         ["terminal_move_panel", "\u7EC8\u7AEF\uFF1A\u79FB\u5230\u9762\u677F", () => move("panel")]
@@ -199949,75 +200149,204 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/git_process_transport.ts
+  var active = 0;
+  var queue = [];
+  function acquire_git_process(signal) {
+    return new Promise((resolve3, reject) => {
+      let granted = false;
+      const cancel = () => {
+        if (granted) return;
+        const index = queue.indexOf(start);
+        if (index >= 0) queue.splice(index, 1);
+        reject(Object.assign(Error("Git\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002"), { code: "ABORT_ERR" }));
+      };
+      const start = () => {
+        if (signal.aborted) {
+          cancel();
+          return;
+        }
+        granted = true;
+        signal.removeEventListener("abort", cancel);
+        active++;
+        let released = false;
+        resolve3(() => {
+          if (released) return;
+          released = true;
+          active--;
+          queue.shift()?.();
+        });
+      };
+      if (signal.aborted) {
+        cancel();
+        return;
+      }
+      signal.addEventListener("abort", cancel, { once: true });
+      if (active < 4) start();
+      else queue.push(start);
+    });
+  }
+  function spawn_git_process(child_process, executable, args, options2) {
+    return new Promise((resolve3, reject) => {
+      if (options2.signal.aborted) {
+        reject(Object.assign(Error("Git\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002"), { code: "ABORT_ERR" }));
+        return;
+      }
+      let child, finished = false, failure2, stderr = "", bytes = 0;
+      const parts = [], decoder = new TextDecoder("utf-8", { ignoreBOM: true }), limit = options2.max_bytes ?? 16 * 1024 * 1024;
+      let pending = Promise.resolve();
+      const stop = (error) => {
+        failure2 ||= error;
+        child?.kill();
+      };
+      const cancel = () => stop(Object.assign(Error("Git\u64CD\u4F5C\u5DF2\u53D6\u6D88\uFF1B\u82E5\u4E3A\u5199\u64CD\u4F5C\uFF0C\u8BF7\u5237\u65B0\u786E\u8BA4\u5B9E\u9645\u7ED3\u679C\u3002"), { code: "ABORT_ERR" }));
+      const timeout_ms = options2.timeout_ms ?? (options2.writable ? 30 * 60 * 1e3 : 5 * 60 * 1e3);
+      const timer = setTimeout(() => stop(Object.assign(Error("Git\u5728" + Math.round(timeout_ms / 1e3) + "\u79D2\u5185\u672A\u5B8C\u6210\uFF0C\u5DF2\u505C\u6B62\u7B49\u5F85\u3002\u53EF\u68C0\u67E5\u78C1\u76D8/\u7F51\u7EDC/\u51ED\u636E\u540E\u91CD\u8BD5\uFF1B\u5199\u5165\u7ED3\u679C\u8BF7\u5237\u65B0\u786E\u8BA4\u3002"), { code: "ETIMEDOUT" })), timeout_ms);
+      const finish = async (code, error) => {
+        if (finished) return;
+        finished = true;
+        clearTimeout(timer);
+        options2.signal.removeEventListener("abort", cancel);
+        await pending;
+        if (failure2 || error) {
+          reject(failure2 || error);
+          return;
+        }
+        if (code !== 0) {
+          reject(Object.assign(Error(stderr.trim() || "Git\u9000\u51FA\u7801\uFF1A" + code), { code }));
+          return;
+        }
+        if (options2.consume) {
+          try {
+            const tail2 = decoder.decode();
+            if (tail2) await options2.consume(tail2);
+            resolve3("");
+          } catch (error2) {
+            reject(error2);
+          }
+          return;
+        }
+        if (options2.binary) {
+          const output = new Uint8Array(bytes);
+          let offset = 0;
+          for (const part of parts) {
+            output.set(part, offset);
+            offset += part.length;
+          }
+          resolve3(output);
+        } else resolve3(parts.join("") + decoder.decode());
+      };
+      try {
+        child = child_process.spawn(executable, args, { cwd: options2.cwd, env: options2.env, windowsHide: true, shell: false, stdio: ["pipe", "pipe", "pipe"] });
+      } catch (error) {
+        void finish(void 0, error);
+        return;
+      }
+      options2.signal.addEventListener("abort", cancel, { once: true });
+      child.stdout.on("data", (data) => {
+        if (failure2) return;
+        bytes += data.length;
+        if (options2.consume) {
+          child.stdout.pause();
+          pending = pending.then(async () => {
+            if (failure2) return;
+            await options2.consume(decoder.decode(data, { stream: true }));
+          }).catch((error) => stop(error)).finally(() => {
+            if (!failure2) child.stdout.resume();
+          });
+        } else if (bytes > limit) {
+          const error = Object.assign(Error("Git\u5355\u4EFD\u6B63\u6587/\u5DEE\u5F02\u8D85\u8FC7" + Math.round(limit / 1048576) + " MiB\uFF0C\u672A\u8F7D\u5165\u622A\u65AD\u5185\u5BB9\u3002\u4ED3\u5E93\u72B6\u6001\u4ECD\u53EF\u4F7F\u7528\uFF1B\u5199\u64CD\u4F5C\u8BF7\u5237\u65B0\u786E\u8BA4\u7ED3\u679C\uFF0C\u5927\u6587\u4EF6\u8BF7\u7528\u5916\u90E8\u5DE5\u5177\u67E5\u770B\u3002"), { code: "GIT_OUTPUT_LIMIT" });
+          if (options2.writable) failure2 = error;
+          else stop(error);
+        } else parts.push(options2.binary ? data : decoder.decode(data, { stream: true }));
+      });
+      child.stderr.on("data", (data) => {
+        stderr = (stderr + String(data)).slice(-65536);
+      });
+      child.once("error", (error) => {
+        void finish(void 0, error);
+      });
+      child.once("close", (code) => {
+        void finish(code);
+      });
+      child.stdin.on("error", () => {
+      });
+      child.stdin.end(options2.input);
+    });
+  }
+
   // src/git_graph_runtime.ts
   function create_git_runner(modules, options2 = {}) {
     const children = /* @__PURE__ */ new Set();
     const env2 = { ...modules.process.env, LC_ALL: "C", LANG: "C", GIT_OPTIONAL_LOCKS: "0", GIT_TERMINAL_PROMPT: "0", GIT_NO_LAZY_FETCH: options2.writable ? "0" : "1", GIT_EDITOR: "true", GIT_SEQUENCE_EDITOR: "true" };
     for (const key2 of ["GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE", "GIT_LITERAL_PATHSPECS", "GIT_GLOB_PATHSPECS", "GIT_NOGLOB_PATHSPECS", "GIT_ICASE_PATHSPECS"]) delete env2[key2];
-    const execute = (cwd2, args, binary = false, todo = "", input) => new Promise((resolve3, reject) => {
-      const sequence_editor = 'sh -c \'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"\' --';
-      const message_editor = 'sh -c \'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi\' --';
-      const execution_env = { ...env2, GIT_EDITOR: message_editor, ...todo ? { LINUX_NOTE_GIT_REBASE_TODO: todo, GIT_SEQUENCE_EDITOR: sequence_editor } : {} };
-      const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm", "restore", "clean"].includes(args[0]) || args[0] === "log" && args.indexOf("--") >= 0 && args.indexOf("--") < args.length - 1;
-      const command_args = [
-        "--no-pager",
-        "--no-replace-objects",
-        ...literal_paths ? ["--literal-pathspecs"] : [],
-        "-c",
-        "protocol.ext.allow=never",
-        "-c",
-        "color.ui=false",
-        "-c",
-        "core.quotePath=false",
-        "-c",
-        "i18n.logOutputEncoding=utf-8",
-        "-c",
-        "log.showSignature=false",
-        ...args
-      ];
-      const remote = remote_files_for(cwd2);
-      assert_remote_owner(cwd2);
-      if (remote) {
-        const controller = new AbortController(), job = { kill() {
-          controller.abort();
-        } };
-        children.add(job);
-        void remote.git(cwd2, command_args, execution_env, Boolean(options2.writable), input, controller.signal).then((data) => {
-          if (controller.signal.aborted) throw Error(git_graph_text("runtime.cancelled_or_timed_out"));
-          if (binary) {
-            resolve3(data);
-            return;
+    const execute = (cwd2, args, binary = false, todo = "", input, consume) => {
+      const controller = new AbortController(), job = { kill() {
+        controller.abort();
+      } };
+      children.add(job);
+      return (async () => {
+        const release = await acquire_git_process(controller.signal);
+        try {
+          const separator2 = args.indexOf("--");
+          if (input === void 0 && ["add", "reset", "restore"].includes(args[0]) && separator2 >= 0 && args.slice(separator2 + 1).join(" ").length > 16e3) {
+            input = args.slice(separator2 + 1).join("\0") + "\0";
+            args = [...args.slice(0, separator2), "--pathspec-from-file=-", "--pathspec-file-nul"];
           }
-          let output = data.toString("utf8");
-          if (args[0] === "rev-parse" && args.some((arg) => ["--show-toplevel", "--absolute-git-dir", "--git-dir", "--git-common-dir"].includes(arg))) output = output.split("\n").map((line) => line.startsWith("/") ? remote.local_path(line) : line).join("\n");
-          resolve3(output);
-        }).catch(reject).finally(() => children.delete(job));
-        return;
-      }
-      const child = modules.child_process.execFile(options2.executable || "git", command_args, {
-        cwd: cwd2,
-        env: execution_env,
-        encoding: binary ? null : "utf8",
-        windowsHide: true,
-        shell: false,
-        timeout: options2.writable ? 3e5 : 3e4,
-        maxBuffer: 16 * 1024 * 1024
-      }, (error, stdout, stderr) => {
-        children.delete(child);
-        if (!error) {
-          resolve3(stdout);
-          return;
+          const sequence_editor = 'sh -c \'printf "%s\\n" "$LINUX_NOTE_GIT_REBASE_TODO" > "$1"\' --';
+          const message_editor = 'sh -c \'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi\' --';
+          const execution_env = { ...env2, GIT_EDITOR: message_editor, ...todo ? { LINUX_NOTE_GIT_REBASE_TODO: todo, GIT_SEQUENCE_EDITOR: sequence_editor } : {} };
+          const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm", "restore", "clean"].includes(args[0]) || args[0] === "log" && args.indexOf("--") >= 0 && args.indexOf("--") < args.length - 1;
+          const command_args = [
+            "--no-pager",
+            "--no-replace-objects",
+            ...literal_paths ? ["--literal-pathspecs"] : [],
+            "-c",
+            "protocol.ext.allow=never",
+            "-c",
+            "color.ui=false",
+            "-c",
+            "core.quotePath=false",
+            "-c",
+            "i18n.logOutputEncoding=utf-8",
+            "-c",
+            "log.showSignature=false",
+            ...args
+          ];
+          const remote = remote_files_for(cwd2);
+          assert_remote_owner(cwd2);
+          if (remote) {
+            const data = await remote.git(cwd2, command_args, execution_env, Boolean(options2.writable), input, controller.signal);
+            if (controller.signal.aborted) throw Object.assign(Error("Git\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002"), { code: "ABORT_ERR" });
+            if (binary) return data;
+            let output = data.toString("utf8");
+            if (args[0] === "rev-parse" && args.some((arg) => ["--show-toplevel", "--absolute-git-dir", "--git-dir", "--git-common-dir"].includes(arg))) output = output.split("\n").map((line) => line.startsWith("/") ? remote.local_path(line) : line).join("\n");
+            if (consume) {
+              for (let i = 0; i < output.length; i += 65536) {
+                if (controller.signal.aborted) throw Error("Git\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002");
+                await consume(output.slice(i, i + 65536));
+              }
+              return "";
+            }
+            return output;
+          }
+          const executable = await discover_git(modules, options2.executable || "git");
+          return await spawn_git_process(modules.child_process, executable, command_args, {
+            cwd: cwd2,
+            env: execution_env,
+            binary,
+            writable: Boolean(options2.writable),
+            input,
+            consume,
+            signal: controller.signal
+          });
+        } finally {
+          release();
         }
-        const message = error.code === "ENOENT" ? git_graph_text("runtime.git_not_found") : error.code === "ERR_CHILD_PROCESS_STDIO_MAXBUFFER" ? git_graph_text("runtime.result_too_large") : error.killed ? git_graph_text("runtime.cancelled_or_timed_out") : (String(stderr || "") || error.message).trim();
-        reject(Object.assign(new Error(message), { code: error.code }));
-      });
-      children.add(child);
-      child.stdin?.on?.("error", () => {
-      });
-      child.stdin?.end(input);
-    });
+      })().finally(() => children.delete(job));
+    };
     return {
-      run: (cwd2, args, execution) => execute(cwd2, args, false, execution?.todo, execution?.stdin),
+      run: (cwd2, args, execution) => execute(cwd2, args, false, execution?.todo, execution?.stdin, execution?.stdout),
       run_bytes: (cwd2, args) => execute(cwd2, args, true),
       cancel() {
         for (const child of children) child.kill();
@@ -204028,6 +204357,9 @@ https://creativecommons.org/licenses/by/4.0/
       fs: fs2,
       path_api,
       process_api,
+      install_git(report) {
+        return install_missing_git({ child_process, process: process_api }, report);
+      },
       dispose() {
         if (disposed) return;
         disposed = true;
@@ -204065,7 +204397,7 @@ https://creativecommons.org/licenses/by/4.0/
             output_lines.set(root, lines.slice(-100));
           };
           const start = Date.now();
-          record((/* @__PURE__ */ new Date()).toLocaleTimeString(git_graph_language_tag()) + " > git " + args.map((arg) => JSON.stringify(arg)).join(" "));
+          record((/* @__PURE__ */ new Date()).toLocaleTimeString(git_graph_language_tag()) + " > git " + args.slice(0, 40).map((arg) => JSON.stringify(arg.slice(0, 1e3))).join(" ") + (args.length > 40 ? " \u2026\uFF08\u5171".concat(args.length, "\u4E2A\u53C2\u6570\uFF09") : ""));
           try {
             const result = await runner.run(root, args, execution);
             record(git_graph_text("host.run_complete", { duration: Date.now() - start }) + (writable ? "\n" + result.slice(0, 12e3) : ""));
@@ -204092,10 +204424,10 @@ https://creativecommons.org/licenses/by/4.0/
         this.open_panel(git_graph_text("host.git_output"), "git_output", root, view);
       },
       context_path(use_active = true) {
-        const active = core.app.workspace.activeLeaf;
+        const active2 = core.app.workspace.activeLeaf;
         const mounted = runtime2.File?.getMountFolder?.();
         if (typeof mounted === "string") return mounted;
-        return use_active && active?.state.path && path_api.isAbsolute(active.state.path) ? path_api.dirname(active.state.path) : active?.state.git_cwd || (runtime2.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
+        return use_active && active2?.state.path && path_api.isAbsolute(active2.state.path) ? path_api.dirname(active2.state.path) : active2?.state.git_cwd || (runtime2.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
       },
       can_change_files() {
         if (runtime2.File?.changeCounter?.isDocumentEdited()) return false;
@@ -204353,16 +204685,16 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
   function acquire_git_repository_operation(owner2, root, normalize3) {
-    const key2 = normalize3(root), active = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
-    if (active.has(key2)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
-    repository_operations.set(owner2, active);
-    active.add(key2);
+    const key2 = normalize3(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
+    if (active2.has(key2)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
+    repository_operations.set(owner2, active2);
+    active2.add(key2);
     let released = false;
     return () => {
       if (!released) {
         released = true;
-        active.delete(key2);
-        if (!active.size) repository_operations.delete(owner2);
+        active2.delete(key2);
+        if (!active2.size) repository_operations.delete(owner2);
       }
     };
   }
@@ -204747,7 +205079,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function bind_git_graph_columns(options2) {
     const handles = [];
-    let active;
+    let active2;
     const apply3 = (left, right, left_width, right_width, delta, before) => {
       const result = resize_graph_column_pair(left.key, left_width, right_width, delta, before);
       options2.widths[left.key] = result.left;
@@ -204780,9 +205112,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const finish = (commit) => {
-      const drag = active;
+      const drag = active2;
       if (!drag) return;
-      active = void 0;
+      active2 = void 0;
       drag.handle.classList.remove("dragging");
       if (drag.handle.hasPointerCapture(drag.pointer)) drag.handle.releasePointerCapture(drag.pointer);
       if (commit) save(drag.before);
@@ -204799,34 +205131,34 @@ https://creativecommons.org/licenses/by/4.0/
       handle.setAttribute("aria-orientation", "vertical");
       handle.setAttribute("aria-label", options2.label(left.title, right.title));
       handle.onpointerdown = (event) => {
-        if (event.button !== 0 || active) return;
+        if (event.button !== 0 || active2) return;
         event.preventDefault();
         event.stopPropagation();
         handle.focus({ preventScroll: true });
         handle.setPointerCapture(event.pointerId);
         handle.classList.add("dragging");
-        active = { handle, pointer: event.pointerId, start: event.clientX, left, right, left_width: left.node.getBoundingClientRect().width, right_width: right.node.getBoundingClientRect().width, before: { ...options2.widths } };
+        active2 = { handle, pointer: event.pointerId, start: event.clientX, left, right, left_width: left.node.getBoundingClientRect().width, right_width: right.node.getBoundingClientRect().width, before: { ...options2.widths } };
       };
       handle.onpointermove = (event) => {
-        const drag = active;
+        const drag = active2;
         if (!drag || drag.pointer !== event.pointerId) return;
         event.preventDefault();
         apply3(drag.left, drag.right, drag.left_width, drag.right_width, event.clientX - drag.start, drag.before);
       };
       handle.onpointerup = (event) => {
-        if (active?.pointer === event.pointerId) finish(true);
+        if (active2?.pointer === event.pointerId) finish(true);
       };
       handle.onpointercancel = handle.onlostpointercapture = (event) => {
-        if (active?.handle === handle && active.pointer === event.pointerId) cancel();
+        if (active2?.handle === handle && active2.pointer === event.pointerId) cancel();
       };
       handle.onkeydown = (event) => {
-        if (event.key === "Escape" && active) {
+        if (event.key === "Escape" && active2) {
           event.preventDefault();
           event.stopPropagation();
           cancel();
           return;
         }
-        if (active || event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
+        if (active2 || event.altKey || event.ctrlKey || event.metaKey || !["ArrowLeft", "ArrowRight"].includes(event.key)) return;
         event.preventDefault();
         event.stopPropagation();
         const before = { ...options2.widths };
@@ -204879,8 +205211,8 @@ https://creativecommons.org/licenses/by/4.0/
     disposed = false;
     get state() {
       const values = [...this.activities.values()], running = values.filter((value) => !value.waiting);
-      const active = running.filter((value) => value.kind !== "refresh").at(-1) || running.at(-1) || values.at(-1);
-      return { busy: values.length > 0, running: values.some((value) => !value.waiting), enabled: this.enabled, kind: active?.kind || "", label: active?.label || "", revision: this.revision };
+      const active2 = running.filter((value) => value.kind !== "refresh").at(-1) || running.at(-1) || values.at(-1);
+      return { busy: values.length > 0, running: values.some((value) => !value.waiting), enabled: this.enabled, kind: active2?.kind || "", label: active2?.label || "", revision: this.revision };
     }
     emit() {
       this.revision++;
@@ -207350,7 +207682,7 @@ https://creativecommons.org/licenses/by/4.0/
         event.stopPropagation();
         this.more_menu(event);
       };
-      input_actions.append(input_menu);
+      input_actions.append(this.cancel_read, input_menu);
       const input_title = workspace_element("span", "git-scm-input-title", git_graph_text("scm.changes"));
       input_title.title = git_graph_text("scm.changes");
       input_heading.append(git_disclosure(), input_title, input_actions);
@@ -207397,7 +207729,9 @@ https://creativecommons.org/licenses/by/4.0/
       this.initialize_button.dataset.workspaceInteraction = "primary";
       this.empty_view.setAttribute("role", "region");
       this.empty_view.setAttribute("aria-label", git_graph_text("scm.source_control"));
-      this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button);
+      this.empty_view.append(this.empty_message, this.initialize_button, this.discover_button, this.retry_button, this.install_button, this.cancel_empty);
+      this.set_git_missing(false);
+      this.update_read_controls();
       this.sidebar.append(this.empty_view);
       this.set_repository_state(panel.state ? "ready" : "loading");
       this.load_layout();
@@ -207443,6 +207777,16 @@ https://creativecommons.org/licenses/by/4.0/
     initialize_button = workspace_button("\u521D\u59CB\u5316\u4ED3\u5E93", () => void this.panel.initialize());
     discover_button = workspace_button("\u67E5\u627E\u5B50\u6587\u4EF6\u5939\u4E2D\u7684\u4ED3\u5E93\u2026", () => this.panel.manage_repositories());
     retry_button = workspace_button("\u91CD\u8BD5", () => void this.panel.refresh(false));
+    install_button = workspace_button("\u5B89\u88C5Git", () => void this.panel.install_git());
+    cancel_read = git_icon_button("close", "\u53D6\u6D88Git\u72B6\u6001\u8BFB\u53D6", () => this.panel.cancel_refresh());
+    cancel_empty = workspace_button("\u53D6\u6D88\u8BFB\u53D6", () => this.panel.cancel_refresh());
+    set_git_missing(missing2) {
+      this.install_button.hidden = !missing2;
+    }
+    update_read_controls() {
+      this.cancel_read.hidden = this.cancel_empty.hidden = !this.panel.pending || this.panel.writing || this.panel.installing_git;
+      this.install_button.disabled = this.panel.pending;
+    }
     path_collator = new Intl.Collator();
     set_repository_state(state) {
       if (this.sidebar.dataset.repositoryState === state) return;
@@ -207573,21 +207917,25 @@ https://creativecommons.org/licenses/by/4.0/
       this.fit_message();
       if (history_changed) this.history.render(state);
       try {
-        const [staged, unstaged] = await Promise.all([compare_files(this.panel.runner.run, state, state.head || EMPTY, INDEX), compare_files(this.panel.runner.run, state, INDEX, WORKTREE)]);
+        const { staged, unstaged } = await project_git_changes(state.changes);
         if (epoch2 !== this.groups_epoch || state !== this.panel.state) return;
-        const conflicts = new Set(state.changes.filter((file) => file.status.includes("U") || ["AA", "DD"].includes(file.status)).map((file) => file.path));
         const groups_state = [
-          { id: "staged", title: git_graph_text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged.filter((file) => !conflicts.has(file.path)) },
+          { id: "staged", title: git_graph_text("scm.staged_changes"), from: state.head || EMPTY, to: INDEX, files: staged },
           { id: "changes", title: git_graph_text("scm.changes"), from: INDEX, to: WORKTREE, files: unstaged }
         ];
-        const changed2 = JSON.stringify(groups_state) !== JSON.stringify(this.groups_state);
+        const changed2 = this.groups_state.length !== 2 || !await same_git_changes(staged, this.groups_state[0].files) || !await same_git_changes(unstaged, this.groups_state[1].files);
+        if (epoch2 !== this.groups_epoch || state !== this.panel.state) return;
         this.groups_state = groups_state;
-        if (changed2 || this.groups_layout_changed || !this.groups.childElementCount) this.render_groups();
+        if (changed2 || this.groups_layout_changed || !this.groups.childElementCount) await this.render_groups();
       } catch (error) {
         if (epoch2 === this.groups_epoch) this.panel.report(error);
       }
     }
-    render_groups() {
+    render_epoch = 0;
+    async render_groups() {
+      const epoch2 = ++this.render_epoch, groups = this.groups_state;
+      const sorted = await Promise.all(groups.map((group) => sort_git_changes(group.files, (a, b2) => this.sort_files(a, b2))));
+      if (epoch2 !== this.render_epoch || groups !== this.groups_state || this.panel.disposed) return;
       this.groups_layout_changed = false;
       const scroll = this.input_section.open ? this.groups.scrollTop : this.groups_scroll;
       for (const list3 of this.virtual_lists) list3.dispose();
@@ -207720,7 +208068,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.oncontextmenu = (event) => this.panel.configured_menu(event, "scm_file", this.file_entries(file, group.from, group.to, group.files));
           return row;
         };
-        const files = [...group.files].sort((a, b2) => this.sort_files(a, b2));
+        const files = sorted[groups.indexOf(group)];
         if (files.length <= 200) for (const file of files) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_file_row(file));
         else {
           const content = workspace_element("div", "git-scm-virtual-list");
@@ -230454,6 +230802,14 @@ https://creativecommons.org/licenses/by/4.0/
       this.container.dataset.state = "loading";
       this.status.textContent = git_graph_text("graph.loading_repository");
       this.update_scm_actions();
+      const waiting = setInterval(() => {
+        if (epoch2 !== this.epoch || !this.pending || this.disposed) return;
+        const message = "\u6B63\u5728\u8BFB\u53D6Git\u72B6\u6001\uFF0C\u5DF2\u7B49\u5F85" + Math.floor((Date.now() - this.refresh_started_at) / 1e3) + "\u79D2\uFF1B\u5927\u4ED3\u5E93\u53EF\u80FD\u9700\u8981\u66F4\u4E45\u3002";
+        this.status.textContent = message;
+        this.workbench.notice.textContent = message;
+        activity.phase(message);
+      }, 1e3);
+      this.workbench.update_read_controls();
       try {
         if (!this.root) throw new Error(git_graph_text("graph.open_repository_first"));
         let state = await read_repository(this.runner.run, this.context_directory, this.settings, this.count, this.branches);
@@ -230493,8 +230849,9 @@ https://creativecommons.org/licenses/by/4.0/
         state.operation = await this.host.operation(state.operation);
         if (epoch2 !== this.epoch) return;
         const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
-        const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
-        const changed2 = first_load || snapshot !== this.rendered_snapshot;
+        const snapshot = JSON.stringify([{ ...state, changes: void 0 }, this.settings, this.branches, this.count, repository_paths]);
+        const changed2 = first_load || snapshot !== this.rendered_snapshot || !await same_git_changes(state.changes, this.state?.changes || []);
+        if (epoch2 !== this.epoch) return;
         this.state = state;
         this.root = state.root;
         this.loaded = true;
@@ -230530,6 +230887,8 @@ https://creativecommons.org/licenses/by/4.0/
         this.rendered_snapshot = snapshot;
         this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label(state.operation) }) : "");
         this.container.dataset.state = "ready";
+        this.workbench.set_git_missing(false);
+        this.workbench.notice.textContent = "";
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
         if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some((commit) => commit.hash === this.selected))) {
           if (changed2 || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
@@ -230537,6 +230896,12 @@ https://creativecommons.org/licenses/by/4.0/
         this.detail_refresh_needed = false;
       } catch (error) {
         if (epoch2 === this.epoch) {
+          if (error.code === "ABORT_ERR" && this.state) {
+            this.container.dataset.state = "ready";
+            this.report("Git\u8BFB\u53D6\u5DF2\u53D6\u6D88\uFF0C\u663E\u793A\u4E0A\u6B21\u72B6\u6001\uFF1B\u8BF7\u5237\u65B0\u83B7\u53D6\u6700\u65B0\u7ED3\u679C\u3002");
+            return;
+          }
+          this.workbench.set_git_missing(error.code === "GIT_NOT_FOUND");
           this.state = void 0;
           this.loaded = false;
           this.close_details();
@@ -230550,8 +230915,10 @@ https://creativecommons.org/licenses/by/4.0/
           this.container.dataset.state = missing2 ? "empty" : "error";
         }
       } finally {
+        clearInterval(waiting);
         if (epoch2 === this.epoch) {
           this.pending = false;
+          this.workbench.update_read_controls();
           this.last_refreshed_at = Date.now();
           this.refresh_button.disabled = false;
           this.more_button.disabled = false;
@@ -230562,6 +230929,41 @@ https://creativecommons.org/licenses/by/4.0/
         activity.finish();
         if (this.read_progress === activity) this.read_progress = void 0;
       }
+    }
+    cancel_refresh() {
+      if (this.pending && !this.writing) this.runner.cancel();
+    }
+    installing_git = false;
+    async install_git() {
+      if (this.pending || this.writing || this.disposed) return;
+      this.pending = true;
+      this.installing_git = true;
+      this.workbench.update_read_controls();
+      const activity = this.progress.begin("install_git", "\u6B63\u5728\u68C0\u67E5Git\u5B89\u88C5\u73AF\u5883\u2026");
+      try {
+        const executable = await this.host.install_git((message) => {
+          if (!this.disposed) {
+            this.report(message);
+            activity.phase(message);
+          }
+        });
+        if (this.disposed) return;
+        this.settings.git_path = executable;
+        this.persist_settings();
+        this.runner.dispose();
+        this.writer.dispose();
+        this.runner = this.host.runner(this.settings);
+        this.writer = this.host.runner(this.settings, true);
+      } catch (error) {
+        if (!this.disposed) this.report(error);
+        return;
+      } finally {
+        activity.finish();
+        this.installing_git = false;
+        this.pending = false;
+        this.workbench.update_read_controls();
+      }
+      if (!this.disposed) await this.refresh();
     }
     acquire_operation(root) {
       return acquire_git_repository_operation(this.host, root, (value) => {
@@ -230747,8 +231149,8 @@ https://creativecommons.org/licenses/by/4.0/
           const badge = workspace_element("span", "git-graph-refs git-ref-" + kind);
           badge.dataset.ref = ref.name;
           badge.title = ref.name;
-          const active = kind === "branch" && name === state.branch;
-          if (active) badge.dataset.active = "true";
+          const active2 = kind === "branch" && name === state.branch;
+          if (active2) badge.dataset.active = "true";
           badge.append(git_icon(kind === "tag" ? "tag" : "git-branch"), workspace_element("span", "git-graph-ref-name", name));
           for (const remote of combined) {
             const remote_segment = workspace_element("span", "git-graph-ref-remote", remote);
@@ -230772,7 +231174,7 @@ https://creativecommons.org/licenses/by/4.0/
             event.stopPropagation();
             this.target_menu(event, kind, name, commit.hash);
           };
-          if (active) {
+          if (active2) {
             const stash = refs.querySelector(".git-ref-stash");
             if (stash) stash.after(badge);
             else refs.prepend(badge);
@@ -232121,8 +232523,8 @@ https://creativecommons.org/licenses/by/4.0/
         source_sidebar.mount(panel || controller_for(host.context_path()));
       };
       const context_settings = () => {
-        const active = core.app.workspace.activeLeaf;
-        if (active && panels.has(active)) return panels.get(active).settings;
+        const active2 = core.app.workspace.activeLeaf;
+        if (active2 && panels.has(active2)) return panels.get(active2).settings;
         const cwd2 = host.context_path();
         let root = cwd2;
         try {
@@ -232191,8 +232593,8 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.add(core.app.viewManager.registerView(GIT_GRAPH_TYPE, (leaf) => new git_graph_view(leaf)));
       const open_graph = (cwd2) => {
         if (lifetime.disposed) return;
-        const active = core.app.workspace.activeLeaf;
-        if (!cwd2 && active && panels.has(active)) return panels.get(active);
+        const active2 = core.app.workspace.activeLeaf;
+        if (!cwd2 && active2 && panels.has(active2)) return panels.get(active2);
         const settings2 = context_settings();
         cwd2 ||= host.context_path(settings2.open_active_repo);
         const uri = "typ://".concat(GIT_GRAPH_TYPE, "/").concat(encodeURIComponent(cwd2), "/Git Graph");
@@ -232204,7 +232606,7 @@ https://creativecommons.org/licenses/by/4.0/
           core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);
           return panels.get(existing);
         }
-        const parent = active?.parent;
+        const parent = active2?.parent;
         if (!parent) return;
         const leaf = core.app.workspace.createLeaf({ type: GIT_GRAPH_TYPE, state: { path: uri, git_cwd: cwd2 } });
         parent.appendChild(leaf);
@@ -233237,7 +233639,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_clangd_symbol_service(node = host_node) {
     const path = node("path"), url = node("url");
     let disposed = false, transport, environment, configuration = "", document_uri = "", document_text = "", document_language = "", document_version = 0;
-    let active, queue = Promise.resolve();
+    let active2, queue2 = Promise.resolve();
     const diagnostics = /* @__PURE__ */ new Map();
     const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
     const close = async () => {
@@ -233256,14 +233658,14 @@ https://creativecommons.org/licenses/by/4.0/
       if (options2.language !== "c" && options2.language !== "cpp") throw new Error("clangd \u4EC5\u7528\u4E8E C/C++ \u5927\u7EB2\u3002");
       if (options2.text.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
       if (options2.fallback_flags && (!Array.isArray(options2.fallback_flags) || options2.fallback_flags.some((flag) => typeof flag !== "string" || flag.includes("\0")))) throw new Error("\u5907\u7528\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u4E3A\u5B57\u7B26\u4E32\u5217\u8868\u3002");
-      active?.abort();
-      const controller = active = new AbortController();
+      active2?.abort();
+      const controller = active2 = new AbortController();
       const abort = () => controller.abort();
       signal.addEventListener("abort", abort, { once: true });
       const check = () => {
         if (disposed || controller.signal.aborted) throw abort_error();
       };
-      const operation = queue.catch(() => {
+      const operation = queue2.catch(() => {
       }).then(async () => {
         check();
         const root = options2.workspace_root && path.isAbsolute(options2.workspace_root) ? options2.workspace_root : path.dirname(options2.file_path);
@@ -233311,7 +233713,7 @@ https://creativecommons.org/licenses/by/4.0/
         const latest = diagnostics.get(uri), received = Boolean(latest && latest.version === document_version), valid = received ? latest.items : [];
         return { symbols: clangd_document_symbols(items, options2.text), incomplete: false, provider: "clangd", executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
       });
-      queue = operation;
+      queue2 = operation;
       try {
         return await operation;
       } finally {
@@ -233321,8 +233723,8 @@ https://creativecommons.org/licenses/by/4.0/
     return { parse: parse5, async dispose() {
       if (disposed) return;
       disposed = true;
-      active?.abort();
-      await queue.catch(() => {
+      active2?.abort();
+      await queue2.catch(() => {
       });
       await close();
     } };
@@ -233763,12 +234165,12 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const refresh = () => {
       if (disposed) return;
-      const active = /* @__PURE__ */ new Map();
+      const active2 = /* @__PURE__ */ new Map();
       core.app.workspace.eachLeaves((leaf) => {
         const group = leaf.parent?.containerEl;
-        if (group?.isConnected && (leaf.parent.activeLeaf === leaf || !active.has(group))) active.set(group, leaf);
+        if (group?.isConnected && (leaf.parent.activeLeaf === leaf || !active2.has(group))) active2.set(group, leaf);
       });
-      for (const [group, leaf] of active) {
+      for (const [group, leaf] of active2) {
         const strip = group.querySelector(":scope > .workspace-tab-strip");
         if (!strip) continue;
         const file = file_path(leaf);
@@ -233849,7 +234251,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         render(state);
       }
-      for (const [group, state] of groups) if (!active.has(group) || !group.isConnected) {
+      for (const [group, state] of groups) if (!active2.has(group) || !group.isConnected) {
         if (picker_owner === state) close_picker(false);
         clear_model(state);
         state.interaction.remove();
@@ -234017,12 +234419,12 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       frame3 = 0;
       if (disposed) return;
-      const active = /* @__PURE__ */ new Map();
+      const active2 = /* @__PURE__ */ new Map();
       workspace.eachLeaves((leaf) => {
         const group = leaf.parent;
-        if (group.activeLeaf === leaf && group.containerEl?.isConnected) active.set(group, leaf);
+        if (group.activeLeaf === leaf && group.containerEl?.isConnected) active2.set(group, leaf);
       });
-      for (const [group, leaf] of active) {
+      for (const [group, leaf] of active2) {
         const file_state2 = files.editor_state(leaf), strip = group.containerEl?.querySelector(":scope > .workspace-tab-strip");
         const ordinary = (file_state2.kind === "source" || file_state2.kind === "markdown") && (file_state2.file_path ? files.path_api.isAbsolute(file_state2.file_path) : leaf.state.path === "");
         if (!ordinary || !strip) {
@@ -234086,7 +234488,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         state.split.disabled = file_state2.busy;
       }
-      for (const [group, state] of groups) if (!active.has(group) || !group.containerEl?.isConnected) release(state);
+      for (const [group, state] of groups) if (!active2.has(group) || !group.containerEl?.isConnected) release(state);
     };
     const schedule = () => {
       if (!disposed && !frame3) frame3 = requestAnimationFrame(refresh);
@@ -234170,12 +234572,12 @@ https://creativecommons.org/licenses/by/4.0/
         refresh.observe_mutations(node, { attributes: true, attributeFilter: ["style", "class"] });
       }
       if (!toolbar) return;
-      const active = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
+      const active2 = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
       const owner2 = leaf?.containerEl;
       const bounds = owner2?.isConnected ? reading_viewport_bounds(owner2) : void 0;
       const root2 = document.querySelector(".typ-workspace-root")?.getBoundingClientRect();
       const bottom = bounds ? Math.min(bounds.bottom, root2?.bottom ?? bounds.bottom) : 0;
-      const suspended = String(!active || !bounds || bottom - bounds.top < toolbar_height + 16);
+      const suspended = String(!active2 || !bounds || bottom - bounds.top < toolbar_height + 16);
       if (toolbar.dataset.workspaceToolbarSuspended !== suspended) toolbar.dataset.workspaceToolbarSuspended = suspended;
       if (suspended === "true" || !bounds || !toolbar.getClientRects().length || getComputedStyle(toolbar).display === "none") return;
       set("--workspace-toolbar-width", Math.max(0, bounds.right - bounds.left - 16) + "px");
@@ -235764,10 +236166,10 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_preview_resize(root, read2, change, edges = ["north", "east", "north-east"]) {
     const style = acquire_workspace_style("typora-code-style:workspace_preview_resize", workspace_preview_resize_default, {});
     const handles = [];
-    let active;
+    let active2;
     const finish = () => {
-      const previous = active;
-      active = void 0;
+      const previous = active2;
+      active2 = void 0;
       if (previous) {
         previous.handle.classList.remove("is-dragging");
         if (previous.handle.hasPointerCapture(previous.id)) previous.handle.releasePointerCapture(previous.id);
@@ -235788,14 +236190,14 @@ https://creativecommons.org/licenses/by/4.0/
         event.stopPropagation();
         finish();
         handle.focus({ preventScroll: true });
-        active = { handle, id: event.pointerId, x: event.clientX, y: event.clientY, size: read2(), scale: root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1 };
+        active2 = { handle, id: event.pointerId, x: event.clientX, y: event.clientY, size: read2(), scale: root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1 };
         handle.setPointerCapture(event.pointerId);
         handle.classList.add("is-dragging");
       };
       handle.onpointermove = (event) => {
-        if (active?.handle !== handle || active.id !== event.pointerId) return;
+        if (active2?.handle !== handle || active2.id !== event.pointerId) return;
         event.preventDefault();
-        resize(active.size, (event.clientX - active.x) / active.scale, (event.clientY - active.y) / active.scale);
+        resize(active2.size, (event.clientX - active2.x) / active2.scale, (event.clientY - active2.y) / active2.scale);
       };
       handle.onpointerup = handle.onpointercancel = handle.onlostpointercapture = finish;
       handle.onkeydown = (event) => {
@@ -236112,14 +236514,14 @@ https://creativecommons.org/licenses/by/4.0/
     const match2 = (text3, options2, max_results, signal) => {
       if (signal?.aborted) return Promise.reject(new search_match_failure("cancelled", "\u641C\u7D22\u5DF2\u53D6\u6D88\u3002"));
       start();
-      const active = worker;
+      const active2 = worker;
       const request_id = ++request_serial;
       return new Promise((resolve3, reject) => {
         const cleanup = () => {
           clearTimeout(timer);
           signal?.removeEventListener("abort", abort);
-          active.removeEventListener("message", message);
-          active.removeEventListener("error", error);
+          active2.removeEventListener("message", message);
+          active2.removeEventListener("error", error);
         };
         const fail = (reason, text4) => {
           cleanup();
@@ -236138,11 +236540,11 @@ https://creativecommons.org/licenses/by/4.0/
           resolve3({ matches: event.data.matches, limit_reached: event.data.limit_reached });
         };
         const timer = setTimeout(() => fail("timeout", "\u6587\u672C\u5339\u914D\u8D85\u8FC7 2 \u79D2\uFF0C\u5DF2\u7EC8\u6B62\u8BE5\u6587\u4EF6\u7684\u5339\u914D\u3002\u8BF7\u7B80\u5316\u8868\u8FBE\u5F0F\u6216\u7F29\u5C0F\u8303\u56F4\u3002"), 2e3);
-        active.addEventListener("message", message);
-        active.addEventListener("error", error);
+        active2.addEventListener("message", message);
+        active2.addEventListener("error", error);
         signal?.addEventListener("abort", abort, { once: true });
         try {
-          active.postMessage({ request_id, text: text3, options: { query: options2.query, regex: options2.regex, case_sensitive: options2.case_sensitive, whole_word: options2.whole_word }, max_results });
+          active2.postMessage({ request_id, text: text3, options: { query: options2.query, regex: options2.regex, case_sensitive: options2.case_sensitive, whole_word: options2.whole_word }, max_results });
         } catch (caught) {
           fail("failed", "\u65E0\u6CD5\u542F\u52A8\u9694\u79BB\u5339\u914D\uFF1A" + String(caught));
         }
@@ -238315,10 +238717,10 @@ https://creativecommons.org/licenses/by/4.0/
           item.tabIndex = 0;
         }
         if (item.title && item.getAttribute("aria-label") !== item.title) item.setAttribute("aria-label", item.title);
-        const active = state.sidebar_visible && state.active_id === item.dataset.id;
-        if (item.dataset.activityActive !== String(active)) item.dataset.activityActive = String(active);
-        if (item.getAttribute("aria-pressed") !== String(active)) item.setAttribute("aria-pressed", String(active));
-        if (item.classList.contains("active") !== active) item.classList.toggle("active", active);
+        const active2 = state.sidebar_visible && state.active_id === item.dataset.id;
+        if (item.dataset.activityActive !== String(active2)) item.dataset.activityActive = String(active2);
+        if (item.getAttribute("aria-pressed") !== String(active2)) item.setAttribute("aria-pressed", String(active2));
+        if (item.classList.contains("active") !== active2) item.classList.toggle("active", active2);
       }
       if (!drag) reorder([...stored_order, ...default_order], false);
       if (ribbon.dataset.workspaceActivity !== "ready") ribbon.dataset.workspaceActivity = "ready";
@@ -238583,9 +238985,9 @@ https://creativecommons.org/licenses/by/4.0/
     });
     let disposed = false, model, editor2, leaf, version = -1;
     const collapsed2 = /* @__PURE__ */ new Set();
-    const active = () => get_workspace_app()?.workspace.activeLeaf;
+    const active2 = () => get_workspace_app()?.workspace.activeLeaf;
     const source = () => {
-      const candidate = active();
+      const candidate = active2();
       return candidate && is_source_file_uri(candidate.state.path) ? candidate : void 0;
     };
     const message = (text3) => {
@@ -238594,7 +238996,7 @@ https://creativecommons.org/licenses/by/4.0/
       label.textContent = text3;
       tree.append(label);
     };
-    const current = (target, target_model) => !disposed && active() === target && model === target_model && !target_model.isDisposed();
+    const current = (target, target_model) => !disposed && active2() === target && model === target_model && !target_model.isDisposed();
     const render = (symbols, target, target_model) => {
       tree.replaceChildren();
       const append4 = (items, container, depth, parent_key) => items.forEach((symbol, index) => {
@@ -238840,9 +239242,9 @@ https://creativecommons.org/licenses/by/4.0/
         native_highlight?.call(native_outline, [heading3], 0, true, false);
       } catch {
       }
-      const active = outline.querySelector(".outline-label.outline-active");
-      if (!active || cid && active.getAttribute("data-ref") !== cid) fallback_sync(outline, heading3);
-      else reveal(active);
+      const active2 = outline.querySelector(".outline-label.outline-active");
+      if (!active2 || cid && active2.getAttribute("data-ref") !== cid) fallback_sync(outline, heading3);
+      else reveal(active2);
     };
     const cancel_sync = () => {
       if (sync_frame) cancelAnimationFrame(sync_frame);
@@ -238881,9 +239283,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (explicit_target || blink === true) {
         cancel_sync();
         native_highlight?.call(this, headings, index, expand, blink);
-        const active = sidebar.querySelector("#outline-content .outline-label.outline-active");
-        selected_label = active;
-        selected_heading = Array.from(document.querySelectorAll("#write > :is(h1,h2,h3,h4,h5,h6)")).find((heading3) => heading3.getAttribute("cid") === active?.getAttribute("data-ref"));
+        const active2 = sidebar.querySelector("#outline-content .outline-label.outline-active");
+        selected_label = active2;
+        selected_heading = Array.from(document.querySelectorAll("#write > :is(h1,h2,h3,h4,h5,h6)")).find((heading3) => heading3.getAttribute("cid") === active2?.getAttribute("data-ref"));
         explicit_position = document.querySelector("content")?.scrollTop;
         return;
       }
@@ -239629,10 +240031,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (!ports.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
       pending = true;
       const epoch2 = ports.context_epoch();
-      const active = () => !disposed && valid() && !ports.context_switching() && ports.context_epoch() === epoch2;
+      const active2 = () => !disposed && valid() && !ports.context_switching() && ports.context_epoch() === epoch2;
       try {
         const exists = await available(item);
-        if (!active()) return false;
+        if (!active2()) return false;
         if (!exists) {
           await forget_missing(item);
           return false;
@@ -239641,8 +240043,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (item.kind === "folder") await ports.open_folder(item.path);
           else await ports.open_file(item.path);
         } catch (error) {
-          if (active() && missing2(error) && !await available(item)) {
-            if (active()) await forget_missing(item);
+          if (active2() && missing2(error) && !await available(item)) {
+            if (active2()) await forget_missing(item);
             return false;
           }
           throw error;
@@ -239720,10 +240122,10 @@ https://creativecommons.org/licenses/by/4.0/
       selected = shown.length ? (index + shown.length) % shown.length : 0;
       input.removeAttribute("aria-activedescendant");
       for (const row of results.querySelectorAll(".workspace-recent-row")) {
-        const active = Number(row.dataset.index) === selected;
-        row.classList.toggle("is-selected", active);
-        row.setAttribute("aria-selected", String(active));
-        if (active) {
+        const active2 = Number(row.dataset.index) === selected;
+        row.classList.toggle("is-selected", active2);
+        row.setAttribute("aria-selected", String(active2));
+        if (active2) {
           input.setAttribute("aria-activedescendant", row.id);
           row.scrollIntoView({ block: "nearest" });
         }
@@ -240582,9 +240984,9 @@ https://creativecommons.org/licenses/by/4.0/
           throw error;
         }
       },
-      write(root, files, active) {
+      write(root, files, active2) {
         if (!root) return;
-        const value = validate({ schema: 1, root: root_key2(root), files, active }, root), text3 = JSON.stringify(value);
+        const value = validate({ schema: 1, root: root_key2(root), files, active: active2 }, root), text3 = JSON.stringify(value);
         if (new TextEncoder().encode(text3).length > 2 * 1024 * 1024) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u8FC7\u5927\u3002");
         fs2.mkdirSync(directory, { recursive: true });
         const file = location(root), temporary = file + "." + crypto2.randomUUID() + ".tmp";
@@ -240619,7 +241021,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const snapshot = () => {
       const entries3 = [], identities = /* @__PURE__ */ new Map();
-      let active = -1;
+      let active2 = -1;
       const leaves = [];
       workspace.eachLeaves((leaf) => {
         leaves.push(leaf);
@@ -240640,14 +241042,14 @@ https://creativecommons.org/licenses/by/4.0/
           identities.set(identity5, index);
           entries3.push({ path: state.file_path, source: state.kind === "source", pinned: !!leaf.state.workspace_pinned });
         }
-        if (leaf === workspace.activeLeaf) active = index;
+        if (leaf === workspace.activeLeaf) active2 = index;
       });
-      return { entries: entries3, active };
+      return { entries: entries3, active: active2 };
     };
     const save = () => {
       if (!owns_session) return;
-      const { entries: entries3, active } = snapshot();
-      store.write(files.context_root(), entries3, active);
+      const { entries: entries3, active: active2 } = snapshot();
+      store.write(files.context_root(), entries3, active2);
     };
     const flush = () => {
       clearTimeout(timer);
@@ -241244,7 +241646,7 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(auto.dispose);
     lifetime.add(observe_workspace_file_changed((path) => {
       if (lifetime.disposed) return;
-      const active = workspace.activeLeaf, leaf = active && file_key(files.editor_state(active).file_path) === file_key(path) ? active : leaves().find((item) => file_key(files.editor_state(item).file_path) === file_key(path));
+      const active2 = workspace.activeLeaf, leaf = active2 && file_key(files.editor_state(active2).file_path) === file_key(path) ? active2 : leaves().find((item) => file_key(files.editor_state(item).file_path) === file_key(path));
       if (leaf) {
         tracked.add(leaf);
         auto.changed(leaf);
@@ -241494,7 +241896,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       dialogs.add(dialog2);
       dialog_owners.set(dialog2, payload);
-      const active = () => !disposed && dialog2.root.isConnected && payload_present(payload);
+      const active2 = () => !disposed && dialog2.root.isConnected && payload_present(payload);
       const message = workspace_element("p", "", "\u5C06 ".concat(files.path_api.basename(entry.file_path), " \u6062\u590D\u5230 ").concat(new Date(entry.timestamp).toLocaleString(), "\u3002")), error = workspace_element("p");
       error.setAttribute("role", "status");
       dialog2.content.append(message, workspace_element("p", "", dirty.length ? "\u5F53\u524D\u6709\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002\u5C06\u5148\u4FDD\u5B58\u5E76\u4FDD\u7559\u5F53\u524D\u7248\u672C\uFF0C\u518D\u6062\u590D\u6240\u9009\u5386\u53F2\u3002" : "\u6062\u590D\u524D\u4F1A\u4FDD\u7559\u5F53\u524D\u78C1\u76D8\u7248\u672C\u3002"), error);
@@ -241504,26 +241906,26 @@ https://creativecommons.org/licenses/by/4.0/
         busy = true;
         accept.disabled = true;
         void (async () => {
-          if (!active()) return;
+          if (!active2()) return;
           let expected = payload.expected_hash;
           if (dirty.length) {
             for (const leaf2 of dirty) {
               const state2 = files.editor_state(leaf2);
-              if (!active() || file_key(state2.file_path) !== file_key(entry.file_path) || state2.busy) throw new Error("\u7F16\u8F91\u5668\u6216\u6062\u590D\u76EE\u6807\u5DF2\u53D8\u5316\uFF0C\u672A\u6267\u884C\u6062\u590D\u3002");
+              if (!active2() || file_key(state2.file_path) !== file_key(entry.file_path) || state2.busy) throw new Error("\u7F16\u8F91\u5668\u6216\u6062\u590D\u76EE\u6807\u5DF2\u53D8\u5316\uFF0C\u672A\u6267\u884C\u6062\u590D\u3002");
               if (!await files.save_leaf(leaf2)) throw new Error("\u5F53\u524D\u4FEE\u6539\u672A\u80FD\u4FDD\u5B58\uFF0C\u672A\u6267\u884C\u6062\u590D\u3002");
             }
-            if (!active()) return;
+            if (!active2()) return;
             const bytes = await saves.history.bounded_read(entry.file_path, 16 * 1024 * 1024);
             expected = saves.history.hash(bytes);
           }
-          await restore_history_entry(files, saves.history, entry, expected, () => active() && target_idle(entry.file_path));
+          await restore_history_entry(files, saves.history, entry, expected, () => active2() && target_idle(entry.file_path));
           await saves.history.flush();
-          if (!active()) return;
+          if (!active2()) return;
           if (!target_idle(entry.file_path)) throw new Error("\u78C1\u76D8\u5DF2\u6062\u590D\uFF0C\u4F46\u7F16\u8F91\u5668\u53C8\u6709\u4FEE\u6539\u6216\u6B63\u5728\u4FDD\u5B58\uFF0C\u5DF2\u4FDD\u7559\u5F53\u524D\u7F16\u8F91\u5185\u5BB9\u3002");
           files.refresh_files([entry.file_path]);
           saves.notify();
           await files.open_file(entry.file_path);
-          if (!active()) return;
+          if (!active2()) return;
           const leaf = workspace.activeLeaf, state = leaf && files.editor_state(leaf);
           if (state?.kind === "markdown" && file_key(state.file_path) === file_key(entry.file_path) && !state.dirty && !state.busy) files.reload_active();
           dialog2.close();
@@ -242079,7 +242481,7 @@ https://creativecommons.org/licenses/by/4.0/
     const directory = directory_api.create_connection_store(root), credentials = credential_api.create_credential_store(root);
     const vault = credential_api.create_password_vault(credentials, (operation) => directory_api.with_store_lock(root, operation));
     const sessions = /* @__PURE__ */ new Map();
-    let disposed = false, queue = Promise.resolve(), active_dialog;
+    let disposed = false, queue2 = Promise.resolve(), active_dialog;
     const identity5 = (target, port = 0) => api2.resolve_connection_identity(target, { ...read_remote_ssh_settings(), port });
     const save = async (target, port, password) => {
       const owner2 = await identity5(target, port);
@@ -242088,7 +242490,7 @@ https://creativecommons.org/licenses/by/4.0/
       sessions.set(owner2.key, password);
     };
     const prompt = (message, remember_allowed, current) => {
-      const result = queue.then(() => new Promise((resolve3) => {
+      const result = queue2.then(() => new Promise((resolve3) => {
         if (disposed || !current()) {
           resolve3({ remember: false });
           return;
@@ -242134,7 +242536,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         };
       }));
-      queue = result.then(() => void 0, () => void 0);
+      queue2 = result.then(() => void 0, () => void 0);
       return result;
     };
     const attempt = async (target, port, current, persist_immediately = false) => {
@@ -243732,8 +244134,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       } finally {
         running = false;
-        const active = new Set([...document.querySelectorAll("#write img[src]")].map((image) => image.src));
-        for (const [path, url] of urls) if (!active.has(url)) {
+        const active2 = new Set([...document.querySelectorAll("#write img[src]")].map((image) => image.src));
+        for (const [path, url] of urls) if (!active2.has(url)) {
           URL.revokeObjectURL(url);
           urls.delete(path);
         }
@@ -243893,6 +244295,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092310,
+        version: "2026.09.23.10",
+        date: "2026-09-23",
+        notes: [
+          "\u5927\u91CF\u6587\u4EF6\u7684Git\u72B6\u6001\u548C\u5DEE\u5F02\u6E05\u5355\u6539\u4E3A\u6D41\u5F0F\u8BFB\u53D6\u3001\u5206\u6279\u6574\u7406\u53CA\u6709\u754C\u53EF\u89C1\u884C\uFF0C\u6682\u5B58/\u672A\u6682\u5B58\u5171\u7528\u540C\u4E00\u72B6\u6001\u5FEB\u7167\uFF0C\u907F\u514D\u91CD\u590D\u626B\u63CF\u4E0E\u6574\u4EFDJSON\u62F7\u8D1D\u3002",
+          "\u6162\u8BFB\u53D6\u663E\u793A\u7B49\u5F85\u65F6\u95F4\u5E76\u53EF\u53D6\u6D88\uFF0C\u533A\u5206\u8D85\u65F6\u3001\u53D6\u6D88\u53CAGit\u5B9E\u9645\u9519\u8BEF\uFF1B\u5927\u91CF\u6587\u4EF6\u6682\u5B58/\u53D6\u6D88\u6682\u5B58\u901A\u8FC7\u6807\u51C6\u8F93\u5165\u4F20\u9012\u8DEF\u5F84\uFF0C\u5DF2\u6709Git\u76F4\u63A5\u590D\u7528\uFF0C\u7F3A\u5931\u65F6\u63D0\u4F9BWindows\u5B89\u88C5\u5165\u53E3\u3002"
+        ]
+      },
       {
         sequence: 2026092309,
         version: "2026.09.23.9",
@@ -244614,11 +245025,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
         if (manual) {
           try {
-            const active = JSON.parse(fs2.readFileSync(path.join(state_root, "active_job.json"), "utf8"));
-            const state = service.status_of(state_root, active.job);
+            const active2 = JSON.parse(fs2.readFileSync(path.join(state_root, "active_job.json"), "utf8"));
+            const state = service.status_of(state_root, active2.job);
             if (!["succeeded", "failed", "cancelled"].includes(state.phase)) {
               close_checking(request);
-              show_progress(active.job);
+              show_progress(active2.job);
               return;
             }
           } catch {
@@ -244699,11 +245110,11 @@ https://creativecommons.org/licenses/by/4.0/
   }) {
     const tabs = /* @__PURE__ */ new Map();
     let surface;
-    let active;
+    let active2;
     let mount;
     const detach = () => {
-      const previous = active;
-      active = void 0;
+      const previous = active2;
+      active2 = void 0;
       if (previous) try {
         previous.tab.hide();
       } finally {
@@ -244711,11 +245122,11 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const activate = (id, tab) => {
-      if (!surface || active?.tab === tab) return;
+      if (!surface || active2?.tab === tab) return;
       detach();
       surface.main.replaceChildren(tab.containerEl);
       surface.main.classList.remove("workspace-community-setting-list");
-      active = { id, tab };
+      active2 = { id, tab };
       for (const item of surface.sidebar.querySelectorAll("[data-tab-index]")) item.classList.toggle("active", item.dataset.pluginId === id && Number(item.dataset.tabIndex) === [...tabs.get(id) || []].indexOf(tab));
       try {
         tab.show();
@@ -244735,11 +245146,11 @@ https://creativecommons.org/licenses/by/4.0/
           item.className = "typ-nav__item";
           item.dataset.pluginId = id;
           item.dataset.tabIndex = String(index++);
-          item.classList.toggle("active", active?.tab === tab);
+          item.classList.toggle("active", active2?.tab === tab);
           surface.sidebar.append(item);
         }
       }
-      if (active) return;
+      if (active2) return;
       surface.main.replaceChildren();
       surface.main.classList.add("workspace-community-setting-list");
       for (const info of records) if (!tabs.get(info.id)?.size) surface.main.append(workspace_element("p", "", "".concat(info.name, "\uFF1A").concat(info.running ? "\u6B64\u63D2\u4EF6\u672A\u63D0\u4F9B\u8BBE\u7F6E\u9875\u3002" : info.error || "\u5C1A\u672A\u542F\u7528\uFF0C\u8BF7\u5728\u5DF2\u5B89\u88C5\u4E2D\u542F\u7528\u540E\u914D\u7F6E\u3002")));
@@ -244835,7 +245246,7 @@ https://creativecommons.org/licenses/by/4.0/
         return () => {
           if (removed) return;
           removed = true;
-          if (active?.tab === tab) {
+          if (active2?.tab === tab) {
             if (mount) detach();
             else surface?.close(false);
           }

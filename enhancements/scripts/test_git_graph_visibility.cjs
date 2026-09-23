@@ -21,7 +21,7 @@ app.whenReady().then(async()=>{
  assert(await run('JSON.stringify(panel.state)===unchanged_snapshot'),'fixture repository is unchanged');
  assert(await run('unchanged_graph===panel.list.querySelector(".git-graph-row")&&unchanged_history===panel.workbench.history.list.firstElementChild&&unchanged_groups===panel.workbench.groups.firstElementChild'),'unchanged result retains graph, SCM history and resource DOM');
  assert(await run('focused_file.isConnected&&document.activeElement===focused_file'),'unchanged refresh keeps actual file keyboard focus');
- assert.equal(await run('commands.slice(command_start).filter(args=>args.includes("--porcelain=v2")).length'),1,'one shared branch snapshot per read');
+ assert.equal(await run('commands.slice(command_start).filter(args=>args[0]==="status").length'),1,'one shared branch snapshot per read');
 
  // 相同结果不能取消仍在读取的历史详情，也不能复用已被替换的runner。
  await run('block="show";window.loading_comparison=panel.show_comparison(panel.state.commits[0].parents[0],panel.state.commits[0].hash);void 0');await wait('!!release');await run('loading_comparison');

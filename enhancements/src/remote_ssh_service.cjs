@@ -28,8 +28,8 @@ function create_remote_ssh(options){
   const request=(operation,values={})=>new Promise((resolve,reject)=>{
     if(!process_handle||!['connecting','connected'].includes(state))return reject(Error('SSH尚未连接，请先连接主机。'));
     if(pending.size>=32)return reject(Error('远程请求过多，请等待当前操作完成。'));
-    const timeout=operation==='git'&&values.writable?300:options.connection_options?.().request_timeout??30;
-    const id=++serial,timer=setTimeout(()=>{close('远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。');},Math.max(16,Math.min(300,timeout))*1000);
+    const timeout=operation==='git'?(values.writable?1810:310):options.connection_options?.().request_timeout??30;
+    const id=++serial,timer=setTimeout(()=>{close('远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。');},Math.max(16,Math.min(1810,timeout))*1000);
     pending.set(id,{resolve,reject,timer});process_handle.stdin.write(JSON.stringify({...values,id,operation})+'\n',error=>{if(error)close('SSH写入失败；当前草稿已保留。');});
   });
   const connect=async(target)=>{

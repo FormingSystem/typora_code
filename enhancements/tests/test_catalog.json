@@ -6749,6 +6749,76 @@
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-git-scale-001",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R071.2"
+      ],
+      "design": "docs/workspace_responsiveness.md",
+      "implementation": [
+        "enhancements/src/git_process_transport.ts",
+        "enhancements/src/git_status_snapshot.ts",
+        "enhancements/src/git_runtime_environment.ts"
+      ],
+      "related_modules": [
+        "git",
+        "explorer",
+        "terminal",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_git_scale.mjs",
+      "environment": "Node + Windows Git实际临时仓库，Git缺失安装为端口替身",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行仓库生命周期和独立输入/大列表断言，记录实际耗时与节点数量"
+      ],
+      "expected": [
+        "全部断言通过；空目录与错误分离，迟到状态不污染当前仓库"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ]
+    },
+    {
+      "id": "TC-git-scale-native-001",
+      "domain": "git",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R071.2"
+      ],
+      "design": "docs/workspace_responsiveness.md",
+      "implementation": [
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/workspace_virtual_list.ts",
+        "enhancements/src/git_repository_discovery.ts"
+      ],
+      "related_modules": [
+        "git",
+        "explorer",
+        "terminal",
+        "reading"
+      ],
+      "script": "enhancements/fixtures/git_scale_native.js",
+      "environment": "Windows原始Typora1.14.10 / 真实十万未跟踪文件 / 20轮刷新",
+      "preconditions": "专属一万文件临时仓库，运行私有桌面，不修改用户文档",
+      "steps": [
+        "20次真实Git刷新期间切换阅读/终端，三档缩放访问末行并采样事件循环"
+      ],
+      "expected": [
+        "全部断言通过；空目录与错误分离，迟到状态不污染当前仓库"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ],
+      "runner": "enhancements/scripts/prepare_stability_native.py"
     }
   ]
 }

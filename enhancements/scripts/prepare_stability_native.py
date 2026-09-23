@@ -44,10 +44,10 @@ if fixture_path.name == 'community_plugins_native.js':
 git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
 for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:
     subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-if fixture_path.name == 'git_responsiveness_native.js':
+if fixture_path.name in ('git_responsiveness_native.js', 'git_scale_native.js'):
     large = workspace / 'large'
     large.mkdir()
-    for index in range(10000):
+    for index in range(100000 if fixture_path.name == 'git_scale_native.js' else 10000):
         (large / f'file-{index:05d}.md').write_text('test\n', encoding='utf-8')
 user_data = case / 'user_data'
 user_data.mkdir()

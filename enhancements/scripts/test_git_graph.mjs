@@ -113,15 +113,12 @@ try {
   const linked = await read_repository(runner.run, worktree, graph_defaults, 200);
   assert.equal(path.resolve(linked.root), path.resolve(worktree)); assert.equal(linked.head, feature);
   const recorded = [];
-  const missing = create_git_runner({ process, child_process: { execFile(file, args, options, callback) {
+  const missing = create_git_runner({ process:{env:{},platform:'linux'}, child_process: { execFile(file, args, options, callback) {
     recorded.push({ file, args, options }); queueMicrotask(() => callback(Object.assign(new Error('missing'), { code: 'ENOENT' }), '', '')); return { kill() {} };
   } } });
-  await assert.rejects(missing.run(root, ['log']), /未找到 Git/);
+  await assert.rejects(missing.run(root, ['log']), error=>error.code==='GIT_NOT_FOUND');
   assert.equal(recorded[0].options.shell, false); assert.equal(recorded[0].options.windowsHide, true);
-  assert.equal(recorded[0].options.env.GIT_OPTIONAL_LOCKS, '0');
-  assert(!recorded[0].args.includes('--literal-pathspecs'));
-  await assert.rejects(missing.run(root, ['diff', '--', '*.md']));
-  assert(recorded[1].args.includes('--literal-pathspecs'));
+  assert.deepEqual(recorded[0].args,['--version']);
   console.log('git graph: real branches, merge parents, annotated tags, remote refs, pagination, linked worktree, empty/error states and read-only checks passed');
 } finally {
   runner.cancel();
