@@ -1,6 +1,7 @@
 import type {workspace_file_host} from "./workspace_files";
 import {active_remote_files,remote_files_for,select_remote_files} from './remote_workspace_files';
 import {choose_remote_resource} from './remote_workspace_picker';
+import {choose_local_directory} from './workspace_native_picker';
 import type {bind_workspace_sessions} from "./workspace_sessions";
 import {assert_workspace_context_ready,begin_workspace_context_switch,finish_workspace_context_switch,cancel_workspace_context_switch} from "./workspace_context";
 
@@ -23,7 +24,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
   let disposed=false, pending:Promise<void>|undefined,revision=0,changing=false;
   const library=runtime.File?.editor?.library,native_root_changed=library?.onRootChanged;
   const same_root=(left:string,right:string)=>files.path_api.sep==="\\"?left.toLowerCase()===right.toLowerCase():left===right;
-  const switch_folder=async(target:string)=>{
+  const switch_folder=async(target:string,prepared_close?:()=>void)=>{
     if(changing)throw new Error("工作区正在切换，请完成当前操作后重试。");
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
     changing=true;
@@ -32,7 +33,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
       assert_workspace_context_ready();
       const previous=files.context_root();
       if(same_root(previous,target)){changed();window.dispatchEvent(new Event("linux-note-workspace-context-refreshed"));return;}
-      const close=await files.prepare_workspace_switch();if(disposed||!close)return;
+      const close=prepared_close||await files.prepare_workspace_switch();if(disposed||!close)return;
       if(target&&!(await files.fs.promises.stat(target)).isDirectory())throw new Error("目标目录已不存在。");
       if(disposed)return;
       const remote_target=remote_files_for(target);if(remote_target)await remote_target.mount(remote_target.remote_path(target));
@@ -52,14 +53,14 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
       if(committed&&remote_target)files.core.app.commands.run('linux_note:file_explorer');
     }finally{changing=false;}
   };
-  const set_folder=async(selected:string)=>{
+  const set_folder=async(selected:string,prepared_close?:()=>void)=>{
     if(disposed)return;const current=++revision;
     if(!files.path_api.isAbsolute(selected))throw new Error("文件夹路径无效。");
     const target=files.path_api.resolve(selected),stat=await files.fs.promises.stat(target);
     if(disposed||current!==revision)return;
     if(!stat.isDirectory())throw new Error("所选项目不是文件夹。");
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
-    await switch_folder(target);
+    await switch_folder(target,prepared_close);
     if(remote_files_for(target))return;
     if(disposed||!same_root(files.context_root(),target))return;
     if(!runtime.JSBridge?.invoke)throw new Error("文件夹已打开，但宿主最近目录接口不可用。");
@@ -74,15 +75,16 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     // 已核对的 Typora 新窗口接口，仅使用安全的文内片段，不传外部协议或移交数据。
     await open_workspace_window(target);
   };
-  const choose=(directory:boolean):Promise<void>=>{
+  const choose=(directory:boolean,local=false):Promise<void>=>{
     if(disposed)return Promise.resolve();
     if(pending)return pending;
     const current=revision;
     pending=(async()=>{
-      if(active_remote_files()){
-        const selected=await choose_remote_resource(directory);if(!selected||disposed||current!==revision)return;
+      if(active_remote_files()&&!local){
+        const selected=await choose_remote_resource(directory,undefined,{choose_local_folder:()=>choose_local_directory()});if(!selected||disposed||current!==revision)return;
         if(directory)await set_folder(selected);else await files.open_file(selected);return;
       }
+      if(directory&&local){const selected=await choose_local_directory(active_remote_files()?'':files.context_root());if(selected&&!disposed&&current===revision)await set_folder(selected);return;}
       if(!runtime.JSBridge?.invoke)throw new Error("系统文件选择窗口不可用。");
       const root=files.context_root();
       const result=await runtime.JSBridge.invoke("dialog.showOpenDialog",{
@@ -112,7 +114,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     return (open_recent_folder?open_recent_folder(path):set_folder(path)).catch(error=>{if(!disposed)new files.core.Notice(String(error instanceof Error?error.message:error),5000);});
   };
   if(library&&native_root_changed)library.onRootChanged=routed_root_changed;
-  return {open_file:()=>choose(false),open_folder:()=>choose(true),set_folder,open_folder_new_window,
+  return {open_file:()=>choose(false),open_folder:()=>choose(true),open_local_folder:()=>choose(true,true),set_folder,open_folder_new_window,
     close_folder(){if(disposed)return;revision++;return switch_folder("");},
     dispose(){disposed=true;revision++;if(library?.onRootChanged===routed_root_changed)library.onRootChanged=native_root_changed;}};
 }

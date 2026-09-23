@@ -39,7 +39,7 @@ export class git_scm_repositories {
   private create_row(root:string):repository_row{
       const panel=this.owner.panel;
       const row=el("div","git-scm-repository-row");row.dataset.root=root;row.dataset.workspaceInteraction="row";row.dataset.active=String(root===panel.root);
-      const select=button("",()=>{if(!panel.disposed&&!panel.writing)void panel.switch_repo(root);},"git-scm-repository-name");select.title=root;select.append(git_icon("repo"),el("span","",panel.host.path_api.basename(root)));select.setAttribute("aria-pressed",String(root===panel.root));select.disabled=panel.writing;
+      const select=button("",()=>{if(!panel.disposed&&!panel.writing)void panel.switch_repo(root);},"git-scm-repository-name");select.title=panel.resources.label(root);select.append(git_icon("repo"),el("span","",panel.host.path_api.basename(root)));select.setAttribute("aria-pressed",String(root===panel.root));select.disabled=panel.writing;
       const branch=button("",()=>{},"git-scm-repository-branch"),sync=git_icon_button("sync",text("action.title.sync"),()=>{},"git-scm-repository-sync"),more=git_icon_button("more",text("scm.changes_and_operations"),()=>{},"git-scm-repository-more");
       const valid=()=>!this.disposed&&this.rows.get(root)?.row===row&&!panel.disposed&&root===panel.root&&panel.state?.root===root&&!panel.pending&&!panel.writing&&panel.container.dataset.state!=="error";
       branch.onclick=()=>{if(valid())panel.branch_picker.open();};branch.oncontextmenu=event=>workspace_menu(event,[{title:text("scm.configure_keybinding"),disabled:true,action(){}}]);

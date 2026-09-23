@@ -1,9 +1,15 @@
 /** 远程文件身份与宿主物化适配。缓存绝不是业务文件系统的后备。 */
-export type remote_file_connection={target:string;request(operation:string,values?:Record<string,unknown>):Promise<any>;connected():boolean;poll_interval?():number};
+export type remote_file_connection={target:string;port?:number;username?:string;name?:string;request(operation:string,values?:Record<string,unknown>):Promise<any>;connected():boolean;poll_interval?():number};
 const providers=new Set<remote_file_provider>();
 let active_provider:remote_file_provider|undefined;
 let protected_cache:{root:string;path_api:any}|undefined;
 export function protect_remote_cache(root:string,path_api:any){protected_cache={root,path_api};}
+export function is_remote_cache_path(path:string){
+  if(remote_files_for(path))return true;
+  if(!protected_cache)return false;
+  const relative=protected_cache.path_api.relative(protected_cache.root,path);
+  return relative!=='..'&&!relative.startsWith('..'+protected_cache.path_api.sep)&&!protected_cache.path_api.isAbsolute(relative);
+}
 export function assert_remote_owner(path:string){
   if(!protected_cache||typeof path!=='string')return;
   const relative=protected_cache.path_api.relative(protected_cache.root,path);

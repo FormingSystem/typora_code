@@ -96,6 +96,9 @@ export function bind_terminal_workspace(host:graph_host){
   };
   const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
+    const owner=require_remote_terminal_context();
+    if(launch_profile?.remote&&(!owner||owner.target!==launch_profile.remote.target||(owner.port||0)!==(launch_profile.remote.port||0)))throw Error('请先切换到此SSH工作区，再打开终端。');
+    if(local&&!launch_profile?.remote&&owner)throw Error('请先打开本地文件夹，再创建本地终端。');
     if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,explicit_cwd&&remote_files_for(root)?remote_files_for(root)!.remote_path(root):remote.remote_path,remote.port,remote.name);}
     // 本机工作目录仅供启动OpenSSH进程；远端目录由固定远程启动协议拥有。
     if(launch_profile?.remote){root=runtime._options.userDataPath;explicit_cwd=true;resolve_cwd=undefined;}
@@ -114,7 +117,7 @@ export function bind_terminal_workspace(host:graph_host){
     if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true,undefined,entry.session.launch_profile,true);};
   const join=(target:string,id=active_id)=>{const entry=sessions.get(id),other=sessions.get(target);if(!entry||!other||entry===other)return;if(entry.location!=="panel")move("panel",id);entry.session.group=other.session.group;activate(id);};
   const detach=(id=active_id)=>{const entry=sessions.get(id);if(entry){entry.session.group="group_"+(++group_serial);activate(id);}};
-  const admin=(root:string)=>{if(lifetime.disposed)return;try{const launch=administrator_launch(root,host.process_api,host.path_api);runtime.reqnode("child_process").execFile(launch.executable,launch.args,{cwd:root,windowsHide:true,shell:false},(error:Error|null)=>{if(error)fail("管理员终端未启动（UAC 可能已取消）："+error.message);});}catch(error){fail(error);}};
+  const admin=(root:string)=>{if(lifetime.disposed)return;try{if(current_remote_workspace())throw Error("SSH工作区不能启动本地管理员终端，请先打开本地文件夹。");const launch=administrator_launch(root,host.process_api,host.path_api);runtime.reqnode("child_process").execFile(launch.executable,launch.args,{cwd:root,windowsHide:true,shell:false},(error:Error|null)=>{if(error)fail("管理员终端未启动（UAC 可能已取消）："+error.message);});}catch(error){fail(error);}};
   function session_menu(id:string):workspace_menu_entry[]{
     const entry=sessions.get(id);if(!entry)return[];const {session,surface}=entry;
     const join_targets=[...sessions.values()].filter(item=>item!==entry&&item.location==="panel"&&item.session.group!==session.group);
@@ -185,7 +188,7 @@ export function bind_terminal_workspace(host:graph_host){
     void (refresh?settings.refresh():settings.ready()).then(async()=>{
       const connections=await saved_ssh_connections();if(closed||lifetime.disposed)return;close();const profiles=settings.profiles();
       const remote=current_remote_workspace();
-      menu(event,[...(remote?[{id:'terminal_profile_remote',title:'SSH: '+remote.target,action:()=>launch()}]:[]),...connections.map(record=>({id:'terminal_ssh_'+record.id,title:'SSH: '+record.host_name+' / '+record.name,action:()=>{void open(runtime._options.userDataPath,'',settings.get().location,'',true,undefined,ssh_profile(record.target,record.folder,record.port,record.host_name+' / '+record.name));}})),...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:(remote?'本地：':'')+profile.title,action:()=>{void open(host.workspace_path(),profile.id,settings.get().location,'',false,undefined,undefined,true);}})),
+      menu(event,[...(remote?[{id:'terminal_profile_remote',title:'SSH: '+remote.target,action:()=>launch()}]:[]),...connections.map(record=>({id:'terminal_ssh_'+record.id,title:'SSH: '+record.host_name+' / '+record.name,action:()=>core.app.commands.run('typora_code:remote_ssh_connect',[record.id])})),...(remote?[{id:'terminal_open_local_folder',title:'打开本地文件夹…',action:()=>core.app.commands.run('linux_note:open_local_folder')}]:profiles.map(profile=>({id:'terminal_profile_'+profile.id,title:profile.title,action:()=>{void open(host.workspace_path(),profile.id,settings.get().location,'',false,undefined,undefined,true);}}))),
         ...(!profiles.length?[{title:"未发现可用的 Shell",disabled:true,action:()=>{}}]:[]),
         ...settings.warnings().map(title=>({title,disabled:true,action:()=>{}})),
         {title:"重新检测终端",separator:true,action:()=>profile_menu(event,true)},

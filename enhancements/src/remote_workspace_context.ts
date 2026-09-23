@@ -18,6 +18,6 @@ export function current_remote_workspace(){
 }
 export function require_remote_terminal_context(){
   const value=current_remote_workspace();
-  if(value&&(value.state!=='connected'||!value.remote_path))throw Error('SSH尚未连接，请连接原主机后新建远程终端；如需本地终端，请明确选择本地配置。');
+  if(value&&(value.state!=='connected'||!value.remote_path))throw Error('SSH尚未连接，请连接原主机后新建远程终端；如需本地终端，请先打开本地文件夹。');
   return value;
 }

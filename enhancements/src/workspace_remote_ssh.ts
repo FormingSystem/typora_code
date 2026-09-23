@@ -17,7 +17,7 @@ import {active_remote_files,remote_file_provider,register_remote_files,select_re
 type remote_entry={name:string;directory:boolean;link:boolean};
 
 /** 每窗口一个连接；远程文件、Git与原生Markdown适配共用同一资源服务。 */
-export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_host,set_folder:(path:string)=>Promise<void>,runtime:any=window){
+export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_host,set_folder:(path:string,prepared_close?:()=>void)=>Promise<void>,runtime:any=window){
   const path_api=runtime.reqnode('path'),buffer_api=runtime.reqnode('buffer').Buffer;
   const asset_root=path_api.join(runtime._options.userDataPath,'typora_code','assets','remote');
   const api=runtime.reqnode(path_api.join(asset_root,'remote_ssh_service.cjs'));
@@ -28,7 +28,6 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const style=acquire_workspace_style('typora-code-style:workspace_remote_ssh',css);
   let connect_epoch=0;
   let disposed=false,target='',folder='',browse_epoch=0,connecting=false,mutating=false,list_signature='';
-  let remote_selected=false;
   let provider:remote_file_provider|undefined;
   const host_providers=new Map<string,remote_file_provider>();
   const provider_releases:Array<()=>void>=[];
@@ -43,8 +42,11 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
     for(const control of [up_button,refresh_button,new_file,new_folder,terminal_button,git_button])control.disabled=value.state!=='connected';
   }});
   const connected=()=>service.state()==='connected';
-  const release_context=register_remote_workspace_context(()=>remote_selected&&target?{target,port,name:active_record?active_record.host_name+' / '+active_record.name:target,username,remote_path:provider?.root?provider.remote_path(provider.root):folder,state:service.state()}:undefined);
-  const local_context_changed=()=>{remote_selected=Boolean(active_remote_files());};
+  const release_context=register_remote_workspace_context(()=>{
+    const owner=active_remote_files();if(!owner)return;
+    return {target:owner.connection.target,port:owner.connection.port,name:owner.connection.name,username:owner.connection.username,remote_path:owner.root?owner.remote_path(owner.root):'/',state:owner.connection.connected()?'connected':'disconnected'};
+  });
+  const local_context_changed=()=>{if(!active_remote_files()){++connect_epoch;auth_attempt?.clear();service.disconnect();}};
   window.addEventListener('linux-note-workspace-context-changed',local_context_changed);
   const require_connection=(owner=owner_key)=>{if(!connected()||owner_key!==owner)throw Error('此文档所属SSH主机未连接；草稿保留，请连接原主机后保存。');};
   const prompt_name=(title:string)=>new Promise<string|undefined>(resolve=>{
@@ -52,11 +54,11 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
     const accept=()=>{if(!input.value||input.value==='.'||input.value==='..'||/[\/\0]/u.test(input.value)){input.setCustomValidity('请输入单个有效名称，不含斜线');input.reportValidity();return;}result=input.value;dialog.close();};
     dialog.footer.prepend(button('确定',accept));input.oninput=()=>input.setCustomValidity('');input.onkeydown=event=>{if(event.key==='Enter'&&!event.isComposing){event.preventDefault();accept();}};input.focus();
   });
-  const browse=async(next:string,select=true)=>{
+  const browse=async(next:string)=>{
     require_connection();const epoch=++browse_epoch;status.textContent='正在读取远程目录…';list.setAttribute('aria-busy','true');
     try{
       const result=await service.request('list',{path:next}) as {path:string;entries:remote_entry[]};
-      if(disposed||epoch!==browse_epoch)return;folder=result.path;if(select)remote_selected=true;location.textContent=folder;location.title=folder;
+      if(disposed||epoch!==browse_epoch)return;folder=result.path;location.textContent=folder;location.title=folder;
       const signature=JSON.stringify(result);if(signature===list_signature){status.textContent=`SSH: ${target} · ${result.entries.length} 项`;return;}list_signature=signature;list.replaceChildren();
       let shown=0;const more=button('显示更多',()=>append_batch());
       const append_batch=()=>{more.remove();const end=Math.min(shown+200,result.entries.length);for(;shown<end;shown++){
@@ -82,7 +84,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const restore_provider=(owner:string,display=target)=>{
     const existing=host_providers.get(owner);if(existing)return existing;
     const host_key=runtime.reqnode('crypto').createHash('sha256').update(owner).digest('hex');
-    const value=new remote_file_provider({target:display,connected:()=>connected()&&owner_key===owner,poll_interval:()=>read_remote_ssh_settings().refresh_interval*1000,request:(operation,values)=>service.request(operation,values)},runtime.reqnode('fs'),path_api,path_api.join(runtime._options.userDataPath,'typora_code','remote_cache',host_key),buffer_api);
+    const value=new remote_file_provider({target:display,port,username,name:active_record?active_record.host_name+' / '+active_record.name:display,connected:()=>connected()&&owner_key===owner,poll_interval:()=>read_remote_ssh_settings().refresh_interval*1000,request:(operation,values)=>service.request(operation,values)},runtime.reqnode('fs'),path_api,path_api.join(runtime._options.userDataPath,'typora_code','remote_cache',host_key),buffer_api);
     host_providers.set(owner,value);provider_releases.push(register_remote_files(value));return value;
   };
   const connect=async(record?:ssh_connection_record)=>{
@@ -90,19 +92,24 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
     connecting=true;const epoch=++connect_epoch;let current=true;status.textContent='正在解析SSH账号配置…';connect_button.disabled=true;disconnect_button.disabled=false;directory?.set_active(record?.id||'','connecting');
     try{
       const attempt=await auth.attempt(next,next_port,()=>current&&!disposed&&epoch===connect_epoch);if(disposed||epoch!==connect_epoch)return;
-      if(owner_key&&owner_key!==attempt.owner.key){const close=await files.prepare_workspace_switch();if(!close||disposed||epoch!==connect_epoch)return;close();}
-      auth_attempt?.clear();auth_attempt=attempt;remote_selected=true;target=next;port=next_port;owner_key=attempt.owner.key;username=attempt.owner.user;active_record=record;input.value=next;folder='';
+      let prepared_close:(()=>void)|undefined;
+      if(owner_key&&owner_key!==attempt.owner.key){prepared_close=await files.prepare_workspace_switch();if(!prepared_close||disposed||epoch!==connect_epoch)return;}
+      auth_attempt?.clear();auth_attempt=attempt;target=next;port=next_port;owner_key=attempt.owner.key;username=attempt.owner.user;active_record=record;input.value=next;folder='';
       const hello=await service.connect(target);if(disposed||epoch!==connect_epoch)return;await attempt.complete();if(disposed||epoch!==connect_epoch||!connected())return;
       if(!record){const saved=await auth.directory.list();active_record=saved.find((item:ssh_connection_record)=>item.target===target&&item.port===port)||await auth.directory.save({target,port,host_name:target.split('@').at(-1),name:username,folder:''});await directory?.refresh();directory?.set_active(active_record?.id||'','connected');}
       if(disposed||epoch!==connect_epoch||!connected())return;
       // 目录事务拥有活动文件系统的提交；提前选择会污染旧目录的会话快照。
       provider=restore_provider(owner_key);
       const project=record?.folder||(provider.root?provider.remote_path(provider.root):hello.home);await browse(project);
-      const root=await provider.mount(project);if(disposed||epoch!==connect_epoch||!connected())return;await set_folder(root);
+      const root=await provider.mount(project);if(disposed||epoch!==connect_epoch||!connected())return;await set_folder(root,prepared_close);
       try{localStorage.setItem('typora-code:ssh:last-host',target);localStorage.setItem('typora-code:ssh:last-connection',JSON.stringify({target,port,owner_key,username,record:active_record}));}catch{/* 当前连接不依赖偏好写入成功。 */}
     }finally{current=false;connecting=false;connect_button.disabled=false;disconnect_button.disabled=!connected();directory?.set_active(active_record?.id||'',service.state());}
   };
   let directory:ReturnType<typeof create_ssh_directory>|undefined;
+  const unregister_connect=core.app.commands.register({id:'typora_code:remote_ssh_connect',title:'连接SSH工作区',scope:'global',showInCommandPanel:false,callback:(id:string)=>{void(async()=>{
+    const record=(await auth.directory.list()).find((item:ssh_connection_record)=>item.id===id);if(!record||disposed)return;
+    await connect(record);if(!disposed&&active_record?.id===id&&active_remote_files()===provider&&connected())core.app.commands.run('linux_note:terminal');
+  })().catch(notice);}});
   const connect_button=button('连接',()=>void connect().catch(notice));
   const disconnect_button=button('断开 / 取消',()=>{++connect_epoch;auth_attempt?.clear();service.disconnect();});disconnect_button.disabled=true;
   const up_button=button('上一级',()=>void browse(path_api.posix.dirname(folder)).catch(notice));
@@ -119,7 +126,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
     let saved:any;try{saved=JSON.parse(localStorage.getItem('typora-code:ssh:last-connection')||'null');}catch{}
     const mounted=runtime.File?.getMountFolder?.();target=input.value;port=saved?.port||0;owner_key=saved?.owner_key||target;username=saved?.username||target.split('@')[0];active_record=saved?.record;
     const restored=provider=restore_provider(owner_key);
-    if(mounted&&restored.owns(mounted)){provider.root=path_api.normalize(mounted);folder=provider.remote_path(provider.root);remote_selected=true;select_remote_files(provider);status.textContent='SSH工作区已保留，请重新连接后继续读写。';}
+    if(mounted&&restored.owns(mounted)){provider.root=path_api.normalize(mounted);folder=provider.remote_path(provider.root);select_remote_files(provider);status.textContent='SSH工作区已保留，请重新连接后继续读写。';}
   }
   try{const config=files.fs.readFileSync(path_api.join(runtime.reqnode('os').homedir(),'.ssh','config'),'utf8');const names=new Set<string>();for(const match of config.matchAll(/^\s*Host\s+(.+)$/gimu))for(const name of match[1].split(/\s+/u)){if(/[!*?#]/u.test(name))continue;try{api.validate_target(name);names.add(name);}catch{/* 由OpenSSH处理不能枚举的模式。 */}}for(const name of names){const option=el('option');option.value=name;hosts.append(option);}}catch{/* SSH配置可选；不创建或改写用户配置。 */}
   class remote_sidebar extends core.SidebarPanel {
@@ -140,7 +147,7 @@ export function bind_workspace_remote_ssh(core:graph_core,files:workspace_file_h
   const show=()=>{if(sidebar.activePanel===panel)sidebar.show();else sidebar.switch(remote_sidebar);panel.containerEl.querySelector<HTMLInputElement>('[aria-label="搜索SSH连接"]')?.focus();};
   const unregister=core.app.commands.register({id:'typora_code:remote_ssh',title:'远程：连接SSH主机',scope:'global',callback:show});
   let refresh_timer:ReturnType<typeof setTimeout>;
-  const schedule_refresh=()=>{clearTimeout(refresh_timer);const seconds=read_remote_ssh_settings().refresh_interval;if(!seconds)return;refresh_timer=setTimeout(async()=>{try{if(connected()&&folder&&sidebar.isShown&&sidebar.activePanel===panel&&!list.hasAttribute('aria-busy')&&!mutating)await browse(folder,false);}catch{/* 错误留在远程面板，不反复弹通知。 */}finally{if(!disposed)schedule_refresh();}},seconds*1000);};schedule_refresh();
+  const schedule_refresh=()=>{clearTimeout(refresh_timer);const seconds=read_remote_ssh_settings().refresh_interval;if(!seconds)return;refresh_timer=setTimeout(async()=>{try{if(connected()&&folder&&sidebar.isShown&&sidebar.activePanel===panel&&!list.hasAttribute('aria-busy')&&!mutating)await browse(folder);}catch{/* 错误留在远程面板，不反复弹通知。 */}finally{if(!disposed)schedule_refresh();}},seconds*1000);};schedule_refresh();
   window.addEventListener('typora-code-ssh-settings-changed',schedule_refresh);
-  return {show,service,panel,connect,browse,open_file,dispose(){if(disposed)return;files.assert_can_dispose();disposed=true;for(const release of provider_releases)release();release_context();window.removeEventListener('linux-note-workspace-context-changed',local_context_changed);clearTimeout(refresh_timer);window.removeEventListener('typora-code-ssh-settings-changed',schedule_refresh);directory?.dispose();auth.dispose();service.dispose();++browse_epoch;unregister();remove_panel();interaction.remove();style.remove();}};
+  return {show,service,panel,connect,browse,open_file,dispose(){if(disposed)return;files.assert_can_dispose();disposed=true;for(const release of provider_releases)release();unregister_connect();release_context();window.removeEventListener('linux-note-workspace-context-changed',local_context_changed);clearTimeout(refresh_timer);window.removeEventListener('typora-code-ssh-settings-changed',schedule_refresh);directory?.dispose();auth.dispose();service.dispose();++browse_epoch;unregister();remove_panel();interaction.remove();style.remove();}};
 }

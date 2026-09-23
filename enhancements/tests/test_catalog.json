@@ -1655,7 +1655,8 @@
       "requirements": [
         "R006",
         "R006.7",
-        "R006.8"
+        "R006.8",
+        "R070.7"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
@@ -6224,7 +6225,8 @@
       "requirements": [
         "R070",
         "R070.5",
-        "R070.6"
+        "R070.6",
+        "R070.7"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -6973,6 +6975,42 @@
       "runner": "enhancements/scripts/prepare_stability_native.py",
       "fixture": "enhancements/fixtures/reading_performance_native.js",
       "manual_reason": "须使用已核对的原始Typora独立副本、提前插桩与旧/新候选串行对照；按steps准备并读取checks.json，不能直接执行网页夹具。"
+    },
+    {
+      "id": "TC-remote-workspace-picker-001",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R070.7"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_picker.ts",
+        "enhancements/src/git_workspace_resources.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "git",
+        "terminal",
+        "explorer"
+      ],
+      "script": "enhancements/scripts/test_remote_workspace_picker.cjs",
+      "environment": "真实Electron DOM/本地临时目录；远端与系统选择器受控端口",
+      "preconditions": "不操作用户文档、仓库或凭据",
+      "steps": [
+        "目录单击选择、双击进入、祖先跳转、路径输入文件并确认",
+        "本地取消/成功共同切换、旧混合仓库记录过滤、20/100/1000次身份代次隔离"
+      ],
+      "expected": [
+        "SSH模式无本地执行和缓存路径展示，取消保持工作区，迟到结果无效"
+      ],
+      "stress_levels": [
+        20,
+        100,
+        1000
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

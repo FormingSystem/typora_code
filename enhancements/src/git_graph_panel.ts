@@ -1,3 +1,4 @@
+import {git_workspace_resources} from './git_workspace_resources';
 import {same_git_changes} from './git_status_snapshot';
 import {acquire_git_repository_operation} from "./git_repository_operation";
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
@@ -77,7 +78,10 @@ export class git_graph_panel {
   detail_summary_ratio = .5;
   key_handler: (event: KeyboardEvent) => void;
 
+  readonly resources:ReturnType<typeof git_workspace_resources>;
+  private repository_scan?:AbortController;
   constructor(public host: graph_host, cwd: string) {
+    this.resources=git_workspace_resources(host.path_api);
     this.context_directory = cwd; this.root = cwd; this.settings = load_graph_settings(localStorage, cwd); this.count = this.settings.initial_count;
     this.runner = host.runner(this.settings); this.writer = host.runner(this.settings, true);
     this.branches = [...this.settings.on_load_branches]; if (this.settings.on_load_branch) this.branches = ["HEAD"];
@@ -138,7 +142,7 @@ export class git_graph_panel {
   assert_can_dispose(): void { if (this.writing && !this.remote_picker) throw new Error(text("graph.operation_pending")); }
   dispose(): void {
     if (this.disposed) return;
-    this.assert_can_dispose(); this.cancel_remote_picker(); this.ref_picker.close(false); this.branch_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
+    this.assert_can_dispose(); this.repository_scan?.abort(); this.cancel_remote_picker(); this.ref_picker.close(false); this.branch_picker.close(false); this.discard_confirmation.close(false); this.disposed = true; this.close(); this.epoch++; this.runner.cancel(); this.pending = false; this.writer.cancel(); this.close_details();
     this.release_settings();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
     this.column_binding?.dispose();this.column_binding=undefined;
@@ -154,11 +158,12 @@ export class git_graph_panel {
     this.runner.cancel();this.writer.cancel();this.runner=this.host.runner(settings);this.writer=this.host.runner(settings,true);void this.refresh();
   }
   repository_paths(repos:string[]):string[]{
-    const found=new Set<string>();return repos.filter(root=>{if(typeof root!=="string"||!root)return false;let key=this.host.path_api.normalize(root);if(this.host.path_api.sep==="\\")key=key.toLowerCase();if(found.has(key))return false;found.add(key);return true;});
+    const found=new Set<string>();return repos.filter(root=>{if(typeof root!=="string"||!root||!this.resources.accepts(root))return false;let key=this.host.path_api.normalize(root);if(this.host.path_api.sep==="\\")key=key.toLowerCase();if(found.has(key))return false;found.add(key);return true;});
   }
-  known_repos(): string[] { try { return this.repository_paths(JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") || "[]")); } catch { return []; } }
-  save_repos(repos: string[]): void { localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories", JSON.stringify(this.repository_paths(repos))); }
+  known_repos(): string[] { try { return this.repository_paths(JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories:" + this.resources.key) ?? localStorage.getItem(GRAPH_SETTINGS_KEY + "repositories") ?? "[]")).filter(root=>this.resources.accepts(root)); } catch { return []; } }
+  save_repos(repos: string[]): void { if(this.disposed||!this.resources.current())return;localStorage.setItem(GRAPH_SETTINGS_KEY + "repositories:" + this.resources.key, JSON.stringify(this.repository_paths(repos).filter(root=>this.resources.accepts(root)))); }
   async switch_repo(root: string): Promise<void> {
+    try{this.resources.assert(root);}catch(error){this.report(error);return;}
     this.cancel_remote_picker();
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
     this.column_binding?.dispose();this.column_binding=undefined;
@@ -836,14 +841,28 @@ export class git_graph_panel {
     })()));
   }
   filter_branches(): void { this.branch_picker.close(); this.ref_picker.open(); }
+  async choose_repository(discover=false):Promise<void>{
+    if(this.disposed||this.repository_scan)return;
+    const scan=new AbortController(),epoch=this.repository_epoch;this.repository_scan=scan;
+    const valid=()=>!this.disposed&&!scan.signal.aborted&&epoch===this.repository_epoch&&this.resources.current();
+    try{
+      const target=await this.resources.choose(this.root);if(!target||!valid())return;
+      this.report(discover?'正在查找所选目录中的Git仓库…':'正在检查Git仓库…');
+      // 主动“查找子文件夹”至少检查直接子目录；自动发现深度为0不能让该动作成为空操作。
+      const result=discover?await this.host.discover(target,Math.max(1,this.settings.search_depth),scan.signal):{roots:[(await this.runner.run(target,['rev-parse','--show-toplevel'])).trim()],errors:[],truncated:false};
+      if(!valid())return;this.save_repos([...this.known_repos(),...result.roots]);this.workbench.repositories.refresh();
+      this.report(text('graph.discovered_repositories',{count:result.roots.length})+(result.truncated?'；达到扫描上限，请缩小目录范围。':'')+(result.errors.length?'；'+result.errors.map(value=>value.replaceAll(target,this.resources.label(target))).join('；'):''));
+      if(result.roots.length===1&&!this.state)await this.switch_repo(result.roots[0]);
+    }catch(error){if(valid())this.report(error);}
+    finally{if(this.repository_scan===scan)this.repository_scan=undefined;}
+  }
   manage_repositories(): void {
-    const scan = new AbortController();
-    const dialog = workspace_dialog(text("graph.manage_repositories_title"), text("common.close"), () => scan.abort()); const input = el("input"); input.placeholder = text("graph.repository_path_placeholder"); input.value = this.root; const error = el("p"); const list = el("div");
-    const render = () => { list.replaceChildren(); for (const root of this.known_repos()) {
-      const row = el("div", "git-graph-repo-entry", root); row.append(button(text("graph.open"), () => { this.switch_repo(root); dialog.close(); }), button(text("graph.remove_record"), () => { this.save_repos(this.known_repos().filter(item => item !== root)); render(); })); list.append(row);
-    } }; render(); dialog.content.append(input, list, error);
-    dialog.footer.prepend(button(text("graph.add_repository"), () => void this.runner.run(input.value, ["rev-parse", "--show-toplevel"]).then(root => { this.save_repos([...this.known_repos(), root.trim()]); render(); }).catch(problem => { error.textContent = String(problem); })),
-      button(text("graph.discover_subrepositories"), () => void this.host.discover(input.value, this.settings.search_depth, scan.signal).then(result => { if (!dialog.root.isConnected || this.disposed) return; this.save_repos([...this.known_repos(), ...result.roots]); render(); error.textContent = text("graph.discovered_repositories", {count: result.roots.length}) + (result.truncated ? "；达到扫描上限，请缩小目录范围。" : "") + (result.errors.length ? "；" + result.errors.join("；") : ""); }).catch(problem => { error.textContent = String(problem); })));
+    const dialog=workspace_dialog(text('graph.manage_repositories_title'),text('common.close'));
+    const list=el('div'),render=()=>{list.replaceChildren();for(const root of this.known_repos()){
+      const row=el('div','git-graph-repo-entry',this.resources.label(root));
+      row.append(button(text('graph.open'),()=>{void this.switch_repo(root);dialog.close();}),button(text('graph.remove_record'),()=>{this.save_repos(this.known_repos().filter(item=>item!==root));render();this.workbench.repositories.refresh();}));list.append(row);
+    }};render();dialog.content.append(list);
+    dialog.footer.prepend(button(text('graph.add_repository'),()=>{dialog.close();void this.choose_repository();}),button(text('graph.discover_subrepositories'),()=>{dialog.close();void this.choose_repository(true);}));
   }
   settings_dialog(): void {
     if (this.disposed) return;

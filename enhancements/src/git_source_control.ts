@@ -44,7 +44,7 @@ export class git_source_control {
   private empty_view = el("div", "git-scm-welcome");
   private empty_message = el("p");
   private initialize_button = button("初始化仓库", () => void this.panel.initialize());
-  private discover_button = button("查找子文件夹中的仓库…", () => this.panel.manage_repositories());
+  private discover_button = button("查找子文件夹中的仓库…", () => void this.panel.choose_repository(true));
   private retry_button = button("重试", () => void this.panel.refresh(false));
   private install_button=button('安装Git',()=>void this.panel.install_git());
   private cancel_read=icon_button('close','取消Git状态读取',()=>this.panel.cancel_refresh());

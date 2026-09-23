@@ -1,3 +1,4 @@
+import {git_workspace_resources} from './git_workspace_resources';
 import {install_missing_git} from './git_runtime_environment';
 import {workspace_resource_fs} from './remote_workspace_files';
 import {discover_git_repositories} from "./git_repository_discovery";
@@ -148,16 +149,18 @@ export function create_graph_host(core: graph_core) {
     ignore_file(root: string, file: string, settings: graph_settings) { if(get_workspace_files()?.can_write(path_api.join(root,".gitignore"))===false)throw new Error(text("action.error.unsaved_document"));return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
     show_history: (_root: string) => {},
     runner(settings: graph_settings, writable = false) {
+      const resources=git_workspace_resources(path_api);
       const runner = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
       runners.add(runner);
       const run: typeof runner.run = async (root, args, execution) => {
-        if(disposed)throw new Error("Typora Code 已停用。");
+        if(disposed)throw new Error("Typora Code 已停用。");resources.assert(root);
         const record = (text: string) => { const lines = output_lines.get(root) || []; lines.push(redact(text)); output_lines.set(root, lines.slice(-100)); };
         const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.slice(0,40).map(arg => JSON.stringify(arg.slice(0,1000))).join(" ")+(args.length>40?` …（共${args.length}个参数）`:""));
         try { const result = await runner.run(root, args, execution); record(text("host.run_complete", {duration: Date.now() - start}) + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
         catch (error) { record(String(error)); throw error; }
       };
-      return {...runner, run, dispose:()=>{runner.cancel();runners.delete(runner);}};
+      const run_bytes:typeof runner.run_bytes=(root,args,execution)=>{if(disposed)throw Error('Typora Code 已停用。');resources.assert(root);return runner.run_bytes(root,args,execution);};
+      return {...runner, run, run_bytes, dispose:()=>{runner.cancel();runners.delete(runner);}};
     },
     show_output(root: string) {
       const view = workspace_element("div", "git-output"); const output = workspace_element("pre");
@@ -278,9 +281,10 @@ export function create_graph_host(core: graph_core) {
       else add_tab("linux_note.git_document", uri, group);
     },
     async discover(root: string, depth: number, signal?: AbortSignal) {
+      const resources=git_workspace_resources(path_api);resources.assert(root);
       const reader = create_git_runner({child_process: runtime.reqnode("child_process"), process: runtime.reqnode("process")});
       const cancel = () => reader.cancel(); signal?.addEventListener("abort", cancel, {once: true});
-      try { return await discover_git_repositories({root, depth, run: reader.run, fs, path: path_api, signal}); }
+      try { return await discover_git_repositories({root, depth, run: (cwd,args)=>{resources.assert(cwd);return reader.run(cwd,args);}, fs, path: path_api, signal}); }
       finally { signal?.removeEventListener("abort", cancel); reader.cancel(); }
     },
     async avatar(email: string): Promise<string> {
