@@ -1,0 +1,10 @@
+/* 沿用搜索预览既有尺寸；三种预览入口共用比例控制，不改变窗口缩放。 */
+.workspace-preview-scale-controls{display:flex;align-items:center;gap:0;flex:0 1 auto;min-width:0;margin-left:auto}
+.workspace-preview-scale-controls>.git-icon-button{display:inline-flex;align-items:center;flex:none;width:var(--linux-note-shell-action-size,22px);min-width:22px;height:var(--linux-note-shell-action-size,22px);justify-content:center;padding:3px;border:0;background:transparent;color:inherit}
+.workspace-preview-scale-controls>.workspace-preview-scale-slider{box-sizing:border-box;flex:0 1 80px;width:80px;min-width:48px;max-width:80px;height:22px;margin:0;padding:0!important;border:0!important;box-shadow:none!important;background:transparent;accent-color:#0078d4}
+.workspace-preview-scale-controls>.workspace-preview-scale-value{display:block;flex:none;min-width:34px;padding:0 2px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:inherit}
+.workspace-preview-scale-controls>button:disabled{opacity:.4;cursor:default;background:transparent}
+.workspace-link-preview-scale-row{display:flex;align-items:center;flex:none;min-height:var(--linux-note-shell-row-height,22px);width:100%;container-type:inline-size;container-name:workspace-preview-scale;box-shadow:inset 0 -1px #8883}
+.workspace-link-preview-scale-row[hidden]{display:none}
+@container workspace-preview-scale (max-width:230px){.workspace-preview-scale-controls>.git-icon-button{display:none}}
+@container workspace-search-preview (max-width:230px){.workspace-preview-scale-controls>.git-icon-button{display:none}}

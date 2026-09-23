@@ -1,3 +1,4 @@
+import {create_preview_scale_controls} from "./workspace_preview_scale";
 import {bind_preview_resize} from "./workspace_preview_resize";
 import {SIDEBAR_MIN_WIDTH,EDITOR_MIN_WIDTH,resize_workspace_sidebar} from "./workspace_sidebar_sash";
 import {register_workspace_context_guard} from "./workspace_context";
@@ -50,10 +51,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
     preview = lifetime.own(create_lookup_preview(files)); preview_section = el("section", "workspace-search-preview-section");
     preview_toggle = git_icon_button("chevron-down", "收起预览", () => this.set_preview_open(!this.preview_open)); preview_open = true;
-    preview_smaller = git_icon_button("remove","缩小预览",()=>this.preview.set_scale(this.preview.get_scale()-5));
-    preview_larger = git_icon_button("add","放大预览",()=>this.preview.set_scale(this.preview.get_scale()+5));
-    preview_slider = el("input","workspace-search-preview-slider"); preview_scale = el("output","workspace-search-preview-scale");
-    scale_observer = new MutationObserver(()=>this.update_preview_scale());
+    preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
     selected?: {file:workspace_search_file;match:workspace_search_match}; remembered = new Map<string,string>(); open_generation = 0;
     options: workspace_search_options = {query:"",use_ignore:true}; result?: workspace_search_result;
     controller?: AbortController; visible=false; timer=0; tree=false; sort="path"; only_open=false; only_changed=false; history: string[]=[]; history_index=-1;
@@ -64,7 +62,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     native_observer = new MutationObserver(() => this.clear_native());
     constructor() {
       super();lifetime.add(acquire_workspace_interaction(this.containerEl).remove);
-      lifetime.add(()=>{++this.open_generation;clearTimeout(this.timer);this.controller?.abort();this.native_observer.disconnect();this.scale_observer.disconnect();this.containerEl.remove();});
+      lifetime.add(()=>{++this.open_generation;clearTimeout(this.timer);this.controller?.abort();this.native_observer.disconnect();this.containerEl.remove();});
       this.containerEl.setAttribute("data-linux-note-workspace-search","ready");
       // Typora 对所有 header 施加 fixed/top:0；工作区工具栏使用独立 div，避免叠到主标题栏。
       const heading = el("div", "workspace-search-heading"); heading.append(el("strong","","搜索"));
@@ -109,11 +107,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       exclude_box.append(this.excludes,ignore);this.details.append(include_box,exclude_label,exclude_box);this.form.append(query_row,this.replace_row,options_row,this.details,this.status);
       const preview_heading=el("div","workspace-search-preview-heading");preview_heading.setAttribute("role","toolbar");preview_heading.setAttribute("aria-label","预览工具栏");
       this.preview_toggle.append(el("span","","预览"));this.preview_toggle.setAttribute("aria-expanded","true");
-      this.preview_slider.type="range";this.preview_slider.min="50";this.preview_slider.max="150";this.preview_slider.step="1";this.preview_slider.setAttribute("aria-label","预览字号比例");this.preview_slider.title="拖动调整预览字号（50%–150%）";
-      this.preview_slider.oninput=()=>this.preview.set_scale(Number(this.preview_slider.value));this.preview_scale.setAttribute("aria-label","当前预览比例");
-      const preview_actions=el("div","workspace-search-preview-actions");preview_actions.append(this.preview_smaller,this.preview_slider,this.preview_scale,this.preview_larger);
-      preview_heading.append(this.preview_toggle,preview_actions);this.preview_section.append(preview_heading,this.preview.container);this.preview_section.hidden=true;
-      this.scale_observer.observe(this.preview.container,{attributes:true,attributeFilter:["data-preview-scale"]});this.update_preview_scale();
+      preview_heading.append(this.preview_toggle,this.preview_scale.container);this.preview_section.append(preview_heading,this.preview.container);this.preview_section.hidden=true;
       this.split.tabIndex=0;this.split.setAttribute("role","separator");this.split.setAttribute("aria-orientation","horizontal");this.split.setAttribute("aria-label","调整搜索结果与预览高度");this.split.setAttribute("aria-valuemin","15");this.split.setAttribute("aria-valuemax","75");this.split.hidden=true;this.set_split(40);
       this.body.append(this.results,this.split,this.preview_section);
       lifetime.own(bind_preview_resize(this.preview_section,()=>({width:native_sidebar?.contains(this.containerEl)?native_sidebar.offsetWidth:this.preview_section.offsetWidth,height:this.preview_section.offsetHeight}),size=>{
@@ -158,7 +152,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         return {statuses,changed_files:changes.map(change=>files.path_api.resolve(git_root,change.path))};
       }catch{return {statuses,changed_files:undefined};}
     }
-    update_preview_scale(){const scale=this.preview.get_scale();this.preview_scale.value=`${scale}%`;this.preview_slider.value=String(scale);this.preview_slider.setAttribute("aria-valuetext",`${scale}%`);this.preview_smaller.disabled=scale<=50;this.preview_larger.disabled=scale>=150;}
+
     update_status(){
       const result=this.result;if(!result)return;
       const count=result.counts;this.status.replaceChildren(el("span","workspace-search-counts",`在 ${count.matched_files} 个文件中找到 ${count.matches} 个结果`+(result.cancelled?" · 已停止":"")+(result.limit_reached?" · 已达到结果上限":"")));

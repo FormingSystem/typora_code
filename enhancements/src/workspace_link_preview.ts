@@ -4,21 +4,23 @@ import {resolve_preview_link,type workspace_link_target} from "./workspace_link_
 import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {git_icon_button} from "./git_icons";
+import {create_preview_scale_controls} from './workspace_preview_scale';
 
 export type workspace_link_request={source:string;href:string};
 
 export function create_link_preview(files:workspace_file_host,options:{close?:()=>void}={}){
   const container=el("section","workspace-link-preview"),toolbar=el("div","workspace-search-preview-heading"),title=el("span","workspace-link-preview-title");
   const content=el("div","workspace-link-preview-content"),reader=create_lookup_preview(files);
+  const scale=create_preview_scale_controls(reader),scale_row=el('div','workspace-link-preview-scale-row');scale_row.append(scale.container);scale_row.hidden=true;
   const runtime=window as any,interaction=acquire_workspace_interaction(container);
   let target:workspace_link_target|undefined,request:workspace_link_request|undefined,generation=0,disposed=false;
   const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")runtime.JSBridge?.showInBrowser?.(target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
   const retry=git_icon_button("refresh","重新加载",()=>{if(request)void show(request);});
   const mode=el("span","workspace-link-preview-mode","只读预览");
   const fail=(error:unknown)=>{content.replaceChildren(el("p","workspace-lookup-preview-message",String(error)));container.dataset.state="error";};
-  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,open,retry,mode);container.append(toolbar,content);
+  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,open,retry,mode);container.append(toolbar,scale_row,content);
   if(options.close)toolbar.append(git_icon_button('close','关闭链接预览',options.close));
-  const clear=()=>{++generation;reader.clear();content.replaceChildren();request=undefined;target=undefined;};
+  const clear=()=>{++generation;reader.clear();content.replaceChildren();scale_row.hidden=true;request=undefined;target=undefined;};
   const show=async(value:workspace_link_request)=>{
     clear();if(disposed)return;request={...value};const version=generation;
     container.dataset.state="loading";title.textContent=value.href;title.title=value.href;open.disabled=true;content.replaceChildren(el("p","workspace-lookup-preview-message","正在加载链接预览…"));
@@ -28,6 +30,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       title.textContent=resolved.kind==="file"?files.path_api.basename(resolved.path):new URL(resolved.url).hostname;
       mode.textContent=resolved.kind==="file"?"只读预览":"网页预览";
       if(resolved.kind==="file"){
+        scale_row.hidden=false;
         content.replaceChildren(reader.container);
         await reader.show({file_path:resolved.path,relative_path:files.path_api.basename(resolved.path),matches:[]},{id:"link",start:0,end:0,line:1,column:1,end_line:1,end_column:1,text:"",preview:"",preview_ranges:[]},resolved.hash,true);
       }else{
@@ -42,5 +45,5 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       if(!disposed&&version===generation)container.dataset.state="ready";
     }catch(error){if(!disposed&&version===generation)fail(error);}
   };
-  return {container,show,clear,dispose(){if(disposed)return;disposed=true;clear();reader.dispose();interaction.remove();container.remove();}};
+  return {container,show,clear,dispose(){if(disposed)return;disposed=true;clear();scale.dispose();reader.dispose();interaction.remove();container.remove();}};
 }

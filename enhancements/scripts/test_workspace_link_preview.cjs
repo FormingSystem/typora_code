@@ -25,15 +25,22 @@ app.whenReady().then(async()=>{
   await evaluate('link("target.md#target-heading")');
   check('Markdown标题定位并渲染',await evaluate(`view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('Target heading')`));
   check('预览没有可编辑区域',await evaluate(`!view.container.querySelector('[contenteditable=true]')&&opened.length===0`));
+  await evaluate(`window.scale_slider=view.container.querySelector('[aria-label="预览字号比例"]');scale_slider.value='115';scale_slider.dispatchEvent(new Event('input',{bubbles:true}));`);
+  check('链接Markdown滑条比例与文字同步',await evaluate(`view.container.querySelector('.workspace-preview-scale-value').value==='115%'&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='115'`));
+  await evaluate(`view.container.querySelector('.workspace-lookup-preview-body').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:-120,bubbles:true,cancelable:true}))`);
+  await new Promise(r=>setTimeout(r,20));check('链接滚轮同步滑条和百分比',await evaluate(`scale_slider.value==='120'&&view.container.querySelector('.workspace-preview-scale-value').value==='120%'`));
   await evaluate(`view.container.querySelector('button').click()`);
   check('显式打开源文件保留锚点',await evaluate(`opened.length===1&&opened[0].path.endsWith('target.md')&&opened[0].location.hash==='#target-heading'`));
   await evaluate('link("source.py")');check('源码Monaco只读',await evaluate(`qa.monaco.editor.getEditors().filter(e=>view.container.contains(e.getDomNode())).every(e=>e.getOption(qa.monaco.editor.EditorOption.readOnly))`));
+  await evaluate(`scale_slider.value='95';scale_slider.dispatchEvent(new Event('input',{bubbles:true}));`);
+  check('源码预览滑条同步真实编辑器',await evaluate(`view.container.querySelector('.workspace-preview-scale-value').value==='95%'&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='95'`));
   await evaluate(`link(${JSON.stringify(url+'/redirect')})`);
   for(let i=0;i<100;i++){if(await evaluate('!!web_message'))break;await new Promise(r=>setTimeout(r,20));}
   check('真实网页脚本在opaque沙箱执行且没有Node',await evaluate(`web_message?.origin==='null'&&web_message.node==='undefined'`));
+  check('网页不展示不生效的文字比例控件',await evaluate(`view.container.querySelector('.workspace-link-preview-scale-row').hidden`));
   check('真实URL经Chromium加载而非HTML快照',await evaluate(`view.container.querySelector('iframe').src.endsWith('/redirect')&&!view.container.querySelector('iframe').srcdoc`));
   check('网页可运行布局脚本但无同源及宿主权限',await evaluate(`view.container.querySelector('iframe').getAttribute('sandbox')==='allow-scripts'&&preview_attack===0`));
-  check('两个图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('button svg').length===2&&[...view.container.querySelectorAll('button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
+  check('两个图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar] button svg').length===2&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
   check('失败与被拒绝内嵌均有浏览器入口',await evaluate(`view.container.textContent.includes('浏览器')&&view.container.querySelector('button').getAttribute('aria-label').includes('浏览器')`));
   await evaluate(`link(${JSON.stringify(url+'/slow')});link('target.md')`);await new Promise(r=>setTimeout(r,600));check('迟到网页不覆盖新目标',await evaluate(`!view.container.querySelector('iframe')&&view.container.querySelector('.workspace-lookup-markdown')!==null`));
   await evaluate(`link('javascript:alert(1)')`);check('拒绝执行协议',await evaluate(`view.container.dataset.state==='error'`));

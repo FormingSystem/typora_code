@@ -64,12 +64,6 @@
 .workspace-search-preview-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; flex:0 0 var(--linux-note-shell-row-height,22px); min-height:var(--linux-note-shell-row-height,22px); min-width:0; width:100%; box-shadow:inset 0 -1px #8883; }
 .workspace-search-preview-heading button { display:inline-flex; align-items:center; gap:3px; height:var(--linux-note-shell-action-size,22px); padding:0 6px; border:0; background:transparent; }
 .workspace-search-preview-heading>button { flex:1; min-width:0; justify-content:flex-start; }
-.workspace-search-preview-actions { display:flex; align-items:center; gap:0; flex:0 1 auto; min-width:0; margin-left:auto; }
-.workspace-search-preview-actions>.git-icon-button { width:var(--linux-note-shell-action-size,22px); min-width:22px; justify-content:center; padding:3px; }
-.workspace-search-preview-actions>.workspace-search-preview-slider { box-sizing:border-box; flex:0 1 80px; width:80px; min-width:48px; max-width:80px; height:22px; margin:0; padding:0!important; border:0!important; box-shadow:none!important; background:transparent; accent-color:#0078d4; }
-.workspace-search-preview-actions>.workspace-search-preview-scale { flex:none; min-width:34px; padding:0 2px; text-align:center; font-size:11px; font-variant-numeric:tabular-nums; }
-.workspace-search-preview-actions>button:disabled { opacity:.4; cursor:default; background:transparent; }
-@container workspace-search-preview (max-width:230px) { .workspace-search-preview-actions>.git-icon-button { display:none; } }
 .workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }
 .workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }
 .workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }

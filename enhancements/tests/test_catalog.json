@@ -3162,12 +3162,14 @@
       "requirements": [
         "R002",
         "R042",
-        "R069"
+        "R069",
+        "R069.3"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
         "enhancements/src/workspace_files.ts",
-        "enhancements/src/workspace_search.ts"
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_preview_scale.ts"
       ],
       "related_modules": [
         "explorer",
@@ -5834,7 +5836,8 @@
       "purpose": "implementation",
       "requirements": [
         "R069",
-        "R069.1"
+        "R069.1",
+        "R069.3"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5843,7 +5846,8 @@
         "enhancements/src/workspace_link_selection.ts",
         "enhancements/src/workspace_search.ts",
         "enhancements/src/workspace_link_dock.ts",
-        "enhancements/src/reading_reflow.ts"
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_preview_scale.ts"
       ],
       "related_modules": [
         "search",
@@ -5873,7 +5877,10 @@
         "R069.1",
         "R072.2",
         "R073",
-        "R069.2"
+        "R069.2",
+        "R069.3",
+        "R069.4",
+        "R069.5"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -5882,7 +5889,9 @@
         "enhancements/src/workspace_link_selection.ts",
         "enhancements/src/workspace_search.ts",
         "enhancements/src/workspace_link_dock.ts",
-        "enhancements/src/reading_reflow.ts"
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_sidebar_sash.css",
+        "enhancements/src/workspace_preview_scale.ts"
       ],
       "related_modules": [
         "search",
@@ -6406,13 +6415,16 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R069.2"
+        "R069.2",
+        "R069.4",
+        "R069.5"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
         "enhancements/src/workspace_link_dock.ts",
         "enhancements/src/workspace_preview_resize.ts",
-        "enhancements/src/workspace_search.ts"
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_sidebar_sash.css"
       ],
       "related_modules": [
         "search",

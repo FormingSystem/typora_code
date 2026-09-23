@@ -235315,6 +235315,47 @@ https://creativecommons.org/licenses/by/4.0/
     return { container, refresh, reveal, show: show2, dispose: dispose2 };
   }
 
+  // src/workspace_preview_scale.css
+  var workspace_preview_scale_default = "";
+
+  // src/workspace_preview_scale.ts
+  function create_preview_scale_controls(owner) {
+    const style = acquire_workspace_style("typora-code-style:workspace_preview_scale", workspace_preview_scale_default, {});
+    const container = workspace_element("div", "workspace-preview-scale-controls");
+    const smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => owner.set_scale(owner.get_scale() - 5));
+    const larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => owner.set_scale(owner.get_scale() + 5));
+    const slider = workspace_element("input", "workspace-preview-scale-slider"), value = workspace_element("output", "workspace-preview-scale-value");
+    slider.type = "range";
+    slider.min = "50";
+    slider.max = "150";
+    slider.step = "1";
+    slider.setAttribute("aria-label", "\u9884\u89C8\u5B57\u53F7\u6BD4\u4F8B");
+    slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
+    slider.oninput = () => {
+      owner.set_scale(Number(slider.value));
+      sync();
+    };
+    value.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
+    const sync = () => {
+      const scale = owner.get_scale();
+      value.value = "".concat(scale, "%");
+      slider.value = String(scale);
+      slider.setAttribute("aria-valuetext", "".concat(scale, "%"));
+      smaller.disabled = scale <= 50;
+      larger.disabled = scale >= 150;
+    };
+    container.append(smaller, slider, value, larger);
+    const observer2 = new MutationObserver(sync);
+    observer2.observe(owner.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
+    sync();
+    return { container, dispose() {
+      observer2.disconnect();
+      slider.oninput = null;
+      container.remove();
+      style.remove();
+    } };
+  }
+
   // src/workspace_preview_resize.css
   var workspace_preview_resize_default = "";
 
@@ -236824,11 +236865,7 @@ https://creativecommons.org/licenses/by/4.0/
         preview_section = workspace_element("section", "workspace-search-preview-section");
         preview_toggle = git_icon_button("chevron-down", "\u6536\u8D77\u9884\u89C8", () => this.set_preview_open(!this.preview_open));
         preview_open = true;
-        preview_smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() - 5));
-        preview_larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => this.preview.set_scale(this.preview.get_scale() + 5));
-        preview_slider = workspace_element("input", "workspace-search-preview-slider");
-        preview_scale = workspace_element("output", "workspace-search-preview-scale");
-        scale_observer = new MutationObserver(() => this.update_preview_scale());
+        preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
         selected;
         remembered = /* @__PURE__ */ new Map();
         open_generation = 0;
@@ -236856,7 +236893,6 @@ https://creativecommons.org/licenses/by/4.0/
             clearTimeout(this.timer);
             this.controller?.abort();
             this.native_observer.disconnect();
-            this.scale_observer.disconnect();
             this.containerEl.remove();
           });
           this.containerEl.setAttribute("data-linux-note-workspace-search", "ready");
@@ -236983,21 +237019,9 @@ https://creativecommons.org/licenses/by/4.0/
           preview_heading.setAttribute("aria-label", "\u9884\u89C8\u5DE5\u5177\u680F");
           this.preview_toggle.append(workspace_element("span", "", "\u9884\u89C8"));
           this.preview_toggle.setAttribute("aria-expanded", "true");
-          this.preview_slider.type = "range";
-          this.preview_slider.min = "50";
-          this.preview_slider.max = "150";
-          this.preview_slider.step = "1";
-          this.preview_slider.setAttribute("aria-label", "\u9884\u89C8\u5B57\u53F7\u6BD4\u4F8B");
-          this.preview_slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
-          this.preview_slider.oninput = () => this.preview.set_scale(Number(this.preview_slider.value));
-          this.preview_scale.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
-          const preview_actions = workspace_element("div", "workspace-search-preview-actions");
-          preview_actions.append(this.preview_smaller, this.preview_slider, this.preview_scale, this.preview_larger);
-          preview_heading.append(this.preview_toggle, preview_actions);
+          preview_heading.append(this.preview_toggle, this.preview_scale.container);
           this.preview_section.append(preview_heading, this.preview.container);
           this.preview_section.hidden = true;
-          this.scale_observer.observe(this.preview.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
-          this.update_preview_scale();
           this.split.tabIndex = 0;
           this.split.setAttribute("role", "separator");
           this.split.setAttribute("aria-orientation", "horizontal");
@@ -237144,14 +237168,6 @@ https://creativecommons.org/licenses/by/4.0/
           } catch {
             return { statuses, changed_files: void 0 };
           }
-        }
-        update_preview_scale() {
-          const scale = this.preview.get_scale();
-          this.preview_scale.value = "".concat(scale, "%");
-          this.preview_slider.value = String(scale);
-          this.preview_slider.setAttribute("aria-valuetext", "".concat(scale, "%"));
-          this.preview_smaller.disabled = scale <= 50;
-          this.preview_larger.disabled = scale >= 150;
         }
         update_status() {
           const result = this.result;
@@ -242370,6 +242386,9 @@ https://creativecommons.org/licenses/by/4.0/
   function create_link_preview(files, options2 = {}) {
     const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title = workspace_element("span", "workspace-link-preview-title");
     const content = workspace_element("div", "workspace-link-preview-content"), reader = create_lookup_preview(files);
+    const scale = create_preview_scale_controls(reader), scale_row = workspace_element("div", "workspace-link-preview-scale-row");
+    scale_row.append(scale.container);
+    scale_row.hidden = true;
     const runtime2 = window, interaction = acquire_workspace_interaction(container);
     let target, request, generation = 0, disposed = false;
     const open = git_icon_button("go-to-file", "\u6253\u5F00\u6E90\u6587\u4EF6", async () => {
@@ -242396,12 +242415,13 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.setAttribute("role", "toolbar");
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
     toolbar.append(title, open, retry, mode);
-    container.append(toolbar, content);
+    container.append(toolbar, scale_row, content);
     if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
     const clear = () => {
       ++generation;
       reader.clear();
       content.replaceChildren();
+      scale_row.hidden = true;
       request = void 0;
       target = void 0;
     };
@@ -242424,6 +242444,7 @@ https://creativecommons.org/licenses/by/4.0/
         title.textContent = resolved.kind === "file" ? files.path_api.basename(resolved.path) : new URL(resolved.url).hostname;
         mode.textContent = resolved.kind === "file" ? "\u53EA\u8BFB\u9884\u89C8" : "\u7F51\u9875\u9884\u89C8";
         if (resolved.kind === "file") {
+          scale_row.hidden = false;
           content.replaceChildren(reader.container);
           await reader.show({ file_path: resolved.path, relative_path: files.path_api.basename(resolved.path), matches: [] }, { id: "link", start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "", preview: "", preview_ranges: [] }, resolved.hash, true);
         } else {
@@ -242450,6 +242471,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       clear();
+      scale.dispose();
       reader.dispose();
       interaction.remove();
       container.remove();
@@ -242630,7 +242652,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_link_dock.ts
   function bind_workspace_link_dock(core, files) {
-    const sidebar = document.getElementById("typora-sidebar"), root = document.documentElement, body = document.body;
+    const root = document.documentElement, body = document.body;
     const dock = document.createElement("section");
     dock.className = "workspace-link-dock";
     dock.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8");
@@ -242653,10 +242675,8 @@ https://creativecommons.org/licenses/by/4.0/
       const max_height = Math.max(0, root.clientHeight - top - footer);
       width2 = Math.min(available, Math.max(SIDEBAR_MIN_WIDTH, width2));
       height = Math.min(max_height, Math.max(Math.min(120, max_height), height || max_height * 0.4));
-      const sidebar_width = body.classList.contains("pin-outline") ? Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar?.offsetWidth || 0 : 0;
       set("--workspace-preview-width", width2 + "px");
       set("--workspace-preview-height", height + "px");
-      set("--workspace-preview-column", Math.max(width2, sidebar_width) + "px");
     };
     const notify = () => {
       if (frame3 || disposed) return;
@@ -242716,7 +242736,7 @@ https://creativecommons.org/licenses/by/4.0/
       preview.dispose();
       dock.remove();
       body.classList.remove("has-workspace-link-preview");
-      for (const name of ["width", "height", "column"]) body.style.removeProperty("--workspace-preview-" + name);
+      for (const name of ["width", "height"]) body.style.removeProperty("--workspace-preview-" + name);
       window.dispatchEvent(new Event("resize"));
     } };
   }
@@ -242930,6 +242950,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092302,
+        version: "2026.09.23.2",
+        date: "2026-09-23",
+        notes: [
+          "\u6062\u590D\u72EC\u7ACB\u94FE\u63A5\u4E0E\u5206\u5C4F\u9884\u89C8\u7684\u7F29\u653E\u6ED1\u6761\u3001\u5F53\u524D\u767E\u5206\u6BD4\u548C\u52A0\u51CF\u6309\u94AE\uFF1B\u4E0E\u641C\u7D22\u9884\u89C8\u5171\u7528\u540C\u4E00\u5957\u6BD4\u4F8B\u63A7\u5236\u3002",
+          "\u6ED1\u6761\u3001\u952E\u76D8\u53CACtrl\u6EDA\u8F6E\u540C\u6B6550%\u2014150%\u6BD4\u4F8B\uFF0C\u6CBF\u7528\u539F\u6709\u8BB0\u5FC6\uFF1B\u7A84\u9762\u677F\u4FDD\u7559\u6ED1\u6761\u548C\u767E\u5206\u6BD4\uFF0C\u4E0D\u6324\u5360\u5173\u95ED\u53CA\u6253\u5F00\u6E90\u6587\u4EF6\u6309\u94AE\u3002",
+          "\u4FEE\u590D\u4E3B\u4FA7\u680F\u5206\u754C\u7EBF\u7A7F\u8FC7\u52A0\u5BBD\u9884\u89C8\u7684\u95EE\u9898\uFF1B\u62D6\u52A8\u8303\u56F4\u9650\u5B9A\u5728\u6240\u5C5E\u529F\u80FD\u533A\u57DF\u3002",
+          "\u94FE\u63A5\u9884\u89C8\u4EC5\u8986\u76D6\u5DE6\u4E0B\u89D2\u81EA\u8EAB\u533A\u57DF\uFF0C\u4E3B\u6587\u6863\u4FDD\u6301\u6B63\u5E38\u5BBD\u5EA6\uFF0C\u6536\u8D77\u4FA7\u680F\u540E\u4E0D\u518D\u7559\u4E0B\u6574\u5217\u7A7A\u767D\u3002"
+        ]
+      },
       {
         sequence: 2026092301,
         version: "2026.09.23.1",

@@ -20,13 +20,31 @@
   assert(!sidebar.querySelector('.workspace-link-preview [contenteditable=true]'),'侧栏只读');
   const geometry=()=>({dock:sidebar.getBoundingClientRect().toJSON(),editor:document.querySelector('.typ-workspace-root').getBoundingClientRect().toJSON(),panel:document.querySelector('#sidebar-content').getBoundingClientRect().toJSON(),shown:core.app.workspace.sidebar.isShown});
   assert(sidebar.parentElement===document.body,'链接预览独立挂载不属于功能侧栏');
+  const verify_scale=async(panel,label)=>{
+   const slider=panel.querySelector('[aria-label="预览字号比例"]'),output=panel.querySelector('.workspace-preview-scale-value');
+   assert(slider&&output,label+'有缩放滑条和百分比');
+   for(const percent of [50,80,125,150]){slider.value=String(percent);slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);assert(output.value===percent+'%'&&panel.querySelector('.workspace-lookup-preview').dataset.previewScale===String(percent),label+'比例同步 '+percent);}
+   const b=panel.getBoundingClientRect(),sb=slider.getBoundingClientRect(),ob=output.getBoundingClientRect();assert(sb.width>=48&&ob.width>=34&&sb.left>=b.left&&ob.right<=b.right+1,label+'滑条及百分比完整可见');
+   panel.querySelector('.workspace-lookup-preview-body').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:120,bubbles:true,cancelable:true}));await pause(40);assert(slider.value==='145'&&output.value==='145%',label+'滚轮同步');
+   slider.value='80';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(40);
+  };
+  await verify_scale(sidebar,'独立预览');
+  for(let i=0;i<20;i++)sidebar.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true}));await pause(100);
+  await verify_scale(sidebar,'170px窄预览');
+  for(let i=0;i<9;i++)sidebar.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));await pause(100);
+
   core.app.workspace.sidebar.hide();await pause(400);
   assert(!sidebar.hidden&&!core.app.workspace.sidebar.isShown,'收起功能侧栏仍保留独立预览');
-  assert(geometry().editor.left>=geometry().dock.right-2,'收起时编辑区避让预览');
+  assert(Math.abs(geometry().editor.left-geometry().dock.left)<=2,'收起时正文正常全宽不留空列');
+  assert(!sidebar.contains(document.elementFromPoint(geometry().dock.left+60,geometry().dock.top-60)),'预览上方不被预览占位');
   core.app.workspace.sidebar.show();await pause(400);
   assert(geometry().panel.bottom<=geometry().dock.top+2,'展开时功能面板不与预览重叠');
   const painted=()=>{const box=sidebar.getBoundingClientRect();return [10,box.width/2,box.width-14].every(x=>sidebar.contains(document.elementFromPoint(box.left+x,box.top+14)));};
   assert(painted(),'预览工具栏真实命中不被侧栏背景遮挡');
+  const editor_before=geometry().editor;for(let i=0;i<20;i++)sidebar.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',bubbles:true}));await pause(150);
+  const sash=document.querySelector('#typora-sidebar-resizer'),sb=sash.getBoundingClientRect(),db=geometry().dock;
+  assert(db.right>sb.right,'加宽预览跨过原侧栏边界');assert(sb.bottom<=db.top+1,'主侧栏竖线止于预览上方');assert(sidebar.contains(document.elementFromPoint(sb.left+3,db.top+80)),'旧分界线位置实际命中预览正文');
+  assert(Math.abs(geometry().editor.left-editor_before.left)<2&&Math.abs(geometry().editor.width-editor_before.width)<2,'预览改宽不挤动正文');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_dock_expanded'}));await pause(400);
   core.app.workspace.sidebar.hide();await pause(350);assert(painted(),'侧栏收起后预览工具栏仍可点击');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_dock_alone'}));await pause(400);core.app.workspace.sidebar.show();await pause(350);
@@ -34,7 +52,7 @@
   for(const zoom of [1,1.25,1.5]){
    reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);
    for(const edge of ['north','east','north-east']){const handle=sidebar.querySelector(`[data-edge="${edge}"]`),before=sidebar.getBoundingClientRect();handle.dispatchEvent(new KeyboardEvent('keydown',{key:edge==='north'?'ArrowUp':'ArrowRight',bubbles:true}));await pause(60);const after=sidebar.getBoundingClientRect();assert(edge==='north'?after.height>before.height:after.width>before.width,'原生预览尺寸调整 '+edge+' '+zoom);}
-   assert(geometry().editor.left>=geometry().dock.right-2,'缩放后编辑区保持避让 '+zoom);samples.push({preview_geometry:geometry(),zoom});
+   assert(Math.abs(geometry().editor.left-geometry().panel.right)<=2,'缩放后正文仅遵循功能侧栏宽度 '+zoom);samples.push({preview_geometry:geometry(),zoom});
   }
   reqnode('electron').webFrame.setZoomFactor(1);await pause(150);
   sidebar.querySelector('[aria-label="关闭链接预览"]').click();document.dispatchEvent(new Event('pointerup'));await pause(150);
@@ -50,6 +68,7 @@
    const a=source_leaf.view.containerEl.getBoundingClientRect(),b=leaf.view.containerEl.getBoundingClientRect();
    assert(direction===0?b.left>=a.right-2:b.top>=a.bottom-2,'真实编辑组方向正确'+i);
    assert(!leaf.view.containerEl.querySelector('[contenteditable=true]'),'分屏只读'+i);
+   if(i===0)await verify_scale(leaf.view.containerEl,'分屏预览');
    if(i===0){
     for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
      await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(250);
@@ -99,6 +118,7 @@
   assert(Math.abs(search_preview.offsetHeight-height_before_width)<2,'仅横向调整不改变搜索预览高度');
   window.dispatchEvent(new Event('resize'));await pause(100);assert(search_preview.getBoundingClientRect().width>search_before.width,'后续resize不回退搜索宽度');
   assert(sidebar.hidden,'搜索预览不恢复已关闭链接预览');
+  await verify_scale(search_preview,'搜索预览');
   assert(fs.readFileSync(source,'utf8')===text,'来源磁盘正文不变');
   samples.push({viewport:{width:innerWidth,height:innerHeight,dpi:devicePixelRatio,zoom:reqnode('electron').webFrame.getZoomFactor()},asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex')});
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,iterations:20,limits:'原生renderer选区/菜单；物理鼠标、其他系统及远端网页登录未覆盖'},null,2));

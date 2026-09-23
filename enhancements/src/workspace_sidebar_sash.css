@@ -11,3 +11,6 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .linux-note-sidebar-dragging,.linux-note-sidebar-dragging * { cursor:col-resize!important; user-select:none!important; }
 .linux-note-sidebar-dragging :is(#typora-sidebar,#top-titlebar,#typora-sidebar-resizer,content,footer.ty-footer,.typ-workspace-root) { transition:none!important; }
 .linux-note-sidebar-dragging #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] { background:#0078d4; }
+
+/* 功能侧栏在预览上方结束，分隔条同步限定到所属区域。 */
+body.has-workspace-link-preview #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important}

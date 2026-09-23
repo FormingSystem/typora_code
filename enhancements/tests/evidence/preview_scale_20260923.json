@@ -1,0 +1,415 @@
+{
+  "schema": 1,
+  "date": "2026-09-23",
+  "version": "2026.09.23.2",
+  "requirements": [
+    "R069.3",
+    "R069.4",
+    "R069.5",
+    "R025"
+  ],
+  "assets": {
+    "SHA256SUMS": "f059f3845700370a64b7d8881d3c174db33ec452af801f438fe9c31d0698b240",
+    "workbench.js": "19bcbcc54fcb51730cc725b8039904b875ef205acf023d8d7c380b84fba2dce6",
+    "workspace.css": "68c2edc1c5ebbfb08fba4db017fc234e70c697864faf463668f9e58a3fbe2a9c"
+  },
+  "checks": {
+    "full_check": "PASS",
+    "catalog_suites": 190,
+    "ui_suites": [
+      "test_workspace_preview_dock.cjs",
+      "test_workspace_sidebar_sash.cjs",
+      "test_workspace_link_preview.cjs",
+      "test_workspace_selection_search.cjs",
+      "test_workspace_lookup_preview.cjs"
+    ],
+    "native": {
+      "status": "PASS",
+      "count": 140,
+      "checks": [
+        "首次选择前未打开搜索侧栏",
+        "侧栏预览保留来源活动标签",
+        "侧栏预览保留原生选区",
+        "侧栏只读",
+        "链接预览独立挂载不属于功能侧栏",
+        "独立预览有缩放滑条和百分比",
+        "独立预览比例同步 50",
+        "独立预览比例同步 80",
+        "独立预览比例同步 125",
+        "独立预览比例同步 150",
+        "独立预览滑条及百分比完整可见",
+        "独立预览滚轮同步",
+        "170px窄预览有缩放滑条和百分比",
+        "170px窄预览比例同步 50",
+        "170px窄预览比例同步 80",
+        "170px窄预览比例同步 125",
+        "170px窄预览比例同步 150",
+        "170px窄预览滑条及百分比完整可见",
+        "170px窄预览滚轮同步",
+        "收起功能侧栏仍保留独立预览",
+        "收起时正文正常全宽不留空列",
+        "预览上方不被预览占位",
+        "展开时功能面板不与预览重叠",
+        "预览工具栏真实命中不被侧栏背景遮挡",
+        "加宽预览跨过原侧栏边界",
+        "主侧栏竖线止于预览上方",
+        "旧分界线位置实际命中预览正文",
+        "预览改宽不挤动正文",
+        "侧栏收起后预览工具栏仍可点击",
+        "原生预览尺寸调整 north 1",
+        "原生预览尺寸调整 east 1",
+        "原生预览尺寸调整 north-east 1",
+        "缩放后正文仅遵循功能侧栏宽度 1",
+        "原生预览尺寸调整 north 1.25",
+        "原生预览尺寸调整 east 1.25",
+        "原生预览尺寸调整 north-east 1.25",
+        "缩放后正文仅遵循功能侧栏宽度 1.25",
+        "原生预览尺寸调整 north 1.5",
+        "原生预览尺寸调整 east 1.5",
+        "原生预览尺寸调整 north-east 1.5",
+        "缩放后正文仅遵循功能侧栏宽度 1.5",
+        "关闭后释放预览占位且旧选区不复活",
+        "重新选择链接再次显示",
+        "原生右键含分屏动作0",
+        "真实编辑组方向正确0",
+        "分屏只读0",
+        "分屏预览有缩放滑条和百分比",
+        "分屏预览比例同步 50",
+        "分屏预览比例同步 80",
+        "分屏预览比例同步 125",
+        "分屏预览比例同步 150",
+        "分屏预览滑条及百分比完整可见",
+        "分屏预览滚轮同步",
+        "主题缩放工具按钮完整 Github/1",
+        "主题缩放工具按钮完整 Github/1.25",
+        "主题缩放工具按钮完整 Night/1",
+        "主题缩放工具按钮完整 Night/1.25",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1",
+        "主题缩放工具按钮完整 Cpp Github Consolas/1.25",
+        "源文件入口进入可编辑文档",
+        "原生长段落可捕获字符位置",
+        "原生边距重排保持当前字符",
+        "原生窗口缩放仍保留当前文字行",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确1",
+        "分屏只读1",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确2",
+        "分屏只读2",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确3",
+        "分屏只读3",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确4",
+        "分屏只读4",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确5",
+        "分屏只读5",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确6",
+        "分屏只读6",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确7",
+        "分屏只读7",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确8",
+        "分屏只读8",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确9",
+        "分屏只读9",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确10",
+        "分屏只读10",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确11",
+        "分屏只读11",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确12",
+        "分屏只读12",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确13",
+        "分屏只读13",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确14",
+        "分屏只读14",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确15",
+        "分屏只读15",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确16",
+        "分屏只读16",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确17",
+        "分屏只读17",
+        "阅读栏右键含分屏动作0",
+        "真实编辑组方向正确18",
+        "分屏只读18",
+        "阅读栏右键含分屏动作1",
+        "真实编辑组方向正确19",
+        "分屏只读19",
+        "20次关闭无残留预览标签",
+        "设置出现时没有遗留链接菜单",
+        "设置浮层跨越资源管理器独立布局",
+        "设置最大化保留16px边距",
+        "关闭自动链接预览立即隐藏阅读dock",
+        "右上关闭释放浮层",
+        "自动链接预览关闭不影响搜索侧栏",
+        "搜索预览角落调整高度",
+        "搜索预览宽度由主侧栏所有者精确保持",
+        "仅横向调整不改变搜索预览高度",
+        "后续resize不回退搜索宽度",
+        "搜索预览不恢复已关闭链接预览",
+        "搜索预览有缩放滑条和百分比",
+        "搜索预览比例同步 50",
+        "搜索预览比例同步 80",
+        "搜索预览比例同步 125",
+        "搜索预览比例同步 150",
+        "搜索预览滑条及百分比完整可见",
+        "搜索预览滚轮同步",
+        "来源磁盘正文不变"
+      ],
+      "samples": [
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48,
+              "y": 738.7999877929688,
+              "width": 480,
+              "height": 264.8000183105469,
+              "top": 738.7999877929688,
+              "right": 528,
+              "bottom": 1003.6000061035156,
+              "left": 48
+            },
+            "editor": {
+              "x": 287,
+              "y": 35,
+              "width": 1378.4000244140625,
+              "height": 968.6000366210938,
+              "top": 35,
+              "right": 1665.4000244140625,
+              "bottom": 1003.6000366210938,
+              "left": 287
+            },
+            "panel": {
+              "x": 48,
+              "y": 35,
+              "width": 239.1999969482422,
+              "height": 703.7999877929688,
+              "top": 35,
+              "right": 287.1999969482422,
+              "bottom": 738.7999877929688,
+              "left": 48
+            },
+            "shown": true
+          },
+          "zoom": 1
+        },
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48,
+              "y": 522.0800170898438,
+              "width": 500,
+              "height": 274.79998779296875,
+              "top": 522.0800170898438,
+              "right": 548,
+              "bottom": 796.8800048828125,
+              "left": 48
+            },
+            "editor": {
+              "x": 287,
+              "y": 35,
+              "width": 1045.1199951171875,
+              "height": 761.8800048828125,
+              "top": 35,
+              "right": 1332.1199951171875,
+              "bottom": 796.8800048828125,
+              "left": 287
+            },
+            "panel": {
+              "x": 48,
+              "y": 35,
+              "width": 239.36000061035156,
+              "height": 487.0799865722656,
+              "top": 35,
+              "right": 287.36000061035156,
+              "bottom": 522.0799865722656,
+              "left": 48
+            },
+            "shown": true
+          },
+          "zoom": 1.25
+        },
+        {
+          "preview_geometry": {
+            "dock": {
+              "x": 48.000003814697266,
+              "y": 374.2666931152344,
+              "width": 520,
+              "height": 284.8000183105469,
+              "top": 374.2666931152344,
+              "right": 568.0000038146973,
+              "bottom": 659.0667114257812,
+              "left": 48.000003814697266
+            },
+            "editor": {
+              "x": 287,
+              "y": 35,
+              "width": 822.933349609375,
+              "height": 624.0667114257812,
+              "top": 35,
+              "right": 1109.933349609375,
+              "bottom": 659.0667114257812,
+              "left": 287
+            },
+            "panel": {
+              "x": 48.000003814697266,
+              "y": 35,
+              "width": 239.4666748046875,
+              "height": 339.2666931152344,
+              "top": 35,
+              "right": 287.46667861938477,
+              "bottom": 374.2666931152344,
+              "left": 48.000003814697266
+            },
+            "shown": true
+          },
+          "zoom": 1.5
+        },
+        {
+          "theme": "Github",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Github",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Night",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(184, 191, 198)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1,
+          "toolbar": {
+            "width": 688.4000244140625,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "zoom": 1.25,
+          "toolbar": {
+            "width": 521.9199829101562,
+            "height": 26
+          },
+          "color": "rgb(51, 51, 51)"
+        },
+        {
+          "anchor_before": 294,
+          "anchor_after": 294,
+          "scroll": 28436,
+          "root_parent": "CONTENT",
+          "margin": "18",
+          "line_height": "25.6px"
+        },
+        {
+          "zoom_anchor_before": 294,
+          "zoom_anchor_after": 294,
+          "scroll": 45434.23828125,
+          "viewport": {
+            "x": 810.2000122070312,
+            "y": 92,
+            "width": 521.9199829101562,
+            "height": 707.8800048828125,
+            "top": 92,
+            "right": 1332.1199951171875,
+            "bottom": 799.8800048828125,
+            "left": 810.2000122070312
+          },
+          "point": "o"
+        },
+        {
+          "viewport": {
+            "width": 1666,
+            "height": 1034,
+            "dpi": 1.25,
+            "zoom": 1
+          },
+          "asset_sha256": "19bcbcc54fcb51730cc725b8039904b875ef205acf023d8d7c380b84fba2dce6"
+        }
+      ]
+    },
+    "pointer_tests": "44 assertions: real Chromium pointer capture at zoom 1/1.25/1.5; original sidebar sash present; 20 close/reselect cycles",
+    "isolated_install_uninstall": "PASS: public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/backups preserved",
+    "uninstall_regression": "65 assertions PASS",
+    "local_install": {
+      "version": "2026.09.23.2",
+      "installed_assets": [
+        35,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "initial_findings": [
+    "Selection search fixture still assumed the old search-owned link preview. It failed before independent dock was bound. Updated fixture to use production independent owner and verify concurrent search/close semantics; complete rerun passed.",
+    "Adding the production sidebar sash reproduced intercepted east-edge dragging before the fix. Restricting its vertical extent restored preview edge drag and prevented hit testing in preview content. Initial failure log retained.",
+    "Whole-column exclusion created the blank area shown by user. Removed exclusion state and editor/footer overrides per latest request; local preview overlays only its own rectangle."
+  ],
+  "limits": [
+    "Windows current host and private Typora 1.14.10; physical Windows 10 interactions not verified this round.",
+    "Preview text controls apply to Markdown and source; isolated web iframe has no ineffective local-text zoom control.",
+    "User windows were not restarted. Save warning on mere browsing remains deferred."
+  ],
+  "screenshots": {
+    "stage_preview_dock_alone_136612.png": "08e26ee2a074fc38062a87a2aafcf62b9a51a90f422df64cb3b5faa8ffd95e17",
+    "stage_preview_dock_expanded_136612.png": "db402b481db7b1ad3fdc5b29455ab3f9db926b144ce9bd4bdd760e54f98c68ad"
+  },
+  "logs": {
+    "preview_scale_build_final.log": "c743ef1da3aff6fd4d34828a138b2495eb59a8bc7aab9ee0982e296682de223c",
+    "preview_scale_check.log": "2055d4b460173d803a6e56a08a85976bf3097d5b24c02bb5707dfbf477a23b8c",
+    "preview_scale_catalog.log": "14766f0ccc5331ce6a22c40b926cf58e8cea62d3187f71cc1343c04f52fbc78e",
+    "preview_scale_ui_final.log": "c399880c1eb7e7e393e306060a02d6317fad974ef1afcf1a04bbcfd69a636f08",
+    "preview_scale_install_cycle.log": "ce7f7ec736e4e6fa4902a77f8e033495adef57b222f4db838445bdc3efe17246",
+    "preview_scale_uninstall.log": "775bd62b27d046b0210760364ce9acf62b114fd35e4964be7ffd5fc0f582b848",
+    "preview_scale_native_final.log": "9adeb043cd807e09a7744183f24bb01263a18d04d0a50959e2d5f8ddab44f28f",
+    "preview_scale_initial_ui.log": "b0f55e2a8c224c4f3820f69bce7b676fea2262981286a4e392a46baf4596bc22",
+    "preview_border_before.log": "eb8fdf79f0d03aacde6bdac913e5e44098bbeabbdc9af295e7cf6c59ce1d2397"
+  }
+}

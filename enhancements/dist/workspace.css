@@ -1847,13 +1847,11 @@ body .workspace-section-header > .workspace-section-actions {margin-right:0;}
 .workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
-/* 独立预览和主侧栏共享左列占位；收起主侧栏不会收起预览。 */
+/* 独立预览仅覆盖自己的矩形；主编辑区不为预览预留整列。 */
 .workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:2}
 .workspace-link-dock[hidden]{display:none}
 body.has-workspace-link-preview #typora-sidebar{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important;height:auto!important}
 body.has-workspace-link-preview #typora-sidebar > #sidebar-content{bottom:0!important}
-body.has-workspace-link-preview:not(.megamenu-opened):not(.show-preference-panel) :is(content,footer.ty-footer,.md-notification-container,#md-searchpanel){left:calc(var(--typ-ribbon-width,48px) + var(--workspace-preview-column))!important}
-body.has-workspace-link-preview div.typ-workspace-root{left:calc(var(--typ-ribbon-width,48px) + var(--workspace-preview-column));width:calc(100% - var(--typ-ribbon-width,48px) - var(--workspace-preview-column) - var(--typ-sidedock-width,0px))}
 body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility:hidden}
 .workspace-link-dock .workspace-link-preview-mode{display:none}
 .workspace-link-web{flex:1;width:100%;min-height:0;border:0;background:white}
@@ -1945,6 +1943,18 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-preview-sash[data-edge=north-east]{top:0;right:0;width:8px;height:8px;cursor:nesw-resize}
 .workspace-preview-sash:is(:hover,:focus-visible,.is-dragging){background:var(--workspace-focus-border,#007acc);outline:none}
 .workspace-search-preview-section{position:relative;max-width:100%}
+
+/* workspace_preview_scale.css */
+/* 沿用搜索预览既有尺寸；三种预览入口共用比例控制，不改变窗口缩放。 */
+.workspace-preview-scale-controls{display:flex;align-items:center;gap:0;flex:0 1 auto;min-width:0;margin-left:auto}
+.workspace-preview-scale-controls>.git-icon-button{display:inline-flex;align-items:center;flex:none;width:var(--linux-note-shell-action-size,22px);min-width:22px;height:var(--linux-note-shell-action-size,22px);justify-content:center;padding:3px;border:0;background:transparent;color:inherit}
+.workspace-preview-scale-controls>.workspace-preview-scale-slider{box-sizing:border-box;flex:0 1 80px;width:80px;min-width:48px;max-width:80px;height:22px;margin:0;padding:0!important;border:0!important;box-shadow:none!important;background:transparent;accent-color:#0078d4}
+.workspace-preview-scale-controls>.workspace-preview-scale-value{display:block;flex:none;min-width:34px;padding:0 2px;text-align:center;font-size:11px;font-variant-numeric:tabular-nums;color:inherit}
+.workspace-preview-scale-controls>button:disabled{opacity:.4;cursor:default;background:transparent}
+.workspace-link-preview-scale-row{display:flex;align-items:center;flex:none;min-height:var(--linux-note-shell-row-height,22px);width:100%;container-type:inline-size;container-name:workspace-preview-scale;box-shadow:inset 0 -1px #8883}
+.workspace-link-preview-scale-row[hidden]{display:none}
+@container workspace-preview-scale (max-width:230px){.workspace-preview-scale-controls>.git-icon-button{display:none}}
+@container workspace-search-preview (max-width:230px){.workspace-preview-scale-controls>.git-icon-button{display:none}}
 
 /* workspace_progress.css */
 .workspace-progress{position:relative;width:100%;height:2px;overflow:hidden;pointer-events:none;flex-shrink:0}
@@ -2113,12 +2123,6 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-search-preview-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; flex:0 0 var(--linux-note-shell-row-height,22px); min-height:var(--linux-note-shell-row-height,22px); min-width:0; width:100%; box-shadow:inset 0 -1px #8883; }
 .workspace-search-preview-heading button { display:inline-flex; align-items:center; gap:3px; height:var(--linux-note-shell-action-size,22px); padding:0 6px; border:0; background:transparent; }
 .workspace-search-preview-heading>button { flex:1; min-width:0; justify-content:flex-start; }
-.workspace-search-preview-actions { display:flex; align-items:center; gap:0; flex:0 1 auto; min-width:0; margin-left:auto; }
-.workspace-search-preview-actions>.git-icon-button { width:var(--linux-note-shell-action-size,22px); min-width:22px; justify-content:center; padding:3px; }
-.workspace-search-preview-actions>.workspace-search-preview-slider { box-sizing:border-box; flex:0 1 80px; width:80px; min-width:48px; max-width:80px; height:22px; margin:0; padding:0!important; border:0!important; box-shadow:none!important; background:transparent; accent-color:#0078d4; }
-.workspace-search-preview-actions>.workspace-search-preview-scale { flex:none; min-width:34px; padding:0 2px; text-align:center; font-size:11px; font-variant-numeric:tabular-nums; }
-.workspace-search-preview-actions>button:disabled { opacity:.4; cursor:default; background:transparent; }
-@container workspace-search-preview (max-width:230px) { .workspace-search-preview-actions>.git-icon-button { display:none; } }
 .workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }
 .workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }
 .workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }
@@ -2177,6 +2181,9 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .linux-note-sidebar-dragging,.linux-note-sidebar-dragging * { cursor:col-resize!important; user-select:none!important; }
 .linux-note-sidebar-dragging :is(#typora-sidebar,#top-titlebar,#typora-sidebar-resizer,content,footer.ty-footer,.typ-workspace-root) { transition:none!important; }
 .linux-note-sidebar-dragging #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] { background:#0078d4; }
+
+/* 功能侧栏在预览上方结束，分隔条同步限定到所属区域。 */
+body.has-workspace-link-preview #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important}
 
 /* workspace_tab_controls.css */
 /* VS Code 1.137.0 / 645f29c：modernUI/tabs.css、theme.ts、baseSizes.ts。
