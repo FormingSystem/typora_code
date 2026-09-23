@@ -35,7 +35,7 @@ for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"
 fs.mkdirSync('dist/assets/plugins',{recursive:true});
 fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
 fs.mkdirSync('dist/assets/remote',{recursive:true});
-for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py','remote_ssh_credentials.cjs'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
+for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py','remote_ssh_credentials.cjs','remote_ssh_wincred.ps1','remote_ssh_auth.cjs','remote_ssh_connections.cjs'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
 
 const bundle_result=await build({
   entryPoints: ["src/workspace_entry.ts"],

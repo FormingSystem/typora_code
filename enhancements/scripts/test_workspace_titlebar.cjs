@@ -9,7 +9,7 @@ app.whenReady().then(async()=>{
  await run(`const base=document.createElement('base');base.href='file:///E:/Typora/resources/window.html';document.head.prepend(base);void 0`);
  await win.webContents.insertCSS('img{box-sizing:border-box;border-left:2px solid transparent;border-right:4px solid transparent}img:not([height]){height:auto}');
  const core_path=path.join(__dirname,'../vendor/workspace_core');
- const bundle=await build({stdin:{contents:'export {install_workspace_titlebar} from "./src/workspace_titlebar";export {create_workspace_titlebar_menu} from "./src/workspace_titlebar_menu";export {read_titlebar_settings} from "./src/workspace_titlebar_settings";export {Settings} from "./vendor/workspace_core/src/settings/settings";export {default as shared_menu_css} from "./src/git_graph.css";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},write:false,format:'iife',globalName:'qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[{name:'titlebar-settings-fixture',setup(ctx){
+ const bundle=await build({stdin:{contents:'export {install_workspace_titlebar} from "./src/workspace_titlebar";export {register_remote_workspace_context} from "./src/remote_workspace_context";export {create_workspace_titlebar_menu} from "./src/workspace_titlebar_menu";export {read_titlebar_settings} from "./src/workspace_titlebar_settings";export {Settings} from "./vendor/workspace_core/src/settings/settings";export {default as shared_menu_css} from "./src/git_graph.css";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},write:false,format:'iife',globalName:'qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[{name:'titlebar-settings-fixture',setup(ctx){
   ctx.onResolve({filter:/^src\/common\/service$/},()=>({path:'service',namespace:'fixture'}));ctx.onResolve({filter:/^src\/utils$/},()=>({path:'utils',namespace:'fixture'}));
   ctx.onResolve({filter:/.*/,namespace:'fixture'},args=>path.isAbsolute(args.path)?{path:args.path,namespace:'file'}:undefined);
   ctx.onLoad({filter:/.*/,namespace:'fixture'},({path:entry})=>({contents:entry==='service'?'export function useService(){throw Error("unexpected service lookup");}':`export {Store} from ${JSON.stringify(path.join(core_path,'src/utils/store.ts'))};export {debounced} from ${JSON.stringify(path.join(core_path,'src/utils/decorator/debounced.ts'))};`,loader:'js'}));
@@ -40,6 +40,11 @@ app.whenReady().then(async()=>{
  assert.equal(await run(`document.querySelectorAll('.workspace-titlebar-popup').length`),0,'打开浏览器后关闭菜单');
  await run(`files.context_root=()=> 'D:/alternate_workspace';window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);
  assert.equal(await run('document.querySelector(".workspace-titlebar-search span").textContent'),'alternate_workspace','folder-only changes update the centered search label without a title or active editor change');
+ await run(`window.release_remote=qa.register_remote_workspace_context(()=>({target:'alice@server.test',username:'alice',name:'开发虚拟机 / 日常账号',port:2222,remote_path:'/home/alice',state:'connected'}));window.dispatchEvent(new Event('typora-code-remote-state-changed'));`);
+ assert.equal(await run('document.querySelector(".workspace-titlebar-search span").textContent'),'SSH: alice');
+ assert((await run('document.querySelector(".workspace-titlebar-search").title')).includes('开发虚拟机 / 日常账号'));
+ await run(`release_remote();window.dispatchEvent(new Event('linux-note-workspace-context-changed'));`);
+ assert.equal(await run('document.querySelector(".workspace-titlebar-search span").textContent'),'alternate_workspace');
  await run(`files.context_root=()=> 'D:/';window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);
  assert.equal(await run('document.querySelector(".workspace-titlebar-search span").textContent'),'D:/','drive root remains a visible search label when basename is empty');
  await run(`files.context_root=()=> 'D:/alternate_workspace';window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);

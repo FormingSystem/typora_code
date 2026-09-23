@@ -2016,6 +2016,30 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-ssh-body{flex:1;min-height:0;min-width:0;overflow:hidden;display:flex;flex-direction:column}.workspace-ssh-body>:is(.git-graph-document,.workspace-lookup-preview){flex:1;min-height:0}
 .workspace-ssh-document-status{overflow-wrap:anywhere}.workspace-ssh-auth-prompt{white-space:pre-wrap;overflow-wrap:anywhere}
 .workspace-ssh-git-status{flex:1;min-height:0;min-width:0;white-space:pre-wrap;overflow-wrap:anywhere;overflow:auto;font-family:var(--monospace);margin:0;padding:6px 12px}
+.workspace-ssh-directory{display:flex;flex-direction:column;min-height:100px;max-height:50%;flex:0 1 auto;border-bottom:1px solid var(--workspace-border-color,#8885)}
+.workspace-ssh-directory .workspace-ssh-title{gap:4px;padding:0 12px}
+.workspace-ssh-directory .workspace-ssh-title>span{flex:1}
+.workspace-ssh-directory input{box-sizing:border-box;margin:0 12px 6px;width:calc(100% - 24px);min-width:0}
+.workspace-ssh-connections{min-height:0;overflow:auto;padding:0 6px 6px}
+.workspace-ssh-host-title{display:flex;align-items:center;gap:6px;min-height:26px;padding:0 6px}
+.workspace-ssh-host-title>strong{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-weight:600}
+.workspace-ssh-sidebar .workspace-ssh-directory button{border:0;background:transparent}
+.workspace-ssh-account{display:flex;align-items:center;min-width:0;padding-left:16px}
+.workspace-ssh-account[data-active=true]{background:var(--active-file-bg-color,#8882);border-radius:4px}
+.workspace-ssh-sidebar .workspace-ssh-account-open{flex:1;min-width:0;display:flex;flex-direction:column;align-items:flex-start;text-align:left;padding:4px 6px}
+.workspace-ssh-account-open>span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.workspace-ssh-account-address,.workspace-ssh-hint{font-size:12px;opacity:.75}
+.workspace-ssh-account-state{font-size:11px}
+.workspace-ssh-directory button>svg{flex:none;width:16px;height:16px}
+.workspace-ssh-directory :is(.workspace-ssh-title,.workspace-ssh-host-title,.workspace-ssh-account)>button:not(.workspace-ssh-account-open){display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px}
+.workspace-ssh-empty{margin:8px 12px;opacity:.75}
+.workspace-ssh-quick{flex:none;margin:6px 12px}
+.workspace-ssh-quick>input{box-sizing:border-box;width:100%;margin:6px 0}
+.workspace-ssh-field{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;min-width:0}
+.workspace-ssh-field>input{box-sizing:border-box;width:100%;min-width:0;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid var(--workspace-border-color,#8885);padding:4px 6px}
+.workspace-ssh-message{white-space:pre-wrap;overflow-wrap:anywhere;min-height:1.4em}
+
+.workspace-ssh-sidebar>.workspace-ssh-toolbar button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;min-height:24px;padding:4px;border:0;background:transparent}
 
 /* workspace_scrollbars.css */
 /* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。

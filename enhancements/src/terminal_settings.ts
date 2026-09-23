@@ -2,7 +2,7 @@ import { terminal_environment, type terminal_profile } from "./terminal_runtime"
 import type {terminal_profile_service} from "./terminal_profile_detection";
 
 export const TERMINAL_SETTINGS_KEY = "linux-note-terminal:v1:";
-export type terminal_profile_config = terminal_profile & {env?: Record<string,string|null>; cwd?: string; icon?: string; color?: string; remote?:{target:string;remote_path:string}};
+export type terminal_profile_config = terminal_profile & {env?: Record<string,string|null>; cwd?: string; icon?: string; color?: string; remote?:{target:string;remote_path:string;port?:number}};
 export type terminal_settings = {
   profile: string; profiles: terminal_profile_config[]; cwd: string; env: Record<string,string|null>;
   font_family: string; font_size: number; font_weight: "normal"|"bold"; line_height: number; letter_spacing: number;

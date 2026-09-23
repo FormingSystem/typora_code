@@ -19,7 +19,7 @@ try{
  api.protect_remote_cache(root,path);release();assert.throws(()=>routed.statSync(file),/尚未重新连接/);checks.push('unregistered remote cache cannot turn into local workspace');
  if(process.platform==='win32'){
   const {create_credential_store}=require('../src/remote_ssh_credentials.cjs'),vault_root=path.join(root,'vault'),store=create_credential_store(vault_root),secret='fixture-'+crypto.randomUUID();await store.save('fixture',secret);
-  assert.equal(await create_credential_store(vault_root).read('fixture'),secret);assert.equal(fs.readFileSync(path.join(vault_root,fs.readdirSync(vault_root)[0])).includes(Buffer.from(secret)),false);await store.remove('fixture');assert.equal(await store.read('fixture'),undefined);checks.push('real Windows DPAPI encrypted storage independent reader and forget');
+  assert.equal(await create_credential_store(vault_root).read('fixture'),secret);assert.equal(fs.existsSync(vault_root),false,'new credentials do not create password files');await store.remove('fixture');assert.equal(await store.read('fixture'),undefined);checks.push('real Windows Credential Manager encrypted storage independent reader and forget');
  }
- console.log(JSON.stringify({status:'PASS',checks,writes,scope:'remote IO port fixture; real filesystem and Windows DPAPI'}));
+ console.log(JSON.stringify({status:'PASS',checks,writes,scope:'remote IO port fixture; real filesystem and Windows Credential Manager'}));
 }finally{release();if(path.dirname(root)!==path.resolve(os.tmpdir())||!path.basename(root).startsWith('typora-remote-contract-'))throw Error('fixture boundary');fs.rmSync(root,{recursive:true,force:true});}

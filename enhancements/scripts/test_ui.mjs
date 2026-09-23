@@ -22,6 +22,7 @@ const host_fixture_environment = Object.freeze([
 // Keep this list explicit. Each entry is an isolated hidden-Electron fixture that
 // creates its own temporary workspace and does not launch or modify real Typora.
 const ui_tests = Object.freeze([
+  "test_remote_ssh_directory.cjs",
   "test_reading_code_copy.cjs",
   "test_workspace_settings.cjs",
   "test_git_responsiveness.cjs",
@@ -114,6 +115,7 @@ const ui_tests = Object.freeze([
 // terminal runtime found in TYPORA_TEST_USER_DATA. Keep it outside the isolated
 // suite so `npm run check:ui` never depends on a Typora installation or profile.
 const excluded_ui_tests = new Map([
+  ["test_remote_ssh_accounts.cjs", "Node-only connection directory and credential isolation"],
   ["test_remote_ssh_service.cjs", "Node-only connection validation and lifecycle tests"],
   ["test_remote_ssh_live.cjs", "requires explicitly authorized SSH target and transient authentication"],
   ["test_workspace_clangd_outline.cjs", "requires installed clangd; run npm run check:clangd-ui"],

@@ -1,5 +1,6 @@
 'use strict';
-const child_process=require('node:child_process'),fs=require('node:fs'),path=require('node:path'),net=require('node:net'),crypto=require('node:crypto');
+const {create_ssh_auth}=require('./remote_ssh_auth.cjs');
+const child_process=require('node:child_process'),fs=require('node:fs'),path=require('node:path');
 
 function validate_target(target){
   if(typeof target!=='string'||!target||target.length>255||target.startsWith('-')||/\s/.test(target)||!/^([a-zA-Z0-9_.-]+@)?[a-zA-Z0-9_.:[\]-]+$/.test(target))throw Error('SSH主机应为配置别名或 user@hostname，不能包含命令参数。');
@@ -9,17 +10,18 @@ function connection_arguments(settings={},tty=false){
   const number=(key,fallback,min,max)=>{const value=settings[key]??fallback;if(!Number.isInteger(value)||value<min||value>max)throw Error('SSH配置无效：'+key);return value;};
   const args=[tty?'-tt':'-T','-o','ConnectTimeout='+number('connect_timeout',15,1,300),'-o','ServerAliveInterval='+number('server_alive_interval',15,0,300),'-o','ServerAliveCountMax='+number('server_alive_count',3,1,10),'-o','StrictHostKeyChecking=ask'];
   if(settings.config_file){if(typeof settings.config_file!=='string'||/[\0\r\n]/u.test(settings.config_file))throw Error('SSH配置文件路径无效');args.push('-F',settings.config_file);}
+  if(settings.port){if(!Number.isInteger(settings.port)||settings.port<1||settings.port>65535)throw Error('SSH端口无效');args.push('-p',String(settings.port));}
   return args;
 }
 
 /** OpenSSH拥有配置和认证；该服务只拥有有限JSON文件协议与连接生命周期。 */
 function create_remote_ssh(options){
-  let process_handle,auth_server,cancel_listen,disposed=false,serial=0,buffer='',diagnostic='',state='disconnected',generation=0;
-  const pending=new Map(),sockets=new Set();
+  let process_handle,auth_bridge,disposed=false,serial=0,buffer='',diagnostic='',state='disconnected',generation=0;
+  const pending=new Map();
   const notify=(value,detail='')=>{state=value;options.on_state?.({state,detail});};
   const close=(reason='SSH连接已断开')=>{
-    ++generation;cancel_listen?.();cancel_listen=undefined;process_handle?.kill();process_handle=undefined;
-    auth_server?.close();auth_server=undefined;for(const socket of sockets)socket.destroy();sockets.clear();
+    ++generation;process_handle?.kill();process_handle=undefined;
+    auth_bridge?.dispose();auth_bridge=undefined;
     for(const item of pending.values()){clearTimeout(item.timer);item.reject(Error(reason));}pending.clear();buffer='';
     notify('disconnected',reason);
   };
@@ -32,20 +34,14 @@ function create_remote_ssh(options){
   });
   const connect=async(target)=>{
     if(disposed)throw Error('SSH服务已关闭');if(state==='connecting')throw Error('正在连接SSH，请等待或取消。');validate_target(target);close('');const epoch=generation;
-    notify('connecting','正在连接SSH…');diagnostic='';const token=crypto.randomBytes(32).toString('hex');
-    const server=auth_server=net.createServer(socket=>{
-      sockets.add(socket);socket.on('close',()=>sockets.delete(socket));socket.on('error',()=>{});socket.setTimeout(120000,()=>socket.destroy());let input='',requested=false;
-      socket.on('data',chunk=>{input+=chunk;if(input.length>65536)return socket.destroy();if(requested||!input.includes('\n'))return;requested=true;
-        void(async()=>{try{const message=JSON.parse(input);if(message.token!==token)return socket.destroy();notify('connecting','等待SSH身份验证…');const answer=await options.authenticate(String(message.prompt),()=>epoch!==generation);if(epoch!==generation||typeof answer!=='string')return socket.destroy();socket.end(JSON.stringify({answer})+'\n');}catch{socket.destroy();}})();
-      });
-    });
+    notify('connecting','正在连接SSH…');diagnostic='';
     try {
-    await new Promise((resolve,reject)=>{cancel_listen=()=>reject(Error('已取消连接'));server.once('error',reject);server.listen(0,'127.0.0.1',()=>{cancel_listen=undefined;resolve();});});
-    if(epoch!==generation){server.close();throw Error('已取消连接');}
+    const bridge=await create_ssh_auth({asset_root:options.asset_root,node_path:options.node_path,authenticate:options.authenticate,is_current:()=>epoch===generation});
+    if(epoch!==generation){bridge.dispose();throw Error('已取消连接');}auth_bridge=bridge;
     const agent=fs.readFileSync(path.join(options.asset_root,'remote_ssh_agent.py'),'utf8');
     const code=Buffer.from(agent).toString('base64');
     const command=`python3 -u -c 'import base64;exec(base64.b64decode("${code}"))'`;
-    const env={...process.env,SSH_ASKPASS:options.node_path,SSH_ASKPASS_REQUIRE:'force',DISPLAY:'typora-code:0',NODE_OPTIONS:'--import '+JSON.stringify(require('node:url').pathToFileURL(path.join(options.asset_root,'remote_ssh_askpass.mjs')).href),TYPORA_SSH_AUTH_PORT:String(auth_server.address().port),TYPORA_SSH_AUTH_TOKEN:token};
+    const env={...process.env,...auth_bridge.env};
     const settings=options.connection_options?.()||{};
     process_handle=child_process.spawn(settings.ssh_path||options.ssh_path||'ssh',[...connection_arguments(settings),'-o','NumberOfPasswordPrompts=1',target,command],{env,windowsHide:true,stdio:['pipe','pipe','pipe']});
     const child=process_handle;
@@ -64,8 +60,14 @@ function create_remote_ssh(options){
 /** 固定启动协议；远程目录只能作为单引号参数，不能展开本机配置模板。 */
 function remote_terminal_profile(target,remote_path,executable,settings={}){
   validate_target(target);
-  if(typeof remote_path!=='string'||!remote_path.startsWith('/')||remote_path.includes('\0')||remote_path.length>32768)throw Error('远程工作目录必须是绝对路径。');
+  if(typeof remote_path!=='string'||(remote_path!==''&&!remote_path.startsWith('/'))||remote_path.includes('\0')||remote_path.length>32768)throw Error('远程工作目录必须是绝对路径。');
   const quoted="'"+remote_path.replace(/'/g,"'\\''")+"'";
-  return {id:'ssh_remote',title:'SSH: '+target,remote:{target,remote_path},executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,'cd -- '+quoted+' && exec "${SHELL:-/bin/sh}" -l']};
+  return {id:'ssh_remote',title:'SSH: '+target,remote:{target,remote_path,port:settings.port||0},executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,(remote_path?'cd -- '+quoted+' && ':'')+'exec "${SHELL:-/bin/sh}" -l']};
 }
-module.exports={validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments};
+async function resolve_connection_identity(target,settings={}){
+ validate_target(target);const result=await new Promise((resolve,reject)=>child_process.execFile(settings.ssh_path||'ssh',['-G',...connection_arguments(settings),target],{windowsHide:true,timeout:15000,maxBuffer:1048576},(error,stdout)=>error?reject(Error('无法读取SSH连接配置，请检查主机和SSH程序。')):resolve(stdout)));
+ const fields={};for(const line of result.split(/\r?\n/)){const match=/^(hostname|user|port) (.+)$/.exec(line);if(match)fields[match[1]]=match[2];}
+ if(!fields.hostname||!fields.user||!fields.port)throw Error('SSH未返回完整连接身份');
+ return{...fields,key:JSON.stringify([fields.hostname.toLowerCase(),fields.port,fields.user,settings.config_file||''])};
+}
+module.exports={validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments,resolve_connection_identity};

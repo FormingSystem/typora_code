@@ -10998,17 +10998,17 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return void 0;
   }
-  function formatOwner(owner) {
-    const id = ownerId.get(owner);
+  function formatOwner(owner2) {
+    const id = ownerId.get(owner2);
     if (id) {
       return id;
     }
-    const className2 = getClassName(owner) ?? "Object";
+    const className2 = getClassName(owner2) ?? "Object";
     let count = countPerClassName.get(className2) ?? 0;
     count++;
     countPerClassName.set(className2, count);
     const result = count === 1 ? className2 : "".concat(className2, "#").concat(count);
-    ownerId.set(owner, result);
+    ownerId.set(owner2, result);
     return result;
   }
   function getClassName(obj) {
@@ -11032,8 +11032,8 @@ https://creativecommons.org/licenses/by/4.0/
   var init_debugName = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/observableInternal/debugName.js"() {
       DebugNameData = class {
-        constructor(owner, debugNameSource, referenceFn) {
-          this.owner = owner;
+        constructor(owner2, debugNameSource, referenceFn) {
+          this.owner = owner2;
           this.debugNameSource = debugNameSource;
           this.referenceFn = referenceFn;
         }
@@ -11077,10 +11077,10 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         map(fnOrOwner, fnOrUndefined, debugLocation = DebugLocation.ofCaller()) {
-          const owner = fnOrUndefined === void 0 ? void 0 : fnOrOwner;
+          const owner2 = fnOrUndefined === void 0 ? void 0 : fnOrOwner;
           const fn2 = fnOrUndefined === void 0 ? fnOrOwner : fnOrUndefined;
           return _derived({
-            owner,
+            owner: owner2,
             debugName: () => {
               const name = getFunctionName(fn2);
               if (name !== void 0) {
@@ -11091,7 +11091,7 @@ https://creativecommons.org/licenses/by/4.0/
               if (match2) {
                 return "".concat(this.debugName, ".").concat(match2[2]);
               }
-              if (!owner) {
+              if (!owner2) {
                 return "".concat(this.debugName, " (mapped)");
               }
               return void 0;
@@ -11494,24 +11494,24 @@ https://creativecommons.org/licenses/by/4.0/
       debugLocation
     );
   }
-  function derivedWithSetter(owner, computeFn, setter, debugLocation = DebugLocation.ofCaller()) {
-    return new DerivedWithSetter(new DebugNameData(owner, void 0, computeFn), computeFn, void 0, void 0, strictEquals, setter, debugLocation);
+  function derivedWithSetter(owner2, computeFn, setter, debugLocation = DebugLocation.ofCaller()) {
+    return new DerivedWithSetter(new DebugNameData(owner2, void 0, computeFn), computeFn, void 0, void 0, strictEquals, setter, debugLocation);
   }
   function derivedOpts(options2, computeFn, debugLocation = DebugLocation.ofCaller()) {
     return new Derived(new DebugNameData(options2.owner, options2.debugName, options2.debugReferenceFn), computeFn, void 0, options2.onLastObserverRemoved, options2.equalsFn ?? strictEquals, debugLocation);
   }
   function derivedDisposable(computeFnOrOwner, computeFnOrUndefined, debugLocation = DebugLocation.ofCaller()) {
     let computeFn;
-    let owner;
+    let owner2;
     if (computeFnOrUndefined === void 0) {
       computeFn = computeFnOrOwner;
-      owner = void 0;
+      owner2 = void 0;
     } else {
-      owner = computeFnOrOwner;
+      owner2 = computeFnOrOwner;
       computeFn = computeFnOrUndefined;
     }
     let store = void 0;
-    return new Derived(new DebugNameData(owner, void 0, computeFn), (r4) => {
+    return new Derived(new DebugNameData(owner2, void 0, computeFn), (r4) => {
       if (!store) {
         store = new DisposableStore();
       } else {
@@ -12015,16 +12015,16 @@ https://creativecommons.org/licenses/by/4.0/
 
   // node_modules/monaco-editor/esm/vs/base/common/observableInternal/observables/observableFromEvent.js
   function observableFromEvent(...args) {
-    let owner;
+    let owner2;
     let event;
     let getValue;
     let debugLocation;
     if (args.length === 2) {
       [event, getValue] = args;
     } else {
-      [owner, event, getValue, debugLocation] = args;
+      [owner2, event, getValue, debugLocation] = args;
     }
-    return new FromEventObservable(new DebugNameData(owner, void 0, getValue), event, getValue, () => FromEventObservable.globalTransaction, strictEquals, debugLocation ?? DebugLocation.ofCaller());
+    return new FromEventObservable(new DebugNameData(owner2, void 0, getValue), event, getValue, () => FromEventObservable.globalTransaction, strictEquals, debugLocation ?? DebugLocation.ofCaller());
   }
   function observableFromEventOpts(options2, event, getValue, debugLocation = DebugLocation.ofCaller()) {
     return new FromEventObservable(new DebugNameData(options2.owner, options2.debugName, options2.debugReferenceFn ?? getValue), event, getValue, () => options2.getTransaction?.() ?? FromEventObservable.globalTransaction, options2.equalsFn ?? strictEquals, debugLocation);
@@ -12189,9 +12189,9 @@ https://creativecommons.org/licenses/by/4.0/
       observable.removeObserver(o2);
     });
   }
-  function derivedObservableWithCache(owner, computeFn) {
+  function derivedObservableWithCache(owner2, computeFn) {
     let lastValue = void 0;
-    const observable = derivedOpts({ owner, debugReferenceFn: computeFn }, (reader) => {
+    const observable = derivedOpts({ owner: owner2, debugReferenceFn: computeFn }, (reader) => {
       lastValue = computeFn(reader, lastValue);
       return lastValue;
     });
@@ -54752,32 +54752,32 @@ https://creativecommons.org/licenses/by/4.0/
           this._byResource = new ResourceMap();
           this._byOwner = /* @__PURE__ */ new Map();
         }
-        set(resource, owner, value) {
+        set(resource, owner2, value) {
           let ownerMap = this._byResource.get(resource);
           if (!ownerMap) {
             ownerMap = /* @__PURE__ */ new Map();
             this._byResource.set(resource, ownerMap);
           }
-          ownerMap.set(owner, value);
-          let resourceMap = this._byOwner.get(owner);
+          ownerMap.set(owner2, value);
+          let resourceMap = this._byOwner.get(owner2);
           if (!resourceMap) {
             resourceMap = new ResourceMap();
-            this._byOwner.set(owner, resourceMap);
+            this._byOwner.set(owner2, resourceMap);
           }
           resourceMap.set(resource, value);
         }
-        get(resource, owner) {
+        get(resource, owner2) {
           const ownerMap = this._byResource.get(resource);
-          return ownerMap?.get(owner);
+          return ownerMap?.get(owner2);
         }
-        delete(resource, owner) {
+        delete(resource, owner2) {
           let removedA = false;
           let removedB = false;
           const ownerMap = this._byResource.get(resource);
           if (ownerMap) {
-            removedA = ownerMap.delete(owner);
+            removedA = ownerMap.delete(owner2);
           }
-          const resourceMap = this._byOwner.get(owner);
+          const resourceMap = this._byOwner.get(owner2);
           if (resourceMap) {
             removedB = resourceMap.delete(resource);
           }
@@ -54865,30 +54865,30 @@ https://creativecommons.org/licenses/by/4.0/
           this._stats.dispose();
           this._onMarkerChanged.dispose();
         }
-        remove(owner, resources) {
+        remove(owner2, resources) {
           for (const resource of resources || []) {
-            this.changeOne(owner, resource, []);
+            this.changeOne(owner2, resource, []);
           }
         }
-        changeOne(owner, resource, markerData) {
+        changeOne(owner2, resource, markerData) {
           if (isFalsyOrEmpty(markerData)) {
-            const removed = this._data.delete(resource, owner);
+            const removed = this._data.delete(resource, owner2);
             if (removed) {
               this._onMarkerChanged.fire([resource]);
             }
           } else {
             const markers = [];
             for (const data of markerData) {
-              const marker = _MarkerService._toMarker(owner, resource, data);
+              const marker = _MarkerService._toMarker(owner2, resource, data);
               if (marker) {
                 markers.push(marker);
               }
             }
-            this._data.set(resource, owner, markers);
+            this._data.set(resource, owner2, markers);
             this._onMarkerChanged.fire([resource]);
           }
         }
-        static _toMarker(owner, resource, data) {
+        static _toMarker(owner2, resource, data) {
           let { code, severity, message, source, startLineNumber, startColumn, endLineNumber, endColumn, relatedInformation, modelVersionId, tags, origin } = data;
           if (!message) {
             return void 0;
@@ -54899,7 +54899,7 @@ https://creativecommons.org/licenses/by/4.0/
           endColumn = endColumn > 0 ? endColumn : startColumn;
           return {
             resource,
-            owner,
+            owner: owner2,
             code,
             severity,
             message,
@@ -54914,22 +54914,22 @@ https://creativecommons.org/licenses/by/4.0/
             origin
           };
         }
-        changeAll(owner, data) {
+        changeAll(owner2, data) {
           const changes = [];
-          const existing = this._data.values(owner);
+          const existing = this._data.values(owner2);
           if (existing) {
             for (const data2 of existing) {
               const first = Iterable.first(data2);
               if (first) {
                 changes.push(first.resource);
-                this._data.delete(first.resource, owner);
+                this._data.delete(first.resource, owner2);
               }
             }
           }
           if (isNonEmptyArray(data)) {
             const groups = new ResourceMap();
             for (const { resource, marker: markerData } of data) {
-              const marker = _MarkerService._toMarker(owner, resource, markerData);
+              const marker = _MarkerService._toMarker(owner2, resource, markerData);
               if (!marker) {
                 continue;
               }
@@ -54942,7 +54942,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             for (const [resource, value] of groups) {
-              this._data.set(resource, owner, value);
+              this._data.set(resource, owner2, value);
             }
           }
           if (changes.length > 0) {
@@ -54966,17 +54966,17 @@ https://creativecommons.org/licenses/by/4.0/
           };
         }
         read(filter = /* @__PURE__ */ Object.create(null)) {
-          let { owner, resource, severities, take } = filter;
+          let { owner: owner2, resource, severities, take } = filter;
           if (!take || take < 0) {
             take = -1;
           }
-          if (owner && resource) {
+          if (owner2 && resource) {
             const reasons = !filter.ignoreResourceFilters ? this._filteredResources.get(resource) : void 0;
             if (reasons?.length) {
               const infoMarker = this._createFilteredMarker(resource, reasons);
               return [infoMarker];
             }
-            const data = this._data.get(resource, owner);
+            const data = this._data.get(resource, owner2);
             if (!data) {
               return [];
             }
@@ -54994,7 +54994,7 @@ https://creativecommons.org/licenses/by/4.0/
             }
             return result;
           } else {
-            const iterable = !owner && !resource ? this._data.values() : this._data.values(resource ?? owner);
+            const iterable = !owner2 && !resource ? this._data.values() : this._data.values(resource ?? owner2);
             const result = [];
             const filtered = new ResourceSet();
             for (const markers of iterable) {
@@ -61264,7 +61264,7 @@ https://creativecommons.org/licenses/by/4.0/
             this._markerDecorations.delete(model.uri);
           }
           if (model.uri.scheme === Schemas.inMemory || model.uri.scheme === Schemas.internal || model.uri.scheme === Schemas.vscode) {
-            this._markerService?.read({ resource: model.uri }).map((marker) => marker.owner).forEach((owner) => this._markerService.remove(owner, [model.uri]));
+            this._markerService?.read({ resource: model.uri }).map((marker) => marker.owner).forEach((owner2) => this._markerService.remove(owner2, [model.uri]));
           }
         }
         _updateDecorations(markerDecorations) {
@@ -134633,8 +134633,8 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/base/common/observableInternal/observables/observableSignalFromEvent.js
-  function observableSignalFromEvent(owner, event, debugLocation = DebugLocation.ofCaller()) {
-    return new FromEventObservableSignal(typeof owner === "string" ? owner : new DebugNameData(owner, void 0, void 0), event, debugLocation);
+  function observableSignalFromEvent(owner2, event, debugLocation = DebugLocation.ofCaller()) {
+    return new FromEventObservableSignal(typeof owner2 === "string" ? owner2 : new DebugNameData(owner2, void 0, void 0), event, debugLocation);
   }
   var FromEventObservableSignal;
   var init_observableSignalFromEvent = __esm({
@@ -137528,8 +137528,8 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/base/common/observableInternal/experimental/utils.js
-  function derivedConstOnceDefined(owner, fn2) {
-    return derivedObservableWithCache(owner, (reader, lastValue) => lastValue ?? fn2(reader));
+  function derivedConstOnceDefined(owner2, fn2) {
+    return derivedObservableWithCache(owner2, (reader, lastValue) => lastValue ?? fn2(reader));
   }
   var init_utils6 = __esm({
     "node_modules/monaco-editor/esm/vs/base/common/observableInternal/experimental/utils.js"() {
@@ -140970,15 +140970,15 @@ https://creativecommons.org/licenses/by/4.0/
     const languageId = languageService.getLanguageIdByMimeType(mimeTypeOrLanguageId) || mimeTypeOrLanguageId || PLAINTEXT_LANGUAGE_ID;
     model.setLanguage(languageService.createById(languageId));
   }
-  function setModelMarkers(model, owner, markers) {
+  function setModelMarkers(model, owner2, markers) {
     if (model) {
       const markerService = StandaloneServices.get(IMarkerService);
-      markerService.changeOne(owner, model.uri, markers);
+      markerService.changeOne(owner2, model.uri, markers);
     }
   }
-  function removeAllMarkers(owner) {
+  function removeAllMarkers(owner2) {
     const markerService = StandaloneServices.get(IMarkerService);
-    markerService.changeAll(owner, []);
+    markerService.changeAll(owner2, []);
   }
   function getModelMarkers(filter) {
     const markerService = StandaloneServices.get(IMarkerService);
@@ -158303,17 +158303,17 @@ https://creativecommons.org/licenses/by/4.0/
           consume(event);
           return;
         }
-        const owner = top();
-        if (!owner) return;
+        const owner2 = top();
+        if (!owner2) return;
         consume(event);
-        if (!event.repeat) pending = owner;
+        if (!event.repeat) pending = owner2;
       };
       const keyup = (event) => {
         if (event.key !== "Escape" || !pending) return;
-        const owner = pending;
+        const owner2 = pending;
         pending = void 0;
         consume(event);
-        if (!event.isComposing && top() === owner && stack.includes(owner)) cancel_record(owner, "escape");
+        if (!event.isComposing && top() === owner2 && stack.includes(owner2)) cancel_record(owner2, "escape");
         cleanup();
       };
       const down = (event, pointer) => {
@@ -158324,15 +158324,15 @@ https://creativecommons.org/licenses/by/4.0/
         }
         window.clearTimeout(gesture_timer);
         gesture_timer = void 0;
-        const owner = top();
-        gesture = { owner, button: event.button, pointer, dismissed: false, consumed: false };
-        if (!owner || owner.options.outside === false) return;
-        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner, node));
+        const owner2 = top();
+        gesture = { owner: owner2, button: event.button, pointer, dismissed: false, consumed: false };
+        if (!owner2 || owner2.options.outside === false) return;
+        const hit = event.composedPath().some((node) => node instanceof Element && inside(owner2, node));
         if (!hit) {
           gesture.dismissed = true;
-          gesture.consumed = owner.options.consume_outside === true;
+          gesture.consumed = owner2.options.consume_outside === true;
           if (gesture.consumed) consume(event);
-          cancel_record(owner, "outside");
+          cancel_record(owner2, "outside");
         }
       };
       const swallow = (event) => {
@@ -158362,14 +158362,14 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const focus_changed = () => {
         if (dismissing) return;
-        const owner = top();
-        if (!owner) return;
-        if (inside(owner, active_element())) owner.focused = true;
+        const owner2 = top();
+        if (!owner2) return;
+        if (inside(owner2, active_element())) owner2.focused = true;
         queueMicrotask(() => {
-          if (dismissing || top() !== owner || !stack.includes(owner) || !owner.focused || owner.options.focus_out === false) return;
-          if (gesture && (gesture.dismissed || gesture.owner !== owner)) return;
-          if (active_element() === document.body || active_element() === document.documentElement || inside(owner, active_element())) return;
-          cancel_record(owner, "focus-out");
+          if (dismissing || top() !== owner2 || !stack.includes(owner2) || !owner2.focused || owner2.options.focus_out === false) return;
+          if (gesture && (gesture.dismissed || gesture.owner !== owner2)) return;
+          if (active_element() === document.body || active_element() === document.documentElement || inside(owner2, active_element())) return;
+          cancel_record(owner2, "focus-out");
           cleanup();
         });
       };
@@ -158378,8 +158378,8 @@ https://creativecommons.org/licenses/by/4.0/
         window.clearTimeout(gesture_timer);
         gesture_timer = void 0;
         gesture = void 0;
-        const owner = top();
-        if (owner?.options.window_blur) cancel_record(owner, "window-blur");
+        const owner2 = top();
+        if (owner2?.options.window_blur) cancel_record(owner2, "window-blur");
         cleanup();
       };
       runtime2[service_key] = { add(record) {
@@ -158409,7 +158409,7 @@ https://creativecommons.org/licenses/by/4.0/
     const link3 = document.getElementById(WORKSPACE_STYLESHEET_ID);
     return link3 instanceof HTMLLinkElement && link3.rel === "stylesheet" && !link3.disabled;
   }
-  function acquire_workspace_style(id, css, attributes = {}, owner) {
+  function acquire_workspace_style(id, css, attributes = {}, owner2) {
     if (workspace_styles_preloaded()) {
       const link3 = document.getElementById(WORKSPACE_STYLESHEET_ID);
       if (!link3.sheet) throw new Error("Typora Code workspace stylesheet is not loaded.");
@@ -158440,9 +158440,9 @@ https://creativecommons.org/licenses/by/4.0/
         owned.delete(id);
       }
     } };
-    if (owner) {
+    if (owner2) {
       observer2 = new MutationObserver(() => {
-        if (!owner.isConnected) handle.remove();
+        if (!owner2.isConnected) handle.remove();
       });
       observer2.observe(document.documentElement, { childList: true, subtree: true });
     }
@@ -160624,21 +160624,21 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/reading_viewport.ts
-  function reading_viewport_bounds(owner) {
-    const rect = owner.getBoundingClientRect();
-    const view = owner.ownerDocument.defaultView;
-    const client_left = rect.left + owner.clientLeft;
-    const client_top = rect.top + owner.clientTop;
+  function reading_viewport_bounds(owner2) {
+    const rect = owner2.getBoundingClientRect();
+    const view = owner2.ownerDocument.defaultView;
+    const client_left = rect.left + owner2.clientLeft;
+    const client_top = rect.top + owner2.clientTop;
     const left = Math.max(0, client_left);
     let top = Math.max(0, client_top);
-    const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
-    let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
-    for (const header of owner.ownerDocument.querySelectorAll(".workspace-tab-strip,.workspace-breadcrumbs")) {
+    const right = Math.min(rect.right, client_left + owner2.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner2.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const header of owner2.ownerDocument.querySelectorAll(".workspace-tab-strip,.workspace-breadcrumbs")) {
       const box = header.getBoundingClientRect(), style = view?.getComputedStyle(header);
       if (!header.isConnected || header.hidden || box.width <= 0 || box.height <= 0 || style?.visibility === "hidden" || style?.display === "none" || Number(style?.opacity) === 0 || box.right <= left || box.left >= right || box.top > top + 1 || box.bottom <= top || box.bottom >= bottom) continue;
       top = box.bottom;
     }
-    for (const footer of owner.ownerDocument.querySelectorAll("footer.ty-footer")) {
+    for (const footer of owner2.ownerDocument.querySelectorAll("footer.ty-footer")) {
       const footer_rect = footer.getBoundingClientRect();
       if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
       let visible3 = true;
@@ -161282,7 +161282,7 @@ https://creativecommons.org/licenses/by/4.0/
   var meta_selector = ".md-meta,.md-content";
   var forbidden_selector = ".CodeMirror,.md-math,.md-inline-math,.md-image,.md-fences,.md-rawblock,script,style,textarea,input";
   var clone = (value) => JSON.parse(JSON.stringify(value));
-  function capture_text_color(runtime2, owner) {
+  function capture_text_color(runtime2, owner2) {
     const file = runtime2.File, e = file?.editor, root = document.querySelector("#write"), s15 = window.getSelection();
     if (!e?.undo?.UndoManager?.buildReplaceUndo || !e.contextMenu?.hide || !file?.bundle || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || !root || !s15 || s15.isCollapsed || s15.rangeCount !== 1) return;
     const range2 = s15.getRangeAt(0);
@@ -161356,11 +161356,11 @@ https://creativecommons.org/licenses/by/4.0/
       blocks2.push({ id, table_id: block3.closest('[mdtype="table"][cid]')?.getAttribute("cid") || void 0, source, runs, cuts, selected });
     }
     if (!blocks2.length) return;
-    return { editor: e, bundle: file.bundle, owner, markdown: e.getMarkdown(), cursor: clone(cursor), blocks: blocks2 };
+    return { editor: e, bundle: file.bundle, owner: owner2, markdown: e.getMarkdown(), cursor: clone(cursor), blocks: blocks2 };
   }
-  function apply_text_color(runtime2, owner, snapshot, color) {
+  function apply_text_color(runtime2, owner2, snapshot, color) {
     const e = snapshot.editor, file = runtime2.File;
-    if (!file || file.editor !== e || file.bundle !== snapshot.bundle || owner !== snapshot.owner || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || e.getMarkdown() !== snapshot.markdown) throw new Error("\u6587\u6863\u6216\u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u4E2D\u6587\u5B57\u540E\u8BBE\u7F6E\u989C\u8272\u3002");
+    if (!file || file.editor !== e || file.bundle !== snapshot.bundle || owner2 !== snapshot.owner || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || e.getMarkdown() !== snapshot.markdown) throw new Error("\u6587\u6863\u6216\u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u4E2D\u6587\u5B57\u540E\u8BBE\u7F6E\u989C\u8272\u3002");
     const changes = snapshot.blocks.map((block3) => {
       const node = e.getNode(block3.id);
       if (!node || node.get("text") !== block3.source) throw new Error("\u6BB5\u843D\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u62E9\u3002");
@@ -161502,7 +161502,7 @@ https://creativecommons.org/licenses/by/4.0/
     const block3 = menu.querySelector('[data-key="block-style"]');
     menu.insertBefore(item, block3);
     const interaction = acquire_workspace_interaction(item);
-    const owner = () => core.app.workspace.activeLeaf;
+    const owner2 = () => core.app.workspace.activeLeaf;
     const fail = (error) => {
       new core.Notice(error instanceof Error ? error.message : String(error), 3500);
     };
@@ -161514,7 +161514,7 @@ https://creativecommons.org/licenses/by/4.0/
       item.classList.add("hide");
       const element = target || (event.target instanceof Element ? event.target : null);
       if (element?.closest("#write")) try {
-        snapshot = capture_text_color(runtime2, owner());
+        snapshot = capture_text_color(runtime2, owner2());
       } catch (error) {
         reason = error instanceof Error ? error.message : String(error);
       }
@@ -161538,7 +161538,7 @@ https://creativecommons.org/licenses/by/4.0/
       e.contextMenu.hide();
       dialog2?.close();
       const restore = (restore_focus) => {
-        if (restore_focus && runtime2.File?.bundle === selection.bundle && owner() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
+        if (restore_focus && runtime2.File?.bundle === selection.bundle && owner2() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
       };
       const panel = dialog2 = workspace_dialog("\u5B57\u4F53\u989C\u8272", "\u53D6\u6D88", restore);
       panel.root.classList.add("workspace-color-dialog");
@@ -161549,7 +161549,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (color) color = normalize_text_color(color);
           panel.close();
           dialog2 = void 0;
-          apply_text_color(runtime2, owner(), selection, color);
+          apply_text_color(runtime2, owner2(), selection, color);
           theme2.refresh();
         } catch (error) {
           fail(error);
@@ -161933,21 +161933,21 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
   function workspace_resource_fs(native_fs) {
-    const route = (owner, key2, promise) => {
-      const original = owner[key2];
+    const route = (owner2, key2, promise) => {
+      const original = owner2[key2];
       return (...args) => {
         const provider = typeof args[0] === "string" ? remote_files_for(args[0]) : void 0;
         if (!provider) {
           assert_remote_owner(args[0]);
-          return original.apply(owner, args);
+          return original.apply(owner2, args);
         }
         const method = (promise ? provider.fs.promises : provider.fs)[key2];
         if (!method) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u652F\u6301\u6B64\u64CD\u4F5C\uFF1A" + key2);
         return method(...args);
       };
     };
-    const promises = new Proxy(native_fs.promises, { get: (owner, key2) => typeof owner[key2] === "function" ? route(owner, key2, true) : owner[key2] });
-    return new Proxy(native_fs, { get: (owner, key2) => key2 === "promises" ? promises : typeof owner[key2] === "function" ? route(owner, key2, false) : owner[key2] });
+    const promises = new Proxy(native_fs.promises, { get: (owner2, key2) => typeof owner2[key2] === "function" ? route(owner2, key2, true) : owner2[key2] });
+    return new Proxy(native_fs, { get: (owner2, key2) => key2 === "promises" ? promises : typeof owner2[key2] === "function" ? route(owner2, key2, false) : owner2[key2] });
   }
 
   // src/file_language.ts
@@ -185574,13 +185574,13 @@ https://creativecommons.org/licenses/by/4.0/
     const host = parse_url(config.host);
     if (!["https:", "http:"].includes(host.protocol) || host.username || host.password || host.search || host.hash) throw new Error(git_graph_text("pr.error.host_invalid"));
     const root = config.host.replace(/\/+$/u, "");
-    const owner = (value) => value.split("/").map(encodeURIComponent).join("/");
+    const owner2 = (value) => value.split("/").map(encodeURIComponent).join("/");
     const fields = [
       root,
-      owner(config.source_owner),
+      owner2(config.source_owner),
       encodeURIComponent(config.source_repository),
       encodeURIComponent(branch),
-      owner(config.destination_owner),
+      owner2(config.destination_owner),
       encodeURIComponent(config.destination_repository),
       encodeURIComponent(config.destination_project),
       encodeURIComponent(config.destination_branch)
@@ -186569,16 +186569,33 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/terminal_state.ts
-  var readers = /* @__PURE__ */ new WeakMap();
-  function bind_terminal_state(owner, read2) {
-    readers.set(owner, read2);
+  // src/remote_ssh_auth_context.ts
+  var owner;
+  function register_ssh_auth_owner(value) {
+    if (owner) throw Error("SSH\u8BA4\u8BC1\u670D\u52A1\u5DF2\u6CE8\u518C");
+    owner = value;
     return () => {
-      if (readers.get(owner) === read2) readers.delete(owner);
+      if (owner === value) owner = void 0;
     };
   }
-  function read_terminal_state(owner) {
-    return readers.get(owner)?.();
+  async function prepare_ssh_terminal_auth(target, port, is_current) {
+    if (!owner) throw Error("SSH\u8BA4\u8BC1\u670D\u52A1\u5C1A\u672A\u5C31\u7EEA");
+    return owner.prepare(target, port, is_current);
+  }
+  async function saved_ssh_connections() {
+    return owner ? owner.list() : [];
+  }
+
+  // src/terminal_state.ts
+  var readers = /* @__PURE__ */ new WeakMap();
+  function bind_terminal_state(owner2, read2) {
+    readers.set(owner2, read2);
+    return () => {
+      if (readers.get(owner2) === read2) readers.delete(owner2);
+    };
+  }
+  function read_terminal_state(owner2) {
+    return readers.get(owner2)?.();
   }
 
   // node_modules/@xterm/xterm/css/xterm.css
@@ -187386,6 +187403,7 @@ https://creativecommons.org/licenses/by/4.0/
     color = "";
     group;
     root;
+    ssh_auth;
     pty;
     startup;
     generation = 0;
@@ -187432,6 +187450,15 @@ https://creativecommons.org/licenses/by/4.0/
         this.changed();
         const launch = resolve_terminal_launch(this.settings.get(), profile, this.launch_root, this.host.process_api, this.host.path_api, this.explicit_cwd, Boolean(this.launch_profile));
         if (!this.host.path_api.isAbsolute(launch.cwd) || !this.host.fs.statSync(launch.cwd).isDirectory()) throw new Error("\u7EC8\u7AEF\u5DE5\u4F5C\u76EE\u5F55\u4E0D\u5B58\u5728\u3002");
+        if (profile.remote) {
+          const auth = await prepare_ssh_terminal_auth(profile.remote.target, profile.remote.port || 0, current);
+          if (!current()) {
+            auth.dispose();
+            return;
+          }
+          this.ssh_auth = auth;
+          Object.assign(launch.env, auth.env);
+        }
         this.root = launch.cwd;
         const base = this.host.path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime");
         const start_cols = this.cols, start_rows = this.rows;
@@ -187461,6 +187488,8 @@ https://creativecommons.org/licenses/by/4.0/
             },
             exit: (code) => {
               if (generation !== this.generation || this.disposed) return;
+              this.ssh_auth?.dispose();
+              this.ssh_auth = void 0;
               this.pty = void 0;
               this.pid = 0;
               this.state = "exited";
@@ -187470,6 +187499,8 @@ https://creativecommons.org/licenses/by/4.0/
             },
             error: (message) => {
               if (generation !== this.generation || this.disposed) return;
+              this.ssh_auth?.dispose();
+              this.ssh_auth = void 0;
               this.state = "error";
               this.launch_pending = false;
               this.status = message;
@@ -187490,6 +187521,8 @@ https://creativecommons.org/licenses/by/4.0/
         this.changed();
       } catch (error) {
         if (this.disposed || generation !== this.generation) return;
+        this.ssh_auth?.dispose();
+        this.ssh_auth = void 0;
         this.state = "error";
         this.launch_pending = false;
         this.status = String(error instanceof Error ? error.message : error);
@@ -187509,6 +187542,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     stop() {
       this.generation++;
+      this.ssh_auth?.dispose();
+      this.ssh_auth = void 0;
       this.startup?.abort();
       this.startup = void 0;
       const pty = this.pty;
@@ -199262,17 +199297,19 @@ https://creativecommons.org/licenses/by/4.0/
         activate(id);
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
-      const ssh_profile = (target, remote_path) => {
+      const ssh_profile = (target, remote_path, port = 0, name = "") => {
         const api2 = runtime2.reqnode(host.path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
         const executable = host.path_api.join(host.process_api.env.SystemRoot || "C:\\Windows", "System32", "OpenSSH", "ssh.exe");
-        return api2.remote_terminal_profile(target, remote_path, executable, read_remote_ssh_settings());
+        const profile = api2.remote_terminal_profile(target, remote_path, executable, { ...read_remote_ssh_settings(), port });
+        if (name) profile.title = "SSH: " + name;
+        return profile;
       };
       const open = (root, program = "", location = settings.get().location, split_id = "", explicit_cwd = false, resolve_cwd, launch_profile, local = false) => (async () => {
         const epoch2 = workspace_context_epoch();
         if (lifetime.disposed || workspace_context_switching()) return;
         if (!launch_profile && !local) {
           const remote = require_remote_terminal_context();
-          if (remote) launch_profile = ssh_profile(remote.target, explicit_cwd && remote_files_for(root) ? remote_files_for(root).remote_path(root) : remote.remote_path);
+          if (remote) launch_profile = ssh_profile(remote.target, explicit_cwd && remote_files_for(root) ? remote_files_for(root).remote_path(root) : remote.remote_path, remote.port, remote.name);
         }
         if (launch_profile?.remote) {
           root = runtime2._options.userDataPath;
@@ -199411,7 +199448,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const toggle = () => {
         const remote = current_remote_workspace();
-        const matches = (entry2) => entry2.location === "panel" && (remote ? entry2.session.launch_profile?.remote?.target === remote.target : !entry2.session.launch_profile?.remote);
+        const matches = (entry2) => entry2.location === "panel" && (remote ? entry2.session.launch_profile?.remote?.target === remote.target && (entry2.session.launch_profile.remote.port || 0) === (remote.port || 0) : !entry2.session.launch_profile?.remote);
         if (panel.visible && active() && matches(active())) {
           panel.hide();
           return;
@@ -199426,13 +199463,17 @@ https://creativecommons.org/licenses/by/4.0/
         } }], () => {
           closed = true;
         });
-        void (refresh ? settings.refresh() : settings.ready()).then(() => {
+        void (refresh ? settings.refresh() : settings.ready()).then(async () => {
+          const connections = await saved_ssh_connections();
           if (closed || lifetime.disposed) return;
           close();
           const profiles = settings.profiles();
           const remote = current_remote_workspace();
           menu(event, [
             ...remote ? [{ id: "terminal_profile_remote", title: "SSH: " + remote.target, action: () => launch() }] : [],
+            ...connections.map((record) => ({ id: "terminal_ssh_" + record.id, title: "SSH: " + record.host_name + " / " + record.name, action: () => {
+              void open(runtime2._options.userDataPath, "", settings.get().location, "", true, void 0, ssh_profile(record.target, record.folder, record.port, record.host_name + " / " + record.name));
+            } })),
             ...profiles.map((profile) => ({ id: "terminal_profile_" + profile.id, title: (remote ? "\u672C\u5730\uFF1A" : "") + profile.title, action: () => {
               void open(host.workspace_path(), profile.id, settings.get().location, "", false, void 0, void 0, true);
             } })),
@@ -199511,7 +199552,7 @@ https://creativecommons.org/licenses/by/4.0/
       }));
       lifetime.listen(window, "linux-note-open-ssh-terminal", ((event) => {
         try {
-          const profile = ssh_profile(event.detail.target, event.detail.remote_path);
+          const profile = ssh_profile(event.detail.target, event.detail.remote_path, event.detail.port, event.detail.name);
           void open(host.workspace_path(), "", "panel", "", true, void 0, profile);
         } catch (error) {
           fail(error);
@@ -204045,17 +204086,17 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
-  function acquire_git_repository_operation(owner, root, normalize3) {
-    const key2 = normalize3(root), active = repository_operations.get(owner) || /* @__PURE__ */ new Set();
+  function acquire_git_repository_operation(owner2, root, normalize3) {
+    const key2 = normalize3(root), active = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
     if (active.has(key2)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
-    repository_operations.set(owner, active);
+    repository_operations.set(owner2, active);
     active.add(key2);
     let released = false;
     return () => {
       if (!released) {
         released = true;
         active.delete(key2);
-        if (!active.size) repository_operations.delete(owner);
+        if (!active.size) repository_operations.delete(owner2);
       }
     };
   }
@@ -204630,12 +204671,12 @@ https://creativecommons.org/licenses/by/4.0/
   var git_progress_default = "";
 
   // src/git_progress_view.ts
-  function bind_git_progress_view(owner, progress) {
+  function bind_git_progress_view(owner2, progress) {
     const style = acquire_workspace_style("typora-code-git-progress", git_progress_default), view = create_workspace_progress_view(), bar = view.root;
     bar.classList.add("git-operation-progress");
     view.bit.classList.add("git-operation-progress-bit");
-    owner.classList.add("git-progress-owner");
-    owner.append(bar);
+    owner2.classList.add("git-progress-owner");
+    owner2.append(bar);
     let finish_timer, visible3 = false;
     const hide2 = () => {
       clearTimeout(finish_timer);
@@ -204644,7 +204685,7 @@ https://creativecommons.org/licenses/by/4.0/
       view.hide();
     };
     const update2 = (state) => {
-      owner.setAttribute("aria-busy", String(state.busy));
+      owner2.setAttribute("aria-busy", String(state.busy));
       if (!state.enabled || state.busy && !state.running) {
         hide2();
         return;
@@ -204666,8 +204707,8 @@ https://creativecommons.org/licenses/by/4.0/
       stop();
       hide2();
       view.dispose();
-      owner.classList.remove("git-progress-owner");
-      owner.removeAttribute("aria-busy");
+      owner2.classList.remove("git-progress-owner");
+      owner2.removeAttribute("aria-busy");
       style.remove();
     } };
   }
@@ -205782,11 +205823,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_scm_repositories.ts
   var git_scm_repositories = class {
-    constructor(owner) {
-      this.owner = owner;
+    constructor(owner2) {
+      this.owner = owner2;
       this.container.setAttribute("aria-label", git_graph_text("scm.repositories"));
-      this.stop_progress = owner.panel.progress.subscribe(() => this.update_disabled());
-      this.stop_state = owner.panel.subscribe_state(() => this.paint_current());
+      this.stop_progress = owner2.panel.progress.subscribe(() => this.update_disabled());
+      this.stop_state = owner2.panel.subscribe_state(() => this.paint_current());
     }
     container = workspace_element("div", "git-scm-repositories-list");
     epoch = 0;
@@ -206053,18 +206094,18 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     more_menu(event) {
-      const panel = this.history.owner.panel, owner = this.history.owner, root = panel.root, runner = panel.runner;
+      const panel = this.history.owner.panel, owner2 = this.history.owner, root = panel.root, runner = panel.runner;
       const valid = () => !panel.disposed && root === panel.root && runner === panel.runner;
       const set_tree = (value) => {
         if (!valid()) return;
-        owner.history_tree = value;
-        owner.save_layout();
+        owner2.history_tree = value;
+        owner2.save_layout();
         if (panel.state) this.history.render(panel.state);
       };
       workspace_menu(event, [
         ...HISTORY_ACTION_IDS.filter((id) => panel.settings.history_toolbar_hidden?.includes(id) || this.overflow.has(id)).map((id) => this.entry(id)),
-        { id: "history_list", title: git_graph_text("history.list_view"), separator: true, checked: !owner.history_tree, action: () => set_tree(false) },
-        { id: "history_tree", title: git_graph_text("history.tree_view"), checked: owner.history_tree, action: () => set_tree(true) },
+        { id: "history_list", title: git_graph_text("history.list_view"), separator: true, checked: !owner2.history_tree, action: () => set_tree(false) },
+        { id: "history_tree", title: git_graph_text("history.tree_view"), checked: owner2.history_tree, action: () => set_tree(true) },
         { id: "open_graph", title: git_graph_text("history.open_in_editor"), separator: true, action: () => {
           if (valid()) panel.host.show_history(root);
         } },
@@ -206467,12 +206508,12 @@ https://creativecommons.org/licenses/by/4.0/
   var HISTORY_LANE_WIDTH = 11;
   var HISTORY_ROW_HEIGHT = 22;
   var git_scm_history = class {
-    constructor(owner) {
-      this.owner = owner;
-      this.hover = bind_git_commit_hover(this.list, owner.panel);
+    constructor(owner2) {
+      this.owner = owner2;
+      this.hover = bind_git_commit_hover(this.list, owner2.panel);
       this.container.setAttribute("aria-label", git_graph_text("history.graph"));
       this.container.setAttribute("data-linux-note-scm-history", "ready");
-      this.toggle = workspace_button("", () => owner.toggle_history(), "git-scm-history-toggle workspace-section-title");
+      this.toggle = workspace_button("", () => owner2.toggle_history(), "git-scm-history-toggle workspace-section-title");
       this.toggle.append(git_disclosure(), workspace_element("span", "git-scm-history-title", git_graph_text("history.graph")));
       this.toggle.title = git_graph_text("history.toggle_help");
       this.toggle.setAttribute("aria-expanded", "true");
@@ -206481,7 +206522,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.toolbar.element.classList.add("workspace-section-actions");
       this.header.append(this.toggle, this.toolbar.element);
       this.container.append(this.header, this.list);
-      this.header.oncontextmenu = (event) => owner.view_menu(event, "show_history");
+      this.header.oncontextmenu = (event) => owner2.view_menu(event, "show_history");
       this.list.setAttribute("aria-label", git_graph_text("history.commit_history"));
       this.list.addEventListener("keydown", (event) => {
         if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
@@ -229797,7 +229838,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.workbench = new git_source_control(this);
       this.container.append(this.toolbar, this.find_widget, this.status, this.body, this.more_button);
       this.progress.configure(this.settings.show_progress);
-      this.progress_views = [this.toolbar, this.workbench.title, this.workbench.history.header].map((owner) => bind_git_progress_view(owner, this.progress));
+      this.progress_views = [this.toolbar, this.workbench.title, this.workbench.history.header].map((owner2) => bind_git_progress_view(owner2, this.progress));
       this.list.addEventListener("scroll", () => {
         if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) {
           this.count += this.settings.page_count;
@@ -232425,8 +232466,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (scope === "workspace" && !root) throw new Error("\u8BF7\u5148\u6253\u5F00\u6587\u4EF6\u5939\u518D\u914D\u7F6E\u5DE5\u4F5C\u533A\u3002");
     if (language44 && !["symbol_sort_order", "symbol_path_separator", "symbol_kinds"].includes(key2)) throw new Error("\u6B64\u9009\u9879\u4E0D\u652F\u6301\u8BED\u8A00\u8986\u76D6\u3002");
     const next = JSON.parse(JSON.stringify(stored_settings()));
-    const owner = scope === "user" ? next.user ??= {} : (next.workspaces ??= {})[root_key(root)] ??= {};
-    const target = language44 ? (owner.languages ??= {})[language44] ??= {} : owner.values ??= {};
+    const owner2 = scope === "user" ? next.user ??= {} : (next.workspaces ??= {})[root_key(root)] ??= {};
+    const target = language44 ? (owner2.languages ??= {})[language44] ??= {} : owner2.values ??= {};
     if (value === void 0) delete target[key2];
     else {
       const valid = clean({ [key2]: value });
@@ -232476,7 +232517,7 @@ https://creativecommons.org/licenses/by/4.0/
     const render = () => {
       rows.replaceChildren();
       const current = read_breadcrumb_settings(scope.value === "user" ? "" : root, language_scope.value);
-      const data = stored_settings(), owner = scope.value === "user" ? object(data.user) : object(object(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object(owner.languages)[language_scope.value] : owner.values);
+      const data = stored_settings(), owner2 = scope.value === "user" ? object(data.user) : object(object(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object(owner2.languages)[language_scope.value] : owner2.values);
       const change = (key2, value) => {
         try {
           update_breadcrumb_settings(root, scope.value, key2, value, language_scope.value);
@@ -233077,8 +233118,8 @@ https://creativecommons.org/licenses/by/4.0/
     let entries3 = models.get(model);
     if (!entries3) models.set(model, entries3 = /* @__PURE__ */ new Map());
     const key2 = file_path + "\0" + workspace_root;
-    let owner = entries3.get(key2);
-    if (!owner) {
+    let owner2 = entries3.get(key2);
+    if (!owner2) {
       const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners6 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
@@ -233112,7 +233153,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner = { state, listeners: listeners6, refresh, dispose() {
+      owner2 = { state, listeners: listeners6, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -233123,10 +233164,10 @@ https://creativecommons.org/licenses/by/4.0/
         void clangd?.dispose();
         listeners6.clear();
       } };
-      entries3.set(key2, owner);
+      entries3.set(key2, owner2);
       refresh();
     }
-    const target = owner;
+    const target = owner2;
     target.listeners.add(listener);
     listener(target.state);
     let released = false;
@@ -233371,7 +233412,7 @@ https://creativecommons.org/licenses/by/4.0/
           group.classList.add("workspace-breadcrumbs-managed");
           state = { group, bar, trail, type, leaf: null, file: "", model: null, editor: null, listeners: [], signature: "", interaction: acquire_workspace_interaction(bar), root: "", language: "", headings: [], chain: [] };
           groups.set(group, state);
-          const owner = state;
+          const owner2 = state;
           bar.oncontextmenu = (event) => {
             event.preventDefault();
             workspace_menu(event, [{ title: "\u663E\u793A\u9762\u5305\u5C51", checked: read_breadcrumb_settings(files.context_root()).enabled, action: () => {
@@ -233380,7 +233421,7 @@ https://creativecommons.org/licenses/by/4.0/
               } catch (e) {
                 error(String(e));
               }
-            } }, { title: "\u590D\u5236\u9762\u5305\u5C51\u8DEF\u5F84", action: () => files.copy([...breadcrumb_path_items(owner.file, owner.root, files.path_api).map((item) => item.label), ...owner.chain.map((item) => item.name)].join(" > ")) }, { title: "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84", disabled: !owner.chain.length, action: () => files.copy(owner.chain.map((item) => item.name).join(owner.settings?.symbol_path_separator ?? ".")) }, { title: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => open_breadcrumb_settings(owner.root, owner.language) }]);
+            } }, { title: "\u590D\u5236\u9762\u5305\u5C51\u8DEF\u5F84", action: () => files.copy([...breadcrumb_path_items(owner2.file, owner2.root, files.path_api).map((item) => item.label), ...owner2.chain.map((item) => item.name)].join(" > ")) }, { title: "\u590D\u5236\u7B26\u53F7\u8DEF\u5F84", disabled: !owner2.chain.length, action: () => files.copy(owner2.chain.map((item) => item.name).join(owner2.settings?.symbol_path_separator ?? ".")) }, { title: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => open_breadcrumb_settings(owner2.root, owner2.language) }]);
           };
           bar.onkeydown = (event) => {
             if (event.isComposing) return;
@@ -233403,7 +233444,7 @@ https://creativecommons.org/licenses/by/4.0/
             } else if (event.key === "Escape") {
               event.preventDefault();
               event.stopPropagation();
-              owner.focus?.restore();
+              owner2.focus?.restore();
             }
           };
         }
@@ -233414,11 +233455,11 @@ https://creativecommons.org/licenses/by/4.0/
           Object.assign(state, { leaf, model, editor: editor2, file, root, signature: "", headings: [], chain: [] });
           if (model) {
             state.language = model.getLanguageId();
-            const owner = state;
+            const owner2 = state;
             state.symbols = subscribe_document_symbols(model, file, root, (result) => {
-              owner.symbol_state = result;
-              owner.language = result.language;
-              if (picker_owner === owner) close_picker(false);
+              owner2.symbol_state = result;
+              owner2.language = result.language;
+              if (picker_owner === owner2) close_picker(false);
               schedule();
             });
             state.listeners.push(editor2.onDidChangeCursorPosition(schedule));
@@ -233635,15 +233676,15 @@ https://creativecommons.org/licenses/by/4.0/
           strip.append(toolbar);
           state = { group, leaf, path: leaf.state.path, toolbar, split, more, interaction: acquire_workspace_interaction(toolbar) };
           groups.set(group, state);
-          const owner = state;
+          const owner2 = state;
           toolbar.addEventListener("mousedown", (event) => {
             if (event.button === 0) event.preventDefault();
           }, { signal: events.signal });
           split.onclick = () => {
-            if (valid(owner)) actions.entries(owner.leaf).find((entry) => entry.id === "split_right" && !entry.disabled)?.action();
+            if (valid(owner2)) actions.entries(owner2.leaf).find((entry) => entry.id === "split_right" && !entry.disabled)?.action();
           };
           more.onclick = () => {
-            void open_menu(owner);
+            void open_menu(owner2);
           };
           toolbar.addEventListener("keydown", (event) => {
             if (event.isComposing) return;
@@ -233655,7 +233696,7 @@ https://creativecommons.org/licenses/by/4.0/
             } else if (event.key === "ArrowDown" && event.target === more) {
               event.preventDefault();
               event.stopPropagation();
-              void open_menu(owner);
+              void open_menu(owner2);
             }
           }, { signal: events.signal });
         }
@@ -233762,8 +233803,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (!toolbar) return;
       const active = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
-      const owner = leaf?.containerEl;
-      const bounds = owner?.isConnected ? reading_viewport_bounds(owner) : void 0;
+      const owner2 = leaf?.containerEl;
+      const bounds = owner2?.isConnected ? reading_viewport_bounds(owner2) : void 0;
       const root2 = document.querySelector(".typ-workspace-root")?.getBoundingClientRect();
       const bottom = bounds ? Math.min(bounds.bottom, root2?.bottom ?? bounds.bottom) : 0;
       const suspended = String(!active || !bounds || bottom - bounds.top < toolbar_height + 16);
@@ -235319,11 +235360,11 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_preview_scale_default = "";
 
   // src/workspace_preview_scale.ts
-  function create_preview_scale_controls(owner) {
+  function create_preview_scale_controls(owner2) {
     const style = acquire_workspace_style("typora-code-style:workspace_preview_scale", workspace_preview_scale_default, {});
     const container = workspace_element("div", "workspace-preview-scale-controls");
-    const smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => owner.set_scale(owner.get_scale() - 5));
-    const larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => owner.set_scale(owner.get_scale() + 5));
+    const smaller = git_icon_button("remove", "\u7F29\u5C0F\u9884\u89C8", () => owner2.set_scale(owner2.get_scale() - 5));
+    const larger = git_icon_button("add", "\u653E\u5927\u9884\u89C8", () => owner2.set_scale(owner2.get_scale() + 5));
     const slider = workspace_element("input", "workspace-preview-scale-slider"), value = workspace_element("output", "workspace-preview-scale-value");
     slider.type = "range";
     slider.min = "50";
@@ -235332,12 +235373,12 @@ https://creativecommons.org/licenses/by/4.0/
     slider.setAttribute("aria-label", "\u9884\u89C8\u5B57\u53F7\u6BD4\u4F8B");
     slider.title = "\u62D6\u52A8\u8C03\u6574\u9884\u89C8\u5B57\u53F7\uFF0850%\u2013150%\uFF09";
     slider.oninput = () => {
-      owner.set_scale(Number(slider.value));
+      owner2.set_scale(Number(slider.value));
       sync();
     };
     value.setAttribute("aria-label", "\u5F53\u524D\u9884\u89C8\u6BD4\u4F8B");
     const sync = () => {
-      const scale = owner.get_scale();
+      const scale = owner2.get_scale();
       value.value = "".concat(scale, "%");
       slider.value = String(scale);
       slider.setAttribute("aria-valuetext", "".concat(scale, "%"));
@@ -235346,7 +235387,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     container.append(smaller, slider, value, larger);
     const observer2 = new MutationObserver(sync);
-    observer2.observe(owner.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
+    observer2.observe(owner2.container, { attributes: true, attributeFilter: ["data-preview-scale"] });
     sync();
     return { container, dispose() {
       observer2.disconnect();
@@ -236770,8 +236811,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (!selection || selection.isCollapsed || !selection.rangeCount) return;
       const range2 = selection.getRangeAt(0);
       const start = range2.startContainer.nodeType === Node.ELEMENT_NODE ? range2.startContainer : range2.startContainer.parentElement;
-      const owner = start?.closest("#write,.typ-markdown-preview");
-      if (!owner || !owner.contains(range2.endContainer) || !owner.contains(target)) return;
+      const owner2 = start?.closest("#write,.typ-markdown-preview");
+      if (!owner2 || !owner2.contains(range2.endContainer) || !owner2.contains(target)) return;
       if (![...range2.getClientRects()].some((box) => event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom)) return;
       const query = range2.toString();
       return query.trim() ? { query, source_path: source_path(target) } : void 0;
@@ -240163,12 +240204,14 @@ https://creativecommons.org/licenses/by/4.0/
     search2.addEventListener("click", open_files, { signal: events.signal });
     const title = document.querySelector("title");
     const refresh_label = () => {
-      const folder = files.context_root();
-      search_label.textContent = folder ? files.path_api.basename(folder) || folder : "\u641C\u7D22\u6587\u4EF6";
-      plain_title.textContent = title?.textContent?.trim() || search_label.textContent;
+      const folder = files.context_root(), remote = current_remote_workspace();
+      search_label.textContent = remote ? "SSH: " + (remote.username || remote.target.split("@")[0]) : folder ? files.path_api.basename(folder) || folder : "\u641C\u7D22\u6587\u4EF6";
+      search2.title = remote ? (remote.name || remote.target) + " \xB7 " + remote.target + (remote.port ? ":" + remote.port : "") + (remote.state === "connected" ? "" : " \xB7 \u672A\u8FDE\u63A5") : "\u641C\u7D22\u6587\u4EF6 (Ctrl+P)";
+      plain_title.textContent = remote ? search_label.textContent : title?.textContent?.trim() || search_label.textContent;
     };
     refresh_label();
     window.addEventListener("linux-note-workspace-context-changed", refresh_label, { signal: events.signal });
+    window.addEventListener("typora-code-remote-state-changed", refresh_label, { signal: events.signal });
     const observer2 = new MutationObserver(refresh_label);
     if (title) observer2.observe(title, { childList: true, characterData: true, subtree: true });
     cleanup.push(() => observer2.disconnect());
@@ -240800,32 +240843,32 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_native_save(runtime2, hooks) {
     const file = runtime2.File, bridge = runtime2.JSBridge, releases = [];
     let disposed = false, save_depth = 0, option;
-    function replace(owner, key2, wrap) {
-      const original = owner?.[key2];
+    function replace(owner2, key2, wrap) {
+      const original = owner2?.[key2];
       if (typeof original !== "function") return;
       const wrapped = wrap(original);
-      owner[key2] = wrapped;
+      owner2[key2] = wrapped;
       releases.push(() => {
-        if (owner[key2] === wrapped) owner[key2] = original;
+        if (owner2[key2] === wrapped) owner2[key2] = original;
       });
     }
     function sync_options() {
       if (disposed || !file?.isNode || !file.option || option === file.option) return;
       option = file.option;
-      const owner = option, descriptor = Object.getOwnPropertyDescriptor(owner, "enableAutoSave");
+      const owner2 = option, descriptor = Object.getOwnPropertyDescriptor(owner2, "enableAutoSave");
       if (descriptor && (descriptor.configurable === false || descriptor.get || descriptor.set)) throw new Error("\u5BBF\u4E3B\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\u4E0D\u53EF\u63A5\u7BA1\uFF0C\u672A\u542F\u7528\u53E6\u4E00\u5957\u81EA\u52A8\u4FDD\u5B58\u3002");
-      let native_value = owner.enableAutoSave;
+      let native_value = owner2.enableAutoSave;
       const read2 = () => false, write = (value) => {
         native_value = value;
         if (!disposed) hooks.auto_save_changed(value === true);
       };
-      Object.defineProperty(owner, "enableAutoSave", { configurable: true, enumerable: descriptor?.enumerable ?? true, get: read2, set: write });
+      Object.defineProperty(owner2, "enableAutoSave", { configurable: true, enumerable: descriptor?.enumerable ?? true, get: read2, set: write });
       releases.push(() => {
-        if (Object.getOwnPropertyDescriptor(owner, "enableAutoSave")?.get !== read2) return;
-        if (descriptor) Object.defineProperty(owner, "enableAutoSave", { ...descriptor, value: native_value });
+        if (Object.getOwnPropertyDescriptor(owner2, "enableAutoSave")?.get !== read2) return;
+        if (descriptor) Object.defineProperty(owner2, "enableAutoSave", { ...descriptor, value: native_value });
         else {
-          delete owner.enableAutoSave;
-          if (native_value !== void 0) owner.enableAutoSave = native_value;
+          delete owner2.enableAutoSave;
+          if (native_value !== void 0) owner2.enableAutoSave = native_value;
         }
       });
     }
@@ -241659,10 +241702,10 @@ https://creativecommons.org/licenses/by/4.0/
         groups.set(leaf.parent, group);
       }
       let group_number = 0;
-      for (const [owner, group] of groups) {
+      for (const [owner2, group] of groups) {
         if (groups.size > 1) body.append(workspace_element("div", "workspace-explorer-editor-group", "\u7EC4 " + ++group_number));
         if (sort === "editorOrder") {
-          const children = owner.children;
+          const children = owner2.children;
           if (children) group.sort((left, right) => children.indexOf(left) - children.indexOf(right));
         }
         if (sort !== "editorOrder") group.sort((a, b2) => {
@@ -241763,105 +241806,417 @@ https://creativecommons.org/licenses/by/4.0/
     return { dispose: () => lifetime.dispose() };
   }
 
+  // src/remote_ssh_authentication.ts
+  function create_ssh_authentication(runtime2, asset_root, node_path) {
+    const path = runtime2.reqnode("path"), root = path.join(runtime2._options.userDataPath, "typora_code", "ssh_credentials");
+    const api2 = runtime2.reqnode(path.join(asset_root, "remote_ssh_service.cjs"));
+    const directory_api = runtime2.reqnode(path.join(asset_root, "remote_ssh_connections.cjs"));
+    const credential_api = runtime2.reqnode(path.join(asset_root, "remote_ssh_credentials.cjs"));
+    const directory = directory_api.create_connection_store(root), credentials = credential_api.create_credential_store(root);
+    const vault = credential_api.create_password_vault(credentials, (operation) => directory_api.with_store_lock(root, operation));
+    const sessions = /* @__PURE__ */ new Map();
+    let disposed = false, queue = Promise.resolve(), active_dialog;
+    const identity5 = (target, port = 0) => api2.resolve_connection_identity(target, { ...read_remote_ssh_settings(), port });
+    const save = async (target, port, password) => {
+      const owner2 = await identity5(target, port);
+      await credentials.save(owner2.key, password);
+      await vault.remember(owner2.key, password);
+      sessions.set(owner2.key, password);
+    };
+    const prompt = (message, remember_allowed, current) => {
+      const result = queue.then(() => new Promise((resolve3) => {
+        if (disposed || !current()) {
+          resolve3({ remember: false });
+          return;
+        }
+        let answer, remember_value = false;
+        const confirm2 = /yes\/no|fingerprint|authenticity/iu.test(message);
+        const input = workspace_element("input");
+        input.type = "password";
+        input.autocomplete = "off";
+        input.setAttribute("aria-label", "SSH\u8BA4\u8BC1\u4FE1\u606F");
+        const remember = workspace_element("input");
+        remember.type = "checkbox";
+        const label = workspace_element("label");
+        label.append(remember, document.createTextNode("\u4FDD\u5B58\u5230\u7CFB\u7EDF\u51ED\u636E\u7BA1\u7406\u5668"));
+        const dialog2 = workspace_dialog(confirm2 ? "\u786E\u8BA4SSH\u4E3B\u673A\u8EAB\u4EFD" : "SSH\u8EAB\u4EFD\u9A8C\u8BC1", "\u53D6\u6D88", () => {
+          clearInterval(timer);
+          input.value = "";
+          active_dialog = void 0;
+          resolve3({ answer, remember: remember_value });
+        });
+        active_dialog = dialog2;
+        const timer = setInterval(() => {
+          if (disposed || !current()) dialog2.close();
+        }, 100);
+        dialog2.content.append(workspace_element("p", "workspace-ssh-auth-prompt", message));
+        if (confirm2) dialog2.content.append(workspace_element("p", "", "\u8BF7\u5148\u6838\u5BF9\u4E3B\u673A\u6307\u7EB9\uFF0C\u786E\u8BA4\u540E\u7531OpenSSH\u4FDD\u5B58\u4FE1\u4EFB\u3002"));
+        else dialog2.content.append(input);
+        if (remember_allowed && credentials.supported) dialog2.content.append(label);
+        const accept = () => {
+          if (!current()) {
+            dialog2.close();
+            return;
+          }
+          answer = confirm2 ? "yes" : input.value;
+          remember_value = remember.checked;
+          dialog2.close();
+        };
+        dialog2.footer.prepend(workspace_button(confirm2 ? "\u4FE1\u4EFB\u5E76\u8FDE\u63A5" : "\u8FDE\u63A5", accept));
+        input.onkeydown = (e) => {
+          if (e.key === "Enter" && !e.isComposing) {
+            e.preventDefault();
+            accept();
+          }
+        };
+      }));
+      queue = result.then(() => void 0, () => void 0);
+      return result;
+    };
+    const attempt = async (target, port, current, persist_immediately = false) => {
+      const owner2 = await identity5(target, port);
+      let used = false, pending, remember = false, legacy = false, entered = false;
+      return { owner: owner2, async authenticate(message, stale2) {
+        const valid = () => !disposed && current() && !stale2();
+        if (!valid()) return;
+        const password_prompt = /password/iu.test(message) && !/passphrase|verification|one.time/iu.test(message);
+        const expected = owner2.user + "@" + owner2.hostname;
+        const matches = password_prompt && (message.includes(expected + "'s password") || message.includes("(" + expected + ") Password"));
+        if (matches && !used) {
+          used = true;
+          let stored = sessions.get(owner2.key) || (credentials.supported ? await credentials.read(owner2.key) : void 0);
+          if (!stored && credentials.supported && !port && !read_remote_ssh_settings().config_file) {
+            stored = await credentials.read(target);
+            legacy = Boolean(stored);
+            if (legacy) {
+              pending = stored;
+              remember = true;
+            }
+          }
+          if (stored && valid()) return stored;
+        }
+        const result = await prompt(message, matches, valid);
+        if (!valid()) return;
+        if (matches && result.answer) {
+          pending = result.answer;
+          remember = result.remember;
+          entered = true;
+          if (persist_immediately && remember) await save(target, port, pending);
+        }
+        return result.answer;
+      }, async complete() {
+        if (pending) {
+          sessions.set(owner2.key, pending);
+          if (remember) {
+            if (legacy && !entered) await credentials.save(owner2.key, pending);
+            else await save(target, port, pending);
+            if (legacy) await credentials.remove(target);
+          }
+        }
+        pending = void 0;
+      }, clear() {
+        pending = void 0;
+        sessions.delete(owner2.key);
+      } };
+    };
+    const bridges = /* @__PURE__ */ new Set();
+    const release = register_ssh_auth_owner({ list: () => directory.list(), prepare: async (target, port, current) => {
+      const auth = await attempt(target, port, current, true);
+      if (disposed || !current()) throw Error("SSH\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88");
+      const bridge = await runtime2.reqnode(path.join(asset_root, "remote_ssh_auth.cjs")).create_ssh_auth({ asset_root, node_path, authenticate: auth.authenticate, is_current: current });
+      if (disposed || !current()) {
+        bridge.dispose();
+        throw Error("SSH\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88");
+      }
+      bridges.add(bridge);
+      return { env: bridge.env, dispose() {
+        bridges.delete(bridge);
+        bridge.dispose();
+      } };
+    } });
+    return { directory, credentials, vault, identity: identity5, save, attempt, async forget(target, port) {
+      const owner2 = await identity5(target, port);
+      sessions.delete(owner2.key);
+      await credentials.remove(owner2.key);
+      if (!port && !read_remote_ssh_settings().config_file) await credentials.remove(target);
+    }, dispose() {
+      disposed = true;
+      active_dialog?.close();
+      for (const bridge of bridges) bridge.dispose();
+      bridges.clear();
+      sessions.clear();
+      release();
+    } };
+  }
+
+  // src/remote_ssh_directory.ts
+  function create_ssh_directory(auth, connect, notice) {
+    const root = workspace_element("section", "workspace-ssh-directory"), header = workspace_element("div", "workspace-ssh-title"), search2 = workspace_element("input"), list3 = workspace_element("div", "workspace-ssh-connections");
+    let records = [], disposed = false, epoch2 = 0, active_id = "", connection_state = "disconnected";
+    const dialogs = /* @__PURE__ */ new Set();
+    const dialog2 = (title) => {
+      const value = workspace_dialog(title, "\u53D6\u6D88", () => {
+        dialogs.delete(value);
+        for (const input of value.content.querySelectorAll("input[type=password],input[data-secret]")) input.value = "";
+      });
+      dialogs.add(value);
+      return value;
+    };
+    const field = (container, title, value = "", type = "text") => {
+      const label = workspace_element("label", "workspace-ssh-field"), input = workspace_element("input");
+      input.type = type;
+      input.value = value;
+      input.autocomplete = "off";
+      input.setAttribute("aria-label", title);
+      label.append(workspace_element("span", "", title), input);
+      container.append(label);
+      return input;
+    };
+    const run = (control, error, operation) => {
+      control.disabled = true;
+      error.textContent = "\u6B63\u5728\u5904\u7406\u2026";
+      void operation().catch((reason) => {
+        error.textContent = String(reason.message || reason);
+      }).finally(() => {
+        control.disabled = false;
+      });
+    };
+    const confirm2 = async (title, message, operation) => {
+      const view = dialog2(title), error = workspace_element("p", "workspace-ssh-message");
+      view.content.append(workspace_element("p", "", message), error);
+      const accept = workspace_button("\u786E\u8BA4", () => run(accept, error, async () => {
+        await operation();
+        view.close();
+        await refresh();
+      }));
+      view.footer.prepend(accept);
+    };
+    const vault = async (record) => {
+      const state = await auth.vault.state();
+      if (disposed) return;
+      const view = dialog2(record ? "\u67E5\u770B\u8D26\u53F7\u5BC6\u7801" : "SSH\u5BC6\u7801\u4FDD\u9669\u7BB1"), error = workspace_element("p", "workspace-ssh-message");
+      view.content.append(workspace_element("p", "", state.configured ? "\u67E5\u770B\u4FDD\u9669\u5BC6\u7801\u53EA\u7528\u4E8E\u89E3\u9501\u660E\u6587\u67E5\u770B\uFF0C\u4E0D\u5F71\u54CDSSH\u81EA\u52A8\u767B\u5F55\u3002" : "\u4EC5\u5728\u67E5\u770B\u660E\u6587\u65F6\u9700\u8981\u8BBE\u7F6E\u4FDD\u9669\u5BC6\u7801\u3002\u81EA\u52A8\u767B\u5F55\u4F7F\u7528\u72EC\u7ACB\u7684\u7CFB\u7EDF\u51ED\u636E\uFF0C\u65E0\u9700\u4FDD\u9669\u5BC6\u7801\u3002"));
+      if (!state.configured) {
+        view.content.append(workspace_element("p", "", state.reset ? "\u4FDD\u9669\u7BB1\u5DF2\u6E05\u7A7A\uFF0C\u91CD\u65B0\u914D\u7F6E\u4E0D\u4F1A\u6062\u590D\u5DF2\u5220\u9664\u7684\u67E5\u770B\u8BB0\u5F55\u3002\u8BF7\u5728\u8D26\u53F7\u7F16\u8F91\u4E2D\u91CD\u65B0\u8F93\u5165\u5BC6\u7801\u52A0\u5165\u4FDD\u9669\u7BB1\u3002" : "\u9996\u6B21\u8BBE\u7F6E\u5C06\u628A\u5DF2\u6709\u8D26\u53F7\u7684\u81EA\u52A8\u767B\u5F55\u5BC6\u7801\u52A0\u5165\u67E5\u770B\u4FDD\u9669\u7BB1\u3002"));
+        const master = field(view.content, "\u4FDD\u9669\u5BC6\u7801\uFF08\u81F3\u5C1112\u4E2A\u5B57\u7B26\uFF09", "", "password"), repeat = field(view.content, "\u518D\u6B21\u8F93\u5165\u4FDD\u9669\u5BC6\u7801", "", "password");
+        const save = workspace_button("\u8BBE\u7F6E\u4FDD\u9669\u5BC6\u7801", () => run(save, error, async () => {
+          if (master.value !== repeat.value) throw Error("\u4E24\u6B21\u4FDD\u9669\u5BC6\u7801\u4E0D\u4E00\u81F4");
+          const identities = await Promise.all(records.map((item) => auth.identity(item.target, item.port)));
+          await auth.vault.setup(master.value, identities.map((item) => item.key));
+          view.close();
+          await vault(record);
+        }));
+        view.footer.prepend(save);
+      } else {
+        const master = field(view.content, "\u4FDD\u9669\u5BC6\u7801", "", "password");
+        if (record) {
+          view.content.append(workspace_element("p", "", record.host_name + " / " + record.name + " \xB7 " + record.target));
+          const revealed2 = field(view.content, "\u8D26\u53F7\u5BC6\u7801");
+          revealed2.readOnly = true;
+          revealed2.dataset.secret = "";
+          revealed2.type = "password";
+          let timer;
+          const clear = () => {
+            revealed2.value = "";
+            revealed2.type = "password";
+            clearTimeout(timer);
+          };
+          const reveal = workspace_button("\u663E\u793A30\u79D2", () => run(reveal, error, async () => {
+            const owner2 = await auth.identity(record.target, record.port);
+            const value = await auth.vault.reveal(owner2.key, master.value);
+            master.value = "";
+            if (!view.root.isConnected || !document.hasFocus()) return;
+            revealed2.type = "text";
+            revealed2.value = value;
+            error.textContent = "\u79BB\u5F00\u7A97\u53E3\u621630\u79D2\u540E\u9690\u85CF";
+            timer = setTimeout(clear, 3e4);
+          }));
+          const hide2 = workspace_button("\u9690\u85CF", clear);
+          view.content.append(reveal, hide2);
+          view.root.addEventListener("focusout", (e) => {
+            if (!view.root.contains(e.relatedTarget)) clear();
+          });
+          window.addEventListener("blur", clear);
+          const close = view.close;
+          view.close = (restore) => {
+            clear();
+            window.removeEventListener("blur", clear);
+            close(restore);
+          };
+          const observer2 = new MutationObserver(() => {
+            if (!view.root.isConnected) {
+              clear();
+              window.removeEventListener("blur", clear);
+              observer2.disconnect();
+            }
+          });
+          observer2.observe(document.body, { childList: true });
+        }
+        const next = field(view.content, "\u65B0\u4FDD\u9669\u5BC6\u7801\uFF08\u4FEE\u6539\u65F6\u586B\u5199\uFF09", "", "password");
+        const change = workspace_button("\u4FEE\u6539\u4FDD\u9669\u5BC6\u7801", () => run(change, error, async () => {
+          await auth.vault.change(master.value, next.value);
+          view.close();
+        }));
+        view.footer.prepend(change);
+        view.content.append(workspace_button("\u91CD\u7F6E / \u6E05\u9664\u4FDD\u9669\u5BC6\u7801\u2026", () => void confirm2("\u6E05\u9664\u67E5\u770B\u4FDD\u9669\u7BB1", "\u4EC5\u5220\u9664\u6240\u6709\u53EF\u67E5\u770B\u5BC6\u7801\u53CA\u4FDD\u9669\u5BC6\u7801\uFF0C\u4FDD\u7559\u81EA\u52A8\u767B\u5F55\u51ED\u636E\u3001\u8FDE\u63A5\u8BB0\u5F55\u548C\u5DF2\u8FDE\u63A5\u4F1A\u8BDD\u3002\u6E05\u9664\u540E\u4E0D\u80FD\u7528\u81EA\u52A8\u767B\u5F55\u51ED\u636E\u91CD\u65B0\u5BFC\u5165\u65E7\u7684\u67E5\u770B\u8BB0\u5F55\u3002", async () => {
+          await auth.vault.reset();
+          view.close();
+        })));
+      }
+      view.content.append(error);
+    };
+    const edit3 = (record, another_user = false) => {
+      const view = dialog2(record && !another_user ? "\u7F16\u8F91SSH\u8FDE\u63A5" : "\u65B0\u5EFASSH\u8FDE\u63A5");
+      view.content.classList.add("workspace-ssh-form");
+      const host = field(view.content, "\u4E3B\u673A\u5730\u5740\u6216OpenSSH\u522B\u540D", record?.target.split("@").at(-1) || "");
+      const host_name = field(view.content, "\u7535\u8111\u522B\u540D", record?.host_name || "");
+      const user = field(view.content, "\u7528\u6237\u540D", another_user ? "" : record?.target.includes("@") ? record.target.split("@")[0] : "");
+      const name = field(view.content, "\u8D26\u53F7\u522B\u540D", another_user ? "" : record?.name || "");
+      const port = field(view.content, "\u7AEF\u53E3\uFF08\u7559\u7A7A\u6CBF\u7528SSH\u914D\u7F6E\uFF09", record?.port ? String(record.port) : "");
+      port.inputMode = "numeric";
+      const folder = field(view.content, "\u521D\u59CB\u76EE\u5F55\uFF08\u7559\u7A7A\u8FDB\u5165\u7528\u6237\u4E3B\u76EE\u5F55\uFF09", record?.folder || "");
+      const password = field(view.content, "\u767B\u5F55\u5BC6\u7801\uFF08\u7559\u7A7A\u4FDD\u7559\u73B0\u6709\u51ED\u636E\uFF09", "", "password");
+      password.disabled = !auth.credentials.supported;
+      view.content.append(workspace_element("p", "workspace-ssh-hint", "\u5BC6\u7801\u4FDD\u5B58\u5230\u64CD\u4F5C\u7CFB\u7EDF\u51ED\u636E\u7BA1\u7406\u5668\uFF1B\u4E0D\u586B\u5199\u5BC6\u7801\u65F6\u4ECD\u652F\u6301SSH\u5BC6\u94A5\u3001\u4EE3\u7406\u548C\u5F53\u6B21\u8BA4\u8BC1\u3002\u4E3B\u673A\u4E0E\u8D26\u53F7\u522B\u540D\u4EC5\u7528\u4E8E\u663E\u793A\u3002"));
+      const error = workspace_element("p", "workspace-ssh-message");
+      view.content.append(error);
+      const save = workspace_button("\u4FDD\u5B58", () => run(save, error, async () => {
+        const address = host.value.trim();
+        if (address.includes("@")) throw Error("\u4E3B\u673A\u5730\u5740\u4E0D\u5E94\u5305\u542B\u7528\u6237\u540D\uFF0C\u8BF7\u5728\u7528\u6237\u540D\u5B57\u6BB5\u586B\u5199");
+        const target = (user.value.trim() ? user.value.trim() + "@" : "") + address;
+        const values = { id: another_user ? void 0 : record?.id, host_name: host_name.value.trim() || address, name: name.value.trim() || user.value.trim() || address, target, port: Number(port.value || 0), folder: folder.value.trim() };
+        if (password.value) await auth.identity(target, values.port);
+        const saved = await auth.directory.save(values);
+        if (password.value) await auth.save(saved.target, saved.port, password.value);
+        view.close();
+        await refresh();
+      }));
+      view.footer.prepend(save);
+    };
+    const select = (record) => {
+      void connect(record).catch(notice);
+    };
+    const render = () => {
+      list3.replaceChildren();
+      const term = search2.value.toLocaleLowerCase();
+      const filtered = records.filter((item) => [item.host_name, item.name, item.target, String(item.port)].join(" ").toLocaleLowerCase().includes(term));
+      const groups = /* @__PURE__ */ new Map();
+      for (const item of filtered) {
+        const key2 = item.target.split("@").at(-1) + ":" + item.port;
+        const group = groups.get(key2) || [];
+        group.push(item);
+        groups.set(key2, group);
+      }
+      for (const group of groups.values()) {
+        const first = group[0], section = workspace_element("section", "workspace-ssh-host"), title = workspace_element("div", "workspace-ssh-host-title");
+        title.append(git_icon("remote-explorer"), workspace_element("strong", "", first.host_name));
+        title.title = first.target.split("@").at(-1) + (first.port ? ":" + first.port : "");
+        title.append(git_icon_button("add", "\u4E3A\u6B64\u7535\u8111\u6DFB\u52A0\u8D26\u53F7", () => edit3(first, true)));
+        section.append(title);
+        for (const record of group) {
+          const row = workspace_element("div", "workspace-ssh-account");
+          row.dataset.active = String(record.id === active_id);
+          row.dataset.state = record.id === active_id ? connection_state : "";
+          const open = workspace_button("", () => select(record), "workspace-ssh-account-open");
+          open.title = "\u8FDE\u63A5 " + record.host_name + " / " + record.name + " \xB7 " + record.target + (record.port ? ":" + record.port : "");
+          open.append(workspace_element("span", "workspace-ssh-account-name", record.name), workspace_element("span", "workspace-ssh-account-address", record.target + (record.port ? ":" + record.port : "")));
+          open.setAttribute("aria-label", open.title);
+          if (record.id === active_id && connection_state !== "disconnected") open.append(workspace_element("span", "workspace-ssh-account-state", connection_state === "connected" ? "\u5DF2\u8FDE\u63A5" : "\u8FDE\u63A5\u4E2D\u2026"));
+          const more = git_icon_button("more", "\u7BA1\u7406 " + record.name, () => {
+          });
+          more.onclick = (event) => workspace_menu(event, [
+            { title: "\u8FDE\u63A5", action: () => select(record) },
+            { title: "\u7F16\u8F91\u540D\u79F0\u3001\u8D26\u53F7\u4E0E\u5BC6\u7801\u2026", action: () => edit3(record) },
+            { title: "\u7528\u6B64\u8D26\u53F7\u65B0\u5EFA\u7EC8\u7AEF", action: () => window.dispatchEvent(new CustomEvent("linux-note-open-ssh-terminal", { detail: { target: record.target, port: record.port, name: record.host_name + " / " + record.name, remote_path: record.folder || "" } })) },
+            { title: "\u67E5\u770B\u5BC6\u7801\u2026", disabled: !auth.credentials.supported, action: () => void vault(record).catch(notice) },
+            { title: "\u5FD8\u8BB0\u81EA\u52A8\u767B\u5F55\u5BC6\u7801\u2026", disabled: !auth.credentials.supported, action: () => void confirm2("\u5FD8\u8BB0\u81EA\u52A8\u767B\u5F55\u5BC6\u7801", "\u5220\u9664\u6B64\u8EAB\u4EFD\u7684\u81EA\u52A8\u767B\u5F55\u51ED\u636E\uFF1B\u4FDD\u9669\u7BB1\u67E5\u770B\u8BB0\u5F55\u3001\u8FDE\u63A5\u8BB0\u5F55\u548C\u5DF2\u8FDE\u63A5\u4F1A\u8BDD\u4FDD\u6301\u4E0D\u53D8\u3002", async () => {
+              await auth.forget(record.target, record.port);
+            }) },
+            { title: "\u5220\u9664\u8FDE\u63A5\u8BB0\u5F55\u2026", separator: true, action: () => void confirm2("\u5220\u9664\u8FDE\u63A5\u8BB0\u5F55", "\u79FB\u9664\u201C" + record.name + "\u201D\u8BB0\u5F55\u3002\u4FDD\u7559\u7CFB\u7EDF\u51ED\u636E\u3001\u8FDC\u7AEF\u6587\u4EF6\u53CA\u5DF2\u6709\u8FDE\u63A5\u3002", () => auth.directory.remove(record.id)) }
+          ]);
+          row.append(open, more);
+          section.append(row);
+        }
+        list3.append(section);
+      }
+      if (!filtered.length) list3.append(workspace_element("p", "workspace-ssh-empty", records.length ? "\u6CA1\u6709\u5339\u914D\u7684\u8FDE\u63A5" : "\u4FDD\u5B58\u5E38\u7528\u7535\u8111\u548C\u8D26\u53F7\uFF0C\u4E00\u952E\u8FDE\u63A5\u3002"));
+    };
+    const refresh = async () => {
+      const version = ++epoch2;
+      const values = await auth.directory.list();
+      if (disposed || version !== epoch2) return;
+      records = values;
+      render();
+    };
+    header.append(workspace_element("span", "", "SSH\u8FDE\u63A5"), git_icon_button("add", "\u65B0\u5EFASSH\u8FDE\u63A5", () => edit3()), git_icon_button("refresh", "\u5237\u65B0\u8FDE\u63A5\u8BB0\u5F55", () => void refresh().catch(notice)), git_icon_button("settings-gear", "\u5BC6\u7801\u4FDD\u9669\u7BB1", () => void vault().catch(notice)));
+    search2.placeholder = "\u641C\u7D22\u7535\u8111\u522B\u540D\u3001\u8D26\u53F7\u6216\u5730\u5740";
+    search2.setAttribute("aria-label", "\u641C\u7D22SSH\u8FDE\u63A5");
+    search2.oninput = render;
+    list3.setAttribute("aria-label", "\u5DF2\u4FDD\u5B58\u7684SSH\u8FDE\u63A5");
+    root.append(header, search2, list3);
+    void refresh().catch(notice);
+    const focused = () => void refresh().catch(notice);
+    window.addEventListener("focus", focused);
+    return { root, refresh, set_active(id, state) {
+      active_id = id;
+      connection_state = state;
+      render();
+    }, dispose() {
+      disposed = true;
+      ++epoch2;
+      window.removeEventListener("focus", focused);
+      for (const view of dialogs) view.close();
+      root.remove();
+    } };
+  }
+
   // src/workspace_remote_ssh.css
   var workspace_remote_ssh_default = "";
 
   // src/workspace_remote_ssh.ts
-  function bind_workspace_remote_ssh(core, files, runtime2 = window) {
+  function bind_workspace_remote_ssh(core, files, set_folder, runtime2 = window) {
     const path_api = runtime2.reqnode("path"), buffer_api = runtime2.reqnode("buffer").Buffer;
     const asset_root = path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote");
     const api2 = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_service.cjs"));
-    const credentials = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_credentials.cjs")).create_credential_store(path_api.join(runtime2._options.userDataPath, "typora_code", "ssh_credentials"));
-    let credential_used = false, pending_credential;
     const node_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
+    const auth = create_ssh_authentication(runtime2, asset_root, node_path);
+    let auth_attempt;
+    let port = 0, active_record, owner_key = "", username = "";
     const style = acquire_workspace_style("typora-code-style:workspace_remote_ssh", workspace_remote_ssh_default);
+    let connect_epoch = 0;
     let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false, list_signature = "";
     let remote_selected = false;
     let provider;
     const host_providers = /* @__PURE__ */ new Map();
     const provider_releases = [];
-    let auth_dialog;
     const notice = (error) => {
       if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 7e3);
     };
-    const authenticate = async (prompt, stale2) => {
-      const password_prompt = /password/iu.test(prompt) && !/passphrase|verification|one.time/iu.test(prompt);
-      if (password_prompt && !credential_used) {
-        credential_used = true;
-        try {
-          const stored = await credentials.read(target);
-          if (stored && !disposed && !stale2()) return stored;
-        } catch {
-        }
-      }
-      return new Promise((resolve3) => {
-        if (disposed || stale2()) {
-          resolve3(void 0);
-          return;
-        }
-        let answer;
-        const confirm2 = /yes\/no|fingerprint|authenticity/iu.test(prompt);
-        const dialog2 = workspace_dialog(confirm2 ? "\u786E\u8BA4SSH\u4E3B\u673A\u8EAB\u4EFD" : "SSH\u8EAB\u4EFD\u9A8C\u8BC1", "\u53D6\u6D88", () => {
-          input2.value = "";
-          if (auth_dialog === dialog2) auth_dialog = void 0;
-          resolve3(answer);
-        });
-        auth_dialog = dialog2;
-        const input2 = workspace_element("input");
-        input2.type = "password";
-        input2.autocomplete = "off";
-        input2.setAttribute("aria-label", "SSH\u8BA4\u8BC1\u4FE1\u606F");
-        const remember = workspace_element("input");
-        remember.type = "checkbox";
-        const remember_label = workspace_element("label");
-        remember_label.append(remember, document.createTextNode("\u4F7F\u7528\u7CFB\u7EDF\u52A0\u5BC6\u8BB0\u4F4F\u6B64\u4E3B\u673A\u5BC6\u7801"));
-        dialog2.content.append(workspace_element("p", "workspace-ssh-auth-prompt", prompt));
-        if (confirm2) dialog2.content.append(workspace_element("p", "", "\u8BF7\u6838\u5BF9\u8FDC\u7A0B\u7535\u8111\u63D0\u4F9B\u7684\u4E3B\u673A\u6307\u7EB9\uFF0C\u786E\u8BA4\u540E\u7531OpenSSH\u8BB0\u5F55\u4FE1\u4EFB\u3002"));
-        else dialog2.content.append(input2);
-        if (password_prompt && credentials.supported) dialog2.content.append(remember_label);
-        const accept = () => {
-          if (stale2() || disposed) {
-            dialog2.close();
-            return;
-          }
-          answer = confirm2 ? "yes" : input2.value;
-          if (password_prompt && remember.checked) pending_credential = answer;
-          dialog2.close();
-        };
-        dialog2.footer.prepend(workspace_button(confirm2 ? "\u4FE1\u4EFB\u5E76\u8FDE\u63A5" : "\u8FDE\u63A5", accept));
-        input2.onkeydown = (event) => {
-          if (event.key === "Enter" && !event.isComposing) {
-            event.preventDefault();
-            accept();
-          }
-        };
-        if (!confirm2) input2.focus();
-      });
-    };
-    const service = api2.create_remote_ssh({ asset_root, node_path, authenticate, connection_options: read_remote_ssh_settings, on_state: (value) => {
+    const service = api2.create_remote_ssh({ asset_root, node_path, authenticate: (message, stale2) => auth_attempt?.authenticate(message, stale2), connection_options: () => ({ ...read_remote_ssh_settings(), port }), on_state: (value) => {
       if (disposed) return;
       status2.textContent = value.detail || "\u672A\u8FDE\u63A5SSH";
       panel.containerEl.dataset.connection = value.state;
       panel.containerEl.setAttribute("aria-busy", String(value.state === "connecting"));
+      directory?.set_active(active_record?.id || "", value.state);
+      window.dispatchEvent(new Event("typora-code-remote-state-changed"));
       if (value.state === "disconnected") {
-        auth_dialog?.close();
         ++browse_epoch;
         list_signature = "";
         list3.removeAttribute("aria-busy");
         list3.replaceChildren();
       }
-      connect_button.disabled = value.state === "connecting";
+      connect_button.disabled = connecting || value.state === "connecting";
       disconnect_button.disabled = value.state === "disconnected";
       for (const control of [up_button, refresh_button, new_file, new_folder, terminal_button, git_button]) control.disabled = value.state !== "connected";
     } });
     const connected = () => service.state() === "connected";
-    const release_context = register_remote_workspace_context(() => remote_selected && target ? { target, remote_path: provider?.root ? provider.remote_path(provider.root) : folder, state: service.state() } : void 0);
+    const release_context = register_remote_workspace_context(() => remote_selected && target ? { target, port, name: active_record ? active_record.host_name + " / " + active_record.name : target, username, remote_path: provider?.root ? provider.remote_path(provider.root) : folder, state: service.state() } : void 0);
     const local_context_changed = () => {
       remote_selected = Boolean(active_remote_files());
     };
     window.addEventListener("linux-note-workspace-context-changed", local_context_changed);
-    const require_connection = (owner = target) => {
-      if (!connected() || target !== owner) throw Error("\u6B64\u6587\u6863\u6240\u5C5ESSH\u4E3B\u673A\u672A\u8FDE\u63A5\uFF1B\u8349\u7A3F\u4FDD\u7559\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u4FDD\u5B58\u3002");
+    const require_connection = (owner2 = owner_key) => {
+      if (!connected() || owner_key !== owner2) throw Error("\u6B64\u6587\u6863\u6240\u5C5ESSH\u4E3B\u673A\u672A\u8FDE\u63A5\uFF1B\u8349\u7A3F\u4FDD\u7559\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u4FDD\u5B58\u3002");
     };
     const prompt_name = (title) => new Promise((resolve3) => {
       let result;
@@ -241933,21 +242288,21 @@ https://creativecommons.org/licenses/by/4.0/
         if (epoch2 === browse_epoch) list3.removeAttribute("aria-busy");
       }
     };
-    const create4 = async (directory) => {
+    const create4 = async (directory2) => {
       if (mutating) return;
       require_connection();
-      const owner = target, parent = folder;
-      const name = await prompt_name(directory ? "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6");
+      const owner2 = owner_key, parent = folder;
+      const name = await prompt_name(directory2 ? "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u65B0\u5EFA\u8FDC\u7A0B\u6587\u4EF6");
       if (!name || disposed) return;
-      require_connection(owner);
+      require_connection(owner2);
       if (folder !== parent) throw Error("\u76EE\u5F55\u5DF2\u5207\u6362\uFF0C\u8BF7\u91CD\u8BD5\u3002");
       mutating = true;
       status2.textContent = "\u6B63\u5728\u521B\u5EFA\u2026";
       try {
         const path = path_api.posix.join(parent, name);
-        await service.request(directory ? "mkdir" : "create", { path, data: "" });
+        await service.request(directory2 ? "mkdir" : "create", { path, data: "" });
         await browse(parent);
-        if (!directory) await open_file(path);
+        if (!directory2) await open_file(path);
       } finally {
         mutating = false;
       }
@@ -241962,65 +242317,81 @@ https://creativecommons.org/licenses/by/4.0/
     input.setAttribute("aria-label", "SSH\u4E3B\u673A");
     input.autocomplete = "off";
     status2.setAttribute("role", "status");
-    const restore_provider = (owner) => {
-      const existing = host_providers.get(owner);
+    const restore_provider = (owner2, display = target) => {
+      const existing = host_providers.get(owner2);
       if (existing) return existing;
-      const host_key = runtime2.reqnode("crypto").createHash("sha256").update(owner).digest("hex");
-      const value = new remote_file_provider({ target: owner, connected: () => connected() && target === owner, poll_interval: () => read_remote_ssh_settings().refresh_interval * 1e3, request: (operation, values) => service.request(operation, values) }, runtime2.reqnode("fs"), path_api, path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache", host_key), buffer_api);
-      host_providers.set(owner, value);
+      const host_key = runtime2.reqnode("crypto").createHash("sha256").update(owner2).digest("hex");
+      const value = new remote_file_provider({ target: display, connected: () => connected() && owner_key === owner2, poll_interval: () => read_remote_ssh_settings().refresh_interval * 1e3, request: (operation, values) => service.request(operation, values) }, runtime2.reqnode("fs"), path_api, path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache", host_key), buffer_api);
+      host_providers.set(owner2, value);
       provider_releases.push(register_remote_files(value));
       return value;
     };
-    const connect = async () => {
+    const connect = async (record) => {
       if (connecting) return;
-      const next = input.value.trim();
+      const next = record?.target || input.value.trim(), next_port = record?.port || 0;
       api2.validate_target(next);
-      if (target && target !== next) {
-        const close = await files.prepare_workspace_switch();
-        if (!close) return;
-        close();
-      }
       connecting = true;
-      credential_used = false;
-      pending_credential = void 0;
-      remote_selected = true;
-      target = next;
-      folder = "";
-      let authenticated = false;
+      const epoch2 = ++connect_epoch;
+      let current = true;
+      status2.textContent = "\u6B63\u5728\u89E3\u6790SSH\u8D26\u53F7\u914D\u7F6E\u2026";
+      connect_button.disabled = true;
+      disconnect_button.disabled = false;
+      directory?.set_active(record?.id || "", "connecting");
       try {
+        const attempt = await auth.attempt(next, next_port, () => current && !disposed && epoch2 === connect_epoch);
+        if (disposed || epoch2 !== connect_epoch) return;
+        if (owner_key && owner_key !== attempt.owner.key) {
+          const close = await files.prepare_workspace_switch();
+          if (!close || disposed || epoch2 !== connect_epoch) return;
+          close();
+        }
+        auth_attempt?.clear();
+        auth_attempt = attempt;
+        remote_selected = true;
+        target = next;
+        port = next_port;
+        owner_key = attempt.owner.key;
+        username = attempt.owner.user;
+        active_record = record;
+        input.value = next;
+        folder = "";
         const hello = await service.connect(target);
-        authenticated = true;
-        if (disposed) return;
-        if (pending_credential) {
-          try {
-            await credentials.save(target, pending_credential);
-          } catch (error) {
-            notice(error);
-          }
-          pending_credential = void 0;
+        if (disposed || epoch2 !== connect_epoch) return;
+        await attempt.complete();
+        if (disposed || epoch2 !== connect_epoch || !connected()) return;
+        if (!record) {
+          const saved = await auth.directory.list();
+          active_record = saved.find((item) => item.target === target && item.port === port) || await auth.directory.save({ target, port, host_name: target.split("@").at(-1), name: username, folder: "" });
+          await directory?.refresh();
+          directory?.set_active(active_record?.id || "", "connected");
         }
-        if (!provider || provider.connection.target !== target) {
-          provider = restore_provider(target);
-        }
-        select_remote_files(provider);
-        const project = provider.root ? provider.remote_path(provider.root) : hello.home;
+        if (disposed || epoch2 !== connect_epoch || !connected()) return;
+        provider = restore_provider(owner_key);
+        const project = record?.folder || (provider.root ? provider.remote_path(provider.root) : hello.home);
         await browse(project);
         const root = await provider.mount(project);
-        core.app.commands.run("linux_note:open_folder_path", [root]);
+        if (disposed || epoch2 !== connect_epoch || !connected()) return;
+        await set_folder(root);
         try {
           localStorage.setItem("typora-code:ssh:last-host", target);
+          localStorage.setItem("typora-code:ssh:last-connection", JSON.stringify({ target, port, owner_key, username, record: active_record }));
         } catch {
         }
-      } catch (error) {
-        if (!authenticated && /permission denied|authentication failed/iu.test(String(error))) await credentials.remove(target);
-        throw error;
       } finally {
-        pending_credential = void 0;
+        current = false;
         connecting = false;
+        connect_button.disabled = false;
+        disconnect_button.disabled = !connected();
+        directory?.set_active(active_record?.id || "", service.state());
       }
     };
+    let directory;
     const connect_button = workspace_button("\u8FDE\u63A5", () => void connect().catch(notice));
-    const disconnect_button = workspace_button("\u65AD\u5F00 / \u53D6\u6D88", () => service.disconnect());
+    const disconnect_button = workspace_button("\u65AD\u5F00 / \u53D6\u6D88", () => {
+      ++connect_epoch;
+      auth_attempt?.clear();
+      service.disconnect();
+    });
     disconnect_button.disabled = true;
     const up_button = workspace_button("\u4E0A\u4E00\u7EA7", () => void browse(path_api.posix.dirname(folder)).catch(notice));
     const refresh_button = workspace_button("\u5237\u65B0", () => void browse(folder).catch(notice));
@@ -242028,7 +242399,7 @@ https://creativecommons.org/licenses/by/4.0/
     const terminal_button = workspace_button("\u9879\u76EE\u7EC8\u7AEF", () => {
       try {
         require_connection();
-        window.dispatchEvent(new CustomEvent("linux-note-open-ssh-terminal", { detail: { target, remote_path: folder } }));
+        window.dispatchEvent(new CustomEvent("linux-note-open-ssh-terminal", { detail: { target, port, name: active_record ? active_record.host_name + " / " + active_record.name : target, remote_path: folder } }));
       } catch (error) {
         notice(error);
       }
@@ -242056,12 +242427,20 @@ https://creativecommons.org/licenses/by/4.0/
     } catch {
     }
     if (input.value) {
+      let saved;
+      try {
+        saved = JSON.parse(localStorage.getItem("typora-code:ssh:last-connection") || "null");
+      } catch {
+      }
       const mounted = runtime2.File?.getMountFolder?.();
-      const restored = provider = restore_provider(input.value);
+      target = input.value;
+      port = saved?.port || 0;
+      owner_key = saved?.owner_key || target;
+      username = saved?.username || target.split("@")[0];
+      active_record = saved?.record;
+      const restored = provider = restore_provider(owner_key);
       if (mounted && restored.owns(mounted)) {
-        provider = restored;
         provider.root = path_api.normalize(mounted);
-        target = input.value;
         folder = provider.remote_path(provider.root);
         remote_selected = true;
         select_remote_files(provider);
@@ -242092,18 +242471,24 @@ https://creativecommons.org/licenses/by/4.0/
         super();
         this.addRibbonButton({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 (SSH)", icon: git_icon("remote-explorer"), group: "top" });
         const toolbar = workspace_element("div", "workspace-ssh-toolbar");
-        toolbar.append(connect_button, disconnect_button, up_button, refresh_button, new_file, new_folder, terminal_button, git_button);
+        toolbar.append(disconnect_button, up_button, refresh_button, new_file, new_folder, terminal_button, git_button);
         toolbar.append(workspace_button("\u6253\u5F00\u6587\u4EF6\u5939", () => core.app.commands.run("linux_note:open_folder")), workspace_button("\u8BBE\u7F6E", () => core.app.commands.run("typora_code:settings")));
-        if (credentials.supported) toolbar.append(workspace_button("\u5FD8\u8BB0\u5BC6\u7801", () => {
-          const owner = input.value.trim();
-          if (!owner) return;
-          void credentials.remove(owner).then(() => {
-            status2.textContent = "\u5DF2\u79FB\u9664\u6B64\u4E3B\u673A\u4FDD\u5B58\u7684\u5BC6\u7801\u3002";
-          }).catch(notice);
-        }));
-        this.containerEl.append(workspace_element("div", "workspace-ssh-title", "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 \xB7 SSH"), input, hosts, toolbar, status2, location, list3);
+        const icons3 = ["debug-disconnect", "arrow-up", "refresh", "new-file", "new-folder", "terminal", "git-branch", "folder-opened", "settings-gear"];
+        [...toolbar.querySelectorAll("button")].forEach((control, index) => {
+          const label = control.textContent || "";
+          control.title = label;
+          control.setAttribute("aria-label", label);
+          const text3 = workspace_element("span", "", label);
+          text3.hidden = true;
+          control.replaceChildren(git_icon(icons3[index]), text3);
+        });
+        directory = create_ssh_directory(auth, connect, notice);
+        const quick = workspace_element("details", "workspace-ssh-quick"), summary = workspace_element("summary", "", "\u5FEB\u901F\u8FDE\u63A5 / OpenSSH\u914D\u7F6E\u522B\u540D");
+        quick.append(summary, input, hosts, connect_button);
+        this.containerEl.append(directory.root, quick, toolbar, status2, location, list3);
       }
       onshow() {
+        void directory?.refresh().catch(notice);
         document.querySelector("#typora-sidebar")?.classList.remove("active-tab-files", "active-tab-outline", "ty-show-search");
       }
     }
@@ -242112,7 +242497,7 @@ https://creativecommons.org/licenses/by/4.0/
     const show2 = () => {
       if (sidebar.activePanel === panel) sidebar.show();
       else sidebar.switch(remote_sidebar);
-      input.focus();
+      panel.containerEl.querySelector('[aria-label="\u641C\u7D22SSH\u8FDE\u63A5"]')?.focus();
     };
     const unregister = core.app.commands.register({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\uFF1A\u8FDE\u63A5SSH\u4E3B\u673A", scope: "global", callback: show2 });
     let refresh_timer;
@@ -242140,7 +242525,8 @@ https://creativecommons.org/licenses/by/4.0/
       window.removeEventListener("linux-note-workspace-context-changed", local_context_changed);
       clearTimeout(refresh_timer);
       window.removeEventListener("typora-code-ssh-settings-changed", schedule_refresh);
-      auth_dialog?.close();
+      directory?.dispose();
+      auth.dispose();
       service.dispose();
       ++browse_epoch;
       unregister();
@@ -242209,8 +242595,8 @@ https://creativecommons.org/licenses/by/4.0/
       else surface.setAttribute("data-workspace-settings-surface", original);
     };
   }
-  function mount_settings_owner(core, owner, anchor, on_return, on_navigate) {
-    if (owner === "community") {
+  function mount_settings_owner(core, owner2, anchor, on_return, on_navigate) {
+    if (owner2 === "community") {
       const bridge = core.app.community_plugins;
       if (!bridge?.mount_settings) throw Error("\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
       const surface = document.createElement("div");
@@ -242287,18 +242673,18 @@ https://creativecommons.org/licenses/by/4.0/
         };
         this.render();
       }
-      select_owner(owner) {
-        if (this.owner === owner && this.owner_binding) return;
+      select_owner(owner2) {
+        if (this.owner === owner2 && this.owner_binding) return;
         this.owner_binding?.dispose();
         this.owner_binding = void 0;
-        this.owner = owner;
+        this.owner = owner2;
         this.status.textContent = "";
         this.owner_host.textContent = "";
-        this.body.hidden = Boolean(owner);
-        this.owner_host.hidden = !owner;
+        this.body.hidden = Boolean(owner2);
+        this.owner_host.hidden = !owner2;
         this.render();
-        if (owner) try {
-          this.owner_binding = mount_settings_owner(core, owner, this.owner_host, () => this.select_owner(""), () => dialog2?.close(false));
+        if (owner2) try {
+          this.owner_binding = mount_settings_owner(core, owner2, this.owner_host, () => this.select_owner(""), () => dialog2?.close(false));
         } catch (error) {
           this.owner_host.textContent = String(error);
         }
@@ -242960,7 +243346,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       lifetime.add(core.app.commands.register({ id: "linux_note:outline", title: "\u89C6\u56FE\uFF1A\u805A\u7126\u5927\u7EB2", scope: "global", callback: reveal_outline }));
       const search2 = lifetime.own(bind_workspace_search(core, files));
-      lifetime.own(bind_workspace_remote_ssh(core, files));
+      lifetime.own(bind_workspace_remote_ssh(core, files, file_commands.set_folder));
       let known_context = files.context_root();
       const context_changed = (force = false) => {
         if (lifetime.disposed || workspace_context_switching()) return;
@@ -243036,6 +243422,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092304,
+        version: "2026.09.23.4",
+        date: "2026-09-23",
+        notes: [
+          "SSH\u8FDE\u63A5\u76EE\u5F55\u652F\u6301\u591A\u7535\u8111\u3001\u591A\u8D26\u53F7\u3001\u81EA\u5B9A\u4E49\u7535\u8111\u4E0E\u8D26\u53F7\u522B\u540D\u3001\u641C\u7D22\u53CA\u589E\u5220\u6539\uFF1B\u9009\u62E9\u8BB0\u5F55\u4E00\u952E\u8FDE\u63A5\u3002",
+          "SSH\u7EC8\u7AEF\u590D\u7528\u7CFB\u7EDF\u4FDD\u5B58\u7684\u767B\u5F55\u5BC6\u7801\uFF1B\u9ED8\u8BA4\u7EC8\u7AEF\u8DDF\u968F\u5F53\u524D\u8FDC\u7AEF\uFF0C\u5176\u4ED6\u8D26\u53F7\u53EF\u4ECE\u7EC8\u7AEF\u83DC\u5355\u72EC\u7ACB\u9009\u62E9\u3002\u9876\u90E8\u663E\u793ASSH\u7528\u6237\u540D\u53CA\u771F\u5B9E\u8FDE\u63A5\u4FE1\u606F\u3002",
+          "Windows\u4F7F\u7528\u7CFB\u7EDF\u51ED\u636E\u7BA1\u7406\u5668\uFF1B\u65B0\u589E\u72EC\u7ACB\u5BC6\u7801\u67E5\u770B\u4FDD\u9669\u7BB1\uFF0C\u91CD\u7F6E\u4EC5\u6E05\u9664\u53EF\u67E5\u770B\u5BC6\u7801\uFF0C\u4FDD\u7559\u81EA\u52A8\u767B\u5F55\u51ED\u636E\u3002"
+        ]
+      },
       {
         sequence: 2026092303,
         version: "2026.09.23.3",
@@ -244275,8 +244671,8 @@ https://creativecommons.org/licenses/by/4.0/
     const source = window.File?.editor?.sourceView;
     const targets = [];
     if (source?.inSourceMode && source.cm) {
-      const owner = source.cm.getWrapperElement();
-      if (owner.isConnected) targets.push({ owner, root: owner, scroller: source.cm.getScrollerElement(), source: source.cm, path: "\u6E90\u7801" });
+      const owner2 = source.cm.getWrapperElement();
+      if (owner2.isConnected) targets.push({ owner: owner2, root: owner2, scroller: source.cm.getScrollerElement(), source: source.cm, path: "\u6E90\u7801" });
     }
     const content = document.querySelector("content");
     const write = document.querySelector("#write");
@@ -244653,10 +245049,10 @@ https://creativecommons.org/licenses/by/4.0/
       scan_timer2 = 0;
       if (disposed) return;
       const targets = current_targets();
-      for (const [owner, map] of maps) {
-        if (!targets.some((target) => target.owner === owner && target.root === map.target.root && target.source === map.target.source)) {
+      for (const [owner2, map] of maps) {
+        if (!targets.some((target) => target.owner === owner2 && target.root === map.target.root && target.source === map.target.source)) {
           map.dispose();
-          maps.delete(owner);
+          maps.delete(owner2);
         }
       }
       for (const target of targets) {

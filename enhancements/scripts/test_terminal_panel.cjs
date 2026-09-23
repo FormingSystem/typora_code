@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
     window.profile_scans.push(record);refresh();
     return {warnings:()=>[],profiles:()=>structuredClone(record.values),ready:()=>record.pending||Promise.resolve(structuredClone(record.values)),refresh,dispose(){record.disposed=true;}};
   }`;
-  const bundle=await build({stdin:{contents:'export {bind_terminal_workspace} from "./src/terminal_workspace";export {read_terminal_state} from "./src/terminal_state";export {register_remote_workspace_context,current_remote_workspace} from "./src/remote_workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[{name:'terminal-fixture',setup(build){
+  const bundle=await build({stdin:{contents:'export {register_ssh_auth_owner} from "./src/remote_ssh_auth_context";export {bind_terminal_workspace} from "./src/terminal_workspace";export {read_terminal_state} from "./src/terminal_state";export {register_remote_workspace_context,current_remote_workspace} from "./src/remote_workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[{name:'terminal-fixture',setup(build){
     build.onLoad({filter:/terminal_pty_client\.ts$/},()=>({contents:pty_mock,loader:'js'}));
     build.onLoad({filter:/terminal_profile_detection\.ts$/},()=>({contents:discovery_mock,loader:'js'}));
   }}]});await evaluate(bundle.outputFiles[0].text);
@@ -304,11 +304,13 @@ app.whenReady().then(async()=>{
   assert(await evaluate('pty_starts.slice(9).every(item=>item.killed===1)&&!document.querySelector(".linux-note-terminal")'));
   // 真实协调器的全部默认入口，保留现有本地会话及各自拆分身份。
   const remote_assets=path.join(root,'typora_code/assets/remote');fs.mkdirSync(remote_assets,{recursive:true});
-  fs.copyFileSync(path.join(__dirname,'../src/remote_ssh_service.cjs'),path.join(remote_assets,'remote_ssh_service.cjs'));
+  for(const name of ['remote_ssh_service.cjs','remote_ssh_auth.cjs'])fs.copyFileSync(path.join(__dirname,'../src',name),path.join(remote_assets,name));
+  await evaluate(`window.auth_starts=0;window.auth_releases=0;window.release_auth=panel_api.register_ssh_auth_owner({list:async()=>[],prepare:async()=>{auth_starts++;return{env:{SSH_ASKPASS_REQUIRE:'force'},dispose(){auth_releases++;}}}});void 0`);
   await evaluate(`(async()=>{window.binding=panel_api.bind_terminal_workspace(host);window.remote_context=undefined;window.release_remote=panel_api.register_remote_workspace_context(()=>remote_context);window.local_entry=await binding.open(${JSON.stringify(root)},'cmd');profile_scans[4].complete(${JSON.stringify(profiles)});})()`);
   await wait('pty_starts.length===13');await evaluate('pty_starts[12].ready();void 0');await delay(30);
   await evaluate(`window.remote_context={target:'alias',remote_path:"/tmp/项目 '$quoted",state:'connected'};binding.toggle();void 0`);
   await wait('pty_starts.length===14');
+  assert.equal(await evaluate('pty_starts[13].request.options.env.SSH_ASKPASS_REQUIRE'),'force','remote PTY receives shared authentication environment');
   assert.equal(await evaluate('pty_starts[13].request.args.at(-2)'),'alias','toggle starts SSH even with a visible local terminal');
   assert(await evaluate('pty_starts[13].request.args.at(-1).includes("/tmp/项目")&&pty_starts[12].killed===0'),'existing local PTY untouched');
   await evaluate('pty_starts[13].ready();void 0');await delay(30);
@@ -343,7 +345,7 @@ app.whenReady().then(async()=>{
   await evaluate(`pty_starts[${local_count+1}].ready();void 0`);await delay(20);
   const blocked_count=await evaluate('pty_starts.length');await evaluate('commands.get("linux_note:terminal_admin").callback();void 0');await delay(40);
   assert.equal(await evaluate('pty_starts.length'),blocked_count);assert(await evaluate('document.querySelector(".git-graph-dialog").textContent.includes("本机UAC")'));await dialog_action('关闭');
-  await evaluate('binding.dispose();release_remote();void 0');
+  await evaluate('binding.dispose();release_remote();release_auth();void 0');
   assert(await evaluate('panel_api.current_remote_workspace()===undefined&&pty_starts.slice(12).every(item=>item.killed===1)'));
   console.log(JSON.stringify({status:'PASS',checks:['default SSH routing, disconnected rejection, explicit local selection, source split identity and cleanup','SSH literal directory, split, restart and disposal preserve remote launch identity','late directory result cannot overwrite restarted session cwd','pending startup moves between panel and editor without recreation','directory wait, kill and workspace change reject late startup','panel paints before shell discovery; 20 rapid toggles reuse pending session','late discovery does not reopen hidden panel','PTY ready waits for first output; early output clears busy status','failed startup stays in session; disposal prevents late process creation','Chinese composition, Shift English commit, cancellation and repeated input send exactly once','terminal IME and key releases stay local without blocking browser defaults','IME shortcuts preserve focus; normal copy, interrupt, find and Escape still work','disposed terminal releases input event listeners','list and split pointer resize, cancel and keyboard reset','left/right list, narrow icon mode, window clamp and zoom','drag reorder keeps session sizes, active identity and PTY output','editor move releases split-only geometry','panel reserves editor space without changing active document','hidden panel keeps process','split session group and list','panel/editor moves preserve PTY','invalid config does not write','valid appearance updates existing session','rapid restart cancels pending launch','compact action geometry','initial async scan gates startup and respects closed settings','detected and custom profiles agree across menu/settings/launch','refresh adds WSL without stopping existing PTY','removed default is retained and cannot silently launch another shell','closed menu and settings reject late results','refresh preserves selections changed while detection is pending','cleanup cancels pending UI and restores root and every process'],evidence:root}));
 }).catch(async error=>{console.error(error);process.exitCode=1;if(win){fs.writeFileSync(path.join(root,'failure.png'),(await win.webContents.capturePage()).toPNG());await evaluate('window.binding?.dispose()');}}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

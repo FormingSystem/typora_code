@@ -1,5 +1,6 @@
 export type remote_workspace_context = Readonly<{
   target:string;
+  port?:number;name?:string;username?:string;
   remote_path:string;
   state:'connecting'|'connected'|'disconnected';
 }>;

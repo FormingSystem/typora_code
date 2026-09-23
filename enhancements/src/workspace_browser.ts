@@ -74,7 +74,7 @@ export function bind_workspace_browser() {
   lifetime.add(core.app.commands.register({id:"linux_note:outline",title:"视图：聚焦大纲",scope:"global",callback:reveal_outline}));
 
   const search=lifetime.own(bind_workspace_search(core,files));
-  lifetime.own(bind_workspace_remote_ssh(core,files));
+  lifetime.own(bind_workspace_remote_ssh(core,files,file_commands.set_folder));
   let known_context=files.context_root();
   const context_changed=(force=false)=>{
     if(lifetime.disposed||workspace_context_switching())return;

@@ -1,4 +1,5 @@
 import {git_icon, type git_icon_name} from "./git_icons";
+import {current_remote_workspace} from './remote_workspace_context';
 import {acquire_workspace_style} from "./workspace_styles";
 import {create_workspace_titlebar_menu} from "./workspace_titlebar_menu";
 import {create_workspace_titlebar_definitions, type titlebar_runtime} from "./workspace_titlebar_entries";
@@ -73,9 +74,10 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   search.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
   search.addEventListener("click",open_files,{signal:events.signal});
   const title=document.querySelector("title");
-  const refresh_label=()=>{const folder=files.context_root();search_label.textContent=folder?(files.path_api.basename(folder)||folder):"搜索文件";plain_title.textContent=title?.textContent?.trim()||search_label.textContent;};
+  const refresh_label=()=>{const folder=files.context_root(),remote=current_remote_workspace();search_label.textContent=remote?'SSH: '+(remote.username||remote.target.split('@')[0]):folder?(files.path_api.basename(folder)||folder):"搜索文件";search.title=remote?(remote.name||remote.target)+' · '+remote.target+(remote.port?':'+remote.port:'')+(remote.state==='connected'?'':' · 未连接'):'搜索文件 (Ctrl+P)';plain_title.textContent=remote?search_label.textContent:title?.textContent?.trim()||search_label.textContent;};
   refresh_label();
   window.addEventListener("linux-note-workspace-context-changed",refresh_label,{signal:events.signal});
+  window.addEventListener('typora-code-remote-state-changed',refresh_label,{signal:events.signal});
   const observer=new MutationObserver(refresh_label);if(title)observer.observe(title,{childList:true,characterData:true,subtree:true});cleanup.push(()=>observer.disconnect());
   const release=files.core.app.workspace.on("active-leaf:change",refresh_label);if(typeof release==="function")cleanup.push(release);
   // 原生文件加载仍直接访问 #title-text 等节点，必须保持连接，仅隐藏原来的呈现。

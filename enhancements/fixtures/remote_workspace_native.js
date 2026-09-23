@@ -9,7 +9,7 @@
  const assets=path.join(_options.userDataPath,'typora_code/assets/remote'),api=reqnode(path.join(assets,'remote_ssh_service.cjs'));
  const version=JSON.parse(fs.readFileSync(path.join(_options.userDataPath,'typora_code/assets/update/runtime.json'),'utf8')).node_version;
  const service=api.create_remote_ssh({asset_root:assets,node_path:path.join(_options.userDataPath,'linux_note_enhancements/terminal_runtime/node',version,'node.exe'),authenticate:async prompt=>{if(/yes\/no|fingerprint/iu.test(prompt))throw Error('测试要求已信任主机');return password;}});
- let panel,root='';
+ let panel,root='',result;
  try{
   if(!target||!password)throw Error('缺少SSH测试环境');await pause(1000);
   const hello=await service.connect(target);root=hello.home+'/.typora-workspace-native-'+crypto.randomUUID();await service.request('mkdir',{path:root});await service.request('mkdir',{path:root+'/子目录'});
@@ -17,9 +17,10 @@
   const first='# 起点\n\n[下一篇](子目录/目标.md#目标)\n\n这是远程Markdown。\n\n![远程图片](dot.png)\n';
   await service.request('create',{path:root+'/起点.md',data:buffer.from(first.replace(/\n/g,'\r\n')).toString('base64')});
   await service.request('create',{path:root+'/子目录/目标.md',data:buffer.from('# 目标\n\n远端链接目标。\n').toString('base64')});
-  core.app.commands.run('typora_code:remote_ssh');await wait(()=>document.querySelector('.workspace-ssh-sidebar'),'SSH面板未出现');panel=document.querySelector('.workspace-ssh-sidebar');panel.querySelector('input').value=target;button(panel,'连接').click();
+  let initial_context_ready=false;window.addEventListener('linux-note-workspace-context-changed',()=>{initial_context_ready=true;},{once:true});
+  core.app.commands.run('typora_code:remote_ssh');await wait(()=>document.querySelector('.workspace-ssh-sidebar'),'SSH面板未出现');panel=document.querySelector('.workspace-ssh-sidebar');panel.querySelector('details').open=true;panel.querySelector('input[aria-label="SSH主机"]').value=target;button(panel,'连接').click();
   await wait(()=>document.querySelector('[role=dialog] input[type=password]'),'认证未出现');const password_input=document.querySelector('[role=dialog] input[type=password]');password_input.value=password;password_input.closest('[role=dialog]').querySelector('input[type=checkbox]').checked=true;button(password_input.closest('[role=dialog]'),'连接').click();
-  await wait(()=>files.context_root().includes('remote_cache'),'主工作区未切到远端');
+  await wait(()=>initial_context_ready&&files.context_root().includes('remote_cache')&&!button(panel,'连接').disabled,'主工作区未完成远端切换');
   core.app.commands.run('linux_note:open_folder');await wait(()=>document.querySelector('input[aria-label="远程路径"]'),'远端文件夹选择器未出现');
   const picker=document.querySelector('input[aria-label="远程路径"]');picker.value=root;picker.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));
   await wait(()=>!button(picker.closest('[role=dialog]'),'打开').disabled&&picker.value===root,'远端目录未列出');button(picker.closest('[role=dialog]'),'打开').click();
@@ -60,8 +61,14 @@
   let conflict=false;try{await files.save_active();}catch{conflict=true;}assert(conflict&&File.changeCounter.isDocumentEdited(),'远端并发写入冲突保留原生草稿');
   button(panel,'断开 / 取消').click();let disconnected=false;try{await files.save_active();}catch{disconnected=true;}assert(disconnected&&File.editor.getMarkdown().includes('本地草稿'),'断线保存不回落本地并保留正文');
   core.app.commands.run('typora_code:remote_ssh');button(panel,'连接').click();await wait(()=>panel.dataset.connection==='connected','保存的系统凭据未用于重连');assert(!document.querySelector('.workspace-ssh-auth-prompt'),'记住密码后重连无需再次输入');assert(File.editor.getMarkdown().includes('本地草稿'),'重连保留原生草稿');
-  button(panel,'忘记密码').click();await wait(()=>panel.textContent.includes('已移除此主机保存的密码'),'忘记密码未完成');assert(true,'主动忘记系统密文凭据');
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,remote_root:root},null,2));
- }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'FAIL',checks,error:String(error.stack||error),remote_root:root,root:files.context_root(),native_path:File.bundle?.filePath,images:[...document.querySelectorAll('#write img')].map(node=>({html:node.outerHTML,src:node.src,width:node.naturalWidth})),dialogs:[...document.querySelectorAll('[role=dialog]')].map(node=>node.textContent)},null,2));}
- finally{service.dispose();}
+  panel.querySelector('.workspace-ssh-account>button[title^=管理]').click();await wait(()=>[...document.querySelectorAll('[role=menuitem]')].some(node=>node.textContent.includes('忘记自动登录密码')),'账号菜单未出现');[...document.querySelectorAll('[role=menuitem]')].find(node=>node.textContent.includes('忘记自动登录密码')).click();await wait(()=>document.querySelector('[role=dialog][aria-label="忘记自动登录密码"]'),'忘记密码确认未出现');button(document.querySelector('[role=dialog][aria-label="忘记自动登录密码"]'),'确认').click();await wait(()=>!document.querySelector('[role=dialog][aria-label="忘记自动登录密码"]'),'忘记密码未完成');assert(true,'主动忘记系统凭据');
+  result={status:'PASS',checks};
+ }catch(error){result={status:'FAIL',checks,error:String(error.stack||error),remote_root:root,root:files.context_root(),native_path:File.bundle?.filePath,images:[...document.querySelectorAll('#write img')].map(node=>({html:node.outerHTML,src:node.src,width:node.naturalWidth})),dialogs:[...document.querySelectorAll('[role=dialog]')].map(node=>node.textContent)};}
+ finally{
+  try{if(root&&service.state()==='connected'){
+   const remove_owned=async current=>{if(!current.startsWith(root+'/')&&current!==root)throw Error('cleanup boundary');const listing=await service.request('list',{path:current});for(const entry of listing.entries){const child=current+'/'+entry.name;if(entry.directory&&!entry.link)await remove_owned(child);else await service.request('remove',{path:child});}await service.request('remove',{path:current});};
+   if(!/^\/.*\/.typora-workspace-native-[a-f0-9-]+$/.test(root))throw Error('cleanup root boundary');await remove_owned(root);
+  }}finally{service.dispose();const credentials=reqnode(path.join(assets,'remote_ssh_credentials.cjs')).create_credential_store(path.join(_options.userDataPath,'typora_code','ssh_credentials'));for(const key of await credentials.storage.list(''))await credentials.storage.remove(key);}
+ }
+ fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify(result,null,2));
 })();

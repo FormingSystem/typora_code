@@ -6196,7 +6196,9 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R070"
+        "R070",
+        "R070.5",
+        "R070.6"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -6355,7 +6357,9 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R070"
+        "R070",
+        "R070.5",
+        "R070.6"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -6449,6 +6453,77 @@
       ],
       "timeout_ms": 240000,
       "required_executables": []
+    },
+    {
+      "id": "TC-remote-ssh-accounts",
+      "domain": "remote",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R070.5",
+        "R070.6"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_connections.cjs",
+        "enhancements/src/remote_ssh_credentials.cjs",
+        "enhancements/src/remote_ssh_wincred.ps1",
+        "enhancements/src/remote_ssh_auth.cjs",
+        "enhancements/src/remote_ssh_service.cjs"
+      ],
+      "related_modules": [
+        "SSH",
+        "终端",
+        "系统凭据"
+      ],
+      "script": "enhancements/scripts/test_remote_ssh_accounts.cjs",
+      "runner": "enhancements/scripts/test_remote_ssh_accounts.cjs",
+      "environment": "Windows, Node, PowerShell 5.1 / hidden Electron",
+      "preconditions": "独立临时连接目录与系统凭据命名空间",
+      "steps": [
+        "100次并发目录修改",
+        "账号与端口身份隔离",
+        "20次查看保险箱加解密",
+        "真实系统凭据往返与重置保留自动登录"
+      ],
+      "expected": [
+        "账号隔离、别名持久化，保险箱重置不清除自动登录，无秘密普通文件"
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-remote-ssh-directory",
+      "domain": "remote",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R070.5",
+        "R070.6"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_ssh_directory.ts",
+        "enhancements/src/workspace_remote_ssh.css",
+        "enhancements/src/remote_ssh_authentication.ts"
+      ],
+      "related_modules": [
+        "SSH",
+        "终端",
+        "系统凭据"
+      ],
+      "script": "enhancements/scripts/test_remote_ssh_directory.cjs",
+      "environment": "Windows, Node, PowerShell 5.1 / hidden Electron",
+      "preconditions": "独立临时连接目录与系统凭据命名空间",
+      "steps": [
+        "电脑分组、别名搜索、一键连接及真实Enter按键",
+        "增删改取消",
+        "明暗和80/100/150缩放及销毁",
+        "旧登录凭据迁移不重新生成查看记录"
+      ],
+      "expected": [
+        "账号隔离、别名持久化，保险箱重置不清除自动登录，无秘密普通文件"
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

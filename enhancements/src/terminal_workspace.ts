@@ -1,3 +1,4 @@
+import {saved_ssh_connections} from './remote_ssh_auth_context';
 import {remote_files_for} from './remote_workspace_files';
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
@@ -88,14 +89,14 @@ export function bind_terminal_workspace(host:graph_host){
     if(location==="editor")attach_editor(entry);else panel.show();entry.moving=false;activate(id);
     if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
   };
-  const ssh_profile=(target:string,remote_path:string):terminal_profile_config=>{
+  const ssh_profile=(target:string,remote_path:string,port=0,name=''):terminal_profile_config=>{
     const api=runtime.reqnode(host.path_api.join(runtime._options.userDataPath,"typora_code","assets","remote","remote_ssh_service.cjs"));
     const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
-    return api.remote_terminal_profile(target,remote_path,executable,read_remote_ssh_settings());
+    const profile=api.remote_terminal_profile(target,remote_path,executable,{...read_remote_ssh_settings(),port});if(name)profile.title='SSH: '+name;return profile;
   };
   const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
-    if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,explicit_cwd&&remote_files_for(root)?remote_files_for(root)!.remote_path(root):remote.remote_path);}
+    if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,explicit_cwd&&remote_files_for(root)?remote_files_for(root)!.remote_path(root):remote.remote_path,remote.port,remote.name);}
     // 本机工作目录仅供启动OpenSSH进程；远端目录由固定远程启动协议拥有。
     if(launch_profile?.remote){root=runtime._options.userDataPath;explicit_cwd=true;resolve_cwd=undefined;}
     // 先建立真实会话与显示表面；配置探测由会话启动阶段等待。
@@ -175,16 +176,16 @@ export function bind_terminal_workspace(host:graph_host){
   };
   const toggle=()=>{
     const remote=current_remote_workspace();
-    const matches=(entry:session_entry)=>entry.location==='panel'&&(remote?entry.session.launch_profile?.remote?.target===remote.target:!entry.session.launch_profile?.remote);
+    const matches=(entry:session_entry)=>entry.location==='panel'&&(remote?entry.session.launch_profile?.remote?.target===remote.target&&(entry.session.launch_profile.remote.port||0)===(remote.port||0):!entry.session.launch_profile?.remote);
     if(panel.visible&&active()&&matches(active()!)){panel.hide();return;}
     const entry=[...sessions.values()].find(matches);if(entry)activate(entry.session.id);else launch();
   };
   const profile_menu=(event:MouseEvent,refresh=false)=>{
     let closed=false;const close=menu(event,[{title:"正在检测已安装的 Shell…",disabled:true,action:()=>{}}],()=>{closed=true;});
-    void (refresh?settings.refresh():settings.ready()).then(()=>{
-      if(closed||lifetime.disposed)return;close();const profiles=settings.profiles();
+    void (refresh?settings.refresh():settings.ready()).then(async()=>{
+      const connections=await saved_ssh_connections();if(closed||lifetime.disposed)return;close();const profiles=settings.profiles();
       const remote=current_remote_workspace();
-      menu(event,[...(remote?[{id:'terminal_profile_remote',title:'SSH: '+remote.target,action:()=>launch()}]:[]),...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:(remote?'本地：':'')+profile.title,action:()=>{void open(host.workspace_path(),profile.id,settings.get().location,'',false,undefined,undefined,true);}})),
+      menu(event,[...(remote?[{id:'terminal_profile_remote',title:'SSH: '+remote.target,action:()=>launch()}]:[]),...connections.map(record=>({id:'terminal_ssh_'+record.id,title:'SSH: '+record.host_name+' / '+record.name,action:()=>{void open(runtime._options.userDataPath,'',settings.get().location,'',true,undefined,ssh_profile(record.target,record.folder,record.port,record.host_name+' / '+record.name));}})),...profiles.map(profile=>({id:"terminal_profile_"+profile.id,title:(remote?'本地：':'')+profile.title,action:()=>{void open(host.workspace_path(),profile.id,settings.get().location,'',false,undefined,undefined,true);}})),
         ...(!profiles.length?[{title:"未发现可用的 Shell",disabled:true,action:()=>{}}]:[]),
         ...settings.warnings().map(title=>({title,disabled:true,action:()=>{}})),
         {title:"重新检测终端",separator:true,action:()=>profile_menu(event,true)},
@@ -217,8 +218,8 @@ export function bind_terminal_workspace(host:graph_host){
     }
   }));
   lifetime.listen(window,"linux-note-open-terminal",((event:CustomEvent<{path?:string;cwd?:string;admin?:boolean}>)=>{if(event.detail.cwd)open(event.detail.cwd,"",settings.get().location,"",true);else launch(Boolean(event.detail.admin),event.detail.path);}) as EventListener);
-  lifetime.listen(window,"linux-note-open-ssh-terminal",((event:CustomEvent<{target:string;remote_path:string}>)=>{
-    try{const profile=ssh_profile(event.detail.target,event.detail.remote_path);
+  lifetime.listen(window,"linux-note-open-ssh-terminal",((event:CustomEvent<{target:string;remote_path:string;port?:number;name?:string}>)=>{
+    try{const profile=ssh_profile(event.detail.target,event.detail.remote_path,event.detail.port,event.detail.name);
       void open(host.workspace_path(),"","panel","",true,undefined,profile);
     }catch(error){fail(error);}
   }) as EventListener);
