@@ -536,5 +536,13 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-virtual-directory { display: flex; align-items: center; gap: 4px; border: 0; background: transparent; color: inherit; text-align: left; }
 .git-scm-virtual-directory .git-icon { flex: 0 0 16px; }
 
-.git-markdown-diff{flex:1;min-height:0;overflow:auto}
+.git-markdown-diff{display:flex;flex:1;min-height:0;overflow:hidden}
+.git-markdown-diff-scroll{flex:1;min-width:0;min-height:0;overflow:auto}
+.git-markdown-overview{position:relative;flex:0 0 30px;min-height:0;overflow:hidden;touch-action:none;user-select:none;--git-overview-removed:var(--vscode-diffEditorOverview-removedForeground,#ff000066);--git-overview-inserted:var(--vscode-diffEditorOverview-insertedForeground,#9ccc2c80)}
+.git-markdown-diff[data-theme=dark] .git-markdown-overview{--git-overview-inserted:var(--vscode-diffEditorOverview-insertedForeground,#9ccc2c66)}
+.git-markdown-overview-marks{position:absolute;inset:0;width:30px;height:100%;pointer-events:none}
+.git-markdown-overview-viewport{position:absolute;left:0;right:0;border-radius:var(--workspace-scrollbar-radius,4px);background:var(--workspace-scrollbar-background,#646464c0)}
+.git-markdown-overview:hover .git-markdown-overview-viewport{background:var(--workspace-scrollbar-hover,#646464d0)}
+.git-markdown-overview[data-dragging=true] .git-markdown-overview-viewport{background:var(--workspace-scrollbar-active,#646464e0)}
+.git-markdown-overview:focus-visible{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}

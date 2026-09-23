@@ -37,8 +37,26 @@ app.whenReady().then(async()=>{
   }
   await run('preview.dispose();window.many=Array.from({length:600},(_,i)=>"段落 "+i+"\\n\\n").join("");window.preview=new qa.git_diff_editor({title:"long.md",file:"long.md",left:many,right:many.replace("段落 300","修改 300")});document.body.append(preview.container)');await wait('preview.markdown_preview.container.dataset.ready==="true"');
   await check('preview.markdown_preview.shadow.querySelectorAll(".markdown-diff-row").length===601','600段压力只改变对应块且保留其余对齐');
+  await run('window.overview=preview.container.querySelector(".git-markdown-overview");window.reader_scroll=preview.markdown_preview.scroll;');
+  await wait('overview.dataset.markCount==="1"');
+  await check('overview.getBoundingClientRect().width===30&&overview.clientHeight===reader_scroll.clientHeight','渲染概览常驻右侧30px且与视口同高');
+  await check('(()=>{const c=overview.querySelector("canvas"),ctx=c.getContext("2d"),data=ctx.getImageData(0,0,c.width,c.height).data;let red=0,green=0;for(let i=0;i<data.length;i+=4){if(data[i+3]&&data[i]>data[i+1])red++;if(data[i+3]&&data[i+1]>data[i])green++;}return red>0&&green>0})()','概览画布实际绘出红绿变更');
+  await run('window.click_mark=()=>{const row=preview.markdown_preview.shadow.querySelector("[data-changed=true]"),base=preview.markdown_preview.shadow.querySelector("#write"),box=overview.getBoundingClientRect();overview.dispatchEvent(new PointerEvent("pointerdown",{button:0,pointerId:5,clientX:box.right-3,clientY:box.top+(row.getBoundingClientRect().top-base.getBoundingClientRect().top+2)/reader_scroll.scrollHeight*box.height,bubbles:true}));};click_mark()');
+  await pause(50);await check('(()=>{const row=preview.markdown_preview.shadow.querySelector("[data-changed=true]").getBoundingClientRect(),box=reader_scroll.getBoundingClientRect();return row.top>=box.top&&row.top<box.bottom})()','单击概览变更定位实际排版块');
+  await run('overview.dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}))');await pause(50);await check('reader_scroll.scrollTop===0','概览Home回到起点');
+  await run('window.thumb=overview.querySelector(".git-markdown-overview-viewport");window.tb=thumb.getBoundingClientRect();thumb.dispatchEvent(new PointerEvent("pointerdown",{button:0,pointerId:7,clientX:tb.left+2,clientY:tb.top+2,bubbles:true}));overview.dispatchEvent(new PointerEvent("pointermove",{pointerId:7,clientY:overview.getBoundingClientRect().bottom,bubbles:true}));overview.dispatchEvent(new PointerEvent("pointerup",{pointerId:7,bubbles:true}));');await pause(50);
+  await check('reader_scroll.scrollTop>=reader_scroll.scrollHeight-reader_scroll.clientHeight-2&&!overview.dataset.dragging','拖动概览滑块到底并释放');
+  await run('window.tb=thumb.getBoundingClientRect();thumb.dispatchEvent(new PointerEvent("pointerdown",{button:0,pointerId:8,clientX:tb.left+2,clientY:tb.top+2,bubbles:true}));overview.dispatchEvent(new PointerEvent("pointercancel",{pointerId:8,bubbles:true}));window.cancel_top=reader_scroll.scrollTop;overview.dispatchEvent(new PointerEvent("pointermove",{pointerId:8,clientY:0,bubbles:true}));');await check('!overview.dataset.dragging&&reader_scroll.scrollTop===cancel_top','取消拖动后不再改变阅读位置');
+  await run('overview.dispatchEvent(new KeyboardEvent("keydown",{key:"PageUp",bubbles:true}))');await pause(50);await check('reader_scroll.scrollTop<reader_scroll.scrollHeight-reader_scroll.clientHeight-10','概览PageUp与同一阅读容器同步');
+  await run('reader_scroll.scrollTop=0');await pause(50);await check('parseFloat(thumb.style.top)===0','正文滚动同步概览视口');
+  for(const zoom of [.8,1,1.25]){await win.webContents.setZoomFactor(zoom);await pause(100);await run('click_mark()');await pause(30);await check('(()=>{const row=preview.markdown_preview.shadow.querySelector("[data-changed=true]").getBoundingClientRect(),box=reader_scroll.getBoundingClientRect();return row.top>=box.top-1&&row.top<box.bottom})()','概览缩放后跳转 '+zoom);}
+  for(let i=0;i<20;i++){await run('preview.set_markdown_mode(false);preview.set_markdown_mode(true)');await wait('preview.markdown_preview.container.dataset.ready==="true"');}
+  await check('preview.container.querySelectorAll(".git-markdown-overview").length===1','20次模式切换只有一个概览');
+  fs.writeFileSync(path.join(root,'overview.png'),(await win.webContents.capturePage()).toPNG());
   await run('preview.update({...preview.data,right:"# 最新\\n\\n当前内容"})');await wait('preview.markdown_preview.shadow.querySelector("h1")?.textContent==="最新"');
   await check('!preview.markdown_preview.shadow.textContent.includes("修改 300")','刷新抛弃旧比较内容');
+  await wait('overview.dataset.markCount==="1"');
+  await run('preview.update({...preview.data,left:"相同",right:"相同"})');await wait('preview.markdown_preview.container.dataset.ready==="true"&&overview.dataset.markCount==="0"');await check('overview.querySelector(".git-markdown-overview-viewport").hidden','无差异刷新清除旧标记且短文无滑块');
   await run('preview.update({...preview.data,right:"x".repeat(1024*1024+1)})');await wait('!preview.rendered_markdown');await check('preview.status.textContent.includes("1MiB")&&!preview.body.hidden','过大渲染明确回退源码');
   await run('preview.dispose()');await check('!document.querySelector(".git-markdown-diff")','销毁清理视图及资源');
   console.log(JSON.stringify({status:'PASS',checks,evidence:root},null,2));win.destroy();app.quit();

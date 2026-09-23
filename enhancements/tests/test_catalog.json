@@ -6826,13 +6826,15 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R034.1"
+        "R034.1",
+        "R034.2"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
         "enhancements/src/git_markdown_diff.ts",
         "enhancements/src/git_diff_editor.ts",
-        "enhancements/src/workspace_markdown_theme.ts"
+        "enhancements/src/workspace_markdown_theme.ts",
+        "enhancements/src/git_markdown_overview.ts"
       ],
       "related_modules": [
         "scm",
@@ -6857,12 +6859,14 @@
       "level": "system",
       "purpose": "stress",
       "requirements": [
-        "R034.1"
+        "R034.1",
+        "R034.2"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
         "enhancements/src/git_diff_editor.ts",
-        "enhancements/src/git_markdown_diff.ts"
+        "enhancements/src/git_markdown_diff.ts",
+        "enhancements/src/git_markdown_overview.ts"
       ],
       "related_modules": [
         "git",

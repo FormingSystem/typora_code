@@ -184590,6 +184590,147 @@ https://creativecommons.org/licenses/by/4.0/
     return result;
   }
 
+  // src/git_markdown_overview.ts
+  function create_markdown_overview(scroll, reader) {
+    const container = document.createElement("div"), canvas = document.createElement("canvas"), viewport = document.createElement("div");
+    container.className = "git-markdown-overview";
+    canvas.className = "git-markdown-overview-marks";
+    viewport.className = "git-markdown-overview-viewport";
+    container.tabIndex = 0;
+    container.setAttribute("role", "scrollbar");
+    container.setAttribute("aria-label", "Markdown\u5DEE\u5F02\u6982\u89C8");
+    container.setAttribute("aria-orientation", "vertical");
+    container.setAttribute("aria-valuemin", "0");
+    container.append(canvas, viewport);
+    const events = new AbortController(), signal = events.signal;
+    let disposed = false, frame3 = 0, layout_dirty = true, rows = [], marks = [];
+    let height = 0, total = 1, slider_height = 0, slider_top = 0, drag;
+    const update_viewport = () => {
+      const max = Math.max(0, scroll.scrollHeight - scroll.clientHeight);
+      slider_height = Math.min(height, Math.max(20, height * scroll.clientHeight / total));
+      slider_top = max ? scroll.scrollTop / max * (height - slider_height) : 0;
+      viewport.style.top = slider_top + "px";
+      viewport.style.height = slider_height + "px";
+      viewport.hidden = max === 0;
+      container.setAttribute("aria-valuemax", String(Math.round(max)));
+      container.setAttribute("aria-valuenow", String(Math.round(scroll.scrollTop)));
+    };
+    const paint = () => {
+      frame3 = 0;
+      if (disposed) return;
+      if (!container.clientHeight || !scroll.clientHeight) return;
+      if (layout_dirty) {
+        layout_dirty = false;
+        height = container.clientHeight;
+        total = Math.max(scroll.scrollHeight, scroll.clientHeight, 1);
+        const origin = reader.getBoundingClientRect().top;
+        marks = rows.map((row) => {
+          const box = row.getBoundingClientRect();
+          return { top: box.top - origin, height: box.height, left: row.children[0]?.getAttribute("data-empty") !== "true", right: row.children[1]?.getAttribute("data-empty") !== "true" };
+        });
+        const ratio = window.devicePixelRatio || 1;
+        canvas.width = Math.round(30 * ratio);
+        canvas.height = Math.round(height * ratio);
+        const ctx = canvas.getContext("2d");
+        if (ctx) {
+          ctx.scale(ratio, ratio);
+          const style = getComputedStyle(container);
+          for (const mark of marks) {
+            const top = mark.top / total * height, size = Math.max(2, mark.height / total * height);
+            if (mark.left) {
+              ctx.fillStyle = style.getPropertyValue("--git-overview-removed").trim() || "#ff000066";
+              ctx.fillRect(0, top, 15, size);
+            }
+            if (mark.right) {
+              ctx.fillStyle = style.getPropertyValue("--git-overview-inserted").trim() || "#9ccc2c80";
+              ctx.fillRect(15, top, 15, size);
+            }
+          }
+        }
+        container.dataset.markCount = String(marks.length);
+      }
+      update_viewport();
+    };
+    const schedule = (layout2 = false) => {
+      layout_dirty ||= layout2;
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(paint);
+    };
+    const end_drag = () => {
+      if (drag && container.hasPointerCapture(drag.id)) container.releasePointerCapture(drag.id);
+      drag = void 0;
+      delete container.dataset.dragging;
+    };
+    container.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || !height) return;
+      event.preventDefault();
+      container.focus({ preventScroll: true });
+      const box = container.getBoundingClientRect(), y = (event.clientY - box.top) * height / box.height;
+      if (event.target === viewport) {
+        drag = { id: event.pointerId, y: event.clientY, top: scroll.scrollTop };
+        container.dataset.dragging = "true";
+        try {
+          container.setPointerCapture(event.pointerId);
+        } catch {
+        }
+        return;
+      }
+      const left = event.clientX - box.left < box.width / 2;
+      const match2 = marks.find((mark) => (left ? mark.left : mark.right) && y >= mark.top / total * height && y <= mark.top / total * height + Math.max(2, mark.height / total * height));
+      const header = reader.querySelector(".markdown-diff-head")?.getBoundingClientRect().height || 0;
+      scroll.scrollTop = match2 ? Math.max(0, match2.top - header) : y / height * total - scroll.clientHeight / 2;
+      schedule();
+    }, { signal });
+    container.addEventListener("pointermove", (event) => {
+      if (!drag || drag.id !== event.pointerId) return;
+      event.preventDefault();
+      const ratio = height / container.getBoundingClientRect().height;
+      scroll.scrollTop = drag.top + (event.clientY - drag.y) * ratio / Math.max(1, height - slider_height) * Math.max(0, total - scroll.clientHeight);
+      schedule();
+    }, { signal });
+    for (const name of ["pointerup", "pointercancel", "lostpointercapture", "blur"]) container.addEventListener(name, end_drag, { signal });
+    window.addEventListener("blur", end_drag, { signal });
+    container.addEventListener("keydown", (event) => {
+      const step = event.key === "ArrowDown" ? 40 : event.key === "ArrowUp" ? -40 : event.key === "PageDown" ? scroll.clientHeight : event.key === "PageUp" ? -scroll.clientHeight : void 0;
+      if (step !== void 0 || event.key === "Home" || event.key === "End") {
+        event.preventDefault();
+        event.stopPropagation();
+        scroll.scrollTop = event.key === "Home" ? 0 : event.key === "End" ? scroll.scrollHeight : scroll.scrollTop + step;
+        schedule();
+      } else if (event.key === "Escape") end_drag();
+    }, { signal });
+    container.addEventListener("wheel", (event) => {
+      if (event.ctrlKey || event.metaKey) return;
+      event.preventDefault();
+      scroll.scrollTop += event.deltaY * (event.deltaMode === 1 ? 20 : event.deltaMode === 2 ? scroll.clientHeight : 1);
+      schedule();
+    }, { signal, passive: false });
+    scroll.addEventListener("scroll", () => schedule(), { signal, passive: true });
+    const observer2 = new ResizeObserver(() => schedule(true));
+    observer2.observe(scroll);
+    observer2.observe(reader);
+    observer2.observe(container);
+    return { container, refresh() {
+      schedule(true);
+    }, set_rows(value) {
+      end_drag();
+      rows = value;
+      schedule(true);
+    }, suspend() {
+      end_drag();
+      if (frame3) cancelAnimationFrame(frame3);
+      frame3 = 0;
+    }, dispose() {
+      disposed = true;
+      end_drag();
+      if (frame3) cancelAnimationFrame(frame3);
+      observer2.disconnect();
+      events.abort();
+      container.remove();
+      rows = [];
+      marks = [];
+    } };
+  }
+
   // src/git_markdown_diff_shadow.css
   var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}\n.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}\n:host([data-theme=dark]) .markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{display:block;opacity:.8}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n";
 
@@ -184651,10 +184792,15 @@ https://creativecommons.org/licenses/by/4.0/
     const container = document.createElement("section");
     container.className = "git-markdown-diff";
     container.setAttribute("aria-label", "Markdown\u6E32\u67D3\u5DEE\u5F02\uFF0C\u53EA\u8BFB");
-    const shadow = container.attachShadow({ mode: "open" }), style = document.createElement("style"), scroll = container, reader = document.createElement("article");
+    const scroll = document.createElement("div");
+    scroll.className = "git-markdown-diff-scroll";
+    container.append(scroll);
+    const shadow = scroll.attachShadow({ mode: "open" }), style = document.createElement("style"), reader = document.createElement("article");
     scroll.tabIndex = 0;
     reader.id = "write";
     shadow.append(style, reader);
+    const overview = create_markdown_overview(scroll, reader);
+    container.append(overview.container);
     let generation = 0, disposed = false, active2 = -1;
     let changed2 = [];
     const diagrams = create_preview_diagrams();
@@ -184663,6 +184809,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (style.textContent !== content) style.textContent = content;
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
       container.dataset.theme = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
+      scroll.dataset.theme = container.dataset.theme;
+      overview.refresh();
     };
     const observer2 = new MutationObserver(theme2);
     observer2.observe(document.head, { childList: true, subtree: true, characterData: true });
@@ -184741,6 +184889,7 @@ https://creativecommons.org/licenses/by/4.0/
         const top = scroll.scrollTop;
         reader.replaceChildren(fragment);
         changed2 = targets;
+        overview.set_rows(targets);
         active2 = -1;
         scroll.scrollTop = top;
         container.dataset.ready = "true";
@@ -184755,11 +184904,13 @@ https://creativecommons.org/licenses/by/4.0/
       invalidate() {
         generation++;
         container.dataset.ready = "false";
+        overview.suspend();
       },
       dispose() {
         disposed = true;
         generation++;
         observer2.disconnect();
+        overview.dispose();
         diagrams.dispose();
         container.remove();
       }
@@ -244543,6 +244694,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092312,
+        version: "2026.09.23.12",
+        date: "2026-09-23",
+        notes: [
+          "\u6062\u590DMarkdown\u6E32\u67D3\u6BD4\u8F83\u53F3\u4FA7\u7684\u7EA2\u7EFF\u5DEE\u5F02\u6982\u89C8\uFF0C\u652F\u6301\u70B9\u51FB\u53D8\u66F4\u8DF3\u8F6C\u3001\u62D6\u52A8\u89C6\u53E3\u548C\u952E\u76D8\u5B9A\u4F4D\u3002",
+          "\u6982\u89C8\u968F\u6B63\u6587\u6EDA\u52A8\u3001\u7F29\u653E\u548C\u5237\u65B0\u540C\u6B65\uFF0C\u6E90\u7801\u6A21\u5F0F\u4FDD\u7559\u539F\u6709\u6982\u89C8\uFF1B\u53D6\u6D88\u4E0E\u5173\u95ED\u91CA\u653E\u62D6\u52A8\u548C\u5E03\u5C40\u4EFB\u52A1\u3002"
+        ]
+      },
       {
         sequence: 2026092311,
         version: "2026.09.23.11",

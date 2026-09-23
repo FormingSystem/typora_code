@@ -3,6 +3,7 @@ import DOMPurify from 'dompurify';
 import {markdown_theme_rules} from './workspace_markdown_theme';
 import {create_preview_diagrams,highlight_preview_code} from './workspace_markdown_preview_render';
 import {git_yield} from './git_status_snapshot';
+import {create_markdown_overview} from './git_markdown_overview';
 import type {git_diff_line_change} from './git_diff_ranges';
 import css from './git_markdown_diff_shadow.css';
 
@@ -55,10 +56,12 @@ function pair_blocks(left:markdown_block[],right:markdown_block[],changes:readon
 export function create_git_markdown_diff(){
   const container=document.createElement('section');container.className='git-markdown-diff';container.setAttribute('aria-label','Markdown渲染差异，只读');
   // 滚动宿主留在light DOM，复用工作台滚动条绘制与显隐；只有正文进入Shadow。
-  const shadow=container.attachShadow({mode:'open'}),style=document.createElement('style'),scroll=container,reader=document.createElement('article');
+  const scroll=document.createElement('div');scroll.className='git-markdown-diff-scroll';container.append(scroll);
+  const shadow=scroll.attachShadow({mode:'open'}),style=document.createElement('style'),reader=document.createElement('article');
   scroll.tabIndex=0;reader.id='write';shadow.append(style,reader);
+  const overview=create_markdown_overview(scroll,reader);container.append(overview.container);
   let generation=0,disposed=false,active=-1;let changed:HTMLElement[]=[];const diagrams=create_preview_diagrams();
-  const theme=()=>{const content=markdown_theme_rules()+'\n'+css;if(style.textContent!==content)style.textContent=content;const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];container.dataset.theme=color[0]+color[1]+color[2]>450?'dark':'light';};
+  const theme=()=>{const content=markdown_theme_rules()+'\n'+css;if(style.textContent!==content)style.textContent=content;const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];container.dataset.theme=color[0]+color[1]+color[2]>450?'dark':'light';scroll.dataset.theme=container.dataset.theme;overview.refresh();};
   const observer=new MutationObserver(theme);observer.observe(document.head,{childList:true,subtree:true,characterData:true});observer.observe(document.body,{attributes:true,attributeFilter:['class','style']});theme();
   const navigate=(direction:'previous'|'next')=>{if(!changed.length)return;active=(active+(direction==='next'?1:-1)+changed.length)%changed.length;const target=changed[active];scroll.scrollTop=target.offsetTop-reader.offsetTop;target.focus({preventScroll:true});};
   shadow.addEventListener('click',event=>{if((event.target as Element).closest('a,input'))event.preventDefault();});
@@ -83,11 +86,11 @@ export function create_git_markdown_diff(){
           }row.append(cell);
         }fragment.append(row);if(i%24===23)await git_yield();
       }
-      if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;active=-1;scroll.scrollTop=top;container.dataset.ready='true';
+      if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';
       // 高亮和图表在当前文档发布后渐进完成；旧代不能再替换节点。
       for(const code of code_tasks){if(!current())return;if(code.classList.contains('language-mermaid'))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
     },
-    invalidate(){generation++;container.dataset.ready='false';},
-    dispose(){disposed=true;generation++;observer.disconnect();diagrams.dispose();container.remove();}
+    invalidate(){generation++;container.dataset.ready='false';overview.suspend();},
+    dispose(){disposed=true;generation++;observer.disconnect();overview.dispose();diagrams.dispose();container.remove();}
   };
 }
