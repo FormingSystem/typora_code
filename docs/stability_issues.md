@@ -260,7 +260,7 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - BUG-ssh-fs-wrapper-070：资源代理在调用时重新读取被其他适配器包装过的方法，搜索夹具暴露递归；创建代理函数时捕获原始方法，不修改Node全局fs，补充包装后调用回归。
 - BUG-git-empty-status-070：从仓库切到无仓库目录后，底栏未处理empty状态而一直检测中；复用确定不可用状态，本地切目录UI和远端初始化均复查。
 - BUG-quality-build-070：Windows占用使刚生成的bundle再次原地截断失败，连续PowerShell命令仍准备旧资产；该阶段图片结果不作为新源码证据。构建改为内存换行规范化后临时文件替换，失败停止后续验收；确认返回码和私有副本摘要后重新运行原生验证，保留失败日志。图片最终通过按需Blob显示且不改原Markdown链接；不把旧资产失败当作新实现根因。
-- BUG-native-dirty-pending-070：用户反馈只浏览出现保存提示，16种格式组合224断言未复现；用户明确暂缓，未修改脏状态逻辑，保留后续现场复现。
+- BUG-native-dirty-pending-070：用户反馈只浏览出现保存提示，历史16种格式组合224断言未复现。2026-09-23最新反馈重新启用调查（R040.3），覆盖此前暂缓约定；已修复恢复抢占及快速切换丢失，独立误报仍未复现，不清除原生脏状态。本轮证据见[会话优先级验证](../enhancements/tests/evidence/session_priority_20260923.json)。
 
 本次证据见[远程主工作区验证](../enhancements/tests/evidence/remote_workspace_20260923.json)；未完成能力以远程设计的当前边界为准，历史缩放长帧等其他未决事项不变。
 
@@ -364,3 +364,10 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - BUG-preview-root-variant：.18提取:root后遗漏html.dark等根变体变量，使暗色预览标题沿用默认色；保留变体条件并仅复制变量，使用已有lookup真实CSS用例回归。
 
 - TEST-existing-search-interaction：扩大关联回归时，搜索夹具等待release_search_read/release_search_git与可见结果组合超时；交互夹具仍访问已移除的.git-scm-group节点。在未修改fc3cbbd源码和对应正式CSS中复现相同失败，本轮保留为既有测试维护项，不能计入通过；最终本轮专项、lookup、选文搜索、交互默认与阅读性能另行验收。
+
+
+## R040.3 启动恢复优先级与标签加载（2026-09-23）
+
+- BUG-session-restore-040：历史文件逐个前台打开再切回首屏，旧单元20条触发21次打开；原始宿主实际30文件退出重开约14.5秒后抢占首屏。改为后台身份登记和一次可取消激活，真实重启32+152项通过。
+- BUG-native-tab-latest-040：宿主加载忙时第二次标签请求被丢失；最新请求等宿主可用，旧事件及位置回调按视图归属取消，原生20轮快速双切通过。
+- BUG-native-dirty-pending-070：取消此前暂缓；本次无编辑场景没有产生脏状态，保存弹窗独立原因尚未复现，继续保留。详见[证据](../enhancements/tests/evidence/session_priority_20260923.json)。

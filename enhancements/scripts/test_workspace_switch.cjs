@@ -112,9 +112,9 @@ app.whenReady().then(async()=>{
  checks.push('per-root saved order and active file restore after A→B→A with native restoreWhenLaunch=2');
  await evaluate('run_folder(second_root)');fs.unlinkSync(path.join(repository,'second.ts'));
  await evaluate('run_folder(fixture_root)');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
- assert(await evaluate('notices.some(value=>value.includes("second.ts"))'));
+ assert(await evaluate('!notices.some(value=>value.includes("second.ts"))'));
  assert(await evaluate('qa.get_workspace_files().editor_state(fixture_core.app.workspace.activeLeaf).file_path===fixture_source'));
- checks.push('missing file reports a partial restore and retains the available active file');
+ checks.push('inactive missing file is restored as identity only, without a startup IO warning or active-file change');
  await evaluate('run_folder(plain_root)');await evaluate('qa.get_workspace_files().open_file(require("path").join(plain_root,"plain.txt"))');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
  await evaluate('qa.get_workspace_files().close_leaf(fixture_core.app.workspace.activeLeaf)');
  await evaluate('run_folder(second_root)');await evaluate('run_folder(plain_root)');

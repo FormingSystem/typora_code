@@ -11,7 +11,10 @@ export function bind_workspace_sessions(files:workspace_file_host){
   let disposed=false,paused=true,timer:ReturnType<typeof setTimeout>|undefined,reported=false;
   // 在移交控制器清理安全锚点之前同步读取启动意图；不在异步恢复阶段重读。
   let owns_session = !window_transfer_token(runtime._options?.initFilePath, runtime._options?.initAnchor ?? runtime.File?.option?.initAnchor ?? "");
-  const controller=new AbortController();
+  let restore_controller=new AbortController(),activation_controller=new AbortController(),intent_revision=0;
+  const interrupt=()=>{intent_revision++;activation_controller.abort();};
+  const input_events=["pointerdown","keydown","wheel","beforeinput","workspace-file-open-intent"];
+  for(const event of input_events)window.addEventListener(event,interrupt,{capture:true,passive:true});
   const notice=(error:unknown)=>{if(!disposed)new files.core.Notice("工作区文件恢复："+String(error instanceof Error?error.message:error),6000);};
   const snapshot=()=>{
     const entries:workspace_session_file[]=[],identities=new Map<string,number>();let active=-1;
@@ -44,37 +47,30 @@ export function bind_workspace_sessions(files:workspace_file_host){
   };
   const restore=async(initial=false)=>{
     if(initial&&!owns_session)return;
-    const root=files.context_root(),epoch=workspace_context_epoch();
-    const current=()=>!disposed&&!controller.signal.aborted&&epoch===workspace_context_epoch()&&root===files.context_root();
+    restore_controller.abort();restore_controller=new AbortController();
+    activation_controller.abort();activation_controller=new AbortController();
+    const operation=restore_controller,activation=activation_controller;
+    const root=files.context_root(),epoch=workspace_context_epoch(),intent=initial?0:intent_revision;
+    const initial_leaf=workspace.activeLeaf;
+    const initial_state=initial_leaf?files.editor_state(initial_leaf):undefined;
+    const current=()=>!disposed&&!operation.signal.aborted&&epoch===workspace_context_epoch()&&root===files.context_root();
+    const may_activate=()=>current()&&!activation.signal.aborted&&intent===intent_revision&&workspace.activeLeaf===initial_leaf;
     try{
       if(!root||!await enabled()||!current())return;
-      let dirty=false;workspace.eachLeaves(leaf=>{if(files.editor_state(leaf).dirty)dirty=true;});
-      if(dirty)return;
       const saved=store.read(root);if(!saved)return;
-      const initial_state=initial&&workspace.activeLeaf?files.editor_state(workspace.activeLeaf):undefined;
-      const preferred=initial_state?.file_path?{path:initial_state.file_path,source:initial_state.kind==="source"}:saved.files[saved.active];
-      const errors:string[]=[];
-      for(const entry of saved.files){
-        if(!current())return;
-        try{
-          await files.open_file(entry.path,{source:entry.source,preview:false,signal:controller.signal});
-          if(!current())return;
-          const leaf=workspace.activeLeaf;
-          const started=Date.now();
-          while(leaf&&files.editor_state(leaf).busy&&current()){
-            if(Date.now()-started>10000)throw new Error("等待文件加载超时。");
-            await new Promise(resolve=>setTimeout(resolve,30));
-          }
-          if(!current())return;
-          if(leaf&&file_key(files.editor_state(leaf).file_path)===file_key(entry.path)){leaf.state.workspace_pinned=entry.pinned;files.keep_open(leaf);}
-        }catch(error){if(!current())return;errors.push(entry.path+"："+String((error as Error).message||error));}
+      // 已有宿主文档和用户输入优先；只登记后台身份，绝不逐页借用原生编辑器。
+      await files.restore_files(saved.files,operation.signal);
+      if(!may_activate()||initial_state?.file_path)return;
+      let dirty=false;workspace.eachLeaves(leaf=>{if(files.editor_state(leaf).dirty)dirty=true;});
+      const preferred=saved.files[saved.active];
+      if(dirty||!preferred)return;
+      await files.open_file(preferred.path,{source:preferred.source,preview:false,signal:activation.signal,reason:"restore"});
+      const active=workspace.activeLeaf,started=Date.now();
+      while(current()&&!activation.signal.aborted&&workspace.activeLeaf===active&&active&&files.editor_state(active).busy){
+        if(Date.now()-started>10000)throw new Error("等待活动文件加载超时。");
+        await new Promise(resolve=>setTimeout(resolve,16));
       }
-      if(preferred&&current()){
-        let found=false;workspace.eachLeaves(leaf=>{const state=files.editor_state(leaf);if(file_key(state.file_path)===file_key(preferred.path)&& (state.kind==="source")===preferred.source)found=true;});
-        if(found)await files.open_file(preferred.path,{source:preferred.source,preview:false,signal:controller.signal});
-      }
-      if(errors.length)notice("部分文件未能打开：\n"+errors.join("\n"));
-    }catch(error){notice(error);}
+    }catch(error){if(current()&&!activation.signal.aborted&&intent===intent_revision)notice(error);}
   };
   // 等待阅读导航等常驻模块完成装配，不将首次空布局抢先保存到磁盘。
   const ready=(async()=>{
@@ -82,8 +78,8 @@ export function bind_workspace_sessions(files:workspace_file_host){
     if(disposed)return;await restore(true);paused=false;
   })();
   return {ready,
-    suspend(){clearTimeout(timer);save();paused=true;},
+    suspend(){restore_controller.abort();activation_controller.abort();clearTimeout(timer);save();paused=true;},
     async resume(restore_files:boolean){try{if(restore_files){owns_session=true;await restore();}}finally{paused=false;}},
-    dispose(){flush();disposed=true;controller.abort();clearTimeout(timer);for(const stop of stops)stop();window.removeEventListener("beforeunload",flush);},
+    dispose(){flush();disposed=true;restore_controller.abort();activation_controller.abort();for(const event of input_events)window.removeEventListener(event,interrupt,true);clearTimeout(timer);for(const stop of stops)stop();window.removeEventListener("beforeunload",flush);},
   };
 }

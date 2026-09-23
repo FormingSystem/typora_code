@@ -88,6 +88,7 @@
     "src\\ui\\views\\markdown-view\\use-preview-tab-to-swap.ts",
     "src\\ui\\views\\markdown-view\\use-record.ts",
     "src\\ui\\views\\markdown-view\\swap-command.ts",
+    "src\\ui\\views\\markdown-view\\native_open.ts",
     "src\\ui\\views\\markdown-view\\index.ts",
     "src\\ui\\views\\empty-view.scss",
     "src\\ui\\views\\empty-view.ts",

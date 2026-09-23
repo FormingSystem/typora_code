@@ -4091,16 +4091,9 @@ ${doc.documentElement.outerHTML}`;
       super();
       this.settings = settings;
       this.workspace = workspace;
-      const SETTING_KEY = "useAutoSwap";
-      if (settings.get(SETTING_KEY)) {
-        this.load();
-      }
-      settings.onChange(SETTING_KEY, (_, isEnabled) => {
-        isEnabled ? this.load() : this.unload();
-      });
     }
     execute(editorLeaf, previewLeaf) {
-      if (!this._loaded) return;
+      if (!this._loaded || !this.settings.get("useAutoSwap")) return;
       const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path;
       const previewView = previewLeaf.view;
       const writeEl = editor.writingArea.parentElement;
@@ -4149,6 +4142,57 @@ ${doc.documentElement.outerHTML}`;
     }
   };
 
+  // vendor/workspace_core/src/ui/views/markdown-view/native_open.ts
+  var pending_path;
+  var revision = 0;
+  function pending_markdown_open() {
+    return pending_path;
+  }
+  function request_markdown_open(path2, valid) {
+    const token = ++revision;
+    pending_path = path2;
+    let timer;
+    const file = File;
+    const current = () => token === revision && valid();
+    const finish = () => {
+      if (token === revision) pending_path = void 0;
+    };
+    const open = () => {
+      if (!current()) {
+        finish();
+        return;
+      }
+      if (file.isFileLoading?.() || file._onInitParse || file._onFileSwitching) {
+        timer = setTimeout(open, 16);
+        return;
+      }
+      if (file.bundle?.filePath !== path2) {
+        ;
+        editor.library[Symbol.for("openFile$original")](path2);
+      }
+      finish();
+    };
+    if (path2 && reqnode) {
+      void reqnode("fs").promises.stat(path2).then((stat) => {
+        if (!current()) return;
+        if (!stat.isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
+        open();
+      }).catch((error) => {
+        if (current()) {
+          finish();
+          new Notice("\u65E0\u6CD5\u6253\u5F00\u6587\u4EF6\uFF1A" + String(error), 6e3);
+        }
+      });
+    } else open();
+    return () => {
+      clearTimeout(timer);
+      if (token === revision) {
+        revision++;
+        pending_path = void 0;
+      }
+    };
+  }
+
   // vendor/workspace_core/src/ui/views/markdown-view/index.ts
   var KEY_OPENFILE2 = Symbol.for("openFile$original");
   var MarkdownView = class _MarkdownView extends WorkspaceView {
@@ -4177,7 +4221,8 @@ ${doc.documentElement.outerHTML}`;
     /** @override */
     onload() {
       this.addChild(this._swapCommand);
-      setTimeout(() => this.autoSetMode());
+      const mode_timer = setTimeout(() => this.autoSetMode());
+      this.register(() => clearTimeout(mode_timer));
       this.register(
         this.leaf.getRoot().on("layout-changed", () => this.autoSetMode())
       );
@@ -4205,6 +4250,7 @@ ${doc.documentElement.outerHTML}`;
     }
     /** @private */
     autoSetMode() {
+      if (this.leaf.parent?.activeLeaf !== this.leaf) return;
       const { editingTabs, isEditingTabs } = useEditingTabs();
       if (!editingTabs() || isEditingTabs(this.leaf.parent)) {
         this.setMode("typora");
@@ -4216,15 +4262,23 @@ ${doc.documentElement.outerHTML}`;
     onOpen() {
       this.autoSetMode();
       const doRestore = () => {
+        if (!this._loaded || this.leaf.parent?.activeLeaf !== this.leaf) return;
+        if (this.isEditor() && this.workspace.activeFile !== this.filePath) return;
         const { restoreStateFromLeaf } = useRecord();
         restoreStateFromLeaf(this);
       };
       if (this.isEditor()) {
         editor.writingArea.parentElement.classList.remove("typ-deactive");
-        editor.library[KEY_OPENFILE2](this.filePath);
-        this.workspace.once("file:open", doRestore);
+        this.register(request_markdown_open(this.filePath, () => this._loaded && this.leaf.parent?.activeLeaf === this.leaf));
+        const stop = this.workspace.on("file:open", (path2) => {
+          if (path2 !== this.filePath) return;
+          stop();
+          doRestore();
+        });
+        this.register(stop);
       } else {
-        setTimeout(doRestore);
+        const restore_timer = setTimeout(doRestore);
+        this.register(() => clearTimeout(restore_timer));
       }
     }
     /** @override */
@@ -4272,7 +4326,9 @@ ${doc.documentElement.outerHTML}`;
       return state;
     }
     setState(state) {
-      requestAnimationFrame(() => {
+      const restore_frame = requestAnimationFrame(() => {
+        if (!this._loaded || this.leaf.parent?.activeLeaf !== this.leaf) return;
+        if (this.isEditor() && this.workspace.activeFile !== this.filePath) return;
         if (state.scrollTop != null) {
           this.applyScroll(state);
         }
@@ -4280,6 +4336,7 @@ ${doc.documentElement.outerHTML}`;
           this.mdEditor.selection.setCursor(state.cursorOffset);
         }
       });
+      this.register(() => cancelAnimationFrame(restore_frame));
     }
     getCodeMirrorInstance(cid) {
       return this.isEditor() ? editor.fences.getCm(cid) : this.mdRenderer.getCodeMirrorInstance(cid);
@@ -6955,10 +7012,10 @@ ${doc.documentElement.outerHTML}`;
     addTab(tab) {
       this.insertTab(this.container.children.length, tab);
     }
-    insertTab(index, tab) {
-      this.activeTab(tab.containerEl);
+    insertTab(index, tab, activate = true) {
+      if (activate) this.activeTab(tab.containerEl);
       this.container.insertBefore(tab.containerEl, this.container.children[index]);
-      this.showTab(tab.containerEl);
+      if (activate) this.showTab(tab.containerEl);
     }
     renameTab(tabEl, tab) {
       const isActive = tabEl.classList.contains("active");
@@ -7051,6 +7108,7 @@ ${doc.documentElement.outerHTML}`;
     registry = new Component();
     constructor(workspace, app = useService("app"), commands = useService("command-manager"), { t } = useService("i18n"), settings = useService("settings"), vault = useEventBus("vault")) {
       super("vertical");
+      let native_open_owner;
       $(this.containerEl).addClass("typ-workspace-root");
       this.registry.onload = () => {
         $(this.containerEl).insertBefore("content");
@@ -7079,6 +7137,7 @@ ${doc.documentElement.outerHTML}`;
         );
         this.registry.register(
           workspace.on("file:will-open", (file) => {
+            native_open_owner = workspace.activeLeaf;
             const { editingTabs } = useEditingTabs();
             if (
               // handle: after closing the only file, it should be able to be opened again.
@@ -7103,6 +7162,8 @@ ${doc.documentElement.outerHTML}`;
           })
         );
         this.registry.register(workspace.on("file:open", (file) => {
+          if (pending_markdown_open() && pending_markdown_open() !== file) return;
+          if (native_open_owner && workspace.activeLeaf !== native_open_owner && workspace.activeLeaf?.state.path !== file) return;
           const { isPreviewFileToSwap } = usePreviewTabToSwap();
           if (isPreviewFileToSwap(file)) return;
           if (workspace.activeLeaf?.state.path === file) return;
@@ -8300,20 +8361,37 @@ ${doc.documentElement.outerHTML}`;
     removeChild(child) {
       this.removeTab(child.state.path);
     }
+    /** 恢复标签身份不打开视图，后台文档由首次激活按需读取。 */
+    append_inactive(leaves) {
+      for (const leaf of leaves) {
+        const fixed_count = this.children.filter((item) => item.state.workspace_pinned).length;
+        const index = leaf.state.workspace_pinned ? fixed_count : this.children.length;
+        this.tabHeader.insertTab(index, new FileTab(leaf.state.path), false);
+        this.children.splice(index, 0, leaf);
+        leaf.setParent(this);
+        this.tabContentEl.insertBefore(leaf.containerEl, this.tabContentEl.children[index]);
+      }
+      if (leaves.length) this.getRoot().emit("layout-changed");
+    }
     // --------- Tab Operators ---------
     _activeLeaf;
     get activeLeaf() {
       return this._activeLeaf ?? this.children[0];
     }
     toggleTab(path2, tabEl) {
+      if (this._activeLeaf?.state.path === path2) return this._activeLeaf;
       this.activeLeaf.view.close();
       this.tabContentEl.querySelector(".mod-active")?.classList.remove("mod-active");
       tabEl ??= this.tabHeader.getTabById(path2);
       this.tabHeader.activeTab(tabEl);
       const leaf = this.children.find((c) => c.state.path === path2);
       leaf.containerEl.classList.add("mod-active");
-      leaf.view.open();
       this._activeLeaf = leaf;
+      leaf.view.open();
+      if (!path2.startsWith(`typ://${EmptyView.type}`)) {
+        const empty_leaf = this.children.find((node) => node !== leaf && node.state.path?.startsWith(`typ://${EmptyView.type}`));
+        if (empty_leaf) this.removeTab(empty_leaf.state.path);
+      }
       this.emit("tab:toggle", leaf);
       return leaf;
     }

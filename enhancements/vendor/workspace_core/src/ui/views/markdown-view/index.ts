@@ -10,6 +10,7 @@ import type { ModeContext, ModeController } from './mode-controller'
 import { SwapCommand } from './swap-command'
 import { useEditingTabs } from './use-editing-tabs'
 import { useRecord } from './use-record'
+import {request_markdown_open} from './native_open'
 
 
 const KEY_OPENFILE = Symbol.for('openFile$original')
@@ -53,7 +54,8 @@ export class MarkdownView extends WorkspaceView {
   /** @override */
   onload() {
     this.addChild(this._swapCommand)
-    setTimeout(() => this.autoSetMode())
+    const mode_timer = setTimeout(() => this.autoSetMode())
+    this.register(() => clearTimeout(mode_timer))
     this.register(
       this.leaf.getRoot().on('layout-changed', () => this.autoSetMode()))
 
@@ -95,6 +97,7 @@ export class MarkdownView extends WorkspaceView {
 
   /** @private */
   autoSetMode() {
+    if ((this.leaf.parent as WorkspaceTabs)?.activeLeaf !== this.leaf) return
     const { editingTabs, isEditingTabs } = useEditingTabs()
     if (!editingTabs() || isEditingTabs(this.leaf.parent as WorkspaceTabs)) {
       this.setMode('typora')
@@ -109,18 +112,25 @@ export class MarkdownView extends WorkspaceView {
     this.autoSetMode()
 
     const doRestore = () => {
+      if (!this._loaded || (this.leaf.parent as WorkspaceTabs)?.activeLeaf !== this.leaf) return
+      if (this.isEditor() && this.workspace.activeFile !== this.filePath) return
       const { restoreStateFromLeaf } = useRecord()
       restoreStateFromLeaf(this)
     }
 
     if (this.isEditor()) {
       editor.writingArea.parentElement!.classList.remove('typ-deactive')
-      // @ts-ignore
-      editor.library[KEY_OPENFILE](this.filePath)
-      this.workspace.once('file:open', doRestore)
+      this.register(request_markdown_open(this.filePath, () => this._loaded && (this.leaf.parent as WorkspaceTabs)?.activeLeaf === this.leaf))
+      const stop = this.workspace.on('file:open', path => {
+        if (path !== this.filePath) return
+        stop()
+        doRestore()
+      })
+      this.register(stop)
     }
     else {
-      setTimeout(doRestore)
+      const restore_timer = setTimeout(doRestore)
+      this.register(() => clearTimeout(restore_timer))
     }
   }
 
@@ -186,7 +196,9 @@ export class MarkdownView extends WorkspaceView {
   }
 
   setState(state: Partial<MarkdownViewState>) {
-    requestAnimationFrame(() => {
+    const restore_frame = requestAnimationFrame(() => {
+      if (!this._loaded || (this.leaf.parent as WorkspaceTabs)?.activeLeaf !== this.leaf) return
+      if (this.isEditor() && this.workspace.activeFile !== this.filePath) return
       if (state.scrollTop != null) {
         this.applyScroll(state as any)
       }
@@ -194,6 +206,7 @@ export class MarkdownView extends WorkspaceView {
         this.mdEditor.selection.setCursor(state.cursorOffset)
       }
     })
+    this.register(() => cancelAnimationFrame(restore_frame))
   }
 
   getCodeMirrorInstance(cid: string): CodeMirror.Editor {

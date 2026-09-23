@@ -40,6 +40,14 @@ if fixture_path.name == 'community_plugins_native.js':
         archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
         archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
 (workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
+if fixture_path.name == 'session_restart_native.js':
+    corpus = case / 'corpus'
+    corpus.mkdir()
+    sources = [repository_root / 'README.md', repository_root / 'enhancements/README.md']
+    sources += sorted((repository_root / 'docs').glob('*.md'), key=lambda file: file.stat().st_size, reverse=True)[:28]
+    for index, source in enumerate(sources):
+        shutil.copyfile(source, corpus / f'{index}.md')
+    (case / 'corpus.json').write_text(json.dumps([{'source': source.relative_to(repository_root).as_posix(), 'sha256': digest(source), 'bytes': source.stat().st_size} for source in sources], ensure_ascii=False, indent=2), encoding='utf-8')
 # 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
 git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
 for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:

@@ -72,10 +72,10 @@ export class TabContainer extends View {
     this.insertTab(this.container.children.length, tab)
   }
 
-  insertTab(index: number, tab: Tab) {
-    this.activeTab(tab.containerEl)
+  insertTab(index: number, tab: Tab, activate = true) {
+    if (activate) this.activeTab(tab.containerEl)
     this.container.insertBefore(tab.containerEl, this.container.children[index])
-    this.showTab(tab.containerEl)
+    if (activate) this.showTab(tab.containerEl)
   }
 
   renameTab(tabEl: HTMLElement, tab: Tab) {

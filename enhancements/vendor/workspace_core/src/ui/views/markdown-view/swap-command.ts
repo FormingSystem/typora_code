@@ -19,20 +19,10 @@ export class SwapCommand extends Component {
     private workspace = useService('workspace'),
   ) {
     super()
-
-    const SETTING_KEY = 'useAutoSwap'
-
-    if (settings.get(SETTING_KEY)) {
-      this.load()
-    }
-
-    settings.onChange(SETTING_KEY, (_, isEnabled) => {
-      isEnabled ? this.load() : this.unload()
-    })
   }
 
   execute(editorLeaf: WorkspaceLeaf<MarkdownView>, previewLeaf: WorkspaceLeaf<MarkdownView>) {
-    if (!this._loaded) return
+    if (!this._loaded || !this.settings.get('useAutoSwap')) return
 
     const isSwappingSameFile = editorLeaf.state.path === previewLeaf.state.path
     const previewView = previewLeaf.view

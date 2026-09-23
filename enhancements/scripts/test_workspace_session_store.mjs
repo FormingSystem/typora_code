@@ -49,9 +49,9 @@ for(const scenario of cases){
  const workspace={activeLeaf:undefined,eachLeaves(){},on(_event,callback){listeners.add(callback);return()=>listeners.delete(callback);}};
  const runtime=Object.assign(new EventTarget(),{_options:{userDataPath:session_user,initAnchor:scenario.anchor,initFilePath:scenario.initial_file},reqnode:()=>crypto,JSBridge:{invoke:async()=>({restoreWhenLaunch:2})}});
  globalThis.window=runtime;globalThis.document={documentElement:{dataset:{linuxNoteTyporaEnhancements:'loading'}}};
- const files={fs,path_api:path,context_root:()=>current_root,core:{app:{workspace},Notice:class{constructor(message){throw Error(message)}}},editor_state:leaf=>({file_path:leaf.path,kind:'source',dirty:false,busy:false}),keep_open(){},async open_file(file){opened.push(file);workspace.activeLeaf={path:file,state:{}};}};
+ const files={fs,path_api:path,context_root:()=>current_root,core:{app:{workspace},Notice:class{constructor(message){throw Error(message)}}},editor_state:leaf=>({file_path:leaf.path,kind:'source',dirty:false,busy:false}),keep_open(){},async restore_files(){},async open_file(file){opened.push(file);workspace.activeLeaf={path:file,state:{}};}};
  const binding=bind_sessions(files);runtime._options.initAnchor='';document.documentElement.dataset.linuxNoteTyporaEnhancements='ready';await binding.ready;
- assert.equal(opened.length,scenario.auxiliary?0:2,scenario.name+' restores only regular window');
+ assert.equal(opened.length,scenario.auxiliary?0:1,scenario.name+' restores only regular window');
  for(const callback of listeners)callback();await delay(180);runtime.dispatchEvent(new Event('beforeunload'));
  if(scenario.auxiliary){
   assert.equal(JSON.stringify(service_store.read(a)),original_session,'empty or transferred auxiliary never overwrites original session');

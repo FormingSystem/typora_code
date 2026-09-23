@@ -1,5 +1,5 @@
 ﻿# 在未切换的独立桌面运行专用宿主副本，只终止该副本的进程。
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -62,7 +62,8 @@ $startup.desktop = $desktop_name
 $info = New-Object isolated_desktop+process_information
 if (!$document_path) { $document_path=Join-Path $probe_root 'sample.md' }
 $command = New-Object Text.StringBuilder
-[void]$command.Append('"' + $exe + '" --no-sandbox --disable-gpu --user-data-dir="' + (Join-Path $case_root 'user_data') + '" "' + $document_path + '"')
+[void]$command.Append('"' + $exe + '" --no-sandbox --disable-gpu --user-data-dir="' + (Join-Path $case_root 'user_data') + '"')
+if (!$restore_session) { [void]$command.Append(' "' + $document_path + '"') }
 $watch = [Diagnostics.Stopwatch]::StartNew()
 try {
  if (-not [isolated_desktop]::CreateProcess($exe,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0,[IntPtr]::Zero,(Join-Path $probe_root 'host'),[ref]$startup,[ref]$info)) { throw ('CreateProcess failed: '+[Runtime.InteropServices.Marshal]::GetLastWin32Error()) }

@@ -58,6 +58,19 @@ export class WorkspaceTabs extends WorkspaceParent {
     this.removeTab((child as WorkspaceLeaf).state.path)
   }
 
+  /** 恢复标签身份不打开视图，后台文档由首次激活按需读取。 */
+  append_inactive(leaves: WorkspaceLeaf[]) {
+    for (const leaf of leaves) {
+      const fixed_count = (this.children as WorkspaceLeaf[]).filter(item => item.state.workspace_pinned).length
+      const index = leaf.state.workspace_pinned ? fixed_count : this.children.length
+      this.tabHeader.insertTab(index, new FileTab(leaf.state.path), false)
+      this.children.splice(index, 0, leaf)
+      leaf.setParent(this)
+      this.tabContentEl.insertBefore(leaf.containerEl, this.tabContentEl.children[index])
+    }
+    if (leaves.length) this.getRoot().emit('layout-changed')
+  }
+
   // --------- Tab Operators ---------
 
   private _activeLeaf!: WorkspaceLeaf
@@ -67,6 +80,7 @@ export class WorkspaceTabs extends WorkspaceParent {
   }
 
   toggleTab(path: string, tabEl?: HTMLElement): WorkspaceLeaf {
+    if (this._activeLeaf?.state.path === path) return this._activeLeaf
     this.activeLeaf.view.close()
     this.tabContentEl.querySelector('.mod-active')?.classList.remove('mod-active')
 
@@ -75,9 +89,13 @@ export class WorkspaceTabs extends WorkspaceParent {
 
     const leaf = (this.children as WorkspaceLeaf[]).find(c => c.state.path === path)!
     leaf.containerEl.classList.add('mod-active')
+    this._activeLeaf = leaf
     leaf.view.open()
 
-    this._activeLeaf = leaf
+    if (!path.startsWith(`typ://${EmptyView.type}`)) {
+      const empty_leaf = this.children.find(node => node !== leaf && (node as WorkspaceLeaf).state.path?.startsWith(`typ://${EmptyView.type}`)) as WorkspaceLeaf | undefined
+      if (empty_leaf) this.removeTab(empty_leaf.state.path)
+    }
 
     this.emit('tab:toggle', leaf)
     return leaf

@@ -272,7 +272,7 @@
       "path": "src/ui/components/tabs.ts",
       "upstream_path": "src/ui/components/tabs.ts",
       "upstream_sha256": "6e7e09151f5e516115430df8de11b1e84330d6bbae012faf8c9c29707d0ef05a",
-      "sha256": "ffad29fa2471bd0aa995b072826e09f9536eaf461e250c113e5a0d8fe0e089f7"
+      "sha256": "f78de5939f45c1aacbe221e27fe1ab1de24bec7580b57aec9c8cace8b7c359d2"
     },
     {
       "path": "src/ui/editor/link.ts",
@@ -476,7 +476,7 @@
       "path": "src/ui/layout/tabs/index.ts",
       "upstream_path": "src/ui/layout/tabs/index.ts",
       "upstream_sha256": "49faf8858e076cc406aab88e575ae6b30e6fead6937773ddbe168377015e52e3",
-      "sha256": "82972831ee9e294221e48d78c985402e60e4cac85316defc67426296c40f9cc6"
+      "sha256": "bc374a970598aeaf671f768f6c668109152b2ef01ada6bf44965cbea1accbee3"
     },
     {
       "path": "src/ui/layout/use-active-leaf.ts",
@@ -518,7 +518,7 @@
       "path": "src/ui/layout/workspace-root.ts",
       "upstream_path": "src/ui/layout/workspace-root.ts",
       "upstream_sha256": "a841ebc71c3e22ba6a7a60c29bbf8f222645ca3d1e0a6af956885ae3726983c5",
-      "sha256": "f426b486b7bf047d106afaf768a28754304042c4ffc1b353f127d473aaca4117"
+      "sha256": "a73d38e32a987d0670e488630a42e0eb9c1c0a2ce9c982a467f15e540b1311c8"
     },
     {
       "path": "src/ui/layout/workspace-utils.ts",
@@ -764,7 +764,7 @@
       "path": "src/ui/views/markdown-view/index.ts",
       "upstream_path": "src/ui/views/markdown-view/index.ts",
       "upstream_sha256": "2a3387b1c0c8300af0f684ee4d6eefafbe98d5a726a95c4160d70ed566f7d536",
-      "sha256": "2a3387b1c0c8300af0f684ee4d6eefafbe98d5a726a95c4160d70ed566f7d536"
+      "sha256": "384126723ed3c890045af9b3f41159f88f2e622648a5d44998182ce78089ea3f"
     },
     {
       "path": "src/ui/views/markdown-view/md-editor-mode.ts",
@@ -788,7 +788,7 @@
       "path": "src/ui/views/markdown-view/swap-command.ts",
       "upstream_path": "src/ui/views/markdown-view/swap-command.ts",
       "upstream_sha256": "39d60f3b6a449b4f1895b97f2db8bd68096773d6f1020dc57833af8ab1ad8be0",
-      "sha256": "39d60f3b6a449b4f1895b97f2db8bd68096773d6f1020dc57833af8ab1ad8be0"
+      "sha256": "395354478bbd345b19734305883007fefb3cd9463a85f997827eeff98f5af845"
     },
     {
       "path": "src/ui/views/markdown-view/use-editing-tabs.ts",
@@ -1034,6 +1034,10 @@
       "upstream_path": "src/ui/editor/suggestion/text-suggest.ts",
       "upstream_sha256": "a99cd684591674fb7b0403a2bdb02bd5c8519e7af6f80e05b2fc2fbddeeea275",
       "sha256": "a99cd684591674fb7b0403a2bdb02bd5c8519e7af6f80e05b2fc2fbddeeea275"
+    },
+    {
+      "path": "src/ui/views/markdown-view/native_open.ts",
+      "sha256": "9c9ef2f2fa57893094a2bfaae319723992a36cd2a844f9d01d149c4a58bfd308"
     }
   ]
 }

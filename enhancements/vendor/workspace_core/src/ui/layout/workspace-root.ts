@@ -14,6 +14,7 @@ import { onTabsContextMenu } from './tabs/contextmenu'
 import { FileTabContainer } from './tabs/file-tabs'
 import { useEditingTabs } from '../views/markdown-view/use-editing-tabs'
 import { usePreviewTabToSwap } from '../views/markdown-view/use-preview-tab-to-swap'
+import {pending_markdown_open} from '../views/markdown-view/native_open'
 
 
 export type WorkspaceRootEvents = {
@@ -44,6 +45,8 @@ export class WorkspaceRoot extends WorkspaceSplit {
     vault = useEventBus('vault'),
   ) {
     super('vertical')
+
+    let native_open_owner: WorkspaceLeaf | null | undefined
 
     $(this.containerEl).addClass('typ-workspace-root')
 
@@ -82,6 +85,7 @@ export class WorkspaceRoot extends WorkspaceSplit {
 
       this.registry.register(
         workspace.on('file:will-open', (file) => {
+          native_open_owner = workspace.activeLeaf
           const { editingTabs } = useEditingTabs()
           if (
             // handle: after closing the only file, it should be able to be opened again.
@@ -111,6 +115,8 @@ export class WorkspaceRoot extends WorkspaceSplit {
         }))
 
       this.registry.register(workspace.on('file:open', (file) => {
+        if (pending_markdown_open() && pending_markdown_open() !== file) return
+        if (native_open_owner && workspace.activeLeaf !== native_open_owner && workspace.activeLeaf?.state.path !== file) return
         // Skip during Previewer↔Editor mode swap — the click handler handles everything
         const { isPreviewFileToSwap } = usePreviewTabToSwap()
         if (isPreviewFileToSwap(file)) return

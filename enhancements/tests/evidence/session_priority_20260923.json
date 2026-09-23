@@ -1,0 +1,299 @@
+{
+  "date": "2026-09-23",
+  "release": "2026.09.23.20",
+  "requirements": [
+    "R040.3",
+    "R040.2",
+    "R071.4"
+  ],
+  "design": [
+    "docs/workspace_switch.md"
+  ],
+  "asset_manifest_sha256": "dd5957f6607364838f9d747a07d1dee3f03d470b95420096fdd36310db4f4253",
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS; final product assets, 207 suites at run time",
+    "catalog_suites": 208,
+    "unit_checks": 29,
+    "unit_scale": [
+      20,
+      100,
+      1000
+    ],
+    "actual_core_inactive_markdown_scale": [
+      20,
+      100,
+      1000
+    ],
+    "ui_suites": 6,
+    "native_priority": {
+      "case_id": "971e01bd950543aca8bfd76435873c25",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "dd5957f6607364838f9d747a07d1dee3f03d470b95420096fdd36310db4f4253",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "f2d56b6c1a4957ec066d502f5915b09d2b96e2a06851aef713774cf88e49d14c",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "phases": [
+        {
+          "phase": 1,
+          "status": "PASS",
+          "checks": 68,
+          "dirty_trace_count": 2
+        },
+        {
+          "phase": 2,
+          "status": "PASS",
+          "checks": 4,
+          "dirty_trace_count": 0
+        }
+      ]
+    },
+    "native_existing_sessions": {
+      "case_id": "3a00a43c134b4ef787c708861d3bce14",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "dd5957f6607364838f9d747a07d1dee3f03d470b95420096fdd36310db4f4253",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "069c8cf2af4542a6d3497254f954bb5a461d79d906277c8cc875eeeea5d01e41",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "phases": [
+        {
+          "phase": 1,
+          "status": "PASS",
+          "checks": 27,
+          "dirty_trace_count": 0
+        },
+        {
+          "phase": 2,
+          "status": "PASS",
+          "checks": 3,
+          "dirty_trace_count": 0
+        }
+      ]
+    },
+    "native_exact_restart": {
+      "case_id": "7810f2cba4a240b6ab1cc53b769a1ff8",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "dd5957f6607364838f9d747a07d1dee3f03d470b95420096fdd36310db4f4253",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "a2a3688fc1bf596761d218abfecdf71d0181f17ce7f2411c2e5c0fc7dd4ea750",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "phases": [
+        {
+          "phase": 1,
+          "status": "PASS",
+          "checks": 32,
+          "dirty_trace_count": 0
+        },
+        {
+          "phase": 2,
+          "status": "PASS",
+          "checks": 152,
+          "dirty_trace_count": 0
+        }
+      ]
+    },
+    "exact_restart_corpus": [
+      {
+        "source": "README.md",
+        "sha256": "51de16b220cb9fe559a78d736df4db5b451efad87b22b711594c0e151c5c619c",
+        "bytes": 18757
+      },
+      {
+        "source": "enhancements/README.md",
+        "sha256": "817ecaa6e27e990d2e9c7901cc78c8d70e2d83db678c602a1f3eebfb30fd8a55",
+        "bytes": 91455
+      },
+      {
+        "source": "docs/feedback_review.md",
+        "sha256": "4b96d3e82a7f867dd2cf9bf516b654021b055a61df3622445d18f50ba664e0b7",
+        "bytes": 227233
+      },
+      {
+        "source": "docs/development_handoff.md",
+        "sha256": "d25c57f4bf4de32ee7f2a66b1b7543d1bd19699ef59d88cb14accc3fff895846",
+        "bytes": 99912
+      },
+      {
+        "source": "docs/workspace_interaction.md",
+        "sha256": "d117e1b0e276e99d709d0705fa00f9f02eb124b66d06fea9fcfb10ad2e2f5aad",
+        "bytes": 61263
+      },
+      {
+        "source": "docs/stability_issues.md",
+        "sha256": "213e380430f0b6376af99f6a7a8f22852ae994922c499525a51f50f402abbf74",
+        "bytes": 55692
+      },
+      {
+        "source": "docs/terminal_operations.md",
+        "sha256": "5d8bc1eeba4021b15d79232ad840a34ea473df6bfeb88c965dfc67da29453e58",
+        "bytes": 38455
+      },
+      {
+        "source": "docs/requirements_design.md",
+        "sha256": "61baf0fe3c33d169efadaec4f6e663bc244f21329856319cddaa53de8b012c75",
+        "bytes": 35445
+      },
+      {
+        "source": "docs/workspace_update.md",
+        "sha256": "8d3facf443ff6ef71556892ed9d1f9e9330a64377fe7afd3ec5daa60da9fdeff",
+        "bytes": 34447
+      },
+      {
+        "source": "docs/remote_ssh.md",
+        "sha256": "efc920ee4b1919f98708f8b2eb8b71892bde8307a045babe6a1f41ba384764ec",
+        "bytes": 34390
+      },
+      {
+        "source": "docs/git_scm_actions.md",
+        "sha256": "219ef973574f4e5e10bc94bb47d2e93c31df0a62fc0cb694a2029a75fa957f14",
+        "bytes": 29136
+      },
+      {
+        "source": "docs/link_preview.md",
+        "sha256": "217a1334469bc38cef0002af92993a638263535e0f1532bbb4187b4ea9f4d8d1",
+        "bytes": 26560
+      },
+      {
+        "source": "docs/explorer_history.md",
+        "sha256": "7cac14886b9bbeb3992dd83d8a0a10d313b3ab78e97b1ca55e079c2686eccd9e",
+        "bytes": 24488
+      },
+      {
+        "source": "docs/vscode_design_baseline.md",
+        "sha256": "cb9d8cbf357c880e8b6d7418cb7d59698b859a5e5dc1c9c313c29f33978c0b11",
+        "bytes": 21606
+      },
+      {
+        "source": "docs/installation.md",
+        "sha256": "ec5bdd0fef13629cb2c54fa6e6e2d3456afc4ef19636effc7b8e9336191ee97c",
+        "bytes": 21287
+      },
+      {
+        "source": "docs/editor_header.md",
+        "sha256": "1b8b7fb8cde9c8985d903f1999269f1b6ba13c5de31c3db70ef913a391c7129c",
+        "bytes": 20545
+      },
+      {
+        "source": "docs/stability_testing.md",
+        "sha256": "c743ecda8d2570f4863d7e6d332f143a1fdbe31e21b61a0b85cb7481fea5d54d",
+        "bytes": 19312
+      },
+      {
+        "source": "docs/installation_design.md",
+        "sha256": "0c77f962f42790122ce6a22c10087d4274f6487221fdf0f9f7df74d77af7826a",
+        "bytes": 17037
+      },
+      {
+        "source": "docs/statusbar_layout.md",
+        "sha256": "fc650fb34ac3c5355f5538721a9420ea7b4137cf711c7ebd662fd385ab9447a8",
+        "bytes": 16924
+      },
+      {
+        "source": "docs/workspace_responsiveness.md",
+        "sha256": "2dcd51e0263231e9827a97938588d989ab9acc932becb530ef5cb024fb32d594",
+        "bytes": 16844
+      },
+      {
+        "source": "docs/file_operations.md",
+        "sha256": "8a48766a218e5d6458f4b897733e0908d9533dd97fcf88b3c0fc998ebb5103f4",
+        "bytes": 16525
+      },
+      {
+        "source": "docs/workspace_switch.md",
+        "sha256": "78d10e287859d39c48fc9cab4d024d8212c60f75d732d42d25e860dc0574d13c",
+        "bytes": 14140
+      },
+      {
+        "source": "docs/community_plugins.md",
+        "sha256": "272ad7269e675015b8a1ada00bb681bc56599f3e543723e0c898b4b45cd7e82a",
+        "bytes": 13509
+      },
+      {
+        "source": "docs/drag_and_windows.md",
+        "sha256": "56c10f68ae7229e1e920b99438d820bd6bfe1530e7ec0c3abae6c3e29ec37287",
+        "bytes": 12551
+      },
+      {
+        "source": "docs/workbench_parity.md",
+        "sha256": "55f4d927dfe9285e01fb269ab01e6f8e07f89069b0a76c33163f4013b0ff7c30",
+        "bytes": 12216
+      },
+      {
+        "source": "docs/workspace_zoom.md",
+        "sha256": "c2ce9851d5b33adfe8bd1c8599d0722d71b9b5da1e37bf4f3960b99801614eb9",
+        "bytes": 11323
+      },
+      {
+        "source": "docs/workspace_architecture.md",
+        "sha256": "eb73ff441e1311c477a617ca1ffc77af9b309c81980efa8057cb7e99e14359bb",
+        "bytes": 8967
+      },
+      {
+        "source": "docs/navigation_history.md",
+        "sha256": "ae02442347fd19dad6ce7e8ee5856ac1f7c70b076181d43f15f6a3d1045f305a",
+        "bytes": 8556
+      },
+      {
+        "source": "docs/git_graph_configuration.md",
+        "sha256": "5caf201123efc03af1ea19342a405135f4e4c16a2658ab6ef7c6b90c6e228c96",
+        "bytes": 8549
+      },
+      {
+        "source": "docs/workspace_settings.md",
+        "sha256": "34381fd6bb0e65aecd51a836691acf6fd69a7c4ff4792c91e215028f554383ce",
+        "bytes": 8486
+      }
+    ],
+    "baseline": {
+      "commit": "d9ed133a2e9920139ad7547a4306fbf7affd1c6e",
+      "unit": "20 records caused 21 foreground opens; fixed background registration causes zero",
+      "native_case_id": "ac1e649db0a94249ad255c34ebe9f8de",
+      "result": "After normal exit and no-document-argument restart, visible opened-29.md was replaced by opened-0.md around observation 57 (14.5 seconds); dirty false, no save dialog reproduced"
+    },
+    "installation_cycle": "PASS; backup restore and detach uninstall, reinstall/check, documents/settings/backups preserved",
+    "uninstall_assertions": 65
+  },
+  "installation": {
+    "version": "2026.09.23.20",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "limits": [
+    "未编辑保存弹窗的独立根因本轮未复现，R040.3及BUG-native-dirty-pending-070不整体关闭",
+    "实际重启测试由renderer调用window.close正常退出，独立新进程不传文档参数，非物理鼠标点击",
+    "Win11原始Typora1.14.10隔离副本；Win10、真实SSH和任意社区插件组合未本轮覆盖",
+    "原生已发出的文件加载不能强制取消；不清除dirty、不自动保存或放弃正文",
+    "1000档为单元/实际核心身份登记，原始Typora为101标签和30篇实际文档重启，不能混称1000原生压力"
+  ],
+  "intermediate_failures": [
+    "首次构建EPERM替换失败，重建成功后才准备最终候选",
+    "快速双标签原生初轮停留在第一个文件，新增最新选择加载协调后通过",
+    "UI目录切换初轮暴露未等待唯一活动源码加载，恢复该活动文件等待后六组通过",
+    "旧版本合成30文档重启20秒内未恢复完；真实文档重启复现14.5秒迟到切页",
+    "旧版本首次真实文档第二进程运行器误读前一阶段PASS，清理旧checks后重新启动取证；不计该次为通过"
+  ]
+}

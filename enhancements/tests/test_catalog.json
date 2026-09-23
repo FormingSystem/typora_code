@@ -7042,6 +7042,100 @@
         1000
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-session-priority-unit",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.3"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/native_open.ts"
+      ],
+      "related_modules": [
+        "session",
+        "native-editor",
+        "tabs",
+        "dirty"
+      ],
+      "script": "enhancements/scripts/test_workspace_session_restore.mjs",
+      "environment": "Node controlled delays",
+      "preconditions": "Isolated documents and user data; no user window actions",
+      "steps": [
+        "以受控配置延迟和用户事件验证恢复；检查20/100/1000标签输入、取消、销毁和真实草稿保护"
+      ],
+      "expected": [
+        "后台恢复零原生打开，最新用户选择优先，真实草稿保留"
+      ],
+      "timeout_ms": 120000
+    },
+    {
+      "id": "TC-session-priority-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.3"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/native_open.ts"
+      ],
+      "related_modules": [
+        "session",
+        "native-editor",
+        "tabs",
+        "dirty"
+      ],
+      "script": "enhancements/fixtures/session_priority_native.js",
+      "environment": "Original Typora 1.14.10 isolated Windows desktop",
+      "preconditions": "Isolated documents and user data; no user window actions",
+      "steps": [
+        "运行隔离夹具；第二进程复查持久恢复，记录原生修改来源"
+      ],
+      "expected": [
+        "后台恢复零原生打开，最新用户选择优先，真实草稿保留"
+      ],
+      "timeout_ms": 120000
+    },
+    {
+      "id": "TC-session-restart-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.3"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_sessions.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/native_open.ts"
+      ],
+      "related_modules": [
+        "session",
+        "native-editor",
+        "tabs",
+        "dirty"
+      ],
+      "script": "enhancements/scripts/test_session_restart_native.ps1",
+      "environment": "Original Typora 1.14.10 isolated Windows desktop",
+      "preconditions": "Isolated documents and user data; no user window actions",
+      "steps": [
+        "实际打开30篇仓库Markdown副本，混合LF/CRLF和BOM，等待15秒后正常关闭整个宿主",
+        "不指定文档重新启动第二进程，观察15秒，再逐页浏览全部文件；核对进程正常退出"
+      ],
+      "expected": [
+        "31个标签恢复，首屏不被后台文件替换，未编辑不产生脏状态"
+      ],
+      "timeout_ms": 420000
     }
   ]
 }

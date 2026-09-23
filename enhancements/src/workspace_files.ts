@@ -26,7 +26,7 @@ import { SOURCE_FILE_VIEW_ID, is_empty_editor_path, file_key, is_source_file_uri
 import * as monaco from "monaco-editor/editor/editor.api";
 import files_css from "./workspace_files.css";
 
-export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
+export type file_location = {reason?:"restore";line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
 /** 独立文档提供者保留资源身份与IO，公共文件层只接管保存/关闭/卸载保护。 */
 import {active_remote_files,remote_files_for,workspace_resource_fs,protect_remote_cache} from './remote_workspace_files';
 import {choose_remote_resource} from './remote_workspace_picker';
@@ -35,6 +35,7 @@ export type workspace_file_host = {
   fs: any; path_api: any; core: graph_core;
   register_document(port:workspace_document_port):()=>void;
   open_file(file_path: string, location?: file_location, group?: string): Promise<void>;
+  restore_files(entries:ReadonlyArray<{path:string;source:boolean;pinned:boolean}>,signal:AbortSignal):Promise<void>;
   context_root(): string;
   file_menu(event: MouseEvent, file_path: string): void;
   copy(text: string): unknown;
@@ -344,6 +345,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   }
   const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
   const open_file = async (file_path: string, location: file_location = {}, group = "active") => {
+    if(location.reason!=="restore")window.dispatchEvent(new Event("workspace-file-open-intent"));
     if(workspace_context_switching())throw new Error("工作区正在切换，请稍后打开文件。");
     if(location.signal?.aborted)throw new Error("打开文件已取消。");
     if (renaming) throw new Error("正在重命名，请稍后再打开文件。");
@@ -376,6 +378,25 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     (leaf.view as source_file_view).focus_requested=!location.preserve_focus;
     if(location.line!=null)(leaf.view as source_file_view).target=location;
     parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;set_preview(leaf,Boolean(location.preview));
+  };
+  const restore_files:workspace_file_host["restore_files"]=async(entries,signal)=>{
+    const parent=core.app.workspace.activeLeaf?.parent,epoch=workspace_context_epoch();
+    if(!parent)return;
+    const known=new Set<string>();core.app.workspace.eachLeaves(leaf=>{known.add(file_key(leaf.state.path));});
+    for(let offset=0;offset<entries.length;offset+=20){
+      if(signal.aborted||!binding.active||epoch!==workspace_context_epoch())return;
+      const batch:graph_leaf[]=[];
+      for(const entry of entries.slice(offset,offset+20)){
+        const path=entry.source?source_file_uri(entry.path):entry.path;
+        if(known.has(file_key(path)))continue;known.add(file_key(path));
+        const leaf=core.app.workspace.createLeaf({type:entry.source?SOURCE_FILE_VIEW_ID:"core.markdown",state:{path,workspace_pinned:entry.pinned}});
+        if(entry.source)(leaf.view as source_file_view).focus_requested=false;
+        batch.push(leaf);
+      }
+      parent.append_inactive(batch);
+      for(const leaf of batch)if(leaf.view instanceof source_file_view)leaf.view.guard_close();
+      if(offset+20<entries.length)await new Promise(resolve=>setTimeout(resolve,0));
+    }
   };
   const release_navigation = register_navigation_editor({
     capture() {
@@ -1098,7 +1119,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

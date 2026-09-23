@@ -188864,6 +188864,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, (leaf) => new source_file_view(leaf));
     const open_file = async (file_path, location = {}, group = "active") => {
+      if (location.reason !== "restore") window.dispatchEvent(new Event("workspace-file-open-intent"));
       if (workspace_context_switching()) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u7A0D\u540E\u6253\u5F00\u6587\u4EF6\u3002");
       if (location.signal?.aborted) throw new Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
       if (renaming) throw new Error("\u6B63\u5728\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u6253\u5F00\u6587\u4EF6\u3002");
@@ -188927,6 +188928,29 @@ https://creativecommons.org/licenses/by/4.0/
       parent.appendChild(leaf);
       core.app.workspace.activeLeaf = leaf;
       set_preview(leaf, Boolean(location.preview));
+    };
+    const restore_files = async (entries3, signal) => {
+      const parent = core.app.workspace.activeLeaf?.parent, epoch2 = workspace_context_epoch();
+      if (!parent) return;
+      const known = /* @__PURE__ */ new Set();
+      core.app.workspace.eachLeaves((leaf) => {
+        known.add(file_key(leaf.state.path));
+      });
+      for (let offset = 0; offset < entries3.length; offset += 20) {
+        if (signal.aborted || !binding.active || epoch2 !== workspace_context_epoch()) return;
+        const batch = [];
+        for (const entry of entries3.slice(offset, offset + 20)) {
+          const path = entry.source ? source_file_uri(entry.path) : entry.path;
+          if (known.has(file_key(path))) continue;
+          known.add(file_key(path));
+          const leaf = core.app.workspace.createLeaf({ type: entry.source ? SOURCE_FILE_VIEW_ID : "core.markdown", state: { path, workspace_pinned: entry.pinned } });
+          if (entry.source) leaf.view.focus_requested = false;
+          batch.push(leaf);
+        }
+        parent.append_inactive(batch);
+        for (const leaf of batch) if (leaf.view instanceof source_file_view) leaf.view.guard_close();
+        if (offset + 20 < entries3.length) await new Promise((resolve3) => setTimeout(resolve3, 0));
+      }
     };
     const release_navigation = register_navigation_editor({
       capture() {
@@ -190013,6 +190037,7 @@ https://creativecommons.org/licenses/by/4.0/
       path_api,
       core,
       open_file,
+      restore_files,
       context_root,
       file_menu,
       copy,
@@ -241981,7 +242006,13 @@ https://creativecommons.org/licenses/by/4.0/
     const store = create_workspace_session_store(files.fs, files.path_api, runtime2.reqnode("crypto"), files.path_api.join(runtime2._options.userDataPath, "typora_code", "state", "workspace_sessions"));
     let disposed = false, paused = true, timer, reported = false;
     let owns_session = !window_transfer_token(runtime2._options?.initFilePath, runtime2._options?.initAnchor ?? runtime2.File?.option?.initAnchor ?? "");
-    const controller = new AbortController();
+    let restore_controller = new AbortController(), activation_controller = new AbortController(), intent_revision = 0;
+    const interrupt = () => {
+      intent_revision++;
+      activation_controller.abort();
+    };
+    const input_events = ["pointerdown", "keydown", "wheel", "beforeinput", "workspace-file-open-intent"];
+    for (const event of input_events) window.addEventListener(event, interrupt, { capture: true, passive: true });
     const notice = (error) => {
       if (!disposed) new files.core.Notice("\u5DE5\u4F5C\u533A\u6587\u4EF6\u6062\u590D\uFF1A" + String(error instanceof Error ? error.message : error), 6e3);
     };
@@ -242042,52 +242073,36 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const restore = async (initial = false) => {
       if (initial && !owns_session) return;
-      const root = files.context_root(), epoch2 = workspace_context_epoch();
-      const current = () => !disposed && !controller.signal.aborted && epoch2 === workspace_context_epoch() && root === files.context_root();
+      restore_controller.abort();
+      restore_controller = new AbortController();
+      activation_controller.abort();
+      activation_controller = new AbortController();
+      const operation = restore_controller, activation = activation_controller;
+      const root = files.context_root(), epoch2 = workspace_context_epoch(), intent = initial ? 0 : intent_revision;
+      const initial_leaf = workspace.activeLeaf;
+      const initial_state = initial_leaf ? files.editor_state(initial_leaf) : void 0;
+      const current = () => !disposed && !operation.signal.aborted && epoch2 === workspace_context_epoch() && root === files.context_root();
+      const may_activate = () => current() && !activation.signal.aborted && intent === intent_revision && workspace.activeLeaf === initial_leaf;
       try {
         if (!root || !await enabled() || !current()) return;
+        const saved = store.read(root);
+        if (!saved) return;
+        await files.restore_files(saved.files, operation.signal);
+        if (!may_activate() || initial_state?.file_path) return;
         let dirty = false;
         workspace.eachLeaves((leaf) => {
           if (files.editor_state(leaf).dirty) dirty = true;
         });
-        if (dirty) return;
-        const saved = store.read(root);
-        if (!saved) return;
-        const initial_state = initial && workspace.activeLeaf ? files.editor_state(workspace.activeLeaf) : void 0;
-        const preferred = initial_state?.file_path ? { path: initial_state.file_path, source: initial_state.kind === "source" } : saved.files[saved.active];
-        const errors = [];
-        for (const entry of saved.files) {
-          if (!current()) return;
-          try {
-            await files.open_file(entry.path, { source: entry.source, preview: false, signal: controller.signal });
-            if (!current()) return;
-            const leaf = workspace.activeLeaf;
-            const started = Date.now();
-            while (leaf && files.editor_state(leaf).busy && current()) {
-              if (Date.now() - started > 1e4) throw new Error("\u7B49\u5F85\u6587\u4EF6\u52A0\u8F7D\u8D85\u65F6\u3002");
-              await new Promise((resolve3) => setTimeout(resolve3, 30));
-            }
-            if (!current()) return;
-            if (leaf && file_key(files.editor_state(leaf).file_path) === file_key(entry.path)) {
-              leaf.state.workspace_pinned = entry.pinned;
-              files.keep_open(leaf);
-            }
-          } catch (error) {
-            if (!current()) return;
-            errors.push(entry.path + "\uFF1A" + String(error.message || error));
-          }
+        const preferred = saved.files[saved.active];
+        if (dirty || !preferred) return;
+        await files.open_file(preferred.path, { source: preferred.source, preview: false, signal: activation.signal, reason: "restore" });
+        const active2 = workspace.activeLeaf, started = Date.now();
+        while (current() && !activation.signal.aborted && workspace.activeLeaf === active2 && active2 && files.editor_state(active2).busy) {
+          if (Date.now() - started > 1e4) throw new Error("\u7B49\u5F85\u6D3B\u52A8\u6587\u4EF6\u52A0\u8F7D\u8D85\u65F6\u3002");
+          await new Promise((resolve3) => setTimeout(resolve3, 16));
         }
-        if (preferred && current()) {
-          let found = false;
-          workspace.eachLeaves((leaf) => {
-            const state = files.editor_state(leaf);
-            if (file_key(state.file_path) === file_key(preferred.path) && state.kind === "source" === preferred.source) found = true;
-          });
-          if (found) await files.open_file(preferred.path, { source: preferred.source, preview: false, signal: controller.signal });
-        }
-        if (errors.length) notice("\u90E8\u5206\u6587\u4EF6\u672A\u80FD\u6253\u5F00\uFF1A\n" + errors.join("\n"));
       } catch (error) {
-        notice(error);
+        if (current() && !activation.signal.aborted && intent === intent_revision) notice(error);
       }
     };
     const ready = (async () => {
@@ -242099,6 +242114,8 @@ https://creativecommons.org/licenses/by/4.0/
     return {
       ready,
       suspend() {
+        restore_controller.abort();
+        activation_controller.abort();
         clearTimeout(timer);
         save();
         paused = true;
@@ -242116,7 +242133,9 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         flush();
         disposed = true;
-        controller.abort();
+        restore_controller.abort();
+        activation_controller.abort();
+        for (const event of input_events) window.removeEventListener(event, interrupt, true);
         clearTimeout(timer);
         for (const stop of stops) stop();
         window.removeEventListener("beforeunload", flush);
@@ -245374,6 +245393,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092320,
+        version: "2026.09.23.20",
+        date: "2026-09-23",
+        notes: [
+          "\u5DE5\u4F5C\u533A\u6062\u590D\u53EA\u767B\u8BB0\u540E\u53F0\u6807\u7B7E\uFF0C\u9996\u6B21\u9009\u4E2D\u65F6\u624D\u52A0\u8F7D\u6B63\u6587\uFF1B\u542F\u52A8\u7B49\u5F85\u671F\u95F4\u7684\u7528\u6237\u64CD\u4F5C\u4F18\u5148\uFF0C\u8FDF\u5230\u6062\u590D\u4E0D\u518D\u9010\u9875\u5207\u6362\u6216\u8986\u76D6\u5F53\u524D\u64CD\u4F5C\u3002",
+          "\u4FEE\u590D\u5FEB\u901F\u5207\u6362Markdown\u6807\u7B7E\u65F6\u540E\u4E00\u6B21\u9009\u62E9\u88AB\u5BBF\u4E3B\u52A0\u8F7D\u4E22\u6389\u7684\u95EE\u9898\uFF0C\u53D6\u6D88\u65E7\u89C6\u56FE\u5B9A\u4F4D\u56DE\u8C03\uFF0C\u91CD\u590D\u9009\u62E9\u5F53\u524D\u6807\u7B7E\u4E0D\u518D\u91CD\u65B0\u6253\u5F00\u6B63\u6587\u3002",
+          "\u4FDD\u7559\u771F\u5B9E\u672A\u4FDD\u5B58\u5185\u5BB9\u7684\u4FDD\u5B58\u4E0E\u53D6\u6D88\u4FDD\u62A4\uFF1B\u540E\u53F0\u6062\u590D\u4E0D\u518D\u4E3A\u6BCF\u4E2A\u5386\u53F2Markdown\u89E6\u53D1\u4FDD\u5B58\u68C0\u67E5\u3002"
+        ]
+      },
       {
         sequence: 2026092319,
         version: "2026.09.23.19",
