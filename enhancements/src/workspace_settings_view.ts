@@ -5,28 +5,38 @@ import {git_icon,git_icon_button} from './git_icons';
 import {acquire_workspace_interaction} from './workspace_interaction';
 import {acquire_workspace_style} from './workspace_styles';
 import css from './workspace_settings_view.css';
+import {mount_settings_owner} from './workspace_settings_owner';
 
 export function bind_workspace_settings_view(core:graph_core){
   const views=new Set<settings_view>(),style=acquire_workspace_style('typora-code-style:workspace_settings_view',css);
   let dialog:ReturnType<typeof workspace_dialog>|undefined;
   class settings_view {
     containerEl=el('section','workspace-settings');icon='fa-cog';disposed=false;category='';
+    owner_host=el('div','workspace-settings-owner');owner:''|'native'|'community'='';owner_binding?:ReturnType<typeof mount_settings_owner>;
     search=el('input');categories=el('nav','workspace-settings-categories');body=el('div','workspace-settings-body');status=el('p','workspace-settings-status');
     release_port:()=>void;release_registry:()=>void;
     constructor(){
       views.add(this);this.search.placeholder='搜索设置';this.search.setAttribute('aria-label','搜索设置');this.status.setAttribute('role','status');
-      const content=el('div','workspace-settings-content');content.append(this.categories,this.body);this.containerEl.append(this.search,content,this.status);
+      const content=el('div','workspace-settings-content');this.owner_host.hidden=true;content.append(this.categories,this.body,this.owner_host);this.containerEl.append(this.search,content,this.status);
       const interaction=acquire_workspace_interaction(this.containerEl);this.release_port=()=>interaction.remove();this.release_registry=observe_workspace_settings(()=>{if(!this.containerEl.contains(document.activeElement))this.render();});
-      this.search.oninput=()=>this.render();this.render();
+      this.search.oninput=()=>{this.select_owner('');this.render();};this.render();
+    }
+    select_owner(owner:''|'native'|'community'){
+      if(this.owner===owner&&this.owner_binding)return;
+      this.owner_binding?.dispose();this.owner_binding=undefined;this.owner=owner;this.status.textContent='';
+      this.owner_host.textContent='';this.body.hidden=Boolean(owner);this.owner_host.hidden=!owner;
+      this.render();
+      if(owner)try{this.owner_binding=mount_settings_owner(core,owner,this.owner_host,()=>this.select_owner(''),()=>dialog?.close(false));}catch(error){this.owner_host.textContent=String(error);}
     }
     render(){
       if(this.disposed)return;this.categories.replaceChildren();this.body.replaceChildren();
       const query=this.search.value.trim().toLocaleLowerCase(),sections=workspace_settings_sections();
-      const all=button('全部设置',()=>{this.category='';this.render();});all.setAttribute('aria-pressed',String(!this.category));this.categories.append(all);
-      for(const section of sections){const item=button(section.title,()=>{this.category=section.id;this.render();});item.setAttribute('aria-pressed',String(this.category===section.id));this.categories.append(item);}
-      const native=button('Typora 偏好设置',()=>{try{const command=(window as any).ClientCommand?.showPreferencePanel;if(!command)throw Error('原生偏好接口不可用');command();}catch(error){this.status.textContent=String(error);}});
-      native.dataset.settingsOwner='native';const community=button('社区插件设置',()=>core.app.commands.run('typora_code:community_plugin_settings'));community.dataset.settingsOwner='community';
-      native.append(git_icon('link-external'));community.append(git_icon('link-external'));this.categories.append(el('hr'),native,community);
+      const all=button('全部设置',()=>{this.category='';this.select_owner('');this.render();});all.setAttribute('aria-pressed',String(!this.category&&!this.owner));this.categories.append(all);
+      for(const section of sections){const item=button(section.title,()=>{this.category=section.id;this.select_owner('');this.render();});item.setAttribute('aria-pressed',String(!this.owner&&this.category===section.id));this.categories.append(item);}
+      const native=button('Typora 偏好设置',()=>this.select_owner('native'));native.dataset.settingsOwner='native';native.setAttribute('aria-pressed',String(this.owner==='native'));
+      const community=button('社区插件设置',()=>this.select_owner('community'));community.dataset.settingsOwner='community';community.setAttribute('aria-pressed',String(this.owner==='community'));
+      this.categories.append(el('hr'),native,community);
+      if(this.owner)return;
       let count=0;
       for(const section of sections){
         if(this.category&&this.category!==section.id)continue;
@@ -45,12 +55,12 @@ export function bind_workspace_settings_view(core:graph_core){
       }
       if(!count)this.body.append(el('p','','没有匹配的设置。'));
     }
-    dispose(){if(this.disposed)return;this.disposed=true;this.release_port();this.release_registry();views.delete(this);}
+    dispose(){if(this.disposed)return;this.disposed=true;this.owner_binding?.dispose();this.owner_binding=undefined;this.release_port();this.release_registry();views.delete(this);}
   }
   const show=()=>{
     if(dialog){dialog.root.querySelector<HTMLInputElement>('.workspace-settings>input')?.focus();return;}
     const view=new settings_view();
-    const panel=dialog=workspace_dialog('设置','关闭设置',()=>{view.dispose();if(dialog===panel)dialog=undefined;});
+    const panel=dialog=workspace_dialog('设置','关闭设置',()=>{view.dispose();if(dialog===panel)dialog=undefined;},{focus_out:false,regions:()=>view.owner_binding?[view.owner_binding.surface]:[]});
     panel.root.classList.add('workspace-settings-modal');panel.footer.hidden=true;panel.content.append(view.containerEl);
     const header=panel.root.querySelector('.workspace-dialog-header')!;
     const maximize=git_icon_button('screen-full','最大化设置',()=>{

@@ -140,7 +140,7 @@ export function bind_community_plugins(){
     if(sidebar.activePanel===panel)sidebar.show();else sidebar.switch(community_sidebar);
     manager?.focus();
   };
-  const binding={service,open_manager,open_settings:()=>settings.open(),register_setting_tab:settings.register};
+  const binding={service,open_manager,open_settings:()=>settings.open(),register_setting_tab:settings.register,mount_settings:settings.mount};
   core.app.community_plugins=binding;
   const unregister=core.app.commands.register({id:'typora_code:community_plugins',title:'管理社区插件',scope:'global',callback:open_manager});
   const unregister_settings=core.app.commands.register({id:'typora_code:community_plugin_settings',title:'插件设置',scope:'global',callback:binding.open_settings});

@@ -160370,7 +160370,7 @@ https://creativecommons.org/licenses/by/4.0/
     close_active_menu?.();
     for (const close of [...active_dialogs]) close();
   }
-  function workspace_dialog(title, close_title = "\u5173\u95ED", on_close) {
+  function workspace_dialog(title, close_title = "\u5173\u95ED", on_close, options2 = {}) {
     const root = workspace_element("div", "git-graph-dialog-shade");
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-modal", "true");
@@ -160384,7 +160384,7 @@ https://creativecommons.org/licenses/by/4.0/
     panel.tabIndex = -1;
     let closed = false;
     const is_top_dialog = () => escape_layer.is_top();
-    const focusable_controls = () => [...root.querySelectorAll("button,input,textarea,select,summary,a[href],[tabindex]")].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
+    const focusable_controls = () => [...new Set([root, ...options2.regions?.() || []].flatMap((region) => [...region.querySelectorAll("button,input,textarea,select,summary,a[href],[tabindex],webview")]))].filter((node) => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility)).sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
     const close = (restore = true) => {
       if (closed) return;
       const restore_focus = restore && escape_layer.owns_focus();
@@ -160399,7 +160399,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (restore_focus) previous.restore();
       on_close?.(restore_focus);
     };
-    const escape_layer = register_workspace_dismissal(() => [root], (reason) => close(reason === "escape" || reason === "outside"), { inside: () => [panel], consume_outside: true });
+    const escape_layer = register_workspace_dismissal(() => [root, ...options2.regions?.() || []], (reason) => close(reason === "escape" || reason === "outside"), { inside: () => [panel, ...options2.regions?.() || []], consume_outside: true, focus_out: options2.focus_out });
     const global_key = (event) => {
       if (!is_top_dialog()) return;
       if (event.key === "Tab") {
@@ -242183,6 +242183,72 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_settings_view.css
   var workspace_settings_view_default = "";
 
+  // src/workspace_settings_owner.ts
+  function bind_owner_geometry(anchor, surface) {
+    const properties2 = ["position", "inset", "left", "top", "right", "bottom", "width", "height", "z-index", "display", "box-sizing"];
+    const previous = properties2.map((name) => [name, surface.style.getPropertyValue(name), surface.style.getPropertyPriority(name)]);
+    const original = surface.getAttribute("data-workspace-settings-surface");
+    const sync = () => {
+      const box = anchor.getBoundingClientRect();
+      const values = { position: "fixed", inset: "auto", left: box.left + "px", top: box.top + "px", right: "auto", bottom: "auto", width: box.width + "px", height: box.height + "px", "z-index": "110001", display: "block", "box-sizing": "border-box" };
+      for (const [name, value] of Object.entries(values)) surface.style.setProperty(name, value, "important");
+    };
+    surface.setAttribute("data-workspace-settings-surface", "true");
+    const observer2 = new ResizeObserver(sync);
+    observer2.observe(anchor);
+    window.addEventListener("resize", sync);
+    sync();
+    return () => {
+      observer2.disconnect();
+      window.removeEventListener("resize", sync);
+      for (const [name, value, priority] of previous) {
+        if (value) surface.style.setProperty(name, value, priority);
+        else surface.style.removeProperty(name);
+      }
+      if (original === null) surface.removeAttribute("data-workspace-settings-surface");
+      else surface.setAttribute("data-workspace-settings-surface", original);
+    };
+  }
+  function mount_settings_owner(core, owner, anchor, on_return, on_navigate) {
+    if (owner === "community") {
+      const bridge = core.app.community_plugins;
+      if (!bridge?.mount_settings) throw Error("\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
+      const surface = document.createElement("div");
+      surface.dataset.workspaceInteraction = "none";
+      document.body.append(surface);
+      const release_geometry2 = bind_owner_geometry(anchor, surface);
+      let release_page;
+      try {
+        release_page = bridge.mount_settings(surface, on_navigate);
+      } catch (error) {
+        release_geometry2();
+        surface.remove();
+        throw error;
+      }
+      return { surface, dispose() {
+        release_page();
+        release_geometry2();
+        surface.remove();
+      } };
+    }
+    const runtime2 = window, panel = document.getElementById("uni-preference-panel"), menu = runtime2.File?.megaMenu;
+    if (!panel || !runtime2.ClientCommand?.showPreferencePanel || !menu?.closePreferencePanel) throw Error("\u5F53\u524D\u5BBF\u4E3B\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+    runtime2.ClientCommand.showPreferencePanel();
+    const release_geometry = bind_owner_geometry(anchor, panel);
+    const observer2 = new MutationObserver(() => {
+      if (!document.body.classList.contains("show-preference-panel")) on_return();
+    });
+    observer2.observe(document.body, { attributes: true, attributeFilter: ["class"] });
+    return { surface: panel, dispose() {
+      observer2.disconnect();
+      try {
+        if (document.body.classList.contains("show-preference-panel")) menu.closePreferencePanel();
+      } finally {
+        release_geometry();
+      }
+    } };
+  }
+
   // src/workspace_settings_view.ts
   function bind_workspace_settings_view(core) {
     const views = /* @__PURE__ */ new Set(), style = acquire_workspace_style("typora-code-style:workspace_settings_view", workspace_settings_view_default);
@@ -242192,6 +242258,9 @@ https://creativecommons.org/licenses/by/4.0/
       icon = "fa-cog";
       disposed = false;
       category = "";
+      owner_host = workspace_element("div", "workspace-settings-owner");
+      owner = "";
+      owner_binding;
       search = workspace_element("input");
       categories = workspace_element("nav", "workspace-settings-categories");
       body = workspace_element("div", "workspace-settings-body");
@@ -242204,15 +242273,35 @@ https://creativecommons.org/licenses/by/4.0/
         this.search.setAttribute("aria-label", "\u641C\u7D22\u8BBE\u7F6E");
         this.status.setAttribute("role", "status");
         const content = workspace_element("div", "workspace-settings-content");
-        content.append(this.categories, this.body);
+        this.owner_host.hidden = true;
+        content.append(this.categories, this.body, this.owner_host);
         this.containerEl.append(this.search, content, this.status);
         const interaction = acquire_workspace_interaction(this.containerEl);
         this.release_port = () => interaction.remove();
         this.release_registry = observe_workspace_settings(() => {
           if (!this.containerEl.contains(document.activeElement)) this.render();
         });
-        this.search.oninput = () => this.render();
+        this.search.oninput = () => {
+          this.select_owner("");
+          this.render();
+        };
         this.render();
+      }
+      select_owner(owner) {
+        if (this.owner === owner && this.owner_binding) return;
+        this.owner_binding?.dispose();
+        this.owner_binding = void 0;
+        this.owner = owner;
+        this.status.textContent = "";
+        this.owner_host.textContent = "";
+        this.body.hidden = Boolean(owner);
+        this.owner_host.hidden = !owner;
+        this.render();
+        if (owner) try {
+          this.owner_binding = mount_settings_owner(core, owner, this.owner_host, () => this.select_owner(""), () => dialog2?.close(false));
+        } catch (error) {
+          this.owner_host.textContent = String(error);
+        }
       }
       render() {
         if (this.disposed) return;
@@ -242221,33 +242310,28 @@ https://creativecommons.org/licenses/by/4.0/
         const query = this.search.value.trim().toLocaleLowerCase(), sections2 = workspace_settings_sections();
         const all = workspace_button("\u5168\u90E8\u8BBE\u7F6E", () => {
           this.category = "";
+          this.select_owner("");
           this.render();
         });
-        all.setAttribute("aria-pressed", String(!this.category));
+        all.setAttribute("aria-pressed", String(!this.category && !this.owner));
         this.categories.append(all);
         for (const section of sections2) {
           const item = workspace_button(section.title, () => {
             this.category = section.id;
+            this.select_owner("");
             this.render();
           });
-          item.setAttribute("aria-pressed", String(this.category === section.id));
+          item.setAttribute("aria-pressed", String(!this.owner && this.category === section.id));
           this.categories.append(item);
         }
-        const native = workspace_button("Typora \u504F\u597D\u8BBE\u7F6E", () => {
-          try {
-            const command = window.ClientCommand?.showPreferencePanel;
-            if (!command) throw Error("\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528");
-            command();
-          } catch (error) {
-            this.status.textContent = String(error);
-          }
-        });
+        const native = workspace_button("Typora \u504F\u597D\u8BBE\u7F6E", () => this.select_owner("native"));
         native.dataset.settingsOwner = "native";
-        const community = workspace_button("\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E", () => core.app.commands.run("typora_code:community_plugin_settings"));
+        native.setAttribute("aria-pressed", String(this.owner === "native"));
+        const community = workspace_button("\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E", () => this.select_owner("community"));
         community.dataset.settingsOwner = "community";
-        native.append(git_icon("link-external"));
-        community.append(git_icon("link-external"));
+        community.setAttribute("aria-pressed", String(this.owner === "community"));
         this.categories.append(workspace_element("hr"), native, community);
+        if (this.owner) return;
         let count = 0;
         for (const section of sections2) {
           if (this.category && this.category !== section.id) continue;
@@ -242312,6 +242396,8 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         if (this.disposed) return;
         this.disposed = true;
+        this.owner_binding?.dispose();
+        this.owner_binding = void 0;
         this.release_port();
         this.release_registry();
         views.delete(this);
@@ -242326,7 +242412,7 @@ https://creativecommons.org/licenses/by/4.0/
       const panel = dialog2 = workspace_dialog("\u8BBE\u7F6E", "\u5173\u95ED\u8BBE\u7F6E", () => {
         view.dispose();
         if (dialog2 === panel) dialog2 = void 0;
-      });
+      }, { focus_out: false, regions: () => view.owner_binding ? [view.owner_binding.surface] : [] });
       panel.root.classList.add("workspace-settings-modal");
       panel.footer.hidden = true;
       panel.content.append(view.containerEl);
@@ -242950,6 +243036,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092303,
+        version: "2026.09.23.3",
+        date: "2026-09-23",
+        notes: [
+          "Typora\u504F\u597D\u4E0E\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E\u76F4\u63A5\u663E\u793A\u5728\u7EDF\u4E00\u8BBE\u7F6E\u53F3\u4FA7\uFF0C\u5207\u6362\u65F6\u4E0D\u518D\u5728\u7A97\u53E3\u540E\u65B9\u6253\u5F00\u53E6\u4E00\u5C42\u5F39\u7A97\u3002",
+          "\u4FDD\u7559\u539F\u751F\u504F\u597D\u9875\u9762\u548C\u793E\u533A\u539F\u59CB\u8BBE\u7F6E\u63A7\u4EF6\u53CA\u4FDD\u5B58\u673A\u5236\uFF1B\u6700\u5927\u5316\u3001\u8FD8\u539F\u3001\u5173\u95ED\u7EDF\u4E00\u7BA1\u7406\uFF0C\u53CD\u590D\u5207\u6362\u4E0D\u91CD\u5EFA\u539F\u751F\u9875\u9762\u3002"
+        ]
+      },
       {
         sequence: 2026092302,
         version: "2026.09.23.2",
@@ -243692,6 +243787,7 @@ https://creativecommons.org/licenses/by/4.0/
     const tabs = /* @__PURE__ */ new Map();
     let surface;
     let active;
+    let mount;
     const detach = () => {
       const previous = active;
       active = void 0;
@@ -243738,25 +243834,27 @@ https://creativecommons.org/licenses/by/4.0/
       const actions = workspace_element("div", "workspace-community-settings-navigation");
       for (const [title, mode] of [["\u7BA1\u7406\u5DF2\u5B89\u88C5\u63D2\u4EF6", "installed"], ["\u6D4F\u89C8\u793E\u533A\u63D2\u4EF6\u5E02\u573A", "catalog"]]) actions.append(workspace_button(title, () => {
         surface?.close();
+        mount?.on_navigate();
         navigate(mode);
       }));
       surface.main.append(actions);
     };
     const open = () => {
       if (surface) return;
+      const embedded = mount;
       const focus = capture_workspace_focus(), root = workspace_element("div", "typ-modal__wrapper middle workspace-community-settings-root"), panel = workspace_element("section", "typ-modal typ-settings-modal");
       root.dataset.workspaceInteraction = "none";
-      root.setAttribute("role", "dialog");
-      root.setAttribute("aria-modal", "true");
+      root.setAttribute("role", embedded ? "region" : "dialog");
+      if (!embedded) root.setAttribute("aria-modal", "true");
       root.setAttribute("aria-label", "\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E");
       const header = workspace_element("div", "typ-modal__header"), body = workspace_element("div", "typ-modal__body"), sidebar = workspace_element("nav", "typ-sidebar"), main = workspace_element("div", "typ-main workspace-community-settings");
       const close = (restore = true) => {
         if (surface?.root !== root) return;
-        const owned2 = layer.owns_focus();
+        const owned2 = layer?.owns_focus();
         try {
           detach();
         } finally {
-          layer.dispose();
+          layer?.dispose();
           root.remove();
           surface = void 0;
           if (restore && owned2) focus.restore();
@@ -243768,16 +243866,18 @@ https://creativecommons.org/licenses/by/4.0/
       close_button.setAttribute("aria-label", "\u5173\u95ED");
       header.append(workspace_element("span", "", "\u793E\u533A\u63D2\u4EF6\u8BBE\u7F6E"), close_button);
       body.append(sidebar, main);
-      panel.append(header, body);
+      if (!embedded) panel.append(header);
+      panel.append(body);
       root.append(panel);
-      const layer = register_workspace_dismissal(() => [root], () => close(), { inside: () => [panel], consume_outside: true, focus_out: false });
+      if (embedded) root.classList.add("is-embedded");
+      const layer = embedded ? void 0 : register_workspace_dismissal(() => [root], () => close(), { inside: () => [panel], consume_outside: true, focus_out: false });
       surface = { root, sidebar, main, close };
-      document.body.append(root);
+      (embedded?.host || document.body).append(root);
       render();
       const first = tabs.entries().next().value;
       if (first) activate(first[0], [...first[1]][0]);
       root.addEventListener("keydown", (event) => {
-        if (event.key !== "Tab" || !layer.is_top()) return;
+        if (event.key !== "Tab" || !layer?.is_top()) return;
         const controls = [...panel.querySelectorAll("button,input,select,textarea,a[href],[tabindex]")].filter((node) => !node.matches(':disabled,[tabindex="-1"]') && node.getClientRects().length);
         const index = controls.indexOf(document.activeElement);
         if (controls.length && (index < 0 || event.shiftKey && index === 0 || !event.shiftKey && index === controls.length - 1)) {
@@ -243785,12 +243885,23 @@ https://creativecommons.org/licenses/by/4.0/
           controls[event.shiftKey ? controls.length - 1 : 0].focus();
         }
       });
-      close_button.focus({ preventScroll: true });
+      if (!embedded) close_button.focus({ preventScroll: true });
     };
     return {
       has: (id) => Boolean(tabs.get(id)?.size),
       open,
       refresh: render,
+      mount(host, on_navigate) {
+        surface?.close(false);
+        const target = { host, on_navigate };
+        mount = target;
+        open();
+        return () => {
+          if (mount !== target) return;
+          surface?.close(false);
+          mount = void 0;
+        };
+      },
       show(id) {
         const tab = tabs.get(id)?.values().next().value;
         if (!tab) return;
@@ -243811,7 +243922,10 @@ https://creativecommons.org/licenses/by/4.0/
         return () => {
           if (removed) return;
           removed = true;
-          if (active?.tab === tab) surface?.close(false);
+          if (active?.tab === tab) {
+            if (mount) detach();
+            else surface?.close(false);
+          }
           try {
             tab.unload();
           } finally {
@@ -243825,6 +243939,7 @@ https://creativecommons.org/licenses/by/4.0/
       },
       dispose() {
         surface?.close(false);
+        mount = void 0;
         tabs.clear();
       }
     };
@@ -244113,7 +244228,7 @@ https://creativecommons.org/licenses/by/4.0/
       else sidebar.switch(community_sidebar);
       manager?.focus();
     };
-    const binding = { service, open_manager, open_settings: () => settings.open(), register_setting_tab: settings.register };
+    const binding = { service, open_manager, open_settings: () => settings.open(), register_setting_tab: settings.register, mount_settings: settings.mount };
     core.app.community_plugins = binding;
     const unregister = core.app.commands.register({ id: "typora_code:community_plugins", title: "\u7BA1\u7406\u793E\u533A\u63D2\u4EF6", scope: "global", callback: open_manager });
     const unregister_settings = core.app.commands.register({ id: "typora_code:community_plugin_settings", title: "\u63D2\u4EF6\u8BBE\u7F6E", scope: "global", callback: binding.open_settings });

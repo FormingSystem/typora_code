@@ -5123,14 +5123,16 @@
       "requirements": [
         "R057",
         "R060",
-        "R072"
+        "R072",
+        "R072.3"
       ],
       "design": "docs/community_plugins.md",
       "implementation": [
         "enhancements/src/community_plugins.ts",
         "enhancements/src/community_plugin_service.cjs",
         "enhancements/fixtures/community_plugins_native.js",
-        "enhancements/src/community_plugin_settings.ts"
+        "enhancements/src/community_plugin_settings.ts",
+        "enhancements/src/workspace_settings_owner.ts"
       ],
       "related_modules": [
         "explorer",
@@ -5146,7 +5148,8 @@
         "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖"
       ],
       "expected": [
-        "共享对话框行为正确，状态由唯一服务拥有，迟到结果不重开窗口"
+        "共享对话框行为正确，状态由唯一服务拥有，迟到结果不重开窗口",
+        "R072.3：右侧托管原始设置，20轮切换、节点与样式保留、原生关闭恢复及外部区域点击不关闭设置"
       ],
       "id": "TC-community-plugins-ui",
       "level": "functional",
@@ -6124,7 +6127,8 @@
         "R072",
         "R070",
         "R072.2",
-        "R073"
+        "R073",
+        "R072.3"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6134,7 +6138,8 @@
         "enhancements/src/workspace_settings_registry.ts",
         "enhancements/src/workspace_settings_view.ts",
         "enhancements/src/workspace_settings_sections.ts",
-        "enhancements/src/remote_ssh_settings.ts"
+        "enhancements/src/remote_ssh_settings.ts",
+        "enhancements/src/workspace_settings_owner.ts"
       ],
       "related_modules": [
         "设置",
@@ -6146,7 +6151,8 @@
         "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖"
       ],
       "expected": [
-        "操作隔离且配置唯一所有者，失败不覆盖状态"
+        "操作隔离且配置唯一所有者，失败不覆盖状态",
+        "R072.3：右侧托管原始设置，20轮切换、节点与样式保留、原生关闭恢复及外部区域点击不关闭设置"
       ],
       "environment": "Windows Python3/Git；隐藏Electron，Windows协议测试POSIX标志适配，不替代Linux真实SSH",
       "preconditions": "已安装项目测试依赖",

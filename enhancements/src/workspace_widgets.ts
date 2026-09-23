@@ -17,7 +17,7 @@ export function dispose_workspace_widgets(): void {
   close_active_menu?.();
   for (const close of [...active_dialogs]) close();
 }
-export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
+export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void, options:{regions?:()=>HTMLElement[];focus_out?:boolean}={}): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -28,7 +28,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   let closed = false;
   const is_top_dialog = () => escape_layer.is_top();
   // 搜索筛选、折叠或动态禁用后，只让仍可见且可操作的控件参与焦点循环。
-  const focusable_controls = () => [...root.querySelectorAll<HTMLElement>('button,input,textarea,select,summary,a[href],[tabindex]')]
+  const focusable_controls = () => [...new Set([root,...(options.regions?.()||[])].flatMap(region=>[...region.querySelectorAll<HTMLElement>('button,input,textarea,select,summary,a[href],[tabindex],webview')]))]
     .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility))
     .sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
   const close = (restore=true) => {
@@ -38,7 +38,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
     if (restore_focus) previous.restore();
     on_close?.(restore_focus);
   };
-  const escape_layer=register_workspace_dismissal(()=>[root],reason=>close(reason==="escape"||reason==="outside"),{inside:()=>[panel],consume_outside:true});
+  const escape_layer=register_workspace_dismissal(()=>[root,...(options.regions?.()||[])],reason=>close(reason==="escape"||reason==="outside"),{inside:()=>[panel,...(options.regions?.()||[])],consume_outside:true,focus_out:options.focus_out});
   // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
   const global_key = (event: KeyboardEvent) => {
     if (!is_top_dialog()) return;

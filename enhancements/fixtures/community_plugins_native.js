@@ -76,6 +76,22 @@
   assert(!!document.querySelector('.workspace-community-settings-root .typ-nav__item'),'设置页直接打开社区原始配置');
   assert(!!document.querySelector('.workspace-community-settings input'),'设置选择进入插件真实配置');
 
+  const capture=async stage=>{fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));for(let n=0;n<60;n++){try{if(JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'' )).stage===stage)break;}catch{}await pause(50);}};
+  for(let i=0;i<20;i++){
+   document.querySelector('[data-settings-owner=native]').click();await pause(80);
+   const native_panel=document.querySelector('#uni-preference-panel'),webview=native_panel.querySelector('webview');
+   for(let n=0;n<100&&!webview?.getWebContentsId();n++)await pause(30);
+   const anchor=document.querySelector('.workspace-settings-owner').getBoundingClientRect(),rect=native_panel.getBoundingClientRect();
+   assert(Math.abs(rect.left-anchor.left)<1&&Math.abs(rect.width-anchor.width)<1,'原生偏好右侧对齐 '+i);
+   assert(native_panel.contains(document.elementFromPoint(rect.left+10,rect.top+10)),'原生偏好位于最前层 '+i);
+   if(i===0){await pause(1200);const text=await webview.executeJavaScript('document.body.innerText');assert(text.length>100,'真实原生偏好页面已加载');window.native_settings_webview=webview;await capture('settings_native_hosted');}
+   assert(webview===window.native_settings_webview,'原生webview不重新创建 '+i);
+   document.querySelector('[data-settings-owner=community]').click();await pause(50);
+   const page=document.querySelector('.workspace-community-settings'),box=page.getBoundingClientRect();
+   assert(page.contains(document.elementFromPoint(box.left+10,box.top+10)),'社区设置位于最前层 '+i);
+   assert(!page.closest('.git-graph-dialog')&&document.querySelectorAll('.workspace-community-settings-root').length===1,'插件表单隔离且没有后层重复弹窗 '+i);
+  }
+  document.querySelector('[data-settings-maximize]').click();await pause(80);const hosted=document.querySelector('[data-workspace-settings-surface]').getBoundingClientRect(),slot=document.querySelector('.workspace-settings-owner').getBoundingClientRect();assert(Math.abs(hosted.width-slot.width)<1,'最大化时原始设置跟随右侧区域');document.querySelector('[data-settings-maximize]').click();await pause(80);
   const setting_button=[...document.querySelectorAll('.workspace-community-manager button')].find(button=>button.textContent==='设置'&&!button.disabled);setting_button.click();assert(document.querySelectorAll('.workspace-community-settings').length===1,'插件行和齿轮共用单个设置页');
   const input=document.querySelector('.workspace-community-settings input');assert(input.value==='初始值','上游SettingTab/SettingItem正确渲染设置');input.value='已保存';input.dispatchEvent(new Event('change',{bubbles:true}));await pause(1200);
   const config=path.join(_options.userDataPath,'typora_code/settings/data/fixture.public-api.json');assert(JSON.parse(fs.readFileSync(config,'utf8')).settings.message==='已保存','PluginSettings保存到独立用户目录');
@@ -108,6 +124,19 @@
   assert(sidebar.isShown&&document.querySelector('.workspace-community-manager')===manager,'键盘Enter恢复同一扩展侧栏');
   assert(fs.readFileSync(path.join(base,'workspace/front.md'),'utf8')===original,'原用户文档字节保持');
   await service.install_archive(path.join(base,'community_mapper_plugin.zip'));await service.set_enabled(mapper_id,true);bridge.open_settings();await pause(100);
+  core.app.commands.run('typora_code:settings');document.querySelector('[data-settings-owner=community]').click();await pause(150);await capture('settings_community_hosted');
+  for(const theme of ['night.css','github.css']){
+   await JSBridge.invoke('setting.setCurTheme',theme,theme==='night.css'?'Night':'Github');File.setTheme(theme);await pause(200);
+   for(const zoom of [1.25,1]){
+    reqnode('electron').webFrame.setZoomFactor(zoom);await pause(100);
+    for(const owner of ['native','community']){
+     document.querySelector('[data-settings-owner='+owner+']').click();await pause(100);
+     const slot=document.querySelector('.workspace-settings-owner').getBoundingClientRect(),surface=document.querySelector('[data-workspace-settings-surface]'),box=surface.getBoundingClientRect();
+     assert(Math.abs(slot.left-box.left)<1&&Math.abs(slot.width-box.width)<1&&box.bottom<=innerHeight,'托管区域随主题缩放保持范围 '+theme+'/'+zoom+'/'+owner);
+     assert(surface.contains(document.elementFromPoint(box.left+10,box.top+10)),'原始页面不被遮挡 '+theme+'/'+zoom+'/'+owner);
+    }
+   }
+  }
   const plugin_input=document.querySelector('.workspace-community-settings input');assert(!document.querySelector('.workspace-community-settings').closest('.git-graph-dialog'),'真实插件字段没有通用表单祖先');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,layout_samples,iterations:20,plugin:{id,version:'1.2.0',sha256:'41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704'},scope:'原始Typora独立副本，真实社区发行ZIP与公共ABI，renderer操作'},null,2),'utf8');
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks},null,2),'utf8');}
