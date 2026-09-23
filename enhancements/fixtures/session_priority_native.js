@@ -16,6 +16,7 @@
    await wait(()=>leaves().length>=101,'startup tabs');await pause(1200);
    assert(File.bundle.filePath===front&&workspace.activeLeaf.state.path===front,'第二进程恢复101个标签仍保留首屏文档');
    assert(leaves().filter(x=>x.view.editor).length===0,'启动恢复源码标签不创建Monaco');
+   assert([...document.querySelectorAll('.typ-tab')].filter(tab=>tab.dataset.id?.startsWith('typ://')).every(tab=>tab.querySelector('.typ-file-basename')?.textContent===path.basename(tab.title)),'第二进程后台源码标签直接显示真实文件名');
    assert(!File.changeCounter.isDocumentEdited(),'第二进程恢复后原生文档保持未修改');
    assert(!trace.length,'启动恢复未产生正文修改记录');
    fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',phase:2,checks,trace},null,2));window.close();return;
@@ -23,7 +24,7 @@
   await JSBridge.invoke('setting.put','restoreWhenLaunch',2);
   const entries=[];
   for(let i=0;i<100;i++){
-   const source=i%2===1,p=path.join(root,'restored-'+i+(source?'.ts':'.md'));
+   const source=i%2===1,p=path.join(root,i===1?'inspect_environment_中文 空格%3A#.py':'restored-'+i+(source?'.ts':'.md'));
    fs.writeFileSync(p,source?'const value = '+i+';\n':'---\ntitle: 页面'+i+'\n---\n\n# 页面'+i+'\n\n正文段落。\n\n```cpp\nint value = '+i+';\n```\n\n|A|B|\n|-|-|\n|甲|乙|\n');entries.push({path:p,source,pinned:false});
   }
   let opens=0;const stop=workspace.on('file:will-open',()=>opens++);
@@ -33,6 +34,9 @@
   assert(opens===0,'登记100个后台标签不调用原生文件打开');
   assert(File.editor.getMarkdown()===before&&!File.changeCounter.isDocumentEdited(),'后台标签不改变当前正文和脏状态');
   assert(leaves().filter(x=>x.view.editor).length===0,'后台源码标签不创建Monaco');
+  const source_tabs=entries.filter(entry=>entry.source).map(entry=>({entry,tab:[...document.querySelectorAll('.typ-tab')].find(tab=>tab.title===entry.path)}));
+  assert(source_tabs.every(({entry,tab})=>tab?.querySelector('.typ-file-basename')?.textContent===path.basename(entry.path)),'50个后台源码标签首次展示真实文件名与完整路径提示');
+  assert(source_tabs[0].tab?.querySelector('.typ-file-basename')?.textContent==='inspect_environment_中文 空格%3A#.py','文件名中文空格及字面百分号不被二次解码');
   stop();
   for(let i=0;i<20;i++){
    const p=entries[(i*2)%100].path;await files.open_file(p);await wait(()=>stable()&&File.bundle.filePath===p,'open markdown '+i);await pause(120);

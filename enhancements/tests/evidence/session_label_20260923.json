@@ -1,0 +1,79 @@
+{
+  "date": "2026-09-23",
+  "release": "2026.09.23.21",
+  "requirements": [
+    "R040.4",
+    "R040.3"
+  ],
+  "design": [
+    "docs/workspace_switch.md#r0404-后台源码标签的名称2026-09-23"
+  ],
+  "asset_manifest_sha256": "e863a78b3a4f13a751686aaa3ab199809c798da5377cdafee525eaae70076f02",
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 208,
+    "ui_suites": 3,
+    "native": {
+      "case_id": "372baabfeaf246b2b9267733d6a4fcdb",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "e863a78b3a4f13a751686aaa3ab199809c798da5377cdafee525eaae70076f02",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "43941c33f672592c47c409fbae1851a85fbfe4f0ff9895fb79a9b44df54a8ddb",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "phases": [
+        {
+          "phase": 1,
+          "checks": 70,
+          "status": "PASS"
+        },
+        {
+          "phase": 2,
+          "checks": 5,
+          "status": "PASS"
+        }
+      ],
+      "coverage": [
+        "50个未激活源码标签真实文件名和完整路径提示",
+        "中文、空格与字面%3A不二次解码",
+        "后台源码零Monaco、正文和活动身份不变",
+        "20轮普通和20轮快速切换、真实草稿取消",
+        "新进程101标签恢复仍正确显示源码标题"
+      ]
+    },
+    "baseline": {
+      "commit": "f8cbd68",
+      "case_id": "d48bd8643c4c4b8baf4e5e9cf7b77e8b",
+      "result": "ERROR at first-render source filename assertion; previous four lazy-loading checks passed"
+    },
+    "install_cycle": "PASS backup restore and detach uninstall/reinstall/check; user data preserved",
+    "uninstall_assertions": 65
+  },
+  "installation": {
+    "version": "2026.09.23.21",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "user_feedback": "用户明确本机暂未再出现R040.3错乱和保存弹窗；记录为该本机试用通过，不宣称所有误报根因已复现或关闭",
+  "limits": [
+    "标签本轮未改几何、主题或缩放，复用既有裁剪与字号",
+    "Win10、真实SSH未本轮复验",
+    "30篇真实文档退出重开184项是前一.20证据；本候选重新执行101标签混合源码恢复75项，分别记录，不冒充重跑"
+  ]
+}

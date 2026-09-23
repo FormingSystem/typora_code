@@ -201,12 +201,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       this.containerEl.addEventListener("keydown",save_keydown,true);this.status_controls.addEventListener("keydown",save_keydown,true);
       this.status_controls.oncontextmenu = event => this.menu(event);
     }
-    onOpen() {
-      this.guard_close();
+    sync_tab_label() {
       for (const tab of [workspace_leaf_tab(this.leaf)].filter((tab):tab is HTMLElement=>Boolean(tab))) {
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = path_api.basename(this.file_path);
         tab.querySelector(".typ-file-ext")?.remove(); tab.title = this.file_path;
       }
+    }
+    onOpen() {
+      this.guard_close();this.sync_tab_label();
       this.attach_shared_editor();this.update_status();
       editor_status.refresh();editor_status.schedule();
       if (!this.loaded && !this.loading) void this.load_file(); else this.reveal();
@@ -394,7 +396,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         batch.push(leaf);
       }
       parent.append_inactive(batch);
-      for(const leaf of batch)if(leaf.view instanceof source_file_view)leaf.view.guard_close();
+      for(const leaf of batch)if(leaf.view instanceof source_file_view){leaf.view.sync_tab_label();leaf.view.guard_close();}
       if(offset+20<entries.length)await new Promise(resolve=>setTimeout(resolve,0));
     }
   };

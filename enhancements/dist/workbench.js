@@ -188517,14 +188517,17 @@ https://creativecommons.org/licenses/by/4.0/
         this.status_controls.addEventListener("keydown", save_keydown, true);
         this.status_controls.oncontextmenu = (event) => this.menu(event);
       }
-      onOpen() {
-        this.guard_close();
+      sync_tab_label() {
         for (const tab of [workspace_leaf_tab(this.leaf)].filter((tab2) => Boolean(tab2))) {
           const label = tab.querySelector(".typ-file-basename");
           if (label) label.textContent = path_api.basename(this.file_path);
           tab.querySelector(".typ-file-ext")?.remove();
           tab.title = this.file_path;
         }
+      }
+      onOpen() {
+        this.guard_close();
+        this.sync_tab_label();
         this.attach_shared_editor();
         this.update_status();
         editor_status.refresh();
@@ -188948,7 +188951,10 @@ https://creativecommons.org/licenses/by/4.0/
           batch.push(leaf);
         }
         parent.append_inactive(batch);
-        for (const leaf of batch) if (leaf.view instanceof source_file_view) leaf.view.guard_close();
+        for (const leaf of batch) if (leaf.view instanceof source_file_view) {
+          leaf.view.sync_tab_label();
+          leaf.view.guard_close();
+        }
         if (offset + 20 < entries3.length) await new Promise((resolve3) => setTimeout(resolve3, 0));
       }
     };
@@ -245393,6 +245399,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092321,
+        version: "2026.09.23.21",
+        date: "2026-09-23",
+        notes: [
+          "\u4FEE\u590D\u91CD\u542F\u540E\u672A\u6FC0\u6D3B\u7684\u6E90\u7801\u6807\u7B7E\u663E\u793A\u6574\u4E32\u7F16\u7801\u8DEF\u5F84\uFF1B\u6807\u7B7E\u7ACB\u5373\u663E\u793A\u771F\u5B9E\u6587\u4EF6\u540D\uFF0C\u4FDD\u7559\u540E\u53F0\u6309\u9700\u52A0\u8F7D\uFF0C\u4E0D\u5FC5\u70B9\u51FB\u540E\u624D\u6062\u590D\u3002"
+        ]
+      },
       {
         sequence: 2026092320,
         version: "2026.09.23.20",

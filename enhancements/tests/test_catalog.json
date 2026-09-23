@@ -7080,7 +7080,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R040.3"
+        "R040.3",
+        "R040.4"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -7101,7 +7102,8 @@
         "运行隔离夹具；第二进程复查持久恢复，记录原生修改来源"
       ],
       "expected": [
-        "后台恢复零原生打开，最新用户选择优先，真实草稿保留"
+        "后台恢复零原生打开，最新用户选择优先，真实草稿保留",
+        "后台源码标签首次显示真实文件名和完整路径提示，中文/空格/字面百分号保真且不加载正文"
       ],
       "timeout_ms": 120000
     },

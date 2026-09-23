@@ -371,3 +371,8 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - BUG-session-restore-040：历史文件逐个前台打开再切回首屏，旧单元20条触发21次打开；原始宿主实际30文件退出重开约14.5秒后抢占首屏。改为后台身份登记和一次可取消激活，真实重启32+152项通过。
 - BUG-native-tab-latest-040：宿主加载忙时第二次标签请求被丢失；最新请求等宿主可用，旧事件及位置回调按视图归属取消，原生20轮快速双切通过。
 - BUG-native-dirty-pending-070：取消此前暂缓；本次无编辑场景没有产生脏状态，保存弹窗独立原因尚未复现，继续保留。详见[证据](../enhancements/tests/evidence/session_priority_20260923.json)。
+
+
+## R040.4 后台源码标题（2026-09-23）
+
+BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文件名，按需恢复暴露未激活标题。将身份元数据同步与正文打开分离，插入后同步标签；旧候选原生断言失败，新候选70+5项通过。用户本机另反馈R040.3错乱和保存弹窗未再出现，保留其他环境边界。见[证据](../enhancements/tests/evidence/session_label_20260923.json)。
