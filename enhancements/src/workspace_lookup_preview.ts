@@ -217,7 +217,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const context_link=(event:MouseEvent)=>{
     const link=link_at(event);if(!link||!reader.contains(link)||!options.navigate||disposed)return;
     event.preventDefault();event.stopImmediatePropagation();const href=link.dataset.previewHref!,version=generation;
-    close_menu=workspace_menu(event,[{title:'跳转链接',action:()=>{if(!disposed&&version===generation)options.navigate!(href);}}],'workspace-menu-compact',()=>{close_menu=undefined;});
+    close_menu=workspace_menu(event,[{title:'跳转链接',action:()=>{if(!disposed&&version===generation)options.navigate!(href);}}],'workspace-menu-compact workspace-link-preview-menu',()=>{close_menu=undefined;});
   };
   reader.addEventListener('click',follow_link);reader.addEventListener('keydown',follow_link);reader.addEventListener('contextmenu',context_link);
   const capture_position=()=>{

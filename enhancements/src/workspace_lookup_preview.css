@@ -9,6 +9,7 @@
 .workspace-link-preview-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:4px;height:26px;min-width:0;padding:0 6px;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
 .workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}
+.workspace-link-preview [role=toolbar]>.workspace-link-preview-pin[aria-pressed=true]{background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);--workspace-interaction-hover:var(--linux-note-shell-inactive-selection-background);--workspace-interaction-foreground:var(--linux-note-shell-inactive-selection-foreground)}
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
 /* 独立预览仅覆盖自己的矩形；主编辑区不为预览预留整列。 */
@@ -26,6 +27,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 @container workspace-link-toolbar (max-width:360px){.workspace-link-preview-title{flex:1 1 0}.workspace-link-preview .workspace-preview-scale-controls>.git-icon-button{display:none}}
 @container workspace-link-toolbar (max-width:240px){.workspace-link-preview-title{display:none}.workspace-link-preview>[role=toolbar]{gap:2px;padding:0 4px}.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{width:48px}.workspace-link-preview [role=toolbar]>.git-icon-button{width:22px;padding:3px}}
 @container workspace-link-toolbar (max-width:210px){.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{display:none}}
+@container workspace-link-toolbar (max-width:240px){.workspace-link-preview.has-pin>[role=toolbar]{gap:0;padding:0}}
 
 /* 目录预览复用资源管理器26px行，不接管主资源树或正文排版。 */
 .workspace-preview-directory{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}

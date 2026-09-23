@@ -184537,7 +184537,13 @@ https://creativecommons.org/licenses/by/4.0/
     for (const sheet of [...document.styleSheets]) {
       if (sheet.disabled) continue;
       try {
-        const text4 = [...sheet.cssRules].map((rule) => rule.cssText).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || rule.startsWith("@font-face") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
+        const text4 = [...sheet.cssRules].map((rule) => {
+          if (rule instanceof CSSStyleRule && /^(?:html|body)(?:[.#:\[]|$)/u.test(rule.selectorText)) {
+            const variables = [...rule.style].filter((name) => name.startsWith("--")).map((name) => name + ":" + rule.style.getPropertyValue(name) + (rule.style.getPropertyPriority(name) ? " !important" : "") + ";").join("");
+            if (variables && rule.selectorText.split(",").every((selector) => /^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector.trim()))) return rule.selectorText.split(",").map((selector) => ":host-context(" + selector.trim() + ")").join(",") + "{" + variables + "}";
+          }
+          return rule.cssText;
+        }).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || rule.startsWith(":host-context(") || rule.startsWith("@font-face") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
         if (text4) {
           const adapted = text4.replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
           rules.push(sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted);
@@ -238329,7 +238335,7 @@ https://creativecommons.org/licenses/by/4.0/
       const href = link3.dataset.previewHref, version = generation;
       close_menu = workspace_menu(event, [{ title: "\u8DF3\u8F6C\u94FE\u63A5", action: () => {
         if (!disposed && version === generation) options2.navigate(href);
-      } }], "workspace-menu-compact", () => {
+      } }], "workspace-menu-compact workspace-link-preview-menu", () => {
         close_menu = void 0;
       });
     };
@@ -244643,6 +244649,18 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8\u64CD\u4F5C");
     toolbar.append(title, scale.container, back, forward, open, retry);
     container.append(toolbar, return_directory, message, content);
+    const pin = options2.pin ? git_icon_button("pinned", "\u56FA\u5B9A\u94FE\u63A5\u9884\u89C8", options2.pin, "workspace-link-preview-pin") : void 0;
+    const set_pinned = (value) => {
+      if (!pin) return;
+      pin.setAttribute("aria-pressed", String(value));
+      pin.title = value ? "\u53D6\u6D88\u56FA\u5B9A\u94FE\u63A5\u9884\u89C8" : "\u56FA\u5B9A\u94FE\u63A5\u9884\u89C8";
+      pin.setAttribute("aria-label", pin.title);
+    };
+    if (pin) {
+      container.classList.add("has-pin");
+      toolbar.append(pin);
+      set_pinned(false);
+    }
     if (options2.close) toolbar.append(git_icon_button("close", "\u5173\u95ED\u94FE\u63A5\u9884\u89C8", options2.close));
     const cancel_pending = () => {
       ++generation;
@@ -244831,7 +244849,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!event.repeat) void travel(event.key === "ArrowLeft" ? -1 : 1);
     };
     container.addEventListener("keydown", keydown, true);
-    return { container, show: show2, clear, dispose() {
+    return { container, show: show2, clear, set_pinned, dispose() {
       if (disposed) return;
       disposed = true;
       clear();
@@ -244845,10 +244863,10 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_link_selection.ts
-  function bind_workspace_link_selection(core, files, visible3, preview) {
+  function bind_workspace_link_selection(core, files, visible3, preview, interaction) {
     const lifetime = create_workspace_lifetime(), runtime2 = window, type = "linux_note.link_preview";
     const payloads = /* @__PURE__ */ new Map(), views = /* @__PURE__ */ new Set();
-    let disposed = false, timer = 0, last = "", close_menu;
+    let disposed = false, timer = 0, last = "", ignore_selection = false, close_menu;
     const source_for = (node) => {
       if (node.closest("#write") && runtime2.File?.bundle?.filePath) return String(runtime2.File.bundle.filePath);
       let source = "";
@@ -244872,13 +244890,37 @@ https://creativecommons.org/licenses/by/4.0/
       const first = request_for(selection.anchorNode), last2 = request_for(selection.focusNode);
       if (first && last2 && first.source === last2.source && first.href === last2.href) return first;
     };
+    const preview_scope = ".workspace-link-dock,.workspace-link-preview,.workspace-lookup-preview,.workspace-link-preview-menu";
+    const in_preview = (event) => event.composedPath().some((node) => node instanceof Element && (interaction ? node === interaction.root || !!node.closest(".workspace-link-preview-menu") : !!node.closest(preview_scope)));
+    const intent = (event) => {
+      if (event instanceof KeyboardEvent && ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
+      if (event.type === "focusin" && event.target instanceof Element && event.target.closest("#write,.typ-markdown-preview")) return;
+      clearTimeout(timer);
+      if (in_preview(event)) {
+        ignore_selection = true;
+        return;
+      }
+      if (event.composedPath().some((node) => node instanceof Node && !!request_for(node))) {
+        ignore_selection = false;
+        last = "";
+        return;
+      }
+      ignore_selection = true;
+      last = "";
+      interaction?.outside();
+      if (event instanceof KeyboardEvent && event.target instanceof Element && event.target.closest("#write,.typ-markdown-preview")) ignore_selection = false;
+    };
     const update2 = () => {
       clearTimeout(timer);
+      if (ignore_selection) return;
       timer = window.setTimeout(() => {
-        if (disposed || !visible3()) return;
+        if (disposed || ignore_selection || !visible3()) return;
         const request = selected();
         if (!request) {
           last = "";
+          const node = window.getSelection()?.anchorNode;
+          const element = node instanceof Element ? node : node?.parentElement;
+          if (element?.getRootNode() === document && element.closest("#write,.typ-markdown-preview")) interaction?.outside();
           return;
         }
         const key2 = JSON.stringify(request);
@@ -244956,8 +244998,8 @@ https://creativecommons.org/licenses/by/4.0/
         menu.append(item);
         return item;
       });
-      const interaction = acquire_workspace_interaction(menu);
-      lifetime.add(() => interaction.remove());
+      const interaction2 = acquire_workspace_interaction(menu);
+      lifetime.add(() => interaction2.remove());
       const original = context.show;
       const show2 = context.show = function(event, node) {
         menu_request = request_for(node || event.target) || selected();
@@ -244990,17 +245032,23 @@ https://creativecommons.org/licenses/by/4.0/
     }), true);
     lifetime.listen(document, "selectionchange", update2);
     lifetime.listen(document, "pointerup", update2);
+    lifetime.listen(document, "pointerdown", intent, true);
+    lifetime.listen(document, "focusin", intent, true);
+    lifetime.listen(document, "keydown", intent, true);
     const reset2 = () => {
       last = "";
+      ignore_selection = false;
       clearTimeout(timer);
       close_menu?.();
       menu_request = void 0;
     };
     return { refresh() {
       last = "";
+      ignore_selection = false;
       update2();
     }, dismiss() {
       clearTimeout(timer);
+      ignore_selection = true;
       const request = selected();
       if (request) last = JSON.stringify(request);
     }, reset: reset2, dispose() {
@@ -245024,9 +245072,13 @@ https://creativecommons.org/licenses/by/4.0/
     dock.className = "workspace-link-dock";
     dock.setAttribute("aria-label", "\u94FE\u63A5\u9884\u89C8");
     dock.hidden = true;
+    let pinned = false;
     const preview = create_link_preview(files, { close: () => {
       close();
       selection.dismiss();
+    }, pin: () => {
+      pinned = !pinned;
+      preview.set_pinned(pinned);
     } });
     dock.append(preview.container);
     body.append(dock);
@@ -245061,6 +245113,8 @@ https://creativecommons.org/licenses/by/4.0/
       notify();
     });
     const close = () => {
+      pinned = false;
+      preview.set_pinned(false);
       resize.cancel();
       dock.hidden = true;
       body.classList.remove("has-workspace-link-preview");
@@ -245074,7 +245128,9 @@ https://creativecommons.org/licenses/by/4.0/
       layout2();
       notify();
       void preview.show(request);
-    });
+    }, { root: dock, outside: () => {
+      if (!pinned && !dock.hidden) close();
+    } });
     const settings = observe_workspace_editor_settings(() => {
       if (!read_workspace_editor_settings().link_preview_enabled) {
         close();
@@ -245318,6 +245374,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092319,
+        version: "2026.09.23.19",
+        date: "2026-09-23",
+        notes: [
+          "\u94FE\u63A5\u9884\u89C8\u672A\u56FA\u5B9A\u65F6\uFF0C\u5728\u6B63\u6587\u975E\u94FE\u63A5\u3001\u7A7A\u767D\u6216\u5176\u4ED6\u529F\u80FD\u4E0A\u64CD\u4F5C\u4F1A\u81EA\u52A8\u6536\u8D77\uFF1B\u5DE5\u5177\u680F\u65B0\u589E\u56FA\u5B9A\u56FE\u6807\uFF0C\u56FA\u5B9A\u540E\u4FDD\u6301\u663E\u793A\u3002",
+          "\u9884\u89C8\u5185\u90E8\u9009\u6587\u3001\u5BFC\u822A\u3001\u7F29\u653E\u53CA\u62D6\u52A8\u4FDD\u6301\u72EC\u7ACB\uFF1B\u5916\u90E8\u5173\u95ED\u53D6\u6D88\u5F85\u5904\u7406\u9009\u533A\uFF0C\u907F\u514D\u65E7\u94FE\u63A5\u8BA9\u7A97\u53E3\u91CD\u65B0\u5F39\u51FA\u3002",
+          "\u4FEE\u590D\u6839\u4E3B\u9898\u6761\u4EF6\u53D8\u91CF\u672A\u8FDB\u5165\u9884\u89C8\u7684\u95EE\u9898\uFF0C\u6697\u8272\u4E3B\u9898\u5207\u6362\u65F6\u6807\u9898\u989C\u8272\u540C\u6B65\u66F4\u65B0\u3002"
+        ]
+      },
       {
         sequence: 2026092318,
         version: "2026.09.23.18",

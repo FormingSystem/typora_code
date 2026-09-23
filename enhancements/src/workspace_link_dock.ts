@@ -10,7 +10,8 @@ import {SIDEBAR_MIN_WIDTH,EDITOR_MIN_WIDTH} from './workspace_sidebar_sash';
 export function bind_workspace_link_dock(core:graph_core,files:workspace_file_host){
   const root=document.documentElement,body=document.body;
   const dock=document.createElement('section');dock.className='workspace-link-dock';dock.setAttribute('aria-label','链接预览');dock.hidden=true;
-  const preview=create_link_preview(files,{close:()=>{close();selection.dismiss();}});dock.append(preview.container);body.append(dock);
+  let pinned=false;
+  const preview=create_link_preview(files,{close:()=>{close();selection.dismiss();},pin:()=>{pinned=!pinned;preview.set_pinned(pinned);}});dock.append(preview.container);body.append(dock);
   let width=Number.parseFloat(getComputedStyle(root).getPropertyValue('--sidebar-width'))||300,height=0,disposed=false,frame=0;
   const set=(name:string,value:string)=>{if(body.style.getPropertyValue(name)!==value)body.style.setProperty(name,value);};
   const layout=()=>{
@@ -25,10 +26,10 @@ export function bind_workspace_link_dock(core:graph_core,files:workspace_file_ho
   };
   const notify=()=>{if(frame||disposed)return;frame=requestAnimationFrame(()=>{frame=0;window.dispatchEvent(new Event('resize'));window.dispatchEvent(new Event('optimizedResize'));});};
   const resize=bind_preview_resize(dock,()=>({width,height}),size=>{window.dispatchEvent(new Event('beforeResize'));width=size.width;height=size.height;layout();notify();});
-  const close=()=>{resize.cancel();dock.hidden=true;body.classList.remove('has-workspace-link-preview');preview.clear();notify();};
+  const close=()=>{pinned=false;preview.set_pinned(false);resize.cancel();dock.hidden=true;body.classList.remove('has-workspace-link-preview');preview.clear();notify();};
   const selection=bind_workspace_link_selection(core,files,()=>read_workspace_editor_settings().link_preview_enabled,request=>{
     window.dispatchEvent(new Event('beforeResize'));dock.hidden=false;body.classList.add('has-workspace-link-preview');layout();notify();void preview.show(request);
-  });
+  },{root:dock,outside:()=>{if(!pinned&&!dock.hidden)close();}});
   const settings=observe_workspace_editor_settings(()=>{if(!read_workspace_editor_settings().link_preview_enabled){close();selection.dismiss();}});
   const context_changed=()=>{close();selection.reset();};
   const observer=new MutationObserver(layout);observer.observe(body,{attributes:true,attributeFilter:['class','style']});observer.observe(root,{attributes:true,attributeFilter:['style']});

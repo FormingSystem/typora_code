@@ -13,13 +13,24 @@
   await pause(2400);await files.open_file(source);await wait(()=>document.querySelector('#write a[href],#write a[data-ref]'),'原生链接未出现');await pause(500);
   const source_leaf=core.app.workspace.activeLeaf;
   assert(!document.querySelector('.linux-note-workspace-search'),'首次选择前未打开搜索侧栏');
-  const select=()=>{const link=(File.bundle.filePath===source?document.querySelector('#write a[href]'):source_leaf.view.containerEl.querySelector('a[href],a[data-ref]')),range=document.createRange();range.selectNodeContents(link);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);return link;};
+  const select=()=>{const link=(File.bundle.filePath===source?document.querySelector('#write a[href]'):source_leaf.view.containerEl.querySelector('a[href],a[data-ref]')),range=document.createRange();link.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true,composed:true,button:0}));range.selectNodeContents(link);const selection=getSelection();selection.removeAllRanges();selection.addRange(range);return link;};
   const link=select();
   const sidebar=document.querySelector('.workspace-link-dock');
   await wait(()=>sidebar.querySelector('.workspace-link-preview .workspace-lookup-markdown')?.shadowRoot?.querySelector('.lookup-target-block')?.textContent.includes('目标标题'),'侧栏未定位链接标题');
   assert(core.app.workspace.activeLeaf===source_leaf,'侧栏预览保留来源活动标签');
   assert(getSelection().toString()==='目标','侧栏预览保留原生选区');
   assert(!sidebar.querySelector('.workspace-link-preview [contenteditable=true]'),'侧栏只读');
+  const press=node=>node.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));
+  assert(sidebar.querySelector('[aria-label="固定链接预览"]').getAttribute('aria-pressed')==='false','原生预览默认未固定');
+  press(document.body);document.dispatchEvent(new Event('selectionchange'));await pause(160);assert(sidebar.hidden,'原生外部空白操作关闭且旧选区不重开');
+  select();await wait(()=>!sidebar.hidden&&sidebar.querySelector('.workspace-link-preview').dataset.state==='ready','同链接重新开启失败');
+  sidebar.querySelector('[aria-label="固定链接预览"]').click();press(document.body);await pause(100);assert(!sidebar.hidden&&sidebar.querySelector('[aria-label="取消固定链接预览"]').getAttribute('aria-pressed')==='true','原生固定后外部操作保留');
+  assert(!['transparent','rgba(0, 0, 0, 0)'].includes(getComputedStyle(sidebar.querySelector('.workspace-link-preview-pin')).backgroundColor),'原生固定图标非悬停选中底色可见');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'preview_pinned'}));await pause(350);
+  sidebar.querySelector('[aria-label="取消固定链接预览"]').click();assert(!sidebar.hidden,'原生取消固定不立即关闭');
+  press(document.querySelector('#write h1'));await pause(100);assert(sidebar.hidden,'原生非链接正文操作关闭');
+  select();await wait(()=>!sidebar.hidden&&sidebar.querySelector('.workspace-link-preview').dataset.state==='ready','非链接操作后重开失败');
+  press(sidebar.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p'));assert(!sidebar.hidden,'原生Shadow正文操作保留');
   const geometry=()=>({dock:sidebar.getBoundingClientRect().toJSON(),editor:document.querySelector('.typ-workspace-root').getBoundingClientRect().toJSON(),panel:document.querySelector('#sidebar-content').getBoundingClientRect().toJSON(),shown:core.app.workspace.sidebar.isShown});
   assert(sidebar.parentElement===document.body,'链接预览独立挂载不属于功能侧栏');
   const verify_scale=async(panel,label)=>{

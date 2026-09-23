@@ -19,7 +19,14 @@ export function markdown_theme_rules():string {
   for(const sheet of [...document.styleSheets]){
     if(sheet.disabled)continue;
     try{
-      const text=[...sheet.cssRules].map(rule=>rule.cssText).filter(rule=>rule.includes('#write')||rule.startsWith(':root')||rule.startsWith('@font-face')||/^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join('\n');
+      const text=[...sheet.cssRules].map(rule=>{
+        // 根主题变体只带入变量，避免:root默认值在Shadow内遮住html.dark等条件覆盖。
+        if(rule instanceof CSSStyleRule&&/^(?:html|body)(?:[.#:\[]|$)/u.test(rule.selectorText)){
+          const variables=[...rule.style].filter(name=>name.startsWith('--')).map(name=>name+':'+rule.style.getPropertyValue(name)+(rule.style.getPropertyPriority(name)?' !important':'')+';').join('');
+          if(variables&&rule.selectorText.split(',').every(selector=>/^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector.trim())))return rule.selectorText.split(',').map(selector=>':host-context('+selector.trim()+')').join(',')+'{'+variables+'}';
+        }
+        return rule.cssText;
+      }).filter(rule=>rule.includes('#write')||rule.startsWith(':root')||rule.startsWith(':host-context(')||rule.startsWith('@font-face')||/^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join('\n');
       if(text){const adapted=text.replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');rules.push(sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted);}
     }catch{/* 外部样式不可读时由只读视图的基本样式接续。 */}
   }

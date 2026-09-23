@@ -353,3 +353,14 @@ BUG-ssh-terminal-context-070：项目终端独立传配置，普通新建/活动
 - BUG-diff-restore-first-change：首次原生关闭重开回归检出Monaco异步首次差异定位覆盖恢复位置；恢复等待实际差异计算并抑制默认首次跳转，不能用固定延时或只验收现存标签掩盖。
 
 分类与新增接入契约见[导航设计](navigation_history.md#视图分类与新增接入契约)，主题边界见[R034.3](git_markdown_diff.md#r0343-当前主题继承2026-09-23)。当次失败样本和通过结果随交付证据保留。
+
+## R069.10 临时预览交互归属（2026-09-23）
+
+- BUG-preview-outside-lifecycle：外部选区和工具操作缺少统一收起入口，链接预览持续占用空间；dock管理固定/关闭，选择控制器按交互所有者通知，取消旧选区延迟。
+- TEST-preview-offscreen-focus：隔离Electron offscreen窗口的focus()更新activeElement但不发focusin；焦点专项显式派发事件，另以Chromium真实鼠标输入验证外部关闭，不将合成焦点写成物理键盘验证。
+
+验收与平台边界见[本次证据](../enhancements/tests/evidence/preview_pin_20260923.json)。
+
+- BUG-preview-root-variant：.18提取:root后遗漏html.dark等根变体变量，使暗色预览标题沿用默认色；保留变体条件并仅复制变量，使用已有lookup真实CSS用例回归。
+
+- TEST-existing-search-interaction：扩大关联回归时，搜索夹具等待release_search_read/release_search_git与可见结果组合超时；交互夹具仍访问已移除的.git-scm-group节点。在未修改fc3cbbd源码和对应正式CSS中复现相同失败，本轮保留为既有测试维护项，不能计入通过；最终本轮专项、lookup、选文搜索、交互默认与阅读性能另行验收。

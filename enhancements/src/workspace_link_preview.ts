@@ -17,7 +17,7 @@ type directory_location={path:string;position:preview_directory_position};
 type preview_location={request:workspace_link_request;position?:ReturnType<preview_reader['capture_position']>;directory_position?:preview_directory_position;directories:directory_location[]};
 
 /** 一个外部选择为一次预览会话；内部链接和刷新不触及正文历史。 */
-export function create_link_preview(files:workspace_file_host,options:{close?:()=>void}={}){
+export function create_link_preview(files:workspace_file_host,options:{close?:()=>void;pin?:()=>void}={}){
   const container=el("section","workspace-link-preview"),toolbar=el("div","workspace-search-preview-heading"),title=el("span","workspace-link-preview-title");
   const content=el("div","workspace-link-preview-content"),message=el('p','workspace-lookup-preview-message');message.hidden=true;message.setAttribute('role','status');
   const runtime=window as any,interaction=acquire_workspace_interaction(container),history=create_reading_history();
@@ -42,6 +42,9 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   sync_navigation();
   const fail=(error:unknown)=>{message.textContent=String(error);message.hidden=false;container.dataset.state="error";};
   toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,scale.container,back,forward,open,retry);container.append(toolbar,return_directory,message,content);
+  const pin=options.pin?git_icon_button('pinned','固定链接预览',options.pin,'workspace-link-preview-pin'):undefined;
+  const set_pinned=(value:boolean)=>{if(!pin)return;pin.setAttribute('aria-pressed',String(value));pin.title=value?'取消固定链接预览':'固定链接预览';pin.setAttribute('aria-label',pin.title);};
+  if(pin){container.classList.add('has-pin');toolbar.append(pin);set_pinned(false);}
   if(options.close)toolbar.append(git_icon_button('close','关闭链接预览',options.close));
   const cancel_pending=()=>{++generation;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
   const clear=()=>{cancel_pending();web?.dispose();web=undefined;history.clear();sync_navigation();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
@@ -106,5 +109,5 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)void travel(event.key==='ArrowLeft'?-1:1);
   };
   container.addEventListener('keydown',keydown,true);
-  return {container,show,clear,dispose(){if(disposed)return;disposed=true;clear();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
+  return {container,show,clear,set_pinned,dispose(){if(disposed)return;disposed=true;clear();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
 }
