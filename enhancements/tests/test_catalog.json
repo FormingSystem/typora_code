@@ -5975,45 +5975,6 @@
       "script": "enhancements/scripts/test_remote_ssh_live.cjs"
     },
     {
-      "domain": "remote",
-      "purpose": "implementation",
-      "requirements": [
-        "R070",
-        "R072"
-      ],
-      "design": "docs/remote_ssh.md",
-      "implementation": [
-        "enhancements/src/remote_ssh_service.cjs",
-        "enhancements/src/remote_ssh_agent.py",
-        "enhancements/src/workspace_remote_ssh.ts",
-        "enhancements/src/terminal_session.ts",
-        "enhancements/src/terminal_settings.ts",
-        "enhancements/src/terminal_workspace.ts"
-      ],
-      "related_modules": [
-        "files",
-        "lifecycle",
-        "sidebar",
-        "preview",
-        "terminal",
-        "git"
-      ],
-      "environment": "Windows OpenSSH / Linux Python3",
-      "preconditions": "真实远端仅使用用户明确授权目标，凭据通过环境传递；仅创建清理随机临时目录",
-      "steps": [
-        "真实SSH特殊目录、项目终端立即呈现/认证/20次命令/拆分/重启，远程Git状态，以及20轮编辑保存和断线冲突保护",
-        "统一设置与所有者直达修改回读、远程Git非模态复用/关闭与20轮刷新"
-      ],
-      "expected": [
-        "全部断言通过且远程与本地无关文件保持"
-      ],
-      "timeout_ms": 180000,
-      "id": "TC-remote-native",
-      "level": "system",
-      "script": "enhancements/fixtures/remote_ssh_native.js",
-      "runner": "enhancements/scripts/run_private_desktop.ps1"
-    },
-    {
       "id": "TC-git-lifecycle-071",
       "domain": "git",
       "level": "functional",
@@ -6307,6 +6268,136 @@
         "完整文本进入复制端口，宿主正文与排版保持，资源清理"
       ],
       "timeout_ms": 120000
+    },
+    {
+      "id": "TC-remote-workspace-contract",
+      "domain": "remote",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_files.ts",
+        "enhancements/src/workspace_remote_ssh.ts",
+        "enhancements/src/workspace_native_save.ts"
+      ],
+      "related_modules": [
+        "文件",
+        "搜索",
+        "Git",
+        "原生Markdown",
+        "凭据"
+      ],
+      "script": "enhancements/scripts/test_remote_workspace.mjs",
+      "environment": "Windows及Linux SSH（系统套件）",
+      "preconditions": "独立临时目录；系统套件主机与凭据仅通过环境提供",
+      "steps": [
+        "共享文件IO、保存冲突和断线边界；主机命名空间、搜索及Git接入；原生套件验证编辑/链接/历史/另存/凭据"
+      ],
+      "expected": [
+        "远端真实写入，无本地回落；未保存输入保留；普通浏览不改变正文"
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-remote-workspace-live",
+      "domain": "remote",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_files.ts",
+        "enhancements/src/workspace_remote_ssh.ts",
+        "enhancements/src/workspace_native_save.ts"
+      ],
+      "related_modules": [
+        "文件",
+        "搜索",
+        "Git",
+        "原生Markdown",
+        "凭据"
+      ],
+      "script": "enhancements/scripts/test_remote_workspace_live.mjs",
+      "environment": "Windows及Linux SSH（系统套件）",
+      "preconditions": "独立临时目录；系统套件主机与凭据仅通过环境提供",
+      "steps": [
+        "共享文件IO、保存冲突和断线边界；主机命名空间、搜索及Git接入；原生套件验证编辑/链接/历史/另存/凭据"
+      ],
+      "expected": [
+        "远端真实写入，无本地回落；未保存输入保留；普通浏览不改变正文"
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-remote-workspace-native",
+      "domain": "remote",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_files.ts",
+        "enhancements/src/workspace_remote_ssh.ts",
+        "enhancements/src/workspace_native_save.ts"
+      ],
+      "related_modules": [
+        "文件",
+        "搜索",
+        "Git",
+        "原生Markdown",
+        "凭据"
+      ],
+      "script": "enhancements/fixtures/remote_workspace_native.js",
+      "environment": "Windows及Linux SSH（系统套件）",
+      "preconditions": "独立临时目录；系统套件主机与凭据仅通过环境提供",
+      "steps": [
+        "共享文件IO、保存冲突和断线边界；主机命名空间、搜索及Git接入；原生套件验证编辑/链接/历史/另存/凭据"
+      ],
+      "expected": [
+        "远端真实写入，无本地回落；未保存输入保留；普通浏览不改变正文"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "id": "TC-document-browse-native",
+      "domain": "remote",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R070"
+      ],
+      "design": "docs/remote_ssh.md",
+      "implementation": [
+        "enhancements/src/remote_workspace_files.ts",
+        "enhancements/src/workspace_remote_ssh.ts",
+        "enhancements/src/workspace_native_save.ts"
+      ],
+      "related_modules": [
+        "文件",
+        "搜索",
+        "Git",
+        "原生Markdown",
+        "凭据"
+      ],
+      "script": "enhancements/fixtures/document_browse_native.js",
+      "environment": "Windows及Linux SSH（系统套件）",
+      "preconditions": "独立临时目录；系统套件主机与凭据仅通过环境提供",
+      "steps": [
+        "16种LF/CRLF/BOM/末尾换行组合打开、光标和关闭；保持原字节"
+      ],
+      "expected": [
+        "只读浏览不触发保存确认；用户现场警告原因仍待复现"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/prepare_stability_native.py"
     }
   ]
 }

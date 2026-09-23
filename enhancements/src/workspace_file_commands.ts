@@ -3,6 +3,7 @@ import type {workspace_file_host} from "./workspace_files";
 import {bind_workspace_open_dialog} from "./workspace_open_dialog";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 import {bind_workspace_sessions} from "./workspace_sessions";
+import {remote_files_for} from './remote_workspace_files';
 
 /** 入口层只绑定命令。文件状态归文件服务，系统窗口和目录切换归宿主适配器。 */
 export function bind_workspace_file_commands(files:workspace_file_host,changed:()=>void){
@@ -19,7 +20,7 @@ export function bind_workspace_file_commands(files:workspace_file_host,changed:(
   const commands:[string,string,(...args:any[])=>unknown][]=[
     ["open_recent","打开最近",recents.open],
     ["open_file","打开文件",picker.open_file],["open_folder","打开文件夹",picker.open_folder],
-    ["open_folder_path","打开最近文件夹",path=>recents.open_item({path,kind:"folder",date:0})],["open_folder_new_window","在新窗口打开文件夹",picker.open_folder_new_window],["close_folder","关闭文件夹",picker.close_folder],
+    ["open_folder_path","打开最近文件夹",path=>remote_files_for(path)?picker.set_folder(path):recents.open_item({path,kind:"folder",date:0})],["open_folder_new_window","在新窗口打开文件夹",picker.open_folder_new_window],["close_folder","关闭文件夹",picker.close_folder],
     ["save","保存",files.save_active],["save_all","保存全部",files.save_all],
     ["save_as","另存为",files.save_as_active],["reload_file","从磁盘重新加载",files.reload_active],
     ["close_editor","关闭编辑器",()=>{const leaf=core.app.workspace.activeLeaf;if(leaf)return files.close_leaf(leaf);}],

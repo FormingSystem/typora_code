@@ -1,4 +1,5 @@
 import {register_workspace_context_guard} from "./workspace_context";
+import {remote_files_for} from './remote_workspace_files';
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_file_icons,workspace_file_icon} from "./workspace_file_icons";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -18,6 +19,7 @@ export type workspace_explorer_core = {
   }};
 };
 export type workspace_explorer_options = {
+  fs?:any;
   open_file(path: string, location?: {preview?: boolean}, group?: string): unknown;
   context_root(): string;
   active_file?(): string;
@@ -46,7 +48,7 @@ const EXPLORER_ID = "linux_note:file_explorer";
 /** 全文件目录树自行枚举，不修改原生 SupportedFiles 或全局隐藏文件配置。 */
 export function bind_workspace_explorer(core: workspace_explorer_core, options: workspace_explorer_options) {
   const runtime = window as unknown as {reqnode(name: string): any};
-  const fs = runtime.reqnode("fs"), path_api = runtime.reqnode("path");
+  const fs = options.fs || runtime.reqnode("fs"), path_api = runtime.reqnode("path");
   const sidebar = core.app.workspace.sidebar;
   const style = acquire_workspace_style("typora-code-style:workspace_explorer", explorer_css, {});
   const container = el("section", "linux-note-workspace-explorer"); container.setAttribute("aria-label", "资源管理器");
@@ -291,7 +293,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
       : node.directory ? [{title: node.expanded ? "折叠文件夹" : "展开文件夹", action: () => run(() => activate(node))}]
       : [{title: "打开文件", action: () => run(() => options.open_file(node.path))}, {title: "在右侧打开", action: () => run(() => options.open_file(node.path, {}, "right"))}];
     if (node.directory && options.create) entries.push({title: "新建文件…", separator: true, action: () => run(() => begin_create(false, node))}, {title: "新建文件夹…", action: () => run(() => begin_create(true, node))});
-    if(options.reveal_system)entries.push({title:"在系统文件资源管理器中显示",shortcut:"Shift+Alt+R",action:()=>run(()=>options.reveal_system!(node.path))});
+    if(options.reveal_system&&!remote_files_for(node.path))entries.push({title:"在系统文件资源管理器中显示",shortcut:"Shift+Alt+R",action:()=>run(()=>options.reveal_system!(node.path))});
     if(options.terminal)entries.push({title:"在集成终端中打开",action:()=>run(()=>options.terminal!(node.directory?node.path:node.parent!.path))});
     if(node.directory&&options.find_in_folder)entries.push({title:"在文件夹中查找…",shortcut:"Shift+Alt+F",separator:true,action:()=>run(()=>options.find_in_folder!(node.path))});
     if(!node.directory&&options.compare){
@@ -407,7 +409,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     rename_state = undefined; selection_paths.clear();compare_path="";
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
-    selected_path = ""; root_name.textContent = root.name; root_label.title = root.path; tree.scrollTop = 0;
+    selected_path = "";const remote=remote_files_for(root.path);root_name.textContent = root.name+(remote?` [SSH: ${remote.connection.target}]`:''); root_label.title = remote?remote.remote_path(root.path):root.path; tree.scrollTop = 0;
     set_status("正在读取文件夹…"); rebuild(); await load_children(root);
     if (root && !root.error && root.children?.length) set_status("");
   }
@@ -472,7 +474,7 @@ export function bind_workspace_explorer(core: workspace_explorer_core, options: 
     if (event.target !== tree || event.isComposing) return;
     const selected=nodes.get(selected_path)||root;
     if(event.altKey&&event.shiftKey&&!event.ctrlKey&&!event.metaKey&&selected){
-      if(event.code==="KeyR"&&options.reveal_system){event.preventDefault();event.stopPropagation();run(()=>options.reveal_system!(selected.path));}
+      if(event.code==="KeyR"&&options.reveal_system&&!remote_files_for(selected.path)){event.preventDefault();event.stopPropagation();run(()=>options.reveal_system!(selected.path));}
       if(event.code==="KeyF"&&options.find_in_folder){event.preventDefault();event.stopPropagation();run(()=>options.find_in_folder!(selected.directory?selected.path:selected.parent!.path));}
       return;
     }

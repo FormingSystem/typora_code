@@ -35,9 +35,9 @@ for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"
 fs.mkdirSync('dist/assets/plugins',{recursive:true});
 fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
 fs.mkdirSync('dist/assets/remote',{recursive:true});
-for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
+for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py','remote_ssh_credentials.cjs'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
 
-await build({
+const bundle_result=await build({
   entryPoints: ["src/workspace_entry.ts"],
   bundle: true,
   plugins: [static_workspace_css_plugin(), ...editor_plugins()],
@@ -47,6 +47,7 @@ await build({
   // 保留上游字符串中的空白值，同时避免生成文件出现行尾空格。
   supported: { "template-literal": false },
   outfile: "dist/workbench.js",
+  write: false,
   legalComments: "inline",
   banner: { js: "/*! Marked 14.0.0 (MIT)\n" + fs.readFileSync("node_modules/marked/LICENSE.md", "utf8") + "\n*/\n" + "/*! DOMPurify 3.4.14 (Apache-2.0 or MPL-2.0)\n" + fs.readFileSync("node_modules/dompurify/LICENSE", "utf8") + "\n*/\n" + "/*! Monaco Editor 0.56.0 (MIT)\n" + fs.readFileSync("node_modules/monaco-editor/LICENSE", "utf8") + "\n*/\n" + "/*! xterm.js 6.0.0, FitAddon 0.11.0, SearchAddon 0.16.0 (MIT)\n" + fs.readFileSync("node_modules/@xterm/xterm/LICENSE", "utf8") + "\n*/\n" + "/*! gemoji 4.1.0 Unicode data\n" + fs.readFileSync("vendor/gemoji/LICENSE", "utf8") + "\n*/\n" + "/*! Microsoft VS Code Codicons - https://github.com/microsoft/vscode-codicons\nCommit 1c47ab36a4bb845c437866405c2fa67b8ca0fe36; graphics licensed CC BY 4.0, code MIT.\nOriginal SVG paths preserved; display dimensions and fill inherit the current interface theme.\nhttps://creativecommons.org/licenses/by/4.0/\n" + fs.readFileSync("vendor/codicons/LICENSE_CODE", "utf8") + "\n*/" },
   loader: {
@@ -58,7 +59,14 @@ await build({
 
 // 上游许可证可能来自 CRLF 工作树；与仓库的 eol=lf 保持一致，确保提交前后安装摘要相同。
 const bundle_path = "dist/workbench.js";
-fs.writeFileSync(bundle_path, fs.readFileSync(bundle_path, "utf8").replace(/\r\n?/gu, "\n"));
+// 在内存中统一换行后一次发布，避免刚生成的文件被映射时再次原地截断。
+const bundle_output=bundle_result.outputFiles.find(file=>file.path===path.resolve(bundle_path));
+if(!bundle_output)throw Error('Missing workbench bundle');
+const bundle_temporary=`${bundle_path}.${process.pid}.tmp`;
+try{
+  fs.writeFileSync(bundle_temporary,bundle_output.text.replace(/\r\n?/gu,"\n"),{flag:'wx'});
+  fs.renameSync(bundle_temporary,bundle_path);
+}finally{fs.rmSync(bundle_temporary,{force:true});}
 // 部署仅使用清单中的常驻资产；终端有独立的原生包与摘要。
 const { createHash } = await import("node:crypto");
 const workspace_assets = ["workspace_core.js", "workspace_core.css", "workspace.css", "workbench.js"];

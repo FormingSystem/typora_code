@@ -44,7 +44,7 @@ export class git_source_control {
   private empty_message = el("p");
   private initialize_button = button("初始化仓库", () => void this.panel.initialize());
   private discover_button = button("查找子文件夹中的仓库…", () => this.panel.manage_repositories());
-  private retry_button = button("重试", () => void this.panel.refresh());
+  private retry_button = button("重试", () => void this.panel.refresh(false));
   private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
     this.sidebar.setAttribute("data-linux-note-source-control", "ready");

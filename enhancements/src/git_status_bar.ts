@@ -47,6 +47,7 @@ export function bind_git_status_bar(core: graph_core, host: graph_host, current_
   const paint = (current: git_graph_panel) => {
     if (disposed || current !== panel) return;
     if (current.disposed || !current.root) { unavailable(text("status.open_repository_first")); return; }
+    if (!current.pending && current.container.dataset.state === "empty") { unavailable(current.status.textContent || text("status.open_repository_first")); return; }
     if (!current.pending && current.container.dataset.state === "error") { unavailable(text("status.read_failed", {error: current.status.textContent || "Git"})); return; }
     if (snapshot_root !== current.root) {
       snapshot = undefined; snapshot_root = ""; label.textContent = text("status.checking"); counts.textContent = "";

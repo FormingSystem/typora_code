@@ -1,3 +1,4 @@
+import {remote_files_for,assert_remote_owner} from './remote_workspace_files';
 import {bind_reading_native_scroll} from "./reading_native_scroll";
 import { create_reading_history, type reading_location } from "./reading_history";
 import { file_key, parse_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file } from "./workspace_file_uri";
@@ -169,6 +170,8 @@ export function bind_reading_navigation(): () => void {
       const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target);
       if (!resolved) throw new Error("无法解析目标 Markdown 路径。");
       path = resolved;
+      // 远程目标先物化；网络失败不能先清空原生编辑面。
+      assert_remote_owner(path);await remote_files_for(path)?.prepare(path,false,()=>!disposed&&!signal.aborted);
       // 宿主收到不存在的文件会先清空编辑面，因此必须在任何状态切换前拒绝。
       const fs = (runtime as unknown as {reqnode(name: string): {statSync(path: string): {isFile(): boolean}}}).reqnode("fs");
       if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");

@@ -1,3 +1,4 @@
+import {remote_files_for} from './remote_workspace_files';
 import { is_markdown_file } from "./file_language";
 
 /** 空布局不是文档；空路径则属于真实的未命名Markdown草稿。 */
@@ -74,6 +75,8 @@ export function resolve_workspace_file(path_api: workspace_path_api, context_roo
   if (is_source_file_uri(target) && !decoded) return;
   const candidate = /^file:/iu.test(target) ? file_url_path(path_api, target) : decoded ?? target;
   if (!candidate || candidate.startsWith("typ://") || (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate))) return;
+  const remote=remote_files_for(context_root);
+  if(remote&&!path_api.isAbsolute(candidate))return remote.local_path(remote.path_api.posix.resolve(remote.remote_path(context_root),candidate.replace(/\\/gu,'/')));
   if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : undefined;
   if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
   return path_api.resolve(context_root, candidate);
@@ -82,8 +85,12 @@ export function resolve_workspace_file(path_api: workspace_path_api, context_roo
 /** 宿主工具 URI 已由工作区注册表解释，绝不能按当前 Markdown 的目录再次解析。 */
 export function resolve_host_open_file_target(path_api: workspace_path_api, source_file: string, target: string): string {
   const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+  const remote=remote_files_for(source_file);
+  if(remote&&candidate.startsWith('file:')){try{const url=new URL(candidate);if((!url.hostname||url.hostname==='localhost')&&!url.username&&!url.password&&!url.search&&!/%2f|%5c/iu.test(url.pathname)&&!/^\/[a-z]:\//iu.test(url.pathname))return remote.local_path(decodeURIComponent(url.pathname))+url.hash;}catch{return candidate;}}
+  if(remote&&candidate.startsWith('/')&&!candidate.startsWith('//'))return remote.local_path(candidate);
   // 协议保留到统一解析边界；不能先把 https: 等拼成可打开的本地文件名。
   if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
+  if(remote&&!path_api.isAbsolute(candidate))return remote.local_path(remote.path_api.posix.resolve(remote.path_api.posix.dirname(remote.remote_path(source_file)),candidate.replace(/\\/gu,'/')));
   return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
 }
 

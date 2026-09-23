@@ -21,6 +21,7 @@ export function bind_workspace_save_service(files:workspace_file_host,runtime:an
   });
   const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
   const native=lifetime.own(bind_native_save(runtime,{
+    save_as:files.save_as_active,
     changed:publish_workspace_file_changed,
     saved:path=>publish_workspace_file_saved({file_path:path}),
     auto_save_changed:enabled=>set_workspace_save_settings({"files.autoSave":enabled?"afterDelay":"off"}),

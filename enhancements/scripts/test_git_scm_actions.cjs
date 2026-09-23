@@ -105,7 +105,7 @@ app.whenReady().then(async()=>{
 
   // 同一仍有效仓库的读取错误必须禁用写入，但保留刷新恢复入口。
   await evaluate('panel.runner.run=async()=>{throw new Error("SCM title controlled read failure")};void panel.refresh(false)');await wait('!panel.pending&&panel.container.dataset.state==="error"');
-  await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});await evaluate('void (panel.runner.run=title_run_original)');await click(title_selector('refresh'));await wait('!panel.pending&&panel.container.dataset.state==="ready"');await assert_title_disabled(ready_buttons);
+  await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});await evaluate('void (panel.runner.run=title_run_original)');await click('.git-scm-welcome button:not([hidden])');await wait('!panel.pending&&panel.container.dataset.state==="ready"');await assert_title_disabled(ready_buttons);
   await evaluate('window.title_saved_state=panel.state;window.title_saved_root=panel.root;panel.state=undefined;panel.update_scm_actions()');await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});
   await evaluate(`panel.state=title_saved_state;panel.root=${JSON.stringify(other.replace(/\\/g,'/'))};panel.update_scm_actions()`);await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});
   await evaluate('panel.root="";panel.update_scm_actions()');await assert_title_disabled(busy_buttons);

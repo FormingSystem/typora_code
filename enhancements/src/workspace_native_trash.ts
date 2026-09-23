@@ -1,7 +1,9 @@
+import {remote_files_for} from './remote_workspace_files';
 type trash_runtime = {JSBridge?: {invoke(command: string, ...args: unknown[]): Promise<unknown>}; reqnode(name: string): any};
 
 /** Typora 的回收站在主进程执行；拒绝回收不能退化为永久删除。 */
 export async function trash_native_path(runtime: trash_runtime, target: string): Promise<void> {
+  const remote=remote_files_for(target);if(remote){await remote.trash(target);return;}
   const fs = runtime.reqnode("fs").promises;
   if (runtime.JSBridge?.invoke) {
     if (await runtime.JSBridge.invoke("shell.trashItem", target) !== true) {

@@ -226,7 +226,8 @@ export class git_graph_panel {
         }
       }
       const first_load = !this.loaded;
-      state.operation = this.host.operation(state.operation);
+      state.operation = await this.host.operation(state.operation);
+      if(epoch!==this.epoch)return;
       const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
       const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
       const changed = first_load || snapshot !== this.rendered_snapshot;

@@ -1,5 +1,7 @@
 import type { git_run } from "./git_graph_data";
 import { git_graph_text as text } from "./git_graph_i18n";
+import {remote_files_for} from './remote_workspace_files';
+import {create_text_document,save_text_document_as} from './workspace_text_document';
 
 type ignore_modules = { fs: any; path_api: any };
 export type ignore_result = { rule: string; changed: boolean };
@@ -15,6 +17,16 @@ export function exact_ignore_rule(file: string): string {
 export async function append_git_ignore(modules: ignore_modules, run: git_run, root: string, file: string): Promise<ignore_result> {
   const { fs, path_api } = modules;
   const rule = exact_ignore_rule(file);
+  if(remote_files_for(root)){
+    const real_root=await fs.promises.realpath(root),target=path_api.resolve(real_root,file),resolved=await fs.promises.realpath(target),relative=path_api.relative(real_root,resolved);
+    if(!relative||relative==='..'||relative.startsWith('..'+path_api.sep)||path_api.isAbsolute(relative))throw Error(text('ignore.outside_repository'));
+    const target_stat=await fs.promises.lstat(target);if(!target_stat.isFile()||target_stat.isSymbolicLink())throw Error(text('ignore.ordinary_untracked_only'));
+    const ignore_path=path_api.join(real_root,'.gitignore'),document=create_text_document(modules,ignore_path);let value:any;
+    try{const stat=await fs.promises.lstat(ignore_path);if(!stat.isFile()||stat.isSymbolicLink()||stat.nlink!==1)throw Error(text('ignore.ordinary_gitignore_required'));value=await document.load();}catch(error){if((error as any).code!=='ENOENT')throw error;}
+    const content=value?.text||'';if(content.split(/\r?\n/u).includes(rule))return{rule,changed:false};const newline=content.match(/\r?\n/u)?.[0]||'\n',next=content+(content&&!content.endsWith('\n')?newline:'')+rule+newline;
+    if(value)await document.save(next);else await save_text_document_as(modules,ignore_path,next,{text:'',encoding:'utf-8',bom:false,eol:'LF'} as any);
+    return{rule,changed:true};
+  }
   // Windows 的反斜线和冒号具有路径语义，不能按 Linux 文件名解释。
   if (path_api.sep === "\\" && /[\\:]/u.test(file)) throw new Error(text("ignore.invalid_path"));
   const real_root = fs.realpathSync(root);

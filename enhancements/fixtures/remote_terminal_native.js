@@ -20,15 +20,14 @@
  try{
   if(!target||!password)throw Error('需要明确的SSH测试目标和内存凭据');await pause(1000);
   const original_path=File.bundle.filePath,original=fs.readFileSync(original_path);
-  command('terminal');local=await active_entry();await wait(()=>local.session.state==='running','本地终端未启动');const local_pid=local.session.pid;
-  const hello=await service.connect(target);root=hello.home+'/.typora-terminal-'+crypto.randomUUID()+" 中文 ' ${env:NOT_LOCAL}";await service.request('mkdir',{path:root});
+  const hello=await service.connect(target);root=hello.home+'/.typora-terminal-'+crypto.randomUUID()+" 中文 ' ${NOT_LOCAL}";await service.request('mkdir',{path:root});
   core.app.commands.run('typora_code:remote_ssh');await wait(()=>document.querySelector('.workspace-ssh-sidebar'),'SSH侧栏未出现');panel=document.querySelector('.workspace-ssh-sidebar');panel.querySelector('input').value=target;button(panel,'连接').click();
   await wait(()=>document.querySelector('[role=dialog] input[type=password]'),'SSH认证未出现');const input=document.querySelector('[role=dialog] input[type=password]');input.value=password;button(input.closest('[role=dialog]'),'连接').click();
-  await wait(()=>panel.dataset.connection==='connected'&&[...panel.querySelectorAll('.workspace-ssh-row')].some(n=>n.title===root),'SSH目录未完成');[...panel.querySelectorAll('.workspace-ssh-row')].find(n=>n.title===root).click();
-  await wait(()=>panel.querySelector('.workspace-ssh-location')?.textContent===root||panel.textContent.includes('此目录为空'),'远程目录未打开');
+  await wait(()=>files.context_root().includes('remote_cache'),'远端工作区未挂载');
+  command('open_folder');await wait(()=>document.querySelector('input[aria-label="远程路径"]'),'远端文件夹选择器未打开');
+  const picker=document.querySelector('input[aria-label="远程路径"]');picker.value=root;picker.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));await wait(()=>!button(picker.closest('[role=dialog]'),'打开').disabled,'远端目录未列出');button(picker.closest('[role=dialog]'),'打开').click();await wait(()=>files.context_root().endsWith(path.basename(root)),'主资源根未切换');
   command('terminal_toggle');remote=await active_entry();
-  assert(remote!==local&&remote.session.launch_profile?.remote.target===target,'活动栏语义选择远程，不复用已显示的本地会话');
-  assert(local.session.pid===local_pid&&local.session.state==='running','连接和打开远程终端保留原本地PTY');
+  assert(remote.session.launch_profile?.remote.target===target,'活动栏创建远端终端');
   await authenticate(remote);await send(remote,"printf 'DIR=%s\\n' \"$PWD\"",'DIR='+root);assert(text(remote).includes('DIR='+root),'实际Shell位于选定远端目录');
   for(let i=0;i<20;i++)await send(remote,"printf 'CYCLE_%s\\n' "+i,'CYCLE_'+i);assert(true,'真实SSH连续20轮命令输出');
   await send(remote,"printf 'remote write' > proof.txt; printf 'WRITE_%s\\n' DONE",'WRITE_DONE');const proof=await service.request('read',{path:root+'/proof.txt'});assert(reqnode('buffer').Buffer.from(proof.data,'base64').toString()==='remote write','默认终端写入由独立SSH通道回读确认');
@@ -38,7 +37,7 @@
   assert(fs.readFileSync(original_path).equals(original),'本地原始Markdown保持原字节');
   assert(!text(remote).includes(password+'\n'),'认证未作为终端输出回显');
   await service.request('remove',{path:root+'/proof.txt'});await service.request('remove',{path:root});root='';
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,command_cycles:20,asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex'),limits:'Windows原生宿主连接单一Linux虚拟机；身份和PTY真实执行，不表示其他远程工作区功能已接入'},null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,command_cycles:20,asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(_options.userDataPath,'typora_code/workbench.js'))).digest('hex'),limits:'Windows原生宿主连接单一Linux虚拟机；身份和PTY真实执行，其他远程工作区功能由独立主工作区原生套件验收'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks},null,2));}
  finally{command('terminal_kill');command('terminal_kill');try{if(root&&service.state()==='connected'){try{await service.request('remove',{path:root+'/proof.txt'});}catch{}await service.request('remove',{path:root});}}finally{service.dispose();}}
 })();

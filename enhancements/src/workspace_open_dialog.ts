@@ -1,4 +1,6 @@
 import type {workspace_file_host} from "./workspace_files";
+import {active_remote_files,remote_files_for,select_remote_files} from './remote_workspace_files';
+import {choose_remote_resource} from './remote_workspace_picker';
 import type {bind_workspace_sessions} from "./workspace_sessions";
 import {assert_workspace_context_ready,begin_workspace_context_switch,finish_workspace_context_switch,cancel_workspace_context_switch} from "./workspace_context";
 
@@ -33,11 +35,13 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
       const close=await files.prepare_workspace_switch();if(disposed||!close)return;
       if(target&&!(await files.fs.promises.stat(target)).isDirectory())throw new Error("目标目录已不存在。");
       if(disposed)return;
+      const remote_target=remote_files_for(target);if(remote_target)await remote_target.mount(remote_target.remote_path(target));
       sessions.suspend();
       let committed=false;
       try{
         begin_workspace_context_switch();
-        close();const mounted=target.endsWith(files.path_api.sep)?target+files.path_api.sep:target;
+        close();const remote=remote_target;if(remote)remote.root=target;select_remote_files(remote);
+        const mounted=target.endsWith(files.path_api.sep)?target+files.path_api.sep:target;
         runtime.File.setMountFolder(mounted);committed=true;
         native_root_changed?.call(library,mounted,true);
       }finally{
@@ -45,6 +49,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
         if(committed)finish_workspace_context_switch();else cancel_workspace_context_switch();
         await sessions.resume(committed);
       }
+      if(committed&&remote_target)files.core.app.commands.run('linux_note:file_explorer');
     }finally{changing=false;}
   };
   const set_folder=async(selected:string)=>{
@@ -55,6 +60,7 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     if(!stat.isDirectory())throw new Error("所选项目不是文件夹。");
     if(!runtime.File?.setMountFolder)throw new Error("Typora 文件夹接口不可用。");
     await switch_folder(target);
+    if(remote_files_for(target))return;
     if(disposed||!same_root(files.context_root(),target))return;
     if(!runtime.JSBridge?.invoke)throw new Error("文件夹已打开，但宿主最近目录接口不可用。");
     try { await runtime.JSBridge.invoke("setting.addRecentFolder",target); }
@@ -73,6 +79,10 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     if(pending)return pending;
     const current=revision;
     pending=(async()=>{
+      if(active_remote_files()){
+        const selected=await choose_remote_resource(directory);if(!selected||disposed||current!==revision)return;
+        if(directory)await set_folder(selected);else await files.open_file(selected);return;
+      }
       if(!runtime.JSBridge?.invoke)throw new Error("系统文件选择窗口不可用。");
       const root=files.context_root();
       const result=await runtime.JSBridge.invoke("dialog.showOpenDialog",{

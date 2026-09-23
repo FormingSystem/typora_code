@@ -5,7 +5,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {publish_workspace_file_changed} from "./workspace_file_events";
 import {read_workspace_editor_settings,observe_workspace_editor_settings,select_workspace_editor_group,workspace_editor_group_locked} from "./workspace_editor_settings";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
-import {create_platform_file_clipboard} from "./file_clipboard_platform";
+import {create_resource_file_clipboard} from "./remote_workspace_clipboard";
 import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./workspace_file_clipboard";
 import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
@@ -28,6 +28,8 @@ import files_css from "./workspace_files.css";
 
 export type file_location = {line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
 /** 独立文档提供者保留资源身份与IO，公共文件层只接管保存/关闭/卸载保护。 */
+import {active_remote_files,remote_files_for,workspace_resource_fs,protect_remote_cache} from './remote_workspace_files';
+import {choose_remote_resource} from './remote_workspace_picker';
 export type workspace_document_port = source_lifecycle_view & {busy():boolean; read_text():string};
 export type workspace_file_host = {
   fs: any; path_api: any; core: graph_core;
@@ -82,7 +84,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     return existing_binding.host;
   }
   const runtime = window as unknown as {reqnode(name: string): any; File?: any; JSBridge?:{invoke(command:string,...args:unknown[]):Promise<unknown>}; ClientCommand?: Record<string, (...args: unknown[]) => unknown>; doApplyRename?(path: string): void};
-  const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
+  const fs = workspace_resource_fs(runtime.reqnode("fs")); const path_api = runtime.reqnode("path"); const shell = runtime.reqnode("electron").shell;
+  if((runtime as any)._options?.userDataPath)protect_remote_cache(path_api.join((runtime as any)._options.userDataPath,'typora_code','remote_cache'),path_api);
   let native_app_open_file = core.app.openFile;
   const style = acquire_workspace_style("typora-code-style:workspace_files", files_css, {});
   const group_locations = new Map<string, file_location>();
@@ -146,7 +149,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (source_path) return source_path;
     return "";
   };
-  const context_root = () => runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
+  const context_root = () => active_remote_files()?.root || (runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || ""));
   class source_file_view extends core.WorkspaceView {
     navigation_id = next_navigation_id--;
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
@@ -235,7 +238,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       } catch (error) {
         if(this.disposed)return;
         this.status.textContent = "无法作为文本预览";
-        if (!this.editor) this.body.replaceChildren(el("p", "workspace-file-notice", String(error)), button("使用系统程序打开", () => void shell.openPath(this.file_path)));
+        if (!this.editor) this.body.replaceChildren(el("p", "workspace-file-notice", String(error)), ...(!remote_files_for(this.file_path)?[button("使用系统程序打开", () => void shell.openPath(this.file_path))]:[]));
         else this.status.textContent = String(error);
       } finally { const status=this.status.textContent;this.loading = false;this.refresh_shared();if(status&&status!=="正在读取…")this.status.textContent=status;if(core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection(true); }
     }
@@ -278,7 +281,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(this.disposed||this.saving||this.loading||renaming||!this.editor||!this.format||!runtime.JSBridge?.invoke)return false;
       this.saving=true;this.refresh_shared();
       try{
-        const result=await runtime.JSBridge.invoke("dialog.showSaveDialog",{title:"另存为",defaultPath:this.file_path,properties:["showOverwriteConfirmation"],filters:[{name:"所有文件",extensions:["*"]}]}) as {canceled?:boolean;filePath?:string};
+        const result=remote_files_for(this.file_path)?{filePath:await choose_remote_resource(false,this.file_path)}:await runtime.JSBridge.invoke("dialog.showSaveDialog",{title:"另存为",defaultPath:this.file_path,properties:["showOverwriteConfirmation"],filters:[{name:"所有文件",extensions:["*"]}]}) as {canceled?:boolean;filePath?:string};
         if(this.disposed||core.app.workspace.activeLeaf!==this.leaf||result?.canceled||!result?.filePath)return false;
         if(!path_api.isAbsolute(result.filePath))throw new Error("系统返回的保存路径无效。");
         const target=path_api.normalize(result.filePath);
@@ -329,7 +332,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
       {title:"另存为…",shortcut:"Ctrl+Shift+S",action:()=>void this.save_as()},
       {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
-      {title:"在文件夹中显示",action:()=>shell.showItemInFolder(this.file_path)},
+      {title:"在文件夹中显示",action:()=>remote_files_for(this.file_path)?core.app.commands.run("linux_note:reveal_in_explorer",[this.file_path,context_root()]):shell.showItemInFolder(this.file_path)},
       ...(is_markdown_file(this.file_path)?[{title:"打开 Markdown 渲染",action:()=>{if(this.dirty()){this.status.textContent="请先保存源码修改，再打开 Markdown 渲染。";return;}void open_file(this.file_path);}}]:[])
     ];}
     menu(event:MouseEvent){workspace_menu(event,this.menu_entries());}
@@ -347,6 +350,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
     if (!resolved_path) throw new Error("无法解析文件路径。");
     file_path = resolved_path;
+    const epoch=workspace_context_epoch(),valid=()=>binding.active&&!workspace_context_switching()&&epoch===workspace_context_epoch()&&!location.signal?.aborted;
+    const remote=remote_files_for(file_path);if(remote){let opened=false;core.app.workspace.eachLeaves(leaf=>{if(file_key(real_path(leaf))===file_key(file_path))opened=true;});await remote.prepare(file_path,!opened,valid);if(!valid())throw Error('打开文件已取消。');}
     if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
     notify_navigation_selection();
     if (is_markdown_file(file_path) && !location.source) {
@@ -419,6 +424,11 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if (typeof target === "string" && parse_markdown_file_target(target)) {
       const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime.File?.bundle?.filePath || "";
       const markdown = resolve_markdown_file_target(path_api, context_root(), resolve_host_open_file_target(path_api, source, target));
+      const remote=markdown&&remote_files_for(markdown.file_path);
+      if(markdown&&remote&&!remote.prepared(markdown.file_path)){
+        const epoch=workspace_context_epoch(),valid=()=>binding.active&&epoch===workspace_context_epoch()&&!workspace_context_switching();
+        return remote.prepare(markdown.file_path,false,valid).then(()=>{if(valid())return routed_library_open_file.call(this,target,...args);});
+      }
       if (!markdown || !fs.statSync(markdown.file_path).isFile()) throw new Error("目标不是普通文件。");
       const active_group=core.app.workspace.activeLeaf?.parent;
       let existing_in_group=false;core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===active_group&&file_key(leaf.state.path)===file_key(markdown.file_path))existing_in_group=true;});
@@ -445,13 +455,13 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     return native_library_open_file?.call(this, target, ...args);
   };
-  const copy = (text: string) => { if(file_clipboard.is_busy())throw new Error("文件剪贴板正在处理，请稍后复制路径。");file_clipboard.invalidate(); runtime.reqnode("electron").clipboard.writeText(text); };
+  const copy = (text: string) => { if(file_clipboard.is_busy())throw new Error("文件剪贴板正在处理，请稍后复制路径。");file_clipboard.invalidate(); runtime.reqnode("electron").clipboard.writeText(remote_files_for(text)?.remote_path(text)||text); };
   const file_menu = (event: MouseEvent, file_path: string) => workspace_menu(event, [
     {title: "打开文件", action: () => void open_file(file_path)},
     {title: "在右侧打开", action: () => void open_file(file_path, {}, "right")},
     {title: "复制路径", action: () => copy(file_path)},
     {title: "复制相对路径", action: () => copy(path_api.relative(context_root(), file_path))},
-    {title: "在文件夹中显示", action: () => shell.showItemInFolder(file_path)}
+    {title: "在文件夹中显示", action: () => remote_files_for(file_path)?core.app.commands.run("linux_note:reveal_in_explorer",[file_path,context_root()]):shell.showItemInFolder(file_path)}
   ]);
   const relocate_file = async (root: string, old_path: string, name: string, moving = false) => {
     if (renaming || runtime.File?._onFileSwitching || runtime.File?.inSavingProcess) throw new Error("文件正在切换、保存或重命名，请稍后重试。");
@@ -587,11 +597,38 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const save_as_active=async()=>{
     const source=active_source_view();if(source)return source.save_as();
+    const old_path=runtime.File?.bundle?.filePath||'',remote=remote_files_for(old_path)||(!old_path?active_remote_files():undefined);
+    if(remote){
+      if(!native_ready()||typeof runtime.File?.saveAsUseNode!=='function')return false;
+      const leaf=core.app.workspace.activeLeaf,epoch=workspace_context_epoch();
+      const target=await choose_remote_resource(false,old_path||path_api.join(remote.root,'Untitled.md'));if(!target)return false;
+      if(!native_ready()||core.app.workspace.activeLeaf!==leaf||epoch!==workspace_context_epoch())return false;
+      if(target===old_path)return save_active();
+      let opened=false;core.app.workspace.eachLeaves(item=>{if(item!==leaf&&file_key(real_path(item))===file_key(target))opened=true;});
+      if(opened)throw Error('目标文件已在编辑器中打开，请先处理该标签的修改。');
+      const text=runtime.File.editor.getMarkdown(),valid=()=>binding.active&&core.app.workspace.activeLeaf===leaf&&(runtime.File.bundle.filePath||'')===old_path&&runtime.File.editor.getMarkdown()===text&&epoch===workspace_context_epoch();
+      await save_text_document_as({fs,path_api},target,text,{text,encoding:'utf-8',bom:false,eol:'LF'} as any);
+      if(!valid())return false;await remote.prepare(target,true,valid);if(!valid())return false;
+      // 已核对的原生另存为入口负责标签、正文、撤销和dirty身份；远端落盘先于宿主发布。
+      const error=await runtime.File.saveAsUseNode(target);if(error)throw error;return true;
+    }
     if(!native_ready()||!runtime.ClientCommand?.saveAs)return false;
     await Promise.resolve(runtime.ClientCommand.saveAs());return true;
   };
-  const reload_active=()=>{const source=active_source_view();if(source)source.confirm_reload();else if(native_ready())runtime.ClientCommand?.reloadFromDisk?.();};
+  const reload_active=()=>{
+    const source=active_source_view();if(source){source.confirm_reload();return;}if(!native_ready())return;
+    const path=runtime.File?.bundle?.filePath||'',remote=remote_files_for(path);
+    if(!remote){runtime.ClientCommand?.reloadFromDisk?.();return;}
+    const reload=async()=>{const text=runtime.File.editor.getMarkdown(),epoch=workspace_context_epoch();const valid=()=>native_ready()&&runtime.File.bundle.filePath===path&&runtime.File.editor.getMarkdown()===text&&epoch===workspace_context_epoch();await remote.prepare(path,true,valid);if(valid())await runtime.File.reloadFromDisk(true);};
+    const perform=()=>void reload().catch(error=>new core.Notice(String((error as Error).message),6000));
+    if(runtime.File?.changeCounter?.isDocumentEdited()){const dialog=workspace_dialog('重新加载远程文件');dialog.content.append(el('p','','重新加载会丢弃此文档未保存的修改。'));dialog.footer.prepend(button('丢弃修改并重新加载',()=>{dialog.close();perform();}));}else perform();
+  };
   const save_all = async () => {
+    if(active_remote_files()){
+      const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(editor_state(leaf).dirty)leaves.push(leaf);});
+      for(const leaf of leaves)if(!await save_leaf(leaf))return false;
+      return true;
+    }
     const owners = new Set<object>();
     const source_saves = [...views].filter(view => {if(view.disposed||!view.dirty()||owners.has(view.shared))return false;owners.add(view.shared);return true;}).map(view => view.save());
     source_saves.push(...[...document_ports].filter(port=>!port.disposed&&port.dirty()).map(port=>port.save()));
@@ -1041,7 +1078,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     try{return await action();}finally{file_operation_count--;}
   };
   const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(()=>create_workspace_entry({fs,path_api},root,parent,name,directory));
-  const file_clipboard=create_workspace_file_clipboard(create_platform_file_clipboard(name=>runtime.reqnode(name)),{
+  const file_clipboard=create_workspace_file_clipboard(create_resource_file_clipboard(name=>runtime.reqnode(name)),{
     validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths)),
     transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_workspace_entries({fs,path_api},root,paths,target,move?move_file:undefined,external))
   });

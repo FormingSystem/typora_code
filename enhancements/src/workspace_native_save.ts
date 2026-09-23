@@ -1,4 +1,5 @@
-type native_save_hooks={changed(file_path:string):void;saved(file_path:string):void;auto_save_changed(enabled:boolean):void};
+import {remote_files_for,active_remote_files,assert_remote_owner} from './remote_workspace_files';
+type native_save_hooks={changed(file_path:string):void;saved(file_path:string):void;auto_save_changed(enabled:boolean):void;save_as?():Promise<boolean>};
 
 /** 已核对的宿主边界：成功写盘后发didSave；备份服务读取enableAutoSave决定是否顺带写盘。 */
 export function bind_native_save(runtime:any,hooks:native_save_hooks){
@@ -20,6 +21,27 @@ export function bind_native_save(runtime:any,hooks:native_save_hooks){
   }
   if(file?.isNode){
     sync_options();
+    let remote_saving=false;
+    replace(file,'saveUseNode',original=>function(this:any,...args:any[]){
+      const path=this.bundle?.filePath,remote=typeof path==='string'?remote_files_for(path):undefined;
+      assert_remote_owner(path);
+      if((remote&&args[0]||!path&&active_remote_files())&&hooks.save_as)return args[1]?Promise.resolve(false):hooks.save_as();
+      if(!remote)return original.apply(this,args);
+      if(remote_saving)return Promise.resolve(false);
+      // 仅在远端确认之后提交宿主状态；等待期间的新输入或切换不能被标为已保存。
+      const text=typeof this.sync==='function'?this.sync():this.editor?.getMarkdown?.();if(typeof text!=='string')return Promise.reject(Error('远程Markdown正文尚未就绪。'));
+      if(this.validateContentForSave?.()===false)return Promise.reject(Error('原生编辑器拒绝保存当前正文，草稿已保留。'));
+      const current=this.editor.getMarkdown(),format=this.bundle.fileEncode||'utf8';
+      const codec=runtime.reqnode('iconv-lite'),encoding=format.replace(/-bom$/u,'');
+      let bytes=codec.encode(text,encoding,{addBOM:format.endsWith('-bom')});
+      // 与原生保存保持一致：旧编码不能无损表示正文时使用UTF-8，不能把问号写入远端。
+      if(!encoding.toLowerCase().includes('utf')&&codec.decode(bytes,encoding)!==text)bytes=codec.encode(text,'utf8');
+      remote_saving=true;
+      return remote.save_native(path,text,bytes).then(()=>{
+        if(disposed||this.bundle?.filePath!==path||this.editor.getMarkdown()!==current)return false;
+        save_depth++;try{return original.apply(this,args);}finally{save_depth--;}
+      }).finally(()=>{remote_saving=false;});
+    });
     replace(file,"updateChangeCount",original=>function(this:any,...args:any[]){const result=original.apply(this,args);if(!disposed&&this.changeCounter?.isDocumentEdited()&&typeof this.bundle?.filePath==="string")hooks.changed(this.bundle.filePath);return result;});
     replace(bridge,"invoke",original=>function(this:any,...args:any[]){const result=original.apply(this,args);if(!disposed&&args[0]==="app.sendEvent"&&args[1]==="didSave"&&typeof args[2]?.path==="string")hooks.saved(args[2].path);return result;});
     // saveUseNode在同步入口拒绝非前台窗口。仅显式自动保存这一轮允许跨过前台检查，

@@ -142389,8 +142389,8 @@ https://creativecommons.org/licenses/by/4.0/
     return result;
   }
   async function getDocumentRangeFormattingEditsUntilResult(workerService, languageFeaturesService, model, range2, options2, token) {
-    const providers2 = languageFeaturesService.documentRangeFormattingEditProvider.ordered(model);
-    for (const provider of providers2) {
+    const providers3 = languageFeaturesService.documentRangeFormattingEditProvider.ordered(model);
+    for (const provider of providers3) {
       const rawEdits = await Promise.resolve(provider.provideDocumentRangeFormattingEdits(model, range2, options2, token)).catch(onUnexpectedExternalError);
       if (isNonEmptyArray(rawEdits)) {
         return await workerService.computeMoreMinimalEdits(model.uri, rawEdits);
@@ -142399,8 +142399,8 @@ https://creativecommons.org/licenses/by/4.0/
     return void 0;
   }
   async function getDocumentFormattingEditsUntilResult(workerService, languageFeaturesService, model, options2, token) {
-    const providers2 = getRealAndSyntheticDocumentFormattersOrdered(languageFeaturesService.documentFormattingEditProvider, languageFeaturesService.documentRangeFormattingEditProvider, model);
-    for (const provider of providers2) {
+    const providers3 = getRealAndSyntheticDocumentFormattersOrdered(languageFeaturesService.documentFormattingEditProvider, languageFeaturesService.documentRangeFormattingEditProvider, model);
+    for (const provider of providers3) {
       const rawEdits = await Promise.resolve(provider.provideDocumentFormattingEdits(model, options2, token)).catch(onUnexpectedExternalError);
       if (isNonEmptyArray(rawEdits)) {
         return await workerService.computeMoreMinimalEdits(model.uri, rawEdits);
@@ -142409,14 +142409,14 @@ https://creativecommons.org/licenses/by/4.0/
     return void 0;
   }
   function getOnTypeFormattingEdits(workerService, languageFeaturesService, model, position2, ch, options2, token) {
-    const providers2 = languageFeaturesService.onTypeFormattingEditProvider.ordered(model);
-    if (providers2.length === 0) {
+    const providers3 = languageFeaturesService.onTypeFormattingEditProvider.ordered(model);
+    if (providers3.length === 0) {
       return Promise.resolve(void 0);
     }
-    if (providers2[0].autoFormatTriggerCharacters.indexOf(ch) < 0) {
+    if (providers3[0].autoFormatTriggerCharacters.indexOf(ch) < 0) {
       return Promise.resolve(void 0);
     }
-    return Promise.resolve(providers2[0].provideOnTypeFormattingEdits(model, position2, ch, options2, token)).catch(onUnexpectedExternalError).then((edits) => {
+    return Promise.resolve(providers3[0].provideOnTypeFormattingEdits(model, position2, ch, options2, token)).catch(onUnexpectedExternalError).then((edits) => {
       return workerService.computeMoreMinimalEdits(model.uri, edits);
     });
   }
@@ -161667,6 +161667,289 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/remote_workspace_files.ts
+  var providers = /* @__PURE__ */ new Set();
+  var active_provider;
+  var protected_cache;
+  function protect_remote_cache(root, path_api) {
+    protected_cache = { root, path_api };
+  }
+  function assert_remote_owner(path) {
+    if (!protected_cache || typeof path !== "string") return;
+    const relative2 = protected_cache.path_api.relative(protected_cache.root, path);
+    if (relative2 !== ".." && !relative2.startsWith(".." + protected_cache.path_api.sep) && !protected_cache.path_api.isAbsolute(relative2) && !remote_files_for(path)) throw Error("\u6B64\u6587\u4EF6\u5C5E\u4E8E\u5C1A\u672A\u91CD\u65B0\u8FDE\u63A5\u7684SSH\u5DE5\u4F5C\u533A\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u672C\u5730\u6587\u4EF6\u64CD\u4F5C\u3002");
+  }
+  var active_remote_files = () => active_provider;
+  var remote_files_for = (path) => [...providers].find((provider) => provider.owns(path));
+  function register_remote_files(provider) {
+    providers.add(provider);
+    return () => {
+      provider.dispose();
+      providers.delete(provider);
+      if (active_provider === provider) active_provider = void 0;
+    };
+  }
+  function select_remote_files(provider) {
+    active_provider = provider;
+  }
+  var missing = () => Object.assign(Error("\u8FDC\u7A0B\u8DEF\u5F84\u5C1A\u672A\u8BFB\u53D6\uFF0C\u8BF7\u901A\u8FC7\u5F02\u6B65\u6587\u4EF6\u670D\u52A1\u6253\u5F00\u3002"), { code: "EREMOTE" });
+  var stat_value = (value) => ({ ...value, isDirectory: () => value.directory, isFile: () => value.file, isSymbolicLink: () => value.link });
+  var remote_file_provider = class {
+    constructor(connection, native_fs, path_api, cache_root, buffer_api) {
+      this.connection = connection;
+      this.native_fs = native_fs;
+      this.path_api = path_api;
+      this.buffer_api = buffer_api;
+      this.cache_root = path_api.resolve(cache_root);
+      const rpc = (action, path, values = {}) => this.call("filesystem", { action, path: this.remote_path(path), ...values });
+      const stat = async (path, action = "stat") => {
+        const value = stat_value(await rpc(action, path));
+        this.metadata.set(path, value);
+        return value;
+      };
+      const handle = async (path, flags, mode) => {
+        const id = await rpc("open", path, { flags, ...mode === void 0 ? {} : { mode } });
+        let closed = false;
+        const invoke = (action, values = {}) => {
+          if (closed) throw Error("\u6587\u4EF6\u53E5\u67C4\u5DF2\u5173\u95ED");
+          return this.call("filesystem", { action, handle: id, ...values });
+        };
+        return {
+          stat: async () => stat_value(await invoke("fstat")),
+          read: async (buffer, offset, length, position2) => {
+            const data = this.buffer_api.from(await invoke("read", { length, position: position2 }), "base64");
+            buffer.set(data, offset);
+            return { bytesRead: data.length, buffer };
+          },
+          write: async (buffer, offset, length, position2) => ({ bytesWritten: await invoke("write", { data: this.buffer_api.from(buffer.subarray(offset, offset + length)).toString("base64"), position: position2 }), buffer }),
+          writeFile: async (bytes) => {
+            const data = this.buffer_api.from(bytes);
+            let offset = 0;
+            while (offset < data.length) {
+              const written = await invoke("write", { data: data.subarray(offset, offset + 1048576).toString("base64"), position: offset });
+              if (!written) throw Error("\u8FDC\u7A0B\u5199\u5165\u672A\u53D6\u5F97\u8FDB\u5C55");
+              offset += written;
+            }
+          },
+          chmod: (mode2) => invoke("chmod", { mode: mode2 }),
+          sync: () => invoke("sync"),
+          close: async () => {
+            if (closed) return;
+            try {
+              await invoke("close");
+            } finally {
+              closed = true;
+            }
+          }
+        };
+      };
+      const promises = {
+        stat: (path) => stat(path),
+        lstat: (path) => stat(path, "lstat"),
+        realpath: async (path) => this.local_path(await rpc("realpath", path)),
+        readlink: (path) => rpc("readlink", path),
+        readdir: async (path, options2) => {
+          const result = await this.call("list", { path: this.remote_path(path) });
+          return result.entries.map((entry) => {
+            this.local_path(this.path_api.posix.join(this.remote_path(path), entry.name));
+            return options2?.withFileTypes ? { name: entry.name, isDirectory: () => entry.directory, isFile: () => !entry.directory && !entry.link, isSymbolicLink: () => entry.link } : entry.name;
+          });
+        },
+        readFile: async (path, options2) => {
+          if (options2?.signal?.aborted) throw Error("\u5DF2\u53D6\u6D88\u8BFB\u53D6");
+          const result = await this.call("read", { path: this.remote_path(path) });
+          if (options2?.signal?.aborted) throw Error("\u5DF2\u53D6\u6D88\u8BFB\u53D6");
+          const data = this.buffer_api.from(result.data, "base64");
+          const encoding = typeof options2 === "string" ? options2 : options2?.encoding;
+          return encoding ? data.toString(encoding) : data;
+        },
+        open: handle,
+        rename: async (path, target) => {
+          const result = await rpc("rename", path, { target: this.remote_path(target) });
+          this.metadata.clear();
+          this.snapshots.delete(target);
+          for (const [old, snapshot] of [...this.snapshots]) {
+            const relative2 = this.path_api.relative(path, old);
+            if (relative2 === ".." || relative2.startsWith(".." + this.path_api.sep) || this.path_api.isAbsolute(relative2)) continue;
+            const next = this.path_api.join(target, relative2), version = snapshot.version;
+            this.snapshots.delete(old);
+            this.snapshots.set(next, { ...snapshot, version: { ...version, real_path: this.remote_path(next) } });
+          }
+          if (this.native_fs.existsSync(path)) {
+            await this.native_fs.promises.mkdir(this.path_api.dirname(target), { recursive: true });
+            await this.native_fs.promises.rename(path, target);
+          }
+          return result;
+        },
+        link: (path, target) => rpc("link", path, { target: this.remote_path(target) }),
+        unlink: (path) => rpc("unlink", path),
+        rmdir: (path) => rpc("rmdir", path),
+        mkdir: (path) => rpc("mkdir", path)
+      };
+      this.fs = {
+        promises,
+        statSync: (path) => {
+          const value = this.metadata.get(path);
+          if (!value) throw missing();
+          return value;
+        },
+        lstatSync: (path) => {
+          const value = this.metadata.get(path);
+          if (!value) throw missing();
+          return value;
+        },
+        existsSync: (path) => this.metadata.has(path),
+        watch: (path, options2, callback) => {
+          const changed2 = typeof options2 === "function" ? options2 : callback;
+          let stopped = false, timer, signature = "";
+          const close = () => {
+            stopped = true;
+            clearTimeout(timer);
+            this.watchers.delete(close);
+          };
+          this.watchers.add(close);
+          const poll = async () => {
+            try {
+              if (this.connection.connected() && (this.connection.poll_interval?.() ?? 5e3) > 0) {
+                const next = await rpc("watch_signature", path);
+                if (!stopped && signature && next !== signature) changed2?.();
+                signature = next;
+              }
+            } catch {
+            } finally {
+              if (!stopped) timer = setTimeout(poll, this.connection.poll_interval?.() || 5e3);
+            }
+          };
+          void poll();
+          return { close, on() {
+            return this;
+          } };
+        }
+      };
+    }
+    root = "";
+    cache_root;
+    fs;
+    metadata = /* @__PURE__ */ new Map();
+    names = /* @__PURE__ */ new Map();
+    snapshots = /* @__PURE__ */ new Map();
+    preparing = /* @__PURE__ */ new Map();
+    git_tail = Promise.resolve();
+    watchers = /* @__PURE__ */ new Set();
+    disposed = false;
+    owns(path) {
+      if (typeof path !== "string") return false;
+      const relative2 = this.path_api.relative(this.cache_root, path);
+      return relative2 !== ".." && !relative2.startsWith(".." + this.path_api.sep) && !this.path_api.isAbsolute(relative2);
+    }
+    remote_path(path) {
+      if (!this.owns(path)) throw Error("\u8DEF\u5F84\u4E0D\u5C5E\u4E8E\u6B64SSH\u4E3B\u673A");
+      return "/" + this.path_api.relative(this.cache_root, path).split(this.path_api.sep).join("/");
+    }
+    local_path(path) {
+      if (typeof path !== "string" || !path.startsWith("/") || path.includes("\0")) throw Error("\u8FDC\u7A0B\u8DEF\u5F84\u65E0\u6548");
+      const normalized2 = this.path_api.posix.normalize(path), parts = normalized2.split("/").filter(Boolean);
+      if (this.path_api.sep === "\\" && parts.some((part) => /[<>:"\\|?*\x00-\x1f]/u.test(part) || /[ .]$/u.test(part) || /^(con|prn|aux|nul|com[1-9]|lpt[1-9])(?:\.|$)/iu.test(part))) throw Error("\u6B64\u8FDC\u7A0B\u540D\u79F0\u65E0\u6CD5\u4EA4\u7ED9Windows\u539F\u751F\u7F16\u8F91\u5668\uFF0C\u672A\u6539\u5199\u6216\u5408\u5E76\u6587\u4EF6\u540D\u3002");
+      const local = this.path_api.join(this.cache_root, ...parts), key2 = this.path_api.sep === "\\" ? local.toLowerCase() : local;
+      const prior = this.names.get(key2);
+      if (prior && prior !== normalized2) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u5B58\u5728\u4EC5\u5927\u5C0F\u5199\u4E0D\u540C\u7684\u540D\u79F0\uFF0C\u5BBF\u4E3B\u7F13\u5B58\u4E0D\u80FD\u5408\u5E76\u8FD9\u4E24\u4E2A\u6587\u4EF6\u3002");
+      this.names.set(key2, normalized2);
+      return local;
+    }
+    call(operation, values) {
+      if (this.disposed || !this.connection.connected()) throw Error("SSH\u5DF2\u65AD\u5F00\uFF1B\u8349\u7A3F\u4FDD\u7559\uFF0C\u8BF7\u91CD\u8FDE\u539F\u4E3B\u673A\u540E\u91CD\u8BD5\u3002");
+      return this.connection.request(operation, values);
+    }
+    async mount(path) {
+      const local = this.local_path(path);
+      if (!(await this.fs.promises.stat(local)).isDirectory()) throw Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u8FDC\u7A0B\u6587\u4EF6\u5939");
+      await this.native_fs.promises.mkdir(local, { recursive: true });
+      return local;
+    }
+    prepare(path, force = false, valid = () => true) {
+      let pending = this.preparing.get(path);
+      if (pending) return pending.then(() => {
+        if (this.disposed || !valid()) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002");
+        if (force) return this.prepare(path, true, valid);
+      });
+      pending = (async () => {
+        if (this.snapshots.has(path) && !force) {
+          if (!this.metadata.has(path)) await this.fs.promises.stat(path);
+          return;
+        }
+        const snapshot = await this.call("read", { path: this.remote_path(path) });
+        await this.fs.promises.stat(path);
+        await this.native_fs.promises.mkdir(this.path_api.dirname(path), { recursive: true });
+        if (this.disposed || !valid()) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u8BFB\u53D6\u5DF2\u53D6\u6D88\u3002");
+        await this.native_fs.promises.writeFile(path, this.buffer_api.from(snapshot.data, "base64"));
+        this.snapshots.set(path, snapshot);
+      })().finally(() => this.preparing.delete(path));
+      this.preparing.set(path, pending);
+      return pending;
+    }
+    prepared(path) {
+      return this.snapshots.has(path);
+    }
+    dispose() {
+      this.disposed = true;
+      for (const close of [...this.watchers]) close();
+    }
+    trash(path) {
+      return this.call("filesystem", { action: "trash", path: this.remote_path(path) });
+    }
+    async save_native(path, text3, bytes) {
+      const snapshot = this.snapshots.get(path);
+      if (!snapshot) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u4FDD\u5B58\u57FA\u7EBF\u4E0D\u5B58\u5728\uFF0C\u672A\u5199\u5165\u7F13\u5B58\u3002");
+      const original = this.buffer_api.from(snapshot.data, "base64");
+      const bom = original[0] === 239 && original[1] === 187 && original[2] === 191;
+      const data = (bytes ? this.buffer_api.from(bytes) : this.buffer_api.from((bom ? "\uFEFF" : "") + text3, "utf8")).toString("base64");
+      const saved = await this.call("write", { path: this.remote_path(path), version: snapshot.version, data });
+      this.snapshots.set(path, { data, version: saved.version });
+    }
+    git(cwd2, args, env2, writable, input, signal) {
+      const mapped = args.map((arg) => {
+        const prefix = arg.startsWith("--output=") ? "--output=" : "", value = prefix ? arg.slice(prefix.length) : arg;
+        if (this.path_api.isAbsolute(value) && this.owns(value)) return prefix + this.remote_path(value);
+        if (/^[a-z]:[\\/]/iu.test(value)) throw Error("\u8FDC\u7A0BGit\u4E0D\u80FD\u4F7F\u7528\u672C\u5730\u78C1\u76D8\u8DEF\u5F84\uFF0C\u8BF7\u9009\u62E9\u8FDC\u7A0B\u5DE5\u4F5C\u533A\u8DEF\u5F84\u3002");
+        return arg;
+      });
+      const token = globalThis.crypto.randomUUID();
+      const cancel = () => {
+        void Promise.resolve().then(() => this.call("cancel_git", { token })).catch(() => {
+        });
+      };
+      const pending = this.git_tail.catch(() => {
+      }).then(async () => {
+        if (signal?.aborted) throw Error("\u8FDC\u7A0BGit\u5DF2\u53D6\u6D88");
+        signal?.addEventListener("abort", cancel, { once: true });
+        try {
+          return await this.call("git", { path: this.remote_path(cwd2), args: mapped, env: env2, writable, input, token });
+        } finally {
+          signal?.removeEventListener("abort", cancel);
+        }
+      });
+      this.git_tail = pending;
+      return pending.then((result) => this.buffer_api.from(result.data, "base64"));
+    }
+  };
+  function workspace_resource_fs(native_fs) {
+    const route = (owner, key2, promise) => {
+      const original = owner[key2];
+      return (...args) => {
+        const provider = typeof args[0] === "string" ? remote_files_for(args[0]) : void 0;
+        if (!provider) {
+          assert_remote_owner(args[0]);
+          return original.apply(owner, args);
+        }
+        const method = (promise ? provider.fs.promises : provider.fs)[key2];
+        if (!method) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u652F\u6301\u6B64\u64CD\u4F5C\uFF1A" + key2);
+        return method(...args);
+      };
+    };
+    const promises = new Proxy(native_fs.promises, { get: (owner, key2) => typeof owner[key2] === "function" ? route(owner, key2, true) : owner[key2] });
+    return new Proxy(native_fs, { get: (owner, key2) => key2 === "promises" ? promises : typeof owner[key2] === "function" ? route(owner, key2, false) : owner[key2] });
+  }
+
   // src/file_language.ts
   var FILE_LANGUAGE_RULES = [
     { language: "markdown", label: "Markdown", suffixes: [".md", ".markdown", ".mdown", ".mkdn", ".mkd"] },
@@ -161894,13 +162177,26 @@ https://creativecommons.org/licenses/by/4.0/
     if (is_source_file_uri(target) && !decoded) return;
     const candidate = /^file:/iu.test(target) ? file_url_path(path_api, target) : decoded ?? target;
     if (!candidate || candidate.startsWith("typ://") || !is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return;
+    const remote = remote_files_for(context_root);
+    if (remote && !path_api.isAbsolute(candidate)) return remote.local_path(remote.path_api.posix.resolve(remote.remote_path(context_root), candidate.replace(/\\/gu, "/")));
     if (path_api.isAbsolute(candidate)) return is_platform_absolute_file(candidate, path_api) ? path_api.resolve(candidate) : void 0;
     if (is_absolute_file(candidate) || !is_platform_absolute_file(context_root, path_api)) return;
     return path_api.resolve(context_root, candidate);
   }
   function resolve_host_open_file_target(path_api, source_file, target) {
     const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
+    const remote = remote_files_for(source_file);
+    if (remote && candidate.startsWith("file:")) {
+      try {
+        const url = new URL(candidate);
+        if ((!url.hostname || url.hostname === "localhost") && !url.username && !url.password && !url.search && !/%2f|%5c/iu.test(url.pathname) && !/^\/[a-z]:\//iu.test(url.pathname)) return remote.local_path(decodeURIComponent(url.pathname)) + url.hash;
+      } catch {
+        return candidate;
+      }
+    }
+    if (remote && candidate.startsWith("/") && !candidate.startsWith("//")) return remote.local_path(candidate);
     if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
+    if (remote && !path_api.isAbsolute(candidate)) return remote.local_path(remote.path_api.posix.resolve(remote.path_api.posix.dirname(remote.remote_path(source_file)), candidate.replace(/\\/gu, "/")));
     return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
   }
   function parse_markdown_file_target(target) {
@@ -161973,6 +162269,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_native_trash.ts
   async function trash_native_path(runtime2, target) {
+    const remote = remote_files_for(target);
+    if (remote) {
+      await remote.trash(target);
+      return;
+    }
     const fs2 = runtime2.reqnode("fs").promises;
     if (runtime2.JSBridge?.invoke) {
       if (await runtime2.JSBridge.invoke("shell.trashItem", target) !== true) {
@@ -163625,6 +163926,36 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/remote_workspace_clipboard.ts
+  function create_resource_file_clipboard(reqnode) {
+    const native = create_platform_file_clipboard(reqnode), clipboard = reqnode("electron").clipboard, buffer = reqnode("buffer").Buffer;
+    const format3 = "application/x-typora-code-remote-files";
+    return {
+      async read() {
+        if (!clipboard.availableFormats().includes(format3)) return native.read();
+        const raw = clipboard.readBuffer(format3);
+        if (raw.length > 1024 * 1024) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u526A\u8D34\u677F\u5185\u5BB9\u8FC7\u5927");
+        const value = JSON.parse(raw.toString("utf8"));
+        if (!Array.isArray(value.paths) || value.paths.some((path) => typeof path !== "string" || !remote_files_for(path))) throw Error("\u8BF7\u5148\u8FDE\u63A5\u8FD9\u4E9B\u6587\u4EF6\u6240\u5C5E\u7684SSH\u4E3B\u673A\u3002");
+        return value;
+      },
+      async write(paths) {
+        if (!paths.some((path) => remote_files_for(path))) return native.write(paths);
+        if (paths.some((path) => !remote_files_for(path))) throw Error("\u8BF7\u5206\u522B\u590D\u5236\u672C\u5730\u548C\u8FDC\u7A0B\u6587\u4EF6\u3002");
+        const snapshot = { paths: [...paths], version: crypto.randomUUID(), move_requested: false };
+        clipboard.writeBuffer(format3, buffer.from(JSON.stringify(snapshot), "utf8"));
+        return snapshot;
+      },
+      async clear(version) {
+        if (clipboard.availableFormats().includes(format3)) return false;
+        return native.clear(version);
+      },
+      dispose() {
+        native.dispose();
+      }
+    };
+  }
+
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
@@ -163790,7 +164121,7 @@ https://creativecommons.org/licenses/by/4.0/
     const selected = normalized2.filter((source) => !normalized2.some((parent) => parent !== source && within2(path_api, parent, source, false)));
     const plans = [], targets = /* @__PURE__ */ new Set();
     for (const source of selected) {
-      const source_root = external ? path_api.parse(source).root : root;
+      const source_root = external ? remote_files_for(source)?.cache_root || path_api.parse(source).root : root;
       validate_name(path_api, path_api.basename(source));
       const entry = await check_entry(modules, source_root, source, false), target = path_api.join(destination.path, path_api.basename(source));
       if (entry.stat.isDirectory() && within2(path_api, source, destination.path)) throw new Error("\u4E0D\u80FD\u628A\u6587\u4EF6\u5939\u590D\u5236\u6216\u79FB\u5165\u81EA\u8EAB\u3002");
@@ -164380,13 +164711,13 @@ https://creativecommons.org/licenses/by/4.0/
   registerEditorAction(GrowSelectionAction);
   registerEditorAction(ShrinkSelectionAction);
   async function provideSelectionRanges(registry, model, positions, options2, token) {
-    const providers2 = registry.all(model).concat(new WordSelectionRangeProvider(options2.selectSubwords));
-    if (providers2.length === 1) {
-      providers2.unshift(new BracketSelectionRangeProvider());
+    const providers3 = registry.all(model).concat(new WordSelectionRangeProvider(options2.selectSubwords));
+    if (providers3.length === 1) {
+      providers3.unshift(new BracketSelectionRangeProvider());
     }
     const work = [];
     const allRawRanges = [];
-    for (const provider of providers2) {
+    for (const provider of providers3) {
       work.push(Promise.resolve(provider.provideSelectionRanges(model, positions, token)).then((allProviderRanges) => {
         if (isNonEmptyArray(allProviderRanges) && allProviderRanges.length === positions.length) {
           for (let i = 0; i < positions.length; i++) {
@@ -173014,20 +173345,20 @@ https://creativecommons.org/licenses/by/4.0/
         pasteOnNewLine: e.dataToCopy.isFromEmptySelection,
         mode: null
       };
-      const providers2 = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
-      if (!providers2.length) {
+      const providers3 = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
+      if (!providers3.length) {
         this.setCopyMetadata(e.clipboardData, { defaultPastePayload });
         return;
       }
       const dataTransfer = new VSDataTransfer();
-      const providerCopyMimeTypes = providers2.flatMap((x) => x.copyMimeTypes ?? []);
+      const providerCopyMimeTypes = providers3.flatMap((x) => x.copyMimeTypes ?? []);
       const handle = generateUuid();
       this.setCopyMetadata(e.clipboardData, {
         id: handle,
         providerCopyMimeTypes,
         defaultPastePayload
       });
-      const operations = providers2.map((provider) => {
+      const operations = providers3.map((provider) => {
         return {
           providerMimeTypes: provider.copyMimeTypes,
           operation: createCancelablePromise((token) => provider.prepareDocumentPaste(model, e.dataToCopy.sourceRanges, dataTransfer, token).catch((err) => {
@@ -173327,9 +173658,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
     }
-    async getPasteEdits(providers2, dataTransfer, model, selections, context, token) {
+    async getPasteEdits(providers3, dataTransfer, model, selections, context, token) {
       const disposables = new DisposableStore();
-      const results = await raceCancellation(Promise.all(providers2.map(async (provider) => {
+      const results = await raceCancellation(Promise.all(providers3.map(async (provider) => {
         try {
           const edits2 = await provider.provideDocumentPasteEdits?.(model, selections, dataTransfer, context, token);
           if (edits2) {
@@ -175359,9 +175690,9 @@ https://creativecommons.org/licenses/by/4.0/
   var foldingContext = {};
   var ID_SYNTAX_PROVIDER = "syntax";
   var SyntaxRangeProvider = class {
-    constructor(editorModel, providers2, handleFoldingRangesChange, foldingRangesLimit, fallbackRangeProvider) {
+    constructor(editorModel, providers3, handleFoldingRangesChange, foldingRangesLimit, fallbackRangeProvider) {
       this.editorModel = editorModel;
-      this.providers = providers2;
+      this.providers = providers3;
       this.handleFoldingRangesChange = handleFoldingRangesChange;
       this.foldingRangesLimit = foldingRangesLimit;
       this.fallbackRangeProvider = fallbackRangeProvider;
@@ -175370,7 +175701,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (fallbackRangeProvider) {
         this.disposables.add(fallbackRangeProvider);
       }
-      for (const provider of providers2) {
+      for (const provider of providers3) {
         if (typeof provider.onDidChange === "function") {
           this.disposables.add(provider.onDidChange(handleFoldingRangesChange));
         }
@@ -175392,9 +175723,9 @@ https://creativecommons.org/licenses/by/4.0/
       this.disposables.dispose();
     }
   };
-  function collectSyntaxRanges(providers2, model, cancellationToken) {
+  function collectSyntaxRanges(providers3, model, cancellationToken) {
     let rangeData = null;
-    const promises = providers2.map((provider, i) => {
+    const promises = providers3.map((provider, i) => {
       return Promise.resolve(provider.provideFoldingRanges(model, foldingContext, cancellationToken)).then((ranges2) => {
         if (cancellationToken.isCancellationRequested) {
           return;
@@ -176735,9 +177066,9 @@ https://creativecommons.org/licenses/by/4.0/
     const indentRangeProvider = new IndentRangeProvider(model, languageConfigurationService, foldingLimitReporter);
     let rangeProvider = indentRangeProvider;
     if (strategy !== "indentation") {
-      const providers2 = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
-      if (providers2.length) {
-        rangeProvider = new SyntaxRangeProvider(model, providers2, () => {
+      const providers3 = FoldingController.getFoldingRangeProviders(languageFeaturesService, model);
+      if (providers3.length) {
+        rangeProvider = new SyntaxRangeProvider(model, providers3, () => {
         }, foldingLimitReporter, indentRangeProvider);
       }
     }
@@ -181936,6 +182267,8 @@ https://creativecommons.org/licenses/by/4.0/
         const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target);
         if (!resolved) throw new Error("\u65E0\u6CD5\u89E3\u6790\u76EE\u6807 Markdown \u8DEF\u5F84\u3002");
         path = resolved;
+        assert_remote_owner(path);
+        await remote_files_for(path)?.prepare(path, false, () => !disposed && !signal.aborted);
         const fs2 = runtime2.reqnode("fs");
         if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
       }
@@ -182270,6 +182603,140 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_files.css
   var workspace_files_default = "";
 
+  // src/remote_workspace_picker.ts
+  function choose_remote_resource(directory, save_path) {
+    const provider = active_remote_files();
+    if (!provider) throw Error("\u5F53\u524D\u6CA1\u6709SSH\u5DE5\u4F5C\u533A");
+    return new Promise((resolve3) => {
+      let result, disposed = false, epoch2 = 0, current = save_path && provider.owns(save_path) ? provider.path_api.dirname(save_path) : provider.root || provider.local_path("/"), selected = "";
+      const dialog2 = workspace_dialog(save_path ? "\u53E6\u5B58\u4E3A\u8FDC\u7A0B\u6587\u4EF6" : directory ? "\u6253\u5F00\u8FDC\u7A0B\u6587\u4EF6\u5939" : "\u6253\u5F00\u8FDC\u7A0B\u6587\u4EF6", "\u53D6\u6D88", () => {
+        disposed = true;
+        ++epoch2;
+        resolve3(result);
+      });
+      const path = workspace_element("input"), status2 = workspace_element("p"), list3 = workspace_element("div", "workspace-ssh-list"), toolbar = workspace_element("div", "workspace-ssh-toolbar");
+      const filename = workspace_element("input");
+      filename.setAttribute("aria-label", "\u6587\u4EF6\u540D");
+      filename.value = save_path ? provider.path_api.basename(save_path) : "";
+      path.setAttribute("aria-label", "\u8FDC\u7A0B\u8DEF\u5F84");
+      status2.setAttribute("role", "status");
+      list3.setAttribute("role", "list");
+      let checking = false;
+      const accept = workspace_button(save_path ? "\u4FDD\u5B58" : "\u6253\u5F00", () => {
+        void (async () => {
+          if (disposed || checking) return;
+          if (save_path) {
+            if (!filename.value || filename.value === "." || filename.value === ".." || /[\/\\\0]/u.test(filename.value)) {
+              status2.textContent = "\u8BF7\u8F93\u5165\u5355\u4E2A\u6709\u6548\u6587\u4EF6\u540D\u3002";
+              return;
+            }
+            selected = provider.local_path(provider.path_api.posix.join(provider.remote_path(current), filename.value));
+          }
+          if (!selected) return;
+          const target = selected, generation = epoch2;
+          checking = true;
+          accept.disabled = true;
+          try {
+            if (save_path) {
+              let exists = false;
+              try {
+                const stat = await provider.fs.promises.lstat(target);
+                if (!stat.isFile() || stat.isSymbolicLink()) throw Error("\u76EE\u6807\u4E0D\u662F\u53EF\u8986\u76D6\u7684\u666E\u901A\u6587\u4EF6\u3002");
+                exists = true;
+              } catch (error) {
+                if (error.code !== "ENOENT") throw error;
+              }
+              if (disposed || generation !== epoch2) return;
+              if (exists && target !== save_path) {
+                const confirmed = await new Promise((resolve4) => {
+                  let value = false;
+                  const confirm2 = workspace_dialog("\u66FF\u6362\u8FDC\u7A0B\u6587\u4EF6", "\u53D6\u6D88", () => resolve4(value));
+                  confirm2.content.append(workspace_element("p", "", provider.remote_path(target) + " \u5DF2\u5B58\u5728\u3002\u66FF\u6362\u5C06\u8986\u76D6\u8BE5\u6587\u4EF6\u5185\u5BB9\u3002"));
+                  confirm2.footer.prepend(workspace_button("\u66FF\u6362", () => {
+                    value = true;
+                    confirm2.close();
+                  }));
+                });
+                if (!confirmed || disposed || generation !== epoch2) return;
+              }
+            }
+            result = target;
+            dialog2.close();
+          } finally {
+            checking = false;
+            if (!disposed) accept.disabled = false;
+          }
+        })().catch((error) => {
+          if (!disposed) status2.textContent = String(error.message);
+        });
+      });
+      accept.disabled = true;
+      dialog2.footer.prepend(accept);
+      const browse = async (value) => {
+        const generation = ++epoch2;
+        selected = "";
+        accept.disabled = true;
+        status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0B\u76EE\u5F55\u2026";
+        list3.replaceChildren();
+        try {
+          const entries3 = await provider.fs.promises.readdir(value, { withFileTypes: true });
+          if (disposed || generation !== epoch2) return;
+          current = value;
+          path.value = provider.remote_path(value);
+          selected = directory ? current : "";
+          accept.disabled = !save_path && !selected;
+          const visible3 = entries3.filter((entry) => !directory || entry.isDirectory());
+          let shown = 0;
+          const more = workspace_button("\u663E\u793A\u66F4\u591A", () => append_batch());
+          const append_batch = () => {
+            if (disposed || generation !== epoch2) return;
+            more.remove();
+            const fragment = document.createDocumentFragment(), end = Math.min(shown + 200, visible3.length);
+            for (; shown < end; shown++) {
+              const entry = visible3[shown];
+              const target = provider.path_api.join(current, entry.name), row = workspace_button("", () => {
+                if (entry.isDirectory()) void browse(target);
+                else {
+                  selected = target;
+                  if (save_path) filename.value = entry.name;
+                  accept.disabled = false;
+                  for (const item of list3.children) item.classList.toggle("active", item === row);
+                }
+              }, "workspace-ssh-row");
+              row.append(entry.isDirectory() ? git_icon("chevron-right") : workspace_file_icon(entry.name), workspace_element("span", "", entry.name));
+              if (!entry.isDirectory() && !save_path) row.ondblclick = () => {
+                selected = target;
+                result = selected;
+                dialog2.close();
+              };
+              fragment.append(row);
+            }
+            list3.append(fragment);
+            if (shown < visible3.length) list3.append(more);
+          };
+          append_batch();
+          status2.textContent = visible3.length ? "" : "\u6B64\u76EE\u5F55\u4E3A\u7A7A";
+        } catch (error) {
+          if (!disposed && generation === epoch2) status2.textContent = String(error.message);
+        }
+      };
+      toolbar.append(workspace_button("\u4E0A\u4E00\u7EA7", () => void browse(current === provider.cache_root ? current : provider.path_api.dirname(current))), workspace_button("\u5237\u65B0", () => void browse(current)));
+      path.onkeydown = (event) => {
+        if (event.key === "Enter" && !event.isComposing) {
+          event.preventDefault();
+          try {
+            void browse(provider.local_path(path.value));
+          } catch (error) {
+            status2.textContent = String(error.message);
+          }
+        }
+      };
+      dialog2.content.append(path, toolbar, status2, list3);
+      if (save_path) dialog2.content.append(filename);
+      void browse(current);
+    });
+  }
+
   // src/workspace_files.ts
   var FILES_BINDING = Symbol.for("linux-note.workspace-files@v1");
   var active_host;
@@ -182285,9 +182752,10 @@ https://creativecommons.org/licenses/by/4.0/
       return existing_binding.host;
     }
     const runtime2 = window;
-    const fs2 = runtime2.reqnode("fs");
+    const fs2 = workspace_resource_fs(runtime2.reqnode("fs"));
     const path_api = runtime2.reqnode("path");
     const shell = runtime2.reqnode("electron").shell;
+    if (runtime2._options?.userDataPath) protect_remote_cache(path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache"), path_api);
     let native_app_open_file = core.app.openFile;
     const style = acquire_workspace_style("typora-code-style:workspace_files", workspace_files_default, {});
     const group_locations = /* @__PURE__ */ new Map();
@@ -182395,7 +182863,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (source_path) return source_path;
       return "";
     };
-    const context_root = () => runtime2.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || "");
+    const context_root = () => active_remote_files()?.root || (runtime2.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || ""));
     class source_file_view extends core.WorkspaceView {
       navigation_id = next_navigation_id--;
       containerEl = workspace_element("section", "linux-note-source-file");
@@ -182587,7 +183055,7 @@ https://creativecommons.org/licenses/by/4.0/
         } catch (error) {
           if (this.disposed) return;
           this.status.textContent = "\u65E0\u6CD5\u4F5C\u4E3A\u6587\u672C\u9884\u89C8";
-          if (!this.editor) this.body.replaceChildren(workspace_element("p", "workspace-file-notice", String(error)), workspace_button("\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00", () => void shell.openPath(this.file_path)));
+          if (!this.editor) this.body.replaceChildren(workspace_element("p", "workspace-file-notice", String(error)), ...!remote_files_for(this.file_path) ? [workspace_button("\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00", () => void shell.openPath(this.file_path))] : []);
           else this.status.textContent = String(error);
         } finally {
           const status2 = this.status.textContent;
@@ -182678,7 +183146,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.saving = true;
         this.refresh_shared();
         try {
-          const result = await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u53E6\u5B58\u4E3A", defaultPath: this.file_path, properties: ["showOverwriteConfirmation"], filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] });
+          const result = remote_files_for(this.file_path) ? { filePath: await choose_remote_resource(false, this.file_path) } : await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u53E6\u5B58\u4E3A", defaultPath: this.file_path, properties: ["showOverwriteConfirmation"], filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] });
           if (this.disposed || core.app.workspace.activeLeaf !== this.leaf || result?.canceled || !result?.filePath) return false;
           if (!path_api.isAbsolute(result.filePath)) throw new Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u4FDD\u5B58\u8DEF\u5F84\u65E0\u6548\u3002");
           const target = path_api.normalize(result.filePath);
@@ -182822,7 +183290,7 @@ https://creativecommons.org/licenses/by/4.0/
           { title: "\u4FDD\u5B58\u6587\u4EF6\uFF08Ctrl+S\uFF09", action: () => void this.save() },
           { title: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", action: () => void this.save_as() },
           { title: "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", action: () => this.confirm_reload() },
-          { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => shell.showItemInFolder(this.file_path) },
+          { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => remote_files_for(this.file_path) ? core.app.commands.run("linux_note:reveal_in_explorer", [this.file_path, context_root()]) : shell.showItemInFolder(this.file_path) },
           ...is_markdown_file(this.file_path) ? [{ title: "\u6253\u5F00 Markdown \u6E32\u67D3", action: () => {
             if (this.dirty()) {
               this.status.textContent = "\u8BF7\u5148\u4FDD\u5B58\u6E90\u7801\u4FEE\u6539\uFF0C\u518D\u6253\u5F00 Markdown \u6E32\u67D3\u3002";
@@ -182874,6 +183342,16 @@ https://creativecommons.org/licenses/by/4.0/
       const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
       if (!resolved_path) throw new Error("\u65E0\u6CD5\u89E3\u6790\u6587\u4EF6\u8DEF\u5F84\u3002");
       file_path = resolved_path;
+      const epoch2 = workspace_context_epoch(), valid = () => binding.active && !workspace_context_switching() && epoch2 === workspace_context_epoch() && !location.signal?.aborted;
+      const remote = remote_files_for(file_path);
+      if (remote) {
+        let opened = false;
+        core.app.workspace.eachLeaves((leaf2) => {
+          if (file_key(real_path(leaf2)) === file_key(file_path)) opened = true;
+        });
+        await remote.prepare(file_path, !opened, valid);
+        if (!valid()) throw Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
+      }
       if (!fs2.statSync(file_path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
       notify_navigation_selection();
       if (is_markdown_file(file_path) && !location.source) {
@@ -182976,6 +183454,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (typeof target === "string" && parse_markdown_file_target(target)) {
         const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime2.File?.bundle?.filePath || "";
         const markdown = resolve_markdown_file_target(path_api, context_root(), resolve_host_open_file_target(path_api, source, target));
+        const remote = markdown && remote_files_for(markdown.file_path);
+        if (markdown && remote && !remote.prepared(markdown.file_path)) {
+          const epoch2 = workspace_context_epoch(), valid = () => binding.active && epoch2 === workspace_context_epoch() && !workspace_context_switching();
+          return remote.prepare(markdown.file_path, false, valid).then(() => {
+            if (valid()) return routed_library_open_file.call(this, target, ...args);
+          });
+        }
         if (!markdown || !fs2.statSync(markdown.file_path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
         const active_group = core.app.workspace.activeLeaf?.parent;
         let existing_in_group = false;
@@ -183005,14 +183490,14 @@ https://creativecommons.org/licenses/by/4.0/
     const copy = (text3) => {
       if (file_clipboard.is_busy()) throw new Error("\u6587\u4EF6\u526A\u8D34\u677F\u6B63\u5728\u5904\u7406\uFF0C\u8BF7\u7A0D\u540E\u590D\u5236\u8DEF\u5F84\u3002");
       file_clipboard.invalidate();
-      runtime2.reqnode("electron").clipboard.writeText(text3);
+      runtime2.reqnode("electron").clipboard.writeText(remote_files_for(text3)?.remote_path(text3) || text3);
     };
     const file_menu = (event, file_path) => workspace_menu(event, [
       { title: "\u6253\u5F00\u6587\u4EF6", action: () => void open_file(file_path) },
       { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => void open_file(file_path, {}, "right") },
       { title: "\u590D\u5236\u8DEF\u5F84", action: () => copy(file_path) },
       { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", action: () => copy(path_api.relative(context_root(), file_path)) },
-      { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => shell.showItemInFolder(file_path) }
+      { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => remote_files_for(file_path) ? core.app.commands.run("linux_note:reveal_in_explorer", [file_path, context_root()]) : shell.showItemInFolder(file_path) }
     ]);
     const relocate_file = async (root, old_path, name, moving = false) => {
       if (renaming || runtime2.File?._onFileSwitching || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
@@ -183206,16 +183691,69 @@ https://creativecommons.org/licenses/by/4.0/
     const save_as_active = async () => {
       const source = active_source_view();
       if (source) return source.save_as();
+      const old_path = runtime2.File?.bundle?.filePath || "", remote = remote_files_for(old_path) || (!old_path ? active_remote_files() : void 0);
+      if (remote) {
+        if (!native_ready() || typeof runtime2.File?.saveAsUseNode !== "function") return false;
+        const leaf = core.app.workspace.activeLeaf, epoch2 = workspace_context_epoch();
+        const target = await choose_remote_resource(false, old_path || path_api.join(remote.root, "Untitled.md"));
+        if (!target) return false;
+        if (!native_ready() || core.app.workspace.activeLeaf !== leaf || epoch2 !== workspace_context_epoch()) return false;
+        if (target === old_path) return save_active();
+        let opened = false;
+        core.app.workspace.eachLeaves((item) => {
+          if (item !== leaf && file_key(real_path(item)) === file_key(target)) opened = true;
+        });
+        if (opened) throw Error("\u76EE\u6807\u6587\u4EF6\u5DF2\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u6807\u7B7E\u7684\u4FEE\u6539\u3002");
+        const text3 = runtime2.File.editor.getMarkdown(), valid = () => binding.active && core.app.workspace.activeLeaf === leaf && (runtime2.File.bundle.filePath || "") === old_path && runtime2.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
+        await save_text_document_as({ fs: fs2, path_api }, target, text3, { text: text3, encoding: "utf-8", bom: false, eol: "LF" });
+        if (!valid()) return false;
+        await remote.prepare(target, true, valid);
+        if (!valid()) return false;
+        const error = await runtime2.File.saveAsUseNode(target);
+        if (error) throw error;
+        return true;
+      }
       if (!native_ready() || !runtime2.ClientCommand?.saveAs) return false;
       await Promise.resolve(runtime2.ClientCommand.saveAs());
       return true;
     };
     const reload_active = () => {
       const source = active_source_view();
-      if (source) source.confirm_reload();
-      else if (native_ready()) runtime2.ClientCommand?.reloadFromDisk?.();
+      if (source) {
+        source.confirm_reload();
+        return;
+      }
+      if (!native_ready()) return;
+      const path = runtime2.File?.bundle?.filePath || "", remote = remote_files_for(path);
+      if (!remote) {
+        runtime2.ClientCommand?.reloadFromDisk?.();
+        return;
+      }
+      const reload = async () => {
+        const text3 = runtime2.File.editor.getMarkdown(), epoch2 = workspace_context_epoch();
+        const valid = () => native_ready() && runtime2.File.bundle.filePath === path && runtime2.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
+        await remote.prepare(path, true, valid);
+        if (valid()) await runtime2.File.reloadFromDisk(true);
+      };
+      const perform = () => void reload().catch((error) => new core.Notice(String(error.message), 6e3));
+      if (runtime2.File?.changeCounter?.isDocumentEdited()) {
+        const dialog2 = workspace_dialog("\u91CD\u65B0\u52A0\u8F7D\u8FDC\u7A0B\u6587\u4EF6");
+        dialog2.content.append(workspace_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6587\u6863\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
+        dialog2.footer.prepend(workspace_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
+          dialog2.close();
+          perform();
+        }));
+      } else perform();
     };
     const save_all = async () => {
+      if (active_remote_files()) {
+        const leaves = [];
+        core.app.workspace.eachLeaves((leaf) => {
+          if (editor_state(leaf).dirty) leaves.push(leaf);
+        });
+        for (const leaf of leaves) if (!await save_leaf(leaf)) return false;
+        return true;
+      }
       const owners = /* @__PURE__ */ new Set();
       const source_saves = [...views].filter((view) => {
         if (view.disposed || !view.dirty() || owners.has(view.shared)) return false;
@@ -183920,7 +184458,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const create_entry = (root, parent, name, directory) => file_operation(() => create_workspace_entry({ fs: fs2, path_api }, root, parent, name, directory));
-    const file_clipboard = create_workspace_file_clipboard(create_platform_file_clipboard((name) => runtime2.reqnode(name)), {
+    const file_clipboard = create_workspace_file_clipboard(create_resource_file_clipboard((name) => runtime2.reqnode(name)), {
       validate: (root, paths) => file_operation(() => validate_workspace_entries({ fs: fs2, path_api }, root, paths)),
       transfer: (root, paths, target, move, external) => file_operation(() => transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, move ? move_file : void 0, external))
     });
@@ -185031,7 +185569,7 @@ https://creativecommons.org/licenses/by/4.0/
       names.add(item.name);
     }
   }
-  function create_pull_request_url(config, branch, providers2) {
+  function create_pull_request_url(config, branch, providers3) {
     if (!branch || !config.destination_branch) throw new Error(git_graph_text("pr.error.branches_required"));
     const host = parse_url(config.host);
     if (!["https:", "http:"].includes(host.protocol) || host.username || host.password || host.search || host.hash) throw new Error(git_graph_text("pr.error.host_invalid"));
@@ -185062,7 +185600,7 @@ https://creativecommons.org/licenses/by/4.0/
       url2.searchParams.set("dest", "".concat(config.destination_owner, "/").concat(config.destination_repository, "::").concat(config.destination_branch));
       result = url2.href;
     } else {
-      const provider = providers2.find((item) => item.name === config.provider);
+      const provider = providers3.find((item) => item.name === config.provider);
       if (!provider) throw new Error(git_graph_text("pr.error.provider_unavailable"));
       result = provider.template_url.replace(/\$([1-8])/gu, (_2, index) => fields[Number(index) - 1]);
     }
@@ -198734,7 +199272,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (lifetime.disposed || workspace_context_switching()) return;
         if (!launch_profile && !local) {
           const remote = require_remote_terminal_context();
-          if (remote) launch_profile = ssh_profile(remote.target, remote.remote_path);
+          if (remote) launch_profile = ssh_profile(remote.target, explicit_cwd && remote_files_for(root) ? remote_files_for(root).remote_path(root) : remote.remote_path);
         }
         if (launch_profile?.remote) {
           root = runtime2._options.userDataPath;
@@ -199026,6 +199564,27 @@ https://creativecommons.org/licenses/by/4.0/
   async function append_git_ignore(modules, run, root, file) {
     const { fs: fs2, path_api } = modules;
     const rule = exact_ignore_rule(file);
+    if (remote_files_for(root)) {
+      const real_root2 = await fs2.promises.realpath(root), target = path_api.resolve(real_root2, file), resolved = await fs2.promises.realpath(target), relative2 = path_api.relative(real_root2, resolved);
+      if (!relative2 || relative2 === ".." || relative2.startsWith(".." + path_api.sep) || path_api.isAbsolute(relative2)) throw Error(git_graph_text("ignore.outside_repository"));
+      const target_stat = await fs2.promises.lstat(target);
+      if (!target_stat.isFile() || target_stat.isSymbolicLink()) throw Error(git_graph_text("ignore.ordinary_untracked_only"));
+      const ignore_path2 = path_api.join(real_root2, ".gitignore"), document2 = create_text_document(modules, ignore_path2);
+      let value;
+      try {
+        const stat = await fs2.promises.lstat(ignore_path2);
+        if (!stat.isFile() || stat.isSymbolicLink() || stat.nlink !== 1) throw Error(git_graph_text("ignore.ordinary_gitignore_required"));
+        value = await document2.load();
+      } catch (error) {
+        if (error.code !== "ENOENT") throw error;
+      }
+      const content = value?.text || "";
+      if (content.split(/\r?\n/u).includes(rule)) return { rule, changed: false };
+      const newline3 = content.match(/\r?\n/u)?.[0] || "\n", next = content + (content && !content.endsWith("\n") ? newline3 : "") + rule + newline3;
+      if (value) await document2.save(next);
+      else await save_text_document_as(modules, ignore_path2, next, { text: "", encoding: "utf-8", bom: false, eol: "LF" });
+      return { rule, changed: true };
+    }
     if (path_api.sep === "\\" && /[\\:]/u.test(file)) throw new Error(git_graph_text("ignore.invalid_path"));
     const real_root = fs2.realpathSync(root);
     const file_path = path_api.resolve(real_root, file);
@@ -199093,7 +199652,7 @@ https://creativecommons.org/licenses/by/4.0/
       const message_editor = 'sh -c \'todo_file=$(git rev-parse --git-path rebase-merge/done); if test -f "$todo_file"; then tail -n 1 "$todo_file" | { read -r action hash message; if test "$action" = reword && test -n "$message"; then printf "%s\\n" "$message" > "$1"; fi; }; fi\' --';
       const execution_env = { ...env2, GIT_EDITOR: message_editor, ...todo ? { LINUX_NOTE_GIT_REBASE_TODO: todo, GIT_SEQUENCE_EDITOR: sequence_editor } : {} };
       const literal_paths = ["diff", "diff-tree", "add", "reset", "ls-files", "rm", "restore", "clean"].includes(args[0]) || args[0] === "log" && args.indexOf("--") >= 0 && args.indexOf("--") < args.length - 1;
-      const child = modules.child_process.execFile(options2.executable || "git", [
+      const command_args = [
         "--no-pager",
         "--no-replace-objects",
         ...literal_paths ? ["--literal-pathspecs"] : [],
@@ -199108,7 +199667,27 @@ https://creativecommons.org/licenses/by/4.0/
         "-c",
         "log.showSignature=false",
         ...args
-      ], {
+      ];
+      const remote = remote_files_for(cwd2);
+      assert_remote_owner(cwd2);
+      if (remote) {
+        const controller = new AbortController(), job = { kill() {
+          controller.abort();
+        } };
+        children.add(job);
+        void remote.git(cwd2, command_args, execution_env, Boolean(options2.writable), input, controller.signal).then((data) => {
+          if (controller.signal.aborted) throw Error(git_graph_text("runtime.cancelled_or_timed_out"));
+          if (binary) {
+            resolve3(data);
+            return;
+          }
+          let output = data.toString("utf8");
+          if (args[0] === "rev-parse" && args.some((arg) => ["--show-toplevel", "--absolute-git-dir", "--git-dir", "--git-common-dir"].includes(arg))) output = output.split("\n").map((line) => line.startsWith("/") ? remote.local_path(line) : line).join("\n");
+          resolve3(output);
+        }).catch(reject).finally(() => children.delete(job));
+        return;
+      }
+      const child = modules.child_process.execFile(options2.executable || "git", command_args, {
         cwd: cwd2,
         env: execution_env,
         encoding: binary ? null : "utf8",
@@ -202964,7 +203543,7 @@ https://creativecommons.org/licenses/by/4.0/
   var graph_dialog = (title) => workspace_dialog(title, git_graph_text("common.close"));
   function create_graph_host(core) {
     const runtime2 = window;
-    const fs2 = runtime2.reqnode("fs");
+    const fs2 = workspace_resource_fs(runtime2.reqnode("fs"));
     const path_api = runtime2.reqnode("path");
     const process_api = runtime2.reqnode("process");
     const editor_status = bind_workspace_editor_status(core);
@@ -203241,8 +203820,15 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
       },
-      operation(git_dir) {
-        for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) if (fs2.existsSync(path_api.join(git_dir, file))) return operation;
+      async operation(git_dir) {
+        for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) {
+          try {
+            await fs2.promises.lstat(path_api.join(git_dir, file));
+            return operation;
+          } catch (error) {
+            if (error.code !== "ENOENT") throw error;
+          }
+        }
         return "";
       },
       copy(text3) {
@@ -203255,7 +203841,12 @@ https://creativecommons.org/licenses/by/4.0/
       },
       async open_file(root, file, settings) {
         const target = ensure_file_path(root, file);
-        if (!fs2.existsSync(target)) throw new Error(git_graph_text("host.current_file_missing"));
+        try {
+          await fs2.promises.stat(target);
+        } catch (error) {
+          if (error.code === "ENOENT") throw new Error(git_graph_text("host.current_file_missing"));
+          throw error;
+        }
         const file_host = get_workspace_files();
         if (file_host) {
           await file_host.open_file(target, {}, settings.new_tab_group);
@@ -203283,7 +203874,12 @@ https://creativecommons.org/licenses/by/4.0/
         if (revision === EMPTY) return "";
         if (revision === WORKTREE) {
           const target = ensure_file_path(root, file);
-          if (!fs2.existsSync(target)) return "";
+          try {
+            await fs2.promises.lstat(target);
+          } catch (error) {
+            if (error.code === "ENOENT") return "";
+            throw error;
+          }
           const stat = await fs2.promises.lstat(target);
           if (stat.isSymbolicLink()) return fs2.promises.readlink(target);
           if (!stat.isFile()) throw new Error(git_graph_text("host.non_text_comparison"));
@@ -204482,7 +205078,7 @@ https://creativecommons.org/licenses/by/4.0/
   };
 
   // src/git_commit_web.ts
-  var providers = {
+  var providers2 = {
     "github.com": { name: "GitHub", route: "commit" },
     "gitee.com": { name: "Gitee", route: "commit" },
     "gitlab.com": { name: "GitLab", route: "-/commit", nested: true },
@@ -204503,7 +205099,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     if (segments.some((part) => !part || part === "." || part === ".." || /[\x00-\x1f\x7f/\\]/u.test(part))) return;
     try {
-      const parsed = new URL(input), provider = Object.hasOwn(providers, parsed.hostname.toLowerCase()) ? providers[parsed.hostname.toLowerCase()] : void 0;
+      const parsed = new URL(input), provider = Object.hasOwn(providers2, parsed.hostname.toLowerCase()) ? providers2[parsed.hostname.toLowerCase()] : void 0;
       if (!provider || !provider.nested && segments.length !== 2 || segments.length < 2) return;
       if (provider.web_host && parsed.protocol !== "ssh:") return;
       if (parsed.protocol !== "ssh:" && parsed.port) return;
@@ -206460,7 +207056,7 @@ https://creativecommons.org/licenses/by/4.0/
     empty_message = workspace_element("p");
     initialize_button = workspace_button("\u521D\u59CB\u5316\u4ED3\u5E93", () => void this.panel.initialize());
     discover_button = workspace_button("\u67E5\u627E\u5B50\u6587\u4EF6\u5939\u4E2D\u7684\u4ED3\u5E93\u2026", () => this.panel.manage_repositories());
-    retry_button = workspace_button("\u91CD\u8BD5", () => void this.panel.refresh());
+    retry_button = workspace_button("\u91CD\u8BD5", () => void this.panel.refresh(false));
     path_collator = new Intl.Collator();
     set_repository_state(state) {
       if (this.sidebar.dataset.repositoryState === state) return;
@@ -229508,7 +230104,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const first_load = !this.loaded;
-        state.operation = this.host.operation(state.operation);
+        state.operation = await this.host.operation(state.operation);
+        if (epoch2 !== this.epoch) return;
         const repository_paths = this.repository_paths([state.root, ...this.known_repos()]);
         const snapshot = JSON.stringify([state, this.settings, this.branches, this.count, repository_paths]);
         const changed2 = first_load || snapshot !== this.rendered_snapshot;
@@ -229560,11 +230157,11 @@ https://creativecommons.org/licenses/by/4.0/
           this.list.replaceChildren();
           this.workbench.clear_changes();
           this.workbench.history.reset();
-          const missing = is_missing_repository(error);
-          this.workbench.set_repository_state(missing ? "empty" : "error");
-          this.report(missing ? "" : error);
-          if (missing) this.status.textContent = "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002";
-          this.container.dataset.state = missing ? "empty" : "error";
+          const missing2 = is_missing_repository(error);
+          this.workbench.set_repository_state(missing2 ? "empty" : "error");
+          this.report(missing2 ? "" : error);
+          if (missing2) this.status.textContent = "\u5F53\u524D\u6587\u4EF6\u5939\u5C1A\u672A\u521D\u59CB\u5316 Git \u4ED3\u5E93\u3002";
+          this.container.dataset.state = missing2 ? "empty" : "error";
         }
       } finally {
         if (epoch2 === this.epoch) {
@@ -230911,6 +231508,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || current !== panel) return;
       if (current.disposed || !current.root) {
         unavailable(git_graph_text("status.open_repository_first"));
+        return;
+      }
+      if (!current.pending && current.container.dataset.state === "empty") {
+        unavailable(current.status.textContent || git_graph_text("status.open_repository_first"));
         return;
       }
       if (!current.pending && current.container.dataset.state === "error") {
@@ -233447,11 +234048,16 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed || !close) return;
         if (target && !(await files.fs.promises.stat(target)).isDirectory()) throw new Error("\u76EE\u6807\u76EE\u5F55\u5DF2\u4E0D\u5B58\u5728\u3002");
         if (disposed) return;
+        const remote_target = remote_files_for(target);
+        if (remote_target) await remote_target.mount(remote_target.remote_path(target));
         sessions.suspend();
         let committed = false;
         try {
           begin_workspace_context_switch();
           close();
+          const remote = remote_target;
+          if (remote) remote.root = target;
+          select_remote_files(remote);
           const mounted = target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target;
           runtime2.File.setMountFolder(mounted);
           committed = true;
@@ -233461,6 +234067,7 @@ https://creativecommons.org/licenses/by/4.0/
           else cancel_workspace_context_switch();
           await sessions.resume(committed);
         }
+        if (committed && remote_target) files.core.app.commands.run("linux_note:file_explorer");
       } finally {
         changing = false;
       }
@@ -233474,6 +234081,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
       if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       await switch_folder(target);
+      if (remote_files_for(target)) return;
       if (disposed || !same_root(files.context_root(), target)) return;
       if (!runtime2.JSBridge?.invoke) throw new Error("\u6587\u4EF6\u5939\u5DF2\u6253\u5F00\uFF0C\u4F46\u5BBF\u4E3B\u6700\u8FD1\u76EE\u5F55\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       try {
@@ -233495,6 +234103,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (pending) return pending;
       const current = revision;
       pending = (async () => {
+        if (active_remote_files()) {
+          const selected2 = await choose_remote_resource(directory);
+          if (!selected2 || disposed || current !== revision) return;
+          if (directory) await set_folder(selected2);
+          else await files.open_file(selected2);
+          return;
+        }
         if (!runtime2.JSBridge?.invoke) throw new Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
         const root = files.context_root();
         const result = await runtime2.JSBridge.invoke("dialog.showOpenDialog", {
@@ -233871,7 +234486,7 @@ https://creativecommons.org/licenses/by/4.0/
   var EXPLORER_ID = "linux_note:file_explorer";
   function bind_workspace_explorer(core, options2) {
     const runtime2 = window;
-    const fs2 = runtime2.reqnode("fs"), path_api = runtime2.reqnode("path");
+    const fs2 = options2.fs || runtime2.reqnode("fs"), path_api = runtime2.reqnode("path");
     const sidebar = core.app.workspace.sidebar;
     const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
     const container = workspace_element("section", "linux-note-workspace-explorer");
@@ -234227,7 +234842,7 @@ https://creativecommons.org/licenses/by/4.0/
         rebuild();
       } }] : node.directory ? [{ title: node.expanded ? "\u6298\u53E0\u6587\u4EF6\u5939" : "\u5C55\u5F00\u6587\u4EF6\u5939", action: () => run(() => activate(node)) }] : [{ title: "\u6253\u5F00\u6587\u4EF6", action: () => run(() => options2.open_file(node.path)) }, { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => run(() => options2.open_file(node.path, {}, "right")) }];
       if (node.directory && options2.create) entries3.push({ title: "\u65B0\u5EFA\u6587\u4EF6\u2026", separator: true, action: () => run(() => begin_create(false, node)) }, { title: "\u65B0\u5EFA\u6587\u4EF6\u5939\u2026", action: () => run(() => begin_create(true, node)) });
-      if (options2.reveal_system) entries3.push({ title: "\u5728\u7CFB\u7EDF\u6587\u4EF6\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u663E\u793A", shortcut: "Shift+Alt+R", action: () => run(() => options2.reveal_system(node.path)) });
+      if (options2.reveal_system && !remote_files_for(node.path)) entries3.push({ title: "\u5728\u7CFB\u7EDF\u6587\u4EF6\u8D44\u6E90\u7BA1\u7406\u5668\u4E2D\u663E\u793A", shortcut: "Shift+Alt+R", action: () => run(() => options2.reveal_system(node.path)) });
       if (options2.terminal) entries3.push({ title: "\u5728\u96C6\u6210\u7EC8\u7AEF\u4E2D\u6253\u5F00", action: () => run(() => options2.terminal(node.directory ? node.path : node.parent.path)) });
       if (node.directory && options2.find_in_folder) entries3.push({ title: "\u5728\u6587\u4EF6\u5939\u4E2D\u67E5\u627E\u2026", shortcut: "Shift+Alt+F", separator: true, action: () => run(() => options2.find_in_folder(node.path)) });
       if (!node.directory && options2.compare) {
@@ -234465,8 +235080,9 @@ https://creativecommons.org/licenses/by/4.0/
       root = create_node(file_path, path_api.basename(file_path) || file_path, true, false);
       root.expanded = true;
       selected_path = "";
-      root_name.textContent = root.name;
-      root_label.title = root.path;
+      const remote = remote_files_for(root.path);
+      root_name.textContent = root.name + (remote ? " [SSH: ".concat(remote.connection.target, "]") : "");
+      root_label.title = remote ? remote.remote_path(root.path) : root.path;
       tree.scrollTop = 0;
       set_status("\u6B63\u5728\u8BFB\u53D6\u6587\u4EF6\u5939\u2026");
       rebuild();
@@ -234564,7 +235180,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.target !== tree || event.isComposing) return;
       const selected = nodes.get(selected_path) || root;
       if (event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey && selected) {
-        if (event.code === "KeyR" && options2.reveal_system) {
+        if (event.code === "KeyR" && options2.reveal_system && !remote_files_for(selected.path)) {
           event.preventDefault();
           event.stopPropagation();
           run(() => options2.reveal_system(selected.path));
@@ -238386,13 +239002,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       await ports.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
     };
-    const missing = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
+    const missing2 = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
     const available = async (item) => {
       try {
         const stat = await bounded(ports.fs.promises.stat(item.path));
         return item.kind === "folder" ? stat.isDirectory() : stat.isFile();
       } catch (error) {
-        if (!missing(error)) throw error;
+        if (!missing2(error)) throw error;
         const root = ports.path_api.parse(item.path).root;
         try {
           const stat = await bounded(ports.fs.promises.stat(root));
@@ -238424,7 +239040,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (item.kind === "folder") await ports.open_folder(item.path);
           else await ports.open_file(item.path);
         } catch (error) {
-          if (active() && missing(error) && !await available(item)) {
+          if (active() && missing2(error) && !await available(item)) {
             if (active()) await forget_missing(item);
             return false;
           }
@@ -239754,7 +240370,7 @@ https://creativecommons.org/licenses/by/4.0/
       ["open_recent", "\u6253\u5F00\u6700\u8FD1", recents.open],
       ["open_file", "\u6253\u5F00\u6587\u4EF6", picker.open_file],
       ["open_folder", "\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder],
-      ["open_folder_path", "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6\u5939", (path) => recents.open_item({ path, kind: "folder", date: 0 })],
+      ["open_folder_path", "\u6253\u5F00\u6700\u8FD1\u6587\u4EF6\u5939", (path) => remote_files_for(path) ? picker.set_folder(path) : recents.open_item({ path, kind: "folder", date: 0 })],
       ["open_folder_new_window", "\u5728\u65B0\u7A97\u53E3\u6253\u5F00\u6587\u4EF6\u5939", picker.open_folder_new_window],
       ["close_folder", "\u5173\u95ED\u6587\u4EF6\u5939", picker.close_folder],
       ["save", "\u4FDD\u5B58", files.save_active],
@@ -240118,6 +240734,33 @@ https://creativecommons.org/licenses/by/4.0/
     }
     if (file?.isNode) {
       sync_options();
+      let remote_saving = false;
+      replace(file, "saveUseNode", (original) => function(...args) {
+        const path = this.bundle?.filePath, remote = typeof path === "string" ? remote_files_for(path) : void 0;
+        assert_remote_owner(path);
+        if ((remote && args[0] || !path && active_remote_files()) && hooks.save_as) return args[1] ? Promise.resolve(false) : hooks.save_as();
+        if (!remote) return original.apply(this, args);
+        if (remote_saving) return Promise.resolve(false);
+        const text3 = typeof this.sync === "function" ? this.sync() : this.editor?.getMarkdown?.();
+        if (typeof text3 !== "string") return Promise.reject(Error("\u8FDC\u7A0BMarkdown\u6B63\u6587\u5C1A\u672A\u5C31\u7EEA\u3002"));
+        if (this.validateContentForSave?.() === false) return Promise.reject(Error("\u539F\u751F\u7F16\u8F91\u5668\u62D2\u7EDD\u4FDD\u5B58\u5F53\u524D\u6B63\u6587\uFF0C\u8349\u7A3F\u5DF2\u4FDD\u7559\u3002"));
+        const current = this.editor.getMarkdown(), format3 = this.bundle.fileEncode || "utf8";
+        const codec = runtime2.reqnode("iconv-lite"), encoding = format3.replace(/-bom$/u, "");
+        let bytes = codec.encode(text3, encoding, { addBOM: format3.endsWith("-bom") });
+        if (!encoding.toLowerCase().includes("utf") && codec.decode(bytes, encoding) !== text3) bytes = codec.encode(text3, "utf8");
+        remote_saving = true;
+        return remote.save_native(path, text3, bytes).then(() => {
+          if (disposed || this.bundle?.filePath !== path || this.editor.getMarkdown() !== current) return false;
+          save_depth++;
+          try {
+            return original.apply(this, args);
+          } finally {
+            save_depth--;
+          }
+        }).finally(() => {
+          remote_saving = false;
+        });
+      });
       replace(file, "updateChangeCount", (original) => function(...args) {
         const result = original.apply(this, args);
         if (!disposed && this.changeCounter?.isDocumentEdited() && typeof this.bundle?.filePath === "string") hooks.changed(this.bundle.filePath);
@@ -240172,6 +240815,7 @@ https://creativecommons.org/licenses/by/4.0/
       return result;
     };
     const native = lifetime.own(bind_native_save(runtime2, {
+      save_as: files.save_as_active,
       changed: publish_workspace_file_changed,
       saved: (path) => publish_workspace_file_saved({ file_path: path }),
       auto_save_changed: (enabled) => set_workspace_save_settings({ "files.autoSave": enabled ? "afterDelay" : "off" })
@@ -241026,59 +241670,77 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_remote_ssh_default = "";
 
   // src/workspace_remote_ssh.ts
-  var VIEW_ID = "typora_code.remote_file";
-  var GIT_VIEW_ID = "typora_code.remote_git_status";
   function bind_workspace_remote_ssh(core, files, runtime2 = window) {
     const path_api = runtime2.reqnode("path"), buffer_api = runtime2.reqnode("buffer").Buffer;
     const asset_root = path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote");
     const api2 = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_service.cjs"));
+    const credentials = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_credentials.cjs")).create_credential_store(path_api.join(runtime2._options.userDataPath, "typora_code", "ssh_credentials"));
+    let credential_used = false, pending_credential;
     const node_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
     const style = acquire_workspace_style("typora-code-style:workspace_remote_ssh", workspace_remote_ssh_default);
-    const views = /* @__PURE__ */ new Set();
-    const git_views = /* @__PURE__ */ new Set();
     let disposed = false, target = "", folder = "", browse_epoch = 0, connecting = false, mutating = false, list_signature = "";
     let remote_selected = false;
+    let provider;
+    const host_providers = /* @__PURE__ */ new Map();
+    const provider_releases = [];
     let auth_dialog;
     const notice = (error) => {
       if (!disposed) new core.Notice(String(error instanceof Error ? error.message : error), 7e3);
     };
-    const authenticate = (prompt, stale2) => new Promise((resolve3) => {
-      if (disposed || stale2()) {
-        resolve3(void 0);
-        return;
+    const authenticate = async (prompt, stale2) => {
+      const password_prompt = /password/iu.test(prompt) && !/passphrase|verification|one.time/iu.test(prompt);
+      if (password_prompt && !credential_used) {
+        credential_used = true;
+        try {
+          const stored = await credentials.read(target);
+          if (stored && !disposed && !stale2()) return stored;
+        } catch {
+        }
       }
-      let answer;
-      const confirm2 = /yes\/no|fingerprint|authenticity/iu.test(prompt);
-      const dialog2 = workspace_dialog(confirm2 ? "\u786E\u8BA4SSH\u4E3B\u673A\u8EAB\u4EFD" : "SSH\u8EAB\u4EFD\u9A8C\u8BC1", "\u53D6\u6D88", () => {
-        input2.value = "";
-        if (auth_dialog === dialog2) auth_dialog = void 0;
-        resolve3(answer);
-      });
-      auth_dialog = dialog2;
-      const input2 = workspace_element("input");
-      input2.type = "password";
-      input2.autocomplete = "off";
-      input2.setAttribute("aria-label", "SSH\u8BA4\u8BC1\u4FE1\u606F");
-      dialog2.content.append(workspace_element("p", "workspace-ssh-auth-prompt", prompt));
-      if (confirm2) dialog2.content.append(workspace_element("p", "", "\u8BF7\u6838\u5BF9\u8FDC\u7A0B\u7535\u8111\u63D0\u4F9B\u7684\u4E3B\u673A\u6307\u7EB9\uFF0C\u786E\u8BA4\u540E\u7531OpenSSH\u8BB0\u5F55\u4FE1\u4EFB\u3002"));
-      else dialog2.content.append(input2);
-      const accept = () => {
-        if (stale2() || disposed) {
-          dialog2.close();
+      return new Promise((resolve3) => {
+        if (disposed || stale2()) {
+          resolve3(void 0);
           return;
         }
-        answer = confirm2 ? "yes" : input2.value;
-        dialog2.close();
-      };
-      dialog2.footer.prepend(workspace_button(confirm2 ? "\u4FE1\u4EFB\u5E76\u8FDE\u63A5" : "\u8FDE\u63A5", accept));
-      input2.onkeydown = (event) => {
-        if (event.key === "Enter" && !event.isComposing) {
-          event.preventDefault();
-          accept();
-        }
-      };
-      if (!confirm2) input2.focus();
-    });
+        let answer;
+        const confirm2 = /yes\/no|fingerprint|authenticity/iu.test(prompt);
+        const dialog2 = workspace_dialog(confirm2 ? "\u786E\u8BA4SSH\u4E3B\u673A\u8EAB\u4EFD" : "SSH\u8EAB\u4EFD\u9A8C\u8BC1", "\u53D6\u6D88", () => {
+          input2.value = "";
+          if (auth_dialog === dialog2) auth_dialog = void 0;
+          resolve3(answer);
+        });
+        auth_dialog = dialog2;
+        const input2 = workspace_element("input");
+        input2.type = "password";
+        input2.autocomplete = "off";
+        input2.setAttribute("aria-label", "SSH\u8BA4\u8BC1\u4FE1\u606F");
+        const remember = workspace_element("input");
+        remember.type = "checkbox";
+        const remember_label = workspace_element("label");
+        remember_label.append(remember, document.createTextNode("\u4F7F\u7528\u7CFB\u7EDF\u52A0\u5BC6\u8BB0\u4F4F\u6B64\u4E3B\u673A\u5BC6\u7801"));
+        dialog2.content.append(workspace_element("p", "workspace-ssh-auth-prompt", prompt));
+        if (confirm2) dialog2.content.append(workspace_element("p", "", "\u8BF7\u6838\u5BF9\u8FDC\u7A0B\u7535\u8111\u63D0\u4F9B\u7684\u4E3B\u673A\u6307\u7EB9\uFF0C\u786E\u8BA4\u540E\u7531OpenSSH\u8BB0\u5F55\u4FE1\u4EFB\u3002"));
+        else dialog2.content.append(input2);
+        if (password_prompt && credentials.supported) dialog2.content.append(remember_label);
+        const accept = () => {
+          if (stale2() || disposed) {
+            dialog2.close();
+            return;
+          }
+          answer = confirm2 ? "yes" : input2.value;
+          if (password_prompt && remember.checked) pending_credential = answer;
+          dialog2.close();
+        };
+        dialog2.footer.prepend(workspace_button(confirm2 ? "\u4FE1\u4EFB\u5E76\u8FDE\u63A5" : "\u8FDE\u63A5", accept));
+        input2.onkeydown = (event) => {
+          if (event.key === "Enter" && !event.isComposing) {
+            event.preventDefault();
+            accept();
+          }
+        };
+        if (!confirm2) input2.focus();
+      });
+    };
     const service = api2.create_remote_ssh({ asset_root, node_path, authenticate, connection_options: read_remote_ssh_settings, on_state: (value) => {
       if (disposed) return;
       status2.textContent = value.detail || "\u672A\u8FDE\u63A5SSH";
@@ -241090,17 +241752,15 @@ https://creativecommons.org/licenses/by/4.0/
         list_signature = "";
         list3.removeAttribute("aria-busy");
         list3.replaceChildren();
-        for (const view of views) view.update_status();
-        for (const view of git_views) view.disconnected();
       }
       connect_button.disabled = value.state === "connecting";
       disconnect_button.disabled = value.state === "disconnected";
       for (const control of [up_button, refresh_button, new_file, new_folder, terminal_button, git_button]) control.disabled = value.state !== "connected";
     } });
     const connected = () => service.state() === "connected";
-    const release_context = register_remote_workspace_context(() => remote_selected && target ? { target, remote_path: folder, state: service.state() } : void 0);
+    const release_context = register_remote_workspace_context(() => remote_selected && target ? { target, remote_path: provider?.root ? provider.remote_path(provider.root) : folder, state: service.state() } : void 0);
     const local_context_changed = () => {
-      remote_selected = false;
+      remote_selected = Boolean(active_remote_files());
     };
     window.addEventListener("linux-note-workspace-context-changed", local_context_changed);
     const require_connection = (owner = target) => {
@@ -241195,353 +241855,70 @@ https://creativecommons.org/licenses/by/4.0/
         mutating = false;
       }
     };
-    class remote_file_view extends core.WorkspaceView {
-      containerEl = workspace_element("section", "workspace-ssh-document");
-      icon = "fa-file-code-o";
-      disposed = false;
-      loading = false;
-      saving = false;
-      loaded = false;
-      editor;
-      reader;
-      version;
-      saved_text = "";
-      bom = false;
-      remote_path;
-      owner;
-      file_path;
-      release_port = () => {
-      };
-      release_document = () => {
-      };
-      toolbar = workspace_element("div", "workspace-ssh-toolbar");
-      message = workspace_element("span", "workspace-ssh-document-status");
-      body = workspace_element("div", "workspace-ssh-body");
-      constructor(leaf) {
-        super(leaf);
-        const parts = leaf.state.path.split("/");
-        this.owner = decodeURIComponent(parts[3]);
-        this.remote_path = decodeURIComponent(parts[4]);
-        this.file_path = leaf.state.path;
-        views.add(this);
-        this.toolbar.append(workspace_button("\u4FDD\u5B58", () => void this.save()), workspace_button("\u91CD\u65B0\u8BFB\u53D6", () => void this.reload()), workspace_button("\u5220\u9664\u8FDC\u7A0B\u6587\u4EF6", () => void this.remove()), this.message);
-        if (is_markdown_file(this.remote_path)) this.toolbar.append(workspace_button("\u9605\u8BFB\u9884\u89C8 / \u7F16\u8F91", () => void this.toggle_preview()));
-        this.containerEl.append(this.toolbar, this.body);
-        this.message.setAttribute("role", "status");
-        const interaction2 = acquire_workspace_interaction(this.containerEl);
-        this.release_port = () => interaction2.remove();
-        this.containerEl.addEventListener("keydown", (event) => {
-          if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "s" && !event.isComposing) {
-            event.preventDefault();
-            event.stopImmediatePropagation();
-            void this.save();
-          }
-        }, true);
-      }
-      setIcon() {
-        this.sync_tab();
-      }
-      sync_tab() {
-        const tab = workspace_leaf_tab(this.leaf);
-        if (!tab) return;
-        const label = tab.querySelector(".typ-file-basename");
-        if (label) label.textContent = path_api.posix.basename(this.remote_path);
-        tab.querySelector(".typ-file-ext")?.remove();
-        tab.title = "SSH: ".concat(this.owner, " ").concat(this.remote_path);
-        const icon = tab.querySelector(".typ-file-icon");
-        if (icon) {
-          icon.className = "typ-file-icon workspace-file-theme-slot";
-          icon.replaceChildren(workspace_file_icon(this.remote_path));
-        }
-        tab.classList.toggle("workspace-file-dirty", this.dirty());
-      }
-      busy() {
-        return this.loading || this.saving;
-      }
-      dirty() {
-        return this.loaded && this.read_text() !== this.saved_text;
-      }
-      read_text() {
-        return this.editor?.models[0].getValue() ?? this.saved_text;
-      }
-      update_status() {
-        this.message.textContent = "SSH: ".concat(this.owner, " \xB7 ").concat(this.saving ? "\u6B63\u5728\u4FDD\u5B58\u2026" : this.loading ? "\u6B63\u5728\u8BFB\u53D6\u2026" : !connected() ? "\u5DF2\u65AD\u5F00\uFF0C\u8349\u7A3F\u4FDD\u7559" : this.dirty() ? "\u672A\u4FDD\u5B58" : "\u5DF2\u4FDD\u5B58");
-        this.sync_tab();
-      }
-      async onOpen() {
-        this.release_document();
-        this.release_document = files.register_document(this);
-        this.sync_tab();
-        if (!this.loaded && !this.loading) await this.load();
-        else this.editor?.focused_editor().layout();
-      }
-      onClose() {
-        queueMicrotask(() => {
-          let present = false;
-          core.app.workspace.eachLeaves((leaf) => {
-            if (leaf === this.leaf) present = true;
-          });
-          if (!present) this.release_source();
-        });
-      }
-      async load() {
-        if (this.busy() || this.disposed) return;
-        this.loading = true;
-        this.editor?.focused_editor().updateOptions({ readOnly: true });
-        this.update_status();
-        try {
-          require_connection(this.owner);
-          const snapshot = await service.request("read", { path: this.remote_path });
-          if (this.disposed) return;
-          const bytes = buffer_api.from(snapshot.data, "base64");
-          if (detect_binary_bytes(bytes)) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u662F\u4E8C\u8FDB\u5236\uFF0C\u5F53\u524D\u7F16\u8F91\u5668\u4EC5\u652F\u6301UTF-8\u6587\u672C\u3002");
-          const text3 = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-          this.bom = bytes[0] === 239 && bytes[1] === 187 && bytes[2] === 191;
-          this.reader?.dispose();
-          this.reader = void 0;
-          this.editor?.dispose();
-          this.version = snapshot.version;
-          this.editor = new git_diff_editor({ title: path_api.posix.basename(this.remote_path), file: this.remote_path, left: text3, left_label: "SSH: ".concat(this.owner) });
-          this.editor.focused_editor().updateOptions({ readOnly: false });
-          this.body.replaceChildren(this.editor.container);
-          this.saved_text = this.read_text();
-          this.loaded = true;
-          this.editor.subscriptions.push(this.editor.focused_editor().onDidChangeModelContent(() => this.update_status()));
-          this.update_status();
-        } catch (error) {
-          if (!this.disposed) {
-            this.message.textContent = String(error.message);
-            notice(error);
-          }
-        } finally {
-          this.loading = false;
-          if (!this.disposed) {
-            this.editor?.focused_editor().updateOptions({ readOnly: false });
-            if (this.loaded) this.update_status();
-            this.sync_tab();
-          }
-        }
-      }
-      async save() {
-        if (this.busy() || this.disposed || !this.loaded) return false;
-        if (!this.dirty()) return true;
-        this.saving = true;
-        this.update_status();
-        const text3 = this.read_text();
-        try {
-          require_connection(this.owner);
-          const result = await service.request("write", { path: this.remote_path, version: this.version, data: buffer_api.from((this.bom ? "\uFEFF" : "") + text3, "utf8").toString("base64") });
-          this.version = result.version;
-          this.saved_text = text3;
-          return true;
-        } catch (error) {
-          notice(error);
-          return false;
-        } finally {
-          this.saving = false;
-          if (!this.disposed) this.update_status();
-        }
-      }
-      async reload() {
-        if (this.busy()) return;
-        if (this.dirty()) {
-          notice("\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\uFF1B\u82E5\u9700\u4E22\u5F03\uFF0C\u8BF7\u5173\u95ED\u6807\u7B7E\u5E76\u9009\u62E9\u4E0D\u4FDD\u5B58\uFF0C\u518D\u91CD\u65B0\u6253\u5F00\u3002");
-          return;
-        }
-        await this.load();
-      }
-      async toggle_preview() {
-        if (!this.loaded || this.disposed) return;
-        if (this.reader) {
-          this.reader.dispose();
-          this.reader = void 0;
-          this.body.replaceChildren(this.editor.container);
-          this.editor.focused_editor().layout();
-          return;
-        }
-        this.reader = create_lookup_preview(files, async () => this.read_text());
-        this.body.replaceChildren(this.reader.container);
-        await this.reader.show({ file_path: this.remote_path, relative_path: this.remote_path, matches: [] }, { start: 0, end: 0, line: 1, column: 1, end_line: 1, end_column: 1, text: "" });
-      }
-      async remove() {
-        if (this.busy()) return;
-        if (this.dirty()) {
-          notice("\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u672A\u4FDD\u5B58\u7684\u8FDC\u7A0B\u6587\u6863\uFF0C\u518D\u5220\u9664\u3002");
-          return;
-        }
-        const dialog2 = workspace_dialog("\u5220\u9664\u8FDC\u7A0B\u6587\u4EF6", "\u53D6\u6D88");
-        dialog2.content.append(workspace_element("p", "", "\u6C38\u4E45\u5220\u9664 ".concat(this.remote_path, "\uFF1FSSH\u8FDC\u7AEF\u4E0D\u4F7F\u7528\u672C\u673A\u56DE\u6536\u7AD9\u3002")));
-        const remove = workspace_button("\u5220\u9664", () => {
-          if (this.disposed || this.busy() || this.dirty()) {
-            notice("\u6587\u6863\u72B6\u6001\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5173\u95ED\u6B64\u5BF9\u8BDD\u6846\u5E76\u91CD\u65B0\u68C0\u67E5\u3002");
-            return;
-          }
-          remove.disabled = true;
-          this.saving = true;
-          this.editor?.focused_editor().updateOptions({ readOnly: true });
-          void (async () => {
-            try {
-              require_connection(this.owner);
-              await service.request("remove", { path: this.remote_path, version: this.version });
-              dialog2.close();
-              this.saving = false;
-              await files.close_leaf(this.leaf);
-              await browse(folder);
-            } catch (error) {
-              notice(error);
-            } finally {
-              this.saving = false;
-              remove.disabled = false;
-              if (!this.disposed) this.editor?.focused_editor().updateOptions({ readOnly: false });
-            }
-          })();
-        });
-        dialog2.footer.prepend(remove);
-      }
-      release_source() {
-        if (this.disposed) return;
-        this.disposed = true;
-        this.release_document();
-        this.release_port();
-        this.editor?.dispose();
-        this.reader?.dispose();
-        views.delete(this);
-      }
-    }
-    const unregister_view = core.app.viewManager.registerView(VIEW_ID, (leaf) => new remote_file_view(leaf));
-    class remote_git_view extends core.WorkspaceView {
-      containerEl = workspace_element("section", "workspace-ssh-document workspace-ssh-git-document");
-      icon = "fa-code-fork";
-      owner;
-      remote_path;
-      disposed = false;
-      loading = false;
-      loaded = false;
-      epoch = 0;
-      message = workspace_element("span", "workspace-ssh-document-status");
-      output = workspace_element("pre", "workspace-ssh-git-status");
-      refresh = workspace_button("\u5237\u65B0", () => void this.load());
-      release_port;
-      constructor(leaf) {
-        super(leaf);
-        const parts = leaf.state.path.split("/");
-        this.owner = decodeURIComponent(parts[3]);
-        this.remote_path = decodeURIComponent(parts[4]);
-        git_views.add(this);
-        const toolbar = workspace_element("div", "workspace-ssh-toolbar");
-        toolbar.append(this.refresh, this.message);
-        this.message.setAttribute("role", "status");
-        this.output.tabIndex = 0;
-        this.output.setAttribute("aria-label", "\u8FDC\u7A0BGit\u53EA\u8BFB\u72B6\u6001");
-        this.containerEl.append(toolbar, workspace_element("div", "workspace-ssh-location", "SSH: ".concat(this.owner, " \xB7 ").concat(this.remote_path)), this.output);
-        const interaction2 = acquire_workspace_interaction(this.containerEl);
-        this.release_port = () => interaction2.remove();
-      }
-      setIcon() {
-        this.sync_tab();
-      }
-      sync_tab() {
-        const tab = workspace_leaf_tab(this.leaf);
-        if (!tab) return;
-        const label = tab.querySelector(".typ-file-basename");
-        if (label) label.textContent = "Git \xB7 ".concat(path_api.posix.basename(this.remote_path) || "/");
-        tab.querySelector(".typ-file-ext")?.remove();
-        tab.title = "SSH: ".concat(this.owner, " \xB7 ").concat(this.remote_path);
-      }
-      onOpen() {
-        this.sync_tab();
-        if (!this.loaded && !this.loading) void this.load();
-      }
-      onClose() {
-        queueMicrotask(() => {
-          let present = false;
-          core.app.workspace.eachLeaves((leaf) => {
-            if (leaf === this.leaf) present = true;
-          });
-          if (!present) this.release_source();
-        });
-      }
-      disconnected() {
-        if (this.disposed) return;
-        ++this.epoch;
-        this.loading = false;
-        this.refresh.disabled = false;
-        this.containerEl.removeAttribute("aria-busy");
-        this.message.textContent = "SSH\u5DF2\u65AD\u5F00\uFF1B\u5DF2\u6709\u7ED3\u679C\u4FDD\u7559\uFF0C\u91CD\u8FDE\u539F\u4E3B\u673A\u540E\u5237\u65B0\u3002";
-      }
-      async load() {
-        if (this.disposed || this.loading) return;
-        const epoch2 = ++this.epoch;
-        this.loading = true;
-        this.refresh.disabled = true;
-        this.message.textContent = "\u6B63\u5728\u8BFB\u53D6\u8FDC\u7A0BGit\u72B6\u6001\u2026";
-        this.containerEl.setAttribute("aria-busy", "true");
-        try {
-          require_connection(this.owner);
-          const result = await service.request("git_status", { path: this.remote_path });
-          if (!this.disposed && epoch2 === this.epoch) {
-            this.output.textContent = result.text;
-            this.message.textContent = "\u8FDC\u7A0BGit\u72B6\u6001 \xB7 \u53EA\u8BFB";
-            this.loaded = true;
-          }
-        } catch (error) {
-          if (!this.disposed && epoch2 === this.epoch) this.message.textContent = String(error.message) + "\uFF1B\u53EF\u70B9\u51FB\u5237\u65B0\u91CD\u8BD5\u3002";
-        } finally {
-          if (!this.disposed && epoch2 === this.epoch) {
-            this.loading = false;
-            this.refresh.disabled = false;
-            this.containerEl.removeAttribute("aria-busy");
-          }
-        }
-      }
-      release_source() {
-        if (this.disposed) return;
-        this.disposed = true;
-        ++this.epoch;
-        this.release_port();
-        git_views.delete(this);
-      }
-    }
-    const unregister_git_view = core.app.viewManager.registerView(GIT_VIEW_ID, (leaf) => new remote_git_view(leaf));
     const open_file = async (path) => {
       require_connection();
-      const uri = "typ://".concat(VIEW_ID, "/").concat(encodeURIComponent(target), "/").concat(encodeURIComponent(path), "/").concat(encodeURIComponent(path_api.posix.basename(path)));
-      let existing;
-      core.app.workspace.eachLeaves((leaf2) => {
-        if (leaf2.state.path === uri) existing = leaf2;
-      });
-      if (existing) {
-        core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
-        return;
-      }
-      const group = select_workspace_editor_group(core, uri), leaf = core.app.workspace.createLeaf({ type: VIEW_ID, state: { path: uri } });
-      group.appendChild(leaf);
-      core.app.workspace.activeLeaf = leaf;
+      if (!provider) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u5C31\u7EEA");
+      await files.open_file(provider.local_path(path));
     };
     const input = workspace_element("input"), status2 = workspace_element("p", "workspace-ssh-status", "\u8F93\u5165SSH\u914D\u7F6E\u522B\u540D\u6216 user@hostname\u3002"), location = workspace_element("div", "workspace-ssh-location"), list3 = workspace_element("div", "workspace-ssh-list");
     input.placeholder = "user@hostname \u6216 SSH \u914D\u7F6E\u522B\u540D";
     input.setAttribute("aria-label", "SSH\u4E3B\u673A");
     input.autocomplete = "off";
     status2.setAttribute("role", "status");
+    const restore_provider = (owner) => {
+      const existing = host_providers.get(owner);
+      if (existing) return existing;
+      const host_key = runtime2.reqnode("crypto").createHash("sha256").update(owner).digest("hex");
+      const value = new remote_file_provider({ target: owner, connected: () => connected() && target === owner, poll_interval: () => read_remote_ssh_settings().refresh_interval * 1e3, request: (operation, values) => service.request(operation, values) }, runtime2.reqnode("fs"), path_api, path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache", host_key), buffer_api);
+      host_providers.set(owner, value);
+      provider_releases.push(register_remote_files(value));
+      return value;
+    };
     const connect = async () => {
       if (connecting) return;
       const next = input.value.trim();
       api2.validate_target(next);
-      if ([...views].some((view) => view.owner !== next)) throw Error("\u5207\u6362\u4E3B\u673A\u524D\u8BF7\u5148\u5173\u95ED\u5F53\u524D\u8FDC\u7A0B\u6807\u7B7E\u5E76\u5904\u7406\u8349\u7A3F\u3002");
+      if (target && target !== next) {
+        const close = await files.prepare_workspace_switch();
+        if (!close) return;
+        close();
+      }
       connecting = true;
+      credential_used = false;
+      pending_credential = void 0;
       remote_selected = true;
       target = next;
       folder = "";
+      let authenticated = false;
       try {
         const hello = await service.connect(target);
+        authenticated = true;
         if (disposed) return;
-        await browse(hello.home);
-        for (const view of views) if (view.owner === target && !view.loaded) void view.load();
+        if (pending_credential) {
+          try {
+            await credentials.save(target, pending_credential);
+          } catch (error) {
+            notice(error);
+          }
+          pending_credential = void 0;
+        }
+        if (!provider || provider.connection.target !== target) {
+          provider = restore_provider(target);
+        }
+        select_remote_files(provider);
+        const project = provider.root ? provider.remote_path(provider.root) : hello.home;
+        await browse(project);
+        const root = await provider.mount(project);
+        core.app.commands.run("linux_note:open_folder_path", [root]);
         try {
           localStorage.setItem("typora-code:ssh:last-host", target);
         } catch {
         }
+      } catch (error) {
+        if (!authenticated && /permission denied|authentication failed/iu.test(String(error))) await credentials.remove(target);
+        throw error;
       } finally {
+        pending_credential = void 0;
         connecting = false;
       }
     };
@@ -241559,21 +241936,10 @@ https://creativecommons.org/licenses/by/4.0/
         notice(error);
       }
     });
-    const git_button = workspace_button("Git\u72B6\u6001", () => {
+    const git_button = workspace_button("Git", () => {
       try {
         require_connection();
-        const uri = "typ://".concat(GIT_VIEW_ID, "/").concat(encodeURIComponent(target), "/").concat(encodeURIComponent(folder), "/Git");
-        let existing;
-        core.app.workspace.eachLeaves((leaf2) => {
-          if (leaf2.state.path === uri) existing = leaf2;
-        });
-        if (existing) {
-          core.app.workspace.activeLeaf = existing.parent.toggleTab(uri);
-          return;
-        }
-        const group = select_workspace_editor_group(core, uri), leaf = core.app.workspace.createLeaf({ type: GIT_VIEW_ID, state: { path: uri } });
-        group.appendChild(leaf);
-        core.app.workspace.activeLeaf = leaf;
+        if (provider?.root) window.dispatchEvent(new CustomEvent("linux-note-open-git", { detail: { path: provider.root } }));
       } catch (error) {
         notice(error);
       }
@@ -241591,6 +241957,19 @@ https://creativecommons.org/licenses/by/4.0/
     try {
       input.value = localStorage.getItem("typora-code:ssh:last-host") || "";
     } catch {
+    }
+    if (input.value) {
+      const mounted = runtime2.File?.getMountFolder?.();
+      const restored = provider = restore_provider(input.value);
+      if (mounted && restored.owns(mounted)) {
+        provider = restored;
+        provider.root = path_api.normalize(mounted);
+        target = input.value;
+        folder = provider.remote_path(provider.root);
+        remote_selected = true;
+        select_remote_files(provider);
+        status2.textContent = "SSH\u5DE5\u4F5C\u533A\u5DF2\u4FDD\u7559\uFF0C\u8BF7\u91CD\u65B0\u8FDE\u63A5\u540E\u7EE7\u7EED\u8BFB\u5199\u3002";
+      }
     }
     try {
       const config = files.fs.readFileSync(path_api.join(runtime2.reqnode("os").homedir(), ".ssh", "config"), "utf8");
@@ -241617,7 +241996,14 @@ https://creativecommons.org/licenses/by/4.0/
         this.addRibbonButton({ id: "typora_code:remote_ssh", title: "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 (SSH)", icon: git_icon("remote-explorer"), group: "top" });
         const toolbar = workspace_element("div", "workspace-ssh-toolbar");
         toolbar.append(connect_button, disconnect_button, up_button, refresh_button, new_file, new_folder, terminal_button, git_button);
-        toolbar.append(workspace_button("\u8BBE\u7F6E", () => core.app.commands.run("typora_code:settings")));
+        toolbar.append(workspace_button("\u6253\u5F00\u6587\u4EF6\u5939", () => core.app.commands.run("linux_note:open_folder")), workspace_button("\u8BBE\u7F6E", () => core.app.commands.run("typora_code:settings")));
+        if (credentials.supported) toolbar.append(workspace_button("\u5FD8\u8BB0\u5BC6\u7801", () => {
+          const owner = input.value.trim();
+          if (!owner) return;
+          void credentials.remove(owner).then(() => {
+            status2.textContent = "\u5DF2\u79FB\u9664\u6B64\u4E3B\u673A\u4FDD\u5B58\u7684\u5BC6\u7801\u3002";
+          }).catch(notice);
+        }));
         this.containerEl.append(workspace_element("div", "workspace-ssh-title", "\u8FDC\u7A0B\u8D44\u6E90\u7BA1\u7406\u5668 \xB7 SSH"), input, hosts, toolbar, status2, location, list3);
       }
       onshow() {
@@ -241652,6 +242038,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       files.assert_can_dispose();
       disposed = true;
+      for (const release of provider_releases) release();
       release_context();
       window.removeEventListener("linux-note-workspace-context-changed", local_context_changed);
       clearTimeout(refresh_timer);
@@ -241659,11 +242046,7 @@ https://creativecommons.org/licenses/by/4.0/
       auth_dialog?.close();
       service.dispose();
       ++browse_epoch;
-      for (const view of [...views]) view.release_source();
-      for (const view of [...git_views]) view.release_source();
       unregister();
-      unregister_view();
-      unregister_git_view();
       remove_panel();
       interaction.remove();
       style.remove();
@@ -242193,6 +242576,82 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/remote_workspace_media.ts
+  function bind_remote_workspace_media(runtime2 = window) {
+    let disposed = false, scheduled = false, running = false, rescan = false;
+    const attempted = /* @__PURE__ */ new WeakMap();
+    const urls = /* @__PURE__ */ new Map();
+    const scan = async () => {
+      scheduled = false;
+      if (disposed) return;
+      if (running) {
+        rescan = true;
+        return;
+      }
+      running = true;
+      try {
+        for (const image of document.querySelectorAll("#write img[src]")) {
+          if (disposed) return;
+          const source = image.getAttribute("src") || "";
+          if (attempted.get(image) === source) continue;
+          let path;
+          try {
+            path = runtime2.reqnode("url").fileURLToPath(image.src);
+          } catch {
+            continue;
+          }
+          const provider = remote_files_for(path);
+          if (!provider) continue;
+          attempted.set(image, source);
+          try {
+            await provider.prepare(path);
+            if (!disposed && image.isConnected && image.getAttribute("src") === source) {
+              let url = urls.get(path);
+              if (!url) {
+                const bytes = await runtime2.reqnode("fs").promises.readFile(path);
+                if (disposed || !image.isConnected) return;
+                const extension = runtime2.reqnode("path").extname(path).slice(1).toLowerCase();
+                const mime = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", bmp: "image/bmp", avif: "image/avif" }[extension];
+                if (!mime) throw Error("\u4E0D\u652F\u6301\u6B64\u8FDC\u7A0B\u56FE\u7247\u683C\u5F0F\u3002");
+                url = URL.createObjectURL(new Blob([bytes], { type: mime }));
+                urls.set(path, url);
+              }
+              attempted.set(image, url);
+              image.src = url;
+            }
+          } catch (error) {
+            if (!disposed && image.isConnected) image.title = String(error.message);
+          }
+        }
+      } finally {
+        running = false;
+        const active = new Set([...document.querySelectorAll("#write img[src]")].map((image) => image.src));
+        for (const [path, url] of urls) if (!active.has(url)) {
+          URL.revokeObjectURL(url);
+          urls.delete(path);
+        }
+        if (rescan) {
+          rescan = false;
+          schedule();
+        }
+      }
+    };
+    const schedule = () => {
+      if (disposed || scheduled) return;
+      scheduled = true;
+      queueMicrotask(() => void scan());
+    };
+    const observer2 = new MutationObserver(schedule);
+    observer2.observe(document.querySelector("#write") || document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+    schedule();
+    return { dispose() {
+      disposed = true;
+      observer2.disconnect();
+      for (const url of urls.values()) URL.revokeObjectURL(url);
+      urls.clear();
+    } };
+  }
+
   // src/workspace_browser.ts
   function bind_workspace_browser() {
     const core = window[Symbol.for("typora-code:workspace")];
@@ -242201,6 +242660,7 @@ https://creativecommons.org/licenses/by/4.0/
     try {
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files = lifetime.own(bind_workspace_files(core));
+      lifetime.own(bind_remote_workspace_media());
       lifetime.own(bind_workspace_link_dock(core, files));
       lifetime.own(bind_workspace_reading_reflow());
       lifetime.own(bind_workspace_settings_sections(files));
@@ -242213,6 +242673,7 @@ https://creativecommons.org/licenses/by/4.0/
       const file_commands = lifetime.own(bind_workspace_file_commands(files, () => context_changed(true)));
       const open_folder = file_commands.open_folder;
       const explorer = bind_workspace_explorer(core, {
+        fs: files.fs,
         open_file: files.open_file,
         context_root: files.context_root,
         active_file: files.current_file,
@@ -242324,6 +242785,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092214,
+        version: "2026.09.22.14",
+        date: "2026-09-23",
+        notes: [
+          "SSH\u6587\u4EF6\u5939\u63A5\u5165\u4E3B\u8D44\u6E90\u7BA1\u7406\u5668\uFF0C\u6587\u4EF6\u83DC\u5355\u5728\u8FDC\u7AEF\u9009\u62E9\u76EE\u5F55\u548C\u6587\u4EF6\uFF0C\u8D44\u6E90\u64CD\u4F5C\u3001\u5185\u5BB9\u641C\u7D22\u548CGit\u5171\u540C\u4F7F\u7528\u8FDC\u7AEF\u9879\u76EE\u3002",
+          "\u8FDC\u7AEFMarkdown\u4F7F\u7528Typora\u539F\u751F\u7F16\u8F91\u5668\u5373\u65F6\u6E32\u67D3\uFF1B\u76F8\u5BF9\u94FE\u63A5\u4E0E\u6807\u9898\u5BFC\u822A\u4FDD\u7559\u8FDC\u7AEF\u8EAB\u4EFD\uFF0C\u4FDD\u5B58\u5148\u786E\u8BA4\u8FDC\u7AEF\u5199\u5165\uFF0C\u65AD\u7EBF\u548C\u51B2\u7A81\u4FDD\u7559\u8349\u7A3F\u3002",
+          "\u8FDC\u7A0B\u53E6\u5B58\u4E3A\u3001\u91CD\u65B0\u52A0\u8F7D\u548C\u6587\u4EF6\u6539\u540D\u6CBF\u7528\u5171\u540C\u6587\u4EF6\u751F\u547D\u5468\u671F\uFF1B\u65B0\u5EFA\u7EC8\u7AEF\u8FDB\u5165\u8FDC\u7A0B\u9879\u76EE\u76EE\u5F55\u3002",
+          "Windows\u6587\u4EF6\u8FDE\u63A5\u53EF\u9009\u62E9\u8BB0\u4F4F\u5BC6\u7801\uFF0C\u4F7F\u7528\u5F53\u524D\u7CFB\u7EDF\u8D26\u6237\u52A0\u5BC6\u4FDD\u5B58\u5E76\u652F\u6301\u5FD8\u8BB0\uFF1B\u7EC8\u7AEF\u72EC\u7ACB\u4F7F\u7528OpenSSH\u8BA4\u8BC1\u3002"
+        ]
+      },
       {
         sequence: 2026092213,
         version: "2026.09.22.13",

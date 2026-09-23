@@ -1,3 +1,4 @@
+import {remote_files_for} from './remote_workspace_files';
 export type workspace_file_modules = {fs: any; path_api: any};
 export type workspace_move_callback = (root: string, source: string, target: string) => Promise<string>;
 const entry_identity = (stat: any) => `${stat.dev}:${stat.ino}`;
@@ -74,7 +75,7 @@ export async function transfer_workspace_entries(modules: workspace_file_modules
   const plans: {source: string; source_root: string; target: string; identity: string}[] = [], targets = new Set<string>();
   for (const source of selected) {
     // 外部来源逐层验证其卷根以下路径；写入边界仍为用户选定的工作区。
-    const source_root=external?path_api.parse(source).root:root;
+    const source_root=external?(remote_files_for(source)?.cache_root||path_api.parse(source).root):root;
     validate_name(path_api,path_api.basename(source));
     const entry = await check_entry(modules, source_root, source, false), target = path_api.join(destination.path, path_api.basename(source));
     if (entry.stat.isDirectory() && within(path_api, source, destination.path)) throw new Error("不能把文件夹复制或移入自身。");

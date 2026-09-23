@@ -26,7 +26,7 @@ function create_remote_ssh(options){
   const request=(operation,values={})=>new Promise((resolve,reject)=>{
     if(!process_handle||!['connecting','connected'].includes(state))return reject(Error('SSH尚未连接，请先连接主机。'));
     if(pending.size>=32)return reject(Error('远程请求过多，请等待当前操作完成。'));
-    const timeout=options.connection_options?.().request_timeout??30;
+    const timeout=operation==='git'&&values.writable?300:options.connection_options?.().request_timeout??30;
     const id=++serial,timer=setTimeout(()=>{close('远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。');},Math.max(16,Math.min(300,timeout))*1000);
     pending.set(id,{resolve,reject,timer});process_handle.stdin.write(JSON.stringify({...values,id,operation})+'\n',error=>{if(error)close('SSH写入失败；当前草稿已保留。');});
   });
@@ -54,7 +54,7 @@ function create_remote_ssh(options){
     child.stderr.on('data',chunk=>{diagnostic=(diagnostic+chunk.toString()).slice(-8192);});
     child.stdout.on('data',chunk=>{
       if(epoch!==generation)return;buffer+=chunk.toString();if(buffer.length>24*1024*1024)return close('远程响应超过限制。');
-      while(buffer.includes('\n')){const index=buffer.indexOf('\n'),line=buffer.slice(0,index);buffer=buffer.slice(index+1);try{const message=JSON.parse(line),item=pending.get(message.id);if(!item)continue;pending.delete(message.id);clearTimeout(item.timer);message.error?item.reject(Error(message.error)):item.resolve(message.result);}catch{close('SSH远程协议异常，请检查登录脚本是否向标准输出打印内容。');return;}}
+      while(buffer.includes('\n')){const index=buffer.indexOf('\n'),line=buffer.slice(0,index);buffer=buffer.slice(index+1);try{const message=JSON.parse(line),item=pending.get(message.id);if(!item)continue;pending.delete(message.id);clearTimeout(item.timer);message.error?item.reject(Object.assign(Error(message.error),{code:message.code})):item.resolve(message.result);}catch{close('SSH远程协议异常，请检查登录脚本是否向标准输出打印内容。');return;}}
     });
     const hello=await request('hello');if(epoch!==generation)throw Error('已取消连接');if(hello.protocol!==1)throw Error('远程协议版本不匹配');notify('connected',target);return hello;
     }catch(error){if(epoch===generation)close(error.message);throw error;}

@@ -1,3 +1,4 @@
+import {remote_files_for} from './remote_workspace_files';
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
 import {bind_terminal_state} from "./terminal_state";
@@ -94,7 +95,7 @@ export function bind_terminal_workspace(host:graph_host){
   };
   const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
-    if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,remote.remote_path);}
+    if(!launch_profile&&!local){const remote=require_remote_terminal_context();if(remote)launch_profile=ssh_profile(remote.target,explicit_cwd&&remote_files_for(root)?remote_files_for(root)!.remote_path(root):remote.remote_path);}
     // 本机工作目录仅供启动OpenSSH进程；远端目录由固定远程启动协议拥有。
     if(launch_profile?.remote){root=runtime._options.userDataPath;explicit_cwd=true;resolve_cwd=undefined;}
     // 先建立真实会话与显示表面；配置探测由会话启动阶段等待。

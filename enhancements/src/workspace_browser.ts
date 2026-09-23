@@ -29,6 +29,7 @@ import {bind_workspace_settings_sections} from './workspace_settings_sections';
 import {bind_workspace_settings_view} from './workspace_settings_view';
 import {bind_workspace_reading_reflow} from './reading_reflow';
 import {bind_workspace_link_dock} from './workspace_link_dock';
+import {bind_remote_workspace_media} from './remote_workspace_media';
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -36,6 +37,7 @@ export function bind_workspace_browser() {
   try {
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
+  lifetime.own(bind_remote_workspace_media());
   lifetime.own(bind_workspace_link_dock(core,files));
   lifetime.own(bind_workspace_reading_reflow());
   lifetime.own(bind_workspace_settings_sections(files));
@@ -47,7 +49,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_preferences(core));
   const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed(true)));
   const open_folder=file_commands.open_folder;
-  const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,create:files.create_entry,file_clipboard:files.file_clipboard,trash:files.trash_entries,confirm_delete:()=>!(window as unknown as {File?:{option?:{noWarnigForDeleteFile?:boolean}}}).File?.option?.noWarnigForDeleteFile,
+  const explorer=bind_workspace_explorer(core as unknown as workspace_explorer_core,{fs:files.fs,open_file:files.open_file,context_root:files.context_root,active_file:files.current_file,open_folder,copy:files.copy,rename:files.rename_file,create:files.create_entry,file_clipboard:files.file_clipboard,trash:files.trash_entries,confirm_delete:()=>!(window as unknown as {File?:{option?:{noWarnigForDeleteFile?:boolean}}}).File?.option?.noWarnigForDeleteFile,
     reveal_system:path=>(window as unknown as {reqnode(name:string):any}).reqnode("electron").shell.showItemInFolder(path),
     find_in_folder:path=>search.find_in_folder(path),
     terminal:cwd=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{cwd}})),

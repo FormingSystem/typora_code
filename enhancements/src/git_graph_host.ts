@@ -1,3 +1,4 @@
+import {workspace_resource_fs} from './remote_workspace_files';
 import {discover_git_repositories} from "./git_repository_discovery";
 import {trash_native_path} from "./workspace_native_trash";
 import {request_workspace_editor_title_entries} from "./workspace_editor_actions";
@@ -42,7 +43,7 @@ export type graph_core = {
 type native_file = { getMountFolder?(): string; bundle?: { filePath?: string }; changeCounter?: { isDocumentEdited(): boolean } };
 export function create_graph_host(core: graph_core) {
   const runtime = window as unknown as { reqnode(name: string): any; File?: native_file; JSBridge: { invoke(command: string, ...args: unknown[]): Promise<unknown> }; _options: { userDataPath: string } };
-  const fs = runtime.reqnode("fs"); const path_api = runtime.reqnode("path"); const process_api = runtime.reqnode("process");
+  const fs = workspace_resource_fs(runtime.reqnode("fs")); const path_api = runtime.reqnode("path"); const process_api = runtime.reqnode("process");
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
@@ -191,8 +192,8 @@ export function create_graph_host(core: graph_core) {
         catch (error) { throw new Error(text("host.trash_partial_failure", {count: index, file: files[index], error: String(error)})); }
       }
     },
-    operation(git_dir: string): string {
-      for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) if (fs.existsSync(path_api.join(git_dir, file))) return operation;
+    async operation(git_dir: string): Promise<string> {
+      for (const [file, operation] of [["rebase-merge", "rebase"], ["rebase-apply", "rebase"], ["MERGE_HEAD", "merge"], ["CHERRY_PICK_HEAD", "cherry-pick"], ["REVERT_HEAD", "revert"]]) {try{await fs.promises.lstat(path_api.join(git_dir,file));return operation;}catch(error){if((error as any).code!=='ENOENT')throw error;}}
       return "";
     },
     copy(text: string) { return runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text })); },
@@ -202,7 +203,7 @@ export function create_graph_host(core: graph_core) {
     },
     async open_file(root: string, file: string, settings: graph_settings) {
       const target = ensure_file_path(root, file);
-      if (!fs.existsSync(target)) throw new Error(text("host.current_file_missing"));
+      try{await fs.promises.stat(target);}catch(error){if((error as any).code==='ENOENT')throw new Error(text("host.current_file_missing"));throw error;}
       const file_host = get_workspace_files();
       if (file_host) { await file_host.open_file(target, {}, settings.new_tab_group); return; }
       if (/\.(md|markdown)$/iu.test(target)) {
@@ -220,7 +221,7 @@ export function create_graph_host(core: graph_core) {
       if (revision === EMPTY) return "";
       if (revision === WORKTREE) {
         const target = ensure_file_path(root, file);
-        if (!fs.existsSync(target)) return "";
+        try{await fs.promises.lstat(target);}catch(error){if((error as any).code==='ENOENT')return "";throw error;}
         const stat = await fs.promises.lstat(target);
         if (stat.isSymbolicLink()) return fs.promises.readlink(target);
         if (!stat.isFile()) throw new Error(text("host.non_text_comparison"));

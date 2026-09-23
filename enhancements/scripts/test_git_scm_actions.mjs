@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import child_process from 'node:child_process';
 import {build} from 'esbuild';
-const compiled=await build({stdin:{contents:['git_commit_web','git_scm_data','git_graph_actions','git_graph_repository','git_graph_settings','git_graph_runtime','workspace_open_dialog'].map(name=>`export * from './src/${name}.ts'`).join(';'),resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
+const compiled=await build({stdin:{contents:['git_commit_web','git_scm_data','git_graph_actions','git_graph_repository','git_graph_settings','git_graph_runtime','workspace_open_dialog'].map(name=>`export * from './src/${name}.ts'`).join(';'),resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false,loader:{'.css':'text'}});
 const api=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'typora_scm_actions_')),checks=[];
 const git=(root,args)=>child_process.execFileSync('git',['-c','core.hooksPath=.git/unused_hooks','-c','core.autocrlf=false',...args],{cwd:root,encoding:'utf8',windowsHide:true,stdio:['pipe','pipe','pipe']}).trim();
