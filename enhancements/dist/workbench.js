@@ -162323,6 +162323,187 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_wheel_zoom.ts
+  function wheel_zoom_direction(event) {
+    return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && Number.isFinite(event.deltaY) && event.deltaY !== 0 ? event.deltaY < 0 ? 1 : -1 : 0;
+  }
+  function reading_wheel_root(event) {
+    if (event.defaultPrevented || !wheel_zoom_direction(event)) return;
+    const target = event.composedPath()[0];
+    if (!(target instanceof Element)) return;
+    if (target.closest('pre,code,.md-fences,.md-diagram,.md-math,.md-inline-math,.md-htmlblock,.md-image,.md-video,.md-audio,.md-rawblock,.CodeMirror,.monaco-editor,.mermaid,svg,canvas,img,picture,video,audio,iframe,webview,a,button,input,textarea,select,[role="button"],.workspace-link-preview,.workspace-lookup-preview')) return;
+    const root = target.closest("#write,.typ-markdown-preview");
+    if (!root || !target.closest("p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th")) return;
+    if ([...document.querySelectorAll('.reading-media-viewer,[role="dialog"][aria-modal="true"],.modal.in')].some((node) => !node.hidden && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden")) return;
+    return root;
+  }
+
+  // src/reading_native_scroll.ts
+  function stop_native_reading_scroll(scroller) {
+    if (scroller.tagName !== "CONTENT") return;
+    const runtime2 = window;
+    runtime2.$?.(scroller).stop?.(true, false);
+  }
+  function bind_reading_native_scroll(editor2, runtime2) {
+    const selection = editor2?.selection, original = selection?.scrollAdjust;
+    if (typeof original !== "function") return () => {
+    };
+    const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
+    const adjusted = function(target, margin, duration, force) {
+      const content = document.querySelector("content.typ-workspace-binding");
+      const file = runtime2.File;
+      if (content && typeof margin === "number" && Number.isFinite(margin) && !editor2.sourceView?.inSourceMode && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
+        const title = file?.isNodeHtml ? runtime2.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
+        const search2 = runtime2.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
+        margin += Math.max(0, reading_viewport_bounds(content).top - title - search2);
+      }
+      return original.call(this, target, margin, duration, force);
+    };
+    selection.scrollAdjust = adjusted;
+    return () => {
+      if (selection.scrollAdjust !== adjusted) return;
+      if (descriptor) Object.defineProperty(selection, "scrollAdjust", descriptor);
+      else delete selection.scrollAdjust;
+    };
+  }
+
+  // src/reading_reflow.ts
+  var active_bindings = /* @__PURE__ */ new WeakMap();
+  function character_rect(node, offset) {
+    const range2 = document.createRange();
+    range2.setStart(node, Math.min(offset, node.length));
+    range2.setEnd(node, Math.min(offset + 1, node.length));
+    return range2.getBoundingClientRect();
+  }
+  function capture_reflow_anchor(scroller, root) {
+    if (!root.isConnected || !scroller.clientHeight) return;
+    const viewport = scroller.getBoundingClientRect(), target = viewport.top + viewport.height / 3;
+    const find = (element) => {
+      const rect = element.getBoundingClientRect();
+      if (rect.bottom <= target || rect.top >= viewport.bottom || !rect.width || !rect.height) return;
+      for (const child of element.childNodes) {
+        if (child instanceof Element) {
+          if (child.matches('script,style,button,[aria-hidden="true"]')) continue;
+          const anchor = find(child);
+          if (anchor) return anchor;
+        } else if (child instanceof Text && child.textContent?.trim()) {
+          const range2 = document.createRange();
+          range2.selectNodeContents(child);
+          const box = range2.getBoundingClientRect();
+          if (box.bottom <= target || box.top >= viewport.bottom) continue;
+          let low = 0, high = child.length - 1;
+          while (low < high) {
+            const mid = low + high >>> 1;
+            if (character_rect(child, mid).bottom <= target) low = mid + 1;
+            else high = mid;
+          }
+          const point = character_rect(child, low);
+          if (point.height) return { node: child, offset: low, top: point.top - viewport.top };
+        }
+      }
+    };
+    return find(root);
+  }
+  function restore_reflow_anchor(scroller, root, anchor) {
+    if (!anchor || !root.contains(anchor.node) || !root.getClientRects().length) return;
+    const rect = character_rect(anchor.node, anchor.offset), viewport = scroller.getBoundingClientRect();
+    let ratio = 1, node = scroller;
+    while (node) {
+      ratio *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
+      node = node.parentElement;
+    }
+    scroller.scrollTop += (rect.top - viewport.top - anchor.top) / ratio;
+  }
+  function change_reading_geometry(scroller, root, action) {
+    const binding = active_bindings.get(root);
+    if (binding) {
+      binding.change(action);
+      return;
+    }
+    stop_native_reading_scroll(scroller);
+    const anchor = capture_reflow_anchor(scroller, root);
+    action();
+    restore_reflow_anchor(scroller, root, anchor);
+  }
+  function bind_reading_reflow(scroller, root) {
+    let disposed = false, frame3 = 0, anchor;
+    let geometry = "";
+    const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
+    const capture = () => {
+      if (disposed) return;
+      geometry = size();
+      anchor = capture_reflow_anchor(scroller, root);
+    };
+    const restore = () => {
+      if (disposed) return;
+      stop_native_reading_scroll(scroller);
+      restore_reflow_anchor(scroller, root, anchor);
+      capture();
+    };
+    const resize = new ResizeObserver(() => {
+      if (size() !== geometry) restore();
+    });
+    resize.observe(scroller);
+    resize.observe(root);
+    const scroll = () => {
+      if (size() !== geometry) return;
+      capture();
+    };
+    scroller.addEventListener("scroll", scroll, { passive: true });
+    capture();
+    const binding = { capture, change(action) {
+      stop_native_reading_scroll(scroller);
+      capture();
+      action();
+      restore_reflow_anchor(scroller, root, anchor);
+      cancelAnimationFrame(frame3);
+      frame3 = requestAnimationFrame(restore);
+    }, dispose() {
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      resize.disconnect();
+      scroller.removeEventListener("scroll", scroll);
+      anchor = void 0;
+      if (active_bindings.get(root) === binding) active_bindings.delete(root);
+    } };
+    active_bindings.set(root, binding);
+    return binding;
+  }
+  function bind_workspace_reading_reflow() {
+    const bindings9 = /* @__PURE__ */ new Map();
+    let frame3 = 0, disposed = false;
+    const refresh = () => {
+      frame3 = 0;
+      if (disposed) return;
+      for (const [root, entry] of bindings9) if (!root.isConnected) {
+        entry.binding.dispose();
+        bindings9.delete(root);
+      }
+      for (const root of document.querySelectorAll("#write,.typ-markdown-preview")) {
+        if (root.closest(".workspace-link-preview,.workspace-lookup-preview")) continue;
+        let scroller = root.parentElement;
+        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+        if (!scroller || scroller === document.body) continue;
+        const old = bindings9.get(root);
+        if (old?.scroller === scroller) continue;
+        old?.binding.dispose();
+        bindings9.set(root, { scroller, binding: bind_reading_reflow(scroller, root) });
+      }
+    };
+    const observer2 = new MutationObserver(() => {
+      if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
+    });
+    observer2.observe(document.body, { childList: true, subtree: true });
+    refresh();
+    return { dispose() {
+      disposed = true;
+      observer2.disconnect();
+      cancelAnimationFrame(frame3);
+      for (const { binding } of bindings9.values()) binding.dispose();
+      bindings9.clear();
+    } };
+  }
+
   // src/workspace_zoom.ts
   var WORKSPACE_ZOOM_ACTIONS = [
     { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
@@ -162340,6 +162521,37 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function bind_workspace_zoom_commands(app, runtime2) {
     const lifetime = create_workspace_lifetime();
+    let wheel_frame = 0;
+    let wheel_target;
+    let wheel_action = "";
+    lifetime.add(() => {
+      cancelAnimationFrame(wheel_frame);
+      wheel_target = void 0;
+    });
+    lifetime.listen(document, "wheel", (raw) => {
+      const event = raw, root = reading_wheel_root(event);
+      if (!root) return;
+      const id = wheel_zoom_direction(event) > 0 ? "linux_note:zoom_in" : "linux_note:zoom_out";
+      if (!workspace_zoom_available(runtime2, id)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      wheel_target = root;
+      wheel_action = id;
+      if (wheel_frame) return;
+      wheel_frame = requestAnimationFrame(() => {
+        wheel_frame = 0;
+        const target = wheel_target;
+        wheel_target = void 0;
+        if (lifetime.disposed || !target?.isConnected) return;
+        let scroller = target.parentElement;
+        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+        const action = WORKSPACE_ZOOM_ACTIONS.find((item) => item.id === wheel_action);
+        if (!action || !workspace_zoom_available(runtime2, wheel_action)) return;
+        const run = () => runtime2.ClientCommand[action.native_command]();
+        if (scroller && scroller !== document.body) change_reading_geometry(scroller, target, run);
+        else run();
+      });
+    }, { capture: true, passive: false });
     try {
       for (const action of WORKSPACE_ZOOM_ACTIONS) {
         if (!workspace_zoom_available(runtime2, action.id)) continue;
@@ -181652,35 +181864,6 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
-  // src/reading_native_scroll.ts
-  function stop_native_reading_scroll(scroller) {
-    if (scroller.tagName !== "CONTENT") return;
-    const runtime2 = window;
-    runtime2.$?.(scroller).stop?.(true, false);
-  }
-  function bind_reading_native_scroll(editor2, runtime2) {
-    const selection = editor2?.selection, original = selection?.scrollAdjust;
-    if (typeof original !== "function") return () => {
-    };
-    const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
-    const adjusted = function(target, margin, duration, force) {
-      const content = document.querySelector("content.typ-workspace-binding");
-      const file = runtime2.File;
-      if (content && typeof margin === "number" && Number.isFinite(margin) && !editor2.sourceView?.inSourceMode && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
-        const title = file?.isNodeHtml ? runtime2.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
-        const search2 = runtime2.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
-        margin += Math.max(0, reading_viewport_bounds(content).top - title - search2);
-      }
-      return original.call(this, target, margin, duration, force);
-    };
-    selection.scrollAdjust = adjusted;
-    return () => {
-      if (selection.scrollAdjust !== adjusted) return;
-      if (descriptor) Object.defineProperty(selection, "scrollAdjust", descriptor);
-      else delete selection.scrollAdjust;
-    };
-  }
-
   // src/reading_history.ts
   function same_location(left, right) {
     return left.file_path === right.file_path && left.kind === right.kind && left.view_id === right.view_id && Math.abs(left.scroll_top - right.scroll_top) < 2 && Math.abs(left.scroll_left - right.scroll_left) < 2 && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
@@ -198487,7 +198670,32 @@ https://creativecommons.org/licenses/by/4.0/
         }
         return true;
       });
-      this.container.onpointerdown = () => actions.active();
+      this.container.onpointerdown = () => {
+        this.clear_font_anchor();
+        actions.active();
+      };
+      this.lifetime.listen(this.viewport, "wheel", (raw) => {
+        const event = raw, direction = wheel_zoom_direction(event);
+        if (!direction) {
+          this.clear_font_anchor();
+          return;
+        }
+        if (event.defaultPrevented || !this.actions.font_size) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        this.font_direction = direction;
+        if (this.font_frame) return;
+        this.font_frame = requestAnimationFrame(() => {
+          this.font_frame = 0;
+          if (this.lifetime.disposed) return;
+          const size = Math.max(6, Math.min(100, this.settings.font_size + this.font_direction));
+          if (size !== this.settings.font_size) try {
+            this.actions.font_size?.(size);
+          } catch (error) {
+            this.actions.error(error);
+          }
+        });
+      }, { capture: true, passive: false });
       for (const type of ["keydown", "keypress", "keyup", "beforeinput", "input", "compositionstart", "compositionupdate", "compositionend"]) {
         this.lifetime.listen(this.container, type, (event) => event.stopPropagation());
       }
@@ -198501,6 +198709,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.lifetime.add(() => observer2.disconnect());
       this.lifetime.add(() => {
         cancelAnimationFrame(this.frame);
+        cancelAnimationFrame(this.font_frame);
+        this.clear_font_anchor();
         this.term.dispose();
         this.container.remove();
       });
@@ -198519,6 +198729,10 @@ https://creativecommons.org/licenses/by/4.0/
     progress = create_workspace_progress_view();
     sent_cols = 0;
     sent_rows = 0;
+    font_frame = 0;
+    font_direction = 0;
+    restore_frame = 0;
+    resize_anchor;
     mount() {
       if (this.lifetime.disposed) return;
       if (!this.opened) {
@@ -198529,6 +198743,14 @@ https://creativecommons.org/licenses/by/4.0/
       this.resize();
     }
     apply_settings(settings) {
+      if (this.opened && !this.resize_anchor && ["font_family", "font_size", "font_weight", "line_height", "letter_spacing"].some((key2) => settings[key2] !== this.settings[key2])) {
+        const buffer = this.term.buffer.active;
+        if (buffer.type === "normal") {
+          let start = buffer.viewportY;
+          while (start > 0 && buffer.getLine(start)?.isWrapped) start--;
+          this.resize_anchor = { bottom: buffer.viewportY === buffer.baseY, marker: this.term.registerMarker(start - buffer.baseY - buffer.cursorY), cell_offset: (buffer.viewportY - start) * this.term.cols };
+        }
+      }
       this.settings = settings;
       this.term.options = { fontFamily: settings.font_family, fontSize: settings.font_size, fontWeight: settings.font_weight, lineHeight: settings.line_height, letterSpacing: settings.letter_spacing, cursorStyle: settings.cursor_style, cursorBlink: settings.cursor_blink, cursorWidth: settings.cursor_width, scrollback: settings.scrollback, smoothScrollDuration: settings.smooth_scrolling ? 100 : 0, scrollSensitivity: settings.scroll_sensitivity, fastScrollSensitivity: settings.fast_scroll_sensitivity, minimumContrastRatio: settings.minimum_contrast, tabStopWidth: settings.tab_stop_width };
       this.resize();
@@ -198540,6 +198762,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.opened || !this.viewport.clientWidth || !this.viewport.clientHeight) return;
         try {
           this.fit.fit();
+          cancelAnimationFrame(this.restore_frame);
+          if (this.resize_anchor) this.restore_frame = requestAnimationFrame(() => this.restore_font_anchor());
           const { cols, rows } = this.term;
           if (cols !== this.sent_cols || rows !== this.sent_rows) {
             this.sent_cols = cols;
@@ -198549,6 +198773,36 @@ https://creativecommons.org/licenses/by/4.0/
         } catch {
         }
       });
+    }
+    clear_font_anchor() {
+      cancelAnimationFrame(this.restore_frame);
+      this.restore_frame = 0;
+      this.resize_anchor?.marker?.dispose();
+      this.resize_anchor = void 0;
+    }
+    restore_font_anchor() {
+      this.restore_frame = 0;
+      const anchor = this.resize_anchor;
+      this.resize_anchor = void 0;
+      if (!anchor) return;
+      const smooth = this.term.options.smoothScrollDuration;
+      this.term.options.smoothScrollDuration = 0;
+      try {
+        if (this.term.buffer.active.type !== "normal") return;
+        if (anchor.bottom) {
+          this.term.scrollToBottom();
+          return;
+        }
+        if (!anchor.marker || anchor.marker.isDisposed) return;
+        let line = anchor.marker.line;
+        const limit = line + Math.floor(anchor.cell_offset / this.term.cols);
+        while (line < limit && this.term.buffer.active.getLine(line + 1)?.isWrapped) line++;
+        this.term.scrollToBottom();
+        this.term.scrollToLine(line);
+      } finally {
+        this.term.options.smoothScrollDuration = smooth;
+        anchor.marker?.dispose();
+      }
     }
     focus() {
       if (!this.lifetime.disposed) this.term.focus();
@@ -199328,7 +199582,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }, explicit_cwd, resolve_cwd, () => !lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch(), launch_profile);
         const windows_pty = host.process_api.platform === "win32" ? { backend: "conpty", buildNumber: Number(runtime2.reqnode("os").release().split(".")[2]) } : void 0;
-        const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, active: () => {
+        const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, font_size: (size) => settings.update({ ...settings.get(), font_size: size }), active: () => {
           if (active_id !== id) activate(id, false);
         } }, windows_pty);
         entry = { session, surface, location, moving: false };
@@ -232097,7 +232351,7 @@ https://creativecommons.org/licenses/by/4.0/
     const sync = () => {
       update_frame = 0;
       if (lifetime.disposed) return;
-      const state = read2(), hidden = !state || Math.abs(state.level) < 1e-4;
+      const state = read2(), hidden = !state;
       if (hidden && popup) close(popup.contains(document.activeElement));
       group.hidden = hidden;
       if (!state) return;
@@ -236328,143 +236582,6 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     return { search: search2, prepare_replace, apply_replace };
-  }
-
-  // src/reading_reflow.ts
-  var active_bindings = /* @__PURE__ */ new WeakMap();
-  function character_rect(node, offset) {
-    const range2 = document.createRange();
-    range2.setStart(node, Math.min(offset, node.length));
-    range2.setEnd(node, Math.min(offset + 1, node.length));
-    return range2.getBoundingClientRect();
-  }
-  function capture_reflow_anchor(scroller, root) {
-    if (!root.isConnected || !scroller.clientHeight) return;
-    const viewport = scroller.getBoundingClientRect(), target = viewport.top + viewport.height / 3;
-    const find = (element) => {
-      const rect = element.getBoundingClientRect();
-      if (rect.bottom <= target || rect.top >= viewport.bottom || !rect.width || !rect.height) return;
-      for (const child of element.childNodes) {
-        if (child instanceof Element) {
-          if (child.matches('script,style,button,[aria-hidden="true"]')) continue;
-          const anchor = find(child);
-          if (anchor) return anchor;
-        } else if (child instanceof Text && child.textContent?.trim()) {
-          const range2 = document.createRange();
-          range2.selectNodeContents(child);
-          const box = range2.getBoundingClientRect();
-          if (box.bottom <= target || box.top >= viewport.bottom) continue;
-          let low = 0, high = child.length - 1;
-          while (low < high) {
-            const mid = low + high >>> 1;
-            if (character_rect(child, mid).bottom <= target) low = mid + 1;
-            else high = mid;
-          }
-          const point = character_rect(child, low);
-          if (point.height) return { node: child, offset: low, top: point.top - viewport.top };
-        }
-      }
-    };
-    return find(root);
-  }
-  function restore_reflow_anchor(scroller, root, anchor) {
-    if (!anchor || !root.contains(anchor.node) || !root.getClientRects().length) return;
-    const rect = character_rect(anchor.node, anchor.offset), viewport = scroller.getBoundingClientRect();
-    let ratio = 1, node = scroller;
-    while (node) {
-      ratio *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
-      node = node.parentElement;
-    }
-    scroller.scrollTop += (rect.top - viewport.top - anchor.top) / ratio;
-  }
-  function change_reading_geometry(scroller, root, action) {
-    const binding = active_bindings.get(root);
-    if (binding) {
-      binding.change(action);
-      return;
-    }
-    stop_native_reading_scroll(scroller);
-    const anchor = capture_reflow_anchor(scroller, root);
-    action();
-    restore_reflow_anchor(scroller, root, anchor);
-  }
-  function bind_reading_reflow(scroller, root) {
-    let disposed = false, frame3 = 0, anchor;
-    let geometry = "";
-    const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
-    const capture = () => {
-      if (disposed) return;
-      geometry = size();
-      anchor = capture_reflow_anchor(scroller, root);
-    };
-    const restore = () => {
-      if (disposed) return;
-      stop_native_reading_scroll(scroller);
-      restore_reflow_anchor(scroller, root, anchor);
-      capture();
-    };
-    const resize = new ResizeObserver(() => {
-      if (size() !== geometry) restore();
-    });
-    resize.observe(scroller);
-    resize.observe(root);
-    const scroll = () => {
-      if (size() !== geometry) return;
-      capture();
-    };
-    scroller.addEventListener("scroll", scroll, { passive: true });
-    capture();
-    const binding = { capture, change(action) {
-      stop_native_reading_scroll(scroller);
-      capture();
-      action();
-      restore_reflow_anchor(scroller, root, anchor);
-      cancelAnimationFrame(frame3);
-      frame3 = requestAnimationFrame(restore);
-    }, dispose() {
-      disposed = true;
-      cancelAnimationFrame(frame3);
-      resize.disconnect();
-      scroller.removeEventListener("scroll", scroll);
-      anchor = void 0;
-      if (active_bindings.get(root) === binding) active_bindings.delete(root);
-    } };
-    active_bindings.set(root, binding);
-    return binding;
-  }
-  function bind_workspace_reading_reflow() {
-    const bindings9 = /* @__PURE__ */ new Map();
-    let frame3 = 0, disposed = false;
-    const refresh = () => {
-      frame3 = 0;
-      if (disposed) return;
-      for (const [root, entry] of bindings9) if (!root.isConnected) {
-        entry.binding.dispose();
-        bindings9.delete(root);
-      }
-      for (const root of document.querySelectorAll("#write,.typ-markdown-preview")) {
-        if (root.closest(".workspace-link-preview,.workspace-lookup-preview")) continue;
-        let scroller = root.parentElement;
-        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
-        if (!scroller || scroller === document.body) continue;
-        const old = bindings9.get(root);
-        if (old?.scroller === scroller) continue;
-        old?.binding.dispose();
-        bindings9.set(root, { scroller, binding: bind_reading_reflow(scroller, root) });
-      }
-    };
-    const observer2 = new MutationObserver(() => {
-      if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
-    });
-    observer2.observe(document.body, { childList: true, subtree: true });
-    refresh();
-    return { dispose() {
-      disposed = true;
-      observer2.disconnect();
-      cancelAnimationFrame(frame3);
-      for (const { binding } of bindings9.values()) binding.dispose();
-      bindings9.clear();
-    } };
   }
 
   // src/workspace_lookup_preview.css
@@ -243422,6 +243539,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092305,
+        version: "2026.09.23.5",
+        date: "2026-09-23",
+        notes: [
+          "\u7EC8\u7AEF\u652F\u6301Ctrl+\u6EDA\u8F6E\u8C03\u6574\u5B57\u7B26\u5927\u5C0F\uFF0C\u5386\u53F2\u65E5\u5FD7\u6309\u903B\u8F91\u884C\u4FDD\u6301\u67E5\u770B\u4F4D\u7F6E\uFF0C\u5B57\u53F7\u4E0E\u7EC8\u7AEF\u8BBE\u7F6E\u540C\u6B65\u3002",
+          "Markdown\u6B63\u6587\u548C\u6807\u9898\u652F\u6301Ctrl+\u6EDA\u8F6E\u7F29\u653E\u5E76\u4FDD\u7559\u9605\u8BFB\u4F4D\u7F6E\uFF1B\u4EE3\u7801\u5757\u3001\u5A92\u4F53\u3001Mermaid\u4E0E\u9884\u89C8\u4FDD\u6301\u5404\u81EA\u64CD\u4F5C\u3002",
+          "\u53F3\u4E0B\u7A97\u53E3\u7F29\u653E\u5165\u53E3\u5728100%\u5B9E\u9645\u5927\u5C0F\u65F6\u5E38\u9A7B\uFF0C\u91CD\u7F6E\u540E\u4ECD\u53EF\u76F4\u63A5\u7EE7\u7EED\u8C03\u6574\u3002"
+        ]
+      },
       {
         sequence: 2026092304,
         version: "2026.09.23.4",

@@ -28,7 +28,7 @@ export function bind_workspace_zoom_status(app:zoom_app,runtime:zoom_runtime=win
   const close=(restore=false)=>{const focus=previous;hover.hide(restore?()=>focus?.restore():undefined);};
   const sync=()=>{
     update_frame=0;if(lifetime.disposed)return;
-    const state=read(),hidden=!state||Math.abs(state.level)<.0001;
+    const state=read(),hidden=!state;
     if(hidden&&popup)close(popup.contains(document.activeElement));
     group.hidden=hidden;
     if(!state)return;

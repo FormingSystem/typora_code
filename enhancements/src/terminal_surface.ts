@@ -1,6 +1,7 @@
 import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
-import type {Terminal,IWindowsPty} from "@xterm/xterm";
+import type {Terminal,IWindowsPty,IMarker} from "@xterm/xterm";
+import {wheel_zoom_direction} from "./workspace_wheel_zoom";
 import {Terminal as terminal_constructor} from "../vendor/xterm/xterm.mjs";
 import {FitAddon} from "@xterm/addon-fit";
 import {SearchAddon} from "@xterm/addon-search";
@@ -17,7 +18,9 @@ export class terminal_surface {
   readonly status=el("div","linux-note-terminal-status");readonly term:Terminal;readonly fit=new FitAddon();readonly search=new SearchAddon();
   private lifetime=create_workspace_lifetime();private frame=0;private settings:terminal_settings;private find_bar=el("div","terminal-find");
   private opened=false;private progress=create_workspace_progress_view();private sent_cols=0;private sent_rows=0;
-  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void},windows_pty?:IWindowsPty){
+  private font_frame=0;private font_direction=0;private restore_frame=0;
+  private resize_anchor:{marker?:IMarker;bottom:boolean;cell_offset:number}|undefined;
+  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void;font_size?(size:number):void},windows_pty?:IWindowsPty){
     this.settings=settings;this.term=new terminal_constructor({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);
     // 与 VS Code 一样回应 ConPTY 的 DA1 握手，避免新版后端等待能力响应。
     if(windows_pty?.backend==="conpty")this.lifetime.own(this.term.parser.registerCsiHandler({final:"c"},params=>{if(!params.length||params.length===1&&params[0]===0){actions.input("\x1b[?61;4c");return true;}return false;}));
@@ -43,7 +46,19 @@ export class terminal_surface {
       }
       return true;
     });
-    this.container.onpointerdown=()=>actions.active();
+    this.container.onpointerdown=()=>{this.clear_font_anchor();actions.active();};
+    this.lifetime.listen(this.viewport,"wheel",raw=>{
+      const event=raw as WheelEvent,direction=wheel_zoom_direction(event);
+      if(!direction){this.clear_font_anchor();return;}
+      if(event.defaultPrevented||!this.actions.font_size)return;
+      event.preventDefault();event.stopImmediatePropagation();this.font_direction=direction;
+      if(this.font_frame)return;
+      this.font_frame=requestAnimationFrame(()=>{
+        this.font_frame=0;if(this.lifetime.disposed)return;
+        const size=Math.max(6,Math.min(100,this.settings.font_size+this.font_direction));
+        if(size!==this.settings.font_size)try{this.actions.font_size?.(size);}catch(error){this.actions.error(error);}
+      });
+    },{capture:true,passive:false});
     // xterm 先处理目标事件；包括 Shift 抬起在内的完整输入链不冒泡到宿主编辑器。
     // 仅停止冒泡，保留浏览器默认输入与 xterm 的组合上屏、按键状态清理。
     for(const type of ["keydown","keypress","keyup","beforeinput","input","compositionstart","compositionupdate","compositionend"]){
@@ -52,11 +67,43 @@ export class terminal_surface {
     // Ctrl+V、系统粘贴和菜单粘贴经过同一策略，不能绕过多行确认设置。
     this.viewport.addEventListener("paste",event=>{event.preventDefault();event.stopImmediatePropagation();if(event.clipboardData)this.paste_text(event.clipboardData.getData("text/plain"));},true);
     const observer=new ResizeObserver(()=>this.resize());observer.observe(this.viewport);this.lifetime.add(()=>observer.disconnect());
-    this.lifetime.add(()=>{cancelAnimationFrame(this.frame);this.term.dispose();this.container.remove();});
+    this.lifetime.add(()=>{cancelAnimationFrame(this.frame);cancelAnimationFrame(this.font_frame);this.clear_font_anchor();this.term.dispose();this.container.remove();});
   }
   mount(){if(this.lifetime.disposed)return;if(!this.opened){this.opened=true;this.term.open(this.viewport);if(this.term.textarea)this.lifetime.own(bind_terminal_composition(this.term.textarea));}this.resize();}
-  apply_settings(settings:terminal_settings){this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:settings.font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();}
-  resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{this.fit.fit();const {cols,rows}=this.term;if(cols!==this.sent_cols||rows!==this.sent_rows){this.sent_cols=cols;this.sent_rows=rows;this.actions.resize(cols,rows);}}catch{/* 初次布局等待可用尺寸。 */}});}
+  apply_settings(settings:terminal_settings){
+    if(this.opened&&!this.resize_anchor&&['font_family','font_size','font_weight','line_height','letter_spacing'].some(key=>(settings as any)[key]!==(this.settings as any)[key])){
+      const buffer=this.term.buffer.active;
+      if(buffer.type==='normal'){
+        // 被折行的物理行可能在重排时删除；固定逻辑行起点及字符格偏移。
+        let start=buffer.viewportY;while(start>0&&buffer.getLine(start)?.isWrapped)start--;
+        this.resize_anchor={bottom:buffer.viewportY===buffer.baseY,marker:this.term.registerMarker(start-buffer.baseY-buffer.cursorY),cell_offset:(buffer.viewportY-start)*this.term.cols};
+      }
+    }
+    this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:settings.font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();
+  }
+  resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{
+    this.fit.fit();
+    cancelAnimationFrame(this.restore_frame);
+    // xterm在下一次绘制同步字符格与滚动像素，之后再按逻辑锚点定位。
+    if(this.resize_anchor)this.restore_frame=requestAnimationFrame(()=>this.restore_font_anchor());
+    const {cols,rows}=this.term;if(cols!==this.sent_cols||rows!==this.sent_rows){this.sent_cols=cols;this.sent_rows=rows;this.actions.resize(cols,rows);}
+  }catch{/* 初次布局等待可用尺寸。 */}});}
+  private clear_font_anchor(){cancelAnimationFrame(this.restore_frame);this.restore_frame=0;this.resize_anchor?.marker?.dispose();this.resize_anchor=undefined;}
+  private restore_font_anchor(){
+    this.restore_frame=0;const anchor=this.resize_anchor;this.resize_anchor=undefined;
+    if(!anchor)return;
+    const smooth=this.term.options.smoothScrollDuration;this.term.options.smoothScrollDuration=0;
+    try{
+      if(this.term.buffer.active.type!=='normal')return;
+      if(anchor.bottom){this.term.scrollToBottom();return;}
+      if(!anchor.marker||anchor.marker.isDisposed)return;
+      let line=anchor.marker.line;const limit=line+Math.floor(anchor.cell_offset/this.term.cols);
+      while(line<limit&&this.term.buffer.active.getLine(line+1)?.isWrapped)line++;
+      // 公共scrollToLine以当前像素偏移作相对滚动；先同步新字号的绝对底部，
+      // 同一帧内再定位锚点，避免旧字符高度的像素偏移参与计算。
+      this.term.scrollToBottom();this.term.scrollToLine(line);
+    }finally{this.term.options.smoothScrollDuration=smooth;anchor.marker?.dispose();}
+  }
   focus(){if(!this.lifetime.disposed)this.term.focus();}
   find(){this.find_bar.hidden=false;this.find_bar.querySelector("input")?.focus();}
   private paste_text(text:string){

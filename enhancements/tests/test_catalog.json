@@ -3578,7 +3578,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R014"
+        "R014",
+        "R014.1"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -6524,6 +6525,81 @@
         "账号隔离、别名持久化，保险箱重置不清除自动登录，无秘密普通文件"
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-workspace-wheel-zoom",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R014.1"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "implementation": [
+        "enhancements/src/terminal_settings.ts",
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_zoom.ts",
+        "enhancements/src/workspace_zoom_status.ts",
+        "enhancements/src/workspace_wheel_zoom.ts",
+        "enhancements/src/reading_reflow.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_wheel_zoom.cjs",
+      "environment": "隐藏Electron43、真实xterm/滚轮；临时配置与模拟宿主命令",
+      "preconditions": "独立用户目录，不启动用户Shell或访问用户正文",
+      "steps": [
+        "验证字号同步、历史锚点、普通正文/嵌入控件路由、连续1000事件及销毁"
+      ],
+      "expected": [
+        "命中终端改变字号、正文调用唯一窗口命令；定位保持且排除区域不抢占"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-wheel-zoom-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R014.1"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "implementation": [
+        "enhancements/src/terminal_settings.ts",
+        "enhancements/src/terminal_surface.ts",
+        "enhancements/src/workspace_file_icons.ts",
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_titlebar_entries.ts",
+        "enhancements/src/workspace_zoom.ts",
+        "enhancements/src/workspace_zoom_status.ts",
+        "enhancements/src/workspace_wheel_zoom.ts",
+        "enhancements/src/reading_reflow.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "focus",
+        "theme",
+        "layout"
+      ],
+      "script": "enhancements/fixtures/wheel_zoom_native.js",
+      "environment": "原始Typora1.14.10独立副本、Windows私有桌面、真实Shell",
+      "preconditions": "通过prepare_stability_native.py准备当前候选副本与临时文档",
+      "steps": [
+        "原生正文/代码/图表滚轮、100%入口及真实Shell220行输出/20轮历史定位/终端搬移/主题"
+      ],
+      "expected": [
+        "当前候选checks.json状态PASS；失败日志保留且用户环境不被测试改写"
+      ],
+      "timeout_ms": 240000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

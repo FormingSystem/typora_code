@@ -42,7 +42,7 @@
 
 | 固定VS Code源码 | 核对结果与本产品采用方式 |
 | --- | --- |
-| `src/vs/workbench/electron-browser/window.ts:1132–1256` | 偏离配置默认值时显示，正／负方向用zoom-in／zoom-out；弹层顺序为remove、实际level、plus、Reset、settings-gear。Typora重置为原生level0，因此本产品在非零级显示、恢复100%后隐藏；level与百分比都读取当前窗口，不从用户配置或DPI推断。 |
+| `src/vs/workbench/electron-browser/window.ts:1132–1256` | 偏离配置默认值时显示，正／负方向用zoom-in／zoom-out；弹层顺序为remove、实际level、plus、Reset、settings-gear。Typora重置为原生level0，2026-09-13实现曾在非零级显示、恢复100%后隐藏，现由下文R014.1覆盖为常驻；level与百分比都读取当前窗口，不从用户配置或DPI推断。 |
 | `src/vs/workbench/browser/parts/statusbar/statusbarPart.ts:186–211` | HTML悬停500ms、compact模式，点击聚焦后可持续操作；本产品复用bind_workspace_hover，增加显式打开、交互焦点保留及上方优先定位，不复制定时器／边界算法。 |
 | `src/vs/platform/hover/browser/hover.css:37–48`、`src/vs/workbench/electron-browser/media/window.css:6–35` | 紧凑正文12px、内距2px 8px、图形16px、右组间隔10px。保留公共浮层主题、边框和公共控件4px圆角；本产品按钮保持22px操作目标，底栏高度完全由现有共同布局决定。 |
 | `src/vs/workbench/browser/parts/statusbar/statusbarItem.ts:153–164,230–231` | 鼠标／Enter／Space打开并聚焦。本产品浮层按钮按Tab或左右方向移动，Esc与外点取消复用统一退出栈；不用截图中的减号或加号字符代替图标。 |
@@ -59,3 +59,13 @@ Typora1.14.10的`appsrc/window/frame.js`中zoomIn／zoomOut读取webFrame级别�
 ### 底栏入口验收结果
 
 67项目标回归、共享悬停3目标、启动／底栏2目标、完整check与隔离原生验收通过。补测Esc后的650ms稳定状态，覆盖键盘恢复到入口及焦点／鼠标等待显示，均保持关闭；共同hover在恢复焦点期间抑制再进入。真实主题、几何、安装资产边界与原生输入方法统一记录在[反馈](feedback_review.md#2026-09-13-底栏窗口缩放入口)。
+
+## R014.1 指针区域滚轮缩放与常驻入口
+
+2026-09-23用户要求覆盖旧的100%隐藏约定。右下窗口缩放入口在可读取宿主比例时常驻，重置后仍可继续操作；保持原图标、尺寸、共同底栏与浮层规则，读取失败不伪造状态。
+
+终端内容区的Ctrl+滚轮每步改变1px字号，范围6—100px。采用固定VS Code `645f29cc3176500b4b5762ba887cf2a7f0ffdf2c` 的 `src/vs/workbench/contrib/terminalContrib/zoom/browser/terminal.zoom.contribution.ts`：捕获阶段、阻止默认/冒泡、修改共享fontSize配置及6—100范围；本产品按明确授权默认启用，不复制上游可选开关或触控板分类器。滚轮写入按帧合并，使用已有终端配置所有者持久化并通知所有表面；不改变窗口比例或发送Shell输入。修改字号前使用xterm公共marker固定逻辑行起点及字符格偏移，FitAddon重排并完成像素同步后恢复该行；处于底部则继续跟随底部。隐藏表面在重新挂载时恢复，退出释放marker/帧任务。缓冲被Shell清空或容量淘汰时不伪造历史；全屏备用缓冲由应用及PTY重绘所有者负责。
+
+正文/标题/列表/表格里的Ctrl+滚轮调用原有R014宿主窗口缩放命令，每帧至多一步，沿用原有字符锚点保持。仅在命中`#write`或普通Markdown分栏内容时处理；代码块、行内代码、CodeMirror/Monaco、图片/视频/音频/图表/数学、链接、输入控件、独立预览及模态界面交还原所有者。Ctrl+Alt/Shift/Meta组合不接管；不使用键盘焦点替代鼠标命中，不修改宿主缩放偏好。正文使用窗口比例是对已有R014的适配，不新增另一份字号配置。排版重排保留所读字符，文末/缓冲边界无法精确对齐时遵守合法滚动范围。
+
+验收覆盖真实Electron滚轮、原始Typora候选、终端普通历史/长行重排/底部/备用缓冲、面板与分栏、字体设置同步和会话不重建，正文长文与被排除区域，100%常驻/重置/键盘/明暗/窄窗，以及连续操作资源释放。测试替身和原生平台分别记录；不把Windows11证据当作Win10现场验收。

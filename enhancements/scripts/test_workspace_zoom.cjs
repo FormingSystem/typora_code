@@ -77,7 +77,7 @@ app.whenReady().then(async()=>{
  const set_factor=async factor=>{await evaluate(`frame.setZoomFactor(${factor})`);await until(status_visible,'nondefault zoom entry becomes visible');await delay(90);};
  const origin_input=async()=>{await move('#search');await evaluate(`document.querySelector('#editor').focus();document.querySelector('#editor').setSelectionRange(2,8,'forward');void 0`);};
  await delay(100);
- await check(`!${status_visible}&&!${panel_visible}&&document.querySelector('.workspace-zoom-status').getBoundingClientRect().width===0`,'default zero zoom level hides the entry and panel without taking footer width');
+ await check(`${status_visible}&&!${panel_visible}`,'default zero zoom level keeps a visible accessible entry');
  await set_factor(1.2);
  await check(`Math.abs(frame.getZoomLevel()-1)<.001&&document.querySelector(${JSON.stringify(toggle+' [data-git-icon="zoom-in"]')})&&Math.abs(frame.getZoomFactor()-1.2)<.0001`,'native positive zoom displays the official zoom-in status icon');
  await origin_input();await open_panel();
@@ -100,7 +100,7 @@ app.whenReady().then(async()=>{
  await check(`document.querySelector('.workspace-zoom-level').textContent==='1.22'&&document.querySelector('.workspace-zoom-level').title.includes('125%')`,'external fractional zoom displays its real level and percentage without writing a rounded level back');
  await evaluate('calls.length=0');await key('=', ['control']);await until(`${level_matches}&&calls.length===1`);
  await check(`calls.join()==='in'&&Math.abs(frame.getZoomFactor()-1.5)<.001`,'real global shortcut updates native zoom and an already open status panel');
- await click('[data-zoom-action="reset"]');await until(`Math.abs(frame.getZoomLevel())<.001&&!${status_visible}`,'reset returns to native zero and hides its status');
+ await click('[data-zoom-action="reset"]');await until(`Math.abs(frame.getZoomLevel())<.001&&${status_visible}&&${panel_visible}`,'reset returns to native zero and keeps the entry and controls accessible');
  await check(`calls.join()==='in,reset'`,'reset delegates once to the original native command');
  if(await evaluate(panel_visible)){await key('Escape');await until(`!${panel_visible}`);}
  await set_factor(1/1.2);

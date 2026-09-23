@@ -1,0 +1,160 @@
+{
+  "date": "2026-09-23",
+  "release": "2026.09.23.5",
+  "requirements": [
+    "R014.1"
+  ],
+  "design": "docs/workspace_zoom.md",
+  "asset_sha256": "3607c6e259839ce3728eb285a4f3304a646ed6ddae11d32010ef522f3e75b43b",
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "typora": "1.14.10",
+    "electron_ui": "43.2.0",
+    "node": "24.19.0"
+  },
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "catalog_suites": 194,
+    "ui_suites": [
+      "test_wheel_zoom.cjs",
+      "test_workspace_zoom.cjs",
+      "test_terminal_panel.cjs",
+      "test_workspace_link_preview.cjs",
+      "test_workspace_lookup_preview.cjs"
+    ],
+    "wheel_checks": 28,
+    "status_checks": 67,
+    "stress": {
+      "terminal_reciprocal_cycles": 20,
+      "terminal_events_one_frame": 1000,
+      "reading_events_one_frame": 1000
+    },
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "100%入口常驻",
+        "100%入口可打开控制",
+        "重置后入口仍可操作",
+        "捕获原生正文阅读字符",
+        "原生正文消费Ctrl滚轮",
+        "原生正文只调用一次宿主缩放",
+        "缩放后阅读字符仍保持在原文字行附近",
+        "正文滚轮可恢复100%",
+        "原生排除区域存在 #write .md-fences",
+        "原生嵌入区域不改变窗口比例 #write .md-fences",
+        "原生排除区域存在 #write .md-diagram",
+        "原生嵌入区域不改变窗口比例 #write .md-diagram",
+        "正文保留非缩放组合 {\"ctrlKey\":false}",
+        "正文保留非缩放组合 {\"altKey\":true}",
+        "正文保留非缩放组合 {\"shiftKey\":true}",
+        "原生终端历史行保持 0",
+        "终端不缩放窗口 0",
+        "原生终端历史行保持 1",
+        "终端不缩放窗口 1",
+        "原生终端历史行保持 2",
+        "终端不缩放窗口 2",
+        "原生终端历史行保持 3",
+        "终端不缩放窗口 3",
+        "原生终端历史行保持 4",
+        "终端不缩放窗口 4",
+        "原生终端历史行保持 5",
+        "终端不缩放窗口 5",
+        "原生终端历史行保持 6",
+        "终端不缩放窗口 6",
+        "原生终端历史行保持 7",
+        "终端不缩放窗口 7",
+        "原生终端历史行保持 8",
+        "终端不缩放窗口 8",
+        "原生终端历史行保持 9",
+        "终端不缩放窗口 9",
+        "原生终端历史行保持 10",
+        "终端不缩放窗口 10",
+        "原生终端历史行保持 11",
+        "终端不缩放窗口 11",
+        "原生终端历史行保持 12",
+        "终端不缩放窗口 12",
+        "原生终端历史行保持 13",
+        "终端不缩放窗口 13",
+        "原生终端历史行保持 14",
+        "终端不缩放窗口 14",
+        "原生终端历史行保持 15",
+        "终端不缩放窗口 15",
+        "原生终端历史行保持 16",
+        "终端不缩放窗口 16",
+        "原生终端历史行保持 17",
+        "终端不缩放窗口 17",
+        "原生终端历史行保持 18",
+        "终端不缩放窗口 18",
+        "原生终端历史行保持 19",
+        "终端不缩放窗口 19",
+        "往返字体和Shell身份保持",
+        "终端字号由统一配置持久化",
+        "移入编辑组后同一表面缩放",
+        "原生终端底部继续跟随",
+        "主题下100%入口可见 Night",
+        "主题下100%入口可见 Cpp Github Consolas",
+        "正文磁盘未修改"
+      ],
+      "samples": [
+        {
+          "offset": 294,
+          "after": 293.4583435058594,
+          "zoom": 1.2
+        },
+        {
+          "theme": "Night",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgb(57, 148, 188)",
+          "font_size": 14
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "color": "rgb(255, 255, 255)",
+          "background": "rgba(0, 105, 204, 0.867)",
+          "font_size": 14
+        }
+      ],
+      "shell_output_lines": 220
+    },
+    "isolated_install": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/backup preserved",
+    "uninstall_regression_assertions": 65,
+    "local_install": {
+      "version": "2026.09.23.5",
+      "installed_assets": [
+        38,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "upstream": {
+    "commit": "645f29cc3176500b4b5762ba887cf2a7f0ffdf2c",
+    "path": "src/vs/workbench/contrib/terminalContrib/zoom/browser/terminal.zoom.contribution.ts",
+    "sha256": "597e9281227ed0f53395181e621a54f947f0ed469bf1802f61a2e4f85c1011a6",
+    "adopted": "capture/non-passive wheel; shared fontSize configuration; range 6-100; user override enables by default; per-frame coalescing is a local adaptation"
+  },
+  "failures_and_fixes": [
+    "Initial UI harness returned a function through executeJavaScript and embedded unescaped CRLF; fixed harness before assertions.",
+    "Initial terminal marker on a wrapped physical row shifted after reflow; now records logical line start and cell offset.",
+    "xterm scrollToLine used stale pixel offset after font geometry changed; synchronized public absolute bottom and target within one frame with smooth animation disabled only during restoration.",
+    "Smooth scroll test now waits for reaching bottom before testing bottom-follow zoom.",
+    "Native synthetic click lost the hover popup after window geometry moved; harness reopens it before reset. Real Chromium click/keyboard controls separately passed.",
+    "First combined UI invocation used an unregistered test filename; corrected to existing workspace_link_preview suite."
+  ],
+  "limits": [
+    "Native host uses renderer WheelEvent; hidden Electron uses Chromium sendInputEvent. Physical mouse/trackpad hardware and Windows10/Linux/macOS were not tested.",
+    "Alternate terminal buffer belongs to application redraw; cleared/trimmed history cannot be restored.",
+    "Source editor, code/media/links and independent previews preserve existing gesture owners.",
+    "User running windows were not restarted; save-warning investigation remains deferred."
+  ]
+}
