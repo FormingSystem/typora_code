@@ -1,0 +1,20 @@
+:host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}
+#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}
+.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
+.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}
+.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}
+.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}
+.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}
+.markdown-diff-cell table{display:block;overflow:auto}
+.markdown-diff-cell input{pointer-events:none}
+.markdown-diff-cell a{cursor:text}
+.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}
+.markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}
+:host([data-theme=dark]) .markdown-diff-row[data-changed=true]>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}
+.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}
+.markdown-diff-sign{display:block;opacity:.8}
+.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}
+.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
+.lookup-diagram svg{max-width:100%;height:auto}
+.markdown-diff-attachment{font-style:italic}

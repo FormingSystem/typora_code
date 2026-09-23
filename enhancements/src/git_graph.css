@@ -535,3 +535,6 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 /* 大列表沿用SCM行高和主题，窗口化容器不引入新的滚动所有者。 */
 .git-scm-virtual-directory { display: flex; align-items: center; gap: 4px; border: 0; background: transparent; color: inherit; text-align: left; }
 .git-scm-virtual-directory .git-icon { flex: 0 0 16px; }
+
+.git-markdown-diff{flex:1;min-height:0;overflow:auto}
+.git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}

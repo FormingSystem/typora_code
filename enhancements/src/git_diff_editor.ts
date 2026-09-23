@@ -40,6 +40,9 @@ import { detect_file_language } from "./file_language";
 import { register_file_languages } from "./workspace_languages";
 import { git_graph_text as text } from "./git_graph_i18n";
 
+import {is_markdown_file} from './file_language';
+import {create_git_markdown_diff} from './git_markdown_diff';
+
 let initialized = false;
 let serial = 0;
 const model_users = new WeakMap<monaco.editor.ITextModel, number>();
@@ -75,6 +78,9 @@ export class git_diff_editor {
   private range_chord_until=0;
   private close_menu?:()=>void;
   private release_settings?:()=>void;
+  markdown_preview?:ReturnType<typeof create_git_markdown_diff>;
+  rendered_markdown=false;
+  private markdown_epoch=0;
   constructor(public data: diff_document, public extra_menu: () => workspace_menu_entry[] = () => [], shared_model?: monaco.editor.ITextModel) {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.binary_file"));
     const preferences=read_git_diff_preferences();this.side_by_side=preferences.render_side_by_side;this.inline_when_narrow=preferences.inline_when_narrow;this.ignore_whitespace=preferences.ignore_trim_whitespace;this.collapsed=preferences.hide_unchanged;this.show_moves=preferences.show_moves;
@@ -106,9 +112,10 @@ export class git_diff_editor {
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
         const changes = editor.getLineChanges(); this.status.textContent = changes ? text("diff.change_count", {count: changes.length}) : text("diff.incomplete");
         this.container.setAttribute("data-diff-ready", String(changes !== null));
+        if(changes&&this.rendered_markdown)void this.render_markdown();
         if (!revealed && changes) { revealed = true; editor.revealFirstDiff(); }
       }));
-      this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => editor.goToDiff("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => editor.goToDiff("next")));
+      this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => this.navigate("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => this.navigate("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
     } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
     // Monaco 0.56 的全局 hover factory 会被最新编辑器的子容器覆盖。
@@ -116,7 +123,12 @@ export class git_diff_editor {
     const hover_owner=StandaloneServices.get(IInstantiationService);
     setHoverDelegateFactory((placement,instant)=>hover_owner.createInstance(WorkbenchHoverDelegate,placement,{instantHover:instant},{}));
     this.toolbar.setAttribute("role","toolbar");this.toolbar.setAttribute("aria-label",text("diff.editor_actions"));
-    const find=git_icon_button("search",text("diff.find"),()=>this.focused_editor().getAction("actions.find")?.run());find.dataset.diffAction="find";
+    if(data.right!=null&&is_markdown_file(data.file||data.title)){
+      this.markdown_preview=create_git_markdown_diff();this.container.append(this.markdown_preview.container);
+      const preview=git_icon_button('preview','Markdown渲染对比 / 源码对比',()=>this.set_preferences({render_markdown:!this.rendered_markdown}));preview.dataset.diffAction='markdown_preview';this.toolbar.append(preview);
+      this.set_markdown_mode(preferences.render_markdown);
+    }
+    const find=git_icon_button("search",text("diff.find"),()=>{this.set_markdown_mode(false);this.focused_editor().getAction("actions.find")?.run();});find.dataset.diffAction="find";
     if(data.right!=null){const whitespace=git_icon_button("whitespace",text("diff.ignore_whitespace"),()=>this.set_preferences({ignore_trim_whitespace:!this.ignore_whitespace}));whitespace.dataset.diffAction="ignore_whitespace";whitespace.setAttribute("aria-pressed",String(this.ignore_whitespace));this.toolbar.append(whitespace);}
     const more=git_icon_button("more",text("history.more"),()=>{const rect=more.getBoundingClientRect();this.title_menu(new MouseEvent("contextmenu",{clientX:rect.right,clientY:rect.bottom}));});more.dataset.diffAction="more";
     this.toolbar.append(find,more,this.status);
@@ -133,7 +145,7 @@ export class git_diff_editor {
         const pending=now<=this.range_chord_until;this.range_chord_until=0;
         if(pending&&modifier&&event.altKey&&!event.shiftKey&&["s","r"].includes(event.key.toLowerCase())){event.preventDefault();event.stopImmediatePropagation();void this.run_ranges(event.key.toLowerCase()==="s"?"stage":"revert");return;}
       }
-      if(event.key==="F7"&&"accessibleDiffViewerNext" in this.editor){event.preventDefault();event.stopImmediatePropagation();this.accessible_diff(event.shiftKey);}
+      if(event.key==="F7"&&"accessibleDiffViewerNext" in this.editor){event.preventDefault();event.stopImmediatePropagation();if(this.rendered_markdown)this.navigate(event.shiftKey?"previous":"next");else this.accessible_diff(event.shiftKey);}
     },true);
     this.container.addEventListener("keydown", event => {
       // 源码编辑器自行处理查找、选择与复制，不能被提交图或 Markdown 快捷键拦截。
@@ -160,35 +172,51 @@ export class git_diff_editor {
     path.title=this.data.right!=null?`${file} — ${left} ↔ ${right}`:`${file} — ${left}`;
     path.setAttribute("aria-label",path.title);this.labels.replaceChildren(path);
     if(this.data.right!=null){
-      const mode=el("button","git-diff-mode",text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
+      const mode=el("button","git-diff-mode",this.rendered_markdown?"Markdown渲染对比":text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
       mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),this.view_entries());};this.labels.append(mode);
     }
   }
-  accessible_diff(previous=false):void {if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
+  accessible_diff(previous=false):void {this.set_markdown_mode(false);if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
+  set_markdown_mode(value:boolean):void {
+    if(!this.markdown_preview)return;
+    this.rendered_markdown=value;this.body.hidden=value;this.markdown_preview.container.hidden=!value;
+    this.container.dataset.markdownDiff=String(value);this.toolbar.querySelector('[data-diff-action="markdown_preview"]')?.setAttribute('aria-pressed',String(value));
+    if(value)void this.render_markdown();else{this.markdown_epoch++;this.markdown_preview.invalidate();this.editor.layout();}
+    this.refresh_labels();
+  }
+  private async render_markdown():Promise<void>{
+    if(!this.markdown_preview||!this.rendered_markdown||!('getLineChanges' in this.editor))return;
+    const changes=this.editor.getLineChanges();if(changes===null){this.status.textContent=text('diff.calculating');return;}
+    const epoch=++this.markdown_epoch;
+    try{await this.markdown_preview.render(this.models[0].getValue(),this.models[1].getValue(),changes,[this.data.left_label||text('diff.original'),this.data.right_label||text('diff.modified')]);}
+    catch(error){if(!this.disposed&&epoch===this.markdown_epoch){this.set_markdown_mode(false);this.status.textContent=String(error instanceof Error?error.message:error);this.report_error?.(error);}}
+  }
   set_side_by_side(value:boolean):void {this.set_preferences({render_side_by_side:value});}
   set_preferences(change:Partial<git_diff_preferences>):void {update_git_diff_preferences(change);}
   apply_preferences(value:git_diff_preferences):void {
     this.side_by_side=value.render_side_by_side;this.inline_when_narrow=value.inline_when_narrow;this.ignore_whitespace=value.ignore_trim_whitespace;this.collapsed=value.hide_unchanged;this.show_moves=value.show_moves;
     if("getModifiedEditor" in this.editor){const state=this.editor.saveViewState();this.editor.updateOptions({renderSideBySide:this.side_by_side,useInlineViewWhenSpaceIsLimited:this.inline_when_narrow,ignoreTrimWhitespace:this.ignore_whitespace,hideUnchangedRegions:{enabled:this.collapsed},experimental:{showMoves:this.show_moves}});this.editor.restoreViewState(state);this.refresh_labels();}
     this.toolbar.querySelector('[data-diff-action="ignore_whitespace"]')?.setAttribute("aria-pressed",String(this.ignore_whitespace));
+    if(this.markdown_preview&&this.rendered_markdown!==value.render_markdown)this.set_markdown_mode(value.render_markdown);
   }
   view_entries():workspace_menu_entry[] {
     const inline=this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side")===false;
     return [
-      {id:"diff_mode_inline",title:text("diff.inline_view"),checked:!this.side_by_side,action:()=>this.set_preferences({render_side_by_side:false})},
-      {id:"diff_mode_split",title:text("diff.side_by_side"),checked:this.side_by_side&&!this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:false})},
-      {id:"diff_mode_auto",title:text(inline?"diff.automatic_inline":"diff.automatic_split"),checked:this.side_by_side&&this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:true})}
+      ...(this.markdown_preview?[{id:'diff_mode_markdown',title:'Markdown渲染对比',checked:this.rendered_markdown,action:()=>this.set_preferences({render_markdown:true})},{id:'diff_mode_source',title:'源码对比',checked:!this.rendered_markdown,action:()=>this.set_preferences({render_markdown:false})}]:[]),
+      {id:"diff_mode_inline",title:text("diff.inline_view"),checked:!this.side_by_side,action:()=>this.set_preferences({render_side_by_side:false,render_markdown:false})},
+      {id:"diff_mode_split",title:text("diff.side_by_side"),checked:this.side_by_side&&!this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:false,render_markdown:false})},
+      {id:"diff_mode_auto",title:text(inline?"diff.automatic_inline":"diff.automatic_split"),checked:this.side_by_side&&this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:true,render_markdown:false})}
     ];
   }
   range_snapshot():diff_range_snapshot|undefined {
-    if(this.disposed||!this.range_action||!this.range_available()||this.range_pending||!("getModifiedEditor" in this.editor))return;
+    if(this.disposed||this.rendered_markdown||!this.range_action||!this.range_available()||this.range_pending||!("getModifiedEditor" in this.editor))return;
     if(this.focused_editor()!==this.editor.getModifiedEditor())return;
     const model=this.editor.getModel(),changes=this.editor.getLineChanges(),selections=this.editor.getModifiedEditor().getSelections();
     if(!model||!changes?.length||!selections?.some(selection=>!selection.isEmpty()))return;
     return {original_text:model.original.getValue(),modified_text:model.modified.getValue(),line_changes:changes,selections};
   }
   async run_ranges(action:"stage"|"revert",snapshot=this.range_snapshot()):Promise<void> {
-    if(this.disposed||!snapshot||!this.range_action||!this.range_available()||this.range_pending)return;
+    if(this.disposed||this.rendered_markdown||!snapshot||!this.range_action||!this.range_available()||this.range_pending)return;
     this.range_pending=true;
     try{await this.range_action(action,snapshot);}
     catch(error){this.status.textContent=String(error instanceof Error?error.message:error);if(!this.disposed)this.report_error?.(error);}
@@ -269,15 +297,18 @@ export class git_diff_editor {
     root?.addEventListener("click", click, true);
     this.subscriptions.push({dispose: () => {pending = undefined; root?.removeEventListener("mousedown", lookup, true); root?.removeEventListener("click", click, true);}});
   }
-  navigate(direction: "next" | "previous"): void { if ("goToDiff" in this.editor) this.editor.goToDiff(direction); }
+  navigate(direction: "next" | "previous"): void { if(this.rendered_markdown){this.markdown_preview?.navigate(direction);return;}if ("goToDiff" in this.editor) this.editor.goToDiff(direction); }
   update(data: diff_document): void {
     if (data.left.includes("\0") || data.right?.includes("\0")) throw new Error(text("diff.became_binary"));
     const replace_models = () => { if (this.models[0].getValue() !== data.left) this.models[0].setValue(data.left); if (data.right != null && this.models[1].getValue() !== data.right) this.models[1].setValue(data.right); };
     if ("getModifiedEditor" in this.editor) { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     else { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     this.data = data;this.refresh_labels();
+    this.markdown_epoch++;this.markdown_preview?.invalidate();
+    if(this.rendered_markdown)void this.render_markdown();
   }
   context_menu(event: MouseEvent): void {
+    if(this.rendered_markdown){this.title_menu(event);return;}
     const view = this.focused_editor();
     const entries: workspace_menu_entry[] = [
       {id: "copy", title: text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run()},
@@ -297,5 +328,5 @@ export class git_diff_editor {
     }
     workspace_menu(event, [...entries, ...this.extra_menu()]);
   }
-  dispose(): void { if(this.disposed)return;this.disposed=true;this.range_action=undefined;this.range_available=()=>false;this.title_entries=()=>[];this.close_menu?.();this.release_settings?.();this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
+  dispose(): void { if(this.disposed)return;this.disposed=true;this.markdown_epoch++;this.markdown_preview?.dispose();this.range_action=undefined;this.range_available=()=>false;this.title_entries=()=>[];this.close_menu?.();this.release_settings?.();this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
 }

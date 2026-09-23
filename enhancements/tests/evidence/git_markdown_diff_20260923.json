@@ -1,0 +1,171 @@
+{
+  "requirement": "R034.1",
+  "date": "2026-09-23",
+  "release": "2026.09.23.11",
+  "sequence": 2026092311,
+  "status": "PASS_WITH_RECORDED_LIMITS",
+  "design": "docs/git_markdown_diff.md",
+  "test_cases": [
+    "TC-git-markdown-diff-001",
+    "TC-git-markdown-diff-native-001"
+  ],
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "typora": "1.14.10",
+    "git": "2.55.0.windows.3",
+    "node": "24.19.0",
+    "ui_electron": "43.2.0"
+  },
+  "candidate_sha256": {
+    "enhancements/dist/SHA256SUMS": "427d4ea0dd781a111f1ac5c4d7a3e321eb848f63c6f161bfcba80edc9de5edd6",
+    "enhancements/dist/workbench.js": "9349dd56930032db7091a86582b1601a34a9acbbc300500214ee69556d17fea9",
+    "enhancements/dist/workspace.css": "294eed0831421ac1be07ec459ff843f3c94634bf279dacdf74a2bbbc7385c2af",
+    "enhancements/fixtures/git_markdown_diff_native.js": "6701c5d956b8aebb5fc25c05855a448c231be5119a428c854cf151f63f5dbc02"
+  },
+  "native_setup": {
+    "host_version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "asset_manifest_sha256": "427d4ea0dd781a111f1ac5c4d7a3e321eb848f63c6f161bfcba80edc9de5edd6",
+    "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+    "fixture_sha256": "6701c5d956b8aebb5fc25c05855a448c231be5119a428c854cf151f63f5dbc02",
+    "early_fixture_sha256": null,
+    "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+  },
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS; final view refinements followed by static/deployment/catalog and five UI/native checks",
+    "final_static": "PASS",
+    "deployment": "PASS: 21 portable files / 38 workspace assets",
+    "catalog_suites": 202,
+    "ui_summary": "5 passed / 0 failed / 28964 ms",
+    "ui_suites": [
+      "test_git_markdown_diff.cjs",
+      "test_git_diff_toolbar.cjs",
+      "test_workspace_diff_status.cjs",
+      "test_workspace_lookup_preview.cjs",
+      "test_workspace_settings.cjs"
+    ],
+    "markdown_ui": {
+      "status": "PASS",
+      "checks": [
+        "Markdown默认进入渲染比较",
+        "标题列表表格引用保持完整排版",
+        "Front Matter差异可见",
+        "增删块可见且历史图片不冒充当前图片",
+        "左右实际绘制红绿差异色",
+        "两侧每个对应块顶部及高度对齐",
+        "复用当前正文主题",
+        "渲染态不能对隐藏源码选区暂存",
+        "下一处更改定位当前渲染块",
+        "20次切换保留两份只读源码及模型",
+        "暗色采用固定差异颜色",
+        "窄视口保持左右比较",
+        "窗口放大后比较仍有独立滚动区域",
+        "可切回源码差异",
+        "非Markdown保持源码比较",
+        "纯新增",
+        "纯删除",
+        "不变",
+        "引用链接变更",
+        "不执行历史HTML",
+        "600段压力只改变对应块且保留其余对齐",
+        "刷新抛弃旧比较内容",
+        "过大渲染明确回退源码",
+        "销毁清理视图及资源"
+      ]
+    },
+    "native_assertions": 55,
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "真实Git Markdown比较默认渲染",
+        "原生主题中两侧标题表格列表完整",
+        "比较版本标签可见",
+        "实际Git改动进入着色块",
+        "原始宿主左右实际差异色不同",
+        "快捷动作位于所属标签工具栏",
+        "保留打开原文件图标",
+        "切回源码 0",
+        "恢复排版 0",
+        "切回源码 1",
+        "恢复排版 1",
+        "切回源码 2",
+        "恢复排版 2",
+        "切回源码 3",
+        "恢复排版 3",
+        "切回源码 4",
+        "恢复排版 4",
+        "切回源码 5",
+        "恢复排版 5",
+        "切回源码 6",
+        "恢复排版 6",
+        "切回源码 7",
+        "恢复排版 7",
+        "切回源码 8",
+        "恢复排版 8",
+        "切回源码 9",
+        "恢复排版 9",
+        "切回源码 10",
+        "恢复排版 10",
+        "切回源码 11",
+        "恢复排版 11",
+        "切回源码 12",
+        "恢复排版 12",
+        "切回源码 13",
+        "恢复排版 13",
+        "切回源码 14",
+        "恢复排版 14",
+        "切回源码 15",
+        "恢复排版 15",
+        "切回源码 16",
+        "恢复排版 16",
+        "切回源码 17",
+        "恢复排版 17",
+        "切回源码 18",
+        "恢复排版 18",
+        "切回源码 19",
+        "恢复排版 19",
+        "缩放对应块对齐 0.8",
+        "缩放对应块对齐 1",
+        "缩放对应块对齐 1.25",
+        "下一处更改定位渲染行",
+        "F7继续定位渲染行",
+        "刷新保持当前比较标签",
+        "阅读和比较未改写源文件",
+        "排版比较只读"
+      ],
+      "limits": "原始Typora1.14.10/Win11，真实Git；renderer点击/键盘，不是物理鼠标或Win10现场。"
+    },
+    "visual_review": "原始宿主截图复核：双栏红绿背景、表格/列表/文字排版、对应行对齐；滚动到差异时版本表头仍可见。",
+    "isolated_install": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/backup preserved",
+    "uninstall_assertions": 65,
+    "local_install": {
+      "version": "2026.09.23.11",
+      "installed_assets": [
+        38,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "corrected_test_failures": [
+    "初版将连续改变块误判为应拆成至少五行，改为断言实际旧新文字处于对应颜色块。",
+    "原生刷新夹具误用仓库刷新，改用当前比较页实际提供的刷新差异命令；最终原始宿主复跑通过。"
+  ],
+  "limits": [
+    "差异为完整Markdown块级着色，尚无逐词着色。",
+    "图片显示替代文字和地址；不读取历史附件，不承诺完整Typora数学与HTML扩展。",
+    "两侧合计超过1MiB UTF-8或单侧超过10000个lexer token时明确回退源码；600段和20次切换为本轮压力规模。",
+    "Win10及真实SSH场景未现场验收；原生测试由renderer派发点击/键盘而非物理鼠标。",
+    "实际用户窗口未重启，保存后正常重启才加载本次安装。"
+  ]
+}

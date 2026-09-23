@@ -1,3 +1,4 @@
+import {markdown_theme_rules} from './workspace_markdown_theme';
 import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -61,12 +62,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const update_theme = () => {
     const rules: string[]=[];
     // Shadow DOM 中复用已有主题规则，既不影响正文，也不让预览内容被正文增强器再次接管。
-    for (const sheet of [...document.styleSheets]) {
-      try {
-        const text = [...sheet.cssRules].map(rule => rule.cssText).filter(rule => rule.includes("#write") || rule.startsWith(":root") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
-        if (text) rules.push(text.replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) "));
-      } catch { /* 不可读取的外部样式不阻塞内容，下面提供基本正文样式。 */ }
-    }
+    rules.push(markdown_theme_rules());
     const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:${options.navigate?"pointer":"default"}}#write input{pointer-events:none}`;
     local.textContent += `#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}`;
     rules.push(local.textContent||"");const text=rules.join("\n");

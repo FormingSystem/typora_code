@@ -6819,6 +6819,72 @@
         "git"
       ],
       "runner": "enhancements/scripts/prepare_stability_native.py"
+    },
+    {
+      "id": "TC-git-markdown-diff-001",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R034.1"
+      ],
+      "design": "docs/git_markdown_diff.md",
+      "implementation": [
+        "enhancements/src/git_markdown_diff.ts",
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
+      ],
+      "related_modules": [
+        "scm",
+        "graph",
+        "footer",
+        "files"
+      ],
+      "script": "enhancements/scripts/test_git_markdown_diff.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-git-markdown-diff-native-001",
+      "domain": "git",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R034.1"
+      ],
+      "design": "docs/git_markdown_diff.md",
+      "implementation": [
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/git_markdown_diff.ts"
+      ],
+      "related_modules": [
+        "git",
+        "workspace",
+        "settings",
+        "reading"
+      ],
+      "script": "enhancements/fixtures/git_markdown_diff_native.js",
+      "environment": "Windows原始Typora1.14.10 / 真实Git双版本Markdown / 20次模式切换",
+      "preconditions": "专属临时仓库与独立宿主副本，运行私有桌面，不修改用户文档",
+      "steps": [
+        "准备git_markdown_diff_native.js原始宿主隔离副本，读取checks.json并核对候选摘要"
+      ],
+      "expected": [
+        "真实Git两个版本在现有比较页排版和着色，切换/刷新/定位保持只读及源文件"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ],
+      "runner": "enhancements/scripts/prepare_stability_native.py",
+      "fixture": "enhancements/fixtures/git_markdown_diff_native.js"
     }
   ]
 }
