@@ -206455,6 +206455,87 @@ https://creativecommons.org/licenses/by/4.0/
     return acquire_workspace_style("typora-code-style:workspace_hover_surface", workspace_hover_surface_default);
   }
 
+  // src/workspace_popup_refresh.ts
+  function create_workspace_popup_refresh(layout2) {
+    let frame3 = 0, disposed = false, running = false;
+    const sizes = /* @__PURE__ */ new Map();
+    const measure = (node) => {
+      const box = node.getBoundingClientRect();
+      return { width: box.width, height: box.height };
+    };
+    const cancel = () => {
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
+    };
+    const refresh = () => {
+      cancel();
+      if (disposed || running) return;
+      running = true;
+      try {
+        layout2();
+      } finally {
+        mutation.takeRecords();
+        for (const node of sizes.keys()) sizes.set(node, measure(node));
+        running = false;
+      }
+    };
+    const schedule = () => {
+      if (!disposed && !running && !frame3) frame3 = requestAnimationFrame(refresh);
+    };
+    const mutation = new MutationObserver((records) => {
+      const seen = /* @__PURE__ */ new Map();
+      for (const record of records) {
+        if (record.type !== "attributes") {
+          schedule();
+          return;
+        }
+        const name = record.attributeName, names = seen.get(record.target) || /* @__PURE__ */ new Set();
+        if (names.has(name)) continue;
+        names.add(name);
+        seen.set(record.target, names);
+        if (record.target.getAttribute(name) !== record.oldValue) {
+          schedule();
+          return;
+        }
+      }
+    });
+    const resize = new ResizeObserver((entries3) => {
+      for (const entry of entries3) {
+        const previous = sizes.get(entry.target), next = measure(entry.target);
+        if (!previous || previous.width !== next.width || previous.height !== next.height) {
+          schedule();
+          return;
+        }
+      }
+    });
+    const reset2 = () => {
+      cancel();
+      mutation.disconnect();
+      resize.disconnect();
+      sizes.clear();
+    };
+    return {
+      schedule,
+      refresh,
+      cancel,
+      reset: reset2,
+      observe_mutations(node, options2) {
+        if (!disposed) mutation.observe(node, { ...options2, ...options2.attributes ? { attributeOldValue: true } : {} });
+      },
+      observe_size(node) {
+        if (!disposed) {
+          sizes.set(node, measure(node));
+          resize.observe(node);
+        }
+      },
+      dispose() {
+        if (disposed) return;
+        disposed = true;
+        reset2();
+      }
+    };
+  }
+
   // src/workspace_hover.ts
   var hover_sequence = 0;
   function bind_workspace_hover(container, resolve3, options2 = {}) {
@@ -206462,7 +206543,7 @@ https://creativecommons.org/licenses/by/4.0/
     const delay_ms = delay(options2.delay_ms, 500), hide_delay_ms = delay(options2.hide_delay_ms, 250);
     const style = acquire_workspace_hover_surface(), events = new AbortController();
     let current, tip, pointer, session;
-    let timer = 0, close_timer = 0, layout_frame = 0, description = null, restoring_focus = false;
+    let timer = 0, close_timer = 0, description = null, restoring_focus = false;
     const keep = () => {
       clearTimeout(close_timer);
       close_timer = 0;
@@ -206470,9 +206551,7 @@ https://creativecommons.org/licenses/by/4.0/
     const hide2 = () => {
       clearTimeout(timer);
       keep();
-      cancelAnimationFrame(layout_frame);
-      layout_frame = 0;
-      observer2.disconnect();
+      refresh.reset();
       session?.abort();
       session = void 0;
       if (current && tip) {
@@ -206503,6 +206582,7 @@ https://creativecommons.org/licenses/by/4.0/
       const edge = 8, gap = 6, right = innerWidth - edge, bottom = innerHeight - edge;
       if (anchor.bottom <= edge || anchor.top >= bottom || anchor.right <= edge || anchor.left >= right) return hide2();
       const avoid = { left: Math.min(layout2.left, anchor.left), right: Math.max(layout2.right, anchor.right), top: Math.min(layout2.top, anchor.top), bottom: Math.max(layout2.bottom, anchor.bottom) };
+      const scroll_top = tip.scrollTop, scroll_left = tip.scrollLeft;
       tip.style.maxWidth = "";
       tip.style.maxHeight = "";
       const natural = tip.getBoundingClientRect(), style2 = getComputedStyle(tip);
@@ -206527,6 +206607,8 @@ https://creativecommons.org/licenses/by/4.0/
       tip.style.left = left + "px";
       tip.style.top = top + "px";
       tip.dataset.hoverSide = area.side;
+      tip.scrollTop = scroll_top;
+      tip.scrollLeft = scroll_left;
       if (pointer) {
         const horizontal = area.side === "left" || area.side === "right";
         pointer.dataset.hoverSide = area.side;
@@ -206534,12 +206616,7 @@ https://creativecommons.org/licenses/by/4.0/
         pointer.style.top = (horizontal ? clamp4(center_y - 3, top + 6, top + box.height - 12) : area.side === "below" ? top - 3 : top + box.height - 3) + "px";
       }
     };
-    const observer2 = new ResizeObserver(() => {
-      if (!layout_frame) layout_frame = requestAnimationFrame(() => {
-        layout_frame = 0;
-        place();
-      });
-    });
+    const refresh = create_workspace_popup_refresh(place);
     const inside = (node) => node instanceof Node && (Boolean(current?.anchor.contains(node)) || Boolean(tip?.contains(node)));
     const leave = () => {
       if (!tip) return hide2();
@@ -206580,11 +206657,12 @@ https://creativecommons.org/licenses/by/4.0/
           console.error("[workspace-hover] \u5185\u5BB9\u5448\u73B0\u5931\u8D25", error);
           return;
         }
-        place();
+        refresh.refresh();
         if (!tip || !session) return;
-        observer2.observe(tip);
-        observer2.observe(target.anchor);
-        if (target.layout_anchor) observer2.observe(target.layout_anchor);
+        refresh.observe_size(tip);
+        refresh.observe_size(target.anchor);
+        refresh.observe_mutations(tip, { childList: true, characterData: true, subtree: true });
+        if (target.layout_anchor) refresh.observe_size(target.layout_anchor);
         tip.addEventListener("pointerenter", keep, { signal: session.signal });
         tip.addEventListener("pointerleave", (event) => {
           if (!inside(event.relatedTarget)) leave();
@@ -206624,14 +206702,15 @@ https://creativecommons.org/licenses/by/4.0/
         hide_with_focus(restore ? () => anchor.focus({ preventScroll: true }) : void 0);
       }
     }, { capture: true, signal: events.signal });
-    window.addEventListener("resize", options2.interactive ? place : hide2, { signal: events.signal });
+    window.addEventListener("resize", options2.interactive ? refresh.schedule : hide2, { signal: events.signal });
     window.addEventListener("blur", hide2, { signal: events.signal });
     const nodes = new MutationObserver(() => {
       if (current && (!current.anchor.isConnected || current.layout_anchor && !current.layout_anchor.isConnected)) hide2();
     });
     nodes.observe(container, { childList: true, subtree: true });
-    return { hide: hide_with_focus, show: (target) => show_target(target, true), reposition: place, dispose() {
+    return { hide: hide_with_focus, show: (target) => show_target(target, true), reposition: refresh.schedule, dispose() {
       hide2();
+      refresh.dispose();
       events.abort();
       nodes.disconnect();
       style.remove();
@@ -234029,12 +234108,11 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = create_workspace_lifetime();
     const style = acquire_workspace_style("typora-code-style:workspace_native_toolbar", workspace_native_toolbar_default);
     lifetime.add(style.remove);
-    let toolbar, toolbar_height = 0, frame3 = 0;
+    let toolbar, toolbar_height = 0;
     const set = (name, value) => {
       if (toolbar?.style.getPropertyValue(name) !== value) toolbar?.style.setProperty(name, value);
     };
     const layout2 = () => {
-      frame3 = 0;
       if (lifetime.disposed) return;
       const node = runtime2.File?.editor?.toolbar?.dom;
       if (node instanceof HTMLElement && node !== toolbar) {
@@ -234052,8 +234130,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
         });
         node.dataset.workspaceNativeToolbar = "ready";
-        resize.observe(node);
-        mutation.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
+        refresh.observe_size(node);
+        refresh.observe_mutations(node, { attributes: true, attributeFilter: ["style", "class"] });
       }
       if (!toolbar) return;
       const active = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
@@ -234074,22 +234152,14 @@ https://creativecommons.org/licenses/by/4.0/
       set("--workspace-toolbar-left", Math.max(bounds.left + 8, (bounds.left + bounds.right - rect.width) / 2) + "px");
       set("--workspace-toolbar-top", Math.max(bounds.top, bottom - rect.height - 8) + "px");
     };
-    const schedule = () => {
-      if (!frame3 && !lifetime.disposed) frame3 = requestAnimationFrame(layout2);
-    };
-    const resize = new ResizeObserver(schedule), mutation = new MutationObserver(schedule);
+    const refresh = create_workspace_popup_refresh(layout2), schedule = refresh.schedule;
     const root = document.querySelector(".typ-workspace-root");
-    if (root) resize.observe(root);
-    for (const node of [document.body, document.documentElement]) mutation.observe(node, { attributes: true, attributeFilter: ["style", "class"] });
-    mutation.observe(document.body, { childList: true });
+    if (root) refresh.observe_size(root);
+    for (const node of [document.body, document.documentElement]) refresh.observe_mutations(node, { attributes: true, attributeFilter: ["style", "class"], ...node === document.body ? { childList: true } : {} });
     lifetime.add(files.core.app.workspace.on("active-leaf:change", schedule));
     lifetime.listen(window, "resize", schedule);
     lifetime.listen(document, "transitionend", schedule, true);
-    lifetime.add(() => {
-      cancelAnimationFrame(frame3);
-      resize.disconnect();
-      mutation.disconnect();
-    });
+    lifetime.add(refresh.dispose);
     schedule();
     return { dispose: lifetime.dispose };
   }
@@ -238963,13 +239033,11 @@ https://creativecommons.org/licenses/by/4.0/
       if (initial_layer === null) footer.removeAttribute("data-workspace-footer-popup-open");
       else footer.setAttribute("data-workspace-footer-popup-open", initial_layer);
     });
-    let frame3 = 0;
     const visible3 = (node) => Boolean(node?.isConnected && node.getClientRects().length && getComputedStyle(node).display !== "none" && getComputedStyle(node).visibility !== "hidden");
     const set_property = (node, name, value) => {
       if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
     };
     const layout2 = () => {
-      frame3 = 0;
       if (lifetime.disposed) return;
       const footer_visible = visible3(footer), footer_bounds = footer.getBoundingClientRect();
       const titlebar = document.querySelector("#top-titlebar");
@@ -238981,32 +239049,29 @@ https://creativecommons.org/licenses/by/4.0/
         const anchor_bounds = anchor.getBoundingClientRect();
         const bottom = Math.min(innerHeight - 4, footer_bounds.top - 3, anchor_bounds.top - 3);
         set_property(menu, "--workspace-popup-max-height", Math.max(0, Math.min(innerHeight * 0.65, bottom - viewport_top)) + "px");
-        const bounds = menu.getBoundingClientRect(), computed = getComputedStyle(menu);
-        const origin_x = bounds.left - (parseFloat(computed.left) || 0), origin_y = bounds.top - (parseFloat(computed.top) || 0);
+        const bounds = menu.getBoundingClientRect();
         const left = Math.max(4, Math.min(anchor_bounds.right - bounds.width, innerWidth - bounds.width - 4));
         const top = Math.max(viewport_top, bottom - bounds.height);
-        set_property(menu, "--workspace-popup-left", left - origin_x + "px");
-        set_property(menu, "--workspace-popup-top", top - origin_y + "px");
+        if (Math.abs(bounds.left - left) > 1 / 32 || Math.abs(bounds.top - top) > 1 / 32) {
+          set_property(menu, "--workspace-popup-left", "0px");
+          set_property(menu, "--workspace-popup-top", "0px");
+          const origin = menu.getBoundingClientRect();
+          set_property(menu, "--workspace-popup-left", left - origin.left + "px");
+          set_property(menu, "--workspace-popup-top", top - origin.top + "px");
+        }
         nested_open = nested_open || footer.contains(menu);
       }
-      if (nested_open) footer.setAttribute("data-workspace-footer-popup-open", "true");
-      else footer.removeAttribute("data-workspace-footer-popup-open");
+      if (nested_open) {
+        if (footer.getAttribute("data-workspace-footer-popup-open") !== "true") footer.setAttribute("data-workspace-footer-popup-open", "true");
+      } else footer.removeAttribute("data-workspace-footer-popup-open");
     };
-    const schedule = () => {
-      if (!lifetime.disposed && !frame3) frame3 = requestAnimationFrame(layout2);
-    };
-    const resize = new ResizeObserver(schedule);
-    for (const node of [footer, actions, document.querySelector(".typ-workspace-root"), ...entries3.map((entry) => entry.menu)]) if (node) resize.observe(node);
-    const mutation = new MutationObserver(schedule);
-    for (const node of [sidebar, actions, footer, document.body, document.documentElement, document.querySelector(".typ-workspace-root")]) if (node) mutation.observe(node, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
-    for (const { menu } of entries3) mutation.observe(menu, { attributes: true, attributeFilter: ["class", "style", "hidden"], childList: true, subtree: true });
+    const refresh = create_workspace_popup_refresh(layout2), schedule = refresh.schedule;
+    for (const node of [footer, actions, document.querySelector(".typ-workspace-root"), ...entries3.flatMap((entry) => [entry.menu, ...entry.anchors.map((selector) => footer.querySelector(selector))])]) if (node) refresh.observe_size(node);
+    for (const node of [sidebar, actions, footer, document.body, document.documentElement, document.querySelector(".typ-workspace-root")]) if (node) refresh.observe_mutations(node, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    for (const { menu } of entries3) refresh.observe_mutations(menu, { attributes: true, attributeFilter: ["class", "style", "hidden"], childList: true, characterData: true, subtree: true });
     lifetime.listen(window, "resize", schedule);
     lifetime.listen(document, "transitionend", schedule, true);
-    lifetime.add(() => {
-      cancelAnimationFrame(frame3);
-      resize.disconnect();
-      mutation.disconnect();
-    });
+    lifetime.add(refresh.dispose);
     schedule();
     return { dispose: lifetime.dispose };
   }
@@ -243539,6 +243604,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092306,
+        version: "2026.09.23.6",
+        date: "2026-09-23",
+        notes: [
+          "\u4FEE\u590D\u5E95\u680F\u6587\u4EF6\u64CD\u4F5C\u3001\u5B57\u6570\u548C\u8BED\u8A00\u83DC\u5355\u5C55\u5F00\u540E\u7684\u53CD\u590D\u5B9A\u4F4D\u5237\u65B0\uFF0C\u5C0F\u6570\u50CF\u7D20\u548C\u7A97\u53E3\u7F29\u653E\u4E0B\u4FDD\u6301\u7A33\u5B9A\u3002",
+          "\u539F\u751F\u6D6E\u5C42\u3001\u5171\u4EAB\u60AC\u505C\u548C\u9605\u8BFB\u5DE5\u5177\u680F\u7EDF\u4E00\u5408\u5E76\u5E03\u5C40\u5237\u65B0\uFF1B\u5185\u5BB9\u66F4\u65B0\u4FDD\u7559\u8282\u70B9\u3001\u7126\u70B9\u548C\u6EDA\u52A8\uFF0C\u5173\u95ED\u540E\u505C\u6B62\u8C03\u5EA6\u3002"
+        ]
+      },
       {
         sequence: 2026092305,
         version: "2026.09.23.5",

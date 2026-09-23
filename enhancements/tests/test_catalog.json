@@ -6600,6 +6600,73 @@
       ],
       "timeout_ms": 240000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-workspace-popup-refresh-ui",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R008.3"
+      ],
+      "design": "docs/workspace_interaction.md#r0083-展开浮层的刷新与稳定定位",
+      "implementation": [
+        "enhancements/src/workspace_popup_refresh.ts",
+        "enhancements/src/workspace_footer_popups.ts",
+        "enhancements/src/workspace_hover.ts",
+        "enhancements/src/workspace_native_toolbar.ts"
+      ],
+      "related_modules": [
+        "footer",
+        "hover",
+        "menu",
+        "layout",
+        "focus"
+      ],
+      "script": "enhancements/scripts/test_workspace_popup_refresh.cjs",
+      "environment": "隐藏Electron真实Chromium布局",
+      "preconditions": "隔离配置与临时文档，不操作用户窗口",
+      "steps": [
+        "连续帧几何、展开静止写入计数、缩放与原生节点身份；具体压力和生命周期条件见脚本"
+      ],
+      "expected": [
+        "checks状态PASS且零闲置定位写入；原始宿主与模拟输入边界分别记录"
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-workspace-popup-refresh-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R008.3"
+      ],
+      "design": "docs/workspace_interaction.md#r0083-展开浮层的刷新与稳定定位",
+      "implementation": [
+        "enhancements/src/workspace_popup_refresh.ts",
+        "enhancements/src/workspace_footer_popups.ts",
+        "enhancements/src/workspace_hover.ts",
+        "enhancements/src/workspace_native_toolbar.ts"
+      ],
+      "related_modules": [
+        "footer",
+        "hover",
+        "menu",
+        "layout",
+        "focus"
+      ],
+      "script": "enhancements/fixtures/popup_refresh_native.js",
+      "environment": "原始Typora1.14.10独立副本/Windows私有桌面",
+      "preconditions": "隔离配置与临时文档，不操作用户窗口",
+      "steps": [
+        "连续帧几何、展开静止写入计数、缩放与原生节点身份；具体压力和生命周期条件见脚本"
+      ],
+      "expected": [
+        "checks状态PASS且零闲置定位写入；原始宿主与模拟输入边界分别记录"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

@@ -1,0 +1,336 @@
+{
+  "date": "2026-09-23",
+  "release": "2026.09.23.6",
+  "requirements": [
+    "R008.3"
+  ],
+  "design": "docs/workspace_interaction.md#r0083-展开浮层的刷新与稳定定位",
+  "asset_sha256": "e4f21f54ecf0d57be6956ed017a0622a3c95b83f1a31853602228df0a8a79a51",
+  "environment": {
+    "os": "Windows 11 10.0.26200",
+    "typora": "1.14.10",
+    "electron_ui": "43.2.0"
+  },
+  "regression_before": {
+    "idle_interval_ms": 300,
+    "idle_style_writes": 18,
+    "reproduced": "100%窗口、小数底栏位置、原生菜单包含块"
+  },
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "final_static_deployment_catalog": "PASS",
+    "catalog_suites": 196,
+    "ui_suites": [
+      "test_workspace_popup_refresh.cjs",
+      "test_workspace_footer.cjs",
+      "test_workspace_zoom.cjs",
+      "test_reading_link_hover.cjs",
+      "test_commit_hover_markdown.cjs",
+      "test_workspace_widgets.cjs",
+      "test_workspace_escape_focus.cjs",
+      "test_workspace_titlebar.cjs"
+    ],
+    "focused_checks": [
+      "idle popup makes zero style writes at 1 files: {\"writes\":0,\"box\":{\"x\":622,\"y\":219.734375,\"width\":320,\"height\":456.9375,\"top\":219.734375,\"right\":942,\"bottom\":676.671875,\"left\":622},\"scroll\":150,\"style\":\"--workspace-popup-max-height: 456.95px; --workspace-popup-left: 622px; --workspace-popup-top: 219.734375px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1 files: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1 words: {\"writes\":0,\"box\":{\"x\":652,\"y\":646.671875,\"width\":320,\"height\":30,\"top\":646.671875,\"right\":972,\"bottom\":676.671875,\"left\":652},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 456.95px; --workspace-popup-left: 652px; --workspace-popup-top: 646.671875px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1 words: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1 language: {\"writes\":0,\"box\":{\"x\":678,\"y\":637.671875,\"width\":320,\"height\":39,\"top\":637.671875,\"right\":998,\"bottom\":676.671875,\"left\":678},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 456.95px; --workspace-popup-left: 678px; --workspace-popup-top: 637.671875px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1 language: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.2 files: {\"writes\":0,\"box\":{\"x\":455,\"y\":178.6067657470703,\"width\":320,\"height\":380.8984375,\"top\":178.6067657470703,\"right\":775,\"bottom\":559.5052032470703,\"left\":455},\"scroll\":150,\"style\":\"--workspace-popup-max-height: 380.90000000000003px; --workspace-popup-left: 455px; --workspace-popup-top: 178.61456298828125px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.2 files: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.2 words: {\"writes\":0,\"box\":{\"x\":485,\"y\":529.1926879882812,\"width\":320,\"height\":30.3125,\"top\":529.1926879882812,\"right\":805,\"bottom\":559.5051879882812,\"left\":485},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 380.90000000000003px; --workspace-popup-left: 485px; --workspace-popup-top: 529.2005004882812px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.2 words: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.2 language: {\"writes\":0,\"box\":{\"x\":510.98956298828125,\"y\":520.546875,\"width\":320,\"height\":38.95833206176758,\"top\":520.546875,\"right\":830.9895629882812,\"bottom\":559.5052070617676,\"left\":510.98956298828125},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 380.90000000000003px; --workspace-popup-left: 511px; --workspace-popup-top: 520.5546684265137px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.2 language: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.25 files: {\"writes\":0,\"box\":{\"x\":421.6000061035156,\"y\":170.77500915527344,\"width\":320,\"height\":365.3000183105469,\"top\":170.77500915527344,\"right\":741.6000061035156,\"bottom\":536.0750274658203,\"left\":421.6000061035156},\"scroll\":150.39999389648438,\"style\":\"--workspace-popup-max-height: 365.3px; --workspace-popup-left: 421.60003662109375px; --workspace-popup-top: 170.77499389648438px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.25 files: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.25 words: {\"writes\":0,\"box\":{\"x\":451.6000061035156,\"y\":505.6750183105469,\"width\":320,\"height\":30.399999618530273,\"top\":505.6750183105469,\"right\":771.6000061035156,\"bottom\":536.0750179290771,\"left\":451.6000061035156},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 365.3px; --workspace-popup-left: 451.60003662109375px; --workspace-popup-top: 505.675012588501px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.25 words: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.25 language: {\"writes\":0,\"box\":{\"x\":478,\"y\":498.07501220703125,\"width\":320,\"height\":38,\"top\":498.07501220703125,\"right\":798,\"bottom\":536.0750122070312,\"left\":478},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 365.3px; --workspace-popup-left: 478px; --workspace-popup-top: 498.07501220703125px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.25 language: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.5 files: {\"writes\":0,\"box\":{\"x\":288,\"y\":137.5,\"width\":320,\"height\":304.84375,\"top\":137.5,\"right\":608,\"bottom\":442.34375,\"left\":288},\"scroll\":150.6666717529297,\"style\":\"--workspace-popup-max-height: 304.85px; --workspace-popup-left: 288px; --workspace-popup-top: 137.5px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.5 files: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.5 words: {\"writes\":0,\"box\":{\"x\":318,\"y\":412.34375,\"width\":320,\"height\":30,\"top\":412.34375,\"right\":638,\"bottom\":442.34375,\"left\":318},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 304.85px; --workspace-popup-left: 318px; --workspace-popup-top: 412.34375px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.5 words: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "idle popup makes zero style writes at 1.5 language: {\"writes\":0,\"box\":{\"x\":344,\"y\":403.6770935058594,\"width\":320,\"height\":38.66666793823242,\"top\":403.6770935058594,\"right\":664,\"bottom\":442.3437614440918,\"left\":344},\"scroll\":0,\"style\":\"--workspace-popup-max-height: 304.85px; --workspace-popup-left: 344px; --workspace-popup-top: 403.6770820617676px;\"}",
+      "1000 redundant notifications keep geometry/focus/scroll and bounded writes 1.5 language: {\"drift\":0,\"writes\":0,\"identity\":true,\"scroll\":true,\"focus\":true}",
+      "async content update keeps selected node and scroll",
+      "shrinking content reanchors in narrow viewport",
+      "characterData update refreshes visible native popup",
+      "closing cancels visual ownership without reopen",
+      "1000 shared refresh requests merge and own resize/mutation do not feed back",
+      "dispose cancels pending external observation",
+      "scrollable hover is idle without natural-size measurement loops",
+      "hover coalesces layout without rebuilding or resetting focus/scroll",
+      "hover async shorter content drops obsolete size constraint",
+      "closing queued hover cannot resurrect it",
+      "native reading toolbar uses convergent idle layout",
+      "toolbar suspends outside native Markdown",
+      "toolbar resumes and respects resized reading area",
+      "toolbar disposal removes pending refresh and restores adaptation",
+      "native disposal restores original attributes and styles"
+    ],
+    "stress": {
+      "zooms": [
+        1,
+        1.2,
+        1.25,
+        1.5
+      ],
+      "native_popup_types": 3,
+      "cycles_per_case": 20,
+      "same_attribute_writes_per_cycle": 50,
+      "coalesced_explicit_requests": 1000,
+      "idle_style_writes": 0,
+      "drift_limit_css_px": 0.05
+    },
+    "native": {
+      "status": "PASS",
+      "checks": [
+        "实际文件操作入口打开原生菜单",
+        "菜单保持可见 Night 0",
+        "原生展开静止无定位写入/漂移 Night 0",
+        "原生菜单节点身份保持 Night 0",
+        "原生菜单避开底栏并在视口内 Night 0",
+        "终端不遮挡菜单命中 Night 0",
+        "菜单保持可见 Night 1",
+        "原生展开静止无定位写入/漂移 Night 1",
+        "原生菜单节点身份保持 Night 1",
+        "原生菜单避开底栏并在视口内 Night 1",
+        "终端不遮挡菜单命中 Night 1",
+        "菜单保持可见 Night 2",
+        "原生展开静止无定位写入/漂移 Night 2",
+        "原生菜单节点身份保持 Night 2",
+        "原生菜单避开底栏并在视口内 Night 2",
+        "终端不遮挡菜单命中 Night 2",
+        "菜单保持可见 Night -1",
+        "原生展开静止无定位写入/漂移 Night -1",
+        "原生菜单节点身份保持 Night -1",
+        "原生菜单避开底栏并在视口内 Night -1",
+        "终端不遮挡菜单命中 Night -1",
+        "菜单保持可见 Cpp Github Consolas 0",
+        "原生展开静止无定位写入/漂移 Cpp Github Consolas 0",
+        "原生菜单节点身份保持 Cpp Github Consolas 0",
+        "原生菜单避开底栏并在视口内 Cpp Github Consolas 0",
+        "终端不遮挡菜单命中 Cpp Github Consolas 0",
+        "菜单保持可见 Cpp Github Consolas 1",
+        "原生展开静止无定位写入/漂移 Cpp Github Consolas 1",
+        "原生菜单节点身份保持 Cpp Github Consolas 1",
+        "原生菜单避开底栏并在视口内 Cpp Github Consolas 1",
+        "终端不遮挡菜单命中 Cpp Github Consolas 1",
+        "菜单保持可见 Cpp Github Consolas 2",
+        "原生展开静止无定位写入/漂移 Cpp Github Consolas 2",
+        "原生菜单节点身份保持 Cpp Github Consolas 2",
+        "原生菜单避开底栏并在视口内 Cpp Github Consolas 2",
+        "终端不遮挡菜单命中 Cpp Github Consolas 2",
+        "菜单保持可见 Cpp Github Consolas -1",
+        "原生展开静止无定位写入/漂移 Cpp Github Consolas -1",
+        "原生菜单节点身份保持 Cpp Github Consolas -1",
+        "原生菜单避开底栏并在视口内 Cpp Github Consolas -1",
+        "终端不遮挡菜单命中 Cpp Github Consolas -1",
+        "原生关闭图标关闭菜单",
+        "原生快捷入口展开 footer-word-count",
+        "同类原生浮层静止无定位写入 footer-word-count-info",
+        "同类原生入口关闭 footer-word-count-info",
+        "原生快捷入口展开 footer-spell-check",
+        "同类原生浮层静止无定位写入 spell-check-panel",
+        "同类原生入口关闭 spell-check-panel",
+        "正文磁盘不变"
+      ],
+      "samples": [
+        {
+          "theme": "Night",
+          "level": 0,
+          "factor": 1,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 1051.2125244140625,
+            "y": 783.4249877929688,
+            "width": 320,
+            "height": 217.1750030517578,
+            "top": 783.4249877929688,
+            "right": 1371.2125244140625,
+            "bottom": 1000.5999908447266,
+            "left": 1051.2125244140625
+          }
+        },
+        {
+          "theme": "Night",
+          "level": 1,
+          "factor": 1.2,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 773.4791870117188,
+            "y": 611.6666870117188,
+            "width": 320,
+            "height": 216.6666717529297,
+            "top": 611.6666870117188,
+            "right": 1093.4791870117188,
+            "bottom": 828.3333587646484,
+            "left": 773.4791870117188
+          }
+        },
+        {
+          "theme": "Night",
+          "level": 2,
+          "factor": 1.44,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 606.0676879882812,
+            "y": 468.3072509765625,
+            "width": 319.9999694824219,
+            "height": 216.4669952392578,
+            "top": 468.3072509765625,
+            "right": 926.0676574707031,
+            "bottom": 684.7742462158203,
+            "left": 606.0676879882812
+          }
+        },
+        {
+          "theme": "Night",
+          "level": -1,
+          "factor": 0.8333333333333334,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 1384.590087890625,
+            "y": 989.7300415039062,
+            "width": 319.9950256347656,
+            "height": 217.60501098632812,
+            "top": 989.7300415039062,
+            "right": 1704.5851135253906,
+            "bottom": 1207.3350524902344,
+            "left": 1384.590087890625
+          }
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "level": 0,
+          "factor": 1,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 1052.300048828125,
+            "y": 783.4249877929688,
+            "width": 320,
+            "height": 217.1750030517578,
+            "top": 783.4249877929688,
+            "right": 1372.300048828125,
+            "bottom": 1000.5999908447266,
+            "left": 1052.300048828125
+          }
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "level": 1,
+          "factor": 1.2,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 774.5729370117188,
+            "y": 611.6666870117188,
+            "width": 320,
+            "height": 216.6666717529297,
+            "top": 611.6666870117188,
+            "right": 1094.5729370117188,
+            "bottom": 828.3333587646484,
+            "left": 774.5729370117188
+          }
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "level": 2,
+          "factor": 1.44,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 607.1614379882812,
+            "y": 468.3072509765625,
+            "width": 319.9999694824219,
+            "height": 216.4669952392578,
+            "top": 468.3072509765625,
+            "right": 927.1614074707031,
+            "bottom": 684.7742462158203,
+            "left": 607.1614379882812
+          }
+        },
+        {
+          "theme": "Cpp Github Consolas",
+          "level": -1,
+          "factor": 0.8333333333333334,
+          "writes": 0,
+          "drift": 0,
+          "rect": {
+            "x": 1385.6700439453125,
+            "y": 989.7300415039062,
+            "width": 319.9950256347656,
+            "height": 217.60501098632812,
+            "top": 989.7300415039062,
+            "right": 1705.6650695800781,
+            "bottom": 1207.3350524902344,
+            "left": 1385.6700439453125
+          }
+        }
+      ],
+      "continuous_samples_per_case": 20
+    }
+  },
+  "installation": {
+    "version": "2026.09.23.6",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "isolated_lifecycle": {
+    "status": "PASS",
+    "cycles": [
+      "install/check/restore-uninstall/reinstall/check",
+      "detach-uninstall/reinstall/check"
+    ],
+    "preserved": [
+      "document",
+      "settings",
+      "backup"
+    ],
+    "uninstall_failure_cancel_rollback_checks": 65
+  },
+  "audit": {
+    "shared_refresh": [
+      "native footer file actions/recent directories",
+      "native word count",
+      "native language",
+      "shared hover including zoom/link/Git commit",
+      "native reading toolbar"
+    ],
+    "existing_guarded": [
+      "titlebar menu width guard",
+      "shared action menu open snapshot/no polling"
+    ]
+  },
+  "limits": [
+    "原始宿主入口事件为renderer合成；隐藏Electron既有回归包含Chromium输入，不等同物理鼠标",
+    "未到场Win10及用户其他电脑仍需更新后现场确认",
+    "安装不重启用户窗口；未编辑保存提示继续按用户要求暂缓"
+  ],
+  "retained_failed_runs": [
+    "旧实现专项300ms持续18次写入",
+    "原生初始化/主题变更真实布局尚未稳定的初轮采样",
+    "原生关闭使用mousedown，初版夹具错误使用click"
+  ]
+}
