@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.9",
+  "requirements": [
+    "R069.11"
+  ],
+  "design": "docs/link_preview.md#r06911-网页浏览器承载与联网2026-09-24",
+  "asset_manifest_sha256": "5bcbe2fbb0065807de749eceafbe3869d93f0752b3b79e1b08c3eef468c43655",
+  "validation": {
+    "build": "PASS: .cache/issue_tracking/web_browser_build_release.log",
+    "check": "PASS: complete npm run check; 214 catalog suites; .cache/issue_tracking/web_browser_check_release.log",
+    "ui": {
+      "status": "PASS",
+      "groups": 1,
+      "checks": 127,
+      "log": ".cache/issue_tracking/web_browser_ui_release.log",
+      "scope": "existing link/local history and iframe fallback regression"
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "aa0e1bd6ba0f4611a24f98d33d739abc",
+      "checks": 38,
+      "details": [
+        "生产预览使用独立guest",
+        "拒绝iframe页面仍可正常显示",
+        "网页无Node和宿主接口",
+        "脚本与独立网页存储可用",
+        "网页不能创建弹出窗口",
+        "网页会话隔离",
+        "网页实际可见且使用flex布局",
+        "成功后收起加载提示",
+        "按钮返回网页内部上一页",
+        "按钮前进网页内部下一页",
+        "刷新当前网页而非原入口",
+        "网页表单提交可用",
+        "跨来源网页前后导航",
+        "HTTP错误明确反馈",
+        "保留TLS证书校验且明确反馈",
+        "关闭清理guest 0",
+        "关闭清理guest 1",
+        "关闭清理guest 2",
+        "关闭清理guest 3",
+        "关闭清理guest 4",
+        "关闭清理guest 5",
+        "关闭清理guest 6",
+        "关闭清理guest 7",
+        "关闭清理guest 8",
+        "关闭清理guest 9",
+        "关闭清理guest 10",
+        "关闭清理guest 11",
+        "关闭清理guest 12",
+        "关闭清理guest 13",
+        "关闭清理guest 14",
+        "关闭清理guest 15",
+        "关闭清理guest 16",
+        "关闭清理guest 17",
+        "关闭清理guest 18",
+        "关闭清理guest 19",
+        "迟到加载不恢复已关闭窗口",
+        "用户GitHub页面真实显示",
+        "网页浏览不切主文件或修改正文"
+      ],
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "5bcbe2fbb0065807de749eceafbe3869d93f0752b3b79e1b08c3eef468c43655",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "9350407f4c98d6f78d4aac77a0ce2f3fb937737606051f3275747fe6aa3de02c",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "electron": "42.2.0",
+      "scope": "原始Typora真实guest、回环HTTP与公开GitHub；非物理键鼠",
+      "live": {
+        "navigation": {
+          "can_go_back_type": "function",
+          "url": "http://127.0.0.1:57812/next",
+          "panel_state": "ready",
+          "can_go_back": true
+        },
+        "tls_error": "网页加载失败：ERR_CERT_AUTHORITY_INVALID（-202）。可重新加载或在默认浏览器打开。",
+        "state": "loaded",
+        "message": "",
+        "url": "https://github.com/FormingSystem/typora_code",
+        "title": "GitHub - FormingSystem/typora_code: typora make same as vscode. · GitHub",
+        "text": "Skip to content\nNavigation Menu\nSign in\nFormingSystem\n/\ntypora_code\nPublic\nCode\nmain\nCode\nLatest commit\n \nHistory\nFolders and files\nName\tLast commit date\n\nassets/images\n\t\n \n\n\ndocs\n\t\n \n\n\nenhancements\n\t\n \n\n\nscripts\n\t\n \n\n\n.gitattributes\n\t\n \n\n\n.gitignore"
+      },
+      "screenshot": "window_10420392.png: actual GitHub content visible in lower-left preview"
+    },
+    "install_cycle": "PASS: restore/detach uninstall/reinstall; .cache/issue_tracking/web_browser_install_release.log",
+    "uninstall": "PASS: 65 assertions; .cache/issue_tracking/web_browser_uninstall_release.log",
+    "local_install": {
+      "version": "2026.09.24.9",
+      "installed_assets": [
+        44,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "retained_failures": [
+    "初始导航夹具无用户手势，Chromium跳过其回退历史；修正为明确userGesture调用，最终直接使用guest原生导航，跨来源也通过。未采用中间Navigation API历史脚本。",
+    "TLS夹具首次误采上一个503页面；最终等待目标URL及错误状态，真实未信任CA被拒绝。",
+    "curl访问GitHub超时，但最终原始宿主Chromium实测成功；不将curl超时当作站点安全头证据。"
+  ],
+  "limits": [
+    "使用宿主已经开放的webview，Electron官方不建议新工程采用；宿主升级需要重新验收，无端口时保留受限iframe。",
+    "网页为独立内存会话，不继承外部Chrome/Edge登录和扩展；没有提供弹出窗口。",
+    "Chromium使用自身网络及系统信任；Node更新/下载专用代理与附加CA未应用于网页，会话自定义网络仍待设计。",
+    "未验收企业现场、Win10、物理键鼠、guest内部Alt导航及全部网站；用户运行窗口未重启。"
+  ]
+}

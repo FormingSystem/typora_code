@@ -7353,6 +7353,36 @@
       ],
       "timeout_ms": 60000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-web-preview-browser-native",
+      "domain": "preview",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R069.11"
+      ],
+      "design": "docs/link_preview.md#r06911-网页浏览器承载与联网2026-09-24",
+      "implementation": [
+        "enhancements/src/workspace_preview_web.ts",
+        "enhancements/src/workspace_link_preview.ts"
+      ],
+      "related_modules": [
+        "preview",
+        "navigation",
+        "network"
+      ],
+      "script": "enhancements/fixtures/web_preview_browser_native.js",
+      "environment": "原始Typora1.14.10独立副本",
+      "preconditions": "原始宿主独立副本，回环HTTP服务器和用户指定公开GitHub链接。",
+      "steps": [
+        "验证生产预览真实guest隔离、拒绝iframe页面、站内前后退、表单、刷新、错误和20次关闭；实测GitHub。"
+      ],
+      "expected": [
+        "本地断言通过；实际GitHub网络结果单独记录，不将无法联网当作本地浏览器功能通过。"
+      ],
+      "timeout_ms": 90000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

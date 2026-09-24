@@ -1,5 +1,7 @@
 # R069 Markdown链接只读预览
 
+当前网页承载以[R069.11](#r06911-网页浏览器承载与联网2026-09-24)为准：已核对Typora1.14.10使用独立Chromium guest正常加载网页；下面早期iframe限制仅适用于未提供guest接口的宿主回退，不再表示本机默认行为。
+
 2026-09-22用户先授权搜索侧栏链接预览，随后在R069.1明确改为独立的左下预览。以下为当前约定；独立预览保留普通链接点击跳转与搜索结果预览；可编辑正文的普通点击用于编辑链接，见[R067.2](navigation_history.md#r0672-正文链接点击优先编辑)。
 
 ## 交互与边界
@@ -154,3 +156,19 @@ Ctrl+选中文字仍打开搜索并在结果下方预览，单击预览、双击
 本轮关联主题回归（R034.3）：共享主题提取的:root默认变量进入Shadow后会遮住主页面html.dark的继承值；补入html/body根变体的自定义变量声明及原选择器条件，不把宿主布局声明带入预览。既有亮暗切换用例验证标题、正文和字号，并复查主题缓存/多个实例。
 
 2026.09.23.19当次验收：链接专项127项、7组关联UI和最终原始Typora229项通过；安装卸载/重装与本机校验完成。两项未修改基线同样失败的旧搜索/SCM测试、原生截图旧帧及平台边界单独记录，不合并为全量通过。用户窗口未重启。[证据](../enhancements/tests/evidence/preview_pin_20260923.json)。
+
+## R069.11 网页浏览器承载与联网（2026-09-24）
+
+用户希望网页在预览内像正常浏览器标签页访问。当前iframe由Typora Chromium渲染，但受站点frame-ancestors/X-Frame-Options、opaque来源和表单/存储权限限制；这不能仅由Node下载代理配置修复。先核实实际宿主能否创建隔离WebContentsView或提供受控浏览器端口，再决定实现，不能假设renderer拥有主进程API。
+
+研究基线：VS Code 68070681e87284e2f22728f15fe3f3651fbf932b 的src/vs/platform/browserView/electron-main/browserView.ts，主进程创建WebContentsView，nodeIntegration=false、contextIsolation=true、sandbox=true，并关联窗口所有者、布局及清理。独立浏览器服务拥有会话、网络、导航和错误，预览拥有布局/显隐和本地文档历史；网页不能取得工作台Node、文件或命令端口。不得关闭TLS或移除网站响应安全头来伪装正常浏览。
+
+范围限定为现有网页预览与导航，不改变宿主ASAR、注入主进程或读取外部浏览器配置。默认浏览器入口继续保留。验证包含拒绝iframe但允许正常顶层加载、脚本/表单/存储、网络/TLS错误、跳转/关闭/取消/权限隔离以及多预览生命周期。
+
+原始宿主实测更新：Typora1.14.10/Electron42.2.0没有可用主进程/remote端口，但已启用webviewTag；独立partition、contextIsolation和sandbox的guest成功加载frame-ancestors none/X-Frame-Options DENY测试页，脚本/存储可用，require/process/JSBridge均不可见。采用宿主已开放webview适配，而不是修改ASAR以引入WebContentsView；Electron官方不推荐新工程采用webview，故此处限定为现有宿主的能力适配，升级需重新验收。不支持该端口的宿主保留受限iframe及明确提示。
+
+网页采用专用内存会话（不共享Typora默认会话或Chrome/Edge配置），不提供Node/preload/弹出窗口能力，不修改响应安全头与证书验证。网页内部导航由guest持有；预览按钮优先操作网页历史，边界再回到文档预览历史，刷新/默认浏览器打开使用当前网页URL。加载失败显示真实主框架错误；关闭/切目标移除guest并清理监听/计时。网页使用Chromium自身网络栈与系统信任；R047.7的Node代理/附加CA不能直接套用到它，企业自定义网络接入仍为独立待办，绝不全局关闭证书校验。
+
+原生导航使用guest的canGoBack/canGoForward与goBack/goForward，不向网页注入历史脚本。无用户手势的合成点击会被Chromium跳过历史，验收必须为真实点击或明确带用户手势的测试调用，不能把history.length当作浏览器可回退项数。网页内部键盘由guest拥有，预览工具栏焦点下Alt与按钮共用路由。验收覆盖同来源及跨来源历史、实际GitHub仓库、表单、TLS错误与20次生命周期。
+
+2026.09.24.9本次38项原始宿主、127项预览回归、完整check及同候选安装卸载通过；GitHub实测可见。本机安装与资产核对通过，运行窗口未重启。[证据与未覆盖边界](../enhancements/tests/evidence/web_preview_browser_20260924.json)。

@@ -245353,7 +245353,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_preview_web.ts
-  function create_preview_web(url) {
+  function create_frame_preview(url) {
     const frame3 = workspace_element("iframe", "workspace-link-web"), status2 = workspace_element("div", "workspace-link-web-status");
     frame3.title = "\u7F51\u9875\u53EA\u8BFB\u9884\u89C8";
     frame3.setAttribute("sandbox", "allow-scripts");
@@ -245377,12 +245377,121 @@ https://creativecommons.org/licenses/by/4.0/
       report("error", "\u7F51\u9875\u52A0\u8F7D\u5931\u8D25\uFF0C\u8BF7\u5728\u5F53\u524D\u9884\u89C8\u91CD\u8BD5\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
     };
     frame3.src = url;
-    return { frame: frame3, status: status2, dispose() {
+    return { frame: frame3, status: status2, current_url: () => url, can_travel: (_direction) => false, travel: (_direction) => {
+    }, reload: () => {
+      frame3.src = url;
+    }, dispose() {
       if (disposed) return;
       disposed = true;
       clearTimeout(timer);
       frame3.onload = null;
       frame3.onerror = null;
+      frame3.remove();
+      status2.remove();
+    } };
+  }
+  function create_preview_web(url, on_change = () => {
+  }) {
+    const frame3 = document.createElement("webview");
+    if (typeof frame3.loadURL !== "function") return create_frame_preview(url);
+    frame3.className = "workspace-link-web";
+    frame3.setAttribute("aria-label", "\u7F51\u9875\u9884\u89C8");
+    frame3.setAttribute("partition", "typora-code-web-preview");
+    frame3.setAttribute("webpreferences", "nodeIntegration=no,nodeIntegrationInSubFrames=no,contextIsolation=yes,sandbox=yes,webSecurity=yes");
+    const status2 = workspace_element("div", "workspace-link-web-status");
+    status2.setAttribute("role", "status");
+    let disposed = false, ready = false, current = url, failed = false, timer;
+    const listeners6 = [];
+    const listen = (name, handler) => {
+      const guarded = (event) => {
+        if (!disposed) handler(event);
+      };
+      listeners6.push([name, guarded]);
+      frame3.addEventListener(name, guarded);
+    };
+    const report = (state, text3) => {
+      if (disposed) return;
+      frame3.dataset.loadState = state;
+      status2.hidden = !text3;
+      status2.textContent = text3;
+      on_change();
+    };
+    const start = () => {
+      failed = false;
+      clearTimeout(timer);
+      report("loading", "\u6B63\u5728\u52A0\u8F7D\u7F51\u9875\u2026");
+      timer = window.setTimeout(() => report("waiting", "\u7F51\u9875\u54CD\u5E94\u8F83\u6162\uFF0C\u53EF\u91CD\u65B0\u52A0\u8F7D\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002"), 15e3);
+    };
+    const update2 = () => {
+      if (!ready) return;
+      try {
+        current = frame3.getURL() || current;
+      } catch {
+      }
+      on_change();
+    };
+    listen("dom-ready", () => {
+      ready = true;
+      update2();
+    });
+    listen("did-start-loading", start);
+    listen("did-stop-loading", update2);
+    listen("did-navigate", (event) => {
+      current = event.url || current;
+      if (event.httpResponseCode >= 400) {
+        failed = true;
+        report("error", "\u7F51\u9875\u670D\u52A1\u5668\u8FD4\u56DEHTTP " + event.httpResponseCode + "\uFF0C\u53EF\u91CD\u65B0\u52A0\u8F7D\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
+      }
+      update2();
+    });
+    listen("did-navigate-in-page", (event) => {
+      if (event.isMainFrame !== false) {
+        current = event.url || current;
+        update2();
+      }
+    });
+    listen("did-finish-load", () => {
+      clearTimeout(timer);
+      if (!failed) report("loaded", "");
+      update2();
+    });
+    listen("did-fail-load", (event) => {
+      if (event.isMainFrame === false || event.errorCode === -3) return;
+      clearTimeout(timer);
+      failed = true;
+      report("error", "\u7F51\u9875\u52A0\u8F7D\u5931\u8D25\uFF1A" + event.errorDescription + "\uFF08" + event.errorCode + "\uFF09\u3002\u53EF\u91CD\u65B0\u52A0\u8F7D\u6216\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00\u3002");
+    });
+    listen("render-process-gone", () => {
+      clearTimeout(timer);
+      failed = true;
+      report("error", "\u7F51\u9875\u8FDB\u7A0B\u5DF2\u9000\u51FA\uFF0C\u8BF7\u91CD\u65B0\u52A0\u8F7D\u3002");
+    });
+    const can_travel = (direction) => {
+      if (disposed || !ready) return false;
+      try {
+        return direction < 0 ? frame3.canGoBack() : frame3.canGoForward();
+      } catch {
+        return false;
+      }
+    };
+    start();
+    frame3.setAttribute("src", url);
+    return { frame: frame3, status: status2, current_url: () => current, can_travel, travel(direction) {
+      if (can_travel(direction)) {
+        if (direction < 0) frame3.goBack();
+        else frame3.goForward();
+      }
+    }, reload() {
+      if (!disposed && ready) frame3.reload();
+    }, dispose() {
+      if (disposed) return;
+      disposed = true;
+      clearTimeout(timer);
+      for (const [name, handler] of listeners6) frame3.removeEventListener(name, handler);
+      try {
+        if (ready) frame3.stop();
+      } catch {
+      }
       frame3.remove();
       status2.remove();
     } };
@@ -245495,7 +245604,7 @@ https://creativecommons.org/licenses/by/4.0/
       open.disabled = true;
       try {
         if (target?.kind === "file") await files.open_file(target.path, { hash: target.hash });
-        else if (target?.kind === "web") await runtime2.JSBridge?.showInBrowser?.(target.url);
+        else if (target?.kind === "web") await runtime2.JSBridge?.showInBrowser?.(web?.current_url() || target.url);
       } catch (error) {
         if (!disposed && version === generation) fail(error);
       } finally {
@@ -245503,6 +245612,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     const retry = git_icon_button("refresh", "\u91CD\u65B0\u52A0\u8F7D", () => {
+      if (web && !failed_request) {
+        web.reload();
+        return;
+      }
       const value = failed_request || request;
       if (!value) return;
       if (failed_request) void navigate(value);
@@ -245511,8 +245624,8 @@ https://creativecommons.org/licenses/by/4.0/
     const back = git_icon_button("arrow-left", "\u9884\u89C8\u540E\u9000 (Alt+\u2190)", () => void travel(-1));
     const forward = git_icon_button("arrow-right", "\u9884\u89C8\u524D\u8FDB (Alt+\u2192)", () => void travel(1));
     const sync_navigation = () => {
-      back.disabled = disposed || container.dataset.state === "loading" || !history.can_travel(-1);
-      forward.disabled = disposed || container.dataset.state === "loading" || !history.can_travel(1);
+      back.disabled = disposed || container.dataset.state === "loading" || !(web?.can_travel(-1) || history.can_travel(-1));
+      forward.disabled = disposed || container.dataset.state === "loading" || !(web?.can_travel(1) || history.can_travel(1));
     };
     sync_navigation();
     const fail = (error) => {
@@ -245568,7 +245681,7 @@ https://creativecommons.org/licenses/by/4.0/
     const capture = () => {
       if (!target || !request) return;
       const position2 = reader?.capture_position();
-      return { file_path: target.kind === "file" ? target.path : target.url, scroll_top: position2?.scroll_top || 0, scroll_left: position2?.scroll_left || 0, cursor: { href: request.href }, editor_state: { request: { ...request }, position: position2, directory_position: directory?.capture_position(), directories: [...directories] } };
+      return { file_path: target.kind === "file" ? target.path : target.url, scroll_top: position2?.scroll_top || 0, scroll_left: position2?.scroll_left || 0, cursor: { href: request.href }, editor_state: { request: { ...request, ...target.kind === "web" ? { href: web?.current_url() || target.url } : {} }, position: position2, directory_position: directory?.capture_position(), directories: [...directories] } };
     };
     const navigate = async (value) => {
       if (history.is_navigating()) return;
@@ -245641,7 +245754,18 @@ https://creativecommons.org/licenses/by/4.0/
             if (!ok2) throw new Error(next.container.textContent || "\u65E0\u6CD5\u8BFB\u53D6\u94FE\u63A5\u76EE\u6807\u3002");
           }
         } else {
-          next_web = create_preview_web(resolved.url);
+          next_web = create_preview_web(resolved.url, () => {
+            if (disposed || version !== generation) return;
+            sync_navigation();
+            if (web && target?.kind === "web") {
+              const url = web.current_url();
+              try {
+                title.textContent = new URL(url).hostname;
+                title.title = url;
+              } catch {
+              }
+            }
+          });
           stage.append(next_web.frame, next_web.status);
         }
         if (disposed || version !== generation) {
@@ -245707,6 +245831,11 @@ https://creativecommons.org/licenses/by/4.0/
       sync_navigation();
     };
     const travel = async (direction) => {
+      if (web?.can_travel(direction)) {
+        web.travel(direction);
+        sync_navigation();
+        return true;
+      }
       const current = capture();
       if (!current) return false;
       const ok2 = await history.travel(direction, current, async (location) => {
@@ -246249,6 +246378,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092409,
+        version: "2026.09.24.9",
+        date: "2026-09-24",
+        notes: [
+          "\u7F51\u9875\u9884\u89C8\u4F7F\u7528\u5BBF\u4E3B\u72EC\u7ACBChromium\u9875\u9762\uFF0C\u652F\u6301\u6B63\u5E38\u7F51\u9875\u811A\u672C\u3001\u8868\u5355\u548C\u7AD9\u5185\u6D4F\u89C8\uFF0C\u4E0D\u518D\u53D7\u666E\u901Aiframe\u7981\u6B62\u5185\u5D4C\u5F71\u54CD\uFF1B\u4FDD\u7559\u7F51\u9875\u9694\u79BB\u3001\u9519\u8BEF\u63D0\u793A\u548C\u9ED8\u8BA4\u6D4F\u89C8\u5668\u5165\u53E3\u3002"
+        ]
+      },
       {
         sequence: 2026092408,
         version: "2026.09.24.8",

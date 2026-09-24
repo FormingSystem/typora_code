@@ -34,11 +34,11 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   scale.container.hidden=true;
   const sync_scale=()=>{const value=String(reader?.get_scale()||80);if(container.dataset.previewScale!==value)container.dataset.previewScale=value;};
   const scale_observer=new MutationObserver(sync_scale);scale_observer.observe(content,{subtree:true,attributes:true,attributeFilter:['data-preview-scale']});
-  const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")await runtime.JSBridge?.showInBrowser?.(target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
-  const retry=git_icon_button("refresh","重新加载",()=>{const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
+  const open=git_icon_button("go-to-file","打开源文件",async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")await runtime.JSBridge?.showInBrowser?.(web?.current_url()||target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
+  const retry=git_icon_button("refresh","重新加载",()=>{if(web&&!failed_request){web.reload();return;}const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
   const back=git_icon_button('arrow-left','预览后退 (Alt+←)',()=>void travel(-1));
   const forward=git_icon_button('arrow-right','预览前进 (Alt+→)',()=>void travel(1));
-  const sync_navigation=()=>{back.disabled=disposed||container.dataset.state==='loading'||!history.can_travel(-1);forward.disabled=disposed||container.dataset.state==='loading'||!history.can_travel(1);};
+  const sync_navigation=()=>{back.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(-1)||history.can_travel(-1));forward.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(1)||history.can_travel(1));};
   sync_navigation();
   const fail=(error:unknown)=>{message.textContent=String(error);message.hidden=false;container.dataset.state="error";};
   toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","链接预览操作");toolbar.append(title,scale.container,back,forward,open,retry);container.append(toolbar,return_directory,message,content);
@@ -51,7 +51,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const capture=():reading_location|undefined=>{
     if(!target||!request)return;
     const position=reader?.capture_position();
-    return {file_path:target.kind==='file'?target.path:target.url,scroll_top:position?.scroll_top||0,scroll_left:position?.scroll_left||0,cursor:{href:request.href},editor_state:{request:{...request},position,directory_position:directory?.capture_position(),directories:[...directories]} satisfies preview_location};
+    return {file_path:target.kind==='file'?target.path:target.url,scroll_top:position?.scroll_top||0,scroll_left:position?.scroll_left||0,cursor:{href:request.href},editor_state:{request:{...request,...(target.kind==='web'?{href:web?.current_url()||target.url}:{})},position,directory_position:directory?.capture_position(),directories:[...directories]} satisfies preview_location};
   };
   const navigate=async(value:workspace_link_request)=>{
     if(history.is_navigating())return;const from=capture();
@@ -84,7 +84,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
         if(!ok)throw new Error(next.container.textContent||'无法读取链接目标。');
         }
       }else{
-        next_web=create_preview_web(resolved.url);stage.append(next_web.frame,next_web.status);
+        next_web=create_preview_web(resolved.url,()=>{if(disposed||version!==generation)return;sync_navigation();if(web&&target?.kind==='web'){const url=web.current_url();try{title.textContent=new URL(url).hostname;title.title=url;}catch{}}});stage.append(next_web.frame,next_web.status);
       }
       if(disposed||version!==generation){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
       web?.dispose();web=next_web;reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
@@ -100,7 +100,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   };
   const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}sync_navigation();};
   const travel=async(direction:-1|1)=>{
-    const current=capture();if(!current)return false;
+    if(web?.can_travel(direction)){web.travel(direction);sync_navigation();return true;}const current=capture();if(!current)return false;
     const ok=await history.travel(direction,current,async location=>{const saved=location.editor_state as preview_location;return load(saved.request,saved);});
     sync_navigation();if(ok)focus();return ok;
   };
