@@ -45,7 +45,7 @@ app.whenReady().then(async()=>{
   await check('preview.models.length===2&&preview.models[0].getValue()===left_text&&preview.models[1].getValue()===right_text','20次切换保留两份只读源码及模型');
   await run('document.body.style.color="rgb(220,220,220)";document.body.style.background="#202020";theme_link.href="night.css"');await wait('preview.markdown_preview.container.dataset.theme==="dark"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] [data-source-line] > *")).backgroundColor==="rgba(87, 171, 90, 0.3)"','暗色采用固定差异颜色');
-  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(158, 173, 186)"','真实diff深色雾蓝灰标题');
+  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(187, 190, 191)"','真实diff深色VS Code中性标题');
   await win.setContentSize(420,700);await pause(100);await check('shadow.querySelector(".markdown-diff-row").children[1].getBoundingClientRect().left>shadow.querySelector(".markdown-diff-row").children[0].getBoundingClientRect().left','窄视口保持左右比较');
   await win.webContents.setZoomFactor(1.25);await pause(100);await check('preview.markdown_preview.scroll.clientHeight>100','窗口放大后比较仍有独立滚动区域');
   await run('preview.set_markdown_mode(false)');await check('!preview.body.hidden&&preview.markdown_preview.container.hidden&&preview.editor.getModel().original.getValue()===left_text','可切回源码差异');

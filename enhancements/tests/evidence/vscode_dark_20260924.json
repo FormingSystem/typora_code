@@ -1,0 +1,726 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.13",
+  "requirements": [
+    "R074.2"
+  ],
+  "design": "docs/workspace_colors.md#r0742-暗色阅读层级柔化",
+  "upstream": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "asset_manifest_sha256": "f51c9902aaf9095f8c2dedab793c499906be18c1a28fa336830b4fcd94ed4b71",
+  "decisions": [
+    "Night headings reference editor.foreground #BBBEBF, following upstream webview/markdown inheritance. Existing size, weight 600 and spacing provide hierarchy.",
+    "Dark table header line follows markdown.css rgba(255,255,255,0.69).",
+    "CppGithubConsoles light and all other themes unchanged. Shared body/preview/diff adaptation retained."
+  ],
+  "validation": {
+    "build": "PASS after retry of transient Windows SHA256SUMS open error",
+    "check": "PASS: full npm run check; vscode_dark_check.log",
+    "ui": "PASS: colors 33 assertions, actual Monaco Markdown diff 50 assertions; dark heading matches paragraph and shared Shadow styles; third-party theme exit/return, 20 switches and 1000 same events",
+    "native": {
+      "status": "PASS",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "f51c9902aaf9095f8c2dedab793c499906be18c1a28fa336830b4fcd94ed4b71",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "73ab09b704a145bc744316735c325fe928f8cace08879e63e21b128ed4d1fc1b",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "case_id": "44af59f903fc494da40b8621ccdca4df",
+      "checks": [
+        "宿主实际主题 light",
+        "正文编辑器背景 light",
+        "明暗标题前景规则 light",
+        "标题字重 light",
+        "引用背景角色 light",
+        "活动栏入口 core.file-explorer",
+        "点击入口展开 core.file-explorer",
+        "面板框架背景 light core.file-explorer rgb(250, 250, 253)",
+        "真实连接面板 core.file-explorer",
+        "实际可见命中 core.file-explorer",
+        "活动栏入口 core.search",
+        "点击入口展开 core.search",
+        "面板框架背景 light core.search rgb(250, 250, 253)",
+        "真实连接面板 core.search",
+        "实际可见命中 core.search",
+        "活动栏入口 core.outline",
+        "点击入口展开 core.outline",
+        "面板框架背景 light core.outline rgb(250, 250, 253)",
+        "真实连接面板 core.outline",
+        "实际可见命中 core.outline",
+        "活动栏入口 linux_note:source_control",
+        "点击入口展开 linux_note:source_control",
+        "面板框架背景 light linux_note:source_control rgb(250, 250, 253)",
+        "真实连接面板 linux_note:source_control",
+        "实际可见命中 linux_note:source_control",
+        "活动栏入口 typora_code:community_plugins",
+        "点击入口展开 typora_code:community_plugins",
+        "面板框架背景 light typora_code:community_plugins rgb(250, 250, 253)",
+        "真实连接面板 typora_code:community_plugins",
+        "实际可见命中 typora_code:community_plugins",
+        "活动栏入口 typora_code:remote_ssh",
+        "点击入口展开 typora_code:remote_ssh",
+        "面板框架背景 light typora_code:remote_ssh rgb(250, 250, 253)",
+        "真实连接面板 typora_code:remote_ssh",
+        "实际可见命中 typora_code:remote_ssh",
+        "终端主题更新且实例保持 light",
+        "标签/底栏框架一致 light",
+        "设置分类与内容层次 light",
+        "打开功能不改正文样式 light",
+        "原生文件菜单浮层配色 light",
+        "静止主题无刷新且菜单节点保持 light",
+        "宿主实际主题 dark",
+        "正文编辑器背景 dark",
+        "明暗标题前景规则 dark",
+        "标题字重 dark",
+        "引用背景角色 dark",
+        "活动栏入口 core.file-explorer",
+        "点击入口展开 core.file-explorer",
+        "面板框架背景 dark core.file-explorer rgb(25, 26, 27)",
+        "真实连接面板 core.file-explorer",
+        "实际可见命中 core.file-explorer",
+        "活动栏入口 core.search",
+        "点击入口展开 core.search",
+        "面板框架背景 dark core.search rgb(25, 26, 27)",
+        "真实连接面板 core.search",
+        "实际可见命中 core.search",
+        "活动栏入口 core.outline",
+        "点击入口展开 core.outline",
+        "面板框架背景 dark core.outline rgb(25, 26, 27)",
+        "真实连接面板 core.outline",
+        "实际可见命中 core.outline",
+        "活动栏入口 linux_note:source_control",
+        "点击入口展开 linux_note:source_control",
+        "面板框架背景 dark linux_note:source_control rgb(25, 26, 27)",
+        "真实连接面板 linux_note:source_control",
+        "实际可见命中 linux_note:source_control",
+        "活动栏入口 typora_code:community_plugins",
+        "点击入口展开 typora_code:community_plugins",
+        "面板框架背景 dark typora_code:community_plugins rgb(25, 26, 27)",
+        "真实连接面板 typora_code:community_plugins",
+        "实际可见命中 typora_code:community_plugins",
+        "活动栏入口 typora_code:remote_ssh",
+        "点击入口展开 typora_code:remote_ssh",
+        "面板框架背景 dark typora_code:remote_ssh rgb(25, 26, 27)",
+        "真实连接面板 typora_code:remote_ssh",
+        "实际可见命中 typora_code:remote_ssh",
+        "终端主题更新且实例保持 dark",
+        "标签/底栏框架一致 dark",
+        "设置分类与内容层次 dark",
+        "打开功能不改正文样式 dark",
+        "原生文件菜单浮层配色 dark",
+        "静止主题无刷新且菜单节点保持 dark",
+        "实际主题范围 github.css",
+        "其他主题不使用自有标题变量 github.css",
+        "实际主题范围 newsprint.css",
+        "其他主题不使用自有标题变量 newsprint.css",
+        "实际主题范围 night.css",
+        "实际主题范围 cpp_github-consolas.css",
+        "正文磁盘字节不变"
+      ],
+      "samples": [
+        {
+          "mode": "light",
+          "body": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(51, 51, 51)",
+            "border": "rgb(51, 51, 51)",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1666.4000244140625,
+              "height": 0,
+              "top": 0,
+              "right": 1666.4000244140625,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "write": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(32, 32, 32)",
+            "rect": {
+              "x": 47.79999923706055,
+              "y": 72.20000457763672,
+              "width": 1513.5999755859375,
+              "height": 662.9750366210938,
+              "top": 72.20000457763672,
+              "right": 1561.399974822998,
+              "bottom": 735.1750411987305,
+              "left": 47.79999923706055
+            }
+          },
+          "panels": [
+            {
+              "id": "core.file-explorer",
+              "bg": "rgb(250, 250, 253)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(240, 241, 242)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            },
+            {
+              "id": "core.search",
+              "bg": "rgb(250, 250, 253)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(240, 241, 242)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            },
+            {
+              "id": "core.outline",
+              "bg": "rgba(0, 0, 0, 0)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(32, 32, 32)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            },
+            {
+              "id": "linux_note:source_control",
+              "bg": "rgb(250, 250, 253)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(240, 241, 242)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            },
+            {
+              "id": "typora_code:community_plugins",
+              "bg": "rgb(250, 250, 253)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(240, 241, 242)",
+              "rect": {
+                "x": 48,
+                "y": 70,
+                "width": 239.1999969482422,
+                "height": 963.6000366210938,
+                "top": 70,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            },
+            {
+              "id": "typora_code:remote_ssh",
+              "bg": "rgb(250, 250, 253)",
+              "fg": "rgb(32, 32, 32)",
+              "border": "rgb(240, 241, 242)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 239.1999969482422,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 287.1999969482422,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(250, 250, 253)"
+            }
+          ],
+          "heading": {
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(0, 105, 204)",
+            "border": "rgb(0, 105, 204)",
+            "rect": {
+              "x": 77.80000305175781,
+              "y": 102.20000457763672,
+              "width": 1453.5999755859375,
+              "height": 50.400001525878906,
+              "top": 102.20000457763672,
+              "right": 1531.3999786376953,
+              "bottom": 152.60000610351562,
+              "left": 77.80000305175781
+            }
+          },
+          "paragraph": {
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(32, 32, 32)",
+            "rect": {
+              "x": 77.80000305175781,
+              "y": 168.60000610351562,
+              "width": 1453.5999755859375,
+              "height": 25.137500762939453,
+              "top": 168.60000610351562,
+              "right": 1531.3999786376953,
+              "bottom": 193.73750686645508,
+              "left": 77.80000305175781
+            }
+          },
+          "quote": {
+            "bg": "rgb(234, 234, 234)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(32, 32, 32)",
+            "rect": {
+              "x": 77.80000305175781,
+              "y": 212.0124969482422,
+              "width": 1453.5999755859375,
+              "height": 25.137500762939453,
+              "top": 212.0124969482422,
+              "right": 1531.3999786376953,
+              "bottom": 237.14999771118164,
+              "left": 77.80000305175781
+            }
+          },
+          "terminal": {
+            "bg": "rgb(250, 250, 253)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(240, 241, 242)",
+            "rect": {
+              "x": 287,
+              "y": 651.5750122070312,
+              "width": 1378,
+              "height": 351.63751220703125,
+              "top": 651.5750122070312,
+              "right": 1665,
+              "bottom": 1003.2125244140625,
+              "left": 287
+            }
+          },
+          "tab": {
+            "bg": "rgb(250, 250, 253)",
+            "fg": "rgb(51, 51, 51)",
+            "border": "rgb(51, 51, 51)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 35,
+              "width": 1377.5999755859375,
+              "height": 32,
+              "top": 35,
+              "right": 1665.3999938964844,
+              "bottom": 67,
+              "left": 287.8000183105469
+            }
+          },
+          "footer": {
+            "bg": "rgb(250, 250, 253)",
+            "fg": "rgb(96, 96, 96)",
+            "border": "rgb(240, 241, 242)",
+            "rect": {
+              "x": 288,
+              "y": 1003.6000366210938,
+              "width": 1366.4000244140625,
+              "height": 30,
+              "top": 1003.6000366210938,
+              "right": 1654.4000244140625,
+              "bottom": 1033.6000366210938,
+              "left": 288
+            }
+          },
+          "settings": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(32, 32, 32)",
+            "rect": {
+              "x": 167.4375,
+              "y": 137.16250610351562,
+              "width": 1331.5125732421875,
+              "height": 792.2750244140625,
+              "top": 137.16250610351562,
+              "right": 1498.9500732421875,
+              "bottom": 929.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "categories": {
+            "bg": "rgb(250, 250, 253)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(240, 241, 242)",
+            "rect": {
+              "x": 167.4375,
+              "y": 191.16250610351562,
+              "width": 210,
+              "height": 726.2750244140625,
+              "top": 191.16250610351562,
+              "right": 377.4375,
+              "bottom": 917.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "dialog": {
+            "bg": "rgb(255, 255, 255)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgba(216, 216, 216, 0.4)",
+            "rect": {
+              "x": 166.6374969482422,
+              "y": 103.36250305175781,
+              "width": 1333.112548828125,
+              "height": 826.875,
+              "top": 103.36250305175781,
+              "right": 1499.7500457763672,
+              "bottom": 930.2375030517578,
+              "left": 166.6374969482422
+            }
+          },
+          "menu": {
+            "bg": "rgb(250, 250, 253)",
+            "fg": "rgb(32, 32, 32)",
+            "border": "rgb(233, 233, 233)",
+            "rect": {
+              "x": 1052.300048828125,
+              "y": 783.4249877929688,
+              "width": 320,
+              "height": 217.1750030517578,
+              "top": 783.4249877929688,
+              "right": 1372.300048828125,
+              "bottom": 1000.5999908447266,
+              "left": 1052.300048828125
+            }
+          }
+        },
+        {
+          "mode": "dark",
+          "body": {
+            "bg": "rgb(54, 59, 64)",
+            "fg": "rgb(184, 191, 198)",
+            "border": "rgba(0, 0, 0, 0)",
+            "rect": {
+              "x": 0,
+              "y": 0,
+              "width": 1666.4000244140625,
+              "height": 0,
+              "top": 0,
+              "right": 1666.4000244140625,
+              "bottom": 0,
+              "left": 0
+            }
+          },
+          "write": {
+            "bg": "rgb(18, 19, 20)",
+            "fg": "rgb(187, 190, 191)",
+            "border": "rgb(187, 190, 191)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 72.20000457763672,
+              "width": 1273.5999755859375,
+              "height": 652.9750366210938,
+              "top": 72.20000457763672,
+              "right": 1561.3999938964844,
+              "bottom": 725.1750411987305,
+              "left": 287.8000183105469
+            }
+          },
+          "panels": [
+            {
+              "id": "core.file-explorer",
+              "bg": "rgb(25, 26, 27)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(42, 43, 44)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            },
+            {
+              "id": "core.search",
+              "bg": "rgb(25, 26, 27)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(42, 43, 44)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            },
+            {
+              "id": "core.outline",
+              "bg": "rgba(0, 0, 0, 0)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(191, 191, 191)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            },
+            {
+              "id": "linux_note:source_control",
+              "bg": "rgb(25, 26, 27)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(42, 43, 44)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            },
+            {
+              "id": "typora_code:community_plugins",
+              "bg": "rgb(25, 26, 27)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(42, 43, 44)",
+              "rect": {
+                "x": 48,
+                "y": 70,
+                "width": 240,
+                "height": 963.6000366210938,
+                "top": 70,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            },
+            {
+              "id": "typora_code:remote_ssh",
+              "bg": "rgb(25, 26, 27)",
+              "fg": "rgb(191, 191, 191)",
+              "border": "rgb(42, 43, 44)",
+              "rect": {
+                "x": 48,
+                "y": 35,
+                "width": 240,
+                "height": 998.6000366210938,
+                "top": 35,
+                "right": 288,
+                "bottom": 1033.6000366210938,
+                "left": 48
+              },
+              "painted_background": "rgb(25, 26, 27)"
+            }
+          ],
+          "heading": {
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(187, 190, 191)",
+            "border": "rgb(187, 190, 191)",
+            "rect": {
+              "x": 317.8000183105469,
+              "y": 108.20000457763672,
+              "width": 1213.5999755859375,
+              "height": 50.400001525878906,
+              "top": 108.20000457763672,
+              "right": 1531.3999938964844,
+              "bottom": 158.60000610351562,
+              "left": 317.8000183105469
+            }
+          },
+          "paragraph": {
+            "bg": "rgba(0, 0, 0, 0)",
+            "fg": "rgb(187, 190, 191)",
+            "border": "rgb(187, 190, 191)",
+            "rect": {
+              "x": 317.8000183105469,
+              "y": 174.60000610351562,
+              "width": 1213.5999755859375,
+              "height": 25.137500762939453,
+              "top": 174.60000610351562,
+              "right": 1531.3999938964844,
+              "bottom": 199.73750686645508,
+              "left": 317.8000183105469
+            }
+          },
+          "quote": {
+            "bg": "rgb(36, 37, 38)",
+            "fg": "rgb(187, 190, 191)",
+            "border": "rgb(187, 190, 191)",
+            "rect": {
+              "x": 317.8000183105469,
+              "y": 218.0124969482422,
+              "width": 1213.5999755859375,
+              "height": 25.137500762939453,
+              "top": 218.0124969482422,
+              "right": 1531.3999938964844,
+              "bottom": 243.14999771118164,
+              "left": 317.8000183105469
+            }
+          },
+          "terminal": {
+            "bg": "rgb(25, 26, 27)",
+            "fg": "rgb(191, 191, 191)",
+            "border": "rgb(42, 43, 44)",
+            "rect": {
+              "x": 287,
+              "y": 651.5750122070312,
+              "width": 1378,
+              "height": 351.63751220703125,
+              "top": 651.5750122070312,
+              "right": 1665,
+              "bottom": 1003.2125244140625,
+              "left": 287
+            }
+          },
+          "tab": {
+            "bg": "rgb(25, 26, 27)",
+            "fg": "rgb(184, 191, 198)",
+            "border": "rgb(184, 191, 198)",
+            "rect": {
+              "x": 287.8000183105469,
+              "y": 35,
+              "width": 1377.5999755859375,
+              "height": 32,
+              "top": 35,
+              "right": 1665.3999938964844,
+              "bottom": 67,
+              "left": 287.8000183105469
+            }
+          },
+          "footer": {
+            "bg": "rgb(25, 26, 27)",
+            "fg": "rgb(140, 140, 140)",
+            "border": "rgb(42, 43, 44)",
+            "rect": {
+              "x": 288,
+              "y": 1003.6000366210938,
+              "width": 1366.4000244140625,
+              "height": 30,
+              "top": 1003.6000366210938,
+              "right": 1654.4000244140625,
+              "bottom": 1033.6000366210938,
+              "left": 288
+            }
+          },
+          "settings": {
+            "bg": "rgb(18, 19, 20)",
+            "fg": "rgb(191, 191, 191)",
+            "border": "rgb(191, 191, 191)",
+            "rect": {
+              "x": 167.4375,
+              "y": 137.16250610351562,
+              "width": 1331.5125732421875,
+              "height": 792.2750244140625,
+              "top": 137.16250610351562,
+              "right": 1498.9500732421875,
+              "bottom": 929.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "categories": {
+            "bg": "rgb(25, 26, 27)",
+            "fg": "rgb(191, 191, 191)",
+            "border": "rgb(42, 43, 44)",
+            "rect": {
+              "x": 167.4375,
+              "y": 191.16250610351562,
+              "width": 210,
+              "height": 726.2750244140625,
+              "top": 191.16250610351562,
+              "right": 377.4375,
+              "bottom": 917.4375305175781,
+              "left": 167.4375
+            }
+          },
+          "dialog": {
+            "bg": "rgb(18, 19, 20)",
+            "fg": "rgb(191, 191, 191)",
+            "border": "rgb(51, 53, 54)",
+            "rect": {
+              "x": 166.6374969482422,
+              "y": 103.36250305175781,
+              "width": 1333.112548828125,
+              "height": 826.875,
+              "top": 103.36250305175781,
+              "right": 1499.7500457763672,
+              "bottom": 930.2375030517578,
+              "left": 166.6374969482422
+            }
+          },
+          "menu": {
+            "bg": "rgb(32, 33, 34)",
+            "fg": "rgb(191, 191, 191)",
+            "border": "rgb(191, 191, 191)",
+            "rect": {
+              "x": 1051.2125244140625,
+              "y": 783.4249877929688,
+              "width": 320,
+              "height": 217.1750030517578,
+              "top": 783.4249877929688,
+              "right": 1371.2125244140625,
+              "bottom": 1000.5999908447266,
+              "left": 1051.2125244140625
+            }
+          }
+        }
+      ]
+    },
+    "install_cycle": "PASS: install/check/restore uninstall/reinstall/detach uninstall/reinstall/check; vscode_dark_install_cycle.log",
+    "uninstall": "PASS:65 failure/cancel/rollback assertions; vscode_dark_uninstall.log",
+    "local_install": {
+      "version": "2026.09.24.13",
+      "installed_assets": [
+        44,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "limits": [
+    "Windows11 Typora1.14.10 isolated host; no Win10 or physical input tests this round.",
+    "Native private-desktop PrintWindow image retained a stale initial light frame despite computed-style checks passing; not counted as native visual acceptance. Final appearance needs user-window confirmation after restart.",
+    "Third-party restoration exercised GitHub and Newsprint plus synthetic near-name cases, not every theme.",
+    "User windows not restarted; no remote publication."
+  ]
+}

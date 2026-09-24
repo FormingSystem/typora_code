@@ -246517,6 +246517,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092413,
+        version: "2026.09.24.13",
+        date: "2026-09-24",
+        notes: [
+          "Night\u6309\u56FA\u5B9AVS Code\u6697\u4E3B\u9898\u5448\u73B0\uFF1A\u6807\u9898\u6CBF\u7528\u6B63\u6587\u4E2D\u6027\u524D\u666F\uFF0C\u4EE5\u5B57\u53F7\u3001\u5B57\u91CD\u548C\u7559\u767D\u5EFA\u7ACB\u5C42\u7EA7\uFF0C\u8868\u5934\u8FB9\u7EBF\u91C7\u7528\u4E0A\u6E38\u89C4\u5219\uFF1B\u6B63\u6587\u3001\u9884\u89C8\u548CGit\u6E32\u67D3\u6BD4\u8F83\u5171\u7528\u3002",
+          "CppGithubConsoles\u6D45\u8272\u6807\u9898\u53CA\u5176\u4ED6\u4E3B\u9898\u4FDD\u6301\u539F\u6837\u3002"
+        ]
+      },
+      {
         sequence: 2026092412,
         version: "2026.09.24.12",
         date: "2026-09-24",

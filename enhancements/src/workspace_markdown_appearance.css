@@ -1,4 +1,4 @@
-/* R074.1：6807068 Markdown阅读规则；浅色深蓝/暗色雾蓝灰标题按R074.2统一。
+/* R074.1：6807068 Markdown阅读规则；浅色深蓝/暗色VS Code中性标题按R074.2统一。
    仅覆盖呈现，不写body主题变量，字号/宽度/编辑器实例保持原所有者。 */
 :root[data-workspace-colors] content {background-color:var(--vscode-editor-background);}
 :root[data-workspace-colors] #write {

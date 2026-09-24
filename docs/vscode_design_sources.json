@@ -687,6 +687,6 @@
       }
     ],
     "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。",
-    "dark_refinement": "R074.2: user requests muted blue-gray headings #9EADBA (product adaptation, not upstream default); table header line maps textSeparator.foreground #2a2a2a; exact cpp_github-consolas.css/night.css scope from Typora1.14.10 File.setTheme theme_css href."
+    "dark_refinement": "R074.2 final user decision: follow VS Code 6807068 2026 Dark. markdown.css h1-h6 inherit webview editor.foreground #BBBEBF with weight 600; dark th border rgba(255,255,255,0.69). Heading role references editor.foreground. Exact cpp_github-consolas.css/night.css scope from Typora1.14.10 File.setTheme theme_css href; light unchanged."
   }
 }

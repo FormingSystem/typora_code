@@ -1597,9 +1597,9 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-terminal-selectionBackground:#3994BC33;
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
-  --workspace-markdown-heading:#9EADBA;
+  --workspace-markdown-heading:var(--vscode-editor-foreground);
   --workspace-markdown-border:#FFFFFF2E;
-  --workspace-markdown-table-header:#2a2a2a;
+  --workspace-markdown-table-header:rgba(255,255,255,.69);
   --vscode-foreground:#bfbfbf;
   --vscode-descriptionForeground:#8C8C8C;
   --vscode-focusBorder:#3994BCB3;
@@ -2188,7 +2188,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-preview-directory-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* workspace_markdown_appearance.css */
-/* R074.1：6807068 Markdown阅读规则；浅色深蓝/暗色雾蓝灰标题按R074.2统一。
+/* R074.1：6807068 Markdown阅读规则；浅色深蓝/暗色VS Code中性标题按R074.2统一。
    仅覆盖呈现，不写body主题变量，字号/宽度/编辑器实例保持原所有者。 */
 :root[data-workspace-colors] content {background-color:var(--vscode-editor-background);}
 :root[data-workspace-colors] #write {
