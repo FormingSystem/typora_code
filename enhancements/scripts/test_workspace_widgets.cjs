@@ -119,9 +119,9 @@ app.whenReady().then(async () => {
     await evaluate(`document.body.style.background='${dark?'#191a1b':'#fff'}';document.body.style.color='${dark?'#ddd':'#24292f'}';window.separator_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:20,clientY:20}),[{title:'First',action(){}},{title:'Second',separator:true,action(){}}],${JSON.stringify(compact?'workspace-menu-compact':'')});void 0;`);await delay(35);
     const metrics=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu'),line=menu.querySelector('hr'),style=getComputedStyle(line),buttons=menu.querySelectorAll('button'),native=getComputedStyle(document_rule);return{height:line.getBoundingClientRect().height,min_height:style.minHeight,padding:style.padding,border_top:style.borderTopWidth,border_bottom:style.borderBottomWidth,box_sizing:style.boxSizing,margin_top:style.marginTop,margin_bottom:style.marginBottom,gap:buttons[1].getBoundingClientRect().top-buttons[0].getBoundingClientRect().bottom,document_height:native.height,document_margin:native.marginTop,device_scale:devicePixelRatio}})()`);
     const {gap,border_top,device_scale,...fixed_metrics}=metrics;
-    assert(Math.abs(gap-(compact?9:11))<0.02,JSON.stringify(metrics));
+    assert(Math.abs(gap-11)<0.02,JSON.stringify(metrics));
     assert(Math.abs(parseFloat(border_top)*device_scale-Math.max(1,Math.floor(device_scale)))<0.02,'one CSS pixel border snaps to the physical device grid');
-    assert.deepEqual(fixed_metrics,{height:1,min_height:'0px',padding:'0px',border_bottom:'0px',box_sizing:'border-box',margin_top:compact?'4px':'5px',margin_bottom:compact?'4px':'5px',document_height:'2px',document_margin:'24px'});
+    assert.deepEqual(fixed_metrics,{height:1,min_height:'0px',padding:'0px',border_bottom:'0px',box_sizing:'border-box',margin_top:'5px',margin_bottom:'5px',document_height:'2px',document_margin:'24px'});
     checks.push((dark?'Night':'light')+' '+(compact?'compact':'standard')+' menu separator preserves its one-pixel rule and group gap under global important hr margins');
     await evaluate('separator_close();void 0;');
   }
@@ -141,9 +141,9 @@ app.whenReady().then(async () => {
     await evaluate(`document.body.style.setProperty('--bg-color','${dark?'#191a1b':'#fff'}');document.body.style.setProperty('--text-color','${dark?'#ddd':'#24292f'}');window.mixed_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:20}),[{title:'普通命令',shortcut:'Ctrl+Shift+X',action(){}},{title:'不可用命令',disabled:true,action(){}},{title:'未选功能',checked:false,action(){}},{title:'已选功能',checked:true,action(){}},{title:'不可用开关',checked:false,disabled:true,action(){}},{title:'子菜单',children:[{title:'普通子项',action(){}}],action(){}}],${JSON.stringify(kind)});void 0`);
     const rows=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu');return [...menu.children].map(row=>{const label=row.querySelector('.git-menu-label'),check=row.querySelector('.git-menu-check'),style=getComputedStyle(row);return{role:row.getAttribute('role'),checked:row.getAttribute('aria-checked'),slot:!!check,glyph:!!check?.firstElementChild,inset:label.getBoundingClientRect().left-row.getBoundingClientRect().left,expected:parseFloat(style.paddingLeft),shortcut:row.querySelector('.git-menu-shortcut').getBoundingClientRect().left};});})()`);
     assert.deepEqual(rows.map(row=>[row.role,row.checked,row.slot,row.glyph]),[['menuitem',null,false,false],['menuitem',null,false,false],['menuitemcheckbox','false',true,false],['menuitemcheckbox','true',true,true],['menuitemcheckbox','false',true,false],['menuitem',null,false,false]]);
-    for(const row of rows){assert(Math.abs(row.inset-row.expected-(row.slot?22:0))<1,JSON.stringify(row));assert(Math.abs(row.shortcut-rows[0].shortcut)<1,'right shortcut column remains aligned');}
+    for(const row of rows){assert(Math.abs(row.inset-26)<1,JSON.stringify(row));assert(Math.abs(row.shortcut-rows[0].shortcut)<1,'right shortcut column remains aligned');}
     assert.equal(rows[2].inset,rows[3].inset,'checked state never shifts label');
-    await evaluate('mixed_close();void 0');checks.push(`R065.1 mixed menu ${kind}/${dark}/${width}/${zoom}: optional slot, stable checkbox and aligned shortcut`);
+    await evaluate('mixed_close();void 0');checks.push(`R065.1 mixed menu ${kind}/${dark}/${width}/${zoom}: common 26px label start, stable checkbox and aligned shortcut`);
   }
   // 不放人为超长条目来撑宽菜单：正是三项设置菜单在真实用户截图中再次失败。
   for(const zoom of [1,1.25])for(const width of [800,320]){

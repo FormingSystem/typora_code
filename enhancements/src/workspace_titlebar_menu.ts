@@ -1,4 +1,4 @@
-import {create_workspace_menu_check} from "./workspace_menu_item";
+import {create_workspace_menu_check,align_workspace_menu_columns} from "./workspace_menu_item";
 import {is_composing_key} from "./workspace_keyboard";
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -50,6 +50,9 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
       item.addEventListener("keydown",event=>{if(event.key==="ArrowRight"&&entry.children){event.preventDefault();event.stopPropagation();activate(true);}},{signal});
       panel.append(item);
     }
+    const columns=align_workspace_menu_columns(panel,':scope > button','.workspace-titlebar-label','.workspace-titlebar-shortcut');
+    const row=panel.querySelector('button');
+    if(row){const style=getComputedStyle(row);panel.style.width=Math.ceil(columns.label_width+columns.shortcut_width+16+16+8+parseFloat(style.paddingLeft)+parseFloat(style.paddingRight)+2)+'px';}
     const size=panel.getBoundingClientRect();
     const left=depth===0?rect.left:(rect.right+size.width<=innerWidth-4?rect.right:rect.left-size.width);
     const top=depth===0?top_limit:Math.max(top_limit,Math.min(rect.top,innerHeight-size.height-4));

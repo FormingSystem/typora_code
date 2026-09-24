@@ -402,3 +402,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 - BUG-selection-expanded-source：展开提交、键盘焦点和活动diff被混作选中；共享列表模型分离三者，同一来源刷新不覆盖手动选择，真实宿主提交/文件转移通过。
 - BUG-diff-layout-anchor补充：Monaco迟到同值差异导致已显示DOM重建，映射短暂失效；按模型版本与差异结果合并，保留待恢复锚点，100次同值通知与最终原生164项通过。
 - BUG-markdown-diff-decoration：整格高饱和背景盖过主题与具体改词；改为内容浅色、行内强调及修改边线，配色/原生回归通过，复杂结构仍有块级边界。证据见[本次记录](../enhancements/tests/evidence/shared_selection_20260924.json)。
+
+2026-09-24 R065.2：BUG-menu-per-item-columns——R065.1按每行能力撤销标记空间，混合菜单文字起点不一致；用户明确全部按VS Code排版。统一菜单层2em标记/文字起点和快捷键列，普通项保留menuitem语义，状态变化不改几何。覆盖顶栏八类、共享与核心菜单，旧紧凑间距断言按新授权替换。

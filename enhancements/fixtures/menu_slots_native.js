@@ -13,21 +13,22 @@
       assert(rows.length>0,scope+' 有实际菜单项');
       const metrics=rows.map(row=>{
         const label=row.querySelector(label_class),slot=row.querySelector(check_class),style=getComputedStyle(row);
-        const inset=label.getBoundingClientRect().left-row.getBoundingClientRect().left;
+        const bounds=row.getBoundingClientRect(),label_bounds=label.getBoundingClientRect();const inset=label_bounds.left-bounds.left;assert(Math.abs(label_bounds.top+label_bounds.height/2-bounds.top-bounds.height/2)<1,scope+' 文字垂直居中 '+label.textContent);if(slot){const marker=slot.getBoundingClientRect();assert(Math.abs(marker.left-bounds.left)<1&&Math.abs(marker.width-26)<1,scope+' 标记列宽26px');}
         return {title:label.textContent,role:row.getAttribute('role'),checked:row.getAttribute('aria-checked'),slot:!!slot,inset,padding:parseFloat(style.paddingLeft),glyph:!!slot?.firstElementChild};
       });
       assert(metrics.every(row=>row.slot===(row.role==='menuitemcheckbox')),scope+' 仅勾选能力分配状态槽');
-      assert(metrics.filter(row=>!row.slot).every(row=>Math.abs(row.inset-row.padding)<1),scope+' 普通项文字从行内边距开始');
+      assert(metrics.every(row=>Math.abs(row.inset-26)<1),scope+' 所有文字共用26px起点');
       assert(metrics.filter(row=>row.slot).every(row=>row.glyph===(row.checked==='true')),scope+' 未勾选保留槽且已勾选显示图标');
-      assert(menu.scrollWidth<=menu.clientWidth,scope+' 无水平溢出');samples.push({scope,metrics});
+      const shortcuts=[...menu.querySelectorAll('.workspace-titlebar-shortcut,.git-menu-shortcut')].map(node=>node.getBoundingClientRect().right);assert(shortcuts.every(right=>Math.abs(right-shortcuts[0])<1),scope+' 快捷键右边缘对齐');assert(menu.scrollWidth<=menu.clientWidth,scope+' 无水平溢出');samples.push({scope,metrics});
     };
     for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
       await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(650);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
       for(const zoom of [1,1.25]){
         reqnode('electron').webFrame.setZoomFactor(zoom);window.resizeTo(1280,850);await pause(200);
-        for(const name of ['编辑','视图','文件']){
-          escape();const button=[...document.querySelectorAll('.workspace-titlebar-menu>button')].find(node=>node.textContent===name);assert(!!button,'实际顶栏 '+name);button.click();await pause(120);
+        for(const name of ['文件','编辑','段落','格式','视图','主题','终端','帮助']){
+          escape();const button=[...document.querySelectorAll('.workspace-titlebar-menu>button')].find(node=>node.textContent===name);assert(!!button,'实际顶栏 '+name);button.click();const deadline=Date.now()+10000;while(!document.querySelector('.workspace-titlebar-popup')&&Date.now()<deadline)await pause(50);
           const popup=document.querySelector('.workspace-titlebar-popup');inspect(popup,'.workspace-titlebar-label','.workspace-titlebar-check',theme+'/'+zoom+'/'+name);
+          if(name==='格式'){fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:('format_'+theme+'_'+zoom).replace(/[^a-z0-9_]/g,'_')}));await pause(400);}
           if(name==='编辑')assert(!popup.querySelector('.workspace-titlebar-check'),'真实编辑菜单全部普通命令无空状态列');
           if(name==='视图')assert(!!popup.querySelector('[role=menuitemcheckbox]')&&!!popup.querySelector('[role=menuitem]'),'真实视图菜单混合状态');
           escape();assert(!document.querySelector('.workspace-titlebar-popup'),'Esc正常关闭顶栏');

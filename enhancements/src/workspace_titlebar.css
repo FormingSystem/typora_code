@@ -31,10 +31,14 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 #top-titlebar[data-workspace-titlebar=ready] svg,#top-titlebar[data-workspace-titlebar=ready] svg * { stroke:none; }
 @media(max-width:600px) { .workspace-titlebar-center { min-width:88px;margin:0 4px; } }
 .workspace-titlebar-popup { position:fixed;z-index:20000;box-sizing:border-box;min-width:160px;width:max-content;padding:4px 0;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;border:1px solid rgba(127,127,127,.25);border-radius:6px;background:var(--bg-color,#fff);color:var(--text-color,#333);box-shadow:0 4px 14px rgba(0,0,0,.2);font:13px/24px 'Segoe WPC','Segoe UI','Microsoft YaHei',sans-serif;-webkit-app-region:no-drag; }
-.workspace-titlebar-entry { display:flex;align-items:center;gap:8px;box-sizing:border-box;width:100%;height:24px;min-height:24px;padding:0 12px 0 8px;border:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
+.workspace-titlebar-entry { position:relative;display:grid;grid-template-columns:minmax(0,1fr) var(--workspace-menu-shortcut-width,0px) 16px;align-items:center;gap:8px;box-sizing:border-box;width:calc(100% - 8px);margin:0 4px;height:24px;min-height:24px;padding:0 2em 0 var(--workspace-menu-leading-width,2em);border:0;box-shadow:none;background:transparent;color:inherit;text-align:left;font:inherit;cursor:default; }
 
 .workspace-titlebar-entry:disabled { opacity:.45; }
 .workspace-titlebar-entry>svg,.workspace-titlebar-check { width:16px;height:16px;flex:none;display:flex;align-items:center; }
-.workspace-titlebar-label { flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
-.workspace-titlebar-shortcut { flex:none;margin-left:20px;white-space:nowrap; }
-.workspace-titlebar-separator { height:1px;margin:4px 12px;background:rgba(127,127,127,.25); }
+.workspace-titlebar-check { position:absolute;left:0;top:0;width:2em;height:100%;justify-content:center; }
+.workspace-titlebar-check>svg { width:16px;height:16px; }
+.workspace-titlebar-label { grid-column:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1; }
+.workspace-titlebar-shortcut { grid-column:2;margin:0;white-space:nowrap;text-align:right;line-height:1;opacity:.7; }
+.workspace-titlebar-entry>svg { grid-column:3; }
+.workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
+.workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }

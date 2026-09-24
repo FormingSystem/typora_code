@@ -655,5 +655,15 @@
         "sha256": "629bbe0966fd917503e54c48dc2269d121b0eba52a9868a82b2fbc2958cb3a8e"
       }
     ]
+  },
+  "menu_alignment_20260924": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/base/browser/ui/menu/menu.ts",
+    "sha256": "40e1efbc8ed2d4204818f2a25167de3830bc34fb009a1840b1c72396be4ab91b",
+    "rules": [
+      "render中的menu-item-check/action-label/keybinding与子菜单指示",
+      "24px行、4px左右行距、2em标记及文字起点、13px继承字号、快捷键右对齐及0.7常态透明度",
+      "本产品以共享列宽测量适配三类DOM，取消普通命令紧凑例外；不改变顶栏高度与业务命令"
+    ]
   }
 }

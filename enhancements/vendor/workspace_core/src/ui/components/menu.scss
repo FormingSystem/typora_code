@@ -9,7 +9,6 @@ body .context-menu.dropdown-menu > .typ-menuitem > a { display: flex; align-item
 
 // 独立菜单不借用宿主的state-off占位；几何仅覆盖自有容器，原生菜单保持。
 body .typ-workspace-menu.dropdown-menu { padding: 4px 0; font: 400 13px/24px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif); }
-body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a { box-sizing: border-box; height: 24px; padding: 0 12px 0 8px; font: inherit; }
-body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a[role="menuitemcheckbox"] { padding-left: 0; gap: 0; }
-body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a[role="menuitemcheckbox"] > .typ-menu-icon { flex-basis: 2em; width: 2em; }
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a { position:relative;box-sizing: border-box; height: 24px; margin:0 4px;padding: 0 2em 0 var(--workspace-menu-leading-width,2em); font: inherit; }
+body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a > .typ-menu-icon { position:absolute;left:0;top:0;height:100%;width:2em; }
 body .typ-workspace-menu.dropdown-menu > .typ-menuitem { font: inherit; }

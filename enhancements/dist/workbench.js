@@ -158573,6 +158573,20 @@ https://creativecommons.org/licenses/by/4.0/
   };
 
   // src/workspace_menu_item.ts
+  function align_workspace_menu_columns(menu, row_selector, label_selector, shortcut_selector) {
+    const rows = [...menu.querySelectorAll(row_selector)];
+    const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
+      const node = row.querySelector(selector);
+      if (!node) return 0;
+      const range2 = document.createRange();
+      range2.selectNodeContents(node);
+      return range2.getBoundingClientRect().width;
+    })) : 0;
+    menu.style.setProperty("--workspace-menu-leading-width", "2em");
+    const shortcut_width = Math.ceil(text_width(shortcut_selector));
+    menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
+    return { label_width: Math.ceil(text_width(label_selector)), shortcut_width };
+  }
   function create_workspace_menu_check(item, checked, class_name) {
     const checkable = typeof checked === "boolean";
     item.setAttribute("role", checkable ? "menuitemcheckbox" : "menuitem");
@@ -160565,23 +160579,12 @@ https://creativecommons.org/licenses/by/4.0/
         input.stopPropagation();
       });
       document.body.append(menu);
-      const text_width = (selector) => Math.max(0, ...[...menu.querySelectorAll(selector)].map((node) => {
-        const range2 = document.createRange();
-        range2.selectNodeContents(node);
-        return range2.getBoundingClientRect().width;
-      }));
-      const shortcut_width = Math.ceil(text_width(".git-menu-shortcut"));
-      menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
+      const { label_width, shortcut_width } = align_workspace_menu_columns(menu, ":scope > button", ".git-menu-label", ".git-menu-shortcut");
       const row = menu.querySelector("button"), row_style = row && getComputedStyle(row), menu_style2 = getComputedStyle(menu);
       const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key3) => sum + (parseFloat(style[key3]) || 0), 0);
       if (row_style) {
         const gap = parseFloat(row_style.columnGap) || 0;
-        const label_width = Math.max(0, ...[...menu.querySelectorAll(".git-menu-label")].map((label) => {
-          const range2 = document.createRange();
-          range2.selectNodeContents(label);
-          return range2.getBoundingClientRect().width + (label.parentElement?.getAttribute("role") === "menuitemcheckbox" ? 16 + gap : 0);
-        }));
-        menu.style.width = Math.ceil(label_width + shortcut_width + 16 + 2 * gap + horizontal(row_style) + horizontal(menu_style2)) + "px";
+        menu.style.width = Math.ceil(label_width + shortcut_width + 16 + 2 * gap + 8 + horizontal(row_style) + horizontal(menu_style2)) + "px";
       }
       const bounds = menu.getBoundingClientRect();
       if (!parent && options2.anchor?.isConnected) {
@@ -241595,6 +241598,12 @@ https://creativecommons.org/licenses/by/4.0/
         }, { signal: signal2 });
         panel.append(item);
       }
+      const columns = align_workspace_menu_columns(panel, ":scope > button", ".workspace-titlebar-label", ".workspace-titlebar-shortcut");
+      const row = panel.querySelector("button");
+      if (row) {
+        const style = getComputedStyle(row);
+        panel.style.width = Math.ceil(columns.label_width + columns.shortcut_width + 16 + 16 + 8 + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 2) + "px";
+      }
       const size = panel.getBoundingClientRect();
       const left = depth === 0 ? rect.left : rect.right + size.width <= innerWidth - 4 ? rect.right : rect.left - size.width;
       const top = depth === 0 ? top_limit : Math.max(top_limit, Math.min(rect.top, innerHeight - size.height - 4));
@@ -246204,6 +246213,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092406,
+        version: "2026.09.24.6",
+        date: "2026-09-24",
+        notes: [
+          "\u4FEE\u590D\u683C\u5F0F\u7B49\u4E0B\u62C9\u83DC\u5355\u7684\u6587\u5B57\u3001\u56FE\u6807\u548C\u5FEB\u6377\u952E\u9519\u4F4D\uFF1B\u6240\u6709\u81EA\u6709\u83DC\u5355\u7EDF\u4E00\u91C7\u7528VS Code\u5217\u5BF9\u9F50\uFF0C\u53D6\u6D88\u666E\u901A\u9879\u7D27\u51D1\u4F8B\u5916\uFF0C\u5F00\u5173\u72B6\u6001\u4E0D\u518D\u6539\u53D8\u6587\u5B57\u8D77\u70B9\u3002"
+        ]
+      },
       {
         sequence: 2026092405,
         version: "2026.09.24.5",

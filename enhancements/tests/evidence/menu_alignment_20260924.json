@@ -1,0 +1,107 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.6",
+  "requirements": [
+    "R065.2"
+  ],
+  "design": "docs/workspace_interaction.md#r0652-下拉菜单统一列对齐",
+  "asset_manifest_sha256": "086f44911141f191875e81d9514d785924c03866f9b3a539e69ddbe6c55f7ae6",
+  "bundle_sha256": "5ff859c5d9cf76d9cf8a04a8263fd112712c515a0bd4df58cfcf0b1c8ef1f600",
+  "core_sha256": "68d8f976ca60f0e9b131c7357a1d9597c17c7c4f60787dd6c9ed4990c400891c",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/base/browser/ui/menu/menu.ts",
+    "channel": "main development snapshot"
+  },
+  "validation": {
+    "build": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_alignment_build_final.log"
+    },
+    "check": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_alignment_check_final.log"
+    },
+    "ui": {
+      "status": "PASS",
+      "groups": 4,
+      "log": ".cache\\issue_tracking\\menu_alignment_ui_final.log",
+      "cases": [
+        "test_workspace_titlebar.cjs",
+        "test_workspace_widgets.cjs",
+        "test_workspace_core_smoke.cjs",
+        "test_workspace_titlebar_entries.cjs"
+      ],
+      "scope": "普通、勾选、未勾选、禁用、真实图标、子菜单，320/500/800/1280宽度、100%/125%、键盘取消与宿主选区恢复"
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "a6358303308944338167ac20597212c7",
+      "checks": 1381,
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "086f44911141f191875e81d9514d785924c03866f9b3a539e69ddbe6c55f7ae6",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "ac153d77955fa4615d30cb618ef93f55d019605814ac1e058b4689a3d0b319b6",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "原始Typora1.14.10/Win11，八类顶栏尤其格式、三主题两档缩放，文字起点与垂直居中、图标列26px、快捷键右边缘；共享菜单与核心菜单、正文保持",
+      "visual": "实际格式菜单三主题/缩放截图已捕获并查看最终Cpp Github Consolas/125%样本"
+    },
+    "install_cycle": {
+      "status": "PASS",
+      "log": ".cache\\issue_tracking\\menu_alignment_install_cycle.log",
+      "modes": [
+        "restore",
+        "detach"
+      ]
+    },
+    "uninstall": {
+      "status": "PASS",
+      "assertions": 65,
+      "log": ".cache\\issue_tracking\\menu_alignment_uninstall.log"
+    }
+  },
+  "installation": {
+    "version": "2026.09.24.6",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "retained_failures": [
+    {
+      "log": ".cache\\issue_tracking\\menu_alignment_ui.log",
+      "reason": "旧紧凑菜单分隔间距断言与用户最新取消紧凑版要求冲突，按共同5px分隔边距更新后通过。"
+    },
+    {
+      "log": ".cache\\issue_tracking\\menu_alignment_check.log",
+      "reason": "设计标题标记已替代改变了旧锚点，恢复稳定标题并在正文注明替代后通过。"
+    },
+    {
+      "case_id": "6b2023a8568e4870b4f13a110c3c08a6",
+      "reason": "新扩展的终端菜单需要等待真实异步条目，120ms固定等待取到空面板；改为等待实际面板出现（有超时）后八类菜单通过，未修改产品加载行为。"
+    },
+    {
+      "reason": "首次构建命令使用错误的日志相对目录，未执行构建；随后在enhancements目录正确执行。"
+    }
+  ],
+  "limits": [
+    "用户窗口未重启，保存后正常重启加载。",
+    "Win10、其他Typora版本及物理键鼠未本轮验收。",
+    "自有菜单按统一规则适配现有DOM；原生与第三方自有菜单仍归原所有者，不宣称全部菜单逐像素等价。"
+  ]
+}

@@ -1991,7 +1991,8 @@
         "R020",
         "R044",
         "R018",
-        "R065.1"
+        "R065.1",
+        "R065.2"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3464,7 +3465,8 @@
         "R020",
         "R044",
         "R047.4",
-        "R065.1"
+        "R065.1",
+        "R065.2"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3567,7 +3569,8 @@
         "R044",
         "R065",
         "R066",
-        "R065.1"
+        "R065.1",
+        "R065.2"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -7252,7 +7255,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R065.1"
+        "R065.1",
+        "R065.2"
       ],
       "design": "docs/workspace_interaction.md#r0651-按条目能力分配勾选位置",
       "implementation": [
@@ -7271,10 +7275,10 @@
       "environment": "Windows原始Typora1.14.10 / 三主题 / 100%与125%缩放 / 实际菜单",
       "preconditions": "专属临时仓库与独立宿主副本，运行私有桌面，不修改用户文档",
       "steps": [
-        "原始Typora独立副本打开实际文件/编辑/视图菜单、齿轮和核心菜单，三主题两档缩放检查状态槽及实际文字几何。"
+        "原始宿主八类顶栏（重点格式/段落）、齿轮和核心菜单：三主题两档缩放检查共同文字起点、图标及快捷键列。"
       ],
       "expected": [
-        "普通项无状态槽，可勾选项按真实状态呈现，文字从正确边距开始，无水平溢出，正文不变"
+        "所有行文字起点一致，普通/开关状态语义正确，快捷键右对齐，图标居中，无水平溢出，取消保留正文。"
       ],
       "timeout_ms": 240000,
       "required_executables": [

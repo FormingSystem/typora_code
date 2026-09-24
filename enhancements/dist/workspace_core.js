@@ -3031,6 +3031,20 @@ ${doc.documentElement.outerHTML}`;
   var check = '<svg width="16" height="16" viewBox="0 0 16 16" xmlns="http://www.w3.org/2000/svg" fill="currentColor"><path d="M13.6572 3.13573C13.8583 2.9465 14.175 2.95614 14.3643 3.15722C14.5535 3.35831 14.5438 3.675 14.3428 3.86425L5.84277 11.8642C5.64597 12.0494 5.33756 12.0446 5.14648 11.8535L1.64648 8.35351C1.45121 8.15824 1.45121 7.84174 1.64648 7.64647C1.84174 7.45121 2.15825 7.45121 2.35351 7.64647L5.50976 10.8027L13.6572 3.13573Z"/></svg>';
 
   // src/workspace_menu_item.ts
+  function align_workspace_menu_columns(menu, row_selector, label_selector, shortcut_selector) {
+    const rows = [...menu.querySelectorAll(row_selector)];
+    const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
+      const node = row.querySelector(selector);
+      if (!node) return 0;
+      const range = document.createRange();
+      range.selectNodeContents(node);
+      return range.getBoundingClientRect().width;
+    })) : 0;
+    menu.style.setProperty("--workspace-menu-leading-width", "2em");
+    const shortcut_width = Math.ceil(text_width(shortcut_selector));
+    menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
+    return { label_width: Math.ceil(text_width(label_selector)), shortcut_width };
+  }
   function create_workspace_menu_check(item, checked, class_name) {
     const checkable = typeof checked === "boolean";
     item.setAttribute("role", checkable ? "menuitemcheckbox" : "menuitem");
@@ -3159,6 +3173,7 @@ ${doc.documentElement.outerHTML}`;
         this.open_timer = void 0;
         this.opened = true;
         this.containerEl.style.display = "block";
+        align_workspace_menu_columns(this.containerEl, ":scope > .typ-menuitem > a", ".typ-menu-label");
         this.containerEl.tabIndex = -1;
         this.dismiss_layer = register_workspace_dismissal(() => [this.containerEl], (reason) => {
           if (reason === "escape") this.close(true);

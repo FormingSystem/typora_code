@@ -16,16 +16,16 @@
 .git-graph-dialog .workspace-dialog-close > svg { display: block; flex: none; width: 16px; height: 16px; }
 .git-graph-dialog-footer > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
-/* 普通项三列；勾选能力才增加状态列，快捷键仍在全菜单共用同一右侧位置。 */
+/* 整张菜单共用列；标记独立定位，不因逐行能力改变文字和快捷键起点。 */
 .git-graph-menu[role=menu]{box-sizing:border-box;width:max-content;min-width:min(190px,calc(100vw - 8px));max-width:calc(100vw - 8px);overflow-x:hidden;overflow-y:auto}
-.git-graph-menu[role=menu]>button{grid-template-columns:minmax(0,1fr) var(--workspace-menu-shortcut-width,max-content) 16px;white-space:normal}
-.git-graph-menu[role=menu]>button[role=menuitemcheckbox]{grid-template-columns:16px minmax(0,1fr) var(--workspace-menu-shortcut-width,max-content) 16px}
+.git-graph-menu[role=menu]>button{position:relative;grid-template-columns:minmax(0,1fr) var(--workspace-menu-shortcut-width,max-content) 16px;white-space:normal;padding-left:var(--workspace-menu-leading-width,2em)}
+.git-graph-menu[role=menu]>button>.git-menu-check{position:absolute;left:0;top:0;width:2em;height:100%}
 .git-graph-menu[role=menu] .git-menu-label{min-width:0;overflow-wrap:anywhere;white-space:normal}
 .git-graph-menu[role=menu] .git-menu-shortcut{white-space:nowrap}
 /* 菜单分隔线由共享控件拥有，隔离正文主题的全局 hr 高度和强制边距。 */
 .git-graph-menu hr{height:1px;min-height:0;padding:0;border:0;border-top:1px solid #8884;box-sizing:border-box;margin:5px 2px!important}
-/* 文件、终端等紧凑动作菜单共用布局，不由某个业务面板拥有。 */
-.workspace-menu-compact.git-graph-menu{padding:4px 0;font:13px/24px system-ui,sans-serif;max-width:calc(100vw - 8px);overflow-x:hidden}
-.workspace-menu-compact.git-graph-menu button{min-height:24px;height:auto;padding:0 10px;line-height:24px;gap:6px;white-space:nowrap}
-.workspace-menu-compact.git-graph-menu hr{margin:4px 0!important}
-.workspace-menu-compact .git-menu-shortcut{font-size:12px;color:var(--linux-note-shell-description,#616161);white-space:nowrap}
+/* 历史compact类仅标识调用方，几何与普通菜单一致。 */
+.git-graph-menu[role=menu]{padding:4px 0;font:13px/24px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI",sans-serif)}
+.git-graph-menu[role=menu]>button{margin:0 4px;width:calc(100% - 8px);min-height:24px;height:auto;padding:0 2em;gap:8px;line-height:24px}
+.git-graph-menu[role=menu] .git-menu-shortcut{font:inherit;opacity:.7;text-align:right}
+.git-graph-menu[role=menu]>button:is(:hover,:focus) .git-menu-shortcut{opacity:1}

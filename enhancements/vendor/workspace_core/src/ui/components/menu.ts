@@ -1,4 +1,4 @@
-import {create_workspace_menu_check} from "../../../../../src/workspace_menu_item"
+import {create_workspace_menu_check,align_workspace_menu_columns} from "../../../../../src/workspace_menu_item"
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "../../../../../src/workspace_focus"
 import './menu.scss'
 import { getElementPagePosition, html } from "src/utils"
@@ -132,6 +132,7 @@ export class Menu extends View implements Closeable {
     this.previous_focus=capture_workspace_focus()
     this.open_timer=setTimeout(()=>{
       this.open_timer=undefined;this.opened=true;this.containerEl.style.display='block'
+      align_workspace_menu_columns(this.containerEl,':scope > .typ-menuitem > a','.typ-menu-label')
       this.containerEl.tabIndex=-1
       this.dismiss_layer=register_workspace_dismissal(()=>[this.containerEl],reason=>{
         if(reason==='escape')this.close(true)
