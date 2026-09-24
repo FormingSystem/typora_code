@@ -11,7 +11,7 @@ export type graph_commit = git_commit & { email?: string; committer?: string; co
 export type graph_change = { status: string; path: string; old_path?: string; index_status?: string; work_status?: string };
 export type repository_state = {
   root: string; head: string; branch: string; refs: git_ref[]; commits: graph_commit[]; more: boolean;
-  tracking?: scm_tracking; status?: branch_status;
+  tracking?: scm_tracking; status?: branch_status; history_refs?:string[];
   stashes: { hash: string; name: string; subject: string; date: string }[];
   changes: graph_change[]; remotes: { name: string; fetch: string; push: string }[]; operation: string;
 };
@@ -124,7 +124,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
   }
   // Git 自身决定工作树状态，文件系统只用于识别进行中的多步操作。
   const operation = git_path.trim();
-  return { root, head, branch, refs, tracking, status, commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
+  return { root, head, branch, refs, tracking, status, history_refs:[...selected_refs.map(ref=>ref.name),...((!branches.length||automatic||branches.includes('HEAD'))?['HEAD']:[])], commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
 }
 
 function comparison_args(from: string, to: string, head: string): string[] {

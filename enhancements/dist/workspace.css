@@ -898,11 +898,11 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 
 /* scmHistory.ts/scm.css：节点是公共选择/悬停状态的领域投影，不能由展开推断。 */
 .git-history-node circle {stroke:var(--workspace-list-surface,var(--workspace-list-background,var(--vscode-editor-background,#fff)));}
-.git-history-node[data-node-kind=head] circle:last-of-type {fill:var(--workspace-list-surface,var(--workspace-list-background,#fafafd));}
+.git-history-node:is([data-node-kind=head],[data-node-kind=range]) circle:last-of-type {fill:var(--workspace-list-surface,var(--workspace-list-background,#fafafd));}
 [data-workspace-row-key]:hover>.git-history-node circle:first-of-type,
 [data-workspace-selected=true][data-workspace-focused=true]>.git-history-node circle:first-of-type {stroke:transparent;}
 [data-workspace-row-key]:hover>.git-history-node circle:nth-of-type(2) {stroke:var(--vscode-list-hoverBackground,#00000014);}
-[data-workspace-row-key]:hover>.git-history-node[data-node-kind=head] circle:last-of-type {fill:var(--vscode-list-hoverBackground,#00000014);}
+[data-workspace-row-key]:hover>.git-history-node:is([data-node-kind=head],[data-node-kind=range]) circle:last-of-type {fill:var(--vscode-list-hoverBackground,#00000014);}
 [data-workspace-selected=true][data-workspace-focused=true]>.git-history-node circle:nth-of-type(2) {stroke:var(--workspace-row-background);}
 .git-scm-history-file {--git-scm-row-background:var(--workspace-row-background,transparent);}
 

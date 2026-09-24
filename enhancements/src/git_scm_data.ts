@@ -24,7 +24,7 @@ export async function read_branch_status(run:git_run,root:string):Promise<branch
     else if(/^[12u?] /u.test(record)){dirty=true;rename=record.startsWith('2 ');}
   });return {...parse_branch_status(headers),dirty};
 }
-export type scm_tracking={upstream:string; upstream_hash:string; remote:string; remote_ref:string; base:string; base_hash:string; ahead:number; behind:number};
+export type scm_tracking={upstream:string; upstream_hash:string; remote:string; remote_ref:string; base:string; base_hash:string; ahead:number; behind:number; merge_base?:string};
 const optional=async(run:git_run,root:string,args:string[])=>run(root,args).then(value=>value.trim()).catch(error=>{if(error.code===1)return "";throw error;});
 /** 读取真实上游和 VS Code 分支基线；只读本地引用，不因显示菜单写 Git 配置或联网。 */
 export async function read_scm_tracking(run:git_run,root:string,branch:string,head:string,refs:git_ref[]):Promise<scm_tracking> {
@@ -38,6 +38,7 @@ export async function read_scm_tracking(run:git_run,root:string,branch:string,he
   const parts=await read_upstream(branch);
   if(parts?.[1]){result.upstream=parts[1];result.remote=parts[2];result.remote_ref=parts[3];result.upstream_hash=refs.find(ref=>ref.name===result.upstream)?.hash||"";}
   if(result.upstream_hash){const counts=(await run(root,["rev-list","--left-right","--count",`${head}...${result.upstream_hash}`,"--"])).trim().split(/\s+/u).map(Number);if(counts.length===2&&counts.every(Number.isSafeInteger)){[result.ahead,result.behind]=counts;}}
+  if(result.ahead||result.behind)result.merge_base=await optional(run,root,['merge-base',head,result.upstream_hash]);
   const remote_ref=(name:string)=>refs.find(ref=>ref.name.startsWith("refs/remotes/")&&ref.name===(name.startsWith("refs/")?name:"refs/remotes/"+name));
   let base=remote_ref(await optional(run,root,["config","--get",`branch.${branch}.vscode-merge-base`]));
   if(!base){

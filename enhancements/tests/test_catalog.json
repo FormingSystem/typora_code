@@ -7383,6 +7383,69 @@
       ],
       "timeout_ms": 90000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-git-history-ranges",
+      "domain": "git",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R027.1"
+      ],
+      "design": "docs/git_scm_actions.md#r0271-提交图传入与传出更改",
+      "implementation": [
+        "enhancements/src/git_history_ranges.ts",
+        "enhancements/src/git_scm_history.ts",
+        "enhancements/src/git_scm_data.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "git",
+        "navigation",
+        "selection"
+      ],
+      "script": "enhancements/scripts/test_git_history_ranges.mjs",
+      "environment": "Windows临时Git与bare远端",
+      "preconditions": "不使用用户真实仓库；仅本地测试远端",
+      "steps": [
+        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期"
+      ],
+      "expected": [
+        "真实端点、正确计数、共享选择；同步后清除节点，无迟到覆盖"
+      ],
+      "timeout_ms": 90000
+    },
+    {
+      "id": "TC-git-history-ranges-native",
+      "domain": "git",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R027.1"
+      ],
+      "design": "docs/git_scm_actions.md#r0271-提交图传入与传出更改",
+      "implementation": [
+        "enhancements/src/git_history_ranges.ts",
+        "enhancements/src/git_scm_history.ts",
+        "enhancements/src/git_scm_data.ts",
+        "enhancements/src/git_graph_panel.ts"
+      ],
+      "related_modules": [
+        "git",
+        "navigation",
+        "selection"
+      ],
+      "script": "enhancements/fixtures/git_history_ranges_native.js",
+      "environment": "Windows临时Git与bare远端，原始Typora1.14.10",
+      "preconditions": "不使用用户真实仓库；仅本地测试远端",
+      "steps": [
+        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期"
+      ],
+      "expected": [
+        "真实端点、正确计数、共享选择；同步后清除节点，无迟到覆盖"
+      ],
+      "timeout_ms": 90000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

@@ -111,5 +111,21 @@ app.whenReady().then(async()=>{
   }
   fs.writeFileSync(path.join(evidence,'commit_labels.json'),JSON.stringify(commit_labels,null,2));
 
+  // 新增区间沿用真实共享选择与颜色，覆盖窄侧栏、缩放及Chromium指针悬停。
+  await evaluate(`(()=>{const local='a'.repeat(40),remote='b'.repeat(40),base='c'.repeat(40);window.range_state={...state,head:local,branch:'main',refs:[],tracking:{merge_base:base,upstream:'refs/remotes/team/main',upstream_hash:remote,ahead:1,behind:1},commits:[{hash:local,parents:[base],subject:'local',author:'author',date:''},{hash:remote,parents:[base],subject:'remote',author:'author',date:''},{hash:base,parents:[],subject:'base',author:'author',date:''}]};owner.panel.state=range_state;history_view.selected='';})()`);
+  const range_states=[];
+  for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [220,420]){
+    test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`document.querySelector('#sidebar').style.width='${width}px';document.documentElement.dataset.workspaceFileIconTheme='${theme}';document.documentElement.style.setProperty('--bg-color','${theme==='dark'?'#1e1e1e':'#fff'}');document.documentElement.style.setProperty('--text-color','${theme==='dark'?'#ddd':'#333'}');history_view.render(range_state);history_view.selection.reset();document.activeElement?.blur()`);
+    const sample=()=>evaluate(`(()=>{const rows=[...history_view.list.querySelectorAll('[data-history-range]')];return rows.map(row=>{const svg=row.querySelector('.git-history-node'),circles=[...svg.querySelectorAll('circle')],r=row.getBoundingClientRect();return {kind:row.dataset.historyRange,x:r.left+30,y:r.top+11,height:r.height,width:r.width,overflow:history_view.list.scrollWidth-history_view.list.clientWidth,background:getComputedStyle(row).backgroundColor,circles:circles.map(c=>({r:c.r.baseVal.value,fill:getComputedStyle(c).fill,stroke:getComputedStyle(c).stroke,dash:getComputedStyle(c).strokeDasharray}))}})})()`);
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:750,y:700});await delay(50);const idle=await sample();
+    assert.equal(idle.length,2);for(const item of idle){assert.equal(item.height,22);assert(item.overflow<=1);assert.deepEqual(item.circles.map(c=>c.r),[7,5,5]);assert.equal(item.circles[2].dash,'4px, 2px');}
+    test_window.webContents.sendInputEvent({type:'mouseMove',x:Math.round(idle[0].x*zoom),y:Math.round(idle[0].y*zoom)});await delay(50);const hovered=await sample();assert.notEqual(hovered[0].circles[2].fill,idle[0].circles[2].fill);assert.equal(hovered[0].width,idle[0].width);
+    await evaluate(`(()=>{const row=history_view.list.querySelector('[data-history-range=incoming]');history_view.selection.select([row.dataset.workspaceRowKey]);row.focus()})()`);const selected=await sample();assert.equal(await evaluate(`history_view.list.querySelectorAll('[data-workspace-selected=true]').length`),1);
+    assert.notEqual(selected[1].background,'rgba(0, 0, 0, 0)');assert.equal(selected[1].width,idle[1].width);range_states.push({theme,zoom,width,idle,hovered,selected});
+    if(zoom===1&&width===420)await capture('ranges_'+theme);
+  }
+  fs.writeFileSync(path.join(evidence,'range_states.json'),JSON.stringify(range_states,null,2));
+
   console.log(JSON.stringify({status:'PASS',checks:['later 12-lane merge cannot widen current single-lane row','single-lane file list begins at 22px without an extra count row','separate twistie column is removed','continuation and next commit retain identical lane coordinates','multi-parent expansion preserves all 12 live lanes','branches retain distinct tracks until their common parent then return to one-lane file indentation','narrow and wide sidebars keep status alignment and avoid overflow','file click still opens the selected comparison and commit click collapses it'],commit_label_scenarios:commit_labels.length,hover_checks,metrics,merge,converged,evidence}));test_window.destroy();app.exit(0);
 }).catch(async error=>{console.error(error);console.error(evidence);if(test_window&&!test_window.isDestroyed()){await capture('failure');test_window.destroy();}app.exit(1);});

@@ -159313,6 +159313,8 @@ https://creativecommons.org/licenses/by/4.0/
     "diff.editor_mode": "\u5DEE\u5F02\u663E\u793A\u6A21\u5F0F",
     "diff.hide_unchanged": "\u9690\u85CF\u672A\u66F4\u6539\u533A\u57DF",
     "diff.ignore_whitespace": "\u5FFD\u7565\u9996\u5C3E\u7A7A\u767D\u66F4\u6539",
+    "history.outgoing": "\u4F20\u51FA\u66F4\u6539",
+    "history.incoming": "\u4F20\u5165\u66F4\u6539",
     "history.graph": "\u63D0\u4EA4\u56FE",
     "history.toggle_help": "\u5C55\u5F00\u6216\u6298\u53E0\u63D0\u4EA4\u56FE",
     "history.refresh": "\u5237\u65B0\u63D0\u4EA4\u56FE",
@@ -160167,6 +160169,8 @@ https://creativecommons.org/licenses/by/4.0/
     "diff.editor_mode": "Diff Display Mode",
     "diff.hide_unchanged": "Hide Unchanged Regions",
     "diff.ignore_whitespace": "Ignore Trim Whitespace Changes",
+    "history.outgoing": "Outgoing Changes",
+    "history.incoming": "Incoming Changes",
     "history.graph": "Graph",
     "history.toggle_help": "Expand or Collapse Graph",
     "history.refresh": "Refresh Graph",
@@ -191252,6 +191256,7 @@ https://creativecommons.org/licenses/by/4.0/
         [result.ahead, result.behind] = counts;
       }
     }
+    if (result.ahead || result.behind) result.merge_base = await optional(run, root, ["merge-base", head, result.upstream_hash]);
     const remote_ref = (name) => refs.find((ref) => ref.name.startsWith("refs/remotes/") && ref.name === (name.startsWith("refs/") ? name : "refs/remotes/" + name));
     let base = remote_ref(await optional(run, root, ["config", "--get", "branch.".concat(branch, ".vscode-merge-base")]));
     if (!base) {
@@ -192390,7 +192395,7 @@ https://creativecommons.org/licenses/by/4.0/
       commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find((item) => item.hash === base.hash)?.name });
     }
     const operation = git_path.trim();
-    return { root, head, branch, refs, tracking, status: status2, commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
+    return { root, head, branch, refs, tracking, status: status2, history_refs: [...selected_refs.map((ref) => ref.name), ...!branches.length || automatic || branches.includes("HEAD") ? ["HEAD"] : []], commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
   }
   function comparison_args(from, to, head) {
     if (from === EMPTY && to !== WORKTREE && to !== INDEX) return ["diff-tree", "--root", "--no-commit-id", "-r", require_revision(to)];
@@ -207145,6 +207150,45 @@ https://creativecommons.org/licenses/by/4.0/
     return host;
   }
 
+  // src/git_history_ranges.ts
+  var history_range_label = (range2) => git_graph_text(range2.kind === "outgoing" ? "history.outgoing" : "history.incoming");
+  var history_range_title = (range2) => "".concat(history_range_label(range2), " ").concat(range2.branch, " (").concat(range2.count, ")\n").concat(range2.from.slice(0, 8), " \u2194 ").concat(range2.to.slice(0, 8));
+  function build_history_model(state, prefix = []) {
+    const items = state.commits.map((commit) => ({ id: commit.hash, commit }));
+    const topology = state.commits.map((commit) => ({ ...commit, parents: [...commit.parents] }));
+    const tracking = state.tracking, base = tracking?.merge_base;
+    const valid = (value) => !!value && /^[a-f\d]{40}(?:[a-f\d]{24})?$/u.test(value);
+    const included = (ref) => !state.history_refs || state.history_refs.includes(ref);
+    if (state.branch && valid(state.head) && valid(base) && valid(tracking?.upstream_hash)) {
+      const add = (kind, index, to, branch, count, parents) => {
+        const range2 = { id: "".concat(kind, ":").concat(base, ":").concat(to), kind, from: base, to, branch, count };
+        items.splice(index, 0, { id: range2.id, range: range2 });
+        topology.splice(index, 0, { hash: range2.id, parents, subject: "", date: "", author: "" });
+        return range2;
+      };
+      const base_index = topology.findIndex((commit) => commit.hash === base);
+      if (tracking.behind > 0 && included(tracking.upstream) && base_index >= 0) {
+        const by_hash = new Map(topology.map((commit) => [commit.hash, commit]));
+        const remote = /* @__PURE__ */ new Set(), pending = [tracking.upstream_hash];
+        while (pending.length) {
+          const hash2 = pending.pop();
+          if (hash2 === base || remote.has(hash2)) continue;
+          remote.add(hash2);
+          const commit = by_hash.get(hash2);
+          if (commit) pending.push(...commit.parents);
+        }
+        if (topology.some((commit) => remote.has(commit.hash) && commit.parents.includes(base))) {
+          const range2 = add("incoming", base_index, tracking.upstream_hash, tracking.upstream.replace(/^refs\/(remotes|heads)\//u, ""), tracking.behind, [base]);
+          for (const commit of topology) if (remote.has(commit.hash)) commit.parents = commit.parents.map((parent) => parent === base ? range2.id : parent);
+        }
+      }
+      const head_index = topology.findIndex((commit) => commit.hash === state.head);
+      if (tracking.ahead > 0 && (included("refs/heads/" + state.branch) || included("HEAD")) && head_index >= 0) add("outgoing", head_index, state.head, state.branch, tracking.ahead, [state.head]);
+    }
+    const graph = build_git_graph([...prefix, ...topology]);
+    return { items, graph };
+  }
+
   // src/git_diff_source.ts
   var git_diff_source_key = (source) => source ? JSON.stringify([source.root, source.from, source.to, source.file, source.old_path || ""]) : "";
   function sync_git_source_rows(root, source) {
@@ -209801,10 +209845,11 @@ https://creativecommons.org/licenses/by/4.0/
       const panel = this.owner.panel;
       const scroll = this.list.scrollTop;
       this.container.dataset.historyAlwaysShowActions = String(panel.settings.history_always_show_actions);
-      const focused_hash = this.list.contains(document.activeElement) ? document.activeElement?.closest(".git-scm-history-commit")?.dataset.hash : void 0;
-      if (!state.commits.some((commit) => commit.hash === this.selected)) this.selected = "";
+      const focused_hash = this.list.contains(document.activeElement) ? document.activeElement?.closest(".git-scm-history-commit")?.dataset.historyId : void 0;
+      const model = build_history_model(state);
+      if (!model.items.some((item) => item.id === this.selected)) this.selected = "";
       this.selection.project_external(git_diff_source_key(panel.host.diff_source?.()));
-      const graph = build_git_graph(state.commits);
+      const graph = model.graph;
       const fragment = document.createDocumentFragment();
       this.toolbar.update();
       this.count.textContent = String(state.commits.length) + (state.more ? "+" : "");
@@ -209814,7 +209859,12 @@ https://creativecommons.org/licenses/by/4.0/
         if (!panel.settings.show_remote_heads && ref.name.startsWith("refs/remotes/") && ref.name.endsWith("/HEAD")) continue;
         refs.set(ref.hash, [...refs.get(ref.hash) || [], ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "")]);
       }
-      for (const [index, commit] of state.commits.entries()) {
+      for (const [index, item] of model.items.entries()) {
+        if (item.range) {
+          fragment.append(this.render_range(state, item.range, graph.rows[index], epoch2));
+          continue;
+        }
+        const commit = item.commit;
         const entry = workspace_element("div", "git-scm-history-entry");
         const expanded2 = commit.hash === this.selected;
         const row = workspace_button("", () => {
@@ -209825,6 +209875,7 @@ https://creativecommons.org/licenses/by/4.0/
         }, "git-scm-history-commit");
         this.selection.bind(row, "commit:" + commit.hash);
         row.setAttribute("role", "treeitem");
+        row.dataset.historyId = commit.hash;
         row.dataset.hash = commit.hash;
         row.dataset.head = String(commit.hash === state.head);
         row.setAttribute("aria-expanded", String(expanded2));
@@ -209893,7 +209944,49 @@ https://creativecommons.org/licenses/by/4.0/
       }, "git-scm-history-more"));
       this.list.replaceChildren(fragment);
       this.list.scrollTop = scroll;
-      if (focused_hash) [...this.list.querySelectorAll(".git-scm-history-commit")].find((row) => row.dataset.hash === focused_hash)?.focus({ preventScroll: true });
+      if (focused_hash) [...this.list.querySelectorAll(".git-scm-history-commit")].find((row) => row.dataset.historyId === focused_hash)?.focus({ preventScroll: true });
+    }
+    render_range(state, range2, graph_row, epoch2) {
+      const entry = workspace_element("div", "git-scm-history-entry"), expanded2 = this.selected === range2.id;
+      const row = workspace_button("", () => {
+        this.reveal_request++;
+        this.selection.select([range2.id]);
+        this.selected = expanded2 ? "" : range2.id;
+        this.render(state);
+      }, "git-scm-history-commit");
+      row.dataset.historyId = range2.id;
+      row.dataset.historyRange = range2.kind;
+      row.dataset.workspaceInteraction = "row";
+      row.setAttribute("role", "treeitem");
+      row.setAttribute("aria-expanded", String(expanded2));
+      row.title = history_range_title(range2);
+      this.selection.bind(row, range2.id);
+      const lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
+      const svg3 = this.owner.panel.draw_graph(graph_row, lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, "range");
+      svg3.classList.add("git-scm-history-topology");
+      const disclosure = workspace_element("span", "git-scm-history-disclosure");
+      disclosure.append(git_disclosure());
+      const summary = workspace_element("span", "git-scm-history-summary"), label = workspace_element("span", "git-scm-history-label");
+      label.append(workspace_element("span", "git-scm-history-subject", history_range_label(range2)), workspace_element("span", "git-scm-history-author", range2.branch));
+      summary.append(label);
+      row.append(disclosure, svg3, summary);
+      entry.append(row);
+      if (expanded2) {
+        const lanes2 = Math.max(-1, ...graph_row.edges.filter((edge) => !edge.upper).map((edge) => edge.to)) + 1;
+        const expansion = workspace_element("div", "git-scm-history-expansion"), files = workspace_element("div", "git-scm-history-files");
+        expansion.style.setProperty("--git-history-lanes", (lanes2 + 1) * HISTORY_LANE_WIDTH + "px");
+        files.dataset.commit = range2.id;
+        const commit = { hash: range2.to, parents: [range2.from], author: range2.branch, date: "", subject: history_range_label(range2) };
+        expansion.append(this.continuation(graph_row, lanes2), files);
+        entry.append(expansion);
+        const cached = this.files_cache.get(range2.id);
+        if (cached) this.render_files(files, commit, cached, range2.from);
+        else {
+          files.textContent = git_graph_text("history.loading_files");
+          void this.load_files(state, commit, files, epoch2, range2.from, range2.id);
+        }
+      }
+      return entry;
     }
     /** 文件展开区域延长每条离开当前提交的轨道，保持上下提交连线连续。 */
     continuation(row, width2) {
@@ -209920,12 +210013,12 @@ https://creativecommons.org/licenses/by/4.0/
       }
       return svg3;
     }
-    async load_files(state, commit, target, epoch2) {
+    async load_files(state, commit, target, epoch2, from = this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY, cache_key = commit.hash) {
       try {
-        const files = await compare_files(this.owner.panel.runner.run, state, this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY, commit.hash);
+        const files = await compare_files(this.owner.panel.runner.run, state, from, commit.hash);
         if (epoch2 !== this.epoch || state.root !== this.root) return;
-        this.files_cache.set(commit.hash, files);
-        this.render_files(target, commit, files);
+        this.files_cache.set(cache_key, files);
+        this.render_files(target, commit, files, from);
       } catch (error) {
         if (epoch2 === this.epoch) {
           target.textContent = String(error instanceof Error ? error.message : error);
@@ -209954,11 +210047,10 @@ https://creativecommons.org/licenses/by/4.0/
         if (!panel.disposed && root === panel.root && epoch2 === this.owner.load_epoch) panel.report(error);
       }
     }
-    render_files(target, commit, files) {
+    render_files(target, commit, files, from = this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY) {
       this.file_lists.get(target)?.dispose();
       this.file_lists.delete(target);
       target.replaceChildren();
-      const from = this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY;
       target.setAttribute("role", "group");
       target.setAttribute("aria-label", git_graph_text("history.changed_files_aria", { count: files.length, parent: commit.parents.length > 1 ? git_graph_text("history.first_parent_suffix") : "" }));
       const directories = /* @__PURE__ */ new Map([["", target]]);
@@ -210070,17 +210162,18 @@ https://creativecommons.org/licenses/by/4.0/
       if (!active2()) return;
       if (!files.some((file) => file.path === source.file)) throw Error("\u8BE5\u6BD4\u8F83\u4E2D\u5DF2\u627E\u4E0D\u5230\u76EE\u6807\u6587\u4EF6\u3002");
       if (!state.commits.some((item) => item.hash === commit.hash)) this.revealed_commit = commit;
-      this.files_cache.set(commit.hash, files);
-      this.comparison_from.set(commit.hash, source.from);
+      const range2 = build_history_model(state).items.find((item) => item.range?.from === source.from && item.range.to === source.to)?.range, key3 = range2?.id || commit.hash;
+      this.files_cache.set(key3, files);
+      if (!range2) this.comparison_from.set(commit.hash, source.from);
       this.selection.project_external(git_diff_source_key(source), true);
-      this.selected = commit.hash;
-      for (const key3 of [...this.collapsed_directories]) if (key3.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key3);
+      this.selected = key3;
+      for (const key4 of [...this.collapsed_directories]) if (key4.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key4);
       this.owner.history_open = true;
       this.owner.show_history = true;
       this.owner.apply_history_layout();
       this.owner.save_layout();
       this.render(state);
-      const target = [...this.list.querySelectorAll("[data-commit]")].find((node) => node.dataset.commit === commit.hash);
+      const target = [...this.list.querySelectorAll("[data-commit]")].find((node) => node.dataset.commit === key3);
       if (!target) return;
       const virtual = this.file_lists.get(target);
       const wrapper = virtual?.reveal((item) => item.item?.path === source.file);
@@ -233492,7 +233585,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.workbench.set_git_missing(false);
         this.workbench.notice.textContent = "";
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
-        if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some((commit) => commit.hash === this.selected))) {
+        if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || build_history_model(state).items.some((item) => item.id === this.selected))) {
           if (changed2 || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
         } else this.close_details();
         this.detail_refresh_needed = false;
@@ -233644,9 +233737,16 @@ https://creativecommons.org/licenses/by/4.0/
         dot.setAttribute("stroke-width", String(stroke_width));
         if (fill) dot.setAttribute("fill", fill);
         svg3.append(dot);
+        return dot;
       };
       const color = _git_graph_panel.prototype.graph_color.call(this, row.color);
-      if (node_kind === "head") {
+      if (node_kind === "range") {
+        circle(7, 2, color);
+        circle(5, 3);
+        const dash = circle(5, 1);
+        dash.style.stroke = color;
+        dash.style.strokeDasharray = "4,2";
+      } else if (node_kind === "head") {
         circle(7, 2, color);
         circle(2, 4);
       } else if (node_kind === "merge") {
@@ -233667,10 +233767,10 @@ https://creativecommons.org/licenses/by/4.0/
       this.container.style.setProperty("--git-visible-columns", columns.join(" "));
       this.container.style.setProperty("--git-visible-min-width", "calc(var(--git-graph-width) + var(--git-subject-width)".concat(["date", "author", "hash"].filter((key3) => this.settings["show_" + key3]).map((key3) => " + var(--git-".concat(key3, "-width)")).join(""), ")"));
       const connected = state.changes.length > 0 && this.settings.show_changes;
-      const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
+      const model = build_history_model(state, connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }] : []), graph = model.graph;
       this.detail_graph_rows.clear();
       if (connected) this.detail_graph_rows.set(WORKTREE, graph.rows[0]);
-      state.commits.forEach((commit, index) => this.detail_graph_rows.set(commit.hash, graph.rows[index + (connected ? 1 : 0)]));
+      model.items.forEach((item, index) => this.detail_graph_rows.set(item.id, graph.rows[index + (connected ? 1 : 0)]));
       const fragment = document.createDocumentFragment();
       const graph_width = Math.max(58, (graph.width - 1) * 16 + 20) + (this.settings.label_alignment === "graph" ? 140 : 0);
       this.container.style.setProperty("--git-graph-width", graph_width + "px");
@@ -233708,7 +233808,36 @@ https://creativecommons.org/licenses/by/4.0/
         if (!this.settings.show_tags && ref.name.startsWith("refs/tags/") || !this.settings.show_remotes && ref.name.startsWith("refs/remotes/") || !this.settings.show_remote_heads && /refs\/remotes\/.+\/HEAD$/u.test(ref.name)) continue;
         ref_map.set(ref.hash, [...ref_map.get(ref.hash) || [], ref]);
       }
-      state.commits.forEach((commit, index) => {
+      model.items.forEach((item, index) => {
+        if (item.range) {
+          const range2 = item.range, row2 = workspace_element("div", "git-graph-row");
+          row2.dataset.hash = range2.id;
+          row2.dataset.historyRange = range2.kind;
+          row2.tabIndex = 0;
+          row2.setAttribute("role", "button");
+          row2.title = history_range_title(range2);
+          this.selection.bind(row2, range2.id);
+          const activate2 = () => {
+            if (this.selected === range2.id) {
+              this.close_details();
+              return;
+            }
+            this.selected = range2.id;
+            this.selection.select([range2.id]);
+            void this.show_comparison(range2.from, range2.to);
+          };
+          row2.onclick = activate2;
+          row2.onkeydown = (event) => {
+            if (event.key === "Enter" || event.key === " ") {
+              event.preventDefault();
+              activate2();
+            }
+          };
+          row2.append(this.draw_graph(graph.rows[index + (connected ? 1 : 0)], graph.width, void 0, "range"), workspace_element("span", "git-graph-subject", history_range_label(range2) + " " + range2.branch), workspace_element("span", "git-graph-date"), workspace_element("span", "git-graph-author"), workspace_element("code", "git-graph-hash", String(range2.count)));
+          fragment.append(row2);
+          return;
+        }
+        const commit = item.commit;
         const row = workspace_element("div", "git-graph-row");
         this.selection.bind(row, "commit:" + commit.hash);
         row.dataset.hash = commit.hash;
@@ -233764,10 +233893,10 @@ https://creativecommons.org/licenses/by/4.0/
           const kind = ref.name.startsWith("refs/tags/") ? "tag" : ref.name.startsWith("refs/remotes/") ? "remote" : "branch";
           const name = ref.name.replace(/^refs\/(heads|tags|remotes)\//u, "");
           const base_name = kind === "remote" ? name.slice(name.indexOf("/") + 1) : name;
-          if (this.settings.combine_refs && kind === "remote" && items.some((item) => item.name === "refs/heads/" + base_name)) continue;
+          if (this.settings.combine_refs && kind === "remote" && items.some((item2) => item2.name === "refs/heads/" + base_name)) continue;
           if (seen.has(name)) continue;
           seen.add(name);
-          const combined = this.settings.combine_refs && kind === "branch" ? items.filter((item) => item.name.startsWith("refs/remotes/") && item.name.slice(item.name.indexOf("/", 13) + 1) === name).map((item) => item.name.slice(13, item.name.indexOf("/", 13))) : [];
+          const combined = this.settings.combine_refs && kind === "branch" ? items.filter((item2) => item2.name.startsWith("refs/remotes/") && item2.name.slice(item2.name.indexOf("/", 13) + 1) === name).map((item2) => item2.name.slice(13, item2.name.indexOf("/", 13))) : [];
           const badge = workspace_element("span", "git-graph-refs git-ref-" + kind);
           badge.dataset.ref = ref.name;
           badge.title = ref.name;
@@ -233877,7 +234006,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     activate_row(hash2, parent, event) {
       this.selection.select(["commit:" + hash2]);
-      if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== hash2) {
+      if ((event.ctrlKey || event.metaKey) && this.selected && !this.selected.includes(":") && this.selected !== hash2) {
         void this.show_comparison(this.selected === WORKTREE ? hash2 : this.selected, this.selected === WORKTREE ? WORKTREE : hash2);
         return;
       }
@@ -246378,6 +246507,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092410,
+        version: "2026.09.24.10",
+        date: "2026-09-24",
+        notes: [
+          "Git\u63D0\u4EA4\u56FE\u65B0\u589E\u4F20\u51FA/\u4F20\u5165\u66F4\u6539\u8282\u70B9\uFF0C\u663E\u793A\u5F53\u524D\u5206\u652F\u4E0E\u5B9E\u9645\u8FDC\u7AEF\u4E0A\u6E38\u7684\u5DEE\u8DDD\uFF0C\u5C55\u5F00\u67E5\u770B\u6574\u6279\u6587\u4EF6\u5DEE\u5F02\uFF1B\u83B7\u53D6\u3001\u5408\u5E76\u548C\u63A8\u9001\u540E\u540C\u6B65\u66F4\u65B0\u3002"
+        ]
+      },
       {
         sequence: 2026092409,
         version: "2026.09.24.9",

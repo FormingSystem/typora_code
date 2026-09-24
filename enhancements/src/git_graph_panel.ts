@@ -1,3 +1,4 @@
+import {build_history_model,history_range_label,history_range_title} from './git_history_ranges';
 import {workspace_list_selection} from "./workspace_list_selection";
 import {bind_git_source_row,git_diff_source_key} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
@@ -275,7 +276,7 @@ export class git_graph_panel {
       this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
       this.container.dataset.state = "ready";this.workbench.set_git_missing(false);this.workbench.notice.textContent="";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
-      if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || state.commits.some(commit => commit.hash === this.selected))) {
+      if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || build_history_model(state).items.some(item=>item.id===this.selected))) {
         // 文件仍为M不代表内容未变；可变版本继续取内容，历史版本保留阅读位置。
         if (changed || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
       }
@@ -338,7 +339,7 @@ export class git_graph_panel {
     if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return ['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','#FFB000','#DC267F','#994F00','#40B0A6','#B66DFF'][index%7];
     return custom[index%custom.length];
   }
-  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}, node_kind: "normal"|"head"|"merge" = "normal"): SVGSVGElement {
+  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}, node_kind: "normal"|"head"|"merge"|"range" = "normal"): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");
     const x = (lane: number) => lane * geometry.lane_width + geometry.first_x;
     const half_height = geometry.height / 2;
@@ -351,10 +352,10 @@ export class git_graph_panel {
     svg.classList.add('git-history-node');svg.dataset.nodeKind=node_kind;
     const circle=(radius:number,stroke_width:number,fill?:string)=>{
       const dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',String(x(row.lane)));dot.setAttribute('cy',String(half_height));
-      dot.setAttribute('r',String(radius));dot.setAttribute('stroke-width',String(stroke_width));if(fill)dot.setAttribute('fill',fill);svg.append(dot);
+      dot.setAttribute('r',String(radius));dot.setAttribute('stroke-width',String(stroke_width));if(fill)dot.setAttribute('fill',fill);svg.append(dot);return dot;
     };
     const color=git_graph_panel.prototype.graph_color.call(this,row.color);
-    if(node_kind==='head'){circle(7,2,color);circle(2,4);}else if(node_kind==='merge'){circle(6,2,color);circle(3,2,color);}else circle(5,2,color);
+    if(node_kind==='range'){circle(7,2,color);circle(5,3);const dash=circle(5,1);dash.style.stroke=color;dash.style.strokeDasharray='4,2';}else if(node_kind==='head'){circle(7,2,color);circle(2,4);}else if(node_kind==='merge'){circle(6,2,color);circle(3,2,color);}else circle(5,2,color);
     return svg;
   }
   render_history(): void {
@@ -367,10 +368,10 @@ export class git_graph_panel {
     this.container.style.setProperty("--git-visible-columns", columns.join(" "));
     this.container.style.setProperty("--git-visible-min-width", `calc(var(--git-graph-width) + var(--git-subject-width)${(["date", "author", "hash"] as const).filter(key => this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"]).map(key => ` + var(--git-${key}-width)`).join("")})`);
     const connected = state.changes.length > 0 && this.settings.show_changes;
-    const graph = build_git_graph(connected ? [{ hash: WORKTREE, parents: state.head ? [state.head] : [], author: "", date: "", subject: "" }, ...state.commits] : state.commits);
+    const model=build_history_model(state,connected?[{hash:WORKTREE,parents:state.head?[state.head]:[],author:"",date:"",subject:""}]:[]),graph=model.graph;
     this.detail_graph_rows.clear();
     if (connected) this.detail_graph_rows.set(WORKTREE, graph.rows[0]);
-    state.commits.forEach((commit, index) => this.detail_graph_rows.set(commit.hash, graph.rows[index + (connected ? 1 : 0)]));
+    model.items.forEach((item,index)=>this.detail_graph_rows.set(item.id,graph.rows[index+(connected?1:0)]));
     const fragment = document.createDocumentFragment();
     const graph_width = Math.max(58, (graph.width - 1) * 16 + 20) + (this.settings.label_alignment === "graph" ? 140 : 0); this.container.style.setProperty("--git-graph-width", graph_width + "px");
     for (const [key, width] of Object.entries(this.settings.column_widths)) this.container.style.setProperty(`--git-${key}-width`, width + "px");
@@ -394,7 +395,13 @@ export class git_graph_panel {
       if ((!this.settings.show_tags && ref.name.startsWith("refs/tags/")) || (!this.settings.show_remotes && ref.name.startsWith("refs/remotes/")) || (!this.settings.show_remote_heads && /refs\/remotes\/.+\/HEAD$/u.test(ref.name))) continue;
       ref_map.set(ref.hash, [...(ref_map.get(ref.hash) || []), ref]);
     }
-    state.commits.forEach((commit, index) => {
+    model.items.forEach((item, index) => {
+      if(item.range){
+        const range=item.range,row=el('div','git-graph-row');row.dataset.hash=range.id;row.dataset.historyRange=range.kind;row.tabIndex=0;row.setAttribute('role','button');row.title=history_range_title(range);this.selection.bind(row,range.id);
+        const activate=()=>{if(this.selected===range.id){this.close_details();return;}this.selected=range.id;this.selection.select([range.id]);void this.show_comparison(range.from,range.to);};row.onclick=activate;row.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();activate();}};
+        row.append(this.draw_graph(graph.rows[index+(connected?1:0)],graph.width,undefined,'range'),el('span','git-graph-subject',history_range_label(range)+' '+range.branch),el('span','git-graph-date'),el('span','git-graph-author'),el('code','git-graph-hash',String(range.count)));fragment.append(row);return;
+      }
+      const commit=item.commit!;
       const row = el("div", "git-graph-row"); this.selection.bind(row,'commit:'+commit.hash);row.dataset.hash = commit.hash; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === commit.hash));
       if (state.head === commit.hash) row.dataset.head = "true";
       row.title = `${commit.hash}\n${commit.author} · ${this.date(commit)}\n${commit.subject}`;
@@ -476,7 +483,7 @@ export class git_graph_panel {
   scroll_to(hash: string): void { const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === hash); if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2; }
   activate_row(hash: string, parent: string, event: MouseEvent | KeyboardEvent): void {
     this.selection.select(['commit:'+hash]);
-    if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== hash) {
+    if ((event.ctrlKey || event.metaKey) && this.selected && !this.selected.includes(":") && this.selected !== hash) {
       void this.show_comparison(this.selected === WORKTREE ? hash : this.selected, this.selected === WORKTREE ? WORKTREE : hash); return;
     }
     if (this.selected === hash && !(event.ctrlKey || event.metaKey)) { this.close_details(); return; }

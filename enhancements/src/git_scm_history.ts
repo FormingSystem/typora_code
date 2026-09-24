@@ -1,3 +1,4 @@
+import {build_history_model,history_range_label,history_range_title,type git_history_range} from './git_history_ranges';
 import {bind_git_source_row,git_diff_source_key,type git_diff_source} from './git_diff_source';
 import {workspace_list_selection} from './workspace_list_selection';
 import {parse_git_log} from './git_graph_data';
@@ -83,10 +84,11 @@ export class git_scm_history {
     if(this.revealed_commit&&!state.commits.some(commit=>commit.hash===this.revealed_commit!.hash))state={...state,commits:[this.revealed_commit,...state.commits]};
     const epoch = ++this.epoch; const panel = this.owner.panel; const scroll = this.list.scrollTop;
     this.container.dataset.historyAlwaysShowActions=String(panel.settings.history_always_show_actions);
-    const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
-    if (!state.commits.some(commit => commit.hash === this.selected)) this.selected = "";
+    const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.historyId : undefined;
+    const model=build_history_model(state);
+    if (!model.items.some(item => item.id === this.selected)) this.selected = "";
     this.selection.project_external(git_diff_source_key(panel.host.diff_source?.()));
-    const graph = build_git_graph(state.commits); const fragment = document.createDocumentFragment();
+    const graph = model.graph; const fragment = document.createDocumentFragment();
     this.toolbar.update();
     this.count.textContent = String(state.commits.length) + (state.more ? "+" : "");
     const refs = new Map<string, string[]>();
@@ -95,11 +97,13 @@ export class git_scm_history {
       if (!panel.settings.show_remote_heads && ref.name.startsWith("refs/remotes/") && ref.name.endsWith("/HEAD")) continue;
       refs.set(ref.hash, [...(refs.get(ref.hash) || []), ref.name.replace(/^refs\/(heads|remotes|tags)\//u, "")]);
     }
-    for (const [index, commit] of state.commits.entries()) {
+    for (const [index, item] of model.items.entries()) {
+      if(item.range){fragment.append(this.render_range(state,item.range,graph.rows[index],epoch));continue;}
+      const commit=item.commit!;
       const entry = el("div", "git-scm-history-entry"); const expanded = commit.hash === this.selected;
       const row = button("", () => { this.reveal_request++;this.selection.select(['commit:'+commit.hash]);this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
       this.selection.bind(row,'commit:'+commit.hash);row.setAttribute('role','treeitem');
-      row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
+      row.dataset.historyId=commit.hash;row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
       const names = [...(refs.get(commit.hash) || [])].sort((a, b) => Number(b === state.branch) - Number(a === state.branch));
       if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
       row.dataset.workspaceInteraction="row";row.setAttribute("aria-label",`${commit.subject}, ${commit.author}, ${panel.date(commit)}`);
@@ -143,7 +147,25 @@ export class git_scm_history {
     if (!state.commits.length) fragment.append(el("div", "git-scm-empty", state.head ? text("history.no_filtered_commits") : text("history.no_commits")));
     if (state.more) fragment.append(button(text("history.load_more"), () => { if (panel.pending) return; panel.count += panel.settings.page_count; void panel.refresh(false); }, "git-scm-history-more"));
     this.list.replaceChildren(fragment); this.list.scrollTop = scroll;
-    if (focused_hash) [...this.list.querySelectorAll<HTMLButtonElement>(".git-scm-history-commit")].find(row => row.dataset.hash === focused_hash)?.focus({preventScroll: true});
+    if (focused_hash) [...this.list.querySelectorAll<HTMLButtonElement>(".git-scm-history-commit")].find(row => row.dataset.historyId === focused_hash)?.focus({preventScroll: true});
+  }
+  private render_range(state:repository_state,range:git_history_range,graph_row:graph_row,epoch:number):HTMLElement {
+    const entry=el('div','git-scm-history-entry'),expanded=this.selected===range.id;
+    const row=button('',()=>{this.reveal_request++;this.selection.select([range.id]);this.selected=expanded?'':range.id;this.render(state);},'git-scm-history-commit');
+    row.dataset.historyId=range.id;row.dataset.historyRange=range.kind;row.dataset.workspaceInteraction='row';row.setAttribute('role','treeitem');row.setAttribute('aria-expanded',String(expanded));row.title=history_range_title(range);this.selection.bind(row,range.id);
+    const lanes=Math.max(graph_row.lane,...graph_row.edges.flatMap(edge=>[edge.from,edge.to]))+1;
+    const svg=this.owner.panel.draw_graph(graph_row,lanes,{lane_width:HISTORY_LANE_WIDTH,first_x:HISTORY_LANE_WIDTH,right_gap:HISTORY_LANE_WIDTH,height:HISTORY_ROW_HEIGHT},'range');svg.classList.add('git-scm-history-topology');
+    const disclosure=el('span','git-scm-history-disclosure');disclosure.append(git_disclosure());
+    const summary=el('span','git-scm-history-summary'),label=el('span','git-scm-history-label');label.append(el('span','git-scm-history-subject',history_range_label(range)),el('span','git-scm-history-author',range.branch));summary.append(label);
+    row.append(disclosure,svg,summary);entry.append(row);
+    if(expanded){
+      const lanes=Math.max(-1,...graph_row.edges.filter(edge=>!edge.upper).map(edge=>edge.to))+1;
+      const expansion=el('div','git-scm-history-expansion'),files=el('div','git-scm-history-files');expansion.style.setProperty('--git-history-lanes',(lanes+1)*HISTORY_LANE_WIDTH+'px');files.dataset.commit=range.id;
+      const commit:graph_commit={hash:range.to,parents:[range.from],author:range.branch,date:'',subject:history_range_label(range)};
+      expansion.append(this.continuation(graph_row,lanes),files);entry.append(expansion);
+      const cached=this.files_cache.get(range.id);if(cached)this.render_files(files,commit,cached,range.from);else{files.textContent=text('history.loading_files');void this.load_files(state,commit,files,epoch,range.from,range.id);}
+    }
+    return entry;
   }
   /** 文件展开区域延长每条离开当前提交的轨道，保持上下提交连线连续。 */
   continuation(row: graph_row, width: number): SVGSVGElement {
@@ -158,11 +180,11 @@ export class git_scm_history {
     }
     return svg;
   }
-  async load_files(state: repository_state, commit: graph_commit, target: HTMLElement, epoch: number): Promise<void> {
+  async load_files(state: repository_state, commit: graph_commit, target: HTMLElement, epoch: number, from=this.comparison_from.get(commit.hash)||commit.parents[0]||EMPTY, cache_key=commit.hash): Promise<void> {
     try {
-      const files = await compare_files(this.owner.panel.runner.run, state, this.comparison_from.get(commit.hash)||commit.parents[0] || EMPTY, commit.hash);
+      const files = await compare_files(this.owner.panel.runner.run, state, from, commit.hash);
       if (epoch !== this.epoch || state.root !== this.root) return;
-      this.files_cache.set(commit.hash, files); this.render_files(target, commit, files);
+      this.files_cache.set(cache_key, files); this.render_files(target, commit, files,from);
     } catch (error) { if (epoch === this.epoch) { target.textContent = String(error instanceof Error ? error.message : error); target.append(button(text("history.retry"), () => { const current = this.owner.panel.state; if (current) this.render(current); })); } }
   }
   async open_changes(state: repository_state, commit: graph_commit): Promise<void> {
@@ -177,9 +199,9 @@ export class git_scm_history {
       await this.owner.open_file(files[0], commit.parents[0] || EMPTY, commit.hash, files);
     } catch (error) { if (!panel.disposed && root === panel.root && epoch === this.owner.load_epoch) panel.report(error); }
   }
-  render_files(target: HTMLElement, commit: graph_commit, files: graph_change[]): void {
+  render_files(target: HTMLElement, commit: graph_commit, files: graph_change[], from=this.comparison_from.get(commit.hash)||commit.parents[0]||EMPTY): void {
     this.file_lists.get(target)?.dispose(); this.file_lists.delete(target);
-    target.replaceChildren(); const from = this.comparison_from.get(commit.hash)||commit.parents[0] || EMPTY;
+    target.replaceChildren();
     target.setAttribute("role", "group");
     target.setAttribute("aria-label", text("history.changed_files_aria", {count: files.length, parent: commit.parents.length > 1 ? text("history.first_parent_suffix") : ""}));
     const directories = new Map<string, HTMLElement>([["", target]]);
@@ -233,11 +255,12 @@ export class git_scm_history {
     const files=await compare_files(panel.runner.run,state,source.from,source.to);if(!active())return;
     if(!files.some(file=>file.path===source.file))throw Error('该比较中已找不到目标文件。');
     if(!state.commits.some(item=>item.hash===commit!.hash))this.revealed_commit=commit;
-    this.files_cache.set(commit.hash,files);this.comparison_from.set(commit.hash,source.from);
-    this.selection.project_external(git_diff_source_key(source),true);this.selected=commit.hash;
+    const range=build_history_model(state).items.find(item=>item.range?.from===source.from&&item.range.to===source.to)?.range,key=range?.id||commit.hash;
+    this.files_cache.set(key,files);if(!range)this.comparison_from.set(commit.hash,source.from);
+    this.selection.project_external(git_diff_source_key(source),true);this.selected=key;
     for(const key of [...this.collapsed_directories])if(key.startsWith(commit.hash+':'))this.collapsed_directories.delete(key);
     this.owner.history_open=true;this.owner.show_history=true;this.owner.apply_history_layout();this.owner.save_layout();this.render(state);
-    const target=[...this.list.querySelectorAll<HTMLElement>('[data-commit]')].find(node=>node.dataset.commit===commit!.hash);if(!target)return;
+    const target=[...this.list.querySelectorAll<HTMLElement>('[data-commit]')].find(node=>node.dataset.commit===key);if(!target)return;
     const virtual=this.file_lists.get(target);const wrapper=virtual?.reveal(item=>item.item?.path===source.file);
     const row=wrapper?.querySelector<HTMLElement>('[data-history-file]')||[...target.querySelectorAll<HTMLElement>('[data-history-file]')].find(node=>node.dataset.historyFile===source.file);
     if(!row)throw Error('目标文件尚未显示，请重试。');

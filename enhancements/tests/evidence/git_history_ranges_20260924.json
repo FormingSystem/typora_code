@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.10",
+  "requirements": [
+    "R027.1"
+  ],
+  "design": "docs/git_scm_actions.md#r0271-提交图传入与传出更改",
+  "upstream": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "asset_manifest_sha256": "ee0769f955983032d7c44cf25d56f20ec09ac6f21defcea4a817c5a8b2d603f9",
+  "validation": {
+    "build": "PASS: git_ranges_build_final.log",
+    "check": "PASS: full npm run check; catalog 216 suites; git_ranges_check_final.log",
+    "functional": "PASS: 10 groups, real local Git and bare upstream; 20/100/1000 model projection; git_ranges_unit_final.log",
+    "ui": "PASS: 3 related UI groups; final layout additionally covers 8 light/dark, width and zoom combinations, real Chromium hover and shared selection; git_ranges_ui_states_final.log",
+    "native": {
+      "status": "PASS",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "ee0769f955983032d7c44cf25d56f20ec09ac6f21defcea4a817c5a8b2d603f9",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "bb40dad0cf6a34689938c9946166d06c88aa074136a55ea990e1737545d2e175",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "case_id": "c474af339eab4b78a143cf3d15ae4884",
+      "checks": [
+        "侧栏双向差距节点",
+        "完整Graph共用区间投影",
+        "实际本地分支与异名远端",
+        "上游虚线圆节点",
+        "传出展开多笔汇总文件",
+        "区间选择只有一条",
+        "文件diff保留共同祖先和本地端点",
+        "定位来源回到传出组而非单笔提交",
+        "文件选择替换父区间选择",
+        "传入不包含本地独有文件",
+        "区间参与统一方向键导航 {\"connected\":true,\"index\":4,\"active\":\"<button class=\\\"git-scm-history-commit\\\" data-workspace-interaction=\\\"row\\\" type=\\\"button\\\" data-workspace-row-key=\\\"commit:9a4e88a17c1755394aef489d874e99a924940525\\\" data-workspace-select\"}",
+        "键盘收起区间",
+        "完整Graph显示相同汇总比较",
+        "收起后迟到结果不重开文件列表",
+        "HEAD筛选不显示远端组",
+        "合并后的节点更新",
+        "推送后差距节点清除",
+        "新提交重新产生传出节点",
+        "审阅保持主Markdown与脏状态"
+      ],
+      "scope": "原始Typora真实Git和本地bare远端，DOM键鼠及受控迟到端口；无用户仓库网络操作",
+      "screenshot": "window_35132810.png: outgoing and incoming dashed nodes, aggregate files and actual diff visible"
+    },
+    "install_cycle": "PASS: install/check/restore uninstall/reinstall/detach uninstall/reinstall/check; documents settings and backups preserved; git_ranges_install_cycle.log",
+    "uninstall": "PASS: 65 isolated failure/cancel/rollback assertions; git_ranges_uninstall.log",
+    "local_install": {
+      "version": "2026.09.24.10",
+      "installed_assets": [
+        44,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "retained_failures": [
+    "Functional fixture cleanup used unsupported dispose; changed to existing cancel.",
+    "Catalog runner initially treated node as a file path; removed unnecessary runner.",
+    "Native fixture initially used an unmounted history controller; corrected to public reveal command and active sidebar controller, preserving failed cases.",
+    "New visual fixture initially selected the disclosure SVG instead of the topology SVG; fixed selector, final eight scenarios passed."
+  ],
+  "limits": [
+    "Remote state reflects last local fetch; rendering does not contact remote.",
+    "Incoming node waits until merge base is present in loaded history; no upstream, detached or missing base has no synthetic range.",
+    "Native host used isolated desktop and DOM keyboard/click; visual matrix used Electron 43.2.0 and Chromium input. Win10, physical input and real SSH were not tested.",
+    "Current user windows were not restarted; other outstanding requirements remain unchanged."
+  ]
+}
