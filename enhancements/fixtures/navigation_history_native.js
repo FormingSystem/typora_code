@@ -17,7 +17,17 @@
   const origin=document.querySelector('#write p');File.editor.undo.exeCommand({type:'cursor',id:origin.getAttribute('cid'),start:0,end:0});document.querySelector('content').scrollTop=0;await pause(150);
   const before=snapshot();
   const anchor=document.querySelector('#write a[href^="#"]');assert(!!anchor,'原生渲染链接存在');
-  anchor.dispatchEvent(new MouseEvent('click',{ctrlKey:true,bubbles:true,cancelable:true,button:0}));await pause(700);
+  for(const selector of ['#write a[href^="#"]','#write a[href^="nav_b"]']){
+   const editable_link=document.querySelector(selector);
+   editable_link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,button:0}));await pause(200);
+   assert(files.current_file()===a,'普通正文链接点击不切文件 '+selector);
+   assert(Math.abs(snapshot().top-before.top)<3,'普通正文链接点击不跳标题 '+selector);
+   assert(snapshot().back===before.back&&snapshot().forward===before.forward,'普通点击不新增导航 '+selector);
+  }
+  File.editor.undo.exeCommand({type:'cursor',id:origin.getAttribute('cid'),start:0,end:0});await pause(200);
+  const explicit_link=document.querySelector('#write a[href^="#"]');
+  samples.push({anchor_connected:anchor.isConnected,explicit_connected:explicit_link.isConnected,body_inside_root:!!explicit_link.closest('.typ-workspace-root')});
+  for(const type of ['mousedown','mouseup','click'])explicit_link.dispatchEvent(new MouseEvent(type,{ctrlKey:true,bubbles:true,cancelable:true,button:0,buttons:type==='mousedown'?1:0,view:window}));await pause(1200);
   const target=snapshot();samples.push({before,target,internal_link:typeof File.editor.tryOpenUrl_});
   assert(target.top>before.top+200,'同文链接跳到远端标题');
   await travel(-1);assert(Math.abs(snapshot().top-before.top)<3,'后退恢复链接来源滚动');assert(snapshot().cursor.id===before.cursor.id,'后退恢复链接来源光标');
@@ -47,11 +57,27 @@
   assert(left.view.editor.focused_editor().getPosition().lineNumber===31,'原编辑组光标不被另一组覆盖');
   await travel(1);assert(core.app.workspace.activeLeaf===right,'跨组前进恢复目标编辑组');
   assert(right.view.editor.focused_editor().getPosition().lineNumber===60,'目标组保留明确行列');
+  await files.open_file(a);await pause(650);
+  const main_leaf=core.app.workspace.activeLeaf;
+  await files.open_file(b,undefined,'right');await pause(700);
+  const preview_link=main_leaf.view.containerEl.querySelector('a[href*="nav_b"]');
+  assert(!!preview_link,'非活动Markdown分栏存在链接');
+  let opened_links=0;const original_open_link=core.app.openLink;core.app.openLink=function(...args){opened_links++;return original_open_link.apply(this,args);};
+  preview_link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,button:0}));await pause(200);
+  core.app.openLink=original_open_link;
+  assert(opened_links===0&&File.bundle.filePath===b,'仅click不调用非活动分栏链接导航');
+  preview_link.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true,button:0}));await pause(850);
+  assert(File.bundle.filePath===a&&main_leaf.view.isEditor(),'普通左键链接按下进入来源分栏编辑');
+  const edit_link=document.querySelector('#write a[href*="nav_b"]');
+  edit_link.dispatchEvent(new MouseEvent('click',{bubbles:true,cancelable:true,button:0}));await pause(200);
+  assert(File.bundle.filePath===a,'进入编辑后普通链接点击不打开目标');
+  await files.open_file(code,{line:60,column:4},'active');await pause(600);
+  const current_leaf=core.app.workspace.activeLeaf;
   let failed=false;try{await files.open_file(path.join(base,'workspace/missing.md'));}catch{failed=true;}
-  assert(failed&&core.app.workspace.activeLeaf===right,'失效链接不替换当前编辑器');
-  await travel(-1);assert(core.app.workspace.activeLeaf===left,'失效链接不污染返回位置');
+  assert(failed&&core.app.workspace.activeLeaf===current_leaf,'失效链接不替换当前编辑器');
+  await travel(-1);assert(File.bundle.filePath===a,'失效链接不污染返回位置');
   for(const [file,value]of originals)assert(fs.readFileSync(file,'utf8')===value,'导航未修改正文 '+path.basename(file));
   assert(!File.changeCounter.isDocumentEdited(),'导航未产生Markdown草稿');
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,limits:'原始Typora1.14.10正式构建，内部链接入口和公共历史命令；物理键盘由Electron隔离用例覆盖，不代表真人输入或跨平台验收'},null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,limits:'原始Typora1.14.10正式构建，DOM合成鼠标事件、内部链接入口和公共历史命令；未模拟操作系统物理鼠标/键盘，不代表真人输入或跨平台验收'},null,2));
  }catch(error){samples.push(snapshot());fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
 })();

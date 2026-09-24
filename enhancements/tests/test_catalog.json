@@ -5617,14 +5617,17 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R067"
+        "R067",
+        "R067.2"
       ],
       "design": "docs/navigation_history.md",
       "implementation": [
         "enhancements/src/reading_navigation.ts",
         "enhancements/src/reading_history.ts",
         "enhancements/src/reading_navigation_ports.ts",
-        "enhancements/src/workspace_files.ts"
+        "enhancements/src/workspace_files.ts",
+        "enhancements/vendor/workspace_core/src/ui/layout/workspace-root.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/index.ts"
       ],
       "related_modules": [
         "links",
@@ -5637,7 +5640,8 @@
       "preconditions": "prepare_stability_native.py创建临时文档及正式候选，不写用户正文。",
       "steps": [
         "原生文内/跨文标题链接回退与前进，源码近邻显式定位及跨编辑器20次往返。",
-        "关闭源码标签后历史重开并恢复行列，核对正文和草稿。"
+        "关闭源码标签后历史重开并恢复行列，核对正文和草稿。",
+        "普通正文点击不跳转，主Markdown分栏链接进入来源编辑；Ctrl链接与前后历史保持。"
       ],
       "expected": [
         "来源与目标可双向回溯，正文不变，关闭重开可用。"

@@ -518,7 +518,7 @@
       "path": "src/ui/layout/workspace-root.ts",
       "upstream_path": "src/ui/layout/workspace-root.ts",
       "upstream_sha256": "a841ebc71c3e22ba6a7a60c29bbf8f222645ca3d1e0a6af956885ae3726983c5",
-      "sha256": "a73d38e32a987d0670e488630a42e0eb9c1c0a2ce9c982a467f15e540b1311c8"
+      "sha256": "9a6ddf7c84d8b9013add32e3854d954d4158e5ff8904c77c9eed7832d2e155f2"
     },
     {
       "path": "src/ui/layout/workspace-utils.ts",
@@ -764,7 +764,7 @@
       "path": "src/ui/views/markdown-view/index.ts",
       "upstream_path": "src/ui/views/markdown-view/index.ts",
       "upstream_sha256": "2a3387b1c0c8300af0f684ee4d6eefafbe98d5a726a95c4160d70ed566f7d536",
-      "sha256": "384126723ed3c890045af9b3f41159f88f2e622648a5d44998182ce78089ea3f"
+      "sha256": "af45a6aedb96224a6ced67c166b2780211269ec792870c37ebda60a9d1fcc8b2"
     },
     {
       "path": "src/ui/views/markdown-view/md-editor-mode.ts",

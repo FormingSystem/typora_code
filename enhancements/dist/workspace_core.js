@@ -4257,7 +4257,7 @@ ${doc.documentElement.outerHTML}`;
       );
       this.registerDomEvent(this.containerEl, "mousedown", (e) => {
         if (this.isEditor()) return;
-        if (e.target.closest("a")) return;
+        if (e.button !== 0 || e.target.closest("a") && (e.ctrlKey || e.metaKey)) return;
         const { editingTabs } = useEditingTabs();
         const editorLeaf = editingTabs()?.findLeaf(
           (leaf) => leaf.viewType === _MarkdownView.type && leaf.view.isEditor()
@@ -7146,6 +7146,10 @@ ${doc.documentElement.outerHTML}`;
           if (LeafEl) workspace.activeLeaf = this.findLeaf((leaf) => leaf.containerEl === LeafEl);
           const $anchorEl = $(e.target).closest("a");
           if ($anchorEl.length) {
+            if ($anchorEl.closest(".typ-markdown-view").length && !(e.ctrlKey || e.metaKey)) {
+              e.preventDefault();
+              return;
+            }
             const url = $anchorEl.attr("href");
             if (url) {
               e.preventDefault();

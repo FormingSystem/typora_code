@@ -1,0 +1,63 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.7",
+  "requirements": [
+    "R067.2"
+  ],
+  "design": "docs/navigation_history.md#r0672-正文链接点击优先编辑",
+  "asset_manifest_sha256": "e83cac6bc2fab9d3e94a5daa254775c8c4d8c6cf7db1d76299e94b1584f3b846",
+  "validation": {
+    "build": "PASS: .cache/issue_tracking/body_link_build_final.log",
+    "check": "PASS: .cache/issue_tracking/body_link_check.log",
+    "ui": {
+      "status": "PASS",
+      "groups": 2,
+      "preview_assertions": 127,
+      "log": ".cache/issue_tracking/body_link_ui.log"
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "527838b697724fe3a6428aa6a96522af",
+      "checks": 59,
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "e83cac6bc2fab9d3e94a5daa254775c8c4d8c6cf7db1d76299e94b1584f3b846",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "e465e1c9f09dfa5ab67069113842001941bf98bc61acdf18d6843f98b5c4a42f",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "原生正文普通点击保持、Ctrl文内/跨文与源码20次历史往返；主Markdown分栏不执行普通链接命令且进入来源编辑；正文/脏状态保持"
+    },
+    "install_cycle": "PASS: restore/detach uninstall/reinstall; .cache/issue_tracking/body_link_install_cycle.log",
+    "uninstall": "PASS: 65 assertions; .cache/issue_tracking/body_link_uninstall.log",
+    "local_install": {
+      "version": "2026.09.24.7",
+      "installed_assets": [
+        38,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "retained_failures": [
+    "初次仅排除#write未覆盖实际主分栏，真实宿主确认#write不在根代理中，改为按.typ-markdown-view归属处理。",
+    "初期合成单独click的Ctrl标题断言有不稳定样本；最终设置来源选区并派发完整mousedown/up/click序列，通过。失败case b5134818710d43929ca2404af4380207及body_link_native_final_path.txt保留。"
+  ],
+  "limits": [
+    "原生为DOM合成鼠标事件及真实宿主接口，未验收物理鼠标、Win10或真实SSH。",
+    "独立预览保持既有单击浏览；当前用户窗口未重启。",
+    "本次没有更改性能版本策略或下载总量实现。"
+  ]
+}
