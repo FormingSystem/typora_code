@@ -6750,7 +6750,8 @@
       "requirements": [
         "R074",
         "R020.1",
-        "R074.1"
+        "R074.1",
+        "R074.2"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -6776,7 +6777,8 @@
         "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
       ],
       "expected": [
-        "共享明暗角色、蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入"
+        "共享明暗角色、明深蓝/暗雾蓝灰标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入",
+        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/test_ui.mjs"
@@ -6789,7 +6791,8 @@
       "requirements": [
         "R074",
         "R020.1",
-        "R074.1"
+        "R074.1",
+        "R074.2"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -6815,7 +6818,8 @@
         "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
       ],
       "expected": [
-        "共享明暗角色、蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入"
+        "共享明暗角色、明深蓝/暗雾蓝灰标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入",
+        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"

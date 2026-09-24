@@ -32,7 +32,7 @@ app.whenReady().then(async()=>{
   await run('theme_node.media="not all"');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('未生效的主题media不能覆盖有效样式');
   await run('theme_node.media="all";theme_node.sheet.disabled=true;document.body.classList.add("qa-theme-change")');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('禁用主题不进入阅读样式');
   await run('theme_node.remove()');
-  await run('window.colors=qa.bind_workspace_colors();void 0');
+  await run('window.theme_link=document.head.appendChild(document.createElement("link"));theme_link.id="theme_css";theme_link.href="cpp_github-consolas.css";window.colors=qa.bind_workspace_colors();void 0');
   await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 105, 204)"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=left] pre")).backgroundColor!==getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] pre")).backgroundColor','共享明暗外观保留围栏差异背景');
   await check('getComputedStyle(shadow.querySelector("strong [data-diff-inline=left]")).backgroundColor!==getComputedStyle(shadow.querySelector("strong [data-diff-inline=right]")).backgroundColor','共享明暗外观保留行内差异');
@@ -43,9 +43,9 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.join(root,'light.png'),(await win.webContents.capturePage()).toPNG());
   for(let i=0;i<20;i++){await run('preview.set_markdown_mode(false);preview.set_markdown_mode(true)');await wait('preview.markdown_preview.container.dataset.ready==="true"');}
   await check('preview.models.length===2&&preview.models[0].getValue()===left_text&&preview.models[1].getValue()===right_text','20次切换保留两份只读源码及模型');
-  await run('document.body.style.color="rgb(220,220,220)";document.body.style.background="#202020"');await wait('preview.markdown_preview.container.dataset.theme==="dark"');
+  await run('document.body.style.color="rgb(220,220,220)";document.body.style.background="#202020";theme_link.href="night.css"');await wait('preview.markdown_preview.container.dataset.theme==="dark"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] [data-source-line] > *")).backgroundColor==="rgba(87, 171, 90, 0.3)"','暗色采用固定差异颜色');
-  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(87, 163, 248)"','真实diff深色蓝标题');
+  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(158, 173, 186)"','真实diff深色雾蓝灰标题');
   await win.setContentSize(420,700);await pause(100);await check('shadow.querySelector(".markdown-diff-row").children[1].getBoundingClientRect().left>shadow.querySelector(".markdown-diff-row").children[0].getBoundingClientRect().left','窄视口保持左右比较');
   await win.webContents.setZoomFactor(1.25);await pause(100);await check('preview.markdown_preview.scroll.clientHeight>100','窗口放大后比较仍有独立滚动区域');
   await run('preview.set_markdown_mode(false)');await check('!preview.body.hidden&&preview.markdown_preview.container.hidden&&preview.editor.getModel().original.getValue()===left_text','可切回源码差异');

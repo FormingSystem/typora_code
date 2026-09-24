@@ -686,6 +686,7 @@
         "sha256": "e5223cf5b36c3a5329b9dea850f06604fa5aab8017f9f007157b4118e13377f4"
       }
     ],
-    "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。"
+    "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。",
+    "dark_refinement": "R074.2: user requests muted blue-gray headings #9EADBA (product adaptation, not upstream default); table header line maps textSeparator.foreground #2a2a2a; exact cpp_github-consolas.css/night.css scope from Typora1.14.10 File.setTheme theme_css href."
   }
 }

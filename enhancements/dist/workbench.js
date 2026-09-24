@@ -235582,8 +235582,12 @@ https://creativecommons.org/licenses/by/4.0/
     const markdown_style = acquire_workspace_style("typora-code-style:workspace_markdown_appearance", workspace_markdown_appearance_default);
     const root = document.documentElement, previous = root.getAttribute("data-workspace-colors");
     const refresh = () => {
-      const mode = workspace_theme_mode();
-      if (root.getAttribute("data-workspace-colors") !== mode) root.setAttribute("data-workspace-colors", mode);
+      const href = document.getElementById("theme_css")?.getAttribute("href") || "";
+      const name = href.split(/[\\/]/u).pop()?.split(/[?#]/u)[0].toLowerCase();
+      const mode = name === "cpp_github-consolas.css" ? "light" : name === "night.css" ? "dark" : void 0;
+      if (mode) {
+        if (root.getAttribute("data-workspace-colors") !== mode) root.setAttribute("data-workspace-colors", mode);
+      } else root.removeAttribute("data-workspace-colors");
     };
     refresh();
     const release = observe_workspace_theme(refresh, "palette");
@@ -246512,6 +246516,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092412,
+        version: "2026.09.24.12",
+        date: "2026-09-24",
+        notes: [
+          "Night\u6697\u8272Markdown\u6807\u9898\u6539\u4E3A\u4F4E\u9971\u548C\u96FE\u84DD\u7070\uFF0C\u4E0E\u7070\u767D\u6B63\u6587\u533A\u5206\uFF0C\u7ED3\u5408\u5B57\u53F7\u3001\u5B57\u91CD\u4E0E\u7559\u767D\u5EFA\u7ACB\u5C42\u7EA7\uFF1B\u8868\u683C\u8FB9\u7EBF\u964D\u4F4E\u4EAE\u5EA6\uFF0CCppGithubConsoles\u660E\u4E3B\u9898\u4FDD\u6301\u6DF1\u84DD\u6807\u9898\u3002",
+          "\u6B63\u6587\u3001\u9884\u89C8\u4E0EGit\u6E32\u67D3\u6BD4\u8F83\u4F7F\u7528\u540C\u4E00\u5957\u660E\u6697\u89C4\u5219\uFF0C\u4FDD\u7559\u9605\u8BFB\u4F4D\u7F6E\u4E0E\u7F16\u8F91\u8BBE\u7F6E\u3002",
+          "\u4E3B\u9898\u4F18\u5316\u4EC5\u4F5C\u7528\u4E8ECppGithubConsoles\u548CNight\uFF1B\u4FEE\u590D\u6B64\u524D\u5168\u5C40\u8986\u76D6\u5176\u4ED6\u4E3B\u9898\u7684\u95EE\u9898\uFF0C\u5207\u6362\u5230\u5176\u4ED6\u4E3B\u9898\u6062\u590D\u539F\u6709\u5448\u73B0\u3002"
+        ]
+      },
       {
         sequence: 2026092411,
         version: "2026.09.24.11",

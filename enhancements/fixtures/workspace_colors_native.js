@@ -6,7 +6,7 @@
  const wait=async(fn,label)=>{for(let i=0;i<300;i++){if(fn())return;await pause(30);}throw Error(label);};
  const color=selector=>{const el=typeof selector==='string'?document.querySelector(selector):selector;if(!el)throw Error('缺少 '+selector);const s=getComputedStyle(el);return{bg:s.backgroundColor,fg:s.color,border:s.borderTopColor,rect:el.getBoundingClientRect().toJSON()};};
  const capture=async stage=>{fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await pause(350);};
- const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文使用共享明暗主题，标题蓝色。\n\n> 引用说明\n\n| 项目 | 值 |\n| --- | --- |\n| 正文 | `代码` |\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
+ const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文使用共享明暗主题，标题层级清晰。\n\n> 引用说明\n\n| 项目 | 值 |\n| --- | --- |\n| 正文 | `代码` |\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备超时');await pause(800);
   fs.writeFileSync(file,text);await files.open_file(file);await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'文档未打开');await pause(200);
@@ -19,7 +19,7 @@
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
    entry.heading=color('#write h1');entry.paragraph=color('#write p');entry.quote=color('#write blockquote');
    assert(entry.write.bg===content,'正文编辑器背景 '+mode);
-   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(87, 163, 248)')&&entry.heading.fg!==entry.paragraph.fg,'蓝色标题与中性正文 '+mode);
+   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(158, 173, 186)')&&entry.heading.fg!==entry.paragraph.fg,'明暗标题与中性正文 '+mode);
    assert(getComputedStyle(document.querySelector('#write h1')).fontWeight==='600','标题字重 '+mode);
    assert(entry.quote.bg===(mode==='light'?'rgb(234, 234, 234)':'rgb(36, 37, 38)'),'引用背景角色 '+mode);
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
@@ -48,6 +48,16 @@
    const first=menu.firstElementChild;let writes=0;const monitor=new MutationObserver(r=>writes+=r.length);monitor.observe(document.documentElement,{attributes:true,attributeFilter:['data-workspace-colors']});await pause(400);monitor.disconnect();
    assert(writes===0&&first===menu.firstElementChild,'静止主题无刷新且菜单节点保持 '+mode);
    await capture('colors_menu_'+mode);document.getElementById('close-sidebar-menu-btn').dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));await pause(100);
+  }
+  for(const theme of ['github.css','newsprint.css','night.css','cpp_github-consolas.css']){
+   await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(800);
+   const managed=theme==='night.css'||theme==='cpp_github-consolas.css';
+   assert(document.documentElement.hasAttribute('data-workspace-colors')===managed,'实际主题范围 '+theme);
+   if(!managed){
+    const before=color('#write'),heading=color('#write h1');const style=document.createElement('style');style.textContent=':root{--workspace-markdown-heading:rgb(1,2,3)}';document.head.append(style);await pause(60);
+    assert(color('#write').bg===before.bg&&color('#write h1').fg===heading.fg,'其他主题不使用自有标题变量 '+theme);style.remove();
+   }
+   await capture('scope_'+theme.replace('.css',''));
   }
   assert(fs.readFileSync(file,'utf8')===text,'正文磁盘字节不变');core.app.commands.run('linux_note:terminal_kill');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,limits:'原始Typora1.14.10、Windows11独立副本；通过宿主命令/合成事件，未现场Win10或物理鼠标验收'},null,2));
