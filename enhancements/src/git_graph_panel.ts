@@ -1,4 +1,5 @@
-import {bind_git_source_row} from './git_diff_source';
+import {workspace_list_selection} from "./workspace_list_selection";
+import {bind_git_source_row,git_diff_source_key} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
 import {same_git_changes} from './git_status_snapshot';
 import {acquire_git_repository_operation} from "./git_repository_operation";
@@ -51,6 +52,7 @@ export class git_graph_panel {
   context_directory: string;
   root: string; settings: graph_settings; state?: repository_state;
   container = el("section", "linux-note-git-graph"); toolbar = el("div", "git-graph-toolbar");
+  readonly selection = new workspace_list_selection(this.container);
   status = el("div", "git-graph-status"); list = el("div", "git-graph-list"); details = el("section", "git-graph-details");
   branch_select = el("select", "git-graph-branch"); repo_select = el("select", "git-graph-repositories"); search = el("input", "git-graph-search");
   show_remote_input = el("input", "git-graph-show-remote-input"); find_widget = el("div", "git-graph-find-widget"); find_position = el("span", "git-graph-find-position");
@@ -147,7 +149,7 @@ export class git_graph_panel {
     this.release_settings();
     this.progress.dispose();for(const view of this.progress_views)view.dispose();this.progress_views=[];
     this.column_binding?.dispose();this.column_binding=undefined;
-    this.workbench.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
+    this.workbench.dispose();this.selection.dispose(); this.container.remove(); this.container.replaceChildren(); this.state = undefined;
     this.publish_state(); this.state_listeners.clear();
     this.finder.close(); this.containment.clear(); this.ancestors.clear();
   }
@@ -331,20 +333,33 @@ export class git_graph_panel {
     }
     return new Date(source).toLocaleString(git_graph_language_tag());
   }
-  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}): SVGSVGElement {
+  graph_color(index:number):string {
+    const custom=this.settings.colors,defaults=graph_defaults.colors;
+    if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return ['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','#FFB000','#DC267F','#994F00','#40B0A6','#B66DFF'][index%7];
+    return custom[index%custom.length];
+  }
+  draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}, node_kind: "normal"|"head"|"merge" = "normal"): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");
     const x = (lane: number) => lane * geometry.lane_width + geometry.first_x;
     const half_height = geometry.height / 2;
     for (const edge of row.edges) {
       const path = document.createElementNS(ns, "path"); const top = edge.upper ? 0 : half_height; const bottom = top + half_height;
       path.setAttribute("d", this.settings.graph_style === "straight" ? `M${x(edge.from)},${top} L${x(edge.to)},${bottom}` : `M${x(edge.from)},${top} C${x(edge.from)},${top + half_height / 2} ${x(edge.to)},${bottom - half_height / 2} ${x(edge.to)},${bottom}`);
-      path.setAttribute("fill", "none"); path.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]); path.setAttribute("stroke-width", "2"); svg.append(path);
+      path.setAttribute("fill", "none"); path.setAttribute("stroke", git_graph_panel.prototype.graph_color.call(this,edge.color)); path.setAttribute("stroke-width", "2"); svg.append(path);
     }
-    const dot = document.createElementNS(ns, "circle"); dot.setAttribute("cx", String(x(row.lane))); dot.setAttribute("cy", String(half_height)); dot.setAttribute("r", "4"); dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]); svg.append(dot); return svg;
+    // VS Code scmHistory.ts：实际半径保持稳定，由公共状态对应的描边显露放大效果。
+    svg.classList.add('git-history-node');svg.dataset.nodeKind=node_kind;
+    const circle=(radius:number,stroke_width:number,fill?:string)=>{
+      const dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',String(x(row.lane)));dot.setAttribute('cy',String(half_height));
+      dot.setAttribute('r',String(radius));dot.setAttribute('stroke-width',String(stroke_width));if(fill)dot.setAttribute('fill',fill);svg.append(dot);
+    };
+    const color=git_graph_panel.prototype.graph_color.call(this,row.color);
+    if(node_kind==='head'){circle(7,2,color);circle(2,4);}else if(node_kind==='merge'){circle(6,2,color);circle(3,2,color);}else circle(5,2,color);
+    return svg;
   }
   render_history(): void {
     this.column_binding?.dispose();this.column_binding=undefined;
-    const state = this.state!;
+    const state = this.state!;this.selection.project_external(git_diff_source_key(this.host.diff_source?.()));
     this.container.setAttribute("data-details-location", this.settings.details_location);
     this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
     for (const key of ["date", "author", "hash"] as const) this.container.dataset["show" + key] = String(this.settings[("show_" + key) as "show_date" | "show_author" | "show_hash"]);
@@ -380,7 +395,7 @@ export class git_graph_panel {
       ref_map.set(ref.hash, [...(ref_map.get(ref.hash) || []), ref]);
     }
     state.commits.forEach((commit, index) => {
-      const row = el("div", "git-graph-row"); row.dataset.hash = commit.hash; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === commit.hash));
+      const row = el("div", "git-graph-row"); this.selection.bind(row,'commit:'+commit.hash);row.dataset.hash = commit.hash; row.tabIndex = 0; row.setAttribute("role", "button"); row.setAttribute("aria-pressed", String(this.selected === commit.hash));
       if (state.head === commit.hash) row.dataset.head = "true";
       row.title = `${commit.hash}\n${commit.author} · ${this.date(commit)}\n${commit.subject}`;
       if (this.settings.mute_merges && commit.parents.length > 1 || this.settings.mute_unreachable && !this.ancestors.has(commit.hash)) row.classList.add("git-graph-muted");
@@ -389,8 +404,8 @@ export class git_graph_panel {
       row.onkeydown = event => { if (event.key === "Enter" || event.key === " ") { event.preventDefault(); activate(event); } };
       row.oncontextmenu = event => this.target_menu(event, commit.stash ? "stash" : "commit", commit.stash || commit.hash, commit.hash);
       const graph_row = graph.rows[index + (connected ? 1 : 0)];
-      row.style.setProperty("--git-graph-ref-color", this.settings.colors[graph_row.color % this.settings.colors.length]);
-      const svg = this.draw_graph(graph_row, graph.width);
+      row.style.setProperty("--git-graph-ref-color", this.graph_color(graph_row.color));
+      const svg = this.draw_graph(graph_row, graph.width, undefined, commit.hash===state.head?"head":commit.parents.length>1?"merge":"normal");
       svg.onmouseenter = () => { const epoch = this.epoch; if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then(value => { if (this.disposed || epoch !== this.epoch) return; this.containment.set(commit.hash, value); row.title = value + "\n" + commit.subject; }).catch(() => {}); else row.title = this.containment.get(commit.hash)!; };
       const subject = el("span", "git-graph-subject"); const refs = el("span", "git-graph-labels");
       const head_dot = state.head === commit.hash ? el("span", "git-graph-head-dot") : undefined;
@@ -443,7 +458,7 @@ export class git_graph_panel {
           const line = document.createElementNS(rail.namespaceURI, "path");
           const x = edge.to * 16 + 10;
           line.setAttribute("d", `M${x},0 V300`); line.setAttribute("fill", "none");
-          line.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]); line.setAttribute("stroke-width", "2");
+          line.setAttribute("stroke", git_graph_panel.prototype.graph_color.call(this,edge.color)); line.setAttribute("stroke-width", "2");
           rail.append(line);
         }
         this.details.prepend(rail);
@@ -460,6 +475,7 @@ export class git_graph_panel {
   emoji(text: string): string { return text.replace(/:[a-z_0-9+-]+:/giu, code => this.settings.emoji[code] || builtin_emoji[code] || code); }
   scroll_to(hash: string): void { const row = [...this.list.querySelectorAll<HTMLElement>("[data-hash]")].find(item => item.dataset.hash === hash); if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2; }
   activate_row(hash: string, parent: string, event: MouseEvent | KeyboardEvent): void {
+    this.selection.select(['commit:'+hash]);
     if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== hash) {
       void this.show_comparison(this.selected === WORKTREE ? hash : this.selected, this.selected === WORKTREE ? WORKTREE : hash); return;
     }
@@ -563,7 +579,7 @@ export class git_graph_panel {
       const row = button("", () => {
         void this.workbench.open_default_file(file, this.from, this.to, this.files);
       }, "git-graph-file"); row.dataset.file = file.path; row.title = file.path;
-      bind_git_source_row(row,{root:this.root,from:this.from,to:this.to,file:file.path,old_path:file.old_path},this.host.diff_source?.());
+      bind_git_source_row(row,{root:this.root,from:this.from,to:this.to,file:file.path,old_path:file.old_path},this.host.diff_source?.(),this.selection);
       const display_path = file.old_path ? file.old_path + " → " + file.path : file.path; const parts = display_path.split("/");
       const file_icon = workspace_file_icon(file.path); file_icon.classList.add("git-graph-file-icon");
       row.append(file_icon, el("span", "git-graph-file-name", parts.pop() || display_path), el("span", "git-graph-file-path", parts.join("/")), el("span", "git-graph-file-status", file.status));

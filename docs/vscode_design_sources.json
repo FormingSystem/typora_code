@@ -597,5 +597,63 @@
     ],
     "adoption": "正文输入由原生宿主管理；按视图所有者处理输入、按动画帧合并可见更新，缓存失效与取消独立。禁止直接把VS Code标准化后的50倍率用于原始delta。",
     "status": "本轮仅固化依据，用户要求多版本观察；未新增滚动适配或发行。"
+  },
+  "selection_diff_20260924": {
+    "repository": "https://github.com/microsoft/vscode",
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "package_version": "1.140.0",
+    "channel": "main development snapshot; not a stable release",
+    "verified_on": "2026-09-24",
+    "theme": "Light 2026 / Dark 2026; chosen by user screenshots, no local VS Code setting changed",
+    "source_files": [
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "90f14578d618349d87a6f8bf8afc192e3c8f17823cc182dbf7d294654b164978"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "0022a0dfdcde04d574cb56e1fb5095a1451ceea20a438a65faa40eae7331b63c"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/light_plus.json",
+        "sha256": "84612dc413573e13ec0cd00d33b659715628d879db4e129a1dbe87607e5a40df"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/dark_plus.json",
+        "sha256": "b773e9c9ce74782e935753b3a747009a2e76b402fba614798c2d1644b39925bb"
+      },
+      {
+        "path": "src/vs/base/browser/ui/list/listWidget.ts",
+        "sha256": "4b0ddeab2ec570e8674b0e1dad945b91c8a1041e998751f790eaa476bc2ed220"
+      },
+      {
+        "path": "src/vs/platform/list/browser/listService.ts",
+        "sha256": "e6eb71e80f422b00c8f0c25c35bd83d922fbddad464d833fecebc75dceb96eb2"
+      },
+      {
+        "path": "src/vs/workbench/contrib/scm/browser/scmHistory.ts",
+        "sha256": "59f587ea108254b7daccd062163dd97d9f070d50fce788edca22b63f6ecd53e2"
+      },
+      {
+        "path": "src/vs/workbench/contrib/scm/browser/scmHistoryViewPane.ts",
+        "sha256": "c0bd19ac51142ca46fc9cb3b4b1884a6b2ba26c706eda67963305a7fb959aac6"
+      },
+      {
+        "path": "src/vs/workbench/contrib/scm/browser/media/scm.css",
+        "sha256": "a1778a518f4935fb317df36f83868fdfd68a2d8773c6b8d2b649566b7f41b2d4"
+      },
+      {
+        "path": "src/vs/workbench/contrib/scm/common/quickDiff.ts",
+        "sha256": "72145b7459dba5639f980136699857ad2f34e5e33ca53816c14effbc14a68cdc"
+      },
+      {
+        "path": "extensions/markdown-language-features/media/markdown.css",
+        "sha256": "f6d606ea4653fab1f575605d6ec253f1b13078a3763392c85a502bbc31f13110"
+      },
+      {
+        "path": "extensions/markdown-language-features/preview-src/index.ts",
+        "sha256": "629bbe0966fd917503e54c48dc2269d121b0eba52a9868a82b2fbc2958cb3a8e"
+      }
+    ]
   }
 }

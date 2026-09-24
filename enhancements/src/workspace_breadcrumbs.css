@@ -26,7 +26,6 @@
 .workspace-breadcrumb-filter > input {box-sizing:border-box;width:100%;height:26px;margin:0;padding:2px 5px;border:1px solid #8888;border-radius:2px;background:var(--bg-color,#fff);color:inherit;font:inherit;box-shadow:none;}
 .workspace-breadcrumb-tree {overflow:auto;min-height:0;outline:none;padding-bottom:2px;}
 .workspace-breadcrumb-item {display:flex;align-items:center;box-sizing:border-box;height:22px;min-height:22px;white-space:nowrap;cursor:pointer;}
-.workspace-breadcrumb-item[aria-selected=true] {--workspace-interaction-hover:var(--workspace-breadcrumb-selection-background);--workspace-interaction-foreground:var(--workspace-breadcrumb-selection-foreground);background:var(--workspace-breadcrumb-selection-background);color:var(--workspace-breadcrumb-selection-foreground);outline:1px solid var(--workspace-focus-border);outline-offset:-1px;}
 .workspace-breadcrumb-disclosure {display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:22px;}
 .workspace-breadcrumb-label {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;margin:0 5px;line-height:22px;}
 .workspace-breadcrumb-status {padding:4px 9px;overflow-wrap:anywhere;}

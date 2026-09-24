@@ -1,3 +1,4 @@
+import {workspace_list_selection} from "./workspace_list_selection";
 import {register_workspace_context_guard} from "./workspace_context";
 import {remote_files_for} from './remote_workspace_files';
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -60,7 +61,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
   let search_projection = false;
-  const selection_paths = new Set<string>();
+  const selection_model = new workspace_list_selection(tree);
+  const selection_paths = selection_model.keys;
   let operation_busy = false, compare_path = "";
   const dialogs = new Set<{close(): void}>();
   const nodes = new Map<string, explorer_node>(); const detachers: (() => void)[] = [];
@@ -181,9 +183,9 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
           row.oncontextmenu = event => { click_sequence = undefined; if (!selection_paths.has(node.path)) select(node); context_menu(event, node); };
         }
         const {row, chevron, label, note, file_icon} = view;
-        row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
+        row.className = "workspace-explorer-row" + (selection_paths.has(node.path) ? " is-selected" : "") + (options.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
         row.id = node.id; row.dataset.path = node.path; row.dataset.directory = String(node.directory); row.setAttribute("role", "treeitem");
-        row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
+        row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); selection_model.focused_key=selected_path;selection_model.bind(row,node.path);
         if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
         row.setAttribute("aria-busy", String(Boolean(node.loading)));
         row.style.top = index * ROW_HEIGHT + "px"; row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
@@ -217,9 +219,9 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
     }
     if (preserve_dom) {
+      selection_model.focused_key=selected_path;
       for (const row of tree.querySelectorAll<HTMLElement>(".workspace-explorer-row")) {
-        const selected = row.dataset.path === node.path;
-        row.classList.toggle("is-selected", selected); row.setAttribute("aria-selected", String(selected));
+        selection_model.paint(row);
       }
       tree.setAttribute("aria-activedescendant", node.id);
     } else render();
@@ -484,7 +486,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);
   if(options.file_clipboard)detachers.push(options.file_clipboard.subscribe(()=>{if(!disposed)render();}));
   function dispose() {
-    file_icon_style.remove();
+    file_icon_style.remove();selection_model.dispose();
     if (disposed) return; disposed = true;interaction.remove(); generation++; visible = false;
     resize_observer.disconnect();
     if (root) close_branch(root, true);

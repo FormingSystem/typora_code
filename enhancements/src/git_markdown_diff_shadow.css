@@ -1,27 +1,32 @@
 :host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}
 #write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}
 .markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}
-.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}
+.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px}
 .markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}
 .markdown-diff-cell>*{max-width:100%;box-sizing:border-box}
 .markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}
 .markdown-diff-cell table{display:block;overflow:auto}
 .markdown-diff-cell input{pointer-events:none}
 .markdown-diff-cell a{cursor:text}
-.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}
-.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}
-:host([data-theme=dark]) .markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}
 .markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}
-.markdown-diff-sign{display:block;opacity:.8}
+.markdown-diff-sign{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}
 .markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}
 .markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
+.markdown-diff-row:focus{outline:none}
 .lookup-diagram svg{max-width:100%;height:auto}
 .markdown-diff-attachment{font-style:italic}
 
-[data-diff-fragment=left]{background:var(--vscode-diffEditor-removedTextBackground,#ff000033)!important}
-[data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)!important}
-:host([data-theme=dark]) [data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)!important}
 .markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}
 #write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}
 #write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}
+
+/* VS Code Markdown Preview：浅色块装饰，实际改词叠加强调，空白配对区域不染色。 */
+:host {--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#ad070726);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#587c0c26);--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#2090d3);}
+:host([data-theme=dark]) {--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#1b81a8);--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#f470674d);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#57ab5a4d);}
+.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]>[data-source-line]>*,[data-diff-fragment=left] {background-color:var(--markdown-diff-removed)!important;border-radius:2px;}
+.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>*,[data-diff-fragment=right] {background-color:var(--markdown-diff-added)!important;border-radius:2px;}
+.markdown-diff-row[data-changed=true]:has(>.markdown-diff-cell[data-side=left][data-empty=false]):not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>* {box-shadow:-4px 0 0 var(--markdown-diff-modified);}
+mark[data-diff-inline] {color:inherit!important;font:inherit!important;padding:0!important;border-radius:0;}
+mark[data-diff-inline=left] {background:var(--markdown-diff-removed)!important;}
+mark[data-diff-inline=right] {background:var(--markdown-diff-added)!important;}
+[data-diff-fragment]:focus-visible,.markdown-diff-row:focus-visible>.markdown-diff-cell>[data-source-line] {outline:1px solid var(--markdown-diff-modified);outline-offset:1px;}

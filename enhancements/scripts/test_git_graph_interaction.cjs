@@ -302,7 +302,7 @@ app.whenReady().then(async () => {
   assert(!await evaluate('!!panel.body.querySelector(".linux-note-workspace-sash")'));
   assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit").length'),4);
   assert.equal(await evaluate('document.querySelector(".git-scm-history-toggle").getAttribute("aria-expanded")'),'true');
-  assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit .git-scm-history-topology circle").length'),4);
+  assert.equal(await evaluate('document.querySelectorAll(".git-scm-history-commit .git-history-node").length'),4);
   await check_disclosure('.git-scm-history-toggle',true); await check_disclosure('.git-scm-history-commit',false,false);
   hover_metrics.history_closed = await hover('.git-scm-history-commit'); assert.equal(hover_metrics.history_closed.background,'rgba(0, 0, 0, 0.08)');
   const changes_height = await evaluate('panel.workbench.changes_pane.clientHeight'); await drag('.git-scm-history-sash',0,-70);

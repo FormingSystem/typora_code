@@ -1,0 +1,155 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.5",
+  "requirements": [
+    "R020.1",
+    "R034.8",
+    "R034.9",
+    "R034.6"
+  ],
+  "designs": [
+    "docs/workspace_interaction.md#r020-列表与树的共享选择",
+    "docs/git_markdown_diff.md#r0349-差异的视觉层次",
+    "docs/workspace_colors.md#2026-09-24-最新源码逐项对照"
+  ],
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "version": "1.140.0",
+    "channel": "main development snapshot",
+    "cache": ".cache/vscode_latest",
+    "source_audit": "docs/vscode_design_sources.json"
+  },
+  "asset_manifest_sha256": "67882a7ff30362d39017cbeb97d4d04656010ec9de0df0fec1252e81c6b825f6",
+  "bundle_sha256": "350672784b043ef655ee0b8ada89877ecfff45c97859b9b6ec129134f2ed247a",
+  "validation": {
+    "build": {
+      "status": "PASS",
+      "log": ".cache/issue_tracking/selection_review_build.log"
+    },
+    "check": {
+      "status": "PASS",
+      "log": ".cache/issue_tracking/selection_check.log",
+      "scope": "完整check先通过；随后修复同值差异重建，最终候选补跑静态/部署、7+3组UI与原生验收。"
+    },
+    "static_final": {
+      "status": "PASS",
+      "commands": [
+        "node scripts/check.mjs",
+        "node scripts/check_deployment.mjs"
+      ]
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 211,
+      "log": ".cache/issue_tracking/selection_review_catalog.log"
+    },
+    "ui": {
+      "status": "PASS",
+      "logs": [
+        ".cache/issue_tracking/selection_verified_ui.log",
+        ".cache/issue_tracking/selection_render_verified.log"
+      ],
+      "groups_per_run": [
+        7,
+        3
+      ],
+      "scope": "共享选择、资源树、路径选择器、搜索、提交图拓扑和主题、20/100/1000文件、20次模式往返、100次同值通知；两组运行中呈现套件重复。",
+      "additional_passes": [
+        {
+          "suite": "test_git_graph_interaction.cjs",
+          "log": ".cache/issue_tracking/selection_ui_final.log"
+        },
+        {
+          "suite": "test_workspace_colors.cjs",
+          "log": ".cache/issue_tracking/selection_ui_final.log"
+        },
+        {
+          "suite": "test_workspace_interaction_defaults.cjs",
+          "log": ".cache/issue_tracking/selection_markdown_ui.log"
+        }
+      ],
+      "note": "additional_passes仅计指定套件通过，所在旧批次含其他失败，不把旧批次整体计为通过。"
+    },
+    "native": [
+      {
+        "case_id": "29b4815d87d64ce3949600f817f1d672",
+        "status": "PASS",
+        "checks": 164,
+        "setup": {
+          "host_version": "1.14.10",
+          "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+          "asset_manifest_sha256": "67882a7ff30362d39017cbeb97d4d04656010ec9de0df0fec1252e81c6b825f6",
+          "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+          "fixture_sha256": "dc972c26591569e04946a67bd7ecb9cd8c5ab2c76c92822614bb8c1d3518548c",
+          "early_fixture_sha256": null,
+          "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+        },
+        "scope": "真实Git、当前Markdown主题、行内变化、HEAD及文件选择转移、模式/换行/导航恢复"
+      },
+      {
+        "case_id": "4e927e2a62fc4e91b7bdd8d474a20027",
+        "status": "PASS",
+        "checks": 75,
+        "setup": {
+          "host_version": "1.14.10",
+          "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+          "asset_manifest_sha256": "67882a7ff30362d39017cbeb97d4d04656010ec9de0df0fec1252e81c6b825f6",
+          "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+          "fixture_sha256": "df0a6cbd68b288a2fd580f33f7c2f1600acf8fd7b4c33d492a89cc654f05cd3a",
+          "early_fixture_sha256": null,
+          "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+        },
+        "scope": "原始宿主明暗主题、六类侧栏、菜单、设置、终端、标签及底栏角色，正文主题保持"
+      }
+    ],
+    "install_cycle": {
+      "status": "PASS",
+      "modes": [
+        "restore",
+        "detach"
+      ],
+      "log": ".cache/issue_tracking/selection_verified_install.log"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "assertions": 65,
+      "log": ".cache/issue_tracking/selection_verified_uninstall.log"
+    }
+  },
+  "retained_failures": [
+    {
+      "reason": "Monaco相同差异迟到通知重复重建渲染DOM，使模式切换位置捕获短暂为空；按模型版本/差异键合并渲染并保留待恢复锚点，100次通知和最终原生回归通过。",
+      "log": ".cache/issue_tracking/selection_mapping_diagnostic.log"
+    },
+    {
+      "reason": "旧夹具按整个单元格取底色/按圆圈数计算节点，迁移到实际内容装饰和节点容器；选中配色按焦点语义校正。旧失败保留。"
+    },
+    {
+      "reason": "引用颜色夹具缺搜索Worker接线，复用editor_plugins后通过；原生HEAD断言原先误用当前对比提交，改为明确data-head节点。"
+    }
+  ],
+  "installation": {
+    "version": "2026.09.24.5",
+    "installed_assets": [
+      38,
+      24
+    ],
+    "local_uninstall": "read-only precheck",
+    "protected_files_unchanged": [
+      "asar",
+      "window",
+      "theme",
+      "settings",
+      "profile"
+    ],
+    "user_windows_restarted": false,
+    "status": "PASS"
+  },
+  "limits": [
+    "用户窗口未重启，保存后正常重启才加载。",
+    "本轮原生平台为Win11/Typora1.14.10；Win10、其他宿主版本、物理输入延迟与真实SSH未复验。",
+    "复杂HTML/嵌套结构、pre/svg与超预算行内匹配保留块级回退，不承诺全部Markdown语法或VS Code外观逐像素等价。",
+    "最新VS Code仅作为当前修复源码依据，不是稳定发行版或运行依赖。"
+  ]
+}

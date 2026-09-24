@@ -4,7 +4,7 @@ const fs=require('node:fs');const os=require('node:os');const path=require('node
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'typora_graph_ref_colors_'));app.setPath('userData',path.join(temp,'profile'));app.disableHardwareAcceleration();
 let window;
 app.whenReady().then(async()=>{
-  const bundle=await build({stdin:{contents:'export {git_graph_panel} from "./src/git_graph_panel";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
+  const bundle=await build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export {git_graph_panel} from "./src/git_graph_panel";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
   const html=path.join(temp,'index.html');fs.writeFileSync(html,'<!doctype html><html><body></body></html>');
   window=new BrowserWindow({show:false,width:1200,height:700,webPreferences:{nodeIntegration:true,contextIsolation:false}});await window.loadFile(html);
   const run=source=>window.webContents.executeJavaScript(source);
@@ -40,7 +40,7 @@ app.whenReady().then(async()=>{
   await run(`panel.state.head='';panel.state.branch='';panel.render_history()`);assert.equal(await run('panel.list.querySelectorAll(".git-graph-head-dot,[data-active=true]").length'),0,'unborn/detached selection does not mark a branch active');
   await run(`panel.state.head=hashes[1];panel.render_history()`);assert.equal(await run('panel.list.querySelectorAll(".git-graph-head-dot").length'),1,'detached HEAD retains its vertex marker');
   const scm=await run(`(()=>{const host=document.createElement('div');host.className='linux-note-git-source-control';host.innerHTML='<span class="git-scm-history-ref">branch</span><span class="git-scm-history-ref" data-current="true">current</span>';document.body.append(host);const colors=[...host.children].map(node=>getComputedStyle(node).backgroundColor);host.remove();return colors})()`);
-  assert.deepEqual(scm,['rgb(108, 54, 157)','rgb(0, 107, 255)'],'SCM retains its separate reference colours');
+  assert.deepEqual(scm,['rgb(101, 45, 144)','rgb(26, 92, 255)'],'SCM references share the fixed theme charts colours');
   await run('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');
   fs.writeFileSync(path.join(temp,'references.png'),(await window.webContents.capturePage()).toPNG());await run('panel.dispose()');
   console.log('Git Graph reference colours PASS: branch, combined/uncombined remote, tag, stash, active/detached HEAD, theme, alignment, custom palette, connected worktree. '+temp);window.destroy();app.exit(0);

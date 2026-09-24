@@ -67,7 +67,5 @@
 .workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }
 .workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }
 .workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }
-.workspace-search-file>summary.is-selected { background:#0078d410; }
-.workspace-search-match.is-selected { background:#0078d426; }
 .workspace-search-folder-scope:not([hidden]){display:flex;align-items:center;gap:4px;min-height:24px;border:1px solid var(--linux-note-shell-border,#e5e5e5);padding-left:6px;margin-bottom:4px}
 .workspace-search-folder-scope>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

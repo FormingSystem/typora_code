@@ -396,3 +396,9 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 - TEST-presentation-migration：旧布局测试测容器边界而非文件内容起点、旧交互测试要求展开底色，按新契约分别检查；列宽夹具的相对仓库路径被服务身份验证拒绝，改用绝对临时路径，未放松产品验证。
 
 本次验证状态和平台边界见[候选证据](../enhancements/tests/evidence/git_presentation_20260924.json)。
+
+2026-09-24补充R020.1/R034.9与BUG-diff-layout-anchor：
+
+- BUG-selection-expanded-source：展开提交、键盘焦点和活动diff被混作选中；共享列表模型分离三者，同一来源刷新不覆盖手动选择，真实宿主提交/文件转移通过。
+- BUG-diff-layout-anchor补充：Monaco迟到同值差异导致已显示DOM重建，映射短暂失效；按模型版本与差异结果合并，保留待恢复锚点，100次同值通知与最终原生164项通过。
+- BUG-markdown-diff-decoration：整格高饱和背景盖过主题与具体改词；改为内容浅色、行内强调及修改边线，配色/原生回归通过，复杂结构仍有块级边界。证据见[本次记录](../enhancements/tests/evidence/shared_selection_20260924.json)。

@@ -15,7 +15,7 @@
   for(const [theme,name,mode]of [['cpp_github-consolas.css','Cpp Github Consolas','light'],['night.css','Night','dark']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(800);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    assert(document.documentElement.dataset.workspaceColors===mode,'宿主实际主题 '+mode);
-   const chrome=mode==='light'?'rgb(248, 248, 248)':'rgb(24, 24, 24)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(31, 31, 31)';
+   const chrome=mode==='light'?'rgb(250, 250, 253)':'rgb(25, 26, 27)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(18, 19, 20)';
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
     const button=document.querySelector('.typ-ribbon-item[data-id="'+id+'"]');assert(button,'活动栏入口 '+id);
@@ -39,7 +39,7 @@
    await capture('colors_settings_'+mode);
    document.querySelector('.workspace-settings-modal .workspace-dialog-close').click();await pause(120);
    editor.library.refreshMenuVisibility();const trigger=document.querySelector('#sidebar-menu-btn>.sidebar-footer-item');trigger.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));trigger.click();await pause(180);
-   const menu=document.getElementById('sidebar-files-menu');entry.menu=color(menu);assert(entry.menu.rect.height>20&&entry.menu.bg===content,'原生文件菜单浮层配色 '+mode);
+   const menu=document.getElementById('sidebar-files-menu');entry.menu=color(menu);assert(entry.menu.rect.height>20&&entry.menu.bg===(mode==='light'?'rgb(250, 250, 253)':'rgb(32, 33, 34)'),'原生文件菜单浮层配色 '+mode);
    const first=menu.firstElementChild;let writes=0;const monitor=new MutationObserver(r=>writes+=r.length);monitor.observe(document.documentElement,{attributes:true,attributeFilter:['data-workspace-colors']});await pause(400);monitor.disconnect();
    assert(writes===0&&first===menu.firstElementChild,'静止主题无刷新且菜单节点保持 '+mode);
    await capture('colors_menu_'+mode);document.getElementById('close-sidebar-menu-btn').dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));await pause(100);

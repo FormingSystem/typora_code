@@ -15,15 +15,15 @@ app.whenReady().then(async()=>{
  for(const dark of [false,true]){
   await read(`document.body.classList.toggle('dark',${dark});void 0`);await pause(120);
   const data=await read(`({mode:document.documentElement.dataset.workspaceColors,frames:['#typora-sidebar','.linux-note-git-source-control','.terminal-panel-header','.linux-note-terminal','.workspace-ssh-sidebar','.workspace-community-manager','.workspace-settings-categories','.workspace-tab-strip'].map(snap),contents:['.workspace-settings','.git-graph-dialog','.git-graph-menu'].map(snap),input:snap('#setting'),title:snap('.workspace-link-preview>[role=toolbar]'),term:term_updates.at(-1),body:snap('#write')})`);samples.push(data);
-  const chrome=dark?'rgb(24, 24, 24)':'rgb(248, 248, 248)',content=dark?'rgb(31, 31, 31)':'rgb(255, 255, 255)';
+  const chrome=dark?'rgb(25, 26, 27)':'rgb(250, 250, 253)',content=dark?'rgb(18, 19, 20)':'rgb(255, 255, 255)';
   check(data.mode===(dark?'dark':'light')&&data.frames.every(s=>s.bg===chrome),'同层框架共享背景 '+dark+' '+JSON.stringify(data.frames.map(s=>s.bg)));
-  check(data.contents.every(s=>s.bg===content)&&data.title.bg===chrome,'功能内容与工具层区分 '+dark);
-  check(data.input.bg===(dark?'rgb(49, 49, 49)':'rgb(255, 255, 255)'),'输入控件区分 '+dark);
-  check(data.term.background.toLowerCase()===(dark?'#181818':'#f8f8f8'),'终端消费者在颜色更新后收到当前主题 '+dark);
+  check(data.contents.every((s,i)=>s.bg===(i===0?content:(dark?'rgb(32, 33, 34)':'rgb(250, 250, 253)')))&&data.title.bg===chrome,'功能内容与工具层区分 '+dark);
+  check(data.input.bg===(dark?'rgb(25, 26, 27)':'rgb(255, 255, 255)'),'输入控件区分 '+dark);
+  check(data.term.background.toLowerCase()===(dark?'#191a1b':'#fafafd'),'终端消费者在颜色更新后收到当前主题 '+dark);
   check(data.body.bg===(dark?'rgb(38, 50, 56)':'rgb(255, 247, 223)'),'自定义正文底色未被覆盖 '+dark);
   const states=await read(`(()=>{const input=document.querySelector('#setting');input.focus();const primary=document.querySelector('#primary'),disabled=document.querySelector('button:disabled');return{selected:snap('.workspace-settings-categories button'),focused:snap('.workspace-setting-row'),primary:snap('#primary'),disabled:getComputedStyle(disabled).opacity,muted:snap('.workspace-setting-label small'),focus:document.activeElement===input}})()`);
-  check(states.focus&&states.focused.bg!==(dark?'rgb(31, 31, 31)':'rgb(255, 255, 255)')&&states.selected.bg!==chrome,'输入焦点与当前分类有独立状态 '+dark);
-  check(states.primary.bg===(dark?'rgb(0, 120, 212)':'rgb(0, 95, 184)')&&states.primary.fg==='rgb(255, 255, 255)'&&Number(states.disabled)<1,'主操作成对着色且禁用保持 '+dark);
+  check(states.focus&&states.focused.bg!==(dark?'rgb(18, 19, 20)':'rgb(255, 255, 255)')&&states.selected.bg!==chrome,'输入焦点与当前分类有独立状态 '+dark);
+  check(states.primary.bg===(dark?'rgb(41, 122, 160)':'rgb(0, 105, 204)')&&states.primary.fg==='rgb(255, 255, 255)'&&Number(states.disabled)<1,'主操作成对着色且禁用保持 '+dark);
   const luminance=value=>{const channels=value.match(/[\d.]+/g).slice(0,3).map(Number).map(v=>{v/=255;return v<=.04045?v/12.92:((v+.055)/1.055)**2.4});return channels[0]*.2126+channels[1]*.7152+channels[2]*.0722;};
   const contrast=(fg,bg)=>{const a=luminance(fg),b=luminance(bg);return(Math.max(a,b)+.05)/(Math.min(a,b)+.05);};
   check(data.frames.every(s=>contrast(s.fg,s.bg)>=4.5)&&contrast(states.primary.fg,states.primary.bg)>=4.5&&contrast(states.muted.fg,content)>=4.5,'正文以外的主要/次要文字及主操作对比度至少4.5 '+dark);

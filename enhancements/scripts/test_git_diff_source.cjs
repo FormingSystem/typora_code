@@ -37,10 +37,24 @@ app.whenReady().then(async()=>{
     await check(`getComputedStyle(document.querySelector('.git-scm-history-commit[aria-expanded=true]')).backgroundColor==='rgba(0, 0, 0, 0)'&&document.querySelectorAll('[data-git-source-selected=true]').length===1`,'expanded parent never adds a second selection '+theme);
 
     await evaluate(`document.documentElement.dataset.workspaceColors='${theme}';document.querySelector('[data-history-file="README.md"]').focus()`);
-    await check(`getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(4, 57, 94)':'rgb(232, 232, 232)'}'`,'focused selected colour '+theme);
+    await check(`getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgba(255, 255, 255, 0.133)':'rgba(0, 0, 0, 0.145)'}'`,'focused selected colour '+theme);
     await evaluate(`document.activeElement.blur()`);
-    await check(`document.querySelector('[data-history-file="README.md"]').classList.contains('selected')&&getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(55, 55, 61)':'rgb(232, 232, 232)'}'`,'selection survives blur '+theme);await capture('single_source_'+theme);
+    await check(`document.querySelector('[data-history-file="README.md"]').classList.contains('selected')&&getComputedStyle(document.querySelector('[data-history-file="README.md"]')).backgroundColor==='${theme==='dark'?'rgb(44, 45, 46)':'rgba(218, 218, 218, 0.6)'}'`,'selection survives blur '+theme);await capture('single_source_'+theme);
   }
+  await evaluate(`document.documentElement.dataset.workspaceColors='light';window.head=()=>history_view.list.querySelector('[data-head=true]');head().click();head().click();head().focus();owner.sync_source_selection()`);
+  await check(`head().dataset.workspaceSelected==='true'&&!document.querySelector('[data-git-source-selected=true]')`,'commit click transfers selection from file and same-source refresh preserves it');
+  await check(`[...head().querySelectorAll('circle')].map(n=>n.getAttribute('r')).join(',')==='7,2'&&getComputedStyle(head().querySelector('circle')).stroke==='rgba(0, 0, 0, 0)'`,'HEAD uses upstream two circles and selected enlarged outline');
+  await evaluate(`history_view.render(state);owner.sync_source_selection()`);
+  await check(`head().dataset.workspaceSelected==='true'`,'rebuild preserves selected commit independently of expansion');
+  await capture('head_selected_light');
+  const other=await evaluate(`(()=>{const r=history_view.list.querySelectorAll('.git-scm-history-commit')[1].getBoundingClientRect();return{x:r.x+11,y:r.y+11}})()`);
+  test_window.webContents.sendInputEvent({type:'mouseMove',x:Math.round(other.x),y:Math.round(other.y)});await delay(60);
+  await check(`document.querySelectorAll('[data-workspace-selected=true]').length===1&&getComputedStyle(history_view.list.querySelectorAll('.git-scm-history-commit')[1]).backgroundColor==='rgba(0, 0, 0, 0.08)'`,'selected commit and hover on another commit coexist without double selection');
+  await capture('selected_and_hover');test_window.webContents.sendInputEvent({type:'mouseMove',x:760,y:700});
+  await evaluate(`document.querySelector('[data-history-file="README.md"]').click();document.querySelector('[data-history-file="README.md"]').focus()`);
+  await check(`head().dataset.workspaceSelected==='false'&&document.querySelectorAll('[data-workspace-selected=true]').length===1`,'file click leaves exactly one selected child and HEAD hollow');
+  await capture('file_selected_light');
+  await evaluate(`opened.length=0`);
   await check(`(()=>{const row=document.querySelector('[data-history-file="README.md"]').getBoundingClientRect(),list=history_view.list.getBoundingClientRect();return Math.abs(row.left-list.left)<1&&Math.abs(row.right-list.right)<1&&row.height===22})()`,'file selection spans complete history width');
   await evaluate(`source={...source,to:'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb',from:'cccccccccccccccccccccccccccccccccccccccc'};owner.sync_source_selection()`);
   await check(`!document.querySelector('[data-git-source-selected=true]')`,'same file in different commit cannot inherit selection');

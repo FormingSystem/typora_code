@@ -1,3 +1,4 @@
+import {apply_workspace_row_selection} from "./workspace_list_selection";
 import {create_preview_scale_controls} from "./workspace_preview_scale";
 import {DEFAULT_SEARCH_REGEX} from './workspace_search_matcher';
 import {bind_preview_resize} from "./workspace_preview_resize";
@@ -64,7 +65,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     constructor() {
       super();lifetime.add(acquire_workspace_interaction(this.containerEl).remove);
       lifetime.add(()=>{++this.open_generation;clearTimeout(this.timer);this.controller?.abort();this.native_observer.disconnect();this.containerEl.remove();});
-      this.containerEl.setAttribute("data-linux-note-workspace-search","ready");
+      this.containerEl.setAttribute("data-linux-note-workspace-search","ready");this.results.dataset.workspaceList="";
       // Typora 对所有 header 施加 fixed/top:0；工作区工具栏使用独立 div，避免叠到主标题栏。
       const heading = el("div", "workspace-search-heading"); heading.append(el("strong","","搜索"));
       heading.append(git_icon_button("refresh","刷新搜索",()=>void this.search()),
@@ -227,7 +228,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         let parent=target;
         if(this.tree){const parts=file.relative_path.split("/").slice(0,-1);let key="";for(const part of parts){key+=part+"/";let nested=directories.get(key);if(!nested){const folder=el("details","workspace-search-directory");const state_key="directory:"+key;folder.setAttribute("data-search-group",state_key);folder.open=open_states.get(state_key)??true;const summary=el("summary");summary.append(git_disclosure(),el("span","",part));folder.append(summary);parent.append(folder);directories.set(key,folder);nested=folder;}parent=nested;}}
         const group=el("details","workspace-search-file"),state_key="file:"+file.file_path;group.setAttribute("data-search-group",state_key);group.open=open_states.get(state_key)??true;group.dataset.path=file.file_path;
-        const summary=el("summary");summary.title=file.relative_path;summary.tabIndex=0;summary.classList.toggle("is-selected",this.selected?.file.file_path===file.file_path);
+        const summary=el("summary");summary.title=file.relative_path;summary.tabIndex=0;
         const label=el("span","workspace-search-file-name",files.path_api.basename(file.file_path));
         const path=el("span","workspace-search-file-path",files.path_api.dirname(file.relative_path).replace(/^\.$/u,""));
         // SVG 图标保持 pointer-events:none；由真实按钮提供完整命中区，不依赖 SVG 成为 event.target。
@@ -254,7 +255,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         for(const match of file.matches){
           if(rendered++%64===63||performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(!current())return;deadline=performance.now()+8;}
           const row=button("",()=>this.select(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",`${file.relative_path}，第 ${match.line} 行，第 ${match.column} 列：${match.preview}`);
-          const selected=this.selected?.match.id===match.id;row.classList.toggle("is-selected",selected);row.setAttribute("aria-current",String(selected));
+          const selected=this.selected?.match.id===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",String(selected));
           row.append(el("span","workspace-search-line",String(match.line)));const preview=el("span","workspace-search-preview");let start=0;
           for(const range of match.preview_ranges){preview.append(document.createTextNode(match.preview.slice(start,range.start)),el("mark","",match.preview.slice(range.start,range.end)));start=range.end;}preview.append(document.createTextNode(match.preview.slice(start)));row.append(preview);
           row.oncontextmenu=event=>workspace_menu(event,[{title:"打开匹配位置",action:()=>this.open_match(file,match)}, {title:"在右侧打开",action:()=>this.open_match(file,match,"right")}, {title:"复制匹配行",action:()=>files.copy(match.preview)}, {title:"替换此匹配项…",action:()=>void this.replace(file.file_path,[match.id])}]);
@@ -270,8 +271,8 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       if(!match||disposed)return;this.preview_section.hidden=false;this.set_preview_open(true);
       if(this.selected?.file===file&&this.selected.match===match){this.preview.reveal_match();return;}
       ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
-      for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;row.classList.toggle("is-selected",selected);row.setAttribute("aria-current",String(selected));}
-      for(const group of this.results.querySelectorAll<HTMLElement>(".workspace-search-file"))group.querySelector("summary")?.classList.toggle("is-selected",group.dataset.path===file.file_path);
+      for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",String(selected));}
+
       void Promise.resolve(this.preview.show(file,match)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
     }
     navigate(event:KeyboardEvent,row:HTMLElement,file:workspace_search_file,match:()=>workspace_search_match,target:HTMLElement){

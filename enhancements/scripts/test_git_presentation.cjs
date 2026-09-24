@@ -1,7 +1,7 @@
 // 真实Monaco差异及Chromium排版；不依赖用户文档。
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_git_presentation_'));app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();
-let win;const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),run=async s=>{try{return await win.webContents.executeJavaScript(s)}catch(e){console.error(s);throw e}},wait=async s=>{for(let i=0;i<400;i++){if(await run(s))return;await pause(25);}throw Error('Timeout: '+s);},check=async(s,label)=>{assert(await run(s),label);checks.push(label);};
+let win;const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),run=async s=>{try{return await win.webContents.executeJavaScript(s)}catch(e){console.error(s);throw e}},wait=async s=>{for(let i=0;i<400;i++){if(await run(s))return;await pause(25);}throw Error('Timeout: '+s);},check=async(s,label)=>{try{assert(await run(s),label);checks.push(label);}catch(error){console.error('FAILED CHECK',label,await run('({before:window.before,anchor:window.preview?.capture_content_anchor(),rendered:window.preview?.rendered_markdown,ready:window.preview?.markdown_preview?.container.dataset.ready,visible:window.preview?.focused_editor().getVisibleRanges(),size:window.preview?.body.getBoundingClientRect().toJSON()})'));throw error;}};
 app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1200,height:820,webPreferences:{contextIsolation:false,offscreen:true,backgroundThrottling:false}});
   win.webContents.on('console-message',(_event,_level,message)=>console.log(message));
@@ -41,6 +41,8 @@ app.whenReady().then(async()=>{
     await run(`window.source_view=preview.editor.getModifiedEditor();source_view.setScrollTop(source_view.getTopForLineNumber(${i%2?181:121}));window.before=preview.capture_content_anchor();preview.set_markdown_mode(true)`);await wait('preview.markdown_preview.container.dataset.ready==="true"');await pause(30);
     await check('Math.abs(preview.capture_content_anchor().line-before.line)<=2','源码滚动后排版使用新位置 '+i);
   }
+  await run('window.render_count=0;window.render_original=preview.markdown_preview.render;preview.markdown_preview.render=(...args)=>{render_count++;return render_original(...args)};window.render_node=shadow.querySelector("h2");window.render_anchor=preview.capture_content_anchor();for(let i=0;i<100;i++)preview.render_markdown();void 0');await pause(100);
+  await check('render_count===0&&shadow.querySelector("h2")===render_node&&preview.capture_content_anchor().line===render_anchor.line','100次相同差异通知不重复排版或丢失位置');
   await run(`qa.update_text_presentation(false);window.other=new qa.git_diff_editor({title:'new.cpp',left:code});void 0;`);await check('!preview.wrapped&&!other.wrapped','多个现有和新窗口共享换行配置');
   await run('other.dispose();preview.dispose()');
   await win.reload();await wait('document.readyState==="complete"');await run(bundle.outputFiles[0].text);await check('!qa.read_text_presentation().word_wrap','页面重新加载保留当前契约关闭偏好');

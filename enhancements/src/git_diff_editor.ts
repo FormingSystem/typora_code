@@ -187,7 +187,7 @@ export class git_diff_editor {
   }
   accessible_diff(previous=false):void {this.set_markdown_mode(false);if("accessibleDiffViewerNext" in this.editor){if(previous)this.editor.accessibleDiffViewerPrev();else this.editor.accessibleDiffViewerNext();}}
   capture_content_anchor():markdown_view_anchor|undefined {
-    if(this.rendered_markdown)return this.markdown_preview?.capture();
+    if(this.rendered_markdown)return this.markdown_preview?.capture()||this.pending_anchor;
     const view=this.focused_editor(),range=view.getVisibleRanges()[0];if(!range)return;
     const line=range.startLineNumber,top=view.getTopForLineNumber(line),height=Math.max(1,view.getTopForLineNumber(line+1)-top);
     const box=view.getDomNode()!.getBoundingClientRect(),layout=view.getLayoutInfo(),hit=view.getTargetAtClientPoint(box.left+layout.contentLeft+2,box.top+2)?.position;
@@ -213,7 +213,7 @@ export class git_diff_editor {
     this.rendered_markdown=value;this.body.hidden=value;this.markdown_preview.container.hidden=!value;
     this.container.dataset.markdownDiff=String(value);this.toolbar.querySelector('[data-diff-action="markdown_preview"]')?.setAttribute('aria-pressed',String(value));
     this.refresh_labels();
-    if(value)await this.render_markdown();else{this.markdown_epoch++;this.markdown_preview.invalidate();this.editor.layout();if(anchor)this.restore_content_anchor(anchor);this.pending_anchor=undefined;}
+    if(value)await this.render_markdown();else{this.invalidate_markdown();this.editor.layout();if(anchor)this.restore_content_anchor(anchor);this.pending_anchor=undefined;}
   }
   /** 呈现方式及两侧编辑器位置归比较视图所有，导航服务只保存和交还快照。 */
   capture_navigation_state(){
@@ -244,13 +244,26 @@ export class git_diff_editor {
     return true;
     }finally{this.restoring_navigation=false;}
   }
+  private markdown_render_key='';
+  private markdown_render_task?:Promise<void>;
+  private invalidate_markdown(){this.markdown_epoch++;this.markdown_render_key='';this.markdown_render_task=undefined;this.markdown_preview?.invalidate();}
   private async render_markdown():Promise<void>{
     if(!this.markdown_preview||!this.rendered_markdown||!('getLineChanges' in this.editor))return;
     const changes=this.editor.getLineChanges();if(changes===null){this.status.textContent=text('diff.calculating');return;}
+    const key=JSON.stringify([this.models.map(model=>[model.id,model.getVersionId()]),this.data.left_label,this.data.right_label,changes.map(change=>[change.originalStartLineNumber,change.originalEndLineNumber,change.modifiedStartLineNumber,change.modifiedEndLineNumber])]);
+    // Monaco延迟重算相同结果不应重建已显示的排版或暂时撤销位置映射。
+    if(key===this.markdown_render_key){if(this.markdown_render_task)return this.markdown_render_task;if(this.markdown_preview.container.dataset.ready==='true')return;}
+    this.markdown_render_key=key;
     const epoch=++this.markdown_epoch,input_epoch=this.input_epoch,anchor=this.pending_anchor||this.markdown_preview.capture();
-    try{await this.markdown_preview.render(this.models[0].getValue(),this.models[1].getValue(),changes,[this.data.left_label||text('diff.original'),this.data.right_label||text('diff.modified')]);if(!this.disposed&&epoch===this.markdown_epoch&&input_epoch===this.input_epoch&&anchor)this.restore_content_anchor(anchor);if(epoch===this.markdown_epoch)this.pending_anchor=undefined;}
-    catch(error){if(!this.disposed&&epoch===this.markdown_epoch){this.set_markdown_mode(false);this.status.textContent=String(error instanceof Error?error.message:error);this.report_error?.(error);}}
+    if(anchor)this.pending_anchor=anchor;
+    const task=(async()=>{
+      try{await this.markdown_preview!.render(this.models[0].getValue(),this.models[1].getValue(),changes,[this.data.left_label||text('diff.original'),this.data.right_label||text('diff.modified')]);if(!this.disposed&&epoch===this.markdown_epoch&&input_epoch===this.input_epoch&&anchor)this.restore_content_anchor(anchor);if(epoch===this.markdown_epoch)this.pending_anchor=undefined;}
+      catch(error){if(!this.disposed&&epoch===this.markdown_epoch){this.set_markdown_mode(false);this.status.textContent=String(error instanceof Error?error.message:error);this.report_error?.(error);}}
+    })();
+    this.markdown_render_task=task;
+    try{await task;}finally{if(this.markdown_render_task===task)this.markdown_render_task=undefined;}
   }
+
   set_side_by_side(value:boolean):void {this.set_preferences({render_side_by_side:value});}
   set_preferences(change:Partial<git_diff_preferences>):void {update_git_diff_preferences(change);}
   apply_preferences(value:git_diff_preferences):void {
@@ -365,7 +378,7 @@ export class git_diff_editor {
     if ("getModifiedEditor" in this.editor) { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     else { const view_state = this.editor.saveViewState(); replace_models(); this.editor.restoreViewState(view_state); }
     this.data = data;this.refresh_labels();
-    this.markdown_epoch++;this.markdown_preview?.invalidate();
+    this.invalidate_markdown();
     if(this.rendered_markdown)void this.render_markdown();
   }
   context_menu(event: MouseEvent): void {

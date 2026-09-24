@@ -12,8 +12,6 @@
 .workspace-explorer-spacer { position:relative; min-width:100%; }
 .workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent)); padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
-.workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background); color:var(--linux-note-shell-inactive-selection-foreground); }
-.workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--workspace-focus-border); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
 .workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:calc(var(--workspace-disclosure-size) + var(--workspace-tree-twistie-gap)); }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }

@@ -160925,8 +160925,8 @@ https://creativecommons.org/licenses/by/4.0/
     });
   };
   function observe_workspace_theme(listener, role = "consumer") {
-    const owners = role === "palette" ? palette_listeners : listeners;
-    owners.add(listener);
+    const owners2 = role === "palette" ? palette_listeners : listeners;
+    owners2.add(listener);
     if (!observer) {
       observer = new MutationObserver(update);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
@@ -160938,7 +160938,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     update();
     return () => {
-      owners.delete(listener);
+      owners2.delete(listener);
       if (!listeners.size && !palette_listeners.size) {
         observer?.disconnect();
         observer = void 0;
@@ -181143,12 +181143,84 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/git_markdown_inline.ts
+  function highlight_markdown_inline(left, right) {
+    if (left.querySelector("pre,svg") || right.querySelector("pre,svg")) return;
+    const a = left.textContent || "", b2 = right.textContent || "";
+    if (a === b2 || a.length + b2.length > 1e5) return;
+    const tokens = (text3) => [...text3.matchAll(/[\p{Script=Han}]|[\p{L}\p{N}_]+|\s+|[^\p{L}\p{N}_\s]/gu)].map((m) => ({ text: m[0], start: m.index, end: m.index + m[0].length }));
+    const aa2 = tokens(a), bb = tokens(b2), same_a = /* @__PURE__ */ new Set(), same_b = /* @__PURE__ */ new Set();
+    if (aa2.length * bb.length <= 25e4) {
+      const width2 = bb.length + 1, table = new Uint32Array((aa2.length + 1) * width2);
+      for (let i2 = aa2.length - 1; i2 >= 0; i2--) for (let j4 = bb.length - 1; j4 >= 0; j4--) table[i2 * width2 + j4] = aa2[i2].text === bb[j4].text ? 1 + table[(i2 + 1) * width2 + j4 + 1] : Math.max(table[(i2 + 1) * width2 + j4], table[i2 * width2 + j4 + 1]);
+      let i = 0, j3 = 0;
+      while (i < aa2.length && j3 < bb.length) {
+        if (aa2[i].text === bb[j3].text) {
+          same_a.add(i++);
+          same_b.add(j3++);
+        } else if (table[(i + 1) * width2 + j3] >= table[i * width2 + j3 + 1]) i++;
+        else j3++;
+      }
+    } else {
+      let i = 0;
+      while (i < aa2.length && i < bb.length && aa2[i].text === bb[i].text) {
+        same_a.add(i);
+        same_b.add(i++);
+      }
+      let x = aa2.length - 1, y = bb.length - 1;
+      while (x >= i && y >= i && aa2[x].text === bb[y].text) {
+        same_a.add(x--);
+        same_b.add(y--);
+      }
+    }
+    const paint = (root, parts, same, side) => {
+      const ranges2 = [];
+      parts.forEach((part, index) => {
+        if (same.has(index)) return;
+        const last = ranges2[ranges2.length - 1];
+        if (last && last.end === part.start) last.end = part.end;
+        else ranges2.push({ start: part.start, end: part.end });
+      });
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT), nodes = [];
+      let item;
+      while (item = walker.nextNode()) nodes.push(item);
+      let offset = 0, cursor = 0;
+      for (const node of nodes) {
+        const value = node.data, end = offset + value.length;
+        while (cursor < ranges2.length && ranges2[cursor].end <= offset) cursor++;
+        let index = cursor, position2 = 0;
+        const fragment = document.createDocumentFragment();
+        while (index < ranges2.length && ranges2[index].start < end) {
+          const start = Math.max(0, ranges2[index].start - offset), stop = Math.min(value.length, ranges2[index].end - offset);
+          if (start > position2) fragment.append(document.createTextNode(value.slice(position2, start)));
+          const mark = document.createElement("mark");
+          mark.dataset.diffInline = side;
+          mark.textContent = value.slice(start, stop);
+          fragment.append(mark);
+          position2 = stop;
+          index++;
+        }
+        if (position2) {
+          if (position2 < value.length) fragment.append(document.createTextNode(value.slice(position2)));
+          node.replaceWith(fragment);
+        }
+        offset = end;
+      }
+    };
+    paint(left, aa2, same_a, "left");
+    paint(right, bb, same_b, "right");
+  }
+
   // src/git_markdown_semantics.ts
   function refine_markdown_change(row) {
     const left = row.children[0], right = row.children[1];
     const a = left.querySelector(":scope > [data-source-line] > table,:scope > [data-source-line] > ul,:scope > [data-source-line] > ol");
     const b2 = right.querySelector(":scope > [data-source-line] > table,:scope > [data-source-line] > ul,:scope > [data-source-line] > ol");
-    if (!a || !b2 || a.tagName !== b2.tagName || left.querySelectorAll(":scope > [data-source-line]").length !== 1 || right.querySelectorAll(":scope > [data-source-line]").length !== 1) return [row];
+    if (!a || !b2 || a.tagName !== b2.tagName || left.querySelectorAll(":scope > [data-source-line]").length !== 1 || right.querySelectorAll(":scope > [data-source-line]").length !== 1) {
+      const x = left.querySelector(":scope > [data-source-line]"), y = right.querySelector(":scope > [data-source-line]");
+      if (x && y && left.querySelectorAll(":scope > [data-source-line]").length === 1 && right.querySelectorAll(":scope > [data-source-line]").length === 1) highlight_markdown_inline(x, y);
+      return [row];
+    }
     const table = a.tagName === "TABLE";
     if (!table && (a.querySelector("li ul,li ol") || b2.querySelector("li ul,li ol") || a.getAttribute("start") !== b2.getAttribute("start"))) return [row];
     const aa2 = [...a.querySelectorAll(table ? ":scope > thead > tr,:scope > tbody > tr" : ":scope > li")], bb = [...b2.querySelectorAll(table ? ":scope > thead > tr,:scope > tbody > tr" : ":scope > li")];
@@ -181171,10 +181243,12 @@ https://creativecommons.org/licenses/by/4.0/
           for (let c = 0; c < x.children.length; c++) if (x.children[c].outerHTML !== y.children[c].outerHTML) {
             paint(x.children[c], "left");
             paint(y.children[c], "right");
+            highlight_markdown_inline(x.children[c], y.children[c]);
           }
         } else {
           if (x) paint(x, "left");
           if (y) paint(y, "right");
+          if (x && y) highlight_markdown_inline(x, y);
         }
       }
     };
@@ -185215,7 +185289,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/git_markdown_diff_shadow.css
-  var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px;border-bottom:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]:not([data-empty=true]){background:var(--vscode-diffEditor-removedTextBackground,#ff000033)}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)}\n:host([data-theme=dark]) .markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]:not([data-empty=true]){background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{display:block;opacity:.8}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n\n[data-diff-fragment=left]{background:var(--vscode-diffEditor-removedTextBackground,#ff000033)!important}\n[data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c40)!important}\n:host([data-theme=dark]) [data-diff-fragment=right]{background:var(--vscode-diffEditor-insertedTextBackground,#9ccc2c33)!important}\n.markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}\n#write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}\n#write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}\n";
+  var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:none}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n\n.markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}\n#write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}\n#write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}\n\n/* VS Code Markdown Preview\uFF1A\u6D45\u8272\u5757\u88C5\u9970\uFF0C\u5B9E\u9645\u6539\u8BCD\u53E0\u52A0\u5F3A\u8C03\uFF0C\u7A7A\u767D\u914D\u5BF9\u533A\u57DF\u4E0D\u67D3\u8272\u3002 */\n:host {--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#ad070726);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#587c0c26);--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#2090d3);}\n:host([data-theme=dark]) {--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#1b81a8);--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#f470674d);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#57ab5a4d);}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]>[data-source-line]>*,[data-diff-fragment=left] {background-color:var(--markdown-diff-removed)!important;border-radius:2px;}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>*,[data-diff-fragment=right] {background-color:var(--markdown-diff-added)!important;border-radius:2px;}\n.markdown-diff-row[data-changed=true]:has(>.markdown-diff-cell[data-side=left][data-empty=false]):not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>* {box-shadow:-4px 0 0 var(--markdown-diff-modified);}\nmark[data-diff-inline] {color:inherit!important;font:inherit!important;padding:0!important;border-radius:0;}\nmark[data-diff-inline=left] {background:var(--markdown-diff-removed)!important;}\nmark[data-diff-inline=right] {background:var(--markdown-diff-added)!important;}\n[data-diff-fragment]:focus-visible,.markdown-diff-row:focus-visible>.markdown-diff-cell>[data-source-line] {outline:1px solid var(--markdown-diff-modified);outline-offset:1px;}\n";
 
   // src/git_markdown_diff.ts
   var normalize3 = (value) => value.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
@@ -185391,6 +185465,7 @@ https://creativecommons.org/licenses/by/4.0/
               const sign = document.createElement("span");
               sign.className = "markdown-diff-sign";
               sign.textContent = side === "left" ? "\u2212 \u5220\u9664 / \u539F\u5185\u5BB9" : "+ \u65B0\u589E / \u4FEE\u6539\u540E";
+              sign.setAttribute("aria-hidden", "true");
               cell.append(sign);
             }
             for (const block3 of pair[side]) {
@@ -185687,7 +185762,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     capture_content_anchor() {
-      if (this.rendered_markdown) return this.markdown_preview?.capture();
+      if (this.rendered_markdown) return this.markdown_preview?.capture() || this.pending_anchor;
       const view = this.focused_editor(), range2 = view.getVisibleRanges()[0];
       if (!range2) return;
       const line = range2.startLineNumber, top = view.getTopForLineNumber(line), height = Math.max(1, view.getTopForLineNumber(line + 1) - top);
@@ -185728,8 +185803,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.refresh_labels();
       if (value) await this.render_markdown();
       else {
-        this.markdown_epoch++;
-        this.markdown_preview.invalidate();
+        this.invalidate_markdown();
         this.editor.layout();
         if (anchor) this.restore_content_anchor(anchor);
         this.pending_anchor = void 0;
@@ -185780,6 +185854,14 @@ https://creativecommons.org/licenses/by/4.0/
         this.restoring_navigation = false;
       }
     }
+    markdown_render_key = "";
+    markdown_render_task;
+    invalidate_markdown() {
+      this.markdown_epoch++;
+      this.markdown_render_key = "";
+      this.markdown_render_task = void 0;
+      this.markdown_preview?.invalidate();
+    }
     async render_markdown() {
       if (!this.markdown_preview || !this.rendered_markdown || !("getLineChanges" in this.editor)) return;
       const changes = this.editor.getLineChanges();
@@ -185787,17 +185869,32 @@ https://creativecommons.org/licenses/by/4.0/
         this.status.textContent = git_graph_text("diff.calculating");
         return;
       }
+      const key3 = JSON.stringify([this.models.map((model) => [model.id, model.getVersionId()]), this.data.left_label, this.data.right_label, changes.map((change) => [change.originalStartLineNumber, change.originalEndLineNumber, change.modifiedStartLineNumber, change.modifiedEndLineNumber])]);
+      if (key3 === this.markdown_render_key) {
+        if (this.markdown_render_task) return this.markdown_render_task;
+        if (this.markdown_preview.container.dataset.ready === "true") return;
+      }
+      this.markdown_render_key = key3;
       const epoch2 = ++this.markdown_epoch, input_epoch = this.input_epoch, anchor = this.pending_anchor || this.markdown_preview.capture();
-      try {
-        await this.markdown_preview.render(this.models[0].getValue(), this.models[1].getValue(), changes, [this.data.left_label || git_graph_text("diff.original"), this.data.right_label || git_graph_text("diff.modified")]);
-        if (!this.disposed && epoch2 === this.markdown_epoch && input_epoch === this.input_epoch && anchor) this.restore_content_anchor(anchor);
-        if (epoch2 === this.markdown_epoch) this.pending_anchor = void 0;
-      } catch (error) {
-        if (!this.disposed && epoch2 === this.markdown_epoch) {
-          this.set_markdown_mode(false);
-          this.status.textContent = String(error instanceof Error ? error.message : error);
-          this.report_error?.(error);
+      if (anchor) this.pending_anchor = anchor;
+      const task = (async () => {
+        try {
+          await this.markdown_preview.render(this.models[0].getValue(), this.models[1].getValue(), changes, [this.data.left_label || git_graph_text("diff.original"), this.data.right_label || git_graph_text("diff.modified")]);
+          if (!this.disposed && epoch2 === this.markdown_epoch && input_epoch === this.input_epoch && anchor) this.restore_content_anchor(anchor);
+          if (epoch2 === this.markdown_epoch) this.pending_anchor = void 0;
+        } catch (error) {
+          if (!this.disposed && epoch2 === this.markdown_epoch) {
+            this.set_markdown_mode(false);
+            this.status.textContent = String(error instanceof Error ? error.message : error);
+            this.report_error?.(error);
+          }
         }
+      })();
+      this.markdown_render_task = task;
+      try {
+        await task;
+      } finally {
+        if (this.markdown_render_task === task) this.markdown_render_task = void 0;
       }
     }
     set_side_by_side(value) {
@@ -185984,8 +186081,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       this.data = data;
       this.refresh_labels();
-      this.markdown_epoch++;
-      this.markdown_preview?.invalidate();
+      this.invalidate_markdown();
       if (this.rendered_markdown) void this.render_markdown();
     }
     context_menu(event) {
@@ -186592,7 +186688,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.setAttribute("aria-label", "\u5F53\u524D\u7F16\u8F91\u5668\u72B6\u6001");
     const style = acquire_workspace_style("typora-code-style:workspace_editor_status", workspace_editor_status_default, {});
     const layout_style = acquire_workspace_footer_layout();
-    const owners = /* @__PURE__ */ new Map();
+    const owners2 = /* @__PURE__ */ new Map();
     let disposed = false, frame3 = 0, observed_controls;
     if (footer) footer.insertBefore(container, footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
     const layout2 = () => {
@@ -186614,7 +186710,7 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       if (disposed) return;
       const active2 = core.app.workspace.activeLeaf;
-      const controls = active2 ? owners.get(active2) : void 0;
+      const controls = active2 ? owners2.get(active2) : void 0;
       footer?.toggleAttribute("data-empty-editor", !active2 || is_empty_editor_path(active2.state.path));
       if (observed_controls !== controls) {
         contents.disconnect();
@@ -186659,7 +186755,7 @@ https://creativecommons.org/licenses/by/4.0/
       document.removeEventListener("focusin", schedule, true);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("unload", dispose2);
-      owners.clear();
+      owners2.clear();
       container.remove();
       footer?.removeAttribute("data-editor-status");
       layout_style.remove();
@@ -186668,10 +186764,10 @@ https://creativecommons.org/licenses/by/4.0/
     };
     window.addEventListener("unload", dispose2);
     const binding = { container, register(leaf, controls) {
-      owners.set(leaf, controls);
+      owners2.set(leaf, controls);
       refresh();
     }, release(leaf) {
-      owners.delete(leaf);
+      owners2.delete(leaf);
       refresh();
     }, refresh, schedule, dispose: dispose2 };
     status_bindings.set(core, binding);
@@ -187620,6 +187716,78 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_files.css
   var workspace_files_default = "";
 
+  // src/workspace_list_selection.ts
+  var owners = /* @__PURE__ */ new WeakMap();
+  function apply_workspace_row_selection(row, selected, focused = false) {
+    row.dataset.workspaceSelected = String(selected);
+    row.dataset.workspaceFocused = String(focused);
+    row.setAttribute("aria-selected", String(selected));
+    row.classList.toggle("is-selected", selected);
+    if (row.dataset.gitSource !== void 0) {
+      row.dataset.gitSourceSelected = String(selected);
+      row.classList.toggle("selected", selected);
+    }
+  }
+  function workspace_selection_owner(row) {
+    const root = row.closest("[data-workspace-list]");
+    return root ? owners.get(root) : void 0;
+  }
+  var workspace_list_selection = class {
+    constructor(root) {
+      this.root = root;
+      root.dataset.workspaceList = "";
+      owners.set(root, this);
+      root.addEventListener("focusin", this.focus);
+    }
+    keys = /* @__PURE__ */ new Set();
+    focused_key = "";
+    external_key;
+    focus = (event) => {
+      const row = event.target?.closest("[data-workspace-row-key]");
+      if (row && workspace_selection_owner(row) === this) {
+        this.focused_key = row.dataset.workspaceRowKey;
+        this.refresh();
+      }
+    };
+    select(keys, focus) {
+      const next = [...keys];
+      this.keys.clear();
+      for (const key3 of next) if (key3) this.keys.add(key3);
+      this.focused_key = focus ?? next[0] ?? "";
+      this.refresh();
+    }
+    /** 活动内容变化可投影选择；同一内容的后台刷新不能覆盖用户的新选择。 */
+    project_external(key3, force = false) {
+      if (!force && key3 === this.external_key) return;
+      this.external_key = key3;
+      this.select(key3 ? [key3] : []);
+    }
+    bind(row, key3) {
+      row.dataset.workspaceRowKey = key3;
+      row.dataset.workspaceInteraction = "row";
+      this.paint(row);
+    }
+    paint(row) {
+      const key3 = row.dataset.workspaceRowKey;
+      apply_workspace_row_selection(row, this.keys.has(key3), key3 === this.focused_key);
+    }
+    refresh() {
+      for (const row of this.root.querySelectorAll("[data-workspace-row-key]")) {
+        if (workspace_selection_owner(row) === this) this.paint(row);
+      }
+    }
+    reset() {
+      this.external_key = void 0;
+      this.select([]);
+    }
+    dispose() {
+      this.root.removeEventListener("focusin", this.focus);
+      owners.delete(this.root);
+      delete this.root.dataset.workspaceList;
+      this.keys.clear();
+    }
+  };
+
   // src/workspace_explorer.css
   var workspace_explorer_default = "";
 
@@ -187655,7 +187823,8 @@ https://creativecommons.org/licenses/by/4.0/
     let rename_state;
     let compact_folders = false;
     let search_projection = false;
-    const selection_paths = /* @__PURE__ */ new Set();
+    const selection_model = new workspace_list_selection(tree);
+    const selection_paths = selection_model.keys;
     let operation_busy = false, compare_path = "";
     const dialogs = /* @__PURE__ */ new Set();
     const nodes = /* @__PURE__ */ new Map();
@@ -187845,13 +188014,14 @@ https://creativecommons.org/licenses/by/4.0/
             };
           }
           const { row, chevron, label, note, file_icon } = view;
-          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) || node.path === selected_path ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
+          row.className = "workspace-explorer-row" + (selection_paths.has(node.path) ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
           row.id = node.id;
           row.dataset.path = node.path;
           row.dataset.directory = String(node.directory);
           row.setAttribute("role", "treeitem");
           row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1));
-          row.setAttribute("aria-selected", String(selection_paths.has(node.path) || node.path === selected_path));
+          selection_model.focused_key = selected_path;
+          selection_model.bind(row, node.path);
           if (node.directory) row.setAttribute("aria-expanded", String(node.expanded));
           else row.removeAttribute("aria-expanded");
           row.setAttribute("aria-busy", String(Boolean(node.loading)));
@@ -187903,10 +188073,9 @@ https://creativecommons.org/licenses/by/4.0/
         else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
       }
       if (preserve_dom) {
+        selection_model.focused_key = selected_path;
         for (const row of tree.querySelectorAll(".workspace-explorer-row")) {
-          const selected = row.dataset.path === node.path;
-          row.classList.toggle("is-selected", selected);
-          row.setAttribute("aria-selected", String(selected));
+          selection_model.paint(row);
         }
         tree.setAttribute("aria-activedescendant", node.id);
       } else render();
@@ -188403,6 +188572,7 @@ https://creativecommons.org/licenses/by/4.0/
     }));
     function dispose2() {
       file_icon_style.remove();
+      selection_model.dispose();
       if (disposed) return;
       disposed = true;
       interaction.remove();
@@ -189898,10 +190068,10 @@ https://creativecommons.org/licenses/by/4.0/
         for (const leaf of leaves) if (!await save_leaf(leaf)) return false;
         return true;
       }
-      const owners = /* @__PURE__ */ new Set();
+      const owners2 = /* @__PURE__ */ new Set();
       const source_saves = [...views].filter((view) => {
-        if (view.disposed || !view.dirty() || owners.has(view.shared)) return false;
-        owners.add(view.shared);
+        if (view.disposed || !view.dirty() || owners2.has(view.shared)) return false;
+        owners2.add(view.shared);
         return true;
       }).map((view) => view.save());
       source_saves.push(...[...document_ports].filter((port) => !port.disposed && port.dirty()).map((port) => port.save()));
@@ -206978,17 +207148,22 @@ https://creativecommons.org/licenses/by/4.0/
     const key3 = git_diff_source_key(source);
     for (const row of root.querySelectorAll("[data-git-source]")) {
       const selected = !!key3 && row.dataset.gitSource === key3;
-      row.classList.toggle("selected", selected);
-      row.dataset.gitSourceSelected = String(selected);
+      const owner2 = workspace_selection_owner(row);
+      if (owner2) {
+        owner2.project_external(key3);
+        owner2.paint(row);
+      } else apply_workspace_row_selection(row, selected);
       if (selected) row.setAttribute("aria-current", "true");
       else row.removeAttribute("aria-current");
     }
   }
-  function bind_git_source_row(row, source, active2) {
+  function bind_git_source_row(row, source, active2, owner2) {
     row.dataset.gitSource = git_diff_source_key(source);
     const selected = row.dataset.gitSource === git_diff_source_key(active2);
-    row.classList.toggle("selected", selected);
-    row.dataset.gitSourceSelected = String(selected);
+    if (owner2) {
+      owner2.project_external(git_diff_source_key(active2));
+      owner2.bind(row, row.dataset.gitSource);
+    } else apply_workspace_row_selection(row, selected);
     if (selected) row.setAttribute("aria-current", "true");
   }
 
@@ -209521,6 +209696,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.container.append(this.header, this.list);
       this.header.oncontextmenu = (event) => owner2.view_menu(event, "show_history");
       this.list.setAttribute("aria-label", git_graph_text("history.commit_history"));
+      this.list.setAttribute("role", "tree");
       this.list.addEventListener("keydown", (event) => {
         if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
         const target = event.target;
@@ -209548,6 +209724,7 @@ https://creativecommons.org/licenses/by/4.0/
     selected = "";
     epoch = 0;
     root = "";
+    selection = new workspace_list_selection(this.list);
     toolbar;
     file_lists = /* @__PURE__ */ new Map();
     revealed_commit;
@@ -209567,6 +209744,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.toolbar.more_menu(event);
     }
     reset() {
+      this.selection.reset();
       this.clear_file_lists();
       this.hover.hide();
       this.epoch++;
@@ -209592,6 +209770,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const state = panel.state;
       if (!state?.commits.some((commit) => commit.hash === state.head)) return;
+      this.selection.select(["commit:" + state.head]);
       this.selected = state.head;
       this.owner.history_open = true;
       this.owner.show_history = true;
@@ -209621,6 +209800,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.container.dataset.historyAlwaysShowActions = String(panel.settings.history_always_show_actions);
       const focused_hash = this.list.contains(document.activeElement) ? document.activeElement?.closest(".git-scm-history-commit")?.dataset.hash : void 0;
       if (!state.commits.some((commit) => commit.hash === this.selected)) this.selected = "";
+      this.selection.project_external(git_diff_source_key(panel.host.diff_source?.()));
       const graph = build_git_graph(state.commits);
       const fragment = document.createDocumentFragment();
       this.toolbar.update();
@@ -209636,9 +209816,12 @@ https://creativecommons.org/licenses/by/4.0/
         const expanded2 = commit.hash === this.selected;
         const row = workspace_button("", () => {
           this.reveal_request++;
+          this.selection.select(["commit:" + commit.hash]);
           this.selected = this.selected === commit.hash ? "" : commit.hash;
           this.render(state);
         }, "git-scm-history-commit");
+        this.selection.bind(row, "commit:" + commit.hash);
+        row.setAttribute("role", "treeitem");
         row.dataset.hash = commit.hash;
         row.dataset.head = String(commit.hash === state.head);
         row.setAttribute("aria-expanded", String(expanded2));
@@ -209667,7 +209850,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         const graph_row = graph.rows[index];
         const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
-        const svg3 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT });
+        const svg3 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
         svg3.classList.add("git-scm-history-topology");
         svg3.setAttribute("viewBox", "0 0 ".concat((row_lanes + 1) * HISTORY_LANE_WIDTH, " ").concat(HISTORY_ROW_HEIGHT));
         row.append(disclosure, svg3, summary);
@@ -209727,7 +209910,7 @@ https://creativecommons.org/licenses/by/4.0/
         line.setAttribute("x2", x);
         line.setAttribute("y1", "0");
         line.setAttribute("y2", "1");
-        line.setAttribute("stroke", this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]);
+        line.setAttribute("stroke", this.owner.panel.graph_color?.(edge.color) || this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]);
         line.setAttribute("stroke-width", "2");
         line.setAttribute("vector-effect", "non-scaling-stroke");
         svg3.append(line);
@@ -209801,10 +209984,14 @@ https://creativecommons.org/licenses/by/4.0/
       const create_row = (file) => {
         const wrapper = workspace_element("div", "git-scm-history-file-row");
         const row = workspace_button("", () => {
-          if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files);
+          if (this.owner.repository_action_available(root)) {
+            this.selection.select([git_diff_source_key({ root, from, to: commit.hash, file: file.path, old_path: file.old_path })]);
+            void this.owner.open_file(file, from, commit.hash, files);
+          }
         }, "git-scm-history-file");
         row.dataset.workspaceInteraction = "row";
-        bind_git_source_row(row, { root, from, to: commit.hash, file: file.path, old_path: file.old_path }, this.owner.panel.host.diff_source?.());
+        bind_git_source_row(row, { root, from, to: commit.hash, file: file.path, old_path: file.old_path }, this.owner.panel.host.diff_source?.(), this.selection);
+        row.setAttribute("role", "treeitem");
         row.style.lineHeight = "var(--git-scm-row-height,22px)";
         row.setAttribute("data-history-file", file.path);
         row.title = (file.old_path ? file.old_path + " \u2192 " : "") + file.path;
@@ -209882,6 +210069,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!state.commits.some((item) => item.hash === commit.hash)) this.revealed_commit = commit;
       this.files_cache.set(commit.hash, files);
       this.comparison_from.set(commit.hash, source.from);
+      this.selection.project_external(git_diff_source_key(source), true);
       this.selected = commit.hash;
       for (const key3 of [...this.collapsed_directories]) if (key3.startsWith(commit.hash + ":")) this.collapsed_directories.delete(key3);
       this.owner.history_open = true;
@@ -209901,6 +210089,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.owner.sync_source_selection();
     }
     dispose() {
+      this.selection.dispose();
       this.reveal_request++;
       this.clear_file_lists();
       this.toolbar.dispose();
@@ -209979,6 +210168,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.panel = panel;
       this.source_subscription = panel.host.core?.app?.workspace?.on?.("active-leaf:change", () => this.sync_source_selection());
       this.sidebar.setAttribute("data-linux-note-source-control", "ready");
+      this.groups.dataset.workspaceList = "";
       this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
       const title_label = workspace_element("span", "git-scm-title-label", git_graph_text("scm.source_control"));
       title_label.title = git_graph_text("scm.source_control");
@@ -210142,6 +210332,7 @@ https://creativecommons.org/licenses/by/4.0/
     source_subscription;
     sync_source_selection() {
       const source = this.panel.host.diff_source?.();
+      this.history.selection.project_external(git_diff_source_key(source));
       sync_git_source_rows(this.sidebar, source);
       sync_git_source_rows(this.panel.container, source);
     }
@@ -232856,7 +233047,7 @@ https://creativecommons.org/licenses/by/4.0/
     stash: "graph.target.stash",
     file: "graph.target.file"
   }[kind] || "graph.target.repository");
-  var git_graph_panel = class {
+  var git_graph_panel = class _git_graph_panel {
     constructor(host, cwd2) {
       this.host = host;
       this.resources = git_workspace_resources(host.path_api);
@@ -232947,6 +233138,7 @@ https://creativecommons.org/licenses/by/4.0/
     state;
     container = workspace_element("section", "linux-note-git-graph");
     toolbar = workspace_element("div", "git-graph-toolbar");
+    selection = new workspace_list_selection(this.container);
     status = workspace_element("div", "git-graph-status");
     list = workspace_element("div", "git-graph-list");
     details = workspace_element("section", "git-graph-details");
@@ -233052,6 +233244,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.column_binding?.dispose();
       this.column_binding = void 0;
       this.workbench.dispose();
+      this.selection.dispose();
       this.container.remove();
       this.container.replaceChildren();
       this.state = void 0;
@@ -233415,7 +233608,12 @@ https://creativecommons.org/licenses/by/4.0/
       }
       return new Date(source).toLocaleString(git_graph_language_tag());
     }
-    draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }) {
+    graph_color(index) {
+      const custom = this.settings.colors, defaults = graph_defaults.colors;
+      if (custom.length === defaults.length && custom.every((color, i) => color === defaults[i])) return ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index % 7];
+      return custom[index % custom.length];
+    }
+    draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }, node_kind = "normal") {
       const ns2 = "http://www.w3.org/2000/svg";
       const svg3 = document.createElementNS(ns2, "svg");
       svg3.setAttribute("width", String((width2 - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap));
@@ -233429,22 +233627,36 @@ https://creativecommons.org/licenses/by/4.0/
         const bottom = top + half_height;
         path.setAttribute("d", this.settings.graph_style === "straight" ? "M".concat(x(edge.from), ",").concat(top, " L").concat(x(edge.to), ",").concat(bottom) : "M".concat(x(edge.from), ",").concat(top, " C").concat(x(edge.from), ",").concat(top + half_height / 2, " ").concat(x(edge.to), ",").concat(bottom - half_height / 2, " ").concat(x(edge.to), ",").concat(bottom));
         path.setAttribute("fill", "none");
-        path.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]);
+        path.setAttribute("stroke", _git_graph_panel.prototype.graph_color.call(this, edge.color));
         path.setAttribute("stroke-width", "2");
         svg3.append(path);
       }
-      const dot = document.createElementNS(ns2, "circle");
-      dot.setAttribute("cx", String(x(row.lane)));
-      dot.setAttribute("cy", String(half_height));
-      dot.setAttribute("r", "4");
-      dot.setAttribute("fill", this.settings.colors[row.color % this.settings.colors.length]);
-      svg3.append(dot);
+      svg3.classList.add("git-history-node");
+      svg3.dataset.nodeKind = node_kind;
+      const circle = (radius, stroke_width, fill) => {
+        const dot = document.createElementNS(ns2, "circle");
+        dot.setAttribute("cx", String(x(row.lane)));
+        dot.setAttribute("cy", String(half_height));
+        dot.setAttribute("r", String(radius));
+        dot.setAttribute("stroke-width", String(stroke_width));
+        if (fill) dot.setAttribute("fill", fill);
+        svg3.append(dot);
+      };
+      const color = _git_graph_panel.prototype.graph_color.call(this, row.color);
+      if (node_kind === "head") {
+        circle(7, 2, color);
+        circle(2, 4);
+      } else if (node_kind === "merge") {
+        circle(6, 2, color);
+        circle(3, 2, color);
+      } else circle(5, 2, color);
       return svg3;
     }
     render_history() {
       this.column_binding?.dispose();
       this.column_binding = void 0;
       const state = this.state;
+      this.selection.project_external(git_diff_source_key(this.host.diff_source?.()));
       this.container.setAttribute("data-details-location", this.settings.details_location);
       this.container.setAttribute("data-label-alignment", this.settings.label_alignment);
       for (const key3 of ["date", "author", "hash"]) this.container.dataset["show" + key3] = String(this.settings["show_" + key3]);
@@ -233495,6 +233707,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       state.commits.forEach((commit, index) => {
         const row = workspace_element("div", "git-graph-row");
+        this.selection.bind(row, "commit:" + commit.hash);
         row.dataset.hash = commit.hash;
         row.tabIndex = 0;
         row.setAttribute("role", "button");
@@ -233512,8 +233725,8 @@ https://creativecommons.org/licenses/by/4.0/
         };
         row.oncontextmenu = (event) => this.target_menu(event, commit.stash ? "stash" : "commit", commit.stash || commit.hash, commit.hash);
         const graph_row = graph.rows[index + (connected ? 1 : 0)];
-        row.style.setProperty("--git-graph-ref-color", this.settings.colors[graph_row.color % this.settings.colors.length]);
-        const svg3 = this.draw_graph(graph_row, graph.width);
+        row.style.setProperty("--git-graph-ref-color", this.graph_color(graph_row.color));
+        const svg3 = this.draw_graph(graph_row, graph.width, void 0, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
         svg3.onmouseenter = () => {
           const epoch2 = this.epoch;
           if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then((value) => {
@@ -233622,7 +233835,7 @@ https://creativecommons.org/licenses/by/4.0/
             const x = edge.to * 16 + 10;
             line.setAttribute("d", "M".concat(x, ",0 V300"));
             line.setAttribute("fill", "none");
-            line.setAttribute("stroke", this.settings.colors[edge.color % this.settings.colors.length]);
+            line.setAttribute("stroke", _git_graph_panel.prototype.graph_color.call(this, edge.color));
             line.setAttribute("stroke-width", "2");
             rail.append(line);
           }
@@ -233660,6 +233873,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (row) this.list.scrollTop = row.offsetTop - this.list.clientHeight / 2;
     }
     activate_row(hash2, parent, event) {
+      this.selection.select(["commit:" + hash2]);
       if ((event.ctrlKey || event.metaKey) && this.selected && this.selected !== hash2) {
         void this.show_comparison(this.selected === WORKTREE ? hash2 : this.selected, this.selected === WORKTREE ? WORKTREE : hash2);
         return;
@@ -233872,7 +234086,7 @@ https://creativecommons.org/licenses/by/4.0/
         }, "git-graph-file");
         row.dataset.file = file.path;
         row.title = file.path;
-        bind_git_source_row(row, { root: this.root, from: this.from, to: this.to, file: file.path, old_path: file.old_path }, this.host.diff_source?.());
+        bind_git_source_row(row, { root: this.root, from: this.from, to: this.to, file: file.path, old_path: file.old_path }, this.host.diff_source?.(), this.selection);
         const display_path = file.old_path ? file.old_path + " \u2192 " + file.path : file.path;
         const parts = display_path.split("/");
         const file_icon = workspace_file_icon(file.path);
@@ -235406,6 +235620,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_breadcrumbs_picker.ts
   function open_breadcrumb_picker(anchor, items, options2) {
     const root = workspace_element("section", "workspace-breadcrumb-picker"), filter_box = workspace_element("div", "workspace-breadcrumb-filter"), filter = workspace_element("input"), tree = workspace_element("div", "workspace-breadcrumb-tree");
+    const selection_model = new workspace_list_selection(tree);
     root.setAttribute("role", "dialog");
     root.setAttribute("aria-label", options2.label);
     filter.type = "search";
@@ -235436,6 +235651,7 @@ https://creativecommons.org/licenses/by/4.0/
       closed = true;
       pending++;
       dismiss.dispose();
+      selection_model.dispose();
       interaction.remove();
       window.removeEventListener("resize", resize);
       document.removeEventListener("scroll", scroll, true);
@@ -235464,7 +235680,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const mark = (id) => {
       selected = id;
-      for (const row of tree.querySelectorAll('[role="treeitem"]')) row.setAttribute("aria-selected", String(row.dataset.itemId === selected));
+      selection_model.select([id]);
       visible_selection();
     };
     const activate = async (item) => {
@@ -235515,7 +235731,7 @@ https://creativecommons.org/licenses/by/4.0/
           row.dataset.itemId = item.id;
           row.setAttribute("role", "treeitem");
           row.setAttribute("aria-level", String(depth + 1));
-          row.setAttribute("aria-selected", String(item.id === selected));
+          selection_model.bind(row, item.id);
           row.style.paddingLeft = depth * 16 + "px";
           row.title = item.title || item.label;
           if (item.children) {
@@ -239198,6 +239414,7 @@ https://creativecommons.org/licenses/by/4.0/
             this.containerEl.remove();
           });
           this.containerEl.setAttribute("data-linux-note-workspace-search", "ready");
+          this.results.dataset.workspaceList = "";
           const heading3 = workspace_element("div", "workspace-search-heading");
           heading3.append(workspace_element("strong", "", "\u641C\u7D22"));
           heading3.append(
@@ -239655,7 +239872,6 @@ https://creativecommons.org/licenses/by/4.0/
             const summary = workspace_element("summary");
             summary.title = file.relative_path;
             summary.tabIndex = 0;
-            summary.classList.toggle("is-selected", this.selected?.file.file_path === file.file_path);
             const label = workspace_element("span", "workspace-search-file-name", files.path_api.basename(file.file_path));
             const path = workspace_element("span", "workspace-search-file-path", files.path_api.dirname(file.relative_path).replace(/^\.$/u, ""));
             const disclosure = workspace_button("", () => {
@@ -239733,7 +239949,7 @@ https://creativecommons.org/licenses/by/4.0/
               row.title = "".concat(file.relative_path, ":").concat(match2.line, ":").concat(match2.column, "\n").concat(match2.preview);
               row.setAttribute("aria-label", "".concat(file.relative_path, "\uFF0C\u7B2C ").concat(match2.line, " \u884C\uFF0C\u7B2C ").concat(match2.column, " \u5217\uFF1A").concat(match2.preview));
               const selected = this.selected?.match.id === match2.id;
-              row.classList.toggle("is-selected", selected);
+              apply_workspace_row_selection(row, selected, selected);
               row.setAttribute("aria-current", String(selected));
               row.append(workspace_element("span", "workspace-search-line", String(match2.line)));
               const preview = workspace_element("span", "workspace-search-preview");
@@ -239772,10 +239988,9 @@ https://creativecommons.org/licenses/by/4.0/
           this.remembered.set(file.file_path, match2.id);
           for (const row of this.results.querySelectorAll("[data-match-id]")) {
             const selected = row.dataset.matchId === match2.id;
-            row.classList.toggle("is-selected", selected);
+            apply_workspace_row_selection(row, selected, selected);
             row.setAttribute("aria-current", String(selected));
           }
-          for (const group of this.results.querySelectorAll(".workspace-search-file")) group.querySelector("summary")?.classList.toggle("is-selected", group.dataset.path === file.file_path);
           void Promise.resolve(this.preview.show(file, match2)).catch((error) => {
             if (!disposed && this.selected?.match === match2) this.status.textContent = String(error);
           });
@@ -245989,6 +246204,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092405,
+        version: "2026.09.24.5",
+        date: "2026-09-24",
+        notes: [
+          "\u8D44\u6E90\u6811\u3001Git\u63D0\u4EA4\u4E0E\u6587\u4EF6\u5171\u7528\u9009\u4E2D/\u7126\u70B9/\u60AC\u505C\u89C4\u5219\uFF1B\u9009\u4E2D\u63D0\u4EA4\u4E0E\u6587\u4EF6\u76F8\u4E92\u79FB\u4EA4\uFF0CHEAD\u548C\u666E\u901A\u8282\u70B9\u6309VS Code\u533A\u5206\u5F62\u72B6\u4E0E\u72B6\u6001\u3002",
+          "\u5DE5\u4F5C\u53F0\u660E\u6697\u914D\u8272\u7EDF\u4E00\u91C7\u7528\u5DF2\u6838\u5BF9\u7684\u6700\u65B0VS Code 2026\u4E3B\u9898\uFF0C\u4FDD\u7559\u900F\u660E\u9009\u4E2D\u8272\u4E0E\u80CC\u666F\u5C42\u6B21\uFF1BMarkdown\u7EE7\u7EED\u6CBF\u7528\u5F53\u524D\u6B63\u6587\u4E3B\u9898\u3002",
+          "Markdown\u6E32\u67D3\u5DEE\u5F02\u6539\u4E3A\u6D45\u8272\u5185\u5BB9\u80CC\u666F\u5E76\u5F3A\u8C03\u5B9E\u9645\u6539\u8BCD\uFF0C\u4FEE\u6539\u663E\u793A\u4FA7\u8FB9\u6807\u8BB0\uFF1B\u4FDD\u7559\u6807\u9898\u3001\u8868\u683C\u7EC6\u5316\u4E0E\u6A21\u5F0F\u5207\u6362\u5B9A\u4F4D\u3002"
+        ]
+      },
       {
         sequence: 2026092404,
         version: "2026.09.24.4",

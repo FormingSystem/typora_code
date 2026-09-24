@@ -1,4 +1,4 @@
-/* VS Code 88e44fa语义颜色、645f29c的4px控件圆角：仅在声明的UI范围绘制。
+/* VS Code 6807068语义颜色、4px控件圆角：仅在声明的UI范围绘制。
    内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
 :root {
   /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
@@ -8,6 +8,8 @@
   --workspace-tree-indent:8px;
   --workspace-tree-twistie-gap:6px;
   --workspace-tree-twistie-offset:3px;
+  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#00000025);
+  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#202020);
   --workspace-control-radius:var(--vscode-cornerRadius-small,4px);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#00000014);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#202020);
@@ -15,11 +17,13 @@
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
-  /* 645f29c Light/Dark 2026：选中背景和前景必须成对切换。 */
+  /* 6807068 Light/Dark 2026：选中背景和前景必须成对切换。 */
   --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
   --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
 :root[data-workspace-file-icon-theme="dark"] {
+  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#ffffff22);
+  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#ededed);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#ffffff14);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#bfbfbf);
   --workspace-action-hover:var(--vscode-toolbar-hoverBackground,#5a5d5e50);
@@ -45,7 +49,7 @@ body [data-workspace-interaction="primary"]:not(:where([data-workspace-interacti
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
 /* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
-:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
+:where([role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
 /* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
@@ -68,3 +72,26 @@ body .workspace-section-header.workspace-section-header {
 body .workspace-section-header.workspace-section-header:hover {background-color:var(--workspace-hover-background)!important;}
 body .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}
 body .workspace-section-header > .workspace-section-actions {margin-right:0;}
+
+/* R020.1：列表/树共同的整行状态。业务模块只投影键，不复制选中背景。 */
+[data-workspace-list] {--workspace-list-surface:var(--workspace-list-background,var(--vscode-sideBar-background,#fafafd));}
+body [data-workspace-list] [data-workspace-selected] {
+  --workspace-row-background:transparent;
+  --workspace-row-foreground:inherit;
+  --workspace-interaction-hover:var(--vscode-list-hoverBackground,#00000014);
+  --workspace-interaction-foreground:var(--vscode-list-hoverForeground,inherit);
+  background-color:var(--workspace-row-background)!important;color:var(--workspace-row-foreground)!important;
+}
+body [data-workspace-list] [data-workspace-selected=false]:hover {--workspace-row-background:var(--workspace-hover-background);--workspace-row-foreground:var(--workspace-hover-foreground);}
+body [data-workspace-list] [data-workspace-selected=true] {
+  --workspace-row-background:var(--linux-note-shell-inactive-selection-background);
+  --workspace-row-foreground:var(--linux-note-shell-inactive-selection-foreground);
+  --workspace-interaction-hover:var(--workspace-row-background);
+  --workspace-interaction-foreground:var(--workspace-row-foreground);
+}
+body [data-workspace-list]:focus-within [data-workspace-selected=true] {
+  --workspace-row-background:var(--workspace-list-active-background);
+  --workspace-row-foreground:var(--workspace-list-active-foreground);
+}
+body [data-workspace-list]:focus-visible [data-workspace-focused=true],
+body [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:1px solid var(--vscode-list-focusOutline,var(--workspace-focus-border))!important;outline-offset:-1px;}

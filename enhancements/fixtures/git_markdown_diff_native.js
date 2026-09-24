@@ -21,7 +21,7 @@
     assert(shadow.querySelectorAll('h1').length===2&&shadow.querySelectorAll('table').length===2&&shadow.querySelectorAll('ul').length===2,'原生主题中两侧标题表格列表完整');
     assert(shadow.querySelector('[data-side=left]').textContent.includes('INDEX')||shadow.textContent.includes('原'),'比较版本标签可见');
     const changed=shadow.querySelector('[data-changed=true]');assert(!!changed,'实际Git改动进入着色块');
-    assert(getComputedStyle(changed.children[0]).backgroundColor!==getComputedStyle(changed.children[1]).backgroundColor,'原始宿主左右实际差异色不同');
+    assert(getComputedStyle(changed.children[0].querySelector('[data-source-line]>p')).backgroundColor!==getComputedStyle(changed.children[1].querySelector('[data-source-line]>p')).backgroundColor,'原始宿主左右实际差异色不同');
     assert(diff.toolbar.closest('.workspace-tab-strip'),'快捷动作位于所属标签工具栏');
     assert(!!diff.toolbar.querySelector('[data-diff-open-file]'),'保留打开原文件图标');
     const alt=key=>window.dispatchEvent(new KeyboardEvent('keydown',{key,altKey:true,bubbles:true,cancelable:true}));
@@ -72,7 +72,7 @@
     assert(app.workspace.activeLeaf===leaf,'刷新保持当前比较标签');
     assert(fs.readFileSync(path.join(root,'front.md'),'utf8')===original&&fs.readFileSync(path.join(root,filename),'utf8')===newest,'阅读和比较未改写源文件');
     assert(!shadow.querySelector('[contenteditable=true]')&&diff.editor.getOriginalEditor().getRawOptions().readOnly,'排版比较只读');
-    git(['add','--',filename]);git(['commit','-m','test: second historical snapshot']);
+    git(['add','--',filename]);git(['commit','-m','test: second historical snapshot']);await panel.refresh();await wait(()=>!panel.pending);
     const first=git(['rev-parse','HEAD~1']).toString().trim(),second=git(['rev-parse','HEAD']).toString().trim();
     await panel.workbench.open_file({path:filename,status:'M'},first,second,[{path:filename,status:'M'}]);await wait(()=>app.workspace.activeLeaf?.view.editor?.markdown_preview?.container.dataset.ready==='true');
     const historical=app.workspace.activeLeaf;historical.view.editor.markdown_preview.scroll.scrollTop=500;
@@ -83,11 +83,22 @@
     assert(source_row.dataset.historyFile===filename&&source_row.closest('[data-commit]').dataset.commit===second,'定位入口展开准确提交与文件');
     assert(app.workspace.activeLeaf===historical,'定位来源不切换比较正文');
     assert(getComputedStyle(source_row).backgroundColor!=='rgba(0, 0, 0, 0)','Git历史来源有实际选中底色');
-    const commit_row=document.querySelector('.git-scm-history-commit[aria-expanded=true]');
+    const history_scope=source_row.closest('.git-scm-history');
+    const commit_row=history_scope.querySelector('.git-scm-history-commit[aria-expanded=true]');
     assert(getComputedStyle(commit_row).backgroundColor==='rgba(0, 0, 0, 0)','父提交只展开，不添加第二条选中底色');
     assert(Math.abs(source_row.getBoundingClientRect().left-document.querySelector('.git-scm-history-list').getBoundingClientRect().left)<1,'原生来源选中背景覆盖完整历史行');
     historical.view.containerEl.tabIndex=-1;historical.view.containerEl.focus();
     assert(source_row.dataset.gitSourceSelected==='true','焦点离开提交图仍保留比较文件选中');
+
+    commit_row.click();await pause(150);
+    let selected_commit=document.querySelector('.git-scm-history-commit[data-workspace-selected=true]');
+    assert(selected_commit&&!document.querySelector('.git-scm-history [data-history-file][data-workspace-selected=true]'),'原生点击提交将选择从文件移交');
+    history_scope.querySelector('.git-scm-history-commit[data-head=true]').click();await pause(150);
+    selected_commit=history_scope.querySelector('.git-scm-history-commit[data-workspace-selected=true]');
+    assert(selected_commit.querySelectorAll('.git-history-node circle').length===2&&selected_commit.querySelector('circle').getAttribute('r')==='7','原生HEAD使用7px外圈与2px内圈 '+JSON.stringify({hash:selected_commit.dataset.hash,head:selected_commit.dataset.head,svg:selected_commit.querySelector('svg.git-scm-history-topology')?.outerHTML}));
+    assert(getComputedStyle(selected_commit.querySelector('circle')).stroke==='rgba(0, 0, 0, 0)','原生选中HEAD描边透明形成放大实心效果');
+    historical.parent.containerEl.querySelector('[data-git-diff-reveal]').click();await wait(()=>document.querySelector('.git-scm-history [data-history-file][data-workspace-selected=true]'));
+    assert(!document.querySelector('.git-scm-history-commit[data-workspace-selected=true]'),'原生定位文件清除父提交选择');
 
     historical.view.editor.toolbar.querySelector('[data-diff-open-file]').click();await wait(()=>!!app.workspace.activeLeaf?.view.document?.options.navigation);await settled();
     assert(!document.querySelector('.git-scm-history [data-git-source-selected=true]'),'历史单版本不沿用旧比较选中');
@@ -121,6 +132,15 @@
       const editor=sample_diff.focused_editor();editor.setScrollTop(editor.getTopForLineNumber(61+i*4));const current=sample_diff.capture_content_anchor();
       await sample_diff.set_markdown_mode(true);await wait(()=>preview.container.dataset.ready==='true');assert(Math.abs(sample_diff.capture_content_anchor().line-current.line)<=2,'原生源码滚动后切渲染采用新位置 '+i);
     }
+    const inline_diff=new diff.constructor({title:'inline.md',file:'inline.md',left:'# 保持标题\n\n这一段包含旧链接和 old 文字，其他内容保持。',right:'# 保持标题\n\n这一段包含新链接和 new 文字，其他内容保持。'});
+    Object.assign(inline_diff.container.style,{position:'fixed',inset:'100px 80px 80px 400px',zIndex:'10001'});document.body.append(inline_diff.container);await wait(()=>inline_diff.markdown_preview.container.dataset.ready==='true');
+    const inline_shadow=inline_diff.markdown_preview.shadow;
+    assert([...inline_shadow.querySelectorAll('h1')].every(node=>node.closest('[data-changed]').dataset.changed==='false'),'原生行内修改不误标共同标题');
+    assert([...inline_shadow.querySelectorAll('[data-diff-inline=left]')].map(n=>n.textContent).join('')==='旧old','原生行内精确标记中英文变化');
+    assert([...inline_shadow.querySelectorAll('.markdown-diff-cell')].every(n=>getComputedStyle(n).backgroundColor==='rgba(0, 0, 0, 0)'),'原生对齐空白不着色');
+    assert(getComputedStyle(inline_shadow.querySelector('[data-diff-inline=left]')).backgroundColor==='rgba(173, 7, 7, 0.15)','原生正式资产使用浅红透明色');
+    assert([...inline_shadow.querySelectorAll('[data-side=right] p')].some(n=>getComputedStyle(n).boxShadow.includes('-4px')),'原生修改段落有4px定位侧线');
+    fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'inline_diff_light'}));await pause(450);inline_diff.dispose();
     sample_diff.dispose();
     fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,limits:'原始Typora1.14.10/Win11，真实Git；renderer点击/键盘，不是物理鼠标或Win10现场。'},null,2));
     }

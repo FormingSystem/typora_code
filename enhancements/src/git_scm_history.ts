@@ -1,4 +1,5 @@
-import {bind_git_source_row,type git_diff_source} from './git_diff_source';
+import {bind_git_source_row,git_diff_source_key,type git_diff_source} from './git_diff_source';
+import {workspace_list_selection} from './workspace_list_selection';
 import {parse_git_log} from './git_graph_data';
 import {require_revision} from './git_graph_repository';
 import {create_workspace_virtual_list} from "./workspace_virtual_list";
@@ -22,6 +23,7 @@ export class git_scm_history {
   container = el("section", "git-scm-history"); header = el("div", "git-scm-history-header workspace-section-header");
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
   toggle: HTMLButtonElement; selected = ""; epoch = 0; root = "";
+  readonly selection = new workspace_list_selection(this.list);
   toolbar:git_scm_toolbar;
   private file_lists = new Map<HTMLElement, {dispose(): void;reveal(predicate:(item:any)=>boolean):HTMLElement|undefined}>();
   private revealed_commit?:graph_commit;
@@ -41,7 +43,7 @@ export class git_scm_history {
     this.toolbar=new git_scm_toolbar(this);this.toolbar.element.classList.add("workspace-section-actions");
     this.header.append(this.toggle,this.toolbar.element);this.container.append(this.header,this.list);
     this.header.oncontextmenu=event=>owner.view_menu(event,"show_history");
-    this.list.setAttribute("aria-label", text("history.commit_history"));
+    this.list.setAttribute("aria-label", text("history.commit_history"));this.list.setAttribute("role","tree");
     this.list.addEventListener("keydown", event => {
       if (!event.target || event.ctrlKey || event.metaKey || event.altKey || event.isComposing) return;
       const target = event.target as HTMLElement; const row = target.closest<HTMLButtonElement>(".git-scm-history-commit");
@@ -60,13 +62,13 @@ export class git_scm_history {
     if(id==="fetch"||id==="pull"||id==="push"||id==="sync")void this.owner.panel.network_action(id);
   }
   more_menu(event:MouseEvent):void{this.toolbar.more_menu(event);}
-  reset(): void { this.clear_file_lists(); this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear();this.comparison_from.clear();this.revealed_commit=undefined;this.reveal_request++; this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
+  reset(): void { this.selection.reset(); this.clear_file_lists(); this.hover.hide(); this.epoch++; this.root = this.owner.panel.root; this.selected = ""; this.files_cache.clear();this.comparison_from.clear();this.revealed_commit=undefined;this.reveal_request++; this.collapsed_directories.clear(); this.list.replaceChildren(); this.count.textContent = ""; }
   async reveal_head(): Promise<void> {
     const panel = this.owner.panel;
     if (!panel.state?.head) { panel.report(text("history.no_head")); return; }
     if (!panel.state.commits.some(commit => commit.hash === panel.state!.head)) { panel.branches = ["HEAD"]; await panel.refresh(); }
     const state = panel.state; if (!state?.commits.some(commit => commit.hash === state.head)) return;
-    this.selected = state.head; this.owner.history_open = true; this.owner.show_history = true; this.owner.apply_history_layout(); this.owner.save_layout(); this.render(state);
+    this.selection.select(['commit:'+state.head]); this.selected = state.head; this.owner.history_open = true; this.owner.show_history = true; this.owner.apply_history_layout(); this.owner.save_layout(); this.render(state);
     const row = [...this.list.querySelectorAll<HTMLButtonElement>(".git-scm-history-commit")].find(item => item.dataset.hash === state.head);
     if (row) { this.list.scrollTop += row.getBoundingClientRect().top - this.list.getBoundingClientRect().top - this.list.clientHeight / 2 + row.clientHeight / 2; row.focus({preventScroll: true}); }
   }
@@ -83,6 +85,7 @@ export class git_scm_history {
     this.container.dataset.historyAlwaysShowActions=String(panel.settings.history_always_show_actions);
     const focused_hash = this.list.contains(document.activeElement) ? (document.activeElement as Element | null)?.closest<HTMLElement>(".git-scm-history-commit")?.dataset.hash : undefined;
     if (!state.commits.some(commit => commit.hash === this.selected)) this.selected = "";
+    this.selection.project_external(git_diff_source_key(panel.host.diff_source?.()));
     const graph = build_git_graph(state.commits); const fragment = document.createDocumentFragment();
     this.toolbar.update();
     this.count.textContent = String(state.commits.length) + (state.more ? "+" : "");
@@ -94,7 +97,8 @@ export class git_scm_history {
     }
     for (const [index, commit] of state.commits.entries()) {
       const entry = el("div", "git-scm-history-entry"); const expanded = commit.hash === this.selected;
-      const row = button("", () => { this.reveal_request++;this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
+      const row = button("", () => { this.reveal_request++;this.selection.select(['commit:'+commit.hash]);this.selected = this.selected === commit.hash ? "" : commit.hash; this.render(state); }, "git-scm-history-commit");
+      this.selection.bind(row,'commit:'+commit.hash);row.setAttribute('role','treeitem');
       row.dataset.hash = commit.hash; row.dataset.head = String(commit.hash === state.head); row.setAttribute("aria-expanded", String(expanded));
       const names = [...(refs.get(commit.hash) || [])].sort((a, b) => Number(b === state.branch) - Number(a === state.branch));
       if (commit.hash === state.head && !names.includes(state.branch)) names.unshift(state.branch || "HEAD");
@@ -117,7 +121,7 @@ export class git_scm_history {
       }
       const graph_row = graph.rows[index];
       const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap(edge => [edge.from, edge.to])) + 1;
-      const svg = panel.draw_graph(graph_row, row_lanes, {lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT});
+      const svg = panel.draw_graph(graph_row, row_lanes, {lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT}, commit.hash===state.head?"head":commit.parents.length>1?"merge":"normal");
       svg.classList.add("git-scm-history-topology");
       svg.setAttribute("viewBox", `0 0 ${(row_lanes + 1) * HISTORY_LANE_WIDTH} ${HISTORY_ROW_HEIGHT}`);
       row.append(disclosure, svg, summary);
@@ -150,7 +154,7 @@ export class git_scm_history {
     for (const edge of row.edges) if (!edge.upper && !lanes.has(edge.to)) {
       lanes.add(edge.to); const line = document.createElementNS(ns, "line"); const x = String((edge.to + 1) * HISTORY_LANE_WIDTH);
       line.setAttribute("x1", x); line.setAttribute("x2", x); line.setAttribute("y1", "0"); line.setAttribute("y2", "1");
-      line.setAttribute("stroke", this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]); line.setAttribute("stroke-width", "2"); line.setAttribute("vector-effect", "non-scaling-stroke"); svg.append(line);
+      line.setAttribute("stroke", this.owner.panel.graph_color?.(edge.color)||this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]); line.setAttribute("stroke-width", "2"); line.setAttribute("vector-effect", "non-scaling-stroke"); svg.append(line);
     }
     return svg;
   }
@@ -191,9 +195,9 @@ export class git_scm_history {
     const root = this.owner.panel.root;
     const create_row = (file: graph_change) => {
       const wrapper = el("div", "git-scm-history-file-row");
-      const row = button("", () => { if (this.owner.repository_action_available(root)) void this.owner.open_file(file, from, commit.hash, files); }, "git-scm-history-file");
+      const row = button("", () => { if (this.owner.repository_action_available(root)) {this.selection.select([git_diff_source_key({root,from,to:commit.hash,file:file.path,old_path:file.old_path})]);void this.owner.open_file(file, from, commit.hash, files);} }, "git-scm-history-file");
       row.dataset.workspaceInteraction="row";
-      bind_git_source_row(row,{root,from,to:commit.hash,file:file.path,old_path:file.old_path},this.owner.panel.host.diff_source?.());
+      bind_git_source_row(row,{root,from,to:commit.hash,file:file.path,old_path:file.old_path},this.owner.panel.host.diff_source?.(),this.selection);row.setAttribute("role","treeitem");
       row.style.lineHeight = "var(--git-scm-row-height,22px)"; row.setAttribute("data-history-file", file.path); row.title = (file.old_path ? file.old_path + " → " : "") + file.path;
       const label = git_file_label(file.path, !this.owner.history_tree, "git-scm-history-file-name");
       const status = el("span", "git-scm-file-status", file.status); status.title = file.status; status.setAttribute("data-status", file.status[0]); row.append(label, status);
@@ -230,7 +234,7 @@ export class git_scm_history {
     if(!files.some(file=>file.path===source.file))throw Error('该比较中已找不到目标文件。');
     if(!state.commits.some(item=>item.hash===commit!.hash))this.revealed_commit=commit;
     this.files_cache.set(commit.hash,files);this.comparison_from.set(commit.hash,source.from);
-    this.selected=commit.hash;
+    this.selection.project_external(git_diff_source_key(source),true);this.selected=commit.hash;
     for(const key of [...this.collapsed_directories])if(key.startsWith(commit.hash+':'))this.collapsed_directories.delete(key);
     this.owner.history_open=true;this.owner.show_history=true;this.owner.apply_history_layout();this.owner.save_layout();this.render(state);
     const target=[...this.list.querySelectorAll<HTMLElement>('[data-commit]')].find(node=>node.dataset.commit===commit!.hash);if(!target)return;
@@ -240,5 +244,5 @@ export class git_scm_history {
     for(let ancestor=row.parentElement;ancestor&&ancestor!==this.list;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
     row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.owner.sync_source_selection();
   }
-  dispose(): void {this.reveal_request++; this.clear_file_lists(); this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
+  dispose(): void {this.selection.dispose();this.reveal_request++; this.clear_file_lists(); this.toolbar.dispose();this.hover.dispose();this.epoch++; this.files_cache.clear(); }
 }

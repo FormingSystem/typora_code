@@ -1370,7 +1370,8 @@
         "R027",
         "R045",
         "R034.4",
-        "R034.8"
+        "R034.8",
+        "R020.1"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -6740,7 +6741,8 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R074"
+        "R074",
+        "R020.1"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -6775,7 +6777,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R074"
+        "R074",
+        "R020.1"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -6886,7 +6889,8 @@
         "R067.1",
         "R034.5",
         "R034.6",
-        "R034.7"
+        "R034.7",
+        "R034.9"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -6895,7 +6899,8 @@
         "enhancements/src/workspace_markdown_theme.ts",
         "enhancements/src/git_markdown_overview.ts",
         "enhancements/src/git_graph_host.ts",
-        "enhancements/src/reading_navigation_ports.ts"
+        "enhancements/src/reading_navigation_ports.ts",
+        "enhancements/src/git_markdown_inline.ts"
       ],
       "related_modules": [
         "scm",
@@ -6928,7 +6933,8 @@
         "R034.5",
         "R034.6",
         "R034.7",
-        "R034.8"
+        "R034.8",
+        "R034.9"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7175,7 +7181,8 @@
       "purpose": "implementation",
       "requirements": [
         "R034.4",
-        "R034.8"
+        "R034.8",
+        "R020.1"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7184,7 +7191,8 @@
         "enhancements/src/git_source_control.ts",
         "enhancements/src/git_graph_host.ts",
         "enhancements/src/workspace_breadcrumbs.ts",
-        "enhancements/src/workspace_virtual_list.ts"
+        "enhancements/src/workspace_virtual_list.ts",
+        "enhancements/src/workspace_list_selection.ts"
       ],
       "related_modules": [
         "scm",
@@ -7211,7 +7219,8 @@
       "requirements": [
         "R034.5",
         "R034.6",
-        "R034.7"
+        "R034.7",
+        "R034.9"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [

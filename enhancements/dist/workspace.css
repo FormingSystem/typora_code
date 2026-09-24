@@ -409,7 +409,6 @@
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row, .git-graph-columns { display: grid; grid-template-columns: var(--git-visible-columns, var(--git-graph-width) minmax(var(--git-subject-width), 1fr) var(--git-date-width) var(--git-author-width) var(--git-hash-width)); align-items: center; width: 100%; min-width: var(--git-visible-min-width, calc(var(--git-graph-width) + var(--git-subject-width) + var(--git-date-width) + var(--git-author-width) + var(--git-hash-width))); padding: 0; border: 0; text-align: left; white-space: nowrap; column-gap: 0; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-graph-row { height: var(--git-graph-row-height, 22px); line-height: var(--git-graph-row-height, 22px); }
 .git-graph-row > svg { justify-self: start; overflow: visible; }
-:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-graph-file.selected { background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-graph-subject, .git-graph-author, .git-graph-date, .git-graph-hash { display: flex; align-items: center; min-width: 0; height:var(--git-graph-row-height,22px); padding:0 4px; overflow:hidden; text-overflow:ellipsis; }
 .git-graph-subject-text, .git-graph-author, .git-graph-date, .git-graph-hash { overflow: hidden; text-overflow: ellipsis; }
 .git-graph-subject-text { min-width: 0; }
@@ -556,7 +555,6 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-row-actions { display: flex; justify-content: flex-end; align-items: center; width: auto; min-width: 0; max-width: calc(3 * var(--git-scm-action-size)); gap: 2px; }
 .git-scm-file { --git-scm-row-background: transparent; position: relative; display: grid; grid-template-columns: minmax(0, 1fr) var(--git-scm-status-width); align-items: center; gap: var(--git-scm-column-gap); min-height: var(--git-scm-row-height); padding: 0 var(--git-scm-row-right) 0 18px; cursor: pointer; white-space: nowrap; background: var(--git-scm-row-background); }
 .git-scm-file:hover { --git-scm-row-background: var(--linux-note-shell-hover-background, #8882); }
-.git-scm-file.selected, .git-scm-file:focus-within { --git-scm-row-background: var(--linux-note-shell-inactive-selection-background, #e4e6e8); color: var(--linux-note-shell-inactive-selection-foreground, inherit); }
 .git-scm-file:focus-visible { --git-scm-row-background: var(--linux-note-shell-selection-background, #0060c0); color: var(--linux-note-shell-selection-foreground, #fff); outline: 1px solid var(--linux-note-shell-focus-border, #0078d4); outline-offset: -1px; }
 .git-scm-file > .git-scm-file-label { grid-row: 1; grid-column: 1; }
 .git-scm-file > .git-scm-file-status { grid-row: 1; grid-column: -2 / -1; }
@@ -572,7 +570,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-file > .git-scm-row-actions { position: absolute; z-index: 1; top: 0; right: calc(var(--git-scm-row-right) + var(--git-scm-status-width) + var(--git-scm-column-gap)); height: var(--git-scm-row-height); pointer-events: none; background: transparent; }
 /* 操作在行尾占位，名称/目录在共同区域裁切，不分别按flex比例压缩。 */
 .git-scm-file:is(:hover, :focus-within, .selected) { grid-template-columns: minmax(0, 1fr) max-content var(--git-scm-status-width); }
-.git-scm-file:is(:hover, :focus-within, .selected) > .git-scm-row-actions { position: static; grid-row: 1; grid-column: 2; max-width: none; pointer-events: auto; background-color: var(--bg-color, #fff); background-image: linear-gradient(var(--git-scm-row-background), var(--git-scm-row-background)); }
+.git-scm-file:is(:hover, :focus-within, .selected) > .git-scm-row-actions { position: static; grid-row: 1; grid-column: 2; max-width: none; pointer-events: auto; background:transparent; }
 .git-scm-file:is(:hover, :focus-within, .selected) .git-scm-inline-action { opacity: 1; }
 .git-scm-file .git-scm-inline-action > .git-standard-icon { flex: 0 0 16px; width: 16px; height: 16px; }
 .git-scm-empty { padding: 6px 12px; opacity: .6; }
@@ -628,14 +626,13 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history button.git-scm-history-commit { border: 0; box-shadow: none; display: flex; align-items: center; width: 100%; min-width: 0; height: 22px; padding: 0; margin: 0; text-align: left; white-space: nowrap; background: transparent; }
 .git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
-.git-scm-history-commit[data-head=true] .git-scm-history-topology circle { fill: var(--bg-color, #fff); stroke: #1679e8; stroke-width: 2px; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; padding-right: 4px; overflow: hidden; }
 /* VS Code IconLabel：名称和作者共享裁切区，不能将作者另做一列。 */
 .git-scm-history-label { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
 .git-scm-history-subject { white-space: pre; font-size: inherit; }
 .git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: calc(100% - 4px); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
-.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; max-width: 100%; height: var(--git-scm-ref-height,18px); min-height: 18px; line-height: 18px; white-space: var(--git-scm-ref-white-space,nowrap); border-radius: 9px; background: #6c369d; color: #fff; padding: 0 5px; }
-.git-scm-history-ref[data-current=true] { background: #006bff; }
+.git-scm-history-ref { display: inline-flex; align-items: center; gap: 3px; flex: 0 1 auto; min-width: 0; max-width: 100%; height: var(--git-scm-ref-height,18px); min-height: 18px; line-height: 18px; white-space: var(--git-scm-ref-white-space,nowrap); border-radius: 9px; background:var(--vscode-charts-purple,#652d90); color: #fff; padding: 0 5px; }
+.git-scm-history-ref[data-current=true] { background:var(--vscode-charts-blue,#1a5cff); }
 .git-scm-history-ref-name { min-width: 0; max-width: var(--git-scm-ref-name-max-width,100px); white-space: inherit; overflow-wrap: anywhere; overflow: hidden; text-overflow: ellipsis; }
 .git-scm-history-ref .git-standard-icon { width: 12px; height: 12px; flex-basis: 12px; }
 .git-scm-history-author { margin-left: .5em; opacity: .7; font-size: .9em; white-space: pre; }
@@ -734,10 +731,6 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 @container (max-width: 520px) {
   .git-graph-detail-content { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .git-graph-detail-summary { border-bottom: 1px solid #8883; }
-}
-:is(.linux-note-git-graph, .linux-note-git-source-control) button.git-graph-file.selected:focus-visible {
-  background: var(--linux-note-shell-selection-background, #0060c0);
-  color: var(--linux-note-shell-selection-foreground, #fff);
 }
 .git-graph-directory-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
 
@@ -897,25 +890,21 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-markdown-overview:focus-visible{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}
 
-/* R034.4：当前比较的来源选择与展开/焦点独立；焦点离开仍保留选择。 */
-:is(.linux-note-git-source-control,.linux-note-git-graph) [data-git-source][data-git-source-selected=true] {
-  --git-source-background:var(--linux-note-shell-inactive-selection-background);
-  --git-source-foreground:var(--linux-note-shell-inactive-selection-foreground);
-  --git-scm-row-background:var(--git-source-background);
-  --workspace-interaction-hover:var(--git-source-background);
-  background:var(--git-source-background)!important;color:var(--git-source-foreground)!important;
-}
-:is(.git-scm-history-list,.git-scm-groups,.git-graph-files):focus-within [data-git-source][data-git-source-selected=true] {
-  --git-source-background:var(--vscode-list-activeSelectionBackground,#e8e8e8);
-  --git-source-foreground:var(--vscode-list-activeSelectionForeground,#000);
-}
-[data-git-source][data-git-source-selected=true]:focus-visible {outline:1px solid var(--workspace-focus-border,#0078d4);outline-offset:-1px;}
-
 /* 拓扑与目录只缩进内容，所有历史行的状态背景保持相同边界。 */
 .git-scm-history-continuation {z-index:1;}
 :is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history .git-scm-virtual-directory {padding-left:calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px));width:100%;box-sizing:border-box;}
 
 .git-graph-row:focus-visible {outline:1px solid var(--linux-note-shell-focus-border,#0078d4);outline-offset:-1px;}
+
+/* scmHistory.ts/scm.css：节点是公共选择/悬停状态的领域投影，不能由展开推断。 */
+.git-history-node circle {stroke:var(--workspace-list-surface,var(--workspace-list-background,var(--vscode-editor-background,#fff)));}
+.git-history-node[data-node-kind=head] circle:last-of-type {fill:var(--workspace-list-surface,var(--workspace-list-background,#fafafd));}
+[data-workspace-row-key]:hover>.git-history-node circle:first-of-type,
+[data-workspace-selected=true][data-workspace-focused=true]>.git-history-node circle:first-of-type {stroke:transparent;}
+[data-workspace-row-key]:hover>.git-history-node circle:nth-of-type(2) {stroke:var(--vscode-list-hoverBackground,#00000014);}
+[data-workspace-row-key]:hover>.git-history-node[data-node-kind=head] circle:last-of-type {fill:var(--vscode-list-hoverBackground,#00000014);}
+[data-workspace-selected=true][data-workspace-focused=true]>.git-history-node circle:nth-of-type(2) {stroke:var(--workspace-row-background);}
+.git-scm-history-file {--git-scm-row-background:var(--workspace-row-background,transparent);}
 
 /* git_progress.css */
 .git-progress-owner{position:relative}
@@ -1453,7 +1442,6 @@ body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
 .workspace-breadcrumb-filter > input {box-sizing:border-box;width:100%;height:26px;margin:0;padding:2px 5px;border:1px solid #8888;border-radius:2px;background:var(--bg-color,#fff);color:inherit;font:inherit;box-shadow:none;}
 .workspace-breadcrumb-tree {overflow:auto;min-height:0;outline:none;padding-bottom:2px;}
 .workspace-breadcrumb-item {display:flex;align-items:center;box-sizing:border-box;height:22px;min-height:22px;white-space:nowrap;cursor:pointer;}
-.workspace-breadcrumb-item[aria-selected=true] {--workspace-interaction-hover:var(--workspace-breadcrumb-selection-background);--workspace-interaction-foreground:var(--workspace-breadcrumb-selection-foreground);background:var(--workspace-breadcrumb-selection-background);color:var(--workspace-breadcrumb-selection-foreground);outline:1px solid var(--workspace-focus-border);outline-offset:-1px;}
 .workspace-breadcrumb-disclosure {display:inline-flex;align-items:center;justify-content:center;flex:0 0 16px;height:22px;}
 .workspace-breadcrumb-label {display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;margin:0 5px;line-height:22px;}
 .workspace-breadcrumb-status {padding:4px 9px;overflow-wrap:anywhere;}
@@ -1506,83 +1494,136 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 }
 
 /* workspace_colors.css */
-/* R074：VS Code 88e44fa Light/Dark Modern 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
+/* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
 :root[data-workspace-colors=light] {
-  --vscode-foreground:#3B3B3B;
-  --vscode-descriptionForeground:#3B3B3B;
-  --vscode-focusBorder:#005FB8;
-  --vscode-button-background:#005FB8;
+  --vscode-foreground:#202020;
+  --vscode-descriptionForeground:#606060;
+  --vscode-focusBorder:#0069CC;
+  --vscode-button-background:#0069CC;
   --vscode-button-foreground:#FFFFFF;
-  --vscode-button-hoverBackground:#0258A8;
+  --vscode-button-hoverBackground:#0063C1;
   --vscode-input-background:#FFFFFF;
-  --vscode-input-border:#CECECE;
-  --vscode-input-foreground:#3B3B3B;
-  --vscode-sideBar-background:#F8F8F8;
-  --vscode-sideBar-border:#E5E5E5;
-  --vscode-panel-background:#F8F8F8;
-  --vscode-panel-border:#E5E5E5;
-  --vscode-statusBar-background:#F8F8F8;
+  --vscode-input-border:#D8D8D866;
+  --vscode-input-foreground:#202020;
+  --vscode-sideBar-background:#FAFAFD;
+  --vscode-sideBar-border:#F0F1F2;
+  --vscode-panel-background:#FAFAFD;
+  --vscode-panel-border:#F0F1F2;
+  --vscode-statusBar-background:#FAFAFD;
   --vscode-editor-background:#FFFFFF;
-  --vscode-editor-foreground:#3B3B3B;
-  --vscode-editorGroupHeader-tabsBackground:#F8F8F8;
-  --vscode-activityBar-inactiveForeground:#616161;
-  --vscode-activityBar-foreground:#1F1F1F;
-  --vscode-activityBar-activeBorder:#005FB8;
-  --vscode-modernActivityBarItem-activeBackground:#e4e6f1;
-  --vscode-modernActivityBarItem-hoverBackground:#F2F2F2;
-  --vscode-modernActivityBarItem-activeForeground:#3B3B3B;
-  --vscode-textLink-foreground:#005FB8;
+  --vscode-editor-foreground:#202020;
+  --vscode-editorGroupHeader-tabsBackground:#FAFAFD;
+  --vscode-activityBar-inactiveForeground:#606060;
+  --vscode-activityBar-foreground:#202020;
+  --vscode-activityBar-activeBorder:#000000;
+  --vscode-modernActivityBarItem-activeBackground:#D6D6D6;
+  --vscode-modernActivityBarItem-hoverBackground:#00000014;
+  --vscode-modernActivityBarItem-activeForeground:#202020;
+  --vscode-textLink-foreground:#0069CC;
   --workspace-ui-background:#FFFFFF;
-  --workspace-ui-chrome:#F8F8F8;
-  --workspace-ui-foreground:#3B3B3B;
-  --workspace-ui-muted:#3B3B3B;
-  --workspace-ui-border:#E5E5E5;
-  --workspace-ui-control-border:#CECECE;
+  --workspace-ui-chrome:#FAFAFD;
+  --workspace-ui-foreground:#202020;
+  --workspace-ui-muted:#606060;
+  --workspace-ui-border:#F0F1F2;
+  --workspace-ui-control-border:#D8D8D866;
   --workspace-ui-input:#FFFFFF;
-  --workspace-ui-elevated:#FFFFFF;
-  --workspace-ui-focus:#005FB8;
-  --workspace-ui-selection:#E8E8E8;
-  --vscode-list-activeSelectionBackground:#E8E8E8;
-  --vscode-list-activeSelectionForeground:#000000;
-  --workspace-ui-hover:#F2F2F2;
+  --workspace-ui-elevated:#FAFAFD;
+  --workspace-ui-focus:#0069CC;
+  --workspace-ui-selection:#DADADA99;
+  --vscode-list-activeSelectionBackground:#00000025;
+  --vscode-list-activeSelectionForeground:#202020;
+  --workspace-ui-hover:#00000014;
+  --vscode-list-hoverBackground:#00000014;
+  --vscode-list-activeSelectionIconForeground:#000000;
+  --vscode-list-focusAndSelectionOutline:#005FB8;
+  --vscode-menu-selectionBackground:#0069CC1A;
+  --vscode-list-inactiveSelectionBackground:#DADADA99;
+  --vscode-list-inactiveSelectionForeground:#202020;
+  --vscode-list-hoverForeground:#202020;
+  --vscode-list-dropBackground:#0069CC15;
+  --vscode-list-focusBackground:#00000025;
+  --vscode-list-focusForeground:#202020;
+  --vscode-list-focusOutline:#0069CC;
+  --vscode-list-highlightForeground:#0069CC;
+  --vscode-list-invalidItemForeground:#BBBBBB;
+  --vscode-list-errorForeground:#ad0707;
+  --vscode-list-warningForeground:#667309;
+  --vscode-menubar-selectionBackground:#EAEAEA;
+  --vscode-diffEditor-insertedTextBackground:#587c0c26;
+  --vscode-diffEditor-removedTextBackground:#ad070726;
+  --vscode-toolbar-hoverBackground:#0000001F;
+  --vscode-quickInputList-focusBackground:#0069CC;
+  --vscode-quickInputList-focusForeground:#FFFFFF;
+  --vscode-quickInputList-focusIconForeground:#FFFFFF;
+  --vscode-quickInputList-focusHighlightForeground:#FFFFFF;
+  --vscode-charts-blue:#1A5CFF;
+  --vscode-charts-purple:#652D90;
+  --vscode-editorGutter-modifiedBackground:#2090D3;
+  --workspace-list-background:#FAFAFD;
 }
 :root[data-workspace-colors=dark] {
-  --vscode-foreground:#CCCCCC;
-  --vscode-descriptionForeground:#9D9D9D;
-  --vscode-focusBorder:#0078D4;
-  --vscode-button-background:#0078D4;
+  --vscode-foreground:#bfbfbf;
+  --vscode-descriptionForeground:#8C8C8C;
+  --vscode-focusBorder:#3994BCB3;
+  --vscode-button-background:#297AA0;
   --vscode-button-foreground:#FFFFFF;
-  --vscode-button-hoverBackground:#026EC1;
-  --vscode-input-background:#313131;
-  --vscode-input-border:#3C3C3C;
-  --vscode-input-foreground:#CCCCCC;
-  --vscode-sideBar-background:#181818;
-  --vscode-sideBar-border:#2B2B2B;
-  --vscode-panel-background:#181818;
-  --vscode-panel-border:#2B2B2B;
-  --vscode-statusBar-background:#181818;
-  --vscode-editor-background:#1F1F1F;
-  --vscode-editor-foreground:#CCCCCC;
-  --vscode-editorGroupHeader-tabsBackground:#181818;
-  --vscode-activityBar-inactiveForeground:#868686;
-  --vscode-activityBar-foreground:#D7D7D7;
-  --vscode-activityBar-activeBorder:#0078D4;
-  --vscode-modernActivityBarItem-activeBackground:#FFFFFF22;
-  --vscode-modernActivityBarItem-hoverBackground:#FFFFFF11;
-  --vscode-textLink-foreground:#4daafc;
-  --workspace-ui-background:#1F1F1F;
-  --workspace-ui-chrome:#181818;
-  --workspace-ui-foreground:#CCCCCC;
-  --workspace-ui-muted:#9D9D9D;
-  --workspace-ui-border:#2B2B2B;
-  --workspace-ui-control-border:#3C3C3C;
-  --workspace-ui-input:#313131;
-  --workspace-ui-elevated:#1F1F1F;
-  --workspace-ui-focus:#0078D4;
-  --workspace-ui-selection:#37373D;
-  --vscode-list-activeSelectionBackground:#04395E;
-  --vscode-list-activeSelectionForeground:#FFFFFF;
-  --workspace-ui-hover:#2A2D2E;
+  --vscode-button-hoverBackground:#2B7DA3;
+  --vscode-input-background:#191A1B;
+  --vscode-input-border:#333536;
+  --vscode-input-foreground:#bfbfbf;
+  --vscode-sideBar-background:#191A1B;
+  --vscode-sideBar-border:#2A2B2C;
+  --vscode-panel-background:#191A1B;
+  --vscode-panel-border:#2A2B2C;
+  --vscode-statusBar-background:#191A1B;
+  --vscode-editor-background:#121314;
+  --vscode-editor-foreground:#BBBEBF;
+  --vscode-editorGroupHeader-tabsBackground:#191A1B;
+  --vscode-activityBar-inactiveForeground:#8C8C8C;
+  --vscode-activityBar-foreground:#bfbfbf;
+  --vscode-activityBar-activeBorder:#bfbfbf;
+  --vscode-modernActivityBarItem-activeBackground:#313233;
+  --vscode-modernActivityBarItem-hoverBackground:#FFFFFF14;
+  --vscode-textLink-foreground:#48A0C7;
+  --workspace-ui-background:#121314;
+  --workspace-ui-chrome:#191A1B;
+  --workspace-ui-foreground:#bfbfbf;
+  --workspace-ui-muted:#8C8C8C;
+  --workspace-ui-border:#2A2B2C;
+  --workspace-ui-control-border:#333536;
+  --workspace-ui-input:#191A1B;
+  --workspace-ui-elevated:#202122;
+  --workspace-ui-focus:#3994BCB3;
+  --workspace-ui-selection:#2C2D2E;
+  --vscode-list-activeSelectionBackground:#FFFFFF22;
+  --vscode-list-activeSelectionForeground:#ededed;
+  --workspace-ui-hover:#FFFFFF14;
+  --vscode-list-dropBackground:#3994BC1A;
+  --vscode-menu-selectionBackground:#3994BC26;
+  --vscode-list-activeSelectionIconForeground:#FFF;
+  --vscode-list-inactiveSelectionBackground:#2C2D2E;
+  --vscode-list-inactiveSelectionForeground:#ededed;
+  --vscode-list-hoverBackground:#FFFFFF14;
+  --vscode-list-hoverForeground:#bfbfbf;
+  --vscode-list-focusBackground:#FFFFFF22;
+  --vscode-list-focusForeground:#bfbfbf;
+  --vscode-list-focusOutline:#3994BCB3;
+  --vscode-list-highlightForeground:#48A0C7;
+  --vscode-list-invalidItemForeground:#444444;
+  --vscode-list-errorForeground:#f48771;
+  --vscode-list-warningForeground:#e5ba7d;
+  --vscode-menubar-selectionBackground:#242526;
+  --vscode-diffEditor-insertedTextBackground:#57ab5a4d;
+  --vscode-diffEditor-removedTextBackground:#f470674d;
+  --vscode-quickInputList-focusBackground:#297AA0;
+  --vscode-quickInputList-focusForeground:#FFFFFF;
+  --vscode-quickInputList-focusIconForeground:#FFFFFF;
+  --vscode-quickInputList-focusHighlightForeground:#FFFFFF;
+  --vscode-editorGutter-modifiedBackground:#1B81A8;
+  --vscode-charts-blue:#57A3F8;
+  --vscode-charts-purple:#AD80D7;
+  --workspace-list-background:#191A1B;
+  --vscode-toolbar-hoverBackground:#5a5d5e50;
 }
 :root[data-workspace-colors] {
   --workspace-chrome-background:var(--workspace-ui-chrome);
@@ -1595,12 +1636,6 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --linux-note-shell-border:var(--workspace-ui-border);
   --linux-note-shell-sidebar-border:var(--workspace-ui-border);
   --linux-note-shell-input-background:var(--workspace-ui-input);
-  --vscode-list-hoverBackground:var(--workspace-ui-hover);
-  --vscode-list-hoverForeground:var(--workspace-ui-foreground);
-  --vscode-list-inactiveSelectionBackground:var(--workspace-ui-selection);
-  --vscode-list-inactiveSelectionForeground:var(--workspace-ui-foreground);
-  --vscode-menu-selectionBackground:var(--workspace-ui-selection);
-  --vscode-menubar-selectionBackground:var(--workspace-ui-selection);
   --vscode-editorWidget-background:var(--workspace-ui-elevated);
   --vscode-editorWidget-border:var(--workspace-ui-control-border);
   --vscode-editorHoverWidget-background:var(--workspace-ui-elevated);
@@ -1647,6 +1682,9 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 :root[data-workspace-colors] .workspace-link-dock {border-color:var(--workspace-ui-control-border);}
 /* 原生底栏菜单中的主题变量限定到该菜单，不传播回原生文档。 */
 :root[data-workspace-colors] [data-workspace-footer-popup=ready] {--bg-color:var(--workspace-ui-elevated);--text-color:var(--workspace-ui-foreground);--item-hover-bg-color:var(--workspace-ui-selection);--control-text-color:var(--workspace-ui-muted);}
+
+/* R020.1：同一列表底板承载alpha选中色；不在行或祖先叠加opacity。 */
+:root[data-workspace-colors] :is(.linux-note-workspace-explorer,.linux-note-git-source-control,.linux-note-workspace-search) {background-color:var(--workspace-list-background);}
 
 /* workspace_control_icons.css */
 .workspace-official-icon-slot::before,.workspace-official-icon-slot::after{content:none!important;display:none!important}.workspace-official-icon-slot>svg{width:16px!important;height:16px!important;flex:none;vertical-align:middle;stroke:none;fill:currentColor}
@@ -1706,8 +1744,6 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-explorer-spacer { position:relative; min-width:100%; }
 .workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent)); padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
-.workspace-explorer-row.is-selected { background:var(--linux-note-shell-inactive-selection-background); color:var(--linux-note-shell-inactive-selection-foreground); }
-.workspace-explorer-tree:focus .workspace-explorer-row.is-selected { outline:1px solid var(--workspace-focus-border); outline-offset:-1px; }
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }
 .workspace-explorer-chevron { flex:none; display:inline-flex; justify-content:flex-start; width:calc(var(--workspace-disclosure-size) + var(--workspace-tree-twistie-gap)); }
 .workspace-explorer-name { min-width:0; overflow:hidden; text-overflow:ellipsis; }
@@ -1967,7 +2003,7 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 }
 
 /* workspace_interaction.css */
-/* VS Code 88e44fa语义颜色、645f29c的4px控件圆角：仅在声明的UI范围绘制。
+/* VS Code 6807068语义颜色、4px控件圆角：仅在声明的UI范围绘制。
    内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
 :root {
   /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
@@ -1977,6 +2013,8 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
   --workspace-tree-indent:8px;
   --workspace-tree-twistie-gap:6px;
   --workspace-tree-twistie-offset:3px;
+  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#00000025);
+  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#202020);
   --workspace-control-radius:var(--vscode-cornerRadius-small,4px);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#00000014);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#202020);
@@ -1984,11 +2022,13 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
-  /* 645f29c Light/Dark 2026：选中背景和前景必须成对切换。 */
+  /* 6807068 Light/Dark 2026：选中背景和前景必须成对切换。 */
   --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
   --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
 :root[data-workspace-file-icon-theme="dark"] {
+  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#ffffff22);
+  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#ededed);
   --workspace-hover-background:var(--vscode-list-hoverBackground,#ffffff14);
   --workspace-hover-foreground:var(--vscode-list-hoverForeground,#bfbfbf);
   --workspace-action-hover:var(--vscode-toolbar-hoverBackground,#5a5d5e50);
@@ -2014,7 +2054,7 @@ body [data-workspace-interaction="primary"]:not(:where([data-workspace-interacti
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
 /* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
-:where([data-workspace-interaction="row"][aria-expanded="true"],[role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
+:where([role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
 /* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
@@ -2037,6 +2077,29 @@ body .workspace-section-header.workspace-section-header {
 body .workspace-section-header.workspace-section-header:hover {background-color:var(--workspace-hover-background)!important;}
 body .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}
 body .workspace-section-header > .workspace-section-actions {margin-right:0;}
+
+/* R020.1：列表/树共同的整行状态。业务模块只投影键，不复制选中背景。 */
+[data-workspace-list] {--workspace-list-surface:var(--workspace-list-background,var(--vscode-sideBar-background,#fafafd));}
+body [data-workspace-list] [data-workspace-selected] {
+  --workspace-row-background:transparent;
+  --workspace-row-foreground:inherit;
+  --workspace-interaction-hover:var(--vscode-list-hoverBackground,#00000014);
+  --workspace-interaction-foreground:var(--vscode-list-hoverForeground,inherit);
+  background-color:var(--workspace-row-background)!important;color:var(--workspace-row-foreground)!important;
+}
+body [data-workspace-list] [data-workspace-selected=false]:hover {--workspace-row-background:var(--workspace-hover-background);--workspace-row-foreground:var(--workspace-hover-foreground);}
+body [data-workspace-list] [data-workspace-selected=true] {
+  --workspace-row-background:var(--linux-note-shell-inactive-selection-background);
+  --workspace-row-foreground:var(--linux-note-shell-inactive-selection-foreground);
+  --workspace-interaction-hover:var(--workspace-row-background);
+  --workspace-interaction-foreground:var(--workspace-row-foreground);
+}
+body [data-workspace-list]:focus-within [data-workspace-selected=true] {
+  --workspace-row-background:var(--workspace-list-active-background);
+  --workspace-row-foreground:var(--workspace-list-active-foreground);
+}
+body [data-workspace-list]:focus-visible [data-workspace-focused=true],
+body [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:1px solid var(--vscode-list-focusOutline,var(--workspace-focus-border))!important;outline-offset:-1px;}
 
 /* workspace_lookup_preview.css */
 .workspace-lookup-preview{display:flex;flex-direction:column;min-width:0;min-height:0;height:100%;overflow:hidden;color:var(--text-color,inherit);background:var(--bg-color,inherit)}
@@ -2372,8 +2435,6 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-search-preview-heading button[aria-expanded=false]>svg { transform:rotate(-90deg); }
 .workspace-search-split { flex:0 0 5px; min-height:5px; cursor:row-resize; border-top:1px solid #8883; box-sizing:border-box; touch-action:none; }
 .workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }
-.workspace-search-file>summary.is-selected { background:#0078d410; }
-.workspace-search-match.is-selected { background:#0078d426; }
 .workspace-search-folder-scope:not([hidden]){display:flex;align-items:center;gap:4px;min-height:24px;border:1px solid var(--linux-note-shell-border,#e5e5e5);padding-left:6px;margin-bottom:4px}
 .workspace-search-folder-scope>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 

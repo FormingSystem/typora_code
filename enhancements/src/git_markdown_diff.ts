@@ -105,7 +105,7 @@ export function create_git_markdown_diff(){
         if(!current())return;const pair=pairs[i],row=document.createElement('section');row.className='markdown-diff-row';row.dataset.changed=String(pair.changed);row.tabIndex=-1;
 
         for(const side of ['left','right'] as const){const cell=document.createElement('div');cell.className='markdown-diff-cell';cell.dataset.side=side;cell.dataset.empty=String(!pair[side].length);
-          if(pair.changed&&pair[side].length){const sign=document.createElement('span');sign.className='markdown-diff-sign';sign.textContent=side==='left'?'− 删除 / 原内容':'+ 新增 / 修改后';cell.append(sign);}
+          if(pair.changed&&pair[side].length){const sign=document.createElement('span');sign.className='markdown-diff-sign';sign.textContent=side==='left'?'− 删除 / 原内容':'+ 新增 / 修改后';sign.setAttribute('aria-hidden','true');cell.append(sign);}
           for(const block of pair[side]){const node=document.createElement('div');node.dataset.sourceLine=String(block.start);node.dataset.sourceEnd=String(block.end);node.innerHTML=block.html;
             const table_rows=[...node.querySelectorAll<HTMLElement>('table > thead > tr,table > tbody > tr')];table_rows.forEach((item,index)=>{item.dataset.sourceLine=String(block.start+(index===0?0:index+1));item.dataset.sourceEnd=item.dataset.sourceLine;});
             for(const link of node.querySelectorAll('a')){link.title=link.getAttribute('href')||'';link.removeAttribute('href');link.removeAttribute('target');}

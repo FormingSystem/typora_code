@@ -260,7 +260,7 @@ app.whenReady().then(async()=>{
     if(sample.state==='keyboard')assert(sample.focus_visible,description+' receives keyboard focus with visible browser focus state');
     assert(sample.text_contrast>=4.5,description+' text contrast is at least 4.5:1; actual '+sample.text_contrast.toFixed(2));
     assert(sample.arrow_contrast>=3,description+' arrow contrast is at least 3:1; actual '+sample.arrow_contrast.toFixed(2));
-    assert.equal(sample.background_css,sample.theme==='dark'?'rgb(44, 45, 46)':'rgba(218, 218, 218, 0.6)',description+' uses the fixed VS Code inactive-selection background');
+    assert.equal(sample.background_css,sample.tree_focused?(sample.theme==='dark'?'rgba(255, 255, 255, 0.133)':'rgba(0, 0, 0, 0.145)'):(sample.theme==='dark'?'rgb(44, 45, 46)':'rgba(218, 218, 218, 0.6)'),description+' uses the fixed VS Code focused/inactive selection background');
     assert.deepEqual(sample.text,sample.theme==='dark'?[237,237,237]:[32,32,32],description+' uses the fixed selected foreground');
     if(sample.theme==='dark')assert(Math.max(...sample.background)<80,description+' never paints a bright selection over Night');
   }

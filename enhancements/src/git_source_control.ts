@@ -41,7 +41,7 @@ export class git_source_control {
   private virtual_lists: {dispose(): void}[] = [];
   private change_revealers:((source:git_diff_source)=>HTMLElement|undefined)[]=[];
   private source_subscription?:()=>void;
-  sync_source_selection(){const source=this.panel.host.diff_source?.();sync_git_source_rows(this.sidebar,source);sync_git_source_rows(this.panel.container,source);}
+  sync_source_selection(){const source=this.panel.host.diff_source?.();this.history.selection.project_external(git_diff_source_key(source));sync_git_source_rows(this.sidebar,source);sync_git_source_rows(this.panel.container,source);}
   private collapsed_directories = new Set<string>();
   private repository_view_state: "loading" | "empty" | "error" | "ready" = "loading";
   private empty_view = el("div", "git-scm-welcome");
@@ -57,7 +57,7 @@ export class git_source_control {
   private path_collator = new Intl.Collator();
   constructor(public panel: git_graph_panel) {
     this.source_subscription=panel.host.core?.app?.workspace?.on?.("active-leaf:change",()=>this.sync_source_selection());
-    this.sidebar.setAttribute("data-linux-note-source-control", "ready");
+    this.sidebar.setAttribute("data-linux-note-source-control", "ready");this.groups.dataset.workspaceList="";
     this.sidebar.setAttribute("data-linux-note-git-commit-shortcut", "ready");
     const title_label=el("span", "git-scm-title-label", text("scm.source_control"));title_label.title=text("scm.source_control");this.title.append(title_label);
     const tools = el("div", "git-scm-tools");

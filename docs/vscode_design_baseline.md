@@ -1,5 +1,7 @@
 # VS Code 界面设计基线
 
+2026-09-24 R020.1/R034.8/R034.9：按用户要求克隆最新VS Code，固定 `68070681e87284e2f22728f15fe3f3651fbf932b`（package 1.140.0，main开发快照，不是稳定发行版）。本次现有工作台采用 Light/Dark 2026 的完整语义配色，覆盖下面R074旧Modern颜色；布局和尺寸保留各区域的已确认契约。列表选中/焦点/悬停共用模型和透明色，不再按Git/Explorer分别设计。源码文件及SHA256见[来源清单](vscode_design_sources.json)的selection_diff_20260924，逐项采用规则见[共享选择](workspace_interaction.md#r020-列表与树的共享选择)和[颜色对照](workspace_colors.md#2026-09-24-最新源码逐项对照)。研究缓存不参与运行。
+
 2026-09-23 R074：用户重新授权统一功能区域的颜色层次。工作台颜色改用同一固定提交的 Light Modern／Dark Modern，框架 `#F8F8F8`／`#181818`、功能内容 `#FFFFFF`／`#1F1F1F`、分隔 `#E5E5E5`／`#2B2B2B`；以下旧2026颜色记录被本项覆盖，几何与布局约定保留。Markdown、原生偏好与社区设置仍由原主题/所有者呈现。范围、状态映射及验证见[颜色设计](workspace_colors.md)。
 
 2026-09-10 顶栏回归修复：Windows／Linux 活动栏采用与编辑区相同的 `--typ-workspace-top` 上边界及可用窗口底边，修正核心 `100vh` 从 y=0 开始被35px顶栏遮住首个按钮的问题；48px功能行与24px官方图标保持。Typora原始64px标识位图含透明边距，按用户要求将图像框由16px改为24px，左右边距改为4px，总占位仍为32px。
