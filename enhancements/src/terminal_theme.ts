@@ -10,12 +10,24 @@ export function terminal_theme(): ITheme {
   const background = palette_background || `rgb(${rgb.join(", ")})`;
   const dark = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 < 128;
   const foreground = palette?.getPropertyValue('--workspace-ui-foreground').trim() || body.color || (dark ? "#d4d4d4" : "#333333");
-  return {background, foreground, cursor: foreground, cursorAccent: background,
-    selectionBackground: dark ? "#264f78" : "#add6ff", selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
-    black: dark ? "#000000" : "#24292f", red: dark ? "#cd3131" : "#a31515", green: dark ? "#0dbc79" : "#16713b", yellow: dark ? "#e5e510" : "#795e26",
-    blue: dark ? "#3b8eea" : "#0451a5", magenta: dark ? "#bc3fbc" : "#af00db", cyan: dark ? "#11a8cd" : "#0070a8", white: dark ? "#e5e5e5" : "#555555",
-    brightBlack: dark ? "#666666" : "#666666", brightRed: dark ? "#f14c4c" : "#c72e2e", brightGreen: dark ? "#23d18b" : "#16825d", brightYellow: dark ? "#f5f543" : "#8a6500",
-    brightBlue: dark ? "#3b8eea" : "#0065b3", brightMagenta: dark ? "#d670d6" : "#a626a4", brightCyan: dark ? "#29b8db" : "#007f8b", brightWhite: dark ? "#ffffff" : "#333333"};
+  return {background, foreground, cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground, cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
+    selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"), selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+    black: dark ? "#000000" : "#000000",
+    red: dark ? "#cd3131" : "#cd3131",
+    green: dark ? "#0DBC79" : "#107C10",
+    yellow: dark ? "#e5e510" : "#949800",
+    blue: dark ? "#2472c8" : "#0451a5",
+    magenta: dark ? "#bc3fbc" : "#bc05bc",
+    cyan: dark ? "#11a8cd" : "#0598bc",
+    white: dark ? "#e5e5e5" : "#555555",
+    brightBlack: dark ? "#666666" : "#666666",
+    brightRed: dark ? "#f14c4c" : "#f14c4c",
+    brightGreen: dark ? "#23d18b" : "#14CE14",
+    brightYellow: dark ? "#f5f543" : "#b5ba00",
+    brightBlue: dark ? "#3b8eea" : "#3b8eea",
+    brightMagenta: dark ? "#d670d6" : "#d670d6",
+    brightCyan: dark ? "#29b8db" : "#29b8db",
+    brightWhite: dark ? "#e5e5e5" : "#a5a5a5"};
 }
 
 export function observe_terminal_theme(apply: (theme: ITheme) => void): () => void {

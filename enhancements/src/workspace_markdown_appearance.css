@@ -1,0 +1,40 @@
+/* R074.1：6807068 Markdown阅读规则；蓝色标题是用户明确指定的差异。
+   仅覆盖呈现，不写body主题变量，字号/宽度/编辑器实例保持原所有者。 */
+:root[data-workspace-colors] content {background-color:var(--vscode-editor-background);}
+:root[data-workspace-colors] #write {
+  --bg-color:var(--vscode-editor-background);--text-color:var(--vscode-editor-foreground);
+  color:var(--vscode-editor-foreground)!important;background-color:var(--vscode-editor-background)!important;
+  font-family:"Segoe WPC","Segoe UI",system-ui,"Microsoft YaHei",sans-serif!important;
+  line-height:1.57142857!important;
+}
+:root[data-workspace-colors] #write :is(h1,h2,h3,h4,h5,h6) {
+  color:var(--workspace-markdown-heading)!important;font-weight:600!important;line-height:1.25!important;
+  margin-top:24px;margin-bottom:16px;background:transparent;
+}
+:root[data-workspace-colors] #write h1 {font-size:2em!important;margin-top:0;border-bottom:1px solid var(--workspace-markdown-border);padding-bottom:.3em;}
+:root[data-workspace-colors] #write h2 {font-size:1.5em!important;border-bottom:1px solid var(--workspace-markdown-border);padding-bottom:.3em;}
+:root[data-workspace-colors] #write h3 {font-size:1.25em!important;}
+:root[data-workspace-colors] #write h4 {font-size:1em!important;}
+:root[data-workspace-colors] #write h5 {font-size:.875em!important;}
+:root[data-workspace-colors] #write h6 {font-size:.85em!important;}
+:root[data-workspace-colors] #write p {margin-top:0;margin-bottom:1.142857em;}
+:root[data-workspace-colors] #write li p {margin-bottom:.7em;}
+:root[data-workspace-colors] #write a {color:var(--vscode-textLink-foreground)!important;}
+:root[data-workspace-colors] #write a:hover {text-decoration:underline;}
+:root[data-workspace-colors] #write blockquote {
+  margin:0;padding:0 1.142857em 0 .7142857em;border:0;border-left:5px solid var(--vscode-textBlockQuote-border);border-radius:2px;
+  color:var(--vscode-editor-foreground);background:var(--vscode-textBlockQuote-background);
+}
+:root[data-workspace-colors] #write table {border-collapse:collapse;margin-bottom:.7em;}
+:root[data-workspace-colors] #write :is(table,tr,th,td) {background:transparent;border:0;}
+:root[data-workspace-colors] #write :is(th,td) {padding:5px 10px;}
+:root[data-workspace-colors] #write th {text-align:left;border-bottom:1px solid var(--workspace-markdown-table-header);}
+:root[data-workspace-colors] #write tbody tr+tr td {border-top:1px solid var(--workspace-markdown-border);}
+:root[data-workspace-colors] #write hr {border:0;border-bottom:1px solid var(--workspace-markdown-border);height:1px;background:transparent;}
+:root[data-workspace-colors] #write code {font-family:Consolas,"SF Mono",Monaco,Menlo,monospace;font-size:1em;}
+:root[data-workspace-colors] #write :not(pre)>code {background:var(--vscode-textPreformat-background);color:var(--vscode-textPreformat-foreground);border:0;border-radius:3px;}
+:root[data-workspace-colors] #write :is(pre,.md-fences) {background-color:var(--vscode-textCodeBlock-background);color:var(--vscode-editor-foreground);border:0;border-radius:3px;}
+:root[data-workspace-colors] #write pre {padding:16px;font-size:1em;font-family:Consolas,"SF Mono",Monaco,Menlo,monospace;}
+:root[data-workspace-colors] #write pre code {background:none;color:inherit;}
+:root[data-workspace-colors] #write .CodeMirror {background:transparent!important;color:var(--vscode-editor-foreground);}
+:root[data-workspace-colors] #write .CodeMirror-gutters {background:transparent!important;border-color:var(--workspace-markdown-border);}

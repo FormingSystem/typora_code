@@ -1,5 +1,24 @@
 /* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
 :root[data-workspace-colors=light] {
+  --vscode-titleBar-activeForeground:#606060;
+  --vscode-statusBar-foreground:#606060;
+  --vscode-statusBarItem-hoverBackground:#E3E3E5;
+  --vscode-menu-background:#FAFAFD;
+  --vscode-menu-foreground:#202020;
+  --vscode-menu-border:#E4E5E6;
+  --vscode-menu-separatorBackground:#EEEEF1;
+  --vscode-input-placeholderForeground:#999999;
+  --vscode-textBlockQuote-background:#EAEAEA;
+  --vscode-textBlockQuote-border:#F0F1F2;
+  --vscode-textCodeBlock-background:#EAEAEA;
+  --vscode-textPreformat-background:#ECECEC;
+  --vscode-textPreformat-foreground:#606060;
+  --vscode-terminal-selectionBackground:#0069CC26;
+  --vscode-terminalCursor-foreground:#202020;
+  --vscode-terminalCursor-background:#FFFFFF;
+  --workspace-markdown-heading:#0069CC;
+  --workspace-markdown-border:#0000002E;
+  --workspace-markdown-table-header:#000000B0;
   --vscode-foreground:#202020;
   --vscode-descriptionForeground:#606060;
   --vscode-focusBorder:#0069CC;
@@ -66,6 +85,25 @@
   --workspace-list-background:#FAFAFD;
 }
 :root[data-workspace-colors=dark] {
+  --vscode-titleBar-activeForeground:#8C8C8C;
+  --vscode-statusBar-foreground:#8C8C8C;
+  --vscode-statusBarItem-hoverBackground:#323233;
+  --vscode-menu-background:#202122;
+  --vscode-menu-foreground:#bfbfbf;
+  --vscode-menu-border:#2A2B2C;
+  --vscode-menu-separatorBackground:#2A2B2C;
+  --vscode-input-placeholderForeground:#555555;
+  --vscode-textBlockQuote-background:#242526;
+  --vscode-textBlockQuote-border:#2A2B2C;
+  --vscode-textCodeBlock-background:#242526;
+  --vscode-textPreformat-background:#262626;
+  --vscode-textPreformat-foreground:#8C8C8C;
+  --vscode-terminal-selectionBackground:#3994BC33;
+  --vscode-terminalCursor-foreground:#bfbfbf;
+  --vscode-terminalCursor-background:#191A1B;
+  --workspace-markdown-heading:#57A3F8;
+  --workspace-markdown-border:#FFFFFF2E;
+  --workspace-markdown-table-header:#FFFFFFB0;
   --vscode-foreground:#bfbfbf;
   --vscode-descriptionForeground:#8C8C8C;
   --vscode-focusBorder:#3994BCB3;
@@ -154,7 +192,7 @@
   --workspace-activity-active-border:var(--vscode-activityBar-activeBorder);
 }
 /* 同层共用背景，正文与第三方的主题变量保持原归属。 */
-:root[data-workspace-colors] :is(#typora-sidebar,.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.workspace-ssh-sidebar,.workspace-community-manager,.typora-terminal-panel,.terminal-tabs,.terminal-panel-header,footer.ty-footer,.workspace-breadcrumbs,.workspace-settings-categories) {
+:root[data-workspace-colors] :is(#typora-sidebar,.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.workspace-ssh-sidebar,.workspace-community-manager,.typora-terminal-panel,.terminal-tabs,.terminal-panel-header,.workspace-breadcrumbs,.workspace-settings-categories) {
   background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);border-color:var(--workspace-ui-border);
 }
 :root[data-workspace-colors] #typora-sidebar {--side-bar-bg-color:var(--workspace-ui-chrome);--control-text-color:var(--workspace-ui-muted);--active-file-bg-color:var(--workspace-ui-selection);--item-hover-bg-color:var(--workspace-ui-hover);}
@@ -189,3 +227,10 @@
 
 /* R020.1：同一列表底板承载alpha选中色；不在行或祖先叠加opacity。 */
 :root[data-workspace-colors] :is(.linux-note-workspace-explorer,.linux-note-git-source-control,.linux-note-workspace-search) {background-color:var(--workspace-list-background);}
+
+/* R074.1：角色按实际区域接线，不能把菜单外框、输入边界与状态文字混用。 */
+:root[data-workspace-colors] #top-titlebar[data-workspace-titlebar=ready] {--tc-title-fg:var(--vscode-titleBar-activeForeground);}
+:root[data-workspace-colors] footer.ty-footer {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-border);color:var(--vscode-statusBar-foreground);--workspace-action-hover:var(--vscode-statusBarItem-hoverBackground);}
+:root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,[data-workspace-footer-popup=ready]) {background-color:var(--vscode-menu-background);color:var(--vscode-menu-foreground);border-color:var(--vscode-menu-border);}
+:root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--vscode-menu-separatorBackground);}
+:root[data-workspace-colors] :is(.git-graph-dialog,.workspace-settings,.linux-note-git-source-control,.linux-note-workspace-search,.workspace-quick-open,.terminal-find) :is(input,textarea):not(:where([data-workspace-interaction=none] *,#write *,.monaco-editor *))::placeholder {color:var(--vscode-input-placeholderForeground);opacity:1;}

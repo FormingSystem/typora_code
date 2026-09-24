@@ -6749,14 +6749,17 @@
       "purpose": "stress",
       "requirements": [
         "R074",
-        "R020.1"
+        "R020.1",
+        "R074.1"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
         "enhancements/src/workspace_colors.ts",
         "enhancements/src/workspace_colors.css",
         "enhancements/src/workspace_theme.ts",
-        "enhancements/src/terminal_theme.ts"
+        "enhancements/src/terminal_theme.ts",
+        "enhancements/src/workspace_markdown_appearance.css",
+        "enhancements/src/workspace_markdown_theme.ts"
       ],
       "related_modules": [
         "theme",
@@ -6773,7 +6776,7 @@
         "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
       ],
       "expected": [
-        "同角色共享颜色，相邻角色可辨；正文、节点、焦点、滚动及几何保持，静止零主题标记写入"
+        "共享明暗角色、蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/test_ui.mjs"
@@ -6785,14 +6788,17 @@
       "purpose": "implementation",
       "requirements": [
         "R074",
-        "R020.1"
+        "R020.1",
+        "R074.1"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
         "enhancements/src/workspace_colors.ts",
         "enhancements/src/workspace_colors.css",
         "enhancements/src/workspace_theme.ts",
-        "enhancements/src/terminal_theme.ts"
+        "enhancements/src/terminal_theme.ts",
+        "enhancements/src/workspace_markdown_appearance.css",
+        "enhancements/src/workspace_markdown_theme.ts"
       ],
       "related_modules": [
         "theme",
@@ -6809,7 +6815,7 @@
         "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知"
       ],
       "expected": [
-        "同角色共享颜色，相邻角色可辨；正文、节点、焦点、滚动及几何保持，静止零主题标记写入"
+        "共享明暗角色、蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"

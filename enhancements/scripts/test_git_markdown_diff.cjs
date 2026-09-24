@@ -7,7 +7,7 @@ app.whenReady().then(async()=>{
   win.webContents.on('console-message',(_event,_level,message)=>console.log(message));
   const file=path.join(root,'test.html');fs.writeFileSync(file,'<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden;background:white;color:#222}body{display:flex;font:16px/1.6 "Courier New"}#write{font-size:16px}#write h1{color:#0066bb}#write table{border-collapse:collapse}#write td,#write th{border:1px solid #999;padding:4px}</style>');await win.loadFile(file);
   await win.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
-  const bundle=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export {git_diff_editor} from "./src/git_diff_editor";export {highlight_markdown_inline} from "./src/git_markdown_inline";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'qa'});await run(bundle.outputFiles[0].text);
+  const bundle=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export {bind_workspace_colors} from "./src/workspace_colors";export {git_diff_editor} from "./src/git_diff_editor";export {highlight_markdown_inline} from "./src/git_markdown_inline";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'qa'});await run(bundle.outputFiles[0].text);
   await check('(()=>{const a=document.createElement("p"),b=document.createElement("p");a.innerHTML="中文 <a href=old>旧链接</a> 😀 old value";b.innerHTML="中文 <a href=new>新链接</a> 😀 new value";qa.highlight_markdown_inline(a,b);return a.textContent==="中文 旧链接 😀 old value"&&b.textContent==="中文 新链接 😀 new value"&&a.querySelector("a").getAttribute("href")==="old"&&[...a.querySelectorAll("mark")].map(m=>m.textContent).join("")==="旧old"})()','多处中英文修改保持链接、emoji和原文');
   await check('(()=>{const a=document.createElement("p"),b=document.createElement("p");a.textContent="相同 ".repeat(2000)+"旧";b.textContent="相同 ".repeat(2000)+"新";qa.highlight_markdown_inline(a,b);return a.querySelectorAll("mark").length===1&&b.querySelectorAll("mark").length===1&&a.querySelector("mark").textContent==="旧"})()','超矩阵预算使用有界前后缀且不误标共同文本');
   const left='---\ntitle: old\n---\n\n# 标题\n\n普通 **旧文字**。\n\n- 一\n- 删除\n\n| 名称 | 值 |\n| --- | --- |\n| 数字 | 1 |\n\n> 原引用\n\n```js\nconst value = 1;\n```\n\n![图片](old.png)\n\n结尾相同\n';
@@ -32,6 +32,11 @@ app.whenReady().then(async()=>{
   await run('theme_node.media="not all"');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('未生效的主题media不能覆盖有效样式');
   await run('theme_node.media="all";theme_node.sheet.disabled=true;document.body.classList.add("qa-theme-change")');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('禁用主题不进入阅读样式');
   await run('theme_node.remove()');
+  await run('window.colors=qa.bind_workspace_colors();void 0');
+  await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 105, 204)"');
+  await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=left] pre")).backgroundColor!==getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] pre")).backgroundColor','共享明暗外观保留围栏差异背景');
+  await check('getComputedStyle(shadow.querySelector("strong [data-diff-inline=left]")).backgroundColor!==getComputedStyle(shadow.querySelector("strong [data-diff-inline=right]")).backgroundColor','共享明暗外观保留行内差异');
+
   await run('preview.range_action=async()=>{};preview.range_available=()=>true;preview.editor.getModifiedEditor().setSelection({startLineNumber:7,startColumn:1,endLineNumber:8,endColumn:1});');
   await check('preview.range_snapshot()===undefined','渲染态不能对隐藏源码选区暂存');
   await run('preview.navigate("next")');await check('preview.markdown_preview.scroll.scrollTop>0||shadow.activeElement?.dataset.changed==="true"','下一处更改定位当前渲染块');
@@ -40,6 +45,7 @@ app.whenReady().then(async()=>{
   await check('preview.models.length===2&&preview.models[0].getValue()===left_text&&preview.models[1].getValue()===right_text','20次切换保留两份只读源码及模型');
   await run('document.body.style.color="rgb(220,220,220)";document.body.style.background="#202020"');await wait('preview.markdown_preview.container.dataset.theme==="dark"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] [data-source-line] > *")).backgroundColor==="rgba(87, 171, 90, 0.3)"','暗色采用固定差异颜色');
+  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(87, 163, 248)"','真实diff深色蓝标题');
   await win.setContentSize(420,700);await pause(100);await check('shadow.querySelector(".markdown-diff-row").children[1].getBoundingClientRect().left>shadow.querySelector(".markdown-diff-row").children[0].getBoundingClientRect().left','窄视口保持左右比较');
   await win.webContents.setZoomFactor(1.25);await pause(100);await check('preview.markdown_preview.scroll.clientHeight>100','窗口放大后比较仍有独立滚动区域');
   await run('preview.set_markdown_mode(false)');await check('!preview.body.hidden&&preview.markdown_preview.container.hidden&&preview.editor.getModel().original.getValue()===left_text','可切回源码差异');

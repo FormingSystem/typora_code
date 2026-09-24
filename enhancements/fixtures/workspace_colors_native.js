@@ -6,7 +6,7 @@
  const wait=async(fn,label)=>{for(let i=0;i<300;i++){if(fn())return;await pause(30);}throw Error(label);};
  const color=selector=>{const el=typeof selector==='string'?document.querySelector(selector):selector;if(!el)throw Error('缺少 '+selector);const s=getComputedStyle(el);return{bg:s.backgroundColor,fg:s.color,border:s.borderTopColor,rect:el.getBoundingClientRect().toJSON()};};
  const capture=async stage=>{fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await pause(350);};
- const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文保留当前主题，功能面板拥有独立层次。\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
+ const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文使用共享明暗主题，标题蓝色。\n\n> 引用说明\n\n| 项目 | 值 |\n| --- | --- |\n| 正文 | `代码` |\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备超时');await pause(800);
   fs.writeFileSync(file,text);await files.open_file(file);await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'文档未打开');await pause(200);
@@ -17,6 +17,11 @@
    assert(document.documentElement.dataset.workspaceColors===mode,'宿主实际主题 '+mode);
    const chrome=mode==='light'?'rgb(250, 250, 253)':'rgb(25, 26, 27)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(18, 19, 20)';
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
+   entry.heading=color('#write h1');entry.paragraph=color('#write p');entry.quote=color('#write blockquote');
+   assert(entry.write.bg===content,'正文编辑器背景 '+mode);
+   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(87, 163, 248)')&&entry.heading.fg!==entry.paragraph.fg,'蓝色标题与中性正文 '+mode);
+   assert(getComputedStyle(document.querySelector('#write h1')).fontWeight==='600','标题字重 '+mode);
+   assert(entry.quote.bg===(mode==='light'?'rgb(234, 234, 234)':'rgb(36, 37, 38)'),'引用背景角色 '+mode);
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
     const button=document.querySelector('.typ-ribbon-item[data-id="'+id+'"]');assert(button,'活动栏入口 '+id);
     if(id==='core.file-explorer')core.app.commands.run('linux_note:file_explorer');else button.click();await pause(450);const panel=sidebar.activePanel;assert(panel&&sidebar.isShown,'点击入口展开 '+id);

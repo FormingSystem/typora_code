@@ -27,7 +27,7 @@ export function markdown_theme_rules():string {
         }
         return rule.cssText;
       }).filter(rule=>rule.includes('#write')||rule.startsWith(':root')||rule.startsWith(':host-context(')||rule.startsWith('@font-face')||/^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join('\n');
-      if(text){const adapted=text.replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');rules.push(sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted);}
+      if(text){const adapted=text.replace(/:root(\[data-workspace-colors(?:=[^\]]+)?\])/gu,':host-context(html$1)').replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');rules.push(sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted);}
     }catch{/* 外部样式不可读时由只读视图的基本样式接续。 */}
   }
   const text=rules.join('\n');if(users)cached_rules=text;return inherited+text;

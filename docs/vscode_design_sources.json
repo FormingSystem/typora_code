@@ -665,5 +665,27 @@
       "24px行、4px左右行距、2em标记及文字起点、13px继承字号、快捷键右对齐及0.7常态透明度",
       "本产品以共享列宽测量适配三类DOM，取消普通命令紧凑例外；不改变顶栏高度与业务命令"
     ]
+  },
+  "day_night_20260924": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "90f14578d618349d87a6f8bf8afc192e3c8f17823cc182dbf7d294654b164978"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "0022a0dfdcde04d574cb56e1fb5095a1451ceea20a438a65faa40eae7331b63c"
+      },
+      {
+        "path": "extensions/markdown-language-features/media/markdown.css",
+        "sha256": "f6d606ea4653fab1f575605d6ec253f1b13078a3763392c85a502bbc31f13110"
+      },
+      {
+        "path": "src/vs/workbench/contrib/terminal/common/terminalColorRegistry.ts",
+        "sha256": "e5223cf5b36c3a5329b9dea850f06604fa5aab8017f9f007157b4118e13377f4"
+      }
+    ],
+    "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。"
   }
 }

@@ -184946,7 +184946,7 @@ https://creativecommons.org/licenses/by/4.0/
           return rule.cssText;
         }).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || rule.startsWith(":host-context(") || rule.startsWith("@font-face") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
         if (text4) {
-          const adapted = text4.replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
+          const adapted = text4.replace(/:root(\[data-workspace-colors(?:=[^\]]+)?\])/gu, ":host-context(html$1)").replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
           rules.push(sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted);
         }
       } catch {
@@ -193423,26 +193423,26 @@ https://creativecommons.org/licenses/by/4.0/
     return {
       background,
       foreground: foreground2,
-      cursor: foreground2,
-      cursorAccent: background,
-      selectionBackground: dark ? "#264f78" : "#add6ff",
+      cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground2,
+      cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
+      selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"),
       selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
-      black: dark ? "#000000" : "#24292f",
-      red: dark ? "#cd3131" : "#a31515",
-      green: dark ? "#0dbc79" : "#16713b",
-      yellow: dark ? "#e5e510" : "#795e26",
-      blue: dark ? "#3b8eea" : "#0451a5",
-      magenta: dark ? "#bc3fbc" : "#af00db",
-      cyan: dark ? "#11a8cd" : "#0070a8",
+      black: dark ? "#000000" : "#000000",
+      red: dark ? "#cd3131" : "#cd3131",
+      green: dark ? "#0DBC79" : "#107C10",
+      yellow: dark ? "#e5e510" : "#949800",
+      blue: dark ? "#2472c8" : "#0451a5",
+      magenta: dark ? "#bc3fbc" : "#bc05bc",
+      cyan: dark ? "#11a8cd" : "#0598bc",
       white: dark ? "#e5e5e5" : "#555555",
       brightBlack: dark ? "#666666" : "#666666",
-      brightRed: dark ? "#f14c4c" : "#c72e2e",
-      brightGreen: dark ? "#23d18b" : "#16825d",
-      brightYellow: dark ? "#f5f543" : "#8a6500",
-      brightBlue: dark ? "#3b8eea" : "#0065b3",
-      brightMagenta: dark ? "#d670d6" : "#a626a4",
-      brightCyan: dark ? "#29b8db" : "#007f8b",
-      brightWhite: dark ? "#ffffff" : "#333333"
+      brightRed: dark ? "#f14c4c" : "#f14c4c",
+      brightGreen: dark ? "#23d18b" : "#14CE14",
+      brightYellow: dark ? "#f5f543" : "#b5ba00",
+      brightBlue: dark ? "#3b8eea" : "#3b8eea",
+      brightMagenta: dark ? "#d670d6" : "#d670d6",
+      brightCyan: dark ? "#29b8db" : "#29b8db",
+      brightWhite: dark ? "#e5e5e5" : "#a5a5a5"
     };
   }
   function observe_terminal_theme(apply3) {
@@ -235573,9 +235573,13 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_colors.css
   var workspace_colors_default = "";
 
+  // src/workspace_markdown_appearance.css
+  var workspace_markdown_appearance_default = "";
+
   // src/workspace_colors.ts
   function bind_workspace_colors() {
     const style = acquire_workspace_style("typora-code-style:workspace_colors", workspace_colors_default);
+    const markdown_style = acquire_workspace_style("typora-code-style:workspace_markdown_appearance", workspace_markdown_appearance_default);
     const root = document.documentElement, previous = root.getAttribute("data-workspace-colors");
     const refresh = () => {
       const mode = workspace_theme_mode();
@@ -235588,6 +235592,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       release();
+      markdown_style.remove();
       style.remove();
       if (previous === null) root.removeAttribute("data-workspace-colors");
       else root.setAttribute("data-workspace-colors", previous);
@@ -246507,6 +246512,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092411,
+        version: "2026.09.24.11",
+        date: "2026-09-24",
+        notes: [
+          "\u5DE5\u4F5C\u53F0\u548CMarkdown\u6B63\u6587\u7EDF\u4E00\u91C7\u7528VS Code\u98CE\u683C\u7684\u660E\u6697\u914D\u8272\uFF1B\u6807\u9898\u4FDD\u6301\u84DD\u8272\u5E76\u533A\u5206\u5C42\u7EA7\uFF0C\u8868\u683C\u3001\u5F15\u7528\u3001\u4EE3\u7801\u53CA\u9884\u89C8\u5171\u4EAB\u5448\u73B0\u3002",
+          "\u8865\u9F50\u83DC\u5355\u8FB9\u6846\u3001\u6807\u9898\u4E0E\u72B6\u6001\u680F\u3001\u8F93\u5165\u63D0\u793A\u548C\u7EC8\u7AEF\u989C\u8272\u89D2\u8272\uFF0C\u4E3B\u9898\u5207\u6362\u4FDD\u6301\u7F16\u8F91\u5668\u4E0E\u7528\u6237\u5B57\u53F7\u3001\u8FB9\u8DDD\u8BBE\u7F6E\u3002"
+        ]
+      },
       {
         sequence: 2026092410,
         version: "2026.09.24.10",
