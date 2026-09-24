@@ -1,3 +1,4 @@
+import {read_network_settings} from './workspace_network_settings';
 import {workspace_button,workspace_element} from './workspace_widgets';
 import {acquire_workspace_interaction} from './workspace_interaction';
 import {acquire_workspace_style} from './workspace_styles';
@@ -36,7 +37,7 @@ export function bind_community_plugins(){
   const abort=new AbortController();let disposed=false;
   const service=api.create_community_service({
     root:path.join(asset_root,'community'),acquire_lock:()=>network.acquire_update_lock(path.join(asset_root,'community')),host_version:runtime._options.appVersion,
-    request:(address:string,options:any)=>network.download(address,{...options,signal:abort.signal}),
+    request:(address:string,options:any)=>network.download(address,{...options,signal:abort.signal,network:read_network_settings()}),
     extract:(archive:string,destination:string)=>network.execute(network.powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(asset_root,'assets/update/workspace_update_archive.ps1'),'-archive',archive,'-destination',destination,'-package_kind','plugin'],{timeout:60000}),
     async load_plugin(manifest:any){
       const entry=url.pathToFileURL(path.join(manifest.dir,'main.js'));entry.searchParams.set('v',manifest.revision);

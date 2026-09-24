@@ -1,6 +1,7 @@
 // 独立Node服务；renderer与后台worker复用同一发布协议，不访问用户工作区。
 'use strict';
 const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto'),https=require('node:https'),net=require('node:net'),child_process=require('node:child_process');
+const network_service=require('./workspace_network.cjs');
 const repository='FormingSystem/typora_code',branch='main';
 const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const read_json=file=>JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
@@ -16,21 +17,22 @@ function release_info(value){
 }
 function allowed_url(value){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!['api.github.com','raw.githubusercontent.com','codeload.github.com','github.com','release-assets.githubusercontent.com'].includes(url.hostname))throw Error('更新地址不属于允许的GitHub HTTPS来源。');return url;}
 /** 总截止时间和字节上限覆盖重定向及慢速响应；下载不关闭TLS证书校验。 */
-function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{}}={}){
+function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{},network}={}){
  return new Promise((resolve,reject)=>{
-  let settled=false,request,response,output,total=0;const chunks=[];
-  const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);};
+  let settled=false,request,response,output,agent,total=0;const chunks=[],transport_abort=new AbortController();
+  const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);transport_abort.abort();agent?.destroy();};
   const fail=error=>{if(settled)return;settled=true;cleanup();request?.destroy();response?.destroy();output?.destroy();reject(error);};
   const abort=()=>fail(Error('已取消更新。'));
   const timer=setTimeout(()=>fail(Error('更新服务器响应超时。')),Math.max(1,deadline-Date.now()));
   try{
    if(signal?.aborted)return abort();signal?.addEventListener('abort',abort,{once:true});
-   request=https.get(allowed_url(url),{headers:{'User-Agent':'TyporaCode-Updater','Accept':'application/vnd.github+json'}},incoming=>{
+   const target=allowed_url(url),transport=network_service.create_agent(target.href,network,transport_abort.signal);agent=transport.agent;
+   request=https.get(target,{...transport,headers:{'User-Agent':'TyporaCode-Updater','Accept':'application/vnd.github+json'}},incoming=>{
     response=incoming;response.on('error',fail);
     if([301,302,303,307,308].includes(response.statusCode)){
      const location=response.headers.location;response.resume();
      if(!location||redirects>=4)return fail(Error('更新下载重定向异常。'));
-     settled=true;cleanup();download(new URL(location,url).href,{limit,file,signal,deadline,redirects:redirects+1,on_progress}).then(resolve,reject);return;
+     settled=true;cleanup();download(new URL(location,url).href,{limit,file,signal,deadline,redirects:redirects+1,on_progress,network}).then(resolve,reject);return;
     }
     if(response.statusCode!==200){response.resume();return fail(Error('更新服务器返回HTTP '+response.statusCode+'，请稍后重试。'));}
     const length=Number(response.headers['content-length']);
@@ -65,17 +67,17 @@ function record_identity(user_data,plan,basis){
  if(digest(fs.readFileSync(paths.manifest_file))!==plan.manifest_sha256)throw Error('安装后的资产清单与目标提交不一致。');
  write_json(paths.identity_file,{schema:1,repository,commit:plan.commit,sequence:plan.release.releases[0].sequence,manifest_sha256:plan.manifest_sha256,basis,recorded_at:new Date().toISOString()});
 }
-async function check_update(current,{request=download,signal,user_data}={}){
+async function check_update(current,{request=download,signal,user_data,network}={}){
  release_info(current);
- const head=parse_json(await request(`https://api.github.com/repos/${repository}/commits/${branch}`,{signal}));
+ const head=parse_json(await request(`https://api.github.com/repos/${repository}/commits/${branch}`,{signal,network}));
  if(!/^[a-f0-9]{40}$/.test(head.sha))throw Error('更新提交身份无效。');
  const prefix=`https://raw.githubusercontent.com/${repository}/${head.sha}/`;
- const notes_bytes=await request(prefix+'enhancements/release.json',{signal});
+ const notes_bytes=await request(prefix+'enhancements/release.json',{signal,network});
  const latest=release_info(parse_json(notes_bytes));
  if(latest.releases[0].sequence<current.releases[0].sequence)return null;
  const identity=installed_identity(user_data);
  if(identity?.commit===head.sha&&identity.sequence===current.releases[0].sequence)return null;
- const manifest=await request(prefix+'enhancements/dist/SHA256SUMS',{signal});
+ const manifest=await request(prefix+'enhancements/dist/SHA256SUMS',{signal,network});
  const plan={commit:head.sha,base_commit:identity?.commit||null,commit_message:typeof head.commit?.message==='string'?head.commit.message.slice(0,8000):'',release:latest,notes_sha256:digest(notes_bytes),manifest_sha256:digest(manifest),current:current.releases[0],archive_url:`https://codeload.github.com/${repository}/zip/${head.sha}`};
  // 首次手工ZIP安装没有Git身份；仅在磁盘资产等价时建立回执。
  if(user_data&&!identity&&latest.releases[0].sequence===current.releases[0].sequence){
@@ -112,12 +114,12 @@ function status_of(state_root,job){
  if(!['succeeded','failed','cancelled'].includes(status.phase)&&status.pid){try{process.kill(status.pid,0);}catch(error){if(error.code==='ESRCH')return {...status,phase:'failed',message:'更新进程已结束但未确认安装完成，请查看日志并重试。'};}}
  return status;
 }
-function start_update({state_root,installed_root,user_data,host_root,node_path,plan}){
+function start_update({state_root,installed_root,user_data,host_root,node_path,plan,network}){
  if(process.platform!=='win32')throw Error('当前平台暂未支持自动安装。');
  release_info(plan.release);if(!/^[a-f0-9]{40}$/.test(plan.commit))throw Error('无效更新提交。');
  const job=crypto.randomUUID(),root=path.join(state_root,job);fs.mkdirSync(root,{recursive:true});
- for(const name of ['workspace_update_service.cjs','workspace_update_archive.ps1'])fs.copyFileSync(path.join(installed_root,'assets/update',name),path.join(root,name));
- write_json(path.join(root,'request.json'),{state_root,user_data,host_root,plan});
+ for(const name of ['workspace_update_service.cjs','workspace_update_archive.ps1','workspace_network.cjs'])fs.copyFileSync(path.join(installed_root,'assets/update',name),path.join(root,name));
+ write_json(path.join(root,'request.json'),{state_root,user_data,host_root,plan,network:network_service.validate(network)});
  const log=fs.openSync(path.join(root,'worker.log'),'a');let child;
  try{child=child_process.spawn(node_path,[path.join(root,'workspace_update_service.cjs'),'--worker',path.join(root,'request.json')],{detached:true,windowsHide:true,env:child_environment(),stdio:['ignore',log,log]});}
  finally{fs.closeSync(log);}
@@ -157,7 +159,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   status('downloading','正在下载 '+plan.release.releases[0].version+'…');
   timer=setInterval(()=>{if(fs.existsSync(path.join(root,'cancel')))abort.abort();},100);
   const archive=path.join(root,'repository.zip');let last_progress=0;
-  await request(plan.archive_url,{file:archive,limit:128*1024*1024,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
+  await request(plan.archive_url,{network:configuration.network,file:archive,limit:128*1024*1024,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   status('verifying','正在校验并解压更新包…');
   const payload=unpack?await unpack(archive,root):await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'workspace_update_archive.ps1'),'-archive',archive,'-destination',path.join(root,'payload')],{timeout:120000});

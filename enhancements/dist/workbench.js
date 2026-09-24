@@ -245021,10 +245021,25 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_network_settings.ts
+  var NETWORK_DEFAULTS = { proxy_mode: "environment", proxy_url: "", ca_file: "" };
+  function read_network_settings() {
+    return { ...NETWORK_DEFAULTS, ...get_workspace_app()?.settings.get("workspace_network") };
+  }
+  function write_network_setting(key3, value) {
+    if (!(key3 in NETWORK_DEFAULTS)) throw Error("\u672A\u77E5\u7F51\u7EDC\u8BBE\u7F6E\u3002");
+    const runtime2 = window, settings = get_workspace_app()?.settings;
+    if (!settings || !runtime2._options?.userDataPath) throw Error("\u7F51\u7EDC\u8BBE\u7F6E\u670D\u52A1\u5C1A\u672A\u5C31\u7EEA\u3002");
+    const path = runtime2.reqnode("path"), service = runtime2.reqnode(path.join(runtime2._options.userDataPath, "typora_code/assets/update/workspace_network.cjs"));
+    const next = service.validate({ ...read_network_settings(), [key3]: value });
+    settings.set_and_save("workspace_network", next);
+  }
+
   // src/workspace_settings_sections.ts
   function bind_workspace_settings_sections(files) {
     const releases = [], user = () => "\u7528\u6237\u8BBE\u7F6E", root = () => files.context_root(), project = () => "\u5DE5\u4F5C\u533A\uFF1A".concat(root() || "\u672A\u6253\u5F00\u6587\u4EF6\u5939");
     const add = (section) => releases.push(register_workspace_settings(section));
+    add({ id: "network", title: "\u7F51\u7EDC", scope: user, defaults: NETWORK_DEFAULTS, fields: [{ key: "proxy_mode", title: "\u4EE3\u7406\u6A21\u5F0F", choices: ["environment", "direct", "manual"], description: "environment\uFF1A\u4F7F\u7528HTTPS_PROXY/HTTP_PROXY\u53CANO_PROXY\u73AF\u5883\u53D8\u91CF\uFF1Bdirect\uFF1A\u76F4\u8FDE\uFF1Bmanual\uFF1A\u6307\u5B9A\u4EE3\u7406\u3002\u7CFB\u7EDF\u4EE3\u7406/PAC\u4E0D\u4F1A\u81EA\u52A8\u5BFC\u5165\u3002" }, { key: "proxy_url", title: "\u4EE3\u7406\u5730\u5740", description: "\u4F8B\u5982 http://proxy.company:8080\uFF1B\u652F\u6301HTTP/HTTPS\u4EE3\u7406\uFF0C\u4E0D\u63A5\u53D7\u5185\u5D4C\u8D26\u6237\u5BC6\u7801\u3002\u5148\u586B\u5199\u5730\u5740\uFF0C\u518D\u9009\u62E9manual\u3002" }, { key: "ca_file", title: "\u4F01\u4E1ACA\u8BC1\u4E66\u6587\u4EF6", description: "\u9644\u52A0\u4FE1\u4EFBPEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08.pem/.crt/.cer\uFF09\uFF0C\u4E0D\u542B\u79C1\u94A5\uFF1B\u4FDD\u6301TLS\u6821\u9A8C\u3002\u7528\u4E8E\u66F4\u65B0\u68C0\u67E5\u3001ZIP\u4E0E\u793E\u533A\u63D2\u4EF6\u4E0B\u8F7D\uFF0C\u4E0D\u4FEE\u6539\u7CFB\u7EDF/Git/SSH\u3002\u7559\u7A7A\u6062\u590D\u9ED8\u8BA4\u4FE1\u4EFB\u94FE\u3002", file_extensions: ["pem", "crt", "cer"] }], read: read_network_settings, write: write_network_setting });
     add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: { ...WORKSPACE_EDITOR_DEFAULTS, ...TEXT_PRESENTATION_DEFAULTS }, fields: [{ key: "word_wrap", title: "\u6587\u672C\u81EA\u52A8\u6362\u884C", description: "\u6E90\u7801\u3001\u5386\u53F2\u7248\u672C\u3001\u5DEE\u5F02\u548C\u6E90\u7801\u9884\u89C8\u6309\u53EF\u7528\u5BBD\u5EA6\u8F6F\u6362\u884C\uFF1B\u4E0D\u66F4\u6539\u6B63\u6587\u6216\u903B\u8F91\u884C\u53F7\u3002\u5173\u95ED\u540E\u53EF\u6A2A\u5411\u6EDA\u52A8\u3002" }, { key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }, { key: "wrap_tabs", title: "\u6807\u7B7E\u6362\u884C\uFF08Wrap Tabs\uFF09", description: "\u6807\u7B7E\u8D85\u8FC7\u53EF\u7528\u5BBD\u5EA6\u65F6\u663E\u793A\u4E3A\u591A\u884C\uFF1B\u5173\u95ED\u65F6\u4F7F\u7528\u5355\u884C\u6EDA\u52A8\u3002" }, { key: "link_preview_enabled", title: "\u9009\u4E2D\u94FE\u63A5\u81EA\u52A8\u9884\u89C8", description: "\u5728\u5DE6\u4FA7\u4E0B\u65B9\u53EA\u8BFB\u9884\u89C8\u9009\u4E2D\u7684\u94FE\u63A5\uFF0C\u4E0D\u5F71\u54CD\u641C\u7D22\u7ED3\u679C\u9884\u89C8\u548C\u624B\u52A8\u5206\u5C4F\u9884\u89C8\u3002" }], read: () => ({ ...read_workspace_editor_settings(), ...read_text_presentation() }), write: (key3, value) => key3 === "word_wrap" ? update_text_presentation(value) : set_workspace_editor_setting(key3, value) });
     const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u4E0A\u9650\uFF08KB\uFF09", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
     add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key3, index) => ({ key: key3, title: file_labels[index] || key3, choices: key3 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key3 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key3, value) => {
@@ -245258,6 +245273,27 @@ https://creativecommons.org/licenses/by/4.0/
             };
             label.append(key3, control);
             row.append(label, workspace_button("\u6062\u590D\u9ED8\u8BA4", () => save2(structuredClone(baseline))));
+            if (field.file_extensions) {
+              const picker = workspace_element("input");
+              picker.type = "file";
+              picker.accept = field.file_extensions.map((ext) => "." + ext).join(",");
+              picker.hidden = true;
+              picker.onchange = () => {
+                if (this.disposed || !row.isConnected) return;
+                const file = picker.files?.[0];
+                picker.value = "";
+                if (!file) return;
+                try {
+                  const runtime2 = window;
+                  const path = file.path || runtime2.reqnode("electron").webUtils?.getPathForFile(file);
+                  if (!path) throw Error("\u65E0\u6CD5\u53D6\u5F97\u6240\u9009\u8BC1\u4E66\u6587\u4EF6\u8DEF\u5F84\u3002");
+                  save2(path);
+                } catch (error) {
+                  this.status.textContent = String(error);
+                }
+              };
+              row.append(workspace_button("\u9009\u62E9\u6587\u4EF6\u2026", () => picker.click()), picker);
+            }
             if (field.description) row.append(workspace_element("p", "", field.description));
             this.body.append(row);
           }
@@ -246214,6 +246250,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092408,
+        version: "2026.09.24.8",
+        date: "2026-09-24",
+        notes: [
+          "\u7EDF\u4E00\u8BBE\u7F6E\u65B0\u589E\u7F51\u7EDC\u4EE3\u7406\u4E0E\u4F01\u4E1ACA\u8BC1\u4E66\uFF1A\u66F4\u65B0\u68C0\u67E5\u3001ZIP\u53CA\u793E\u533A\u63D2\u4EF6\u4E0B\u8F7D\u5171\u7528HTTP/HTTPS\u4EE3\u7406\u548C\u9644\u52A0\u4FE1\u4EFB\u8BC1\u4E66\uFF0C\u4FDD\u7559TLS\u6821\u9A8C\u3002"
+        ]
+      },
+      {
         sequence: 2026092407,
         version: "2026.09.24.7",
         date: "2026-09-24",
@@ -247143,7 +247187,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (!is_current()) return;
           if (!service.claim_startup(state_root, session) && !request.manual) return;
         }
-        const plan = await service.check_update(installed, { signal: request.controller.signal, user_data });
+        const plan = await service.check_update(installed, { signal: request.controller.signal, user_data, network: read_network_settings() });
         if (!is_current()) return;
         close_checking(request);
         if (!plan) {
@@ -247171,7 +247215,7 @@ https://creativecommons.org/licenses/by/4.0/
           try {
             const config = JSON.parse(fs2.readFileSync(path.join(installed_root, "assets/update/runtime.json"), "utf8"));
             const node_path = path.join(user_data, "linux_note_enhancements/terminal_runtime/node", config.node_version, "node.exe");
-            const job = service.start_update({ state_root, installed_root, user_data, host_root: path.dirname(process2.execPath), node_path, plan });
+            const job = service.start_update({ state_root, installed_root, user_data, host_root: path.dirname(process2.execPath), node_path, plan, network: read_network_settings() });
             show_progress(job);
           } catch (error) {
             update2.disabled = false;
@@ -247418,7 +247462,7 @@ https://creativecommons.org/licenses/by/4.0/
       root: path.join(asset_root, "community"),
       acquire_lock: () => network.acquire_update_lock(path.join(asset_root, "community")),
       host_version: runtime2._options.appVersion,
-      request: (address, options2) => network.download(address, { ...options2, signal: abort.signal }),
+      request: (address, options2) => network.download(address, { ...options2, signal: abort.signal, network: read_network_settings() }),
       extract: (archive, destination) => network.execute(network.powershell(), ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path.join(asset_root, "assets/update/workspace_update_archive.ps1"), "-archive", archive, "-destination", destination, "-package_kind", "plugin"], { timeout: 6e4 }),
       async load_plugin(manifest) {
         const entry = url.pathToFileURL(path.join(manifest.dir, "main.js"));

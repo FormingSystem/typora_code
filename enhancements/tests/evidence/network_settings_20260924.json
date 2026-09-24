@@ -1,0 +1,87 @@
+{
+  "schema": 1,
+  "date": "2026-09-24",
+  "release": "2026.09.24.8",
+  "requirements": [
+    "R047.7"
+  ],
+  "design": "docs/workspace_update.md#r0477-企业代理与ca证书",
+  "asset_manifest_sha256": "0188956eb142bc02f8a77ca70fa3d60d77f526493ef422f264e7fa278785acb3",
+  "validation": {
+    "build": "PASS: .cache/issue_tracking/network_build_final.log",
+    "check": "PASS: complete npm run check; 213 catalog suites; .cache/issue_tracking/network_check.log",
+    "transport": {
+      "status": "PASS",
+      "checks": [
+        "企业中文路径CA配置可验证",
+        "DER证书可用且附加CA保留公共根",
+        "错误代理/密码/缺失/损坏CA拒绝，保留严格TLS",
+        "未信任企业CA时真实TLS拒绝",
+        "HTTP CONNECT加企业CA真实TLS成功",
+        "HTTPS代理与目标双层TLS均验证",
+        "附加CA不绕过目标主机名验证",
+        "跨允许域重定向和ZIP流写入保留代理与CA",
+        "代理不放宽更新域名白名单",
+        "源站没有代理认证请求头",
+        "环境HTTPS代理生效",
+        "NO_PROXY与显式直连绕过环境代理",
+        "取消与总超时清理尚未返回CONNECT的连接",
+        "提交/公告/资产检查共享同一配置"
+      ],
+      "scope": "真实回环TLS与HTTP/HTTPS CONNECT，不访问公司网络",
+      "log": ".cache/issue_tracking/network_transport_verified.log"
+    },
+    "ui": {
+      "status": "PASS",
+      "groups": 3,
+      "log": ".cache/issue_tracking/network_ui_verified.log"
+    },
+    "update_worker": "PASS: actual worker copies transport and persists network snapshot; ZIP install transaction; .cache/issue_tracking/network_update_install_verified.log",
+    "native": {
+      "status": "PASS",
+      "case_id": "3fc50de4901b48948946b8e4e0525b1a",
+      "checks": 22,
+      "node": "24.15.0",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "0188956eb142bc02f8a77ca70fa3d60d77f526493ef422f264e7fa278785acb3",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "29a177ceb2b2fcf5359872b053aafb60d54ceeb08e8d3d029c1d0007f4c97521",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "独立原始宿主和回环TLS/代理；未连接企业现场，文件选择取消为DOM事件"
+    },
+    "install_cycle": "PASS: restore/detach uninstall/reinstall; .cache/issue_tracking/network_install_cycle.log",
+    "uninstall": "PASS: 65 assertions; .cache/issue_tracking/network_uninstall.log",
+    "local_install": {
+      "version": "2026.09.24.8",
+      "installed_assets": [
+        44,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "retained_failures": [
+    "两个UI夹具首次缺少既有虚拟搜索Worker的构建插件；补用共享构建插件及设置端口，最终3组通过，失败日志network_ui_final.log保留。",
+    "本地CONNECT测试夹具未处理半关闭，取消断言失败；修正回环代理的连接生命周期后取消/超时通过，诊断日志保留。"
+  ],
+  "limits": [
+    "未接入企业真实代理/CA；未验收Win10、PAC、NTLM/Kerberos或客户端身份证书。",
+    "默认CA为空，普通用户无需配置。环境模式读取代理环境变量，没有代理则直连，不自动导入系统代理/PAC。",
+    "作用域为更新检查、ZIP和社区下载，未改变Git/SSH及第三方插件自身联网。",
+    "原生文件选择取消使用DOM事件；用户运行窗口未重启。",
+    "旧Node不提供getCACertificates时使用内置根回退；该旧宿主边界未实机验证。"
+  ]
+}

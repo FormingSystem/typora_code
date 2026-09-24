@@ -1,5 +1,5 @@
 /** 配置定义统一登记；数据和保存事务继续归各领域唯一所有者。 */
-export type workspace_setting_field={key:string;title:string;choices?:string[];description?:string};
+export type workspace_setting_field={key:string;title:string;choices?:string[];description?:string;file_extensions?:string[]};
 export type workspace_settings_section={
   id:string;title:string;scope:()=>string;defaults:Record<string,unknown>;fields:workspace_setting_field[];
   read:()=>Record<string,unknown>;write:(key:string,value:unknown)=>void;

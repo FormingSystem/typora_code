@@ -7290,6 +7290,69 @@
       ],
       "runner": "enhancements/scripts/prepare_stability_native.py",
       "fixture": "enhancements/fixtures/menu_slots_native.js"
+    },
+    {
+      "id": "TC-network-transport",
+      "domain": "network",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R047.7"
+      ],
+      "design": "docs/workspace_update.md#r0477-企业代理与ca证书",
+      "implementation": [
+        "enhancements/src/workspace_network.cjs",
+        "enhancements/src/workspace_network_settings.ts",
+        "enhancements/src/workspace_update_service.cjs",
+        "enhancements/src/community_plugins.ts"
+      ],
+      "related_modules": [
+        "update",
+        "plugins",
+        "settings"
+      ],
+      "script": "enhancements/scripts/test_workspace_network.mjs",
+      "environment": "Node真实回环TLS/CONNECT",
+      "preconditions": "独立临时目录、回环服务器和测试证书，不访问用户公司代理或更改系统信任。",
+      "steps": [
+        "配置代理及CA，验证真实TLS、错误和取消、状态保持。"
+      ],
+      "expected": [
+        "所有断言通过，现场网络限制独立记录。"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-network-native",
+      "domain": "network",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R047.7"
+      ],
+      "design": "docs/workspace_update.md#r0477-企业代理与ca证书",
+      "implementation": [
+        "enhancements/src/workspace_network.cjs",
+        "enhancements/src/workspace_network_settings.ts",
+        "enhancements/src/workspace_update_service.cjs",
+        "enhancements/src/community_plugins.ts"
+      ],
+      "related_modules": [
+        "update",
+        "plugins",
+        "settings"
+      ],
+      "script": "enhancements/fixtures/network_settings_native.js",
+      "environment": "原始Typora1.14.10独立副本",
+      "preconditions": "独立临时目录、回环服务器和测试证书，不访问用户公司代理或更改系统信任。",
+      "steps": [
+        "配置代理及CA，验证真实TLS、错误和取消、状态保持。"
+      ],
+      "expected": [
+        "所有断言通过，现场网络限制独立记录。"
+      ],
+      "timeout_ms": 60000,
+      "runner": "enhancements/scripts/run_private_desktop.ps1"
     }
   ]
 }

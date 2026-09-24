@@ -1,3 +1,4 @@
+import {read_network_settings} from './workspace_network_settings';
 import {workspace_dialog,workspace_button,workspace_element as el} from "./workspace_widgets";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {create_workspace_lifetime} from "./workspace_lifetime";
@@ -117,7 +118,7 @@ export function bind_workspace_update(){
     const session=await service.session_identity(process.ppid,process.execPath);if(!is_current())return;
     if(!service.claim_startup(state_root,session)&&!request.manual)return;
    }
-   const plan=await service.check_update(installed,{signal:request.controller.signal,user_data});if(!is_current())return;
+   const plan=await service.check_update(installed,{signal:request.controller.signal,user_data,network:read_network_settings()});if(!is_current())return;
    close_checking(request);
    if(!plan){if(request.manual){message("Typora Code 更新","当前安装已是最新发布版本（"+current.releases[0].version+"）。");}return;}
    const target=dialog=workspace_dialog("Typora Code 有新版本","稍后",()=>{dialog=undefined;});
@@ -134,7 +135,7 @@ export function bind_workspace_update(){
     try{
      const config=JSON.parse(fs.readFileSync(path.join(installed_root,"assets/update/runtime.json"),"utf8"));
      const node_path=path.join(user_data,"linux_note_enhancements/terminal_runtime/node",config.node_version,"node.exe");
-     const job=service.start_update({state_root,installed_root,user_data,host_root:path.dirname(process.execPath),node_path,plan});show_progress(job);
+     const job=service.start_update({state_root,installed_root,user_data,host_root:path.dirname(process.execPath),node_path,plan,network:read_network_settings()});show_progress(job);
     }catch(error){update.disabled=false;target.content.append(el("p","",String(error)));write_log(error);}
    });target.footer.append(update);
   }catch(error){if(is_current()){write_log(error);if(request.manual){close_checking(request);message("检查更新失败",String(error)+"\n请检查网络连接后重试。",true);}}}

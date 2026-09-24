@@ -27,6 +27,8 @@ expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb5
 assert digest(asar) == expected_asar, 'Native fixture requires verified original Typora 1.14.10'
 assert (host_root / 'Typora.exe').is_file()
 shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
+if fixture_path.name == 'network_settings_native.js':
+    shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
 workspace = case / 'workspace'
 workspace.mkdir()
 if fixture_path.name == 'community_plugins_native.js':

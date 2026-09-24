@@ -405,3 +405,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 - BUG-markdown-diff-decoration：整格高饱和背景盖过主题与具体改词；改为内容浅色、行内强调及修改边线，配色/原生回归通过，复杂结构仍有块级边界。证据见[本次记录](../enhancements/tests/evidence/shared_selection_20260924.json)。
 
 2026-09-24 R065.2：BUG-menu-per-item-columns——R065.1按每行能力撤销标记空间，混合菜单文字起点不一致；用户明确全部按VS Code排版。统一菜单层2em标记/文字起点和快捷键列，普通项保留menuitem语义，状态变化不改几何。覆盖顶栏八类、共享与核心菜单，旧紧凑间距断言按新授权替换。
+
+2026-09-24 R047.7：NET-request-trust-proxy——浏览器与Node代理/信任链来源不同，原更新请求未提供企业配置。共享请求级Agent显式携带代理和附加CA，保留默认根、主机名验证、域名白名单及重定向/取消。真实回环TLS、HTTP/HTTPS CONNECT、原生宿主与worker通过；企业现场仍待验证。UI夹具缺虚拟搜索Worker构建插件与CONNECT夹具半关闭清理归测试接线问题，最终复验通过。见[证据](../enhancements/tests/evidence/network_settings_20260924.json)。

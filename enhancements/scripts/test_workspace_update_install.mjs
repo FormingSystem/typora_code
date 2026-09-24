@@ -66,7 +66,10 @@ try{
 }finally{holder.stdin.end('\n');await holder_done;}
 checks.push('真实跨进程安装互斥拒绝并发入口，旧资产和设置保持');
 // 使用随安装交付的私有Node真正启动独立worker；相同提交在联网之前拒绝。
-const actual_job=service.start_update({state_root,installed_root:path.join(user_data,'typora_code'),user_data,host_root:host,node_path:private_node,plan});
+const network_configuration={proxy_mode:'direct',proxy_url:'',ca_file:path.join(repository,'enhancements/fixtures/network_tls/test_ca.pem')};
+const actual_job=service.start_update({state_root,installed_root:path.join(user_data,'typora_code'),user_data,host_root:host,node_path:private_node,plan,network:network_configuration});
+assert.deepEqual(JSON.parse(fs.readFileSync(path.join(state_root,actual_job,'request.json'),'utf8')).network,network_configuration);
+assert(fs.existsSync(path.join(state_root,actual_job,'workspace_network.cjs')),'worker carries bundled transport');
 let actual_status;
 for(let index=0;index<150;index++){actual_status=service.status_of(state_root,actual_job);if(['failed','succeeded','cancelled'].includes(actual_status.phase))break;await new Promise(resolve=>setTimeout(resolve,50));}
 assert.equal(actual_status.phase,'failed');assert.match(actual_status.message,/本地已经/);assert(!fs.existsSync(path.join(state_root,actual_job,'repository.zip')));

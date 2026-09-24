@@ -1,0 +1,34 @@
+import assert from 'node:assert/strict';import tls from 'node:tls';import {X509Certificate} from 'node:crypto';
+import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import https from 'node:https';import http from 'node:http';import net from 'node:net';import {createRequire} from 'node:module';
+const require=createRequire(import.meta.url),service=require('../src/workspace_update_service.cjs'),network=require('../src/workspace_network.cjs');
+const fixture=new URL('../fixtures/network_tls/',import.meta.url),root=fs.mkdtempSync(path.join(os.tmpdir(),'typora-network-')),ca_file=path.join(root,'企业 CA.pem');fs.copyFileSync(new URL('test_ca.pem',fixture),ca_file);
+const material={key:fs.readFileSync(new URL('test_server_key.pem',fixture)),cert:fs.readFileSync(new URL('test_server.pem',fixture))},checks=[],sockets=new Set();
+const track=server=>{server.on('connection',socket=>{sockets.add(socket);socket.on('close',()=>sockets.delete(socket));});return server;};
+const listen=server=>new Promise(resolve=>server.listen(0,'127.0.0.1',()=>resolve(server.address().port)));
+let proxy_calls=0,origin_calls=0,stall=false;const requests=[];
+const origin=track(https.createServer(material,(req,res)=>{origin_calls++;requests.push(req.headers);if(req.url==='/redirect'){res.writeHead(302,{Location:'https://codeload.github.com/archive'});res.end();}else if(req.url==='/denied'){res.writeHead(302,{Location:'https://example.invalid/private'});res.end();}else{res.writeHead(200,{'Content-Length':7});res.end('zipdata');}}));
+const tunnel=(req,client,head)=>{proxy_calls++;client.on('end',()=>client.destroy());if(stall){client.resume();return;}assert.match(req.url,/^(api|codeload|raw)\.github(usercontent)?\.com:443$|^github\.com:443$/);const upstream=net.connect(origin.address().port,'127.0.0.1',()=>{client.write('HTTP/1.1 200 Connection Established\r\n\r\n');if(head.length)upstream.write(head);client.pipe(upstream);upstream.pipe(client);});upstream.on('error',()=>client.destroy());upstream.on('close',()=>client.destroy());client.on('error',()=>upstream.destroy());client.on('close',()=>upstream.destroy());};
+const proxy=track(http.createServer()),secure_proxy=track(https.createServer(material));proxy.on('connect',tunnel);secure_proxy.on('connect',tunnel);
+const previous=Object.fromEntries(['HTTPS_PROXY','https_proxy','HTTP_PROXY','http_proxy','ALL_PROXY','all_proxy','NO_PROXY','no_proxy'].map(key=>[key,process.env[key]]));
+try{
+ await listen(origin);const port=await listen(proxy),secure_port=await listen(secure_proxy);const settings={proxy_mode:'manual',proxy_url:'http://127.0.0.1:'+port,ca_file};
+ assert.deepEqual(network.validate(settings),settings);checks.push('企业中文路径CA配置可验证');
+ const der=path.join(root,'test.cer');fs.writeFileSync(der,new X509Certificate(fs.readFileSync(ca_file)).raw);network.validate({...settings,ca_file:der});const transport=network.create_agent('https://api.github.com',settings);assert(transport.ca.includes(tls.rootCertificates[0]));transport.agent.destroy();checks.push('DER证书可用且附加CA保留公共根');
+ for(const patch of [{proxy_url:'socks5://localhost:1'},{proxy_url:'http://user:secret@localhost:1'},{proxy_url:'http://localhost/path'},{proxy_mode:'wrong'},{proxy_url:''},{ca_file:path.join(root,'missing')}])assert.throws(()=>network.validate({...settings,...patch}));
+ const bad=path.join(root,'bad.pem');fs.writeFileSync(bad,'not a certificate');assert.throws(()=>network.validate({...settings,ca_file:bad}));checks.push('错误代理/密码/缺失/损坏CA拒绝，保留严格TLS');
+ await assert.rejects(service.download('https://api.github.com/test',{network:{...settings,ca_file:''}}),/certificate|issuer|verify/i);checks.push('未信任企业CA时真实TLS拒绝');
+ assert.equal((await service.download('https://api.github.com/test',{network:settings})).toString(),'zipdata');checks.push('HTTP CONNECT加企业CA真实TLS成功');
+ assert.equal((await service.download('https://api.github.com/test',{network:{...settings,proxy_url:'https://localhost:'+secure_port}})).toString(),'zipdata');checks.push('HTTPS代理与目标双层TLS均验证');
+ await assert.rejects(service.download('https://github.com/test',{network:settings}),/Hostname|IP|altname|cert/i);checks.push('附加CA不绕过目标主机名验证');
+ const archive=path.join(root,'download.zip');await service.download('https://api.github.com/redirect',{network:settings,file:archive});assert.equal(fs.readFileSync(archive,'utf8'),'zipdata');checks.push('跨允许域重定向和ZIP流写入保留代理与CA');
+ await assert.rejects(service.download('https://api.github.com/denied',{network:settings}),/允许/);checks.push('代理不放宽更新域名白名单');
+ assert(requests.every(headers=>!headers['proxy-authorization']));checks.push('源站没有代理认证请求头');
+ for(const key of Object.keys(previous))delete process.env[key];process.env.HTTPS_PROXY=settings.proxy_url;
+ assert.equal((await service.download('https://api.github.com/test',{network:{proxy_mode:'environment',ca_file}})).toString(),'zipdata');checks.push('环境HTTPS代理生效');
+ const direct_url='https://localhost:'+origin.address().port;process.env.NO_PROXY='localhost';
+ const direct=async configuration=>{const transport=network.create_agent(direct_url,configuration);try{return await new Promise((resolve,reject)=>{https.get(direct_url,{...transport,family:4},res=>{let data='';res.on('data',chunk=>data+=chunk);res.on('end',()=>resolve(data));}).on('error',reject);});}finally{transport.agent.destroy();}};
+ const count=proxy_calls;assert.equal(await direct({proxy_mode:'environment',ca_file}),'zipdata');delete process.env.NO_PROXY;assert.equal(await direct({proxy_mode:'direct',ca_file}),'zipdata');assert.equal(proxy_calls,count);checks.push('NO_PROXY与显式直连绕过环境代理');
+ stall=true;const abort=new AbortController(),pending=service.download('https://api.github.com/test',{network:settings,signal:abort.signal});setTimeout(()=>abort.abort(),80);await assert.rejects(pending,/取消/);await assert.rejects(service.download('https://api.github.com/test',{network:settings,timeout_ms:80}),/超时/);await new Promise(resolve=>setTimeout(resolve,150));assert.equal(sockets.size,0);checks.push('取消与总超时清理尚未返回CONNECT的连接');stall=false;
+ const snapshot={...settings};const current={schema:1,releases:[{sequence:1,version:'1',date:'2026-09-24',notes:['test']}]};let seen=0;await service.check_update(current,{network:snapshot,request:async(url,options)=>{assert.equal(options.network,snapshot);seen++;return Buffer.from(url.includes('/commits/')?JSON.stringify({sha:'a'.repeat(40)}):url.endsWith('release.json')?JSON.stringify(current):'manifest');}});assert.equal(seen,3);checks.push('提交/公告/资产检查共享同一配置');
+ console.log(JSON.stringify({status:'PASS',checks,proxy_calls,origin_calls,evidence:root},null,2));
+}finally{for(const [key,value]of Object.entries(previous)){if(value===undefined)delete process.env[key];else process.env[key]=value;}for(const socket of sockets)socket.destroy();for(const server of [origin,proxy,secure_proxy])server.close();}
