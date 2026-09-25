@@ -11,17 +11,11 @@ import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { dispose_workspace_widgets } from "./workspace_widgets";
 import type { graph_core } from "./git_graph_host";
-import { Registry, INITIAL, parseRawGrammar, type IGrammar, type StateStack } from "vscode-textmate";
-import { loadWASM, OnigScanner, OnigString } from "vscode-oniguruma";
-import oniguruma_wasm from "vscode-oniguruma/release/onig.wasm";
-import c_grammar from "../vendor/vscode_cpp/syntaxes/c.tmLanguage.json";
-import cpp_grammar from "../vendor/vscode_cpp/syntaxes/cpp.tmLanguage.json";
-import cpp_macro_grammar from "../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.tmLanguage.json";
-import platform_grammar from "../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json";
+import {load_code_themes,bind_code_theme,initial_code_stack,type code_stack,type themed_grammar} from './reading_code_theme';
 import extension_css from "./typora_enhancements.css";
 import scrollbar_css from "./workspace_scrollbars.css";
 import {bind_workspace_scrollbars} from "./workspace_scrollbars";
-import { scope_style } from "./textmate_style";
+
 import { bind_reading_navigation } from "./reading_navigation";
 import { initialize_workspace } from "./workspace_bootstrap";
 import { bind_file_path_actions } from "./file_path_actions";
@@ -54,10 +48,10 @@ type code_mirror_constructor = {
 };
 
 type textmate_state = {
-  rule_stack: StateStack;
-  pending_rule_stack: StateStack;
+  rule_stack: code_stack;
+  pending_rule_stack: code_stack;
   line: string;
-  tokens: Array<{ startIndex: number; endIndex: number; scopes: string[] }>;
+  tokens: Array<{ startIndex: number; endIndex: number; style: string }>;
   token_index: number;
 };
 
@@ -74,8 +68,8 @@ const MINIMUM_COLLAPSED_CODE_HEIGHT = 320;
 const MAXIMUM_COLLAPSED_CODE_HEIGHT = 560;
 const CODE_COLLAPSE_TOLERANCE = 48;
 
-let c_textmate_grammar: IGrammar | null = null;
-let cpp_textmate_grammar: IGrammar | null = null;
+let c_textmate_grammar: themed_grammar | null = null;
+let cpp_textmate_grammar: themed_grammar | null = null;
 let scan_timer = 0;
 const mermaid_buttons = new Map<Element, reading_media_entry>();
 let mermaid_entries:ReturnType<typeof bind_reading_media_entries>|undefined;
@@ -94,36 +88,16 @@ let dispose_reading_action_events: (() => void) | null = null;
 let extension_style:workspace_style_handle|undefined;
 function ensure_style(): void { extension_style ??= acquire_workspace_style(EXTENSION_STYLE_ID,extension_css); }
 
-function raw_grammar(value: unknown, path: string) {
-  return parseRawGrammar(JSON.stringify(value), path);
-}
-
 async function load_textmate_grammars(): Promise<void> {
-  await loadWASM(oniguruma_wasm.buffer);
-  const grammar_sources = new Map([
-    ["source.c", raw_grammar(c_grammar, "c.tmLanguage.json")],
-    ["source.cpp", raw_grammar(cpp_grammar, "cpp.tmLanguage.json")],
-    ["source.cpp.embedded.macro", raw_grammar(cpp_macro_grammar, "cpp.embedded.macro.tmLanguage.json")],
-    ["source.c.platform", raw_grammar(platform_grammar, "platform.tmLanguage.json")],
-  ]);
-  const registry = new Registry({
-    onigLib: Promise.resolve({
-      createOnigScanner: (sources: string[]) => new OnigScanner(sources),
-      createOnigString: (value: string) => new OnigString(value),
-    }),
-    loadGrammar: async (scope_name: string) => grammar_sources.get(scope_name) ?? null,
-  });
-  c_textmate_grammar = await registry.loadGrammar("source.c");
-  cpp_textmate_grammar = await registry.loadGrammar("source.cpp");
-  if (!c_textmate_grammar || !cpp_textmate_grammar) throw new Error("C/C++ TextMate grammar failed to load");
+ const themes=await load_code_themes();c_textmate_grammar=themes.c;cpp_textmate_grammar=themes.cpp;
 }
 
-function create_textmate_mode(grammar: IGrammar) {
+function create_textmate_mode(grammar: themed_grammar) {
   return {
     startState(): textmate_state {
       return {
-        rule_stack: INITIAL,
-        pending_rule_stack: INITIAL,
+        rule_stack: initial_code_stack(),
+        pending_rule_stack: initial_code_stack(),
         line: "",
         tokens: [],
         token_index: 0,
@@ -165,7 +139,7 @@ function create_textmate_mode(grammar: IGrammar) {
       }
       stream.pos = Math.min(stream.string.length, Math.max(stream.pos + 1, token.endIndex));
       if (stream.eol()) state.rule_stack = state.pending_rule_stack;
-      return scope_style(token.scopes);
+      return token.style;
     },
   };
 }
@@ -478,6 +452,8 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   performance.mark("typora-code:grammar:start");
   grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
   await grammar_loading;
+  if(!current())return;
+  lifetime.add(await bind_code_theme());
   if(!current())return;
   performance.measure("typora-code:grammar","typora-code:grammar:start");
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");

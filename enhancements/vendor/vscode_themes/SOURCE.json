@@ -1,0 +1,14 @@
+{
+  "repository": "https://github.com/microsoft/vscode",
+  "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "source": "extensions/theme-defaults/themes",
+  "license": "MIT",
+  "files": {
+    "dark_modern.json": "58d4ea55a2a36f65c0d5caf033dfddc4ec7d4b3a5d8b731a84bc36001d26a339",
+    "dark_plus.json": "409f33088a5cfd6589384900ef80627787c568d367c25b12f31bc7940936e573",
+    "dark_vs.json": "0163fbd0bda3e6d4bddbd1e6f9719b8622811bae49da5e5eab30501591dfede2",
+    "light_modern.json": "831b47d624e9acd6f09da58a699889415be7e45fccffb01177bc718b20e7e25c",
+    "light_plus.json": "26fbb053bec8ce2b65706d5fcb993da8c19174cfdbf35a49b465236b5ed26203",
+    "light_vs.json": "6f7f63c47a40409984b0bb97832b98fb67a0b27d5bd9a6932a30bdbc7e53f959"
+  }
+}

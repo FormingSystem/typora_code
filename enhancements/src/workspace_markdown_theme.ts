@@ -39,7 +39,7 @@ export function markdown_theme_rules():string {
     finally{stack.delete(sheet);}
   };
   const rules=[...document.styleSheets].map(sheet=>{
-    const text=collect(sheet),adapted=text.replace(/:root(\[data-workspace-colors(?:=[^\]]+)?\])/gu,':host-context(html$1)').replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');
+    const text=collect(sheet),adapted=text.replace(/:root(\[data-workspace-(?:colors|code-theme)(?:=[^\]]+)?\])/gu,':host-context(html$1)').replace(/:root\b/gu,':host').replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu,':host-context($1) ');
     return text&&sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted;
   });
   const text=rules.join('\n');if(users)cached_rules=text;return inherited+text;

@@ -19,6 +19,7 @@ await build_workspace_core({outdir: path.resolve("dist")});
 await build_workspace_styles({outdir: path.resolve("dist")});
 await build_source_symbol_assets(path.resolve("dist"));
 fs.mkdirSync("dist/licenses",{recursive:true});
+fs.copyFileSync("vendor/vscode_themes/LICENSE.txt","dist/licenses/vscode_themes.txt");
 fs.copyFileSync("vendor/fontawesome/LICENSE.txt","dist/licenses/fontawesome.txt");
 fs.writeFileSync("dist/licenses/vscode_quick_open.txt",fs.readFileSync("vendor/vscode_quick_open/LICENSE.txt","utf8").replace(/\r\n?/gu,"\n"));
 fs.copyFileSync("vendor/xterm/LICENSE","dist/licenses/xterm.txt");

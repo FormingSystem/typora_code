@@ -1,0 +1,112 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.8",
+  "requirements": [
+    "R068.2",
+    "R074.6"
+  ],
+  "design": [
+    "docs/reading_code_blocks.md",
+    "docs/workspace_colors.md"
+  ],
+  "asset_manifest_sha256": "6d959f394623ebaa13b521c1284803164332db3a0a07cb1ab718d7b59a1ebe09",
+  "theme_sha256": {
+    "cpp_github-consolas.css": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+    "cpp_github-consolas_dark.css": "96d5718d8f5be9b56e51a5723a99c5fa64e92ff6e90856cdc4557b0b47b42e97",
+    "cpp_github-consolas_light.css": "04272efe6a8a4a32b1379b81dfa4faccd9a2a0c46bc9ca9a7d4a3d8b3b82751b"
+  },
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "enhancements/vendor/vscode_themes/SOURCE.json",
+    "raw_files": "six upstream JSONC blobs and MIT license preserved byte for byte; include resolution checked"
+  },
+  "validation": {
+    "build": "PASS code_color_final_build5.log",
+    "static_deployment_catalog": "PASS 46 workspace assets, 219 classified suites",
+    "full_check": "PASS exit 0 code_color_check_final.log; final build only normalized upstream raw files/license to exact Git blob bytes; subsequent unit/static/deployment checks passed",
+    "unit": "PASS code_theme_unit_final.log; actual C/C++ grammar, dual theme token reconstruction, 1000 multiline macro lines, upstream raw SHA256 and include resolution",
+    "ui": {
+      "color_settings": {
+        "status": "PASS",
+        "checks": 45,
+        "log": "code_color_ui_retry.log"
+      },
+      "theme_pair": {
+        "status": "PASS",
+        "checks": 14
+      },
+      "git_markdown_diff": {
+        "status": "PASS"
+      },
+      "workspace_colors": {
+        "status": "PASS",
+        "checks": 38
+      },
+      "titlebar_entries": {
+        "status": "PASS",
+        "checks": 57
+      },
+      "workspace_settings": {
+        "status": "PASS",
+        "assertions": 271
+      },
+      "logs": [
+        "code_color_ui_final.log",
+        "code_color_menu_ui.log"
+      ],
+      "full_ui": "Not rerun; TEST-ui-baseline-20260925 retains eight prior failures"
+    },
+    "native": {
+      "status": "PASS",
+      "checks": 16,
+      "host": "original Typora 1.14.10 on private Windows desktop",
+      "case": "3da9566aafc94d03aa021f47205911c4",
+      "log": "code_color_final_native3.log",
+      "screenshot_reviewed": "stage_color_profiles_41358696.png",
+      "covered": [
+        "C/C++/JS/plain code, Dark-Light-Dark colors",
+        "matching code font and line height",
+        "20 theme switches and single code stylesheet",
+        "real settings iframe and template link mapping",
+        "named profile persisted and applied via native theme command",
+        "preview disposal and document bytes unchanged"
+      ]
+    },
+    "isolated_install_cycle": "PASS code_color_install_cycle_release.log; restore and detach uninstall, reinstall/check, document/settings/backup preservation",
+    "uninstall": "PASS 65 assertions code_color_uninstall_release.log",
+    "zip_update": "PASS code_color_zip_update.log",
+    "local_install": {
+      "version": "2026.09.25.8",
+      "installed_assets": [
+        46,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "resolved_failures": [
+    "Initial full check hit SSH temporary-file EACCES; individual retry and final full check passed.",
+    "Initial preview fixture top-level await/observer collision corrected; final 45 checks passed.",
+    "Native iframe initially waited for absent optional user CSS; optional loading corrected and native 16 checks passed.",
+    "Initial native baseline did not set native theme setting; not used as proof of Dark baseline behavior."
+  ],
+  "limits": [
+    "No claim of complete VS Code semantic highlighting; non-C/C++ lexers retain existing owners.",
+    "Two theme roles without effective defaults display undefined rather than fabricated values.",
+    "No full UI rerun; eight prior baseline failures remain.",
+    "Win10/Linux native and physical input not covered this round.",
+    "R047.6/R071.4 historical acceptance gaps remain.",
+    "Installed user windows were not restarted."
+  ],
+  "logs_root": ".cache/issue_tracking/"
+}

@@ -1163,80 +1163,6 @@ content.typ-deactive .linux-note-reading-minimap,
 .terminal-split-group>.linux-note-terminal{box-sizing:border-box;flex:0 0 var(--terminal-pane-width,0px)}
 
 /* typora_enhancements.css */
-:root {
-  --linux-note-code-foreground: #24292e;
-  --linux-note-code-comment: #6a737d;
-  --linux-note-code-string: #032f62;
-  --linux-note-code-number: #005cc5;
-  --linux-note-code-keyword: #d73a49;
-  --linux-note-code-control: #d73a49;
-  --linux-note-code-function: #6f42c1;
-  --linux-note-code-type: #6f42c1;
-  --linux-note-code-variable: #005cc5;
-  --linux-note-code-constant: #005cc5;
-  --linux-note-code-preprocessor: #005cc5;
-  --linux-note-code-invalid: #b31d28;
-  --linux-note-code-invalid-background: #ffeef0;
-}
-
-.cm-s-inner .cm-tm-comment {
-  color: var(--linux-note-code-comment);
-  font-style: normal;
-}
-
-.cm-s-inner .cm-tm-string {
-  color: var(--linux-note-code-string);
-}
-
-.cm-s-inner .cm-tm-number {
-  color: var(--linux-note-code-number);
-}
-
-.cm-s-inner .cm-tm-keyword {
-  color: var(--linux-note-code-keyword);
-}
-
-.cm-s-inner .cm-tm-control {
-  color: var(--linux-note-code-control);
-}
-
-.cm-s-inner .cm-tm-function {
-  color: var(--linux-note-code-function);
-}
-
-.cm-s-inner .cm-tm-type,
-.cm-s-inner .cm-tm-namespace,
-.cm-s-inner .cm-tm-attribute {
-  color: var(--linux-note-code-type);
-}
-
-.cm-s-inner .cm-tm-variable,
-.cm-s-inner .cm-tm-parameter,
-.cm-s-inner .cm-tm-property {
-  color: var(--linux-note-code-variable);
-}
-
-.cm-s-inner .cm-tm-constant {
-  color: var(--linux-note-code-constant);
-}
-
-.cm-s-inner .cm-tm-preprocessor {
-  color: var(--linux-note-code-preprocessor);
-}
-
-.cm-s-inner .cm-tm-invalid {
-  color: var(--linux-note-code-invalid);
-  background-color: var(--linux-note-code-invalid-background);
-  text-decoration: wavy underline;
-  text-decoration-color: var(--linux-note-code-invalid);
-}
-
-.cm-s-inner .cm-tm-operator,
-.cm-s-inner .cm-tm-punctuation,
-.cm-s-inner .cm-tm-plain {
-  color: var(--linux-note-code-foreground);
-}
-
 .md-fences.linux-note-code-collapsible.is-code-collapsed .CodeMirror-scroll {
   max-height: var(--linux-note-code-collapsed-height) !important;
   overflow-y: auto !important;
@@ -1513,6 +1439,9 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 .workspace-color-toolbar select{max-width:100%;min-width:0}.workspace-color-toolbar button{max-width:100%;overflow-wrap:anywhere}.workspace-settings .workspace-color-table th:last-child{width:80px}
 
 .workspace-settings .workspace-color-table tr{background:transparent;border:0}
+.workspace-color-previews{display:flex;gap:8px;min-width:0}.workspace-color-previews>div{flex:1;min-width:0}.workspace-color-previews>[hidden]{display:none!important}.workspace-color-preview{width:100%;height:320px;border:1px solid var(--workspace-ui-border);border-radius:4px;background:transparent}
+.workspace-settings .workspace-color-table th:first-child{width:38%}.workspace-settings .workspace-color-table th:last-child{width:110px}.workspace-color-table td:first-child button{text-align:left;white-space:normal;height:auto;min-height:26px}.workspace-color-table td:last-child button{margin:2px}.workspace-color-table [data-color-selected]{outline:1px solid var(--vscode-focusBorder)}
+@media(max-width:760px){.workspace-color-previews{flex-direction:column}}
 
 /* workspace_colors.css */
 /* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
@@ -1752,6 +1681,9 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,[data-workspace-footer-popup=ready]) {background-color:var(--vscode-menu-background);color:var(--vscode-menu-foreground);border-color:var(--vscode-menu-border);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--vscode-menu-separatorBackground);}
 :root[data-workspace-colors] :is(.git-graph-dialog,.workspace-settings,.linux-note-git-source-control,.linux-note-workspace-search,.workspace-quick-open,.terminal-find) :is(input,textarea):not(:where([data-workspace-interaction=none] *,#write *,.monaco-editor *))::placeholder {color:var(--vscode-input-placeholderForeground);opacity:1;}
+
+/* Git默认支线角色也供颜色表读取，图谱与设置不维护两份有效颜色。 */
+:root[data-workspace-colors]{--workspace-graph-base:#EA5C00;--workspace-graph-other-1:#FFB000;--workspace-graph-other-2:#DC267F;--workspace-graph-other-3:#994F00;--workspace-graph-other-4:#40B0A6;--workspace-graph-other-5:#B66DFF}
 
 /* workspace_control_icons.css */
 .workspace-official-icon-slot::before,.workspace-official-icon-slot::after{content:none!important;display:none!important}.workspace-official-icon-slot>svg{width:16px!important;height:16px!important;flex:none;vertical-align:middle;stroke:none;fill:currentColor}

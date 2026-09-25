@@ -235,3 +235,6 @@
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,[data-workspace-footer-popup=ready]) {background-color:var(--vscode-menu-background);color:var(--vscode-menu-foreground);border-color:var(--vscode-menu-border);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--vscode-menu-separatorBackground);}
 :root[data-workspace-colors] :is(.git-graph-dialog,.workspace-settings,.linux-note-git-source-control,.linux-note-workspace-search,.workspace-quick-open,.terminal-find) :is(input,textarea):not(:where([data-workspace-interaction=none] *,#write *,.monaco-editor *))::placeholder {color:var(--vscode-input-placeholderForeground);opacity:1;}
+
+/* Git默认支线角色也供颜色表读取，图谱与设置不维护两份有效颜色。 */
+:root[data-workspace-colors]{--workspace-graph-base:#EA5C00;--workspace-graph-other-1:#FFB000;--workspace-graph-other-2:#DC267F;--workspace-graph-other-3:#994F00;--workspace-graph-other-4:#40B0A6;--workspace-graph-other-5:#B66DFF}

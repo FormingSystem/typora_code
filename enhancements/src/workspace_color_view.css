@@ -15,3 +15,6 @@
 .workspace-color-toolbar select{max-width:100%;min-width:0}.workspace-color-toolbar button{max-width:100%;overflow-wrap:anywhere}.workspace-settings .workspace-color-table th:last-child{width:80px}
 
 .workspace-settings .workspace-color-table tr{background:transparent;border:0}
+.workspace-color-previews{display:flex;gap:8px;min-width:0}.workspace-color-previews>div{flex:1;min-width:0}.workspace-color-previews>[hidden]{display:none!important}.workspace-color-preview{width:100%;height:320px;border:1px solid var(--workspace-ui-border);border-radius:4px;background:transparent}
+.workspace-settings .workspace-color-table th:first-child{width:38%}.workspace-settings .workspace-color-table th:last-child{width:110px}.workspace-color-table td:first-child button{text-align:left;white-space:normal;height:auto;min-height:26px}.workspace-color-table td:last-child button{margin:2px}.workspace-color-table [data-color-selected]{outline:1px solid var(--vscode-focusBorder)}
+@media(max-width:760px){.workspace-color-previews{flex-direction:column}}

@@ -1790,11 +1790,13 @@
       "purpose": "implementation",
       "requirements": [
         "R043",
-        "H008"
+        "H008",
+        "R068.2"
       ],
       "design": "docs/editor_header.md",
       "implementation": [
-        "enhancements/src/textmate_style.ts"
+        "enhancements/src/textmate_style.ts",
+        "enhancements/src/reading_code_theme.ts"
       ],
       "related_modules": [
         "outline",
@@ -1806,7 +1808,8 @@
       "environment": "Node规则/临时工作区",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "生产双主题元数据的默认色、函数色与1000行宏状态重建"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -7529,14 +7532,16 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R074.4"
+        "R074.4",
+        "R074.6"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
         "enhancements/src/workspace_color_settings.ts",
         "enhancements/src/workspace_color_view.ts",
         "enhancements/src/workspace_color_catalog.ts",
-        "enhancements/src/workspace_colors.ts"
+        "enhancements/src/workspace_colors.ts",
+        "enhancements/src/workspace_color_preview.ts"
       ],
       "related_modules": [
         "theme",
@@ -7550,7 +7555,8 @@
       "environment": "独立Electron/正式CSS",
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
-        "覆盖主题入口、正文/Shadow/终端自动保存、保存失败与恢复默认、JSON导入导出及迟到取消、明暗切换、生命周期和窄窗"
+        "覆盖主题入口、正文/Shadow/终端自动保存、保存失败与恢复默认、JSON导入导出及迟到取消、明暗切换、生命周期和窄窗",
+        "实际色值复制、命名方案、双模板对照及反向定位"
       ],
       "expected": [
         "颜色与持久化一致，错误不覆盖配置，正文及几何保持"

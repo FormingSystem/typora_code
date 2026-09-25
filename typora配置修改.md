@@ -133,10 +133,10 @@ Typora 本身就是用 CSS 渲染 Markdown 的，所以改 **主题 CSS** 就能
 | 层次 | 实现 | 职责 |
 | --- | --- | --- |
 | C/C++ 语法识别 | VS Code 内置 C/C++ TextMate grammar + Oniguruma | 识别函数、类型、变量、参数、宏、预处理、关键字、字符串、数字、注释和标点等作用域 |
-| 颜色映射 | GitHub Light 代码配色 | 把 `entity.name.function.c`、`entity.name.type.c`、`variable.*` 等作用域映射为适合 GitHub 浅灰代码块背景的颜色 |
-| 主题基础样式 | `cpp_github-consolas.css` | 保留字体，并统一 GitHub Light 的代码块背景、边框和其他语言的内置 CodeMirror 后备配色 |
+| 颜色配置 | VS Code Light Modern / Dark Modern | 独立内置原始 `colors`、`tokenColors` 与 include 链，TextMate 按完整作用域解析默认前景和 token 颜色；不共享已安装 VS Code 的用户配置 |
+| 字体与代码呈现 | `cpp_github-consolas.css` 与代码主题适配 | 保留 CppGithubConsoles 字体、字号和排版；代码背景及前景沿 VS Code 明暗配置，其他语言使用宿主 tokenizer 后备映射 |
 
-这不是针对 `int` 或某几个 Linux API 写的私有规则。例如下面的调用由 grammar 自动把 `rcu_dereference` 识别为 `entity.name.function.c`，样式层再按 GitHub Light 的实体色显示函数名：
+这不是针对 `int` 或某几个 Linux API 写的私有规则。例如下面的调用由 grammar 自动把 `rcu_dereference` 识别为 `entity.name.function.c`，TextMate 主题层再按 VS Code 的对应明暗规则显示函数名：
 
 ```c
 p = rcu_dereference(table[id]);

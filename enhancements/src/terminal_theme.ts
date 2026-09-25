@@ -2,10 +2,10 @@ import {workspace_surface_background,observe_workspace_theme} from "./workspace_
 import type { ITheme } from "@xterm/xterm";
 
 /** 从正文实际颜色取主题，不依赖主题文件名或操作系统深浅色设置。 */
-export function terminal_theme(): ITheme {
-  const body = getComputedStyle(document.body);
-  const rgb = workspace_surface_background(document.body);
-  const palette=document.documentElement.hasAttribute('data-workspace-colors')?getComputedStyle(document.documentElement):undefined;
+export function terminal_theme(theme_document:Document=document): ITheme {
+  const body = getComputedStyle(theme_document.body);
+  const rgb = workspace_surface_background(theme_document.body);
+  const palette=theme_document.documentElement.hasAttribute('data-workspace-colors')?getComputedStyle(theme_document.documentElement):undefined;
   const palette_background=palette?.getPropertyValue('--workspace-ui-chrome').trim();
   const background = palette_background || `rgb(${rgb.join(", ")})`;
   const dark = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 < 128;

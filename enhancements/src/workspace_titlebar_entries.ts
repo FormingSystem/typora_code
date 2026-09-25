@@ -1,3 +1,4 @@
+import {read_color_config,save_color_config,activate_color_profile} from './workspace_color_settings';
 import {get_workspace_recents} from "./workspace_recent";
 import {read_breadcrumb_settings,set_breadcrumb_enabled} from "./workspace_breadcrumbs_settings";
 import {read_workspace_save_settings} from "./workspace_save_settings";
@@ -184,10 +185,11 @@ export function create_workspace_titlebar_definitions(
     try {
       const data = await runtime.JSBridge?.invoke("setting.getThemes");
       if (!Array.isArray(data?.all)) throw new Error("invalid themes");
-      return [customize,separator(),...data.all.filter((name:unknown) => typeof name === "string").map((name:string) => {
+      const config=read_color_config(),profiles=(config.profiles||[]).map(profile=>({label:profile.name,checked:data.current===`cpp_github-consolas_${profile.mode}.css`&&config.active?.[profile.mode]===profile.id,disabled:!has_command('setTheme'),action:()=>activate_color_profile(profile.id,(file,name)=>call_command('setTheme',[file,name]))}));
+      return [customize,...profiles,separator(),...data.all.filter((name:unknown) => typeof name === "string").map((name:string) => {
         const paired_names:Record<string,string>={'cpp_github-consolas_light.css':'CppGithubConsoles_Light','cpp_github-consolas_dark.css':'CppGithubConsoles_Dark'};
         const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
-        return {label: display, checked: name === data.current, disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")) return call_command("setTheme", [name, display]);}};
+        return {label: display, checked: name === data.current && !(name.includes("dark")?config.active?.dark:name.includes("light")?config.active?.light:false), disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")){const config=read_color_config();config.active={};save_color_config(config);return call_command("setTheme", [name, display]);}}};
       })];
     } catch {return [customize,separator(),{label: "无法读取主题列表", disabled: true}];}
   };

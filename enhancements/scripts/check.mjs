@@ -32,16 +32,8 @@ for (const marker of [
 if (source.includes("schedule_mermaid_positions")) {
   throw new Error("obsolete viewport-following Mermaid positioner is still bundled");
 }
-for (const marker of [
-  "--linux-note-code-foreground: #24292e;",
-  "--linux-note-code-comment: #6a737d;",
-  "--linux-note-code-string: #032f62;",
-  "--linux-note-code-keyword: #d73a49;",
-  "--linux-note-code-function: #6f42c1;",
-  "--linux-note-code-variable: #005cc5;",
-]) {
-  if (!enhancement_css.includes(marker)) throw new Error(`GitHub Light enhancement color is missing: ${marker}`);
-  if (!static_css.includes(marker)) throw new Error(`static GitHub Light color is missing: ${marker}`);
+for (const marker of ['load_code_themes','typora-code-official-code-theme','editor.foreground']) {
+  if (!source.includes(marker)) throw new Error('Official code theme pipeline missing: '+marker);
 }
 for (const marker of [
   "background-color: #f6f8fa;",

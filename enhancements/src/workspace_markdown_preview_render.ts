@@ -1,3 +1,4 @@
+import {load_code_themes,initial_code_stack} from './reading_code_theme';
 import * as monaco from "monaco-editor/editor/editor.api";
 import DOMPurify from "dompurify";
 import { initialize_editor } from "./git_diff_editor";
@@ -13,6 +14,11 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
   const aliases: Record<string,string> = {js:"javascript",ts:"typescript",sh:"shell",bash:"shell",py:"python",yml:"yaml","c++":"cpp",ps1:"powershell"};
   const language = aliases[hint] || (monaco.languages.getLanguages().some(item=>item.id===hint) ? hint : detect_file_language(`preview.${hint}`));
   const text = code.textContent || "";
+  if(['c','cpp'].includes(language)){
+    const grammar=(await load_code_themes())[language as 'c'|'cpp'];let stack=initial_code_stack();const fragment=document.createDocumentFragment();
+    text.split('\n').forEach((line,index)=>{if(index)fragment.append(document.createTextNode('\n'));const result=grammar.tokenizeLine(line,stack);stack=result.ruleStack;for(const token of result.tokens){const span=document.createElement('span');span.className=token.style;span.textContent=line.slice(token.startIndex,token.endIndex);fragment.append(span);}});
+    code.replaceChildren(fragment);return;
+  }
   // colorize 等待语言的按需载入；实际 DOM 使用原文与 tokenizer 的字符偏移构造。
   await monaco.editor.colorize(text, language, {tabSize:4});
   const tokens = monaco.editor.tokenize(text, language), lines = text.split("\n"), fragment = document.createDocumentFragment();
