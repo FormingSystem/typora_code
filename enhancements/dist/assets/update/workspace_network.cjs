@@ -1228,17 +1228,17 @@ function certificates(file) {
   let bytes;
   try {
     const stat = fs.statSync(file);
-    if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw Error();
+    if (!stat.isFile()) throw Error();
     bytes = fs.readFileSync(file);
   } catch {
-    throw Error("\u65E0\u6CD5\u8BFB\u53D6CA\u8BC1\u4E66\uFF0C\u8BF7\u9009\u62E9\u4E0D\u8D85\u8FC72MB\u7684\u8BC1\u4E66\u6587\u4EF6\u3002");
+    throw Error("\u65E0\u6CD5\u8BFB\u53D6CA\u8BC1\u4E66\uFF0C\u8BF7\u9009\u62E9\u53EF\u8BFB\u7684\u8BC1\u4E66\u6587\u4EF6\u3002");
   }
   try {
     const text = bytes.toString("utf8");
     if (/PRIVATE KEY/.test(text)) throw Error();
     if (text.includes("-----BEGIN")) {
       const blocks = text.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
-      if (!blocks?.length || blocks.length > 100 || text.replace(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g, "").trim()) throw Error();
+      if (!blocks?.length || text.replace(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g, "").trim()) throw Error();
       return blocks.map((block) => new crypto.X509Certificate(block).toString());
     }
     return [new crypto.X509Certificate(bytes).toString()];

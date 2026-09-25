@@ -110,7 +110,7 @@ export class git_diff_editor {
     if (data.right != null) {
       const modified = model(data.right, "modified");
       // 历史比较两侧只读，不实例化需要可写模型的hunk操作菜单及其延迟context订阅。
-      const editor = monaco.editor.createDiffEditor(this.body, {...options, diffWordWrap:this.wrapped?"on":"off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions:{enabled:this.collapsed}, experimental:{showMoves:this.show_moves}, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 10000});
+      const editor = monaco.editor.createDiffEditor(this.body, {...options, diffWordWrap:this.wrapped?"on":"off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions:{enabled:this.collapsed}, experimental:{showMoves:this.show_moves}, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 0, maxFileSize: 0});
       // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
       // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
       // 概览的宽度、点击定位和视口框由上游管理，不额外显示全文缩略图。

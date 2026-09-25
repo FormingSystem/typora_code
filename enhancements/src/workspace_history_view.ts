@@ -39,7 +39,7 @@ export function bind_workspace_history_view(files:workspace_file_host,saves:work
   }
   async function open_entry(entry:local_history_entry){
     const bytes=await saves.history.read(entry);let right:string|undefined,expected_hash:string|undefined;
-    try{const current=await saves.history.bounded_read(entry.file_path,16*1024*1024);expected_hash=saves.history.hash(current);right=await files.read_text(entry.file_path);}catch(error){if((error as any).code!=="ENOENT")throw error;}
+    try{const current=await saves.history.read_snapshot(entry.file_path);expected_hash=saves.history.hash(current);right=await files.read_text(entry.file_path);}catch(error){if((error as any).code!=="ENOENT")throw error;}
     if(disposed)return;
     open({title:files.path_api.basename(entry.file_path)+"（本地历史）",file:entry.file_path,left:decode_file_bytes(bytes).text,right,left_label:new Date(entry.timestamp).toLocaleString(),right_label:entry.file_path},entry,expected_hash);
   }
@@ -56,7 +56,7 @@ export function bind_workspace_history_view(files:workspace_file_host,saves:work
     const accept=workspace_button(dirty.length?"保存当前修改并恢复":"恢复",()=>{if(busy)return;busy=true;accept.disabled=true;
       void(async()=>{
         if(!active())return;let expected=payload.expected_hash;
-        if(dirty.length){for(const leaf of dirty){const state=files.editor_state(leaf);if(!active()||file_key(state.file_path)!==file_key(entry.file_path)||state.busy)throw new Error("编辑器或恢复目标已变化，未执行恢复。");if(!await files.save_leaf(leaf))throw new Error("当前修改未能保存，未执行恢复。");}if(!active())return;const bytes=await saves.history.bounded_read(entry.file_path,16*1024*1024);expected=saves.history.hash(bytes);}
+        if(dirty.length){for(const leaf of dirty){const state=files.editor_state(leaf);if(!active()||file_key(state.file_path)!==file_key(entry.file_path)||state.busy)throw new Error("编辑器或恢复目标已变化，未执行恢复。");if(!await files.save_leaf(leaf))throw new Error("当前修改未能保存，未执行恢复。");}if(!active())return;const bytes=await saves.history.read_snapshot(entry.file_path);expected=saves.history.hash(bytes);}
         await restore_history_entry(files,saves.history,entry,expected,()=>active()&&target_idle(entry.file_path));
         await saves.history.flush();if(!active())return;
         if(!target_idle(entry.file_path))throw new Error("磁盘已恢复，但编辑器又有修改或正在保存，已保留当前编辑内容。");

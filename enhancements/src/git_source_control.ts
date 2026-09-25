@@ -400,7 +400,7 @@ export class git_source_control {
             try{
               await this.panel.prepare_and_execute_action(async writer=>{
                 const host=this.panel.host,target=host.file_path(root,file.path),stat=await host.fs.promises.lstat(target);
-                if(!stat.isFile()||stat.isSymbolicLink()||stat.size>16*1024*1024)throw new Error(text("diff.range_file_unsupported"));
+                if(!stat.isFile()||stat.isSymbolicLink())throw new Error(text("diff.range_file_unsupported"));
                 const [real_root,real_target]=await Promise.all([host.fs.promises.realpath(root),host.fs.promises.realpath(target)]),relative=host.path_api.relative(real_root,real_target);
                 if(host.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+host.path_api.sep))throw new Error(text("host.outside_repository"));
                 const bytes=await host.fs.promises.readFile(target);

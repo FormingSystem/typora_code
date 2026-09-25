@@ -157,7 +157,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
 
     update_status(){
       const result=this.result;if(!result)return;
-      const count=result.counts;this.status.replaceChildren(el("span","workspace-search-counts",`在 ${count.matched_files} 个文件中找到 ${count.matches} 个结果`+(result.cancelled?" · 已停止":"")+(result.limit_reached?" · 已达到结果上限":"")));
+      const count=result.counts;this.status.replaceChildren(el("span","workspace-search-counts",`在 ${count.matched_files} 个文件中找到 ${count.matches} 个结果`+(result.cancelled?" · 已停止":"")));
       if(count.matches)this.status.append(button("在编辑器中打开",()=>this.open_results(),"workspace-search-open-editor"));
       if(result.notices.length){const note=el("details","workspace-search-notices");note.append(el("summary","","搜索范围说明"),el("p","",result.notices.join("\n")));this.status.append(note);}
     }
@@ -184,7 +184,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         if(this.only_changed&&!git?.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");
         const scope=this.only_changed?git?.changed_files:this.only_open?open_files:undefined;
         const options={...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{}),...(folder_path?{folder_path}:{})};
-        const progressive:workspace_search_result={root,options,files:[],counts:{scanned_files:0,searched_files:0,matched_files:0,matches:0,skipped:{binary:0,large:0,ignored:0,excluded:0,links:0,unreadable:0}},cancelled:true,limit_reached:false,notices:[]};
+        const progressive:workspace_search_result={root,options,files:[],counts:{scanned_files:0,searched_files:0,matched_files:0,matches:0,skipped:{binary:0,ignored:0,excluded:0,links:0,unreadable:0}},cancelled:true,notices:[]};
         this.result=progressive;let progress_time=0;const render_tasks:Promise<void>[]=[];let render_error:unknown;
         const result=await engine.search(root,options,{signal:controller.signal,on_file:(file,counts)=>{
           if(disposed||this.controller!==controller||controller.signal.aborted)return;
@@ -284,7 +284,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     open_match(file:workspace_search_file,match:workspace_search_match,group="active"){
       const generation=++this.open_generation;const current=()=>!disposed&&generation===this.open_generation;
       void(async()=>{
-        const stat=await files.fs.promises.stat(file.file_path);if(!current())return;if(!stat.isFile()||stat.size>16*1024*1024)throw new Error("文件已变化，请刷新搜索结果。");
+        const stat=await files.fs.promises.stat(file.file_path);if(!current())return;if(!stat.isFile())throw new Error("文件已变化，请刷新搜索结果。");
         const bytes=await files.fs.promises.readFile(file.file_path);if(!current())return;if(detect_binary_bytes(bytes))throw new Error("文件已变化，请刷新搜索结果。");
         const text=decode_file_bytes(bytes).text;
         const position=(offset:number)=>{const newline=/\r\n|\r|\n/gu;let line=1,start=0,found:RegExpExecArray|null;while((found=newline.exec(text))&&found.index+found[0].length<=offset){line++;start=found.index+found[0].length;}return{line,column:offset-start+1};};
@@ -300,7 +300,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       const cleanup=new MutationObserver(()=>{if(!dialog.root.isConnected){editors.splice(0).forEach(editor=>editor.dispose());cleanup.disconnect();}});cleanup.observe(document.body,{childList:true});lifetime.add(()=>{cleanup.disconnect();editors.splice(0).forEach(editor=>editor.dispose());});
       try{
         if(this.containerEl.dataset.state==='searching')throw new Error("搜索仍在进行，请等待完成或停止搜索后再预览替换。");
-        if(!match_ids&&(this.result.cancelled||this.result.limit_reached))throw new Error("搜索未完成，请缩小范围后再执行批量替换。");
+        if(!match_ids&&(this.result.cancelled))throw new Error("搜索未完成，请重新搜索后再执行批量替换。");
         const visible_ids=match_ids||this.result.files.filter(file=>!file_path||file.file_path===file_path).flatMap(file=>file.matches.map(match=>match.id));
         const plan=await engine.prepare_replace(this.result,this.replacement.value,{file_path,match_ids:visible_ids});if(disposed||!dialog.root.isConnected)return;
         dialog.content.append(el("p","",`将替换 ${plan.files.length} 个文件中的 ${plan.match_count} 个匹配项。`));

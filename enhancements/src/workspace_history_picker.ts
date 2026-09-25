@@ -15,12 +15,12 @@ export function pick_history_item<T>(title:string,items:history_picker_item<T>[]
     root.setAttribute("role","dialog");root.setAttribute("aria-label",title);input.placeholder=title;input.setAttribute("aria-label",title);input.setAttribute("role","combobox");input.setAttribute("aria-expanded","true");input.setAttribute("aria-autocomplete","list");
     const list_id="history-picker-"+crypto.randomUUID();list.id=list_id;list.setAttribute("role","listbox");input.setAttribute("aria-controls",list_id);
     const style=acquire_workspace_style("typora-code-quick-open-style",css),icons=acquire_workspace_file_icons(),interaction=acquire_workspace_interaction(root),focus=capture_workspace_focus();
-    let selected=0,shown=items.slice(0,300),closed=false;
+    let selected=0,shown=items,closed=false;
     const close=(value?:T,restore=true)=>{if(closed)return;closed=true;layer.dispose();signal?.removeEventListener("abort",cancel);root.remove();style.remove();icons.remove();interaction.remove();if(restore)focus.restore();resolve(value);};
     const cancel=()=>close();
     const layer=register_workspace_dismissal(()=>[root],reason=>close(undefined,reason==="escape"),{window_blur:true});
     const update=()=>{
-      const query=input.value.toLocaleLowerCase().trim().split(/\s+/u);shown=items.filter(item=>query.every(part=>(item.label+" "+item.description).toLocaleLowerCase().includes(part))).slice(0,300);selected=Math.min(selected,Math.max(0,shown.length-1));
+      const query=input.value.toLocaleLowerCase().trim().split(/\s+/u);shown=items.filter(item=>query.every(part=>(item.label+" "+item.description).toLocaleLowerCase().includes(part)));selected=Math.min(selected,Math.max(0,shown.length-1));
       list.replaceChildren();shown.forEach((item,index)=>{
         const row=el("button","workspace-quick-open-result"+(index===selected?" is-selected":""));row.type="button";row.tabIndex=-1;row.id=list_id+"-"+index;row.setAttribute("role","option");row.setAttribute("aria-selected",String(index===selected));row.title=item.label+"\n"+item.description;
         row.append(item.file_path?workspace_file_icon(item.file_path):git_icon("history"),el("span","workspace-quick-open-name",item.label),el("span","workspace-quick-open-path",item.description));

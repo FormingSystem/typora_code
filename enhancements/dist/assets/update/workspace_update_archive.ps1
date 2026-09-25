@@ -7,8 +7,6 @@ $destination=[IO.Path]::GetFullPath($destination)
 if(Test-Path -LiteralPath $destination){throw 'Extraction destination must not exist.'}
 $zip=[IO.Compression.ZipFile]::OpenRead([IO.Path]::GetFullPath($archive))
 try {
- if($package_kind -eq 'plugin' -and ($zip.Entries.Count -gt 5000 -or (Get-Item -LiteralPath $archive).Length -gt 32MB)){throw 'Plugin archive exceeds limit.'}
- if($zip.Entries.Count -gt 30000){throw 'Archive contains too many entries.'}
  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
  $roots=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
  $total=[long]0
@@ -25,8 +23,6 @@ try {
   $mode=($entry.ExternalAttributes -shr 16) -band 0xF000
   if($mode -ne 0 -and $mode -ne 0x8000 -and $mode -ne 0x4000){throw 'Linked or special ZIP entry.'}
   $total+=$entry.Length
-  if($package_kind -eq 'plugin' -and $total -gt 128MB){throw 'Plugin expands beyond limit.'}
-  if($total -gt 768MB -or $entry.Length -gt 128MB -or ($entry.Length -gt 1MB -and $entry.Length -gt [Math]::Max(1,$entry.CompressedLength)*300)){throw 'Archive expands beyond limit.'}
  }
  if($package_kind -eq 'repository' -and $roots.Count -ne 1){throw 'Expected one repository root.'}
  New-Item -ItemType Directory -Path $destination | Out-Null

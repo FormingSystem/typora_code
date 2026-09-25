@@ -88,7 +88,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
   async function directory(file_path: string) { return !!(await stat(file_path))?.isDirectory(); }
   async function list(folder: string): Promise<string[]> {
     if (disposed || remaining_time() <= 0 || !folder) return [];
-    try { const entries = await bounded<string[]>(fs.promises.readdir(folder), []); return entries.filter(name => typeof name === "string").slice(0, 256).sort(); } catch { return []; }
+    try { const entries = await bounded<string[]>(fs.promises.readdir(folder), []); return entries.filter(name => typeof name === "string").sort(); } catch { return []; }
   }
   function query(executable: string, args: string[], encoding = "utf8", query_env = process_api.env, failure_message = "部分安装信息查询失败，可重新检测。"): Promise<string> {
     if (disposed || remaining_time() <= 0 || !child_process?.execFile) { warn(failure_message); return Promise.resolve(""); }
@@ -99,7 +99,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
       const timer = setTimeout(cancel, Math.min(2500, remaining_time()));
       cancel_queries.add(cancel);
       try {
-        child = child_process.execFile(executable, args, { encoding, windowsHide: true, timeout: Math.min(2000, remaining_time()), maxBuffer: 512 * 1024, env: query_env }, (error: any, output: any) => { if (error) warn(failure_message); finish(error ? "" : String(output || "")); });
+        child = child_process.execFile(executable, args, { encoding, windowsHide: true, timeout: Math.min(2000, remaining_time()), maxBuffer: Infinity, env: query_env }, (error: any, output: any) => { if (error) warn(failure_message); finish(error ? "" : String(output || "")); });
         if (disposed) cancel();
       } catch { cancel(); }
     });
@@ -112,14 +112,14 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
   async function scan(): Promise<terminal_profile[]> {
     const candidates: profile_candidate[] = [];
     const add = (id: string, title: string, executable: string, args: string[], priority: number, profile_env?: Record<string, string>, wsl?: boolean) => {
-      if (!executable || !path_api.isAbsolute(executable) || candidates.length >= 2048) return;
+      if (!executable || !path_api.isAbsolute(executable)) return;
       candidates.push({ id, title, executable: path_api.normalize(executable), args, priority, ...(profile_env ? { env: profile_env } : {}), ...(wsl ? { wsl } : {}) });
     };
     const path_entries = new Set<string>();
     function add_paths(value: string) {
       for (const entry of String(value || "").split(windows ? ";" : ":")) {
         const normalized = expand(entry.trim().replace(/^"|"$/gu, ""));
-        if (path_entries.size < 256 && path_api.isAbsolute(normalized)) path_entries.add(normalize(normalized));
+        if (path_api.isAbsolute(normalized)) path_entries.add(normalize(normalized));
       }
     }
     add_paths(env.path);
@@ -138,7 +138,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
       add_paths(installations.machine_path); add_paths(installations.user_path);
       const git_roots = new Set<string>(), msys_roots = new Set<string>(), cygwin_roots = new Set<string>(), powershell_roots = new Set<string>();
       const add_root = (roots: Set<string>, value: unknown) => { if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize(value)); };
-      for (const installation of Array.isArray(installations.installations) ? installations.installations.slice(0, 256) : []) {
+      for (const installation of Array.isArray(installations.installations) ? installations.installations : []) {
         const roots = ({ git: git_roots, msys: msys_roots, cygwin: cygwin_roots, pwsh: powershell_roots } as any)[installation.kind];
         if (roots) add_root(roots, installation.root);
       }
@@ -156,7 +156,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
         const aliases = path_api.join(env.localappdata, "Microsoft", "WindowsApps");
         for (const alias of await list(aliases)) if (/^Microsoft\.PowerShell(?:Preview)?_/u.test(alias)) add_root(powershell_roots, path_api.join(aliases, alias));
       }
-      const drives = new Set<string>([env.homedrive, system_root && path_api.parse(system_root).root, ...(Array.isArray(installations.drives) ? installations.drives.slice(0, 26) : [])].filter(Boolean));
+      const drives = new Set<string>([env.homedrive, system_root && path_api.parse(system_root).root, ...(Array.isArray(installations.drives) ? installations.drives : [])].filter(Boolean));
       for (const drive of drives) if (/^[a-z]:\\?$/iu.test(drive)) {
         for (const folder of ["msys64", "msys32", "msys2"]) add_root(msys_roots, path_api.join(drive + "\\", folder));
         for (const folder of ["cygwin64", "cygwin"]) add_root(cygwin_roots, path_api.join(drive + "\\", folder));
@@ -219,7 +219,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
         const wsl_failure = "WSL 发行版查询失败；本次未取得新的 WSL 配置。";
         const distro_output = await query(wsl, ["--list", "--quiet"], "utf16le", { ...process_api.env, WSL_UTF8: "0" }, wsl_failure);
         const distros = new Set(distro_output.replace(/^\uFEFF/u, "").replace(/\0/gu, "").split(/\r?\n/u).map(name => name.trim()).filter(name => name && !/^docker-desktop/iu.test(name)));
-        for (const name of [...distros].slice(0, 64)) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, undefined, true);
+        for (const name of [...distros]) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, undefined, true);
         // 枚举超时不等于发行版已删除：保留已知配置，并由状态提示说明此次未刷新。
         if (detection_warnings.includes(wsl_failure)) for (const profile of snapshot.filter(profile => profile.wsl)) candidates.push({ ...profile, priority: 100 });
       }

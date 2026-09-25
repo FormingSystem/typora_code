@@ -141,7 +141,6 @@ export async function plan_git_diff_ranges(run: git_run, request: git_diff_range
   if (action !== "stage" && action !== "revert") failure("未知的选区操作。");
   if (!file || /[\0\r\n\\]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file) || file.split("/").some(part => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) failure("选区文件路径无效。");
   if (request.encoding && !/^utf-?8$/iu.test(request.encoding)) failure("选区操作目前仅支持无损 UTF-8 文本，请使用文件级操作。");
-  if (request.worktree_bytes.length > 16 * 1024 * 1024) failure("文件超过选区操作的 16 MiB 限制。");
   const fingerprint = await repository_fingerprint(run, root);
   const [index, attributes, raw_work_guard, original_raw, working_state] = await Promise.all([
     run(root, ["ls-files", "--stage", "-z", "--", file]),

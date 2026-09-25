@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import {build} from 'esbuild';
 const compiled=await build({entryPoints:['src/workspace_text_document.ts'],bundle:true,platform:'node',format:'esm',write:false});
-const {create_text_document,save_text_document_as,MAX_TEXT_DOCUMENT_BYTES}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
+const {create_text_document,save_text_document_as}=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_text_document_'));const checks=[];
 const record=(message)=>checks.push(message);
 const file=(name,text)=>{const filename=path.join(root,name);fs.writeFileSync(filename,text);return filename};
@@ -39,7 +39,7 @@ const concurrent_path=file('concurrent.txt','original\n');const concurrent=docum
 const unsupported_path=file('unsupported.txt','valid\n');const unsupported=document(unsupported_path);await unsupported.load();await assert.rejects(unsupported.save('other\n',{encoding:'gbk'}),/不支持.*gbk/u);await assert.rejects(unsupported.save('\ud800'),/不完整的 Unicode/u);assert.equal(fs.readFileSync(unsupported_path,'utf8'),'valid\n');record('unsupported output encoding and lone surrogates fail without writing');
 await assert.rejects(document(file('binary.png',Buffer.from([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a]))).load(),/二进制/u);
 await assert.rejects(document(file('invalid_utf8.txt',Buffer.from([0xc3,0x28]))).load(),/有效的 utf-8/u);
-await assert.rejects(document(file('large.txt',Buffer.alloc(MAX_TEXT_DOCUMENT_BYTES+1,65))).load(),/16 MiB/u);await assert.rejects(unsupported.save('A'.repeat(MAX_TEXT_DOCUMENT_BYTES+1)),/16 MiB/u);record('binary, invalid UTF-8 and over-limit documents are refused');
+const large_text='A'.repeat(17*1024*1024)+'末尾';const large_path=file('large.txt',large_text),large_doc=document(large_path);assert.equal((await large_doc.load()).text,large_text);await large_doc.save(large_text+'保存');assert.equal(fs.readFileSync(large_path,'utf8'),large_text+'保存');record('binary and invalid UTF-8 remain guarded; text over 16MiB loads and saves without truncation');
 const readonly_path=file('readonly.txt','keep\n');fs.chmodSync(readonly_path,0o444);const readonly=document(readonly_path);await readonly.load();await assert.rejects(readonly.save('draft\n'),/只读|权限/u);assert.equal(fs.readFileSync(readonly_path,'utf8'),'keep\n');fs.chmodSync(readonly_path,0o644);assert_no_temporary();record('read-only file remains untouched');
 const copy_format={text:'源\r\n文\n档\r',encoding:'utf-16be',bom:true,eol:'mixed'};
 const copy_path=path.join(root,'saved_copy.txt');

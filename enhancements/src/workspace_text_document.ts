@@ -1,7 +1,6 @@
 import { decode_file_bytes, detect_binary_bytes, type decoded_file } from "./file_language";
 import {publish_workspace_file_saved} from "./workspace_file_events";
 
-export const MAX_TEXT_DOCUMENT_BYTES = 16 * 1024 * 1024;
 export type text_document_eol = "LF" | "CRLF" | "CR" | "mixed";
 export type text_document_encoding = "utf-8" | "utf-16le" | "utf-16be";
 export type text_document_value = decoded_file & { eol: text_document_eol };
@@ -21,7 +20,6 @@ const conflict = () => new Error("文件已被其他进程修改、替换或移�
 /** 不会用替换字符掩盖无效代理项；当前只承诺三种 Unicode 编码的无损写回。 */
 function encode_text(text: string, encoding: string, bom: boolean): Uint8Array {
   if (!["utf-8", "utf-16le", "utf-16be"].includes(encoding)) throw new Error(`暂不支持以 ${encoding} 编码保存，请明确选择 UTF-8、UTF-16 LE 或 UTF-16 BE。`);
-  if (text.length > MAX_TEXT_DOCUMENT_BYTES) throw new Error("保存结果超过 16 MiB，请缩小文件后再保存。");
   for (let index = 0; index < text.length; index++) {
     const code = text.charCodeAt(index);
     if (code >= 0xd800 && code <= 0xdbff) { const next = text.charCodeAt(++index); if (!(next >= 0xdc00 && next <= 0xdfff)) throw new Error("文本含有不完整的 Unicode 字符，无法无损保存。"); }
@@ -29,12 +27,10 @@ function encode_text(text: string, encoding: string, bom: boolean): Uint8Array {
   }
   if (encoding === "utf-8") {
     const body = new TextEncoder().encode(text);
-    if (body.length + (bom ? 3 : 0) > MAX_TEXT_DOCUMENT_BYTES) throw new Error("保存结果超过 16 MiB，请缩小文件后再保存。");
     if (!bom) return body;
     const output = new Uint8Array(body.length + 3); output.set([0xef, 0xbb, 0xbf]); output.set(body, 3); return output;
   }
   const offset = bom ? 2 : 0;
-  if (text.length * 2 + offset > MAX_TEXT_DOCUMENT_BYTES) throw new Error("保存结果超过 16 MiB，请缩小文件后再保存。");
   const output = new Uint8Array(text.length * 2 + offset); const little = encoding === "utf-16le"; const view = new DataView(output.buffer);
   if (bom) output.set(little ? [0xff, 0xfe] : [0xfe, 0xff]);
   for (let index = 0; index < text.length; index++) view.setUint16(offset + index * 2, text.charCodeAt(index), little);
@@ -68,7 +64,6 @@ export function create_text_document(modules: file_modules, file_path: string, o
     try {
       const before = await handle.stat();
       if (!before.isFile()) throw new Error("该项目不是普通文本文件。");
-      if (before.size > MAX_TEXT_DOCUMENT_BYTES) throw new Error("文件超过 16 MiB，请使用系统程序打开。");
       // 只为本次 stat 的大小分配缓冲区，多读一个字节识别并发增长，避免 readFile 无界读取。
       const buffer = new Uint8Array(before.size + 1); let length = 0;
       while (length < buffer.length) { const chunk = await handle.read(buffer, length, buffer.length - length, length); if (!chunk.bytesRead) break; length += chunk.bytesRead; }

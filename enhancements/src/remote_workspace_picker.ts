@@ -123,7 +123,7 @@ export function choose_remote_resource(directory:boolean,save_path?:string,optio
         const reply=await search_workspace_paths({fs:provider.fs,path_api:provider.path_api,root:scope,query,signal:controller.signal});if(!active())return;
         current=scope;paint_breadcrumbs();up_button.disabled=provider.remote_path(current)==='/';selected='';accept.disabled=true;
         file_tree.show_results(reply.results);edit_path(false);
-        status.textContent=`${reply.results.length} 个匹配 · ${query}`+(reply.limited?' · 已达搜索上限，请缩小范围':'')+(reply.unreadable?` · ${reply.unreadable} 个目录无法读取，结果不完整`:'')+' · 刷新返回目录';
+        status.textContent=`${reply.results.length} 个匹配 · ${query}`+(reply.unreadable?` · ${reply.unreadable} 个目录无法读取，结果不完整`:'')+' · 刷新返回目录';
       }catch(error){if(active()){report(error);accept.disabled=checking||(!save_path&&(!selected||directory!==selected_directory));}}
     }
     path.oninput=()=>{cancel_address();status.textContent='';};

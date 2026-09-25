@@ -22,12 +22,12 @@ function parse_proxy(value,allow_auth){
 }
 function certificates(file){
  if(!file)return [];
- let bytes;try{const stat=fs.statSync(file);if(!stat.isFile()||stat.size>2*1024*1024)throw Error();bytes=fs.readFileSync(file);}catch{throw Error('无法读取CA证书，请选择不超过2MB的证书文件。');}
+ let bytes;try{const stat=fs.statSync(file);if(!stat.isFile())throw Error();bytes=fs.readFileSync(file);}catch{throw Error('无法读取CA证书，请选择可读的证书文件。');}
  try{
   const text=bytes.toString('utf8');if(/PRIVATE KEY/.test(text))throw Error();
   if(text.includes('-----BEGIN')){
    const blocks=text.match(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g);
-   if(!blocks?.length||blocks.length>100||text.replace(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,'').trim())throw Error();
+   if(!blocks?.length||text.replace(/-----BEGIN CERTIFICATE-----[\s\S]*?-----END CERTIFICATE-----/g,'').trim())throw Error();
    return blocks.map(block=>new crypto.X509Certificate(block).toString());
   }
   return [new crypto.X509Certificate(bytes).toString()];

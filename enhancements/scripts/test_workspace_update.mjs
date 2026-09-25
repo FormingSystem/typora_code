@@ -23,8 +23,8 @@ async function transfer(scenario,options={}){
 }
 assert.equal((await transfer({body:response=>response.end('abc')})).toString(),'abc');
 await assert.rejects(transfer({status:429}),/429/);
-await assert.rejects(transfer({headers:{'content-length':'999'}},{limit:3}),/体积/);
-await assert.rejects(transfer({body:response=>response.end('abcd')},{limit:3}),/体积/);
+const large_download=Buffer.alloc(2*1024*1024+1,65);assert.deepEqual(await transfer({headers:{'content-length':String(large_download.length)},body:response=>response.end(large_download)}),large_download);
+assert.deepEqual(await transfer({body:response=>response.end(large_download)}),large_download);
 await assert.rejects(transfer({status:302,headers:{location:'https://evil.invalid/file'}}),/来源/);
 await assert.rejects(transfer({status:302,headers:{location:'https://github.com/loop'}}),/重定向/);
 await assert.rejects(transfer({body:response=>response.emit('aborted')}),/中断/);
@@ -32,7 +32,7 @@ await assert.rejects(transfer({}, {timeout_ms:15}),/超时/);
 const cancelled=new AbortController();const pending=transfer({}, {signal:cancelled.signal});cancelled.abort();await assert.rejects(pending,/取消/);
 const downloaded=path.join(root,'stream.bin');await transfer({body:response=>response.end('saved')},{file:downloaded});assert.equal(fs.readFileSync(downloaded,'utf8'),'saved');
 await assert.rejects(transfer({body:response=>response.end('overwrite')},{file:downloaded}),/EEXIST/);assert.equal(fs.readFileSync(downloaded,'utf8'),'saved');
-checks.push('真实下载流覆盖状态码、字节上限、重定向、超时、断流、取消及文件排他写入；HTTPS端口使用替身');
+checks.push('真实下载流覆盖状态码、超过旧字节上限的完整内容、重定向、超时、断流、取消及文件排他写入；HTTPS端口使用替身');
 
 const progress_samples=[];
 await transfer({headers:{'content-length':'6'},body:response=>{response.write('abc');response.end('def');}},{on_progress:(bytes,total)=>progress_samples.push({bytes,total})});

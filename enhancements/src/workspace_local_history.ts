@@ -1,12 +1,11 @@
 import {detect_binary_bytes} from "./file_language";
 
 export type local_history_entry={id:string;timestamp:number;source:string;hash:string;size:number;file_path:string};
-export type local_history_options={enabled:boolean;max_file_size:number;max_entries:number;merge_window:number;exclude:Record<string,boolean>;workspace_root?:string};
+export type local_history_options={enabled:boolean;max_entries:number;merge_window:number;exclude:Record<string,boolean>;workspace_root?:string};
 type history_modules={fs:any;path_api:any;crypto:any};
 const identifier=/^[a-f0-9]{32}$/u;
 /** 支持VS Code常用glob：*、**、?、字符组和花括号备选。路径始终使用斜杠。 */
 export function history_glob_matches(pattern:string,path:string):boolean{
-  if(pattern.length>1024)return false;
   let source="";
   for(let i=0;i<pattern.length;i++){
     const char=pattern[i];
@@ -26,9 +25,9 @@ export function create_local_history_store(modules:history_modules,directory:str
   const key=(path:string)=>{const value=path_api.resolve(path);return path_api.sep==="\\"?value.toLowerCase():value;};
   const bucket=(path:string)=>path_api.join(directory,hash(key(path)));
   const id=()=>crypto.randomBytes(16).toString("hex");
-  async function bounded_read(path:string,limit:number){
+  async function read_snapshot(path:string){
     const handle=await fs.open(path,"r");try{
-      const before=await handle.stat();if(!before.isFile()||before.size>limit)throw new Error("历史文件大小超限。");
+      const before=await handle.stat();if(!before.isFile())throw new Error("历史目标不是普通文件。");
       const buffer=new Uint8Array(before.size+1);let length=0;
       while(length<buffer.length){const read=await handle.read(buffer,length,buffer.length-length,length);if(!read.bytesRead)break;length+=read.bytesRead;}
       const after=await handle.stat();if(length!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw new Error("读取时文件发生变化。");
@@ -40,7 +39,7 @@ export function create_local_history_store(modules:history_modules,directory:str
     try{const handle=await fs.open(temporary,"wx",0o600);created=true;try{await handle.writeFile(bytes);await handle.sync();}finally{await handle.close();}await fs.rename(temporary,path);created=false;}
     finally{if(created)await fs.unlink(temporary).catch(()=>{});}
   }
-  const json=async(path:string)=>JSON.parse(new TextDecoder().decode(await bounded_read(path,65536)));
+  const json=async(path:string)=>JSON.parse(new TextDecoder().decode(await read_snapshot(path)));
   async function list(file_path:string):Promise<local_history_entry[]>{
     const dir=bucket(file_path);let names:string[];
     try{names=await fs.readdir(dir);}catch(error){if((error as any).code==="ENOENT")return [];throw error;}
@@ -62,7 +61,7 @@ export function create_local_history_store(modules:history_modules,directory:str
   async function remove(entry:local_history_entry){if(!identifier.test(entry.id))throw new Error("历史条目无效。");const dir=bucket(entry.file_path);await fs.unlink(path_api.join(dir,entry.id+".json")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});await fs.unlink(path_api.join(dir,entry.id+".data")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});}
   const record=(file_path:string,input:Uint8Array,source="File Saved",force=false)=>{
     if(!path_api.isAbsolute(file_path))return Promise.resolve(undefined);
-    const options=read_options();if(!options.enabled||input.byteLength>options.max_file_size*1024||input.byteLength>16*1024*1024||excluded(file_path,options)||detect_binary_bytes(input))return Promise.resolve(undefined);
+    const options=read_options();if(!options.enabled||excluded(file_path,options)||detect_binary_bytes(input))return Promise.resolve(undefined);
     const bytes=input.slice();
     return serialize(file_path,async()=>{
       const entries=await list(file_path),digest=hash(bytes),previous=entries[0];
@@ -80,7 +79,7 @@ export function create_local_history_store(modules:history_modules,directory:str
   async function read(entry:local_history_entry){
     if(!identifier.test(entry.id))throw new Error("历史条目无效。");
     const current=(await list(entry.file_path)).find(item=>item.id===entry.id);if(!current)throw new Error("历史条目已被删除或合并，请刷新后重试。");
-    const bytes=await bounded_read(path_api.join(bucket(entry.file_path),entry.id+".data"),16*1024*1024);
+    const bytes=await read_snapshot(path_api.join(bucket(entry.file_path),entry.id+".data"));
     if(bytes.length!==current.size||hash(bytes)!==current.hash)throw new Error("历史内容校验失败。");return bytes;
   }
   async function resources(){
@@ -94,8 +93,8 @@ export function create_local_history_store(modules:history_modules,directory:str
   }
   async function capture(file_path:string,source="File Saved",force=false){
     const options=read_options();if(!options.enabled||excluded(file_path,options))return;
-    const stat=await fs.stat(file_path);if(!stat.isFile()||stat.size>options.max_file_size*1024||stat.size>16*1024*1024)return;
-    return record(file_path,await bounded_read(file_path,Math.min(16*1024*1024,options.max_file_size*1024)),source,force);
+    const stat=await fs.stat(file_path);if(!stat.isFile())return;
+    return record(file_path,await read_snapshot(file_path),source,force);
   }
   async function move(old_path:string,new_path:string,directory_move=false){
     if(!path_api.isAbsolute(old_path)||!path_api.isAbsolute(new_path))throw new Error("历史迁移路径无效。");
@@ -113,6 +112,6 @@ export function create_local_history_store(modules:history_modules,directory:str
       }));
     }
   }
-  return {record,list,read,resources,capture,remove,move,hash,bounded_read,flush:()=>Promise.all([...queues.values()])};
+  return {record,list,read,resources,capture,remove,move,hash,read_snapshot,flush:()=>Promise.all([...queues.values()])};
 }
 export type local_history_store=ReturnType<typeof create_local_history_store>;

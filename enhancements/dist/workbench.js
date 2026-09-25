@@ -158630,7 +158630,7 @@ https://creativecommons.org/licenses/by/4.0/
     "diff.automatic_split": "\u81EA\u52A8\uFF08\u5F53\u524D\u4E3A\u5E76\u6392\uFF09",
     "diff.stage_ranges": "\u6682\u5B58\u6240\u9009\u8303\u56F4",
     "diff.revert_ranges": "\u8FD8\u539F\u6240\u9009\u8303\u56F4",
-    "diff.range_file_unsupported": "\u9009\u533A\u64CD\u4F5C\u9700\u8981\u4E0D\u8D85\u8FC7 16 MiB \u7684\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002",
+    "diff.range_file_unsupported": "\u9009\u533A\u64CD\u4F5C\u9700\u8981\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002",
     "quick.no_remotes": "\u5F53\u524D\u4ED3\u5E93\u5C1A\u672A\u914D\u7F6E\u8FDC\u7AEF\u3002\u8BF7\u5148\u6DFB\u52A0\u8FDC\u7AEF\u3002",
     "quick.branch_required": "\u8BF7\u5148\u68C0\u51FA\u5206\u652F\u5E76\u521B\u5EFA\u9996\u6B21\u63D0\u4EA4\uFF0C\u518D\u6267\u884C\u6B64\u64CD\u4F5C\u3002",
     "quick.remote_missing": "\u8FDC\u7AEF\u201C{remote}\u201D\u5DF2\u4E0D\u5B58\u5728\uFF0C\u8BF7\u5237\u65B0\u4ED3\u5E93\u540E\u91CD\u8BD5\u3002",
@@ -159240,7 +159240,6 @@ https://creativecommons.org/licenses/by/4.0/
     "repository.no_remote_web_url": "\u6B64\u8FDC\u7AEF\u6CA1\u6709\u53EF\u7528\u7684\u7F51\u9875\u5730\u5740\uFF0C\u8BF7\u914D\u7F6E PR URL\u3002",
     "repository.pr_template_required": "\u8BF7\u5728\u8BBE\u7F6E\u4E2D\u586B\u5199\u6B64\u670D\u52A1\u5668\u7684 PR URL \u6A21\u677F\u3002",
     "runtime.git_not_found": "\u672A\u627E\u5230 Git\u3002\u8BF7\u5B89\u88C5 Git \u5E76\u52A0\u5165 PATH\uFF0C\u7136\u540E\u6B63\u5E38\u91CD\u542F Typora\u3002",
-    "runtime.result_too_large": "\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u5386\u53F2\u8303\u56F4\u6216\u9009\u62E9\u5176\u4ED6\u6587\u4EF6\u3002",
     "runtime.cancelled_or_timed_out": "Git \u8BF7\u6C42\u5DF2\u53D6\u6D88\u6216\u8D85\u65F6\uFF0C\u8BF7\u5237\u65B0\u72B6\u6001\u540E\u91CD\u8BD5\u3002",
     "ignore.invalid_rule": "\u65E0\u6CD5\u4E3A\u6B64\u6587\u4EF6\u751F\u6210\u7CBE\u786E\u5FFD\u7565\u89C4\u5219\u3002",
     "ignore.invalid_path": "\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002",
@@ -159271,9 +159270,7 @@ https://creativecommons.org/licenses/by/4.0/
     "host.historical_image_unsupported": "\u6B64\u5386\u53F2\u56FE\u7247\u683C\u5F0F\u5C1A\u4E0D\u652F\u6301\u5185\u5D4C\u663E\u793A\u3002",
     "host.current_file_missing": "\u5F53\u524D\u5DE5\u4F5C\u533A\u5DF2\u6CA1\u6709\u6B64\u6587\u4EF6\uFF0C\u53EF\u67E5\u770B\u5386\u53F2\u7248\u672C\u3002",
     "host.non_text_comparison": "\u76EE\u5F55\u6216\u5B50\u6A21\u5757\u4E0D\u80FD\u4F5C\u4E3A\u666E\u901A\u6587\u672C\u6BD4\u8F83\uFF0C\u8BF7\u6253\u5F00\u5BF9\u5E94\u4ED3\u5E93\u3002",
-    "host.file_too_large": "\u6587\u4EF6\u8D85\u8FC7 16 MiB\uFF0C\u65E0\u6CD5\u5728\u5386\u53F2\u6587\u672C\u89C6\u56FE\u6253\u5F00\u3002",
     "host.avatar_unavailable": "\u5934\u50CF\u4E0D\u53EF\u7528",
-    "host.avatar_too_large": "\u5934\u50CF\u8FC7\u5927",
     "host.avatar_timeout": "\u5934\u50CF\u67E5\u8BE2\u8D85\u65F6",
     "host.export_configuration": "\u5BFC\u51FA\u914D\u7F6E",
     "host.save_to_path": "\u4FDD\u5B58\u5230\u6B64\u8DEF\u5F84",
@@ -159486,7 +159483,7 @@ https://creativecommons.org/licenses/by/4.0/
     "diff.automatic_split": "Automatic (Currently Side by Side)",
     "diff.stage_ranges": "Stage Selected Ranges",
     "diff.revert_ranges": "Revert Selected Ranges",
-    "diff.range_file_unsupported": "Range actions require a regular text file up to 16 MiB.",
+    "diff.range_file_unsupported": "Range actions require a regular text file.",
     "quick.no_remotes": "No remote is configured for this repository. Add a remote first.",
     "quick.branch_required": "Check out a branch with an initial commit before running this action.",
     "quick.remote_missing": 'Remote "{remote}" no longer exists. Refresh the repository and try again.',
@@ -160096,7 +160093,6 @@ https://creativecommons.org/licenses/by/4.0/
     "repository.no_remote_web_url": "This remote has no usable web URL. Configure a Pull Request URL.",
     "repository.pr_template_required": "Enter a Pull Request URL template for this server in Settings.",
     "runtime.git_not_found": "Git was not found. Install Git, add it to PATH, and restart Typora.",
-    "runtime.result_too_large": "The result exceeds 16 MiB. Narrow the history range or select another file.",
     "runtime.cancelled_or_timed_out": "The Git request was cancelled or timed out. Refresh and try again.",
     "ignore.invalid_rule": "An exact ignore rule cannot be created for this file.",
     "ignore.invalid_path": "The file path is invalid.",
@@ -160127,9 +160123,7 @@ https://creativecommons.org/licenses/by/4.0/
     "host.historical_image_unsupported": "This historical image format does not support inline display yet.",
     "host.current_file_missing": "This file is no longer in the working tree. You can open a historical revision.",
     "host.non_text_comparison": "A directory or submodule cannot be compared as plain text. Open its repository instead.",
-    "host.file_too_large": "The file exceeds 16 MiB and cannot be opened in the history text view.",
     "host.avatar_unavailable": "Avatar unavailable",
-    "host.avatar_too_large": "Avatar is too large",
     "host.avatar_timeout": "Avatar request timed out",
     "host.export_configuration": "Export Settings",
     "host.save_to_path": "Save to this Path",
@@ -162751,7 +162745,6 @@ https://creativecommons.org/licenses/by/4.0/
   var escape_regex = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   function query_expression(options2) {
     if (!options2.query) throw new Error("\u8BF7\u8F93\u5165\u641C\u7D22\u5185\u5BB9\u3002");
-    if (options2.query.length > 32768) throw new Error("\u641C\u7D22\u8868\u8FBE\u5F0F\u8FC7\u957F\u3002");
     const pattern = options2.regex ? options2.query : escape_regex(options2.query).replace(/\r?\n/gu, "\\r?\\n");
     try {
       return new RegExp(pattern, "gmu" + (options2.case_sensitive ? "" : "i"));
@@ -162793,7 +162786,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // search-worker:worker
-  var worker_default = '(()=>{function h(e,t){let r=p(t),n=[];for(let s=0;s<e.length;s++){r.lastIndex=0;let c=r.exec(e[s]);c&&n.push({index:s,start:c.index,end:c.index+c[0].length})}return n}var g=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function p(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");if(e.query.length>32768)throw new Error("\\u641C\\u7D22\\u8868\\u8FBE\\u5F0F\\u8FC7\\u957F\\u3002");let t=e.regex?e.query:g(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(t,"gmu"+(e.case_sensitive?"":"i"))}catch(r){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(r instanceof Error?r.message:r))}}function d(e){let t=[0],r=/\\r\\n|\\r|\\n/gu,n;for(;n=r.exec(e);)t.push(n.index+n[0].length);return t}function l(e,t){let r=0,n=e.length;for(;r+1<n;){let s=r+n>>>1;e[s]<=t?r=s:n=s}return{line:r+1,column:t-e[r]+1}}function x(e,t,r){let n=t&&[...e.slice(Math.max(0,t-2),t)].at(-1)||"",s=e.slice(r)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(n)&&!/[\\p{L}\\p{N}_]/u.test(s)}function b(e,t,r){let n=r.index,s=n+r[0].length,c=l(t,n),o=l(t,s),a=Math.max(t[c.line-1],n-80),_=Math.min(t[o.line]??e.length,a+400),i=e.slice(a,_).replace(/[\\r\\n]+$/u,"");return{start:n,end:s,...c,end_line:o.line,end_column:o.column,text:r[0],preview:i,preview_ranges:[{start:Math.min(n-a,i.length),end:Math.min(s-a,i.length)}],captures:Array.from(r),groups:r.groups?{...r.groups}:void 0}}function m(e,t,r){let n=p(t),s,c=[],o;for(;o=n.exec(e);)if(o[0].length||(n.lastIndex+=e.codePointAt(n.lastIndex)>65535?2:1),!(t.whole_word&&!x(e,o.index,o.index+o[0].length))&&(s||=d(e),c.push(b(e,s,o)),c.length>=r))return{matches:c,limit_reached:!0};return{matches:c,limit_reached:!1}}var u=globalThis;u.onmessage=e=>{let{request_id:t,text:r,paths:n,options:s,max_results:c}=e.data;try{u.postMessage({request_id:t,...n?{path_matches:h(n,s)}:m(r,s,c)})}catch(o){u.postMessage({request_id:t,error:String(o instanceof Error?o.message:o)})}};})();\n';
+  var worker_default = '(()=>{function l(e,r){let n=p(r),t=[];for(let s=0;s<e.length;s++){n.lastIndex=0;let c=n.exec(e[s]);c&&t.push({index:s,start:c.index,end:c.index+c[0].length})}return t}var g=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function p(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");let r=e.regex?e.query:g(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(r,"gmu"+(e.case_sensitive?"":"i"))}catch(n){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(n instanceof Error?n.message:n))}}function d(e){let r=[0],n=/\\r\\n|\\r|\\n/gu,t;for(;t=n.exec(e);)r.push(t.index+t[0].length);return r}function h(e,r){let n=0,t=e.length;for(;n+1<t;){let s=n+t>>>1;e[s]<=r?n=s:t=s}return{line:n+1,column:r-e[n]+1}}function x(e,r,n){let t=r&&[...e.slice(Math.max(0,r-2),r)].at(-1)||"",s=e.slice(n)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(t)&&!/[\\p{L}\\p{N}_]/u.test(s)}function b(e,r,n){let t=n.index,s=t+n[0].length,c=h(r,t),a=h(r,s),o=Math.max(r[c.line-1],t-80),m=Math.min(r[a.line]??e.length,o+400),i=e.slice(o,m).replace(/[\\r\\n]+$/u,"");return{start:t,end:s,...c,end_line:a.line,end_column:a.column,text:n[0],preview:i,preview_ranges:[{start:Math.min(t-o,i.length),end:Math.min(s-o,i.length)}],captures:Array.from(n),groups:n.groups?{...n.groups}:void 0}}function _(e,r){let n=p(r),t,s=[],c;for(;c=n.exec(e);)c[0].length||(n.lastIndex+=e.codePointAt(n.lastIndex)>65535?2:1),!(r.whole_word&&!x(e,c.index,c.index+c[0].length))&&(t||=d(e),s.push(b(e,t,c)));return{matches:s}}var u=globalThis;u.onmessage=e=>{let{request_id:r,text:n,paths:t,options:s}=e.data;try{u.postMessage({request_id:r,...t?{path_matches:l(t,s)}:_(n,s)})}catch(c){u.postMessage({request_id:r,error:String(c instanceof Error?c.message:c)})}};})();\n';
 
   // src/workspace_search_worker_client.ts
   var search_match_failure = class extends Error {
@@ -162834,7 +162827,6 @@ https://creativecommons.org/licenses/by/4.0/
       const request_id = ++request_serial;
       return new Promise((resolve3, reject) => {
         const cleanup = () => {
-          clearTimeout(timer);
           signal?.removeEventListener("abort", abort);
           active2.removeEventListener("message", message);
           active2.removeEventListener("error", error);
@@ -162855,7 +162847,6 @@ https://creativecommons.org/licenses/by/4.0/
           cleanup();
           resolve3(event.data);
         };
-        const timer = setTimeout(() => fail("timeout", "\u6587\u672C\u5339\u914D\u8D85\u8FC7 2 \u79D2\uFF0C\u5DF2\u7EC8\u6B62\u8BE5\u6587\u4EF6\u7684\u5339\u914D\u3002\u8BF7\u7B80\u5316\u8868\u8FBE\u5F0F\u6216\u7F29\u5C0F\u8303\u56F4\u3002"), 2e3);
         active2.addEventListener("message", message);
         active2.addEventListener("error", error);
         signal?.addEventListener("abort", abort, { once: true });
@@ -162866,7 +162857,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       });
     };
-    const match2 = (text3, options2, max_results, signal) => request({ text: text3, options: options2, max_results }, signal).then(({ matches, limit_reached }) => ({ matches, limit_reached }));
+    const match2 = (text3, options2, signal) => request({ text: text3, options: options2 }, signal).then(({ matches }) => ({ matches }));
     const match_paths = (paths, options2, signal) => request({ paths, options: options2 }, signal).then((reply) => reply.path_matches);
     return { start, match: match2, match_paths, dispose: dispose2 };
   }
@@ -163536,7 +163527,6 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_quick_open.ts
-  var MAX_QUICK_RESULTS = 512;
   var current_picker;
   function get_workspace_quick_open() {
     return current_picker;
@@ -163659,6 +163649,7 @@ https://creativecommons.org/licenses/by/4.0/
       results.replaceChildren();
       editor_group = void 0;
       editor_targets.clear();
+      catalogue = [];
       shown = [];
       shown_matches = [];
       visible_start = -1;
@@ -163890,17 +163881,10 @@ https://creativecommons.org/licenses/by/4.0/
             item.score.labelMatch = [{ start: Math.max(0, found.start - start), end: Math.max(0, found.end - start) }];
             item.score.descriptionMatch = [{ start: found.start, end: Math.min(found.end, start) }].filter((range2) => range2.end > range2.start);
           }
-          if (ranked.length === MAX_QUICK_RESULTS && order(item, ranked[MAX_QUICK_RESULTS - 1]) >= 0) continue;
-          let low = 0, high = ranked.length;
-          while (low < high) {
-            const middle = low + high >>> 1;
-            if (order(item, ranked[middle]) < 0) high = middle;
-            else low = middle + 1;
-          }
-          ranked.splice(low, 0, item);
-          if (ranked.length > MAX_QUICK_RESULTS) ranked.pop();
+          ranked.push(item);
         }
         if (disposed || root.hidden || generation !== render_generation) return;
+        ranked.sort(order);
         shown = ranked.map((item) => item.file);
         rendered_query = query;
         selected_index = Math.max(0, shown.findIndex((file) => file.file_path === previous_path));
@@ -163909,7 +163893,7 @@ https://creativecommons.org/licenses/by/4.0/
         visible_end = -1;
         if (!previous_path) results.scrollTop = 0;
         paint_rows(true);
-        status2.textContent = (shown.length ? "".concat(total, " \u4E2A\u6587\u4EF6").concat(total > MAX_QUICK_RESULTS ? " \xB7 \u663E\u793A\u524D512\u9879" : "") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939") : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939")) + (scanning ? " \xB7 \u6B63\u5728\u67E5\u627E\uFF08\u5DF2\u53D1\u73B0 ".concat(catalogue.length, " \u4E2A\u6587\u4EF6\uFF09") : "");
+        status2.textContent = (shown.length ? "".concat(total, " \u4E2A\u6587\u4EF6") : query ? "\u6CA1\u6709\u5339\u914D\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939") : "\u5DE5\u4F5C\u533A\u4E2D\u6CA1\u6709\u53EF\u6253\u5F00\u7684\u6587\u4EF6 \xB7 ".concat(scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939")) + (scanning ? " \xB7 \u6B63\u5728\u67E5\u627E\uFF08\u5DF2\u53D1\u73B0 ".concat(catalogue.length, " \u4E2A\u6587\u4EF6\uFF09") : "");
         if (direct_pending) status2.textContent += " \xB7 \u6B63\u5728\u6838\u5BF9\u6587\u4EF6\u8DEF\u5F84\u2026";
         if (direct_error) status2.textContent += " \xB7 ".concat(direct_error);
         if (unreadable) status2.textContent += " \xB7 ".concat(unreadable, " \u4E2A\u76EE\u5F55\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u7ED3\u679C\u4E0D\u5B8C\u6574");
@@ -164369,7 +164353,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/file_clipboard_windows.ts
   var _a2;
-  var WINDOWS_CLIPBOARD_SCRIPT = String.raw(_a2 || (_a2 = __template(['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);if(count>512)throw new Exception("Too many clipboard files (maximum 512).");\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0||length>32767)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\0",paths)+"\0\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'], ['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);if(count>512)throw new Exception("Too many clipboard files (maximum 512).");\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0||length>32767)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\\0",paths)+"\\0\\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'])));
+  var WINDOWS_CLIPBOARD_SCRIPT = String.raw(_a2 || (_a2 = __template(['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\0",paths)+"\0\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'], ['\n$ErrorActionPreference=\'Stop\'\n[Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)\n[Console]::OutputEncoding=New-Object System.Text.UTF8Encoding($false)\nAdd-Type -TypeDefinition @\'\nusing System;\nusing System.Text;\nusing System.Threading;\nusing System.Runtime.InteropServices;\npublic class file_clipboard_state { public string[] paths; public string version; public bool move_requested; }\npublic class file_clipboard_native {\n [DllImport("user32.dll",SetLastError=true)] static extern bool OpenClipboard(IntPtr owner);\n [DllImport("user32.dll")] static extern bool CloseClipboard();\n [DllImport("user32.dll",SetLastError=true)] static extern bool EmptyClipboard();\n [DllImport("user32.dll")] static extern uint GetClipboardSequenceNumber();\n [DllImport("user32.dll")] static extern IntPtr GetClipboardData(uint format);\n [DllImport("user32.dll",SetLastError=true)] static extern IntPtr SetClipboardData(uint format,IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode)] static extern uint RegisterClipboardFormat(string name);\n [DllImport("shell32.dll",CharSet=CharSet.Unicode)] static extern uint DragQueryFile(IntPtr drop,uint index,StringBuilder text,uint length);\n [DllImport("kernel32.dll",SetLastError=true)] static extern IntPtr GlobalAlloc(uint flags,UIntPtr size);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalLock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern bool GlobalUnlock(IntPtr memory);\n [DllImport("kernel32.dll")] static extern IntPtr GlobalFree(IntPtr memory);\n [DllImport("kernel32.dll")] static extern UIntPtr GlobalSize(IntPtr memory);\n [DllImport("user32.dll",CharSet=CharSet.Unicode,SetLastError=true)] static extern IntPtr CreateWindowEx(uint ex,string name,string title,uint style,int x,int y,int w,int h,IntPtr parent,IntPtr menu,IntPtr instance,IntPtr parameter);\n [DllImport("user32.dll")] static extern bool DestroyWindow(IntPtr window);\n static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }\n static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}\n static file_clipboard_state read_locked(){\n  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);\n  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}\n  var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;\n  if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}\n  return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};\n }\n public static file_clipboard_state read(){open(IntPtr.Zero);try{return read_locked();}finally{CloseClipboard();}}\n public static bool clear(string expected){open(IntPtr.Zero);try{if(GetClipboardSequenceNumber().ToString()!=expected)return false;if(!EmptyClipboard())throw new Exception("Clipboard clear failed.");return true;}finally{CloseClipboard();}}\n public static file_clipboard_state write(string[] paths){\n  if(paths==null||paths.Length==0||paths.Length>512)throw new Exception("Invalid clipboard file count.");\n  foreach(var path in paths)if(String.IsNullOrEmpty(path)||path.Length>32767||path.IndexOf(\'\\0\')>=0)throw new Exception("Invalid clipboard path.");\n  var names=Encoding.Unicode.GetBytes(String.Join("\\0",paths)+"\\0\\0");var bytes=new byte[20+names.Length];Array.Copy(BitConverter.GetBytes(20),bytes,4);Array.Copy(BitConverter.GetBytes(1),0,bytes,16,4);Array.Copy(names,0,bytes,20,names.Length);\n  IntPtr files=IntPtr.Zero,effect=IntPtr.Zero,window=IntPtr.Zero;bool opened=false;\n  try{\n   files=allocate(bytes);effect=allocate(BitConverter.GetBytes(1));window=CreateWindowEx(0,"STATIC","",0,0,0,0,0,new IntPtr(-3),IntPtr.Zero,IntPtr.Zero,IntPtr.Zero);if(window==IntPtr.Zero)throw new Exception("Clipboard owner creation failed.");\n   open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");\n   if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;\n   if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;\n   // \u5FC5\u987B\u6301\u9501\u53D6\u5F97\u672C\u6B21\u5199\u5165\u7248\u672C\uFF1B\u91CA\u653E\u540E\u91CD\u8BFB\u4F1A\u8BEF\u8BA4\u5176\u4ED6\u5E94\u7528\u590D\u5236\u7684\u540C\u8DEF\u5F84\u65B0\u5185\u5BB9\u3002\n   return read_locked();\n  }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}\n }\n}\n\'@\ntry {\n $request=[Console]::In.ReadToEnd() | ConvertFrom-Json\n switch($request.action){\n  \'read\' {$value=[file_clipboard_native]::read()}\n  \'write\' {$value=[file_clipboard_native]::write([string[]]$request.paths)}\n  \'clear\' {$value=[file_clipboard_native]::clear([string]$request.version)}\n  default {throw \'Invalid clipboard action.\'}\n }\n @{value=$value}|ConvertTo-Json -Depth 5 -Compress\n} catch { @{error=$_.Exception.Message}|ConvertTo-Json -Compress;exit 1 }\n'])));
   function create_windows_file_clipboard(reqnode) {
     const process_api = reqnode("process"), path_api = reqnode("path"), child_process = reqnode("child_process"), buffer = reqnode("buffer").Buffer;
     const program = path_api.join(process_api.env.SystemRoot || process_api.env.WINDIR || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
@@ -164381,7 +164365,7 @@ https://creativecommons.org/licenses/by/4.0/
         reject(new Error("\u6587\u4EF6\u526A\u8D34\u677F\u5DF2\u5173\u95ED\u3002"));
         return;
       }
-      const child = child_process.execFile(program, args, { windowsHide: true, shell: false, timeout: 6e3, maxBuffer: 4 * 1024 * 1024, encoding: "utf8" }, (error, stdout) => {
+      const child = child_process.execFile(program, args, { windowsHide: true, shell: false, timeout: 6e3, maxBuffer: Infinity, encoding: "utf8" }, (error, stdout) => {
         children.delete(child);
         if (disposed) {
           reject(new Error("\u6587\u4EF6\u526A\u8D34\u677F\u5DF2\u5173\u95ED\u3002"));
@@ -164444,7 +164428,6 @@ https://creativecommons.org/licenses/by/4.0/
       async read() {
         if (!clipboard.availableFormats().includes(format3)) return native.read();
         const raw = clipboard.readBuffer(format3);
-        if (raw.length > 1024 * 1024) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u526A\u8D34\u677F\u5185\u5BB9\u8FC7\u5927");
         const value = JSON.parse(raw.toString("utf8"));
         if (!Array.isArray(value.paths) || value.paths.some((path) => typeof path !== "string" || !remote_files_for(path))) throw Error("\u8BF7\u5148\u8FDE\u63A5\u8FD9\u4E9B\u6587\u4EF6\u6240\u5C5E\u7684SSH\u4E3B\u673A\u3002");
         return value;
@@ -164473,7 +164456,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!disposed) for (const listener of listeners6) listener();
     };
     const validate = (snapshot) => {
-      if (!snapshot || !Array.isArray(snapshot.paths) || snapshot.paths.length > 512 || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || path.length > 32767 || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
+      if (!snapshot || !Array.isArray(snapshot.paths) || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
       return snapshot;
     };
     const invalidate2 = () => {
@@ -185071,7 +185054,6 @@ https://creativecommons.org/licenses/by/4.0/
         if (++count % 512 === 0) await git_yield();
       }
       carry = value.slice(start);
-      if (carry.length > 1024 * 1024) throw Error("Git\u72B6\u6001\u8BB0\u5F55\u8D85\u8FC71 MiB\uFF0C\u534F\u8BAE\u65E0\u6548\u3002");
     };
     const source = await run(root, args, { stdout: consume });
     for (let i = 0; i < source.length; i += 65536) await consume(source.slice(i, i + 65536));
@@ -185089,7 +185071,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (!value) return;
       const status2 = value.slice(0, 2);
       const item = { status: status2.trim(), index_status: status2[0], work_status: status2[1], path: value.slice(3) };
-      if (result.length >= 5e5) throw Error("Git\u6539\u52A8\u8D85\u8FC750\u4E07\u9879\uFF0C\u5DF2\u505C\u6B62\u8BFB\u53D6\u4EE5\u4FDD\u62A4\u754C\u9762\u5185\u5B58\uFF1B\u8BF7\u5728Git\u8BBE\u7F6E\u4E2D\u5173\u95ED\u672A\u8DDF\u8E2A\u6587\u4EF6\u5C55\u793A\u6216\u4F7F\u7528\u5916\u90E8Git\u5904\u7406\u3002\u672A\u5C55\u793A\u90E8\u5206\u4E0D\u4F1A\u5192\u5145\u5B8C\u6574\u72B6\u6001\u3002");
       result.push(item);
       if (/[RC]/u.test(status2)) renamed = item;
     });
@@ -185145,7 +185126,6 @@ https://creativecommons.org/licenses/by/4.0/
         old_path = value;
         return;
       }
-      if (result.length >= 5e5) throw Error("Git\u5DEE\u5F02\u6587\u4EF6\u8D85\u8FC750\u4E07\u9879\uFF0C\u672A\u52A0\u8F7D\u4E0D\u5B8C\u6574\u6E05\u5355\u3002");
       result.push({ status: status2, path: value, ...old_path !== void 0 ? { old_path } : {} });
       status2 = "";
       old_path = void 0;
@@ -185304,7 +185284,6 @@ https://creativecommons.org/licenses/by/4.0/
   async function blocks(source, current) {
     const text3 = normalize3(source), front = text3.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0] || "";
     const tokens = marked2.lexer(text3.slice(front.length), { gfm: true });
-    if (tokens.length > 1e4) throw Error("Markdown\u5757\u8D85\u8FC710000\u9879\uFF0C\u8BF7\u4F7F\u7528\u6E90\u7801\u5DEE\u5F02\u67E5\u770B\u3002");
     const result = [];
     let offset = 0, line = 1;
     if (front) tokens.unshift({ type: "code", raw: front, text: front, lang: "yaml" });
@@ -185443,7 +185422,6 @@ https://creativecommons.org/licenses/by/4.0/
       async render(left, right, changes, labels) {
         const request = ++generation, current = () => !disposed && generation === request;
         container.dataset.ready = "false";
-        if (new TextEncoder().encode(left).length + new TextEncoder().encode(right).length > 1024 * 1024) throw Error("Markdown\u6E32\u67D3\u6BD4\u8F83\u8D85\u8FC71MiB\uFF0C\u8BF7\u4F7F\u7528\u6E90\u7801\u5DEE\u5F02\u67E5\u770B\u3002");
         const [old_blocks, new_blocks] = await Promise.all([blocks(left, current), blocks(right, current)]);
         if (!current()) return;
         const pairs = pair_blocks(old_blocks, new_blocks, changes), fragment = document.createDocumentFragment(), targets = [], code_tasks = [];
@@ -185581,7 +185559,7 @@ https://creativecommons.org/licenses/by/4.0/
       const options2 = { wordWrap: this.wrapped ? "on" : "off", automaticLayout: true, readOnly: true, fontSize: vscode_design_baseline_default.editor_font_size, lineHeight: vscode_design_baseline_default.editor_line_height, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
       if (data.right != null) {
         const modified = model(data.right, "modified");
-        const editor2 = editor.createDiffEditor(this.body, { ...options2, diffWordWrap: this.wrapped ? "on" : "off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 1e4 });
+        const editor2 = editor.createDiffEditor(this.body, { ...options2, diffWordWrap: this.wrapped ? "on" : "off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 0, maxFileSize: 0 });
         this.editor = editor2;
         editor2.setModel({ original, modified });
         let revealed2 = false;
@@ -186155,7 +186133,6 @@ https://creativecommons.org/licenses/by/4.0/
   };
 
   // src/workspace_text_document.ts
-  var MAX_TEXT_DOCUMENT_BYTES = 16 * 1024 * 1024;
   var identity2 = (stat) => "".concat(String(stat.dev), ":").concat(String(stat.ino));
   var same_stat = (left, right) => identity2(left) === identity2(right) && left.size === right.size && left.mtimeMs === right.mtimeMs && left.ctimeMs === right.ctimeMs;
   var same_bytes = (left, right) => left.length === right.length && left.every((byte, index) => byte === right[index]);
@@ -186165,7 +186142,6 @@ https://creativecommons.org/licenses/by/4.0/
   var conflict = () => new Error("\u6587\u4EF6\u5DF2\u88AB\u5176\u4ED6\u8FDB\u7A0B\u4FEE\u6539\u3001\u66FF\u6362\u6216\u79FB\u52A8\uFF0C\u8BF7\u5148\u6BD4\u8F83\u78C1\u76D8\u5185\u5BB9\uFF0C\u518D\u91CD\u65B0\u52A0\u8F7D\u540E\u4FDD\u5B58\uFF1B\u5F53\u524D\u7F16\u8F91\u5185\u5BB9\u4ECD\u4FDD\u7559\u3002");
   function encode_text(text3, encoding, bom) {
     if (!["utf-8", "utf-16le", "utf-16be"].includes(encoding)) throw new Error("\u6682\u4E0D\u652F\u6301\u4EE5 ".concat(encoding, " \u7F16\u7801\u4FDD\u5B58\uFF0C\u8BF7\u660E\u786E\u9009\u62E9 UTF-8\u3001UTF-16 LE \u6216 UTF-16 BE\u3002"));
-    if (text3.length > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u4FDD\u5B58\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u6587\u4EF6\u540E\u518D\u4FDD\u5B58\u3002");
     for (let index = 0; index < text3.length; index++) {
       const code = text3.charCodeAt(index);
       if (code >= 55296 && code <= 56319) {
@@ -186175,7 +186151,6 @@ https://creativecommons.org/licenses/by/4.0/
     }
     if (encoding === "utf-8") {
       const body = new TextEncoder().encode(text3);
-      if (body.length + (bom ? 3 : 0) > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u4FDD\u5B58\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u6587\u4EF6\u540E\u518D\u4FDD\u5B58\u3002");
       if (!bom) return body;
       const output2 = new Uint8Array(body.length + 3);
       output2.set([239, 187, 191]);
@@ -186183,7 +186158,6 @@ https://creativecommons.org/licenses/by/4.0/
       return output2;
     }
     const offset = bom ? 2 : 0;
-    if (text3.length * 2 + offset > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u4FDD\u5B58\u7ED3\u679C\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u7F29\u5C0F\u6587\u4EF6\u540E\u518D\u4FDD\u5B58\u3002");
     const output = new Uint8Array(text3.length * 2 + offset);
     const little = encoding === "utf-16le";
     const view = new DataView(output.buffer);
@@ -186215,7 +186189,6 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         const before = await handle.stat();
         if (!before.isFile()) throw new Error("\u8BE5\u9879\u76EE\u4E0D\u662F\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002");
-        if (before.size > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u6587\u4EF6\u8D85\u8FC7 16 MiB\uFF0C\u8BF7\u4F7F\u7528\u7CFB\u7EDF\u7A0B\u5E8F\u6253\u5F00\u3002");
         const buffer = new Uint8Array(before.size + 1);
         let length = 0;
         while (length < buffer.length) {
@@ -188645,12 +188618,12 @@ https://creativecommons.org/licenses/by/4.0/
     const query_options = { query, regex: DEFAULT_SEARCH_REGEX };
     query_expression(query_options);
     const results = [], pending = [root];
-    let unreadable = 0, visited = 0, limited = false;
+    let unreadable = 0, visited = 0;
     const current = () => {
       if (signal.aborted) throw new DOMException("\u641C\u7D22\u5DF2\u53D6\u6D88", "AbortError");
     };
     try {
-      while (pending.length && !limited) {
+      while (pending.length) {
         current();
         const directory = pending.pop();
         let entries3;
@@ -188670,23 +188643,12 @@ https://creativecommons.org/licenses/by/4.0/
           });
           const matches = await matcher.match_paths(batch.map((entry) => entry.name), query_options, signal);
           current();
-          for (const match2 of matches) {
-            results.push(batch[match2.index]);
-            if (results.length === 512) {
-              limited = true;
-              break;
-            }
-          }
+          for (const match2 of matches) results.push(batch[match2.index]);
           visited += batch.length;
-          if (visited >= 1e5) {
-            limited = true;
-            break;
-          }
-          if (limited) break;
           for (const entry of batch) if (entry.directory && !entry.link && ![".git", "node_modules"].includes(path_api.basename(entry.path))) pending.push(entry.path);
         }
       }
-      return { results, unreadable, limited, visited };
+      return { results, unreadable, visited };
     } finally {
       matcher.dispose();
     }
@@ -188975,7 +188937,7 @@ https://creativecommons.org/licenses/by/4.0/
           accept.disabled = true;
           file_tree.show_results(reply.results);
           edit_path(false);
-          status2.textContent = "".concat(reply.results.length, " \u4E2A\u5339\u914D \xB7 ").concat(query) + (reply.limited ? " \xB7 \u5DF2\u8FBE\u641C\u7D22\u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4" : "") + (reply.unreadable ? " \xB7 ".concat(reply.unreadable, " \u4E2A\u76EE\u5F55\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u7ED3\u679C\u4E0D\u5B8C\u6574") : "") + " \xB7 \u5237\u65B0\u8FD4\u56DE\u76EE\u5F55";
+          status2.textContent = "".concat(reply.results.length, " \u4E2A\u5339\u914D \xB7 ").concat(query) + (reply.unreadable ? " \xB7 ".concat(reply.unreadable, " \u4E2A\u76EE\u5F55\u65E0\u6CD5\u8BFB\u53D6\uFF0C\u7ED3\u679C\u4E0D\u5B8C\u6574") : "") + " \xB7 \u5237\u65B0\u8FD4\u56DE\u76EE\u5F55";
         } catch (error) {
           if (active2()) {
             report(error);
@@ -190379,7 +190341,7 @@ https://creativecommons.org/licenses/by/4.0/
         transfer_guard(signal);
         const before = await handle.stat();
         transfer_guard(signal);
-        if (!before.isFile() || before.size > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u79FB\u4EA4\u6587\u4EF6\u8D85\u8FC716 MiB\u6216\u4E0D\u662F\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002");
+        if (!before.isFile()) throw new Error("\u79FB\u4EA4\u9879\u76EE\u4E0D\u662F\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002");
         const bytes = new Uint8Array(before.size + 1);
         let length = 0;
         while (length < bytes.length) {
@@ -190489,7 +190451,6 @@ https://creativecommons.org/licenses/by/4.0/
           if (still_native !== native_matches || still_native && (native_transfer_text() !== snapshot.text || Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) !== snapshot.dirty || snapshot.dirty && runtime2.File?.option?.enableAutoSave)) throw new Error("Markdown\u6B63\u6587\u6216\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\u5728\u6355\u83B7\u671F\u95F4\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u79FB\u4EA4\u3002");
         };
       }
-      if (snapshot.text.length > MAX_TEXT_DOCUMENT_BYTES) throw new Error("\u8349\u7A3F\u8D85\u8FC716 MiB\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
       snapshot.capture_fingerprint = await transfer_fingerprint(snapshot);
       verify_content();
       transfer_guard(signal);
@@ -190517,7 +190478,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
         return context_root() === initial_root && initial_children.length > 0 && children.length === initial_children.length && children.every((leaf2, index) => leaf2 === initial_children[index]);
       }, signal);
-      if (!snapshot || snapshot.schema !== 1 || !["source", "markdown"].includes(snapshot.kind) || typeof snapshot.text !== "string" || snapshot.text.length > MAX_TEXT_DOCUMENT_BYTES || typeof snapshot.file_path !== "string" || !path_api.isAbsolute(snapshot.file_path) || typeof snapshot.root !== "string" || typeof snapshot.dirty !== "boolean" || !/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256) || snapshot.capture_fingerprint !== await transfer_fingerprint(snapshot)) throw new Error("\u7A97\u53E3\u6587\u6863\u5FEB\u7167\u65E0\u6548\uFF0C\u672A\u4FEE\u6539\u5F53\u524D\u6587\u6863\u3002");
+      if (!snapshot || snapshot.schema !== 1 || !["source", "markdown"].includes(snapshot.kind) || typeof snapshot.text !== "string" || typeof snapshot.file_path !== "string" || !path_api.isAbsolute(snapshot.file_path) || typeof snapshot.root !== "string" || typeof snapshot.dirty !== "boolean" || !/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256) || snapshot.capture_fingerprint !== await transfer_fingerprint(snapshot)) throw new Error("\u7A97\u53E3\u6587\u6863\u5FEB\u7167\u65E0\u6548\uFF0C\u672A\u4FEE\u6539\u5F53\u524D\u6587\u6863\u3002");
       const target_root = context_root(), target_group = target?.group;
       const target_children = [];
       core.app.workspace.eachLeaves((leaf2) => {
@@ -192647,7 +192608,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     if (cache.has(configured)) return cache.get(configured);
     let unavailable;
-    const probe = (file) => new Promise((resolve3, reject) => modules.child_process.execFile(file, ["--version"], { windowsHide: true, shell: false, timeout: 1e4, maxBuffer: 65536 }, (error, output) => {
+    const probe = (file) => new Promise((resolve3, reject) => modules.child_process.execFile(file, ["--version"], { windowsHide: true, shell: false, timeout: 1e4, maxBuffer: Infinity }, (error, output) => {
       if (error) {
         if (!["ENOENT", "ENOTDIR"].includes(error.code)) unavailable = error;
         reject(error);
@@ -192679,7 +192640,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (configured === "git" && modules.process.platform === "win32") {
         for (const base of [env2.ProgramW6432, env2.ProgramFiles, env2["ProgramFiles(x86)"], env2.LOCALAPPDATA && env2.LOCALAPPDATA + "\\Programs"]) if (base) candidates.push(base + "\\Git\\cmd\\git.exe");
-        const registry = await new Promise((resolve3) => modules.child_process.execFile("reg.exe", ["query", "HKLM\\SOFTWARE\\GitForWindows", "/v", "InstallPath"], { windowsHide: true, timeout: 5e3, maxBuffer: 65536 }, (_error, out) => resolve3(String(out || "").match(/InstallPath\s+REG_SZ\s+(.+)/u)?.[1]?.trim() || "")));
+        const registry = await new Promise((resolve3) => modules.child_process.execFile("reg.exe", ["query", "HKLM\\SOFTWARE\\GitForWindows", "/v", "InstallPath"], { windowsHide: true, timeout: 5e3, maxBuffer: Infinity }, (_error, out) => resolve3(String(out || "").match(/InstallPath\s+REG_SZ\s+(.+)/u)?.[1]?.trim() || "")));
         if (registry) candidates.push(registry + "\\cmd\\git.exe");
       }
       let last;
@@ -192725,7 +192686,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_repository_discovery.ts
   async function discover_git_repositories(options2) {
-    const result = { roots: [], visited: 0, truncated: false, errors: [] };
+    const result = { roots: [], visited: 0, errors: [] };
     const known = /* @__PURE__ */ new Set();
     const verify = async (directory) => {
       try {
@@ -192741,10 +192702,6 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const walk2 = async (directory, level) => {
       if (options2.signal?.aborted) throw new Error("\u4ED3\u5E93\u53D1\u73B0\u5DF2\u53D6\u6D88");
-      if (result.visited >= (options2.limit ?? 1500)) {
-        result.truncated = true;
-        return;
-      }
       result.visited++;
       let entries3;
       try {
@@ -192756,7 +192713,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (level === 0 || entries3.some((entry) => entry.name === ".git")) await verify(directory);
       if (level >= options2.depth) return;
       for (const entry of entries3) {
-        if (result.truncated) break;
         if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk2(options2.path.join(directory, entry.name), level + 1);
       }
     };
@@ -193160,7 +193116,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || remaining_time() <= 0 || !folder) return [];
       try {
         const entries3 = await bounded(fs2.promises.readdir(folder), []);
-        return entries3.filter((name) => typeof name === "string").slice(0, 256).sort();
+        return entries3.filter((name) => typeof name === "string").sort();
       } catch {
         return [];
       }
@@ -193190,7 +193146,7 @@ https://creativecommons.org/licenses/by/4.0/
         const timer = setTimeout(cancel, Math.min(2500, remaining_time()));
         cancel_queries.add(cancel);
         try {
-          child = child_process.execFile(executable, args, { encoding, windowsHide: true, timeout: Math.min(2e3, remaining_time()), maxBuffer: 512 * 1024, env: query_env }, (error, output) => {
+          child = child_process.execFile(executable, args, { encoding, windowsHide: true, timeout: Math.min(2e3, remaining_time()), maxBuffer: Infinity, env: query_env }, (error, output) => {
             if (error) warn(failure_message);
             finish(error ? "" : String(output || ""));
           });
@@ -193209,14 +193165,14 @@ https://creativecommons.org/licenses/by/4.0/
     async function scan() {
       const candidates = [];
       const add = (id, title, executable, args, priority, profile_env, wsl) => {
-        if (!executable || !path_api.isAbsolute(executable) || candidates.length >= 2048) return;
+        if (!executable || !path_api.isAbsolute(executable)) return;
         candidates.push({ id, title, executable: path_api.normalize(executable), args, priority, ...profile_env ? { env: profile_env } : {}, ...wsl ? { wsl } : {} });
       };
       const path_entries = /* @__PURE__ */ new Set();
       function add_paths(value) {
         for (const entry of String(value || "").split(windows ? ";" : ":")) {
           const normalized2 = expand(entry.trim().replace(/^"|"$/gu, ""));
-          if (path_entries.size < 256 && path_api.isAbsolute(normalized2)) path_entries.add(normalize4(normalized2));
+          if (path_api.isAbsolute(normalized2)) path_entries.add(normalize4(normalized2));
         }
       }
       add_paths(env2.path);
@@ -193244,7 +193200,7 @@ https://creativecommons.org/licenses/by/4.0/
         const add_root = (roots, value) => {
           if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize4(value));
         };
-        for (const installation of Array.isArray(installations.installations) ? installations.installations.slice(0, 256) : []) {
+        for (const installation of Array.isArray(installations.installations) ? installations.installations : []) {
           const roots = { git: git_roots, msys: msys_roots, cygwin: cygwin_roots, pwsh: powershell_roots }[installation.kind];
           if (roots) add_root(roots, installation.root);
         }
@@ -193262,7 +193218,7 @@ https://creativecommons.org/licenses/by/4.0/
           const aliases = path_api.join(env2.localappdata, "Microsoft", "WindowsApps");
           for (const alias of await list3(aliases)) if (/^Microsoft\.PowerShell(?:Preview)?_/u.test(alias)) add_root(powershell_roots, path_api.join(aliases, alias));
         }
-        const drives = new Set([env2.homedrive, system_root && path_api.parse(system_root).root, ...Array.isArray(installations.drives) ? installations.drives.slice(0, 26) : []].filter(Boolean));
+        const drives = new Set([env2.homedrive, system_root && path_api.parse(system_root).root, ...Array.isArray(installations.drives) ? installations.drives : []].filter(Boolean));
         for (const drive of drives) if (/^[a-z]:\\?$/iu.test(drive)) {
           for (const folder of ["msys64", "msys32", "msys2"]) add_root(msys_roots, path_api.join(drive + "\\", folder));
           for (const folder of ["cygwin64", "cygwin"]) add_root(cygwin_roots, path_api.join(drive + "\\", folder));
@@ -193328,7 +193284,7 @@ https://creativecommons.org/licenses/by/4.0/
           const wsl_failure = "WSL \u53D1\u884C\u7248\u67E5\u8BE2\u5931\u8D25\uFF1B\u672C\u6B21\u672A\u53D6\u5F97\u65B0\u7684 WSL \u914D\u7F6E\u3002";
           const distro_output = await query(wsl, ["--list", "--quiet"], "utf16le", { ...process_api.env, WSL_UTF8: "0" }, wsl_failure);
           const distros = new Set(distro_output.replace(/^\uFEFF/u, "").replace(/\0/gu, "").split(/\r?\n/u).map((name) => name.trim()).filter((name) => name && !/^docker-desktop/iu.test(name)));
-          for (const name of [...distros].slice(0, 64)) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, void 0, true);
+          for (const name of [...distros]) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, void 0, true);
           if (detection_warnings.includes(wsl_failure)) for (const profile of snapshot.filter((profile2) => profile2.wsl)) candidates.push({ ...profile, priority: 100 });
         }
       } else {
@@ -206294,15 +206250,15 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       let child, finished = false, failure2, stderr = "", bytes = 0;
-      const parts = [], decoder = new TextDecoder("utf-8", { ignoreBOM: true }), limit = options2.max_bytes ?? 16 * 1024 * 1024;
+      const parts = [], decoder = new TextDecoder("utf-8", { ignoreBOM: true });
       let pending = Promise.resolve();
       const stop = (error) => {
         failure2 ||= error;
         child?.kill();
       };
       const cancel = () => stop(Object.assign(Error("Git\u64CD\u4F5C\u5DF2\u53D6\u6D88\uFF1B\u82E5\u4E3A\u5199\u64CD\u4F5C\uFF0C\u8BF7\u5237\u65B0\u786E\u8BA4\u5B9E\u9645\u7ED3\u679C\u3002"), { code: "ABORT_ERR" }));
-      const timeout_ms = options2.timeout_ms ?? (options2.writable ? 30 * 60 * 1e3 : 5 * 60 * 1e3);
-      const timer = setTimeout(() => stop(Object.assign(Error("Git\u5728" + Math.round(timeout_ms / 1e3) + "\u79D2\u5185\u672A\u5B8C\u6210\uFF0C\u5DF2\u505C\u6B62\u7B49\u5F85\u3002\u53EF\u68C0\u67E5\u78C1\u76D8/\u7F51\u7EDC/\u51ED\u636E\u540E\u91CD\u8BD5\uFF1B\u5199\u5165\u7ED3\u679C\u8BF7\u5237\u65B0\u786E\u8BA4\u3002"), { code: "ETIMEDOUT" })), timeout_ms);
+      const timeout_ms = options2.timeout_ms ?? 0;
+      const timer = timeout_ms > 0 ? setTimeout(() => stop(Object.assign(Error("Git\u5728" + Math.round(timeout_ms / 1e3) + "\u79D2\u5185\u672A\u5B8C\u6210\uFF0C\u5DF2\u505C\u6B62\u7B49\u5F85\u3002\u53EF\u68C0\u67E5\u78C1\u76D8/\u7F51\u7EDC/\u51ED\u636E\u540E\u91CD\u8BD5\uFF1B\u5199\u5165\u7ED3\u679C\u8BF7\u5237\u65B0\u786E\u8BA4\u3002"), { code: "ETIMEDOUT" })), timeout_ms) : void 0;
       const finish = async (code, error) => {
         if (finished) return;
         finished = true;
@@ -206327,15 +206283,19 @@ https://creativecommons.org/licenses/by/4.0/
           }
           return;
         }
-        if (options2.binary) {
-          const output = new Uint8Array(bytes);
-          let offset = 0;
-          for (const part of parts) {
-            output.set(part, offset);
-            offset += part.length;
-          }
-          resolve3(output);
-        } else resolve3(parts.join("") + decoder.decode());
+        try {
+          if (options2.binary) {
+            const output = new Uint8Array(bytes);
+            let offset = 0;
+            for (const part of parts) {
+              output.set(part, offset);
+              offset += part.length;
+            }
+            resolve3(output);
+          } else resolve3(parts.join("") + decoder.decode());
+        } catch (error2) {
+          reject(error2);
+        }
       };
       try {
         child = child_process.spawn(executable, args, { cwd: options2.cwd, env: options2.env, windowsHide: true, shell: false, stdio: ["pipe", "pipe", "pipe"] });
@@ -206355,11 +206315,12 @@ https://creativecommons.org/licenses/by/4.0/
           }).catch((error) => stop(error)).finally(() => {
             if (!failure2) child.stdout.resume();
           });
-        } else if (bytes > limit) {
-          const error = Object.assign(Error("Git\u5355\u4EFD\u6B63\u6587/\u5DEE\u5F02\u8D85\u8FC7" + Math.round(limit / 1048576) + " MiB\uFF0C\u672A\u8F7D\u5165\u622A\u65AD\u5185\u5BB9\u3002\u4ED3\u5E93\u72B6\u6001\u4ECD\u53EF\u4F7F\u7528\uFF1B\u5199\u64CD\u4F5C\u8BF7\u5237\u65B0\u786E\u8BA4\u7ED3\u679C\uFF0C\u5927\u6587\u4EF6\u8BF7\u7528\u5916\u90E8\u5DE5\u5177\u67E5\u770B\u3002"), { code: "GIT_OUTPUT_LIMIT" });
+        } else try {
+          parts.push(options2.binary ? data : decoder.decode(data, { stream: true }));
+        } catch (error) {
           if (options2.writable) failure2 = error;
           else stop(error);
-        } else parts.push(options2.binary ? data : decoder.decode(data, { stream: true }));
+        }
       });
       child.stderr.on("data", (data) => {
         stderr = (stderr + String(data)).slice(-65536);
@@ -206931,7 +206892,6 @@ https://creativecommons.org/licenses/by/4.0/
           const stat = await fs2.promises.lstat(target);
           if (stat.isSymbolicLink()) return fs2.promises.readlink(target);
           if (!stat.isFile()) throw new Error(git_graph_text("host.non_text_comparison"));
-          if (stat.size > 16 * 1024 * 1024) throw new Error(git_graph_text("host.file_too_large"));
           return new TextDecoder(settings.encoding).decode(await fs2.promises.readFile(target));
         }
         const object2 = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
@@ -207040,11 +207000,7 @@ https://creativecommons.org/licenses/by/4.0/
             const chunks = [];
             let size = 0;
             response.on("data", (chunk) => {
-              size += chunk.length;
-              if (size > 256e3) {
-                request.destroy();
-                reject(new Error(git_graph_text("host.avatar_too_large")));
-              } else chunks.push(chunk);
+              chunks.push(chunk);
             });
             response.on("end", () => {
               const data = runtime2.reqnode("buffer").Buffer.concat(chunks);
@@ -208918,7 +208874,6 @@ https://creativecommons.org/licenses/by/4.0/
     if (action !== "stage" && action !== "revert") failure("\u672A\u77E5\u7684\u9009\u533A\u64CD\u4F5C\u3002");
     if (!file || /[\0\r\n\\]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file) || file.split("/").some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) failure("\u9009\u533A\u6587\u4EF6\u8DEF\u5F84\u65E0\u6548\u3002");
     if (request.encoding && !/^utf-?8$/iu.test(request.encoding)) failure("\u9009\u533A\u64CD\u4F5C\u76EE\u524D\u4EC5\u652F\u6301\u65E0\u635F UTF-8 \u6587\u672C\uFF0C\u8BF7\u4F7F\u7528\u6587\u4EF6\u7EA7\u64CD\u4F5C\u3002");
-    if (request.worktree_bytes.length > 16 * 1024 * 1024) failure("\u6587\u4EF6\u8D85\u8FC7\u9009\u533A\u64CD\u4F5C\u7684 16 MiB \u9650\u5236\u3002");
     const fingerprint = await repository_fingerprint(run, root);
     const [index, attributes, raw_work_guard, original_raw, working_state] = await Promise.all([
       run(root, ["ls-files", "--stage", "-z", "--", file]),
@@ -210876,7 +210831,7 @@ https://creativecommons.org/licenses/by/4.0/
               try {
                 await this.panel.prepare_and_execute_action(async (writer) => {
                   const host = this.panel.host, target = host.file_path(root, file.path), stat = await host.fs.promises.lstat(target);
-                  if (!stat.isFile() || stat.isSymbolicLink() || stat.size > 16 * 1024 * 1024) throw new Error(git_graph_text("diff.range_file_unsupported"));
+                  if (!stat.isFile() || stat.isSymbolicLink()) throw new Error(git_graph_text("diff.range_file_unsupported"));
                   const [real_root, real_target] = await Promise.all([host.fs.promises.realpath(root), host.fs.promises.realpath(target)]), relative2 = host.path_api.relative(real_root, real_target);
                   if (host.path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + host.path_api.sep)) throw new Error(git_graph_text("host.outside_repository"));
                   const bytes = await host.fs.promises.readFile(target);
@@ -234700,11 +234655,11 @@ https://creativecommons.org/licenses/by/4.0/
         const target = await this.resources.choose(this.root);
         if (!target || !valid()) return;
         this.report(discover ? "\u6B63\u5728\u67E5\u627E\u6240\u9009\u76EE\u5F55\u4E2D\u7684Git\u4ED3\u5E93\u2026" : "\u6B63\u5728\u68C0\u67E5Git\u4ED3\u5E93\u2026");
-        const result = discover ? await this.host.discover(target, Math.max(1, this.settings.search_depth), scan.signal) : { roots: [(await this.runner.run(target, ["rev-parse", "--show-toplevel"])).trim()], errors: [], truncated: false };
+        const result = discover ? await this.host.discover(target, Math.max(1, this.settings.search_depth), scan.signal) : { roots: [(await this.runner.run(target, ["rev-parse", "--show-toplevel"])).trim()], errors: [] };
         if (!valid()) return;
         this.save_repos([...this.known_repos(), ...result.roots]);
         this.workbench.repositories.refresh();
-        this.report(git_graph_text("graph.discovered_repositories", { count: result.roots.length }) + (result.truncated ? "\uFF1B\u8FBE\u5230\u626B\u63CF\u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u76EE\u5F55\u8303\u56F4\u3002" : "") + (result.errors.length ? "\uFF1B" + result.errors.map((value) => value.replaceAll(target, this.resources.label(target))).join("\uFF1B") : ""));
+        this.report(git_graph_text("graph.discovered_repositories", { count: result.roots.length }) + (result.errors.length ? "\uFF1B" + result.errors.map((value) => value.replaceAll(target, this.resources.label(target))).join("\uFF1B") : ""));
         if (result.roots.length === 1 && !this.state) await this.switch_repo(result.roots[0]);
       } catch (error) {
         if (valid()) this.report(error);
@@ -236162,7 +236117,6 @@ https://creativecommons.org/licenses/by/4.0/
     return { async parse(language44, text3, signal) {
       if (failure2) throw failure2;
       if (!SOURCE_SYMBOL_LANGUAGES[language44]) throw new Error("\u6B64\u8BED\u8A00\u5C1A\u672A\u63D0\u4F9B\u8BED\u6CD5\u7B26\u53F7\u5927\u7EB2\u3002");
-      if (text3.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
       signal.throwIfAborted();
       if (disposed) throw new DOMException("\u5DF2\u5173\u95ED", "AbortError");
       const [target, wasm, grammar] = await Promise.all([get_worker(), read2("tree-sitter.wasm"), read2("tree-sitter-".concat(language44, ".wasm"))]);
@@ -236237,13 +236191,12 @@ https://creativecommons.org/licenses/by/4.0/
         for (; ; ) {
           const boundary = buffer.indexOf("\r\n\r\n");
           if (boundary < 0) {
-            if (buffer.length > 8192) throw new Error("clangd \u534F\u8BAE\u5934\u8D85\u8FC7\u9650\u5236\u3002");
             break;
           }
           const header = buffer.subarray(0, boundary).toString("ascii"), match2 = /^Content-Length:\s*(\d+)\s*$/im.exec(header);
           if (!match2) throw new Error("clangd \u672A\u8FD4\u56DE\u6709\u6548\u7684 LSP \u534F\u8BAE\u5934\u3002");
           const length = Number(match2[1]);
-          if (!Number.isSafeInteger(length) || length > 32 * 1024 * 1024) throw new Error("clangd \u54CD\u5E94\u8D85\u8FC7\u9650\u5236\u3002");
+          if (!Number.isSafeInteger(length) || length < 0) throw new Error("clangd \u54CD\u5E94\u957F\u5EA6\u65E0\u6548\u3002");
           if (buffer.length < boundary + 4 + length) break;
           const message = JSON.parse(buffer.subarray(boundary + 4, boundary + 4 + length).toString("utf8"));
           buffer = buffer.subarray(boundary + 4 + length);
@@ -236383,7 +236336,7 @@ https://creativecommons.org/licenses/by/4.0/
       const build_dir = path.join(root, "build");
       await database(build_dir);
       try {
-        const directories = (await fs2.readdir(build_dir, { withFileTypes: true })).filter((entry) => entry.isDirectory()).sort((a, b2) => a.name.localeCompare(b2.name)).slice(0, 64);
+        const directories = (await fs2.readdir(build_dir, { withFileTypes: true })).filter((entry) => entry.isDirectory()).sort((a, b2) => a.name.localeCompare(b2.name));
         for (const entry of directories) await database(path.join(build_dir, entry.name));
       } catch {
       }
@@ -236400,15 +236353,13 @@ https://creativecommons.org/licenses/by/4.0/
       return Math.min(start + character, end);
     };
     const kinds = { 1: "file", 2: "namespace", 3: "namespace", 4: "namespace", 5: "class", 6: "method", 7: "property", 8: "field", 9: "method", 10: "enum", 11: "interface", 12: "function", 13: "variable", 14: "constant", 15: "string", 16: "number", 17: "boolean", 18: "array", 19: "object", 20: "property", 21: "namespace", 22: "enum-member", 23: "struct", 24: "event", 25: "operator", 26: "type-parameter" };
-    let count = 0;
     const map = (values, depth = 0, parent_kind = 0) => {
-      if (depth > 80) return [];
       return values.flatMap((item) => {
-        if (++count > 5e3 || typeof item?.name !== "string") return [];
+        if (typeof item?.name !== "string") return [];
         const range2 = item.range || item.location?.range, selection = item.selectionRange || range2;
         const start = offset(range2?.start), end = offset(range2?.end), selection_start = offset(selection?.start), selection_end = offset(selection?.end);
         if (start === void 0 || end === void 0 || selection_start === void 0 || selection_end === void 0 || start > end || selection_start > selection_end) return [];
-        return [{ name: item.name.slice(0, 200), kind: item.kind === 5 && item.detail === "struct" ? "struct" : item.kind === 10 && parent_kind === 10 ? "enum-member" : kinds[item.kind] || "variable", detail: typeof item.detail === "string" ? item.detail : "", start, end, selection_start, selection_end, children: Array.isArray(item.children) ? map(item.children, depth + 1, item.kind) : [] }];
+        return [{ name: item.name, kind: item.kind === 5 && item.detail === "struct" ? "struct" : item.kind === 10 && parent_kind === 10 ? "enum-member" : kinds[item.kind] || "variable", detail: typeof item.detail === "string" ? item.detail : "", start, end, selection_start, selection_end, children: Array.isArray(item.children) ? map(item.children, depth + 1, item.kind) : [] }];
       });
     };
     return Array.isArray(items) ? map(items) : [];
@@ -236433,7 +236384,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || signal.aborted) throw abort_error();
       if (!path.isAbsolute(options2.file_path)) throw new Error("\u4EE3\u7801\u5927\u7EB2\u9700\u8981\u7EDD\u5BF9\u6587\u4EF6\u8DEF\u5F84\u3002");
       if (options2.language !== "c" && options2.language !== "cpp") throw new Error("clangd \u4EC5\u7528\u4E8E C/C++ \u5927\u7EB2\u3002");
-      if (options2.text.length > 2 * 1024 * 1024) throw new Error("\u6587\u4EF6\u8D85\u8FC7 2 Mi \u5B57\u7B26\uFF0C\u6682\u4E0D\u89E3\u6790\u7B26\u53F7\u5927\u7EB2\u3002");
       if (options2.fallback_flags && (!Array.isArray(options2.fallback_flags) || options2.fallback_flags.some((flag) => typeof flag !== "string" || flag.includes("\0")))) throw new Error("\u5907\u7528\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u4E3A\u5B57\u7B26\u4E32\u5217\u8868\u3002");
       active2?.abort();
       const controller = active2 = new AbortController();
@@ -236532,8 +236482,7 @@ https://creativecommons.org/licenses/by/4.0/
     for (const field of ["clangd_path", "compile_commands_dir"]) {
       if (typeof value[field] !== "string" || /[\r\n\0]/u.test(value[field])) throw new Error("\u8DEF\u5F84\u5FC5\u987B\u662F\u5355\u884C\u6587\u672C\u3002");
     }
-    if (!Array.isArray(value.fallback_flags) || value.fallback_flags.length > 256 || value.fallback_flags.some((flag) => typeof flag !== "string" || /[\r\n\0]/u.test(flag))) throw new Error("\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u6BCF\u884C\u4E00\u9879\uFF0C\u6700\u591A256\u9879\u3002");
-    if (value.fallback_flags.join("\n").length > 32768) throw new Error("\u7F16\u8BD1\u53C2\u6570\u8FC7\u957F\u3002");
+    if (!Array.isArray(value.fallback_flags) || value.fallback_flags.some((flag) => typeof flag !== "string" || /[\r\n\0]/u.test(flag))) throw new Error("\u7F16\u8BD1\u53C2\u6570\u5FC5\u987B\u6BCF\u884C\u4E00\u9879\u3002");
     return { clangd_path: value.clangd_path.trim(), compile_commands_dir: value.compile_commands_dir.trim(), fallback_flags: value.fallback_flags.map((flag) => flag.trim()).filter(Boolean) };
   }
   function read_source_outline_settings(root) {
@@ -238485,15 +238434,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_search_engine.ts
   var DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
-  var MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
   var MAX_READ_CONCURRENCY = 4;
   var pause = () => new Promise((resolve3) => setTimeout(resolve3, 0));
   var escape_regex2 = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   var same_bytes2 = (left, right) => left.length === right.length && left.every((byte, index) => byte === right[index]);
   var identity4 = (stat) => "".concat(String(stat.dev), ":").concat(String(stat.ino));
-  var bounded_integer = (value, fallback2, maximum) => value === void 0 ? fallback2 : Number.isSafeInteger(value) && value > 0 && value <= maximum ? value : (() => {
-    throw new Error("\u641C\u7D22\u4E0A\u9650\u5FC5\u987B\u4E3A\u8303\u56F4\u5185\u7684\u6B63\u6574\u6570\u3002");
-  })();
   function split_globs(value) {
     const output = [];
     let start = 0;
@@ -238517,7 +238462,6 @@ https://creativecommons.org/licenses/by/4.0/
     return output.filter(Boolean);
   }
   function compile_workspace_globs(value, case_sensitive = true, search_prefix = true) {
-    if (value.length > 8192) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u8FC7\u957F\u3002");
     const patterns = split_globs(value).map((pattern) => {
       if (pattern.includes("\\")) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u8BF7\u4F7F\u7528\u6B63\u659C\u7EBF /\u3002");
       const anchored = pattern.startsWith("./") || pattern.startsWith("/");
@@ -238707,15 +238651,12 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       const expression = query_expression(options2);
-      const max_results = bounded_integer(options2.max_results, 5e3, 1e5);
-      const max_file_bytes = bounded_integer(options2.max_file_bytes, 8 * 1024 * 1024, 64 * 1024 * 1024);
       const case_sensitive = options2.glob_case_sensitive ?? (modules.platform ? !["win32", "darwin"].includes(modules.platform) : path_api.sep !== "\\");
       const include = compile_workspace_globs(options2.include || "", case_sensitive);
       const exclude = compile_workspace_globs(options2.exclude || "", case_sensitive);
       const settings_exclude = compile_workspace_globs(options2.exclude_settings ?? DEFAULT_EXCLUDES, case_sensitive, false);
-      const result = { root, options: { ...options2 }, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, large: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: false, limit_reached: false, notices: [] };
+      const result = { root, options: { ...options2 }, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: false, notices: [] };
       const snapshots = /* @__PURE__ */ new Map();
-      let snapshot_bytes = 0;
       let replace_blocked = false;
       const matcher = options2.regex || modules.matcher_factory || typeof Worker !== "undefined" ? create_search_matcher(modules.matcher_factory) : void 0;
       const notice = (message) => {
@@ -238752,7 +238693,7 @@ https://creativecommons.org/licenses/by/4.0/
         const allowed = await read_ignored(root);
         const stack = [{ directory: root, relative: "", ignore_root: root, allowed }];
         async function* candidates() {
-          while (stack.length && !cancelled() && !result.limit_reached) {
+          while (stack.length && !cancelled()) {
             const current = stack.pop();
             let entries3;
             try {
@@ -238764,13 +238705,14 @@ https://creativecommons.org/licenses/by/4.0/
               }
               entries3 = (await files_api.readdir(current.directory, { withFileTypes: true })).sort((a, b2) => a.name.localeCompare(b2.name));
             } catch (error) {
+              replace_blocked = true;
               result.counts.skipped.unreadable++;
               notice("\u65E0\u6CD5\u8BFB\u53D6\u76EE\u5F55 ".concat(current.relative || ".", "\uFF1A").concat(String(error)));
               continue;
             }
             const directories = [];
             for (const entry of entries3) {
-              if (cancelled() || result.limit_reached) break;
+              if (cancelled()) break;
               const relative2 = current.relative ? current.relative + "/" + entry.name : entry.name;
               const file_path = path_api.join(current.directory, entry.name);
               if (entry.isSymbolicLink()) {
@@ -238816,11 +238758,9 @@ https://creativecommons.org/licenses/by/4.0/
             const stat = await files_api.lstat(file_path);
             if (cancelled()) return candidate;
             if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) return { ...candidate, skipped: "links" };
-            if (stat.size > max_file_bytes) return { ...candidate, skipped: "large" };
             if (cancelled()) return candidate;
             const bytes = new Uint8Array(await files_api.readFile(file_path, callbacks.signal ? { signal: callbacks.signal } : void 0));
             if (cancelled()) return candidate;
-            if (bytes.length > max_file_bytes) return { ...candidate, skipped: "large" };
             if (detect_binary_bytes(bytes)) return { ...candidate, skipped: "binary" };
             let decoded;
             try {
@@ -238842,7 +238782,7 @@ https://creativecommons.org/licenses/by/4.0/
         const fill = async () => {
           if (directory_boundary && pending.length) return;
           directory_boundary = false;
-          while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled() && !result.limit_reached) {
+          while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled()) {
             const next = await iterator.next();
             exhausted = next.done === true;
             if (!next.done) {
@@ -238855,7 +238795,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         };
         await fill();
-        while ((pending.length || !exhausted) && !cancelled() && !result.limit_reached) {
+        while ((pending.length || !exhausted) && !cancelled()) {
           if (!pending.length) {
             await fill();
             if (!pending.length) continue;
@@ -238864,6 +238804,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (cancelled()) break;
           if (!directory_boundary) await fill();
           if (skipped) {
+            if (skipped === "unreadable") replace_blocked = true;
             result.counts.skipped[skipped]++;
             if (message) notice(message);
             continue;
@@ -238874,10 +238815,9 @@ https://creativecommons.org/licenses/by/4.0/
             const matches = [];
             if (matcher) {
               try {
-                const reply = await matcher.match(decoded.text, options2, max_results - result.counts.matches, callbacks.signal);
+                const reply = await matcher.match(decoded.text, options2, callbacks.signal);
                 for (const match2 of reply.matches) matches.push({ ...match2, id: "match_".concat(result.files.length, "_").concat(matches.length) });
                 result.counts.matches += matches.length;
-                result.limit_reached = reply.limit_reached;
               } catch (error) {
                 if (error instanceof search_match_failure && error.reason === "cancelled") result.cancelled = true;
                 else {
@@ -238897,21 +238837,10 @@ https://creativecommons.org/licenses/by/4.0/
                 starts ||= line_starts(decoded.text);
                 matches.push({ ...capture_match(decoded.text, starts, found), id: "match_".concat(result.files.length, "_").concat(matches.length) });
                 result.counts.matches++;
-                if (result.counts.matches >= max_results) {
-                  result.limit_reached = true;
-                  break;
-                }
                 if (matches.length % 128 === 0) await pause();
               }
             }
             if (matches.length) {
-              if (snapshot_bytes + bytes.length > MAX_SNAPSHOT_BYTES) {
-                result.counts.matches -= matches.length;
-                result.limit_reached = true;
-                notice("\u5339\u914D\u6587\u4EF6\u5FEB\u7167\u8FBE\u5230 64 MiB \u4E0A\u9650\uFF0C\u8BF7\u7F29\u5C0F\u641C\u7D22\u8303\u56F4\u3002");
-                break;
-              }
-              snapshot_bytes += bytes.length;
               snapshots.set(file_path, { bytes, decoded, identity: identity4(stat), mode: stat.mode, matches });
               const file = { file_path, relative_path: relative2, matches: matches.map(({ captures, groups, ...match2 }) => match2) };
               result.files.push(file);
@@ -238919,17 +238848,16 @@ https://creativecommons.org/licenses/by/4.0/
               callbacks.on_file?.(file, structuredClone(result.counts));
             }
           } catch (error) {
+            replace_blocked = true;
             result.counts.skipped.unreadable++;
             notice("\u65E0\u6CD5\u641C\u7D22 ".concat(relative2, "\uFF1A").concat(String(error instanceof Error ? error.message : error)));
           }
         }
         cancelled();
-        if (result.limit_reached) notice("\u641C\u7D22\u5DF2\u8FBE\u5230\u7ED3\u679C\u6216\u5FEB\u7167\u4E0A\u9650\uFF1B\u5F53\u524D\u663E\u793A ".concat(result.counts.matches, " \u5904\u5339\u914D\u3002"));
-        if (result.counts.skipped.large) notice("\u5DF2\u8DF3\u8FC7 ".concat(result.counts.skipped.large, " \u4E2A\u5927\u4E8E ").concat(max_file_bytes, " \u5B57\u8282\u7684\u6587\u4EF6\u3002"));
         if (result.counts.skipped.binary) notice("\u5DF2\u8DF3\u8FC7 ".concat(result.counts.skipped.binary, " \u4E2A\u4E8C\u8FDB\u5236\u6587\u4EF6\u3002"));
         if (result.counts.skipped.links) notice("\u5DF2\u8DF3\u8FC7 ".concat(result.counts.skipped.links, " \u4E2A\u94FE\u63A5\uFF0C\u907F\u514D\u8D8A\u51FA\u641C\u7D22\u8303\u56F4\u6216\u5F62\u6210\u76EE\u5F55\u5FAA\u73AF\u3002"));
         if (result.cancelled) notice("\u641C\u7D22\u5DF2\u53D6\u6D88\uFF1B\u663E\u793A\u53D6\u6D88\u524D\u627E\u5230\u7684\u7ED3\u679C\u3002");
-        results.set(result, { root, options: { ...options2, file_paths: options2.file_paths?.slice() }, files: snapshots, incomplete: result.cancelled || result.limit_reached || replace_blocked, replace_blocked });
+        results.set(result, { root, options: { ...options2, file_paths: options2.file_paths?.slice() }, files: snapshots, incomplete: result.cancelled || replace_blocked, replace_blocked });
         return result;
       } finally {
         matcher?.dispose();
@@ -238938,12 +238866,11 @@ https://creativecommons.org/licenses/by/4.0/
     async function prepare_replace(result, replacement, selection = {}) {
       const snapshot = results.get(result);
       if (!snapshot) throw new Error("\u641C\u7D22\u7ED3\u679C\u5DF2\u5931\u6548\uFF0C\u8BF7\u91CD\u65B0\u641C\u7D22\u3002");
-      if (snapshot.replace_blocked) throw new Error("\u6B63\u5219\u5339\u914D\u8D85\u65F6\u6216\u5931\u8D25\uFF0C\u672C\u6B21\u641C\u7D22\u4E0D\u5B8C\u6574\uFF0C\u4E0D\u80FD\u6267\u884C\u66FF\u6362\u3002\u8BF7\u7B80\u5316\u8868\u8FBE\u5F0F\u6216\u7F29\u5C0F\u8303\u56F4\u540E\u91CD\u65B0\u641C\u7D22\u3002");
-      if (snapshot.incomplete && !selection.match_ids?.length) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\u6216\u8FBE\u5230\u4E0A\u9650\uFF0C\u4E0D\u80FD\u6267\u884C\u6574\u6587\u4EF6\u6216\u5168\u90E8\u66FF\u6362\u3002\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u91CD\u65B0\u641C\u7D22\uFF0C\u6216\u660E\u786E\u9009\u62E9\u5355\u6761\u7ED3\u679C\u3002");
+      if (snapshot.replace_blocked) throw new Error("\u5339\u914D\u5931\u8D25\uFF0C\u672C\u6B21\u641C\u7D22\u4E0D\u5B8C\u6574\uFF0C\u4E0D\u80FD\u6267\u884C\u66FF\u6362\u3002\u8BF7\u5904\u7406\u8BFB\u53D6\u6216\u5339\u914D\u9519\u8BEF\u540E\u91CD\u65B0\u641C\u7D22\u3002");
+      if (snapshot.incomplete && !selection.match_ids?.length) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u4E0D\u80FD\u6267\u884C\u6574\u6587\u4EF6\u6216\u5168\u90E8\u66FF\u6362\u3002\u8BF7\u91CD\u65B0\u641C\u7D22\uFF0C\u6216\u660E\u786E\u9009\u62E9\u5355\u6761\u7ED3\u679C\u3002");
       const selected_ids = selection.match_ids ? new Set(selection.match_ids) : void 0;
       const found_ids = /* @__PURE__ */ new Set();
       const prepared = [];
-      let prepared_bytes = 0;
       if (selected_ids && !selected_ids.size) throw new Error("\u8BF7\u9009\u62E9\u8981\u66FF\u6362\u7684\u641C\u7D22\u7ED3\u679C\u3002");
       for (const [file_path, file] of snapshot.files) {
         if (selection.file_path && selection.file_path !== file_path) continue;
@@ -238959,13 +238886,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (snapshot.options.preserve_case) value = preserve_case(match2.text, value);
           after_text += file.decoded.text.slice(offset, match2.start) + value.replace(/\r\n|\r|\n/gu, newline3);
           offset = match2.end;
-          if (after_text.length > MAX_SNAPSHOT_BYTES) throw new Error("\u5355\u6587\u4EF6\u66FF\u6362\u7ED3\u679C\u8FC7\u5927\uFF0C\u8BF7\u7F29\u5C0F\u66FF\u6362\u8303\u56F4\u3002");
         }
         after_text += file.decoded.text.slice(offset);
         const bytes = encode_file(after_text, file.decoded);
-        if (bytes.length > MAX_SNAPSHOT_BYTES) throw new Error("\u5355\u6587\u4EF6\u66FF\u6362\u7ED3\u679C\u8D85\u8FC7 64 MiB\uFF0C\u8BF7\u7F29\u5C0F\u66FF\u6362\u8303\u56F4\u3002");
-        prepared_bytes += bytes.length;
-        if (prepared_bytes > MAX_SNAPSHOT_BYTES) throw new Error("\u672C\u6B21\u66FF\u6362\u7ED3\u679C\u5408\u8BA1\u8D85\u8FC7 64 MiB\uFF0C\u8BF7\u7F29\u5C0F\u66FF\u6362\u8303\u56F4\u540E\u5206\u6279\u9884\u89C8\u3002");
         const prepared_file = { file_path, relative_path, before_text: file.decoded.text, after_text, match_count: matches.length, snapshot: file, bytes };
         await verify_file(snapshot.root, prepared_file);
         prepared.push(prepared_file);
@@ -239245,14 +239168,13 @@ https://creativecommons.org/licenses/by/4.0/
         if (read_content) text3 = await read_content(file.file_path);
         else {
           const stat = await files.fs.promises.stat(file.file_path);
-          if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("\u9884\u89C8\u652F\u6301 2 MiB \u4EE5\u5185\u7684\u6587\u672C\u6587\u4EF6\uFF1B\u53CC\u51FB\u7ED3\u679C\u53EF\u6253\u5F00\u5B8C\u6574\u6587\u4EF6\u3002");
+          if (!stat.isFile()) throw new Error("\u9884\u89C8\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u672C\u6587\u4EF6\u3002");
           const bytes = await files.fs.promises.readFile(file.file_path);
           if (disposed || request !== generation) return;
           if (detect_binary_bytes(bytes)) throw new Error("\u8BE5\u6587\u4EF6\u5DF2\u53D8\u4E3A\u4E8C\u8FDB\u5236\uFF0C\u65E0\u6CD5\u9884\u89C8\u6587\u672C\u3002");
           text3 = live && files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
         }
         if (disposed || request !== generation) return;
-        if (text3.length > 2 * 1024 * 1024) throw new Error("\u6B63\u6587\u8D85\u8FC72 MiB\u9884\u89C8\u4E0A\u9650\u3002");
         if (hash2 && is_markdown_file(file.file_path)) {
           let name = hash2.slice(1);
           try {
@@ -239833,7 +239755,7 @@ https://creativecommons.org/licenses/by/4.0/
           const result = this.result;
           if (!result) return;
           const count = result.counts;
-          this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "") + (result.limit_reached ? " \xB7 \u5DF2\u8FBE\u5230\u7ED3\u679C\u4E0A\u9650" : "")));
+          this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "")));
           if (count.matches) this.status.append(workspace_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
           if (result.notices.length) {
             const note = workspace_element("details", "workspace-search-notices");
@@ -239904,7 +239826,7 @@ https://creativecommons.org/licenses/by/4.0/
             if (this.only_changed && !git?.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
             const scope = this.only_changed ? git?.changed_files : this.only_open ? open_files : void 0;
             const options2 = { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {}, ...folder_path ? { folder_path } : {} };
-            const progressive = { root, options: options2, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, large: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: true, limit_reached: false, notices: [] };
+            const progressive = { root, options: options2, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: true, notices: [] };
             this.result = progressive;
             let progress_time = 0;
             const render_tasks = [];
@@ -240154,7 +240076,7 @@ https://creativecommons.org/licenses/by/4.0/
           void (async () => {
             const stat = await files.fs.promises.stat(file.file_path);
             if (!current()) return;
-            if (!stat.isFile() || stat.size > 16 * 1024 * 1024) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
+            if (!stat.isFile()) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
             const bytes = await files.fs.promises.readFile(file.file_path);
             if (!current()) return;
             if (detect_binary_bytes(bytes)) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
@@ -240213,7 +240135,7 @@ https://creativecommons.org/licenses/by/4.0/
           });
           try {
             if (this.containerEl.dataset.state === "searching") throw new Error("\u641C\u7D22\u4ECD\u5728\u8FDB\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B8C\u6210\u6216\u505C\u6B62\u641C\u7D22\u540E\u518D\u9884\u89C8\u66FF\u6362\u3002");
-            if (!match_ids && (this.result.cancelled || this.result.limit_reached)) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u7F29\u5C0F\u8303\u56F4\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
+            if (!match_ids && this.result.cancelled) throw new Error("\u641C\u7D22\u672A\u5B8C\u6210\uFF0C\u8BF7\u91CD\u65B0\u641C\u7D22\u540E\u518D\u6267\u884C\u6279\u91CF\u66FF\u6362\u3002");
             const visible_ids = match_ids || this.result.files.filter((file) => !file_path || file.file_path === file_path).flatMap((file) => file.matches.map((match2) => match2.id));
             const plan = await engine.prepare_replace(this.result, this.replacement.value, { file_path, match_ids: visible_ids });
             if (disposed || !dialog2.root.isConnected) return;
@@ -242318,7 +242240,6 @@ https://creativecommons.org/licenses/by/4.0/
     "files.autoSaveWorkspaceFilesOnly": false,
     "files.autoSaveWhenNoErrors": false,
     "workbench.localHistory.enabled": true,
-    "workbench.localHistory.maxFileSize": 256,
     "workbench.localHistory.maxFileEntries": 50,
     "workbench.localHistory.mergeWindow": 10,
     "workbench.localHistory.exclude": {},
@@ -242343,7 +242264,7 @@ https://creativecommons.org/licenses/by/4.0/
     result["explorer.openEditors.visible"] = Math.max(1, result["explorer.openEditors.visible"]);
     result["workbench.localHistory.maxFileEntries"] = Math.max(1, result["workbench.localHistory.maxFileEntries"]);
     const exclude = input["workbench.localHistory.exclude"];
-    if (exclude && typeof exclude === "object" && !Array.isArray(exclude)) result["workbench.localHistory.exclude"] = Object.fromEntries(Object.entries(exclude).filter(([key3, value2]) => key3.length <= 1024 && typeof value2 === "boolean"));
+    if (exclude && typeof exclude === "object" && !Array.isArray(exclude)) result["workbench.localHistory.exclude"] = Object.fromEntries(Object.entries(exclude).filter(([key3, value2]) => typeof value2 === "boolean"));
     return result;
   }
   function read_workspace_save_settings() {
@@ -242375,7 +242296,6 @@ https://creativecommons.org/licenses/by/4.0/
       ["files.autoSaveWorkspaceFilesOnly", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6"],
       ["files.autoSaveWhenNoErrors", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58"],
       ["workbench.localHistory.enabled", "\u542F\u7528\u672C\u5730\u5386\u53F2"],
-      ["workbench.localHistory.maxFileSize", "\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u4E0A\u9650\uFF08KB\uFF09"],
       ["workbench.localHistory.maxFileEntries", "\u6BCF\u4E2A\u6587\u4EF6\u7684\u5386\u53F2\u6761\u6570"],
       ["workbench.localHistory.mergeWindow", "\u5408\u5E76\u76F8\u90BB\u4FDD\u5B58\uFF08\u79D2\uFF09"],
       ["explorer.openEditors.visible", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570"],
@@ -242916,8 +242836,8 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const location = (root) => path_api.join(directory, crypto2.createHash("sha256").update(root_key2(root)).digest("hex") + ".json");
     const validate = (value, root) => {
-      if (value?.schema !== 1 || value.root !== root_key2(root) || !Array.isArray(value.files) || value.files.length > 1e3 || !Number.isInteger(value.active) || value.active < -1 || value.active >= value.files.length) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u65E0\u6548\u3002");
-      if (value.files.some((file) => !file || typeof file.path !== "string" || file.path.length > 32768 || file.path.includes("\0") || !path_api.isAbsolute(file.path) || typeof file.source !== "boolean" || typeof file.pinned !== "boolean")) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u6587\u4EF6\u8EAB\u4EFD\u65E0\u6548\u3002");
+      if (value?.schema !== 1 || value.root !== root_key2(root) || !Array.isArray(value.files) || !Number.isInteger(value.active) || value.active < -1 || value.active >= value.files.length) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u65E0\u6548\u3002");
+      if (value.files.some((file) => !file || typeof file.path !== "string" || file.path.includes("\0") || !path_api.isAbsolute(file.path) || typeof file.source !== "boolean" || typeof file.pinned !== "boolean")) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u6587\u4EF6\u8EAB\u4EFD\u65E0\u6548\u3002");
       return value;
     };
     return {
@@ -242926,7 +242846,6 @@ https://creativecommons.org/licenses/by/4.0/
         if (!root) return;
         try {
           const file = location(root);
-          if (fs2.statSync(file).size > 2 * 1024 * 1024) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u8FC7\u5927\u3002");
           return validate(JSON.parse(fs2.readFileSync(file, "utf8")), root);
         } catch (error) {
           if (error?.code === "ENOENT") return;
@@ -242936,7 +242855,6 @@ https://creativecommons.org/licenses/by/4.0/
       write(root, files, active2) {
         if (!root) return;
         const value = validate({ schema: 1, root: root_key2(root), files, active: active2 }, root), text3 = JSON.stringify(value);
-        if (new TextEncoder().encode(text3).length > 2 * 1024 * 1024) throw new Error("\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u8BB0\u5F55\u8FC7\u5927\u3002");
         fs2.mkdirSync(directory, { recursive: true });
         const file = location(root), temporary = file + "." + crypto2.randomUUID() + ".tmp";
         try {
@@ -243144,7 +243062,6 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_local_history.ts
   var identifier = /^[a-f0-9]{32}$/u;
   function history_glob_matches(pattern, path) {
-    if (pattern.length > 1024) return false;
     let source = "";
     for (let i = 0; i < pattern.length; i++) {
       const char = pattern[i];
@@ -243189,11 +243106,11 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const bucket = (path) => path_api.join(directory, hash2(key3(path)));
     const id = () => crypto2.randomBytes(16).toString("hex");
-    async function bounded_read(path, limit) {
+    async function read_snapshot(path) {
       const handle = await fs2.open(path, "r");
       try {
         const before = await handle.stat();
-        if (!before.isFile() || before.size > limit) throw new Error("\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u8D85\u9650\u3002");
+        if (!before.isFile()) throw new Error("\u5386\u53F2\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
         const buffer = new Uint8Array(before.size + 1);
         let length = 0;
         while (length < buffer.length) {
@@ -243227,7 +243144,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
       }
     }
-    const json = async (path) => JSON.parse(new TextDecoder().decode(await bounded_read(path, 65536)));
+    const json = async (path) => JSON.parse(new TextDecoder().decode(await read_snapshot(path)));
     async function list3(file_path) {
       const dir = bucket(file_path);
       let names;
@@ -243278,7 +243195,7 @@ https://creativecommons.org/licenses/by/4.0/
     const record = (file_path, input, source = "File Saved", force = false) => {
       if (!path_api.isAbsolute(file_path)) return Promise.resolve(void 0);
       const options2 = read_options();
-      if (!options2.enabled || input.byteLength > options2.max_file_size * 1024 || input.byteLength > 16 * 1024 * 1024 || excluded(file_path, options2) || detect_binary_bytes(input)) return Promise.resolve(void 0);
+      if (!options2.enabled || excluded(file_path, options2) || detect_binary_bytes(input)) return Promise.resolve(void 0);
       const bytes = input.slice();
       return serialize(file_path, async () => {
         const entries3 = await list3(file_path), digest = hash2(bytes), previous = entries3[0];
@@ -243307,7 +243224,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!identifier.test(entry.id)) throw new Error("\u5386\u53F2\u6761\u76EE\u65E0\u6548\u3002");
       const current = (await list3(entry.file_path)).find((item) => item.id === entry.id);
       if (!current) throw new Error("\u5386\u53F2\u6761\u76EE\u5DF2\u88AB\u5220\u9664\u6216\u5408\u5E76\uFF0C\u8BF7\u5237\u65B0\u540E\u91CD\u8BD5\u3002");
-      const bytes = await bounded_read(path_api.join(bucket(entry.file_path), entry.id + ".data"), 16 * 1024 * 1024);
+      const bytes = await read_snapshot(path_api.join(bucket(entry.file_path), entry.id + ".data"));
       if (bytes.length !== current.size || hash2(bytes) !== current.hash) throw new Error("\u5386\u53F2\u5185\u5BB9\u6821\u9A8C\u5931\u8D25\u3002");
       return bytes;
     }
@@ -243337,8 +243254,8 @@ https://creativecommons.org/licenses/by/4.0/
       const options2 = read_options();
       if (!options2.enabled || excluded(file_path, options2)) return;
       const stat = await fs2.stat(file_path);
-      if (!stat.isFile() || stat.size > options2.max_file_size * 1024 || stat.size > 16 * 1024 * 1024) return;
-      return record(file_path, await bounded_read(file_path, Math.min(16 * 1024 * 1024, options2.max_file_size * 1024)), source, force);
+      if (!stat.isFile()) return;
+      return record(file_path, await read_snapshot(file_path), source, force);
     }
     async function move(old_path, new_path, directory_move = false) {
       if (!path_api.isAbsolute(old_path) || !path_api.isAbsolute(new_path)) throw new Error("\u5386\u53F2\u8FC1\u79FB\u8DEF\u5F84\u65E0\u6548\u3002");
@@ -243367,7 +243284,7 @@ https://creativecommons.org/licenses/by/4.0/
         }));
       }
     }
-    return { record, list: list3, read: read2, resources, capture, remove, move, hash: hash2, bounded_read, flush: () => Promise.all([...queues.values()]) };
+    return { record, list: list3, read: read2, resources, capture, remove, move, hash: hash2, read_snapshot, flush: () => Promise.all([...queues.values()]) };
   }
 
   // src/workspace_auto_save.ts
@@ -243555,7 +243472,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (typeof user_data !== "string" || !files.path_api.isAbsolute(user_data)) throw new Error("\u65E0\u6CD5\u786E\u5B9A\u672C\u5730\u5386\u53F2\u7684\u5E94\u7528\u5B58\u50A8\u76EE\u5F55\u3002");
     const history = create_local_history_store({ fs: files.fs, path_api: files.path_api, crypto: runtime2.reqnode("crypto") }, files.path_api.join(user_data, "typora_code", "History"), () => {
       const value = read_workspace_save_settings();
-      return { enabled: value["workbench.localHistory.enabled"], max_file_size: value["workbench.localHistory.maxFileSize"], max_entries: value["workbench.localHistory.maxFileEntries"], merge_window: value["workbench.localHistory.mergeWindow"], exclude: value["workbench.localHistory.exclude"], workspace_root: files.context_root() };
+      return { enabled: value["workbench.localHistory.enabled"], max_entries: value["workbench.localHistory.maxFileEntries"], merge_window: value["workbench.localHistory.mergeWindow"], exclude: value["workbench.localHistory.exclude"], workspace_root: files.context_root() };
     });
     const leaves = () => {
       const result = [];
@@ -243687,7 +243604,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!stat.isFile() || stat.isSymbolicLink() || expected_hash === void 0) throw new Error("\u6062\u590D\u76EE\u6807\u5DF2\u7ECF\u53D8\u5316\u3002");
       if ((stat.mode & 146) === 0) throw new Error("\u6062\u590D\u76EE\u6807\u4E3A\u53EA\u8BFB\u6587\u4EF6\u3002");
       if (identity5 && fingerprint(stat) !== identity5) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u6BD4\u8F83\u540E\u518D\u6062\u590D\u3002");
-      const current = await store.bounded_read(target, 16 * 1024 * 1024);
+      const current = await store.read_snapshot(target);
       if (store.hash(current) !== expected_hash) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u6BD4\u8F83\u540E\u518D\u6062\u590D\u3002");
       identity5 = fingerprint(stat);
       before = current;
@@ -243720,7 +243637,7 @@ https://creativecommons.org/licenses/by/4.0/
         await fs2.rename(temporary, target);
         exists = false;
       }
-      if (store.hash(await store.bounded_read(target, 16 * 1024 * 1024)) !== store.hash(bytes)) throw new Error("\u6062\u590D\u540E\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u68C0\u67E5\u3002");
+      if (store.hash(await store.read_snapshot(target)) !== store.hash(bytes)) throw new Error("\u6062\u590D\u540E\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u6253\u5F00\u68C0\u67E5\u3002");
       publish_workspace_file_saved({ file_path: target, bytes, source: "File Restored" });
     } finally {
       if (exists) await fs2.unlink(temporary).catch(() => {
@@ -243803,7 +243720,7 @@ https://creativecommons.org/licenses/by/4.0/
       const bytes = await saves.history.read(entry);
       let right, expected_hash;
       try {
-        const current = await saves.history.bounded_read(entry.file_path, 16 * 1024 * 1024);
+        const current = await saves.history.read_snapshot(entry.file_path);
         expected_hash = saves.history.hash(current);
         right = await files.read_text(entry.file_path);
       } catch (error) {
@@ -243859,7 +243776,7 @@ https://creativecommons.org/licenses/by/4.0/
               if (!await files.save_leaf(leaf2)) throw new Error("\u5F53\u524D\u4FEE\u6539\u672A\u80FD\u4FDD\u5B58\uFF0C\u672A\u6267\u884C\u6062\u590D\u3002");
             }
             if (!active2()) return;
-            const bytes = await saves.history.bounded_read(entry.file_path, 16 * 1024 * 1024);
+            const bytes = await saves.history.read_snapshot(entry.file_path);
             expected = saves.history.hash(bytes);
           }
           await restore_history_entry(files, saves.history, entry, expected, () => active2() && target_idle(entry.file_path));
@@ -243911,7 +243828,7 @@ https://creativecommons.org/licenses/by/4.0/
       list3.setAttribute("role", "listbox");
       input.setAttribute("aria-controls", list_id);
       const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default), icons3 = acquire_workspace_file_icons(), interaction = acquire_workspace_interaction(root), focus = capture_workspace_focus();
-      let selected = 0, shown = items.slice(0, 300), closed = false;
+      let selected = 0, shown = items, closed = false;
       const close = (value, restore = true) => {
         if (closed) return;
         closed = true;
@@ -243928,7 +243845,7 @@ https://creativecommons.org/licenses/by/4.0/
       const layer = register_workspace_dismissal(() => [root], (reason) => close(void 0, reason === "escape"), { window_blur: true });
       const update2 = () => {
         const query = input.value.toLocaleLowerCase().trim().split(/\s+/u);
-        shown = items.filter((item) => query.every((part) => (item.label + " " + item.description).toLocaleLowerCase().includes(part))).slice(0, 300);
+        shown = items.filter((item) => query.every((part) => (item.label + " " + item.description).toLocaleLowerCase().includes(part)));
         selected = Math.min(selected, Math.max(0, shown.length - 1));
         list3.replaceChildren();
         shown.forEach((item, index) => {
@@ -244391,7 +244308,6 @@ https://creativecommons.org/licenses/by/4.0/
       entries3.splice(2, 0, { title: "\u6253\u5F00\u65B9\u5F0F\u2026", children, action: () => {
       } }, { title: "\u4E0E\u526A\u8D34\u677F\u6BD4\u8F83", action: () => run(async () => {
         const right = await files.read_text(path), left = window.reqnode("electron").clipboard.readText();
-        if (left.length > 16 * 1024 * 1024) throw new Error("\u526A\u8D34\u677F\u6587\u672C\u8D85\u8FC716 MiB\u3002");
         viewer.open({ title: files.path_api.basename(path) + "\uFF08\u526A\u8D34\u677F\u6BD4\u8F83\uFF09", file: path, left, right, left_label: "\u526A\u8D34\u677F", right_label: path });
       }) });
       entries3.push({ title: "\u6253\u5F00\u65F6\u95F4\u7EBF", separator: true, action: () => timeline.open(path) });
@@ -245179,7 +245095,7 @@ https://creativecommons.org/licenses/by/4.0/
     const add = (section) => releases.push(register_workspace_settings(section));
     add({ id: "network", title: "\u7F51\u7EDC", scope: user, defaults: NETWORK_DEFAULTS, fields: [{ key: "proxy_mode", title: "\u4EE3\u7406\u6A21\u5F0F", choices: ["environment", "direct", "manual"], description: "environment\uFF1A\u4F7F\u7528HTTPS_PROXY/HTTP_PROXY\u53CANO_PROXY\u73AF\u5883\u53D8\u91CF\uFF1Bdirect\uFF1A\u76F4\u8FDE\uFF1Bmanual\uFF1A\u6307\u5B9A\u4EE3\u7406\u3002\u7CFB\u7EDF\u4EE3\u7406/PAC\u4E0D\u4F1A\u81EA\u52A8\u5BFC\u5165\u3002" }, { key: "proxy_url", title: "\u4EE3\u7406\u5730\u5740", description: "\u4F8B\u5982 http://proxy.company:8080\uFF1B\u652F\u6301HTTP/HTTPS\u4EE3\u7406\uFF0C\u4E0D\u63A5\u53D7\u5185\u5D4C\u8D26\u6237\u5BC6\u7801\u3002\u5148\u586B\u5199\u5730\u5740\uFF0C\u518D\u9009\u62E9manual\u3002" }, { key: "ca_file", title: "\u4F01\u4E1ACA\u8BC1\u4E66\u6587\u4EF6", description: "\u9644\u52A0\u4FE1\u4EFBPEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08.pem/.crt/.cer\uFF09\uFF0C\u4E0D\u542B\u79C1\u94A5\uFF1B\u4FDD\u6301TLS\u6821\u9A8C\u3002\u7528\u4E8E\u66F4\u65B0\u68C0\u67E5\u3001ZIP\u4E0E\u793E\u533A\u63D2\u4EF6\u4E0B\u8F7D\uFF0C\u4E0D\u4FEE\u6539\u7CFB\u7EDF/Git/SSH\u3002\u7559\u7A7A\u6062\u590D\u9ED8\u8BA4\u4FE1\u4EFB\u94FE\u3002", file_extensions: ["pem", "crt", "cer"] }], read: read_network_settings, write: write_network_setting });
     add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: { ...WORKSPACE_EDITOR_DEFAULTS, ...TEXT_PRESENTATION_DEFAULTS }, fields: [{ key: "word_wrap", title: "\u6587\u672C\u81EA\u52A8\u6362\u884C", description: "\u6E90\u7801\u3001\u5386\u53F2\u7248\u672C\u3001\u5DEE\u5F02\u548C\u6E90\u7801\u9884\u89C8\u6309\u53EF\u7528\u5BBD\u5EA6\u8F6F\u6362\u884C\uFF1B\u4E0D\u66F4\u6539\u6B63\u6587\u6216\u903B\u8F91\u884C\u53F7\u3002\u5173\u95ED\u540E\u53EF\u6A2A\u5411\u6EDA\u52A8\u3002" }, { key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }, { key: "wrap_tabs", title: "\u6807\u7B7E\u6362\u884C\uFF08Wrap Tabs\uFF09", description: "\u6807\u7B7E\u8D85\u8FC7\u53EF\u7528\u5BBD\u5EA6\u65F6\u663E\u793A\u4E3A\u591A\u884C\uFF1B\u5173\u95ED\u65F6\u4F7F\u7528\u5355\u884C\u6EDA\u52A8\u3002" }, { key: "link_preview_enabled", title: "\u9009\u4E2D\u94FE\u63A5\u81EA\u52A8\u9884\u89C8", description: "\u5728\u5DE6\u4FA7\u4E0B\u65B9\u53EA\u8BFB\u9884\u89C8\u9009\u4E2D\u7684\u94FE\u63A5\uFF0C\u4E0D\u5F71\u54CD\u641C\u7D22\u7ED3\u679C\u9884\u89C8\u548C\u624B\u52A8\u5206\u5C4F\u9884\u89C8\u3002" }], read: () => ({ ...read_workspace_editor_settings(), ...read_text_presentation() }), write: (key3, value) => key3 === "word_wrap" ? update_text_presentation(value) : set_workspace_editor_setting(key3, value) });
-    const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u5386\u53F2\u6587\u4EF6\u5927\u5C0F\u4E0A\u9650\uFF08KB\uFF09", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
+    const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
     add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key3, index) => ({ key: key3, title: file_labels[index] || key3, choices: key3 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key3 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key3, value) => {
       const baseline = FILE_SETTING_DEFAULTS[key3];
       if (typeof baseline === "number" && (typeof value !== "number" || value < 0 || !Number.isInteger(value))) throw Error("\u8BF7\u8F93\u5165\u975E\u8D1F\u6574\u6570");
@@ -245193,7 +245109,7 @@ https://creativecommons.org/licenses/by/4.0/
     add({ id: "breadcrumbs", title: "\u9762\u5305\u5C51\uFF08\u5DE5\u4F5C\u533A\uFF09", scope: project, defaults: BREADCRUMB_DEFAULTS, fields: Object.keys(BREADCRUMB_DEFAULTS).map((key3) => ({ key: key3, title: crumb_labels[key3], choices: key3 === "file_path" || key3 === "symbol_path" ? ["on", "off", "last"] : key3 === "symbol_sort_order" ? ["position", "name", "type"] : void 0 })), read: () => read_breadcrumb_settings(root()), write: (key3, value) => update_breadcrumb_settings(root(), root() ? "workspace" : "user", key3, value) });
     const diff_labels = { render_side_by_side: "\u5E76\u6392\u6BD4\u8F83", inline_when_narrow: "\u7A84\u5BBD\u5EA6\u81EA\u52A8\u5185\u8054", ignore_trim_whitespace: "\u5FFD\u7565\u9996\u5C3E\u7A7A\u767D\u5DEE\u5F02", hide_unchanged: "\u9690\u85CF\u672A\u4FEE\u6539\u533A\u57DF", show_moves: "\u663E\u793A\u79FB\u52A8\u4EE3\u7801", render_markdown: "Markdown\u9ED8\u8BA4\u6E32\u67D3\u5BF9\u6BD4" };
     add({ id: "diff", title: "\u5DEE\u5F02\u7F16\u8F91\u5668", scope: user, defaults: { ...git_diff_defaults }, fields: Object.keys(git_diff_defaults).map((key3) => ({ key: key3, title: diff_labels[key3] })), read: read_git_diff_preferences, write: (key3, value) => update_git_diff_preferences({ [key3]: value }) });
-    const ssh_labels = { ssh_path: "OpenSSH\u7A0B\u5E8F\u8DEF\u5F84\uFF08\u7A7A\u4E3A\u7CFB\u7EDF\u9ED8\u8BA4\uFF09", config_file: "SSH\u914D\u7F6E\u6587\u4EF6\u8DEF\u5F84\uFF08\u7A7A\u4E3AOpenSSH\u9ED8\u8BA4\uFF09", connect_timeout: "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09", server_alive_interval: "\u8FDE\u63A5\u4FDD\u6D3B\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09", server_alive_count: "\u4FDD\u6D3B\u8FDE\u7EED\u5931\u8D25\u6B21\u6570", request_timeout: "\u6587\u4EF6\u8BF7\u6C42\u8D85\u65F6\uFF08\u79D2\uFF09", refresh_interval: "\u53EF\u89C1\u8FDC\u7A0B\u76EE\u5F55\u5237\u65B0\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09" };
+    const ssh_labels = { ssh_path: "OpenSSH\u7A0B\u5E8F\u8DEF\u5F84\uFF08\u7A7A\u4E3A\u7CFB\u7EDF\u9ED8\u8BA4\uFF09", config_file: "SSH\u914D\u7F6E\u6587\u4EF6\u8DEF\u5F84\uFF08\u7A7A\u4E3AOpenSSH\u9ED8\u8BA4\uFF09", connect_timeout: "\u8FDE\u63A5\u8D85\u65F6\uFF08\u79D2\uFF09", server_alive_interval: "\u8FDE\u63A5\u4FDD\u6D3B\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09", server_alive_count: "\u4FDD\u6D3B\u8FDE\u7EED\u5931\u8D25\u6B21\u6570", request_timeout: "SSH\u534F\u8BAE\u63E1\u624B\u8D85\u65F6\uFF08\u79D2\uFF09", refresh_interval: "\u53EF\u89C1\u8FDC\u7A0B\u76EE\u5F55\u5237\u65B0\u95F4\u9694\uFF08\u79D2\uFF0C0\u5173\u95ED\uFF09" };
     add({ id: "ssh", title: "SSH\u8FDC\u7A0B", scope: user, defaults: REMOTE_SSH_DEFAULTS, fields: Object.keys(REMOTE_SSH_DEFAULTS).map((key3) => ({ key: key3, title: ssh_labels[key3], description: key3 === "config_file" ? "\u7AEF\u53E3\u3001\u5BC6\u94A5\u3001\u4EE3\u7406\u53CA\u8D26\u6237\u7531OpenSSH\u914D\u7F6E\u7BA1\u7406\uFF0C\u59CB\u7EC8\u6821\u9A8C\u4E3B\u673A\u5BC6\u94A5\u3002\u8FDE\u63A5\u53C2\u6570\u4E0B\u6B21\u8FDE\u63A5\u751F\u6548\u3002" : void 0 })), read: read_remote_ssh_settings, write: write_remote_ssh_setting });
     add({ id: "outline", title: "C/C++\u8BED\u8A00\u670D\u52A1", scope: project, defaults: { clangd_path: "", compile_commands_dir: "", fallback_flags: [] }, fields: [{ key: "clangd_path", title: "clangd\u8DEF\u5F84\uFF08\u7528\u6237\u7EA7\uFF09" }, { key: "compile_commands_dir", title: "\u7F16\u8BD1\u6570\u636E\u5E93\u76EE\u5F55\uFF08\u5DE5\u4F5C\u533A\uFF09" }, { key: "fallback_flags", title: "\u540E\u5907\u7F16\u8BD1\u53C2\u6570\uFF08JSON\u6570\u7EC4\uFF09" }], read: () => read_source_outline_settings(root()), write: (key3, value) => save_source_outline_settings(root(), { ...read_source_outline_settings(root()), [key3]: value }) });
     releases.push(observe_text_presentation(notify_workspace_settings), observe_workspace_save_settings(notify_workspace_settings), observe_workspace_editor_settings(notify_workspace_settings), observe_breadcrumb_settings(notify_workspace_settings), watch_git_diff_preferences(notify_workspace_settings));
@@ -246516,6 +246432,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092502,
+        version: "2026.09.25.2",
+        date: "2026-09-25",
+        notes: [
+          "\u53D6\u6D88\u6587\u4EF6\u3001Markdown\u6E32\u67D3\u6BD4\u8F83\u3001Git\u3001\u641C\u7D22\u3001\u9884\u89C8\u3001\u5927\u7EB2\u3001SSH\u53CA\u4E0B\u8F7D\u7684\u9884\u8BBE\u5927\u5C0F\u548C\u6570\u91CF\u62E6\u622A\uFF0C\u5B8C\u6574\u5185\u5BB9\u6309\u5B9E\u9645\u8FD0\u884C\u7ED3\u679C\u5904\u7406\uFF0C\u4FDD\u7559\u53D6\u6D88\u3001\u51B2\u7A81\u548C\u5B9E\u9645\u9519\u8BEF\u53CD\u9988\u3002",
+          "\u6062\u590D\u5F53\u524DTypora\u4E3B\u9898\u7684\u6B63\u6587\u3001\u8868\u683C\u8FB9\u7EBF\u3001\u5B57\u4F53\u3001\u6BB5\u843D\u3001\u5F15\u7528\u548C\u4EE3\u7801\u6837\u5F0F\uFF1B\u5DE5\u4F5C\u53F0\u5916\u89C2\u4FDD\u6301\uFF0CNight\u6807\u9898\u4FDD\u7559\u7528\u6237\u9009\u5B9A\u7684#CE9178\uFF0C\u9884\u89C8\u4E0E\u6E32\u67D3\u6BD4\u8F83\u5171\u7528\u6B63\u6587\u4E3B\u9898\u3002"
+        ]
+      },
       {
         sequence: 2026092501,
         version: "2026.09.25.1",

@@ -16,7 +16,6 @@ const escape=(value:string)=>value.replace(/&/gu,'&amp;').replace(/</gu,'&lt;').
 async function blocks(source:string,current:()=>boolean):Promise<markdown_block[]>{
   const text=normalize(source),front=text.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0]||'';
   const tokens=marked.lexer(text.slice(front.length),{gfm:true});
-  if(tokens.length>10000)throw Error('Markdown块超过10000项，请使用源码差异查看。');
   const result:markdown_block[]=[];let offset=0,line=1;
   if(front)tokens.unshift({type:'code',raw:front,text:front,lang:'yaml'});
   const renderer=new marked.Renderer();renderer.image=token=>`<span class="markdown-diff-attachment">${escape(token.text||'图片')} [${escape(token.href)}]</span>`;
@@ -96,7 +95,6 @@ export function create_git_markdown_diff(){
     async render(left:string,right:string,changes:readonly git_diff_line_change[],labels:[string,string]):Promise<void>{
       const request=++generation,current=()=>!disposed&&generation===request;
       container.dataset.ready='false';
-      if(new TextEncoder().encode(left).length+new TextEncoder().encode(right).length>1024*1024)throw Error('Markdown渲染比较超过1MiB，请使用源码差异查看。');
       const [old_blocks,new_blocks]=await Promise.all([blocks(left,current),blocks(right,current)]);if(!current())return;
       const pairs=pair_blocks(old_blocks,new_blocks,changes),fragment=document.createDocumentFragment(),targets:HTMLElement[]=[],code_tasks:HTMLElement[]=[];
       const head=document.createElement('div');head.className='markdown-diff-row markdown-diff-head';

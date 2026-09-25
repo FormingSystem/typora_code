@@ -167,13 +167,12 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       if(read_content)text=await read_content(file.file_path);
       else {
       const stat = await files.fs.promises.stat(file.file_path);
-      if (!stat.isFile() || stat.size > 2 * 1024 * 1024) throw new Error("预览支持 2 MiB 以内的文本文件；双击结果可打开完整文件。");
+      if (!stat.isFile()) throw new Error("预览目标不是普通文本文件。");
       const bytes = await files.fs.promises.readFile(file.file_path); if (disposed || request !== generation) return;
       if (detect_binary_bytes(bytes)) throw new Error("该文件已变为二进制，无法预览文本。");
       text = live&&files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
       }
       if(disposed||request!==generation)return;
-      if(text.length>2*1024*1024)throw new Error("正文超过2 MiB预览上限。");
       if(hash&&is_markdown_file(file.file_path)){
         let name=hash.slice(1);try{name=decodeURIComponent(name);}catch{/* 非法编码按原文字匹配。 */}
         const slug=(value:string)=>value.toLowerCase().trim().replace(/<[^>]*>/gu,"").replace(/[\\`*_~]/gu,"").replace(/[^\p{L}\p{N}\s_-]/gu,"").replace(/\s/gu,"-");

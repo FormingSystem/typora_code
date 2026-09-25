@@ -18,16 +18,14 @@ try {
   assert(cancelled.cancelled); assert(Date.now()-cancelled_start < 1500); assert(ticks >= 3);
   checks.push('AbortSignal terminates catastrophic regex in a real worker while the main event loop remains responsive');
 
-  ticks = 0; const timeout_start = Date.now();
-  const timed_out = await engine.search(root, {query: '(a+)+$', regex: true, use_ignore: false});
-  const elapsed_ms = Date.now()-timeout_start;
-  assert(elapsed_ms >= 1900 && elapsed_ms < 5000); assert(ticks >= 50);
-  assert(timed_out.notices.some(message => message.includes('a_slow.txt') && message.includes('超过 2 秒')));
-  assert.equal(timed_out.files.length, 1); assert.equal(timed_out.files[0].relative_path, 'z_fast.txt'); assert.equal(timed_out.files[0].matches[0].text, 'aaaa');
-  await assert.rejects(engine.prepare_replace(timed_out, 'changed'), /搜索不完整/);
-  await assert.rejects(engine.prepare_replace(timed_out, 'changed', {match_ids: [timed_out.files[0].matches[0].id]}), /搜索不完整/);
-  assert.equal(fs.readFileSync(path.join(root, 'z_fast.txt'), 'utf8'), 'aaaa');
-  checks.push('a two-second per-file timeout names the skipped file, restarts the worker and blocks every replacement from the incomplete run');
+  ticks=0;const extended=new AbortController(),extended_start=Date.now();
+  const extended_timer=setTimeout(()=>extended.abort(),2300);
+  const extended_result=await engine.search(root,{query:'(a+)+$',regex:true,use_ignore:false},{signal:extended.signal});clearTimeout(extended_timer);
+  const elapsed_ms=Date.now()-extended_start;
+  assert(elapsed_ms>=2200&&elapsed_ms<5000);assert(ticks>50);assert(extended_result.cancelled);
+  assert(!extended_result.notices.some(message=>message.includes('超过 2 秒')));
+  await assert.rejects(engine.prepare_replace(extended_result,'changed'),/搜索未完成/);
+  checks.push('slow matching continues beyond former two-second cutoff until explicitly cancelled; event loop and replacement guard remain intact');
 
   fs.writeFileSync(path.join(root, 'a_slow.txt'), '😀 Foo\r\nFOO foo\r\n');
   const result = await engine.search(root, {query: '(?<word>foo)', regex: true, case_sensitive: false, whole_word: true, include: './a_slow.txt', use_ignore: false});

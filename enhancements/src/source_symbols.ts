@@ -5,9 +5,9 @@ export const SOURCE_SYMBOL_LANGUAGES:Record<string,string>={javascript:"javascri
 /** 从正式 grammar 节点提取语法符号；不执行宏、脚本或配置，也不把引用当声明。 */
 export function extract_source_symbols(root:Node,language:string):source_symbol[] {
   let count=0;
-  const symbol=(node:Node,name:Node,kind:string,detail:string,children:source_symbol[]=[],label=name.text):source_symbol=>({name:label.slice(0,200),kind,detail,start:node.startIndex,end:node.endIndex,selection_start:name.startIndex,selection_end:name.endIndex,children});
+  const symbol=(node:Node,name:Node,kind:string,detail:string,children:source_symbol[]=[],label=name.text):source_symbol=>({name:label,kind,detail,start:node.startIndex,end:node.endIndex,selection_start:name.startIndex,selection_end:name.endIndex,children});
   const walk=(node:Node,depth=0):source_symbol[]=>{
-    if(depth>80||count>5000||node.isError||node.isMissing)return [];
+    if(node.isError||node.isMissing)return [];
     const descend=(target=node)=>target.namedChildren.flatMap(child=>walk(child,depth+1));
     const emit=(name:Node|null,kind:string,detail:string,body?:Node|null,label?:string)=>{
       if(!name)return descend();count++;return [symbol(node,name,kind,detail,body?descend(body):[],label??name.text)];

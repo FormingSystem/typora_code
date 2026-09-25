@@ -38,7 +38,7 @@ export async function discover_clangd_environment(options:clangd_options={},node
     const directory=path.resolve(root||"",value);await database(directory);if(!compile_commands_candidates.length)throw new Error("所选目录未找到 compile_commands.json 或 compile_flags.txt。");
   }else if(root){
     await database(root);const build_dir=path.join(root,"build");await database(build_dir);
-    try{const directories=(await fs.readdir(build_dir,{withFileTypes:true})).filter((entry:any)=>entry.isDirectory()).sort((a:any,b:any)=>a.name.localeCompare(b.name)).slice(0,64);for(const entry of directories)await database(path.join(build_dir,entry.name));}catch{}
+    try{const directories=(await fs.readdir(build_dir,{withFileTypes:true})).filter((entry:any)=>entry.isDirectory()).sort((a:any,b:any)=>a.name.localeCompare(b.name));for(const entry of directories)await database(path.join(build_dir,entry.name));}catch{}
   }
   return {executable:available[0],compile_commands_dir:compile_commands_candidates[0]||"",candidates:available,compile_commands_candidates};
 }
@@ -48,14 +48,13 @@ export function clangd_document_symbols(items:any,text:string):source_symbol[]{
   const starts=[0];for(let index=0;index<text.length;index++)if(text.charCodeAt(index)===10)starts.push(index+1);
   const offset=(position:any)=>{const line=position?.line,character=position?.character;if(!Number.isInteger(line)||!Number.isInteger(character)||line<0||character<0||line>=starts.length)return undefined;const start=starts[line],end=line+1<starts.length?starts[line+1]-1:text.length;return Math.min(start+character,end);};
   const kinds:Record<number,string>={1:"file",2:"namespace",3:"namespace",4:"namespace",5:"class",6:"method",7:"property",8:"field",9:"method",10:"enum",11:"interface",12:"function",13:"variable",14:"constant",15:"string",16:"number",17:"boolean",18:"array",19:"object",20:"property",21:"namespace",22:"enum-member",23:"struct",24:"event",25:"operator",26:"type-parameter"};
-  let count=0;
-  const map=(values:any[],depth=0,parent_kind=0):source_symbol[]=>{if(depth>80)return [];return values.flatMap(item=>{
-    if(++count>5000||typeof item?.name!=="string")return [];
+  const map=(values:any[],depth=0,parent_kind=0):source_symbol[]=>{return values.flatMap(item=>{
+    if(typeof item?.name!=="string")return [];
     const range=item.range||item.location?.range,selection=item.selectionRange||range;
     const start=offset(range?.start),end=offset(range?.end),selection_start=offset(selection?.start),selection_end=offset(selection?.end);
     if(start===undefined||end===undefined||selection_start===undefined||selection_end===undefined||start>end||selection_start>selection_end)return [];
     // clangd 18 将 struct 返回为 Class，附带语义 detail；据此还原展示类别，不再解析源码。
-    return [{name:item.name.slice(0,200),kind:item.kind===5&&item.detail==="struct"?"struct":item.kind===10&&parent_kind===10?"enum-member":kinds[item.kind]||"variable",detail:typeof item.detail==="string"?item.detail:"",start,end,selection_start,selection_end,children:Array.isArray(item.children)?map(item.children,depth+1,item.kind):[]}];
+    return [{name:item.name,kind:item.kind===5&&item.detail==="struct"?"struct":item.kind===10&&parent_kind===10?"enum-member":kinds[item.kind]||"variable",detail:typeof item.detail==="string"?item.detail:"",start,end,selection_start,selection_end,children:Array.isArray(item.children)?map(item.children,depth+1,item.kind):[]}];
   });};
   return Array.isArray(items)?map(items):[];
 }
@@ -70,7 +69,6 @@ export function create_clangd_symbol_service(node=host_node){
   const parse=async(options:clangd_symbol_request,signal:AbortSignal):Promise<clangd_symbol_result>=>{
     if(disposed||signal.aborted)throw abort_error();if(!path.isAbsolute(options.file_path))throw new Error("代码大纲需要绝对文件路径。");
     if(options.language!=="c"&&options.language!=="cpp")throw new Error("clangd 仅用于 C/C++ 大纲。");
-    if(options.text.length>2*1024*1024)throw new Error("文件超过 2 Mi 字符，暂不解析符号大纲。");
     if(options.fallback_flags&&(!Array.isArray(options.fallback_flags)||options.fallback_flags.some(flag=>typeof flag!=="string"||flag.includes("\0"))))throw new Error("备用编译参数必须为字符串列表。");
     active?.abort();const controller=active=new AbortController();const abort=()=>controller.abort();signal.addEventListener("abort",abort,{once:true});
     const check=()=>{if(disposed||controller.signal.aborted)throw abort_error();};

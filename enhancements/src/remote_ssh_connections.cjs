@@ -17,8 +17,8 @@ function validate_connection(value){
 }
 function create_connection_store(root){
  const file=path.join(root,'connections.json');
- const list=async()=>{try{const data=JSON.parse(await fs.promises.readFile(file,'utf8'));if(!Array.isArray(data)||data.length>500)throw Error('SSH连接目录格式无效');return data.map(validate_connection);}catch(error){if(error.code==='ENOENT')return[];throw error;}};
+ const list=async()=>{try{const data=JSON.parse(await fs.promises.readFile(file,'utf8'));if(!Array.isArray(data))throw Error('SSH连接目录格式无效');return data.map(validate_connection);}catch(error){if(error.code==='ENOENT')return[];throw error;}};
  const update=operation=>with_store_lock(root,async()=>{const records=await list(),result=operation(records),temporary=file+'.'+crypto.randomUUID()+'.tmp';try{await fs.promises.writeFile(temporary,JSON.stringify(records,null,2),{flag:'wx',mode:0o600});await fs.promises.rename(temporary,file);}finally{await fs.promises.unlink(temporary).catch(error=>{if(error.code!=='ENOENT')throw error;});}return result;});
- return{list,save:value=>update(records=>{const item=validate_connection(value),index=records.findIndex(record=>record.id===item.id);if(index<0){if(records.length>=500)throw Error('最多保存500个SSH连接');records.push(item);}else records[index]=item;for(const peer of records)if(peer.target.split('@').at(-1)===item.target.split('@').at(-1)&&peer.port===item.port)peer.host_name=item.host_name;return item;}),remove:id=>update(records=>{const index=records.findIndex(record=>record.id===id);if(index>=0)records.splice(index,1);})};
+ return{list,save:value=>update(records=>{const item=validate_connection(value),index=records.findIndex(record=>record.id===item.id);if(index<0){records.push(item);}else records[index]=item;for(const peer of records)if(peer.target.split('@').at(-1)===item.target.split('@').at(-1)&&peer.port===item.port)peer.host_name=item.host_name;return item;}),remove:id=>update(records=>{const index=records.findIndex(record=>record.id===id);if(index>=0)records.splice(index,1);})};
 }
 module.exports={create_connection_store,validate_connection,with_store_lock};

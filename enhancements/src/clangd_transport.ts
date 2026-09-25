@@ -21,10 +21,10 @@ export function create_clangd_transport(node:(name:string)=>any,executable:strin
     try{
       for(;;){
         const boundary=buffer.indexOf("\r\n\r\n");
-        if(boundary<0){if(buffer.length>8192)throw new Error("clangd 协议头超过限制。");break;}
+        if(boundary<0){break;}
         const header=buffer.subarray(0,boundary).toString("ascii"),match=/^Content-Length:\s*(\d+)\s*$/im.exec(header);
         if(!match)throw new Error("clangd 未返回有效的 LSP 协议头。");
-        const length=Number(match[1]);if(!Number.isSafeInteger(length)||length>32*1024*1024)throw new Error("clangd 响应超过限制。");
+        const length=Number(match[1]);if(!Number.isSafeInteger(length)||length<0)throw new Error("clangd 响应长度无效。");
         if(buffer.length<boundary+4+length)break;
         const message=JSON.parse(buffer.subarray(boundary+4,boundary+4+length).toString("utf8"));buffer=buffer.subarray(boundary+4+length);
         if(message.method){

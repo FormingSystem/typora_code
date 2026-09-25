@@ -3,7 +3,7 @@ import fs from 'node:fs';import path from 'node:path';import os from 'node:os';i
 const compiled=await build({stdin:{contents:'export * from "./src/workspace_local_history";export * from "./src/workspace_history_restore";export * from "./src/workspace_text_document";export * from "./src/workspace_file_events";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
 const api=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_local_history_')),directory=path.join(root,'history'),file=path.join(root,'test.md');
-let options={enabled:true,max_file_size:256,max_entries:50,merge_window:10,exclude:{},workspace_root:root};
+let options={enabled:true,max_entries:50,merge_window:10,exclude:{},workspace_root:root};
 const modules={fs,path_api:path,crypto},history=api.create_local_history_store(modules,directory,()=>options),bytes=text=>Buffer.from(text),checks=[];
 const first=await history.record(file,bytes('one'));assert(first);assert.deepEqual(Buffer.from(await history.read(first)),bytes('one'));
 const duplicate=await history.record(file,bytes('one'));assert.equal(duplicate.id,first.id);
@@ -14,10 +14,11 @@ const clock=Date.now,same_tick=path.join(root,'same_tick.md');let tick_entries;
 try{Date.now=()=>1000;await history.record(same_tick,bytes('first'));await history.record(same_tick,bytes('second'));tick_entries=await history.list(same_tick);}finally{Date.now=clock;}
 assert.deepEqual(Buffer.from(await history.read(tick_entries[0])),bytes('second'));assert(tick_entries[0].timestamp>tick_entries[1].timestamp);checks.push('same-millisecond saves retain chronological order');
 options.max_entries=2;await history.record(file,bytes('four'));assert.equal((await history.list(file)).length,2);
-assert.equal(await history.record(path.join(root,'big'),Buffer.alloc(257*1024,65)),undefined);assert.equal(await history.record(path.join(root,'binary'),Buffer.from([1,0,2,0,5])),undefined);
+assert(await history.record(path.join(root,'big'),Buffer.alloc(257*1024,65)));assert.equal(await history.record(path.join(root,'binary'),Buffer.from([1,0,2,0,5])),undefined);
+const large_entry=await history.record(path.join(root,'large.md'),Buffer.alloc(17*1024*1024,65));assert(large_entry);assert.equal((await history.read(large_entry)).length,17*1024*1024);
 options.exclude={'**/*.secret':true};assert.equal(await history.record(path.join(root,'a.secret'),bytes('secret')),undefined);
 for(const [glob,name,expected] of [['**/*.md','a.md',true],['**/*.md','a/b.md',true],['*.md','a/b.md',false],['folder/{a,b}.txt','folder/b.txt',true],['a[!b]?.txt','acd.txt',true]])assert.equal(api.history_glob_matches(glob,name),expected);
-options.enabled=false;assert.equal(await history.record(file,bytes('off')),undefined);options.enabled=true;options.exclude={};options.max_entries=50;checks.push('caps, exclusions, binary and size limits');
+options.enabled=false;assert.equal(await history.record(file,bytes('off')),undefined);options.enabled=true;options.exclude={};options.max_entries=50;checks.push('retention preferences and exclusions remain; content size does not block snapshots');
 const unicode=path.join(root,'中文.md');const utf16=Buffer.concat([Buffer.from([255,254]),Buffer.from('中文\r\n','utf16le')]);const unicode_entry=await history.record(unicode,utf16);assert(unicode_entry);assert.deepEqual(Buffer.from(await history.read(unicode_entry)),utf16);
 const saved=[];const unsubscribe=api.observe_workspace_file_saved(event=>{saved.push(event);void history.record(event.file_path,event.bytes,event.source);});
 fs.writeFileSync(file,'baseline\r\n');const document=api.create_text_document({fs,path_api:path},file);await document.load();await document.save('saved\n');await history.flush();assert.equal(saved.length,1);assert.deepEqual(Buffer.from(saved[0].bytes),fs.readFileSync(file));

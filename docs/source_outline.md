@@ -42,3 +42,5 @@ Markdown 大纲保留原生目录树。自动高亮优先选择完整进入可�
 安装器仅备份并移除已退休的 C/C++ Tree-sitter grammar 与许可证，恢复或失败时按原字节回滚，不扫描删除用户文件。当前发布资产与 schema 4 部署方式见[安装与备份](../enhancements/README.md#1.3_PowerShell单独安装扩展与备份)。
 
 当前结果、历史基线和后续修复的验证计数统一记录在[反馈复查记录](feedback_review.md)。真实 clangd、隐藏 Electron、私有桌面的原生 Typora 及物理键盘是不同证据层；合成按键不证明原生 accelerator 冲突已排除，Windows 上的 Python 部署测试也不代表原生 Linux 验收。
+
+2026-09-25容量约定由[R075](resource_capacity.md)覆盖此前固定大小/结果数门槛：完整处理内容，保留用户主动取消与实际失败，历史保留数量及搜索范围仍由用户配置。

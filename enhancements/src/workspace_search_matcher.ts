@@ -1,7 +1,7 @@
 /** 纯文本匹配，不访问 DOM 或文件系统，可由浏览器与 Node Worker 共用。 */
 export type search_query_options = {query: string; regex?: boolean; case_sensitive?: boolean; whole_word?: boolean};
 export type search_captured_match = {start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]; captures: (string | undefined)[]; groups?: Record<string, string | undefined>};
-export type search_match_reply = {matches: search_captured_match[]; limit_reached: boolean};
+export type search_match_reply = {matches: search_captured_match[]};
 export const DEFAULT_SEARCH_REGEX = true;
 export type search_path_match = {index:number;start:number;end:number};
 /** 与正文搜索共用语法；仅在隔离Worker中执行可能高耗时的正则。 */
@@ -17,7 +17,6 @@ const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\
 
 export function query_expression(options: search_query_options): RegExp {
   if (!options.query) throw new Error("请输入搜索内容。");
-  if (options.query.length > 32768) throw new Error("搜索表达式过长。");
   const pattern = options.regex ? options.query : escape_regex(options.query).replace(/\r?\n/gu, "\\r?\\n");
   try { return new RegExp(pattern, "gmu" + (options.case_sensitive ? "" : "i")); }
   catch (error) { throw new Error("正则表达式无效：" + String(error instanceof Error ? error.message : error)); }
@@ -46,7 +45,7 @@ export function capture_match(text: string, starts: number[], found: RegExpExecA
   return {start, end, ...begin, end_line: finish.line, end_column: finish.column, text: found[0], preview, preview_ranges: [{start: Math.min(start - preview_start, preview.length), end: Math.min(end - preview_start, preview.length)}], captures: Array.from(found), groups: found.groups ? {...found.groups} : undefined};
 }
 
-export function collect_search_matches(text: string, options: search_query_options, max_results: number): search_match_reply {
+export function collect_search_matches(text: string, options: search_query_options): search_match_reply {
   const expression = query_expression(options); let starts: number[] | undefined; const matches: search_captured_match[] = [];
   let found: RegExpExecArray | null;
   while ((found = expression.exec(text))) {
@@ -54,7 +53,6 @@ export function collect_search_matches(text: string, options: search_query_optio
     if (options.whole_word && !whole_word(text, found.index, found.index + found[0].length)) continue;
     starts ||= line_starts(text);
     matches.push(capture_match(text, starts, found));
-    if (matches.length >= max_results) return {matches, limit_reached: true};
   }
-  return {matches, limit_reached: false};
+  return {matches};
 }

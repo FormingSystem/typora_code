@@ -26,5 +26,22 @@ const {validate_target,create_remote_ssh,remote_terminal_profile,connection_argu
  }
  const missing=create_remote_ssh({...options,asset_root:path.join(__dirname,'missing-assets')});await assert.rejects(missing.connect('host'),/ENOENT/);assert.equal(missing.state(),'disconnected');missing.dispose();
  const cancel=create_remote_ssh(options);const pending=cancel.connect('host');cancel.disconnect();await assert.rejects(pending,/已取消连接|无法启动SSH/);cancel.dispose();
+ // 仅替换SSH进程，产品请求队列/编码/接收缓冲和关闭处理仍实际运行。
+ const child_process=require('node:child_process'),{EventEmitter}=require('node:events'),original_spawn=child_process.spawn;
+ const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();const held=[];
+ const reply=(id,result)=>{const wire=JSON.stringify({id,result})+'\n';for(let offset=0;offset<wire.length;offset+=1024*1024)child.stdout.emit('data',Buffer.from(wire.slice(offset,offset+1024*1024)));};
+ child.stdin={write(payload,callback){const request=JSON.parse(payload);queueMicrotask(()=>{callback?.();if(request.operation==='hello')reply(request.id,{protocol:1});else held.push(request);});return true;}};child.kill=()=>{};
+ child_process.spawn=()=>child;
+ const live=create_remote_ssh({...options,ssh_path:'fixture-ssh'});
+ try{
+  await live.connect('fixture');
+  const large=live.request('read',{path:'/large'});await new Promise(resolve=>setImmediate(resolve));reply(held.shift().id,{text:'X'.repeat(25*1024*1024)+'TAIL'});
+  const body=await large;assert.equal(body.text.length,25*1024*1024+4);assert(body.text.endsWith('TAIL'));
+  const requests=Array.from({length:40},(_,i)=>live.request('stat',{path:'/file'+i}));await new Promise(resolve=>setImmediate(resolve));assert.equal(held.length,40);
+  for(const request of held.splice(0))reply(request.id,{path:request.path});assert.equal((await Promise.all(requests)).length,40);
+  const cycle={};cycle.self=cycle;await assert.rejects(live.request('write',cycle),/circular/i);assert.equal(live.state(),'connected');
+  const receiving=live.request('read',{path:'/failed'});child.stdout.emit('data',{toString(){throw Error('allocation failure')}});await assert.rejects(receiving,/allocation failure/);assert.equal(live.state(),'disconnected');
+ }finally{live.dispose();child_process.spawn=original_spawn;}
+ console.log('PASS: complete 25MiB SSH response, 40 pending requests, serialization and receive failure cleanup');
  console.log(JSON.stringify({status:'PASS',target_cycles:1000,failure_cleanup_cycles:20,checks:['目标不接受命令参数和换行','未连接不允许读写','进程缺失和资产缺失清理','立即取消','销毁后不可重连']}));
 })().catch(error=>{console.error(error);process.exitCode=1;});

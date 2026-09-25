@@ -13,7 +13,7 @@ export async function restore_history_entry(modules:{fs:any;path_api:any},store:
     if(!stat.isFile()||stat.isSymbolicLink()||expected_hash===undefined)throw new Error("恢复目标已经变化。");
     if((stat.mode&0o222)===0)throw new Error("恢复目标为只读文件。");
     if(identity&&fingerprint(stat)!==identity)throw new Error("文件已变化，请刷新比较后再恢复。");
-    const current=await store.bounded_read(target,16*1024*1024);
+    const current=await store.read_snapshot(target);
     if(store.hash(current)!==expected_hash)throw new Error("文件已变化，请刷新比较后再恢复。");
     identity=fingerprint(stat);before=current;
   };
@@ -30,7 +30,7 @@ export async function restore_history_entry(modules:{fs:any;path_api:any},store:
     if(await fs.realpath(path.dirname(target))!==parent||current_parent.ino!==parent_stat.ino||current_parent.dev!==parent_stat.dev)throw new Error("恢复目标目录已变化。");
     if(!valid())throw new Error("恢复已取消。");
     if(expected_hash===undefined)await fs.link(temporary,target);else{await fs.rename(temporary,target);exists=false;}
-    if(store.hash(await store.bounded_read(target,16*1024*1024))!==store.hash(bytes))throw new Error("恢复后文件已变化，请重新打开检查。");
+    if(store.hash(await store.read_snapshot(target))!==store.hash(bytes))throw new Error("恢复后文件已变化，请重新打开检查。");
     publish_workspace_file_saved({file_path:target,bytes,source:"File Restored"});
   }finally{if(exists)await fs.unlink(temporary).catch(()=>{});}
 }

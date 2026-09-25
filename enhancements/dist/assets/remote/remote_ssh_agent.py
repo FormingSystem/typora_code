@@ -13,7 +13,6 @@ import time
 import signal
 from concurrent.futures import ThreadPoolExecutor
 
-MAX_BYTES = 16 * 1024 * 1024
 file_handles = {}
 handle_serial = 0
 git_processes = {}
@@ -56,12 +55,10 @@ def filesystem(request):
             os.lseek(descriptor, position, os.SEEK_SET)
         if action == "read":
             length = request.get("length")
-            if not isinstance(length, int) or not 0 <= length <= MAX_BYTES + 1:
+            if not isinstance(length, int) or length < 0:
                 raise ValueError("读取长度无效")
             return base64.b64encode(os.read(descriptor, length)).decode("ascii")
         data = base64.b64decode(request.get("data", ""), validate=True)
-        if len(data) > MAX_BYTES:
-            raise ValueError("单次写入超过16 MiB")
         return os.write(descriptor, data)
     path = absolute_path(request.get("path"))
     if action in {"stat", "lstat"}:
@@ -76,8 +73,6 @@ def filesystem(request):
                         values.append((entry.name, entry.stat(follow_symlinks=False)))
                     except FileNotFoundError:
                         continue
-                    if len(values) > 10001:
-                        raise ValueError("目录监视超过10000项，请手动刷新")
         for name, value in sorted(values, key=lambda item: item[0]):
             digest.update(json.dumps([name, value.st_ino, value.st_size, value.st_mtime_ns, value.st_ctime_ns]).encode("utf-8"))
         return digest.hexdigest()
@@ -93,8 +88,8 @@ def filesystem(request):
         return None
     if action == "open":
         flags = request.get("flags")
-        if flags not in {"r", "wx"} or len(file_handles) >= 64:
-            raise ValueError("远程打开模式无效或句柄已满")
+        if flags not in {"r", "wx"}:
+            raise ValueError("远程打开模式无效")
         descriptor = os.open(path, (os.O_RDONLY | os.O_NONBLOCK) if flags == "r" else (os.O_WRONLY | os.O_CREAT | os.O_EXCL), int(request.get("mode", 0o666)) & 0o777)
         if not stat.S_ISREG(os.fstat(descriptor).st_mode):
             os.close(descriptor)
@@ -119,7 +114,7 @@ def filesystem(request):
 
 def run_git(request):
     args = request.get("args")
-    if not isinstance(args, list) or not args or len(args) > 4096 or any(not isinstance(arg, str) or "\0" in arg for arg in args):
+    if not isinstance(args, list) or not args or any(not isinstance(arg, str) or "\0" in arg for arg in args):
         raise ValueError("Git参数无效")
     environment = {key: value for key, value in os.environ.items() if not key.startswith("GIT_")}
     environment.update({"LC_ALL": "C", "LANG": "C", "GIT_TERMINAL_PROMPT": "0", "GIT_OPTIONAL_LOCKS": "0"})
@@ -128,8 +123,8 @@ def run_git(request):
         if isinstance(value, str) and "\0" not in value:
             environment[key] = value
     data = request.get("input")
-    if data is not None and (not isinstance(data, str) or len(data.encode("utf-8")) > MAX_BYTES):
-        raise ValueError("Git输入超过限制")
+    if data is not None and not isinstance(data, str):
+        raise ValueError("Git输入必须是文本")
     # 临时输出避免管道死锁和无限内存增长；轮询只在独立Git线程运行。
     with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as error, tempfile.TemporaryFile() as input_file:
         if data:
@@ -144,18 +139,13 @@ def run_git(request):
                                      stdin=input_file, stdout=output, stderr=error, start_new_session=True)
             git_processes[token] = child
         try:
-            deadline = time.monotonic() + (1800 if request.get("writable") else 300)
             while child.poll() is None:
-                if time.monotonic() > deadline or os.fstat(output.fileno()).st_size > MAX_BYTES or os.fstat(error.fileno()).st_size > MAX_BYTES:
-                    raise ValueError("远程Git超时（读取5分钟/写入30分钟）或输出超过16 MiB；文件连接仍可使用")
                 time.sleep(0.02)
-            if os.fstat(output.fileno()).st_size > MAX_BYTES:
-                raise ValueError("远程Git输出超过16 MiB")
             output.seek(0)
             error.seek(0)
             if child.returncode:
                 raise subprocess.CalledProcessError(child.returncode, "git", stderr=error.read(65536).decode("utf-8", "replace") or "远程Git已取消或执行失败")
-            return {"data": base64.b64encode(output.read(MAX_BYTES)).decode("ascii")}
+            return {"data": base64.b64encode(output.read()).decode("ascii")}
         finally:
             if child.poll() is None:
                 os.killpg(child.pid, signal.SIGKILL)
@@ -176,13 +166,13 @@ def snapshot(path):
     descriptor = os.open(real_path, os.O_RDONLY | os.O_NONBLOCK)
     with os.fdopen(descriptor, "rb") as stream:
         before = os.fstat(stream.fileno())
-        if not stat.S_ISREG(before.st_mode) or before.st_size > MAX_BYTES:
-            raise ValueError("仅支持16 MiB以内的普通文件")
-        data = stream.read(MAX_BYTES + 1)
+        if not stat.S_ISREG(before.st_mode):
+            raise ValueError("仅支持普通文件")
+        data = stream.read(before.st_size + 1)
         after = os.fstat(stream.fileno())
     current = os.stat(real_path)
     identity = lambda item: (item.st_dev, item.st_ino, item.st_mtime_ns, item.st_size)
-    if len(data) > MAX_BYTES or identity(before) != identity(after) or identity(after) != identity(current) or real_path != os.path.realpath(path):
+    if len(data) != before.st_size or identity(before) != identity(after) or identity(after) != identity(current) or real_path != os.path.realpath(path):
         raise ValueError("文件读取期间发生变化，请重新读取")
     version = {"sha256": hashlib.sha256(data).hexdigest(), "real_path": real_path,
                "identity": [str(value) for value in identity(after)]}
@@ -213,8 +203,6 @@ def perform(request):
         entries = []
         with os.scandir(path) as directory:
             for item in directory:
-                if len(entries) >= 10000:
-                    raise ValueError("目录超过10000项，请打开更具体的项目目录")
                 entries.append({"name": item.name, "directory": item.is_dir(), "link": item.is_symlink()})
         return {"path": os.path.realpath(path), "entries": sorted(entries, key=lambda item: (not item["directory"], item["name"].casefold()))}
     if operation == "read":
@@ -227,16 +215,12 @@ def perform(request):
                                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, encoding="utf-8", errors="replace", env=environment)
         if result.returncode:
             raise ValueError(result.stderr[:4096].strip() or "远程Git状态查询失败")
-        if len(result.stdout) > 2 * 1024 * 1024:
-            raise ValueError("远程Git状态超过2 MiB，请在项目终端中查看")
         return {"path": path, "text": result.stdout}
     if operation == "write":
         original, version, mode = snapshot(path)
         if version != request.get("version"):
             raise ValueError("远程文件已被其他程序修改；未覆盖，请重新读取或另存为")
         data = base64.b64decode(request.get("data", ""), validate=True)
-        if len(data) > MAX_BYTES:
-            raise ValueError("保存内容超过16 MiB")
         real_path = version["real_path"]
         descriptor, temporary = tempfile.mkstemp(prefix=".typora-code-", dir=os.path.dirname(real_path))
         try:
@@ -259,8 +243,6 @@ def perform(request):
                 os.unlink(temporary)
     if operation == "create":
         data = base64.b64decode(request.get("data", ""), validate=True)
-        if len(data) > MAX_BYTES:
-            raise ValueError("内容超过16 MiB")
         with open(path, "xb") as stream:
             stream.write(data)
         return {"path": path}
@@ -301,11 +283,15 @@ def main():
                 git_slot.release()
 
     # Git只读查询最多一个，不排无限队列；文件读写仍由主循环串行执行。
-    # EOF时等待有15秒上限的查询退出，避免遗留工作线程。
+    # EOF取消尚未完成的Git进程，再等待工作线程退出。
     with ThreadPoolExecutor(max_workers=1) as executor:
         while True:
-            line = sys.stdin.buffer.readline(24 * 1024 * 1024)
+            line = sys.stdin.buffer.readline()
             if not line or not line.endswith(b"\n"):
+                with git_lock:
+                    for child in git_processes.values():
+                        if child.poll() is None:
+                            os.killpg(child.pid, signal.SIGKILL)
                 return
             try:
                 request = json.loads(line)

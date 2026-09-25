@@ -18,10 +18,10 @@
    const chrome=mode==='light'?'rgb(250, 250, 253)':'rgb(25, 26, 27)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(18, 19, 20)';
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
    entry.heading=color('#write h1');entry.paragraph=color('#write p');entry.quote=color('#write blockquote');
-   assert(entry.write.bg===content,'正文编辑器背景 '+mode);
-   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(165, 214, 255)')&&entry.heading.fg!==entry.paragraph.fg,'明暗标题前景规则 '+mode);
-   assert(getComputedStyle(document.querySelector('#write h1')).fontWeight==='600','标题字重 '+mode);
-   assert(entry.quote.bg===(mode==='light'?'rgb(234, 234, 234)':'rgb(36, 37, 38)'),'引用背景角色 '+mode);
+   const appearance=()=>Object.fromEntries(['#write','#write h1','#write p','#write blockquote','#write th','#write td','#write pre'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','line-height','color','background-color','border-top-width','border-top-style','border-top-color','padding-top','padding-left','margin-top','margin-bottom'].map(key=>[key,c.getPropertyValue(key)]))]}));
+   const themed=appearance(),stylesheet=document.getElementById('typora-code-workspace-styles');
+   assert(stylesheet,'实际静态样式入口');stylesheet.disabled=true;const original=appearance();stylesheet.disabled=false;
+   for(const selector of Object.keys(original)){if(mode==='dark'&&selector==='#write h1'){assert(themed[selector].color==='rgb(206, 145, 120)','仅Night标题采用用户选色');themed[selector].color=original[selector].color;if(themed[selector]['border-top-width']==='0px')themed[selector]['border-top-color']=original[selector]['border-top-color'];}assert(JSON.stringify(themed[selector])===JSON.stringify(original[selector]),'正文沿原主题 '+mode+' '+selector+' '+JSON.stringify({actual:themed[selector],expected:original[selector]}));}
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
     const button=document.querySelector('.typ-ribbon-item[data-id="'+id+'"]');assert(button,'活动栏入口 '+id);
     if(id==='core.file-explorer')core.app.commands.run('linux_note:file_explorer');else button.click();await pause(450);const panel=sidebar.activePanel;assert(panel&&sidebar.isShown,'点击入口展开 '+id);

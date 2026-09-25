@@ -13,7 +13,6 @@ import {create_quick_matcher,append_quick_highlights,type quick_file,type quick_
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 type quick_open_binding = {root:HTMLElement;input:HTMLInputElement;open():void;open_editors(group:graph_leaf["parent"]):void;close():void;dispose():void};
-const MAX_QUICK_RESULTS=512;
 let current_picker: quick_open_binding | undefined;
 export function get_workspace_quick_open() { return current_picker; }
 
@@ -89,7 +88,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     root.hidden = true;input.setAttribute("aria-expanded","false");input.removeAttribute("aria-activedescendant");
     root.setAttribute("aria-modal", "false");
     results.replaceChildren();
-    editor_group=undefined;editor_targets.clear();
+    editor_group=undefined;editor_targets.clear();catalogue=[];
     shown = [];shown_matches=[];visible_start=-1;visible_end=-1;
     if(restore&&owned)previous_focus?.restore();
     previous_focus=undefined;
@@ -199,7 +198,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       }finally{worker.dispose();if(match_controller===controller)match_controller=undefined;}
     }
     let deadline=performance.now()+8;let total=0;
-    // 只维护前512项，不为每次按键排序整个工程；长目录在小时间片之间让出UI线程。
+    // 完整保留候选；筛选在小时间片之间让出UI线程，DOM仅挂载可见行。
     for(let index=0;index<candidates.length;index++){
       if(index%256===0&&performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(disposed||root.hidden||generation!==render_generation)return;deadline=performance.now()+8;}
       const file=candidates[index];
@@ -207,16 +206,15 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       const found=regex_matches.get(index);if(regex_mode&&!found&&file!==direct_file)continue;
       const item=matcher.match(file);if(!item)continue;total++;
       if(found){const start=(file.relative_path||file.name).length-file.name.length;item.score.labelMatch=[{start:Math.max(0,found.start-start),end:Math.max(0,found.end-start)}];item.score.descriptionMatch=[{start:found.start,end:Math.min(found.end,start)}].filter(range=>range.end>range.start);}
-      if(ranked.length===MAX_QUICK_RESULTS&&order(item,ranked[MAX_QUICK_RESULTS-1])>=0)continue;
-      let low=0,high=ranked.length;while(low<high){const middle=(low+high)>>>1;if(order(item,ranked[middle])<0)high=middle;else low=middle+1;}ranked.splice(low,0,item);if(ranked.length>MAX_QUICK_RESULTS)ranked.pop();
+      ranked.push(item);
     }
     if(disposed||root.hidden||generation!==render_generation)return;
-    shown=ranked.map(item=>item.file);rendered_query=query;
+    ranked.sort(order);shown=ranked.map(item=>item.file);rendered_query=query;
     selected_index=Math.max(0,shown.findIndex(file=>file.file_path===previous_path));
     shown_matches=ranked;visible_start=-1;visible_end=-1;
     if(!previous_path)results.scrollTop=0;
     paint_rows(true);
-    status.textContent = (shown.length ? `${total} 个文件${total>MAX_QUICK_RESULTS?" · 显示前512项":""}` : query ? `没有匹配的文件 · ${scan_root||"未打开文件夹"}` : `工作区中没有可打开的文件 · ${scan_root||"未打开文件夹"}`)+(scanning?` · 正在查找（已发现 ${catalogue.length} 个文件）`:"");
+    status.textContent = (shown.length ? `${total} 个文件` : query ? `没有匹配的文件 · ${scan_root||"未打开文件夹"}` : `工作区中没有可打开的文件 · ${scan_root||"未打开文件夹"}`)+(scanning?` · 正在查找（已发现 ${catalogue.length} 个文件）`:"");
     if(direct_pending)status.textContent+=" · 正在核对文件路径…";
     if(direct_error)status.textContent+=` · ${direct_error}`;
     if(unreadable)status.textContent+=` · ${unreadable} 个目录无法读取，结果不完整`;

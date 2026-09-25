@@ -2847,7 +2847,8 @@
       "purpose": "implementation",
       "requirements": [
         "R037",
-        "R038"
+        "R038",
+        "R075"
       ],
       "design": "docs/explorer_history.md",
       "implementation": [
@@ -3077,7 +3078,8 @@
       "purpose": "implementation",
       "requirements": [
         "H010",
-        "R023"
+        "R023",
+        "R075"
       ],
       "design": "docs/search_performance.md",
       "implementation": [
@@ -3432,7 +3434,8 @@
       "purpose": "implementation",
       "requirements": [
         "R002",
-        "R042"
+        "R042",
+        "R075"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -3826,7 +3829,8 @@
       "requirements": [
         "R047",
         "R063",
-        "R064"
+        "R064",
+        "R075"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -3861,7 +3865,8 @@
       "requirements": [
         "R047",
         "R063",
-        "R064"
+        "R064",
+        "R075"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -4506,7 +4511,8 @@
       "requirements": [
         "R040.2",
         "R005.2",
-        "R067"
+        "R067",
+        "R075"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
@@ -5262,7 +5268,8 @@
       "purpose": "implementation",
       "requirements": [
         "R058",
-        "R070.9"
+        "R070.9",
+        "R075"
       ],
       "design": "docs/quick_open.md",
       "implementation": [
@@ -6161,7 +6168,8 @@
     {
       "id": "TC-remote-ssh-agent-isolation",
       "requirements": [
-        "R070"
+        "R070",
+        "R075"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6830,7 +6838,8 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R071.2"
+        "R071.2",
+        "R075"
       ],
       "design": "docs/workspace_responsiveness.md",
       "implementation": [
@@ -6907,7 +6916,8 @@
         "R034.5",
         "R034.6",
         "R034.7",
-        "R034.9"
+        "R034.9",
+        "R075"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7061,7 +7071,8 @@
       "requirements": [
         "R070.7",
         "R070.8",
-        "R070.9"
+        "R070.9",
+        "R075"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -7456,6 +7467,35 @@
       ],
       "timeout_ms": 90000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
+    },
+    {
+      "id": "TC-capacity-001",
+      "domain": "files",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R075"
+      ],
+      "design": "docs/resource_capacity.md",
+      "implementation": [
+        "enhancements/src/workspace_text_document.ts"
+      ],
+      "related_modules": [
+        "files",
+        "save",
+        "memory"
+      ],
+      "script": "enhancements/scripts/test_resource_capacity.mjs",
+      "environment": "Node临时文件与GC内存采样",
+      "preconditions": "使用包内依赖，临时目录，300MiB压力仅操作测试文件",
+      "steps": [
+        "完整读取并原子保存300MiB文本，核对末尾和字节数",
+        "20轮17MiB加载释放后采样heap/external/arrayBuffers/RSS"
+      ],
+      "expected": [
+        "读取和保存完整；输出每轮内存数据，不以设备预估阈值拒绝操作，数据不等同全应用泄漏证明"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

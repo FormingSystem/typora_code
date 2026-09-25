@@ -7,17 +7,17 @@ const digest=bytes=>crypto.createHash('sha256').update(bytes).digest('hex');
 const read_json=file=>JSON.parse(fs.readFileSync(file,'utf8').replace(/^\uFEFF/,''));
 function write_json(file,value){const temp=file+'.'+crypto.randomUUID()+'.tmp';fs.writeFileSync(temp,JSON.stringify(value,null,2),'utf8');fs.renameSync(temp,file);}
 function release_info(value){
- if(value?.schema!==1||!Array.isArray(value.releases)||!value.releases.length||value.releases.length>100)throw Error('更新公告格式无效。');
+ if(value?.schema!==1||!Array.isArray(value.releases)||!value.releases.length)throw Error('更新公告格式无效。');
  let previous=Number.MAX_SAFE_INTEGER;
  for(const item of value.releases){
-  if(!Number.isSafeInteger(item.sequence)||item.sequence<=0||item.sequence>=previous||typeof item.version!=='string'||!/^\d[\w.-]{0,63}$/.test(item.version)||!/^\d{4}-\d{2}-\d{2}$/.test(item.date)||!Array.isArray(item.notes)||!item.notes.length||item.notes.length>50||item.notes.some(note=>typeof note!=='string'||!note.trim()||note.length>2000))throw Error('更新版本或公告内容无效。');
+  if(!Number.isSafeInteger(item.sequence)||item.sequence<=0||item.sequence>=previous||typeof item.version!=='string'||!/^\d[\w.-]{0,63}$/.test(item.version)||!/^\d{4}-\d{2}-\d{2}$/.test(item.date)||!Array.isArray(item.notes)||!item.notes.length||item.notes.some(note=>typeof note!=='string'||!note.trim()))throw Error('更新版本或公告内容无效。');
   previous=item.sequence;
  }
  return value;
 }
 function allowed_url(value){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!['api.github.com','raw.githubusercontent.com','codeload.github.com','github.com','release-assets.githubusercontent.com'].includes(url.hostname))throw Error('更新地址不属于允许的GitHub HTTPS来源。');return url;}
-/** 总截止时间和字节上限覆盖重定向及慢速响应；下载不关闭TLS证书校验。 */
-function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{},network}={}){
+/** 连接截止时间覆盖重定向及慢速响应；下载不关闭TLS证书校验。 */
+function download(url,{file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{},network}={}){
  return new Promise((resolve,reject)=>{
   let settled=false,request,response,output,agent,total=0;const chunks=[],transport_abort=new AbortController();
   const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);transport_abort.abort();agent?.destroy();};
@@ -32,22 +32,22 @@ function download(url,{limit=1024*1024,file,signal,timeout_ms=30000,redirects=0,
     if([301,302,303,307,308].includes(response.statusCode)){
      const location=response.headers.location;response.resume();
      if(!location||redirects>=4)return fail(Error('更新下载重定向异常。'));
-     settled=true;cleanup();download(new URL(location,url).href,{limit,file,signal,deadline,redirects:redirects+1,on_progress,network}).then(resolve,reject);return;
+     settled=true;cleanup();download(new URL(location,url).href,{file,signal,deadline,redirects:redirects+1,on_progress,network}).then(resolve,reject);return;
     }
     if(response.statusCode!==200){response.resume();return fail(Error('更新服务器返回HTTP '+response.statusCode+'，请稍后重试。'));}
     const length=Number(response.headers['content-length']);
-    if(length>limit)return fail(Error('更新下载超过体积上限。'));
     const total_bytes=Number.isSafeInteger(length)&&length>0?length:undefined;
     if(file){output=fs.createWriteStream(file,{flags:'wx'});output.on('error',fail);}
     response.on('data',chunk=>{
      if(settled)return;
-     total+=chunk.length;if(total>limit)return fail(Error('更新下载超过体积上限。'));
+     try{total+=chunk.length;
      if(output){if(!output.write(chunk)){response.pause();output.once('drain',()=>response.resume());}}else chunks.push(chunk);
      on_progress(total,total_bytes&&total<=total_bytes?total_bytes:undefined);
+     }catch(error){fail(error);}
     });
     response.on('aborted',()=>fail(Error('更新下载意外中断。')));
     response.on('end',()=>{
-     const complete=()=>{if(settled)return;settled=true;cleanup();resolve(file||Buffer.concat(chunks));};
+     const complete=()=>{if(settled)return;try{const value=file||Buffer.concat(chunks);settled=true;cleanup();resolve(value);}catch(error){fail(error);}};
      if(output){output.once('finish',complete);output.end();}else complete();
     });
    });request.on('error',fail);
@@ -89,7 +89,7 @@ async function check_update(current,{request=download,signal,user_data,network}=
 function powershell(){return path.join(process.env.SystemRoot||'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe');}
 function child_environment(){const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;for(const key of Object.keys(env))if(key.toLowerCase()==='psmodulepath')delete env[key];return env;}
 function execute(executable,args,options={}){
- return new Promise((resolve,reject)=>child_process.execFile(executable,args,{windowsHide:true,env:child_environment(),timeout:15000,maxBuffer:1024*1024,...options},(error,stdout,stderr)=>error?reject(Error((stderr||stdout||error.message).trim())):resolve(stdout.trim())));
+ return new Promise((resolve,reject)=>child_process.execFile(executable,args,{windowsHide:true,env:child_environment(),timeout:15000,maxBuffer:Infinity,...options},(error,stdout,stderr)=>error?reject(Error((stderr||stdout||error.message).trim())):resolve(stdout.trim())));
 }
 async function session_identity(parent_pid=process.ppid,executable=process.execPath){
  if(process.platform!=='win32')throw Error('当前平台暂未支持自动安装。');
@@ -159,7 +159,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   status('downloading','正在下载 '+plan.release.releases[0].version+'…');
   timer=setInterval(()=>{if(fs.existsSync(path.join(root,'cancel')))abort.abort();},100);
   const archive=path.join(root,'repository.zip');let last_progress=0;
-  await request(plan.archive_url,{network:configuration.network,file:archive,limit:128*1024*1024,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
+  await request(plan.archive_url,{network:configuration.network,file:archive,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   status('verifying','正在校验并解压更新包…');
   const payload=unpack?await unpack(archive,root):await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'workspace_update_archive.ps1'),'-archive',archive,'-destination',path.join(root,'payload')],{timeout:120000});
@@ -171,7 +171,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   if(install)await install(payload,configuration);else{
    const env=child_environment();env.APPDATA=path.dirname(user_data);
    // 写入事务没有强杀超时；备份／回滚必须允许安装器完整结束。
-   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive','-allow_elevation'],{env,timeout:0,maxBuffer:4*1024*1024});
+   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive','-allow_elevation'],{env,timeout:0,maxBuffer:Infinity});
    fs.writeFileSync(path.join(root,'install.log'),output,'utf8');
   }
   const installed=release_info(read_json(path.join(user_data,'typora_code/assets/update/release.json')));

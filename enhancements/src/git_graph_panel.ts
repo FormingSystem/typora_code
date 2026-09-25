@@ -873,9 +873,9 @@ export class git_graph_panel {
       const target=await this.resources.choose(this.root);if(!target||!valid())return;
       this.report(discover?'正在查找所选目录中的Git仓库…':'正在检查Git仓库…');
       // 主动“查找子文件夹”至少检查直接子目录；自动发现深度为0不能让该动作成为空操作。
-      const result=discover?await this.host.discover(target,Math.max(1,this.settings.search_depth),scan.signal):{roots:[(await this.runner.run(target,['rev-parse','--show-toplevel'])).trim()],errors:[],truncated:false};
+      const result=discover?await this.host.discover(target,Math.max(1,this.settings.search_depth),scan.signal):{roots:[(await this.runner.run(target,['rev-parse','--show-toplevel'])).trim()],errors:[]};
       if(!valid())return;this.save_repos([...this.known_repos(),...result.roots]);this.workbench.repositories.refresh();
-      this.report(text('graph.discovered_repositories',{count:result.roots.length})+(result.truncated?'；达到扫描上限，请缩小目录范围。':'')+(result.errors.length?'；'+result.errors.map(value=>value.replaceAll(target,this.resources.label(target))).join('；'):''));
+      this.report(text('graph.discovered_repositories',{count:result.roots.length})+(result.errors.length?'；'+result.errors.map(value=>value.replaceAll(target,this.resources.label(target))).join('；'):''));
       if(result.roots.length===1&&!this.state)await this.switch_repo(result.roots[0]);
     }catch(error){if(valid())this.report(error);}
     finally{if(this.repository_scan===scan)this.repository_scan=undefined;}

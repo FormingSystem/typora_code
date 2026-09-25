@@ -29,8 +29,7 @@ function validate_settings(value:source_outline_settings):source_outline_setting
   for(const field of ["clangd_path","compile_commands_dir"] as const) {
     if(typeof value[field]!=="string"||/[\r\n\0]/u.test(value[field]))throw new Error("路径必须是单行文本。");
   }
-  if(!Array.isArray(value.fallback_flags)||value.fallback_flags.length>256||value.fallback_flags.some(flag=>typeof flag!=="string"||/[\r\n\0]/u.test(flag)))throw new Error("编译参数必须每行一项，最多256项。");
-  if(value.fallback_flags.join("\n").length>32768)throw new Error("编译参数过长。");
+  if(!Array.isArray(value.fallback_flags)||value.fallback_flags.some(flag=>typeof flag!=="string"||/[\r\n\0]/u.test(flag)))throw new Error("编译参数必须每行一项。");
   return {clangd_path:value.clangd_path.trim(),compile_commands_dir:value.compile_commands_dir.trim(),fallback_flags:value.fallback_flags.map(flag=>flag.trim()).filter(Boolean)};
 }
 /** clangd 路径全局共用，构建目录和参数只覆盖指定工作区，不在工程中写文件。 */

@@ -11,7 +11,7 @@ export async function read_git_records(run:git_run,root:string,args:string[],rec
   const consume=async(chunk:string)=>{
     const value=carry+chunk;let start=0,end:number;
     while((end=value.indexOf('\0',start))>=0){record(value.slice(start,end));start=end+1;if(++count%512===0)await git_yield();}
-    carry=value.slice(start);if(carry.length>1024*1024)throw Error('Git状态记录超过1 MiB，协议无效。');
+    carry=value.slice(start);
   };
   const source=await run(root,args,{stdout:consume});
   // 测试端口和远程适配允许返回字符串，仍分块消费，不能一次split。
@@ -24,7 +24,6 @@ export async function read_status_snapshot(run:git_run,root:string,untracked:boo
     if(renamed){renamed.old_path=value;renamed=undefined;return;}
     if(!value)return;const status=value.slice(0,2);
     const item:graph_change={status:status.trim(),index_status:status[0],work_status:status[1],path:value.slice(3)};
-    if(result.length>=500000)throw Error("Git改动超过50万项，已停止读取以保护界面内存；请在Git设置中关闭未跟踪文件展示或使用外部Git处理。未展示部分不会冒充完整状态。");
     result.push(item);if(/[RC]/u.test(status))renamed=item;
   });
   if(renamed)throw Error('Git重命名记录不完整。');return result;
@@ -62,7 +61,6 @@ export async function read_changes_snapshot(run:git_run,root:string,args:string[
   await read_git_records(run,root,args,value=>{
     if(!status){status=value;return;}
     if(/^[RC]/u.test(status)&&old_path===undefined){old_path=value;return;}
-    if(result.length>=500000)throw Error('Git差异文件超过50万项，未加载不完整清单。');
     result.push({status,path:value,...(old_path!==undefined?{old_path}:{})});status='';old_path=undefined;
   });if(status)throw Error('Git差异记录不完整。');return result;
 }

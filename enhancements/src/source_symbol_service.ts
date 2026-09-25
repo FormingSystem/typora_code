@@ -17,7 +17,6 @@ export function create_source_symbol_service(){
   return {async parse(language:string,text:string,signal:AbortSignal){
     if(failure)throw failure;
     if(!SOURCE_SYMBOL_LANGUAGES[language])throw new Error("此语言尚未提供语法符号大纲。");
-    if(text.length>2*1024*1024)throw new Error("文件超过 2 Mi 字符，暂不解析符号大纲。");
     signal.throwIfAborted();if(disposed)throw new DOMException("已关闭","AbortError");
     const [target,wasm,grammar]=await Promise.all([get_worker(),read("tree-sitter.wasm"),read(`tree-sitter-${language}.wasm`)]);
     signal.throwIfAborted();if(disposed)throw new DOMException("已关闭","AbortError");if(failure)throw failure;

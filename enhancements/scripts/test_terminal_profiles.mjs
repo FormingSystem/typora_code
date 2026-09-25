@@ -30,7 +30,7 @@ function fixture({ query_failure = false, hold_query = false } = {}) {
     commands.push({ executable, args, options });
     assert.equal(options.windowsHide, true);
     assert.equal(options.timeout, 2000);
-    assert.ok(options.maxBuffer <= 512 * 1024);
+    assert.equal(options.maxBuffer, Infinity);
     const complete = () => {
       if (args.includes('-EncodedCommand')) {
         assert.ok(args.includes('-NoProfile'));

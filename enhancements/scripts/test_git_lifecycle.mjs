@@ -28,7 +28,7 @@ try {
   const false_root=path.join(root,'false');fs.mkdirSync(false_root);fs.writeFileSync(path.join(false_root,'.git'),'invalid');
   const found=await api.discover_git_repositories({root,depth:4,run:runner.run,fs,path});
   assert.deepEqual(new Set(found.roots.map(item=>path.normalize(item))),new Set([root,nested,worktree]));check(found.errors.length>0,'invalid .git is reported, not treated as a repository');
-  const limited=await api.discover_git_repositories({root,depth:5,limit:1,run:runner.run,fs,path});check(limited.truncated&&limited.visited===1,'discovery exposes truncation');
+  const complete=await api.discover_git_repositories({root,depth:5,run:runner.run,fs,path});check(complete.visited>1&&complete.roots.length>=1,'discovery walks the selected depth without count truncation');
   const abort=new AbortController();abort.abort();await assert.rejects(api.discover_git_repositories({root,depth:3,run:runner.run,fs,path,signal:abort.signal}),/取消/);checks.push('discovery cancellation');
   let writes=0;await assert.rejects(api.initialize_repository(async()=>{writes++;throw Object.assign(Error('permission denied'),{code:128});},root),/permission/);check(writes===1,'permission error cannot trigger init');
   await assert.rejects(api.initialize_repository(async()=>{throw Object.assign(Error('missing executable'),{code:'ENOENT'});},root),/missing executable/);checks.push('missing Git does not show initialize');

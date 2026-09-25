@@ -5,7 +5,7 @@ export function discover_git(modules: {child_process: any; process: {env: Record
   let cache=discoveries.get(modules.child_process);if(!cache){cache=new Map();discoveries.set(modules.child_process,cache);}
   if(cache.has(configured))return cache.get(configured)!;
   let unavailable:Error|undefined;
-  const probe=(file:string)=>new Promise<string>((resolve,reject)=>modules.child_process.execFile(file,['--version'],{windowsHide:true,shell:false,timeout:10000,maxBuffer:65536},(error:any,output:string)=>{
+  const probe=(file:string)=>new Promise<string>((resolve,reject)=>modules.child_process.execFile(file,['--version'],{windowsHide:true,shell:false,timeout:10000,maxBuffer:Infinity},(error:any,output:string)=>{
     if(error){if(!['ENOENT','ENOTDIR'].includes(error.code))unavailable=error;reject(error);}else if(/^git version /u.test(String(output)))resolve(file);else{unavailable=Error('程序未返回Git版本。');reject(unavailable);}
   }));
   const task=(async()=>{
@@ -19,7 +19,7 @@ export function discover_git(modules: {child_process: any; process: {env: Record
 
     if(configured==='git'&&modules.process.platform==='win32'){
       for(const base of [env.ProgramW6432,env.ProgramFiles,env['ProgramFiles(x86)'],env.LOCALAPPDATA&&env.LOCALAPPDATA+'\\Programs'])if(base)candidates.push(base+'\\Git\\cmd\\git.exe');
-      const registry=await new Promise<string>(resolve=>modules.child_process.execFile('reg.exe',['query','HKLM\\SOFTWARE\\GitForWindows','/v','InstallPath'],{windowsHide:true,timeout:5000,maxBuffer:65536},(_error:any,out:string)=>resolve(String(out||'').match(/InstallPath\s+REG_SZ\s+(.+)/u)?.[1]?.trim()||'')));
+      const registry=await new Promise<string>(resolve=>modules.child_process.execFile('reg.exe',['query','HKLM\\SOFTWARE\\GitForWindows','/v','InstallPath'],{windowsHide:true,timeout:5000,maxBuffer:Infinity},(_error:any,out:string)=>resolve(String(out||'').match(/InstallPath\s+REG_SZ\s+(.+)/u)?.[1]?.trim()||'')));
       if(registry)candidates.push(registry+'\\cmd\\git.exe');
     }
     let last:unknown;

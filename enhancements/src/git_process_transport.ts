@@ -9,25 +9,27 @@ export function acquire_git_process(signal:AbortSignal):Promise<()=>void>{
     if(signal.aborted){cancel();return;}signal.addEventListener('abort',cancel,{once:true});if(active<4)start();else queue.push(start);
   });
 }
-/** 流消费者拥有NUL等协议，传输层只负责UTF-8边界、背压、容量、退出和取消。 */
-export function spawn_git_process(child_process:any,executable:string,args:string[],options:{cwd:string;env:Record<string,string|undefined>;binary:boolean;writable:boolean;input?:string;consume?:(chunk:string)=>Promise<void>|void;signal:AbortSignal;timeout_ms?:number;max_bytes?:number}):Promise<any>{
+/** 流消费者拥有NUL等协议，传输层只负责UTF-8边界、背压、退出和取消。 */
+export function spawn_git_process(child_process:any,executable:string,args:string[],options:{cwd:string;env:Record<string,string|undefined>;binary:boolean;writable:boolean;input?:string;consume?:(chunk:string)=>Promise<void>|void;signal:AbortSignal;timeout_ms?:number}):Promise<any>{
   return new Promise((resolve,reject)=>{
     if(options.signal.aborted){reject(Object.assign(Error('Git读取已取消。'),{code:'ABORT_ERR'}));return;}
     let child:any,finished=false,failure:Error|undefined,stderr='',bytes=0;
-    const parts:any[]=[],decoder=new TextDecoder("utf-8",{ignoreBOM:true}),limit=options.max_bytes??16*1024*1024;
+    const parts:any[]=[],decoder=new TextDecoder("utf-8",{ignoreBOM:true});
     let pending=Promise.resolve();
     const stop=(error:Error)=>{failure ||= error;child?.kill();};
     const cancel=()=>stop(Object.assign(Error('Git操作已取消；若为写操作，请刷新确认实际结果。'),{code:'ABORT_ERR'}));
-    const timeout_ms=options.timeout_ms??(options.writable?30*60*1000:5*60*1000);
-    const timer=setTimeout(()=>stop(Object.assign(Error('Git在'+Math.round(timeout_ms/1000)+'秒内未完成，已停止等待。可检查磁盘/网络/凭据后重试；写入结果请刷新确认。'),{code:'ETIMEDOUT'})),timeout_ms);
+    const timeout_ms=options.timeout_ms??0;
+    const timer=timeout_ms>0?setTimeout(()=>stop(Object.assign(Error('Git在'+Math.round(timeout_ms/1000)+'秒内未完成，已停止等待。可检查磁盘/网络/凭据后重试；写入结果请刷新确认。'),{code:'ETIMEDOUT'})),timeout_ms):undefined;
     const finish=async(code?:number,error?:Error)=>{
       if(finished)return;finished=true;clearTimeout(timer);options.signal.removeEventListener('abort',cancel);
       await pending;
       if(failure||error){reject(failure||error);return;}
       if(code!==0){reject(Object.assign(Error(stderr.trim()||'Git退出码：'+code),{code}));return;}
       if(options.consume){try{const tail=decoder.decode();if(tail)await options.consume(tail);resolve('');}catch(error){reject(error);}return;}
-      if(options.binary){const output=new Uint8Array(bytes);let offset=0;for(const part of parts){output.set(part,offset);offset+=part.length;}resolve(output);}
-      else resolve(parts.join('')+decoder.decode());
+      try {
+        if(options.binary){const output=new Uint8Array(bytes);let offset=0;for(const part of parts){output.set(part,offset);offset+=part.length;}resolve(output);}
+        else resolve(parts.join('')+decoder.decode());
+      } catch(error) {reject(error);}
     };
     try{child=child_process.spawn(executable,args,{cwd:options.cwd,env:options.env,windowsHide:true,shell:false,stdio:['pipe','pipe','pipe']});}
     catch(error){void finish(undefined,error as Error);return;}
@@ -37,12 +39,8 @@ export function spawn_git_process(child_process:any,executable:string,args:strin
       if(options.consume){
         child.stdout.pause();
         pending=pending.then(async()=>{if(failure)return;await options.consume!(decoder.decode(data,{stream:true}));}).catch((error:Error)=>stop(error)).finally(()=>{if(!failure)child.stdout.resume();});
-      }else if(bytes>limit){
-        const error=Object.assign(Error('Git单份正文/差异超过'+Math.round(limit/1048576)+' MiB，未载入截断内容。仓库状态仍可使用；写操作请刷新确认结果，大文件请用外部工具查看。'),{code:'GIT_OUTPUT_LIMIT'});
-        // 写入不能因诊断输出大而被中途终止；继续排空管道，等Git实际退出再报告。
-        if(options.writable)failure=error;else stop(error);
       }
-      else parts.push(options.binary?data:decoder.decode(data,{stream:true}));
+      else try{parts.push(options.binary?data:decoder.decode(data,{stream:true}));}catch(error){if(options.writable)failure=error as Error;else stop(error as Error);}
     });
     child.stderr.on('data',(data:any)=>{stderr=(stderr+String(data)).slice(-65536);});
     child.once('error',(error:Error)=>{void finish(undefined,error);});child.once('close',(code:number)=>{void finish(code);});

@@ -231,17 +231,12 @@ app.whenReady().then(async()=>{
   for(const [name,text]of Object.entries(documents))if(!['alpha.md','.hidden/hidden.py'].includes(name))assert.equal(fs.readFileSync(path.join(workspace,name),'utf8'),text,name);
   const guarded_contents=Object.fromEntries(Object.keys(documents).map(name=>[name,fs.readFileSync(path.join(workspace,name))]));
   // 使用真实引擎的小结果上限，不生成 5000 个无关 DOM 节点来触发相同边界。
-  await evaluate('sidebar.activePanel.options.max_results=1');await search_for('needle',1);await wait('document.querySelector(".workspace-search-status").textContent.includes("已达到结果上限")');
-  await click('[aria-label="全部替换（先预览）"]');await wait('!!document.querySelector(".git-graph-dialog-shade")');
-  assert.equal(await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].some(button=>button.textContent==="确认替换")'),false,'limited search must not gain bulk replacement permission through visible match IDs');
-  assert(await evaluate('/未完成|上限|取消/.test(document.querySelector(".git-graph-dialog-content").textContent)'),'limited-result rejection is explained in Chinese');
-  await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].find(button=>button.textContent==="关闭").click()');
-  await evaluate('(()=>{delete sidebar.activePanel.options.max_results;const input=document.querySelector("[aria-label=搜索内容]");input.value="needle";input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));})()');
+  await evaluate('(()=>{const input=document.querySelector("[aria-label=搜索内容]");input.value="needle";input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));})()');
   await wait('document.querySelector(".workspace-search-status").textContent.includes("已停止")');await click('[aria-label="全部替换（先预览）"]');await wait('!!document.querySelector(".git-graph-dialog-shade")');
   assert.equal(await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].some(button=>button.textContent==="确认替换")'),false,'cancelled search must refuse bulk replacement');
   assert(await evaluate('/未完成|上限|取消/.test(document.querySelector(".git-graph-dialog-content").textContent)'),'cancelled-result rejection is explained in Chinese');
   await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].find(button=>button.textContent==="关闭").click()');
-  for(const [name,bytes]of Object.entries(guarded_contents))assert(fs.readFileSync(path.join(workspace,name)).equals(bytes),name+' stays byte-identical after limited and cancelled replacement attempts');
+  for(const [name,bytes]of Object.entries(guarded_contents))assert(fs.readFileSync(path.join(workspace,name)).equals(bytes),name+' stays byte-identical after cancelled replacement attempts');
   assert.equal(await evaluate('shell_calls.length'),0);
   // 后半扫描阻塞时，前半匹配已可预览；新查询不等待旧磁盘请求，也不接收其迟到结果。
   for(let index=0;index<12;index++)fs.writeFileSync(path.join(workspace,`perf_${String(index).padStart(4,'0')}.txt`),index%2?'progress_new\n':'progress_old\n');

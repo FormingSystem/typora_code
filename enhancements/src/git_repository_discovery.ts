@@ -3,9 +3,9 @@ import type {git_run} from "./git_graph_data";
 
 /** 异步扫描与Git验证分开；.git可以是目录或worktree指向文件，不能仅凭名称认定仓库。 */
 export async function discover_git_repositories(options: {
-  root: string; depth: number; run: git_run; fs: any; path: any; signal?: AbortSignal; limit?: number;
-}): Promise<{roots: string[]; visited: number; truncated: boolean; errors: string[]}> {
-  const result = {roots: [] as string[], visited: 0, truncated: false, errors: [] as string[]};
+  root: string; depth: number; run: git_run; fs: any; path: any; signal?: AbortSignal;
+}): Promise<{roots: string[]; visited: number; errors: string[]}> {
+  const result = {roots: [] as string[], visited: 0, errors: [] as string[]};
   const known = new Set<string>();
   const verify = async (directory: string) => {
     try {
@@ -16,7 +16,6 @@ export async function discover_git_repositories(options: {
   };
   const walk = async (directory: string, level: number) => {
     if (options.signal?.aborted) throw new Error("仓库发现已取消");
-    if (result.visited >= (options.limit ?? 1500)) { result.truncated = true; return; }
     result.visited++;
     let entries: any[];
     try { entries = await options.fs.promises.readdir(directory, {withFileTypes: true}); }
@@ -24,7 +23,6 @@ export async function discover_git_repositories(options: {
     if (level === 0 || entries.some(entry => entry.name === ".git")) await verify(directory);
     if (level >= options.depth) return;
     for (const entry of entries) {
-      if (result.truncated) break;
       if (entry.isDirectory() && !entry.isSymbolicLink() && ![".git", "node_modules", ".cache", ".svn"].includes(entry.name)) await walk(options.path.join(directory, entry.name), level + 1);
     }
   };

@@ -12,7 +12,7 @@ import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog,dispose_workspace_widgets } from "./workspace_widgets";
 import { FILE_LANGUAGE_RULES, is_markdown_file, detect_file_language } from "./file_language";
-import { create_text_document, save_text_document_as, MAX_TEXT_DOCUMENT_BYTES } from "./workspace_text_document";
+import { create_text_document, save_text_document_as } from "./workspace_text_document";
 import {decode_file_bytes} from "./file_language";
 import {capture_position, apply_position} from "./reading_positions";
 import type {workspace_document_snapshot, workspace_transfer_format, workspace_transfer_target} from "./workspace_document_transfer";
@@ -829,7 +829,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const handle=await fs.promises.open(file_path,"r");
     try {
       transfer_guard(signal);const before=await handle.stat();transfer_guard(signal);
-      if(!before.isFile()||before.size>MAX_TEXT_DOCUMENT_BYTES)throw new Error("移交文件超过16 MiB或不是普通文本文件。");
+      if(!before.isFile())throw new Error("移交项目不是普通文本文件。");
       const bytes=new Uint8Array(before.size+1);let length=0;
       while(length<bytes.length){const {bytesRead:count}=await handle.read(bytes,length,Math.min(256*1024,bytes.length-length),length);transfer_guard(signal);if(!count)break;length+=count;}
       const result=bytes.slice(0,length),sha256=await transfer_hash(result);transfer_guard(signal);
@@ -892,7 +892,6 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(!snapshot.dirty&&normalized_transfer_text(snapshot.text)!==normalized_transfer_text(decoded.text))throw new Error("Markdown正文与磁盘基线不同，不能作为已保存文档移交。");
       verify_content=()=>{transfer_guard(signal);const still_native=file_key(runtime.File?.bundle?.filePath||"")===file_key(file_path);if(still_native!==native_matches||still_native&&(native_transfer_text()!==snapshot.text||Boolean(runtime.File?.changeCounter?.isDocumentEdited())!==snapshot.dirty||snapshot.dirty&&runtime.File?.option?.enableAutoSave))throw new Error("Markdown正文或自动保存设置在捕获期间改变，请重新移交。");};
     }
-    if(snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES)throw new Error("草稿超过16 MiB，原标签仍保留。");
     snapshot.capture_fingerprint=await transfer_fingerprint(snapshot);verify_content();
     transfer_guard(signal);if(!transfer_present(leaf)||real_path(leaf)!==file_path||context_root()!==root)throw new Error("标签或工作区在移交期间改变，请重试。");
     return snapshot;
@@ -910,7 +909,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       const children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target?.group)children.push(leaf);});
       return context_root()===initial_root&&initial_children.length>0&&children.length===initial_children.length&&children.every((leaf,index)=>leaf===initial_children[index]);
     },signal);
-    if(!snapshot||snapshot.schema!==1||!["source","markdown"].includes(snapshot.kind)||typeof snapshot.text!=="string"||snapshot.text.length>MAX_TEXT_DOCUMENT_BYTES||typeof snapshot.file_path!=="string"||!path_api.isAbsolute(snapshot.file_path)||typeof snapshot.root!=="string"||typeof snapshot.dirty!=="boolean"||!/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256)||snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))throw new Error("窗口文档快照无效，未修改当前文档。");
+    if(!snapshot||snapshot.schema!==1||!["source","markdown"].includes(snapshot.kind)||typeof snapshot.text!=="string"||typeof snapshot.file_path!=="string"||!path_api.isAbsolute(snapshot.file_path)||typeof snapshot.root!=="string"||typeof snapshot.dirty!=="boolean"||!/^[a-f0-9]{64}$/u.test(snapshot.disk_sha256)||snapshot.capture_fingerprint!==await transfer_fingerprint(snapshot))throw new Error("窗口文档快照无效，未修改当前文档。");
     const target_root=context_root(),target_group=target?.group as graph_leaf["parent"]&{insertChild?(index:number,leaf:graph_leaf):void};
     const target_children:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(leaf.parent===target_group)target_children.push(leaf);});
     if(!target_group||typeof target_group.insertChild!=="function"||!target_children.length||!Number.isInteger(target.index)||target.index<0||target.index>target_children.length)throw new Error("接收编辑组或标签插入位置无效，请重新拖动。");

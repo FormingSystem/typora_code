@@ -4,7 +4,7 @@ import {workspace_dialog,workspace_element as el} from "./workspace_widgets";
 /** 字符串键名为上游配置契约；内部接口仍使用snake_case。 */
 export const FILE_SETTING_DEFAULTS=Object.freeze({
   "files.autoSave":"off", "files.autoSaveDelay":1000, "files.autoSaveWorkspaceFilesOnly":false, "files.autoSaveWhenNoErrors":false,
-  "workbench.localHistory.enabled":true, "workbench.localHistory.maxFileSize":256,
+  "workbench.localHistory.enabled":true,
   "workbench.localHistory.maxFileEntries":50, "workbench.localHistory.mergeWindow":10,
   "workbench.localHistory.exclude":{} as Record<string,boolean>,
   "explorer.openEditors.visible":9, "explorer.openEditors.minVisible":0, "explorer.openEditors.sortOrder":"editorOrder",
@@ -25,7 +25,7 @@ export function normalize_workspace_save_settings(value:unknown):workspace_save_
   result["explorer.openEditors.visible"]=Math.max(1,result["explorer.openEditors.visible"]);
   result["workbench.localHistory.maxFileEntries"]=Math.max(1,result["workbench.localHistory.maxFileEntries"]);
   const exclude=input["workbench.localHistory.exclude"];
-  if(exclude&&typeof exclude==="object"&&!Array.isArray(exclude))result["workbench.localHistory.exclude"]=Object.fromEntries(Object.entries(exclude).filter(([key,value])=>key.length<=1024&&typeof value==="boolean")) as Record<string,boolean>;
+  if(exclude&&typeof exclude==="object"&&!Array.isArray(exclude))result["workbench.localHistory.exclude"]=Object.fromEntries(Object.entries(exclude).filter(([key,value])=>typeof value==="boolean")) as Record<string,boolean>;
   return result;
 }
 export function read_workspace_save_settings(){return normalize_workspace_save_settings(get_workspace_app()?.settings.get(KEY));}
@@ -44,7 +44,7 @@ export function open_workspace_save_settings(){
     ["files.autoSave","自动保存",["off","afterDelay","onFocusChange","onWindowChange"]],
     ["files.autoSaveDelay","延迟（毫秒）"],["files.autoSaveWorkspaceFilesOnly","仅自动保存工作区内文件"],
     ["files.autoSaveWhenNoErrors","仅在没有诊断错误时自动保存"],
-    ["workbench.localHistory.enabled","启用本地历史"],["workbench.localHistory.maxFileSize","历史文件大小上限（KB）"],
+    ["workbench.localHistory.enabled","启用本地历史"],
     ["workbench.localHistory.maxFileEntries","每个文件的历史条数"],["workbench.localHistory.mergeWindow","合并相邻保存（秒）"],
     ["explorer.openEditors.visible","打开的编辑器最大可见行数"],["explorer.openEditors.minVisible","打开的编辑器最少可见行数"],
     ["explorer.openEditors.sortOrder","打开的编辑器排序",["editorOrder","alphabetical","fullPath"]],

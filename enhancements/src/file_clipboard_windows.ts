@@ -30,8 +30,8 @@ public class file_clipboard_native {
  static void open(IntPtr owner) { for(int i=0;i<20;i++){if(OpenClipboard(owner))return;Thread.Sleep(25);}throw new Exception("Clipboard is busy; please retry."); }
  static IntPtr allocate(byte[] bytes){var handle=GlobalAlloc(0x42,(UIntPtr)bytes.Length);if(handle==IntPtr.Zero)throw new Exception("Clipboard allocation failed.");var address=GlobalLock(handle);if(address==IntPtr.Zero){GlobalFree(handle);throw new Exception("Clipboard lock failed.");}try{Marshal.Copy(bytes,0,address,bytes.Length);}finally{GlobalUnlock(handle);}return handle;}
  static file_clipboard_state read_locked(){
-  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);if(count>512)throw new Exception("Too many clipboard files (maximum 512).");
-  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0||length>32767)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}
+  var drop=GetClipboardData(15);var count=drop==IntPtr.Zero?0:DragQueryFile(drop,0xffffffff,null,0);
+  var paths=new string[count];for(uint i=0;i<count;i++){uint length=DragQueryFile(drop,i,null,0);if(length==0)throw new Exception("Invalid clipboard path.");var text=new StringBuilder((int)length+1);DragQueryFile(drop,i,text,length+1);paths[i]=text.ToString();}
   var effect=GetClipboardData(RegisterClipboardFormat("Preferred DropEffect"));bool moving=false;
   if(effect!=IntPtr.Zero&&GlobalSize(effect).ToUInt64()>=4){var address=GlobalLock(effect);if(address!=IntPtr.Zero)try{moving=(Marshal.ReadInt32(address)&2)!=0;}finally{GlobalUnlock(effect);}}
   return new file_clipboard_state{paths=paths,version=GetClipboardSequenceNumber().ToString(),move_requested=moving};
@@ -73,7 +73,7 @@ export function create_windows_file_clipboard(reqnode:(name:string)=>any):file_c
   const children=new Set<any>();let disposed=false;
   const invoke=<T>(request:unknown)=>new Promise<T>((resolve,reject)=>{
     if(disposed){reject(new Error("文件剪贴板已关闭。"));return;}
-    const child=child_process.execFile(program,args,{windowsHide:true,shell:false,timeout:6000,maxBuffer:4*1024*1024,encoding:"utf8"},(error:Error|null,stdout:string)=>{
+    const child=child_process.execFile(program,args,{windowsHide:true,shell:false,timeout:6000,maxBuffer:Infinity,encoding:"utf8"},(error:Error|null,stdout:string)=>{
       children.delete(child);if(disposed){reject(new Error("文件剪贴板已关闭。"));return;}
       try{const result=JSON.parse(stdout);if(result.error)throw new Error(result.error);if(error)throw error;resolve(result.value);}catch(problem){reject(new Error("系统文件剪贴板操作失败："+String(problem instanceof Error?problem.message:problem)));}
     });children.add(child);child.stdin.on("error",()=>{});child.stdin.end(JSON.stringify(request),"utf8");

@@ -84,9 +84,16 @@ agent.perform=perform; agent.main()
                 (repo / 'new.txt').write_text('new', encoding='utf-8')
                 send(9, 'git_status', path=str(repo))
                 assert 'new.txt' in receive(9)['result']['text']
+            large = b'A' * (19 * 1024 * 1024) + '末尾'.encode('utf-8')
+            large_file = str(root / 'large.md')
+            send(98, 'create', path=large_file, data=base64.b64encode(large).decode('ascii'))
+            assert 'result' in receive(98)
+            send(99, 'read', path=large_file)
+            assert base64.b64decode(receive(99)['result']['data']) == large
+            print('PASS SSH protocol carries complete 19MiB file and JSON request over former 24MiB cutoff')
             child.stdin.close()
             assert child.wait(timeout=10) == 0, child.stderr.read()
-            print('PASS: slow Git isolation; 100 read/write cycles; bounded Git; non-repository, empty and nested Git')
+            print('PASS: slow Git isolation; 100 read/write cycles; Git queue; non-repository, empty and nested Git')
         finally:
             if child.poll() is None:
                 child.kill()

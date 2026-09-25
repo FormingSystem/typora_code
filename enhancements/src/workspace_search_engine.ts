@@ -6,13 +6,13 @@ import {file_key} from "./workspace_file_uri";
 
 export type workspace_search_options = {
   query: string; case_sensitive?: boolean; whole_word?: boolean; regex?: boolean; include?: string; exclude?: string;
-  use_ignore?: boolean; exclude_settings?: string; max_results?: number; max_file_bytes?: number; encoding?: string; glob_case_sensitive?: boolean;
+  use_ignore?: boolean; exclude_settings?: string; encoding?: string; glob_case_sensitive?: boolean;
   preserve_case?: boolean; file_paths?: string[]; folder_path?: string;
 };
 export type workspace_search_match = {id: string; start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]};
 export type workspace_search_file = {file_path: string; relative_path: string; matches: workspace_search_match[]};
-export type workspace_search_counts = {scanned_files: number; searched_files: number; matched_files: number; matches: number; skipped: {binary: number; large: number; ignored: number; excluded: number; links: number; unreadable: number}};
-export type workspace_search_result = {root: string; options: workspace_search_options; files: workspace_search_file[]; counts: workspace_search_counts; cancelled: boolean; limit_reached: boolean; notices: string[]};
+export type workspace_search_counts = {scanned_files: number; searched_files: number; matched_files: number; matches: number; skipped: {binary: number; ignored: number; excluded: number; links: number; unreadable: number}};
+export type workspace_search_result = {root: string; options: workspace_search_options; files: workspace_search_file[]; counts: workspace_search_counts; cancelled: boolean; notices: string[]};
 export type workspace_replace_file = {file_path: string; relative_path: string; before_text: string; after_text: string; match_count: number};
 export type workspace_replace_plan = {root: string; replacement: string; files: workspace_replace_file[]; match_count: number};
 export type workspace_search_modules = {fs: any; path_api: any; git_run?: (root: string, args: string[]) => Promise<string>; platform?: string; matcher_factory?: search_matcher_factory};
@@ -21,13 +21,11 @@ type file_snapshot = {bytes: Uint8Array; decoded: decoded_file; identity: string
 type result_snapshot = {root: string; options: workspace_search_options; files: Map<string, file_snapshot>; incomplete: boolean; replace_blocked: boolean};
 type prepared_file = workspace_replace_file & {snapshot: file_snapshot; bytes: Uint8Array};
 const DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
-const MAX_SNAPSHOT_BYTES = 64 * 1024 * 1024;
 const MAX_READ_CONCURRENCY = 4;
 const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
 const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const same_bytes = (left: Uint8Array, right: Uint8Array) => left.length === right.length && left.every((byte, index) => byte === right[index]);
 const identity = (stat: any) => `${String(stat.dev)}:${String(stat.ino)}`;
-const bounded_integer = (value: number | undefined, fallback: number, maximum: number) => value === undefined ? fallback : Number.isSafeInteger(value) && value > 0 && value <= maximum ? value : (() => { throw new Error("搜索上限必须为范围内的正整数。"); })();
 
 /** 逗号只分隔最外层模式，保留 {a,b} 与字符类里的逗号。 */
 function split_globs(value: string): string[] {
@@ -46,7 +44,6 @@ function split_globs(value: string): string[] {
 
 /** 对齐 Search 输入框的隐含递归前缀及目录后代匹配，不将此解析器用于 .gitignore。 */
 export function compile_workspace_globs(value: string, case_sensitive = true, search_prefix = true): (relative_path: string) => boolean {
-  if (value.length > 8192) throw new Error("文件模式过长。");
   const patterns = split_globs(value).map(pattern => {
     if (pattern.includes("\\")) throw new Error("文件模式请使用正斜线 /。");
     const anchored = pattern.startsWith("./") || pattern.startsWith("/");
@@ -160,14 +157,13 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const selected_paths = selected_files ? new Set(selected_files.map(file_key)) : undefined;
     const selected_directories = new Set<string>();
     for (const file of selected_files || []) { let directory = path_api.dirname(file); while (inside(root, directory)) { selected_directories.add(file_key(directory)); if (file_key(directory) === file_key(root)) break; directory = path_api.dirname(directory); } }
-    const expression = query_expression(options); const max_results = bounded_integer(options.max_results, 5000, 100000);
-    const max_file_bytes = bounded_integer(options.max_file_bytes, 8 * 1024 * 1024, 64 * 1024 * 1024);
+    const expression = query_expression(options);
     const case_sensitive = options.glob_case_sensitive ?? (modules.platform ? !["win32", "darwin"].includes(modules.platform) : path_api.sep !== "\\");
     const include = compile_workspace_globs(options.include || "", case_sensitive);
     const exclude = compile_workspace_globs(options.exclude || "", case_sensitive);
     const settings_exclude = compile_workspace_globs(options.exclude_settings ?? DEFAULT_EXCLUDES, case_sensitive, false);
-    const result: workspace_search_result = {root, options: {...options}, files: [], counts: {scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: {binary: 0, large: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0}}, cancelled: false, limit_reached: false, notices: []};
-    const snapshots = new Map<string, file_snapshot>(); let snapshot_bytes = 0; let replace_blocked = false;
+    const result: workspace_search_result = {root, options: {...options}, files: [], counts: {scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: {binary: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0}}, cancelled: false, notices: []};
+    const snapshots = new Map<string, file_snapshot>(); let replace_blocked = false;
     // 普通查询也在隔离线程中建立行索引和匹配；无 Worker 的纯 Node 调用仍可执行普通搜索。
     const matcher = options.regex || modules.matcher_factory || typeof Worker !== "undefined" ? create_search_matcher(modules.matcher_factory) : undefined;
     const notice = (message: string) => { if (result.notices.length < 20 && !result.notices.includes(message)) result.notices.push(message); };
@@ -191,7 +187,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const allowed = await read_ignored(root);
     const stack: {directory: string; relative: string; ignore_root: string; allowed: Set<string> | null}[] = [{directory: root, relative: "", ignore_root: root, allowed}];
     async function* candidates(): AsyncGenerator<{file_path: string; relative: string} | null> {
-    while (stack.length && !cancelled() && !result.limit_reached) {
+    while (stack.length && !cancelled()) {
       const current = stack.pop()!; let entries: any[];
       try {
         if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
@@ -199,10 +195,10 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         if (await files_api.realpath(current.directory) !== current.directory) { result.counts.skipped.links++; continue; }
         entries = (await files_api.readdir(current.directory, {withFileTypes: true})).sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
-      catch (error) { result.counts.skipped.unreadable++; notice(`无法读取目录 ${current.relative || "."}：${String(error)}`); continue; }
+      catch (error) { replace_blocked = true; result.counts.skipped.unreadable++; notice(`无法读取目录 ${current.relative || "."}：${String(error)}`); continue; }
       const directories: typeof stack = [];
       for (const entry of entries) {
-        if (cancelled() || result.limit_reached) break;
+        if (cancelled()) break;
         const relative = current.relative ? current.relative + "/" + entry.name : entry.name;
         const file_path = path_api.join(current.directory, entry.name);
         if (entry.isSymbolicLink()) { result.counts.skipped.links++; continue; }
@@ -234,11 +230,9 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         const stat = await files_api.lstat(file_path);
         if (cancelled()) return candidate;
         if (!stat.isFile() || stat.isSymbolicLink() || await files_api.realpath(file_path) !== file_path) return {...candidate, skipped: "links"};
-        if (stat.size > max_file_bytes) return {...candidate, skipped: "large"};
         if (cancelled()) return candidate;
         const bytes = new Uint8Array(await files_api.readFile(file_path, callbacks.signal ? {signal: callbacks.signal} : undefined));
         if (cancelled()) return candidate;
-        if (bytes.length > max_file_bytes) return {...candidate, skipped: "large"};
         if (detect_binary_bytes(bytes)) return {...candidate, skipped: "binary"};
         let decoded: decoded_file;
         try { decoded = decode_file_bytes(bytes, options.encoding || "utf-8"); }
@@ -253,26 +247,26 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const fill = async () => {
       if(directory_boundary&&pending.length)return;
       directory_boundary=false;
-      while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled() && !result.limit_reached) {
+      while (!exhausted && pending.length < MAX_READ_CONCURRENCY && !cancelled()) {
         const next = await iterator.next(); exhausted = next.done === true;
         if (!next.done) {if(next.value===null){directory_boundary=true;break;}pending.push(read_candidate(next.value));}
       }
     };
     await fill();
-    while ((pending.length||!exhausted) && !cancelled() && !result.limit_reached) {
+    while ((pending.length||!exhausted) && !cancelled()) {
       if(!pending.length){await fill();if(!pending.length)continue;}
       const {file_path, relative, bytes, decoded, stat, skipped, message} = await pending.shift()!;
       if (cancelled()) break;
       if(!directory_boundary)await fill();
-      if (skipped) { result.counts.skipped[skipped]++; if (message) notice(message); continue; }
+      if (skipped) { if(skipped === "unreadable")replace_blocked = true; result.counts.skipped[skipped]++; if (message) notice(message); continue; }
       if (!bytes || !decoded || !stat) continue;
       try {
           result.counts.searched_files++; const matches: captured_match[] = [];
           if (matcher) {
             try {
-              const reply = await matcher.match(decoded.text, options, max_results - result.counts.matches, callbacks.signal);
+              const reply = await matcher.match(decoded.text, options, callbacks.signal);
               for (const match of reply.matches) matches.push({...match, id: `match_${result.files.length}_${matches.length}`});
-              result.counts.matches += matches.length; result.limit_reached = reply.limit_reached;
+              result.counts.matches += matches.length;
             } catch (error) {
               if (error instanceof search_match_failure && error.reason === "cancelled") result.cancelled = true;
               else { replace_blocked = true; result.counts.skipped.unreadable++; notice(`${relative}：${String(error instanceof Error ? error.message : error)} 本次搜索不完整，不能执行替换。`); }
@@ -286,34 +280,29 @@ export function create_workspace_search_engine(modules: workspace_search_modules
               starts ||= line_starts(decoded.text);
               matches.push({...capture_match(decoded.text, starts, found), id: `match_${result.files.length}_${matches.length}`});
               result.counts.matches++;
-              if (result.counts.matches >= max_results) { result.limit_reached = true; break; }
               if (matches.length % 128 === 0) await pause();
             }
           }
           if (matches.length) {
-            if (snapshot_bytes + bytes.length > MAX_SNAPSHOT_BYTES) { result.counts.matches -= matches.length; result.limit_reached = true; notice("匹配文件快照达到 64 MiB 上限，请缩小搜索范围。"); break; }
-            snapshot_bytes += bytes.length; snapshots.set(file_path, {bytes, decoded, identity: identity(stat), mode: stat.mode, matches});
+            snapshots.set(file_path, {bytes, decoded, identity: identity(stat), mode: stat.mode, matches});
             const file = {file_path, relative_path: relative, matches: matches.map(({captures, groups, ...match}) => match)};
             result.files.push(file); result.counts.matched_files++; callbacks.on_file?.(file, structuredClone(result.counts));
           }
-        } catch (error) { result.counts.skipped.unreadable++; notice(`无法搜索 ${relative}：${String(error instanceof Error ? error.message : error)}`); }
+        } catch (error) { replace_blocked = true; result.counts.skipped.unreadable++; notice(`无法搜索 ${relative}：${String(error instanceof Error ? error.message : error)}`); }
     }
     cancelled();
-    if (result.limit_reached) notice(`搜索已达到结果或快照上限；当前显示 ${result.counts.matches} 处匹配。`);
-    if (result.counts.skipped.large) notice(`已跳过 ${result.counts.skipped.large} 个大于 ${max_file_bytes} 字节的文件。`);
     if (result.counts.skipped.binary) notice(`已跳过 ${result.counts.skipped.binary} 个二进制文件。`);
     if (result.counts.skipped.links) notice(`已跳过 ${result.counts.skipped.links} 个链接，避免越出搜索范围或形成目录循环。`);
     if (result.cancelled) notice("搜索已取消；显示取消前找到的结果。");
-    results.set(result, {root, options: {...options, file_paths: options.file_paths?.slice()}, files: snapshots, incomplete: result.cancelled || result.limit_reached || replace_blocked, replace_blocked}); return result;
+    results.set(result, {root, options: {...options, file_paths: options.file_paths?.slice()}, files: snapshots, incomplete: result.cancelled || replace_blocked, replace_blocked}); return result;
     } finally { matcher?.dispose(); }
   }
 
   async function prepare_replace(result: workspace_search_result, replacement: string, selection: {file_path?: string; match_ids?: string[]} = {}): Promise<workspace_replace_plan> {
     const snapshot = results.get(result); if (!snapshot) throw new Error("搜索结果已失效，请重新搜索。");
-    if (snapshot.replace_blocked) throw new Error("正则匹配超时或失败，本次搜索不完整，不能执行替换。请简化表达式或缩小范围后重新搜索。");
-    if (snapshot.incomplete && !selection.match_ids?.length) throw new Error("搜索未完成或达到上限，不能执行整文件或全部替换。请缩小范围后重新搜索，或明确选择单条结果。");
+    if (snapshot.replace_blocked) throw new Error("匹配失败，本次搜索不完整，不能执行替换。请处理读取或匹配错误后重新搜索。");
+    if (snapshot.incomplete && !selection.match_ids?.length) throw new Error("搜索未完成，不能执行整文件或全部替换。请重新搜索，或明确选择单条结果。");
     const selected_ids = selection.match_ids ? new Set(selection.match_ids) : undefined; const found_ids = new Set<string>(); const prepared: prepared_file[] = [];
-    let prepared_bytes = 0;
     if (selected_ids && !selected_ids.size) throw new Error("请选择要替换的搜索结果。");
     for (const [file_path, file] of snapshot.files) {
       if (selection.file_path && selection.file_path !== file_path) continue;
@@ -326,12 +315,8 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         let value = replacement_text(replacement, match, file.decoded.text, snapshot.options.regex === true);
         if (snapshot.options.preserve_case) value = preserve_case(match.text, value);
         after_text += file.decoded.text.slice(offset, match.start) + value.replace(/\r\n|\r|\n/gu, newline); offset = match.end;
-        if (after_text.length > MAX_SNAPSHOT_BYTES) throw new Error("单文件替换结果过大，请缩小替换范围。");
       }
       after_text += file.decoded.text.slice(offset); const bytes = encode_file(after_text, file.decoded);
-      if (bytes.length > MAX_SNAPSHOT_BYTES) throw new Error("单文件替换结果超过 64 MiB，请缩小替换范围。");
-      prepared_bytes += bytes.length;
-      if (prepared_bytes > MAX_SNAPSHOT_BYTES) throw new Error("本次替换结果合计超过 64 MiB，请缩小替换范围后分批预览。");
       const prepared_file = {file_path, relative_path, before_text: file.decoded.text, after_text, match_count: matches.length, snapshot: file, bytes};
       await verify_file(snapshot.root, prepared_file); prepared.push(prepared_file);
     }

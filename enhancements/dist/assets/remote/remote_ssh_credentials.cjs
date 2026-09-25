@@ -9,7 +9,7 @@ function create_legacy_store(root){
     if(!supported){reject(Error('当前平台未接入系统凭据加密，请使用OpenSSH密钥认证。'));return;}
     const script="$ErrorActionPreference='Stop'; Add-Type -AssemblyName System.Security; $bytes=[Convert]::FromBase64String([Console]::In.ReadToEnd()); $result=[Security.Cryptography.ProtectedData]::"+(protect?'Protect':'Unprotect')+"($bytes,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser); [Console]::Out.Write([Convert]::ToBase64String($result))";
     const executable=path.join(process.env.SystemRoot||'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe');
-    const child=child_process.execFile(executable,['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,timeout:15000,maxBuffer:65536},(error,stdout)=>{
+    const child=child_process.execFile(executable,['-NoProfile','-NonInteractive','-EncodedCommand',Buffer.from(script,'utf16le').toString('base64')],{windowsHide:true,timeout:15000,maxBuffer:Infinity},(error,stdout)=>{
       if(error){reject(Error('系统凭据加密不可用，未保存密码。'));return;}
       try{resolve(Buffer.from(stdout.trim(),'base64'));}catch{reject(Error('系统凭据响应无效。'));}
     });child.stdin.on('error',()=>{});child.stdin.end(Buffer.from(data).toString('base64'));
@@ -27,7 +27,7 @@ function create_system_credentials(root){
   const invoke=(operation,key,value)=>new Promise((resolve,reject)=>{
     if(!supported)return reject(Error('当前平台未接入系统凭据管理器，请使用密钥或当次密码认证。'));
     const executable=path.join(process.env.SystemRoot||'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe');
-    const child=child_process.execFile(executable,['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(__dirname,'remote_ssh_wincred.ps1')],{windowsHide:true,timeout:20000,maxBuffer:1048576},(error,stdout)=>{
+    const child=child_process.execFile(executable,['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(__dirname,'remote_ssh_wincred.ps1')],{windowsHide:true,timeout:20000,maxBuffer:Infinity},(error,stdout)=>{
       try{const result=JSON.parse(stdout);if(error||!result.ok)throw Error();resolve(result.value);}catch{reject(Error('Windows凭据管理器操作失败，未改用本地密码文件。'));}
     });child.stdin.on('error',()=>{});child.stdin.end(JSON.stringify({operation,target:prefix+key,value}));
   });

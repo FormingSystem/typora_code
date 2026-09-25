@@ -33,7 +33,7 @@ app.whenReady().then(async()=>{
   await run('theme_node.media="all";theme_node.sheet.disabled=true;document.body.classList.add("qa-theme-change")');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('禁用主题不进入阅读样式');
   await run('theme_node.remove()');
   await run('window.theme_link=document.head.appendChild(document.createElement("link"));theme_link.id="theme_css";theme_link.href="cpp_github-consolas.css";window.colors=qa.bind_workspace_colors();void 0');
-  await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 105, 204)"');
+  await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=left] pre")).backgroundColor!==getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] pre")).backgroundColor','共享明暗外观保留围栏差异背景');
   await check('getComputedStyle(shadow.querySelector("strong [data-diff-inline=left]")).backgroundColor!==getComputedStyle(shadow.querySelector("strong [data-diff-inline=right]")).backgroundColor','共享明暗外观保留行内差异');
 
@@ -45,7 +45,7 @@ app.whenReady().then(async()=>{
   await check('preview.models.length===2&&preview.models[0].getValue()===left_text&&preview.models[1].getValue()===right_text','20次切换保留两份只读源码及模型');
   await run('document.body.style.color="rgb(220,220,220)";document.body.style.background="#202020";theme_link.href="night.css"');await wait('preview.markdown_preview.container.dataset.theme==="dark"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] [data-source-line] > *")).backgroundColor==="rgba(87, 171, 90, 0.3)"','暗色采用固定差异颜色');
-  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(165, 214, 255)"','真实diff深色浅蓝色标题');
+  await check('getComputedStyle(shadow.querySelector("h1")).color==="rgb(206, 145, 120)"','真实diff深色用户选定标题');
   fs.writeFileSync(path.join(root,'dark.png'),(await win.webContents.capturePage()).toPNG());
   await win.setContentSize(420,700);await pause(100);await check('shadow.querySelector(".markdown-diff-row").children[1].getBoundingClientRect().left>shadow.querySelector(".markdown-diff-row").children[0].getBoundingClientRect().left','窄视口保持左右比较');
   await win.webContents.setZoomFactor(1.25);await pause(100);await check('preview.markdown_preview.scroll.clientHeight>100','窗口放大后比较仍有独立滚动区域');
@@ -77,7 +77,8 @@ app.whenReady().then(async()=>{
   await check('!preview.markdown_preview.shadow.textContent.includes("修改 300")','刷新抛弃旧比较内容');
   await wait('overview.dataset.markCount==="1"');
   await run('preview.update({...preview.data,left:"相同",right:"相同"})');await wait('preview.markdown_preview.container.dataset.ready==="true"&&overview.dataset.markCount==="0"');await check('overview.querySelector(".git-markdown-overview-viewport").hidden','无差异刷新清除旧标记且短文无滑块');
-  await run('preview.update({...preview.data,right:"x".repeat(1024*1024+1)})');await wait('!preview.rendered_markdown');await check('preview.status.textContent.includes("1MiB")&&!preview.body.hidden','过大渲染明确回退源码');
+  await run('preview.update({...preview.data,right:"x".repeat(1024*1024+1)+"末尾"})');await wait('preview.rendered_markdown&&preview.markdown_preview.container.dataset.ready==="true"');await check('preview.markdown_preview.shadow.textContent.includes("末尾")&&preview.markdown_preview.shadow.textContent.includes("x".repeat(1024*1024+1))','超过1MiB仍渲染完整内容');
+  await run('preview.update({...preview.data,left:"",right:Array.from({length:5100},(_,i)=>"段落 "+i+"\\n\\n").join("")+"TOKEN_TAIL"})');await wait('preview.markdown_preview.container.dataset.ready==="true"&&preview.markdown_preview.shadow.textContent.includes("TOKEN_TAIL")');await check('preview.markdown_preview.shadow.querySelectorAll("p").length>=5101', '超过10000 lexer tokens仍展示最后段落');
   await run('preview.dispose()');await check('!document.querySelector(".git-markdown-diff")','销毁清理视图及资源');
   console.log(JSON.stringify({status:'PASS',checks,evidence:root},null,2));win.destroy();app.quit();
 }).catch(error=>{console.error(error);if(win)win.destroy();app.exit(1)});

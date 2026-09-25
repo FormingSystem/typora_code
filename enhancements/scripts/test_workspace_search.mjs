@@ -63,13 +63,13 @@ try {
   assert.deepEqual(paths(await search(ignored, 'marker', {use_ignore: true, exclude_settings: '**/.git'})), ['keep.log', 'node_modules/pkg/a.js', 'secret1.txt', 'sub/keep.txt', 'tracked.log']);
   checks.push('real Git ignore negation, nested files, escaped filenames and tracked exceptions work without changing the index');
 
-  const skipped = make_root('skipped'); write(skipped, 'a.txt', 'needle'); write(skipped, 'binary.bin', Buffer.from([0x50, 0x4b, 3, 4, 0, 0])); write(skipped, 'large.txt', 'needle'.repeat(100)); write(skipped, 'bad.txt', Buffer.from([0xff, 0xfd]));
-  result = await search(skipped, 'needle', {max_file_bytes: 100});
-  assert.equal(result.counts.skipped.binary, 1); assert.equal(result.counts.skipped.large, 1); assert.equal(result.counts.skipped.unreadable, 1); assert.equal(result.counts.matches, 1);
+  const skipped = make_root('skipped'); write(skipped, 'a.txt', 'needle'); write(skipped, 'binary.bin', Buffer.from([0x50, 0x4b, 3, 4, 0, 0])); write(skipped, 'large.txt', 'x'.repeat(9*1024*1024)+'needle'); write(skipped, 'bad.txt', Buffer.from([0xff, 0xfd]));
+  result = await search(skipped, 'needle', {});
+  assert.equal(result.counts.skipped.binary, 1); assert.equal(result.counts.skipped.unreadable, 1); assert.equal(result.counts.matches, 2);
   const controller = new AbortController(); result = await search(texts, 'needle', {}, {signal: controller.signal, on_file: () => controller.abort()}); assert(result.cancelled); await assert.rejects(engine.prepare_replace(result, 'changed'), /搜索未完成/);
-  result = await search(texts, 'needle', {max_results: 2}); assert(result.limit_reached); assert.equal(result.counts.matches, 2); await assert.rejects(engine.prepare_replace(result, 'changed'), /上限/);
+  const many=make_root('many');write(many,'matches.txt','needle\n'.repeat(5001));result=await search(many,'needle');assert.equal(result.counts.matches,5001);assert.equal(result.files[0].matches.at(-1).line,5001);assert.equal((await engine.prepare_replace(result,'changed')).match_count,5001);
   assert.equal((await engine.prepare_replace(result, 'changed', {match_ids: [result.files[0].matches[0].id]})).match_count, 1);
-  checks.push('binary, large and undecodable counts are explicit; cancellation and caps cannot silently replace incomplete results');
+  checks.push('large files and more than 5000 matches remain accessible; cancellation protects incomplete replacement');
 
   const replace = make_root('replace'); const first_file = write(replace, 'a.txt', 'needle needle\r\n'); const second_file = write(replace, 'b.txt', 'needle\n');
   result = await search(replace, 'needle'); let plan = await engine.prepare_replace(result, 'new', {match_ids: [result.files.find(file => file.relative_path === 'a.txt').matches[1].id]});
@@ -107,11 +107,11 @@ try {
   const expansion = make_root('expansion');
   for (const name of ['a.txt', 'b.txt', 'c.txt']) write(expansion, name, 'needle');
   result = await search(expansion, 'needle');
-  // 每文件仅 22 MiB，第三个文件使整个预览超过 64 MiB；必须在写任何文件前拒绝。
-  await assert.rejects(engine.prepare_replace(result, 'x'.repeat(22 * 1024 * 1024)), /合计超过 64 MiB/);
+  // 替换预览总计66MiB，完整生成且预览本身不写磁盘。
+  const expanded=await engine.prepare_replace(result, 'x'.repeat(22*1024*1024));assert.equal(expanded.files.length,3);assert(expanded.files.every(file=>file.after_text.length===22*1024*1024));
   for (const name of fs.readdirSync(expansion)) assert.equal(fs.readFileSync(path.join(expansion, name), 'utf8'), 'needle');
   assert.equal(fs.readdirSync(expansion).length, 3);
-  checks.push('replacement expansion is capped across the entire plan before any file or temporary output is written');
+  checks.push('replacement over 64MiB remains complete and preview does not write files');
   console.log(JSON.stringify({status: 'PASS', checks}, null, 2));
 } finally {
   await dispose_all();

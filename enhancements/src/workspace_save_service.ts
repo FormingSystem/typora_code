@@ -17,7 +17,7 @@ export function bind_workspace_save_service(files:workspace_file_host,runtime:an
   const user_data=runtime._options?.userDataPath;
   if(typeof user_data!=="string"||!files.path_api.isAbsolute(user_data))throw new Error("无法确定本地历史的应用存储目录。");
   const history=create_local_history_store({fs:files.fs,path_api:files.path_api,crypto:runtime.reqnode("crypto")},files.path_api.join(user_data,"typora_code","History"),()=>{
-    const value=read_workspace_save_settings();return{enabled:value["workbench.localHistory.enabled"],max_file_size:value["workbench.localHistory.maxFileSize"],max_entries:value["workbench.localHistory.maxFileEntries"],merge_window:value["workbench.localHistory.mergeWindow"],exclude:value["workbench.localHistory.exclude"],workspace_root:files.context_root()};
+    const value=read_workspace_save_settings();return{enabled:value["workbench.localHistory.enabled"],max_entries:value["workbench.localHistory.maxFileEntries"],merge_window:value["workbench.localHistory.mergeWindow"],exclude:value["workbench.localHistory.exclude"],workspace_root:files.context_root()};
   });
   const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
   const native=lifetime.own(bind_native_save(runtime,{

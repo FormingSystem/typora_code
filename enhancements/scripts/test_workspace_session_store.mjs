@@ -15,13 +15,14 @@ for(const cycles of [20,100,1000]){
 assert.equal(store.read(path.join(dir,'missing')),undefined);
 assert.throws(()=>store.write(a,[{...file,path:'typ://core.empty/'}],0));
 assert.throws(()=>store.write(a,[file],1));
-assert.throws(()=>store.write(a,Array(1001).fill(file),0));
+store.write(a,Array.from({length:1001},(_,i)=>({...file,path:path.join(a,'file-'+i+'.md')})),1000);assert.equal(store.read(a).files.length,1001);store.write(a,[file],0);
 const failing=create({...fs,renameSync(){throw Error('denied');}},path,crypto,dir);
 assert.throws(()=>failing.write(a,[],-1),/denied/);assert.deepEqual(store.read(a).files,[file]);assert(!fs.readdirSync(dir).some(name=>name.endsWith('.tmp')));
 const target=path.join(dir,crypto.createHash('sha256').update(store.root_key(a)).digest('hex')+'.json');fs.writeFileSync(target,'{bad');assert.throws(()=>store.read(a));
-fs.writeFileSync(target,'x'.repeat(2*1024*1024+1));assert.throws(()=>store.read(a),/过大/);
+fs.writeFileSync(target,'x'.repeat(2*1024*1024+1));assert.throws(()=>store.read(a),SyntaxError);
+const big_files=Array.from({length:12000},(_,i)=>({...file,path:path.join(a,'x'.repeat(200)+i+'.md')}));store.write(a,big_files,11999);assert(fs.statSync(target).size>2*1024*1024);assert.deepEqual(store.read(a).files,big_files);
 const win=create(fs,path.win32,crypto,dir);assert.equal(win.root_key('C:\\Workspace\\'),win.root_key('c:\\workspace'));
-console.log('PASS empty, invalid, corrupt, oversized and atomic failure preservation; Windows root normalization');
+console.log('PASS empty, invalid, corrupt, large complete sessions and atomic failure preservation; Windows root normalization');
 let replacements=0;
 const counted=create({...fs,renameSync(...args){replacements++;fs.renameSync(...args);}},path,crypto,dir);
 counted.write(a,[file],0);

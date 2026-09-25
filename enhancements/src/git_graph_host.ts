@@ -238,7 +238,6 @@ export function create_graph_host(core: graph_core) {
         const stat = await fs.promises.lstat(target);
         if (stat.isSymbolicLink()) return fs.promises.readlink(target);
         if (!stat.isFile()) throw new Error(text("host.non_text_comparison"));
-        if (stat.size > 16 * 1024 * 1024) throw new Error(text("host.file_too_large"));
         return new TextDecoder(settings.encoding).decode(await fs.promises.readFile(target));
       }
       const object = revision === INDEX ? `:${file}` : `${require_revision(revision)}:${file}`;
@@ -306,7 +305,7 @@ export function create_graph_host(core: graph_core) {
         const request = runtime.reqnode("https").get(`https://www.gravatar.com/avatar/${hash}?s=32&d=identicon`, (response: any) => {
           if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) { response.resume(); reject(new Error(text("host.avatar_unavailable"))); return; }
           const chunks: Uint8Array[] = []; let size = 0;
-          response.on("data", (chunk: Uint8Array) => { size += chunk.length; if (size > 256000) { request.destroy(); reject(new Error(text("host.avatar_too_large"))); } else chunks.push(chunk); });
+          response.on("data", (chunk: Uint8Array) => { chunks.push(chunk); });
           response.on("end", () => { const data = runtime.reqnode("buffer").Buffer.concat(chunks); fs.mkdirSync(cache_path, { recursive: true }); fs.writeFileSync(target, data); resolve("data:image/png;base64," + data.toString("base64")); });
         }); request.setTimeout(10000, () => request.destroy(new Error(text("host.avatar_timeout")))); request.on("error", reject);
       });

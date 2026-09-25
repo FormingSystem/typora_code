@@ -9,7 +9,7 @@ export function create_resource_file_clipboard(reqnode:(name:string)=>any):file_
   return{
     async read(){
       if(!clipboard.availableFormats().includes(format))return native.read();
-      const raw=clipboard.readBuffer(format);if(raw.length>1024*1024)throw Error('远程文件剪贴板内容过大');
+      const raw=clipboard.readBuffer(format);
       const value=JSON.parse(raw.toString('utf8')) as file_clipboard_snapshot;
       if(!Array.isArray(value.paths)||value.paths.some(path=>typeof path!=='string'||!remote_files_for(path)))throw Error('请先连接这些文件所属的SSH主机。');
       return value;

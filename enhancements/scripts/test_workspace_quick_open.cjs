@@ -55,11 +55,12 @@ app.whenReady().then(async()=>{
   await evaluate('picker.open();void 0');await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);await query('samples/bringup');
   for(const theme of ['light','dark']){await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';void 0`);for(const scale of [1,1.25]){win.webContents.setZoomFactor(scale);assert.equal(await evaluate(`getComputedStyle(picker.root.querySelectorAll('.workspace-quick-open-result')[1].querySelector('.workspace-quick-open-highlight')).color`),theme==='dark'?'rgb(42, 170, 255)':'rgb(0, 102, 191)');}}
   win.webContents.setZoomFactor(1);await win.webContents.capturePage().then(image=>fs.writeFileSync(path.join(root,'quick_open.png'),image.toPNG()));
-  // 超过旧扫描上限的文件仍能找到；仅512个最优候选进入显示列表。
+  // 超过旧扫描上限的文件仍能找到；完整候选通过虚拟行显示。
   await evaluate(`picker.close();host.fs={promises:{readdir:async()=>[{name:'last-target.md',isFile:()=>true,isDirectory:()=>false},...Array.from({length:51000},(_,i)=>({name:'item-'+i+'.md',isFile:()=>true,isDirectory:()=>false}))]}};picker.open();void 0`);
   await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.startsWith('51001')&&!picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在')`);
   assert(await evaluate(`picker.root.querySelectorAll('.workspace-quick-open-result').length<50`),'large results only mount visible rows');
-  await evaluate(`picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp'}));void 0`);assert.equal(await evaluate(`document.getElementById(picker.input.getAttribute('aria-activedescendant')).getAttribute('aria-posinset')`),'512');
+  await query('last-target');await query('');
+  await evaluate(`picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp'}));void 0`);assert.equal(await evaluate(`document.getElementById(picker.input.getAttribute('aria-activedescendant')).getAttribute('aria-posinset')`),'51001');
   await query('last-target');assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'last-target.md');
   await evaluate(`picker.close();host.fs={promises:{readdir:async()=>{throw Error('denied')}}};picker.open();void 0`);await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.includes('不完整')`);
   await evaluate('picker.dispose();void 0');assert.equal(await evaluate(`document.querySelectorAll('.workspace-quick-open').length`),0);
