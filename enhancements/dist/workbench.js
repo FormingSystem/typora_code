@@ -7565,13 +7565,13 @@ https://creativecommons.org/licenses/by/4.0/
          * @returns A new color representing the mix
          */
         mix(color, factor2 = 0.5) {
-          const normalize4 = Math.min(Math.max(factor2, 0), 1);
+          const normalize5 = Math.min(Math.max(factor2, 0), 1);
           const thisRGBA = this.rgba;
           const otherRGBA = color.rgba;
-          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize4;
-          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize4;
-          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize4;
-          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize4;
+          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize5;
+          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize5;
+          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize5;
+          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize5;
           return new _Color(new RGBA(r4, g, b2, a));
         }
         makeOpaque(opaqueBackground) {
@@ -8165,8 +8165,8 @@ https://creativecommons.org/licenses/by/4.0/
   function isColorDefaults(value) {
     return value !== null && typeof value === "object" && "light" in value && "dark" in value;
   }
-  function registerColor(id, defaults, description, needsTransparency, deprecationMessage) {
-    return colorRegistry.registerColor(id, defaults, description, needsTransparency, deprecationMessage);
+  function registerColor(id, defaults2, description, needsTransparency, deprecationMessage) {
+    return colorRegistry.registerColor(id, defaults2, description, needsTransparency, deprecationMessage);
   }
   function executeTransform(transform, theme2) {
     switch (transform.op) {
@@ -8270,8 +8270,8 @@ https://creativecommons.org/licenses/by/4.0/
           this.colorReferenceSchema = { type: "string", enum: [], enumDescriptions: [] };
           this.colorsById = {};
         }
-        registerColor(id, defaults, description, needsTransparency = false, deprecationMessage) {
-          const colorContribution = { id, description, defaults, needsTransparency, deprecationMessage };
+        registerColor(id, defaults2, description, needsTransparency = false, deprecationMessage) {
+          const colorContribution = { id, description, defaults: defaults2, needsTransparency, deprecationMessage };
           this.colorsById[id] = colorContribution;
           const propertySchema = { type: "string", format: "color-hex", defaultSnippets: [{ body: "${1:#ff0000}" }] };
           if (deprecationMessage) {
@@ -56189,19 +56189,19 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorComments = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             insertSpace: true,
             ignoreEmptyLines: true
           };
-          super(29, "comments", defaults, {
+          super(29, "comments", defaults2, {
             "editor.comments.insertSpace": {
               type: "boolean",
-              default: defaults.insertSpace,
+              default: defaults2.insertSpace,
               description: localize(224, "Controls whether a space character is inserted when commenting.")
             },
             "editor.comments.ignoreEmptyLines": {
               type: "boolean",
-              default: defaults.ignoreEmptyLines,
+              default: defaults2.ignoreEmptyLines,
               description: localize(225, "Controls if empty lines should be ignored with toggle, add or remove actions for line comments.")
             }
           });
@@ -56279,7 +56279,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorFind = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             cursorMoveOnType: true,
             findOnType: true,
             seedSearchStringFromSelection: "always",
@@ -56291,16 +56291,16 @@ https://creativecommons.org/licenses/by/4.0/
             history: "workspace",
             replaceHistory: "workspace"
           };
-          super(50, "find", defaults, {
+          super(50, "find", defaults2, {
             "editor.find.cursorMoveOnType": {
               type: "boolean",
-              default: defaults.cursorMoveOnType,
+              default: defaults2.cursorMoveOnType,
               description: localize(227, "Controls whether the cursor should jump to find matches while typing.")
             },
             "editor.find.seedSearchStringFromSelection": {
               type: "string",
               enum: ["never", "always", "selection"],
-              default: defaults.seedSearchStringFromSelection,
+              default: defaults2.seedSearchStringFromSelection,
               enumDescriptions: [
                 localize(228, "Never seed search string from the editor selection."),
                 localize(229, "Always seed search string from the editor selection, including word at cursor position."),
@@ -56311,7 +56311,7 @@ https://creativecommons.org/licenses/by/4.0/
             "editor.find.autoFindInSelection": {
               type: "string",
               enum: ["never", "always", "multiline"],
-              default: defaults.autoFindInSelection,
+              default: defaults2.autoFindInSelection,
               enumDescriptions: [
                 localize(232, "Never turn on Find in Selection automatically (default)."),
                 localize(233, "Always turn on Find in Selection automatically."),
@@ -56321,23 +56321,23 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.find.globalFindClipboard": {
               type: "boolean",
-              default: defaults.globalFindClipboard,
+              default: defaults2.globalFindClipboard,
               description: localize(236, "Controls whether the Find Widget should read or modify the shared find clipboard on macOS."),
               included: isMacintosh
             },
             "editor.find.addExtraSpaceOnTop": {
               type: "boolean",
-              default: defaults.addExtraSpaceOnTop,
+              default: defaults2.addExtraSpaceOnTop,
               description: localize(237, "Controls whether the Find Widget should add extra lines on top of the editor. When true, you can scroll beyond the first line when the Find Widget is visible.")
             },
             "editor.find.loop": {
               type: "boolean",
-              default: defaults.loop,
+              default: defaults2.loop,
               description: localize(238, "Controls whether the search automatically restarts from the beginning (or the end) when no further matches can be found.")
             },
             "editor.find.closeOnResult": {
               type: "boolean",
-              default: defaults.closeOnResult,
+              default: defaults2.closeOnResult,
               description: localize(239, "Controls whether the Find Widget closes after an explicit find navigation command lands on a result.")
             },
             "editor.find.history": {
@@ -56362,7 +56362,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.find.findOnType": {
               type: "boolean",
-              default: defaults.findOnType,
+              default: defaults2.findOnType,
               description: localize(246, "Controls whether the Find Widget should search as you type.")
             }
           });
@@ -56603,7 +56603,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorGoToLocation = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             multiple: "peek",
             multipleDefinitions: "peek",
             multipleTypeDefinitions: "peek",
@@ -56621,7 +56621,7 @@ https://creativecommons.org/licenses/by/4.0/
           const jsonSubset = {
             type: "string",
             enum: ["peek", "gotoAndPeek", "goto"],
-            default: defaults.multiple,
+            default: defaults2.multiple,
             enumDescriptions: [
               localize(256, "Show Peek view of the results (default)"),
               localize(257, "Go to the primary result and show a Peek view"),
@@ -56629,7 +56629,7 @@ https://creativecommons.org/licenses/by/4.0/
             ]
           };
           const alternativeCommandOptions = ["", "editor.action.referenceSearch.trigger", "editor.action.goToReferences", "editor.action.peekImplementation", "editor.action.goToImplementation", "editor.action.peekTypeDefinition", "editor.action.goToTypeDefinition", "editor.action.peekDeclaration", "editor.action.revealDeclaration", "editor.action.peekDefinition", "editor.action.revealDefinitionAside", "editor.action.revealDefinition"];
-          super(67, "gotoLocation", defaults, {
+          super(67, "gotoLocation", defaults2, {
             "editor.gotoLocation.multiple": {
               deprecationMessage: localize(259, "This setting is deprecated, please use separate settings like 'editor.editor.gotoLocation.multipleDefinitions' or 'editor.editor.gotoLocation.multipleImplementations' instead.")
             },
@@ -56655,31 +56655,31 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.gotoLocation.alternativeDefinitionCommand": {
               type: "string",
-              default: defaults.alternativeDefinitionCommand,
+              default: defaults2.alternativeDefinitionCommand,
               enum: alternativeCommandOptions,
               description: localize(265, "Alternative command id that is being executed when the result of 'Go to Definition' is the current location.")
             },
             "editor.gotoLocation.alternativeTypeDefinitionCommand": {
               type: "string",
-              default: defaults.alternativeTypeDefinitionCommand,
+              default: defaults2.alternativeTypeDefinitionCommand,
               enum: alternativeCommandOptions,
               description: localize(266, "Alternative command id that is being executed when the result of 'Go to Type Definition' is the current location.")
             },
             "editor.gotoLocation.alternativeDeclarationCommand": {
               type: "string",
-              default: defaults.alternativeDeclarationCommand,
+              default: defaults2.alternativeDeclarationCommand,
               enum: alternativeCommandOptions,
               description: localize(267, "Alternative command id that is being executed when the result of 'Go to Declaration' is the current location.")
             },
             "editor.gotoLocation.alternativeImplementationCommand": {
               type: "string",
-              default: defaults.alternativeImplementationCommand,
+              default: defaults2.alternativeImplementationCommand,
               enum: alternativeCommandOptions,
               description: localize(268, "Alternative command id that is being executed when the result of 'Go to Implementation' is the current location.")
             },
             "editor.gotoLocation.alternativeReferenceCommand": {
               type: "string",
-              default: defaults.alternativeReferenceCommand,
+              default: defaults2.alternativeReferenceCommand,
               enum: alternativeCommandOptions,
               description: localize(269, "Alternative command id that is being executed when the result of 'Go to Reference' is the current location.")
             }
@@ -56709,7 +56709,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorHover = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             enabled: "on",
             delay: 300,
             hidingDelay: 300,
@@ -56717,11 +56717,11 @@ https://creativecommons.org/licenses/by/4.0/
             above: true,
             showLongLineWarning: true
           };
-          super(69, "hover", defaults, {
+          super(69, "hover", defaults2, {
             "editor.hover.enabled": {
               type: "string",
               enum: ["on", "off", "onKeyboardModifier"],
-              default: defaults.enabled,
+              default: defaults2.enabled,
               markdownEnumDescriptions: [
                 localize(270, "Hover is enabled."),
                 localize(271, "Hover is disabled."),
@@ -56732,30 +56732,30 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.hover.delay": {
               type: "number",
-              default: defaults.delay,
+              default: defaults2.delay,
               minimum: 0,
               maximum: 1e4,
               description: localize(274, "Controls the delay in milliseconds after which the hover is shown.")
             },
             "editor.hover.sticky": {
               type: "boolean",
-              default: defaults.sticky,
+              default: defaults2.sticky,
               description: localize(275, "Controls whether the hover should remain visible when mouse is moved over it.")
             },
             "editor.hover.hidingDelay": {
               type: "integer",
               minimum: 0,
-              default: defaults.hidingDelay,
+              default: defaults2.hidingDelay,
               markdownDescription: localize(276, "Controls the delay in milliseconds after which the hover is hidden. Requires `#editor.hover.sticky#` to be enabled.")
             },
             "editor.hover.above": {
               type: "boolean",
-              default: defaults.above,
+              default: defaults2.above,
               description: localize(277, "Prefer showing hovers above the line, if there's space.")
             },
             "editor.hover.showLongLineWarning": {
               type: "boolean",
-              default: defaults.showLongLineWarning,
+              default: defaults2.showLongLineWarning,
               description: localize(278, "Controls whether long line warning hovers are shown, such as when tokenization is skipped or rendering is paused.")
             }
           });
@@ -57152,12 +57152,12 @@ https://creativecommons.org/licenses/by/4.0/
       })(ShowLightbulbIconMode || (ShowLightbulbIconMode = {}));
       EditorLightbulb = class extends BaseEditorOption {
         constructor() {
-          const defaults = { enabled: ShowLightbulbIconMode.OnCode };
-          super(73, "lightbulb", defaults, {
+          const defaults2 = { enabled: ShowLightbulbIconMode.OnCode };
+          super(73, "lightbulb", defaults2, {
             "editor.lightbulb.enabled": {
               type: "string",
               enum: [ShowLightbulbIconMode.Off, ShowLightbulbIconMode.OnCode, ShowLightbulbIconMode.On],
-              default: defaults.enabled,
+              default: defaults2.enabled,
               enumDescriptions: [
                 localize(282, "Disable the code action menu."),
                 localize(283, "Show the code action menu when the cursor is on lines with code."),
@@ -57179,16 +57179,16 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorStickyScroll = class extends BaseEditorOption {
         constructor() {
-          const defaults = { enabled: true, maxLineCount: 5, defaultModel: "outlineModel", scrollWithEditor: true };
-          super(131, "stickyScroll", defaults, {
+          const defaults2 = { enabled: true, maxLineCount: 5, defaultModel: "outlineModel", scrollWithEditor: true };
+          super(131, "stickyScroll", defaults2, {
             "editor.stickyScroll.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               description: localize(286, "Shows the nested current scopes during the scroll at the top of the editor.")
             },
             "editor.stickyScroll.maxLineCount": {
               type: "number",
-              default: defaults.maxLineCount,
+              default: defaults2.maxLineCount,
               minimum: 1,
               maximum: 20,
               description: localize(287, "Defines the maximum number of sticky lines to show.")
@@ -57196,12 +57196,12 @@ https://creativecommons.org/licenses/by/4.0/
             "editor.stickyScroll.defaultModel": {
               type: "string",
               enum: ["outlineModel", "foldingProviderModel", "indentationModel"],
-              default: defaults.defaultModel,
+              default: defaults2.defaultModel,
               description: localize(288, "Defines the model to use for determining which lines to stick. If the outline model does not exist, it will fall back on the folding provider model which falls back on the indentation model. This order is respected in all three cases.")
             },
             "editor.stickyScroll.scrollWithEditor": {
               type: "boolean",
-              default: defaults.scrollWithEditor,
+              default: defaults2.scrollWithEditor,
               description: localize(289, "Enable scrolling of Sticky Scroll with the editor's horizontal scrollbar.")
             }
           });
@@ -57221,11 +57221,11 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorInlayHints = class extends BaseEditorOption {
         constructor() {
-          const defaults = { enabled: "on", fontSize: 0, fontFamily: "", padding: false, maximumLength: 43 };
-          super(159, "inlayHints", defaults, {
+          const defaults2 = { enabled: "on", fontSize: 0, fontFamily: "", padding: false, maximumLength: 43 };
+          super(159, "inlayHints", defaults2, {
             "editor.inlayHints.enabled": {
               type: "string",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               description: localize(290, "Enables the inlay hints in the editor."),
               enum: ["on", "onUnlessPressed", "offUnlessPressed", "off"],
               markdownEnumDescriptions: [
@@ -57237,22 +57237,22 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlayHints.fontSize": {
               type: "number",
-              default: defaults.fontSize,
+              default: defaults2.fontSize,
               markdownDescription: localize(295, "Controls font size of inlay hints in the editor. As default the {0} is used when the configured value is less than {1} or greater than the editor font size.", "`#editor.fontSize#`", "`5`")
             },
             "editor.inlayHints.fontFamily": {
               type: "string",
-              default: defaults.fontFamily,
+              default: defaults2.fontFamily,
               markdownDescription: localize(296, "Controls font family of inlay hints in the editor. When set to empty, the {0} is used.", "`#editor.fontFamily#`")
             },
             "editor.inlayHints.padding": {
               type: "boolean",
-              default: defaults.padding,
+              default: defaults2.padding,
               description: localize(297, "Enables the padding around the inlay hints in the editor.")
             },
             "editor.inlayHints.maximumLength": {
               type: "number",
-              default: defaults.maximumLength,
+              default: defaults2.maximumLength,
               markdownDescription: localize(298, "Maximum overall length of inlay hints, for a single line, before they get truncated by the editor. Set to `0` to never truncate")
             }
           });
@@ -57304,7 +57304,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorMinimap = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             enabled: true,
             size: "proportional",
             side: "right",
@@ -57319,10 +57319,10 @@ https://creativecommons.org/licenses/by/4.0/
             sectionHeaderFontSize: 9,
             sectionHeaderLetterSpacing: 1
           };
-          super(81, "minimap", defaults, {
+          super(81, "minimap", defaults2, {
             "editor.minimap.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               description: localize(300, "Controls whether the minimap is shown.")
             },
             "editor.minimap.autohide": {
@@ -57333,7 +57333,7 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(302, "The minimap is hidden when mouse is not over the minimap and shown when mouse is over the minimap."),
                 localize(303, "The minimap is only shown when the editor is scrolled")
               ],
-              default: defaults.autohide,
+              default: defaults2.autohide,
               description: localize(304, "Controls whether the minimap is hidden automatically.")
             },
             "editor.minimap.size": {
@@ -57344,24 +57344,24 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(306, "The minimap will stretch or shrink as necessary to fill the height of the editor (no scrolling)."),
                 localize(307, "The minimap will shrink as necessary to never be larger than the editor (no scrolling).")
               ],
-              default: defaults.size,
+              default: defaults2.size,
               description: localize(308, "Controls the size of the minimap.")
             },
             "editor.minimap.side": {
               type: "string",
               enum: ["left", "right"],
-              default: defaults.side,
+              default: defaults2.side,
               description: localize(309, "Controls the side where to render the minimap.")
             },
             "editor.minimap.showSlider": {
               type: "string",
               enum: ["always", "mouseover"],
-              default: defaults.showSlider,
+              default: defaults2.showSlider,
               description: localize(310, "Controls when the minimap slider is shown.")
             },
             "editor.minimap.scale": {
               type: "number",
-              default: defaults.scale,
+              default: defaults2.scale,
               minimum: 1,
               maximum: 3,
               enum: [1, 2, 3],
@@ -57369,37 +57369,37 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.minimap.renderCharacters": {
               type: "boolean",
-              default: defaults.renderCharacters,
+              default: defaults2.renderCharacters,
               description: localize(312, "Render the actual characters on a line as opposed to color blocks.")
             },
             "editor.minimap.maxColumn": {
               type: "number",
-              default: defaults.maxColumn,
+              default: defaults2.maxColumn,
               description: localize(313, "Limit the width of the minimap to render at most a certain number of columns.")
             },
             "editor.minimap.showRegionSectionHeaders": {
               type: "boolean",
-              default: defaults.showRegionSectionHeaders,
+              default: defaults2.showRegionSectionHeaders,
               description: localize(314, "Controls whether named regions are shown as section headers in the minimap.")
             },
             "editor.minimap.showMarkSectionHeaders": {
               type: "boolean",
-              default: defaults.showMarkSectionHeaders,
+              default: defaults2.showMarkSectionHeaders,
               description: localize(315, "Controls whether MARK: comments are shown as section headers in the minimap.")
             },
             "editor.minimap.markSectionHeaderRegex": {
               type: "string",
-              default: defaults.markSectionHeaderRegex,
+              default: defaults2.markSectionHeaderRegex,
               description: localize(316, "Defines the regular expression used to find section headers in comments. The regex must contain a named match group `label` (written as `(?<label>.+)`) that encapsulates the section header, otherwise it will not work. Optionally you can include another match group named `separator`. Use \\n in the pattern to match multi-line headers.")
             },
             "editor.minimap.sectionHeaderFontSize": {
               type: "number",
-              default: defaults.sectionHeaderFontSize,
+              default: defaults2.sectionHeaderFontSize,
               description: localize(317, "Controls the font size of section headers in the minimap.")
             },
             "editor.minimap.sectionHeaderLetterSpacing": {
               type: "number",
-              default: defaults.sectionHeaderLetterSpacing,
+              default: defaults2.sectionHeaderLetterSpacing,
               description: localize(318, "Controls the amount of space (in pixels) between characters of section header. This helps the readability of the header in small font sizes.")
             }
           });
@@ -57467,19 +57467,19 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorParameterHints = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             enabled: true,
             cycle: true
           };
-          super(98, "parameterHints", defaults, {
+          super(98, "parameterHints", defaults2, {
             "editor.parameterHints.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               description: localize(321, "Enables a pop-up that shows parameter documentation and type information as you type.")
             },
             "editor.parameterHints.cycle": {
               type: "boolean",
-              default: defaults.cycle,
+              default: defaults2.cycle,
               description: localize(322, "Controls whether the parameter hints menu cycles or closes when reaching the end of the list.")
             }
           });
@@ -57519,7 +57519,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorQuickSuggestions = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             other: "offWhenInlineCompletions",
             comments: "off",
             strings: "off"
@@ -57532,7 +57532,7 @@ https://creativecommons.org/licenses/by/4.0/
               enumDescriptions: [localize(323, "Quick suggestions show inside the suggest widget"), localize(324, "Quick suggestions show as ghost text"), localize(325, "Quick suggestions are disabled"), localize(326, "Quick suggestions are disabled when inline completions are showing")]
             }
           ];
-          super(102, "quickSuggestions", defaults, {
+          super(102, "quickSuggestions", defaults2, {
             anyOf: [
               { type: "boolean" },
               {
@@ -57546,29 +57546,29 @@ https://creativecommons.org/licenses/by/4.0/
                 properties: {
                   strings: {
                     anyOf: types,
-                    default: defaults.strings,
+                    default: defaults2.strings,
                     description: localize(331, "Enable quick suggestions inside strings.")
                   },
                   comments: {
                     anyOf: types,
-                    default: defaults.comments,
+                    default: defaults2.comments,
                     description: localize(332, "Enable quick suggestions inside comments.")
                   },
                   other: {
                     anyOf: types,
-                    default: defaults.other,
+                    default: defaults2.other,
                     description: localize(333, "Enable quick suggestions outside of strings and comments.")
                   }
                 }
               }
             ],
-            default: defaults,
+            default: defaults2,
             markdownDescription: localize(334, "Controls whether suggestions should automatically show up while typing. This can be controlled for typing in comments, strings, and other code. Quick suggestion can be configured to show as ghost text or with the suggest widget. Also be aware of the {0}-setting which controls if suggestions are triggered by special characters.", "`#editor.suggestOnTriggerCharacters#`"),
             experiment: {
               mode: "auto"
             }
           });
-          this.defaultValue = defaults;
+          this.defaultValue = defaults2;
         }
         validate(input) {
           if (typeof input === "boolean") {
@@ -57650,9 +57650,9 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorRulers = class extends BaseEditorOption {
         constructor() {
-          const defaults = [];
+          const defaults2 = [];
           const columnSchema = { type: "number", description: localize(340, "Number of monospace characters at which this editor ruler will render.") };
-          super(116, "rulers", defaults, {
+          super(116, "rulers", defaults2, {
             type: "array",
             items: {
               anyOf: [
@@ -57672,7 +57672,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               ]
             },
-            default: defaults,
+            default: defaults2,
             description: localize(342, "Render vertical rulers after a certain number of monospace characters. Use multiple values for multiple rulers. No rulers are drawn if array is empty.")
           });
         }
@@ -57701,8 +57701,8 @@ https://creativecommons.org/licenses/by/4.0/
       };
       ReadonlyMessage = class extends BaseEditorOption {
         constructor() {
-          const defaults = void 0;
-          super(105, "readOnlyMessage", defaults);
+          const defaults2 = void 0;
+          super(105, "readOnlyMessage", defaults2);
         }
         validate(_input) {
           if (!_input || typeof _input !== "object") {
@@ -57713,7 +57713,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorScrollbar = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             vertical: 1,
             horizontal: 1,
             arrowSize: 11,
@@ -57729,7 +57729,7 @@ https://creativecommons.org/licenses/by/4.0/
             scrollByPage: false,
             ignoreHorizontalScrollbarInContentHeight: false
           };
-          super(117, "scrollbar", defaults, {
+          super(117, "scrollbar", defaults2, {
             "editor.scrollbar.vertical": {
               type: "string",
               enum: ["auto", "visible", "hidden"],
@@ -57754,22 +57754,22 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.scrollbar.verticalScrollbarSize": {
               type: "number",
-              default: defaults.verticalScrollbarSize,
+              default: defaults2.verticalScrollbarSize,
               description: localize(351, "The width of the vertical scrollbar.")
             },
             "editor.scrollbar.horizontalScrollbarSize": {
               type: "number",
-              default: defaults.horizontalScrollbarSize,
+              default: defaults2.horizontalScrollbarSize,
               description: localize(352, "The height of the horizontal scrollbar.")
             },
             "editor.scrollbar.scrollByPage": {
               type: "boolean",
-              default: defaults.scrollByPage,
+              default: defaults2.scrollByPage,
               description: localize(353, "Controls whether clicks scroll by page or jump to click position.")
             },
             "editor.scrollbar.ignoreHorizontalScrollbarInContentHeight": {
               type: "boolean",
-              default: defaults.ignoreHorizontalScrollbarInContentHeight,
+              default: defaults2.ignoreHorizontalScrollbarInContentHeight,
               description: localize(354, "When set, the horizontal scrollbar will not increase the size of the editor's content.")
             }
           });
@@ -57811,7 +57811,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       UnicodeHighlight = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             nonBasicASCII: inUntrustedWorkspace,
             invisibleCharacters: true,
             ambiguousCharacters: true,
@@ -57820,44 +57820,44 @@ https://creativecommons.org/licenses/by/4.0/
             allowedCharacters: {},
             allowedLocales: { _os: true, _vscode: true }
           };
-          super(142, "unicodeHighlight", defaults, {
+          super(142, "unicodeHighlight", defaults2, {
             [unicodeHighlightConfigKeys.nonBasicASCII]: {
               restricted: true,
               type: ["boolean", "string"],
               enum: [true, false, inUntrustedWorkspace],
-              default: defaults.nonBasicASCII,
+              default: defaults2.nonBasicASCII,
               description: localize(355, "Controls whether all non-basic ASCII characters are highlighted. Only characters between U+0020 and U+007E, tab, line-feed and carriage-return are considered basic ASCII.")
             },
             [unicodeHighlightConfigKeys.invisibleCharacters]: {
               restricted: true,
               type: "boolean",
-              default: defaults.invisibleCharacters,
+              default: defaults2.invisibleCharacters,
               description: localize(356, "Controls whether characters that just reserve space or have no width at all are highlighted.")
             },
             [unicodeHighlightConfigKeys.ambiguousCharacters]: {
               restricted: true,
               type: "boolean",
-              default: defaults.ambiguousCharacters,
+              default: defaults2.ambiguousCharacters,
               description: localize(357, "Controls whether characters are highlighted that can be confused with basic ASCII characters, except those that are common in the current user locale.")
             },
             [unicodeHighlightConfigKeys.includeComments]: {
               restricted: true,
               type: ["boolean", "string"],
               enum: [true, false, inUntrustedWorkspace],
-              default: defaults.includeComments,
+              default: defaults2.includeComments,
               description: localize(358, "Controls whether characters in comments should also be subject to Unicode highlighting.")
             },
             [unicodeHighlightConfigKeys.includeStrings]: {
               restricted: true,
               type: ["boolean", "string"],
               enum: [true, false, inUntrustedWorkspace],
-              default: defaults.includeStrings,
+              default: defaults2.includeStrings,
               description: localize(359, "Controls whether characters in strings should also be subject to Unicode highlighting.")
             },
             [unicodeHighlightConfigKeys.allowedCharacters]: {
               restricted: true,
               type: "object",
-              default: defaults.allowedCharacters,
+              default: defaults2.allowedCharacters,
               description: localize(360, "Defines allowed characters that are not being highlighted."),
               additionalProperties: {
                 type: "boolean"
@@ -57869,7 +57869,7 @@ https://creativecommons.org/licenses/by/4.0/
               additionalProperties: {
                 type: "boolean"
               },
-              default: defaults.allowedLocales,
+              default: defaults2.allowedLocales,
               description: localize(361, "Unicode characters that are common in allowed locales are not being highlighted.")
             }
           });
@@ -57924,7 +57924,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       InlineEditorSuggest = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             enabled: true,
             mode: "subwordSmart",
             showToolbar: "onHover",
@@ -57948,15 +57948,15 @@ https://creativecommons.org/licenses/by/4.0/
               emptyResponseInformation: true
             }
           };
-          super(71, "inlineSuggest", defaults, {
+          super(71, "inlineSuggest", defaults2, {
             "editor.inlineSuggest.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               description: localize(362, "Controls whether to automatically show inline suggestions in the editor.")
             },
             "editor.inlineSuggest.showToolbar": {
               type: "string",
-              default: defaults.showToolbar,
+              default: defaults2.showToolbar,
               enum: ["always", "onHover", "never"],
               enumDescriptions: [
                 localize(363, "Show the inline suggestion toolbar whenever an inline suggestion is shown."),
@@ -57967,17 +57967,17 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.syntaxHighlightingEnabled": {
               type: "boolean",
-              default: defaults.syntaxHighlightingEnabled,
+              default: defaults2.syntaxHighlightingEnabled,
               description: localize(367, "Controls whether to show syntax highlighting for inline suggestions in the editor.")
             },
             "editor.inlineSuggest.suppressSuggestions": {
               type: "boolean",
-              default: defaults.suppressSuggestions,
+              default: defaults2.suppressSuggestions,
               description: localize(368, "Controls how inline suggestions interact with the suggest widget. If enabled, the suggest widget is not shown automatically when inline suggestions are available.")
             },
             "editor.inlineSuggest.suppressInSnippetMode": {
               type: "boolean",
-              default: defaults.suppressInSnippetMode,
+              default: defaults2.suppressInSnippetMode,
               description: localize(369, "Controls whether inline suggestions are suppressed when in snippet mode.")
             },
             "editor.inlineSuggest.minShowDelay": {
@@ -57989,7 +57989,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.experimental.suppressInlineSuggestions": {
               type: "string",
-              default: defaults.experimental.suppressInlineSuggestions,
+              default: defaults2.experimental.suppressInlineSuggestions,
               tags: ["experimental"],
               description: localize(371, "Suppresses inline completions for specified extension IDs -- comma separated."),
               experiment: {
@@ -57998,7 +57998,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.experimental.emptyResponseInformation": {
               type: "boolean",
-              default: defaults.experimental.emptyResponseInformation,
+              default: defaults2.experimental.emptyResponseInformation,
               tags: ["experimental"],
               description: localize(372, "Controls whether to send request information from the inline suggestion provider."),
               experiment: {
@@ -58007,7 +58007,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.triggerCommandOnProviderChange": {
               type: "boolean",
-              default: defaults.triggerCommandOnProviderChange,
+              default: defaults2.triggerCommandOnProviderChange,
               tags: ["experimental"],
               description: localize(373, "Controls whether to trigger a command when the inline suggestion provider changes."),
               experiment: {
@@ -58016,7 +58016,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.experimental.showOnSuggestConflict": {
               type: "string",
-              default: defaults.experimental.showOnSuggestConflict,
+              default: defaults2.experimental.showOnSuggestConflict,
               tags: ["experimental"],
               enum: ["always", "never", "whenSuggestListIsIncomplete"],
               description: localize(374, "Controls whether to show inline suggestions when there is a suggest conflict."),
@@ -58026,25 +58026,25 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.fontFamily": {
               type: "string",
-              default: defaults.fontFamily,
+              default: defaults2.fontFamily,
               description: localize(375, "Controls the font family of the inline suggestions.")
             },
             "editor.inlineSuggest.edits.allowCodeShifting": {
               type: "string",
-              default: defaults.edits.allowCodeShifting,
+              default: defaults2.edits.allowCodeShifting,
               description: localize(376, "Controls whether showing a suggestion will shift the code to make space for the suggestion inline."),
               enum: ["always", "horizontal", "never"],
               tags: ["nextEditSuggestions"]
             },
             "editor.inlineSuggest.edits.showLongDistanceHint": {
               type: "boolean",
-              default: defaults.edits.showLongDistanceHint,
+              default: defaults2.edits.showLongDistanceHint,
               description: localize(377, "Controls whether long distance inline suggestions are shown."),
               tags: ["nextEditSuggestions", "experimental"]
             },
             "editor.inlineSuggest.edits.renderSideBySide": {
               type: "string",
-              default: defaults.edits.renderSideBySide,
+              default: defaults2.edits.renderSideBySide,
               description: localize(378, "Controls whether larger suggestions can be shown side by side."),
               enum: ["auto", "never"],
               enumDescriptions: [
@@ -58055,7 +58055,7 @@ https://creativecommons.org/licenses/by/4.0/
             },
             "editor.inlineSuggest.edits.showCollapsed": {
               type: "boolean",
-              default: defaults.edits.showCollapsed,
+              default: defaults2.edits.showCollapsed,
               description: localize(381, "Controls whether the suggestion will show as collapsed until jumping to it."),
               tags: ["nextEditSuggestions"]
             }
@@ -58108,19 +58108,19 @@ https://creativecommons.org/licenses/by/4.0/
       };
       BracketPairColorization = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             enabled: EDITOR_MODEL_DEFAULTS.bracketPairColorizationOptions.enabled,
             independentColorPoolPerBracketType: EDITOR_MODEL_DEFAULTS.bracketPairColorizationOptions.independentColorPoolPerBracketType
           };
-          super(21, "bracketPairColorization", defaults, {
+          super(21, "bracketPairColorization", defaults2, {
             "editor.bracketPairColorization.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               markdownDescription: localize(382, "Controls whether bracket pair colorization is enabled or not. Use {0} to override the bracket highlight colors.", "`#workbench.colorCustomizations#`")
             },
             "editor.bracketPairColorization.independentColorPoolPerBracketType": {
               type: "boolean",
-              default: defaults.independentColorPoolPerBracketType,
+              default: defaults2.independentColorPoolPerBracketType,
               description: localize(383, "Controls whether each bracket type has its own independent color pool.")
             }
           });
@@ -58138,14 +58138,14 @@ https://creativecommons.org/licenses/by/4.0/
       };
       GuideOptions = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             bracketPairs: false,
             bracketPairsHorizontal: "active",
             highlightActiveBracketPair: true,
             indentation: true,
             highlightActiveIndentation: true
           };
-          super(22, "guides", defaults, {
+          super(22, "guides", defaults2, {
             "editor.guides.bracketPairs": {
               type: ["boolean", "string"],
               enum: [true, "active", false],
@@ -58154,7 +58154,7 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(385, "Enables bracket pair guides only for the active bracket pair."),
                 localize(386, "Disables bracket pair guides.")
               ],
-              default: defaults.bracketPairs,
+              default: defaults2.bracketPairs,
               description: localize(387, "Controls whether bracket pair guides are enabled or not.")
             },
             "editor.guides.bracketPairsHorizontal": {
@@ -58165,17 +58165,17 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(389, "Enables horizontal guides only for the active bracket pair."),
                 localize(390, "Disables horizontal bracket pair guides.")
               ],
-              default: defaults.bracketPairsHorizontal,
+              default: defaults2.bracketPairsHorizontal,
               description: localize(391, "Controls whether horizontal bracket pair guides are enabled or not.")
             },
             "editor.guides.highlightActiveBracketPair": {
               type: "boolean",
-              default: defaults.highlightActiveBracketPair,
+              default: defaults2.highlightActiveBracketPair,
               description: localize(392, "Controls whether the editor should highlight the active bracket pair.")
             },
             "editor.guides.indentation": {
               type: "boolean",
-              default: defaults.indentation,
+              default: defaults2.indentation,
               description: localize(393, "Controls whether the editor should render indent guides.")
             },
             "editor.guides.highlightActiveIndentation": {
@@ -58186,7 +58186,7 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(395, "Highlights the active indent guide even if bracket guides are highlighted."),
                 localize(396, "Do not highlight the active indent guide.")
               ],
-              default: defaults.highlightActiveIndentation,
+              default: defaults2.highlightActiveIndentation,
               description: localize(397, "Controls whether the editor should highlight the active indent guide.")
             }
           });
@@ -58207,7 +58207,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorSuggest = class extends BaseEditorOption {
         constructor() {
-          const defaults = {
+          const defaults2 = {
             insertMode: "insert",
             filterGraceful: true,
             snippetsPreventQuickSuggestions: false,
@@ -58249,7 +58249,7 @@ https://creativecommons.org/licenses/by/4.0/
             showUsers: true,
             showIssues: true
           };
-          super(134, "suggest", defaults, {
+          super(134, "suggest", defaults2, {
             "editor.suggest.insertMode": {
               type: "string",
               enum: ["insert", "replace"],
@@ -58257,22 +58257,22 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(398, "Insert suggestion without overwriting text right of the cursor."),
                 localize(399, "Insert suggestion and overwrite text right of the cursor.")
               ],
-              default: defaults.insertMode,
+              default: defaults2.insertMode,
               description: localize(400, "Controls whether words are overwritten when accepting completions. Note that this depends on extensions opting into this feature.")
             },
             "editor.suggest.filterGraceful": {
               type: "boolean",
-              default: defaults.filterGraceful,
+              default: defaults2.filterGraceful,
               description: localize(401, "Controls whether filtering and sorting suggestions accounts for small typos.")
             },
             "editor.suggest.localityBonus": {
               type: "boolean",
-              default: defaults.localityBonus,
+              default: defaults2.localityBonus,
               description: localize(402, "Controls whether sorting favors words that appear close to the cursor.")
             },
             "editor.suggest.shareSuggestSelections": {
               type: "boolean",
-              default: defaults.shareSuggestSelections,
+              default: defaults2.shareSuggestSelections,
               markdownDescription: localize(403, "Controls whether remembered suggestion selections are shared between multiple workspaces and windows (needs `#editor.suggestSelection#`).")
             },
             "editor.suggest.selectionMode": {
@@ -58284,32 +58284,32 @@ https://creativecommons.org/licenses/by/4.0/
                 localize(406, "Select a suggestion only when triggering IntelliSense from a trigger character."),
                 localize(407, "Select a suggestion only when triggering IntelliSense as you type.")
               ],
-              default: defaults.selectionMode,
+              default: defaults2.selectionMode,
               markdownDescription: localize(408, "Controls whether a suggestion is selected when the widget shows. Note that this only applies to automatically triggered suggestions ({0} and {1}) and that a suggestion is always selected when explicitly invoked, e.g via `Ctrl+Space`.", "`#editor.quickSuggestions#`", "`#editor.suggestOnTriggerCharacters#`")
             },
             "editor.suggest.snippetsPreventQuickSuggestions": {
               type: "boolean",
-              default: defaults.snippetsPreventQuickSuggestions,
+              default: defaults2.snippetsPreventQuickSuggestions,
               description: localize(409, "Controls whether an active snippet prevents quick suggestions.")
             },
             "editor.suggest.showIcons": {
               type: "boolean",
-              default: defaults.showIcons,
+              default: defaults2.showIcons,
               description: localize(410, "Controls whether to show or hide icons in suggestions.")
             },
             "editor.suggest.showStatusBar": {
               type: "boolean",
-              default: defaults.showStatusBar,
+              default: defaults2.showStatusBar,
               description: localize(411, "Controls the visibility of the status bar at the bottom of the suggest widget.")
             },
             "editor.suggest.preview": {
               type: "boolean",
-              default: defaults.preview,
+              default: defaults2.preview,
               description: localize(412, "Controls whether to preview the suggestion outcome in the editor.")
             },
             "editor.suggest.showInlineDetails": {
               type: "boolean",
-              default: defaults.showInlineDetails,
+              default: defaults2.showInlineDetails,
               description: localize(413, "Controls whether suggest details show inline with the label or only in the details widget.")
             },
             "editor.suggest.maxVisibleSuggestions": {
@@ -58551,8 +58551,8 @@ https://creativecommons.org/licenses/by/4.0/
       };
       WordSegmenterLocales = class extends BaseEditorOption {
         constructor() {
-          const defaults = [];
-          super(147, "wordSegmenterLocales", defaults, {
+          const defaults2 = [];
+          super(147, "wordSegmenterLocales", defaults2, {
             anyOf: [
               {
                 type: "string"
@@ -58569,7 +58569,7 @@ https://creativecommons.org/licenses/by/4.0/
             items: {
               type: "string"
             },
-            default: defaults
+            default: defaults2
           });
         }
         validate(input) {
@@ -58658,11 +58658,11 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorDropIntoEditor = class extends BaseEditorOption {
         constructor() {
-          const defaults = { enabled: true, showDropSelector: "afterDrop" };
-          super(43, "dropIntoEditor", defaults, {
+          const defaults2 = { enabled: true, showDropSelector: "afterDrop" };
+          super(43, "dropIntoEditor", defaults2, {
             "editor.dropIntoEditor.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               markdownDescription: localize(454, "Controls whether you can drag and drop a file into a text editor by holding down the `Shift` key (instead of opening the file in an editor).")
             },
             "editor.dropIntoEditor.showDropSelector": {
@@ -58693,11 +58693,11 @@ https://creativecommons.org/licenses/by/4.0/
       };
       EditorPasteAs = class extends BaseEditorOption {
         constructor() {
-          const defaults = { enabled: true, showPasteSelector: "afterPaste" };
-          super(97, "pasteAs", defaults, {
+          const defaults2 = { enabled: true, showPasteSelector: "afterPaste" };
+          super(97, "pasteAs", defaults2, {
             "editor.pasteAs.enabled": {
               type: "boolean",
-              default: defaults.enabled,
+              default: defaults2.enabled,
               markdownDescription: localize(458, "Controls whether you can paste content in different ways.")
             },
             "editor.pasteAs.showPasteSelector": {
@@ -72608,8 +72608,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     const foregroundColorId = colorMap.getId(defaultForeground);
     const backgroundColorId = colorMap.getId(defaultBackground);
-    const defaults = new ThemeTrieElementRule(defaultFontStyle, foregroundColorId, backgroundColorId);
-    const root = new ThemeTrieElement(defaults);
+    const defaults2 = new ThemeTrieElementRule(defaultFontStyle, foregroundColorId, backgroundColorId);
+    const root = new ThemeTrieElement(defaults2);
     for (let i = 0, len = parsedThemeRules.length; i < len; i++) {
       const rule = parsedThemeRules[i];
       root.insert(rule.token, rule.fontStyle, colorMap.getId(rule.foreground), colorMap.getId(rule.background));
@@ -87212,8 +87212,8 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/platform/theme/common/iconRegistry.js
-  function registerIcon(id, defaults, description, deprecationMessage) {
-    return iconRegistry.registerIcon(id, defaults, description, deprecationMessage);
+  function registerIcon(id, defaults2, description, deprecationMessage) {
+    return iconRegistry.registerIcon(id, defaults2, description, deprecationMessage);
   }
   function getIconRegistry() {
     return iconRegistry;
@@ -87304,7 +87304,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.iconsById = {};
           this.iconFontsById = {};
         }
-        registerIcon(id, defaults, description, deprecationMessage) {
+        registerIcon(id, defaults2, description, deprecationMessage) {
           const existing = this.iconsById[id];
           if (existing) {
             if (description && !existing.description) {
@@ -87318,7 +87318,7 @@ https://creativecommons.org/licenses/by/4.0/
             }
             return existing;
           }
-          const iconContribution = { id, description, defaults, deprecationMessage };
+          const iconContribution = { id, description, defaults: defaults2, deprecationMessage };
           this.iconsById[id] = iconContribution;
           const propertySchema = { $ref: "#/definitions/icons" };
           if (deprecationMessage) {
@@ -88241,9 +88241,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         _getResolver() {
           if (!this._cachedResolver) {
-            const defaults = this._toNormalizedKeybindingItems(KeybindingsRegistry.getDefaultKeybindings(), true);
+            const defaults2 = this._toNormalizedKeybindingItems(KeybindingsRegistry.getDefaultKeybindings(), true);
             const overrides = this._toNormalizedKeybindingItems(this._dynamicKeybindings, false);
-            this._cachedResolver = new KeybindingResolver(defaults, overrides, (str) => this._log(str));
+            this._cachedResolver = new KeybindingResolver(defaults2, overrides, (str) => this._log(str));
           }
           return this._cachedResolver;
         }
@@ -137547,76 +137547,76 @@ https://creativecommons.org/licenses/by/4.0/
   function isDeletion(mapping) {
     return mapping.modified.length === 0;
   }
-  function validateDiffEditorOptions(options2, defaults) {
+  function validateDiffEditorOptions(options2, defaults2) {
     return {
-      enableSplitViewResizing: boolean(options2.enableSplitViewResizing, defaults.enableSplitViewResizing),
+      enableSplitViewResizing: boolean(options2.enableSplitViewResizing, defaults2.enableSplitViewResizing),
       splitViewDefaultRatio: clampedFloat(options2.splitViewDefaultRatio, 0.5, 0.1, 0.9),
-      renderSideBySide: boolean(options2.renderSideBySide, defaults.renderSideBySide),
-      renderMarginRevertIcon: boolean(options2.renderMarginRevertIcon, defaults.renderMarginRevertIcon),
+      renderSideBySide: boolean(options2.renderSideBySide, defaults2.renderSideBySide),
+      renderMarginRevertIcon: boolean(options2.renderMarginRevertIcon, defaults2.renderMarginRevertIcon),
       maxComputationTime: clampedInt(
         options2.maxComputationTime,
-        defaults.maxComputationTime,
+        defaults2.maxComputationTime,
         0,
         1073741824
         /* Constants.MAX_SAFE_SMALL_INTEGER */
       ),
       maxFileSize: clampedInt(
         options2.maxFileSize,
-        defaults.maxFileSize,
+        defaults2.maxFileSize,
         0,
         1073741824
         /* Constants.MAX_SAFE_SMALL_INTEGER */
       ),
-      ignoreTrimWhitespace: boolean(options2.ignoreTrimWhitespace, defaults.ignoreTrimWhitespace),
-      renderIndicators: boolean(options2.renderIndicators, defaults.renderIndicators),
-      originalEditable: boolean(options2.originalEditable, defaults.originalEditable),
-      diffCodeLens: boolean(options2.diffCodeLens, defaults.diffCodeLens),
-      renderOverviewRuler: boolean(options2.renderOverviewRuler, defaults.renderOverviewRuler),
-      diffWordWrap: stringSet(options2.diffWordWrap, defaults.diffWordWrap, ["off", "on", "inherit"]),
-      diffAlgorithm: stringSet(options2.diffAlgorithm, defaults.diffAlgorithm, ["legacy", "advanced", "advanced-external", "advanced-wasm"], { "smart": "legacy", "experimental": "advanced" }),
-      accessibilityVerbose: boolean(options2.accessibilityVerbose, defaults.accessibilityVerbose),
+      ignoreTrimWhitespace: boolean(options2.ignoreTrimWhitespace, defaults2.ignoreTrimWhitespace),
+      renderIndicators: boolean(options2.renderIndicators, defaults2.renderIndicators),
+      originalEditable: boolean(options2.originalEditable, defaults2.originalEditable),
+      diffCodeLens: boolean(options2.diffCodeLens, defaults2.diffCodeLens),
+      renderOverviewRuler: boolean(options2.renderOverviewRuler, defaults2.renderOverviewRuler),
+      diffWordWrap: stringSet(options2.diffWordWrap, defaults2.diffWordWrap, ["off", "on", "inherit"]),
+      diffAlgorithm: stringSet(options2.diffAlgorithm, defaults2.diffAlgorithm, ["legacy", "advanced", "advanced-external", "advanced-wasm"], { "smart": "legacy", "experimental": "advanced" }),
+      accessibilityVerbose: boolean(options2.accessibilityVerbose, defaults2.accessibilityVerbose),
       experimental: {
-        showMoves: boolean(options2.experimental?.showMoves, defaults.experimental.showMoves),
-        showEmptyDecorations: boolean(options2.experimental?.showEmptyDecorations, defaults.experimental.showEmptyDecorations),
-        useTrueInlineView: boolean(options2.experimental?.useTrueInlineView, defaults.experimental.useTrueInlineView)
+        showMoves: boolean(options2.experimental?.showMoves, defaults2.experimental.showMoves),
+        showEmptyDecorations: boolean(options2.experimental?.showEmptyDecorations, defaults2.experimental.showEmptyDecorations),
+        useTrueInlineView: boolean(options2.experimental?.useTrueInlineView, defaults2.experimental.useTrueInlineView)
       },
       hideUnchangedRegions: {
         // eslint-disable-next-line local/code-no-any-casts, @typescript-eslint/no-explicit-any
-        enabled: boolean(options2.hideUnchangedRegions?.enabled ?? options2.experimental?.collapseUnchangedRegions, defaults.hideUnchangedRegions.enabled),
+        enabled: boolean(options2.hideUnchangedRegions?.enabled ?? options2.experimental?.collapseUnchangedRegions, defaults2.hideUnchangedRegions.enabled),
         contextLineCount: clampedInt(
           options2.hideUnchangedRegions?.contextLineCount,
-          defaults.hideUnchangedRegions.contextLineCount,
+          defaults2.hideUnchangedRegions.contextLineCount,
           0,
           1073741824
           /* Constants.MAX_SAFE_SMALL_INTEGER */
         ),
         minimumLineCount: clampedInt(
           options2.hideUnchangedRegions?.minimumLineCount,
-          defaults.hideUnchangedRegions.minimumLineCount,
+          defaults2.hideUnchangedRegions.minimumLineCount,
           0,
           1073741824
           /* Constants.MAX_SAFE_SMALL_INTEGER */
         ),
         revealLineCount: clampedInt(
           options2.hideUnchangedRegions?.revealLineCount,
-          defaults.hideUnchangedRegions.revealLineCount,
+          defaults2.hideUnchangedRegions.revealLineCount,
           0,
           1073741824
           /* Constants.MAX_SAFE_SMALL_INTEGER */
         )
       },
-      isInEmbeddedEditor: boolean(options2.isInEmbeddedEditor, defaults.isInEmbeddedEditor),
-      onlyShowAccessibleDiffViewer: boolean(options2.onlyShowAccessibleDiffViewer, defaults.onlyShowAccessibleDiffViewer),
+      isInEmbeddedEditor: boolean(options2.isInEmbeddedEditor, defaults2.isInEmbeddedEditor),
+      onlyShowAccessibleDiffViewer: boolean(options2.onlyShowAccessibleDiffViewer, defaults2.onlyShowAccessibleDiffViewer),
       renderSideBySideInlineBreakpoint: clampedInt(
         options2.renderSideBySideInlineBreakpoint,
-        defaults.renderSideBySideInlineBreakpoint,
+        defaults2.renderSideBySideInlineBreakpoint,
         0,
         1073741824
         /* Constants.MAX_SAFE_SMALL_INTEGER */
       ),
-      useInlineViewWhenSpaceIsLimited: boolean(options2.useInlineViewWhenSpaceIsLimited, defaults.useInlineViewWhenSpaceIsLimited),
-      renderGutterMenu: boolean(options2.renderGutterMenu, defaults.renderGutterMenu),
-      compactMode: boolean(options2.compactMode, defaults.compactMode)
+      useInlineViewWhenSpaceIsLimited: boolean(options2.useInlineViewWhenSpaceIsLimited, defaults2.useInlineViewWhenSpaceIsLimited),
+      renderGutterMenu: boolean(options2.renderGutterMenu, defaults2.renderGutterMenu),
+      compactMode: boolean(options2.compactMode, defaults2.compactMode)
     };
   }
   var __decorate72, __param65, DiffEditorOptions;
@@ -158116,6 +158116,37 @@ https://creativecommons.org/licenses/by/4.0/
     }
   });
 
+  // src/workspace_network_configuration.cjs
+  var require_workspace_network_configuration = __commonJS({
+    "src/workspace_network_configuration.cjs"(exports, module) {
+      "use strict";
+      var defaults2 = Object.freeze({ proxy_mode: "environment", http_proxy_url: "", https_proxy_url: "", ca_file: "" });
+      function normalize5(value = {}) {
+        const legacy = value.proxy_url ?? "";
+        const result = { ...defaults2, ...value, http_proxy_url: Object.hasOwn(value, "http_proxy_url") ? value.http_proxy_url : legacy, https_proxy_url: Object.hasOwn(value, "https_proxy_url") ? value.https_proxy_url : legacy };
+        if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error("\u8BF7\u9009\u62E9\u6709\u6548\u7684\u4EE3\u7406\u6A21\u5F0F\u3002");
+        for (const key3 of ["http_proxy_url", "https_proxy_url", "ca_file"]) {
+          if (typeof result[key3] !== "string" || /[\r\n\0]/.test(result[key3])) throw Error("\u7F51\u7EDC\u914D\u7F6E\u5185\u5BB9\u65E0\u6548\u3002");
+          result[key3] = result[key3].trim();
+        }
+        for (const key3 of ["http_proxy_url", "https_proxy_url"]) if (result[key3]) parse_proxy(result[key3], false);
+        return { proxy_mode: result.proxy_mode, http_proxy_url: result.http_proxy_url, https_proxy_url: result.https_proxy_url, ca_file: result.ca_file };
+      }
+      function parse_proxy(value, allow_auth) {
+        let url;
+        try {
+          url = new URL(value);
+        } catch {
+          throw Error("\u4EE3\u7406\u5730\u5740\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528 http://\u4E3B\u673A:\u7AEF\u53E3 \u6216 https://\u4E3B\u673A:\u7AEF\u53E3\u3002");
+        }
+        if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.pathname !== "/" || url.search || url.hash) throw Error("\u4EC5\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u5730\u5740\uFF0C\u4E0D\u63A5\u53D7\u8DEF\u5F84\u3001\u67E5\u8BE2\u6216\u7247\u6BB5\u3002");
+        if (!allow_auth && (url.username || url.password)) throw Error("\u4EE3\u7406\u5730\u5740\u4E0D\u80FD\u5305\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u5F53\u524D\u8BBE\u7F6E\u652F\u6301\u65E0\u9700\u72EC\u7ACB\u8EAB\u4EFD\u8BA4\u8BC1\u7684HTTP/HTTPS\u4EE3\u7406\u3002");
+        return url;
+      }
+      module.exports = { defaults: defaults2, normalize: normalize5, parse_proxy };
+    }
+  });
+
   // src/reading_code_geometry.ts
   function bind_reading_code_geometry() {
     const entries3 = /* @__PURE__ */ new Map();
@@ -162097,10 +162128,10 @@ https://creativecommons.org/licenses/by/4.0/
     const name = basename(file_path), lower_name = name.toLowerCase();
     for (const rule2 of FILE_LANGUAGE_RULES) {
       const candidate = rule2.case_sensitive ? name : lower_name;
-      const normalize4 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
-      const exact = rule2.filenames?.find((value) => candidate === normalize4(value));
+      const normalize5 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
+      const exact = rule2.filenames?.find((value) => candidate === normalize5(value));
       if (exact) return from_rule(rule2, "filename", exact);
-      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize4(value)));
+      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize5(value)));
       if (prefix) return from_rule(rule2, "filename", prefix + "*");
     }
     for (const { rule: rule2, suffix } of suffix_rules) {
@@ -193061,7 +193092,7 @@ https://creativecommons.org/licenses/by/4.0/
     const scan_stats = /* @__PURE__ */ new Map();
     let snapshot = [], pending = null;
     const clone4 = () => snapshot.map((profile) => ({ ...profile, args: [...profile.args], ...profile.env ? { env: { ...profile.env } } : {} }));
-    const normalize4 = (value) => windows ? path_api.normalize(value).toLowerCase() : path_api.normalize(value);
+    const normalize5 = (value) => windows ? path_api.normalize(value).toLowerCase() : path_api.normalize(value);
     const expand = (value) => value.replace(/%([^%]+)%/gu, (match2, name) => env2[name.toLowerCase()] || match2);
     const remaining_time = () => Math.max(0, scan_deadline - Date.now());
     function warn(message) {
@@ -193092,7 +193123,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     async function stat(file_path) {
       if (disposed || !file_path || file_path.includes("\0")) return null;
-      const key3 = normalize4(file_path);
+      const key3 = normalize5(file_path);
       if (scan_stats.has(key3)) return scan_stats.get(key3);
       if (remaining_time() <= 0) {
         warn("\u90E8\u5206\u5B89\u88C5\u4F4D\u7F6E\u67E5\u8BE2\u8D85\u65F6\uFF0C\u53EF\u91CD\u65B0\u68C0\u6D4B\u3002");
@@ -193172,7 +193203,7 @@ https://creativecommons.org/licenses/by/4.0/
       function add_paths(value) {
         for (const entry of String(value || "").split(windows ? ";" : ":")) {
           const normalized2 = expand(entry.trim().replace(/^"|"$/gu, ""));
-          if (path_api.isAbsolute(normalized2)) path_entries.add(normalize4(normalized2));
+          if (path_api.isAbsolute(normalized2)) path_entries.add(normalize5(normalized2));
         }
       }
       add_paths(env2.path);
@@ -193198,7 +193229,7 @@ https://creativecommons.org/licenses/by/4.0/
         add_paths(installations.user_path);
         const git_roots = /* @__PURE__ */ new Set(), msys_roots = /* @__PURE__ */ new Set(), cygwin_roots = /* @__PURE__ */ new Set(), powershell_roots = /* @__PURE__ */ new Set();
         const add_root = (roots, value) => {
-          if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize4(value));
+          if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize5(value));
         };
         for (const installation of Array.isArray(installations.installations) ? installations.installations : []) {
           const roots = { git: git_roots, msys: msys_roots, cygwin: cygwin_roots, pwsh: powershell_roots }[installation.kind];
@@ -193252,7 +193283,7 @@ https://creativecommons.org/licenses/by/4.0/
           for (const segments_item of segments) {
             const file_path = path_api.join(root, ...segments_item);
             if (await exists(file_path)) {
-              assigned_bash.add(normalize4(file_path));
+              assigned_bash.add(normalize5(file_path));
               if (!chosen) chosen = file_path;
             }
           }
@@ -193275,7 +193306,7 @@ https://creativecommons.org/licenses/by/4.0/
           const executable = await bash_for_root(root, [["bin", "bash.exe"]]);
           if (executable) add("cygwin_" + stable_suffix(root), "Cygwin", executable, ["--login", "-i"], 55, { CHERE_INVOKING: "1" });
         }
-        for (const executable of path_bash.sort()) if (!assigned_bash.has(normalize4(executable))) add("bash", "Bash", executable, ["--login", "-i"], 70);
+        for (const executable of path_bash.sort()) if (!assigned_bash.has(normalize5(executable))) add("bash", "Bash", executable, ["--login", "-i"], 70);
         if (env2.cmder_root && system_folder && await exists(path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd"))) {
           add("cmder", "Cmder", path_api.join(system_folder, "cmd.exe"), ["/K", path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd")], 75);
         }
@@ -193322,7 +193353,7 @@ https://creativecommons.org/licenses/by/4.0/
       valid.sort((left, right) => left.priority - right.priority || left.executable.localeCompare(right.executable, void 0, { numeric: true }) || left.id.localeCompare(right.id));
       const keys = /* @__PURE__ */ new Set(), ids = /* @__PURE__ */ new Set(), result = [];
       for (const candidate of valid) {
-        const key3 = JSON.stringify([normalize4(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
+        const key3 = JSON.stringify([normalize5(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
         if (keys.has(key3)) continue;
         keys.add(key3);
         const { priority, canonical_path, ...profile } = candidate;
@@ -204817,7 +204848,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.target === textarea && !composing && !key3.isComposing && key3.keyCode !== 229 && !key3.ctrlKey && !key3.altKey && !key3.metaKey && !key3.getModifierState("AltGraph") && (key3.key === "Shift" || key3.keyCode === 16)) event.stopPropagation();
     }, true);
     let pending;
-    const normalize4 = (record) => {
+    const normalize5 = (record) => {
       if (lifetime.disposed || !textarea.isConnected || textarea.value !== record.committed) return;
       const start = textarea.selectionStart, end = textarea.selectionEnd, direction = textarea.selectionDirection;
       textarea.value = record.previous + record.committed;
@@ -204828,7 +204859,7 @@ https://creativecommons.org/licenses/by/4.0/
       clearTimeout(timer);
       timer = 0;
       pending = void 0;
-      normalize4(record);
+      normalize5(record);
     };
     const invalidate2 = () => {
       clearTimeout(timer);
@@ -204850,7 +204881,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!previous || !committed) return;
       const record = { previous, committed };
       pending = record;
-      normalize4(record);
+      normalize5(record);
       timer = window.setTimeout(() => flush(record), 0);
     }, true);
     lifetime.listen(textarea, "blur", invalidate2);
@@ -207172,8 +207203,8 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
-  function acquire_git_repository_operation(owner2, root, normalize4) {
-    const key3 = normalize4(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
+  function acquire_git_repository_operation(owner2, root, normalize5) {
+    const key3 = normalize5(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
     if (active2.has(key3)) throw new Error("\u6B64\u4ED3\u5E93\u5DF2\u6709 Git \u64CD\u4F5C\u6B63\u5728\u6267\u884C\uFF0C\u8BF7\u7B49\u5F85\u5B83\u5B8C\u6210\u3002");
     repository_operations.set(owner2, active2);
     active2.add(key3);
@@ -233660,8 +233691,8 @@ https://creativecommons.org/licenses/by/4.0/
       return new Date(source).toLocaleString(git_graph_language_tag());
     }
     graph_color(index) {
-      const custom = this.settings.colors, defaults = graph_defaults.colors;
-      if (custom.length === defaults.length && custom.every((color, i) => color === defaults[i])) return ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index % 7];
+      const custom = this.settings.colors, defaults2 = graph_defaults.colors;
+      if (custom.length === defaults2.length && custom.every((color, i) => color === defaults2[i])) return ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index % 7];
       return custom[index % custom.length];
     }
     draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }, node_kind = "normal") {
@@ -234519,7 +234550,7 @@ https://creativecommons.org/licenses/by/4.0/
       const fields = /* @__PURE__ */ new Map();
       const available = () => !this.disposed && this.root === root && this.runner === runner && dialog2.root.isConnected;
       if (id === "sync") dialog2.root.setAttribute("data-linux-note-git-sync", "ready");
-      const defaults = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}, ...preset };
+      const defaults2 = { ...graph_defaults.dialog_defaults[id], ...this.settings.dialog_defaults[id], ...id === "reset" && kind === "changes" ? this.settings.dialog_defaults.reset_changes : {}, ...preset };
       const remote_name = kind === "remote" ? state.remotes.filter((remote) => target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : void 0;
       const remote_branch = remote_name ? target.slice(remote_name.length + 1) : "";
       dialog2.content.append(workspace_element("p", "", git_graph_text("graph.repository_target", { root: this.root, target: revision_label(target || hash2 || this.state.branch) })));
@@ -234528,13 +234559,13 @@ https://creativecommons.org/licenses/by/4.0/
       dialog2.content.append(form, result);
       for (const item of action.fields) {
         const input = item.type === "choice" ? workspace_element("select") : ["message", "todo"].includes(item.key) ? workspace_element("textarea") : workspace_element("input");
-        let initial = defaults[item.key] ?? item.initial ?? "";
+        let initial = defaults2[item.key] ?? item.initial ?? "";
         if (item.key === "remote" && !Object.hasOwn(preset, "remote")) initial = (kind === "remote" ? this.state.remotes.filter((remote) => target.startsWith(remote.name + "/")).sort((a, b2) => b2.name.length - a.name.length)[0]?.name : "") || initial || this.state.remotes[0]?.name || "";
         if (item.key === "branch") initial = initial || (kind === "remote" ? remote_branch : kind === "branch" && !["branch_create", "branch_rename"].includes(id) ? target : ["push", "pull"].includes(id) ? this.state.branch : "");
         if (item.key === "source") initial = initial || (kind === "remote" ? remote_branch : kind === "branch" ? target : "");
-        if (item.key === "prune") initial = defaults.prune ?? this.settings.fetch_prune;
-        if (item.key === "prune_tags") initial = defaults.prune_tags ?? this.settings.fetch_prune_tags;
-        if (item.key === "sign") initial = defaults.sign ?? this.settings.sign_tags;
+        if (item.key === "prune") initial = defaults2.prune ?? this.settings.fetch_prune;
+        if (item.key === "prune_tags") initial = defaults2.prune_tags ?? this.settings.fetch_prune_tags;
+        if (item.key === "sign") initial = defaults2.sign ?? this.settings.sign_tags;
         if (input instanceof HTMLSelectElement) {
           for (const value of item.choices) input.append(workspace_option(value, item.choice_labels?.[value] || value));
           input.value = String(initial);
@@ -245076,9 +245107,10 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_network_settings.ts
-  var NETWORK_DEFAULTS = { proxy_mode: "environment", proxy_url: "", ca_file: "" };
+  var import_workspace_network_configuration = __toESM(require_workspace_network_configuration());
+  var NETWORK_DEFAULTS = import_workspace_network_configuration.defaults;
   function read_network_settings() {
-    return { ...NETWORK_DEFAULTS, ...get_workspace_app()?.settings.get("workspace_network") };
+    return (0, import_workspace_network_configuration.normalize)(get_workspace_app()?.settings.get("workspace_network") ?? {});
   }
   function write_network_setting(key3, value) {
     if (!(key3 in NETWORK_DEFAULTS)) throw Error("\u672A\u77E5\u7F51\u7EDC\u8BBE\u7F6E\u3002");
@@ -245093,7 +245125,12 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_settings_sections(files) {
     const releases = [], user = () => "\u7528\u6237\u8BBE\u7F6E", root = () => files.context_root(), project = () => "\u5DE5\u4F5C\u533A\uFF1A".concat(root() || "\u672A\u6253\u5F00\u6587\u4EF6\u5939");
     const add = (section) => releases.push(register_workspace_settings(section));
-    add({ id: "network", title: "\u7F51\u7EDC", scope: user, defaults: NETWORK_DEFAULTS, fields: [{ key: "proxy_mode", title: "\u4EE3\u7406\u6A21\u5F0F", choices: ["environment", "direct", "manual"], description: "environment\uFF1A\u4F7F\u7528HTTPS_PROXY/HTTP_PROXY\u53CANO_PROXY\u73AF\u5883\u53D8\u91CF\uFF1Bdirect\uFF1A\u76F4\u8FDE\uFF1Bmanual\uFF1A\u6307\u5B9A\u4EE3\u7406\u3002\u7CFB\u7EDF\u4EE3\u7406/PAC\u4E0D\u4F1A\u81EA\u52A8\u5BFC\u5165\u3002" }, { key: "proxy_url", title: "\u4EE3\u7406\u5730\u5740", description: "\u4F8B\u5982 http://proxy.company:8080\uFF1B\u652F\u6301HTTP/HTTPS\u4EE3\u7406\uFF0C\u4E0D\u63A5\u53D7\u5185\u5D4C\u8D26\u6237\u5BC6\u7801\u3002\u5148\u586B\u5199\u5730\u5740\uFF0C\u518D\u9009\u62E9manual\u3002" }, { key: "ca_file", title: "\u4F01\u4E1ACA\u8BC1\u4E66\u6587\u4EF6", description: "\u9644\u52A0\u4FE1\u4EFBPEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08.pem/.crt/.cer\uFF09\uFF0C\u4E0D\u542B\u79C1\u94A5\uFF1B\u4FDD\u6301TLS\u6821\u9A8C\u3002\u7528\u4E8E\u66F4\u65B0\u68C0\u67E5\u3001ZIP\u4E0E\u793E\u533A\u63D2\u4EF6\u4E0B\u8F7D\uFF0C\u4E0D\u4FEE\u6539\u7CFB\u7EDF/Git/SSH\u3002\u7559\u7A7A\u6062\u590D\u9ED8\u8BA4\u4FE1\u4EFB\u94FE\u3002", file_extensions: ["pem", "crt", "cer"] }], read: read_network_settings, write: write_network_setting });
+    add({ id: "network", title: "\u7F51\u7EDC", scope: user, defaults: NETWORK_DEFAULTS, fields: [
+      { key: "proxy_mode", title: "\u4EE3\u7406\u6A21\u5F0F", choices: ["environment", "direct", "manual"], description: "environment\uFF1A\u4F7F\u7528HTTPS_PROXY/HTTP_PROXY\u53CANO_PROXY\u73AF\u5883\u53D8\u91CF\uFF1Bdirect\uFF1A\u76F4\u8FDE\uFF1Bmanual\uFF1A\u6307\u5B9A\u4EE3\u7406\u3002\u7CFB\u7EDF\u4EE3\u7406/PAC\u4E0D\u4F1A\u81EA\u52A8\u5BFC\u5165\u3002" },
+      { key: "http_proxy_url", title: "HTTP\u8BF7\u6C42\u4EE3\u7406", description: "\u7528\u4E8Ehttp://\u76EE\u6807\uFF1B\u4F8B\u5982 http://proxy.company:8080\u3002\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u7AEF\u70B9\uFF0C\u4E0D\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u7559\u7A7A\u65F6\u6B64\u534F\u8BAE\u76F4\u8FDE\u3002\u5148\u586B\u5199\u81F3\u5C11\u4E00\u9879\uFF0C\u518D\u9009\u62E9manual\u3002" },
+      { key: "https_proxy_url", title: "HTTPS\u8BF7\u6C42\u4EE3\u7406", description: "\u7528\u4E8Ehttps://\u76EE\u6807\uFF1B\u4F8B\u5982 http://proxy.company:8081\u3002\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u7AEF\u70B9\uFF0C\u4E0D\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u7559\u7A7A\u65F6\u6B64\u534F\u8BAE\u76F4\u8FDE\u3002\u4E0EHTTP\u8BF7\u6C42\u4EE3\u7406\u72EC\u7ACB\u4FDD\u5B58\u3002" },
+      { key: "ca_file", title: "\u4F01\u4E1ACA\u8BC1\u4E66\u6587\u4EF6", description: "\u9644\u52A0\u4FE1\u4EFBPEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08.pem/.crt/.cer\uFF09\uFF0C\u4E0D\u542B\u79C1\u94A5\uFF1B\u4FDD\u6301TLS\u6821\u9A8C\u3002\u7528\u4E8E\u66F4\u65B0\u68C0\u67E5\u3001ZIP\u4E0E\u793E\u533A\u63D2\u4EF6\u4E0B\u8F7D\uFF0C\u4E0D\u4FEE\u6539\u7CFB\u7EDF/Git/SSH\u3002\u7559\u7A7A\u6062\u590D\u9ED8\u8BA4\u4FE1\u4EFB\u94FE\u3002", file_extensions: ["pem", "crt", "cer"] }
+    ], read: read_network_settings, write: write_network_setting });
     add({ id: "editor", title: "\u7F16\u8F91\u5668", scope: user, defaults: { ...WORKSPACE_EDITOR_DEFAULTS, ...TEXT_PRESENTATION_DEFAULTS }, fields: [{ key: "word_wrap", title: "\u6587\u672C\u81EA\u52A8\u6362\u884C", description: "\u6E90\u7801\u3001\u5386\u53F2\u7248\u672C\u3001\u5DEE\u5F02\u548C\u6E90\u7801\u9884\u89C8\u6309\u53EF\u7528\u5BBD\u5EA6\u8F6F\u6362\u884C\uFF1B\u4E0D\u66F4\u6539\u6B63\u6587\u6216\u903B\u8F91\u884C\u53F7\u3002\u5173\u95ED\u540E\u53EF\u6A2A\u5411\u6EDA\u52A8\u3002" }, { key: "enable_preview", title: "\u542F\u7528\u9884\u89C8\u7F16\u8F91\u5668" }, { key: "wrap_tabs", title: "\u6807\u7B7E\u6362\u884C\uFF08Wrap Tabs\uFF09", description: "\u6807\u7B7E\u8D85\u8FC7\u53EF\u7528\u5BBD\u5EA6\u65F6\u663E\u793A\u4E3A\u591A\u884C\uFF1B\u5173\u95ED\u65F6\u4F7F\u7528\u5355\u884C\u6EDA\u52A8\u3002" }, { key: "link_preview_enabled", title: "\u9009\u4E2D\u94FE\u63A5\u81EA\u52A8\u9884\u89C8", description: "\u5728\u5DE6\u4FA7\u4E0B\u65B9\u53EA\u8BFB\u9884\u89C8\u9009\u4E2D\u7684\u94FE\u63A5\uFF0C\u4E0D\u5F71\u54CD\u641C\u7D22\u7ED3\u679C\u9884\u89C8\u548C\u624B\u52A8\u5206\u5C4F\u9884\u89C8\u3002" }], read: () => ({ ...read_workspace_editor_settings(), ...read_text_presentation() }), write: (key3, value) => key3 === "word_wrap" ? update_text_presentation(value) : set_workspace_editor_setting(key3, value) });
     const file_labels = ["\u81EA\u52A8\u4FDD\u5B58", "\u81EA\u52A8\u4FDD\u5B58\u5EF6\u8FDF\uFF08\u6BEB\u79D2\uFF09", "\u4EC5\u81EA\u52A8\u4FDD\u5B58\u5DE5\u4F5C\u533A\u5185\u6587\u4EF6", "\u4EC5\u5728\u6CA1\u6709\u8BCA\u65AD\u9519\u8BEF\u65F6\u81EA\u52A8\u4FDD\u5B58", "\u542F\u7528\u672C\u5730\u5386\u53F2", "\u6BCF\u4E2A\u6587\u4EF6\u5386\u53F2\u6761\u6570", "\u76F8\u90BB\u4FDD\u5B58\u5408\u5E76\u7A97\u53E3\uFF08\u79D2\uFF09", "\u5386\u53F2\u6392\u9664\u89C4\u5219\uFF08JSON\uFF09", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5927\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6700\u5C0F\u53EF\u89C1\u884C\u6570", "\u6253\u5F00\u7684\u7F16\u8F91\u5668\u6392\u5E8F", "\u663E\u793A\u6253\u5F00\u7684\u7F16\u8F91\u5668", "\u663E\u793A\u65F6\u95F4\u7EBF"];
     add({ id: "files", title: "\u8D44\u6E90\u7BA1\u7406\u5668\u4E0E\u4FDD\u5B58", scope: user, defaults: FILE_SETTING_DEFAULTS, fields: Object.keys(FILE_SETTING_DEFAULTS).map((key3, index) => ({ key: key3, title: file_labels[index] || key3, choices: key3 === "files.autoSave" ? ["off", "afterDelay", "onFocusChange", "onWindowChange"] : key3 === "explorer.openEditors.sortOrder" ? ["editorOrder", "alphabetical", "fullPath"] : void 0 })), read: read_workspace_save_settings, write: (key3, value) => {
@@ -246432,6 +246469,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092503,
+        version: "2026.09.25.3",
+        date: "2026-09-25",
+        notes: [
+          "\u7F51\u7EDC\u8BBE\u7F6E\u652F\u6301HTTP\u548CHTTPS\u8BF7\u6C42\u5206\u522B\u6307\u5B9A\u4EE3\u7406\uFF0C\u6309\u76EE\u6807\u534F\u8BAE\u9009\u62E9\uFF1B\u65E7\u5355\u4EE3\u7406\u81EA\u52A8\u8FC1\u79FB\u5230\u4E24\u9879\uFF0C\u4E4B\u540E\u72EC\u7ACB\u4FDD\u5B58\uFF0C\u5355\u9879\u7559\u7A7A\u65F6\u8BE5\u534F\u8BAE\u76F4\u8FDE\u3002",
+          "\u66F4\u65B0\u4E0E\u793E\u533A\u4E0B\u8F7D\u5171\u7528\u4EE3\u7406\u548C\u53EF\u9009\u4F01\u4E1ACA\uFF0C\u4FDD\u7559\u73AF\u5883\u4EE3\u7406\u3001\u76F4\u8FDE\u3001TLS\u6821\u9A8C\u53CA\u53D6\u6D88\u884C\u4E3A\u3002"
+        ]
+      },
       {
         sequence: 2026092502,
         version: "2026.09.25.2",

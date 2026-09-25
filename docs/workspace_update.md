@@ -208,3 +208,17 @@ R055同步发布R047.3检查失败直接重试、R047.4帮助菜单项目仓库�
 验收：本地真实HTTPS服务器/HTTP与HTTPS CONNECT代理证明未配置CA失败、指定CA成功、无关/损坏证书失败、环境与直接模式、代理失败/取消及重定向；统一设置保存/错误/恢复与worker配置传递，原生宿主加载，隔离安装卸载重装与本机校验。企业现场网络不可由本地替身宣称通过。官方参考：[VS Code网络](https://code.visualstudio.com/docs/setup/network)、[Node TLS](https://nodejs.org/api/tls.html)。
 
 2026-09-24交付2026.09.24.8（R047.7）：统一设置新增可选HTTP/HTTPS代理与企业CA文件，更新检查、ZIP后台worker及社区下载共用请求级适配。普通用户保持默认，无环境代理则直连，CA留空使用默认信任链；TLS验证保持，错误配置不覆盖旧值。构建、完整check、213套目录、14项真实TLS/CONNECT专项、3组UI及原始Typora22项通过，后台worker配置快照与真实ZIP安装事务通过。同候选两类隔离卸载重装及65卸载回归通过，本机44+24资产一致、5保护项未变、check OK；用户环境卸载仅只读预检，窗口未重启。保存后正常重启加载。企业现场、Win10、系统PAC及代理身份认证未验收；Git/SSH与第三方私有联网不在范围。见[本次证据](../enhancements/tests/evidence/network_settings_20260924.json)。
+
+## R047.8 HTTP与HTTPS分别配置代理
+
+2026-09-25：用户明确需要按请求目标协议分别配置。旧手动配置只有一个地址，且共享网络层仅创建HTTPS Agent，不能正确承载HTTP目标。本节替代R047.7的单地址约定，继续沿用其可选CA、严格TLS、取消与失败边界；R075已取消下载字节门槛。
+
+统一设置“网络”提供“HTTP请求代理”和“HTTPS请求代理”。两项均允许HTTP或HTTPS代理端点，例如HTTPS请求也可以经`http://proxy:8080`的CONNECT隧道。manual模式至少填写一项；某协议留空表示该协议直连，不借用另一项、不回退环境变量。environment模式保持现有HTTP_PROXY/HTTPS_PROXY/ALL_PROXY与NO_PROXY规则，direct模式全部直连；证书始终可选。
+
+纯配置模块统一管理默认值、格式校验及迁移，供renderer和Node共用。旧`proxy_url`仅作为读取迁移输入，为尚不存在的新字段提供原地址；明确存在的新字段（含空字符串）优先。下次成功保存只写新字段，不双写旧键；无效地址、CA或模式不覆盖原设置。现有单地址迁移到两项，保持原行为。编辑一个字段不改变另一个，取消证书选择不保存。
+
+网络适配按目标URL协议选择HttpProxyAgent/HttpsProxyAgent；直连使用对应http/https.Agent。更新检查、ZIP worker及社区下载共享配置快照与适配，重定向重新选择目标协议；不改各业务允许的URL和权限范围。网页预览的Chromium系统网络、Git/SSH、第三方插件私有请求继续归原所有者，不声称本设置可控制这些链路。
+
+固定VS Code `68070681e87284e2f22728f15fe3f3651fbf932b` 的 `src/vs/platform/request/node/proxy.ts`按HTTP/HTTPS目标读取环境代理并选择两种Agent；采用其协议路由职责。`common/request.ts`中的`http.proxy`仍为单手动地址，本产品的两个手动字段来自用户要求，不称为VS Code原生两字段复刻。环境模式沿用proxy-from-env，不新增VS Code的HTTPS向HTTP环境值回退。
+
+验收：旧配置/混合配置/显式空值迁移、两协议独立保存；真实HTTP转发与HTTPS CONNECT分别访问回环源站，覆盖HTTP/HTTPS代理端点、独立环境变量、单项留空、直连、TLS错误、CA附加、重定向、取消与超时。原始Typora设置验证错误原值保留、重开与正式资产请求。两种隔离卸载路径和本机清单检查使用同一候选；公司现场网络与未测平台单独保留验收边界。

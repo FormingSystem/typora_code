@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.3",
+  "requirements": [
+    "R047.8"
+  ],
+  "design": "docs/workspace_update.md#r0478-http与https分别配置代理",
+  "asset_manifest_sha256": "c1faef3e30d58d4ce29b0bb33ed29bdd1a7d1d9b74fdde4cd4d4847b65e3c18d",
+  "validation": {
+    "build": "PASS: .cache/issue_tracking/protocol_proxy_build.log",
+    "check": "PASS: complete npm run check; 217 classified catalog suites (not all suites executed); .cache/issue_tracking/protocol_proxy_check.log",
+    "transport": {
+      "status": "PASS",
+      "checks": [
+        "企业中文路径CA配置可验证",
+        "单代理双字段迁移、显式空值与新值优先、拒绝无效类型",
+        "HTTP与HTTPS目标分别经过两个独立代理且不串用",
+        "HTTP目标经HTTPS代理验证CA与真实TLS",
+        "手动单协议留空仅该协议直连，另一项不借用",
+        "空手动配置与不支持的目标协议明确失败",
+        "DER证书可用且附加CA保留公共根",
+        "错误代理/密码/缺失/损坏CA拒绝，保留严格TLS",
+        "未信任企业CA时真实TLS拒绝",
+        "HTTP CONNECT加企业CA真实TLS成功",
+        "HTTPS代理与目标双层TLS均验证",
+        "附加CA不绕过目标主机名验证",
+        "跨允许域重定向和ZIP流写入保留代理与CA",
+        "代理不放宽更新域名白名单",
+        "源站没有代理认证请求头",
+        "独立HTTP环境代理无需企业CA即可访问普通HTTP源站",
+        "环境HTTPS代理生效",
+        "NO_PROXY与显式直连绕过环境代理",
+        "取消与总超时清理尚未返回CONNECT的连接",
+        "提交/公告/资产检查共享同一配置"
+      ],
+      "proxy_calls": 11,
+      "forward_calls": 3,
+      "origin_calls": 10
+    },
+    "ui": {
+      "status": "PASS",
+      "groups": 3,
+      "log": ".cache/issue_tracking/protocol_proxy_ui.log"
+    },
+    "update_worker": "PASS: request snapshot preserves both fields, real private Node worker starts with bundled transport, local ZIP install transaction; protocol_proxy_update.log and protocol_proxy_update_install.log",
+    "native": {
+      "status": "PASS",
+      "case_id": "383e244064e5460c8c1abee44267e8f5",
+      "checks": 37,
+      "node": "24.15.0",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "c1faef3e30d58d4ce29b0bb33ed29bdd1a7d1d9b74fdde4cd4d4847b65e3c18d",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "d306cceb54ea7add1685862c0aa848ecd9f599beb12f75c496a8128d76d2a33a",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      }
+    },
+    "isolated_install": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/backup preserved; protocol_proxy_isolated_install.log",
+    "uninstall": "PASS: 65 assertions; protocol_proxy_isolated_uninstall.log",
+    "local_install": {
+      "version": "2026.09.25.3",
+      "installed_assets": [
+        45,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "resolved_failures": [
+    "HTTP forwarding test used Node global keep-alive agent and retained a fixture socket; fixture now uses per-request non-pooling upstream connection.",
+    "Initial native synthetic Escape did not close cached settings form; fixture now clicks real close control, asserts disposal and reopens before migration checks. Initial failing case 3da4507e436541198a8d3999f2267975 retained."
+  ],
+  "limits": [
+    "Real loopback HTTP forwarding and HTTP/HTTPS CONNECT plus TLS trust/hostname validation; no company network现场验收.",
+    "Windows11 / original Typora1.14.10 isolated host; physical input, Win10 and Linux not tested this round.",
+    "Applies to update/plugin Node requests; Chromium webpage preview, system PAC, Git/SSH and third-party private networking remain separate owners.",
+    "User windows not restarted; save documents and restart normally to load installed candidate. No push performed."
+  ]
+}

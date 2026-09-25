@@ -685,7 +685,7 @@ var require_helpers = __commonJS({
     };
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.req = exports2.json = exports2.toBuffer = void 0;
-    var http = __importStar(require("http"));
+    var http2 = __importStar(require("http"));
     var https2 = __importStar(require("https"));
     async function toBuffer(stream) {
       let length = 0;
@@ -711,7 +711,7 @@ var require_helpers = __commonJS({
     exports2.json = json;
     function req(url, opts = {}) {
       const href = typeof url === "string" ? url : url.href;
-      const req2 = (href.startsWith("https:") ? https2 : http).request(url, opts);
+      const req2 = (href.startsWith("https:") ? https2 : http2).request(url, opts);
       const promise = new Promise((resolve, reject) => {
         req2.once("response", resolve).once("error", reject).end();
       });
@@ -759,11 +759,11 @@ var require_dist = __commonJS({
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.Agent = void 0;
     var net = __importStar(require("net"));
-    var http = __importStar(require("http"));
+    var http2 = __importStar(require("http"));
     var https_1 = require("https");
     __exportStar(require_helpers(), exports2);
     var INTERNAL = Symbol("AgentBaseInternalState");
-    var Agent = class extends http.Agent {
+    var Agent = class extends http2.Agent {
       constructor(opts) {
         super(opts);
         this[INTERNAL] = {};
@@ -835,7 +835,7 @@ var require_dist = __commonJS({
         const fakeSocket = this.incrementSockets(name);
         Promise.resolve().then(() => this.connect(req, connectOpts)).then((socket) => {
           this.decrementSockets(name, fakeSocket);
-          if (socket instanceof http.Agent) {
+          if (socket instanceof http2.Agent) {
             try {
               return socket.addRequest(req, connectOpts);
             } catch (err) {
@@ -875,6 +875,136 @@ var require_dist = __commonJS({
       }
     };
     exports2.Agent = Agent;
+  }
+});
+
+// node_modules/http-proxy-agent/dist/index.js
+var require_dist2 = __commonJS({
+  "node_modules/http-proxy-agent/dist/index.js"(exports2) {
+    "use strict";
+    var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      var desc = Object.getOwnPropertyDescriptor(m, k);
+      if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+        desc = { enumerable: true, get: function() {
+          return m[k];
+        } };
+      }
+      Object.defineProperty(o, k2, desc);
+    }) : (function(o, m, k, k2) {
+      if (k2 === void 0) k2 = k;
+      o[k2] = m[k];
+    }));
+    var __setModuleDefault = exports2 && exports2.__setModuleDefault || (Object.create ? (function(o, v) {
+      Object.defineProperty(o, "default", { enumerable: true, value: v });
+    }) : function(o, v) {
+      o["default"] = v;
+    });
+    var __importStar = exports2 && exports2.__importStar || function(mod) {
+      if (mod && mod.__esModule) return mod;
+      var result = {};
+      if (mod != null) {
+        for (var k in mod) if (k !== "default" && Object.prototype.hasOwnProperty.call(mod, k)) __createBinding(result, mod, k);
+      }
+      __setModuleDefault(result, mod);
+      return result;
+    };
+    var __importDefault = exports2 && exports2.__importDefault || function(mod) {
+      return mod && mod.__esModule ? mod : { "default": mod };
+    };
+    Object.defineProperty(exports2, "__esModule", { value: true });
+    exports2.HttpProxyAgent = void 0;
+    var net = __importStar(require("net"));
+    var tls2 = __importStar(require("tls"));
+    var debug_1 = __importDefault(require_src());
+    var events_1 = require("events");
+    var agent_base_1 = require_dist();
+    var url_1 = require("url");
+    var debug = (0, debug_1.default)("http-proxy-agent");
+    var HttpProxyAgent2 = class extends agent_base_1.Agent {
+      constructor(proxy, opts) {
+        super(opts);
+        this.proxy = typeof proxy === "string" ? new url_1.URL(proxy) : proxy;
+        this.proxyHeaders = opts?.headers ?? {};
+        debug("Creating new HttpProxyAgent instance: %o", this.proxy.href);
+        const host = (this.proxy.hostname || this.proxy.host).replace(/^\[|\]$/g, "");
+        const port = this.proxy.port ? parseInt(this.proxy.port, 10) : this.proxy.protocol === "https:" ? 443 : 80;
+        this.connectOpts = {
+          ...opts ? omit(opts, "headers") : null,
+          host,
+          port
+        };
+      }
+      addRequest(req, opts) {
+        req._header = null;
+        this.setRequestProps(req, opts);
+        super.addRequest(req, opts);
+      }
+      setRequestProps(req, opts) {
+        const { proxy } = this;
+        const protocol = opts.secureEndpoint ? "https:" : "http:";
+        const hostname = req.getHeader("host") || "localhost";
+        const base = `${protocol}//${hostname}`;
+        const url = new url_1.URL(req.path, base);
+        if (opts.port !== 80) {
+          url.port = String(opts.port);
+        }
+        req.path = String(url);
+        const headers = typeof this.proxyHeaders === "function" ? this.proxyHeaders() : { ...this.proxyHeaders };
+        if (proxy.username || proxy.password) {
+          const auth = `${decodeURIComponent(proxy.username)}:${decodeURIComponent(proxy.password)}`;
+          headers["Proxy-Authorization"] = `Basic ${Buffer.from(auth).toString("base64")}`;
+        }
+        if (!headers["Proxy-Connection"]) {
+          headers["Proxy-Connection"] = this.keepAlive ? "Keep-Alive" : "close";
+        }
+        for (const name of Object.keys(headers)) {
+          const value = headers[name];
+          if (value) {
+            req.setHeader(name, value);
+          }
+        }
+      }
+      async connect(req, opts) {
+        req._header = null;
+        if (!req.path.includes("://")) {
+          this.setRequestProps(req, opts);
+        }
+        let first;
+        let endOfHeaders;
+        debug("Regenerating stored HTTP header string for request");
+        req._implicitHeader();
+        if (req.outputData && req.outputData.length > 0) {
+          debug("Patching connection write() output buffer with updated header");
+          first = req.outputData[0].data;
+          endOfHeaders = first.indexOf("\r\n\r\n") + 4;
+          req.outputData[0].data = req._header + first.substring(endOfHeaders);
+          debug("Output buffer: %o", req.outputData[0].data);
+        }
+        let socket;
+        if (this.proxy.protocol === "https:") {
+          debug("Creating `tls.Socket`: %o", this.connectOpts);
+          socket = tls2.connect(this.connectOpts);
+        } else {
+          debug("Creating `net.Socket`: %o", this.connectOpts);
+          socket = net.connect(this.connectOpts);
+        }
+        await (0, events_1.once)(socket, "connect");
+        return socket;
+      }
+    };
+    HttpProxyAgent2.protocols = ["http", "https"];
+    exports2.HttpProxyAgent = HttpProxyAgent2;
+    function omit(obj, ...keys) {
+      const ret = {};
+      let key;
+      for (key in obj) {
+        if (!keys.includes(key)) {
+          ret[key] = obj[key];
+        }
+      }
+      return ret;
+    }
   }
 });
 
@@ -975,7 +1105,7 @@ var require_parse_proxy_response = __commonJS({
 });
 
 // node_modules/https-proxy-agent/dist/index.js
-var require_dist2 = __commonJS({
+var require_dist3 = __commonJS({
   "node_modules/https-proxy-agent/dist/index.js"(exports2) {
     "use strict";
     var __createBinding = exports2 && exports2.__createBinding || (Object.create ? (function(o, m, k, k2) {
@@ -1194,35 +1324,47 @@ var require_proxy_from_env = __commonJS({
   }
 });
 
+// src/workspace_network_configuration.cjs
+var require_workspace_network_configuration = __commonJS({
+  "src/workspace_network_configuration.cjs"(exports2, module2) {
+    "use strict";
+    var defaults2 = Object.freeze({ proxy_mode: "environment", http_proxy_url: "", https_proxy_url: "", ca_file: "" });
+    function normalize2(value = {}) {
+      const legacy = value.proxy_url ?? "";
+      const result = { ...defaults2, ...value, http_proxy_url: Object.hasOwn(value, "http_proxy_url") ? value.http_proxy_url : legacy, https_proxy_url: Object.hasOwn(value, "https_proxy_url") ? value.https_proxy_url : legacy };
+      if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error("\u8BF7\u9009\u62E9\u6709\u6548\u7684\u4EE3\u7406\u6A21\u5F0F\u3002");
+      for (const key of ["http_proxy_url", "https_proxy_url", "ca_file"]) {
+        if (typeof result[key] !== "string" || /[\r\n\0]/.test(result[key])) throw Error("\u7F51\u7EDC\u914D\u7F6E\u5185\u5BB9\u65E0\u6548\u3002");
+        result[key] = result[key].trim();
+      }
+      for (const key of ["http_proxy_url", "https_proxy_url"]) if (result[key]) parse_proxy2(result[key], false);
+      return { proxy_mode: result.proxy_mode, http_proxy_url: result.http_proxy_url, https_proxy_url: result.https_proxy_url, ca_file: result.ca_file };
+    }
+    function parse_proxy2(value, allow_auth) {
+      let url;
+      try {
+        url = new URL(value);
+      } catch {
+        throw Error("\u4EE3\u7406\u5730\u5740\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528 http://\u4E3B\u673A:\u7AEF\u53E3 \u6216 https://\u4E3B\u673A:\u7AEF\u53E3\u3002");
+      }
+      if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.pathname !== "/" || url.search || url.hash) throw Error("\u4EC5\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u5730\u5740\uFF0C\u4E0D\u63A5\u53D7\u8DEF\u5F84\u3001\u67E5\u8BE2\u6216\u7247\u6BB5\u3002");
+      if (!allow_auth && (url.username || url.password)) throw Error("\u4EE3\u7406\u5730\u5740\u4E0D\u80FD\u5305\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u5F53\u524D\u8BBE\u7F6E\u652F\u6301\u65E0\u9700\u72EC\u7ACB\u8EAB\u4EFD\u8BA4\u8BC1\u7684HTTP/HTTPS\u4EE3\u7406\u3002");
+      return url;
+    }
+    module2.exports = { defaults: defaults2, normalize: normalize2, parse_proxy: parse_proxy2 };
+  }
+});
+
 // src/workspace_network.cjs
 var fs = require("node:fs");
 var tls = require("node:tls");
+var http = require("node:http");
 var https = require("node:https");
 var crypto = require("node:crypto");
-var { HttpsProxyAgent } = require_dist2();
+var { HttpProxyAgent } = require_dist2();
+var { HttpsProxyAgent } = require_dist3();
 var { getProxyForUrl } = require_proxy_from_env();
-var defaults = Object.freeze({ proxy_mode: "environment", proxy_url: "", ca_file: "" });
-function normalize(value = {}) {
-  const result = { ...defaults, ...value };
-  if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error("\u8BF7\u9009\u62E9\u6709\u6548\u7684\u4EE3\u7406\u6A21\u5F0F\u3002");
-  for (const key of ["proxy_url", "ca_file"]) {
-    if (typeof result[key] !== "string" || result[key].length > 4096 || /[\r\n\0]/.test(result[key])) throw Error("\u7F51\u7EDC\u914D\u7F6E\u5185\u5BB9\u65E0\u6548\u3002");
-    result[key] = result[key].trim();
-  }
-  if (result.proxy_url) parse_proxy(result.proxy_url, false);
-  return { proxy_mode: result.proxy_mode, proxy_url: result.proxy_url, ca_file: result.ca_file };
-}
-function parse_proxy(value, allow_auth) {
-  let url;
-  try {
-    url = new URL(value);
-  } catch {
-    throw Error("\u4EE3\u7406\u5730\u5740\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528 http://\u4E3B\u673A:\u7AEF\u53E3 \u6216 https://\u4E3B\u673A:\u7AEF\u53E3\u3002");
-  }
-  if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.pathname !== "/" || url.search || url.hash) throw Error("\u4EC5\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u5730\u5740\uFF0C\u4E0D\u63A5\u53D7\u8DEF\u5F84\u3001\u67E5\u8BE2\u6216\u7247\u6BB5\u3002");
-  if (!allow_auth && (url.username || url.password)) throw Error("\u4EE3\u7406\u5730\u5740\u4E0D\u80FD\u5305\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u5F53\u524D\u8BBE\u7F6E\u652F\u6301\u65E0\u9700\u72EC\u7ACB\u8EAB\u4EFD\u8BA4\u8BC1\u7684HTTP/HTTPS\u4EE3\u7406\u3002");
-  return url;
-}
+var { defaults, normalize, parse_proxy } = require_workspace_network_configuration();
 function certificates(file) {
   if (!file) return [];
   let bytes;
@@ -1246,19 +1388,27 @@ function certificates(file) {
     throw Error("CA\u8BC1\u4E66\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528PEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08\u4E0D\u542B\u79C1\u94A5\uFF09\u3002");
   }
 }
-function validate(value) {
+function validate_selection(value) {
   const configuration = normalize(value);
-  if (configuration.proxy_mode === "manual" && !configuration.proxy_url) throw Error("\u8BF7\u5148\u586B\u5199\u4EE3\u7406\u5730\u5740\uFF0C\u518D\u9009\u62E9\u6307\u5B9A\u4EE3\u7406\u6A21\u5F0F\u3002");
+  if (configuration.proxy_mode === "manual" && !configuration.http_proxy_url && !configuration.https_proxy_url) throw Error("\u8BF7\u5148\u586B\u5199HTTP\u6216HTTPS\u8BF7\u6C42\u4EE3\u7406\u5730\u5740\uFF0C\u518D\u9009\u62E9\u6307\u5B9A\u4EE3\u7406\u6A21\u5F0F\u3002");
+  return configuration;
+}
+function validate(value) {
+  const configuration = validate_selection(value);
   certificates(configuration.ca_file);
   return configuration;
 }
 function create_agent(address, value, signal) {
-  const configuration = normalize(value), extra = certificates(configuration.ca_file);
+  const configuration = validate_selection(value), extra = certificates(configuration.ca_file);
   const roots = typeof tls.getCACertificates === "function" ? tls.getCACertificates("default") : tls.rootCertificates;
   const ca = extra.length ? [...roots, ...extra] : void 0;
-  const proxy = configuration.proxy_mode === "manual" ? configuration.proxy_url : configuration.proxy_mode === "environment" ? getProxyForUrl(address) : "";
-  if (configuration.proxy_mode === "manual" && !proxy) throw Error("\u6307\u5B9A\u4EE3\u7406\u6A21\u5F0F\u9700\u8981\u586B\u5199\u4EE3\u7406\u5730\u5740\u3002");
-  const agent = proxy ? new HttpsProxyAgent(parse_proxy(proxy, true), { ca, rejectUnauthorized: true, signal }) : new https.Agent({ ca, rejectUnauthorized: true });
+  const protocol = new URL(address).protocol;
+  if (!["http:", "https:"].includes(protocol)) throw Error("\u7F51\u7EDC\u8BF7\u6C42\u53EA\u652F\u6301HTTP\u6216HTTPS\u76EE\u6807\u3002");
+  const is_https = protocol === "https:";
+  const proxy = configuration.proxy_mode === "manual" ? configuration[is_https ? "https_proxy_url" : "http_proxy_url"] : configuration.proxy_mode === "environment" ? getProxyForUrl(address) : "";
+  const proxy_agent = is_https ? HttpsProxyAgent : HttpProxyAgent;
+  const direct_agent = is_https ? https.Agent : http.Agent;
+  const agent = proxy ? new proxy_agent(parse_proxy(proxy, true), { ca, rejectUnauthorized: true, signal }) : new direct_agent({ ca, rejectUnauthorized: true });
   return { agent, ca, rejectUnauthorized: true };
 }
 module.exports = { defaults, normalize, validate, create_agent };
