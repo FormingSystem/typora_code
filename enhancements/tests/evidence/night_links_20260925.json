@@ -1,0 +1,65 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.4",
+  "requirements": [
+    "R074.3"
+  ],
+  "design": "docs/workspace_colors.md#r0743-night正文链接蓝色",
+  "asset_manifest_sha256": "379490fec593046ae35887ba9f9c9117ab5757ab54ebb3214aa4320301bda3a6",
+  "validation": {
+    "build": "PASS: night_links_build.log",
+    "static_and_deployment": "PASS: night_links_static_retry.log and night_links_deployment.log",
+    "catalog": "PASS: 217 classified suites; not all suites executed this round",
+    "colors": {
+      "status": "PASS",
+      "checks": 38,
+      "scope": "正式CSS、Shadow继承、真实Chromium悬停与焦点、20轮主题切换/1000同值通知、窄窗与第三方主题退出",
+      "log": ".cache/issue_tracking/night_links_states.log"
+    },
+    "markdown_diff": "PASS: existing real Monaco/Chromium regression; night_links_ui.log",
+    "native": {
+      "status": "PASS",
+      "checks": 104,
+      "case_id": "15a773499c84459382ce1ddeb5681d3c",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "379490fec593046ae35887ba9f9c9117ab5757ab54ebb3214aa4320301bda3a6",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "da95d066de5a4cc7fb7c879d13f1dbccad5acd105c58f399af537869ca68a113",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "screenshot": "stage_colors_workspace_dark_3015814.png inspected: body/table links blue, heading remains warm, table borders retained"
+    },
+    "isolated_install": "PASS: public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; night_links_isolated_install.log",
+    "uninstall": "PASS: 65 assertions; night_links_isolated_uninstall.log",
+    "local_install": {
+      "version": "2026.09.25.4",
+      "installed_assets": [
+        45,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "resolved_failures": [
+    "Initial static check invoked from repository root could not find relative dist; rerun from enhancements passed. No candidate change required."
+  ],
+  "limits": [
+    "Windows11 original Typora1.14.10 isolated host; Win10/Linux and physical mouse not tested.",
+    "Visited/active link rules share the declared blue color; native visited-history privacy state not separately instrumented.",
+    "Full npm run check not rerun for this CSS-only functional change; targeted color/diff/native, static/deployment and install/uninstall checks passed.",
+    "User windows not restarted. No push performed."
+  ]
+}

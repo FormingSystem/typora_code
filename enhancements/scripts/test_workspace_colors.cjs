@@ -22,6 +22,7 @@ app.whenReady().then(async()=>{
   check(data.term.background.toLowerCase()===(dark?'#191a1b':'#fafafd'),'终端消费者在颜色更新后收到当前主题 '+dark);
   check(data.body.bg===(dark?'rgb(38, 50, 56)':'rgb(255, 247, 223)'),'正文保留Typora主题背景 '+dark);
   const markdown=await read(`(()=>{const take=root=>Object.fromEntries(['h1','h2','p','a','code','blockquote','th','td','pre'].map(tag=>{const s=getComputedStyle(root.querySelector(tag));return[tag,{fg:s.color,bg:s.backgroundColor,font:s.fontFamily,size:s.fontSize,weight:s.fontWeight,border:s.borderTopColor}]}));return{native:take(document.querySelector('#write')),preview:take(shadow),menu:snap('.git-graph-menu'),footer:snap('footer')}})()`);
+  if(dark){check(markdown.native.a.fg==='rgb(77, 170, 252)','Night正文与Shadow链接为蓝色');await read(`document.querySelector('#write a').focus();void 0`);check(await read(`snap('#write a').fg==='rgb(77, 170, 252)'`),'键盘焦点链接保持蓝色');await read(`document.querySelector('#write a').scrollIntoView();void 0`);const link_box=await read(`snap('#write a').box`);win.webContents.sendInputEvent({type:'mouseMove',x:Math.round(link_box.x+link_box.width/2),y:Math.round(link_box.y+link_box.height/2)});await pause(250);check(await read(`document.querySelector('#write a').matches(':hover')&&snap('#write a').fg==='rgb(77, 170, 252)'`),'实际悬停链接保持蓝色');}
   check(markdown.native.h1.fg===(dark?'rgb(206, 145, 120)':markdown.native.p.fg),'标题遵循明暗主题规则 '+dark);
   check(markdown.native.p.font.includes('Georgia')&&markdown.native.h1.size==='48px'&&markdown.native.h1.weight==='700'&&markdown.native.th.border==='rgb(69, 103, 137)'&&markdown.native.th.bg==='rgb(50, 67, 84)'&&markdown.native.blockquote.bg==='rgb(51, 68, 85)'&&markdown.native.pre.bg==='rgb(34, 51, 68)','正文保留原主题字体/标题/表格/引用/代码样式 '+dark);
   check(JSON.stringify(markdown.native)===JSON.stringify(markdown.preview),'Shadow阅读与正文共享标题/表格/代码/引用样式 '+dark+' '+JSON.stringify(markdown));
@@ -43,7 +44,7 @@ app.whenReady().then(async()=>{
  check(await read(`getComputedStyle(dynamic).backgroundColor===snap('#typora-sidebar').bg`),'动态面板立即使用当前色表');
  for(const name of ['github.css','custom-night.css','night.user.css','']){
   await read(`document.querySelector('#theme_css').setAttribute('href',${JSON.stringify(name)});void 0`);await pause(80);
-  check(await read(`!document.documentElement.hasAttribute('data-workspace-colors')&&snap('#write').bg==='rgb(38, 50, 56)'&&getComputedStyle(shadow.querySelector('h1')).color===snap('#write h1').fg`),'其他主题/近似名称退出覆盖 '+name);
+  check(await read(`!document.documentElement.hasAttribute('data-workspace-colors')&&snap('#write').bg==='rgb(38, 50, 56)'&&getComputedStyle(shadow.querySelector('h1')).color===snap('#write h1').fg&&getComputedStyle(shadow.querySelector('a')).color===snap('#write a').fg&&snap('#write a').fg!=='rgb(77, 170, 252)'`),'其他主题/近似名称退出覆盖 '+name);
  }
  await read(`document.querySelector('#theme_css').setAttribute('href','night.css');void 0`);await pause(80);
  check(await read(`snap('#write h1').fg==='rgb(206, 145, 120)'&&document.documentElement.dataset.workspaceColors==='dark'`),'切回Night恢复受控主题');

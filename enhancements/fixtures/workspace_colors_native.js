@@ -6,7 +6,7 @@
  const wait=async(fn,label)=>{for(let i=0;i<300;i++){if(fn())return;await pause(30);}throw Error(label);};
  const color=selector=>{const el=typeof selector==='string'?document.querySelector(selector):selector;if(!el)throw Error('缺少 '+selector);const s=getComputedStyle(el);return{bg:s.backgroundColor,fg:s.color,border:s.borderTopColor,rect:el.getBoundingClientRect().toJSON()};};
  const capture=async stage=>{fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await pause(350);};
- const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文使用共享明暗主题，标题层级清晰。\n\n> 引用说明\n\n| 项目 | 值 |\n| --- | --- |\n| 正文 | `代码` |\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
+ const file=path.join(base,'workspace/colors.md'),text='# 工作台颜色与阅读\n\n正文使用共享明暗主题，[跳转链接](https://example.com)，标题层级清晰。\n\n> 引用说明\n\n| 项目 | 值 |\n| --- | --- |\n| [表格链接](https://example.org) | `代码` |\n\n## 模块分隔\n\n- 侧栏与工作内容\n- 终端与正文\n- 设置与浮层\n\n```js\nconsole.log("主题保持");\n```\n';
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备超时');await pause(800);
   fs.writeFileSync(file,text);await files.open_file(file);await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'文档未打开');await pause(200);
@@ -18,10 +18,10 @@
    const chrome=mode==='light'?'rgb(250, 250, 253)':'rgb(25, 26, 27)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(18, 19, 20)';
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
    entry.heading=color('#write h1');entry.paragraph=color('#write p');entry.quote=color('#write blockquote');
-   const appearance=()=>Object.fromEntries(['#write','#write h1','#write p','#write blockquote','#write th','#write td','#write pre'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','line-height','color','background-color','border-top-width','border-top-style','border-top-color','padding-top','padding-left','margin-top','margin-bottom'].map(key=>[key,c.getPropertyValue(key)]))]}));
+   const appearance=()=>Object.fromEntries(['#write','#write h1','#write a[href]','#write td a[href]','#write p','#write blockquote','#write th','#write td','#write pre'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','line-height','color','background-color','border-top-width','border-top-style','border-top-color','padding-top','padding-left','margin-top','margin-bottom'].map(key=>[key,c.getPropertyValue(key)]))]}));
    const themed=appearance(),stylesheet=document.getElementById('typora-code-workspace-styles');
-   assert(stylesheet,'实际静态样式入口');stylesheet.disabled=true;const original=appearance();stylesheet.disabled=false;
-   for(const selector of Object.keys(original)){if(mode==='dark'&&selector==='#write h1'){assert(themed[selector].color==='rgb(206, 145, 120)','仅Night标题采用用户选色');themed[selector].color=original[selector].color;if(themed[selector]['border-top-width']==='0px')themed[selector]['border-top-color']=original[selector]['border-top-color'];}assert(JSON.stringify(themed[selector])===JSON.stringify(original[selector]),'正文沿原主题 '+mode+' '+selector+' '+JSON.stringify({actual:themed[selector],expected:original[selector]}));}
+   assert(stylesheet,'实际静态样式入口');stylesheet.disabled=true;await pause(300);const original=appearance();stylesheet.disabled=false;await pause(300);
+   for(const selector of Object.keys(original)){if(mode==='dark'&&(selector==='#write h1'||selector.includes('a[href]'))){assert(themed[selector].color===(selector==='#write h1'?'rgb(206, 145, 120)':'rgb(77, 170, 252)'),'Night标题/链接各用对应颜色 '+selector);themed[selector].color=original[selector].color;if(themed[selector]['border-top-width']==='0px')themed[selector]['border-top-color']=original[selector]['border-top-color'];}assert(JSON.stringify(themed[selector])===JSON.stringify(original[selector]),'正文沿原主题 '+mode+' '+selector+' '+JSON.stringify({actual:themed[selector],expected:original[selector]}));}
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
     const button=document.querySelector('.typ-ribbon-item[data-id="'+id+'"]');assert(button,'活动栏入口 '+id);
     if(id==='core.file-explorer')core.app.commands.run('linux_note:file_explorer');else button.click();await pause(450);const panel=sidebar.activePanel;assert(panel&&sidebar.isShown,'点击入口展开 '+id);
@@ -54,8 +54,8 @@
    const managed=theme==='night.css'||theme==='cpp_github-consolas.css';
    assert(document.documentElement.hasAttribute('data-workspace-colors')===managed,'实际主题范围 '+theme);
    if(!managed){
-    const before=color('#write'),heading=color('#write h1');const style=document.createElement('style');style.textContent=':root{--workspace-markdown-heading:rgb(1,2,3)}';document.head.append(style);await pause(60);
-    assert(color('#write').bg===before.bg&&color('#write h1').fg===heading.fg,'其他主题不使用自有标题变量 '+theme);style.remove();
+    const before=color('#write'),heading=color('#write h1'),link=color('#write a[href]');const style=document.createElement('style');style.textContent=':root{--workspace-markdown-heading:rgb(1,2,3);--workspace-markdown-link:rgb(3,2,1)}';document.head.append(style);await pause(60);
+    assert(color('#write').bg===before.bg&&color('#write h1').fg===heading.fg&&color('#write a[href]').fg===link.fg,'其他主题不使用自有标题变量 '+theme);style.remove();
    }
    await capture('scope_'+theme.replace('.css',''));
   }

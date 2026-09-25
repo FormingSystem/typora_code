@@ -1,6 +1,11 @@
-/* R074.2：仅保留用户确认的 Night 标题颜色。
+/* R074.2：保留用户确认的 Night 标题颜色；R074.3 单独调整正文链接。
    正文字体、排版、背景、表格、引用和代码样式由当前 Typora 主题拥有。
    预览及 Git 渲染比较通过共享主题适配继承，不另建正文皮肤。 */
 :root[data-workspace-colors=dark] #write :is(h1,h2,h3,h4,h5,h6) {
   color:var(--workspace-markdown-heading)!important;
+}
+
+:root[data-workspace-colors=dark] #write a[href],
+:root[data-workspace-colors=dark] #write a[href]:is(:hover,:focus,:active,:visited) {
+  color:var(--workspace-markdown-link)!important;
 }

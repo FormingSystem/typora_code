@@ -1598,6 +1598,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
   --workspace-markdown-heading:#CE9178;
+  --workspace-markdown-link:#4DAAFC;
   --workspace-markdown-border:#FFFFFF2E;
   --workspace-markdown-table-header:rgba(255,255,255,.69);
   --vscode-foreground:#bfbfbf;
@@ -2188,11 +2189,16 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-preview-directory-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* workspace_markdown_appearance.css */
-/* R074.2：仅保留用户确认的 Night 标题颜色。
+/* R074.2：保留用户确认的 Night 标题颜色；R074.3 单独调整正文链接。
    正文字体、排版、背景、表格、引用和代码样式由当前 Typora 主题拥有。
    预览及 Git 渲染比较通过共享主题适配继承，不另建正文皮肤。 */
 :root[data-workspace-colors=dark] #write :is(h1,h2,h3,h4,h5,h6) {
   color:var(--workspace-markdown-heading)!important;
+}
+
+:root[data-workspace-colors=dark] #write a[href],
+:root[data-workspace-colors=dark] #write a[href]:is(:hover,:focus,:active,:visited) {
+  color:var(--workspace-markdown-link)!important;
 }
 
 /* workspace_native_toolbar.css */

@@ -412,3 +412,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-24 R047.7：NET-request-trust-proxy——浏览器与Node代理/信任链来源不同，原更新请求未提供企业配置。共享请求级Agent显式携带代理和附加CA，保留默认根、主机名验证、域名白名单及重定向/取消。真实回环TLS、HTTP/HTTPS CONNECT、原生宿主与worker通过；企业现场仍待验证。UI夹具缺虚拟搜索Worker构建插件与CONNECT夹具半关闭清理归测试接线问题，最终复验通过。见[证据](../enhancements/tests/evidence/network_settings_20260924.json)。
 
 2026-09-25 R047.8归入NET-request-trust-proxy：单地址模型把目标协议与代理端点混在一起，且所有请求创建HTTPS Agent。纯配置所有者统一两字段及旧键迁移，网络适配按目标创建HTTP转发或HTTPS隧道。协议选择/环境变量/空值直连用真实回环验收，原生设置覆盖独立保存和无效输入；测试中模拟Esc未真正关闭旧表单导致迁移断言失败，改为真实关闭入口并确认节点销毁后重开。见protocol_proxy_20260925.json；企业现场仍待验证。
+
+2026-09-25 R074.3：Night原主题链接与悬停接近白色，用户要求蓝色区分。只覆盖Night真实正文链接颜色，沿共同主题传入预览/diff，保留标题#CE9178与其余正文原样。正式CSS状态/Shadow检查及原生正文逐属性对照验证，避免以修链接为由重新覆盖正文皮肤。见night_links_20260925.json。

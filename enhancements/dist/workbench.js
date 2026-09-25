@@ -246470,6 +246470,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092504,
+        version: "2026.09.25.4",
+        date: "2026-09-25",
+        notes: [
+          "Night\u6697\u4E3B\u9898\u7684Markdown\u94FE\u63A5\u6539\u4E3A\u84DD\u8272\uFF0C\u4E0E\u6B63\u6587\u533A\u5206\uFF1B\u666E\u901A\u3001\u60AC\u505C\u53CA\u805A\u7126\u4FDD\u6301\u4E00\u81F4\uFF0C\u9884\u89C8\u4E0E\u6E32\u67D3\u6BD4\u8F83\u540C\u6B65\u3002\u6807\u9898\u4FDD\u7559\u5DF2\u9009\u989C\u8272\uFF0C\u5176\u4ED6\u6B63\u6587\u6837\u5F0F\u53CA\u4E3B\u9898\u4FDD\u6301\u3002"
+        ]
+      },
+      {
         sequence: 2026092503,
         version: "2026.09.25.3",
         date: "2026-09-25",
