@@ -37,8 +37,8 @@ assert_typora_window_source $window_source $head
 $terminal_source = Join-Path $source 'terminal_runtime'
 $terminal_assets = @(get_typora_terminal_assets $terminal_source)
 assert_typora_workspace_assets $terminal_source $terminal_assets
-$theme_source = Join-Path $tools_root 'cpp_github-consolas.css'
-if ($include_theme -and -not (Test-Path -LiteralPath $theme_source -PathType Leaf)) { throw 'Theme source is missing.' }
+$theme_names = @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css')
+if ($include_theme) { foreach ($name in $theme_names) { if (-not (Test-Path -LiteralPath (Join-Path $tools_root $name) -PathType Leaf)) { throw 'Theme source is missing.' } } }
 if (-not $backup_root) { $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
 $backup_root = [IO.Path]::GetFullPath($backup_root)
 $manifest_path = resolve_typora_asset_path $backup_root 'manifest.json'
@@ -57,7 +57,7 @@ $groups = @(
     [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');assets=@(get_typora_migration_assets)},
     [pscustomobject]@{name='terminal';root=(Join-Path $user_data 'linux_note_enhancements/terminal_runtime');assets=@($terminal_assets + $node_stage.assets)},
     [pscustomobject]@{name='settings';root=(Join-Path $user_data 'plugins/settings');assets=@([pscustomobject]@{relative_path='plugins.json'})},
-    [pscustomobject]@{name='theme';root=(Join-Path $user_data 'themes');assets=$(if ($include_theme) { @([pscustomobject]@{relative_path='cpp_github-consolas.css'}) } else { @() })},
+    [pscustomobject]@{name='theme';root=(Join-Path $user_data 'themes');assets=$(if ($include_theme) { @($theme_names | ForEach-Object { [pscustomobject]@{relative_path=$_} }) } else { @() })},
     [pscustomobject]@{name='native_profile';root=$user_data;assets=@([pscustomobject]@{relative_path='profile.data'})}
 )
 foreach ($group in $groups) {
@@ -131,7 +131,7 @@ try {
         [IO.File]::WriteAllText($settings_target, $migrated_settings, [Text.UTF8Encoding]::new($false))
         $created_settings = $true
     }
-    if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; Copy-Item -LiteralPath $theme_source -Destination (resolve_typora_asset_path $groups[4].root 'cpp_github-consolas.css') -Force }
+    if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; foreach ($name in $theme_names) { Copy-Item -LiteralPath (Join-Path $tools_root $name) -Destination (resolve_typora_asset_path $groups[4].root $name) -Force } }
     if ($window_changed) {
         # 写入开始即登记，部分写入失败也必须走原备份回滚。
         $window_written = $true
@@ -166,7 +166,7 @@ write_typora_install_log $install_log SUCCESS ('安装完成，总用时 {0:N1} 
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
 write_typora_install_log $install_log INFO '保存文档后正常重启 Typora，即可加载本次安装。'
-if ($include_theme) { write_typora_install_log $install_log INFO '在“主题”菜单选择 cpp github consolas；已有偏好设置保留。' }
+if ($include_theme) { write_typora_install_log $install_log INFO '在“主题”菜单选择 CppGithubConsoles_Light 或 CppGithubConsoles_Dark；已有偏好设置保留。' }
 } catch {
     write_typora_install_log $install_log ERROR ('{0}失败：{1}' -f $install_log.step, $_.Exception.Message)
     if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO '安装尚未写入目标文件，无须回滚。' }

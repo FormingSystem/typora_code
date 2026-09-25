@@ -35,6 +35,8 @@ assert_typora_workspace_assets $terminal @(get_typora_terminal_assets (Join-Path
 assert_typora_node $PSScriptRoot $terminal
 $profile_node = Join-Path $terminal ('node/' + (get_typora_node_release $PSScriptRoot).version + '/node.exe')
 $null = invoke_typora_native_profile $profile_node $PSScriptRoot check (resolve_typora_asset_path $user_data 'profile.data')
-$theme = resolve_typora_asset_path $user_data 'themes/cpp_github-consolas.css'
-if ((Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'cpp_github-consolas.css') -Algorithm SHA256).Hash) { throw 'Installed theme differs from this release.' }
+foreach ($theme_name in @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css')) {
+$theme = resolve_typora_asset_path $user_data ('themes/' + $theme_name)
+if ((Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $theme_name) -Algorithm SHA256).Hash) { throw 'Installed theme differs from this release.' }
+}
 Write-Host 'status: OK (independent head startup, static CSS, release hashes, migration and terminal)'

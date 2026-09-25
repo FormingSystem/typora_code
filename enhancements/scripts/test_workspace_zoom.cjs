@@ -22,7 +22,7 @@ app.whenReady().then(async()=>{
  await test_window.loadFile(html);
  test_window.webContents.debugger.attach();await test_window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../node_modules/@xterm/xterm/css/xterm.css'),'utf8'));
- const bundle=await build({stdin:{contents:'export * from "./src/workspace_zoom";export * from "./src/workspace_zoom_status";export * from "./src/workspace_shortcuts";export * from "./src/workspace_titlebar_entries";export {terminal_surface} from "./src/terminal_surface";export {terminal_defaults} from "./src/terminal_settings";export {acquire_workspace_file_icons} from "./src/workspace_file_icons";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'zoom_qa',write:false});
+ const bundle=await build({stdin:{contents:'export * from "./src/workspace_zoom";export * from "./src/workspace_zoom_status";export * from "./src/workspace_shortcuts";export * from "./src/workspace_titlebar_entries";export {terminal_surface} from "./src/terminal_surface";export {terminal_defaults} from "./src/terminal_settings";export {acquire_workspace_file_icons} from "./src/workspace_file_icons";',resolveDir:path.join(__dirname,'..')},plugins:require('./editor_bundle.cjs').editor_plugins(),bundle:true,loader:{'.css':'text'},format:'iife',globalName:'zoom_qa',write:false});
  await evaluate(bundle.outputFiles[0].text);
  await evaluate(`(()=>{
   window.frame=require('electron').webFrame;window.commands=new Map();window.calls=[];window.terminal_input=[];window.keyup_leaks=0;

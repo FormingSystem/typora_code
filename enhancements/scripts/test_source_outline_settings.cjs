@@ -4,7 +4,7 @@ const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_outline_settings_'));
 const base=path.resolve(__dirname,'..'),core=path.join(base,'vendor/workspace_core');
 app.setPath('userData',path.join(root,'electron'));app.disableHardwareAcceleration();
 app.whenReady().then(async()=>{
-  const bundle=await require('esbuild').build({stdin:{contents:'export * from "./src/source_outline_settings"; export {Settings} from "./vendor/workspace_core/src/settings/settings"; export {ConfigRepository} from "./vendor/workspace_core/src/io/config-repository";',resolveDir:base},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'settings_qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[{name:'settings-fixture',setup(ctx){
+  const bundle=await require('esbuild').build({stdin:{contents:'export * from "./src/source_outline_settings"; export {Settings} from "./vendor/workspace_core/src/settings/settings"; export {ConfigRepository} from "./vendor/workspace_core/src/io/config-repository";',resolveDir:base},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'settings_qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[...require('./editor_bundle.cjs').editor_plugins(),{name:'settings-fixture',setup(ctx){
     ctx.onResolve({filter:/.*/,namespace:'fixture'},args=>path.isAbsolute(args.path)?{path:args.path,namespace:'file'}:undefined);
     ctx.onResolve({filter:/clangd_symbol_service$/},()=>({path:'discovery',namespace:'fixture'}));
     ctx.onResolve({filter:/^src\/common\/constants$/},()=>({path:'constants',namespace:'fixture'}));

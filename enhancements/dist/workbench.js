@@ -5045,8 +5045,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       ImmortalReference = class {
-        constructor(object2) {
-          this.object = object2;
+        constructor(object3) {
+          this.object = object3;
         }
         dispose() {
         }
@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners6 = this._listeners;
-          const index = listeners6.indexOf(listener);
+          const listeners7 = this._listeners;
+          const index = listeners7.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners6[index] = void 0;
+          listeners7[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners6.length) {
+          if (this._size * compactionThreshold <= listeners7.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners6.length; i++) {
-              if (listeners6[i]) {
-                listeners6[n2++] = listeners6[i];
+            for (let i = 0; i < listeners7.length; i++) {
+              if (listeners7[i]) {
+                listeners7[n2++] = listeners7[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners6.length = n2;
+            listeners7.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners6 = dq.current._listeners;
+          const listeners7 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners6[dq.i++], dq.value);
+            this._deliver(listeners7[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -20430,13 +20430,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return array;
   }
-  function clone2(object2) {
+  function clone2(object3) {
     const newObject = create(null);
-    for (const _ref22 of entries(object2)) {
+    for (const _ref22 of entries(object3)) {
       var _ref3 = _slicedToArray(_ref22, 2);
       const property = _ref3[0];
       const value = _ref3[1];
-      const isPropertyExist = objectHasOwnProperty(object2, property);
+      const isPropertyExist = objectHasOwnProperty(object3, property);
       if (isPropertyExist) {
         if (arrayIsArray(value)) {
           newObject[property] = cleanArray(value);
@@ -20487,9 +20487,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   }
-  function lookupGetter(object2, prop) {
-    while (object2 !== null) {
-      const desc = getOwnPropertyDescriptor(object2, prop);
+  function lookupGetter(object3, prop) {
+    while (object3 !== null) {
+      const desc = getOwnPropertyDescriptor(object3, prop);
       if (desc) {
         if (desc.get) {
           return unapply(desc.get);
@@ -20498,7 +20498,7 @@ https://creativecommons.org/licenses/by/4.0/
           return unapply(desc.value);
         }
       }
-      object2 = getPrototypeOf(object2);
+      object3 = getPrototypeOf(object3);
     }
     function fallbackValue() {
       return null;
@@ -67084,9 +67084,9 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/common/model/bracketPairsTextModelPart/bracketPairsImpl.js
-  function createDisposableRef(object2, disposable) {
+  function createDisposableRef(object3, disposable) {
     return {
-      object: object2,
+      object: object3,
       dispose: () => disposable?.dispose()
     };
   }
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners6 = [];
-          listeners6.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners6.push(value.onWillDispose(() => {
+          const listeners7 = [];
+          listeners7.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners7.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners6);
+            dispose(listeners7);
           }));
           return value;
         }
@@ -133636,9 +133636,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       BaseRefCounted = class extends RefCounted {
-        constructor(object2, _disposable, _debugOwner) {
+        constructor(object3, _disposable, _debugOwner) {
           super();
-          this.object = object2;
+          this.object = object3;
           this._disposable = _disposable;
           this._debugOwner = _debugOwner;
           this._refCount = 1;
@@ -164483,8 +164483,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners6 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners6) listener();
+    const listeners7 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners7) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -164514,8 +164514,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate: invalidate2,
       subscribe(listener) {
-        listeners6.add(listener);
-        return () => listeners6.delete(listener);
+        listeners7.add(listener);
+        return () => listeners7.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -164559,7 +164559,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners6.clear();
+        listeners7.clear();
         adapter.dispose();
       }
     };
@@ -183481,13 +183481,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return array;
   }
-  function clone3(object2) {
+  function clone3(object3) {
     const newObject = create3(null);
-    for (const _ref22 of entries2(object2)) {
+    for (const _ref22 of entries2(object3)) {
       var _ref3 = _slicedToArray2(_ref22, 2);
       const property = _ref3[0];
       const value = _ref3[1];
-      const isPropertyExist = objectHasOwnProperty2(object2, property);
+      const isPropertyExist = objectHasOwnProperty2(object3, property);
       if (isPropertyExist) {
         if (arrayIsArray2(value)) {
           newObject[property] = cleanArray2(value);
@@ -183538,9 +183538,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   }
-  function lookupGetter2(object2, prop) {
-    while (object2 !== null) {
-      const desc = getOwnPropertyDescriptor2(object2, prop);
+  function lookupGetter2(object3, prop) {
+    while (object3 !== null) {
+      const desc = getOwnPropertyDescriptor2(object3, prop);
       if (desc) {
         if (desc.get) {
           return unapply2(desc.get);
@@ -183549,7 +183549,7 @@ https://creativecommons.org/licenses/by/4.0/
           return unapply2(desc.value);
         }
       }
-      object2 = getPrototypeOf2(object2);
+      object3 = getPrototypeOf2(object3);
     }
     function fallbackValue() {
       return null;
@@ -184946,26 +184946,39 @@ https://creativecommons.org/licenses/by/4.0/
     if (observer2?.takeRecords().length) invalidate();
     const native = document.querySelector("content > #write") || document.querySelector("#write") || document.body;
     const computed = getComputedStyle(native), properties2 = ["font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "word-spacing", "color", "text-align", "text-indent", "text-transform"];
-    const inherited = "#write{" + properties2.map((name) => name + ":" + computed.getPropertyValue(name) + ";").join("") + "}\n";
+    const typed_line_height = native.computedStyleMap?.().get("line-height");
+    const inherited = "#write{" + properties2.map((name) => name + ":" + (name === "line-height" && typed_line_height?.unit === "number" ? String(typed_line_height.value) : computed.getPropertyValue(name)) + ";").join("") + "}\n";
     if (users && cached_rules !== void 0) return inherited + cached_rules;
-    const rules = [];
-    for (const sheet of [...document.styleSheets]) {
-      if (sheet.disabled) continue;
+    const stack = /* @__PURE__ */ new Set();
+    const collect = (sheet) => {
+      if (sheet.disabled || stack.has(sheet)) return "";
+      stack.add(sheet);
       try {
         const text4 = [...sheet.cssRules].map((rule) => {
+          if (rule instanceof CSSImportRule) {
+            const imported = rule.styleSheet ? collect(rule.styleSheet) : "";
+            return imported && rule.media.mediaText ? "@media " + rule.media.mediaText + "{" + imported + "}" : imported;
+          }
+          let text5 = rule.cssText;
           if (rule instanceof CSSStyleRule && /^(?:html|body)(?:[.#:\[]|$)/u.test(rule.selectorText)) {
             const variables = [...rule.style].filter((name) => name.startsWith("--")).map((name) => name + ":" + rule.style.getPropertyValue(name) + (rule.style.getPropertyPriority(name) ? " !important" : "") + ";").join("");
-            if (variables && rule.selectorText.split(",").every((selector) => /^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector.trim()))) return rule.selectorText.split(",").map((selector) => ":host-context(" + selector.trim() + ")").join(",") + "{" + variables + "}";
+            if (variables && rule.selectorText.split(",").every((selector) => /^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector.trim()))) text5 = rule.selectorText.split(",").map((selector) => ":host-context(" + selector.trim() + ")").join(",") + "{" + variables + "}";
           }
-          return rule.cssText;
-        }).filter((rule) => rule.includes("#write") || rule.startsWith(":root") || rule.startsWith(":host-context(") || rule.startsWith("@font-face") || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(rule)).join("\n");
-        if (text4) {
-          const adapted = text4.replace(/:root(\[data-workspace-colors(?:=[^\]]+)?\])/gu, ":host-context(html$1)").replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
-          rules.push(sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted);
-        }
+          if (!(text5.includes("#write") || text5.startsWith(":root") || text5.startsWith(":host-context(") || text5.startsWith("@font-face") || /^\.(?:md-fences|cm-s-inner|CodeMirror)(?:[\s.,:#\[]|\s*\{)/u.test(text5) || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(text5))) return "";
+          if (sheet.href) text5 = text5.replace(/url\((['"]?)([^)'"\s]+)\1\)/gu, (_all, _quote, url) => "url(" + JSON.stringify(new URL(url, sheet.href).href) + ")");
+          return text5;
+        }).join("\n");
+        return text4;
       } catch {
+        return "";
+      } finally {
+        stack.delete(sheet);
       }
-    }
+    };
+    const rules = [...document.styleSheets].map((sheet) => {
+      const text4 = collect(sheet), adapted = text4.replace(/:root(\[data-workspace-colors(?:=[^\]]+)?\])/gu, ":host-context(html$1)").replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
+      return text4 && sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted;
+    });
     const text3 = rules.join("\n");
     if (users) cached_rules = text3;
     return inherited + text3;
@@ -193409,7 +193422,7 @@ https://creativecommons.org/licenses/by/4.0/
     const background = palette_background || "rgb(".concat(rgb.join(", "), ")");
     const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
     const foreground2 = palette?.getPropertyValue("--workspace-ui-foreground").trim() || body.color || (dark ? "#d4d4d4" : "#333333");
-    return {
+    const theme2 = {
       background,
       foreground: foreground2,
       cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground2,
@@ -193433,6 +193446,11 @@ https://creativecommons.org/licenses/by/4.0/
       brightCyan: dark ? "#29b8db" : "#29b8db",
       brightWhite: dark ? "#e5e5e5" : "#a5a5a5"
     };
+    for (const key3 of Object.keys(theme2)) {
+      const value = palette?.getPropertyValue("--workspace-terminal-" + key3.replace(/[A-Z]/gu, (part) => "-" + part.toLowerCase())).trim();
+      if (value) theme2[key3] = value;
+    }
+    return theme2;
   }
   function observe_terminal_theme(apply3) {
     let previous = "";
@@ -193546,7 +193564,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners6 = /* @__PURE__ */ new Set();
+    const listeners7 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -193575,14 +193593,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners6) listener(structuredClone(current));
+        for (const listener of listeners7) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners6.add(listener);
-        return () => listeners6.delete(listener);
+        listeners7.add(listener);
+        return () => listeners7.delete(listener);
       },
       dispose() {
-        listeners6.clear();
+        listeners7.clear();
       }
     };
   }
@@ -206927,9 +206945,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (!stat.isFile()) throw new Error(git_graph_text("host.non_text_comparison"));
           return new TextDecoder(settings.encoding).decode(await fs2.promises.readFile(target));
         }
-        const object2 = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
+        const object3 = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
         const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
-        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object2]));
+        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object3]));
       },
       open_document(data, group = "active", options2 = {}, previous_parent) {
         notify_navigation_selection();
@@ -233700,7 +233718,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     graph_color(index) {
       const custom = this.settings.colors, defaults2 = graph_defaults.colors;
-      if (custom.length === defaults2.length && custom.every((color, i) => color === defaults2[i])) return index < 0 ? "#EA5C00" : ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index < 2 ? index : 2 + (index - 2) % 5];
+      if (custom.length === defaults2.length && custom.every((color, i) => color === defaults2[i])) return index < 0 ? "var(--workspace-graph-base,#EA5C00)" : ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "var(--workspace-graph-other-1,#FFB000)", "var(--workspace-graph-other-2,#DC267F)", "var(--workspace-graph-other-3,#994F00)", "var(--workspace-graph-other-4,#40B0A6)", "var(--workspace-graph-other-5,#B66DFF)"][index < 2 ? index : 2 + (index - 2) % 5];
       return custom[(index < 0 ? 7 : index) % custom.length];
     }
     draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }, node_kind = "normal") {
@@ -235570,25 +235588,579 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_markdown_appearance.css
   var workspace_markdown_appearance_default = "";
 
+  // src/workspace_color_catalog.ts
+  var WORKSPACE_COLOR_ROLES = [
+    {
+      "key": "vscode_title_bar_active_foreground",
+      "title": "\u6807\u9898\u680F\u6D3B\u52A8\u6587\u5B57",
+      "variable": "--vscode-titleBar-activeForeground"
+    },
+    {
+      "key": "vscode_status_bar_foreground",
+      "title": "\u72B6\u6001\u680F\u6587\u5B57",
+      "variable": "--vscode-statusBar-foreground"
+    },
+    {
+      "key": "vscode_status_bar_item_hover_background",
+      "title": "\u72B6\u6001\u680F\u9879\u60AC\u505C\u80CC\u666F",
+      "variable": "--vscode-statusBarItem-hoverBackground"
+    },
+    {
+      "key": "vscode_menu_background",
+      "title": "\u83DC\u5355\u80CC\u666F",
+      "variable": "--vscode-menu-background"
+    },
+    {
+      "key": "vscode_menu_foreground",
+      "title": "\u83DC\u5355\u6587\u5B57",
+      "variable": "--vscode-menu-foreground"
+    },
+    {
+      "key": "vscode_menu_border",
+      "title": "\u83DC\u5355\u8FB9\u6846",
+      "variable": "--vscode-menu-border"
+    },
+    {
+      "key": "vscode_menu_separator_background",
+      "title": "\u83DC\u5355\u5206\u9694\u7EBF\u80CC\u666F",
+      "variable": "--vscode-menu-separatorBackground"
+    },
+    {
+      "key": "vscode_input_placeholder_foreground",
+      "title": "\u8F93\u5165\u6846\u5360\u4F4D\u6587\u5B57",
+      "variable": "--vscode-input-placeholderForeground"
+    },
+    {
+      "key": "vscode_text_block_quote_background",
+      "title": "\u6587\u672C\u5757\u5F15\u7528\u80CC\u666F",
+      "variable": "--vscode-textBlockQuote-background"
+    },
+    {
+      "key": "vscode_text_block_quote_border",
+      "title": "\u6587\u672C\u5757\u5F15\u7528\u8FB9\u6846",
+      "variable": "--vscode-textBlockQuote-border"
+    },
+    {
+      "key": "vscode_text_code_block_background",
+      "title": "\u6587\u672C\u4EE3\u7801\u5757\u80CC\u666F",
+      "variable": "--vscode-textCodeBlock-background"
+    },
+    {
+      "key": "vscode_text_preformat_background",
+      "title": "\u6587\u672C\u884C\u5185\u4EE3\u7801\u80CC\u666F",
+      "variable": "--vscode-textPreformat-background"
+    },
+    {
+      "key": "vscode_text_preformat_foreground",
+      "title": "\u6587\u672C\u884C\u5185\u4EE3\u7801\u6587\u5B57",
+      "variable": "--vscode-textPreformat-foreground"
+    },
+    {
+      "key": "vscode_terminal_selection_background",
+      "title": "\u7EC8\u7AEF\u9009\u62E9\u80CC\u666F",
+      "variable": "--vscode-terminal-selectionBackground"
+    },
+    {
+      "key": "vscode_terminal_cursor_foreground",
+      "title": "\u7EC8\u7AEF\u5149\u6807\u6587\u5B57",
+      "variable": "--vscode-terminalCursor-foreground"
+    },
+    {
+      "key": "vscode_terminal_cursor_background",
+      "title": "\u7EC8\u7AEF\u5149\u6807\u80CC\u666F",
+      "variable": "--vscode-terminalCursor-background"
+    },
+    {
+      "key": "markdown_heading",
+      "title": "\u6B63\u6587\u6807\u9898",
+      "variable": "--workspace-markdown-heading"
+    },
+    {
+      "key": "vscode_foreground",
+      "title": "\u6587\u5B57",
+      "variable": "--vscode-foreground"
+    },
+    {
+      "key": "vscode_description_foreground",
+      "title": "\u8BF4\u660E\u6587\u5B57",
+      "variable": "--vscode-descriptionForeground"
+    },
+    {
+      "key": "vscode_focus_border",
+      "title": "\u7126\u70B9\u8FB9\u6846",
+      "variable": "--vscode-focusBorder"
+    },
+    {
+      "key": "vscode_button_background",
+      "title": "\u6309\u94AE\u80CC\u666F",
+      "variable": "--vscode-button-background"
+    },
+    {
+      "key": "vscode_button_foreground",
+      "title": "\u6309\u94AE\u6587\u5B57",
+      "variable": "--vscode-button-foreground"
+    },
+    {
+      "key": "vscode_button_hover_background",
+      "title": "\u6309\u94AE\u60AC\u505C\u80CC\u666F",
+      "variable": "--vscode-button-hoverBackground"
+    },
+    {
+      "key": "vscode_input_background",
+      "title": "\u8F93\u5165\u6846\u80CC\u666F",
+      "variable": "--vscode-input-background"
+    },
+    {
+      "key": "vscode_input_border",
+      "title": "\u8F93\u5165\u6846\u8FB9\u6846",
+      "variable": "--vscode-input-border"
+    },
+    {
+      "key": "vscode_input_foreground",
+      "title": "\u8F93\u5165\u6846\u6587\u5B57",
+      "variable": "--vscode-input-foreground"
+    },
+    {
+      "key": "vscode_side_bar_background",
+      "title": "\u4FA7\u680F\u80CC\u666F",
+      "variable": "--vscode-sideBar-background"
+    },
+    {
+      "key": "vscode_side_bar_border",
+      "title": "\u4FA7\u680F\u8FB9\u6846",
+      "variable": "--vscode-sideBar-border"
+    },
+    {
+      "key": "vscode_panel_background",
+      "title": "\u9762\u677F\u80CC\u666F",
+      "variable": "--vscode-panel-background"
+    },
+    {
+      "key": "vscode_panel_border",
+      "title": "\u9762\u677F\u8FB9\u6846",
+      "variable": "--vscode-panel-border"
+    },
+    {
+      "key": "vscode_status_bar_background",
+      "title": "\u72B6\u6001\u680F\u80CC\u666F",
+      "variable": "--vscode-statusBar-background"
+    },
+    {
+      "key": "vscode_editor_background",
+      "title": "\u7F16\u8F91\u5668\u80CC\u666F",
+      "variable": "--vscode-editor-background"
+    },
+    {
+      "key": "vscode_editor_foreground",
+      "title": "\u7F16\u8F91\u5668\u6587\u5B57",
+      "variable": "--vscode-editor-foreground"
+    },
+    {
+      "key": "vscode_editor_group_header_tabs_background",
+      "title": "\u7F16\u8F91\u5668\u7EC4\u8868\u5934\u6807\u7B7E\u80CC\u666F",
+      "variable": "--vscode-editorGroupHeader-tabsBackground"
+    },
+    {
+      "key": "vscode_activity_bar_inactive_foreground",
+      "title": "\u6D3B\u52A8\u680F\u975E\u6D3B\u52A8\u6587\u5B57",
+      "variable": "--vscode-activityBar-inactiveForeground"
+    },
+    {
+      "key": "vscode_activity_bar_foreground",
+      "title": "\u6D3B\u52A8\u680F\u6587\u5B57",
+      "variable": "--vscode-activityBar-foreground"
+    },
+    {
+      "key": "vscode_activity_bar_active_border",
+      "title": "\u6D3B\u52A8\u680F\u6D3B\u52A8\u8FB9\u6846",
+      "variable": "--vscode-activityBar-activeBorder"
+    },
+    {
+      "key": "vscode_modern_activity_bar_item_active_background",
+      "title": "\u6D3B\u52A8\u680F\u9879\u6D3B\u52A8\u80CC\u666F",
+      "variable": "--vscode-modernActivityBarItem-activeBackground"
+    },
+    {
+      "key": "vscode_modern_activity_bar_item_hover_background",
+      "title": "\u6D3B\u52A8\u680F\u9879\u60AC\u505C\u80CC\u666F",
+      "variable": "--vscode-modernActivityBarItem-hoverBackground"
+    },
+    {
+      "key": "vscode_modern_activity_bar_item_active_foreground",
+      "title": "\u6D3B\u52A8\u680F\u9879\u6D3B\u52A8\u6587\u5B57",
+      "variable": "--vscode-modernActivityBarItem-activeForeground"
+    },
+    {
+      "key": "vscode_text_link_foreground",
+      "title": "\u6587\u672C\u94FE\u63A5\u6587\u5B57",
+      "variable": "--vscode-textLink-foreground"
+    },
+    {
+      "key": "ui_background",
+      "title": "\u901A\u7528\u80CC\u666F",
+      "variable": "--workspace-ui-background"
+    },
+    {
+      "key": "ui_chrome",
+      "title": "\u901A\u7528\u6846\u67B6",
+      "variable": "--workspace-ui-chrome"
+    },
+    {
+      "key": "ui_foreground",
+      "title": "\u901A\u7528\u6587\u5B57",
+      "variable": "--workspace-ui-foreground"
+    },
+    {
+      "key": "ui_muted",
+      "title": "\u901A\u7528\u6B21\u8981\u6587\u5B57",
+      "variable": "--workspace-ui-muted"
+    },
+    {
+      "key": "ui_border",
+      "title": "\u901A\u7528\u8FB9\u6846",
+      "variable": "--workspace-ui-border"
+    },
+    {
+      "key": "ui_control_border",
+      "title": "\u901A\u7528\u63A7\u4EF6\u8FB9\u6846",
+      "variable": "--workspace-ui-control-border"
+    },
+    {
+      "key": "ui_input",
+      "title": "\u901A\u7528\u8F93\u5165\u6846",
+      "variable": "--workspace-ui-input"
+    },
+    {
+      "key": "ui_elevated",
+      "title": "\u901A\u7528\u6D6E\u5C42",
+      "variable": "--workspace-ui-elevated"
+    },
+    {
+      "key": "ui_focus",
+      "title": "\u901A\u7528\u7126\u70B9",
+      "variable": "--workspace-ui-focus"
+    },
+    {
+      "key": "ui_selection",
+      "title": "\u901A\u7528\u9009\u62E9",
+      "variable": "--workspace-ui-selection"
+    },
+    {
+      "key": "vscode_list_active_selection_background",
+      "title": "\u5217\u8868\u6D3B\u52A8\u9009\u62E9\u80CC\u666F",
+      "variable": "--vscode-list-activeSelectionBackground"
+    },
+    {
+      "key": "vscode_list_active_selection_foreground",
+      "title": "\u5217\u8868\u6D3B\u52A8\u9009\u62E9\u6587\u5B57",
+      "variable": "--vscode-list-activeSelectionForeground"
+    },
+    {
+      "key": "ui_hover",
+      "title": "\u901A\u7528\u60AC\u505C",
+      "variable": "--workspace-ui-hover"
+    },
+    {
+      "key": "vscode_list_hover_background",
+      "title": "\u5217\u8868\u60AC\u505C\u80CC\u666F",
+      "variable": "--vscode-list-hoverBackground"
+    },
+    {
+      "key": "vscode_list_active_selection_icon_foreground",
+      "title": "\u5217\u8868\u6D3B\u52A8\u9009\u62E9\u56FE\u6807\u6587\u5B57",
+      "variable": "--vscode-list-activeSelectionIconForeground"
+    },
+    {
+      "key": "vscode_list_focus_and_selection_outline",
+      "title": "\u5217\u8868\u7126\u70B9\u4E0E\u9009\u62E9\u8F6E\u5ED3",
+      "variable": "--vscode-list-focusAndSelectionOutline"
+    },
+    {
+      "key": "vscode_menu_selection_background",
+      "title": "\u83DC\u5355\u9009\u62E9\u80CC\u666F",
+      "variable": "--vscode-menu-selectionBackground"
+    },
+    {
+      "key": "vscode_list_inactive_selection_background",
+      "title": "\u5217\u8868\u975E\u6D3B\u52A8\u9009\u62E9\u80CC\u666F",
+      "variable": "--vscode-list-inactiveSelectionBackground"
+    },
+    {
+      "key": "vscode_list_inactive_selection_foreground",
+      "title": "\u5217\u8868\u975E\u6D3B\u52A8\u9009\u62E9\u6587\u5B57",
+      "variable": "--vscode-list-inactiveSelectionForeground"
+    },
+    {
+      "key": "vscode_list_hover_foreground",
+      "title": "\u5217\u8868\u60AC\u505C\u6587\u5B57",
+      "variable": "--vscode-list-hoverForeground"
+    },
+    {
+      "key": "vscode_list_drop_background",
+      "title": "\u5217\u8868\u62D6\u653E\u80CC\u666F",
+      "variable": "--vscode-list-dropBackground"
+    },
+    {
+      "key": "vscode_list_focus_background",
+      "title": "\u5217\u8868\u7126\u70B9\u80CC\u666F",
+      "variable": "--vscode-list-focusBackground"
+    },
+    {
+      "key": "vscode_list_focus_foreground",
+      "title": "\u5217\u8868\u7126\u70B9\u6587\u5B57",
+      "variable": "--vscode-list-focusForeground"
+    },
+    {
+      "key": "vscode_list_focus_outline",
+      "title": "\u5217\u8868\u7126\u70B9\u8F6E\u5ED3",
+      "variable": "--vscode-list-focusOutline"
+    },
+    {
+      "key": "vscode_list_highlight_foreground",
+      "title": "\u5217\u8868\u5339\u914D\u6587\u5B57",
+      "variable": "--vscode-list-highlightForeground"
+    },
+    {
+      "key": "vscode_list_invalid_item_foreground",
+      "title": "\u5217\u8868\u65E0\u6548\u9879\u6587\u5B57",
+      "variable": "--vscode-list-invalidItemForeground"
+    },
+    {
+      "key": "vscode_list_error_foreground",
+      "title": "\u5217\u8868\u9519\u8BEF\u6587\u5B57",
+      "variable": "--vscode-list-errorForeground"
+    },
+    {
+      "key": "vscode_list_warning_foreground",
+      "title": "\u5217\u8868\u8B66\u544A\u6587\u5B57",
+      "variable": "--vscode-list-warningForeground"
+    },
+    {
+      "key": "vscode_menubar_selection_background",
+      "title": "\u83DC\u5355\u680F\u9009\u62E9\u80CC\u666F",
+      "variable": "--vscode-menubar-selectionBackground"
+    },
+    {
+      "key": "vscode_diff_editor_inserted_text_background",
+      "title": "\u5DEE\u5F02\u7F16\u8F91\u5668\u65B0\u589E\u6587\u672C\u80CC\u666F",
+      "variable": "--vscode-diffEditor-insertedTextBackground"
+    },
+    {
+      "key": "vscode_diff_editor_removed_text_background",
+      "title": "\u5DEE\u5F02\u7F16\u8F91\u5668\u5220\u9664\u6587\u672C\u80CC\u666F",
+      "variable": "--vscode-diffEditor-removedTextBackground"
+    },
+    {
+      "key": "vscode_toolbar_hover_background",
+      "title": "\u5DE5\u5177\u680F\u60AC\u505C\u80CC\u666F",
+      "variable": "--vscode-toolbar-hoverBackground"
+    },
+    {
+      "key": "vscode_quick_input_list_focus_background",
+      "title": "\u5FEB\u901F\u8F93\u5165\u6846\u5217\u8868\u7126\u70B9\u80CC\u666F",
+      "variable": "--vscode-quickInputList-focusBackground"
+    },
+    {
+      "key": "vscode_quick_input_list_focus_foreground",
+      "title": "\u5FEB\u901F\u8F93\u5165\u6846\u5217\u8868\u7126\u70B9\u6587\u5B57",
+      "variable": "--vscode-quickInputList-focusForeground"
+    },
+    {
+      "key": "vscode_quick_input_list_focus_icon_foreground",
+      "title": "\u5FEB\u901F\u8F93\u5165\u6846\u5217\u8868\u7126\u70B9\u56FE\u6807\u6587\u5B57",
+      "variable": "--vscode-quickInputList-focusIconForeground"
+    },
+    {
+      "key": "vscode_quick_input_list_focus_highlight_foreground",
+      "title": "\u5FEB\u901F\u8F93\u5165\u6846\u5217\u8868\u7126\u70B9\u5339\u914D\u6587\u5B57",
+      "variable": "--vscode-quickInputList-focusHighlightForeground"
+    },
+    {
+      "key": "vscode_charts_blue",
+      "title": "\u56FE\u8868\u84DD\u8272",
+      "variable": "--vscode-charts-blue"
+    },
+    {
+      "key": "vscode_charts_purple",
+      "title": "\u56FE\u8868\u7D2B\u8272",
+      "variable": "--vscode-charts-purple"
+    },
+    {
+      "key": "vscode_editor_gutter_modified_background",
+      "title": "\u7F16\u8F91\u5668\u8FB9\u680F\u4FEE\u6539\u80CC\u666F",
+      "variable": "--vscode-editorGutter-modifiedBackground"
+    },
+    {
+      "key": "list_background",
+      "title": "\u5217\u8868\u80CC\u666F",
+      "variable": "--workspace-list-background"
+    },
+    {
+      "key": "markdown_link",
+      "title": "\u6B63\u6587\u94FE\u63A5",
+      "variable": "--workspace-markdown-link"
+    }
+  ];
+  var body_roles = [
+    ["markdown_background", "\u6B63\u6587\u80CC\u666F", "#write", "background-color"],
+    ["markdown_foreground", "\u6B63\u6587\u6587\u5B57", "#write"],
+    ["markdown_heading", "\u6B63\u6587\u6807\u9898\uFF08\u6240\u6709\u7EA7\u522B\uFF09", "#write h1,#write h2,#write h3,#write h4,#write h5,#write h6"],
+    ["markdown_link", "\u6B63\u6587\u94FE\u63A5", "#write a[href],#write a[href]:is(:hover,:focus,:active,:visited)"],
+    ["markdown_link_visited", "\u6B63\u6587\u94FE\u63A5\xB7\u5DF2\u8BBF\u95EE", "#write a[href]:visited"],
+    ["markdown_link_hover", "\u6B63\u6587\u94FE\u63A5\xB7\u60AC\u505C/\u7126\u70B9", "#write a[href]:hover,#write a[href]:focus,#write a[href]:active"],
+    ["markdown_strong", "\u6B63\u6587\u52A0\u7C97", "#write strong"],
+    ["markdown_emphasis", "\u6B63\u6587\u659C\u4F53", "#write em"],
+    ["markdown_quote_foreground", "\u5F15\u7528\u6587\u5B57", "#write blockquote"],
+    ["markdown_quote_background", "\u5F15\u7528\u80CC\u666F", "#write blockquote", "background-color"],
+    ["markdown_quote_border", "\u5F15\u7528\u8FB9\u7EBF", "#write blockquote", "border-color"],
+    ["markdown_table_foreground", "\u8868\u683C\u6587\u5B57", "#write table"],
+    ["markdown_table_background", "\u8868\u683C\u80CC\u666F", "#write table,#write tr,#write td", "background-color"],
+    ["markdown_table_border", "\u8868\u683C\u8FB9\u7EBF", "#write table,#write th,#write td", "border-color"],
+    ["markdown_table_header_foreground", "\u8868\u5934\u6587\u5B57", "#write th"],
+    ["markdown_table_header_background", "\u8868\u5934\u80CC\u666F", "#write th", "background-color"],
+    ["markdown_table_alternate_background", "\u8868\u683C\u9694\u884C\u80CC\u666F", "#write tbody tr:nth-child(even),#write tbody tr:nth-child(even) td", "background-color"],
+    ["markdown_code_foreground", "\u884C\u5185\u4EE3\u7801\u6587\u5B57", "#write code"],
+    ["markdown_code_background", "\u884C\u5185\u4EE3\u7801\u80CC\u666F", "#write code", "background-color"],
+    ["markdown_fence_foreground", "\u4EE3\u7801\u56F4\u680F\u6587\u5B57", "#write pre,#write pre code,#write .md-fences,#write .CodeMirror"],
+    ["markdown_fence_background", "\u4EE3\u7801\u56F4\u680F\u80CC\u666F", "#write pre,#write pre code,#write .md-fences,#write .CodeMirror", "background-color"],
+    ["markdown_rule", "\u6C34\u5E73\u5206\u9694\u7EBF", "#write hr", "border-color"],
+    ["markdown_mark_foreground", "\u9AD8\u4EAE\u6587\u5B57", "#write mark"],
+    ["markdown_mark_background", "\u9AD8\u4EAE\u80CC\u666F", "#write mark", "background-color"]
+  ];
+  for (let level = 1; level <= 6; level++) body_roles.push(["markdown_heading_" + level, "\u6B63\u6587H" + level + "\u6807\u9898", "#write h" + level]);
+  for (const [key3, title, selector, property] of body_roles) {
+    const existing = WORKSPACE_COLOR_ROLES.find((role) => role.key === key3);
+    if (existing) Object.assign(existing, { selector, property });
+    else WORKSPACE_COLOR_ROLES.push({ key: key3, title, selector, property });
+  }
+  for (const [key3, title, selector] of [
+    ["comment", "\u6CE8\u91CA", ".cm-tm-comment,.cm-comment,.hljs-comment"],
+    ["keyword", "\u5173\u952E\u5B57", ".cm-tm-keyword,.cm-tm-control,.cm-keyword,.hljs-keyword"],
+    ["string", "\u5B57\u7B26\u4E32", ".cm-tm-string,.cm-string,.cm-string-2,.hljs-string"],
+    ["number", "\u6570\u5B57", ".cm-tm-number,.cm-number,.hljs-number"],
+    ["type", "\u7C7B\u578B", ".cm-tm-type,.cm-tm-namespace,.cm-tm-attribute,.cm-type,.hljs-type"],
+    ["variable", "\u53D8\u91CF", ".cm-tm-variable,.cm-tm-parameter,.cm-variable,.cm-variable-2,.hljs-variable"],
+    ["property", "\u5C5E\u6027", ".cm-tm-property,.cm-property,.hljs-attr"],
+    ["operator", "\u8FD0\u7B97\u7B26", ".cm-tm-operator,.cm-tm-punctuation,.cm-operator,.hljs-operator"],
+    ["function", "\u51FD\u6570", ".cm-def,.cm-tm-function,.hljs-title"],
+    ["constant", "\u5E38\u91CF", ".cm-atom,.cm-tm-constant,.hljs-literal"],
+    ["preprocessor", "\u9884\u5904\u7406", ".cm-meta,.cm-tm-preprocessor,.hljs-meta"],
+    ["builtin", "\u5185\u7F6E\u7B26\u53F7", ".cm-builtin,.hljs-built_in"],
+    ["tag", "\u6807\u8BB0", ".cm-tag,.hljs-tag"]
+  ]) WORKSPACE_COLOR_ROLES.push({ key: "markdown_syntax_" + key3, title: "\u56F4\u680F\u8BED\u6CD5\xB7" + title, selector: selector.split(",").map((part) => "#write " + part).join(",") });
+  WORKSPACE_COLOR_ROLES.push(
+    { key: "markdown_selection_background", title: "\u6B63\u6587\u9009\u4E2D\u6587\u5B57\u80CC\u666F", variable: "--workspace-markdown-selection-background" },
+    { key: "markdown_selection_foreground", title: "\u6B63\u6587\u9009\u4E2D\u6587\u5B57\u524D\u666F", variable: "--workspace-markdown-selection-foreground" }
+  );
+  for (const key3 of ["background", "foreground", "selection_inactive_background", "black", "red", "green", "yellow", "blue", "magenta", "cyan", "white", "bright_black", "bright_red", "bright_green", "bright_yellow", "bright_blue", "bright_magenta", "bright_cyan", "bright_white"])
+    WORKSPACE_COLOR_ROLES.push({ key: "terminal_" + key3, title: "\u7EC8\u7AEF " + key3, variable: "--workspace-terminal-" + key3.replaceAll("_", "-") });
+  for (const [key3, title] of [["base", "\u5171\u540C\u57FA\u51C6"], ["other_1", "\u5176\u4ED6\u5206\u652F1"], ["other_2", "\u5176\u4ED6\u5206\u652F2"], ["other_3", "\u5176\u4ED6\u5206\u652F3"], ["other_4", "\u5176\u4ED6\u5206\u652F4"], ["other_5", "\u5176\u4ED6\u5206\u652F5"]])
+    WORKSPACE_COLOR_ROLES.push({ key: "graph_" + key3, title: "Git\u652F\u7EBF\xB7" + title, variable: "--workspace-graph-" + key3.replaceAll("_", "-") });
+
+  // src/workspace_color_settings.ts
+  var listeners5 = /* @__PURE__ */ new Set();
+  var known_keys = new Set(WORKSPACE_COLOR_ROLES.map((role) => role.key));
+  var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {} } });
+  function normalize_custom_color(value) {
+    if (typeof value !== "string") throw Error("\u989C\u8272\u5FC5\u987B\u4E3A\u5341\u516D\u8FDB\u5236\u6587\u672C\u3002");
+    const color = value.trim();
+    if (!color) return "";
+    if (!/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.test(color)) throw Error("\u8BF7\u8F93\u5165 #RGB\u3001#RGBA\u3001#RRGGBB \u6216 #RRGGBBAA\uFF1B\u7559\u7A7A\u7EE7\u627F\u4E3B\u9898\u3002");
+    return (color.length < 6 ? "#" + [...color.slice(1)].map((part) => part + part).join("") : color).toUpperCase();
+  }
+  function object(value) {
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+  }
+  function validate_color_config(value) {
+    if (!object(value) || value.schema !== 1 || Object.keys(value).some((key3) => !["schema", "themes"].includes(key3)) || !object(value.themes)) throw Error("\u4E0D\u662F\u652F\u6301\u7684\u989C\u8272\u914D\u7F6E\uFF1A\u9700\u8981schema:1\u548Cthemes\u5BF9\u8C61\u3002");
+    if (Object.keys(value.themes).some((key3) => key3 !== "light" && key3 !== "dark")) throw Error("\u989C\u8272\u914D\u7F6E\u5305\u542B\u672A\u77E5\u4E3B\u9898\u3002");
+    const result = empty_color_config();
+    for (const mode of ["light", "dark"]) {
+      const colors = value.themes[mode];
+      if (!object(colors)) throw Error("\u989C\u8272\u914D\u7F6E\u7F3A\u5C11 " + mode + " \u5BF9\u8C61\u3002");
+      for (const [key3, color] of Object.entries(colors)) {
+        if (!known_keys.has(key3)) throw Error("\u672A\u77E5\u989C\u8272\u9879\u76EE\uFF1A" + key3);
+        const normalized2 = normalize_custom_color(color);
+        if (normalized2) result.themes[mode][key3] = normalized2;
+      }
+    }
+    return result;
+  }
+  function parse_color_config(text3) {
+    return validate_color_config(JSON.parse(text3.replace(/^\uFEFF/u, "")));
+  }
+  function serialize_color_config(config) {
+    return JSON.stringify(validate_color_config(config), null, 2) + "\n";
+  }
+  function read_color_config() {
+    const raw = get_workspace_app()?.settings.get("workspace_colors");
+    return raw === void 0 ? empty_color_config() : validate_color_config(raw);
+  }
+  function observe_color_config(listener) {
+    listeners5.add(listener);
+    return () => {
+      listeners5.delete(listener);
+    };
+  }
+  function save_color_config(value) {
+    const next = validate_color_config(value), settings = get_workspace_app()?.settings;
+    if (!settings) throw Error("\u7528\u6237\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
+    if (serialize_color_config(next) === serialize_color_config(read_color_config())) return;
+    settings.set_and_save("workspace_colors", next);
+    for (const listener of listeners5) listener();
+  }
+  function color_config_css(config) {
+    const css = [];
+    for (const mode of ["light", "dark"]) {
+      const prefix = ":root[data-workspace-colors=".concat(mode, "]"), variables = [];
+      for (const role of WORKSPACE_COLOR_ROLES) {
+        const value = config.themes[mode][role.key];
+        if (!value) continue;
+        if (role.variable) variables.push("".concat(role.variable, ":").concat(value, "!important"));
+        if (role.selector) css.push("".concat(prefix, " :is(").concat(role.selector, "){").concat(role.property || "color", ":").concat(value, "!important}"));
+      }
+      css.unshift("".concat(prefix, "{").concat(variables.join(";"), "}"));
+      for (const [key3, property] of [["markdown_selection_background", "background-color"], ["markdown_selection_foreground", "color"]]) {
+        const value = config.themes[mode][key3];
+        if (value) css.push("".concat(prefix, " #write::selection,").concat(prefix, " #write *::selection{").concat(property, ":").concat(value, "!important}"));
+      }
+    }
+    return css.join("\n");
+  }
+
   // src/workspace_colors.ts
   function bind_workspace_colors() {
     const style = acquire_workspace_style("typora-code-style:workspace_colors", workspace_colors_default);
     const markdown_style = acquire_workspace_style("typora-code-style:workspace_markdown_appearance", workspace_markdown_appearance_default);
     const root = document.documentElement, previous = root.getAttribute("data-workspace-colors");
+    const custom_style = document.createElement("style");
+    custom_style.id = "typora-code-custom-colors";
+    document.head.append(custom_style);
+    const refresh_custom = () => {
+      try {
+        const next = color_config_css(read_color_config());
+        if (custom_style.textContent !== next) custom_style.textContent = next;
+      } catch (error) {
+        console.error("\u81EA\u5B9A\u4E49\u989C\u8272\u672A\u52A0\u8F7D\uFF1A", error);
+      }
+    };
     const refresh = () => {
       const href = document.getElementById("theme_css")?.getAttribute("href") || "";
       const name = href.split(/[\\/]/u).pop()?.split(/[?#]/u)[0].toLowerCase();
-      const mode = name === "cpp_github-consolas.css" ? "light" : name === "night.css" ? "dark" : void 0;
+      const mode = ["cpp_github-consolas.css", "cpp_github-consolas_light.css"].includes(name || "") ? "light" : ["night.css", "cpp_github-consolas_dark.css"].includes(name || "") ? "dark" : void 0;
       if (mode) {
         if (root.getAttribute("data-workspace-colors") !== mode) root.setAttribute("data-workspace-colors", mode);
       } else root.removeAttribute("data-workspace-colors");
     };
     refresh();
-    const release = observe_workspace_theme(refresh, "palette");
+    refresh_custom();
+    const release_custom = observe_color_config(refresh_custom), release = observe_workspace_theme(refresh, "palette");
     let disposed = false;
     return { dispose() {
       if (disposed) return;
       disposed = true;
+      release_custom();
+      custom_style.remove();
       release();
       markdown_style.remove();
       style.remove();
@@ -235965,27 +236537,27 @@ https://creativecommons.org/licenses/by/4.0/
   var KEY3 = "breadcrumbs";
   var changed = /* @__PURE__ */ new Set();
   var dialog;
-  var object = (v2) => v2 && typeof v2 === "object" && !Array.isArray(v2) ? v2 : {};
+  var object2 = (v2) => v2 && typeof v2 === "object" && !Array.isArray(v2) ? v2 : {};
   function root_key(root) {
     if (!root) return "";
     const runtime2 = window, p = runtime2.reqnode("path").resolve(root);
     return runtime2.reqnode("process").platform === "win32" ? p.toLowerCase() : p;
   }
   function stored_settings() {
-    return object(get_workspace_app()?.settings.get(KEY3));
+    return object2(get_workspace_app()?.settings.get(KEY3));
   }
   function clean(value) {
-    const source = object(value), result = {};
+    const source = object2(value), result = {};
     for (const key3 of ["enabled", "icons", "show_editor_type"]) if (typeof source[key3] === "boolean") result[key3] = source[key3];
     for (const key3 of ["file_path", "symbol_path"]) if (["on", "off", "last"].includes(source[key3])) result[key3] = source[key3];
     if (["position", "name", "type"].includes(source.symbol_sort_order)) result.symbol_sort_order = source.symbol_sort_order;
     if (typeof source.symbol_path_separator === "string" && source.symbol_path_separator.length <= 16 && !/[\r\n\0]/.test(source.symbol_path_separator)) result.symbol_path_separator = source.symbol_path_separator;
-    const kinds = object(source.symbol_kinds);
+    const kinds = object2(source.symbol_kinds);
     if (Object.keys(kinds).length) result.symbol_kinds = Object.fromEntries(BREADCRUMB_KINDS.filter((k2) => typeof kinds[k2] === "boolean").map((k2) => [k2, kinds[k2]]));
     return result;
   }
   function read_breadcrumb_settings(root = "", language44 = "") {
-    const value = stored_settings(), user = object(value.user), workspace = object(object(value.workspaces)[root_key(root)]);
+    const value = stored_settings(), user = object2(value.user), workspace = object2(object2(value.workspaces)[root_key(root)]);
     const result = { ...BREADCRUMB_DEFAULTS, symbol_kinds: {} };
     const merge = (v2, language_only = false) => {
       const next = clean(v2);
@@ -235997,8 +236569,8 @@ https://creativecommons.org/licenses/by/4.0/
     merge(user.values);
     merge(workspace.values);
     if (language44) {
-      merge(object(user.languages)[language44], true);
-      merge(object(workspace.languages)[language44], true);
+      merge(object2(user.languages)[language44], true);
+      merge(object2(workspace.languages)[language44], true);
     }
     return result;
   }
@@ -236020,7 +236592,7 @@ https://creativecommons.org/licenses/by/4.0/
     for (const listener of changed) listener();
   }
   function set_breadcrumb_enabled(root, enabled) {
-    const workspace = clean(object(object(stored_settings().workspaces)[root_key(root)]).values);
+    const workspace = clean(object2(object2(stored_settings().workspaces)[root_key(root)]).values);
     update_breadcrumb_settings(root, typeof workspace.enabled === "boolean" ? "workspace" : "user", "enabled", enabled);
   }
   function observe_breadcrumb_settings(listener) {
@@ -236059,7 +236631,7 @@ https://creativecommons.org/licenses/by/4.0/
     const render = () => {
       rows.replaceChildren();
       const current = read_breadcrumb_settings(scope.value === "user" ? "" : root, language_scope.value);
-      const data = stored_settings(), owner2 = scope.value === "user" ? object(data.user) : object(object(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object(owner2.languages)[language_scope.value] : owner2.values);
+      const data = stored_settings(), owner2 = scope.value === "user" ? object2(data.user) : object2(object2(data.workspaces)[root_key(root)]), values = clean(language_scope.value ? object2(owner2.languages)[language_scope.value] : owner2.values);
       const change = (key3, value) => {
         try {
           update_breadcrumb_settings(root, scope.value, key3, value, language_scope.value);
@@ -236656,10 +237228,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key3 = file_path + "\0" + workspace_root;
     let owner2 = entries3.get(key3);
     if (!owner2) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners6 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners7 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners6) callback(state);
+        for (const callback of listeners7) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -236689,7 +237261,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner2 = { state, listeners: listeners6, refresh, dispose() {
+      owner2 = { state, listeners: listeners7, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -236698,7 +237270,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners6.clear();
+        listeners7.clear();
       } };
       entries3.set(key3, owner2);
       refresh();
@@ -242289,7 +242861,7 @@ https://creativecommons.org/licenses/by/4.0/
     "timeline.enabled": true
   });
   var KEY4 = "workspace_files";
-  var listeners5 = /* @__PURE__ */ new Set();
+  var listeners6 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -242313,12 +242885,12 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     settings.set_and_save(KEY4, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners5) listener();
+    for (const listener of listeners6) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners5.add(listener);
+    listeners6.add(listener);
     return () => {
-      listeners5.delete(listener);
+      listeners6.delete(listener);
     };
   }
   var current_dialog2;
@@ -242617,17 +243189,19 @@ https://creativecommons.org/licenses/by/4.0/
       ];
     };
     const theme_entries = async () => {
+      const customize = { label: "\u81EA\u5B9A\u4E49\u989C\u8272\u2026", action: () => files.core.app.commands.run("typora_code:custom_colors") };
       try {
         const data = await runtime2.JSBridge?.invoke("setting.getThemes");
         if (!Array.isArray(data?.all)) throw new Error("invalid themes");
-        return data.all.filter((name) => typeof name === "string").map((name) => {
-          const display = name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_2, letter) => letter.toUpperCase());
+        return [customize, separator(), ...data.all.filter((name) => typeof name === "string").map((name) => {
+          const paired_names = { "cpp_github-consolas_light.css": "CppGithubConsoles_Light", "cpp_github-consolas_dark.css": "CppGithubConsoles_Dark" };
+          const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_2, letter) => letter.toUpperCase());
           return { label: display, checked: name === data.current, disabled: !has_command("setTheme"), action: () => {
             if (has_command("setTheme")) return call_command("setTheme", [name, display]);
           } };
-        });
+        })];
       } catch {
-        return [{ label: "\u65E0\u6CD5\u8BFB\u53D6\u4E3B\u9898\u5217\u8868", disabled: true }];
+        return [customize, separator(), { label: "\u65E0\u6CD5\u8BFB\u53D6\u4E3B\u9898\u5217\u8868", disabled: true }];
       }
     };
     const help_entries = async () => [
@@ -243497,8 +244071,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_save_service.ts
   function bind_workspace_save_service(files, runtime2 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners6 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners6) listener();
+    const listeners7 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners7) listener();
     };
     const notify_history = () => {
       notify();
@@ -243607,9 +244181,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners6.add(listener);
+      listeners7.add(listener);
       return () => {
-        listeners6.delete(listener);
+        listeners7.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -243618,7 +244192,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners6.clear();
+      listeners7.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -245129,10 +245703,170 @@ https://creativecommons.org/licenses/by/4.0/
     settings.set_and_save("workspace_network", next);
   }
 
+  // src/workspace_color_files.ts
+  async function export_color_file(text3, is_active) {
+    const runtime2 = window;
+    if (!runtime2.JSBridge?.invoke || !runtime2.reqnode) throw Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u5BFC\u51FA\u6587\u4EF6\u3002");
+    const result = await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u5BFC\u51FA\u989C\u8272\u914D\u7F6E", defaultPath: "typora-code-colors.json", properties: ["showOverwriteConfirmation"], filters: [{ name: "JSON\u989C\u8272\u914D\u7F6E", extensions: ["json"] }] });
+    if (!is_active() || result?.canceled || !result?.filePath) return false;
+    const path = runtime2.reqnode("path");
+    if (!path.isAbsolute(result.filePath)) throw Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u4FDD\u5B58\u8DEF\u5F84\u65E0\u6548\u3002");
+    await runtime2.reqnode("fs").promises.writeFile(result.filePath, text3, "utf8");
+    return true;
+  }
+
+  // src/workspace_color_view.css
+  var workspace_color_view_default = "";
+
+  // src/workspace_color_view.ts
+  function mount_color_settings(host, fields, status2) {
+    const style = acquire_workspace_style("typora-code-style:workspace_color_view", workspace_color_view_default);
+    let draft = read_color_config(), mode = document.documentElement.dataset.workspaceColors === "dark" ? "dark" : "light", disposed = false, revision = 0;
+    const invalid = /* @__PURE__ */ new Set(), toolbar = workspace_element("div", "workspace-color-toolbar"), theme2 = workspace_element("select"), table = workspace_element("table", "workspace-color-table"), tbody = workspace_element("tbody");
+    host.classList.add("workspace-color-settings");
+    theme2.setAttribute("aria-label", "\u81EA\u5B9A\u4E49\u989C\u8272\u4E3B\u9898");
+    theme2.append(new Option("CppGithubConsoles_Light \xB7 \u660E\u8272", "light"), new Option("CppGithubConsoles_Dark \xB7 \u6697\u8272", "dark"));
+    theme2.value = mode;
+    const note = workspace_element("p", "", "\u7559\u7A7A\u7EE7\u627F\u4E3B\u9898\u3002\u652F\u6301 #RGB / #RRGGBB \u53CA\u5E26\u900F\u660E\u5EA6\u7684 #RGBA / #RRGGBBAA\u3002\u6709\u6548\u6539\u52A8\u7ACB\u5373\u751F\u6548\u5E76\u81EA\u52A8\u4FDD\u5B58\uFF0C\u65E0\u9700\u53E6\u70B9\u4FDD\u5B58\u3002\u6062\u590D\u9ED8\u8BA4\u5373\u6E05\u9664\u81EA\u5B9A\u4E49\u8272\u3002\u53EA\u6709\u5207\u5230\u5BF9\u5E94\u4E3B\u9898\u65F6\u624D\u663E\u793A\u5176\u914D\u8272\u3002");
+    const apply3 = () => {
+      revision++;
+      save_color_config(draft);
+      status2("\u914D\u8272\u5DF2\u81EA\u52A8\u4FDD\u5B58\u5E76\u751F\u6548\u3002");
+    };
+    const report = (error) => status2(error instanceof Error ? error.message : String(error));
+    const render = () => {
+      tbody.replaceChildren();
+      invalid.clear();
+      for (const role of WORKSPACE_COLOR_ROLES.filter((role2) => fields.some((field) => field.key === role2.key)).sort((a, b2) => Number(b2.key.startsWith("markdown_")) - Number(a.key.startsWith("markdown_")))) {
+        const row = workspace_element("tr"), label = workspace_element("td"), value = workspace_element("td"), actions = workspace_element("td"), input = workspace_element("input"), picker2 = workspace_element("input"), key3 = workspace_element("small", "", role.key);
+        label.append(workspace_element("span", "", role.title), key3);
+        label.title = role.variable || role.selector || "";
+        input.type = "text";
+        input.value = draft.themes[mode][role.key] || "";
+        input.placeholder = "\u7EE7\u627F\u4E3B\u9898";
+        input.spellcheck = false;
+        input.dataset.colorKey = role.key;
+        input.setAttribute("aria-label", role.title + " \u8272\u503C");
+        picker2.type = "color";
+        picker2.setAttribute("aria-label", role.title + " \u53D6\u8272");
+        picker2.dataset.colorPicker = role.key;
+        const fill_picker = () => {
+          const color = draft.themes[mode][role.key];
+          picker2.value = color?.slice(0, 7) || "#808080";
+          picker2.title = color || "\u7EE7\u627F\u4E3B\u9898\uFF08\u9009\u62E9\u540E\u81EA\u5B9A\u4E49\uFF09";
+        };
+        fill_picker();
+        const change = (text3) => {
+          try {
+            const color = normalize_custom_color(text3);
+            input.setCustomValidity("");
+            input.removeAttribute("aria-invalid");
+            invalid.delete(role.key);
+            if (color) draft.themes[mode][role.key] = color;
+            else delete draft.themes[mode][role.key];
+            fill_picker();
+            apply3();
+          } catch (error) {
+            revision++;
+            draft = read_color_config();
+            invalid.add(role.key);
+            input.setCustomValidity(String(error));
+            input.setAttribute("aria-invalid", "true");
+            report(error);
+          }
+        };
+        input.oninput = () => change(input.value);
+        picker2.oninput = () => {
+          input.value = picker2.value + (draft.themes[mode][role.key]?.slice(7) || "");
+          change(input.value);
+        };
+        value.append(picker2, input);
+        actions.append(workspace_button("\u6062\u590D\u9ED8\u8BA4", () => {
+          input.value = "";
+          change("");
+        }));
+        row.append(label, value, actions);
+        tbody.append(row);
+      }
+    };
+    const inherit = workspace_button("\u5F53\u524D\u4E3B\u9898\u6062\u590D\u9ED8\u8BA4", () => {
+      try {
+        const next = structuredClone(draft);
+        next.themes[mode] = {};
+        save_color_config(next);
+        revision++;
+        draft = next;
+        render();
+        status2("\u5F53\u524D\u4E3B\u9898\u5DF2\u6062\u590D\u9ED8\u8BA4\u5E76\u4FDD\u5B58\u3002");
+      } catch (error) {
+        report(error);
+      }
+    });
+    inherit.dataset.colorAction = "inherit";
+    const picker = workspace_element("input");
+    picker.type = "file";
+    picker.accept = ".json,application/json";
+    picker.hidden = true;
+    picker.dataset.colorImport = "true";
+    picker.onchange = async () => {
+      const file = picker.files?.[0];
+      picker.value = "";
+      if (!file) return;
+      const request = ++revision;
+      try {
+        const next = parse_color_config(await file.text());
+        if (disposed || revision !== request) return;
+        save_color_config(next);
+        revision++;
+        draft = next;
+        render();
+        status2("JSON\u5DF2\u5BFC\u5165\u3001\u4FDD\u5B58\u5E76\u751F\u6548\u3002");
+      } catch (error) {
+        if (!disposed && revision === request) report(error);
+      }
+    };
+    const import_button5 = workspace_button("\u5BFC\u5165 JSON\u2026", () => picker.click());
+    import_button5.dataset.colorAction = "import";
+    const export_button = workspace_button("\u5BFC\u51FA JSON\u2026", async () => {
+      try {
+        if (invalid.size) throw Error("\u8BF7\u5148\u4FEE\u6B63\u6807\u7EA2\u7684\u65E0\u6548\u8272\u503C\u3002");
+        const saved = await export_color_file(serialize_color_config(draft), () => !disposed);
+        if (!disposed) status2(saved ? "\u989C\u8272JSON\u5DF2\u5BFC\u51FA\u3002" : "\u5DF2\u53D6\u6D88\u5BFC\u51FA\u3002");
+      } catch (error) {
+        if (!disposed) report(error);
+      }
+    });
+    export_button.dataset.colorAction = "export";
+    theme2.onchange = () => {
+      mode = theme2.value;
+      render();
+    };
+    toolbar.append(theme2, inherit, import_button5, export_button, picker);
+    const head = workspace_element("thead"), heading3 = workspace_element("tr");
+    heading3.append(workspace_element("th", "", "\u989C\u8272\u9879\u76EE"), workspace_element("th", "", "\u81EA\u5B9A\u4E49\u8272\u503C / \u900F\u660E\u5EA6"), workspace_element("th", "", "\u6062\u590D"));
+    head.append(heading3);
+    table.append(head, tbody);
+    host.append(note, toolbar, table);
+    render();
+    return { update(next) {
+      if (next.map((field) => field.key).join() === fields.map((field) => field.key).join()) return;
+      fields = next;
+      render();
+    }, dispose() {
+      if (disposed) return;
+      disposed = true;
+      revision++;
+      style.remove();
+    } };
+  }
+
   // src/workspace_settings_sections.ts
   function bind_workspace_settings_sections(files) {
     const releases = [], user = () => "\u7528\u6237\u8BBE\u7F6E", root = () => files.context_root(), project = () => "\u5DE5\u4F5C\u533A\uFF1A".concat(root() || "\u672A\u6253\u5F00\u6587\u4EF6\u5939");
     const add = (section) => releases.push(register_workspace_settings(section));
+    add({ id: "colors", title: "\u81EA\u5B9A\u4E49\u989C\u8272", scope: () => "\u7528\u6237\u8BBE\u7F6E \xB7 CppGithubConsoles_Light / Dark", defaults: {}, fields: WORKSPACE_COLOR_ROLES.map((role) => ({ key: role.key, title: role.title, description: role.variable || role.selector })), read: () => ({}), write: () => {
+      throw Error("\u989C\u8272\u8BBE\u7F6E\u901A\u8FC7\u914D\u8272\u8868\u4FDD\u5B58\u3002");
+    }, mount: mount_color_settings });
     add({ id: "network", title: "\u7F51\u7EDC", scope: user, defaults: NETWORK_DEFAULTS, fields: [
       { key: "proxy_mode", title: "\u4EE3\u7406\u6A21\u5F0F", choices: ["environment", "direct", "manual"], description: "environment\uFF1A\u4F7F\u7528HTTPS_PROXY/HTTP_PROXY\u53CANO_PROXY\u73AF\u5883\u53D8\u91CF\uFF1Bdirect\uFF1A\u76F4\u8FDE\uFF1Bmanual\uFF1A\u6307\u5B9A\u4EE3\u7406\u3002\u7CFB\u7EDF\u4EE3\u7406/PAC\u4E0D\u4F1A\u81EA\u52A8\u5BFC\u5165\u3002" },
       { key: "http_proxy_url", title: "HTTP\u8BF7\u6C42\u4EE3\u7406", description: "\u7528\u4E8Ehttp://\u76EE\u6807\uFF1B\u4F8B\u5982 http://proxy.company:8080\u3002\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u7AEF\u70B9\uFF0C\u4E0D\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u7559\u7A7A\u65F6\u6B64\u534F\u8BAE\u76F4\u8FDE\u3002\u5148\u586B\u5199\u81F3\u5C11\u4E00\u9879\uFF0C\u518D\u9009\u62E9manual\u3002" },
@@ -245252,6 +245986,7 @@ https://creativecommons.org/licenses/by/4.0/
       status = workspace_element("p", "workspace-settings-status");
       release_port;
       release_registry;
+      custom_sections = /* @__PURE__ */ new Map();
       constructor() {
         views.add(this);
         this.search.placeholder = "\u641C\u7D22\u8BBE\u7F6E";
@@ -245290,6 +246025,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       render() {
         if (this.disposed) return;
+        for (const [id, section] of this.custom_sections) if (this.owner || this.category && this.category !== id) {
+          section.dispose();
+          this.custom_sections.delete(id);
+        }
         this.categories.replaceChildren();
         this.body.replaceChildren();
         const query = this.search.value.trim().toLocaleLowerCase(), sections2 = workspace_settings_sections();
@@ -245324,6 +246063,23 @@ https://creativecommons.org/licenses/by/4.0/
           if (!fields.length) continue;
           const scope = section.scope();
           this.body.append(workspace_element("h2", "", section.title), workspace_element("p", "workspace-settings-scope", scope));
+          if (section.mount) {
+            try {
+              let custom = this.custom_sections.get(section.id);
+              if (!custom) {
+                const host = workspace_element("div");
+                custom = { host, ...section.mount(host, fields, (text3) => {
+                  this.status.textContent = text3;
+                }) };
+                this.custom_sections.set(section.id, custom);
+              } else custom.update(fields);
+              this.body.append(custom.host);
+              count += fields.length;
+            } catch (error) {
+              this.body.append(workspace_element("p", "", String(error)));
+            }
+            continue;
+          }
           let values;
           try {
             values = section.read();
@@ -245402,6 +246158,8 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         if (this.disposed) return;
         this.disposed = true;
+        for (const section of this.custom_sections.values()) section.dispose();
+        this.custom_sections.clear();
         this.owner_binding?.dispose();
         this.owner_binding = void 0;
         this.release_port();
@@ -245409,12 +246167,23 @@ https://creativecommons.org/licenses/by/4.0/
         views.delete(this);
       }
     }
-    const show2 = () => {
+    const show2 = (category = "") => {
       if (dialog2) {
+        if (category) {
+          const view2 = [...views][0];
+          view2.category = category;
+          view2.search.value = "";
+          view2.select_owner("");
+          view2.render();
+        }
         dialog2.root.querySelector(".workspace-settings>input")?.focus();
         return;
       }
       const view = new settings_view();
+      if (category) {
+        view.category = category;
+        view.render();
+      }
       const panel = dialog2 = workspace_dialog("\u8BBE\u7F6E", "\u5173\u95ED\u8BBE\u7F6E", () => {
         view.dispose();
         if (dialog2 === panel) dialog2 = void 0;
@@ -245434,7 +246203,8 @@ https://creativecommons.org/licenses/by/4.0/
       header.insertBefore(maximize, header.lastElementChild);
       header.querySelector(".workspace-dialog-title")?.prepend(git_icon("settings-gear"));
     };
-    const unregister = core.app.commands.register({ id: "typora_code:settings", title: "\u6253\u5F00\u8BBE\u7F6E", scope: "global", callback: show2 });
+    const unregister = core.app.commands.register({ id: "typora_code:settings", title: "\u6253\u5F00\u8BBE\u7F6E", scope: "global", callback: () => show2() });
+    const unregister_colors = core.app.commands.register({ id: "typora_code:custom_colors", title: "\u81EA\u5B9A\u4E49\u989C\u8272", scope: "global", callback: () => show2("colors") });
     const keydown = (event) => {
       if (event.isComposing || event.repeat || event.altKey || event.shiftKey || !(event.ctrlKey || event.metaKey) || event.key !== ",") return;
       event.preventDefault();
@@ -245446,6 +246216,7 @@ https://creativecommons.org/licenses/by/4.0/
       window.removeEventListener("keydown", keydown, true);
       dialog2?.close(false);
       for (const view of [...views]) view.dispose();
+      unregister_colors();
       unregister();
       style.remove();
     } };
@@ -245500,12 +246271,12 @@ https://creativecommons.org/licenses/by/4.0/
     const status2 = workspace_element("div", "workspace-link-web-status");
     status2.setAttribute("role", "status");
     let disposed = false, ready = false, current = url, failed = false, timer;
-    const listeners6 = [];
+    const listeners7 = [];
     const listen = (name, handler) => {
       const guarded = (event) => {
         if (!disposed) handler(event);
       };
-      listeners6.push([name, guarded]);
+      listeners7.push([name, guarded]);
       frame3.addEventListener(name, guarded);
     };
     const report = (state, text3) => {
@@ -245586,7 +246357,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       clearTimeout(timer);
-      for (const [name, handler] of listeners6) frame3.removeEventListener(name, handler);
+      for (const [name, handler] of listeners7) frame3.removeEventListener(name, handler);
       try {
         if (ready) frame3.stop();
       } catch {
@@ -246477,6 +247248,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092507,
+        version: "2026.09.25.7",
+        date: "2026-09-25",
+        notes: [
+          "\u4E3B\u9898\u83DC\u5355\u65B0\u589E\u201C\u81EA\u5B9A\u4E49\u989C\u8272\u201D\uFF0C\u4E0E\u7EDF\u4E00\u8BBE\u7F6E\u5171\u7528\u660E\u6697\u5DE5\u4F5C\u53F0\u53CA\u6B63\u6587\u989C\u8272\u8868\uFF1B\u5373\u65F6\u751F\u6548\u5E76\u81EA\u52A8\u4FDD\u5B58\u3001\u6062\u590D\u9ED8\u8BA4\uFF0C\u652F\u6301\u542B\u900F\u660E\u5EA6\u8272\u503C\u53CAJSON\u5BFC\u5165\u5BFC\u51FA\u3002",
+          "Night\u9ED8\u8BA4\u94FE\u63A5\u4FDD\u7559\u7528\u6237\u8BD5\u9009\u7684#5CA4DF\uFF1B\u81EA\u5B9A\u4E49\u989C\u8272\u968F\u4E3B\u9898\u751F\u6548\uFF0C\u6B63\u6587\u3001\u9884\u89C8\u4E0E\u6E32\u67D3\u6BD4\u8F83\u5171\u4EAB\uFF0C\u4E0D\u6539\u53D8\u539F\u4E3B\u9898\u6392\u7248\u3002",
+          "\u65B0\u589ECppGithubConsoles_Light/Dark\uFF1A\u4E24\u8005\u5171\u7528CppGithubConsoles\u5B57\u4F53\u4E0E\u6392\u7248\uFF0CDark\u91C7\u7528Night\u6697\u8272\u914D\u8272\uFF1B\u4FEE\u590D\u4E3B\u9898\u7B49\u83DC\u5355\u6587\u5B57\u4E0B\u6CBF\u88C1\u5207\u3002"
+        ]
+      },
       {
         sequence: 2026092506,
         version: "2026.09.25.6",

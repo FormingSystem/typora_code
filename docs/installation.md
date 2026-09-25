@@ -24,7 +24,7 @@ install_windows.cmd / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
-cpp_github-consolas.css
+cpp_github-consolas.css / cpp_github-consolas_light.css / cpp_github-consolas_dark.css
 scripts/
 enhancements/dist/SHA256SUMS
 enhancements/dist/terminal_runtime/
@@ -207,3 +207,11 @@ Typora官方更新若覆盖启动入口，重新运行本工程标准安装与�
 ## 文本呈现默认值迁移（R034.5）
 
 2026.09.24.3首次加载统一文本呈现服务时，缺少契约或早于2026092403的软换行配置采用自动换行默认值。该版本及之后的有效选择保留；仅迁移word_wrap，不重置其他宿主、工作台、SSH或终端配置。设置和契约保存在宿主用户数据的Local Storage，由运行时唯一服务读取；标准卸载保留用户数据，重装后沿用。磁盘安装完成与旧窗口加载新契约是两个阶段，需正常重启。存储不可用时本窗口使用内存设置并记录警告，不修改正文。
+
+## 明暗主题与自定义颜色
+
+安装后在主题菜单选择 **CppGithubConsoles_Light** 或 **CppGithubConsoles_Dark**。两者使用相同Consolas字体优先级和正文排版，Dark使用Night风格暗色。原主题仍可选。
+
+**主题 → 自定义颜色…** 或 **设置 → 自定义颜色** 打开同一张配色表，可搜索正文、链接、标题、工作台、终端等颜色项目。输入有效十六进制色值或拖动取色器，立即显示并自动保存；单项或当前主题可恢复默认，支持JSON导入/导出。明暗配置分别保存，改动另一主题的配置后需切到该主题观察。
+
+手工试色可从“主题 → 打开主题文件夹”找到 `cpp_github-consolas_dark.css`，链接选择器为 `a, a:hover, a:visited`；工作台运行时链接默认角色位于源码 `enhancements/src/workspace_colors.css` 的 `--workspace-markdown-link`，优先于主题CSS。日常调试建议直接用配色表的 `markdown_link`，无需编辑安装文件或再次构建。JSON保存的是颜色配置而非整份主题，字体与排版继续由主题拥有。

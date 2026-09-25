@@ -10,7 +10,7 @@ export function terminal_theme(): ITheme {
   const background = palette_background || `rgb(${rgb.join(", ")})`;
   const dark = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 < 128;
   const foreground = palette?.getPropertyValue('--workspace-ui-foreground').trim() || body.color || (dark ? "#d4d4d4" : "#333333");
-  return {background, foreground, cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground, cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
+  const theme:ITheme={background, foreground, cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground, cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
     selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"), selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
     black: dark ? "#000000" : "#000000",
     red: dark ? "#cd3131" : "#cd3131",
@@ -28,6 +28,8 @@ export function terminal_theme(): ITheme {
     brightMagenta: dark ? "#d670d6" : "#d670d6",
     brightCyan: dark ? "#29b8db" : "#29b8db",
     brightWhite: dark ? "#e5e5e5" : "#a5a5a5"};
+  for(const key of Object.keys(theme) as (keyof ITheme)[]){const value=palette?.getPropertyValue('--workspace-terminal-'+key.replace(/[A-Z]/gu,part=>'-'+part.toLowerCase())).trim();if(value)theme[key]=value;}
+  return theme;
 }
 
 export function observe_terminal_theme(apply: (theme: ITheme) => void): () => void {

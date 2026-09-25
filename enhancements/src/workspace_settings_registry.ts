@@ -3,6 +3,7 @@ export type workspace_setting_field={key:string;title:string;choices?:string[];d
 export type workspace_settings_section={
   id:string;title:string;scope:()=>string;defaults:Record<string,unknown>;fields:workspace_setting_field[];
   read:()=>Record<string,unknown>;write:(key:string,value:unknown)=>void;
+  mount?:(host:HTMLElement,fields:workspace_setting_field[],status:(text:string)=>void)=>{update(fields:workspace_setting_field[]):void;dispose():void};
 };
 const sections=new Map<string,workspace_settings_section>(),listeners=new Set<()=>void>();
 export function notify_workspace_settings(){for(const listener of listeners)listener();}

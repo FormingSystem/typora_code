@@ -21,7 +21,7 @@
    const appearance=()=>Object.fromEntries(['#write','#write h1','#write a[href]','#write td a[href]','#write p','#write blockquote','#write th','#write td','#write pre'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','line-height','color','background-color','border-top-width','border-top-style','border-top-color','padding-top','padding-left','margin-top','margin-bottom'].map(key=>[key,c.getPropertyValue(key)]))]}));
    const themed=appearance(),stylesheet=document.getElementById('typora-code-workspace-styles');
    assert(stylesheet,'实际静态样式入口');stylesheet.disabled=true;await pause(300);const original=appearance();stylesheet.disabled=false;await pause(300);
-   for(const selector of Object.keys(original)){if(mode==='dark'&&(selector==='#write h1'||selector.includes('a[href]'))){assert(themed[selector].color===(selector==='#write h1'?'rgb(206, 145, 120)':'rgb(77, 170, 252)'),'Night标题/链接各用对应颜色 '+selector);themed[selector].color=original[selector].color;if(themed[selector]['border-top-width']==='0px')themed[selector]['border-top-color']=original[selector]['border-top-color'];}assert(JSON.stringify(themed[selector])===JSON.stringify(original[selector]),'正文沿原主题 '+mode+' '+selector+' '+JSON.stringify({actual:themed[selector],expected:original[selector]}));}
+   for(const selector of Object.keys(original)){if(mode==='dark'&&(selector==='#write h1'||selector.includes('a[href]'))){assert(themed[selector].color===(selector==='#write h1'?'rgb(206, 145, 120)':'rgb(92, 164, 223)'),'Night标题/链接各用对应颜色 '+selector);themed[selector].color=original[selector].color;if(themed[selector]['border-top-width']==='0px')themed[selector]['border-top-color']=original[selector]['border-top-color'];}assert(JSON.stringify(themed[selector])===JSON.stringify(original[selector]),'正文沿原主题 '+mode+' '+selector+' '+JSON.stringify({actual:themed[selector],expected:original[selector]}));}
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){
     const button=document.querySelector('.typ-ribbon-item[data-id="'+id+'"]');assert(button,'活动栏入口 '+id);
     if(id==='core.file-explorer')core.app.commands.run('linux_note:file_explorer');else button.click();await pause(450);const panel=sidebar.activePanel;assert(panel&&sidebar.isShown,'点击入口展开 '+id);
@@ -59,6 +59,33 @@
    }
    await capture('scope_'+theme.replace('.css',''));
   }
+
+  const geometry=()=>Object.fromEntries(['#write','#write p','#write h1','#write h2','#write a','#write th','#write td','#write blockquote','#write pre','.md-fences .CodeMirror'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','font-style','line-height','padding-top','padding-left','margin-top','margin-bottom','border-top-width','border-left-width','border-top-style'].map(key=>[key,c.getPropertyValue(key)]))]}));
+  const original_geometry=geometry();
+  for(const [theme,mode] of [['cpp_github-consolas_light.css','light'],['cpp_github-consolas_dark.css','dark']]){
+   await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(900);
+   assert(document.documentElement.dataset.workspaceColors===mode,'成对主题作用域 '+theme);
+   const actual=geometry();samples.push({theme,geometry:actual});
+   for(const selector of Object.keys(actual))assert(JSON.stringify(actual[selector])===JSON.stringify(original_geometry[selector]),'真实宿主Cpp字体/排版一致 '+theme+' '+selector+' '+JSON.stringify({actual:actual[selector],expected:original_geometry[selector]}));
+   if(mode==='dark')assert(color(document.body).bg==='rgb(54, 59, 64)'&&color('#write p').fg==='rgb(184, 191, 198)','Dark参考Night配色');
+   await capture('pair_'+mode);
+  }
+  core.app.commands.run('typora_code:custom_colors');await wait(()=>document.querySelector('[data-color-key=markdown_link]'),'自定义颜色表未打开');
+  assert(document.querySelector('[data-color-picker=markdown_link]').getBoundingClientRect().width===30,'真实静态样式取色器宽度');
+  const input=document.querySelector('[data-color-key=markdown_link]');input.value='#789ABC';input.dispatchEvent(new Event('input',{bubbles:true}));await pause(180);
+  assert(color('#write a[href]').fg==='rgb(120, 154, 188)','真实宿主颜色立即生效');
+  assert(core.app.settings.get('workspace_colors').themes.dark.markdown_link==='#789ABC','真实宿主设置落盘事务');
+  assert(!document.querySelector('[data-color-action=save]'),'自动保存无保存按钮');
+  await capture('custom_colors');document.querySelector('.workspace-dialog-close').click();
+  core.app.commands.run('typora_code:custom_colors');await pause(120);
+  assert(document.querySelector('[data-color-key=markdown_link]').value==='#789ABC','关闭重开保留颜色');
+  document.querySelector('[data-color-action=inherit]').click();await pause(120);assert(color('#write a[href]').fg==='rgb(92, 164, 223)','真实宿主恢复默认颜色');document.querySelector('.workspace-dialog-close').click();
+  const theme_button=[...document.querySelectorAll('.workspace-titlebar-menu>button')].find(node=>node.textContent==='主题');
+  if(!theme_button)throw Error('未找到主题菜单按钮');theme_button.click();await pause(180);
+  const labels=[...document.querySelectorAll('.workspace-titlebar-popup .workspace-titlebar-label')];
+  assert(labels.some(node=>node.textContent==='CppGithubConsoles_Light')&&labels.some(node=>node.textContent==='CppGithubConsoles_Dark'),'真实主题菜单包含最终两名称');
+  for(const node of labels){const range=document.createRange();range.selectNodeContents(node);const glyph=range.getBoundingClientRect(),box=node.getBoundingClientRect();assert(glyph.top>=box.top-0.5&&glyph.bottom<=box.bottom+0.5,'菜单真实文字未裁切 '+node.textContent);}
+  await capture('pair_menu');document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
   assert(fs.readFileSync(file,'utf8')===text,'正文磁盘字节不变');core.app.commands.run('linux_note:terminal_kill');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,limits:'原始Typora1.14.10、Windows11独立副本；通过宿主命令/合成事件，未现场Win10或物理鼠标验收'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}

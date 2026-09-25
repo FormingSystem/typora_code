@@ -62,7 +62,8 @@ if fixture_path.name in ('git_responsiveness_native.js', 'git_scale_native.js'):
 user_data = case / 'user_data'
 user_data.mkdir()
 (user_data / 'themes').mkdir()
-shutil.copyfile(repository_root / 'cpp_github-consolas.css', user_data / 'themes/cpp_github-consolas.css')
+for theme_name in ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']:
+    shutil.copyfile(repository_root / theme_name, user_data / 'themes' / theme_name)
 for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
     if not line.strip():
         continue

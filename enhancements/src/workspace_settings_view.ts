@@ -15,6 +15,7 @@ export function bind_workspace_settings_view(core:graph_core){
     owner_host=el('div','workspace-settings-owner');owner:''|'native'|'community'='';owner_binding?:ReturnType<typeof mount_settings_owner>;
     search=el('input');categories=el('nav','workspace-settings-categories');body=el('div','workspace-settings-body');status=el('p','workspace-settings-status');
     release_port:()=>void;release_registry:()=>void;
+    custom_sections=new Map<string,{host:HTMLElement;update(fields:import('./workspace_settings_registry').workspace_setting_field[]):void;dispose():void}>();
     constructor(){
       views.add(this);this.search.placeholder='搜索设置';this.search.setAttribute('aria-label','搜索设置');this.status.setAttribute('role','status');
       const content=el('div','workspace-settings-content');this.owner_host.hidden=true;content.append(this.categories,this.body,this.owner_host);this.containerEl.append(this.search,content,this.status);
@@ -29,7 +30,7 @@ export function bind_workspace_settings_view(core:graph_core){
       if(owner)try{this.owner_binding=mount_settings_owner(core,owner,this.owner_host,()=>this.select_owner(''),()=>dialog?.close(false));}catch(error){this.owner_host.textContent=String(error);}
     }
     render(){
-      if(this.disposed)return;this.categories.replaceChildren();this.body.replaceChildren();
+      if(this.disposed)return;for(const [id,section] of this.custom_sections)if(this.owner||(this.category&&this.category!==id)){section.dispose();this.custom_sections.delete(id);}this.categories.replaceChildren();this.body.replaceChildren();
       const query=this.search.value.trim().toLocaleLowerCase(),sections=workspace_settings_sections();
       const all=button('全部设置',()=>{this.category='';this.select_owner('');this.render();});all.setAttribute('aria-pressed',String(!this.category&&!this.owner));this.categories.append(all);
       for(const section of sections){const item=button(section.title,()=>{this.category=section.id;this.select_owner('');this.render();});item.setAttribute('aria-pressed',String(!this.owner&&this.category===section.id));this.categories.append(item);}
@@ -42,6 +43,7 @@ export function bind_workspace_settings_view(core:graph_core){
         if(this.category&&this.category!==section.id)continue;
         const fields=section.fields.filter(field=>!query||`${section.title} ${field.title} ${field.key} ${field.description||''}`.toLocaleLowerCase().includes(query));if(!fields.length)continue;
         const scope=section.scope();this.body.append(el('h2','',section.title),el('p','workspace-settings-scope',scope));
+        if(section.mount){try{let custom=this.custom_sections.get(section.id);if(!custom){const host=el('div');custom={host,...section.mount(host,fields,text=>{this.status.textContent=text;})};this.custom_sections.set(section.id,custom);}else custom.update(fields);this.body.append(custom.host);count+=fields.length;}catch(error){this.body.append(el('p','',String(error)));}continue;}
         let values:Record<string,unknown>;try{values=section.read();}catch(error){this.body.append(el('p','',String(error)));continue;}
         for(const field of fields){count++;const value=values[field.key],baseline=section.defaults[field.key];
           const row=el('div','workspace-setting-row'),label=el('label','workspace-setting-label',field.title),key=el('small','',field.key);
@@ -57,11 +59,12 @@ if(field.description)row.append(el('p','',field.description));this.body.append(r
       }
       if(!count)this.body.append(el('p','','没有匹配的设置。'));
     }
-    dispose(){if(this.disposed)return;this.disposed=true;this.owner_binding?.dispose();this.owner_binding=undefined;this.release_port();this.release_registry();views.delete(this);}
+    dispose(){if(this.disposed)return;this.disposed=true;for(const section of this.custom_sections.values())section.dispose();this.custom_sections.clear();this.owner_binding?.dispose();this.owner_binding=undefined;this.release_port();this.release_registry();views.delete(this);}
   }
-  const show=()=>{
-    if(dialog){dialog.root.querySelector<HTMLInputElement>('.workspace-settings>input')?.focus();return;}
+  const show=(category='')=>{
+    if(dialog){if(category){const view=[...views][0];view.category=category;view.search.value='';view.select_owner('');view.render();}dialog.root.querySelector<HTMLInputElement>('.workspace-settings>input')?.focus();return;}
     const view=new settings_view();
+    if(category){view.category=category;view.render();}
     const panel=dialog=workspace_dialog('设置','关闭设置',()=>{view.dispose();if(dialog===panel)dialog=undefined;},{focus_out:false,regions:()=>view.owner_binding?[view.owner_binding.surface]:[]});
     panel.root.classList.add('workspace-settings-modal');panel.footer.hidden=true;panel.content.append(view.containerEl);
     const header=panel.root.querySelector('.workspace-dialog-header')!;
@@ -71,8 +74,9 @@ if(field.description)row.append(el('p','',field.description));this.body.append(r
     maximize.dataset.settingsMaximize='true';header.insertBefore(maximize,header.lastElementChild);
     header.querySelector('.workspace-dialog-title')?.prepend(git_icon('settings-gear'));
   };
-  const unregister=core.app.commands.register({id:'typora_code:settings',title:'打开设置',scope:'global',callback:show});
+  const unregister=core.app.commands.register({id:'typora_code:settings',title:'打开设置',scope:'global',callback:()=>show()});
+  const unregister_colors=core.app.commands.register({id:'typora_code:custom_colors',title:'自定义颜色',scope:'global',callback:()=>show('colors')});
   const keydown=(event:KeyboardEvent)=>{if(event.isComposing||event.repeat||event.altKey||event.shiftKey||!(event.ctrlKey||event.metaKey)||event.key!==',')return;event.preventDefault();event.stopImmediatePropagation();show();};
   window.addEventListener('keydown',keydown,true);
-  return{show,dispose(){window.removeEventListener('keydown',keydown,true);dialog?.close(false);for(const view of [...views])view.dispose();unregister();style.remove();}};
+  return{show,dispose(){window.removeEventListener('keydown',keydown,true);dialog?.close(false);for(const view of [...views])view.dispose();unregister_colors();unregister();style.remove();}};
 }

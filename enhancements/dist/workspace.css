@@ -1495,6 +1495,25 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   border-bottom:1px solid var(--workspace-chrome-border);
 }
 
+/* workspace_color_view.css */
+/* 沿统一设置的26px输入、13px文字和共享交互；颜色表是本产品的设置呈现。 */
+.workspace-color-toolbar{position:sticky;top:0;z-index:1;background:var(--workspace-ui-background,var(--bg-color));display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0}
+.workspace-color-settings{min-width:0}
+.workspace-color-settings>p{margin:8px 0;overflow-wrap:anywhere}
+.workspace-settings .workspace-color-table{border-collapse:collapse;width:100%;table-layout:fixed;font:inherit;color:inherit;background:transparent}
+.workspace-settings .workspace-color-table :is(th,td){border:0;border-bottom:1px solid var(--workspace-ui-border,#8884);padding:8px 4px;text-align:left;vertical-align:middle;background:transparent;color:inherit;font:inherit}
+.workspace-settings .workspace-color-table th{font-weight:600}.workspace-settings .workspace-color-table th:first-child{width:48%}.workspace-settings .workspace-color-table th:last-child{width:52px}
+.workspace-settings .workspace-color-table td:first-child{overflow-wrap:anywhere}.workspace-settings .workspace-color-table small{display:block;color:var(--workspace-ui-muted,inherit);font-size:11px}
+.workspace-settings .workspace-color-table td:nth-child(2){white-space:normal}.workspace-settings .workspace-color-table input[type=text]{width:calc(100% - 38px);min-width:60px}
+.workspace-settings .workspace-color-table input[type=color]{width:30px;min-width:30px;padding:2px;vertical-align:middle;margin-right:6px;cursor:pointer}
+.workspace-settings .workspace-color-table input[aria-invalid=true]{outline:1px solid var(--vscode-list-errorForeground,#f48771)}
+.workspace-color-toolbar [hidden]{display:none!important}
+@media(max-width:760px){.workspace-settings .workspace-color-table th:first-child{width:40%}.workspace-settings .workspace-color-table input[type=text]{width:100%}.workspace-settings .workspace-color-table input[type=color]{margin-bottom:4px}}
+
+.workspace-color-toolbar select{max-width:100%;min-width:0}.workspace-color-toolbar button{max-width:100%;overflow-wrap:anywhere}.workspace-settings .workspace-color-table th:last-child{width:80px}
+
+.workspace-settings .workspace-color-table tr{background:transparent;border:0}
+
 /* workspace_colors.css */
 /* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
 :root[data-workspace-colors=light] {
@@ -1600,7 +1619,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
   --workspace-markdown-heading:#CE9178;
-  --workspace-markdown-link:#4DAAFC;
+  --workspace-markdown-link:#5ca4df;
   --workspace-markdown-border:#FFFFFF2E;
   --workspace-markdown-table-header:rgba(255,255,255,.69);
   --vscode-foreground:#bfbfbf;
@@ -2664,8 +2683,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-entry>svg,.workspace-titlebar-check { width:16px;height:16px;flex:none;display:flex;align-items:center; }
 .workspace-titlebar-check { position:absolute;left:0;top:0;width:2em;height:100%;justify-content:center; }
 .workspace-titlebar-check>svg { width:16px;height:16px; }
-.workspace-titlebar-label { grid-column:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1; }
-.workspace-titlebar-shortcut { grid-column:2;margin:0;white-space:nowrap;text-align:right;line-height:1;opacity:.7; }
+.workspace-titlebar-label { grid-column:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:24px; }
+.workspace-titlebar-shortcut { grid-column:2;margin:0;white-space:nowrap;text-align:right;line-height:24px;opacity:.7; }
 .workspace-titlebar-entry>svg { grid-column:3; }
 .workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
 .workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }

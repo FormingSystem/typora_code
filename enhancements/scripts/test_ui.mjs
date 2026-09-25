@@ -27,6 +27,8 @@ const ui_tests = Object.freeze([
   "test_git_markdown_diff.cjs",
   "test_git_presentation.cjs",
   "test_workspace_colors.cjs",
+  "test_workspace_color_settings.cjs",
+  "test_workspace_theme_pair.cjs",
   "test_workspace_popup_refresh.cjs",
   "test_remote_ssh_directory.cjs",
   "test_reading_code_copy.cjs",

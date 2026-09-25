@@ -1,0 +1,17 @@
+/* 沿统一设置的26px输入、13px文字和共享交互；颜色表是本产品的设置呈现。 */
+.workspace-color-toolbar{position:sticky;top:0;z-index:1;background:var(--workspace-ui-background,var(--bg-color));display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0}
+.workspace-color-settings{min-width:0}
+.workspace-color-settings>p{margin:8px 0;overflow-wrap:anywhere}
+.workspace-settings .workspace-color-table{border-collapse:collapse;width:100%;table-layout:fixed;font:inherit;color:inherit;background:transparent}
+.workspace-settings .workspace-color-table :is(th,td){border:0;border-bottom:1px solid var(--workspace-ui-border,#8884);padding:8px 4px;text-align:left;vertical-align:middle;background:transparent;color:inherit;font:inherit}
+.workspace-settings .workspace-color-table th{font-weight:600}.workspace-settings .workspace-color-table th:first-child{width:48%}.workspace-settings .workspace-color-table th:last-child{width:52px}
+.workspace-settings .workspace-color-table td:first-child{overflow-wrap:anywhere}.workspace-settings .workspace-color-table small{display:block;color:var(--workspace-ui-muted,inherit);font-size:11px}
+.workspace-settings .workspace-color-table td:nth-child(2){white-space:normal}.workspace-settings .workspace-color-table input[type=text]{width:calc(100% - 38px);min-width:60px}
+.workspace-settings .workspace-color-table input[type=color]{width:30px;min-width:30px;padding:2px;vertical-align:middle;margin-right:6px;cursor:pointer}
+.workspace-settings .workspace-color-table input[aria-invalid=true]{outline:1px solid var(--vscode-list-errorForeground,#f48771)}
+.workspace-color-toolbar [hidden]{display:none!important}
+@media(max-width:760px){.workspace-settings .workspace-color-table th:first-child{width:40%}.workspace-settings .workspace-color-table input[type=text]{width:100%}.workspace-settings .workspace-color-table input[type=color]{margin-bottom:4px}}
+
+.workspace-color-toolbar select{max-width:100%;min-width:0}.workspace-color-toolbar button{max-width:100%;overflow-wrap:anywhere}.workspace-settings .workspace-color-table th:last-child{width:80px}
+
+.workspace-settings .workspace-color-table tr{background:transparent;border:0}

@@ -37,8 +37,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-entry>svg,.workspace-titlebar-check { width:16px;height:16px;flex:none;display:flex;align-items:center; }
 .workspace-titlebar-check { position:absolute;left:0;top:0;width:2em;height:100%;justify-content:center; }
 .workspace-titlebar-check>svg { width:16px;height:16px; }
-.workspace-titlebar-label { grid-column:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:1; }
-.workspace-titlebar-shortcut { grid-column:2;margin:0;white-space:nowrap;text-align:right;line-height:1;opacity:.7; }
+.workspace-titlebar-label { grid-column:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;line-height:24px; }
+.workspace-titlebar-shortcut { grid-column:2;margin:0;white-space:nowrap;text-align:right;line-height:24px;opacity:.7; }
 .workspace-titlebar-entry>svg { grid-column:3; }
 .workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
 .workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }

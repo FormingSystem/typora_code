@@ -227,7 +227,7 @@ function assert_typora_record_scope {
             'migration' { $migration -contains $record.relative_path }
             'terminal' { $record.relative_path -match '^([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))$' }
             'settings' { $record.relative_path -eq 'plugins.json' }
-            'theme' { $record.relative_path -eq 'cpp_github-consolas.css' }
+            'theme' { $record.relative_path -in @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css') }
         }
         if (-not $valid) { throw "Backup path is outside the managed $scope scope: $($record.relative_path)" }
     }

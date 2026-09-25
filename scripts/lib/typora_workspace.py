@@ -12,6 +12,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+THEME_FILES = ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']
+
 class install_log:
     """每次安装的日志独立保存；记录失败不改变安装或回滚结果。"""
     def __init__(self, user_data):
@@ -231,7 +233,7 @@ def validate_records(root, backup, records, scope):
         relative = record['relative_path']
         target, saved = asset_path(root, relative), asset_path(backup, relative)
         valid = {'product': product_path(relative) or relative in RETIRED_PRODUCT_FILES, 'migration': relative in MIGRATION_FILES,
-                 'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative == 'cpp_github-consolas.css',
+                 'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative in THEME_FILES,
                  'terminal': bool(re.fullmatch(r'([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))', relative))}[scope]
         if not valid or relative in seen or type(record['existed']) is not bool or target.is_dir():
             raise ValueError('Invalid backup record or target')
@@ -286,11 +288,12 @@ def install_files(tools_root, typora_root, user_data, backup, log):
     window = asset_path(typora_root, 'resources/window.html')
     head = (tools_root / 'enhancements/runtime_head.html').read_text(encoding='utf-8')
     updated = window_source(window.read_text(encoding='utf-8'), head)
-    theme = tools_root / 'cpp_github-consolas.css'
-    theme.read_bytes()
+    themes = [tools_root / name for name in THEME_FILES]
+    for theme in themes:
+        theme.read_bytes()
     assets['SHA256SUMS'] = digest(source / 'SHA256SUMS')
     roots = group_roots(user_data)
-    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES, 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': ['cpp_github-consolas.css'], 'native_profile': ['profile.data']}
+    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES, 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': THEME_FILES, 'native_profile': ['profile.data']}
     for name, entries in paths.items():
         for relative in entries:
             if asset_path(roots[name], relative).is_dir():
@@ -323,7 +326,8 @@ def install_files(tools_root, typora_root, user_data, backup, log):
             write_json(settings_target, new_settings)
             created = True
         roots['theme'].mkdir(parents=True, exist_ok=True)
-        shutil.copy2(theme, roots['theme'] / theme.name)
+        for theme in themes:
+            shutil.copy2(theme, roots['theme'] / theme.name)
         window.write_text(updated, encoding='utf-8')
         log.step(5, '验证安装结果')
         verify_assets(roots['product'], assets)
@@ -372,7 +376,7 @@ def check(tools_root, typora_root, user_data):
     for relative in MIGRATION_FILES:
         if asset_path(user_data / 'plugins', relative).exists():
             raise ValueError('Old runtime asset remains: ' + relative)
-    if digest(user_data / 'themes/cpp_github-consolas.css') != digest(tools_root / 'cpp_github-consolas.css'):
+    if any(digest(user_data / 'themes' / name) != digest(tools_root / name) for name in THEME_FILES):
         raise ValueError('Theme differs from release')
     print('status: OK (independent head startup, static CSS, release hashes and migration)')
 

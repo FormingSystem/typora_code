@@ -20,7 +20,7 @@ app.whenReady().then(async()=>{
     window.profile_scans.push(record);refresh();
     return {warnings:()=>[],profiles:()=>structuredClone(record.values),ready:()=>record.pending||Promise.resolve(structuredClone(record.values)),refresh,dispose(){record.disposed=true;}};
   }`;
-  const bundle=await build({stdin:{contents:'export {register_ssh_auth_owner} from "./src/remote_ssh_auth_context";export {bind_terminal_workspace} from "./src/terminal_workspace";export {read_terminal_state} from "./src/terminal_state";export {register_remote_workspace_context,current_remote_workspace} from "./src/remote_workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[{name:'terminal-fixture',setup(build){
+  const bundle=await build({stdin:{contents:'export {register_ssh_auth_owner} from "./src/remote_ssh_auth_context";export {bind_terminal_workspace} from "./src/terminal_workspace";export {read_terminal_state} from "./src/terminal_state";export {register_remote_workspace_context,current_remote_workspace} from "./src/remote_workspace_context";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'panel_api',loader:{'.css':'text'},write:false,plugins:[...require('./editor_bundle.cjs').editor_plugins(),{name:'terminal-fixture',setup(build){
     build.onLoad({filter:/terminal_pty_client\.ts$/},()=>({contents:pty_mock,loader:'js'}));
     build.onLoad({filter:/terminal_profile_detection\.ts$/},()=>({contents:discovery_mock,loader:'js'}));
   }}]});await evaluate(bundle.outputFiles[0].text);

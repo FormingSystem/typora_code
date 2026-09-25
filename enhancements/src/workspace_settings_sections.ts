@@ -10,10 +10,13 @@ import {git_diff_defaults,read_git_diff_preferences,update_git_diff_preferences,
 import {REMOTE_SSH_DEFAULTS,read_remote_ssh_settings,write_remote_ssh_setting} from './remote_ssh_settings';
 import {read_source_outline_settings,save_source_outline_settings} from './source_outline_settings';
 import type {workspace_file_host} from './workspace_files';
+import {WORKSPACE_COLOR_ROLES} from './workspace_color_catalog';
+import {mount_color_settings} from './workspace_color_view';
 
 export function bind_workspace_settings_sections(files:workspace_file_host){
   const releases:(()=>void)[]=[],user=()=> '用户设置',root=()=>files.context_root(),project=()=>`工作区：${root()||'未打开文件夹'}`;
   const add=(section:workspace_settings_section)=>releases.push(register_workspace_settings(section));
+  add({id:'colors',title:'自定义颜色',scope:()=> '用户设置 · CppGithubConsoles_Light / Dark',defaults:{},fields:WORKSPACE_COLOR_ROLES.map(role=>({key:role.key,title:role.title,description:role.variable||role.selector})),read:()=>({}),write:()=>{throw Error('颜色设置通过配色表保存。');},mount:mount_color_settings});
   add({id:'network',title:'网络',scope:user,defaults:NETWORK_DEFAULTS,fields:[{key:'proxy_mode',title:'代理模式',choices:['environment','direct','manual'],description:'environment：使用HTTPS_PROXY/HTTP_PROXY及NO_PROXY环境变量；direct：直连；manual：指定代理。系统代理/PAC不会自动导入。'},{key:'http_proxy_url',title:'HTTP请求代理',description:'用于http://目标；例如 http://proxy.company:8080。支持HTTP/HTTPS代理端点，不含账户密码；留空时此协议直连。先填写至少一项，再选择manual。'},
     {key:'https_proxy_url',title:'HTTPS请求代理',description:'用于https://目标；例如 http://proxy.company:8081。支持HTTP/HTTPS代理端点，不含账户密码；留空时此协议直连。与HTTP请求代理独立保存。'},{key:'ca_file',title:'企业CA证书文件',description:'附加信任PEM证书包或DER证书（.pem/.crt/.cer），不含私钥；保持TLS校验。用于更新检查、ZIP与社区插件下载，不修改系统/Git/SSH。留空恢复默认信任链。',file_extensions:['pem','crt','cer']}],read:read_network_settings,write:write_network_setting});
   add({id:'editor',title:'编辑器',scope:user,defaults:{...WORKSPACE_EDITOR_DEFAULTS,...TEXT_PRESENTATION_DEFAULTS},fields:[{key:'word_wrap',title:'文本自动换行',description:'源码、历史版本、差异和源码预览按可用宽度软换行；不更改正文或逻辑行号。关闭后可横向滚动。'},{key:'enable_preview',title:'启用预览编辑器'},{key:'wrap_tabs',title:'标签换行（Wrap Tabs）',description:'标签超过可用宽度时显示为多行；关闭时使用单行滚动。'},{key:'link_preview_enabled',title:'选中链接自动预览',description:'在左侧下方只读预览选中的链接，不影响搜索结果预览和手动分屏预览。'}],read:()=>({...read_workspace_editor_settings(),...read_text_presentation()}),write:(key,value)=>key==='word_wrap'?update_text_presentation(value as boolean):set_workspace_editor_setting(key,value as boolean)});

@@ -29,7 +29,7 @@ const open=async(anchor='')=>{
 };
 app.whenReady().then(async()=>{
   html=path.join(evidence,'window.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><p>Independent transfer fixture</p>');
-  bundle=(await build({stdin:{contents:'export {bind_workspace_detached_window} from "./src/workspace_detached_window";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'detach_qa',loader:{'.css':'text'},write:false})).outputFiles[0].text;
+  bundle=(await build({stdin:{contents:'export {bind_workspace_detached_window} from "./src/workspace_detached_window";',resolveDir:path.join(__dirname,'..')},plugins:require('./editor_bundle.cjs').editor_plugins(),bundle:true,format:'iife',globalName:'detach_qa',loader:{'.css':'text'},write:false})).outputFiles[0].text;
   ipcMain.handle('fixture:open-window',async(_event,anchor,root)=>{
     launches++;assert.match(anchor,/^#typora-code-window-[0-9a-f-]{36}$/);assert.equal(root,'/workspace');
     if(mode==='fail')throw Error('原生窗口创建失败');

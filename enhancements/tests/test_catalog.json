@@ -7522,6 +7522,78 @@
         "读取和保存完整；输出每轮内存数据，不以设备预估阈值拒绝操作，数据不等同全应用泄漏证明"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-color-settings",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "stress",
+      "requirements": [
+        "R074.4"
+      ],
+      "design": "docs/workspace_colors.md",
+      "implementation": [
+        "enhancements/src/workspace_color_settings.ts",
+        "enhancements/src/workspace_color_view.ts",
+        "enhancements/src/workspace_color_catalog.ts",
+        "enhancements/src/workspace_colors.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "sidebar",
+        "terminal",
+        "settings",
+        "menu",
+        "preview"
+      ],
+      "script": "enhancements/scripts/test_workspace_color_settings.cjs",
+      "environment": "独立Electron/正式CSS",
+      "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
+      "steps": [
+        "覆盖主题入口、正文/Shadow/终端自动保存、保存失败与恢复默认、JSON导入导出及迟到取消、明暗切换、生命周期和窄窗"
+      ],
+      "expected": [
+        "颜色与持久化一致，错误不覆盖配置，正文及几何保持"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/test_ui.mjs"
+    },
+    {
+      "id": "TC-workspace-theme-pair",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R074.5",
+        "R065.2"
+      ],
+      "design": "docs/workspace_colors.md",
+      "implementation": [
+        "cpp_github-consolas_light.css",
+        "cpp_github-consolas_dark.css",
+        "enhancements/src/workspace_markdown_theme.ts",
+        "enhancements/src/workspace_titlebar.css"
+      ],
+      "related_modules": [
+        "theme",
+        "sidebar",
+        "terminal",
+        "settings",
+        "menu",
+        "preview"
+      ],
+      "script": "enhancements/scripts/test_workspace_theme_pair.cjs",
+      "environment": "独立Electron/正式CSS",
+      "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
+      "steps": [
+        "逐属性比较原Cpp/Light/Dark正文与Shadow的字体、字号、行距、边框和间距",
+        "验证Night配色与100%/125%实际菜单文字行盒"
+      ],
+      "expected": [
+        "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切"
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/test_ui.mjs"
     }
   ]
 }

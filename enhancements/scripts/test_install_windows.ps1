@@ -10,7 +10,7 @@ $test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-direct-install-' + [g
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','cpp_github-consolas.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
     $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse

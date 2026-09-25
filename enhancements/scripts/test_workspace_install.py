@@ -16,7 +16,7 @@ fixture = Path(tempfile.mkdtemp(prefix='typora_direct_linux_'))
 tools = fixture / 'portable checkout'
 (tools / 'enhancements').mkdir(parents=True)
 shutil.copytree(project / 'enhancements/dist', tools / 'enhancements/dist')
-for name in ['enhancements/runtime_head.html', 'enhancements/bundle_markers.txt', 'cpp_github-consolas.css']:
+for name in ['enhancements/runtime_head.html', 'enhancements/bundle_markers.txt', 'cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css']:
     shutil.copy2(project / name, tools / name)
 root = fixture / 'installation with spaces'
 (root / 'resources').mkdir(parents=True)

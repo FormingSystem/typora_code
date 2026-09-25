@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.7",
+  "requirements": [
+    "R074.4",
+    "R074.5",
+    "R065.2"
+  ],
+  "design": [
+    "docs/workspace_colors.md",
+    "docs/workspace_interaction.md"
+  ],
+  "asset_manifest_sha256": "a2a5ccb3b4a65d49da006f4e753f501c024f09eaa09dfd0b0b8d2fcccb2ab15f",
+  "theme_sha256": {
+    "cpp_github-consolas.css": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+    "cpp_github-consolas_light.css": "04272efe6a8a4a32b1379b81dfa4faccd9a2a0c46bc9ca9a7d4a3d8b3b82751b",
+    "cpp_github-consolas_dark.css": "96d5718d8f5be9b56e51a5723a99c5fa64e92ff6e90856cdc4557b0b47b42e97"
+  },
+  "validation": {
+    "build": "PASS: color_settings_final_build_2.log",
+    "static_deployment_catalog": "PASS; 219 classified suites",
+    "full_check": "PASS exit 0: color_settings_final_check.log",
+    "ui": {
+      "initial": {
+        "passed": 76,
+        "failed": 21,
+        "log": "color_settings_full_ui.log"
+      },
+      "after_targeted_reruns": {
+        "passed": 89,
+        "failed": 8,
+        "remaining": [
+          "test_scm_file_icons.cjs",
+          "test_scm_vscode_geometry.cjs",
+          "test_terminal_theme.cjs",
+          "test_workspace_file_editing.cjs",
+          "test_workspace_lookup_preview.cjs",
+          "test_workspace_preferences.cjs",
+          "test_workspace_interaction.cjs",
+          "test_workspace_quick_open_performance.cjs"
+        ]
+      },
+      "baseline": "e19ad40 isolated: same remaining failures reproduced; worker plugin corrections copied into three baseline fixtures to reach existing assertions",
+      "baseline_logs": [
+        "color_settings_baseline_ui.log",
+        "color_settings_baseline_tail.log",
+        "color_settings_baseline_harness.log"
+      ],
+      "feature_checks": {
+        "color_settings": 33,
+        "theme_pair": 14,
+        "titlebar_entries": 57,
+        "final_log": "color_settings_final_target_ui.log"
+      },
+      "rerun_logs": [
+        "color_settings_harness_recheck.log",
+        "color_settings_ui_recheck.log",
+        "color_settings_dock_recheck.log"
+      ]
+    },
+    "native": {
+      "status": "PASS",
+      "checks": 143,
+      "case_id": "ccb6392e4bc54487a01a84d1aadfb431",
+      "host_version": "1.14.10",
+      "fixture_sha256": "5bff55b3c8af26942c6fb730f3d363963aa4144f4ceea1244528eacc8c027fa0",
+      "inspected_screenshots": [
+        "stage_custom_colors_16914254.png",
+        "stage_pair_dark_16914254.png",
+        "stage_pair_menu_16914254.png"
+      ],
+      "typography": "Original Cpp, Light and Dark actual computed typography and Shadow import geometry matched; menu text bounds complete"
+    },
+    "isolated_install": "PASS: final candidate public restore and detach uninstall/reinstall/check; color_settings_final_isolated_install.log",
+    "uninstall": "PASS: 65 assertions; color_settings_uninstall.log",
+    "zip_update": "PASS: color_settings_update_install.log",
+    "local_install": {
+      "version": "2026.09.25.7",
+      "installed_assets": [
+        45,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "limitations": [
+    "Eight existing UI failures remain tracked in TEST-ui-baseline-20260925; full UI is not all green.",
+    "User windows were not restarted; save and restart to load installed assets.",
+    "Windows 10, native Linux and physical user keyboard/mouse responsiveness were not validated this round.",
+    "R047.6 and R071.4 earlier pending investigations remain open."
+  ]
+}

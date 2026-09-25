@@ -37,7 +37,7 @@ app.whenReady().then(async()=>{
  (await get('文件','保存')).action();check(calls.at(-1).join('|')==='core|linux_note:save','guarded shared save command');(await get('文件','关闭标签')).action();check(calls.at(-1).join('|')==='core|linux_note:close_editor','shared guarded close command');
  source=true;check(!(await get('文件','另存为…')).disabled,'source Save As available');(await get('文件','另存为…')).action();check(calls.at(-1).join('|')==='core|linux_note:save_as','shared Save As command');source=false;
  (await get('文件','导出')).children[1].action();check(calls.at(-1)[0]==='export'&&calls.at(-1)[1].type==='custom'&&calls.at(-1)[1].command==='example','complete export options');
- const themes=await defs[5].entries();check(themes[1].checked&&!themes[0].checked,'host current theme checked');themes[1].action();check(calls.at(-1).join('|')==='theme|night.css|Night','exact theme filename and display');
+ const theme_entries=await defs[5].entries();check(theme_entries.some(item=>item.label==='自定义颜色…'),'shared custom colors entry');const themes=theme_entries.filter(item=>typeof item.checked==='boolean');check(themes[1].checked&&!themes[0].checked,'host current theme checked');themes[1].action();check(calls.at(-1).join('|')==='theme|night.css|Night','exact theme filename and display');
  // 菜单从真正的所有者读取状态；原生设置缓存故意保持旧值。
  const toolbar=document.createElement('div');toolbar.style.cssText='display:none;width:100px;height:35px';document.body.append(toolbar);editor.toolbar={dom:toolbar};
  runtime.ClientCommand.toggleStatusBar=()=>{const shown=document.body.classList.toggle('show-footer');document.body.classList.toggle('hide-footer',!shown)};

@@ -120,7 +120,7 @@ async function inspect_locale(bundle, html, locale, environment = {options: {dis
 app.whenReady().then(async () => {
   const html = path.join(root, 'test.html');
   fs.writeFileSync(html, '<!doctype html><html><body></body></html>');
-  const compiled = await build({
+  const compiled = await build({plugins:require('./editor_bundle.cjs').editor_plugins(),
     stdin: {contents: 'export { git_graph_panel } from "./src/git_graph_panel";', resolveDir: path.join(__dirname, '..')},
     bundle: true, format: 'iife', globalName: 'graph_i18n_qa', write: false, loader: {'.css': 'text'},
   });

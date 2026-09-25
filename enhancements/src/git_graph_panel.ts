@@ -336,7 +336,7 @@ export class git_graph_panel {
   }
   graph_color(index:number):string {
     const custom=this.settings.colors,defaults=graph_defaults.colors;
-    if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return index<0?'#EA5C00':['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','#FFB000','#DC267F','#994F00','#40B0A6','#B66DFF'][index<2?index:2+(index-2)%5];
+    if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return index<0?'var(--workspace-graph-base,#EA5C00)':['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','var(--workspace-graph-other-1,#FFB000)','var(--workspace-graph-other-2,#DC267F)','var(--workspace-graph-other-3,#994F00)','var(--workspace-graph-other-4,#40B0A6)','var(--workspace-graph-other-5,#B66DFF)'][index<2?index:2+(index-2)%5];
     return custom[(index<0?7:index)%custom.length];
   }
   draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}, node_kind: "normal"|"head"|"merge"|"range" = "normal"): SVGSVGElement {

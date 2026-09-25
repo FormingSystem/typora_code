@@ -180,14 +180,16 @@ export function create_workspace_titlebar_definitions(
   ];
   };
   const theme_entries = async (): Promise<entry[]> => {
+    const customize:entry={label:'自定义颜色…',action:()=>files.core.app.commands.run('typora_code:custom_colors')};
     try {
       const data = await runtime.JSBridge?.invoke("setting.getThemes");
       if (!Array.isArray(data?.all)) throw new Error("invalid themes");
-      return data.all.filter((name:unknown) => typeof name === "string").map((name:string) => {
-        const display = name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
+      return [customize,separator(),...data.all.filter((name:unknown) => typeof name === "string").map((name:string) => {
+        const paired_names:Record<string,string>={'cpp_github-consolas_light.css':'CppGithubConsoles_Light','cpp_github-consolas_dark.css':'CppGithubConsoles_Dark'};
+        const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
         return {label: display, checked: name === data.current, disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")) return call_command("setTheme", [name, display]);}};
-      });
-    } catch {return [{label: "无法读取主题列表", disabled: true}];}
+      })];
+    } catch {return [customize,separator(),{label: "无法读取主题列表", disabled: true}];}
   };
   const help_entries = async (): Promise<entry[]> => [
     {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},

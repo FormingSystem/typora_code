@@ -1,0 +1,68 @@
+/* 字体和排版完整继承 CppGithubConsoles，不能导入 Night 的字体/几何规则。
+ * 颜色参考 Typora Night：正文 #b8bfc6、背景 #363b40、边线 #474d54。
+ * 标题与链接保留用户选定颜色；设置中的用户覆盖优先。 */
+@import url("./cpp_github-consolas.css");
+
+:root {
+    --bg-color: #363b40;
+    --text-color: #b8bfc6;
+    --side-bar-bg-color: #2e3033;
+    --control-text-color: #b7b7b7;
+    --control-text-hover-color: #eee;
+    --select-text-bg-color: #4a89dc;
+    --active-file-bg-color: #222;
+    --active-file-text-color: #fff;
+    --active-file-border-color: #8d8df0;
+    --item-hover-bg-color: #70717d;
+    --item-hover-text-color: #fff;
+    --primary-color: #6dc1e7;
+    --rawblock-edit-panel-bd: #333;
+    --search-select-bg-color: #428bca;
+    --code-keyword-color: #cc99cd;
+    --code-comment-color: #9da2a6;
+    --code-string-color: #7ec699;
+    --code-number-color: #f08d49;
+    --code-definition-color: #f8c555;
+    --code-type-color: #f8c555;
+    --code-variable-color: #b8bfc6;
+    --code-builtin-color: #67cdcc;
+    --code-literal-color: #f08d49;
+    --code-meta-color: #e2777a;
+    --code-tag-color: #e2777a;
+    --code-attribute-color: #7ec699;
+    --code-symbol-color: #67cdcc;
+}
+
+html, body { background-color: var(--bg-color); color: var(--text-color); }
+h1, h2, h3, h4, h5, h6 { color: #ce9178; border-color: #474d54; }
+a, a:hover, a:visited { color: #5ca4df; }
+hr { background-color: #474d54; }
+blockquote { color: #9da2a6; border-color: #474d54; }
+table tr, table th, table td { border-color: #474d54; }
+table thead, table tr:nth-child(2n) { background-color: #2e3033; }
+b, strong, th, dt { color: #dedede; }
+code, .md-fences, tt, .md-fences .CodeMirror { color: #b8bfc6; background-color: #333; border-color: #474d54; }
+.CodeMirror-gutters { background-color: #333; border-color: #474d54; }
+#write pre.md-meta-block { color: #9da2a6; background-color: #2e3033; }
+#write mark { color: #ddd; background-color: #555; }
+.cm-s-inner .cm-operator, .cm-s-inner .cm-bracket, .cm-s-inner .cm-punctuation { color: #b8bfc6; }
+.cm-s-inner .cm-error, .cm-s-inner .cm-invalidchar { color: #f8c555; background-color: #5b3030; }
+.md-footnote, .md-def-name { color: #9da2a6; }
+.md-image > .md-meta { color: #9da2a6; }
+.md-toc, .md-toc-content, .md-rawblock-control { background-color: #2e3033; border-color: #474d54; }
+
+:root:root {
+    --linux-note-code-foreground: #b8bfc6;
+    --linux-note-code-comment: #9da2a6;
+    --linux-note-code-string: #7ec699;
+    --linux-note-code-number: #f08d49;
+    --linux-note-code-keyword: #cc99cd;
+    --linux-note-code-control: #cc99cd;
+    --linux-note-code-function: #f8c555;
+    --linux-note-code-type: #f8c555;
+    --linux-note-code-variable: #b8bfc6;
+    --linux-note-code-constant: #f08d49;
+    --linux-note-code-preprocessor: #e2777a;
+    --linux-note-code-invalid: #f8c555;
+    --linux-note-code-invalid-background: #5b3030;
+}
