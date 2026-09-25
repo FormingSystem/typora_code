@@ -236918,8 +236918,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (settings2.show_editor_type) {
         const diff = state.leaf.view?.editor?.data?.right != null;
         if (diff) {
-          const mode = workspace_element("button", "", "\u5DEE\u5F02\u7F16\u8F91\u5668");
-          mode.append(git_icon("chevron-down"));
+          const mode = workspace_element("button");
+          mode.append(workspace_element("span", "workspace-breadcrumb-editor-label", "\u5DEE\u5F02\u7F16\u8F91\u5668"), git_icon("chevron-down"));
           mode.onclick = () => {
             const r4 = mode.getBoundingClientRect(), editor2 = state.leaf.view.editor;
             workspace_menu(new MouseEvent("contextmenu", { clientX: r4.left, clientY: r4.bottom }), [{ title: "\u5185\u8054\u663E\u793A", action: () => editor2.set_side_by_side(false) }, { title: "\u5E76\u6392\u663E\u793A", action: () => {
@@ -236929,8 +236929,8 @@ https://creativecommons.org/licenses/by/4.0/
           };
           state.type.append(mode);
         } else if (/\.(md|markdown|mdown)$/i.test(state.file)) {
-          const mode = workspace_element("button", "", state.model ? "\u6587\u672C\u7F16\u8F91\u5668" : state.leaf.view?.isEditor?.() ? "Markdown \u7F16\u8F91\u5668" : "Markdown \u9884\u89C8");
-          mode.append(git_icon("chevron-down"));
+          const mode = workspace_element("button");
+          mode.append(workspace_element("span", "workspace-breadcrumb-editor-label", state.model ? "\u6587\u672C\u7F16\u8F91\u5668" : state.leaf.view?.isEditor?.() ? "Markdown \u7F16\u8F91\u5668" : "Markdown \u9884\u89C8"), git_icon("chevron-down"));
           mode.onclick = () => {
             const leaf = state.leaf, r4 = mode.getBoundingClientRect();
             workspace_menu(new MouseEvent("contextmenu", { clientX: r4.left, clientY: r4.bottom }), [{ title: "Markdown \u7F16\u8F91\u5668", checked: !state.model, action: () => {
@@ -246477,6 +246477,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092506,
+        version: "2026.09.25.6",
+        date: "2026-09-25",
+        notes: [
+          "\u4FEE\u6B63\u9762\u5305\u5C51\u53F3\u4FA7\u7F16\u8F91\u5668\u7C7B\u578B\u3001\u4E0B\u62C9\u7BAD\u5934\u548CGit\u6765\u6E90\u5B9A\u4F4D\u56FE\u6807\u7684\u5782\u76F4\u5BF9\u9F50\uFF0C\u7EDF\u4E00\u884C\u5185\u9AD8\u5EA6\uFF1B\u7A84\u7F16\u8F91\u7EC4\u4FDD\u7559\u56FE\u6807\u4E0E\u6587\u5B57\u7701\u7565\u3002"
+        ]
+      },
       {
         sequence: 2026092505,
         version: "2026.09.25.5",

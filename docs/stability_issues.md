@@ -416,3 +416,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-25 R074.3：Night原主题链接与悬停接近白色，用户要求蓝色区分。只覆盖Night真实正文链接颜色，沿共同主题传入预览/diff，保留标题#CE9178与其余正文原样。正式CSS状态/Shadow检查及原生正文逐属性对照验证，避免以修链接为由重新覆盖正文皮肤。见night_links_20260925.json。
 
 2026-09-25 R027.2：BUG-graph-reference-color——轨道分配忽略HEAD/上游/基准身份，同一第一父链跨过引用仍同色。共享图模型在引用节点切换出线，入线保持前段颜色；拓扑编号不得因调色板复用而相同，否则12支线会提前合并。真实Git、UI及原始宿主回归覆盖该边界，证据见branch_colors_20260925.json。
+
+2026-09-25 R034.10：BUG-breadcrumb-inline-baseline——22px导航行内放入24px定位按钮，右侧文字依赖inline基线，造成视觉下沉。共享组和类型按钮改flex居中及22px边界，实际Range/SVG和原生明暗回归验证；版本标题保持原样并核对同高。普通文件顶栏夹具仍引用旧设置/子菜单，现接入生产统一设置与QuickPick，原失败与修正后结果见breadcrumb_alignment_20260925.json。

@@ -15,10 +15,11 @@
 .workspace-breadcrumbs .workspace-file-theme-icon,.workspace-breadcrumb-picker .workspace-file-theme-icon {height:22px;}
 .workspace-breadcrumb-segment > :is(.git-standard-icon,.workspace-file-theme-icon) {margin-right:6px;}
 .workspace-breadcrumb-trail > .git-standard-icon {flex:none;}
-.workspace-breadcrumb-editor-type {flex:0 1 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:11px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);padding:0 4px 0 8px;}
+.workspace-breadcrumb-editor-type {display:flex;align-items:center;min-width:0;height:22px;box-sizing:border-box;flex:0 1 auto;max-width:40%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:11px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);padding:0 4px 0 8px;}
 .workspace-breadcrumb-editor-type:empty {display:none;}
-.workspace-breadcrumb-editor-type button {font:inherit;line-height:22px;max-width:100%;border:0;background:transparent;color:inherit;margin:0;padding:0;box-shadow:none;}
-.workspace-breadcrumb-editor-type button > .git-standard-icon {width:13px;height:13px;margin-left:2px;}
+.workspace-breadcrumb-editor-type button {display:flex;align-items:center;min-width:0;height:22px;box-sizing:border-box;font:inherit;line-height:22px;max-width:100%;border:0;background:transparent;color:inherit;margin:0;padding:0;box-shadow:none;}
+.workspace-breadcrumb-editor-label {min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.workspace-breadcrumb-editor-type button > .git-standard-icon {flex:none;width:13px;height:13px;margin-left:2px;}
 .workspace-breadcrumbs-managed .git-diff-labels {display:none;}
 .workspace-breadcrumb-picker {--workspace-breadcrumb-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);--workspace-breadcrumb-selection-foreground:var(--vscode-list-inactiveSelectionForeground,var(--text-color,#202020));position:fixed;z-index:100100;display:flex;flex-direction:column;box-sizing:border-box;min-width:0;padding:0;background:var(--vscode-editorWidget-background,var(--bg-color,#fff));color:var(--text-color,#333);border:1px solid var(--vscode-editorHoverWidget-border,#8885);border-radius:4px;box-shadow:0 2px 8px #0003;font:13px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);overflow:hidden;}
 :root[data-workspace-file-icon-theme="dark"] .workspace-breadcrumb-picker {--workspace-breadcrumb-selection-background:var(--vscode-list-inactiveSelectionBackground,#2c2d2e);}
@@ -35,4 +36,5 @@
 .workspace-breadcrumb-setting > input[type=text] {width:120px;}
 .workspace-breadcrumb-kind {display:inline-flex;align-items:center;margin:4px 10px 4px 0;}
 
-.workspace-breadcrumb-editor-type>[data-git-diff-reveal] {width:24px;height:24px;display:inline-flex;align-items:center;justify-content:center;padding:4px;flex:none;}
+.workspace-breadcrumb-editor-type>[data-git-diff-reveal] {width:22px;height:22px;display:inline-flex;align-items:center;justify-content:center;padding:3px;flex:none;}
+.workspace-breadcrumb-editor-type>[data-git-diff-reveal]>.git-standard-icon {width:16px;height:16px;margin:0;}

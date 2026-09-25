@@ -1,0 +1,84 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.6",
+  "requirements": [
+    "R034.10"
+  ],
+  "design": "docs/editor_header.md#r03410-编辑器类型与面包屑行内对齐",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/workbench/browser/parts/editor/media/breadcrumbscontrol.css:14-53",
+      "src/vs/base/browser/ui/actionbar/actionbar.css:43-52"
+    ],
+    "adopted": "flex居中、11px类型/13px下拉、16px操作图标加3px内边距；22px共享导航行"
+  },
+  "asset_manifest_sha256": "c67efbebb871a9cd48cdeb1494b0b915bcf6f8b574518eb0619d0b3af96b6edd",
+  "validation": {
+    "build": "PASS: breadcrumb_alignment_build.log",
+    "static_deployment_catalog": "PASS: corresponding breadcrumb_alignment logs; 217 classified suites, not all executed; no full check this round",
+    "ui": {
+      "breadcrumbs_checks": 42,
+      "alignment_scenarios": 32,
+      "max_text_center_difference": 1.9073486328125e-06,
+      "max_icon_center_difference": 0,
+      "editor_actions": "PASS: breadcrumb_alignment_ui_final.log",
+      "file_header": {
+        "status": "PASS",
+        "checks": 36,
+        "log": "breadcrumb_alignment_header_final.log"
+      }
+    },
+    "native": {
+      "status": "PASS",
+      "checks": 39,
+      "case_id": "bc18db8a0733466d9768a99fef0419b5",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "c67efbebb871a9cd48cdeb1494b0b915bcf6f8b574518eb0619d0b3af96b6edd",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "1983fc4f1a26b1272333712510955524fcec47511bf216b0dbe9ab731fdac111",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "原始Typora真实Git和本地bare远端，DOM键鼠及受控迟到端口；无用户仓库网络操作",
+      "screenshot": "stage_breadcrumb_alignment_dark_203404.png inspected; visible diff navigation aligned, both version titles same top/height"
+    },
+    "isolated_install": "PASS: same candidate public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall": "PASS: 65 assertions; breadcrumb_alignment_isolated_uninstall.log",
+    "local_install": {
+      "version": "2026.09.25.6",
+      "installed_assets": [
+        45,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "initial_failures": [
+    {
+      "log": "breadcrumb_alignment_ui_final.log",
+      "cause": "ordinary-file header fixture expected retired settings modal and editor submenu, while production uses unified settings and QuickPick; fixture now registers actual owners"
+    },
+    {
+      "log": "breadcrumb_alignment_header_retry.log",
+      "cause": "fixture evaluate selector quoting error; corrected, final file-header regression passes"
+    }
+  ],
+  "limits": [
+    "用户运行窗口未重启，保存后正常重启加载",
+    "Win10/Linux和物理键鼠未本轮验收；32组合是Chromium夹具，原始Typora另有明暗验证"
+  ],
+  "pushed": false
+}

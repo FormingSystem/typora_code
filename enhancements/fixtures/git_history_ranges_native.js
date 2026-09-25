@@ -43,7 +43,13 @@
    assert(document.documentElement.dataset.workspaceColors===mode,'实际主题 '+mode);
    assert(getComputedStyle(full.list.querySelector('[data-hash="'+future+'"] circle')).fill==='rgb(255, 176, 0)','独有历史黄色 '+mode);
    assert(getComputedStyle(full.list.querySelector('[data-hash="'+current+'"] circle')).fill===blue,'当前历史蓝色 '+mode);
-   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'branch_colors_'+mode}));await pause(400);
+   const bar=[...document.querySelectorAll('.workspace-breadcrumbs')].find(n=>n.getBoundingClientRect().height&&n.querySelector('[data-git-diff-reveal]'));
+   assert(!!bar,'实际diff面包屑可见 '+mode);const type=bar.querySelector('.workspace-breadcrumb-editor-type'),label=type.querySelector('.workspace-breadcrumb-editor-label'),rect=n=>n.getBoundingClientRect(),center=n=>(rect(n).top+rect(n).bottom)/2;
+   assert(rect(bar).height===22&&rect(type).height===22,'整行和右侧类型同为22px '+mode);
+   assert([...type.querySelectorAll('button,svg')].every(n=>Math.abs(center(n)-center(bar))<.2&&rect(n).top>=rect(bar).top&&rect(n).bottom<=rect(bar).bottom),'定位/下拉图标和按钮不越界且居中 '+mode);
+   const range=document.createRange();range.selectNodeContents(label);const right_text=range.getBoundingClientRect();range.selectNodeContents(bar.querySelector('.workspace-breadcrumb-segment span:last-child'));const left_text=range.getBoundingClientRect();assert(Math.abs((left_text.top+left_text.bottom-right_text.top-right_text.bottom)/2)<=1.1,'左右实际文字行盒居中 '+mode);
+   const headers=[...document.querySelectorAll('.git-markdown-diff-scroll')].filter(n=>rect(n).height).flatMap(n=>[...n.shadowRoot.querySelectorAll('.markdown-diff-head>.markdown-diff-cell')]);assert(headers.length>=2&&Math.abs(rect(headers[0]).top-rect(headers[1]).top)<.1&&rect(headers[0]).height===rect(headers[1]).height,'左右版本标题同高同顶 '+mode);
+   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'breadcrumb_alignment_'+mode}));await pause(400);
   }
 
   assert(fs.readFileSync(path.join(root,'front.md'),'utf8')===original&&!File.changeCounter.isDocumentEdited(),'审阅保持主Markdown与脏状态');
