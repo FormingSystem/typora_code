@@ -246517,6 +246517,14 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092501,
+        version: "2026.09.25.1",
+        date: "2026-09-25",
+        notes: [
+          "Night\u7684Markdown\u6807\u9898\u6539\u7528\u67D4\u548C\u6D45\u84DD\u8272\uFF0C\u4E0E\u7070\u767D\u6B63\u6587\u533A\u5206\uFF0C\u4FBF\u4E8E\u9605\u8BFB\u805A\u7126\uFF1B\u6B63\u6587\u3001\u9884\u89C8\u53CAGit\u6E32\u67D3\u6BD4\u8F83\u5171\u7528\u3002\u5176\u4ED6\u6697\u8272\u6837\u5F0F\u3001CppGithubConsoles\u548C\u5176\u4ED6\u4E3B\u9898\u4FDD\u6301\u3002"
+        ]
+      },
+      {
         sequence: 2026092413,
         version: "2026.09.24.13",
         date: "2026-09-24",

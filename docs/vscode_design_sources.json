@@ -687,6 +687,6 @@
       }
     ],
     "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。",
-    "dark_refinement": "R074.2 final user decision: follow VS Code 6807068 2026 Dark. markdown.css h1-h6 inherit webview editor.foreground #BBBEBF with weight 600; dark th border rgba(255,255,255,0.69). Heading role references editor.foreground. Exact cpp_github-consolas.css/night.css scope from Typora1.14.10 File.setTheme theme_css href; light unchanged."
+    "dark_refinement": "R074.2 2026-09-25 user refinement: Night heading #A5D6FF screenshot light blue is a product adaptation for focus, replacing the 2026-09-24 inherited neutral heading decision. Other fixed VS Code 6807068 2026 Dark roles, Markdown weight/size/spacing and exact theme scope remain unchanged."
   }
 }

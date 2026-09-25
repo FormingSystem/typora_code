@@ -101,7 +101,7 @@
   --vscode-terminal-selectionBackground:#3994BC33;
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
-  --workspace-markdown-heading:var(--vscode-editor-foreground);
+  --workspace-markdown-heading:#A5D6FF;
   --workspace-markdown-border:#FFFFFF2E;
   --workspace-markdown-table-header:rgba(255,255,255,.69);
   --vscode-foreground:#bfbfbf;

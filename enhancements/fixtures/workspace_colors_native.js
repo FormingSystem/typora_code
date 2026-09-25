@@ -19,7 +19,7 @@
    const entry={mode,body:color(document.body),write:color('#write'),panels:[]};samples.push(entry);
    entry.heading=color('#write h1');entry.paragraph=color('#write p');entry.quote=color('#write blockquote');
    assert(entry.write.bg===content,'正文编辑器背景 '+mode);
-   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(187, 190, 191)')&&(mode==='light'?entry.heading.fg!==entry.paragraph.fg:entry.heading.fg===entry.paragraph.fg),'明暗标题前景规则 '+mode);
+   assert(entry.heading.fg===(mode==='light'?'rgb(0, 105, 204)':'rgb(165, 214, 255)')&&entry.heading.fg!==entry.paragraph.fg,'明暗标题前景规则 '+mode);
    assert(getComputedStyle(document.querySelector('#write h1')).fontWeight==='600','标题字重 '+mode);
    assert(entry.quote.bg===(mode==='light'?'rgb(234, 234, 234)':'rgb(36, 37, 38)'),'引用背景角色 '+mode);
    for(const id of ['core.file-explorer','core.search','core.outline','linux_note:source_control','typora_code:community_plugins','typora_code:remote_ssh']){

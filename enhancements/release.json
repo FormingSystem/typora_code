@@ -2,6 +2,14 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026092501,
+      "version": "2026.09.25.1",
+      "date": "2026-09-25",
+      "notes": [
+        "Night的Markdown标题改用柔和浅蓝色，与灰白正文区分，便于阅读聚焦；正文、预览及Git渲染比较共用。其他暗色样式、CppGithubConsoles和其他主题保持。"
+      ]
+    },
+    {
       "sequence": 2026092413,
       "version": "2026.09.24.13",
       "date": "2026-09-24",

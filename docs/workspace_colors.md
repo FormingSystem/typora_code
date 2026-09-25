@@ -2,6 +2,8 @@
 
 ## R074.2 暗色阅读层级柔化
 
+2026-09-25最新反馈：用户接受整体VS Code暗主题，但灰白标题与正文不易聚焦，明确重新要求标题色相区分。用户进一步提供截图并明确选择红框中的浅蓝色：实色像素为`#A5D6FF`，与固定VS Code 2026 Dark的`string` token一致。仅Night的共享标题角色采用此色，覆盖下文2026-09-24的标题同色约定；这属于用户要求的产品适配色，不是上游默认。背景、正文、链接、表格、字号、字重与留白继续采用既有规则；不增加配置或刷新路径。这不是VS Code预览标题的默认颜色，而是将用户明确选中的源码文字色应用到阅读标题。正文、预览与Git渲染比较从同一角色取值，其他主题和浅色不变。验收复用明暗切换、第三方主题退出、Shadow一致性、差异着色及原始宿主计算样式检查，并完成同候选安装卸载。
+
 2026-09-24用户最终明确“按照vscode的暗主题来吧。不折腾了。”此要求替代先前暗色蓝色、雾蓝灰及未安装的绿色候选。Night按固定上游`68070681e87284e2f22728f15fe3f3651fbf932b`的2026 Dark处理：`extensions/theme-defaults/themes/2026-dark.json`定义`editor.foreground=#BBBEBF`；`src/vs/workbench/contrib/webview/browser/pre/index.html`将其应用于阅读正文，`extensions/markdown-language-features/media/markdown.css`的h1–h6未另设颜色，沿用正文前景，以600字重、字号与留白区分层级。本产品标题角色直接引用`--vscode-editor-foreground`，不再维护暗色标题自选色。链接保留`#48A0C7`，代码/引用保留`#242526`；表头边线恢复同一markdown.css的`rgba(255,255,255,0.69)`。浅色深蓝保持，最新约定只修正Night。
 
 本轮用户进一步纠正：只作用于CppGithubConsoles（仓库实际文件名`cpp_github-consolas.css`）及`night.css`。此前按所有主题明暗全局覆盖属于范围错误。本轮按Typora 1.14.10 `File.setTheme`实际更新的`#theme_css[href]`完整文件名判断，前者映射light、后者映射dark；其他/缺失主题移除覆盖标记，恢复其原有样式，预览随共同主题通知更新。禁止按名称子串或仅按背景亮度扩大白名单。
@@ -92,3 +94,7 @@
 ## R074.2 VS Code暗色定稿验证
 
 2026-09-24交付2026.09.24.13（R074.2）：按用户最终要求，Night标题采用固定VS Code暗主题的正文前景#BBBEBF，以字号、600字重及留白区分层级；表头边线恢复上游规则。CppGithubConsoles及其他主题保持。构建、完整check、颜色33项、真实diff50项和原始Typora89项通过；原生私有桌面截图停留旧帧，不计为外观验收，重启后仍需用户确认。相同候选两类隔离卸载重装及65项卸载回归通过，本机44+24资产一致、5保护项不变，check OK。用户窗口未重启，保存后正常重启加载；未推送。Win10和物理输入未本轮覆盖。见[本次证据](../enhancements/tests/evidence/vscode_dark_20260924.json)。
+
+## R074.2 截图浅蓝标题交付
+
+2026-09-25交付2026.09.25.1（R074.2）：按用户截图及确认，仅Night的Markdown标题采用浅蓝#A5D6FF，与截图实色及固定VS Code string token一致；正文、预览和渲染比较共用，浅色及其他主题不变。构建/完整check、颜色33项、真实diff50项、原始Typora89项通过，核对渲染比较截图。相同候选两类隔离卸载重装及65项卸载回归通过；本机44+24资产匹配，5保护项不变，check OK，保存后重启加载。原生私有桌面截图可能停留旧帧，真实窗口外观、Win10及物理输入仍待验收；未推送。见[本次证据](../enhancements/tests/evidence/blue_heading_20260925.json)。

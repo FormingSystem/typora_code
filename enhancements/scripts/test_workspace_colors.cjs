@@ -22,7 +22,7 @@ app.whenReady().then(async()=>{
   check(data.term.background.toLowerCase()===(dark?'#191a1b':'#fafafd'),'终端消费者在颜色更新后收到当前主题 '+dark);
   check(data.body.bg===content,'正文使用编辑器背景 '+dark);
   const markdown=await read(`(()=>{const take=root=>Object.fromEntries(['h1','h2','p','a','code','blockquote','th','td','pre'].map(tag=>{const s=getComputedStyle(root.querySelector(tag));return[tag,{fg:s.color,bg:s.backgroundColor,font:s.fontFamily,size:s.fontSize,weight:s.fontWeight,border:s.borderTopColor}]}));return{native:take(document.querySelector('#write')),preview:take(shadow),menu:snap('.git-graph-menu'),footer:snap('footer')}})()`);
-  check(markdown.native.h1.fg===(dark?'rgb(187, 190, 191)':'rgb(0, 105, 204)')&&(dark?markdown.native.h1.fg===markdown.native.p.fg:markdown.native.h1.fg!==markdown.native.p.fg),'标题遵循明暗主题规则 '+dark);
+  check(markdown.native.h1.fg===(dark?'rgb(165, 214, 255)':'rgb(0, 105, 204)')&&markdown.native.h1.fg!==markdown.native.p.fg,'标题遵循明暗主题规则 '+dark);
   check(JSON.stringify(markdown.native)===JSON.stringify(markdown.preview),'Shadow阅读与正文共享标题/表格/代码/引用样式 '+dark+' '+JSON.stringify(markdown));
   check(markdown.menu.border===(dark?'rgb(42, 43, 44)':'rgb(228, 229, 230)')&&markdown.footer.fg===(dark?'rgb(140, 140, 140)':'rgb(96, 96, 96)'),'菜单边框与状态文字角色 '+dark);
   const states=await read(`(()=>{const input=document.querySelector('#setting');input.focus();const primary=document.querySelector('#primary'),disabled=document.querySelector('button:disabled');return{selected:snap('.workspace-settings-categories button'),focused:snap('.workspace-setting-row'),primary:snap('#primary'),disabled:getComputedStyle(disabled).opacity,muted:snap('.workspace-setting-label small'),focus:document.activeElement===input}})()`);
@@ -45,7 +45,7 @@ app.whenReady().then(async()=>{
   check(await read(`!document.documentElement.hasAttribute('data-workspace-colors')&&snap('#write').bg==='rgb(38, 50, 56)'&&getComputedStyle(shadow.querySelector('h1')).color===snap('#write h1').fg`),'其他主题/近似名称退出覆盖 '+name);
  }
  await read(`document.querySelector('#theme_css').setAttribute('href','night.css');void 0`);await pause(80);
- check(await read(`snap('#write h1').fg==='rgb(187, 190, 191)'&&document.documentElement.dataset.workspaceColors==='dark'`),'切回Night恢复受控主题');
+ check(await read(`snap('#write h1').fg==='rgb(165, 214, 255)'&&document.documentElement.dataset.workspaceColors==='dark'`),'切回Night恢复受控主题');
  await read(`stop_preview();binding.dispose();stop_term();interaction.remove();monitor.disconnect();void 0`);
  check(await read(`!document.documentElement.hasAttribute('data-workspace-colors')&&getComputedStyle(document.querySelector('#write')).backgroundColor==='rgb(38, 50, 56)'`),'销毁恢复标记与正文主题');
  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));console.log(JSON.stringify({status:'PASS',count:checks.length,evidence:base}));win.destroy();app.exit(0);
