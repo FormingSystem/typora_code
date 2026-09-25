@@ -1,4 +1,4 @@
-import {build_git_graph,type git_commit} from './git_graph_data';
+import {build_git_graph,graph_ref_colors,type git_commit} from './git_graph_data';
 import type {repository_state,graph_commit} from './git_graph_repository';
 import {git_graph_text as text} from './git_graph_i18n';
 
@@ -31,6 +31,13 @@ export function build_history_model(state:repository_state,prefix:git_commit[]=[
     const head_index=topology.findIndex(commit=>commit.hash===state.head);
     if(tracking!.ahead>0&&(included('refs/heads/'+state.branch)||included('HEAD'))&&head_index>=0)add('outgoing',head_index,state.head,state.branch,tracking!.ahead,[state.head]);
   }
-  const graph=build_git_graph([...prefix,...topology]);
+  // 引用身份来自仓库快照；同点引用由HEAD优先，普通分支不冒用当前分支色。
+  const ref_colors=new Map<string,number>();
+  if(tracking?.base_hash)ref_colors.set(tracking.base_hash,graph_ref_colors.base);
+  if(tracking?.upstream_hash)ref_colors.set(tracking.upstream_hash,graph_ref_colors.upstream);
+  if(state.head)ref_colors.set(state.head,graph_ref_colors.head);
+  for(const item of items)if(item.range)ref_colors.set(item.id,item.range.kind==='outgoing'?graph_ref_colors.head:graph_ref_colors.upstream);
+  for(const commit of prefix)ref_colors.set(commit.hash,graph_ref_colors.head);
+  const graph=build_git_graph([...prefix,...topology],ref_colors);
   return {items,graph};
 }

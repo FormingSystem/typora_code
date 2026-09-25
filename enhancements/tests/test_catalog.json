@@ -1371,13 +1371,15 @@
         "R045",
         "R034.4",
         "R034.8",
-        "R020.1"
+        "R020.1",
+        "R027.2"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
         "enhancements/src/git_graph_panel.ts",
         "enhancements/src/git_scm_history.ts",
-        "enhancements/src/workspace_interaction.ts"
+        "enhancements/src/workspace_interaction.ts",
+        "enhancements/src/git_graph_data.ts"
       ],
       "related_modules": [
         "scm",
@@ -1389,7 +1391,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "核对其他分支经过HEAD的色彩边界、上下半边和展开续线；引用角色与自定义调色板保持"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -7424,14 +7427,16 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R027.1"
+        "R027.1",
+        "R027.2"
       ],
       "design": "docs/git_scm_actions.md#r0271-提交图传入与传出更改",
       "implementation": [
         "enhancements/src/git_history_ranges.ts",
         "enhancements/src/git_scm_history.ts",
         "enhancements/src/git_scm_data.ts",
-        "enhancements/src/git_graph_panel.ts"
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_data.ts"
       ],
       "related_modules": [
         "git",
@@ -7442,7 +7447,8 @@
       "environment": "Windows临时Git与bare远端",
       "preconditions": "不使用用户真实仓库；仅本地测试远端",
       "steps": [
-        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期"
+        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期",
+        "核对其他分支经过HEAD的色彩边界、上下半边和展开续线；引用角色与自定义调色板保持"
       ],
       "expected": [
         "真实端点、正确计数、共享选择；同步后清除节点，无迟到覆盖"
@@ -7455,14 +7461,16 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R027.1"
+        "R027.1",
+        "R027.2"
       ],
       "design": "docs/git_scm_actions.md#r0271-提交图传入与传出更改",
       "implementation": [
         "enhancements/src/git_history_ranges.ts",
         "enhancements/src/git_scm_history.ts",
         "enhancements/src/git_scm_data.ts",
-        "enhancements/src/git_graph_panel.ts"
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_data.ts"
       ],
       "related_modules": [
         "git",
@@ -7473,7 +7481,8 @@
       "environment": "Windows临时Git与bare远端，原始Typora1.14.10",
       "preconditions": "不使用用户真实仓库；仅本地测试远端",
       "steps": [
-        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期"
+        "验证双向差距、筛选、分页、汇总diff、刷新与节点生命周期",
+        "核对其他分支经过HEAD的色彩边界、上下半边和展开续线；引用角色与自定义调色板保持"
       ],
       "expected": [
         "真实端点、正确计数、共享选择；同步后清除节点，无迟到覆盖"

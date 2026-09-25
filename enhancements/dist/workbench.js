@@ -192220,9 +192220,11 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return commits;
   }
-  function build_git_graph(commits) {
+  var graph_ref_colors = { head: 0, upstream: 1, base: -1 };
+  function build_git_graph(commits, ref_colors) {
     let lanes = [];
     let next_color = 0;
+    const allocate_color = () => ref_colors ? 2 + next_color++ : next_color++;
     let width2 = 1;
     const rows = [];
     for (const commit of commits) {
@@ -192230,9 +192232,9 @@ https://creativecommons.org/licenses/by/4.0/
       let lane = lanes.findIndex((item) => item.hash === commit.hash);
       if (lane < 0) {
         lane = lanes.length;
-        lanes.push({ hash: commit.hash, color: next_color++ });
+        lanes.push({ hash: commit.hash, color: ref_colors?.get(commit.hash) ?? allocate_color() });
       }
-      const current = lanes[lane];
+      const current = { ...lanes[lane], color: ref_colors?.get(commit.hash) ?? lanes[lane].color };
       const edges = incoming.map((item, index) => ({ from: index, to: item.hash === commit.hash ? lane : index, color: item.color, upper: true }));
       const before = [...lanes];
       lanes = lanes.filter((item) => item.hash !== commit.hash);
@@ -192240,7 +192242,7 @@ https://creativecommons.org/licenses/by/4.0/
       const parent_lanes = commit.parents.map((hash2, index) => {
         let target = lanes.find((item) => item.hash === hash2 && (index !== 0 || item.color === current.color));
         if (!target) {
-          target = { hash: hash2, color: index === 0 ? current.color : next_color++ };
+          target = { hash: hash2, color: index === 0 ? current.color : ref_colors?.get(hash2) ?? allocate_color() };
           lanes.splice(insert_at++, 0, target);
         }
         return target;
@@ -207172,7 +207174,13 @@ https://creativecommons.org/licenses/by/4.0/
       const head_index = topology.findIndex((commit) => commit.hash === state.head);
       if (tracking.ahead > 0 && (included("refs/heads/" + state.branch) || included("HEAD")) && head_index >= 0) add("outgoing", head_index, state.head, state.branch, tracking.ahead, [state.head]);
     }
-    const graph = build_git_graph([...prefix, ...topology]);
+    const ref_colors = /* @__PURE__ */ new Map();
+    if (tracking?.base_hash) ref_colors.set(tracking.base_hash, graph_ref_colors.base);
+    if (tracking?.upstream_hash) ref_colors.set(tracking.upstream_hash, graph_ref_colors.upstream);
+    if (state.head) ref_colors.set(state.head, graph_ref_colors.head);
+    for (const item of items) if (item.range) ref_colors.set(item.id, item.range.kind === "outgoing" ? graph_ref_colors.head : graph_ref_colors.upstream);
+    for (const commit of prefix) ref_colors.set(commit.hash, graph_ref_colors.head);
+    const graph = build_git_graph([...prefix, ...topology], ref_colors);
     return { items, graph };
   }
 
@@ -233692,8 +233700,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     graph_color(index) {
       const custom = this.settings.colors, defaults2 = graph_defaults.colors;
-      if (custom.length === defaults2.length && custom.every((color, i) => color === defaults2[i])) return ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index % 7];
-      return custom[index % custom.length];
+      if (custom.length === defaults2.length && custom.every((color, i) => color === defaults2[i])) return index < 0 ? "#EA5C00" : ["var(--vscode-charts-blue,#1a5cff)", "var(--vscode-charts-purple,#652d90)", "#FFB000", "#DC267F", "#994F00", "#40B0A6", "#B66DFF"][index < 2 ? index : 2 + (index - 2) % 5];
+      return custom[(index < 0 ? 7 : index) % custom.length];
     }
     draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }, node_kind = "normal") {
       const ns2 = "http://www.w3.org/2000/svg";
@@ -246469,6 +246477,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092505,
+        version: "2026.09.25.5",
+        date: "2026-09-25",
+        notes: [
+          "\u63D0\u4EA4\u56FE\u6309\u5F53\u524D\u5206\u652F\u3001\u4E0A\u6E38\u53CA\u5176\u4ED6\u5206\u652F\u533A\u5206\u8282\u70B9\u548C\u8FDE\u7EBF\u989C\u8272\uFF0C\u5176\u4ED6\u5206\u652F\u72EC\u6709\u5386\u53F2\u7ECF\u8FC7HEAD\u65F6\u6B63\u786E\u5207\u6362\uFF1B\u4FA7\u680F\u3001\u5B8C\u6574\u63D0\u4EA4\u56FE\u53CA\u5C55\u5F00\u6587\u4EF6\u7EED\u7EBF\u5171\u7528\u7740\u8272\u3002"
+        ]
+      },
       {
         sequence: 2026092504,
         version: "2026.09.25.4",

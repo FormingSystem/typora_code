@@ -1,0 +1,129 @@
+{
+  "schema": 1,
+  "date": "2026-09-25",
+  "release": "2026.09.25.5",
+  "requirements": [
+    "R027.2"
+  ],
+  "design": "docs/git_scm_actions.md#r0272-分支与共同历史颜色",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/workbench/contrib/scm/browser/scmHistory.ts",
+      "src/vs/workbench/contrib/scm/browser/scmHistoryViewPane.ts"
+    ],
+    "adopted": "引用角色边界、入线保色、五色普通支线；拓扑轨道编号不随调色板循环"
+  },
+  "asset_manifest_sha256": "1f4553b046609f5ab7b4d9aaa12fa49e0a9f4dee1d6f11981dd3755f2da661ac",
+  "validation": {
+    "build": "PASS: branch_colors_build_final.log",
+    "check": "PASS: complete npm run check; final affected graph/model/static/deployment checks repeated after palette identity correction",
+    "model": {
+      "status": "PASS",
+      "checks": [
+        "同步时没有虚拟差异",
+        "真实其他分支在线性HEAD上方为黄色，HEAD蓝色，同点上游不覆盖；分页筛选保持角色",
+        "传出汇总多笔提交且使用真实端点",
+        "获取后显示分叉和异名远端上游，不混入另一侧文件",
+        "图节点位于HEAD和共同祖先边界，原始提交父链不变",
+        "真实分叉HEAD蓝/上游紫/虚拟区间同角色，行边界没有断色",
+        "分离HEAD、三种引用边界、同点优先级和缺失引用不会冒用当前色",
+        "HEAD/远端/自动筛选遵守引用身份",
+        "共同祖先未分页载入时不误放传入节点",
+        "合并后不保留传入，推送后清除传出",
+        "仅落后时只有传入",
+        "无上游、已删除上游、分离HEAD不伪造差异",
+        "20/100/1000提交投影保持计数和拓扑规模"
+      ],
+      "scope": "真实本地Git与bare远端；图规模为内存模型"
+    },
+    "ui": {
+      "status": "PASS",
+      "log": "branch_colors_ui_final_selection.log",
+      "checks": [
+        "later 12-lane merge cannot widen current single-lane row",
+        "single-lane file list begins at 22px without an extra count row",
+        "separate twistie column is removed",
+        "continuation and next commit retain identical lane coordinates",
+        "multi-parent expansion preserves all 12 live lanes",
+        "branches retain distinct tracks until their common parent then return to one-lane file indentation",
+        "narrow and wide sidebars keep status alignment and avoid overflow",
+        "file click still opens the selected comparison and commit click collapses it"
+      ],
+      "themes": [
+        {
+          "theme": "light",
+          "future": "rgb(255, 176, 0)",
+          "current": "rgb(26, 92, 255)",
+          "older": "rgb(26, 92, 255)",
+          "incoming": "#FFB000",
+          "continuation": "#FFB000",
+          "selected": 1
+        },
+        {
+          "theme": "dark",
+          "future": "rgb(255, 176, 0)",
+          "current": "rgb(87, 163, 248)",
+          "older": "rgb(87, 163, 248)",
+          "incoming": "#FFB000",
+          "continuation": "#FFB000",
+          "selected": 1
+        }
+      ],
+      "custom_colors": "PASS: original user palette preserved",
+      "geometry": "12 branches retain 12 lanes until parent, narrow/wide and 100/125 percent zoom"
+    },
+    "native": {
+      "status": "PASS",
+      "checks": 29,
+      "case_id": "83cd8cd7d0a046c882a622a92ea1c60f",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "1f4553b046609f5ab7b4d9aaa12fa49e0a9f4dee1d6f11981dd3755f2da661ac",
+        "terminal_manifest_sha256": "0306a7b38ad68347dfa60f00b9a8debbb1130b3f335298e12210fcb237f90c3d",
+        "fixture_sha256": "74904696d6acfac7b23778f64bad7e419141bdd9067c0368a4710a2aec10cf26",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "scope": "原始Typora真实Git和本地bare远端，DOM键鼠及受控迟到端口；无用户仓库网络操作",
+      "screenshot": "stage_branch_colors_dark_137774.png inspected: yellow future branch to blue HEAD; both real themes confirmed by computed styles"
+    },
+    "catalog": "PASS: 217 classified suites, not all suites executed this round",
+    "isolated_install": "PASS: same final candidate public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; branch_colors_isolated_install_final.log",
+    "uninstall": "PASS: 65 assertions; branch_colors_isolated_uninstall.log",
+    "local_install": {
+      "version": "2026.09.25.5",
+      "installed_assets": [
+        45,
+        24
+      ],
+      "local_uninstall": "read-only precheck",
+      "protected_files_unchanged": [
+        "asar",
+        "window",
+        "theme",
+        "settings",
+        "profile"
+      ],
+      "user_windows_restarted": false,
+      "status": "PASS"
+    }
+  },
+  "initial_failures": [
+    {
+      "log": "branch_colors_ui.log",
+      "cause": "cycling the internal color ID merged independent tracks before their parent; fixed by unique track numbers and rendering-only palette rotation"
+    },
+    {
+      "log": "branch_colors_ui_retry.log",
+      "cause": "fixture queried Codicon path instead of topology SVG and omitted graph_color method; fixed fixture owner and selector"
+    }
+  ],
+  "limits": [
+    "原始宿主与Chromium使用专属临时仓库；未修改用户Git分支或调用真实远端",
+    "用户运行窗口未重启，保存后正常重启加载",
+    "Win10/Linux、SSH现场及物理键鼠未本轮验收"
+  ],
+  "pushed": false
+}

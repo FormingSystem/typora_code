@@ -30,17 +30,20 @@ export function parse_git_log(source: string): git_commit[] {
 type graph_lane = { hash: string; color: number };
 export type graph_edge = { from: number; to: number; color: number; upper: boolean };
 export type graph_row = { lane: number; color: number; edges: graph_edge[] };
+export const graph_ref_colors = { head: 0, upstream: 1, base: -1 } as const;
 /** 按拓扑顺序跟踪尚未出现的父提交；汇合在父节点完成，分叉新增轨道。 */
-export function build_git_graph(commits: git_commit[]): { rows: graph_row[]; width: number } {
+export function build_git_graph(commits: git_commit[], ref_colors?: ReadonlyMap<string, number>): { rows: graph_row[]; width: number } {
   let lanes: graph_lane[] = [];
   let next_color = 0;
+  const allocate_color = () => ref_colors ? 2 + next_color++ : next_color++;
   let width = 1;
   const rows: graph_row[] = [];
   for (const commit of commits) {
     const incoming = [...lanes];
     let lane = lanes.findIndex((item) => item.hash === commit.hash);
-    if (lane < 0) { lane = lanes.length; lanes.push({ hash: commit.hash, color: next_color++ }); }
-    const current = lanes[lane];
+    if (lane < 0) { lane = lanes.length; lanes.push({ hash: commit.hash, color: ref_colors?.get(commit.hash) ?? allocate_color() }); }
+    // 引用边界只改变节点和出线，不能改写来自上一行的入线颜色。
+    const current = { ...lanes[lane], color: ref_colors?.get(commit.hash) ?? lanes[lane].color };
     // 不同支线即使等待同一个父提交，也保留各自颜色，直到父节点所在行才汇入。
     const edges: graph_edge[] = incoming.map((item, index) => ({ from: index, to: item.hash === commit.hash ? lane : index, color: item.color, upper: true }));
     const before = [...lanes];
@@ -49,7 +52,7 @@ export function build_git_graph(commits: git_commit[]): { rows: graph_row[]; wid
     const parent_lanes = commit.parents.map((hash, index) => {
       let target = lanes.find(item => item.hash === hash && (index !== 0 || item.color === current.color));
       if (!target) {
-        target = { hash, color: index === 0 ? current.color : next_color++ };
+        target = { hash, color: index === 0 ? current.color : ref_colors?.get(hash) ?? allocate_color() };
         lanes.splice(insert_at++, 0, target);
       }
       return target;

@@ -15,10 +15,28 @@ const reader=api.create_git_runner({child_process,process}),read=(branches=[],co
 try{
  const base=save(root,'base.md','# base');git(temp,['clone','--bare',root,remote]);git(root,['remote','add','team/origin',remote]);git(root,['push','-u','team/origin','master:renamed']);git(temp,['clone',remote,peer]);git(peer,['checkout','-b','work','origin/renamed']);
  assert.equal(ranges(await read()).length,0);checks.push('同步时没有虚拟差异');
+ const inspect=state=>{const model=api.build_history_model(state);return new Map(model.items.map((item,i)=>[item.id,model.graph.rows[i]]));};
+ git(root,['checkout','-b','future']);const future=save(root,'future.md','future');git(root,['checkout','master']);
+ let colors=inspect(await read());assert.equal(colors.get(future).color,2);assert.equal(colors.get(base).color,0);
+ assert.equal(colors.get(future).edges.find(edge=>!edge.upper).color,2);assert(colors.get(base).edges.some(edge=>edge.upper&&edge.color===2));
+ assert.equal(inspect(await read([],1)).get(future).color,2);assert.equal(inspect(await read(['HEAD'])).get(base).color,0);
+ checks.push('真实其他分支在线性HEAD上方为黄色，HEAD蓝色，同点上游不覆盖；分页筛选保持角色');
+ git(root,['branch','-D','future']);
+
  const first=save(root,'first.md','one'),head=save(root,'second.md','two');let state=await read(),out=ranges(state)[0];assert.equal(out.kind,'outgoing');assert.equal(out.count,2);assert.equal(out.from,base);assert.equal(out.to,head);assert.equal(out.branch,'master');
  assert.deepEqual((await api.compare_files(reader.run,state,out.from,out.to)).map(file=>file.path).sort(),['first.md','second.md']);checks.push('传出汇总多笔提交且使用真实端点');
  const incoming=save(peer,'remote.md','remote');git(peer,['push','origin','work:renamed']);assert.equal(ranges(await read()).length,1);git(root,['fetch','team/origin']);state=await read();const both=ranges(state);assert.equal(both.length,2);const next=both.find(range=>range.kind==='incoming');assert.equal(next.branch,'team/origin/renamed');assert.equal(next.from,base);assert.equal(next.to,incoming);assert.deepEqual((await api.compare_files(reader.run,state,next.from,next.to)).map(file=>file.path),['remote.md']);checks.push('获取后显示分叉和异名远端上游，不混入另一侧文件');
  const model=api.build_history_model(state),ids=model.items.map(item=>item.id);assert.equal(ids[ids.indexOf(head)-1],both.find(item=>item.kind==='outgoing').id);assert.equal(ids[ids.indexOf(base)-1],next.id);assert.equal(model.graph.rows.length,state.commits.length+2);assert(state.commits.find(item=>item.hash===incoming).parents.includes(base));checks.push('图节点位于HEAD和共同祖先边界，原始提交父链不变');
+ colors=inspect(state);assert.equal(colors.get(head).color,0);assert.equal(colors.get(incoming).color,1);
+ assert.equal(colors.get(next.id).color,1);assert.equal(colors.get(both.find(item=>item.kind==='outgoing').id).color,0);
+ for(let i=0;i<model.graph.rows.length-1;i++)for(const edge of model.graph.rows[i].edges.filter(edge=>!edge.upper))assert(model.graph.rows[i+1].edges.some(next=>next.upper&&next.from===edge.to&&next.color===edge.color),'相邻行连线坐标与色值连续');
+ checks.push('真实分叉HEAD蓝/上游紫/虚拟区间同角色，行边界没有断色');
+ const mock=(head,upstream,base)=>({...state,head,branch:'',tracking:{...state.tracking,ahead:0,behind:0,upstream_hash:upstream,base_hash:base},commits:[{hash:'other',parents:['head'],author:'',date:'',subject:''},{hash:'head',parents:['remote'],author:'',date:'',subject:''},{hash:'remote',parents:['base'],author:'',date:'',subject:''},{hash:'base',parents:['root'],author:'',date:'',subject:''},{hash:'root',parents:[],author:'',date:'',subject:''}]});
+ const roles=inspect(mock('head','remote','base'));assert.deepEqual([...roles.values()].map(row=>row.color),[2,0,1,-1,-1]);
+ assert.deepEqual([...inspect(mock('head','head','head')).values()].map(row=>row.color),[2,0,0,0,0]);
+ assert.deepEqual([...inspect(mock('missing','','')).values()].map(row=>row.color),[2,2,2,2,2]);
+ checks.push('分离HEAD、三种引用边界、同点优先级和缺失引用不会冒用当前色');
+
  assert.deepEqual(ranges(await read(['HEAD'])).map(range=>range.kind),['outgoing']);assert.deepEqual(ranges(await read(['refs/remotes/team/origin/renamed'])).map(range=>range.kind),['incoming']);assert.equal(ranges(await read(['AUTO'])).length,2);checks.push('HEAD/远端/自动筛选遵守引用身份');
  assert(!ranges(await read([],1)).some(range=>range.kind==='incoming'));assert(ranges(await read([],100)).some(range=>range.kind==='incoming'));checks.push('共同祖先未分页载入时不误放传入节点');
  git(root,['merge','--no-edit','team/origin/renamed']);state=await read();assert.deepEqual(ranges(state).map(range=>range.kind),['outgoing']);git(root,['push','team/origin','master:renamed']);assert.equal(ranges(await read()).length,0);checks.push('合并后不保留传入，推送后清除传出');

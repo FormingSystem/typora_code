@@ -336,8 +336,8 @@ export class git_graph_panel {
   }
   graph_color(index:number):string {
     const custom=this.settings.colors,defaults=graph_defaults.colors;
-    if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return ['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','#FFB000','#DC267F','#994F00','#40B0A6','#B66DFF'][index%7];
-    return custom[index%custom.length];
+    if(custom.length===defaults.length&&custom.every((color,i)=>color===defaults[i]))return index<0?'#EA5C00':['var(--vscode-charts-blue,#1a5cff)','var(--vscode-charts-purple,#652d90)','#FFB000','#DC267F','#994F00','#40B0A6','#B66DFF'][index<2?index:2+(index-2)%5];
+    return custom[(index<0?7:index)%custom.length];
   }
   draw_graph(row: graph_row, width: number, geometry = {lane_width: 16, first_x: 10, right_gap: 10, height: 24}, node_kind: "normal"|"head"|"merge"|"range" = "normal"): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg"); svg.setAttribute("width", String((width - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap)); svg.setAttribute("height", String(geometry.height)); svg.setAttribute("aria-hidden", "true");

@@ -14,6 +14,9 @@
   assert(range_row('outgoing').textContent.includes(branch)&&range_row('incoming').textContent.includes('team/origin/renamed'),'实际本地分支与异名远端');
   assert(range_row('outgoing').querySelector('circle:last-of-type').style.strokeDasharray==='4, 2'||range_row('outgoing').querySelector('circle:last-of-type').style.strokeDasharray==='4,2','上游虚线圆节点');
   const outgoing=panel.state.tracking.merge_base,head=panel.state.head;
+  const node_color=(scope,hash)=>{const row=scope.querySelector('[data-hash="'+hash+'"]');const node=row?.querySelector('circle');return node?.getAttribute('fill')||node?.style.fill;};
+  assert(node_color(history.list,head)!==node_color(history.list,panel.state.tracking.upstream_hash),'本地与远端分叉节点使用不同角色颜色');
+
   range_row('outgoing').click();await wait(()=>history.list.querySelectorAll('[data-history-file]').length===2,'outgoing files');
   assert([...history.list.querySelectorAll('[data-history-file]')].map(row=>row.dataset.historyFile).sort().join(',')==='out-one.md,out-two.md','传出展开多笔汇总文件');
   assert(history.list.querySelectorAll('[data-workspace-selected=true]').length===1,'区间选择只有一条');
@@ -30,6 +33,19 @@
   panel.branches=['HEAD'];await panel.refresh();assert(!!range_row('outgoing')&&!range_row('incoming'),'HEAD筛选不显示远端组');panel.branches=[];await panel.refresh();
   git(root,['merge','--no-edit','team/origin/renamed']);await panel.refresh();assert(!!range_row('outgoing')&&!range_row('incoming'),'合并后的节点更新');git(root,['push','team/origin',branch+':renamed']);await panel.refresh();assert(!range_row('outgoing')&&!range_row('incoming'),'推送后差距节点清除');
   save(root,'out-again.md');await panel.refresh();assert(!!range_row('outgoing'),'新提交重新产生传出节点');
+  const current=git(root,['rev-parse','HEAD']);git(root,['branch','--unset-upstream']);git(root,['checkout','-b','future']);save(root,'future.md');const future=git(root,['rev-parse','HEAD']);git(root,['checkout',branch]);await panel.refresh();
+  assert(node_color(history.list,future)==='#FFB000','其他分支HEAD上方独有提交为黄色');
+  assert(node_color(history.list,current)?.includes('charts-blue'),'HEAD恢复蓝色角色');
+  app.commands.run('linux_note:git_graph');await wait(()=>app.workspace.activeLeaf?.view.panel?.loaded,'reopen graph');const full=app.workspace.activeLeaf.view.panel;await full.refresh();
+  assert(node_color(full.list,future)===node_color(history.list,future),'完整Graph与侧栏同色');
+  for(const [theme,name,mode,blue] of [['cpp_github-consolas.css','Cpp Github Consolas','light','rgb(26, 92, 255)'],['night.css','Night','dark','rgb(87, 163, 248)']]){
+   await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(900);
+   assert(document.documentElement.dataset.workspaceColors===mode,'实际主题 '+mode);
+   assert(getComputedStyle(full.list.querySelector('[data-hash="'+future+'"] circle')).fill==='rgb(255, 176, 0)','独有历史黄色 '+mode);
+   assert(getComputedStyle(full.list.querySelector('[data-hash="'+current+'"] circle')).fill===blue,'当前历史蓝色 '+mode);
+   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'branch_colors_'+mode}));await pause(400);
+  }
+
   assert(fs.readFileSync(path.join(root,'front.md'),'utf8')===original&&!File.changeCounter.isDocumentEdited(),'审阅保持主Markdown与脏状态');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,scope:'原始Typora真实Git和本地bare远端，DOM键鼠及受控迟到端口；无用户仓库网络操作'},null,2),'utf8');
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',checks,error:String(error.stack||error)},null,2),'utf8');}
