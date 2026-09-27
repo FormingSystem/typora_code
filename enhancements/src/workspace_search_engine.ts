@@ -1,3 +1,4 @@
+import {read_workspace_directory} from './workspace_directory_service';
 /// <reference path="./search_worker_types.d.ts" />
 import { decode_file_bytes, detect_binary_bytes, type decoded_file } from "./file_language";
 import {query_expression, line_starts, whole_word, capture_match, type search_captured_match} from "./workspace_search_matcher";
@@ -193,7 +194,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         if (selected_paths && !selected_directories.has(file_key(current.directory))) continue;
         if(!inside(folder,current.directory)&&!inside(current.directory,folder))continue;
         if (await files_api.realpath(current.directory) !== current.directory) { result.counts.skipped.links++; continue; }
-        entries = (await files_api.readdir(current.directory, {withFileTypes: true})).sort((a: any, b: any) => a.name.localeCompare(b.name));
+        entries = (await read_workspace_directory(fs,path_api,root,current.directory)).sort((a: any, b: any) => a.name.localeCompare(b.name));
       }
       catch (error) { replace_blocked = true; result.counts.skipped.unreadable++; notice(`无法读取目录 ${current.relative || "."}：${String(error)}`); continue; }
       const directories: typeof stack = [];

@@ -1,0 +1,132 @@
+{
+  "requirements": [
+    "R029.1",
+    "R058.1"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.9",
+  "manifest_sha256": "036e7c8e043f13424621d56d1d16bc4c63dbb83f303166bd5079514c8a0e79a4",
+  "status": "最终候选检查及本机安装通过；用户窗口未重启",
+  "upstream": {
+    "commit": "6807068",
+    "files": [
+      "src/vs/platform/files/common/fileService.ts",
+      "src/vs/workbench/contrib/files/browser/explorerService.ts",
+      "src/vs/workbench/contrib/search/browser/anythingQuickAccess.ts",
+      "src/vs/workbench/browser/parts/titlebar/media/titlebarpart.css"
+    ],
+    "adopted": "共同文件元数据和变化通知，领域独立投影；22px顶栏边框容器与透明文字内容分开"
+  },
+  "baseline": {
+    "commit": "4a3943c6b82fa1d52501b0f506189b5412853ce1",
+    "quick_open_case": "299bf4a41bce4b0c913b061ca9582e30",
+    "expected_failure": true,
+    "first_reads": 11,
+    "after_20_reopen_reads": 231,
+    "native_css_case": "601f2cec1bc84c78833a9989eeb0ad7f",
+    "cause": "原生#top-titlebar后代继承不透明背景；22px文字行盒遮挡同高按钮边框，不是blur滤镜"
+  },
+  "candidate": {
+    "native": {
+      "case": "31b14a41a7c94f0a97d8476aee788063",
+      "status": "PASS",
+      "checks": 184,
+      "asset_sha256": "92a66fd92fdde1c1844ca00736f43abca569f0632d05a726efe040d0144c5401",
+      "directory_reads": {
+        "kind": "directory_reads",
+        "first_reads": 21,
+        "after_100": 21
+      },
+      "theme_samples": 27,
+      "matrix": "Light/Dark/Night × 100/90/125% × 短英文/中文/长名称",
+      "input": "原始宿主DOM操作，非物理键鼠"
+    },
+    "unit": "1000并发读取合并；100次目录复用；Git发现、内容通知、局部变更、自有写入、失败、迟到、切库、销毁；远端20并发扫描无后台目录轮询",
+    "full_check": {
+      "case": "829858ba95914b178fbbeef29bb7a610",
+      "exit_code": 0,
+      "catalogue_suites": 239
+    },
+    "ui": {
+      "quick_open": "ba9b5f2f225f4a1bb0afd4ed2bcdc443",
+      "explorer": "b79141534dbf4775a907d3075cf5cdfd",
+      "remote_picker": "8218003410094eeea52be53592ee7290",
+      "titlebar": "b393692962a540a29163440bb5a7d58d",
+      "status": "4套目标通过；前三套在最后远端适配后复验"
+    }
+  },
+  "installation": {
+    "isolated_cycle_case": "e80550eefe844a27b0aa5e6e0f1f852d",
+    "cycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "uninstall_case": "c6f472b9a89d4ec5b5162e8819325987",
+    "uninstall_assertions": 65,
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 5,
+      "manifest_sha256": "036e7c8e043f13424621d56d1d16bc4c63dbb83f303166bd5079514c8a0e79a4",
+      "window_restarted": false
+    },
+    "actual_uninstall": "只读预检"
+  },
+  "adjustments": [
+    "顶栏新断言首次发现按钮默认背景与悬停不同，改为透明；保留失败证据9e91前缀",
+    "快速打开测试替换整个fs对象时须重建消费者；文件树监听断言改为共同根监听生命周期，销毁仍为零"
+  ],
+  "limitations": [
+    "SSH没有递归变更端口，完整名称目录暂不跨会话缓存，保留按需新读；只为展示目录共享轮询，未实连企业SSH",
+    "本地无法建立可靠watch时按需重新读取，不能承诺外部变化即时通知",
+    "目录共享不等于共用Git历史或搜索正文结果；无物理键鼠、其他平台和长期堆验收",
+    "历史全量UI未决及R047.6/R071.4保留，本轮不宣称全量UI通过",
+    "旧无归属或无retention元数据备份按既有规则保留，未纳入清理"
+  ],
+  "cleanup": [
+    {
+      "case": "829858ba95914b178fbbeef29bb7a610",
+      "state": "cleaned",
+      "payload_bytes": 32697865
+    },
+    {
+      "case": "e80550eefe844a27b0aa5e6e0f1f852d",
+      "state": "cleaned",
+      "payload_bytes": 2072099028
+    },
+    {
+      "case": "c6f472b9a89d4ec5b5162e8819325987",
+      "state": "cleaned",
+      "payload_bytes": 131163498
+    },
+    {
+      "case": "ba9b5f2f225f4a1bb0afd4ed2bcdc443",
+      "state": "cleaned",
+      "payload_bytes": 1879408
+    },
+    {
+      "case": "b79141534dbf4775a907d3075cf5cdfd",
+      "state": "cleaned",
+      "payload_bytes": 5157977
+    },
+    {
+      "case": "8218003410094eeea52be53592ee7290",
+      "state": "cleaned",
+      "payload_bytes": 1794245
+    },
+    {
+      "case": "b393692962a540a29163440bb5a7d58d",
+      "state": "cleaned",
+      "payload_bytes": 2371830
+    },
+    {
+      "case": "31b14a41a7c94f0a97d8476aee788063",
+      "state": "cleaned",
+      "payload_bytes": 527823929
+    }
+  ]
+}

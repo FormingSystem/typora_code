@@ -1,3 +1,4 @@
+import {acquire_workspace_directories,subscribe_workspace_directory_changes} from './workspace_directory_service';
 import {register_workspace_context_guard,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -28,19 +29,25 @@ export function bind_git_graph() {
   const workspace_on=(event:string,callback:(context:any)=>void)=>lifetime.add(core.app.workspace.on(event,callback));
   const style = acquire_workspace_style("typora-code-style:git_graph_view", graph_css, {});
   const host = lifetime.own(create_graph_host(core)); const panels = new Map<graph_leaf, git_graph_panel>();
+  const directories=lifetime.own(acquire_workspace_directories(host.fs,host.path_api));
   const controllers = new Set<git_graph_panel>();
   const refresh_schedulers = new Map<git_graph_panel, git_refresh_scheduler>();
+  lifetime.add(subscribe_workspace_directory_changes(change=>{
+    // Git读状态创建的短暂锁文件不代表新的仓库状态，避免自触发刷新循环。
+    if(change.path&&/[\\/]\.git[\\/].*\.lock$/u.test(change.path))return;
+    for(const [panel,scheduler] of refresh_schedulers){const relative=host.path_api.relative(panel.root,change.path||change.directory||change.root);if(relative!==".."&&!relative.startsWith(".."+host.path_api.sep)&&!host.path_api.isAbsolute(relative))scheduler.invalidate();}
+  }));
   const panel_subscriptions=new Map<git_graph_panel,()=>void>();
   lifetime.add(()=>{for(const stop of panel_subscriptions.values())stop();panel_subscriptions.clear();});
   lifetime.add(register_workspace_context_guard(()=>[...controllers].some(panel=>panel.writing)?"Git写操作正在执行，请完成后再切换工作区。":undefined));
   let sync_refresh_visibility = () => {};
   const track_panel = (panel: git_graph_panel) => {
-    controllers.add(panel);
+    controllers.add(panel);directories.service.observe(panel.root);
     const scheduler = new git_refresh_scheduler({refresh: () => panel.refresh(false), busy: () => panel.pending || panel.writing,
       allowed: () => !panel.disposed && document.visibilityState !== "hidden" && !document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker"),
       last_refresh: () => panel.last_refreshed_at, last_started: () => panel.refresh_started_at});
     refresh_schedulers.set(panel, scheduler);
-    panel_subscriptions.set(panel,panel.subscribe_state(() => { if (panel.disposed) scheduler.dispose(); else if (!panel.pending && panel.last_refreshed_at) scheduler.settled(); }));
+    panel_subscriptions.set(panel,panel.subscribe_state(() => { if (panel.disposed) scheduler.dispose(); else {directories.service.observe(panel.root);if (!panel.pending && panel.last_refreshed_at) scheduler.settled();} }));
     return panel;
   };
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});

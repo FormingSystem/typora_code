@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners9 = this._listeners;
-          const index = listeners9.indexOf(listener);
+          const listeners10 = this._listeners;
+          const index = listeners10.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners9[index] = void 0;
+          listeners10[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners9.length) {
+          if (this._size * compactionThreshold <= listeners10.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners9.length; i++) {
-              if (listeners9[i]) {
-                listeners9[n2++] = listeners9[i];
+            for (let i = 0; i < listeners10.length; i++) {
+              if (listeners10[i]) {
+                listeners10[n2++] = listeners10[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners9.length = n2;
+            listeners10.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners9 = dq.current._listeners;
+          const listeners10 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners9[dq.i++], dq.value);
+            this._deliver(listeners10[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -44021,7 +44021,7 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("InstantiationService has been disposed");
           }
         }
-        createChild(services, store) {
+        createChild(services2, store) {
           this._throwIfDisposed();
           const that = this;
           const result = new class extends _InstantiationService {
@@ -44029,7 +44029,7 @@ https://creativecommons.org/licenses/by/4.0/
               that._children.delete(result);
               super.dispose();
             }
-          }(services, this._strict, this, this._enableTracing);
+          }(services2, this._strict, this, this._enableTracing);
           this._children.add(result);
           store?.add(result);
           return result;
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners9 = [];
-          listeners9.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners9.push(value.onWillDispose(() => {
+          const listeners10 = [];
+          listeners10.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners10.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners9);
+            dispose(listeners10);
           }));
           return value;
         }
@@ -161849,6 +161849,18 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_resource_events.ts
+  var listeners3 = /* @__PURE__ */ new Set();
+  function notify_workspace_resource_change(change) {
+    for (const listener of [...listeners3]) listener(change);
+  }
+  function subscribe_workspace_resource_change(listener) {
+    listeners3.add(listener);
+    return () => {
+      listeners3.delete(listener);
+    };
+  }
+
   // src/remote_workspace_files.ts
   var providers = /* @__PURE__ */ new Set();
   var active_provider;
@@ -162125,22 +162137,30 @@ https://creativecommons.org/licenses/by/4.0/
       return pending.then((result) => this.buffer_api.from(result.data, "base64"));
     }
   };
+  var resource_file_systems = /* @__PURE__ */ new WeakMap();
   function workspace_resource_fs(native_fs) {
+    const existing = resource_file_systems.get(native_fs);
+    if (existing) return existing;
     const route = (owner2, key3, promise) => {
       const original = owner2[key3];
       return (...args) => {
         const provider = typeof args[0] === "string" ? remote_files_for(args[0]) : void 0;
-        if (!provider) {
-          assert_remote_owner(args[0]);
-          return original.apply(owner2, args);
-        }
-        const method = (promise ? provider.fs.promises : provider.fs)[key3];
+        if (!provider) assert_remote_owner(args[0]);
+        const method = provider ? (promise ? provider.fs.promises : provider.fs)[key3] : original;
         if (!method) throw Error("\u8FDC\u7A0B\u6587\u4EF6\u670D\u52A1\u5C1A\u672A\u652F\u6301\u6B64\u64CD\u4F5C\uFF1A" + key3);
-        return method(...args);
+        const result = method.apply(provider ? void 0 : owner2, args);
+        if (promise && ["writeFile", "appendFile", "truncate", "mkdir", "rm", "rmdir", "unlink", "rename", "copyFile", "link", "symlink"].includes(key3)) return Promise.resolve(result).then((value) => {
+          const paths = (["rename", "copyFile", "link", "symlink"].includes(key3) ? args.slice(0, 2) : args.slice(0, 1)).filter((path) => typeof path === "string");
+          notify_workspace_resource_change({ fs: proxy, paths });
+          return value;
+        });
+        return result;
       };
     };
     const promises = new Proxy(native_fs.promises, { get: (owner2, key3) => typeof owner2[key3] === "function" ? route(owner2, key3, true) : owner2[key3] });
-    return new Proxy(native_fs, { get: (owner2, key3) => key3 === "promises" ? promises : typeof owner2[key3] === "function" ? route(owner2, key3, false) : owner2[key3] });
+    const proxy = new Proxy(native_fs, { get: (owner2, key3) => key3 === "promises" ? promises : typeof owner2[key3] === "function" ? route(owner2, key3, false) : owner2[key3] });
+    resource_file_systems.set(native_fs, proxy);
+    return proxy;
   }
 
   // src/file_language.ts
@@ -162529,16 +162549,16 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_content_zoom.ts
-  var listeners3 = /* @__PURE__ */ new Map();
+  var listeners4 = /* @__PURE__ */ new Map();
   var startup_factor = 1;
   var window_factor = 1;
   var owners = 0;
   var steps = { editor: 0, terminal: 0 };
   var emit = () => {
-    for (const listener of listeners3.keys()) listener();
+    for (const listener of listeners4.keys()) listener();
   };
   function prepare_content_zoom() {
-    for (const prepare of listeners3.values()) prepare?.();
+    for (const prepare of listeners4.values()) prepare?.();
   }
   function content_font_size(base, role = "editor") {
     return Math.max(6, base + steps[role]) * startup_factor / window_factor;
@@ -162558,9 +162578,9 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
   function observe_content_zoom(listener, prepare) {
-    listeners3.set(listener, prepare);
+    listeners4.set(listener, prepare);
     return () => {
-      listeners3.delete(listener);
+      listeners4.delete(listener);
     };
   }
   function bind_content_zoom(runtime3) {
@@ -162687,6 +162707,276 @@ https://creativecommons.org/licenses/by/4.0/
       throw error;
     }
     return lifetime;
+  }
+
+  // src/workspace_directory_service.ts
+  var services = /* @__PURE__ */ new WeakMap();
+  var change_listeners2 = /* @__PURE__ */ new Set();
+  function subscribe_workspace_directory_changes(listener) {
+    change_listeners2.add(listener);
+    return () => {
+      change_listeners2.delete(listener);
+    };
+  }
+  var workspace_directory_service = class {
+    constructor(fs2, path_api) {
+      this.fs = fs2;
+      this.path_api = path_api;
+      globalThis.addEventListener?.("linux-note-workspace-context-changed", this.context_changed);
+      this.release_changes = subscribe_workspace_resource_change((change) => {
+        if (change.fs !== this.fs) return;
+        for (const scope of this.scopes.values()) for (const path of change.paths) {
+          const relative2 = this.path_api.relative(scope.root, path);
+          if (relative2 !== ".." && !relative2.startsWith(".." + this.path_api.sep) && !this.path_api.isAbsolute(relative2)) this.changed(scope, { root: scope.root, directory: this.path_api.dirname(path), path }, true);
+        }
+      });
+    }
+    scopes = /* @__PURE__ */ new Map();
+    references = 0;
+    progress = /* @__PURE__ */ new Set();
+    listeners = /* @__PURE__ */ new Set();
+    disposed = false;
+    release_changes;
+    context_changed = () => this.clear();
+    retain() {
+      this.references++;
+      let released = false;
+      return () => {
+        if (released) return;
+        released = true;
+        if (--this.references === 0) {
+          this.disposed = true;
+          this.clear();
+          this.release_changes();
+          this.listeners.clear();
+          this.progress.clear();
+          globalThis.removeEventListener?.("linux-note-workspace-context-changed", this.context_changed);
+          services.delete(this.fs);
+        }
+      };
+    }
+    clear() {
+      for (const scope of this.scopes.values()) {
+        scope.disposed = true;
+        for (const watcher of scope.watchers.values()) watcher.close();
+        scope.watchers.clear();
+        scope.entries.clear();
+        scope.catalogue = void 0;
+        scope.snapshot = void 0;
+      }
+      this.scopes.clear();
+    }
+    scope(root) {
+      if (this.disposed) throw new Error("\u76EE\u5F55\u670D\u52A1\u5DF2\u5173\u95ED");
+      const key3 = this.path_api.normalize(root), provider = remote_files_for(root);
+      let scope = this.scopes.get(key3);
+      if (scope && scope.provider !== provider) {
+        scope.disposed = true;
+        for (const watcher of scope.watchers.values()) watcher.close();
+        this.scopes.delete(key3);
+        scope = void 0;
+      }
+      if (!scope) {
+        scope = { root: key3, provider, revision: 0, disposed: false, recursive: false, unwatched: false, watchers: /* @__PURE__ */ new Map(), entries: /* @__PURE__ */ new Map() };
+        this.scopes.set(key3, scope);
+        if (!provider) scope.recursive = this.watch(scope, key3, true);
+        else scope.unwatched = true;
+      }
+      return scope;
+    }
+    watch(scope, directory, recursive = false) {
+      if (scope.watchers.has(directory)) return true;
+      try {
+        const watcher = this.fs.watch(directory, { persistent: false, recursive }, (kind, name) => {
+          if (scope.disposed) return;
+          const target = name ? this.path_api.join(directory, String(name)) : void 0;
+          this.changed(scope, { root: scope.root, directory: recursive ? target ? this.path_api.dirname(target) : void 0 : directory, path: target }, kind !== "change");
+        });
+        scope.watchers.set(directory, watcher);
+        watcher.on?.("error", () => {
+          watcher.close();
+          scope.watchers.delete(directory);
+          scope.unwatched = true;
+          scope.recursive = false;
+          this.changed(scope, { root: scope.root }, true);
+        });
+        return true;
+      } catch {
+        if (!recursive) scope.unwatched = true;
+        return false;
+      }
+    }
+    changed(scope, change, names) {
+      if (scope.disposed) return;
+      change.names = names;
+      if (names) {
+        const relative2 = change.path ? this.path_api.relative(scope.root, change.path).split(this.path_api.sep).join("/") : "";
+        if (!relative2.startsWith(".git/") && !relative2.startsWith("node_modules/")) {
+          scope.revision++;
+          scope.catalogue = void 0;
+          scope.snapshot = void 0;
+        }
+        if (!change.directory) scope.entries.clear();
+        else {
+          scope.entries.delete(change.directory);
+          const branch = change.path || change.directory;
+          for (const key3 of scope.entries.keys()) if (key3 === branch || key3.startsWith(branch + this.path_api.sep)) scope.entries.delete(key3);
+          if (!scope.recursive) {
+            for (const [key3, watcher] of scope.watchers) if (key3 !== scope.root && (key3 === change.path || key3.startsWith(branch + this.path_api.sep))) {
+              watcher.close();
+              scope.watchers.delete(key3);
+            }
+          }
+        }
+      }
+      for (const listener of [...this.listeners]) if (listener.root === scope.root) listener.callback(change);
+      for (const listener of [...change_listeners2]) listener(change);
+    }
+    invalidate(root, directory, source) {
+      const scope = this.scope(root);
+      this.changed(scope, { root: scope.root, directory, source }, true);
+    }
+    observe(root) {
+      if (root) {
+        const scope = this.scope(root);
+        if (!scope.recursive) this.watch(scope, scope.root);
+      }
+    }
+    subscribe(root, callback, directory) {
+      const listener = { root: this.path_api.normalize(root), directory, callback };
+      this.listeners.add(listener);
+      const scope = directory ? this.scope(root) : void 0;
+      if (scope?.provider && directory) this.watch(scope, directory);
+      return () => {
+        this.listeners.delete(listener);
+        if (scope?.provider && directory && directory !== scope.root && ![...this.listeners].some((other) => other.root === scope.root && other.directory === directory)) {
+          scope.watchers.get(directory)?.close();
+          scope.watchers.delete(directory);
+        }
+      };
+    }
+    async read(root, directory) {
+      const scope = this.scope(root);
+      directory = this.path_api.normalize(directory);
+      if (scope.provider) {
+        if ([...this.listeners].some((listener) => listener.root === scope.root && listener.directory === directory)) this.watch(scope, directory);
+        let pending2 = scope.entries.get(directory);
+        if (!pending2) {
+          pending2 = Promise.resolve().then(() => this.fs.promises.readdir(directory, { withFileTypes: true }));
+          scope.entries.set(directory, pending2);
+        }
+        try {
+          const entries4 = await pending2;
+          if (scope.disposed) throw new DOMException("\u5DE5\u4F5C\u533A\u76EE\u5F55\u5DF2\u5207\u6362", "AbortError");
+          return entries4.slice();
+        } finally {
+          if (scope.entries.get(directory) === pending2) scope.entries.delete(directory);
+        }
+      }
+      if (!scope.recursive) this.watch(scope, directory);
+      let pending = scope.entries.get(directory);
+      if (!pending) {
+        pending = Promise.resolve().then(() => this.fs.promises.readdir(directory, { withFileTypes: true }));
+        scope.entries.set(directory, pending);
+        pending.catch(() => {
+          if (scope.entries.get(directory) === pending) scope.entries.delete(directory);
+        });
+      }
+      const entries3 = await pending;
+      if (scope.disposed) throw new DOMException("\u5DE5\u4F5C\u533A\u76EE\u5F55\u5DF2\u5207\u6362", "AbortError");
+      if (scope.entries.get(directory) !== pending) return this.read(root, directory);
+      if (scope.unwatched) scope.entries.delete(directory);
+      return entries3.slice();
+    }
+    cached_catalogue(root) {
+      const scope = this.scope(root);
+      return scope.unwatched ? void 0 : scope.snapshot;
+    }
+    subscribe_progress(listener) {
+      this.progress.add(listener);
+      return () => this.progress.delete(listener);
+    }
+    catalogue(root) {
+      const scope = this.scope(root);
+      if (scope.catalogue) return scope.catalogue;
+      const revision = scope.revision;
+      const pending = (async () => {
+        const files = [], stack = [root];
+        let unreadable = 0;
+        const current = () => {
+          if (scope.disposed) throw new DOMException("\u5DE5\u4F5C\u533A\u76EE\u5F55\u5DF2\u5207\u6362", "AbortError");
+        };
+        const read_directory = async (directory) => {
+          current();
+          let entries3;
+          try {
+            entries3 = await this.read(root, directory);
+          } catch (error) {
+            current();
+            unreadable++;
+            return;
+          }
+          let started = performance.now();
+          for (const entry of entries3) {
+            if (performance.now() - started > 8) {
+              await new Promise((resolve3) => setTimeout(resolve3, 0));
+              current();
+              started = performance.now();
+            }
+            const file_path = this.path_api.join(directory, entry.name);
+            if (entry.isDirectory() && !entry.isSymbolicLink?.()) {
+              if (![".git", "node_modules"].includes(entry.name)) stack.push(file_path);
+            } else if (entry.isFile()) {
+              const relative_path = this.path_api.relative(root, file_path).replaceAll("\\", "/");
+              files.push({ file_path, relative_path, name: entry.name, directory: this.path_api.dirname(relative_path).replace(/^\.$/u, "") });
+            }
+          }
+          current();
+          if (scope.revision === revision) for (const listener of [...this.progress]) listener(root, files);
+        };
+        const running = /* @__PURE__ */ new Set();
+        try {
+          while (stack.length || running.size) {
+            current();
+            while (stack.length && running.size < 4) {
+              const task = read_directory(stack.pop()).finally(() => running.delete(task));
+              running.add(task);
+            }
+            if (running.size) await Promise.race(running);
+          }
+        } finally {
+          await Promise.allSettled(running);
+        }
+        current();
+        if (scope.revision !== revision) return this.catalogue(root);
+        const snapshot = { files, unreadable };
+        if (unreadable || scope.unwatched) {
+          scope.catalogue = void 0;
+          scope.snapshot = void 0;
+        } else scope.snapshot = snapshot;
+        return snapshot;
+      })();
+      scope.catalogue = pending;
+      pending.catch(() => {
+        if (scope.catalogue === pending) {
+          scope.catalogue = void 0;
+          scope.snapshot = void 0;
+        }
+      });
+      return pending;
+    }
+  };
+  function acquire_workspace_directories(fs2, path_api) {
+    let service = services.get(fs2);
+    if (!service) {
+      service = new workspace_directory_service(fs2, path_api);
+      services.set(fs2, service);
+    }
+    return { service, dispose: service.retain() };
+  }
+  function read_workspace_directory(fs2, path_api, root, directory) {
+    const service = services.get(fs2);
+    return service ? service.read(root, directory) : fs2.promises.readdir(directory, { withFileTypes: true });
   }
 
   // src/workspace_leaf_tab.ts
@@ -163488,6 +163778,9 @@ https://creativecommons.org/licenses/by/4.0/
     return current_picker;
   }
   function create_workspace_quick_open(files) {
+    const directories = acquire_workspace_directories(files.fs, files.path_api);
+    let stop_progress;
+    let stop_directory_updates;
     const events = new AbortController();
     const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default);
     const file_icon_style = acquire_workspace_file_icons();
@@ -163579,6 +163872,10 @@ https://creativecommons.org/licenses/by/4.0/
     let escape_layer;
     const close = (restore = true) => {
       if (root.hidden) return;
+      stop_directory_updates?.();
+      stop_directory_updates = void 0;
+      stop_progress?.();
+      stop_progress = void 0;
       match_controller?.abort();
       match_controller = void 0;
       const owned2 = escape_layer?.owns_focus();
@@ -163888,48 +164185,29 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const scan = async () => {
       const generation = ++scan_generation;
+      const cached = scan_root ? directories.service.cached_catalogue(scan_root) : void 0;
+      if (cached) {
+        catalogue = cached.files;
+        unreadable = cached.unreadable;
+        scanning = false;
+        void render();
+        return;
+      }
       catalogue = [];
       scanning = true;
       unreadable = 0;
       status2.textContent = "\u6B63\u5728\u67E5\u627E\u5DE5\u4F5C\u533A\u6587\u4EF6\u2026";
       const workspace_root = scan_root;
-      const stack = workspace_root ? [workspace_root] : [];
-      const pending = /* @__PURE__ */ new Set();
       const current = () => generation === scan_generation && !root.hidden && !disposed && workspace_context_epoch() === context_epoch && files.context_root() === workspace_root && !workspace_context_switching();
-      const read_directory = async (directory) => {
-        let entries3;
-        try {
-          entries3 = await files.fs.promises.readdir(directory, { withFileTypes: true });
-        } catch {
-          if (current()) unreadable++;
-          return;
-        }
+      try {
+        const snapshot = workspace_root ? await directories.service.catalogue(workspace_root) : { files: [], unreadable: 0 };
         if (!current()) return;
-        let deadline = performance.now() + 8;
-        for (let index = entries3.length - 1; index >= 0; index -= 1) {
-          if (index % 128 === 0 && performance.now() > deadline) {
-            schedule_render();
-            await new Promise((resolve3) => window.setTimeout(resolve3, 0));
-            if (!current()) return;
-            deadline = performance.now() + 8;
-          }
-          const entry = entries3[index];
-          const file_path = files.path_api.join(directory, entry.name);
-          if (entry.isDirectory()) {
-            if (![".git", "node_modules"].includes(entry.name)) stack.push(file_path);
-          } else if (entry.isFile()) {
-            const relative_path = files.path_api.relative(workspace_root, file_path).replaceAll("\\", "/");
-            catalogue.push({ file_path, relative_path, name: entry.name, directory: files.path_api.dirname(relative_path).replace(/^\.$/u, "") });
-          }
-        }
-        if (current()) schedule_render();
-      };
-      while (current() && (stack.length || pending.size)) {
-        while (stack.length && pending.size < 4) {
-          const task = read_directory(stack.pop()).finally(() => pending.delete(task));
-          pending.add(task);
-        }
-        if (pending.size) await Promise.race(pending);
+        catalogue = snapshot.files;
+        unreadable = snapshot.unreadable;
+      } catch (error) {
+        if (!current()) return;
+        status2.textContent = "\u65E0\u6CD5\u8BFB\u53D6\u5DE5\u4F5C\u533A\u76EE\u5F55\uFF1A" + String(error);
+        unreadable++;
       }
       if (current()) {
         scanning = false;
@@ -163955,11 +164233,30 @@ https://creativecommons.org/licenses/by/4.0/
       root.setAttribute("aria-modal", "true");
       input.value = group ? "edt active " : "";
       input.setAttribute("aria-label", group ? "\u5F53\u524D\u7EC4\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668" : "\u6309\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u641C\u7D22");
-      catalogue = [];
+      const cached = !group && scan_root ? directories.service.cached_catalogue(scan_root) : void 0;
+      catalogue = cached?.files || [];
+      unreadable = cached?.unreadable || 0;
       results.replaceChildren();
       input.focus();
       render();
-      if (!group) void scan();
+      {
+        stop_progress = directories.service.subscribe_progress((workspace_root, entries3) => {
+          if (scanning && !editor_group && workspace_root === scan_root && !root.hidden) {
+            catalogue = entries3;
+            schedule_render();
+          }
+        });
+        stop_directory_updates = directories.service.subscribe(scan_root, (change) => {
+          if (change.names && !editor_group) {
+            clearTimeout(render_timer);
+            render_timer = window.setTimeout(() => {
+              render_timer = 0;
+              void scan();
+            }, 80);
+          }
+        });
+        if (!group && !cached) void scan();
+      }
     };
     input.oninput = () => {
       match_controller?.abort();
@@ -164005,6 +164302,7 @@ https://creativecommons.org/licenses/by/4.0/
     const binding = { root, input, open: () => open(), open_editors: (group) => open(group), close, dispose() {
       if (disposed) return;
       disposed = true;
+      directories.dispose();
       subscriptions.forEach((release) => release?.());
       events.abort();
       resize_observer.disconnect();
@@ -164245,7 +164543,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_editor_settings.ts
   var WORKSPACE_EDITOR_DEFAULTS = Object.freeze({ enable_preview: true, wrap_tabs: false, link_preview_enabled: true });
   var KEY = "workspace_editor";
-  var listeners4 = /* @__PURE__ */ new Set();
+  var listeners5 = /* @__PURE__ */ new Set();
   var locked_groups = /* @__PURE__ */ new WeakSet();
   function read_workspace_editor_settings() {
     const value = get_workspace_app()?.settings.get(KEY);
@@ -164263,12 +164561,12 @@ https://creativecommons.org/licenses/by/4.0/
     if (enabled === void 0) delete value[key3];
     else value[key3] = enabled;
     settings.set_and_save(KEY, value);
-    for (const listener of listeners4) listener();
+    for (const listener of listeners5) listener();
   }
   function observe_workspace_editor_settings(listener) {
-    listeners4.add(listener);
+    listeners5.add(listener);
     return () => {
-      listeners4.delete(listener);
+      listeners5.delete(listener);
     };
   }
   function workspace_editor_group_locked(group) {
@@ -164408,8 +164706,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners9 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners9) listener();
+    const listeners10 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners10) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -164439,8 +164737,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate: invalidate2,
       subscribe(listener) {
-        listeners9.add(listener);
-        return () => listeners9.delete(listener);
+        listeners10.add(listener);
+        return () => listeners10.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -164484,7 +164782,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners9.clear();
+        listeners10.clear();
         adapter.dispose();
       }
     };
@@ -189202,7 +189500,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/reading_navigation_ports.ts
   var ports = /* @__PURE__ */ new Map();
-  var listeners5 = /* @__PURE__ */ new Set();
+  var listeners6 = /* @__PURE__ */ new Set();
   function register_navigation_editor(port, kind = "source") {
     ports.set(kind, port);
     return () => {
@@ -189225,11 +189523,11 @@ https://creativecommons.org/licenses/by/4.0/
     return editor_port;
   }
   function notify_navigation_selection(explicit = false) {
-    for (const listener of listeners5) listener(explicit);
+    for (const listener of listeners6) listener(explicit);
   }
   function observe_navigation_selection(listener) {
-    listeners5.add(listener);
-    return () => listeners5.delete(listener);
+    listeners6.add(listener);
+    return () => listeners6.delete(listener);
   }
 
   // src/reading_navigation.ts
@@ -190011,6 +190309,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_workspace_file_tree(options2) {
     const runtime3 = window;
     const fs2 = options2.fs || runtime3.reqnode("fs"), path_api = options2.path_api || runtime3.reqnode("path");
+    const directories = acquire_workspace_directories(fs2, path_api);
     const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
     const container = workspace_element("section", "linux-note-workspace-explorer");
     if (options2.selection) container.classList.add("workspace-file-tree-selection");
@@ -190034,7 +190333,7 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.append(title, actions);
     container.append(toolbar, root_label, tree, status2);
     let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
-    let flat_nodes = [], render_frame = 0, watcher_count = 0;
+    let flat_nodes = [], render_frame = 0;
     let rename_state;
     let compact_folders = false;
     let search_projection = false;
@@ -190090,7 +190389,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (node.watcher) {
         node.watcher.close();
         node.watcher = void 0;
-        watcher_count--;
       }
       if (node.refresh_timer) {
         window.clearTimeout(node.refresh_timer);
@@ -190103,22 +190401,16 @@ https://creativecommons.org/licenses/by/4.0/
       if (forget) nodes.delete(node.path);
     }
     function watch(node) {
-      if (options2.selection || !visible3 || disposed || !node.expanded && !node.compact_parent || node.watcher || watcher_count >= 128) return;
-      try {
-        node.watcher = fs2.watch(node.path, { persistent: false }, () => {
-          if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
-          node.refresh_timer = window.setTimeout(() => {
-            node.refresh_timer = void 0;
-            if (visible3 && node.expanded) void load_children(node, true);
-          }, 250);
-        });
-        watcher_count++;
-        const watcher = node.watcher;
-        watcher.on?.("error", () => {
-          close_watch(node);
-        });
-      } catch {
-      }
+      if (options2.selection || !visible3 || disposed || !node.expanded && !node.compact_parent || node.watcher) return;
+      const stop = directories.service.subscribe(options2.context_root(), (change) => {
+        if (!change.names || change.source === container || change.directory && change.directory !== node.path) return;
+        if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
+        node.refresh_timer = window.setTimeout(() => {
+          node.refresh_timer = void 0;
+          if (visible3 && (node.expanded || node.compact_parent)) void load_children(node, true, false, true);
+        }, 250);
+      }, node.path);
+      node.watcher = { close: stop };
     }
     function watch_visible(node) {
       if (node.expanded || node.compact_parent) {
@@ -190295,7 +190587,7 @@ https://creativecommons.org/licenses/by/4.0/
         tree.setAttribute("aria-activedescendant", node.id);
       } else render();
     }
-    async function load_children(node, force = false, probing = false) {
+    async function load_children(node, force = false, probing = false, invalidated = false) {
       if (rename_state?.busy) return;
       if (disposed || nodes.get(node.path) !== node) return;
       if (node.loading) return node.loading;
@@ -190307,7 +190599,8 @@ https://creativecommons.org/licenses/by/4.0/
       node.error = void 0;
       node.loading = (async () => {
         try {
-          const entries3 = await fs2.promises.readdir(node.path, { withFileTypes: true });
+          if (force && !invalidated) directories.service.invalidate(options2.context_root(), node.path, container);
+          const entries3 = await directories.service.read(options2.context_root(), node.path);
           if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
           const old_children = new Map((node.children || []).map((child) => [child.path, child]));
           const children = [];
@@ -190790,6 +191083,7 @@ https://creativecommons.org/licenses/by/4.0/
       selection_model.dispose();
       if (disposed) return;
       disposed = true;
+      directories.dispose();
       interaction.remove();
       generation++;
       visible3 = false;
@@ -190863,7 +191157,7 @@ https://creativecommons.org/licenses/by/4.0/
         const directory = pending.pop();
         let entries3;
         try {
-          entries3 = await fs2.promises.readdir(directory, { withFileTypes: true });
+          entries3 = await read_workspace_directory(fs2, path_api, root, directory);
         } catch (error) {
           current();
           if (directory === root) throw error;
@@ -194022,7 +194316,7 @@ https://creativecommons.org/licenses/by/4.0/
     const file_guard = id === "delete_untracked" ? await run(root, ["hash-object", "--no-filters", "--", target]) : void 0;
     return { action, args, preview, file_guard, fingerprint: await repository_fingerprint(run, root), context, todo, sync, discard, followup, worktree_guard: worktree_snapshot };
   }
-  async function execute_git_action(run, plan, can_change_files, services = {}) {
+  async function execute_git_action(run, plan, can_change_files, services2 = {}) {
     const root = plan.context.root;
     if (busy_repositories.has(root)) throw new Error(git_graph_text("action.error.busy"));
     busy_repositories.add(root);
@@ -194034,7 +194328,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (plan.file_guard && await run(root, ["hash-object", "--no-filters", "--", plan.context.target]) !== plan.file_guard) throw new Error(git_graph_text("action.error.untracked_changed"));
       if (plan.discard) {
         const { restore_paths, untracked_paths, untracked_guards } = plan.discard;
-        if (untracked_paths.length && !services.trash_files) throw new Error(git_graph_text("action.error.recycle_unavailable"));
+        if (untracked_paths.length && !services2.trash_files) throw new Error(git_graph_text("action.error.recycle_unavailable"));
         const current_guards = await Promise.all(untracked_paths.map((file) => run(root, ["hash-object", "--no-filters", "--", file])));
         if (current_guards.some((guard, index) => guard !== untracked_guards[index])) throw new Error(git_graph_text("action.error.untracked_changed"));
         if (!can_change_files()) throw new Error(git_graph_text("action.error.unsaved_document"));
@@ -194042,7 +194336,7 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           if (untracked_paths.length) {
             if (!can_change_files()) throw new Error(git_graph_text("action.error.unsaved_document"));
-            await services.trash_files(root, untracked_paths);
+            await services2.trash_files(root, untracked_paths);
           }
         } catch (error) {
           throw new Error(git_graph_text("action.error.trash_failed", { restored: restore_paths.length, error: String(error instanceof Error ? error.message : error) }));
@@ -194963,7 +195257,7 @@ https://creativecommons.org/licenses/by/4.0/
       result.visited++;
       let entries3;
       try {
-        entries3 = await options2.fs.promises.readdir(directory, { withFileTypes: true });
+        entries3 = await read_workspace_directory(options2.fs, options2.path, options2.root, directory);
       } catch (error) {
         result.errors.push(directory + ": " + String(error));
         return;
@@ -195779,7 +196073,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners9 = /* @__PURE__ */ new Set();
+    const listeners10 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -195808,14 +196102,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners9) listener(structuredClone(current));
+        for (const listener of listeners10) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners9.add(listener);
-        return () => listeners9.delete(listener);
+        listeners10.add(listener);
+        return () => listeners10.delete(listener);
       },
       dispose() {
-        listeners9.clear();
+        listeners10.clear();
       }
     };
   }
@@ -195841,9 +196135,9 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_settings_registry.ts
   var sections = /* @__PURE__ */ new Map();
-  var listeners6 = /* @__PURE__ */ new Set();
+  var listeners7 = /* @__PURE__ */ new Set();
   function notify_workspace_settings() {
-    for (const listener of listeners6) listener();
+    for (const listener of listeners7) listener();
   }
   function register_workspace_settings(section) {
     if (sections.has(section.id)) throw Error("\u8BBE\u7F6E\u5206\u7C7B\u5DF2\u767B\u8BB0\uFF1A" + section.id);
@@ -195860,9 +196154,9 @@ https://creativecommons.org/licenses/by/4.0/
     return [...sections.values()];
   }
   function observe_workspace_settings(listener) {
-    listeners6.add(listener);
+    listeners7.add(listener);
     return () => {
-      listeners6.delete(listener);
+      listeners7.delete(listener);
     };
   }
 
@@ -237428,8 +237722,16 @@ https://creativecommons.org/licenses/by/4.0/
       const style = acquire_workspace_style("typora-code-style:git_graph_view", git_graph_default, {});
       const host = lifetime.own(create_graph_host(core));
       const panels = /* @__PURE__ */ new Map();
+      const directories = lifetime.own(acquire_workspace_directories(host.fs, host.path_api));
       const controllers = /* @__PURE__ */ new Set();
       const refresh_schedulers = /* @__PURE__ */ new Map();
+      lifetime.add(subscribe_workspace_directory_changes((change) => {
+        if (change.path && /[\\/]\.git[\\/].*\.lock$/u.test(change.path)) return;
+        for (const [panel, scheduler] of refresh_schedulers) {
+          const relative2 = host.path_api.relative(panel.root, change.path || change.directory || change.root);
+          if (relative2 !== ".." && !relative2.startsWith(".." + host.path_api.sep) && !host.path_api.isAbsolute(relative2)) scheduler.invalidate();
+        }
+      }));
       const panel_subscriptions = /* @__PURE__ */ new Map();
       lifetime.add(() => {
         for (const stop of panel_subscriptions.values()) stop();
@@ -237440,6 +237742,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const track_panel = (panel) => {
         controllers.add(panel);
+        directories.service.observe(panel.root);
         const scheduler = new git_refresh_scheduler({
           refresh: () => panel.refresh(false),
           busy: () => panel.pending || panel.writing,
@@ -237450,7 +237753,10 @@ https://creativecommons.org/licenses/by/4.0/
         refresh_schedulers.set(panel, scheduler);
         panel_subscriptions.set(panel, panel.subscribe_state(() => {
           if (panel.disposed) scheduler.dispose();
-          else if (!panel.pending && panel.last_refreshed_at) scheduler.settled();
+          else {
+            directories.service.observe(panel.root);
+            if (!panel.pending && panel.last_refreshed_at) scheduler.settled();
+          }
         }));
         return panel;
       };
@@ -237962,6 +238268,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092709,
+        version: "2026.09.27.9",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u6B63\u9876\u680F\u641C\u7D22\u6587\u5B57\u9644\u8FD1\u8FB9\u6846\u65AD\u7EBF\uFF1A\u6587\u5B57\u4E0E\u56FE\u6807\u900F\u660E\u7ED8\u5236\uFF0C\u660E\u6697\u4E3B\u9898\u4E0E\u7F29\u653E\u65F6\u4FDD\u7559\u5B8C\u6574\u884C\u76D2\u3002",
+          "\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u5FEB\u901F\u6253\u5F00\u3001\u6B63\u6587\u641C\u7D22\u4E0EGit\u5B50\u4ED3\u5E93\u53D1\u73B0\u590D\u7528\u5171\u540C\u76EE\u5F55\u63A5\u53E3\uFF1B\u91CD\u590D\u6253\u5F00\u641C\u7D22\u4E0D\u91CD\u65B0\u904D\u5386\u548C\u7EDF\u8BA1\uFF0C\u6587\u4EF6\u53D8\u66F4\u5C40\u90E8\u5931\u6548\uFF0CGit\u72B6\u6001\u8BA2\u9605\u5171\u540C\u53D8\u66F4\u901A\u77E5\u3002"
+        ]
+      },
       {
         sequence: 2026092708,
         version: "2026.09.27.8",
@@ -239462,7 +239777,7 @@ https://creativecommons.org/licenses/by/4.0/
     WORKSPACE_COLOR_ROLES.push({ key: "graph_" + key3, title: "Git\u652F\u7EBF\xB7" + title, variable: "--workspace-graph-" + key3.replaceAll("_", "-") });
 
   // src/workspace_color_settings.ts
-  var listeners7 = /* @__PURE__ */ new Set();
+  var listeners8 = /* @__PURE__ */ new Set();
   var known_keys = new Set(WORKSPACE_COLOR_ROLES.map((role) => role.key));
   var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {} } });
   function normalize_custom_color(value) {
@@ -239558,9 +239873,9 @@ https://creativecommons.org/licenses/by/4.0/
     return raw === void 0 ? empty_color_config() : validate_color_config(raw);
   }
   function observe_color_config(listener) {
-    listeners7.add(listener);
+    listeners8.add(listener);
     return () => {
-      listeners7.delete(listener);
+      listeners8.delete(listener);
     };
   }
   function save_color_config(value) {
@@ -239568,7 +239883,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!settings) throw Error("\u7528\u6237\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     if (serialize_color_config(next) === serialize_color_config(read_color_config())) return;
     settings.set_and_save("workspace_colors", next);
-    for (const listener of listeners7) listener();
+    for (const listener of listeners8) listener();
   }
   function color_config_css(config) {
     const css = [];
@@ -240690,10 +241005,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key3 = file_path + "\0" + workspace_root;
     let owner2 = entries3.get(key3);
     if (!owner2) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners9 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners10 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners9) callback(state);
+        for (const callback of listeners10) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -240723,7 +241038,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner2 = { state, listeners: listeners9, refresh, dispose() {
+      owner2 = { state, listeners: listeners10, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -240732,7 +241047,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners9.clear();
+        listeners10.clear();
       } };
       entries3.set(key3, owner2);
       refresh();
@@ -242776,7 +243091,7 @@ https://creativecommons.org/licenses/by/4.0/
                 result.counts.skipped.links++;
                 continue;
               }
-              entries3 = (await files_api.readdir(current.directory, { withFileTypes: true })).sort((a, b2) => a.name.localeCompare(b2.name));
+              entries3 = (await read_workspace_directory(fs2, path_api, root, current.directory)).sort((a, b2) => a.name.localeCompare(b2.name));
             } catch (error) {
               replace_blocked = true;
               result.counts.skipped.unreadable++;
@@ -246323,7 +246638,7 @@ https://creativecommons.org/licenses/by/4.0/
     "timeline.enabled": true
   });
   var KEY4 = "workspace_files";
-  var listeners8 = /* @__PURE__ */ new Set();
+  var listeners9 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -246347,12 +246662,12 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     settings.set_and_save(KEY4, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners8) listener();
+    for (const listener of listeners9) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners8.add(listener);
+    listeners9.add(listener);
     return () => {
-      listeners8.delete(listener);
+      listeners9.delete(listener);
     };
   }
   var current_dialog2;
@@ -247591,8 +247906,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_save_service.ts
   function bind_workspace_save_service(files, runtime3 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners9 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners9) listener();
+    const listeners10 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners10) listener();
     };
     const notify_history = () => {
       notify();
@@ -247701,9 +248016,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners9.add(listener);
+      listeners10.add(listener);
       return () => {
-        listeners9.delete(listener);
+        listeners10.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -247712,7 +248027,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners9.clear();
+      listeners10.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -250109,12 +250424,12 @@ https://creativecommons.org/licenses/by/4.0/
     const status2 = workspace_element("div", "workspace-link-web-status");
     status2.setAttribute("role", "status");
     let disposed = false, ready = false, current = url, failed = false, timer;
-    const listeners9 = [];
+    const listeners10 = [];
     const listen = (name, handler) => {
       const guarded = (event) => {
         if (!disposed) handler(event);
       };
-      listeners9.push([name, guarded]);
+      listeners10.push([name, guarded]);
       frame3.addEventListener(name, guarded);
     };
     const report = (state, text3) => {
@@ -250195,7 +250510,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       clearTimeout(timer);
-      for (const [name, handler] of listeners9) frame3.removeEventListener(name, handler);
+      for (const [name, handler] of listeners10) frame3.removeEventListener(name, handler);
       try {
         if (ready) frame3.stop();
       } catch {

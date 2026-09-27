@@ -1,3 +1,4 @@
+import {acquire_workspace_directories} from './workspace_directory_service';
 import type {graph_leaf} from "./git_graph_host";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {git_icon,git_icon_button} from "./git_icons";
@@ -18,6 +19,9 @@ export function get_workspace_quick_open() { return current_picker; }
 
 /** VS Code 式 Ctrl+P 文件快速打开；按需读取目录，不读取文件正文。 */
 export function create_workspace_quick_open(files: workspace_file_host) {
+  const directories=acquire_workspace_directories(files.fs,files.path_api);
+  let stop_progress:(()=>void)|undefined;
+  let stop_directory_updates:(()=>void)|undefined;
   const events = new AbortController();
   const style = acquire_workspace_style("typora-code-quick-open-style", css);
   const file_icon_style = acquire_workspace_file_icons();
@@ -79,6 +83,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
 
   const close = (restore=true) => {
     if (root.hidden) return;
+    stop_directory_updates?.();stop_directory_updates=undefined;stop_progress?.();stop_progress=undefined;
     match_controller?.abort();match_controller=undefined;
     const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;
     direct_generation++;direct_query=undefined;direct_file=undefined;direct_pending=false;direct_error="";ranking=false;rank_again=false;
@@ -231,34 +236,14 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   const schedule_render=()=>{if(!render_timer)render_timer=window.setTimeout(()=>{render_timer=0;void render();},80);};
   const scan = async () => {
     const generation = ++scan_generation;
+    const cached=scan_root?directories.service.cached_catalogue(scan_root):undefined;
+    if(cached){catalogue=cached.files;unreadable=cached.unreadable;scanning=false;void render();return;}
     catalogue = [];scanning=true;unreadable=0;
     status.textContent = "正在查找工作区文件…";
     const workspace_root = scan_root;
-    const stack = workspace_root ? [workspace_root] : [];const pending=new Set<Promise<void>>();
     const current=()=>generation===scan_generation&&!root.hidden&&!disposed&&workspace_context_epoch()===context_epoch&&files.context_root()===workspace_root&&!workspace_context_switching();
-    const read_directory=async(directory:string)=>{
-      let entries: any[];
-      try { entries = await files.fs.promises.readdir(directory, { withFileTypes: true }); }
-      catch { if(current())unreadable++;return; }
-      if (!current()) return;
-      let deadline=performance.now()+8;
-      for (let index = entries.length - 1; index >= 0; index -= 1) {
-        if(index%128===0&&performance.now()>deadline){schedule_render();await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(!current())return;deadline=performance.now()+8;}
-        const entry = entries[index];
-        const file_path = files.path_api.join(directory, entry.name);
-        if (entry.isDirectory()) {
-          if (![".git", "node_modules"].includes(entry.name)) stack.push(file_path);
-        } else if (entry.isFile()) {
-          const relative_path = files.path_api.relative(workspace_root, file_path).replaceAll("\\", "/");
-          catalogue.push({file_path,relative_path,name:entry.name,directory:files.path_api.dirname(relative_path).replace(/^\.$/u, "")});
-        }
-      }
-      if(current())schedule_render();
-    };
-    while(current()&&(stack.length||pending.size)){
-      while(stack.length&&pending.size<4){const task=read_directory(stack.pop()!).finally(()=>pending.delete(task));pending.add(task);}
-      if(pending.size)await Promise.race(pending);
-    }
+    try{const snapshot=workspace_root?await directories.service.catalogue(workspace_root):{files:[],unreadable:0};if(!current())return;catalogue=snapshot.files;unreadable=snapshot.unreadable;}
+    catch(error){if(!current())return;status.textContent="无法读取工作区目录："+String(error);unreadable++;}
     if(current()){scanning=false;clearTimeout(render_timer);render_timer=0;void render();}
   };
   const open = (group?:graph_leaf["parent"]) => {
@@ -276,11 +261,12 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     root.setAttribute("aria-modal", "true");
     input.value = group?"edt active ":"";
     input.setAttribute("aria-label",group?"当前组已打开的编辑器":"按文件名或路径搜索");
-    catalogue = [];
+    const cached=!group&&scan_root?directories.service.cached_catalogue(scan_root):undefined;
+    catalogue = cached?.files||[];unreadable=cached?.unreadable||0;
     results.replaceChildren();
     input.focus();
     render();
-    if(!group)void scan();
+    {stop_progress=directories.service.subscribe_progress((workspace_root,entries)=>{if(scanning&&!editor_group&&workspace_root===scan_root&&!root.hidden){catalogue=entries;schedule_render();}});stop_directory_updates=directories.service.subscribe(scan_root,change=>{if(change.names&&!editor_group){clearTimeout(render_timer);render_timer=window.setTimeout(()=>{render_timer=0;void scan();},80);}});if(!group&&!cached)void scan();}
   };
 
   input.oninput = () => {
@@ -299,7 +285,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   window.addEventListener("linux-note-workspace-context-changed", ()=>close(false), {signal: events.signal});
   const active_changed=()=>{const leaf=files.core?.app.workspace.activeLeaf;if(leaf)recent.set(leaf,++activation);};active_changed();
   const subscriptions=[files.core?.app.workspace.on?.("active-leaf:change",active_changed),files.core?.app.workspace.on?.("layout-changed",()=>{if(editor_group&&!root.hidden)void render();})];
-  const binding:quick_open_binding = { root, input, open:()=>open(), open_editors:group=>open(group),close, dispose() { if (disposed) return; disposed = true; subscriptions.forEach(release=>release?.());events.abort();resize_observer.disconnect(); close(false); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove();interaction.remove(); if(current_picker===binding)current_picker=undefined; } };
+  const binding:quick_open_binding = { root, input, open:()=>open(), open_editors:group=>open(group),close, dispose() { if (disposed) return; disposed = true; directories.dispose(); subscriptions.forEach(release=>release?.());events.abort();resize_observer.disconnect(); close(false); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove();interaction.remove(); if(current_picker===binding)current_picker=undefined; } };
   current_picker=binding;
   return binding;
 }

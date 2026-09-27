@@ -1,3 +1,4 @@
+import {notify_workspace_resource_change} from './workspace_resource_events';
 /** 远程文件身份与宿主物化适配。缓存绝不是业务文件系统的后备。 */
 export type remote_file_connection={target:string;port?:number;username?:string;name?:string;request(operation:string,values?:Record<string,unknown>):Promise<any>;connected():boolean;poll_interval?():number};
 const providers=new Set<remote_file_provider>();
@@ -136,15 +137,20 @@ export class remote_file_provider {
   }
 }
 
+const resource_file_systems=new WeakMap<object,any>();
 /** 只供自有文件服务使用，绝不修改Node全局fs或第三方宿主的IO。 */
 export function workspace_resource_fs(native_fs:any){
+  const existing=resource_file_systems.get(native_fs);if(existing)return existing;
   const route=(owner:any,key:string,promise:boolean)=>{const original=owner[key];return(...args:any[])=>{
     const provider=typeof args[0]==='string'?remote_files_for(args[0]):undefined;
-    if(!provider){assert_remote_owner(args[0]);return original.apply(owner,args);}
-    const method=(promise?provider.fs.promises:provider.fs)[key];
+    if(!provider)assert_remote_owner(args[0]);
+    const method=provider?(promise?provider.fs.promises:provider.fs)[key]:original;
     if(!method)throw Error('远程文件服务尚未支持此操作：'+key);
-    return method(...args);
+    const result=method.apply(provider?undefined:owner,args);
+    if(promise&&['writeFile','appendFile','truncate','mkdir','rm','rmdir','unlink','rename','copyFile','link','symlink'].includes(key))return Promise.resolve(result).then(value=>{const paths=(['rename','copyFile','link','symlink'].includes(key)?args.slice(0,2):args.slice(0,1)).filter(path=>typeof path==='string');notify_workspace_resource_change({fs:proxy,paths});return value;});
+    return result;
   };};
   const promises=new Proxy(native_fs.promises,{get:(owner,key:string)=>typeof owner[key]==='function'?route(owner,key,true):owner[key]});
-  return new Proxy(native_fs,{get:(owner,key:string)=>key==='promises'?promises:typeof owner[key]==='function'?route(owner,key,false):owner[key]});
+  const proxy=new Proxy(native_fs,{get:(owner,key:string)=>key==='promises'?promises:typeof owner[key]==='function'?route(owner,key,false):owner[key]});
+  resource_file_systems.set(native_fs,proxy);return proxy;
 }

@@ -2631,6 +2631,9 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--tc-title-fg);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
 .workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
+/* 原生顶栏为所有后代铺背景；搜索内容不能遮住边框或继承正文前景。 */
+#top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search { box-sizing:border-box;line-height:normal;background:transparent;color:var(--tc-title-fg); }
+#top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search :is(span,svg,path) { background:transparent;color:inherit; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights .toolbar-icon { width:46px;height:35px;padding:0;margin:0;position:relative;box-sizing:border-box;line-height:35px;text-align:center; }
 #top-titlebar[data-workspace-titlebar=ready] #w-min,#top-titlebar[data-workspace-titlebar=ready] #w-max,#top-titlebar[data-workspace-titlebar=ready] #w-close { display:inline-flex;align-items:center;justify-content:center; }

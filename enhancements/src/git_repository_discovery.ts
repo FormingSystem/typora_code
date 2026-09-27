@@ -1,3 +1,4 @@
+import {read_workspace_directory} from './workspace_directory_service';
 import {is_missing_repository} from "./git_graph_repository";
 import type {git_run} from "./git_graph_data";
 
@@ -18,7 +19,7 @@ export async function discover_git_repositories(options: {
     if (options.signal?.aborted) throw new Error("仓库发现已取消");
     result.visited++;
     let entries: any[];
-    try { entries = await options.fs.promises.readdir(directory, {withFileTypes: true}); }
+    try { entries = await read_workspace_directory(options.fs,options.path,options.root,directory); }
     catch (error) { result.errors.push(directory + ": " + String(error)); return; }
     if (level === 0 || entries.some(entry => entry.name === ".git")) await verify(directory);
     if (level >= options.depth) return;

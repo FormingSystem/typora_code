@@ -58,11 +58,17 @@ app.whenReady().then(async()=>{
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const move_pointer=async selector=>{const point=await run(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`),zoom=win.webContents.getZoomFactor();const position={x:Math.round(point.x*zoom),y:Math.round(point.y*zoom)};win.webContents.sendInputEvent({type:'mouseMove',...position});await pause(45);return position;};
  const appearance=selector=>run(`(()=>{const n=document.querySelector(${JSON.stringify(selector)}),s=getComputedStyle(n),r=n.getBoundingClientRect();return{background:s.backgroundColor,foreground:s.color,border:s.borderColor,radius:s.borderRadius,rect:[r.x,r.y,r.width,r.height]}})()`);
+ // 原始Typora 1.14.10顶栏后代规则；旧夹具遗漏这层，无法发现文字底板遮边。
+ await win.webContents.insertCSS('#top-titlebar,#top-titlebar *{background-color:inherit;color:var(--text-color)}');
  const hover_evidence=[];
  for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [1280,500]){
   win.setSize(width,800);win.webContents.setZoomFactor(zoom);await pause(100);await tick();
   await run(`document.documentElement.dataset.workspaceFileIconTheme=${JSON.stringify(theme)};document.body.style.setProperty('--text-color',${JSON.stringify(theme==='dark'?'#ccd6df':'#3f4652')});document.body.style.setProperty('--side-bar-bg-color',${JSON.stringify(theme==='dark'?'#191a1b':'#fafafd')});document.querySelector('#write').focus();void 0`);await pause(70);
   await move_pointer('#write');const before=await appearance('.workspace-titlebar-search'),navigation_before=await appearance('.workspace-titlebar-history'),calls_before=await run('calls.length');
+  const painting=await run(`(()=>{const b=document.querySelector('.workspace-titlebar-search'),n=b.querySelector('span'),r=b.getBoundingClientRect(),t=n.getBoundingClientRect(),s=getComputedStyle(b),range=document.createRange();range.selectNodeContents(n);return{top:t.top-r.top,bottom:r.bottom-t.bottom,line_height:t.height,text_height:range.getBoundingClientRect().height,color:s.color,children:[...b.querySelectorAll('*')].map(n=>({background:getComputedStyle(n).backgroundColor,color:getComputedStyle(n).color}))}})()`);
+  assert(painting.top>=.75&&painting.bottom>=.75,'文字行盒留在搜索边框以内');
+  assert(painting.text_height<=painting.line_height+.1,'真实文字未被行盒裁切');
+  assert(painting.children.every(n=>n.background==='rgba(0, 0, 0, 0)'&&n.color===painting.color),'文字与SVG透明且继承同一前景');
   const position=await move_pointer('.workspace-titlebar-search');
   assert(await run(`document.querySelector('.workspace-titlebar-search').matches(':hover')&&document.activeElement===document.querySelector('#write')`),'hover reaches the search box without moving focus');
   assert.deepEqual(await appearance('.workspace-titlebar-search'),before,`neutral search hover ${theme}/${zoom}/${width}`);

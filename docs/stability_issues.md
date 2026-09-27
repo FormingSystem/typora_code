@@ -6,6 +6,8 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-search-directory-001 重复打开搜索重新全量枚举 | R058.1 | 架构/性能/P2 | 每个消费者直接readdir，快速打开每次清空；缺共同名称快照及失效所有者 | 共同目录服务与变更通知，Git领域状态独立；原生100次重开零新增读取，SSH按需边界见search_directory_20260927.json |
+| BUG-titlebar-search-001 搜索标签区域遮挡边框 | R029.1 | 呈现/P2 | 原生后代背景继承叠加22px行盒，遮住同高按钮边框 | 透明内容层、独立行高与工作台前景；三主题三缩放实际文字范围通过，见search_directory_20260927.json |
 | BUG-explorer-preview-001 浏览文件累积常驻标签与已关闭视图引用 | R080 | 生命周期/P2 | 资源树单击未传预览意图；原生格式命令可能没有input；关闭源码视图的detach补丁闭包留到整个服务销毁 | 树提交preview，文件服务每组替换/dirty提升；关闭立即释放模型与补丁。4套UI及原始Typora51项，见explorer_preview_20260927.json |
 | BUG-workspace-shortcuts-001 原生编辑快捷键被工作台占用 | R079 | 输入归属/P1 | 直接采用VS Code全局Ctrl键且Git重复注册侧栏，未先核对Typora正文命令 | 冲突Ctrl改Alt、共享严格修饰键与唯一侧栏所有者；5套UI、原生真实加粗及20轮切换，见native_shortcuts_20260927.json |
 | BUG-code-editor-state-001 暗色代码光标及选区不可见 | R068.3 | 呈现/P2 | 配色仅覆盖语法，遗漏编辑状态；默认行/token不透明背景遮选区 | 共同代码主题适配编辑状态并透明化默认底层；303项UI及65项原生，见editor_project_20260927.json |

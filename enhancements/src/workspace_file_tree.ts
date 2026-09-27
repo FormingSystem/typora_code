@@ -1,3 +1,4 @@
+import {acquire_workspace_directories} from './workspace_directory_service';
 import {workspace_list_selection} from "./workspace_list_selection";
 import {register_workspace_context_guard} from "./workspace_context";
 import {remote_files_for} from './remote_workspace_files';
@@ -43,6 +44,7 @@ const ROW_HEIGHT = 26;
 export function create_workspace_file_tree(options: workspace_file_tree_options) {
   const runtime = window as unknown as {reqnode(name: string): any};
   const fs = options.fs || runtime.reqnode("fs"), path_api = options.path_api || runtime.reqnode("path");
+  const directories=acquire_workspace_directories(fs,path_api);
   const style = acquire_workspace_style("typora-code-style:workspace_explorer", explorer_css, {});
   const container = el("section", "linux-note-workspace-explorer");
   if(options.selection)container.classList.add("workspace-file-tree-selection"); container.setAttribute("aria-label", "资源管理器");
@@ -57,7 +59,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
-  let flat_nodes: explorer_node[] = [], render_frame = 0, watcher_count = 0;
+  let flat_nodes: explorer_node[] = [], render_frame = 0;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
   let search_projection = false;
@@ -99,7 +101,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   }));
 
   function close_watch(node: explorer_node) {
-    if (node.watcher) { node.watcher.close(); node.watcher = undefined; watcher_count--; }
+    if (node.watcher) { node.watcher.close(); node.watcher = undefined; }
     if (node.refresh_timer) { window.clearTimeout(node.refresh_timer); node.refresh_timer = undefined; }
   }
   function close_branch(node: explorer_node, forget = false) {
@@ -107,16 +109,12 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (forget) nodes.delete(node.path);
   }
   function watch(node: explorer_node) {
-    if (options.selection || !visible || disposed || (!node.expanded && !node.compact_parent) || node.watcher || watcher_count >= 128) return;
-    try {
-      node.watcher = fs.watch(node.path, {persistent: false}, () => {
-        if (node.refresh_timer) window.clearTimeout(node.refresh_timer);
-        node.refresh_timer = window.setTimeout(() => { node.refresh_timer = undefined; if (visible && node.expanded) void load_children(node, true); }, 250);
-      });
-      watcher_count++;
-      const watcher = node.watcher as {on?(event: string, callback: () => void): void};
-      watcher.on?.("error", () => { close_watch(node); });
-    } catch { /* 无监视权限时仍可按需读取与手动刷新。 */ }
+    if (options.selection || !visible || disposed || (!node.expanded && !node.compact_parent) || node.watcher) return;
+    const stop=directories.service.subscribe(options.context_root(),change=>{
+      if(!change.names||change.source===container||change.directory&&change.directory!==node.path)return;
+      if(node.refresh_timer)window.clearTimeout(node.refresh_timer);
+      node.refresh_timer=window.setTimeout(()=>{node.refresh_timer=undefined;if(visible&&(node.expanded||node.compact_parent))void load_children(node,true,false,true);},250);
+    },node.path);node.watcher={close:stop};
   }
   function watch_visible(node: explorer_node) { if (node.expanded || node.compact_parent) { watch(node); for (const child of node.children || []) watch_visible(child); } }
   function collapse(node: explorer_node) { node.expanded = false; close_branch(node); }
@@ -226,7 +224,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       tree.setAttribute("aria-activedescendant", node.id);
     } else render();
   }
-  async function load_children(node: explorer_node, force = false, probing = false): Promise<void> {
+  async function load_children(node: explorer_node, force = false, probing = false, invalidated = false): Promise<void> {
     if (rename_state?.busy) return;
     if (disposed || nodes.get(node.path) !== node) return;
     if (node.loading) return node.loading;
@@ -235,7 +233,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     node.error = undefined;
     node.loading = (async () => {
       try {
-        const entries = await fs.promises.readdir(node.path, {withFileTypes: true});
+        if(force&&!invalidated)directories.service.invalidate(options.context_root(),node.path,container);
+        const entries = await directories.service.read(options.context_root(),node.path);
         if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return;
         const old_children = new Map((node.children || []).map(child => [child.path, child]));
         const children: explorer_node[] = [];
@@ -487,7 +486,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   if(options.file_clipboard)detachers.push(options.file_clipboard.subscribe(()=>{if(!disposed)render();}));
   function dispose() {
     file_icon_style.remove();selection_model.dispose();
-    if (disposed) return; disposed = true;interaction.remove(); generation++; visible = false;
+    if (disposed) return; disposed = true;directories.dispose();interaction.remove(); generation++; visible = false;
     resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame);

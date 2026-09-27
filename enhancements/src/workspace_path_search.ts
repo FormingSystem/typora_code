@@ -1,3 +1,4 @@
+import {read_workspace_directory} from './workspace_directory_service';
 import {DEFAULT_SEARCH_REGEX,query_expression} from './workspace_search_matcher';
 import {create_search_matcher} from './workspace_search_worker_client';
 
@@ -11,7 +12,7 @@ export async function search_workspace_paths(options:{fs:any;path_api:any;root:s
   try{
     while(pending.length){
       current();const directory=pending.pop()!;let entries:any[];
-      try{entries=await fs.promises.readdir(directory,{withFileTypes:true});}
+      try{entries=await read_workspace_directory(fs,path_api,root,directory);}
       catch(error){current();if(directory===root)throw error;unreadable++;continue;}
       current();
       for(let offset=0;offset<entries.length;offset+=256){
