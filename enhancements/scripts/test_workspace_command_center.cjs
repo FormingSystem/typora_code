@@ -1,0 +1,55 @@
+// Chromium真实点击/输入与受控大目录；旧入口和候选使用同一夹具，不读取用户工程。
+const {app,BrowserWindow}=require('electron');
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
+const {build}=require('esbuild');
+const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_command_center_'));
+const baseline=process.env.TYPORA_QA_BASELINE;
+app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();
+let win;const checks=[],metrics=[];const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
+const evaluate=source=>win.webContents.executeJavaScript(source);
+const wait=async source=>{for(let i=0;i<800;i++){if(await evaluate(source))return;await pause(10);}throw Error('timeout '+source);};
+const check=(value,label)=>{assert(value,label);checks.push(label);};
+const click=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(r.x+r.width/2),y:Math.round(r.y+r.height/2)}})()`);win.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});win.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});await evaluate('new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(resolve)))');};
+const input=async value=>{await evaluate('picker.input.select();void 0');await win.webContents.insertText(value);};
+app.whenReady().then(async()=>{
+ win=new BrowserWindow({show:false,width:1100,height:800,webPreferences:{contextIsolation:false,nodeIntegration:true,backgroundThrottling:false,offscreen:true}});
+ fs.writeFileSync(path.join(root,'page.html'),'<!doctype html><meta charset="utf-8"><button id="launch">顶栏搜索</button><button id="outside">正文</button>');await win.loadFile(path.join(root,'page.html'));
+ const plugin={name:'baseline',setup(builder){if(baseline)builder.onLoad({filter:/[\\/]workspace_quick_open\.ts$/},()=>({contents:require('node:child_process').execFileSync('git',['show',baseline+':enhancements/src/workspace_quick_open.ts'],{cwd:path.join(__dirname,'..'),encoding:'utf8',windowsHide:true}),loader:'ts'}));}};
+ const bundle=await build({plugins:[plugin,...require('./editor_bundle.cjs').editor_plugins()],stdin:{contents:'export {create_workspace_quick_open} from "./src/workspace_quick_open";export {bind_workspace_recents} from "./src/workspace_recent";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'qa',write:false,loader:{'.css':'text'}});await evaluate(bundle.outputFiles[0].text);
+ await evaluate(String.raw`(()=>{
+ window.File={};window.commands=[];window.opened=[];window.reads=0;window.trusted_clicks=0;window.trusted_inputs=0;window.activations=[];window.root_path='C:\\fixture';
+ window.entries=Array.from({length:51001},(_,i)=>({name:'file_'+String(i).padStart(5,'0')+'.md',isDirectory:()=>false,isFile:()=>true}));
+ window.group={containerEl:document.body,toggleTab:id=>{activations.push(id);return leaves.find(leaf=>leaf.state.path===id)}};
+ window.leaves=[{state:{path:'C:\\fixture\\opened.md'},parent:group}];
+ window.host={path_api:require('path').win32,context_root:()=>root_path,editor_state:leaf=>({file_path:leaf.state.path}),open_file:async file=>opened.push(file),core:{Notice:class{},app:{commands:{run:id=>commands.push(id)},workspace:{eachLeaves:fn=>leaves.forEach(fn),activeLeaf:leaves[0],on:()=>()=>{}}}},fs:{watch:()=>({on(){},close(){}}),promises:{readdir:async()=>{reads++;return entries},stat:async()=>({isFile:()=>true,isDirectory:()=>false})}}};
+ window.release_history=undefined;window.history_reply={files:[{path:'C:\\fixture\\recent.md',date:2},{path:'C:\\elsewhere\\foreign.md',date:3},{path:'C:\\fixture\\opened.md',date:1}],folders:[]};
+ window.JSBridge={invoke:()=>new Promise(resolve=>release_history=()=>resolve(history_reply))};
+ window.recents=qa.bind_workspace_recents(host,async()=>{});window.picker=qa.create_workspace_quick_open(host);
+ document.getElementById('launch').onclick=event=>{if(event.isTrusted)trusted_clicks++;window.clicked_at=performance.now();(picker.open_center||picker.open)();requestAnimationFrame(()=>window.first_frame=performance.now()-clicked_at)};
+ picker.input.addEventListener('input',event=>{if(event.isTrusted)trusted_inputs++});
+ })()`);
+ await click('#launch');await wait('window.first_frame!==undefined');await pause(120);
+ const opening=await evaluate('({first_frame_ms:first_frame,directory_reads:reads,rows:picker.root.querySelectorAll(".workspace-quick-open-result").length,commands:picker.root.querySelectorAll(".is-command").length,trusted_clicks})');metrics.push(opening);
+ fs.writeFileSync(path.join(root,'metrics.json'),JSON.stringify({baseline,opening},null,2));
+ check(opening.commands===5,'顶栏首屏显示五个真实功能入口');check(opening.directory_reads===0,'首页不枚举51001文件');check(opening.trusted_clicks===1,'使用可信Chromium鼠标事件');
+ check(await evaluate('picker.root.textContent.includes("opened.md")&&!picker.root.textContent.includes("recent.md")'),'宿主历史延迟不阻挡已打开文件');
+ await evaluate('release_history();void 0');await wait('picker.root.textContent.includes("recent.md")');
+ check(await evaluate('!picker.root.textContent.includes("foreign.md")&&[...picker.root.querySelectorAll(".workspace-quick-open-name")].filter(n=>n.textContent==="opened.md").length===1'),'当前工程历史过滤和去重');
+ await click('.workspace-quick-open-result:nth-child(7)');await wait('picker.root.hidden');check(await evaluate('activations.length===1'),'打开编辑器按已有叶子激活');
+ await click('#launch');await evaluate('window.query_started=performance.now();void 0');await input('file_51000');await wait('picker.root.textContent.includes("file_51000.md")');metrics.push(await evaluate('({query_result_ms:performance.now()-query_started})'));
+ check(await evaluate('trusted_inputs>0&&reads===1'),'输入查询才开始共享目录扫描');
+ await evaluate('release_history();void 0');await pause(50);check(await evaluate('!picker.root.textContent.includes("recent.md")'),'迟到历史不覆盖查询');
+ await input('');await wait('picker.root.querySelectorAll(".is-command").length===5');
+ await click('.workspace-quick-open-result:nth-child(3)');await wait('picker.root.hidden');check(await evaluate('commands.at(-1)==="command:open"'),'命令入口调用已有命令服务');
+ await click('#launch');await input('>');await wait('picker.root.hidden');check(await evaluate('commands.at(-1)==="command:open"'),'命令前缀进入已有命令面板');
+ await click('#launch');await click('#outside');check(await evaluate('picker.root.hidden'),'真实外点关闭首页');await evaluate('release_history();void 0');await pause(30);check(await evaluate('picker.root.hidden'),'关闭后迟到记录不重开');
+ await evaluate('document.getElementById("outside").focus();picker.open_center();void 0');await click('.workspace-quick-open-result');await evaluate('for(const type of ["keydown","keyup"])picker.input.dispatchEvent(new KeyboardEvent(type,{key:"Escape",bubbles:true}));void 0');check(await evaluate('picker.root.hidden&&document.activeElement.id==="outside"'),'首页转到文件再退出恢复原焦点');
+ const cycle=await evaluate(`(async()=>{let largest=0;const times=[];for(let i=0;i<100;i++){const start=performance.now();picker.open_center();times.push(performance.now()-start);largest=Math.max(largest,picker.root.querySelectorAll('.workspace-quick-open-result').length);picker.close();release_history();await new Promise(resolve=>setTimeout(resolve,0));}times.sort((a,b)=>a-b);return{cycles:100,p95_sync_ms:times[94],max_sync_ms:times[99],largest_rows:largest,reads}})()`);metrics.push(cycle);check(cycle.reads===1&&cycle.largest_rows<10,'100次首页复用无额外目录扫描或大DOM');
+ await click('#launch');await evaluate('root_path="C:/other";window.dispatchEvent(new Event("linux-note-workspace-context-changed"));release_history();void 0');await pause(20);check(await evaluate('picker.root.hidden'),'切库拒绝迟到历史');
+ await evaluate('root_path="C:/fixture";picker.open_center();JSBridge.invoke=async()=>{throw Error("离线")};picker.close();picker.open_center();void 0');await wait('picker.root.textContent.includes("离线")');check(await evaluate('picker.root.querySelectorAll(".is-command").length===5'),'历史失败保留首页可操作');
+ await evaluate('picker.close();JSBridge.invoke=async()=>history_reply;picker.open_center();void 0');await pause(30);
+ for(const mode of ['light','dark'])for(const scale of [1,1.25]){win.webContents.setZoomFactor(scale);await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${mode}';void 0`);check(await evaluate('[...picker.root.querySelectorAll(".workspace-quick-open-result")].every(row=>row.getBoundingClientRect().height===22&&row.scrollWidth<=row.clientWidth+1)'),'首页行盒 '+mode+' '+scale);}
+ win.webContents.setZoomFactor(1);await win.webContents.capturePage().then(image=>fs.writeFileSync(path.join(root,'center.png'),image.toPNG()));
+ await evaluate('picker.dispose();recents.dispose();void 0');check(await evaluate('document.querySelectorAll(".workspace-quick-open").length===0'),'销毁释放首页和最近面板');
+ fs.writeFileSync(path.join(root,'checks.json'),JSON.stringify({status:'PASS',checks,metrics},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,metrics,evidence:root}));win.destroy();app.exit(0);
+}).catch(error=>{fs.writeFileSync(path.join(root,'failure.json'),JSON.stringify({error:String(error),checks,metrics},null,2));console.error(error);win?.destroy();app.exit(1)});

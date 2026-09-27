@@ -13,7 +13,9 @@ import type { workspace_file_host } from "./workspace_files";
 import {create_quick_matcher,append_quick_highlights,type quick_file,type quick_match} from "./workspace_quick_open_matcher";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
-type quick_open_binding = {root:HTMLElement;input:HTMLInputElement;open():void;open_editors(group:graph_leaf["parent"]):void;close():void;dispose():void};
+import {get_workspace_recents} from './workspace_recent';
+import {current_remote_workspace} from './remote_workspace_context';
+type quick_open_binding = {root:HTMLElement;input:HTMLInputElement;open():void;open_center():void;open_editors(group:graph_leaf["parent"]):void;close():void;dispose():void};
 let current_picker: quick_open_binding | undefined;
 export function get_workspace_quick_open() { return current_picker; }
 
@@ -57,15 +59,19 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   const interaction=acquire_workspace_interaction(root);
 
   let editor_group:graph_leaf["parent"]|undefined;
+  let center_mode=false,home_generation=0;
+  const home_actions=new Map<string,{run:()=>unknown;shortcut?:string}>();
+  const is_home=()=>center_mode&&!editor_group&&!input.value.trim();
   const editor_targets=new Map<string,graph_leaf>(),recent=new WeakMap<graph_leaf,number>();let activation=0;
-  const read_editors=()=>{
+  const read_editors=(all=false)=>{
     editor_targets.clear();const entries:quick_file[]=[];
-    files.core.app.workspace.eachLeaves(leaf=>{
-      if(leaf.parent!==editor_group||leaf.state.path.startsWith("typ://core.empty/"))return;
+    files.core?.app.workspace.eachLeaves(leaf=>{
+      if((!all&&leaf.parent!==editor_group)||leaf.state.path.startsWith("typ://core.empty/"))return;
       const file=files.editor_state(leaf).file_path;
       const tab=workspace_leaf_tab(leaf),name=tab?.querySelector('.typ-file-basename')?.textContent;
       const relative=file?files.path_api.relative(files.context_root(),file):"";
-      editor_targets.set(leaf.state.path,leaf);entries.push({file_path:leaf.state.path,relative_path:relative,name:file?files.path_api.basename(file):(name||decodeURIComponent(leaf.state.path.split('/').at(-1)||'未命名')),directory:file?files.path_api.dirname(relative).replace(/^\.$/u,""):""});
+      const identity=all?'editor:'+entries.length:leaf.state.path;
+      editor_targets.set(identity,leaf);entries.push({file_path:identity,relative_path:relative,name:file?files.path_api.basename(file):(name||decodeURIComponent(leaf.state.path.split('/').at(-1)||'未命名')),directory:file?files.path_api.dirname(relative).replace(/^\.$/u,""):""});
     });
     entries.sort((a,b)=>(recent.get(editor_targets.get(b.file_path)!)||0)-(recent.get(editor_targets.get(a.file_path)!)||0));
     return entries;
@@ -86,6 +92,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     stop_directory_updates?.();stop_directory_updates=undefined;stop_progress?.();stop_progress=undefined;
     match_controller?.abort();match_controller=undefined;
     const owned=escape_layer?.owns_focus();escape_layer?.dispose();escape_layer=undefined;
+    home_generation++;home_actions.clear();center_mode=false;
     direct_generation++;direct_query=undefined;direct_file=undefined;direct_pending=false;direct_error="";ranking=false;rank_again=false;
     scan_generation += 1;
     render_generation += 1;clearTimeout(render_timer);render_timer=0;scanning=false;
@@ -110,9 +117,12 @@ export function create_workspace_quick_open(files: workspace_file_host) {
         const index=start+offset,row=document.createElement("button");row.type="button";row.className="workspace-quick-open-result";
         row.setAttribute("role","option");row.id=`workspace-quick-open-option-${index}`;row.tabIndex=-1;row.title=file.file_path;
         row.setAttribute("aria-posinset",String(index+1));row.setAttribute("aria-setsize",String(shown.length));
-        row.append(workspace_file_icon(editor_targets.get(file.file_path)?files.editor_state(editor_targets.get(file.file_path)!).file_path||file.name:file.file_path));
+        const home_action=home_actions.get(file.file_path);
+        if(!file.file_path.startsWith('command:'))row.append(workspace_file_icon(editor_targets.get(file.file_path)?files.editor_state(editor_targets.get(file.file_path)!).file_path||file.name:file.file_path));
         const name=document.createElement("span");name.className="workspace-quick-open-name";append_quick_highlights(name,file.name,shown_matches[index].score.labelMatch);
         const directory=document.createElement("span");directory.className="workspace-quick-open-path";append_quick_highlights(directory,file.directory,shown_matches[index].score.descriptionMatch);row.append(name,directory);
+        if(home_action?.shortcut){const shortcut=document.createElement('span');shortcut.className='workspace-quick-open-shortcut';shortcut.textContent=home_action.shortcut;row.append(shortcut);}
+        row.classList.toggle('is-command',file.file_path.startsWith('command:'));
         if(editor_group){
           const close_action=document.createElement("span");close_action.className="workspace-quick-open-close";close_action.setAttribute("role","button");close_action.tabIndex=0;close_action.setAttribute("aria-label","关闭 "+file.name);close_action.append(git_icon("close"));
           const close_editor=async(event:Event)=>{event.preventDefault();event.stopPropagation();const leaf=editor_targets.get(file.file_path);if(!leaf||opening)return;opening=true;try{await files.close_leaf(leaf);if(!root.hidden)await render();}catch(error){status.textContent=String(error);status.classList.add("is-visible");}finally{opening=false;input.focus();}};
@@ -143,6 +153,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     if(files.context_root()!==scan_root||workspace_context_epoch()!==context_epoch||workspace_context_switching()){close(false);return;}
     const opening_generation=scan_generation;opening=true;
     try {
+      if(is_home()){const action=home_actions.get(target.file_path);if(action)await action.run();return;}
       if(editor_group){const leaf=editor_targets.get(target.file_path);let exists=false;files.core.app.workspace.eachLeaves(item=>{if(item===leaf&&item.parent===editor_group)exists=true;});if(!leaf||!exists){await render();return;}files.core.app.workspace.activeLeaf=editor_group.toggleTab(leaf.state.path);close(false);}
       else {await files.open_file(target.file_path);if(opening_generation===scan_generation)close();}
     }
@@ -150,6 +161,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     finally{if(opening_generation===scan_generation)opening=false;}
   };
   const render = async () => {
+    if(is_home()){render_home();return;}
     const query=query_text();
     // 扫描增量不取消同查询的分片计算；新输入仍立即使旧计算过期。
     if(ranking&&ranking_query===query){rank_again=true;return;}
@@ -246,12 +258,52 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     catch(error){if(!current())return;status.textContent="无法读取工作区目录："+String(error);unreadable++;}
     if(current()){scanning=false;clearTimeout(render_timer);render_timer=0;void render();}
   };
-  const open = (group?:graph_leaf["parent"]) => {
+  // 首页只投影已有状态；不能为画几个入口先遍历/排序整份工程目录。
+  const render_home=()=>{
+    const request=++home_generation;home_actions.clear();
+    const current=()=>!disposed&&!root.hidden&&is_home()&&request===home_generation&&files.context_root()===scan_root&&workspace_context_epoch()===context_epoch;
+    const entries:quick_file[]=[];
+    const add=(id:string,name:string,run:()=>unknown,shortcut?:string,directory='')=>{entries.push({file_path:id,relative_path:id,name,directory});home_actions.set(id,{run,shortcut});};
+    const command=(id:string)=>()=>{close();files.core.app.commands.run(id);};
+    add('command:files','转到文件',()=>open(), 'Ctrl+P');
+    add('command:commands','显示和运行命令',command('command:open'),'Ctrl+Shift+P','>');
+    add('command:search','搜索文本',command('linux_note:search'),'Ctrl+Shift+F');
+    add('command:outline','转到编辑器大纲',command('linux_note:outline'));
+    add('command:recent','最近打开…',command('linux_note:open_recent'),'Ctrl+R');
+    const seen=new Set<string>(),key=(path:string)=>{const normalized=files.path_api.normalize(path);return files.path_api.sep==='\\'?normalized.toLowerCase():normalized;};
+    for(const item of read_editors(true)){
+      const leaf=editor_targets.get(item.file_path)!;
+      const path=files.editor_state(leaf).file_path;
+      seen.add(key(path||item.file_path));
+      add(item.file_path,item.name,()=>{let exists=false;files.core.app.workspace.eachLeaves(other=>{if(other===leaf)exists=true;});if(!exists){render_home();return;}close(false);files.core.app.workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);},undefined,item.directory||'最近打开');
+    }
+    const paint=()=>{const selected=shown[selected_index]?.file_path;shown=entries.slice();shown_matches=shown.map(file=>({file,score:{score:0}}));rendered_query='';selected_index=Math.max(0,shown.findIndex(file=>file.file_path===selected));paint_rows(true);};
+    status.textContent='';status.classList.remove('is-visible');regex_button.hidden=true;results.scrollTop=0;paint();
+    const recents=get_workspace_recents(files);
+    if(!recents||current_remote_workspace())return;
+    void recents.read().then(items=>{
+      if(!current())return;
+      for(const item of items){
+        const relative=files.path_api.relative(scan_root,item.path);
+        if(item.kind!=='file'||!scan_root||relative==='..'||relative.startsWith('..'+files.path_api.sep)||files.path_api.isAbsolute(relative)||seen.has(key(item.path)))continue;
+        seen.add(key(item.path));add(item.path,files.path_api.basename(item.path),async()=>{const opened=await recents.open_item(item,current);if(current()){if(opened)close();else render_home();}},undefined,files.path_api.dirname(relative).replace(/^\.$/u,'')||'最近打开');
+      }
+      paint();
+    }).catch(error=>{if(current()){status.textContent='最近记录读取失败：'+String(error);status.classList.add('is-visible');}});
+  };
+  const start_catalogue=()=>{
+    if(stop_directory_updates)return;
+    stop_progress=directories.service.subscribe_progress((workspace_root,entries)=>{if(scanning&&!editor_group&&!is_home()&&workspace_root===scan_root&&!root.hidden){catalogue=entries;schedule_render();}});
+    stop_directory_updates=directories.service.subscribe(scan_root,change=>{if(change.names&&!editor_group&&!is_home()){clearTimeout(render_timer);render_timer=window.setTimeout(()=>{render_timer=0;void scan();},80);}});
+    if(!editor_group&&directories.service.cached_catalogue(scan_root)?.files!==catalogue)void scan();
+  };
+  const open = (group?:graph_leaf["parent"],center=false) => {
     if (disposed||workspace_context_switching()) return;
+    const inherited_focus=!root.hidden?previous_focus:undefined;
     if (!root.hidden)close(false);
-    editor_group=group;
+    editor_group=group;center_mode=center;
     scan_root=files.context_root();context_epoch=workspace_context_epoch();input.title=scan_root||"未打开文件夹";
-    previous_focus=capture_workspace_focus();
+    previous_focus=inherited_focus||capture_workspace_focus();
     escape_layer=register_workspace_dismissal(()=>[root],reason=>{
       // 关闭活动文件会临时激活相邻编辑器，属于本次列表操作，不能因此关闭列表。
       if(reason==="focus-out"&&opening&&editor_group)return;
@@ -260,20 +312,25 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     root.hidden = false;input.setAttribute("aria-expanded","true");
     root.setAttribute("aria-modal", "true");
     input.value = group?"edt active ":"";
-    input.setAttribute("aria-label",group?"当前组已打开的编辑器":"按文件名或路径搜索");
-    const cached=!group&&scan_root?directories.service.cached_catalogue(scan_root):undefined;
+    input.placeholder=center?'搜索文件，或选择下方功能':'键入文件名或路径进行搜索';regex_button.hidden=center;
+    input.setAttribute("aria-label",group?"当前组已打开的编辑器":center?"搜索文件和功能":"按文件名或路径搜索");
+    const cached=!group&&!center&&scan_root?directories.service.cached_catalogue(scan_root):undefined;
     catalogue = cached?.files||[];unreadable=cached?.unreadable||0;
     results.replaceChildren();
     input.focus();
     render();
-    {stop_progress=directories.service.subscribe_progress((workspace_root,entries)=>{if(scanning&&!editor_group&&workspace_root===scan_root&&!root.hidden){catalogue=entries;schedule_render();}});stop_directory_updates=directories.service.subscribe(scan_root,change=>{if(change.names&&!editor_group){clearTimeout(render_timer);render_timer=window.setTimeout(()=>{render_timer=0;void scan();},80);}});if(!group&&!cached)void scan();}
+    if(!center&&!group)start_catalogue();
   };
 
   input.oninput = () => {
+    if(center_mode&&input.value.trim()==='>'){close();files.core.app.commands.run('command:open');return;}
+    home_generation++;home_actions.clear();regex_button.hidden=is_home();
     match_controller?.abort();render_generation++;ranking=false;
     pending_open_query=undefined;
     const group=/^edt active(?:\s|$)/u.test(input.value)?files.core?.app.workspace.activeLeaf?.parent:undefined;
     if(Boolean(group)!==Boolean(editor_group)){scan_generation++;direct_generation++;scanning=false;direct_pending=false;direct_file=undefined;direct_query=undefined;editor_group=group;catalogue=[];if(!group)void scan();}
+    if(is_home()){scan_generation++;scanning=false;stop_progress?.();stop_progress=undefined;stop_directory_updates?.();stop_directory_updates=undefined;clearTimeout(render_timer);render_timer=0;void render();return;}
+    if(center_mode&&!editor_group)start_catalogue();
     void render();
   };
   input.onkeydown = event => {
@@ -285,7 +342,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   window.addEventListener("linux-note-workspace-context-changed", ()=>close(false), {signal: events.signal});
   const active_changed=()=>{const leaf=files.core?.app.workspace.activeLeaf;if(leaf)recent.set(leaf,++activation);};active_changed();
   const subscriptions=[files.core?.app.workspace.on?.("active-leaf:change",active_changed),files.core?.app.workspace.on?.("layout-changed",()=>{if(editor_group&&!root.hidden)void render();})];
-  const binding:quick_open_binding = { root, input, open:()=>open(), open_editors:group=>open(group),close, dispose() { if (disposed) return; disposed = true; directories.dispose(); subscriptions.forEach(release=>release?.());events.abort();resize_observer.disconnect(); close(false); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove();interaction.remove(); if(current_picker===binding)current_picker=undefined; } };
+  const binding:quick_open_binding = { root, input, open:()=>open(), open_center:()=>open(undefined,true), open_editors:group=>open(group),close, dispose() { if (disposed) return; disposed = true; directories.dispose(); subscriptions.forEach(release=>release?.());events.abort();resize_observer.disconnect(); close(false); scan_generation += 1; root.remove(); style.remove(); file_icon_style.remove();interaction.remove(); if(current_picker===binding)current_picker=undefined; } };
   current_picker=binding;
   return binding;
 }

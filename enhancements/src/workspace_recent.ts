@@ -25,6 +25,6 @@ export function bind_workspace_recents(files:workspace_file_host,open_folder:(pa
       ...(!items.length?[{label:error||"没有最近打开的项目",disabled:true}]:[]),{separator:true},
       {label:"更多…",shortcut:"Ctrl+R",action:view.open},{label:"清空最近打开记录…",disabled:!items.length,action:()=>view.confirm_clear(items)}];
   };
-  const binding={entries,open:view.open,open_item:service.open,dispose(){view.dispose();service.dispose();bindings.delete(files);}};
+  const binding={entries,read:service.read,open:view.open,open_item:service.open,dispose(){view.dispose();service.dispose();bindings.delete(files);}};
   bindings.set(files,binding);return binding;
 }

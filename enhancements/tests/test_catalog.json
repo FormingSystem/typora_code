@@ -8370,6 +8370,74 @@
         "99项断言通过，候选资产摘要一致，测试载荷清理"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-command-center-ui",
+      "domain": "search",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R058.2",
+        "R058.1",
+        "R033"
+      ],
+      "design": "docs/quick_open.md#r0582-顶栏命令中心首页与响应2026-09-27",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open.css",
+        "enhancements/src/workspace_titlebar.ts",
+        "enhancements/src/workspace_recent.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "workspace",
+        "editor"
+      ],
+      "script": "enhancements/scripts/test_workspace_command_center.cjs",
+      "environment": "Electron Chromium真实事件；受控51001目录记录与延迟历史",
+      "preconditions": "固定依赖；临时工作区，不修改用户文件",
+      "steps": [
+        "真实Chromium点击/输入；51001候选与100次首页开关",
+        "最近记录延迟、失败、去重、关闭、切库和既有命令调用"
+      ],
+      "expected": [
+        "首页先显示真实功能入口与已打开编辑器，首页零目录读取",
+        "输入才检索，迟到历史不覆盖查询，100次开关无重复扫描"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-command-center-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R058.2"
+      ],
+      "design": "docs/quick_open.md#r0582-顶栏命令中心首页与响应2026-09-27",
+      "implementation": [
+        "enhancements/src/workspace_quick_open.ts",
+        "enhancements/src/workspace_quick_open.css",
+        "enhancements/src/workspace_titlebar.ts",
+        "enhancements/src/workspace_recent.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "quick_open",
+        "search",
+        "git",
+        "remote_files"
+      ],
+      "script": "enhancements/fixtures/command_center_native.js",
+      "environment": "原始Typora 1.14.10私有桌面",
+      "preconditions": "标准运行器创建隔离宿主和用户数据，最终清理载荷",
+      "steps": [
+        "原始Typora顶栏20次打开、文件输入、命令/大纲/搜索动作与退出"
+      ],
+      "expected": [
+        "候选摘要一致，首页不枚举目录，文件与命令走既有服务"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

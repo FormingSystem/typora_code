@@ -41,6 +41,7 @@ const ui_tests = Object.freeze([
   "test_workspace_link_preview.cjs",
   "test_workspace_preview_dock.cjs",
   "test_workspace_quick_open.cjs",
+  "test_workspace_command_center.cjs",
   "test_workspace_recent.cjs",
   "test_community_plugins_ui.cjs",
   "test_commit_hover_markdown.cjs",

@@ -14,7 +14,7 @@ let active_binding:titlebar_binding|undefined;
 let setting_request:Promise<unknown>|undefined;
 
 /** 单行窗口复用宿主窗控节点和阅读历史；设置只对下一次正常启动生效。 */
-export function install_workspace_titlebar(files:workspace_file_host,open_files:()=>void):titlebar_binding|undefined{
+export function install_workspace_titlebar(files:workspace_file_host,open_files:()=>void,open_center:()=>void=open_files):titlebar_binding|undefined{
   if(active_binding)return active_binding;
   const runtime=window as unknown as titlebar_runtime;
   if(!runtime.File?.isNode||runtime.File.isMac)return;
@@ -72,7 +72,7 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
   const plain_title=document.createElement("span");plain_title.className="workspace-titlebar-window-title";plain_title.hidden=true;center.append(plain_title);
   search.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
-  search.addEventListener("click",open_files,{signal:events.signal});
+  search.addEventListener("click",open_center,{signal:events.signal});
   const title=document.querySelector("title");
   const refresh_label=()=>{const folder=files.context_root(),remote=current_remote_workspace();search_label.textContent=remote?'SSH: '+(remote.username||remote.target.split('@')[0]):folder?(files.path_api.basename(folder)||folder):"搜索文件";search.title=remote?(remote.name||remote.target)+' · '+remote.target+(remote.port?':'+remote.port:'')+(remote.state==='connected'?'':' · 未连接'):'搜索文件 (Ctrl+P)';plain_title.textContent=remote?search_label.textContent:title?.textContent?.trim()||search_label.textContent;};
   refresh_label();

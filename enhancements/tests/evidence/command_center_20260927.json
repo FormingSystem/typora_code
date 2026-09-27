@@ -1,0 +1,185 @@
+{
+  "requirements": [
+    "R058.2",
+    "R058.1",
+    "R033"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.14",
+  "scope": "顶栏功能/最近文件首页与Ctrl+P文件检索分开；首页不扫描工程，输入才复用共同目录，迟到隔离与焦点恢复。",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/browser/parts/titlebar/commandCenterControl.ts",
+      "src/vs/workbench/browser/actions/quickAccessActions.ts",
+      "src/vs/workbench/contrib/search/browser/anythingQuickAccess.ts",
+      "src/vs/base/browser/ui/keybindingLabel/keybindingLabel.css"
+    ]
+  },
+  "baseline": {
+    "commit": "721e684",
+    "id": "2125d35b60c340b1bef633ad93c3df4e",
+    "expected_failure": "顶栏无五个功能入口，空首页触发一次目录读取，显示23行文件；容器首帧不与新首页内容首帧作速度倍数比较。"
+  },
+  "checks": {
+    "build_static_core_deployment": "PASS",
+    "catalog_classified_suites": 243,
+    "ui": {
+      "command_center": {
+        "id": "6cd8e4959014434d981086cdb205ccc2",
+        "assertions": 21,
+        "metrics": [
+          {
+            "first_frame_ms": 13.800000000745058,
+            "directory_reads": 0,
+            "rows": 6,
+            "commands": 5,
+            "trusted_clicks": 1
+          },
+          {
+            "query_result_ms": 86.90000000223517
+          },
+          {
+            "cycles": 100,
+            "p95_sync_ms": 0.8000000007450581,
+            "max_sync_ms": 0.8999999985098839,
+            "largest_rows": 6,
+            "reads": 1
+          }
+        ]
+      },
+      "quick_open": "3c3a7afde957419caec2a95f2658fe4a",
+      "recent": "bbe1894787c1482493362eca8825de8c",
+      "titlebar": "ce2f1a17dc46467c98ef470ec5dc08e3",
+      "editor_actions": "12947f6402d14197b619714d9fc65deb",
+      "dismissal": "cd56534f57fe47b7851234d6ef3a8415",
+      "shortcuts": "39eeba6a8e7e40f892f99cacbe8e608f"
+    },
+    "recent_service": {
+      "id": "cbf22e55f7fd41baaa388babf0587724",
+      "rounds": 20
+    },
+    "directory_service": {
+      "id": "dd0abd618ae542d2878590b05e47694d",
+      "concurrent_reads": 1000,
+      "cached_reopens": 100
+    },
+    "native": {
+      "id": "c3403430e5af412bb0b632485369fee9",
+      "assertions": 69,
+      "host": "Typora 1.14.10",
+      "asset_sha256": "ddf1e529cccbb776cd8163eec842e3221f080c1a750354c6dee57d9e62a56e31",
+      "metrics": [
+        {
+          "cycle": 0,
+          "first_frame_ms": 10.599999997764826
+        },
+        {
+          "cycle": 1,
+          "first_frame_ms": 4.800000000745058
+        },
+        {
+          "cycle": 2,
+          "first_frame_ms": 3.800000000745058
+        },
+        {
+          "cycle": 3,
+          "first_frame_ms": 3.900000002235174
+        },
+        {
+          "cycle": 4,
+          "first_frame_ms": 3.599999997764826
+        },
+        {
+          "cycle": 5,
+          "first_frame_ms": 6.100000001490116
+        },
+        {
+          "cycle": 6,
+          "first_frame_ms": 5.900000002235174
+        },
+        {
+          "cycle": 7,
+          "first_frame_ms": 4.300000000745058
+        },
+        {
+          "cycle": 8,
+          "first_frame_ms": 5.5
+        },
+        {
+          "cycle": 9,
+          "first_frame_ms": 5.5
+        },
+        {
+          "cycle": 10,
+          "first_frame_ms": 6.199999999254942
+        },
+        {
+          "cycle": 11,
+          "first_frame_ms": 4.5
+        },
+        {
+          "cycle": 12,
+          "first_frame_ms": 8.799999997019768
+        },
+        {
+          "cycle": 13,
+          "first_frame_ms": 3.699999999254942
+        },
+        {
+          "cycle": 14,
+          "first_frame_ms": 4.800000000745058
+        },
+        {
+          "cycle": 15,
+          "first_frame_ms": 4.400000002235174
+        },
+        {
+          "cycle": 16,
+          "first_frame_ms": 6.300000000745058
+        },
+        {
+          "cycle": 17,
+          "first_frame_ms": 5.600000001490116
+        },
+        {
+          "cycle": 18,
+          "first_frame_ms": 5.399999998509884
+        },
+        {
+          "cycle": 19,
+          "first_frame_ms": 4.599999997764826
+        },
+        {
+          "query_ms": 43.70000000298023,
+          "directory_reads": 1
+        }
+      ],
+      "limits": "原始宿主DOM事件/帧测量；可信Chromium输入另测，未等同物理用户设备或VS Code同机性能比较。"
+    },
+    "install_cycle": "b065fce1e22446dd9aa033e7b43a176c",
+    "uninstall_65_assertions": "32a1947b903c49b8b7be8c0310154199",
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "012c4efc8032d668b61fb26c91e8f588ff3fcf8aa8cc95177a0abb3210547645",
+      "window_restarted": false
+    }
+  },
+  "limitations": [
+    "本轮按影响执行目标检查，未重跑完整check及全量UI；历史8套UI、R047.6/R071.4和未测平台不由本轮关闭。",
+    "UI夹具使用可信Chromium鼠标/输入，原生夹具为DOM事件与私有桌面帧；未与VS Code做同机物理输入对比，也不代表全部卡顿均已消除。",
+    "首页提供实际支持的功能；未移植聊天、调试器、任务运行器。远端不混入本机最近文件，本轮未做企业SSH现场验收。",
+    "几何覆盖明暗图标状态和1/1.25缩放，不替代全主题颜色回归。",
+    "首次UI夹具叶子容器、Windows路径转义及原生输入队列屏障有误，已修正后复验；早期原生Esc仅发keydown，最终补齐keyup并逐次断言关闭。原失败/早期证据保留。",
+    "测试载荷按统一运行器回收；本机仅卸载只读预检，用户窗口未重启。"
+  ]
+}

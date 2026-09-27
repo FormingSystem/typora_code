@@ -50,7 +50,7 @@ export function bind_workspace_browser() {
   lifetime.own(create_workspace_quick_open(files));
   lifetime.own(bind_workspace_tab_controls(core,files));
   lifetime.own(bind_workspace_native_toolbar(files,window as any));
-  lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open()));
+  lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open(),()=>get_workspace_quick_open()?.open_center()));
   lifetime.own(bind_workspace_preferences(core));
   const file_commands=lifetime.own(bind_workspace_file_commands(files,()=>context_changed(true)));
   const open_folder=file_commands.open_folder;

@@ -163784,6 +163784,412 @@ https://creativecommons.org/licenses/by/4.0/
     node.append(document.createTextNode(value.slice(offset)));
   }
 
+  // src/workspace_recent_service.ts
+  function create_recent_service(ports2) {
+    let disposed = false, pending = false;
+    const bounded = (operation) => new Promise((resolve3, reject) => {
+      const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports2.timeout_ms ?? 2500);
+      operation.then(resolve3, reject).finally(() => clearTimeout(timer));
+    });
+    const key3 = (item) => item.kind + ":" + (ports2.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
+    const read2 = async () => {
+      const data = await bounded(ports2.invoke("setting.getRecentFiles"));
+      if (disposed) return [];
+      const seen = /* @__PURE__ */ new Set(), result = [];
+      for (const [group, kind] of [["folders", "folder"], ["files", "file"]]) {
+        const items = [];
+        for (const item of Array.isArray(data?.[group]) ? data[group] : []) {
+          if (typeof item?.path !== "string" || !ports2.path_api.isAbsolute(item.path)) continue;
+          const entry = { path: ports2.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
+          if (!seen.has(key3(entry))) {
+            seen.add(key3(entry));
+            items.push(entry);
+          }
+        }
+        result.push(...items.sort((left, right) => right.date - left.date));
+      }
+      return result;
+    };
+    const remove = async (item) => {
+      if (disposed) return;
+      await ports2.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
+    };
+    const missing2 = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
+    const available = async (item) => {
+      try {
+        const stat = await bounded(ports2.fs.promises.stat(item.path));
+        return item.kind === "folder" ? stat.isDirectory() : stat.isFile();
+      } catch (error) {
+        if (!missing2(error)) throw error;
+        const root = ports2.path_api.parse(item.path).root;
+        try {
+          const stat = await bounded(ports2.fs.promises.stat(root));
+          if (!stat.isDirectory()) throw error;
+        } catch {
+          throw new Error("\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u5DF2\u4FDD\u7559\u6700\u8FD1\u8BB0\u5F55\uFF1A" + item.path);
+        }
+        return false;
+      }
+    };
+    const forget_missing = async (item) => {
+      await remove(item);
+      ports2.notice("\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728\u6216\u7C7B\u578B\u5DF2\u6539\u53D8\uFF0C\u5DF2\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664\uFF1A" + item.path);
+    };
+    const open = async (item, valid = () => true) => {
+      if (disposed || pending || ports2.context_switching() || !valid()) return false;
+      if (!ports2.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
+      pending = true;
+      const epoch2 = ports2.context_epoch();
+      const active2 = () => !disposed && valid() && !ports2.context_switching() && ports2.context_epoch() === epoch2;
+      try {
+        const exists = await available(item);
+        if (!active2()) return false;
+        if (!exists) {
+          await forget_missing(item);
+          return false;
+        }
+        try {
+          if (item.kind === "folder") await ports2.open_folder(item.path);
+          else await ports2.open_file(item.path);
+        } catch (error) {
+          if (active2() && missing2(error) && !await available(item)) {
+            if (active2()) await forget_missing(item);
+            return false;
+          }
+          throw error;
+        }
+        return true;
+      } finally {
+        pending = false;
+      }
+    };
+    const clear = async (items) => {
+      let removed = 0;
+      for (const item of items) {
+        if (disposed) return;
+        try {
+          await remove(item);
+          removed++;
+        } catch (error) {
+          throw new Error("\u5DF2\u79FB\u9664".concat(removed, "\u9879\uFF0C\u5269\u4F59\u8BB0\u5F55\u6E05\u7406\u5931\u8D25\uFF1A").concat(String(error)));
+        }
+      }
+    };
+    return { read: read2, remove, clear, open, dispose() {
+      disposed = true;
+    } };
+  }
+
+  // src/workspace_recent_view.css
+  var workspace_recent_view_default = "";
+
+  // src/workspace_recent_view.ts
+  function create_recent_view(service, path_api, notice) {
+    const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default), local_style = acquire_workspace_style("typora-code-recent-style", workspace_recent_view_default);
+    const icons3 = acquire_workspace_file_icons(), events = new AbortController();
+    const root = workspace_element("section", "workspace-quick-open workspace-recent-open");
+    root.hidden = true;
+    root.setAttribute("role", "dialog");
+    root.setAttribute("aria-label", "\u6253\u5F00\u6700\u8FD1");
+    const input_row = workspace_element("div", "workspace-quick-open-input-row"), input = workspace_element("input");
+    input.placeholder = "\u9009\u62E9\u8981\u6253\u5F00\u7684\u6587\u4EF6\u5939\u6216\u6587\u4EF6";
+    input.setAttribute("aria-label", "\u7B5B\u9009\u6700\u8FD1\u6587\u4EF6\u5939\u548C\u6587\u4EF6");
+    input.setAttribute("role", "combobox");
+    input.setAttribute("aria-controls", "workspace-recent-list");
+    input.setAttribute("aria-autocomplete", "list");
+    input.spellcheck = false;
+    input.autocomplete = "off";
+    input_row.append(input);
+    const status2 = workspace_element("div", "workspace-quick-open-status is-visible");
+    status2.setAttribute("role", "status");
+    const results = workspace_element("div", "workspace-quick-open-results");
+    results.id = "workspace-recent-list";
+    results.setAttribute("role", "listbox");
+    root.append(input_row, status2, results);
+    document.body.append(root);
+    const interaction = acquire_workspace_interaction(root);
+    let items = [], shown = [], selected = 0, generation = 0, load_generation = 0, busy = false, disposed = false;
+    let previous, layer, confirmation;
+    const close = (restore = true) => {
+      generation++;
+      load_generation++;
+      busy = false;
+      const owned2 = layer?.owns_focus();
+      layer?.dispose();
+      layer = void 0;
+      root.hidden = true;
+      root.setAttribute("aria-modal", "false");
+      input.setAttribute("aria-expanded", "false");
+      input.removeAttribute("aria-activedescendant");
+      results.replaceChildren();
+      items = [];
+      shown = [];
+      if (restore && owned2) previous?.restore();
+      previous = void 0;
+    };
+    const select = (index) => {
+      selected = shown.length ? (index + shown.length) % shown.length : 0;
+      input.removeAttribute("aria-activedescendant");
+      for (const row of results.querySelectorAll(".workspace-recent-row")) {
+        const active2 = Number(row.dataset.index) === selected;
+        row.classList.toggle("is-selected", active2);
+        row.setAttribute("aria-selected", String(active2));
+        if (active2) {
+          input.setAttribute("aria-activedescendant", row.id);
+          row.scrollIntoView({ block: "nearest" });
+        }
+      }
+    };
+    const refresh = async () => {
+      const revision = ++load_generation, current = generation;
+      try {
+        const data = await service.read();
+        if (disposed || root.hidden || current !== generation || revision !== load_generation) return;
+        items = data;
+        render();
+      } catch (error) {
+        if (!disposed && !root.hidden && current === generation && revision === load_generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      }
+    };
+    const open_selected = async (item = shown[selected]) => {
+      if (!item || busy) return;
+      busy = true;
+      const current = generation, epoch2 = workspace_context_epoch();
+      try {
+        const opened = await service.open(item, () => !root.hidden && current === generation && epoch2 === workspace_context_epoch());
+        if (current !== generation) return;
+        if (opened) close(false);
+        else await refresh();
+      } catch (error) {
+        if (current === generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      } finally {
+        if (current === generation) busy = false;
+      }
+    };
+    const remove_item = async (item) => {
+      if (busy) return;
+      busy = true;
+      const current = generation;
+      try {
+        await service.remove(item);
+        if (current === generation) {
+          await refresh();
+          input.focus();
+        }
+      } catch (error) {
+        if (current === generation) {
+          status2.classList.add("is-visible");
+          status2.textContent = String(error);
+        }
+      } finally {
+        if (current === generation) busy = false;
+      }
+    };
+    const render = () => {
+      const matcher = create_quick_matcher(input.value), matches = items.map((item) => ({ item, match: matcher.match({ file_path: item.path, relative_path: item.path, name: path_api.basename(item.path) || item.path, directory: path_api.dirname(item.path) }) })).filter((entry) => entry.match);
+      shown = matches.map((entry) => entry.item);
+      results.replaceChildren();
+      status2.textContent = shown.length ? "" : "\u6CA1\u6709\u5339\u914D\u7684\u6700\u8FD1\u9879\u76EE";
+      status2.classList.toggle("is-visible", !shown.length);
+      let kind = "";
+      matches.forEach(({ item, match: match2 }, index) => {
+        if (kind !== item.kind) {
+          kind = item.kind;
+          const heading3 = workspace_element("div", "workspace-recent-group", kind === "folder" ? "\u6587\u4EF6\u5939" : "\u6587\u4EF6");
+          heading3.setAttribute("role", "presentation");
+          results.append(heading3);
+        }
+        const row = workspace_element("div", "workspace-quick-open-result workspace-recent-row");
+        row.dataset.index = String(index);
+        row.id = "workspace-recent-item-" + index;
+        row.setAttribute("role", "option");
+        row.title = item.path;
+        const open_button = workspace_button("", () => void open_selected(item));
+        open_button.className = "workspace-recent-target";
+        open_button.tabIndex = -1;
+        open_button.setAttribute("aria-label", "\u6253\u5F00 " + item.path);
+        open_button.append(item.kind === "folder" ? git_icon("folder") : workspace_file_icon(item.path));
+        const name = workspace_element("span", "workspace-quick-open-name"), directory = workspace_element("span", "workspace-quick-open-path");
+        append_quick_highlights(name, match2.file.name, match2.score.labelMatch);
+        append_quick_highlights(directory, match2.file.directory, match2.score.descriptionMatch);
+        open_button.append(name, directory);
+        const remove = workspace_button("", () => void remove_item(item));
+        remove.className = "workspace-recent-remove";
+        remove.title = "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664";
+        remove.setAttribute("aria-label", "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664 " + item.path);
+        remove.append(git_icon("close"));
+        row.append(open_button, remove);
+        results.append(row);
+      });
+      select(Math.min(selected, shown.length - 1));
+    };
+    const open = async () => {
+      if (disposed) return;
+      if (!root.hidden) {
+        select(selected + 1);
+        input.focus();
+        return;
+      }
+      previous = capture_workspace_focus();
+      generation++;
+      root.hidden = false;
+      root.setAttribute("aria-modal", "true");
+      input.setAttribute("aria-expanded", "true");
+      input.value = "";
+      selected = 0;
+      status2.classList.add("is-visible");
+      status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u2026";
+      layer = register_workspace_dismissal(() => [root], (reason) => close(reason !== "window-blur"), { window_blur: true });
+      input.focus();
+      await refresh();
+    };
+    const confirm_clear = (snapshot) => {
+      if (disposed || confirmation) return;
+      confirmation = workspace_dialog("\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55", "\u53D6\u6D88", () => {
+        confirmation = void 0;
+      });
+      const dialog2 = confirmation;
+      dialog2.content.append(workspace_element("p", "", "\u79FB\u9664\u8FD9".concat(snapshot.length, "\u9879\u6700\u8FD1\u8BB0\u5F55\uFF1F\u4E0D\u4F1A\u5220\u9664\u78C1\u76D8\u6587\u4EF6\u3001\u5173\u95ED\u7F16\u8F91\u5668\u6216\u6E05\u9664\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u3002")));
+      const message = workspace_element("p");
+      message.setAttribute("role", "status");
+      dialog2.content.append(message);
+      const confirm2 = workspace_button("\u6E05\u7A7A\u8BB0\u5F55", async () => {
+        confirm2.disabled = true;
+        dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = true);
+        try {
+          await service.clear(snapshot);
+          dialog2.close();
+          if (!disposed) {
+            notice("\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u5DF2\u6E05\u7A7A\u3002");
+            if (!root.hidden) await refresh();
+          }
+        } catch (error) {
+          message.textContent = String(error);
+          dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = false);
+        }
+      });
+      dialog2.footer.append(confirm2);
+    };
+    input.addEventListener("input", () => {
+      selected = 0;
+      render();
+    }, { signal: events.signal });
+    root.addEventListener("keydown", (event) => {
+      if (is_composing_key(event)) return;
+      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && event.target === input) {
+        event.preventDefault();
+        select(event.key === "Home" ? 0 : event.key === "End" ? shown.length - 1 : selected + (event.key === "ArrowDown" ? 1 : -1));
+      } else if (event.key === "Enter" && event.target === input) {
+        event.preventDefault();
+        void open_selected();
+      } else if (event.code === "KeyR" && (event.ctrlKey || event.metaKey)) {
+        event.preventDefault();
+        select(selected + (event.shiftKey ? -1 : 1));
+      }
+    }, { signal: events.signal });
+    window.addEventListener("linux-note-workspace-context-changed", () => {
+      close(false);
+      confirmation?.close(false);
+    }, { signal: events.signal });
+    window.addEventListener("focus", () => {
+      if (!root.hidden && !busy) void refresh();
+    }, { signal: events.signal });
+    return { open, confirm_clear, dispose() {
+      disposed = true;
+      close(false);
+      confirmation?.close(false);
+      events.abort();
+      interaction.remove();
+      icons3.remove();
+      style.remove();
+      local_style.remove();
+      root.remove();
+    } };
+  }
+
+  // src/workspace_recent.ts
+  var bindings = /* @__PURE__ */ new WeakMap();
+  function get_workspace_recents(files) {
+    return bindings.get(files);
+  }
+  function bind_workspace_recents(files, open_folder) {
+    const runtime3 = window;
+    const notice = (message) => {
+      new files.core.Notice(message, 5e3);
+    };
+    const service = create_recent_service({
+      fs: files.fs,
+      path_api: files.path_api,
+      open_file: files.open_file,
+      open_folder,
+      invoke: (name, ...args) => {
+        if (!runtime3.JSBridge?.invoke) return Promise.reject(new Error("\u6700\u8FD1\u6253\u5F00\u63A5\u53E3\u4E0D\u53EF\u7528\u3002"));
+        return runtime3.JSBridge.invoke(name, ...args);
+      },
+      context_epoch: workspace_context_epoch,
+      context_switching: workspace_context_switching,
+      notice
+    });
+    const view = create_recent_view(service, files.path_api, notice);
+    const entries3 = async () => {
+      let items = [];
+      let error = "";
+      try {
+        items = await service.read();
+      } catch (cause) {
+        error = "\u65E0\u6CD5\u8BFB\u53D6\u6700\u8FD1\u8BB0\u5F55\uFF1A" + String(cause);
+      }
+      const epoch2 = workspace_context_epoch();
+      const group = (kind) => items.filter((item) => item.kind === kind).slice(0, 10).map((item) => ({
+        label: item.path,
+        title: item.path,
+        action: () => service.open(item, () => workspace_context_epoch() === epoch2).catch((cause) => notice(String(cause)))
+      }));
+      const folders = group("folder"), documents = group("file");
+      return [
+        ...folders,
+        ...folders.length && documents.length ? [{ separator: true }] : [],
+        ...documents,
+        ...!items.length ? [{ label: error || "\u6CA1\u6709\u6700\u8FD1\u6253\u5F00\u7684\u9879\u76EE", disabled: true }] : [],
+        { separator: true },
+        { label: "\u66F4\u591A\u2026", shortcut: "Ctrl+R", action: view.open },
+        { label: "\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u2026", disabled: !items.length, action: () => view.confirm_clear(items) }
+      ];
+    };
+    const binding = { entries: entries3, read: service.read, open: view.open, open_item: service.open, dispose() {
+      view.dispose();
+      service.dispose();
+      bindings.delete(files);
+    } };
+    bindings.set(files, binding);
+    return binding;
+  }
+
+  // src/remote_workspace_context.ts
+  var read_context;
+  function register_remote_workspace_context(read2) {
+    if (read_context) throw Error("\u5F53\u524D\u7A97\u53E3\u5DF2\u6CE8\u518CSSH\u5DE5\u4F5C\u533A\u8EAB\u4EFD\u3002");
+    read_context = read2;
+    return () => {
+      if (read_context === read2) read_context = void 0;
+    };
+  }
+  function current_remote_workspace() {
+    const value = read_context?.();
+    return value ? { ...value } : void 0;
+  }
+  function require_remote_terminal_context() {
+    const value = current_remote_workspace();
+    if (value && (value.state !== "connected" || !value.remote_path)) throw Error("SSH\u5C1A\u672A\u8FDE\u63A5\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u65B0\u5EFA\u8FDC\u7A0B\u7EC8\u7AEF\uFF1B\u5982\u9700\u672C\u5730\u7EC8\u7AEF\uFF0C\u8BF7\u5148\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939\u3002");
+    return value;
+  }
+
   // src/workspace_quick_open.ts
   var current_picker;
   function get_workspace_quick_open() {
@@ -163839,18 +164245,22 @@ https://creativecommons.org/licenses/by/4.0/
     document.body.append(root);
     const interaction = acquire_workspace_interaction(root);
     let editor_group;
+    let center_mode = false, home_generation = 0;
+    const home_actions = /* @__PURE__ */ new Map();
+    const is_home = () => center_mode && !editor_group && !input.value.trim();
     const editor_targets = /* @__PURE__ */ new Map(), recent = /* @__PURE__ */ new WeakMap();
     let activation = 0;
-    const read_editors = () => {
+    const read_editors = (all = false) => {
       editor_targets.clear();
       const entries3 = [];
-      files.core.app.workspace.eachLeaves((leaf) => {
-        if (leaf.parent !== editor_group || leaf.state.path.startsWith("typ://core.empty/")) return;
+      files.core?.app.workspace.eachLeaves((leaf) => {
+        if (!all && leaf.parent !== editor_group || leaf.state.path.startsWith("typ://core.empty/")) return;
         const file = files.editor_state(leaf).file_path;
         const tab = workspace_leaf_tab(leaf), name = tab?.querySelector(".typ-file-basename")?.textContent;
         const relative2 = file ? files.path_api.relative(files.context_root(), file) : "";
-        editor_targets.set(leaf.state.path, leaf);
-        entries3.push({ file_path: leaf.state.path, relative_path: relative2, name: file ? files.path_api.basename(file) : name || decodeURIComponent(leaf.state.path.split("/").at(-1) || "\u672A\u547D\u540D"), directory: file ? files.path_api.dirname(relative2).replace(/^\.$/u, "") : "" });
+        const identity5 = all ? "editor:" + entries3.length : leaf.state.path;
+        editor_targets.set(identity5, leaf);
+        entries3.push({ file_path: identity5, relative_path: relative2, name: file ? files.path_api.basename(file) : name || decodeURIComponent(leaf.state.path.split("/").at(-1) || "\u672A\u547D\u540D"), directory: file ? files.path_api.dirname(relative2).replace(/^\.$/u, "") : "" });
       });
       entries3.sort((a, b2) => (recent.get(editor_targets.get(b2.file_path)) || 0) - (recent.get(editor_targets.get(a.file_path)) || 0));
       return entries3;
@@ -163893,6 +164303,9 @@ https://creativecommons.org/licenses/by/4.0/
       const owned2 = escape_layer?.owns_focus();
       escape_layer?.dispose();
       escape_layer = void 0;
+      home_generation++;
+      home_actions.clear();
+      center_mode = false;
       direct_generation++;
       direct_query = void 0;
       direct_file = void 0;
@@ -163943,7 +164356,8 @@ https://creativecommons.org/licenses/by/4.0/
           row.title = file.file_path;
           row.setAttribute("aria-posinset", String(index + 1));
           row.setAttribute("aria-setsize", String(shown.length));
-          row.append(workspace_file_icon(editor_targets.get(file.file_path) ? files.editor_state(editor_targets.get(file.file_path)).file_path || file.name : file.file_path));
+          const home_action = home_actions.get(file.file_path);
+          if (!file.file_path.startsWith("command:")) row.append(workspace_file_icon(editor_targets.get(file.file_path) ? files.editor_state(editor_targets.get(file.file_path)).file_path || file.name : file.file_path));
           const name = document.createElement("span");
           name.className = "workspace-quick-open-name";
           append_quick_highlights(name, file.name, shown_matches[index].score.labelMatch);
@@ -163951,6 +164365,13 @@ https://creativecommons.org/licenses/by/4.0/
           directory.className = "workspace-quick-open-path";
           append_quick_highlights(directory, file.directory, shown_matches[index].score.descriptionMatch);
           row.append(name, directory);
+          if (home_action?.shortcut) {
+            const shortcut = document.createElement("span");
+            shortcut.className = "workspace-quick-open-shortcut";
+            shortcut.textContent = home_action.shortcut;
+            row.append(shortcut);
+          }
+          row.classList.toggle("is-command", file.file_path.startsWith("command:"));
           if (editor_group) {
             const close_action = document.createElement("span");
             close_action.className = "workspace-quick-open-close";
@@ -164029,6 +164450,11 @@ https://creativecommons.org/licenses/by/4.0/
       const opening_generation = scan_generation;
       opening = true;
       try {
+        if (is_home()) {
+          const action = home_actions.get(target.file_path);
+          if (action) await action.run();
+          return;
+        }
         if (editor_group) {
           const leaf = editor_targets.get(target.file_path);
           let exists = false;
@@ -164055,6 +164481,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const render = async () => {
+      if (is_home()) {
+        render_home();
+        return;
+      }
       const query = query_text();
       if (ranking && ranking_query === query) {
         rank_again = true;
@@ -164228,14 +164658,111 @@ https://creativecommons.org/licenses/by/4.0/
         void render();
       }
     };
-    const open = (group) => {
+    const render_home = () => {
+      const request = ++home_generation;
+      home_actions.clear();
+      const current = () => !disposed && !root.hidden && is_home() && request === home_generation && files.context_root() === scan_root && workspace_context_epoch() === context_epoch;
+      const entries3 = [];
+      const add = (id, name, run, shortcut, directory = "") => {
+        entries3.push({ file_path: id, relative_path: id, name, directory });
+        home_actions.set(id, { run, shortcut });
+      };
+      const command = (id) => () => {
+        close();
+        files.core.app.commands.run(id);
+      };
+      add("command:files", "\u8F6C\u5230\u6587\u4EF6", () => open(), "Ctrl+P");
+      add("command:commands", "\u663E\u793A\u548C\u8FD0\u884C\u547D\u4EE4", command("command:open"), "Ctrl+Shift+P", ">");
+      add("command:search", "\u641C\u7D22\u6587\u672C", command("linux_note:search"), "Ctrl+Shift+F");
+      add("command:outline", "\u8F6C\u5230\u7F16\u8F91\u5668\u5927\u7EB2", command("linux_note:outline"));
+      add("command:recent", "\u6700\u8FD1\u6253\u5F00\u2026", command("linux_note:open_recent"), "Ctrl+R");
+      const seen = /* @__PURE__ */ new Set(), key3 = (path) => {
+        const normalized2 = files.path_api.normalize(path);
+        return files.path_api.sep === "\\" ? normalized2.toLowerCase() : normalized2;
+      };
+      for (const item of read_editors(true)) {
+        const leaf = editor_targets.get(item.file_path);
+        const path = files.editor_state(leaf).file_path;
+        seen.add(key3(path || item.file_path));
+        add(item.file_path, item.name, () => {
+          let exists = false;
+          files.core.app.workspace.eachLeaves((other) => {
+            if (other === leaf) exists = true;
+          });
+          if (!exists) {
+            render_home();
+            return;
+          }
+          close(false);
+          files.core.app.workspace.activeLeaf = leaf.parent.toggleTab(leaf.state.path);
+        }, void 0, item.directory || "\u6700\u8FD1\u6253\u5F00");
+      }
+      const paint = () => {
+        const selected = shown[selected_index]?.file_path;
+        shown = entries3.slice();
+        shown_matches = shown.map((file) => ({ file, score: { score: 0 } }));
+        rendered_query = "";
+        selected_index = Math.max(0, shown.findIndex((file) => file.file_path === selected));
+        paint_rows(true);
+      };
+      status2.textContent = "";
+      status2.classList.remove("is-visible");
+      regex_button.hidden = true;
+      results.scrollTop = 0;
+      paint();
+      const recents = get_workspace_recents(files);
+      if (!recents || current_remote_workspace()) return;
+      void recents.read().then((items) => {
+        if (!current()) return;
+        for (const item of items) {
+          const relative2 = files.path_api.relative(scan_root, item.path);
+          if (item.kind !== "file" || !scan_root || relative2 === ".." || relative2.startsWith(".." + files.path_api.sep) || files.path_api.isAbsolute(relative2) || seen.has(key3(item.path))) continue;
+          seen.add(key3(item.path));
+          add(item.path, files.path_api.basename(item.path), async () => {
+            const opened = await recents.open_item(item, current);
+            if (current()) {
+              if (opened) close();
+              else render_home();
+            }
+          }, void 0, files.path_api.dirname(relative2).replace(/^\.$/u, "") || "\u6700\u8FD1\u6253\u5F00");
+        }
+        paint();
+      }).catch((error) => {
+        if (current()) {
+          status2.textContent = "\u6700\u8FD1\u8BB0\u5F55\u8BFB\u53D6\u5931\u8D25\uFF1A" + String(error);
+          status2.classList.add("is-visible");
+        }
+      });
+    };
+    const start_catalogue = () => {
+      if (stop_directory_updates) return;
+      stop_progress = directories.service.subscribe_progress((workspace_root, entries3) => {
+        if (scanning && !editor_group && !is_home() && workspace_root === scan_root && !root.hidden) {
+          catalogue = entries3;
+          schedule_render();
+        }
+      });
+      stop_directory_updates = directories.service.subscribe(scan_root, (change) => {
+        if (change.names && !editor_group && !is_home()) {
+          clearTimeout(render_timer);
+          render_timer = window.setTimeout(() => {
+            render_timer = 0;
+            void scan();
+          }, 80);
+        }
+      });
+      if (!editor_group && directories.service.cached_catalogue(scan_root)?.files !== catalogue) void scan();
+    };
+    const open = (group, center = false) => {
       if (disposed || workspace_context_switching()) return;
+      const inherited_focus = !root.hidden ? previous_focus : void 0;
       if (!root.hidden) close(false);
       editor_group = group;
+      center_mode = center;
       scan_root = files.context_root();
       context_epoch = workspace_context_epoch();
       input.title = scan_root || "\u672A\u6253\u5F00\u6587\u4EF6\u5939";
-      previous_focus = capture_workspace_focus();
+      previous_focus = inherited_focus || capture_workspace_focus();
       escape_layer = register_workspace_dismissal(() => [root], (reason) => {
         if (reason === "focus-out" && opening && editor_group) return;
         close(reason === "escape");
@@ -164244,33 +164771,26 @@ https://creativecommons.org/licenses/by/4.0/
       input.setAttribute("aria-expanded", "true");
       root.setAttribute("aria-modal", "true");
       input.value = group ? "edt active " : "";
-      input.setAttribute("aria-label", group ? "\u5F53\u524D\u7EC4\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668" : "\u6309\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u641C\u7D22");
-      const cached = !group && scan_root ? directories.service.cached_catalogue(scan_root) : void 0;
+      input.placeholder = center ? "\u641C\u7D22\u6587\u4EF6\uFF0C\u6216\u9009\u62E9\u4E0B\u65B9\u529F\u80FD" : "\u952E\u5165\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u8FDB\u884C\u641C\u7D22";
+      regex_button.hidden = center;
+      input.setAttribute("aria-label", group ? "\u5F53\u524D\u7EC4\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668" : center ? "\u641C\u7D22\u6587\u4EF6\u548C\u529F\u80FD" : "\u6309\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u641C\u7D22");
+      const cached = !group && !center && scan_root ? directories.service.cached_catalogue(scan_root) : void 0;
       catalogue = cached?.files || [];
       unreadable = cached?.unreadable || 0;
       results.replaceChildren();
       input.focus();
       render();
-      {
-        stop_progress = directories.service.subscribe_progress((workspace_root, entries3) => {
-          if (scanning && !editor_group && workspace_root === scan_root && !root.hidden) {
-            catalogue = entries3;
-            schedule_render();
-          }
-        });
-        stop_directory_updates = directories.service.subscribe(scan_root, (change) => {
-          if (change.names && !editor_group) {
-            clearTimeout(render_timer);
-            render_timer = window.setTimeout(() => {
-              render_timer = 0;
-              void scan();
-            }, 80);
-          }
-        });
-        if (!group && !cached) void scan();
-      }
+      if (!center && !group) start_catalogue();
     };
     input.oninput = () => {
+      if (center_mode && input.value.trim() === ">") {
+        close();
+        files.core.app.commands.run("command:open");
+        return;
+      }
+      home_generation++;
+      home_actions.clear();
+      regex_button.hidden = is_home();
       match_controller?.abort();
       render_generation++;
       ranking = false;
@@ -164287,6 +164807,19 @@ https://creativecommons.org/licenses/by/4.0/
         catalogue = [];
         if (!group) void scan();
       }
+      if (is_home()) {
+        scan_generation++;
+        scanning = false;
+        stop_progress?.();
+        stop_progress = void 0;
+        stop_directory_updates?.();
+        stop_directory_updates = void 0;
+        clearTimeout(render_timer);
+        render_timer = 0;
+        void render();
+        return;
+      }
+      if (center_mode && !editor_group) start_catalogue();
       void render();
     };
     input.onkeydown = (event) => {
@@ -164311,7 +164844,7 @@ https://creativecommons.org/licenses/by/4.0/
     const subscriptions = [files.core?.app.workspace.on?.("active-leaf:change", active_changed), files.core?.app.workspace.on?.("layout-changed", () => {
       if (editor_group && !root.hidden) void render();
     })];
-    const binding = { root, input, open: () => open(), open_editors: (group) => open(group), close, dispose() {
+    const binding = { root, input, open: () => open(), open_center: () => open(void 0, true), open_editors: (group) => open(group), close, dispose() {
       if (disposed) return;
       disposed = true;
       directories.dispose();
@@ -210750,25 +211283,6 @@ https://creativecommons.org/licenses/by/4.0/
     window.dispatchEvent(new Event("typora-code-ssh-settings-changed"));
   }
 
-  // src/remote_workspace_context.ts
-  var read_context;
-  function register_remote_workspace_context(read2) {
-    if (read_context) throw Error("\u5F53\u524D\u7A97\u53E3\u5DF2\u6CE8\u518CSSH\u5DE5\u4F5C\u533A\u8EAB\u4EFD\u3002");
-    read_context = read2;
-    return () => {
-      if (read_context === read2) read_context = void 0;
-    };
-  }
-  function current_remote_workspace() {
-    const value = read_context?.();
-    return value ? { ...value } : void 0;
-  }
-  function require_remote_terminal_context() {
-    const value = current_remote_workspace();
-    if (value && (value.state !== "connected" || !value.remote_path)) throw Error("SSH\u5C1A\u672A\u8FDE\u63A5\uFF0C\u8BF7\u8FDE\u63A5\u539F\u4E3B\u673A\u540E\u65B0\u5EFA\u8FDC\u7A0B\u7EC8\u7AEF\uFF1B\u5982\u9700\u672C\u5730\u7EC8\u7AEF\uFF0C\u8BF7\u5148\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939\u3002");
-    return value;
-  }
-
   // src/terminal_workspace.ts
   var TERMINAL_TYPE = "linux_note.terminal";
   var icons = ["terminal", "git-branch", "folder", "file", "book", "symbol-method"];
@@ -240902,6 +241416,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092714,
+        version: "2026.09.27.14",
+        date: "2026-09-27",
+        notes: [
+          "\u9876\u680F\u641C\u7D22\u5148\u663E\u793A\u529F\u80FD\u5165\u53E3\u548C\u5F53\u524D\u5DE5\u7A0B\u6700\u8FD1\u6587\u4EF6\uFF1B\u76F4\u63A5\u8F93\u5165\u67E5\u627E\u6587\u4EF6\uFF0CCtrl+P\u4ECD\u76F4\u63A5\u68C0\u7D22\u3002",
+          "\u6253\u5F00\u529F\u80FD\u9996\u9875\u4E0D\u518D\u626B\u63CF\u6216\u6392\u5E8F\u6574\u4E2A\u5DE5\u7A0B\uFF0C\u6700\u8FD1\u8BB0\u5F55\u5F02\u6B65\u8865\u5145\uFF0C\u5173\u95ED\u53CA\u5207\u5E93\u540E\u65E7\u7ED3\u679C\u4E0D\u518D\u8986\u76D6\u754C\u9762\u3002"
+        ]
+      },
+      {
         sequence: 2026092713,
         version: "2026.09.27.13",
         date: "2026-09-27",
@@ -242617,11 +243140,11 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_zoom_status_default = "";
 
   // src/workspace_zoom_status.ts
-  var bindings = /* @__PURE__ */ new WeakMap();
+  var bindings2 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_zoom_status(app, runtime3 = window) {
     const footer = document.querySelector("footer.ty-footer");
     if (!footer) return;
-    const existing = bindings.get(footer);
+    const existing = bindings2.get(footer);
     if (existing) return existing;
     let frame3;
     try {
@@ -242760,10 +243283,10 @@ https://creativecommons.org/licenses/by/4.0/
       observer3.disconnect();
       hover.dispose();
       group.remove();
-      bindings.delete(footer);
+      bindings2.delete(footer);
     });
     const binding = { dispose: lifetime.dispose };
-    bindings.set(footer, binding);
+    bindings2.set(footer, binding);
     sync();
     return binding;
   }
@@ -244131,9 +244654,9 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_file_header_default = "";
 
   // src/workspace_file_header.ts
-  var bindings2 = /* @__PURE__ */ new WeakMap();
+  var bindings3 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_file_header(files, actions) {
-    const existing = bindings2.get(files);
+    const existing = bindings3.get(files);
     if (existing) return existing;
     const workspace = files.core.app.workspace, groups = /* @__PURE__ */ new Map();
     const style = acquire_workspace_style("typora-code-style:workspace_file_header", workspace_file_header_default), events = new AbortController();
@@ -244314,9 +244837,9 @@ https://creativecommons.org/licenses/by/4.0/
       for (const unsubscribe of unsubscribers) unsubscribe?.();
       for (const state of [...groups.values()]) release(state);
       style.remove();
-      bindings2.delete(files);
+      bindings3.delete(files);
     } };
-    bindings2.set(files, binding);
+    bindings3.set(files, binding);
     return binding;
   }
 
@@ -244406,9 +244929,9 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_preferences_default = "";
 
   // src/workspace_preferences.ts
-  var bindings3 = /* @__PURE__ */ new WeakMap();
+  var bindings4 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_preferences(core) {
-    const existing = bindings3.get(core);
+    const existing = bindings4.get(core);
     if (existing) return existing;
     const style = acquire_workspace_style("typora-code-preferences", workspace_preferences_default);
     const button = document.createElement("button");
@@ -244453,9 +244976,9 @@ https://creativecommons.org/licenses/by/4.0/
       button.onclick = null;
       button.remove();
       style.remove();
-      bindings3.delete(core);
+      bindings4.delete(core);
     } };
-    bindings3.set(core, binding);
+    bindings4.set(core, binding);
     return binding;
   }
 
@@ -244463,9 +244986,9 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_tab_controls_default = "";
 
   // src/workspace_tab_controls.ts
-  var bindings4 = /* @__PURE__ */ new WeakMap();
+  var bindings5 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_tab_controls(core, files) {
-    const existing = bindings4.get(core);
+    const existing = bindings5.get(core);
     if (existing) return existing;
     const interaction = acquire_workspace_interaction(), inline4 = acquire_workspace_inline_layout();
     const style = acquire_workspace_style("typora-code-tab-controls", workspace_tab_controls_default), events = new AbortController();
@@ -244615,9 +245138,9 @@ https://creativecommons.org/licenses/by/4.0/
       style.remove();
       inline4.remove();
       interaction.remove();
-      bindings4.delete(core);
+      bindings5.delete(core);
     } };
-    bindings4.set(core, binding);
+    bindings5.set(core, binding);
     return binding;
   }
 
@@ -244781,9 +245304,9 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_detached_window.ts
   var CHANNEL_PREFIX = "typora-code:tab-transfer:";
   var TRANSFER_TIMEOUT_MS = 25e3;
-  var bindings5 = /* @__PURE__ */ new WeakMap();
+  var bindings6 = /* @__PURE__ */ new WeakMap();
   function bind_workspace_detached_window(files, options2 = {}) {
-    const existing = bindings5.get(files);
+    const existing = bindings6.get(files);
     if (existing) return existing;
     const runtime3 = window;
     const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
@@ -245080,10 +245603,10 @@ https://creativecommons.org/licenses/by/4.0/
       document.removeEventListener("typora-code:tab-drag-end", drag_end);
       window.removeEventListener("pagehide", binding.dispose);
       for (const cancel of [...cancellations]) cancel();
-      bindings5.delete(files);
+      bindings6.delete(files);
     } };
     window.addEventListener("pagehide", binding.dispose);
-    bindings5.set(files, binding);
+    bindings6.set(files, binding);
     return binding;
   }
 
@@ -245282,13 +245805,13 @@ https://creativecommons.org/licenses/by/4.0/
   var SIDEBAR_MIN_WIDTH = 170;
   var SIDEBAR_SNAP_WIDTH = Math.floor(SIDEBAR_MIN_WIDTH / 2);
   var EDITOR_MIN_WIDTH = 220;
-  var bindings6 = /* @__PURE__ */ new WeakMap();
+  var bindings7 = /* @__PURE__ */ new WeakMap();
   function install_workspace_sidebar_sash(options2) {
     const sash = document.querySelector("#typora-sidebar-resizer");
     const sidebar_element = document.querySelector("#typora-sidebar");
     const ribbon = document.querySelector(".typ-ribbon");
     if (!sash || !sidebar_element || !ribbon) return;
-    const existing = bindings6.get(sash);
+    const existing = bindings7.get(sash);
     if (existing) return existing;
     const root = document.documentElement;
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
@@ -245465,21 +245988,21 @@ https://creativecommons.org/licenses/by/4.0/
       delete sash.dataset.workspaceSidebarSash;
       root.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
-      bindings6.delete(sash);
+      bindings7.delete(sash);
     };
     const binding = { element: sash, set_width(width2) {
       preferred_width = clamp_width(width2);
       apply_width(preferred_width);
       persist();
     }, refresh, dispose: dispose2 };
-    bindings6.set(sash, binding);
+    bindings7.set(sash, binding);
     window.addEventListener("pagehide", dispose2, { once: true });
     refresh();
     return binding;
   }
   function resize_workspace_sidebar(width2) {
     const sash = document.getElementById("typora-sidebar-resizer");
-    const binding = sash && bindings6.get(sash);
+    const binding = sash && bindings7.get(sash);
     if (binding) {
       binding.set_width(width2);
       return true;
@@ -248296,7 +248819,7 @@ https://creativecommons.org/licenses/by/4.0/
   var MAXIMUM_MARGIN = 24;
   var ROOT_ATTRIBUTE = "data-linux-note-document-margin";
   var properties = ["--linux-note-document-margin", "--linux-note-document-width"];
-  var bindings7 = /* @__PURE__ */ new WeakMap();
+  var bindings8 = /* @__PURE__ */ new WeakMap();
   function normalize_margin(value) {
     const margin = Number(value);
     return Number.isFinite(margin) ? Math.max(MINIMUM_MARGIN, Math.min(MAXIMUM_MARGIN, Math.round(margin))) : 0;
@@ -248322,7 +248845,7 @@ https://creativecommons.org/licenses/by/4.0/
     else change();
   }
   function install_workspace_document_margin(footer) {
-    const existing = bindings7.get(footer);
+    const existing = bindings8.get(footer);
     if (existing) return existing;
     const root = document.documentElement;
     const previous_attribute = root.getAttribute(ROOT_ATTRIBUTE);
@@ -248404,9 +248927,9 @@ https://creativecommons.org/licenses/by/4.0/
         layout2.remove();
         style.remove();
       });
-      bindings7.delete(footer);
+      bindings8.delete(footer);
     } };
-    bindings7.set(footer, binding);
+    bindings8.set(footer, binding);
     return binding;
   }
 
@@ -248896,393 +249419,6 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/workspace_recent_service.ts
-  function create_recent_service(ports2) {
-    let disposed = false, pending = false;
-    const bounded = (operation) => new Promise((resolve3, reject) => {
-      const timer = setTimeout(() => reject(new Error("\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u8D85\u65F6\uFF0C\u8BF7\u68C0\u67E5\u78C1\u76D8\u8FDE\u63A5\u540E\u91CD\u8BD5\u3002")), ports2.timeout_ms ?? 2500);
-      operation.then(resolve3, reject).finally(() => clearTimeout(timer));
-    });
-    const key3 = (item) => item.kind + ":" + (ports2.path_api.sep === "\\" ? item.path.toLowerCase() : item.path);
-    const read2 = async () => {
-      const data = await bounded(ports2.invoke("setting.getRecentFiles"));
-      if (disposed) return [];
-      const seen = /* @__PURE__ */ new Set(), result = [];
-      for (const [group, kind] of [["folders", "folder"], ["files", "file"]]) {
-        const items = [];
-        for (const item of Array.isArray(data?.[group]) ? data[group] : []) {
-          if (typeof item?.path !== "string" || !ports2.path_api.isAbsolute(item.path)) continue;
-          const entry = { path: ports2.path_api.normalize(item.path), kind, date: Number(item.date) || 0 };
-          if (!seen.has(key3(entry))) {
-            seen.add(key3(entry));
-            items.push(entry);
-          }
-        }
-        result.push(...items.sort((left, right) => right.date - left.date));
-      }
-      return result;
-    };
-    const remove = async (item) => {
-      if (disposed) return;
-      await ports2.invoke(item.kind === "folder" ? "setting.removeRecentFolder" : "setting.removeRecentDocument", item.path);
-    };
-    const missing2 = (error) => error?.code === "ENOENT" || error?.code === "ENOTDIR";
-    const available = async (item) => {
-      try {
-        const stat = await bounded(ports2.fs.promises.stat(item.path));
-        return item.kind === "folder" ? stat.isDirectory() : stat.isFile();
-      } catch (error) {
-        if (!missing2(error)) throw error;
-        const root = ports2.path_api.parse(item.path).root;
-        try {
-          const stat = await bounded(ports2.fs.promises.stat(root));
-          if (!stat.isDirectory()) throw error;
-        } catch {
-          throw new Error("\u78C1\u76D8\u6216\u5171\u4EAB\u4F4D\u7F6E\u6682\u65F6\u4E0D\u53EF\u7528\uFF0C\u5DF2\u4FDD\u7559\u6700\u8FD1\u8BB0\u5F55\uFF1A" + item.path);
-        }
-        return false;
-      }
-    };
-    const forget_missing = async (item) => {
-      await remove(item);
-      ports2.notice("\u9879\u76EE\u5DF2\u4E0D\u5B58\u5728\u6216\u7C7B\u578B\u5DF2\u6539\u53D8\uFF0C\u5DF2\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664\uFF1A" + item.path);
-    };
-    const open = async (item, valid = () => true) => {
-      if (disposed || pending || ports2.context_switching() || !valid()) return false;
-      if (!ports2.path_api.isAbsolute(item.path) || !["file", "folder"].includes(item.kind)) throw new Error("\u6700\u8FD1\u9879\u76EE\u8DEF\u5F84\u65E0\u6548\u3002");
-      pending = true;
-      const epoch2 = ports2.context_epoch();
-      const active2 = () => !disposed && valid() && !ports2.context_switching() && ports2.context_epoch() === epoch2;
-      try {
-        const exists = await available(item);
-        if (!active2()) return false;
-        if (!exists) {
-          await forget_missing(item);
-          return false;
-        }
-        try {
-          if (item.kind === "folder") await ports2.open_folder(item.path);
-          else await ports2.open_file(item.path);
-        } catch (error) {
-          if (active2() && missing2(error) && !await available(item)) {
-            if (active2()) await forget_missing(item);
-            return false;
-          }
-          throw error;
-        }
-        return true;
-      } finally {
-        pending = false;
-      }
-    };
-    const clear = async (items) => {
-      let removed = 0;
-      for (const item of items) {
-        if (disposed) return;
-        try {
-          await remove(item);
-          removed++;
-        } catch (error) {
-          throw new Error("\u5DF2\u79FB\u9664".concat(removed, "\u9879\uFF0C\u5269\u4F59\u8BB0\u5F55\u6E05\u7406\u5931\u8D25\uFF1A").concat(String(error)));
-        }
-      }
-    };
-    return { read: read2, remove, clear, open, dispose() {
-      disposed = true;
-    } };
-  }
-
-  // src/workspace_recent_view.css
-  var workspace_recent_view_default = "";
-
-  // src/workspace_recent_view.ts
-  function create_recent_view(service, path_api, notice) {
-    const style = acquire_workspace_style("typora-code-quick-open-style", workspace_quick_open_default), local_style = acquire_workspace_style("typora-code-recent-style", workspace_recent_view_default);
-    const icons3 = acquire_workspace_file_icons(), events = new AbortController();
-    const root = workspace_element("section", "workspace-quick-open workspace-recent-open");
-    root.hidden = true;
-    root.setAttribute("role", "dialog");
-    root.setAttribute("aria-label", "\u6253\u5F00\u6700\u8FD1");
-    const input_row = workspace_element("div", "workspace-quick-open-input-row"), input = workspace_element("input");
-    input.placeholder = "\u9009\u62E9\u8981\u6253\u5F00\u7684\u6587\u4EF6\u5939\u6216\u6587\u4EF6";
-    input.setAttribute("aria-label", "\u7B5B\u9009\u6700\u8FD1\u6587\u4EF6\u5939\u548C\u6587\u4EF6");
-    input.setAttribute("role", "combobox");
-    input.setAttribute("aria-controls", "workspace-recent-list");
-    input.setAttribute("aria-autocomplete", "list");
-    input.spellcheck = false;
-    input.autocomplete = "off";
-    input_row.append(input);
-    const status2 = workspace_element("div", "workspace-quick-open-status is-visible");
-    status2.setAttribute("role", "status");
-    const results = workspace_element("div", "workspace-quick-open-results");
-    results.id = "workspace-recent-list";
-    results.setAttribute("role", "listbox");
-    root.append(input_row, status2, results);
-    document.body.append(root);
-    const interaction = acquire_workspace_interaction(root);
-    let items = [], shown = [], selected = 0, generation = 0, load_generation = 0, busy = false, disposed = false;
-    let previous, layer, confirmation;
-    const close = (restore = true) => {
-      generation++;
-      load_generation++;
-      busy = false;
-      const owned2 = layer?.owns_focus();
-      layer?.dispose();
-      layer = void 0;
-      root.hidden = true;
-      root.setAttribute("aria-modal", "false");
-      input.setAttribute("aria-expanded", "false");
-      input.removeAttribute("aria-activedescendant");
-      results.replaceChildren();
-      items = [];
-      shown = [];
-      if (restore && owned2) previous?.restore();
-      previous = void 0;
-    };
-    const select = (index) => {
-      selected = shown.length ? (index + shown.length) % shown.length : 0;
-      input.removeAttribute("aria-activedescendant");
-      for (const row of results.querySelectorAll(".workspace-recent-row")) {
-        const active2 = Number(row.dataset.index) === selected;
-        row.classList.toggle("is-selected", active2);
-        row.setAttribute("aria-selected", String(active2));
-        if (active2) {
-          input.setAttribute("aria-activedescendant", row.id);
-          row.scrollIntoView({ block: "nearest" });
-        }
-      }
-    };
-    const refresh = async () => {
-      const revision = ++load_generation, current = generation;
-      try {
-        const data = await service.read();
-        if (disposed || root.hidden || current !== generation || revision !== load_generation) return;
-        items = data;
-        render();
-      } catch (error) {
-        if (!disposed && !root.hidden && current === generation && revision === load_generation) {
-          status2.classList.add("is-visible");
-          status2.textContent = String(error);
-        }
-      }
-    };
-    const open_selected = async (item = shown[selected]) => {
-      if (!item || busy) return;
-      busy = true;
-      const current = generation, epoch2 = workspace_context_epoch();
-      try {
-        const opened = await service.open(item, () => !root.hidden && current === generation && epoch2 === workspace_context_epoch());
-        if (current !== generation) return;
-        if (opened) close(false);
-        else await refresh();
-      } catch (error) {
-        if (current === generation) {
-          status2.classList.add("is-visible");
-          status2.textContent = String(error);
-        }
-      } finally {
-        if (current === generation) busy = false;
-      }
-    };
-    const remove_item = async (item) => {
-      if (busy) return;
-      busy = true;
-      const current = generation;
-      try {
-        await service.remove(item);
-        if (current === generation) {
-          await refresh();
-          input.focus();
-        }
-      } catch (error) {
-        if (current === generation) {
-          status2.classList.add("is-visible");
-          status2.textContent = String(error);
-        }
-      } finally {
-        if (current === generation) busy = false;
-      }
-    };
-    const render = () => {
-      const matcher = create_quick_matcher(input.value), matches = items.map((item) => ({ item, match: matcher.match({ file_path: item.path, relative_path: item.path, name: path_api.basename(item.path) || item.path, directory: path_api.dirname(item.path) }) })).filter((entry) => entry.match);
-      shown = matches.map((entry) => entry.item);
-      results.replaceChildren();
-      status2.textContent = shown.length ? "" : "\u6CA1\u6709\u5339\u914D\u7684\u6700\u8FD1\u9879\u76EE";
-      status2.classList.toggle("is-visible", !shown.length);
-      let kind = "";
-      matches.forEach(({ item, match: match2 }, index) => {
-        if (kind !== item.kind) {
-          kind = item.kind;
-          const heading3 = workspace_element("div", "workspace-recent-group", kind === "folder" ? "\u6587\u4EF6\u5939" : "\u6587\u4EF6");
-          heading3.setAttribute("role", "presentation");
-          results.append(heading3);
-        }
-        const row = workspace_element("div", "workspace-quick-open-result workspace-recent-row");
-        row.dataset.index = String(index);
-        row.id = "workspace-recent-item-" + index;
-        row.setAttribute("role", "option");
-        row.title = item.path;
-        const open_button = workspace_button("", () => void open_selected(item));
-        open_button.className = "workspace-recent-target";
-        open_button.tabIndex = -1;
-        open_button.setAttribute("aria-label", "\u6253\u5F00 " + item.path);
-        open_button.append(item.kind === "folder" ? git_icon("folder") : workspace_file_icon(item.path));
-        const name = workspace_element("span", "workspace-quick-open-name"), directory = workspace_element("span", "workspace-quick-open-path");
-        append_quick_highlights(name, match2.file.name, match2.score.labelMatch);
-        append_quick_highlights(directory, match2.file.directory, match2.score.descriptionMatch);
-        open_button.append(name, directory);
-        const remove = workspace_button("", () => void remove_item(item));
-        remove.className = "workspace-recent-remove";
-        remove.title = "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664";
-        remove.setAttribute("aria-label", "\u4ECE\u6700\u8FD1\u6253\u5F00\u4E2D\u79FB\u9664 " + item.path);
-        remove.append(git_icon("close"));
-        row.append(open_button, remove);
-        results.append(row);
-      });
-      select(Math.min(selected, shown.length - 1));
-    };
-    const open = async () => {
-      if (disposed) return;
-      if (!root.hidden) {
-        select(selected + 1);
-        input.focus();
-        return;
-      }
-      previous = capture_workspace_focus();
-      generation++;
-      root.hidden = false;
-      root.setAttribute("aria-modal", "true");
-      input.setAttribute("aria-expanded", "true");
-      input.value = "";
-      selected = 0;
-      status2.classList.add("is-visible");
-      status2.textContent = "\u6B63\u5728\u8BFB\u53D6\u6700\u8FD1\u9879\u76EE\u2026";
-      layer = register_workspace_dismissal(() => [root], (reason) => close(reason !== "window-blur"), { window_blur: true });
-      input.focus();
-      await refresh();
-    };
-    const confirm_clear = (snapshot) => {
-      if (disposed || confirmation) return;
-      confirmation = workspace_dialog("\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55", "\u53D6\u6D88", () => {
-        confirmation = void 0;
-      });
-      const dialog2 = confirmation;
-      dialog2.content.append(workspace_element("p", "", "\u79FB\u9664\u8FD9".concat(snapshot.length, "\u9879\u6700\u8FD1\u8BB0\u5F55\uFF1F\u4E0D\u4F1A\u5220\u9664\u78C1\u76D8\u6587\u4EF6\u3001\u5173\u95ED\u7F16\u8F91\u5668\u6216\u6E05\u9664\u5DE5\u4F5C\u533A\u4F1A\u8BDD\u3002")));
-      const message = workspace_element("p");
-      message.setAttribute("role", "status");
-      dialog2.content.append(message);
-      const confirm2 = workspace_button("\u6E05\u7A7A\u8BB0\u5F55", async () => {
-        confirm2.disabled = true;
-        dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = true);
-        try {
-          await service.clear(snapshot);
-          dialog2.close();
-          if (!disposed) {
-            notice("\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u5DF2\u6E05\u7A7A\u3002");
-            if (!root.hidden) await refresh();
-          }
-        } catch (error) {
-          message.textContent = String(error);
-          dialog2.footer.querySelectorAll("button").forEach((button) => button.disabled = false);
-        }
-      });
-      dialog2.footer.append(confirm2);
-    };
-    input.addEventListener("input", () => {
-      selected = 0;
-      render();
-    }, { signal: events.signal });
-    root.addEventListener("keydown", (event) => {
-      if (is_composing_key(event)) return;
-      if (["ArrowDown", "ArrowUp", "Home", "End"].includes(event.key) && event.target === input) {
-        event.preventDefault();
-        select(event.key === "Home" ? 0 : event.key === "End" ? shown.length - 1 : selected + (event.key === "ArrowDown" ? 1 : -1));
-      } else if (event.key === "Enter" && event.target === input) {
-        event.preventDefault();
-        void open_selected();
-      } else if (event.code === "KeyR" && (event.ctrlKey || event.metaKey)) {
-        event.preventDefault();
-        select(selected + (event.shiftKey ? -1 : 1));
-      }
-    }, { signal: events.signal });
-    window.addEventListener("linux-note-workspace-context-changed", () => {
-      close(false);
-      confirmation?.close(false);
-    }, { signal: events.signal });
-    window.addEventListener("focus", () => {
-      if (!root.hidden && !busy) void refresh();
-    }, { signal: events.signal });
-    return { open, confirm_clear, dispose() {
-      disposed = true;
-      close(false);
-      confirmation?.close(false);
-      events.abort();
-      interaction.remove();
-      icons3.remove();
-      style.remove();
-      local_style.remove();
-      root.remove();
-    } };
-  }
-
-  // src/workspace_recent.ts
-  var bindings8 = /* @__PURE__ */ new WeakMap();
-  function get_workspace_recents(files) {
-    return bindings8.get(files);
-  }
-  function bind_workspace_recents(files, open_folder) {
-    const runtime3 = window;
-    const notice = (message) => {
-      new files.core.Notice(message, 5e3);
-    };
-    const service = create_recent_service({
-      fs: files.fs,
-      path_api: files.path_api,
-      open_file: files.open_file,
-      open_folder,
-      invoke: (name, ...args) => {
-        if (!runtime3.JSBridge?.invoke) return Promise.reject(new Error("\u6700\u8FD1\u6253\u5F00\u63A5\u53E3\u4E0D\u53EF\u7528\u3002"));
-        return runtime3.JSBridge.invoke(name, ...args);
-      },
-      context_epoch: workspace_context_epoch,
-      context_switching: workspace_context_switching,
-      notice
-    });
-    const view = create_recent_view(service, files.path_api, notice);
-    const entries3 = async () => {
-      let items = [];
-      let error = "";
-      try {
-        items = await service.read();
-      } catch (cause) {
-        error = "\u65E0\u6CD5\u8BFB\u53D6\u6700\u8FD1\u8BB0\u5F55\uFF1A" + String(cause);
-      }
-      const epoch2 = workspace_context_epoch();
-      const group = (kind) => items.filter((item) => item.kind === kind).slice(0, 10).map((item) => ({
-        label: item.path,
-        title: item.path,
-        action: () => service.open(item, () => workspace_context_epoch() === epoch2).catch((cause) => notice(String(cause)))
-      }));
-      const folders = group("folder"), documents = group("file");
-      return [
-        ...folders,
-        ...folders.length && documents.length ? [{ separator: true }] : [],
-        ...documents,
-        ...!items.length ? [{ label: error || "\u6CA1\u6709\u6700\u8FD1\u6253\u5F00\u7684\u9879\u76EE", disabled: true }] : [],
-        { separator: true },
-        { label: "\u66F4\u591A\u2026", shortcut: "Ctrl+R", action: view.open },
-        { label: "\u6E05\u7A7A\u6700\u8FD1\u6253\u5F00\u8BB0\u5F55\u2026", disabled: !items.length, action: () => view.confirm_clear(items) }
-      ];
-    };
-    const binding = { entries: entries3, open: view.open, open_item: service.open, dispose() {
-      view.dispose();
-      service.dispose();
-      bindings8.delete(files);
-    } };
-    bindings8.set(files, binding);
-    return binding;
-  }
-
   // src/workspace_save_settings.ts
   var FILE_SETTING_DEFAULTS = Object.freeze({
     "files.autoSave": "off",
@@ -249740,7 +249876,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_titlebar.ts
   var active_binding2;
   var setting_request;
-  function install_workspace_titlebar(files, open_files) {
+  function install_workspace_titlebar(files, open_files, open_center = open_files) {
     if (active_binding2) return active_binding2;
     const runtime3 = window;
     if (!runtime3.File?.isNode || runtime3.File.isMac) return;
@@ -249846,7 +249982,7 @@ https://creativecommons.org/licenses/by/4.0/
     plain_title.hidden = true;
     center.append(plain_title);
     search2.addEventListener("mousedown", (event) => event.preventDefault(), { signal: events.signal });
-    search2.addEventListener("click", open_files, { signal: events.signal });
+    search2.addEventListener("click", open_center, { signal: events.signal });
     const title = document.querySelector("title");
     const refresh_label = () => {
       const folder = files.context_root(), remote = current_remote_workspace();
@@ -253948,7 +254084,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(create_workspace_quick_open(files));
       lifetime.own(bind_workspace_tab_controls(core, files));
       lifetime.own(bind_workspace_native_toolbar(files, window));
-      lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open()));
+      lifetime.own(install_workspace_titlebar(files, () => get_workspace_quick_open()?.open(), () => get_workspace_quick_open()?.open_center()));
       lifetime.own(bind_workspace_preferences(core));
       const file_commands = lifetime.own(bind_workspace_file_commands(files, () => context_changed(true)));
       const open_folder = file_commands.open_folder;
