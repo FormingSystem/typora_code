@@ -160,6 +160,16 @@ R022/R024本轮补充：Git选用共同紧凑外观（12px/19px、2px 8px内距�
 
 ## R033 弹窗外部关闭与焦点转移
 
+### 2026-09-27 外部模块点击复查
+
+用户再次反馈快速打开在点击非编辑区后保留。沿用R033，范围覆盖快速打开、共享菜单与临时选择器；正文、资源管理器、Git、终端和工具栏均属于浮层外部。浮层内部输入、列表滚动和子菜单保持，非模态关闭不吞目标点击、不抢回正文焦点；模态遮罩与一次手势仅退出最上层的契约不变。
+
+先以生产构建和原始宿主复现，检查共享退出栈的可见性、事件路径及所有者生命周期；修复落在实际错误的共享边界，不能为各模块复制外点监听。关闭仍由各领域清理异步查询。回归覆盖真实Chromium完整指针手势、仅鼠标兼容路径、焦点移交、重复打开关闭、内部交互与迟到结果，并记录原始宿主和实际安装版本；现场根因在证据确认前保持待核对。
+
+同日用户明确现场目标为“顶栏空白处或窗口标题区域”。原始宿主对正文/侧栏派发完整DOM手势可正常退出，顶栏却始终声明`-webkit-app-region:drag`，系统命中会截获指针，旧DOM事件用例因此不能复现真实缺口。固定6807068的`src/vs/workbench/electron-browser/parts/titlebar/titlebarPart.ts`中`onMenubarFocusChanged`在Windows/Linux菜单激活时隐藏拖动区、退出后恢复；`src/vs/platform/quickinput/browser/media/quickInput.css`将快速输入声明为`no-drag`。本项目沿用临时交互优先于窗口拖动的原则，按用户要求扩展到共享栈中允许外部取消的临时层。
+
+状态仍由`workspace_focus`唯一管理，以`data-workspace-dismissal-active`向顶栏投影；顶栏CSS在活动期间设为`no-drag`。浮层关闭后维持到同一次鼠标手势结束，避免剩余释放事件进入原生拖动区。父子层分别释放，最后一层退出才恢复；Esc、失焦、销毁均同步。没有浮层时拖窗保持，`outside:false`的独立查看器不改变此状态。不增加透明全屏遮罩、不改变窗控或正文操作。原始宿主验收需同时核对有效app-region与关闭回调，不能再把合成DOM点击通过作为系统拖动区已接线的唯一证据。
+
 2026-09-13，用户反馈文件搜索打开后点击空白仍保留，要求搜索选择器、临时弹窗和右键菜单统一关闭。已有实现混用 document pointerdown、body click、窗口 blur，普通对话框缺少遮罩取消；核心选择器没有焦点离开取消。统一窗口级所有者接收外部指针／鼠标、焦点离开和 Esc，再交还各模块既有的取消与异步清理路径。关闭不提交输入，也不触发确认操作。
 
 依据固定 VS Code 1.137.0 的 [quickInputController.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/quickinput/browser/quickInputController.ts#L331)：默认 ignoreFocusOut 为 false，焦点移动到容器内部不隐藏，离开时以 Blur 取消。[contextMenuHandler.ts](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/platform/contextview/browser/contextMenuHandler.ts#L97) 将菜单取消、焦点离开、窗口失焦和菜单外 mousedown 接入关闭；焦点已移动时不归还旧位置。R032 的配对 Esc 与子菜单返回规则继续生效。

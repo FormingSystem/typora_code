@@ -53,9 +53,13 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
     const consume=(event:Event)=>{event.preventDefault();event.stopImmediatePropagation();};
     const cancel_record=(record:dismiss_record,reason:workspace_dismiss_reason)=>{if(dismissing)return;dismissing=true;try{record.cancel(reason);}finally{dismissing=false;}};
     const handlers:Record<string,EventListener>={keydown:event=>keydown(event as KeyboardEvent),keyup:event=>keyup(event as KeyboardEvent),pointerdown:event=>down(event as MouseEvent,true),mousedown:event=>down(event as MouseEvent,false),pointerup:event=>release(event as MouseEvent),mouseup:event=>release(event as MouseEvent),click:event=>complete(event as MouseEvent),auxclick:event=>complete(event as MouseEvent),contextmenu:event=>swallow(event as MouseEvent),pointercancel:event=>{swallow(event as MouseEvent);finish();},focusin:()=>focus_changed(),focusout:()=>focus_changed(),blur:()=>blur()};
-    const cleanup=()=>{if(!stack.length&&!pending&&!gesture&&listening){listening=false;for(const [name,handler]of Object.entries(handlers))window.removeEventListener(name,handler,name!=='blur');}};
+    // 原生拖动区吞掉DOM指针事件；临时层开放外点关闭时，由共享栈暂停顶栏拖动。
+    // 保持到整次手势释放，避免pointerdown关闭后把余下事件重新交给窗口拖动。
+    const sync_pointer_boundary=()=>document.documentElement.toggleAttribute('data-workspace-dismissal-active',stack.some(record=>record.options.outside!==false)||!!gesture?.owner&&gesture.owner.options.outside!==false);
+    const cleanup=()=>{sync_pointer_boundary();if(!stack.length&&!pending&&!gesture&&listening){listening=false;for(const [name,handler]of Object.entries(handlers))window.removeEventListener(name,handler,name!=='blur');}};
     const keydown=(event:KeyboardEvent)=>{
       if(!gesture?.consumed)gesture=undefined;
+      sync_pointer_boundary();
       if(event.key!=='Escape'||event.isComposing||event.keyCode===229)return;
       if(pending){consume(event);return;}
       const owner=top();if(!owner)return;consume(event);if(!event.repeat)pending=owner;
@@ -93,7 +97,7 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
     };
     const blur=()=>{pending=undefined;window.clearTimeout(gesture_timer);gesture_timer=undefined;gesture=undefined;const owner=top();if(owner?.options.window_blur)cancel_record(owner,'window-blur');cleanup();};
     runtime[service_key]={add(record){
-      record.focused=inside(record,active_element());stack.push(record);
+      record.focused=inside(record,active_element());stack.push(record);sync_pointer_boundary();
       if(!listening){listening=true;for(const [name,handler]of Object.entries(handlers))window.addEventListener(name,handler,name!=='blur');}
       return {is_top:()=>top()===record,owns_focus:()=>top()===record&&(active_element()===document.body||record.roots().some(root=>within(root,active_element()))),dispose(){const index=stack.indexOf(record);if(index!==-1)stack.splice(index,1);cleanup();}};
     }};

@@ -158489,7 +158489,9 @@ https://creativecommons.org/licenses/by/4.0/
         swallow(event);
         finish();
       }, focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
+      const sync_pointer_boundary = () => document.documentElement.toggleAttribute("data-workspace-dismissal-active", stack.some((record) => record.options.outside !== false) || !!gesture?.owner && gesture.owner.options.outside !== false);
       const cleanup = () => {
+        sync_pointer_boundary();
         if (!stack.length && !pending && !gesture && listening) {
           listening = false;
           for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
@@ -158497,6 +158499,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       const keydown = (event) => {
         if (!gesture?.consumed) gesture = void 0;
+        sync_pointer_boundary();
         if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
         if (pending) {
           consume(event);
@@ -158584,6 +158587,7 @@ https://creativecommons.org/licenses/by/4.0/
       runtime3[service_key] = { add(record) {
         record.focused = inside(record, active_element());
         stack.push(record);
+        sync_pointer_boundary();
         if (!listening) {
           listening = true;
           for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");
@@ -238276,6 +238280,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092712,
+        version: "2026.09.27.12",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u590D\u5FEB\u901F\u6253\u5F00\u3001\u83DC\u5355\u7B49\u4E34\u65F6\u6D6E\u5C42\u70B9\u51FB\u9876\u680F\u7A7A\u767D\u4E0D\u5173\u95ED\uFF1A\u6D6E\u5C42\u6253\u5F00\u671F\u95F4\u63A5\u6536\u5916\u90E8\u70B9\u51FB\uFF0C\u5173\u95ED\u5E76\u91CA\u653E\u9F20\u6807\u540E\u6062\u590D\u7A97\u53E3\u62D6\u52A8\u3002"
+        ]
+      },
       {
         sequence: 2026092711,
         version: "2026.09.27.11",

@@ -1,0 +1,51 @@
+{
+  "requirement": "R033",
+  "version": "2026.09.27.12",
+  "date": "2026-09-27",
+  "cause": "用户确认点击顶栏空白；原生app-region:drag截获指针，旧合成DOM外点通过无法覆盖此边界。",
+  "implementation": "共享退出栈投影no-drag，保持至同次手势结束；最后层关闭后恢复窗口拖动。",
+  "baseline": {
+    "new_contract_failed": ".cache/test_runs/bd465d23c8c943c1a011944142ca6e35/evidence",
+    "original_native_dom_pass": ".cache/issue_tracking/native/66a10a89e4a24d8d83c7fcb3b327064d/checks.json"
+  },
+  "checks": {
+    "build": "PASS",
+    "static_core_deployment": "PASS",
+    "catalog": 241,
+    "ui_suites": {
+      "dismissal": "7d3a24836b624013afd490fa782aba47",
+      "widgets": "abc0243c7a2a4ecf881ba6dfa34921a6",
+      "quick_open": "5c96f6ee93274c83b9915b6075b99b65",
+      "titlebar": "bd58c7d815ed4f9a9eb0e9a7f2f986a3",
+      "escape_focus": "2cce1203b1514cacb161cb0c551dedf9"
+    },
+    "native": {
+      "id": "c16cde5937a14176822249540bf07405",
+      "assertions": 99,
+      "titlebar_cycles": 20,
+      "asset_sha256": "e388d35108292afc287a08cddf3e7e39e3682e89da46d284522bf7063ed4eb55"
+    },
+    "install_cycle": "ac817497ecac4d3a8f59d571416352ab",
+    "uninstall_65_assertions": "c7c472778e604703ac5a6df313879891",
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 7,
+      "manifest_sha256": "3d18549ff8ac067517699fe706cee977ea8924efe41e41df8e9768659dbe34fd",
+      "window_restarted": false
+    }
+  },
+  "limitations": [
+    "原始宿主为DOM手势与实际CSS命中契约，未声明物理OS鼠标跨设备验收。",
+    "Esc旧夹具仍用fs_api及不完整path_api，发生异常；补齐当前真实fs/path接口后21项通过，失败证据保留。",
+    "未运行本轮全量check/UI；历史8套UI、R047.6/R071.4与跨平台边界不由本轮关闭。",
+    "本机磁盘安装成功，用户运行窗口未重启，保存后重启加载。"
+  ]
+}

@@ -1564,7 +1564,9 @@ var workspace_core_module = (() => {
         swallow(event);
         finish();
       }, focusin: () => focus_changed(), focusout: () => focus_changed(), blur: () => blur() };
+      const sync_pointer_boundary = () => document.documentElement.toggleAttribute("data-workspace-dismissal-active", stack.some((record) => record.options.outside !== false) || !!gesture?.owner && gesture.owner.options.outside !== false);
       const cleanup = () => {
+        sync_pointer_boundary();
         if (!stack.length && !pending && !gesture && listening) {
           listening = false;
           for (const [name, handler] of Object.entries(handlers)) window.removeEventListener(name, handler, name !== "blur");
@@ -1572,6 +1574,7 @@ var workspace_core_module = (() => {
       };
       const keydown = (event) => {
         if (!gesture?.consumed) gesture = void 0;
+        sync_pointer_boundary();
         if (event.key !== "Escape" || event.isComposing || event.keyCode === 229) return;
         if (pending) {
           consume(event);
@@ -1659,6 +1662,7 @@ var workspace_core_module = (() => {
       runtime[service_key] = { add(record) {
         record.focused = inside(record, active_element());
         stack.push(record);
+        sync_pointer_boundary();
         if (!listening) {
           listening = true;
           for (const [name, handler] of Object.entries(handlers)) window.addEventListener(name, handler, name !== "blur");

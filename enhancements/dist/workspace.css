@@ -2655,6 +2655,9 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
 .workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }
 
+/* R033：临时浮层打开时，顶栏空白交给共享外点退出；手势结束后恢复拖窗。 */
+:root[data-workspace-dismissal-active] #top-titlebar[data-workspace-titlebar=ready] { -webkit-app-region:no-drag; }
+
 /* workspace_widgets.css */
 /* 共享模态外壳：标题关闭、滚动正文及右对齐操作区由同一所有者管理。 */
 .git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }

@@ -2104,12 +2104,15 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R033"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
         "enhancements/src/workspace_quick_open.ts",
-        "enhancements/src/workspace_widgets.ts"
+        "enhancements/src/workspace_widgets.ts",
+        "enhancements/src/workspace_focus.ts",
+        "enhancements/src/workspace_titlebar.css"
       ],
       "related_modules": [
         "menu",
@@ -8330,6 +8333,38 @@
       ],
       "expected": [
         "75断言通过，文字单行完整，无快捷键行用满宽度，Dark颜色与排版符合契约；退出清理载荷"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-dismissal-titlebar-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R033"
+      ],
+      "design": "docs/workspace_interaction.md#r033-弹窗外部关闭与焦点转移",
+      "implementation": [
+        "enhancements/src/workspace_focus.ts",
+        "enhancements/src/workspace_titlebar.css"
+      ],
+      "related_modules": [
+        "quick_open",
+        "titlebar",
+        "menus",
+        "focus"
+      ],
+      "script": "enhancements/fixtures/dismissal_native.js",
+      "environment": "原始Typora 1.14.10私有桌面，DOM手势与有效app-region，不代表物理鼠标",
+      "preconditions": "标准运行器隔离宿主和用户数据，最后清理载荷",
+      "steps": [
+        "实际快速打开在正文/侧栏/标题区域外点关闭",
+        "20轮顶栏打开与关闭，检查按下至释放期间no-drag及退出恢复",
+        "实际段落菜单Esc恢复拖动"
+      ],
+      "expected": [
+        "99项断言通过，候选资产摘要一致，测试载荷清理"
       ],
       "timeout_ms": 240000
     }

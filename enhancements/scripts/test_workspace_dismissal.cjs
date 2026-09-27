@@ -11,6 +11,21 @@ app.whenReady().then(async()=>{
  const html=path.join(evidence,'test.html');fs.writeFileSync(html,'<!doctype html><style>#origin{position:absolute;left:20px;top:520px}#outside{position:absolute;left:300px;top:520px}#blank{position:absolute;left:20px;top:580px;width:200px;height:70px}.git-graph-dialog-shade{position:fixed;inset:0;z-index:10}.git-graph-dialog{position:absolute;left:200px;top:100px;width:300px;padding:20px;background:#eee}.git-graph-menu{z-index:20}</style><input id="origin" value="abcdef"><input id="outside" value="destination"><div id="blank"></div><div id="shadow"></div>');await win.loadFile(html);win.webContents.focus();
  const bundle=await build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export {workspace_dialog,workspace_menu,dispose_workspace_widgets} from "./src/workspace_widgets";export {create_workspace_quick_open} from "./src/workspace_quick_open";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});await run(bundle.outputFiles[0].text);
  await run(`window.origin_input=document.querySelector('#origin');window.outside=document.querySelector('#outside');window.opened_files=[];window.picker=qa.create_workspace_quick_open({context_root:()=>'',path_api:require('path'),open_file:async p=>opened_files.push(p),fs:require('fs')});window.open_picker=()=>{origin_input.focus();origin_input.setSelectionRange(2,4);picker.open();picker.input.dispatchEvent(new FocusEvent('focusin',{bubbles:true,composed:true}))};window.open_dialog=()=>{window.dialog=qa.workspace_dialog('Options');dialog.content.innerHTML='<input id="dialog-input"><div id="panel-blank" style="height:40px"></div>';};void 0`);
+ // Electron拖动区不发送普通DOM鼠标事件：先检查真实生产CSS的命中契约，再验证完整点击路径。
+ await run(`window.titlebar=document.createElement('div');titlebar.id='top-titlebar';titlebar.dataset.workspaceTitlebar='ready';document.body.append(titlebar);window.title_style=document.createElement('style');title_style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_titlebar.css'),'utf8'))};document.head.append(title_style);void 0`);
+ await check(`getComputedStyle(titlebar).webkitAppRegion==='drag'`,'Idle titlebar retains native window dragging');
+ for(let iteration=0;iteration<20;iteration++){
+  await run('open_picker();void 0');
+  await check(`getComputedStyle(titlebar).webkitAppRegion==='no-drag'`,'Open picker exposes titlebar to outside dismissal '+iteration);
+  for(const type of ['mouseMove','mouseDown','mouseUp'])win.webContents.sendInputEvent({type,x:20,y:15,button:'left',clickCount:1});await delay(30);
+  await check(`picker.root.hidden&&getComputedStyle(titlebar).webkitAppRegion==='drag'`,'Titlebar click closes picker and restores native dragging '+iteration);
+ }
+ await run(`open_dialog();void 0`);await delay(30);
+ await check(`getComputedStyle(titlebar).webkitAppRegion==='no-drag'`,'Shared modal also releases the native drag region');
+ await run(`window.child=qa.workspace_dialog('Child');child.close();void 0`);
+ await check(`getComputedStyle(titlebar).webkitAppRegion==='no-drag'`,'Closing child preserves parent titlebar dismissal boundary');
+ await run(`dialog.close();void 0`);
+ await check(`getComputedStyle(titlebar).webkitAppRegion==='drag'`,'Last layer disposal restores native dragging');
  await run('open_picker();void 0');await mouse('#outside');await check(`picker.root.hidden&&document.activeElement===outside`,'Outside pointer dismisses file picker and focuses destination on first click');
  await run(`open_picker();for(const type of ['mousedown','mouseup'])outside.dispatchEvent(new MouseEvent(type,{bubbles:true,cancelable:true}));void 0`);await check(`picker.root.hidden`,'Host mousedown-only path dismisses file picker');await run('picker.close();void 0');
  await run(`open_picker();outside.focus();outside.dispatchEvent(new FocusEvent('focusin',{bubbles:true,composed:true}));void 0`);await delay(25);await check(`picker.root.hidden&&document.activeElement===outside`,'Host focusin event outside dismisses file picker without restoring original selection');await run('picker.close();void 0');
