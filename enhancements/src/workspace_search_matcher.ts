@@ -1,11 +1,17 @@
 /** 纯文本匹配，不访问 DOM 或文件系统，可由浏览器与 Node Worker 共用。 */
-export type search_query_options = {query: string; regex?: boolean; case_sensitive?: boolean; whole_word?: boolean};
+import {compile_workspace_globs} from './workspace_glob';
+export type search_query_options = {query: string; regex?: boolean; case_sensitive?: boolean; whole_word?: boolean; path_glob?:boolean};
 export type search_captured_match = {start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]; captures: (string | undefined)[]; groups?: Record<string, string | undefined>};
 export type search_match_reply = {matches: search_captured_match[]};
 export const DEFAULT_SEARCH_REGEX = true;
 export type search_path_match = {index:number;start:number;end:number};
 /** 与正文搜索共用语法；仅在隔离Worker中执行可能高耗时的正则。 */
 export function collect_path_matches(paths:string[],options:search_query_options):search_path_match[]{
+  if(options.path_glob){
+    const match=compile_workspace_globs(options.query,!!options.case_sensitive,true,false),matches:search_path_match[]=[];
+    for(let index=0;index<paths.length;index++)if(match(paths[index]))matches.push({index,start:0,end:paths[index].length});
+    return matches;
+  }
   const expression=query_expression(options),matches:search_path_match[]=[];
   for(let index=0;index<paths.length;index++){
     expression.lastIndex=0;const found=expression.exec(paths[index]);

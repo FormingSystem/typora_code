@@ -1,3 +1,4 @@
+import {compile_workspace_globs} from './workspace_glob';
 import {read_workspace_directory} from './workspace_directory_service';
 /// <reference path="./search_worker_types.d.ts" />
 import { decode_file_bytes, detect_binary_bytes, type decoded_file } from "./file_language";
@@ -24,54 +25,8 @@ type prepared_file = workspace_replace_file & {snapshot: file_snapshot; bytes: U
 const DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
 const MAX_READ_CONCURRENCY = 4;
 const pause = () => new Promise<void>(resolve => setTimeout(resolve, 0));
-const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 const same_bytes = (left: Uint8Array, right: Uint8Array) => left.length === right.length && left.every((byte, index) => byte === right[index]);
 const identity = (stat: any) => `${String(stat.dev)}:${String(stat.ino)}`;
-
-/** 逗号只分隔最外层模式，保留 {a,b} 与字符类里的逗号。 */
-function split_globs(value: string): string[] {
-  const output: string[] = []; let start = 0; let braces = 0; let brackets = 0;
-  for (let index = 0; index < value.length; index++) {
-    const character = value[index];
-    if (character === "[" && !brackets) brackets++;
-    else if (character === "]" && brackets) brackets--;
-    else if (!brackets && character === "{") braces++;
-    else if (!brackets && character === "}") { if (!braces) throw new Error("文件模式的大括号不匹配。"); braces--; }
-    else if (!braces && !brackets && character === ",") { output.push(value.slice(start, index).trim()); start = index + 1; }
-  }
-  if (braces || brackets) throw new Error("文件模式的括号不匹配。");
-  output.push(value.slice(start).trim()); return output.filter(Boolean);
-}
-
-/** 对齐 Search 输入框的隐含递归前缀及目录后代匹配，不将此解析器用于 .gitignore。 */
-export function compile_workspace_globs(value: string, case_sensitive = true, search_prefix = true): (relative_path: string) => boolean {
-  const patterns = split_globs(value).map(pattern => {
-    if (pattern.includes("\\")) throw new Error("文件模式请使用正斜线 /。");
-    const anchored = pattern.startsWith("./") || pattern.startsWith("/");
-    pattern = pattern.replace(/^(?:\.\/|\/)/u, "").replace(/\/+$/u, "");
-    let result = ""; let index = 0;
-    while (index < pattern.length) {
-      const character = pattern[index++];
-      if (character === "*") {
-        if (pattern[index] === "*") { while (pattern[index] === "*") index++; if (pattern[index] === "/") { index++; result += "(?:[^/]+/)*"; } else result += ".*"; }
-        else result += "[^/]*";
-      } else if (character === "?") result += "[^/]";
-      else if (character === "{") result += "(?:";
-      else if (character === "}") result += ")";
-      else if (character === ",") result += "|";
-      else if (character === "[") {
-        const end = pattern.indexOf("]", index); let contents = pattern.slice(index, end);
-        if (!contents || contents.includes("/")) throw new Error("文件模式字符类无效。");
-        if (contents[0] === "!") contents = "^" + contents.slice(1);
-        else if (contents[0] === "^") contents = "\\^" + contents.slice(1);
-        result += "[" + contents + "]"; index = end + 1;
-      } else result += escape_regex(character);
-    }
-    try { return new RegExp("^" + (search_prefix && !anchored ? "(?:[^/]+/)*" : "") + result + "(?:/.*)?$", case_sensitive ? "u" : "iu"); }
-    catch { throw new Error("文件包含或排除模式无效。"); }
-  });
-  return relative_path => patterns.some(pattern => pattern.test(relative_path));
-}
 
 /** 正则替换支持捕获组、换行和 VS Code 的大小写修饰；普通文本替换保持字面值。 */
 function replacement_text(replacement: string, match: captured_match, source: string, regex: boolean): string {

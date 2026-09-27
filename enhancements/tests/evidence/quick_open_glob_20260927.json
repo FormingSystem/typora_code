@@ -1,0 +1,161 @@
+{
+  "requirements": [
+    "R058.3"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.15",
+  "scope": "默认严格正则、新增互斥通配符，两者关闭仍为模糊；共享纯解析与可取消Worker，不新增扫描或结果数量门槛。",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "file": "src/vs/base/common/fuzzyScorer.ts",
+    "behavior": "normalizeQuery删除星号后模糊匹配；截图中的*.c结果不代表严格glob。本产品按用户选择独立增加严格glob按钮。"
+  },
+  "baseline": {
+    "commit": "a425549",
+    "id": "f1e42d3c1c9547ca90d09c6900f8d836",
+    "expected_failure": "*.c仍报正则无效；目标用例在缺少通配符按钮处失败。"
+  },
+  "checks": {
+    "build_static_core_deployment": "PASS",
+    "catalog_classified_suites": 244,
+    "ui": {
+      "quick_open": "6e54424e831d46aaa75d92ad39c551fe",
+      "command_center": "e9dc1abb77a64443b7c81811714e736a",
+      "editor_actions": "195649259c164d6da04d76bbf3e847d3"
+    },
+    "search": "3f804231f3a64c9ebd408a9a808787be",
+    "search_worker": {
+      "id": "57ab1049afe84a2fb9237a2e75f6c576",
+      "coverage": "通配符完整路径/字符类/多模式/错误，病态glob取消与Worker恢复；原有病态正则取消和超过两秒继续执行。"
+    },
+    "native": {
+      "id": "01e04c95a47b471c95843e9cdc9115e9",
+      "assertions": 55,
+      "host": "Typora 1.14.10",
+      "asset_sha256": "1506586b2f40309a81d5e095fa0b1f29f92ba7a4debfaef08a38e4b736cd0df3",
+      "checks": [
+        "隔离工程",
+        "功能首页隐藏模式按钮",
+        "默认仍为严格正则",
+        "排除cpp、点文件与.c目录内文件",
+        "模式互斥与焦点",
+        "递归与后缀备选",
+        "根路径锚定",
+        "单字符通配符",
+        "Windows路径分隔与字符类",
+        "真实特殊文件名优先",
+        "正则模式 0",
+        "通配符模式 0",
+        "正则模式 1",
+        "通配符模式 1",
+        "正则模式 2",
+        "通配符模式 2",
+        "正则模式 3",
+        "通配符模式 3",
+        "正则模式 4",
+        "通配符模式 4",
+        "正则模式 5",
+        "通配符模式 5",
+        "正则模式 6",
+        "通配符模式 6",
+        "正则模式 7",
+        "通配符模式 7",
+        "正则模式 8",
+        "通配符模式 8",
+        "正则模式 9",
+        "通配符模式 9",
+        "正则模式 10",
+        "通配符模式 10",
+        "正则模式 11",
+        "通配符模式 11",
+        "正则模式 12",
+        "通配符模式 12",
+        "正则模式 13",
+        "通配符模式 13",
+        "正则模式 14",
+        "通配符模式 14",
+        "正则模式 15",
+        "通配符模式 15",
+        "正则模式 16",
+        "通配符模式 16",
+        "正则模式 17",
+        "通配符模式 17",
+        "正则模式 18",
+        "通配符模式 18",
+        "正则模式 19",
+        "通配符模式 19",
+        "无效模式保留错误",
+        "错误后恢复",
+        "Esc关闭",
+        "重开保留当前模式",
+        "共同文件服务打开目标"
+      ],
+      "limits": "隔离原始Typora DOM事件，未代表物理键鼠或其他平台。"
+    },
+    "install_cycle": "0b419bf796ab4a5eb909a492eee38f9d",
+    "uninstall_65_assertions": "3034a07f5997473d9f7d84ac30c9a58b",
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "4a5effebe83a3422c8def5f0844b6ccfb8c2d1418473d78cc59d779e3ddf2287",
+      "window_restarted": false
+    }
+  },
+  "cleanup": {
+    "quick_open": {
+      "id": "6e54424e831d46aaa75d92ad39c551fe",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 1879978
+    },
+    "command_center": {
+      "id": "e9dc1abb77a64443b7c81811714e736a",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 1898064
+    },
+    "editor_actions": {
+      "id": "195649259c164d6da04d76bbf3e847d3",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 3978593
+    },
+    "search": {
+      "id": "3f804231f3a64c9ebd408a9a808787be",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 0
+    },
+    "search_worker": {
+      "id": "57ab1049afe84a2fb9237a2e75f6c576",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 0
+    },
+    "install_cycle": {
+      "id": "0b419bf796ab4a5eb909a492eee38f9d",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 2074001616
+    },
+    "uninstall": {
+      "id": "3034a07f5997473d9f7d84ac30c9a58b",
+      "state": "cleaned",
+      "result": "passed",
+      "payload_bytes": 131163209
+    }
+  },
+  "limitations": [
+    "本轮三套目标UI、共享搜索/Worker与静态检查通过；未重跑完整check及全量UI。历史8套UI、R047.6/R071.4继续独立跟踪。",
+    "原生55项含20轮模式切换，使用隔离宿主DOM事件；不代表物理输入、跨平台或企业SSH现场验证。",
+    "本机仅执行卸载只读预检，未关闭或重启用户窗口；保存后正常重启才能加载新版。"
+  ]
+}

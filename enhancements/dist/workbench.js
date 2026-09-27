@@ -162998,12 +162998,76 @@ https://creativecommons.org/licenses/by/4.0/
     return [...(group || document).querySelectorAll(".typ-tab[data-id]")].find((tab) => tab.dataset.id === leaf.state.path);
   }
 
+  // src/workspace_glob.ts
+  var escape_regex = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  function split_globs(value) {
+    const output = [];
+    let start = 0;
+    let braces = 0;
+    let brackets = 0;
+    for (let index = 0; index < value.length; index++) {
+      const character = value[index];
+      if (character === "[" && !brackets) brackets++;
+      else if (character === "]" && brackets) brackets--;
+      else if (!brackets && character === "{") braces++;
+      else if (!brackets && character === "}") {
+        if (!braces) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u7684\u5927\u62EC\u53F7\u4E0D\u5339\u914D\u3002");
+        braces--;
+      } else if (!braces && !brackets && character === ",") {
+        output.push(value.slice(start, index).trim());
+        start = index + 1;
+      }
+    }
+    if (braces || brackets) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u7684\u62EC\u53F7\u4E0D\u5339\u914D\u3002");
+    output.push(value.slice(start).trim());
+    return output.filter(Boolean);
+  }
+  function compile_workspace_globs(value, case_sensitive = true, search_prefix = true, descendants = true) {
+    const patterns = split_globs(value).map((pattern) => {
+      if (pattern.includes("\\")) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u8BF7\u4F7F\u7528\u6B63\u659C\u7EBF /\u3002");
+      const anchored = pattern.startsWith("./") || pattern.startsWith("/");
+      pattern = pattern.replace(/^(?:\.\/|\/)/u, "").replace(/\/+$/u, "");
+      let result = "";
+      let index = 0;
+      while (index < pattern.length) {
+        const character = pattern[index++];
+        if (character === "*") {
+          if (pattern[index] === "*") {
+            while (pattern[index] === "*") index++;
+            if (pattern[index] === "/") {
+              index++;
+              result += "(?:[^/]+/)*";
+            } else result += ".*";
+          } else result += "[^/]*";
+        } else if (character === "?") result += "[^/]";
+        else if (character === "{") result += "(?:";
+        else if (character === "}") result += ")";
+        else if (character === ",") result += "|";
+        else if (character === "[") {
+          const end = pattern.indexOf("]", index);
+          let contents = pattern.slice(index, end);
+          if (!contents || contents.includes("/")) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u5B57\u7B26\u7C7B\u65E0\u6548\u3002");
+          if (contents[0] === "!") contents = "^" + contents.slice(1);
+          else if (contents[0] === "^") contents = "\\^" + contents.slice(1);
+          result += "[" + contents + "]";
+          index = end + 1;
+        } else result += escape_regex(character);
+      }
+      try {
+        return new RegExp("^" + (search_prefix && !anchored ? "(?:[^/]+/)*" : "") + result + (descendants ? "(?:/.*)?$" : "$"), case_sensitive ? "u" : "iu");
+      } catch {
+        throw new Error("\u6587\u4EF6\u5305\u542B\u6216\u6392\u9664\u6A21\u5F0F\u65E0\u6548\u3002");
+      }
+    });
+    return (relative_path) => patterns.some((pattern) => pattern.test(relative_path));
+  }
+
   // src/workspace_search_matcher.ts
   var DEFAULT_SEARCH_REGEX = true;
-  var escape_regex = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
+  var escape_regex2 = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   function query_expression(options2) {
     if (!options2.query) throw new Error("\u8BF7\u8F93\u5165\u641C\u7D22\u5185\u5BB9\u3002");
-    const pattern = options2.regex ? options2.query : escape_regex(options2.query).replace(/\r?\n/gu, "\\r?\\n");
+    const pattern = options2.regex ? options2.query : escape_regex2(options2.query).replace(/\r?\n/gu, "\\r?\\n");
     try {
       return new RegExp(pattern, "gmu" + (options2.case_sensitive ? "" : "i"));
     } catch (error) {
@@ -163044,7 +163108,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // search-worker:worker
-  var worker_default = '(()=>{function l(e,r){let n=p(r),t=[];for(let s=0;s<e.length;s++){n.lastIndex=0;let c=n.exec(e[s]);c&&t.push({index:s,start:c.index,end:c.index+c[0].length})}return t}var g=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function p(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");let r=e.regex?e.query:g(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(r,"gmu"+(e.case_sensitive?"":"i"))}catch(n){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(n instanceof Error?n.message:n))}}function d(e){let r=[0],n=/\\r\\n|\\r|\\n/gu,t;for(;t=n.exec(e);)r.push(t.index+t[0].length);return r}function h(e,r){let n=0,t=e.length;for(;n+1<t;){let s=n+t>>>1;e[s]<=r?n=s:t=s}return{line:n+1,column:r-e[n]+1}}function x(e,r,n){let t=r&&[...e.slice(Math.max(0,r-2),r)].at(-1)||"",s=e.slice(n)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(t)&&!/[\\p{L}\\p{N}_]/u.test(s)}function b(e,r,n){let t=n.index,s=t+n[0].length,c=h(r,t),a=h(r,s),o=Math.max(r[c.line-1],t-80),m=Math.min(r[a.line]??e.length,o+400),i=e.slice(o,m).replace(/[\\r\\n]+$/u,"");return{start:t,end:s,...c,end_line:a.line,end_column:a.column,text:n[0],preview:i,preview_ranges:[{start:Math.min(t-o,i.length),end:Math.min(s-o,i.length)}],captures:Array.from(n),groups:n.groups?{...n.groups}:void 0}}function _(e,r){let n=p(r),t,s=[],c;for(;c=n.exec(e);)c[0].length||(n.lastIndex+=e.codePointAt(n.lastIndex)>65535?2:1),!(r.whole_word&&!x(e,c.index,c.index+c[0].length))&&(t||=d(e),s.push(b(e,t,c)));return{matches:s}}var u=globalThis;u.onmessage=e=>{let{request_id:r,text:n,paths:t,options:s}=e.data;try{u.postMessage({request_id:r,...t?{path_matches:l(t,s)}:_(n,s)})}catch(c){u.postMessage({request_id:r,error:String(c instanceof Error?c.message:c)})}};})();\n';
+  var worker_default = '(()=>{var x=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function w(e){let n=[],t=0,c=0,s=0;for(let r=0;r<e.length;r++){let i=e[r];if(i==="["&&!s)s++;else if(i==="]"&&s)s--;else if(!s&&i==="{")c++;else if(!s&&i==="}"){if(!c)throw new Error("\\u6587\\u4EF6\\u6A21\\u5F0F\\u7684\\u5927\\u62EC\\u53F7\\u4E0D\\u5339\\u914D\\u3002");c--}else!c&&!s&&i===","&&(n.push(e.slice(t,r).trim()),t=r+1)}if(c||s)throw new Error("\\u6587\\u4EF6\\u6A21\\u5F0F\\u7684\\u62EC\\u53F7\\u4E0D\\u5339\\u914D\\u3002");return n.push(e.slice(t).trim()),n.filter(Boolean)}function _(e,n=!0,t=!0,c=!0){let s=w(e).map(r=>{if(r.includes("\\\\"))throw new Error("\\u6587\\u4EF6\\u6A21\\u5F0F\\u8BF7\\u4F7F\\u7528\\u6B63\\u659C\\u7EBF /\\u3002");let i=r.startsWith("./")||r.startsWith("/");r=r.replace(/^(?:\\.\\/|\\/)/u,"").replace(/\\/+$/u,"");let o="",l=0;for(;l<r.length;){let a=r[l++];if(a==="*")if(r[l]==="*"){for(;r[l]==="*";)l++;r[l]==="/"?(l++,o+="(?:[^/]+/)*"):o+=".*"}else o+="[^/]*";else if(a==="?")o+="[^/]";else if(a==="{")o+="(?:";else if(a==="}")o+=")";else if(a===",")o+="|";else if(a==="["){let p=r.indexOf("]",l),u=r.slice(l,p);if(!u||u.includes("/"))throw new Error("\\u6587\\u4EF6\\u6A21\\u5F0F\\u5B57\\u7B26\\u7C7B\\u65E0\\u6548\\u3002");u[0]==="!"?u="^"+u.slice(1):u[0]==="^"&&(u="\\\\^"+u.slice(1)),o+="["+u+"]",l=p+1}else o+=x(a)}try{return new RegExp("^"+(t&&!i?"(?:[^/]+/)*":"")+o+(c?"(?:/.*)?$":"$"),n?"u":"iu")}catch{throw new Error("\\u6587\\u4EF6\\u5305\\u542B\\u6216\\u6392\\u9664\\u6A21\\u5F0F\\u65E0\\u6548\\u3002")}});return r=>s.some(i=>i.test(r))}function m(e,n){if(n.path_glob){let s=_(n.query,!!n.case_sensitive,!0,!1),r=[];for(let i=0;i<e.length;i++)s(e[i])&&r.push({index:i,start:0,end:e[i].length});return r}let t=d(n),c=[];for(let s=0;s<e.length;s++){t.lastIndex=0;let r=t.exec(e[s]);r&&c.push({index:s,start:r.index,end:r.index+r[0].length})}return c}var b=e=>e.replace(/[.*+?^${}()|[\\]\\\\]/gu,"\\\\$&");function d(e){if(!e.query)throw new Error("\\u8BF7\\u8F93\\u5165\\u641C\\u7D22\\u5185\\u5BB9\\u3002");let n=e.regex?e.query:b(e.query).replace(/\\r?\\n/gu,"\\\\r?\\\\n");try{return new RegExp(n,"gmu"+(e.case_sensitive?"":"i"))}catch(t){throw new Error("\\u6B63\\u5219\\u8868\\u8FBE\\u5F0F\\u65E0\\u6548\\uFF1A"+String(t instanceof Error?t.message:t))}}function y(e){let n=[0],t=/\\r\\n|\\r|\\n/gu,c;for(;c=t.exec(e);)n.push(c.index+c[0].length);return n}function g(e,n){let t=0,c=e.length;for(;t+1<c;){let s=t+c>>>1;e[s]<=n?t=s:c=s}return{line:t+1,column:n-e[t]+1}}function E(e,n,t){let c=n&&[...e.slice(Math.max(0,n-2),n)].at(-1)||"",s=e.slice(t)[Symbol.iterator]().next().value||"";return!/[\\p{L}\\p{N}_]/u.test(c)&&!/[\\p{L}\\p{N}_]/u.test(s)}function q(e,n,t){let c=t.index,s=c+t[0].length,r=g(n,c),i=g(n,s),o=Math.max(n[r.line-1],c-80),l=Math.min(n[i.line]??e.length,o+400),a=e.slice(o,l).replace(/[\\r\\n]+$/u,"");return{start:c,end:s,...r,end_line:i.line,end_column:i.column,text:t[0],preview:a,preview_ranges:[{start:Math.min(c-o,a.length),end:Math.min(s-o,a.length)}],captures:Array.from(t),groups:t.groups?{...t.groups}:void 0}}function f(e,n){let t=d(n),c,s=[],r;for(;r=t.exec(e);)r[0].length||(t.lastIndex+=e.codePointAt(t.lastIndex)>65535?2:1),!(n.whole_word&&!E(e,r.index,r.index+r[0].length))&&(c||=y(e),s.push(q(e,c,r)));return{matches:s}}var h=globalThis;h.onmessage=e=>{let{request_id:n,text:t,paths:c,options:s}=e.data;try{h.postMessage({request_id:n,...c?{path_matches:m(c,s)}:f(t,s)})}catch(r){h.postMessage({request_id:n,error:String(r instanceof Error?r.message:r)})}};})();\n';
 
   // src/workspace_search_worker_client.ts
   var search_match_failure = class extends Error {
@@ -164220,19 +164284,27 @@ https://creativecommons.org/licenses/by/4.0/
     input.setAttribute("aria-controls", "workspace-quick-open-list");
     input.autocomplete = "off";
     input.spellcheck = false;
-    let use_regex = DEFAULT_SEARCH_REGEX, match_controller;
-    const regex_button = git_icon_button("regex", "\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", () => {
-      use_regex = !use_regex;
-      regex_button.setAttribute("aria-pressed", String(use_regex));
+    let match_mode = DEFAULT_SEARCH_REGEX ? "regex" : "fuzzy", match_controller;
+    const set_mode = (mode) => {
+      match_mode = match_mode === mode ? "fuzzy" : mode;
+      sync_mode();
       pending_open_query = void 0;
       rendered_query = "\0";
       match_controller?.abort();
       render_generation++;
       ranking = false;
+      input.focus();
       void render();
-    });
-    regex_button.setAttribute("aria-pressed", String(use_regex));
-    input_row.append(input, regex_button);
+    };
+    const regex_button = git_icon_button("regex", "\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F", () => set_mode("regex"));
+    const glob_button = git_icon_button("filter", "\u4F7F\u7528\u901A\u914D\u7B26", () => set_mode("glob"));
+    const sync_mode = () => {
+      regex_button.setAttribute("aria-pressed", String(match_mode === "regex"));
+      glob_button.setAttribute("aria-pressed", String(match_mode === "glob"));
+    };
+    glob_button.title = "\u4F7F\u7528\u901A\u914D\u7B26\uFF1A*.c\u3001**/*.h\u3001file?.md\uFF1B\u4E0E\u6B63\u5219\u4E92\u65A5";
+    sync_mode();
+    input_row.append(input, regex_button, glob_button);
     const results = document.createElement("div");
     results.className = "workspace-quick-open-results";
     results.setAttribute("role", "listbox");
@@ -164503,17 +164575,18 @@ https://creativecommons.org/licenses/by/4.0/
           status2.classList.add("is-visible");
         }
         if (editor_group) catalogue = read_editors();
-        let regex_mode = use_regex && !!query;
+        let pattern_mode = match_mode !== "fuzzy" && !!query;
+        const path_glob = match_mode === "glob", pattern = path_glob ? query.replaceAll("\\", "/") : query;
         const ranked = [];
-        const matcher = create_quick_matcher(regex_mode ? "" : query);
-        const order = editor_group && !query ? () => 0 : regex_mode ? (left, right) => left.file.relative_path.localeCompare(right.file.relative_path) : matcher.compare;
+        const matcher = create_quick_matcher(pattern_mode ? "" : query);
+        const order = editor_group && !query ? () => 0 : pattern_mode ? (left, right) => left.file.relative_path.localeCompare(right.file.relative_path) : matcher.compare;
         if (!editor_group && direct_query !== query) {
           direct_query = query;
           direct_file = void 0;
           direct_pending = false;
           direct_error = "";
           const request = ++direct_generation, requested_root = scan_root;
-          if (/[\\/]/u.test(query) && files.fs.promises.stat) {
+          if (/[\\/]/u.test(query) && !(path_glob && /[*?{]/u.test(query)) && files.fs.promises.stat) {
             direct_pending = true;
             void (async () => {
               try {
@@ -164536,18 +164609,19 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const candidates = direct_file ? files.path_api.isAbsolute(query) ? [direct_file] : [direct_file, ...catalogue.filter((file) => file.file_path !== direct_file.file_path)] : catalogue.slice();
-        const literal_file = regex_mode ? direct_file || candidates.find((file) => file.relative_path === query.replaceAll("\\", "/")) : void 0;
-        if (literal_file) regex_mode = false;
+        const literal_file = pattern_mode ? direct_file || candidates.find((file) => file.relative_path === query.replaceAll("\\", "/")) : void 0;
+        if (literal_file) pattern_mode = false;
         const regex_matches = /* @__PURE__ */ new Map();
-        if (regex_mode) {
-          query_expression({ query, regex: true });
+        if (pattern_mode) {
+          if (path_glob) compile_workspace_globs(pattern, false, true, false);
+          else query_expression({ query, regex: true });
           match_controller?.abort();
           const controller = new AbortController();
           match_controller = controller;
           const worker = create_search_matcher();
           try {
             for (let offset = 0; offset < candidates.length; offset += 2048) {
-              const reply = await worker.match_paths(candidates.slice(offset, offset + 2048).map((file) => file.relative_path || file.name), { query, regex: true }, controller.signal);
+              const reply = await worker.match_paths(candidates.slice(offset, offset + 2048).map((file) => file.relative_path || file.name), { query: pattern, regex: !path_glob, path_glob }, controller.signal);
               if (disposed || root.hidden || generation !== render_generation) return;
               for (const match2 of reply) regex_matches.set(offset + match2.index, match2);
             }
@@ -164567,7 +164641,7 @@ https://creativecommons.org/licenses/by/4.0/
           const file = candidates[index];
           if (literal_file && file !== literal_file) continue;
           const found = regex_matches.get(index);
-          if (regex_mode && !found && file !== direct_file) continue;
+          if (pattern_mode && !found && file !== direct_file) continue;
           const item = matcher.match(file);
           if (!item) continue;
           total++;
@@ -164606,7 +164680,7 @@ https://creativecommons.org/licenses/by/4.0/
           results.replaceChildren();
           input.removeAttribute("aria-activedescendant");
           pending_open_query = void 0;
-          status2.textContent = "\u641C\u7D22\u5931\u8D25\uFF1A".concat(String(error?.message || error));
+          status2.textContent = "\u641C\u7D22\u5931\u8D25\uFF1A".concat(String(error?.message || error)) + (match_mode === "regex" ? "\uFF1B*.c \u7B49\u6587\u4EF6\u6A21\u5F0F\u8BF7\u5207\u6362\u201C\u4F7F\u7528\u901A\u914D\u7B26\u201D\u3002" : "");
           status2.classList.add("is-visible");
         }
       } finally {
@@ -164707,7 +164781,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
       status2.textContent = "";
       status2.classList.remove("is-visible");
-      regex_button.hidden = true;
+      regex_button.hidden = glob_button.hidden = true;
       results.scrollTop = 0;
       paint();
       const recents = get_workspace_recents(files);
@@ -164772,7 +164846,7 @@ https://creativecommons.org/licenses/by/4.0/
       root.setAttribute("aria-modal", "true");
       input.value = group ? "edt active " : "";
       input.placeholder = center ? "\u641C\u7D22\u6587\u4EF6\uFF0C\u6216\u9009\u62E9\u4E0B\u65B9\u529F\u80FD" : "\u952E\u5165\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u8FDB\u884C\u641C\u7D22";
-      regex_button.hidden = center;
+      regex_button.hidden = glob_button.hidden = center;
       input.setAttribute("aria-label", group ? "\u5F53\u524D\u7EC4\u5DF2\u6253\u5F00\u7684\u7F16\u8F91\u5668" : center ? "\u641C\u7D22\u6587\u4EF6\u548C\u529F\u80FD" : "\u6309\u6587\u4EF6\u540D\u6216\u8DEF\u5F84\u641C\u7D22");
       const cached = !group && !center && scan_root ? directories.service.cached_catalogue(scan_root) : void 0;
       catalogue = cached?.files || [];
@@ -164790,7 +164864,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       home_generation++;
       home_actions.clear();
-      regex_button.hidden = is_home();
+      regex_button.hidden = glob_button.hidden = is_home();
       match_controller?.abort();
       render_generation++;
       ranking = false;
@@ -241416,6 +241490,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092715,
+        version: "2026.09.27.15",
+        date: "2026-09-27",
+        notes: [
+          "\u6587\u4EF6\u5FEB\u901F\u6253\u5F00\u65B0\u589E\u901A\u914D\u7B26\u6A21\u5F0F\uFF0C\u652F\u6301*.c\u3001\u9012\u5F52\u8DEF\u5F84\u3001\u5355\u5B57\u7B26\u548C\u540E\u7F00\u5907\u9009\uFF1B\u9ED8\u8BA4\u6B63\u5219\u4FDD\u6301\uFF0C\u6A21\u5F0F\u6309\u94AE\u4E92\u65A5\u3002",
+          "\u9876\u680F\u3001Ctrl+P\u53CA\u5F53\u524D\u7EC4\u7F16\u8F91\u5668\u5171\u7528\u6A21\u5F0F\u548C\u53EF\u53D6\u6D88Worker\uFF1B\u9519\u8BEF\u63D0\u793A\u660E\u786E\u8BED\u6CD5\uFF0C\u6B63\u6587\u641C\u7D22\u8303\u56F4\u89C4\u5219\u4FDD\u6301\u3002"
+        ]
+      },
+      {
         sequence: 2026092714,
         version: "2026.09.27.14",
         date: "2026-09-27",
@@ -246014,70 +246097,8 @@ https://creativecommons.org/licenses/by/4.0/
   var DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
   var MAX_READ_CONCURRENCY = 4;
   var pause = () => new Promise((resolve3) => setTimeout(resolve3, 0));
-  var escape_regex2 = (value) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
   var same_bytes2 = (left, right) => left.length === right.length && left.every((byte, index) => byte === right[index]);
   var identity4 = (stat) => "".concat(String(stat.dev), ":").concat(String(stat.ino));
-  function split_globs(value) {
-    const output = [];
-    let start = 0;
-    let braces = 0;
-    let brackets = 0;
-    for (let index = 0; index < value.length; index++) {
-      const character = value[index];
-      if (character === "[" && !brackets) brackets++;
-      else if (character === "]" && brackets) brackets--;
-      else if (!brackets && character === "{") braces++;
-      else if (!brackets && character === "}") {
-        if (!braces) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u7684\u5927\u62EC\u53F7\u4E0D\u5339\u914D\u3002");
-        braces--;
-      } else if (!braces && !brackets && character === ",") {
-        output.push(value.slice(start, index).trim());
-        start = index + 1;
-      }
-    }
-    if (braces || brackets) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u7684\u62EC\u53F7\u4E0D\u5339\u914D\u3002");
-    output.push(value.slice(start).trim());
-    return output.filter(Boolean);
-  }
-  function compile_workspace_globs(value, case_sensitive = true, search_prefix = true) {
-    const patterns = split_globs(value).map((pattern) => {
-      if (pattern.includes("\\")) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u8BF7\u4F7F\u7528\u6B63\u659C\u7EBF /\u3002");
-      const anchored = pattern.startsWith("./") || pattern.startsWith("/");
-      pattern = pattern.replace(/^(?:\.\/|\/)/u, "").replace(/\/+$/u, "");
-      let result = "";
-      let index = 0;
-      while (index < pattern.length) {
-        const character = pattern[index++];
-        if (character === "*") {
-          if (pattern[index] === "*") {
-            while (pattern[index] === "*") index++;
-            if (pattern[index] === "/") {
-              index++;
-              result += "(?:[^/]+/)*";
-            } else result += ".*";
-          } else result += "[^/]*";
-        } else if (character === "?") result += "[^/]";
-        else if (character === "{") result += "(?:";
-        else if (character === "}") result += ")";
-        else if (character === ",") result += "|";
-        else if (character === "[") {
-          const end = pattern.indexOf("]", index);
-          let contents = pattern.slice(index, end);
-          if (!contents || contents.includes("/")) throw new Error("\u6587\u4EF6\u6A21\u5F0F\u5B57\u7B26\u7C7B\u65E0\u6548\u3002");
-          if (contents[0] === "!") contents = "^" + contents.slice(1);
-          else if (contents[0] === "^") contents = "\\^" + contents.slice(1);
-          result += "[" + contents + "]";
-          index = end + 1;
-        } else result += escape_regex2(character);
-      }
-      try {
-        return new RegExp("^" + (search_prefix && !anchored ? "(?:[^/]+/)*" : "") + result + "(?:/.*)?$", case_sensitive ? "u" : "iu");
-      } catch {
-        throw new Error("\u6587\u4EF6\u5305\u542B\u6216\u6392\u9664\u6A21\u5F0F\u65E0\u6548\u3002");
-      }
-    });
-    return (relative_path) => patterns.some((pattern) => pattern.test(relative_path));
-  }
   function replacement_text(replacement, match2, source, regex) {
     if (!regex) return replacement;
     let result = "";

@@ -2,7 +2,7 @@
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild');
-const baseline=process.argv.find(value=>value.startsWith('--baseline='))?.slice(11);
+const baseline=process.env.TYPORA_GLOB_BASELINE||process.argv.find(value=>value.startsWith('--baseline='))?.slice(11);
 const baseline_plugin={name:'baseline-quick-open',setup(builder){if(baseline)builder.onLoad({filter:/[\\/]workspace_quick_open\.ts$/},()=>({contents:require('node:child_process').execFileSync('git',['show',baseline+':enhancements/src/workspace_quick_open.ts'],{cwd:path.join(__dirname,'..'),encoding:'utf8',windowsHide:true}),loader:'ts'}));}};
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_quick_open_'));
 const fixture=['samples/bringup/prj.conf','samples/bringup/README.md','samples/bringup/src/main.c','samples/bringup/tests.yaml','samples/bringup/CMakeLists.txt','samples/boards/st/bluetooth/interactive_gui/prj.conf','node_modules/known.js','学习/教程/文件.md','src/readModel.ts'];
@@ -25,6 +25,16 @@ app.whenReady().then(async()=>{
   assert(await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").getAttribute("aria-pressed")==="true"'));
   await query('main[.]c$');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
   await query('[');assert(await evaluate('picker.root.textContent.includes("正则表达式无效")'));
+  await query('*.c');assert(await evaluate('picker.root.textContent.includes("正则表达式无效")'),'通配符不会被静默当成正则');
+  await evaluate('picker.root.querySelector("[aria-label=使用通配符]").click();void 0');await wait('picker.root.querySelector(".workspace-quick-open-name")?.textContent==="main.c"');
+  assert(await evaluate('picker.input===document.activeElement&&picker.root.querySelector("[aria-label=使用正则表达式]").getAttribute("aria-pressed")==="false"'),'通配符切换互斥且保留输入焦点');
+  await query('**/*.{c,conf}');assert.deepEqual((await evaluate('[...picker.root.querySelectorAll(".workspace-quick-open-name")].map(n=>n.textContent)')).sort(),['main.c','prj.conf','prj.conf']);
+  await query('**/m?in.c');assert.equal(await evaluate('picker.root.querySelectorAll(".workspace-quick-open-result").length'),1);
+  await query('**\\[m]ain.c');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
+  await query('**/[bad');assert(await evaluate('picker.root.textContent.includes("括号不匹配")'));
+  await evaluate('picker.close();picker.open();void 0');await query('*.c');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
+  await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").click();void 0');await query('main[.]c$');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
+  assert(await evaluate('picker.root.querySelector("[aria-label=使用通配符]").getAttribute("aria-pressed")==="false"'));
   await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").click();void 0');
   await query('samples/bringup');
   assert.deepEqual(await evaluate(`[...picker.root.querySelectorAll('.workspace-quick-open-name')].slice(0,5).map(n=>n.textContent)`),['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt']);
