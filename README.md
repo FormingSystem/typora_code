@@ -11,6 +11,8 @@ domains:
 
 Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git 审阅和集成终端，把 Markdown 阅读与日常项目操作放在同一个窗口内。打开普通文件或文件夹即可使用，无需特定知识库目录或元数据。
 
+资源管理器单击文件立即显示，并复用当前组的未编辑预览标签；Alt+左键或编辑正文后保持常驻。可从编辑器菜单关闭“启用预览编辑器”，继续让所有打开的文件常驻。详见[预览与常驻](docs/editor_tab_menu.md#r080资源管理器预览与常驻打开2026-09-27)。
+
 工作台布局、交互方式和部分功能设计参考并模仿 [Visual Studio Code（VS Code）](https://code.visualstudio.com/)，设计来源见 [界面基线](docs/vscode_design_baseline.md)。
 
 这是独立维护的社区增强项目，并非 Typora 或 VS Code 官方产品，需要先安装 Typora。Typora 的下载、许可与更新由其官方提供；本项目维护增强代码、主题、安装脚本及说明文档。

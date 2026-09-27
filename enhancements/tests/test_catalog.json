@@ -2236,7 +2236,8 @@
         "R020",
         "R044",
         "R073.1",
-        "R072.2"
+        "R072.2",
+        "R080"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -2338,7 +2339,8 @@
         "R044",
         "R046",
         "R061",
-        "R070.8"
+        "R070.8",
+        "R080"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -3289,7 +3291,8 @@
       "purpose": "implementation",
       "requirements": [
         "R002",
-        "R042"
+        "R042",
+        "R080"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -7093,7 +7096,8 @@
         "R070.7",
         "R070.8",
         "R070.9",
-        "R075"
+        "R075",
+        "R080"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -7979,6 +7983,43 @@
         "正文原生快捷键保持，工作台仅Alt执行一次"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-native-explorer-preview",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R080"
+      ],
+      "design": "docs/editor_tab_menu.md",
+      "implementation": [
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_source_lifecycle.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "reading",
+        "source_lifecycle"
+      ],
+      "script": "enhancements/fixtures/explorer_preview_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "原生隔离宿主和当前构建"
+      ],
+      "steps": [
+        "连续20次原生Markdown预览并检查视图释放",
+        "真实树Alt点击、原生格式编辑与常驻",
+        "打开失败、快速连续打开和分屏"
+      ],
+      "expected": [
+        "每组一个未编辑预览；常驻及编辑内容保留，原生正文即时显示，预览斜体可辨识"
+      ],
+      "timeout_ms": 90000
     }
   ]
 }

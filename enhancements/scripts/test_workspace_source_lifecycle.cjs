@@ -25,6 +25,11 @@ app.whenReady().then(async()=>{
     window.dialog=()=>document.querySelector('[data-workspace-save-close]');
     window.click_label=label=>{const button=[...document.querySelectorAll('.git-graph-dialog-footer button')].find(button=>button.textContent===label);if(!button)throw new Error('missing '+label);button.click();};
   })()`);
+  await evaluate(`window.present_leaves=[];window.original_each=core.app.workspace.eachLeaves;core.app.workspace.eachLeaves=callback=>{callback(view.leaf);present_leaves.forEach(callback);};window.detached=[];window.original_detach=function(){present_leaves=present_leaves.filter(leaf=>leaf!==this);};
+    for(let i=0;i<20;i++){const leaf={state:{path:'preview_'+i},detach:original_detach};const item={leaf,file_path:leaf.state.path,disposed:false,dirty:()=>false,save:async()=>true,release_source(){this.disposed=true;}};present_leaves.push(leaf);lifecycle.guard(item);leaf.detach();detached.push(item);}`);
+  await delay(0);
+  assert(await evaluate('detached.every(item=>item.disposed&&item.leaf.detach===original_detach)'));checks.push('20 closed preview leaves release their detach patch closures immediately');
+  await evaluate('core.app.workspace.eachLeaves=original_each;void 0');
   await evaluate('window.close()');await wait('Boolean(dialog())');
   assert.equal(await evaluate('native_calls'),0);checks.push('Dirty source blocks earlier native onbeforeunload before its close side effects');
   await evaluate('click_label("关闭")');await delay(50);assert.equal(await evaluate('dirty_flag'),true);assert.equal(test_window.isDestroyed(),false);checks.push('Cancel keeps the window and dirty source');

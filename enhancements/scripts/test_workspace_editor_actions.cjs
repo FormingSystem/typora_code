@@ -67,6 +67,27 @@ await evaluate('window.real_set_and_save=runtime.app.settings.set_and_save;runti
 await open_title('preview_d');await click('[data-action=enable_preview_editors]');await wait('notices.some(text=>text.includes("fixture save failed"))');
 await check('editor_qa.read_workspace_editor_settings().enable_preview&&preview_d.state.workspace_preview','failed preference persistence keeps the old effective setting and tab state');
 await evaluate('runtime.app.settings.set_and_save=real_set_and_save;notices.length=0;void 0');
+// 连续阅读真正释放关闭视图和最后一个Monaco模型，不只隐藏标签。
+for(let index=0;index<20;index++){
+ await evaluate(`window.old_preview=ws.activeLeaf;window.old_model=old_preview.view.editor.models[0];files.open_file(preview_paths[${index%2?2:3}],{preview:true})`);
+ await check('ws.activeLeaf.state.workspace_preview&&leaves().filter(leaf=>leaf.state.workspace_preview).length===1','one replaceable preview '+index);
+ if(index)await check('old_preview.view.disposed&&old_model.isDisposed()','replaced model released '+index);
+}
+const binary_preview=path.join(folder,'binary_preview.dat');fs.writeFileSync(binary_preview,Buffer.alloc(256));
+await evaluate(`window.readable_preview=ws.activeLeaf;files.open_file(${JSON.stringify(binary_preview)},{preview:true})`);
+await check('leaves().includes(readable_preview)&&readable_preview.state.workspace_preview&&!ws.activeLeaf.view.loaded','read failure retains readable preview');
+await evaluate('files.close_leaf(ws.activeLeaf)');await evaluate('select(readable_preview);void 0');
+await evaluate('window.before_rapid=ws.activeLeaf;Promise.all([files.open_file(preview_paths[0],{preview:true}),files.open_file(preview_paths[1],{preview:true})])');
+await check('leaves().includes(preview_a)&&leaves().includes(preview_b)&&!preview_a.state.workspace_preview&&!preview_b.state.workspace_preview','rapid resident activation never demotes existing editors');
+await evaluate('select(readable_preview);void 0');
+await evaluate('window.preview_d=ws.activeLeaf;window.old_preview=preview_d;files.open_file(preview_paths[1],{preview:true})');
+await check('ws.activeLeaf===preview_b&&!preview_b.state.workspace_preview&&leaves().includes(old_preview)','reselecting a resident editor does not demote it or close the preview');
+await evaluate('select(preview_d);preview_d.view.editor.models[0].setValue("changed preview");void 0');await delay(30);
+await check('!preview_d.state.workspace_preview','editing promotes preview before another open');
+await evaluate('files.open_file(preview_paths[preview_d.state.path.includes("preview_c")?3:2],{preview:true})');
+await check('leaves().includes(preview_d)&&preview_d.view.editor.models[0].getValue()==="changed preview"','dirty preview survives replacement');
+await evaluate('files.save_leaf(preview_d)');
+await evaluate('files.close_leaf(ws.activeLeaf)');
 for(const name of ['preview_a','preview_b','preview_d'])await evaluate('files.close_leaf('+name+')');
 await evaluate('select(first);actions.split(first,"right")');await wait('ws.activeLeaf!==first&&ws.activeLeaf.view.loaded');await evaluate('window.lock_other=ws.activeLeaf;window.other_group=lock_other.parent;void 0');
 await open_title('first');await click('[data-action=lock_group]');await wait('editor_qa.workspace_editor_group_locked(group)');
@@ -121,8 +142,8 @@ await check('bottom.parent!==first.parent&&bottom.view.editor.models[0]===origin
 await evaluate('actions.move(second,"down");void 0');await delay(80);
 await check('second.parent===bottom.parent&&second.parent.children[0]===second&&second.state.workspace_pinned','moving to an adjacent group preserves fixed ordering');
 await evaluate('entry(first,"copy_window").action();void 0');await wait('window_requests.length===1');await check('window_requests[0].leaf===first&&window_requests[0].copy&&leaves().includes(first)','Copy into New Window binds the original target and requests copy semantics');
-await evaluate('select(bottom);void 0');await key('k',['control']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===true');checks.push('Ctrl+K Shift+Enter uses the same pin action');
-await key('k',['control']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===false');
+await evaluate('select(bottom);void 0');await key('k',['alt']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===true');checks.push('Alt+K Shift+Enter uses the same pin action');
+await key('k',['alt']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===false');
 // 各主题／缩放／小窗口里用真实右键打开，菜单在视口内滚动，Esc 恢复焦点。
 for(const [width,height,zoom,dark] of [[1100,780,1,false],[420,430,1.25,false],[1100,780,1,true],[420,430,1.25,true]]){
  win.setSize(width,height);win.webContents.setZoomFactor(zoom);

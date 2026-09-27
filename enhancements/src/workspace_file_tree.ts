@@ -169,8 +169,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
               selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
             }
             // 目录逐次响应 click；只有文件区分双击，避免吞掉快速连点的第二击。
-            if (event.altKey || !node.directory && event.detail >= 2) return;
-            select(node, false, true); run(() => activate(node));
+            if (event.button !== 0 || event.altKey && (node.directory || options.selection || event.shiftKey || event.ctrlKey || event.metaKey) || !node.directory && event.detail >= 2) return;
+            select(node, false, true); run(() => activate(node, !event.altKey));
           };
           row.ondblclick = event => {
             if (event.target === rename_state?.input) return;

@@ -16,6 +16,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   const guarded_groups = new WeakSet<object>();
   const guarded_leaves = new WeakSet<object>();
   const restore_patches: (() => void)[] = [];
+  const leaf_patches = new Map<source_lifecycle_view, () => void>();
   let disposed = false;
   const moving_leaves = new WeakSet<object>();
   const pending = new Map<source_lifecycle_view, {dialog: ReturnType<typeof workspace_dialog>; result: Promise<boolean>}>();
@@ -27,7 +28,9 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   };
   const release_removed = (view: source_lifecycle_view) => {
     if (disposed || view.disposed || present(view.leaf)) return;
-    pending.get(view)?.dialog.close(); pending.delete(view); view.release_source();
+    pending.get(view)?.dialog.close(); pending.delete(view);
+    // 真正关闭即释放补丁闭包，不能把已经回收的视图保留到整个工作台退出。
+    leaf_patches.get(view)?.();leaf_patches.delete(view);view.release_source();
   };
   const schedule_release = (view: source_lifecycle_view) => {
     // detach 后原生拖动立即 insertChild；微任务检查时才能区分移动和真正关闭。
@@ -62,7 +65,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
         moving_leaves.add(leaf);
         try { detach.call(leaf); } finally { moving_leaves.delete(leaf); schedule_release(view); }
       };
-      restore_patches.push(() => { if (leaf.detach === guarded_detach) leaf.detach = detach; });
+      leaf_patches.set(view, () => { if (leaf.detach === guarded_detach) leaf.detach = detach; });
     }
     const group = leaf.parent as source_group;
     if (!group?.removeTab || guarded_groups.has(group)) return;
@@ -119,6 +122,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     if (disposed) return;
     disposed = true;
     if (window.onbeforeunload === guarded_before_unload) window.onbeforeunload = native_before_unload;
+    for (const restore of leaf_patches.values()) restore();leaf_patches.clear();
     for (const restore of restore_patches.splice(0).reverse()) restore();
     for (const {dialog} of pending.values()) dialog.close();
     pending.clear(); window_dialog?.close();

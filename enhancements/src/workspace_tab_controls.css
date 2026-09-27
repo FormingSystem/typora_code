@@ -42,7 +42,7 @@
 .workspace-tab-strip .workspace-tab-label .typ-file-ext {flex:none;}
 .workspace-tab-strip .typ-file-icon {display:inline-flex;align-items:center;justify-content:center;flex:none;width:16px;height:16px;line-height:16px;margin:0 6px 0 0;}
 .workspace-tab-strip .prefix-preview::before {display:none;}
-.workspace-tab-strip .is-workspace-preview .typ-file-ext {font-style:italic;}
+.workspace-tab-strip .is-workspace-preview :is(.typ-file-basename,.typ-file-ext) {font-style:italic;}
 .workspace-tab-strip .typ-tab:is(.is-workspace-dirty,.is-workspace-pinned) {padding-right:28px!important;}
 .workspace-tab-strip .workspace-file-dirty {display:none;}
 .workspace-tab-strip .workspace-tab-actions {

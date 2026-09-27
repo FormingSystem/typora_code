@@ -103,7 +103,9 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     workspace_leaf_tab(leaf)?.classList.remove("is-workspace-preview");
   };
   const set_preview=(leaf:graph_leaf|null,preview:boolean)=>{
-    if(!leaf)return;if(leaf.state.workspace_pinned||!read_workspace_editor_settings().enable_preview)preview=false;if(!preview){keep_open(leaf);return;}
+    if(!leaf)return;
+    const edited=[...views].some(view=>view.leaf===leaf&&(view.dirty()||view.saving))||file_key(runtime.File?.bundle?.filePath||"")===file_key(leaf.state.path)&&runtime.File?.changeCounter?.isDocumentEdited();
+    if(edited||leaf.state.workspace_pinned||!read_workspace_editor_settings().enable_preview)preview=false;if(!preview){keep_open(leaf);return;}
     const previous=preview_leaves.get(leaf.parent);
     let previous_exists=false;core.app.workspace.eachLeaves(item=>{if(item===previous)previous_exists=true;});
     if(previous&&previous!==leaf&&previous_exists){
@@ -114,6 +116,20 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     leaf.state.workspace_preview=true;preview_leaves.set(leaf.parent,leaf);
     workspace_leaf_tab(leaf)?.classList.add("is-workspace-preview");
   };
+  // 原生格式命令不一定派发input；离开前和宿主编辑通知均按真实dirty状态提升。
+  const keep_dirty_native=()=>{
+    const path=runtime.File?.bundle?.filePath||"";
+    if(!runtime.File?.changeCounter?.isDocumentEdited())return;
+    core.app.workspace.eachLeaves(leaf=>{if(leaf.state.workspace_preview&&file_key(leaf.state.path)===file_key(path))keep_open(leaf);});
+  };
+  const prune_previews=()=>queueMicrotask(()=>{
+    const present=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>{present.add(leaf);});
+    for(const [group,leaf] of preview_leaves)if(!present.has(leaf)||leaf.parent!==group||!leaf.state.workspace_preview)preview_leaves.delete(group);
+  });
+  const native_editor=(core.app as unknown as {features?:{markdownEditor?:{on(name:string,callback:()=>void):()=>void}}}).features?.markdownEditor;
+  const release_preview_edit=native_editor?.on("edit",keep_dirty_native);
+  const release_preview_open=core.app.workspace.on("file:will-open",keep_dirty_native);
+  const release_preview_layout=core.app.workspace.on("layout-changed",prune_previews);
   const apply_editor_settings=()=>{if(!read_workspace_editor_settings().enable_preview)core.app.workspace.eachLeaves(leaf=>{if(leaf.state.workspace_preview)keep_open(leaf);});};
   const stop_editor_settings=observe_workspace_editor_settings(apply_editor_settings);apply_editor_settings();
   // 原生 Markdown 打开依赖当前组；新建组先放安全空叶子，让原有打开与未保存确认继续拥有事务。
@@ -155,6 +171,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   class source_file_view extends core.WorkspaceView {
     navigation_id = next_navigation_id--;
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
+    load_task:Promise<void>=Promise.resolve();
     editor?: git_diff_editor; focus_requested=true; disposed=false; target?:file_location;
     status = el("span", "workspace-file-status"); body = el("div", "workspace-file-body");
     status_controls = el("div", "workspace-editor-status-controls workspace-footer-group"); location_label = el("span", "workspace-file-location");
@@ -212,7 +229,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       this.guard_close();this.sync_tab_label();
       this.attach_shared_editor();this.update_status();
       editor_status.refresh();editor_status.schedule();
-      if (!this.loaded && !this.loading) void this.load_file(); else this.reveal();
+      if (!this.loaded && !this.loading) this.load_task=this.load_file(); else this.reveal();
       queueMicrotask(()=>{if(!this.disposed&&this.focus_requested&&core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();});
     }
     async load_file(encoding?: string) {
@@ -359,6 +376,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const epoch=workspace_context_epoch(),valid=()=>binding.active&&!workspace_context_switching()&&epoch===workspace_context_epoch()&&!location.signal?.aborted;
     const remote=remote_files_for(file_path);if(remote){let opened=false;core.app.workspace.eachLeaves(leaf=>{if(file_key(real_path(leaf))===file_key(file_path))opened=true;});await remote.prepare(file_path,!opened,valid);if(!valid())throw Error('打开文件已取消。');}
     if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
+    keep_dirty_native();
     notify_navigation_selection();
     if (is_markdown_file(file_path) && !location.source) {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
@@ -381,7 +399,15 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const leaf = core.app.workspace.createLeaf({type: SOURCE_FILE_VIEW_ID, state: {path: uri, git_cwd: path_api.dirname(file_path)}});
     (leaf.view as source_file_view).focus_requested=!location.preserve_focus;
     if(location.line!=null)(leaf.view as source_file_view).target=location;
-    parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;set_preview(leaf,Boolean(location.preview));
+    parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
+    if(location.preview){
+      const view=leaf.view as source_file_view;await view.load_task;
+      // 读取成功后再替换；迟到的预览不夺回焦点，也不遗留后台模型。
+      if(view.disposed)return;
+      if(!valid()||core.app.workspace.activeLeaf!==leaf){if(!view.dirty()&&!view.saving)leaf.parent.removeTab?.(leaf.state.path);return;}
+      if(!view.loaded){keep_open(leaf);return;}
+    }
+    set_preview(leaf,Boolean(location.preview));
   };
   const restore_files:workspace_file_host["restore_files"]=async(entries,signal)=>{
     const parent=core.app.workspace.activeLeaf?.parent,epoch=workspace_context_epoch();
@@ -1071,7 +1097,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
     if (library && library.openFile === routed_library_open_file) library.openFile = native_library_open_file;
-    source_lifecycle.dispose();stop_editor_settings();for(const cleanup of [...native_placeholders.values()])cleanup();native_placeholders.clear();
+    source_lifecycle.dispose();stop_editor_settings();release_preview_edit?.();release_preview_open();release_preview_layout();for(const cleanup of [...native_placeholders.values()])cleanup();native_placeholders.clear();
     for(const {dialog} of native_close_dialogs.values())dialog.close();native_close_dialogs.clear();
     for(const {dialog} of reopen_dialogs.values())dialog.close();reopen_dialogs.clear();
     document.removeEventListener("dblclick",keep_clicked_tab,true);document.removeEventListener("input",keep_edited_native,true);

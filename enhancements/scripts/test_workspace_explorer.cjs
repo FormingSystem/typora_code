@@ -45,7 +45,7 @@ app.whenReady().then(async()=>{
   })()`);
 
   assert.equal(await evaluate('reads.length'),0,'closed sidebar must not enumerate any directory');
-  const click=async(selector,button='left')=>{const point=await evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(box.left+Math.min(50,box.width/2)),y:Math.round(box.top+box.height/2)}})()`);for(const type of ['mouseMove','mouseDown','mouseUp']){test_window.webContents.sendInputEvent({type,...point,button,clickCount:1});await delay(25);}await delay(100);};
+  const click=async(selector,button='left',modifiers=[])=>{const point=await evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(box.left+Math.min(50,box.width/2)),y:Math.round(box.top+box.height/2)}})()`);for(const type of ['mouseMove','mouseDown','mouseUp']){test_window.webContents.sendInputEvent({type,...point,button,clickCount:1,modifiers});await delay(25);}await delay(100);};
   const row=name=>'.workspace-explorer-row[data-path='+JSON.stringify(path.join(workspace,name))+']';
   const click_open=async selector=>{const before=await evaluate('opened.length');await click(selector);await wait('opened.length>'+before);};
   await click('[data-id="core.file-explorer"]');await wait('document.querySelectorAll(".workspace-explorer-row").length===9');
@@ -82,6 +82,9 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.join(root,'explorer_all_files.png'),(await test_window.webContents.capturePage()).toPNG());
   assert(await evaluate('!!sidebar.activePanel.containerEl.isConnected'));
   await click_open(row('archive.tar.gz'));assert.equal((await evaluate('opened')).at(-1)[0],path.join(workspace,'archive.tar.gz'));
+  assert.equal((await evaluate('opened')).at(-1)[1].preview,true,'plain left click requests a replaceable editor');
+  await click(row('archive.tar.gz'),'left',['alt']);
+  assert.equal((await evaluate('opened')).at(-1)[1].preview,false,'Alt left click explicitly keeps the editor open');
   await click_open(row('odd.unrecognized'));assert.equal((await evaluate('opened')).at(-1)[0],path.join(workspace,'odd.unrecognized'));
   await click(row('.hidden'));await wait('reads.length===2');assert.equal((await evaluate('reads')).at(-1),path.join(workspace,'.hidden'));
   await wait(`!!document.querySelector(${JSON.stringify(row(path.join('.hidden','.secret.c')))})`);
@@ -108,7 +111,7 @@ app.whenReady().then(async()=>{
   await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="Dockerfile.dev"');await key('Enter');await wait('!!document.querySelector(".workspace-explorer-rename[aria-invalid=true]")');await assert_row_visible('.workspace-explorer-rename');assert.equal(fs.readFileSync(path.join(workspace,'Dockerfile.dev'),'utf8'),'FROM scratch');assert(fs.existsSync(path.join(workspace,'renamed_file.py')));await key('Escape');assert.equal(await evaluate('document.querySelector(".workspace-explorer-rename")'),null);
   await assert_row_visible(row('renamed_file.py'));
   const double_open_count=await evaluate('opened.length');
-  await click(row('renamed_file.py'));assert.equal(await evaluate('opened.length'),double_open_count+1,'single click opens immediately');assert.equal((await evaluate('opened')).at(-1)[1].preview,false);
+  await click(row('renamed_file.py'));assert.equal(await evaluate('opened.length'),double_open_count+1,'single click opens immediately');assert.equal((await evaluate('opened')).at(-1)[1].preview,true);
   const double_click=async selector=>{
     const point=await evaluate(`(()=>{const box=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:Math.round(box.left+Math.min(50,box.width/2)),y:Math.round(box.top+box.height/2)}})()`);
     for(const count of [1,2]){for(const type of ['mouseMove','mouseDown','mouseUp']){test_window.webContents.sendInputEvent({type,...point,button:'left',clickCount:count});await delay(20)}await delay(30)}
