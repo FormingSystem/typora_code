@@ -1,0 +1,150 @@
+{
+  "requirements": [
+    "R058.4"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.18",
+  "scope": "整个工程全文搜索按包含/排除及忽略开关枚举；补齐打开模型覆盖磁盘结果，预览和定位使用同一当前内容。",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/workbench/services/search/common/searchService.ts#getOpenEditorResults",
+      "src/vs/workbench/services/search/common/search.ts#pathIncludedInQuery",
+      "src/vs/workbench/services/search/common/queryBuilder.ts#getFolderQuery",
+      "src/vs/workbench/contrib/search/browser/searchView.ts#doSearch"
+    ]
+  },
+  "checks": {
+    "build_static_core_deployment": "PASS",
+    "catalog_suites": 245,
+    "search_engine_and_worker": "PASS",
+    "ui": {
+      "files_search": "6252d5c4344b448480e33b0f2bda3c29",
+      "selection_search": "ec11a9b3b8174f4e867d2576593c0fc5"
+    },
+    "native": {
+      "id": "29db235641054bee9bac0c9e504e9e79",
+      "count": 54,
+      "status": "PASS",
+      "checks": [
+        "隔离工作区",
+        "搜索结果 1",
+        "*.c搜到已打开忽略目录文件",
+        "搜索结果 2",
+        "未打开文件参与整个工程搜索",
+        "搜索结果 1",
+        "排除目录生效",
+        "搜索结果 1",
+        "文件类型切换",
+        "搜索结果 1",
+        "搜索结果 2",
+        "内存搜索不修改磁盘",
+        "双击内存结果定位当前模型第二行",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 0",
+        "搜索结果 2",
+        "搜索结果 1"
+      ],
+      "asset_sha256": "eaa0dcf8a03f01013ce8d1fe4239d2d2fdb96aaad8bf85b187546d52f3635762",
+      "limits": "隔离原始宿主DOM事件；未测物理键鼠及其他平台。"
+    },
+    "isolated_install_cycle": {
+      "id": "7f38c524bf8f47a6aea22adb760af128",
+      "status": "PASS",
+      "scope": "安装/检查/有效备份恢复卸载/重装/无兼容备份撤销卸载/重装/检查，正文配置及备份保留"
+    },
+    "uninstall": {
+      "id": "433d5920d7ae4ead95d2194bb9905a80",
+      "assertions": 65,
+      "status": "PASS"
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "e842195fe44ef2f5211bbfb9289ddbf077d59cc0f4b738073d1bedb6dcfd24dc",
+      "window_restarted": false
+    }
+  },
+  "fixture_repairs": [
+    "单元测试新增变量重名，改为独立测试块",
+    "两个旧UI夹具补充原生getMarkdown接口",
+    "源码编辑用例结束通过reload恢复夹具，避免撤销栈仍有dirty状态影响后续用例"
+  ],
+  "limits": [
+    "未执行全量check/check:ui",
+    "原生DOM事件验证，不替代物理键鼠和其他平台",
+    "修改中的文件搜索可读和定位，替换仍要求保存并重新搜索",
+    "历史未决项保持；当前用户窗口未重启"
+  ],
+  "delivery": {
+    "installed": true,
+    "commit_and_push": "记录生成时待提交；最终回执见本地需求台账"
+  },
+  "cleanup": {
+    "29db235641054bee9bac0c9e504e9e79": {
+      "state": "cleaned",
+      "payload_bytes": 531267120
+    },
+    "6252d5c4344b448480e33b0f2bda3c29": {
+      "state": "cleaned",
+      "payload_bytes": 3696335
+    },
+    "ec11a9b3b8174f4e867d2576593c0fc5": {
+      "state": "cleaned",
+      "payload_bytes": 3733521
+    },
+    "7f38c524bf8f47a6aea22adb760af128": {
+      "state": "cleaned",
+      "payload_bytes": 2074142380
+    },
+    "433d5920d7ae4ead95d2194bb9905a80": {
+      "state": "cleaned",
+      "payload_bytes": 131163209
+    }
+  }
+}

@@ -18,9 +18,9 @@ import { create_git_runner } from "./git_graph_runtime";
 import { parse_status } from "./git_graph_repository";
 import { git_diff_editor } from "./git_diff_editor";
 import { create_lookup_preview } from "./workspace_lookup_preview";
-import { decode_file_bytes, detect_binary_bytes, is_markdown_file } from "./file_language";
+import { detect_binary_bytes, is_markdown_file } from "./file_language";
 import { bind_workspace_selection_search, type workspace_selection_request } from "./workspace_selection_search";
-import { file_key, source_file_path } from "./workspace_file_uri";
+import { file_key } from "./workspace_file_uri";
 import search_css from "./workspace_search.css";
 const search_path_order = new Intl.Collator("zh-CN", {numeric: true});
 
@@ -35,7 +35,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
   const runtime = window as unknown as {reqnode(name:string):any};
   const runner = create_git_runner({child_process:runtime.reqnode("child_process"),process:runtime.reqnode("process")});
   lifetime.add(()=>runner.cancel());
-  const engine = create_workspace_search_engine({fs:files.fs,path_api:files.path_api,git_run:runner.run,platform:runtime.reqnode("process").platform});
+  const engine = create_workspace_search_engine({fs:files.fs,path_api:files.path_api,git_run:runner.run,read_open_text:files.read_text,platform:runtime.reqnode("process").platform});
   const native_sidebar = document.querySelector<HTMLElement>("#typora-sidebar");
   const input = (label: string, placeholder = label) => { const node = el("input"); node.type="text"; node.placeholder=placeholder; node.setAttribute("aria-label",label); node.autocomplete="off"; node.spellcheck=false; return node; };
   const panels = new Map<string, HTMLElement>(); let serial = 0, disposed = false, replacing=false;
@@ -158,6 +158,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     update_status(){
       const result=this.result;if(!result)return;
       const count=result.counts;this.status.replaceChildren(el("span","workspace-search-counts",`在 ${count.matched_files} 个文件中找到 ${count.matches} 个结果`+(result.cancelled?" · 已停止":"")));
+      if(result.options.use_ignore!==false&&(count.skipped.ignored||count.skipped.excluded))this.status.append(el("p","workspace-search-scope-note","已应用 Git 忽略与默认排除规则；如需搜索被忽略的未打开文件，请关闭排除框右侧的忽略开关。"));
       if(count.matches)this.status.append(button("在编辑器中打开",()=>this.open_results(),"workspace-search-open-editor"));
       if(result.notices.length){const note=el("details","workspace-search-notices");note.append(el("summary","","搜索范围说明"),el("p","",result.notices.join("\n")));this.status.append(note);}
     }
@@ -173,7 +174,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       const controller=new AbortController();this.controller=controller;this.containerEl.dataset.state="searching";this.status.textContent="正在搜索…";
       controller.signal.addEventListener("abort",()=>runner.cancel(),{once:true});
       const stop=git_icon_button("search-stop","停止搜索",()=>controller.abort());this.status.append(stop);
-      const open_files:string[]=[];if(this.only_open)core.app.workspace.eachLeaves(leaf=>{const source_path=source_file_path(leaf.state.path,files.path_api);if(files.path_api.isAbsolute(leaf.state.path))open_files.push(leaf.state.path);else if(source_path)open_files.push(source_path);});
+      const open_files:string[]=[];core.app.workspace.eachLeaves(leaf=>{const state=files.editor_state(leaf);if(state.kind!=="other"&&state.file_path&&files.path_api.isAbsolute(state.file_path))open_files.push(state.file_path);});
       try{
         const root=files.context_root();this.git_status=new Map();
         // Git 装饰与内容查找并行；只有“仅更改文件”需要先取得 Git 范围。
@@ -183,7 +184,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         const git=this.only_changed?await git_pending:undefined;if(disposed||this.controller!==controller)return;
         if(this.only_changed&&!git?.changed_files)throw new Error("当前文件夹不在 Git 仓库中，无法限定到源代码管理中的更改文件。");
         const scope=this.only_changed?git?.changed_files:this.only_open?open_files:undefined;
-        const options={...this.options,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{}),...(folder_path?{folder_path}:{})};
+        const options={...this.options,open_files,query:this.query.value,include:this.includes.value,exclude:this.excludes.value,...(scope?{file_paths:scope}:{}),...(folder_path?{folder_path}:{})};
         const progressive:workspace_search_result={root,options,files:[],counts:{scanned_files:0,searched_files:0,matched_files:0,matches:0,skipped:{binary:0,ignored:0,excluded:0,links:0,unreadable:0}},cancelled:true,notices:[]};
         this.result=progressive;let progress_time=0;const render_tasks:Promise<void>[]=[];let render_error:unknown;
         const result=await engine.search(root,options,{signal:controller.signal,on_file:(file,counts)=>{
@@ -273,7 +274,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
       for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",String(selected));}
 
-      void Promise.resolve(this.preview.show(file,match)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
+      void Promise.resolve(this.preview.show(file,match,"",true)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
     }
     navigate(event:KeyboardEvent,row:HTMLElement,file:workspace_search_file,match:()=>workspace_search_match,target:HTMLElement){
       if(event.isComposing)return;if(event.key==="Enter"){event.preventDefault();this.open_match(file,match());return;}
@@ -286,7 +287,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       void(async()=>{
         const stat=await files.fs.promises.stat(file.file_path);if(!current())return;if(!stat.isFile())throw new Error("文件已变化，请刷新搜索结果。");
         const bytes=await files.fs.promises.readFile(file.file_path);if(!current())return;if(detect_binary_bytes(bytes))throw new Error("文件已变化，请刷新搜索结果。");
-        const text=decode_file_bytes(bytes).text;
+        const text=await files.read_text(file.file_path);if(!current())return;
         const position=(offset:number)=>{const newline=/\r\n|\r|\n/gu;let line=1,start=0,found:RegExpExecArray|null;while((found=newline.exec(text))&&found.index+found[0].length<=offset){line++;start=found.index+found[0].length;}return{line,column:offset-start+1};};
         const from=position(match.start),to=position(match.end);
         if(text.slice(match.start,match.end)!==match.text||from.line!==match.line||from.column!==match.column||to.line!==match.end_line||to.column!==match.end_column)throw new Error("文件已变化，请刷新搜索结果后重新打开。");

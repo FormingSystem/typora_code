@@ -16,6 +16,31 @@ const search = (root, query, options = {}, callbacks) => engine.search(root, {qu
 const paths = result => result.files.map(file => file.relative_path).sort();
 const encode = (text, encoding) => encoding === 'utf8bom' ? Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), Buffer.from(text)]) : Buffer.concat([Buffer.from(encoding === 'utf16be' ? [0xfe, 0xff] : [0xff, 0xfe]), encoding === 'utf16be' ? Buffer.from(text, 'utf16le').swap16() : Buffer.from(text, 'utf16le')]);
 try {
+  {
+  const open_root=make_root('open_models');git(open_root,['init','-b','main']);
+  write(open_root,'.gitignore','.cache/\n');
+  const open_file=write(open_root,'.cache/deep/main.c','BSP_CLK_Init();\n');
+  write(open_root,'.cache/closed.c','BSP_CLK_Init();\n');
+  let open_text='BSP_CLK_Init();\n';
+  const open_engine=api.create_workspace_search_engine({fs,path_api:path,git_run:async(root,args)=>git(root,args),matcher_factory,read_open_text:async()=>open_text});
+  const options={query:'BSP_CLK_Init',include:'*.c',use_ignore:true,case_sensitive:true,whole_word:true};
+  assert.equal((await open_engine.search(open_root,options)).counts.matches,0,'磁盘搜索遵守已启用Git忽略');
+  assert.equal((await open_engine.search(open_root,{...options,use_ignore:false})).counts.matches,2,'关闭忽略后整个范围的未打开文件也可搜索');
+  const with_open={...options,open_files:[open_file,open_file]};
+  let open_result=await open_engine.search(open_root,with_open);assert.equal(open_result.counts.matches,1);assert.equal(open_result.counts.searched_files,1);
+  assert.equal((await open_engine.search(open_root,{...with_open,exclude:'.cache'})).counts.matches,0);
+  assert.equal((await open_engine.search(open_root,{...with_open,include:'*.h'})).counts.matches,0);
+  assert.equal((await open_engine.search(open_root,{...with_open,file_paths:[]})).counts.matches,0);
+  assert.equal((await open_engine.search(open_root,{...with_open,file_paths:[open_file]})).counts.matches,1);
+  assert.equal((await open_engine.search(open_root,{...with_open,exclude_settings:'**/.cache'})).counts.matches,0);
+  open_text='BSP_CLK_Init();\nBSP_CLK_Init();\n';open_result=await open_engine.search(open_root,with_open);assert.equal(open_result.counts.matches,2);
+  await assert.rejects(open_engine.prepare_replace(open_result,'changed'),/先保存/);
+  open_text='no match';assert.equal((await open_engine.search(open_root,{...with_open,use_ignore:false,exclude:'closed.c'})).counts.matches,0,'内存零匹配覆盖磁盘旧匹配');
+  const controller=new AbortController();let release;const delayed=api.create_workspace_search_engine({fs,path_api:path,matcher_factory,read_open_text:()=>new Promise(resolve=>release=resolve)});
+  const pending=delayed.search(open_root,{...with_open,use_ignore:false},{signal:controller.signal});while(!release)await new Promise(resolve=>setTimeout(resolve,5));controller.abort();release('BSP_CLK_Init();');assert.equal((await pending).counts.matches,0);
+  assert.equal(fs.readFileSync(open_file,'utf8'),'BSP_CLK_Init();\n');
+  checks.push('whole-workspace ignore toggle, opened model priority, include/exclude scopes, deduplication, zero-match suppression, unsaved replacement and cancellation');
+  }
   const texts = make_root('texts');
   const source = write(texts, 'source.c', 'needle Needle NEEDLE needlework _needle 中文needle中文\r\n😀 needle\r\nfirst\r\nsecond\r\n');
   write(texts, '.hidden/settings', 'needle\n'); write(texts, 'nested/.secret.json', '{"needle":true}'); write(texts, 'nested/deep/source.c', 'needle\n');

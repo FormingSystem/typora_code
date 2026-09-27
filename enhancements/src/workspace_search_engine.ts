@@ -9,7 +9,7 @@ import {file_key} from "./workspace_file_uri";
 export type workspace_search_options = {
   query: string; case_sensitive?: boolean; whole_word?: boolean; regex?: boolean; include?: string; exclude?: string;
   use_ignore?: boolean; exclude_settings?: string; encoding?: string; glob_case_sensitive?: boolean;
-  preserve_case?: boolean; file_paths?: string[]; folder_path?: string;
+  preserve_case?: boolean; file_paths?: string[]; folder_path?: string; open_files?: string[];
 };
 export type workspace_search_match = {id: string; start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]};
 export type workspace_search_file = {file_path: string; relative_path: string; matches: workspace_search_match[]};
@@ -17,9 +17,9 @@ export type workspace_search_counts = {scanned_files: number; searched_files: nu
 export type workspace_search_result = {root: string; options: workspace_search_options; files: workspace_search_file[]; counts: workspace_search_counts; cancelled: boolean; notices: string[]};
 export type workspace_replace_file = {file_path: string; relative_path: string; before_text: string; after_text: string; match_count: number};
 export type workspace_replace_plan = {root: string; replacement: string; files: workspace_replace_file[]; match_count: number};
-export type workspace_search_modules = {fs: any; path_api: any; git_run?: (root: string, args: string[]) => Promise<string>; platform?: string; matcher_factory?: search_matcher_factory};
+export type workspace_search_modules = {fs: any; path_api: any; git_run?: (root: string, args: string[]) => Promise<string>; platform?: string; read_open_text?: (file_path:string)=>Promise<string>; matcher_factory?: search_matcher_factory};
 type captured_match = search_captured_match & {id: string};
-type file_snapshot = {bytes: Uint8Array; decoded: decoded_file; identity: string; mode: number; matches: captured_match[]};
+type file_snapshot = {bytes: Uint8Array; decoded: decoded_file; identity: string; mode: number; editor_modified?: boolean; matches: captured_match[]};
 type result_snapshot = {root: string; options: workspace_search_options; files: Map<string, file_snapshot>; incomplete: boolean; replace_blocked: boolean};
 type prepared_file = workspace_replace_file & {snapshot: file_snapshot; bytes: Uint8Array};
 const DEFAULT_EXCLUDES = "**/.git, **/.svn, **/.hg, **/CVS, **/.DS_Store, **/Thumbs.db, **/node_modules, **/bower_components, **/*.code-search";
@@ -113,6 +113,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     const selected_paths = selected_files ? new Set(selected_files.map(file_key)) : undefined;
     const selected_directories = new Set<string>();
     for (const file of selected_files || []) { let directory = path_api.dirname(file); while (inside(root, directory)) { selected_directories.add(file_key(directory)); if (file_key(directory) === file_key(root)) break; directory = path_api.dirname(directory); } }
+    const open_paths = new Map((options.open_files || []).map(file=>[file_key(path_api.resolve(file)),path_api.resolve(file)]));
     const expression = query_expression(options);
     const case_sensitive = options.glob_case_sensitive ?? (modules.platform ? !["win32", "darwin"].includes(modules.platform) : path_api.sep !== "\\");
     const include = compile_workspace_globs(options.include || "", case_sensitive);
@@ -140,9 +141,19 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     };
     try {
     matcher?.start();
+    const visited_open_paths = new Set<string>();
     const allowed = await read_ignored(root);
     const stack: {directory: string; relative: string; ignore_root: string; allowed: Set<string> | null}[] = [{directory: root, relative: "", ignore_root: root, allowed}];
     async function* candidates(): AsyncGenerator<{file_path: string; relative: string} | null> {
+    // 已打开模型先于磁盘：即使零匹配也不能被磁盘旧内容覆盖。
+    for(const [key,file_path] of open_paths){
+      if(cancelled())break;
+      if(!inside(root,file_path)||!inside(folder,file_path)||selected_paths&&!selected_paths.has(key))continue;
+      const relative=path_api.relative(root,file_path).split(path_api.sep).join('/');
+      visited_open_paths.add(key);
+      if(exclude(relative)||options.use_ignore!==false&&settings_exclude(relative)||options.include?.trim()&&!include(relative)){result.counts.skipped.excluded++;continue;}
+      result.counts.scanned_files++;yield {file_path,relative};yield null;
+    }
     while (stack.length && !cancelled()) {
       const current = stack.pop()!; let entries: any[];
       try {
@@ -165,6 +176,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
           const nested = current.allowed?.has(ignore_relative + "/") ? await read_ignored(file_path) : undefined;
           directories.push({directory: file_path, relative, ignore_root: nested === undefined ? current.ignore_root : file_path, allowed: nested === undefined ? current.allowed : nested}); continue;
         }
+        if(visited_open_paths.has(file_key(file_path)))continue;
         if (!entry.isFile()) { result.counts.skipped.unreadable++; continue; }
         if(!inside(folder,file_path))continue;
         if (selected_paths && !selected_paths.has(file_key(file_path))) continue;
@@ -178,7 +190,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
       yield null;
     }
     }
-    type read_candidate = {file_path: string; relative: string; stat?: any; bytes?: Uint8Array; decoded?: decoded_file; skipped?: keyof workspace_search_counts["skipped"]; message?: string};
+    type read_candidate = {file_path: string; relative: string; stat?: any; bytes?: Uint8Array; decoded?: decoded_file; editor_modified?: boolean; skipped?: keyof workspace_search_counts["skipped"]; message?: string};
     const read_candidate = async (candidate: {file_path: string; relative: string}): Promise<read_candidate> => {
       const {file_path, relative} = candidate;
       try {
@@ -195,7 +207,12 @@ export function create_workspace_search_engine(modules: workspace_search_modules
         catch { return {...candidate, skipped: "unreadable", message: `无法按指定编码解码：${relative}`}; }
         const after_stat = await files_api.lstat(file_path);
         if (identity(stat) !== identity(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) return {...candidate, skipped: "unreadable", message: `读取时文件发生改变，已跳过：${relative}`};
-        return {...candidate, bytes, decoded, stat};
+        let editor_modified=false;
+        if(open_paths.has(file_key(file_path))&&modules.read_open_text){
+          const text=await modules.read_open_text(file_path);if(cancelled())return candidate;
+          editor_modified=text!==decoded.text;decoded={...decoded,text};
+        }
+        return {...candidate, bytes, decoded, stat, editor_modified};
       } catch (error) { return {...candidate, skipped: "unreadable", message: `无法搜索 ${relative}：${String(error)}`}; }
     };
     // 只预读四个文件，保持确定的目录顺序；不把整个工程正文排进消息队列或内存。
@@ -211,7 +228,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     await fill();
     while ((pending.length||!exhausted) && !cancelled()) {
       if(!pending.length){await fill();if(!pending.length)continue;}
-      const {file_path, relative, bytes, decoded, stat, skipped, message} = await pending.shift()!;
+      const {file_path, relative, bytes, decoded, stat, editor_modified, skipped, message} = await pending.shift()!;
       if (cancelled()) break;
       if(!directory_boundary)await fill();
       if (skipped) { if(skipped === "unreadable")replace_blocked = true; result.counts.skipped[skipped]++; if (message) notice(message); continue; }
@@ -240,7 +257,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
             }
           }
           if (matches.length) {
-            snapshots.set(file_path, {bytes, decoded, identity: identity(stat), mode: stat.mode, matches});
+            snapshots.set(file_path, {bytes, decoded, identity: identity(stat), mode: stat.mode, editor_modified, matches});
             const file = {file_path, relative_path: relative, matches: matches.map(({captures, groups, ...match}) => match)};
             result.files.push(file); result.counts.matched_files++; callbacks.on_file?.(file, structuredClone(result.counts));
           }
@@ -263,6 +280,7 @@ export function create_workspace_search_engine(modules: workspace_search_modules
     for (const [file_path, file] of snapshot.files) {
       if (selection.file_path && selection.file_path !== file_path) continue;
       const matches = file.matches.filter(match => !selected_ids || selected_ids.has(match.id)); if (!matches.length) continue;
+      if(file.editor_modified)throw new Error("搜索采用了编辑器当前内容；请先保存该文件并重新搜索后再替换。");
       matches.forEach(match => found_ids.add(match.id));
       const relative_path = path_api.relative(snapshot.root, file_path).split(path_api.sep).join("/");
       const newline = /\r\n|\r|\n/u.exec(file.decoded.text)?.[0] || "\n";

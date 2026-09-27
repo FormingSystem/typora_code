@@ -49,7 +49,7 @@ app.whenReady().then(async()=>{
     window.workspace_path=${JSON.stringify(workspace)};window.native_opens=[];window.native_library_calls=[];window.shell_calls=[];window.copied=[];window.leaves=[];window.factories=new Map();window.commands=new Map();window.listeners=new Map();window.extra_ribbon=[];
     const native_worker=window.Worker;window.worker_queries=[];window.Worker=class extends native_worker{postMessage(message,...args){if(message?.options?.regex)worker_queries.push(message.options.query);return super.postMessage(message,...args)}};
     window.reqnode=name=>name==='electron'?{shell:{openPath:file=>shell_calls.push(file),showItemInFolder:file=>shell_calls.push(file)},clipboard:{writeText:text=>copied.push(text)}}:require(name);
-    window.File={getMountFolder:()=>workspace_path,bundle:{filePath:workspace_path+'/alpha.md'},changeCounter:{isDocumentEdited:()=>false},editor:{library:{openFile:function(file,...args){native_opens.push(file);native_library_calls.push({file,args,context:this===File.editor.library});return 'library-native-result'}}}};
+    window.File={getMountFolder:()=>workspace_path,bundle:{filePath:workspace_path+'/alpha.md'},changeCounter:{isDocumentEdited:()=>false},editor:{getMarkdown:()=>require('fs').readFileSync(File.bundle.filePath,'utf8'),library:{openFile:function(file,...args){native_opens.push(file);native_library_calls.push({file,args,context:this===File.editor.library});return 'library-native-result'}}}};
     window.sidebar={panels:[],activePanel:undefined,isShown:false,addPanel(panel){this.panels.push(panel);if(panel.ribbonButton)extra_ribbon.push(panel.ribbonButton)},switch(kind){if(this.activePanel instanceof kind)this.toggle();else{this.hide();this.activePanel=this.panels.find(panel=>panel instanceof kind);this.show()}},show(){this.isShown=true;this.activePanel?.show()},hide(){this.isShown=false;this.activePanel?.hide()},toggle(){this.isShown?this.hide():this.show()}};
     class panel {show(){document.querySelector('#sidebar-content').append(this.containerEl);this.onshow()}hide(){this.containerEl.remove();this.onhide()}}
     class view {constructor(leaf){this.leaf=leaf;this.containerEl=document.createElement('div')}onOpen(){}onClose(){}}
@@ -264,6 +264,15 @@ app.whenReady().then(async()=>{
   await wait('document.querySelector(".linux-note-workspace-search").dataset.state==="ready"');
   assert(await evaluate('retained_search_row.isConnected&&document.activeElement===retained_search_row&&retained_search_row.classList.contains("is-selected")'),'search completion preserves progressive row nodes, keyboard focus and selection');
   await evaluate('files.fs.promises.readFile=original_search_read;void 0');
+  const ignored_source=path.join(workspace,'ignored','main.c');fs.writeFileSync(ignored_source,'BSP_CLK_Init();\n');
+  await evaluate(`files.open_file(${JSON.stringify(ignored_source)})`);await wait(`core.app.workspace.activeLeaf.view?.file_path===${JSON.stringify(ignored_source)}`);
+  await evaluate(`core.app.commands.run('linux_note:search');void 0`);
+  await set_input('包含的文件','*.c');await set_input('排除的文件','');await search_for('BSP_CLK_Init',1);
+  assert.equal(await evaluate('document.querySelector(".workspace-search-file").dataset.path'),ignored_source,'已打开Git忽略源码进入整个工程正文搜索');
+  await evaluate(`active_editor().executeEdits('fixture',[{range:active_editor().getModel().getFullModelRange(),text:'BSP_CLK_Init();\\nBSP_CLK_Init();'}]);void 0`);await search_for('BSP_CLK_Init',2);
+  assert.equal(fs.readFileSync(ignored_source,'utf8'),'BSP_CLK_Init();\n','搜索内存内容不保存正文');
+  await set_input('排除的文件','ignored');await search_for('BSP_CLK_Init',0);
+  await evaluate("core.app.workspace.activeLeaf.view.load_file()");
   await evaluate('search.dispose();void 0');
   const dispose_error=await evaluate('(()=>{try{files.dispose();return ""}catch(error){return error?.stack||String(error)}})()');assert.equal(dispose_error,'');
   await evaluate('files.dispose();void 0');

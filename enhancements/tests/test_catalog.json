@@ -2628,7 +2628,8 @@
       "purpose": "implementation",
       "requirements": [
         "R002",
-        "R042"
+        "R042",
+        "R058.4"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -3097,7 +3098,8 @@
         "H010",
         "R023",
         "R075",
-        "R058.3"
+        "R058.3",
+        "R058.4"
       ],
       "design": "docs/search_performance.md",
       "implementation": [
@@ -8478,12 +8480,43 @@
       "environment": "原始Typora 1.14.10私有桌面",
       "preconditions": "标准运行器创建隔离宿主和用户数据，最终清理载荷",
       "steps": [
-        "默认正则、通配符语法、20轮模式互斥、错误恢复与文件打开",
+        "默认模糊、手动正则、通配符语法、20轮模式互斥、错误恢复与文件打开",
         "核对快速输入及最近列表的2026明暗底色、边框、焦点与搜索模式保持。"
       ],
       "expected": [
         "原始宿主目标集合正确、模式/焦点/取消与候选摘要一致",
         "输入底板独立于浮层；颜色跟随共享主题，无正文或搜索模式变化。"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-search-scope-native-001",
+      "domain": "search",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R058.4"
+      ],
+      "design": "docs/search_performance.md#r0584-已打开文件与磁盘搜索合并2026-09-27",
+      "implementation": [
+        "enhancements/src/workspace_search_engine.ts",
+        "enhancements/src/workspace_search.ts"
+      ],
+      "related_modules": [
+        "files",
+        "search",
+        "preview"
+      ],
+      "script": "enhancements/fixtures/search_scope_native.js",
+      "environment": "原始Typora 1.14.10私有桌面",
+      "preconditions": "标准运行器准备隔离Git工程、宿主和用户数据，最后回收载荷",
+      "steps": [
+        "搜索BSP_CLK_Init，包含*.c，核对忽略开关、未打开文件和目录排除",
+        "20轮文件类型切换，内存编辑和结果定位，不写用户磁盘"
+      ],
+      "expected": [
+        "全工程扫描与显式筛选有效，已打开模型优先且不重复",
+        "取消旧查询，模型与磁盘隔离，候选摘要一致"
       ],
       "timeout_ms": 240000
     }

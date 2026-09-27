@@ -241491,6 +241491,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092718,
+        version: "2026.09.27.18",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u590D\u5DF2\u6253\u5F00\u7684Git\u5FFD\u7565\u76EE\u5F55\u5185\u6587\u4EF6\u65E0\u6CD5\u53C2\u4E0E\u6B63\u6587\u641C\u7D22\uFF1A\u5F53\u524D\u7F16\u8F91\u5668\u5185\u5BB9\u4F18\u5148\u5339\u914D\uFF0C\u4FDD\u7559\u6587\u4EF6\u7C7B\u578B\u53CA\u8303\u56F4\u7B5B\u9009\u3002",
+          "\u8865\u5145\u5FFD\u7565\u8303\u56F4\u8BF4\u660E\uFF0C\u907F\u514D\u96F6\u7ED3\u679C\u8BEF\u89E3\uFF1B\u5185\u5B58\u5185\u5BB9\u4E0E\u78C1\u76D8\u4E0D\u540C\u65F6\uFF0C\u66FF\u6362\u9700\u5148\u4FDD\u5B58\u5E76\u91CD\u65B0\u641C\u7D22\u3002"
+        ]
+      },
+      {
         sequence: 2026092717,
         version: "2026.09.27.17",
         date: "2026-09-27",
@@ -246271,6 +246280,7 @@ https://creativecommons.org/licenses/by/4.0/
           directory = path_api.dirname(directory);
         }
       }
+      const open_paths = new Map((options2.open_files || []).map((file) => [file_key(path_api.resolve(file)), path_api.resolve(file)]));
       const expression = query_expression(options2);
       const case_sensitive = options2.glob_case_sensitive ?? (modules.platform ? !["win32", "darwin"].includes(modules.platform) : path_api.sep !== "\\");
       const include = compile_workspace_globs(options2.include || "", case_sensitive);
@@ -246311,9 +246321,23 @@ https://creativecommons.org/licenses/by/4.0/
       };
       try {
         matcher?.start();
+        const visited_open_paths = /* @__PURE__ */ new Set();
         const allowed = await read_ignored(root);
         const stack = [{ directory: root, relative: "", ignore_root: root, allowed }];
         async function* candidates() {
+          for (const [key3, file_path] of open_paths) {
+            if (cancelled()) break;
+            if (!inside(root, file_path) || !inside(folder, file_path) || selected_paths && !selected_paths.has(key3)) continue;
+            const relative2 = path_api.relative(root, file_path).split(path_api.sep).join("/");
+            visited_open_paths.add(key3);
+            if (exclude(relative2) || options2.use_ignore !== false && settings_exclude(relative2) || options2.include?.trim() && !include(relative2)) {
+              result.counts.skipped.excluded++;
+              continue;
+            }
+            result.counts.scanned_files++;
+            yield { file_path, relative: relative2 };
+            yield null;
+          }
           while (stack.length && !cancelled()) {
             const current = stack.pop();
             let entries3;
@@ -246354,6 +246378,7 @@ https://creativecommons.org/licenses/by/4.0/
                 directories.push({ directory: file_path, relative: relative2, ignore_root: nested === void 0 ? current.ignore_root : file_path, allowed: nested === void 0 ? current.allowed : nested });
                 continue;
               }
+              if (visited_open_paths.has(file_key(file_path))) continue;
               if (!entry.isFile()) {
                 result.counts.skipped.unreadable++;
                 continue;
@@ -246391,7 +246416,14 @@ https://creativecommons.org/licenses/by/4.0/
             }
             const after_stat = await files_api.lstat(file_path);
             if (identity4(stat) !== identity4(after_stat) || stat.mtimeMs !== after_stat.mtimeMs || stat.size !== after_stat.size) return { ...candidate, skipped: "unreadable", message: "\u8BFB\u53D6\u65F6\u6587\u4EF6\u53D1\u751F\u6539\u53D8\uFF0C\u5DF2\u8DF3\u8FC7\uFF1A".concat(relative2) };
-            return { ...candidate, bytes, decoded, stat };
+            let editor_modified = false;
+            if (open_paths.has(file_key(file_path)) && modules.read_open_text) {
+              const text3 = await modules.read_open_text(file_path);
+              if (cancelled()) return candidate;
+              editor_modified = text3 !== decoded.text;
+              decoded = { ...decoded, text: text3 };
+            }
+            return { ...candidate, bytes, decoded, stat, editor_modified };
           } catch (error) {
             return { ...candidate, skipped: "unreadable", message: "\u65E0\u6CD5\u641C\u7D22 ".concat(relative2, "\uFF1A").concat(String(error)) };
           }
@@ -246421,7 +246453,7 @@ https://creativecommons.org/licenses/by/4.0/
             await fill();
             if (!pending.length) continue;
           }
-          const { file_path, relative: relative2, bytes, decoded, stat, skipped, message } = await pending.shift();
+          const { file_path, relative: relative2, bytes, decoded, stat, editor_modified, skipped, message } = await pending.shift();
           if (cancelled()) break;
           if (!directory_boundary) await fill();
           if (skipped) {
@@ -246462,7 +246494,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             if (matches.length) {
-              snapshots.set(file_path, { bytes, decoded, identity: identity4(stat), mode: stat.mode, matches });
+              snapshots.set(file_path, { bytes, decoded, identity: identity4(stat), mode: stat.mode, editor_modified, matches });
               const file = { file_path, relative_path: relative2, matches: matches.map(({ captures, groups, ...match2 }) => match2) };
               result.files.push(file);
               result.counts.matched_files++;
@@ -246497,6 +246529,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (selection.file_path && selection.file_path !== file_path) continue;
         const matches = file.matches.filter((match2) => !selected_ids || selected_ids.has(match2.id));
         if (!matches.length) continue;
+        if (file.editor_modified) throw new Error("\u641C\u7D22\u91C7\u7528\u4E86\u7F16\u8F91\u5668\u5F53\u524D\u5185\u5BB9\uFF1B\u8BF7\u5148\u4FDD\u5B58\u8BE5\u6587\u4EF6\u5E76\u91CD\u65B0\u641C\u7D22\u540E\u518D\u66FF\u6362\u3002");
         matches.forEach((match2) => found_ids.add(match2.id));
         const relative_path = path_api.relative(snapshot.root, file_path).split(path_api.sep).join("/");
         const newline3 = /\r\n|\r|\n/u.exec(file.decoded.text)?.[0] || "\n";
@@ -247026,7 +247059,7 @@ https://creativecommons.org/licenses/by/4.0/
       const runtime3 = window;
       const runner = create_git_runner({ child_process: runtime3.reqnode("child_process"), process: runtime3.reqnode("process") });
       lifetime.add(() => runner.cancel());
-      const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime3.reqnode("process").platform });
+      const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, read_open_text: files.read_text, platform: runtime3.reqnode("process").platform });
       const native_sidebar = document.querySelector("#typora-sidebar");
       const input = (label, placeholder = label) => {
         const node = workspace_element("input");
@@ -247377,6 +247410,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (!result) return;
           const count = result.counts;
           this.status.replaceChildren(workspace_element("span", "workspace-search-counts", "\u5728 ".concat(count.matched_files, " \u4E2A\u6587\u4EF6\u4E2D\u627E\u5230 ").concat(count.matches, " \u4E2A\u7ED3\u679C") + (result.cancelled ? " \xB7 \u5DF2\u505C\u6B62" : "")));
+          if (result.options.use_ignore !== false && (count.skipped.ignored || count.skipped.excluded)) this.status.append(workspace_element("p", "workspace-search-scope-note", "\u5DF2\u5E94\u7528 Git \u5FFD\u7565\u4E0E\u9ED8\u8BA4\u6392\u9664\u89C4\u5219\uFF1B\u5982\u9700\u641C\u7D22\u88AB\u5FFD\u7565\u7684\u672A\u6253\u5F00\u6587\u4EF6\uFF0C\u8BF7\u5173\u95ED\u6392\u9664\u6846\u53F3\u4FA7\u7684\u5FFD\u7565\u5F00\u5173\u3002"));
           if (count.matches) this.status.append(workspace_button("\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00", () => this.open_results(), "workspace-search-open-editor"));
           if (result.notices.length) {
             const note = workspace_element("details", "workspace-search-notices");
@@ -247420,10 +247454,9 @@ https://creativecommons.org/licenses/by/4.0/
           const stop = git_icon_button("search-stop", "\u505C\u6B62\u641C\u7D22", () => controller.abort());
           this.status.append(stop);
           const open_files = [];
-          if (this.only_open) core.app.workspace.eachLeaves((leaf) => {
-            const source_path = source_file_path(leaf.state.path, files.path_api);
-            if (files.path_api.isAbsolute(leaf.state.path)) open_files.push(leaf.state.path);
-            else if (source_path) open_files.push(source_path);
+          core.app.workspace.eachLeaves((leaf) => {
+            const state = files.editor_state(leaf);
+            if (state.kind !== "other" && state.file_path && files.path_api.isAbsolute(state.file_path)) open_files.push(state.file_path);
           });
           try {
             const root = files.context_root();
@@ -247446,7 +247479,7 @@ https://creativecommons.org/licenses/by/4.0/
             if (disposed || this.controller !== controller) return;
             if (this.only_changed && !git?.changed_files) throw new Error("\u5F53\u524D\u6587\u4EF6\u5939\u4E0D\u5728 Git \u4ED3\u5E93\u4E2D\uFF0C\u65E0\u6CD5\u9650\u5B9A\u5230\u6E90\u4EE3\u7801\u7BA1\u7406\u4E2D\u7684\u66F4\u6539\u6587\u4EF6\u3002");
             const scope = this.only_changed ? git?.changed_files : this.only_open ? open_files : void 0;
-            const options2 = { ...this.options, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {}, ...folder_path ? { folder_path } : {} };
+            const options2 = { ...this.options, open_files, query: this.query.value, include: this.includes.value, exclude: this.excludes.value, ...scope ? { file_paths: scope } : {}, ...folder_path ? { folder_path } : {} };
             const progressive = { root, options: options2, files: [], counts: { scanned_files: 0, searched_files: 0, matched_files: 0, matches: 0, skipped: { binary: 0, ignored: 0, excluded: 0, links: 0, unreadable: 0 } }, cancelled: true, notices: [] };
             this.result = progressive;
             let progress_time = 0;
@@ -247675,7 +247708,7 @@ https://creativecommons.org/licenses/by/4.0/
             apply_workspace_row_selection(row, selected, selected);
             row.setAttribute("aria-current", String(selected));
           }
-          void Promise.resolve(this.preview.show(file, match2)).catch((error) => {
+          void Promise.resolve(this.preview.show(file, match2, "", true)).catch((error) => {
             if (!disposed && this.selected?.match === match2) this.status.textContent = String(error);
           });
         }
@@ -247701,7 +247734,8 @@ https://creativecommons.org/licenses/by/4.0/
             const bytes = await files.fs.promises.readFile(file.file_path);
             if (!current()) return;
             if (detect_binary_bytes(bytes)) throw new Error("\u6587\u4EF6\u5DF2\u53D8\u5316\uFF0C\u8BF7\u5237\u65B0\u641C\u7D22\u7ED3\u679C\u3002");
-            const text3 = decode_file_bytes(bytes).text;
+            const text3 = await files.read_text(file.file_path);
+            if (!current()) return;
             const position2 = (offset) => {
               const newline3 = /\r\n|\r|\n/gu;
               let line = 1, start = 0, found;
