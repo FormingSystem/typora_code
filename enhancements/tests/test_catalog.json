@@ -6806,7 +6806,8 @@
         "R020.1",
         "R074.1",
         "R074.2",
-        "R074.3"
+        "R074.3",
+        "R074.8"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -6830,11 +6831,13 @@
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
         "切换实际明暗主题，采集功能区与正文颜色，验证浮层与设置隔离；UI层20次主题切换及1000同值通知",
-        "Night正文和表格链接蓝色、焦点/悬停与共享主题继承；其余正文和其他主题不变。"
+        "Night正文和表格链接蓝色、焦点/悬停与共享主题继承；其余正文和其他主题不变。",
+        "核对快速输入及最近列表的2026明暗底色、边框、焦点与搜索模式保持。"
       ],
       "expected": [
         "共享明暗角色、明深蓝/暗浅蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入",
-        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复"
+        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复",
+        "输入底板独立于浮层；颜色跟随共享主题，无正文或搜索模式变化。"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/test_ui.mjs"
@@ -8453,13 +8456,16 @@
       "level": "system",
       "purpose": "stress",
       "requirements": [
-        "R058.3"
+        "R058.3",
+        "R074.8"
       ],
       "design": "docs/quick_open.md#r0583-正则与通配符模式2026-09-27",
       "implementation": [
         "enhancements/src/workspace_quick_open.ts",
         "enhancements/src/workspace_glob.ts",
-        "enhancements/src/workspace_search_matcher.ts"
+        "enhancements/src/workspace_search_matcher.ts",
+        "enhancements/src/workspace_colors.css",
+        "enhancements/src/workspace_color_catalog.ts"
       ],
       "related_modules": [
         "explorer",
@@ -8472,10 +8478,12 @@
       "environment": "原始Typora 1.14.10私有桌面",
       "preconditions": "标准运行器创建隔离宿主和用户数据，最终清理载荷",
       "steps": [
-        "默认正则、通配符语法、20轮模式互斥、错误恢复与文件打开"
+        "默认正则、通配符语法、20轮模式互斥、错误恢复与文件打开",
+        "核对快速输入及最近列表的2026明暗底色、边框、焦点与搜索模式保持。"
       ],
       "expected": [
-        "原始宿主目标集合正确、模式/焦点/取消与候选摘要一致"
+        "原始宿主目标集合正确、模式/焦点/取消与候选摘要一致",
+        "输入底板独立于浮层；颜色跟随共享主题，无正文或搜索模式变化。"
       ],
       "timeout_ms": 240000
     }

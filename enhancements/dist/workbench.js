@@ -241490,6 +241490,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092716,
+        version: "2026.09.27.16",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u590D\u5FEB\u901F\u6253\u5F00\u53CA\u6700\u8FD1\u5217\u8868\u7684\u4E3B\u9898\u8272\u5DEE\uFF1A\u8F93\u5165\u6846\u72EC\u7ACB\u5E95\u8272\u3001\u6D6E\u5C42\u8FB9\u6846\u548C\u7126\u70B9\u989C\u8272\u91C7\u7528VS Code 2026\u5BF9\u5E94\u89D2\u8272\u3002",
+          "\u65B0\u589E\u5FEB\u901F\u8F93\u5165\u6D6E\u5C42\u80CC\u666F\u3001\u6587\u5B57\u53CA\u8FB9\u6846\u7684\u81EA\u5B9A\u4E49\u989C\u8272\u9879\uFF1B\u4FDD\u7559\u9ED8\u8BA4\u6B63\u5219\u548C\u624B\u52A8\u901A\u914D\u7B26\u6A21\u5F0F\u3001\u6B63\u6587\u4E3B\u9898\u4E0E\u6392\u7248\u3002"
+        ]
+      },
+      {
         sequence: 2026092715,
         version: "2026.09.27.15",
         date: "2026-09-27",
@@ -242582,6 +242591,9 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_color_catalog.ts
   var WORKSPACE_COLOR_ROLES = [
+    { key: "vscode_quick_input_background", title: "\u5FEB\u901F\u8F93\u5165\u6D6E\u5C42\u80CC\u666F", variable: "--vscode-quickInput-background" },
+    { key: "vscode_quick_input_foreground", title: "\u5FEB\u901F\u8F93\u5165\u6D6E\u5C42\u6587\u5B57", variable: "--vscode-quickInput-foreground" },
+    { key: "vscode_widget_border", title: "\u5FEB\u901F\u8F93\u5165\u6D6E\u5C42\u8FB9\u6846", variable: "--vscode-widget-border" },
     {
       "key": "vscode_title_bar_active_foreground",
       "title": "\u6807\u9898\u680F\u6D3B\u52A8\u6587\u5B57",

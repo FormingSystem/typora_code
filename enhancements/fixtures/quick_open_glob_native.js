@@ -30,6 +30,22 @@
   for(const type of ['keydown','keyup'])input.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));assert(panel.hidden,'Esc关闭');
   document.querySelector('.workspace-titlebar-search').click();await query('*.c');assert(glob.getAttribute('aria-pressed')==='true'&&names()==='main.c,next.c','重开保留当前模式');
   await query('src/next.c');input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await wait(()=>files.current_file()===path.join(root,'src/next.c'),'打开C文件');assert(true,'共同文件服务打开目标');
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/workbench.js'))).digest('hex'),limits:'隔离原始Typora DOM事件，未代表物理键鼠或其他平台。'},null,2));
+  const color=node=>{const value=getComputedStyle(node);return {bg:value.backgroundColor,fg:value.color,border:value.borderTopColor};},samples=[];
+  const close=()=>{for(const type of ['keydown','keyup'])document.activeElement.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));};
+  for(const mode of ['light','dark']){
+   const theme='vscode2026_'+mode+'.css';await JSBridge.invoke('setting.setCurTheme',theme,'VSCode2026_'+mode);File.setTheme(theme);await pause(700);
+   await wait(()=>document.documentElement.dataset.workspaceColors===mode,'主题切换');
+   document.querySelector('.workspace-titlebar-search').click();await pause(150);
+   const before=document.querySelector('#write').innerHTML;
+   const expected={bg:mode==='dark'?'rgb(32, 33, 34)':'rgb(250, 250, 253)',input:mode==='dark'?'rgb(25, 26, 27)':'rgb(255, 255, 255)',border:mode==='dark'?'rgb(42, 43, 44)':'rgb(226, 226, 229)',focus:mode==='dark'?'rgba(57, 148, 188, 0.7)':'rgb(0, 105, 204)'};
+   const inspect=(target,entry)=>{const row=target.querySelector('.workspace-quick-open-input-row');samples.push({mode,entry,panel:color(target),input:color(row)});assert(!target.hidden&&color(target).bg===expected.bg&&color(target).border===expected.border,'浮层颜色 '+mode+' '+entry);assert(color(row).bg===expected.input&&color(row).border===expected.focus,'输入/焦点颜色 '+mode+' '+entry);const box=row.getBoundingClientRect();assert(target.contains(document.elementFromPoint(box.left+10,box.top+10)),'实际命中 '+entry);};
+   inspect(panel,'顶栏首页');await query('*.c');await pause(160);inspect(panel,'文件查询');assert(glob.getAttribute('aria-pressed')==='true','主题切换保留搜索模式');
+   close();core.app.commands.run('linux_note:open_recent');await pause(250);
+   const recent=document.querySelector('.workspace-recent-open');inspect(recent,'打开最近');close();
+   assert(document.querySelector('#write').innerHTML===before,'浮层操作保留正文 '+mode);
+   document.querySelector('.workspace-titlebar-search').click();await pause(100);fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'quick_input_'+mode}));await pause(400);close();
+  }
+  fs.writeFileSync(path.join(base,'color_samples.json'),JSON.stringify(samples,null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/workbench.js'))).digest('hex'),css_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/workspace.css'))).digest('hex'),limits:'隔离原始Typora DOM事件，未代表物理键鼠或其他平台。'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack),checks},null,2));}
 })();

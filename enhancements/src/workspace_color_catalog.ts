@@ -1,6 +1,9 @@
 /** 自定义颜色的稳定角色目录。默认值继续由主题CSS拥有；不得在此复制色值。 */
 export type workspace_color_role={key:string;title:string;variable?:string;selector?:string;property?:string};
 export const WORKSPACE_COLOR_ROLES:workspace_color_role[]=[
+  {key:"vscode_quick_input_background",title:"快速输入浮层背景",variable:"--vscode-quickInput-background"},
+  {key:"vscode_quick_input_foreground",title:"快速输入浮层文字",variable:"--vscode-quickInput-foreground"},
+  {key:"vscode_widget_border",title:"快速输入浮层边框",variable:"--vscode-widget-border"},
   {
     "key": "vscode_title_bar_active_foreground",
     "title": "标题栏活动文字",

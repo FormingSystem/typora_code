@@ -688,5 +688,32 @@
     ],
     "adoption": "2026主题语义角色、Markdown层级/表格/引用/代码样式及终端ANSI默认；蓝色标题是用户明确要求，字号和正文边距保留原生配置。",
     "dark_refinement": "R074.2 2026-09-25 user refinement: Night heading #A5D6FF screenshot light blue is a product adaptation for focus, replacing the 2026-09-24 inherited neutral heading decision. Other fixed VS Code 6807068 2026 Dark roles, Markdown weight/size/spacing and exact theme scope remain unchanged."
+  },
+  "quick_input_colors_20260927": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "requirement": "R074.8",
+    "rules": "computeStyles / updateStyles使用quickInput.background/foreground、widget.border；input.background/foreground与focusBorder独立。保留既有尺寸和搜索模式。",
+    "source_files": [
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "90f14578d618349d87a6f8bf8afc192e3c8f17823cc182dbf7d294654b164978"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "0022a0dfdcde04d574cb56e1fb5095a1451ceea20a438a65faa40eae7331b63c"
+      },
+      {
+        "path": "src/vs/platform/quickinput/browser/quickInputService.ts",
+        "sha256": "187ed78966e1bd5a40c8d87d6834887558f81b87869c96b448e561eebcfde9c0"
+      },
+      {
+        "path": "src/vs/platform/quickinput/browser/quickInputController.ts",
+        "sha256": "a0711793f7ce176ca0837d36e307c87dd55b27fa2ae4c66bb43fdc992612ad2a"
+      },
+      {
+        "path": "src/vs/platform/theme/browser/defaultStyles.ts",
+        "sha256": "20696295c1752fe7fad07b61262adc1aafb79fd22c9cf8a8e768e6cffe20474a"
+      }
+    ]
   }
 }

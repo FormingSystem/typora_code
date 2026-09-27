@@ -1,5 +1,25 @@
 # R074 工作台颜色与视觉层次
 
+## R074.8 快速输入颜色角色补齐（2026-09-27）
+
+用户再次反馈搜索浮层背景与VS Code有色差。本次只修颜色：输入框透明导致沿用浮层底色，浮层外框误用input.border；不改搜索模式、布局、字体、正文或原生Night文件。顶栏首页、文件快速打开、当前组文件选择和打开最近复用`.workspace-quick-open`，由共享颜色CSS统一修正；查询、焦点、取消及外点退出仍由原视图拥有。
+
+依据固定VS Code `68070681e87284e2f22728f15fe3f3651fbf932b`的`extensions/theme-defaults/themes/2026-{light,dark}.json`、`src/vs/platform/quickinput/browser/quickInputService.ts`的computeStyles和`quickInputController.ts`的updateStyles：容器采用quickInput.background/foreground及widget.border，输入框采用input.background/foreground、input.border与focusBorder；选中行继续使用quickInputList.focus系列。
+
+| 角色 | 2026 Light | 2026 Dark |
+| --- | --- | --- |
+| 浮层背景/文字 | #FAFAFD / #202020 | #202122 / #BFBFBF |
+| 浮层外框 | #E2E2E5 | #2A2B2C |
+| 输入背景/文字 | #FFFFFF / #202020 | #191A1B / #BFBFBF |
+| 输入边框/焦点 | #D8D8D866 / #0069CC | #333536 / #3994BCB3 |
+| 选中行背景/文字 | #0069CC / #FFFFFF | #297AA0 / #FFFFFF |
+
+新增快速输入背景/文字和浮层边框角色，默认背景/文字引用已有通用浮层/文字变量，保留既有用户覆盖；具体角色覆盖优先。输入行整体承载输入底色，内部input保持透明，避免模式按钮周围露出错误背景；未聚焦与聚焦分别使用输入边线和焦点角色。颜色目录继续从CSS读取有效默认值，JSON导入导出及恢复默认复用原服务。未受管的第三方主题保持原有规则，加载失败不清除用户设置。
+
+验收：正式构建CSS下核对明暗、焦点/失焦、选中与悬停、100%/125%/150%缩放，以及自定义覆盖/恢复和20次主题切换；原始Typora通过真实入口检查首页、查询和最近列表。验证正文、几何、节点与搜索模式未变化，同候选安装/卸载和本机资产核对分别记录；不以CSS值匹配宣称所有设备截图像素相同。
+
+本次验证与交付见[反馈记录](feedback_review.md)及[精确证据](../enhancements/tests/evidence/quick_input_colors_20260927.json)，安装不等于运行窗口已加载。
+
 ## R074.4 自定义颜色表与JSON交换
 
 2026-09-25：用户要求覆盖工作台和Markdown正文颜色，设置内以表格试色，JSON导入导出；顶部“主题 → 自定义颜色…”定位同一设置分类。Night链接试色由用户改为#5CA4DF，保留为本次默认。CppGithubConsoles_Light/Dark分别拥有用户覆盖，原CppGithubConsoles/Night沿用对应明暗配置，其他主题保持原所有者。覆盖空值表示继承；不改变字体、尺寸、边线宽度、正文、编辑撤销与阅读位置。
