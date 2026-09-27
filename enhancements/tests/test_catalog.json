@@ -8032,6 +8032,42 @@
         "每组一个未编辑预览；常驻及编辑内容保留，原生正文即时显示，预览斜体可辨识"
       ],
       "timeout_ms": 90000
+    },
+    {
+      "id": "TC-native-preview-switch",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R080.1"
+      ],
+      "design": "docs/editor_tab_menu.md",
+      "implementation": [
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_source_lifecycle.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "editor",
+        "reading",
+        "source_lifecycle"
+      ],
+      "script": "enhancements/fixtures/preview_switch_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "原生隔离宿主和当前构建"
+      ],
+      "steps": [
+        "20轮逐帧记录并验证无双预览标签",
+        "右侧常驻标签保持原序、编辑提升、失败、快速选择、分屏"
+      ],
+      "expected": [
+        "每组一个未编辑预览；常驻及编辑内容保留，原生正文即时显示，预览斜体可辨识"
+      ],
+      "timeout_ms": 90000
     }
   ]
 }

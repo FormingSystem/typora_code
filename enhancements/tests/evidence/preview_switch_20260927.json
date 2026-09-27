@@ -1,0 +1,155 @@
+{
+  "requirement": "R080.1",
+  "date": "2026-09-27",
+  "version": "2026.09.27.6",
+  "manifest_sha256": "62f4d215ed20b882642d1590c653d9e89ed7045024ca12262994d541295a33aa",
+  "status": "实现、验证与本机安装通过，用户运行窗口未重启",
+  "root_cause": "预览提交等待阅读定位完成，旧新标签共存；源码先发布标签后读取也暴露中间态。",
+  "baseline": {
+    "case": "988e307486084a50bcdb771be620511f",
+    "frames": 452,
+    "double_preview_frames": 395
+  },
+  "native": {
+    "host": "Typora 1.14.10",
+    "case": "16b582bb5f6a47a3985837cc379e4c0d",
+    "checks": 53,
+    "frames": 466,
+    "double_preview_frames": 0,
+    "coverage": [
+      "原生即时显示 0",
+      "原生即时显示 1",
+      "旧Markdown视图释放 1",
+      "原生即时显示 2",
+      "旧Markdown视图释放 2",
+      "原生即时显示 3",
+      "旧Markdown视图释放 3",
+      "原生即时显示 4",
+      "旧Markdown视图释放 4",
+      "原生即时显示 5",
+      "旧Markdown视图释放 5",
+      "原生即时显示 6",
+      "旧Markdown视图释放 6",
+      "原生即时显示 7",
+      "旧Markdown视图释放 7",
+      "原生即时显示 8",
+      "旧Markdown视图释放 8",
+      "原生即时显示 9",
+      "旧Markdown视图释放 9",
+      "原生即时显示 10",
+      "旧Markdown视图释放 10",
+      "原生即时显示 11",
+      "旧Markdown视图释放 11",
+      "原生即时显示 12",
+      "旧Markdown视图释放 12",
+      "原生即时显示 13",
+      "旧Markdown视图释放 13",
+      "原生即时显示 14",
+      "旧Markdown视图释放 14",
+      "原生即时显示 15",
+      "旧Markdown视图释放 15",
+      "原生即时显示 16",
+      "旧Markdown视图释放 16",
+      "原生即时显示 17",
+      "旧Markdown视图释放 17",
+      "原生即时显示 18",
+      "旧Markdown视图释放 18",
+      "原生即时显示 19",
+      "旧Markdown视图释放 19",
+      "逐帧无双预览标签",
+      "20轮只增加一个预览标签",
+      "替换保留右侧常驻标签与原索引",
+      "预览文件名斜体",
+      "常驻文件名恢复普通字形",
+      "Alt左键常驻不被替换",
+      "原生格式命令确实编辑正文",
+      "无input格式命令自动常驻",
+      "通过原生保存保留修改",
+      "编辑保存后仍常驻",
+      "打开失败保留原预览",
+      "常驻重选不降级",
+      "快速点击只保留最终预览",
+      "分屏及来源文档保留"
+    ],
+    "artifacts": {
+      "schema": 1,
+      "id": "16b582bb5f6a47a3985837cc379e4c0d",
+      "kind": "native",
+      "created": 1790475845.2042074,
+      "keep_json": false,
+      "state": "cleaned",
+      "owner_pid": 56572,
+      "processes": {
+        "56572": "134349494670897954",
+        "14572": "134349494675440826"
+      },
+      "result": "finished",
+      "finished": 1790475881.2366364,
+      "payload_bytes": 527823477
+    }
+  },
+  "validation": {
+    "build": "通过",
+    "full_check": "npm run check退出0；最终源码去除多余递增并延后未挂载视图定位后重建，静态/部署/232套目录及两个关联UI补验通过。",
+    "ui": "四组通过；最终editor_actions与source_lifecycle再次通过。受控延迟确认读取期间不发布新标签。",
+    "logs": [
+      "preview_switch_check.log",
+      "preview_switch_ui_final.log",
+      "preview_switch_ui_last.log",
+      "preview_switch_static_final.log"
+    ]
+  },
+  "limitations": [
+    "用户运行窗口未重启；需保存后正常重启加载",
+    "原生解析/正文加载过程仍由Typora拥有；逐帧结论针对预览标签替换，不声明全部宿主绘制无中间态",
+    "物理鼠标、Win10/其他平台、真实SSH现场未本轮验证",
+    "既有8套UI基线、R047.6/R071.4保留原状态"
+  ],
+  "delivery": {
+    "isolated_install": {
+      "schema": 1,
+      "id": "e44236e5ea6c4ee48989ff5cb245792a",
+      "kind": "test",
+      "created": 1790475877.8141592,
+      "keep_json": false,
+      "state": "cleaned",
+      "owner_pid": 55756,
+      "processes": {
+        "55756": "134349494775187560"
+      },
+      "result": "passed",
+      "finished": 1790476021.6800046,
+      "payload_bytes": 2071211006
+    },
+    "isolated_uninstall": {
+      "schema": 1,
+      "id": "3baac392086748509610dcf751b7067f",
+      "kind": "test",
+      "created": 1790476021.9858973,
+      "keep_json": false,
+      "state": "cleaned",
+      "owner_pid": 46828,
+      "processes": {
+        "46828": "134349496217058929"
+      },
+      "result": "passed",
+      "finished": 1790476030.265717,
+      "payload_bytes": 131163479
+    },
+    "uninstall_assertions": 65,
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        48,
+        24
+      ],
+      "protected_unchanged": 5,
+      "manifest_sha256": "62f4d215ed20b882642d1590c653d9e89ed7045024ca12262994d541295a33aa",
+      "window_restarted": false
+    }
+  }
+}

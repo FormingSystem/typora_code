@@ -73,6 +73,13 @@ for(let index=0;index<20;index++){
  await check('ws.activeLeaf.state.workspace_preview&&leaves().filter(leaf=>leaf.state.workspace_preview).length===1','one replaceable preview '+index);
  if(index)await check('old_preview.view.disposed&&old_model.isDisposed()','replaced model released '+index);
 }
+const delayed_preview=path.join(folder,'delayed_preview.c');fs.writeFileSync(delayed_preview,'int delayed_preview = 1;\n');
+await evaluate(`window.before_delayed=ws.activeLeaf;window.source_prototype=Object.getPrototypeOf(before_delayed.view);window.real_load_file=source_prototype.load_file;window.read_gate=new Promise(resolve=>window.finish_read=resolve);source_prototype.load_file=async function(...args){await read_gate;return real_load_file.apply(this,args);};window.delayed_open=files.open_file(${JSON.stringify(delayed_preview)},{preview:true});void 0`);
+await delay(100);
+await check('ws.activeLeaf===before_delayed&&!leaves().some(leaf=>leaf.state.path.includes("delayed_preview"))','pending source read does not publish a second tab or replace current content');
+await evaluate('finish_read();delayed_open');
+await check('ws.activeLeaf.state.path.includes("delayed_preview")&&!leaves().includes(before_delayed)','source content readiness commits the replacement');
+await evaluate('source_prototype.load_file=real_load_file;void 0');
 const binary_preview=path.join(folder,'binary_preview.dat');fs.writeFileSync(binary_preview,Buffer.alloc(256));
 await evaluate(`window.readable_preview=ws.activeLeaf;files.open_file(${JSON.stringify(binary_preview)},{preview:true})`);
 await check('leaves().includes(readable_preview)&&readable_preview.state.workspace_preview&&!ws.activeLeaf.view.loaded','read failure retains readable preview');

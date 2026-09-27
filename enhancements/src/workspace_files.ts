@@ -97,6 +97,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   let next_navigation_id = -1;
   const renamed_markdown_leaves = new Set<graph_leaf>();
   let refreshing_renamed_editors = false;
+  let open_revision=0;
   const preview_leaves=new Map<graph_leaf["parent"],graph_leaf>();
   const keep_open=(leaf=core.app.workspace.activeLeaf||undefined)=>{
     if(!leaf)return;delete leaf.state.workspace_preview;if(preview_leaves.get(leaf.parent)===leaf)preview_leaves.delete(leaf.parent);
@@ -111,7 +112,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(previous&&previous!==leaf&&previous_exists){
       const source=[...views].find(view=>view.leaf===previous);
       const native_dirty=runtime.File?.changeCounter?.isDocumentEdited()&&file_key(runtime.File?.bundle?.filePath||"")===file_key(previous.state.path);
-      if(source?.dirty()||source?.saving||native_dirty)keep_open(previous);else previous.parent.removeTab?.(previous.state.path);
+      if(source?.dirty()||source?.saving||native_dirty)keep_open(previous);else {
+        // 复用编辑组排序端口；替换留在旧预览位置，不能先绘制到末尾再跳回。
+        const group=previous.parent as typeof previous.parent&{children:graph_leaf[]};
+        const index=group.children.indexOf(previous);
+        const layout_core=core as graph_core&{move_workspace_leaf(leaf:graph_leaf,group:graph_leaf["parent"],index:number):void};
+        if(index>=0)layout_core.move_workspace_leaf(leaf,group,index);
+        previous.parent.removeTab?.(previous.state.path);
+      }
     }
     leaf.state.workspace_preview=true;preview_leaves.set(leaf.parent,leaf);
     workspace_leaf_tab(leaf)?.classList.add("is-workspace-preview");
@@ -264,7 +272,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       } finally { const status=this.status.textContent;this.loading = false;this.refresh_shared();if(status&&status!=="正在读取…")this.status.textContent=status;if(core.app.workspace.activeLeaf===this.leaf)notify_navigation_selection(true); }
     }
     reveal() {
-      if(this.disposed)return;this.editor?.editor.layout();
+      if(this.disposed||!this.leaf.parent)return;this.editor?.editor.layout();
       const target = this.target; if (!target || !this.editor) return;
       const editor = this.editor.focused_editor(); const model = editor.getModel(); if (!model) return;
       const line = Math.max(1, Math.min(model.getLineCount(), target.line || 1));
@@ -373,6 +381,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
     if (!resolved_path) throw new Error("无法解析文件路径。");
     file_path = resolved_path;
+    const request_revision=++open_revision;
     const epoch=workspace_context_epoch(),valid=()=>binding.active&&!workspace_context_switching()&&epoch===workspace_context_epoch()&&!location.signal?.aborted;
     const remote=remote_files_for(file_path);if(remote){let opened=false;core.app.workspace.eachLeaves(leaf=>{if(file_key(real_path(leaf))===file_key(file_path))opened=true;});await remote.prepare(file_path,!opened,valid);if(!valid())throw Error('打开文件已取消。');}
     if (!fs.statSync(file_path).isFile()) throw new Error("目标不是普通文件。");
@@ -382,8 +391,14 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if ([...views].some(view => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("该 Markdown 的源码标签有未保存修改，请先保存后再打开渲染视图。");
       const existing_leaves=new Set<graph_leaf>();core.app.workspace.eachLeaves(leaf=>{existing_leaves.add(leaf);});
       const placeholder=group==="active"?route_native_group(file_path):undefined;
+      // core先在file:open挂载正确叶子；同一事件内提交预览，不能等阅读定位异步结束。
+      const commit_preview=()=>{
+        const leaf=core.app.workspace.activeLeaf;
+        if(valid()&&leaf&&file_key(leaf.state.path)===file_key(file_path)&&(!existing_leaves.has(leaf)||leaf.state.workspace_preview))set_preview(leaf,Boolean(location.preview));
+      };
+      const stop_open=core.app.workspace.on("file:open",path=>{if(file_key(path)===file_key(file_path))commit_preview();});
       try {await navigate_reading_target(file_path, {group, hash: location.hash, signal:location.signal, locate: location.line == null ? undefined : (signal) => reveal_markdown_location(location, signal)});}
-      finally {if(placeholder)placeholder.parent.removeTab?.(placeholder.state.path);}
+      finally {stop_open();if(placeholder)placeholder.parent.removeTab?.(placeholder.state.path);}
       if(location.signal?.aborted)throw new Error("打开文件已取消。");
       const leaf=core.app.workspace.activeLeaf;
       if(leaf&&file_key(leaf.state.path)===file_key(file_path)&&(!location.preview||!existing_leaves.has(leaf)||leaf.state.workspace_preview))set_preview(leaf,Boolean(location.preview));
@@ -399,14 +414,17 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const leaf = core.app.workspace.createLeaf({type: SOURCE_FILE_VIEW_ID, state: {path: uri, git_cwd: path_api.dirname(file_path)}});
     (leaf.view as source_file_view).focus_requested=!location.preserve_focus;
     if(location.line!=null)(leaf.view as source_file_view).target=location;
-    parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
-    if(location.preview){
-      const view=leaf.view as source_file_view;await view.load_task;
-      // 读取成功后再替换；迟到的预览不夺回焦点，也不遗留后台模型。
+    const view=leaf.view as source_file_view;
+    if(location.preview&&read_workspace_editor_settings().enable_preview){
+      // 隐式预览先准备内容，读取期间保持原标签；成功后挂载与替换在同一任务完成。
+      const previous_active=core.app.workspace.activeLeaf;
+      view.attach_shared_editor();
+      if(!view.loaded){view.load_task=[...views].find(other=>other!==view&&other.shared===view.shared&&other.loading)?.load_task||view.load_file();await view.load_task;view.attach_shared_editor();}
       if(view.disposed)return;
-      if(!valid()||core.app.workspace.activeLeaf!==leaf){if(!view.dirty()&&!view.saving)leaf.parent.removeTab?.(leaf.state.path);return;}
-      if(!view.loaded){keep_open(leaf);return;}
+      if(!valid()||request_revision!==open_revision||core.app.workspace.activeLeaf!==previous_active){view.release_source();return;}
+      if(!view.loaded){parent.appendChild(leaf);core.app.workspace.activeLeaf=leaf;keep_open(leaf);return;}
     }
+    parent.appendChild(leaf); core.app.workspace.activeLeaf = leaf;
     set_preview(leaf,Boolean(location.preview));
   };
   const restore_files:workspace_file_host["restore_files"]=async(entries,signal)=>{

@@ -191190,6 +191190,7 @@ https://creativecommons.org/licenses/by/4.0/
     let next_navigation_id = -1;
     const renamed_markdown_leaves = /* @__PURE__ */ new Set();
     let refreshing_renamed_editors = false;
+    let open_revision = 0;
     const preview_leaves = /* @__PURE__ */ new Map();
     const keep_open = (leaf = core.app.workspace.activeLeaf || void 0) => {
       if (!leaf) return;
@@ -191214,7 +191215,13 @@ https://creativecommons.org/licenses/by/4.0/
         const source = [...views].find((view) => view.leaf === previous);
         const native_dirty = runtime3.File?.changeCounter?.isDocumentEdited() && file_key(runtime3.File?.bundle?.filePath || "") === file_key(previous.state.path);
         if (source?.dirty() || source?.saving || native_dirty) keep_open(previous);
-        else previous.parent.removeTab?.(previous.state.path);
+        else {
+          const group = previous.parent;
+          const index = group.children.indexOf(previous);
+          const layout_core = core;
+          if (index >= 0) layout_core.move_workspace_leaf(leaf, group, index);
+          previous.parent.removeTab?.(previous.state.path);
+        }
       }
       leaf.state.workspace_preview = true;
       preview_leaves.set(leaf.parent, leaf);
@@ -191514,7 +191521,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       reveal() {
-        if (this.disposed) return;
+        if (this.disposed || !this.leaf.parent) return;
         this.editor?.editor.layout();
         const target = this.target;
         if (!target || !this.editor) return;
@@ -191792,6 +191799,7 @@ https://creativecommons.org/licenses/by/4.0/
       const resolved_path = resolve_workspace_file(path_api, context_root(), file_path);
       if (!resolved_path) throw new Error("\u65E0\u6CD5\u89E3\u6790\u6587\u4EF6\u8DEF\u5F84\u3002");
       file_path = resolved_path;
+      const request_revision = ++open_revision;
       const epoch2 = workspace_context_epoch(), valid = () => binding.active && !workspace_context_switching() && epoch2 === workspace_context_epoch() && !location.signal?.aborted;
       const remote = remote_files_for(file_path);
       if (remote) {
@@ -191806,15 +191814,23 @@ https://creativecommons.org/licenses/by/4.0/
       keep_dirty_native();
       notify_navigation_selection();
       if (is_markdown_file(file_path) && !location.source) {
-        if ([...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
+        if ([...views].some((view2) => file_key(view2.file_path) === file_key(file_path) && view2.dirty())) throw new Error("\u8BE5 Markdown \u7684\u6E90\u7801\u6807\u7B7E\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u4FDD\u5B58\u540E\u518D\u6253\u5F00\u6E32\u67D3\u89C6\u56FE\u3002");
         const existing_leaves = /* @__PURE__ */ new Set();
         core.app.workspace.eachLeaves((leaf3) => {
           existing_leaves.add(leaf3);
         });
         const placeholder = group === "active" ? route_native_group(file_path) : void 0;
+        const commit_preview = () => {
+          const leaf3 = core.app.workspace.activeLeaf;
+          if (valid() && leaf3 && file_key(leaf3.state.path) === file_key(file_path) && (!existing_leaves.has(leaf3) || leaf3.state.workspace_preview)) set_preview(leaf3, Boolean(location.preview));
+        };
+        const stop_open = core.app.workspace.on("file:open", (path) => {
+          if (file_key(path) === file_key(file_path)) commit_preview();
+        });
         try {
           await navigate_reading_target(file_path, { group, hash: location.hash, signal: location.signal, locate: location.line == null ? void 0 : (signal) => reveal_markdown_location(location, signal) });
         } finally {
+          stop_open();
           if (placeholder) placeholder.parent.removeTab?.(placeholder.state.path);
         }
         if (location.signal?.aborted) throw new Error("\u6253\u5F00\u6587\u4EF6\u5DF2\u53D6\u6D88\u3002");
@@ -191829,11 +191845,11 @@ https://creativecommons.org/licenses/by/4.0/
         if (leaf2.parent === parent && is_source_file_uri(leaf2.state.path) && file_key(real_path(leaf2)) === file_key(file_path)) existing = leaf2;
       });
       if (existing && group === "active") {
-        const view = existing.view;
-        view.focus_requested = !location.preserve_focus;
-        if (location.line != null) view.target = location;
+        const view2 = existing.view;
+        view2.focus_requested = !location.preserve_focus;
+        if (location.line != null) view2.target = location;
         core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);
-        view.reveal();
+        view2.reveal();
         if (!location.preview || existing.state.workspace_preview) set_preview(existing, Boolean(location.preview));
         return;
       }
@@ -191847,21 +191863,29 @@ https://creativecommons.org/licenses/by/4.0/
       const leaf = core.app.workspace.createLeaf({ type: SOURCE_FILE_VIEW_ID, state: { path: uri, git_cwd: path_api.dirname(file_path) } });
       leaf.view.focus_requested = !location.preserve_focus;
       if (location.line != null) leaf.view.target = location;
-      parent.appendChild(leaf);
-      core.app.workspace.activeLeaf = leaf;
-      if (location.preview) {
-        const view = leaf.view;
-        await view.load_task;
+      const view = leaf.view;
+      if (location.preview && read_workspace_editor_settings().enable_preview) {
+        const previous_active = core.app.workspace.activeLeaf;
+        view.attach_shared_editor();
+        if (!view.loaded) {
+          view.load_task = [...views].find((other) => other !== view && other.shared === view.shared && other.loading)?.load_task || view.load_file();
+          await view.load_task;
+          view.attach_shared_editor();
+        }
         if (view.disposed) return;
-        if (!valid() || core.app.workspace.activeLeaf !== leaf) {
-          if (!view.dirty() && !view.saving) leaf.parent.removeTab?.(leaf.state.path);
+        if (!valid() || request_revision !== open_revision || core.app.workspace.activeLeaf !== previous_active) {
+          view.release_source();
           return;
         }
         if (!view.loaded) {
+          parent.appendChild(leaf);
+          core.app.workspace.activeLeaf = leaf;
           keep_open(leaf);
           return;
         }
       }
+      parent.appendChild(leaf);
+      core.app.workspace.activeLeaf = leaf;
       set_preview(leaf, Boolean(location.preview));
     };
     const restore_files = async (entries3, signal) => {
@@ -249812,6 +249836,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092706,
+        version: "2026.09.27.6",
+        date: "2026-09-27",
+        notes: [
+          "\u9884\u89C8\u5207\u6362\u5728\u6587\u4EF6\u5C31\u7EEA\u65F6\u540C\u6B65\u66FF\u6362\u65E7\u6807\u7B7E\u5E76\u4FDD\u7559\u539F\u4F4D\u7F6E\uFF0C\u6D88\u9664\u77ED\u6682\u53CC\u6807\u7B7E\u4E0E\u8DF3\u4F4D\u3002",
+          "\u6E90\u7801\u9884\u89C8\u8BFB\u53D6\u671F\u95F4\u4FDD\u7559\u5F53\u524D\u6587\u6863\uFF0C\u5931\u8D25\u6216\u8FDF\u5230\u8BF7\u6C42\u4E0D\u62A2\u5360\u6807\u7B7E\uFF1B\u5E38\u9A7B\u53CA\u672A\u4FDD\u5B58\u6587\u4EF6\u7EE7\u7EED\u4FDD\u62A4\u3002"
+        ]
+      },
       {
         sequence: 2026092705,
         version: "2026.09.27.5",

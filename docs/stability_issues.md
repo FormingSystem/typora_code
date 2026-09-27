@@ -433,3 +433,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-27 R014.2：BUG-content-window-zoom-coupling——正文滚轮误路由整窗，终端字号没有窗口比例补偿；共享当前窗口会话状态分别拥有编辑与终端增量，适配原生Markdown/CodeMirror、Monaco及xterm。补齐原生源码模式遗漏，变更前捕获逻辑位置；主题提取只传基础字体，避免Shadow正文二次放大。真实宿主78项、20轮终端定位及最终Chromium输入/生命周期31项通过；单次约17ms采样不等于全平台延迟保证，见content_zoom_20260927.json。
 
 2026-09-27 TEST-text-save-windows-lock：R014.2最后全量检查中，未改动的test_workspace_text_document在新副本再次保存时收到Windows占用/权限错误；此前两轮全量及该项顺序复验通过，保留原错误日志和未确认占用者的边界，不扩大为修改文件保存保护。末尾两项补跑器npm入口改为npm.cmd后通过；见content_zoom_20260927.json。
+
+2026-09-27 R080.1：BUG-preview-replacement-paint——预览替换晚于原生file:open，等待阅读定位期间旧、新标签同时绘制，最终标签数量测试漏检。原始宿主旧版452帧中395帧双标签；改为就绪事件同步提交，源码候选预读，保留预览原索引。新增逐帧及延迟读取验证，最终证据见preview_switch_20260927.json。
