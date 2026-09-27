@@ -61,7 +61,8 @@ function remote_terminal_profile(target,remote_path,executable,settings={}){
   validate_target(target);
   if(typeof remote_path!=='string'||(remote_path!==''&&!remote_path.startsWith('/'))||remote_path.includes('\0'))throw Error('远程工作目录必须是绝对路径。');
   const quoted="'"+remote_path.replace(/'/g,"'\\''")+"'";
-  return {id:'ssh_remote',title:'SSH: '+target,remote:{target,remote_path,port:settings.port||0},executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,(remote_path?'cd -- '+quoted+' && ':'')+'exec "${SHELL:-/bin/sh}" -l']};
+  // Linux终端加载交互配置；能力在远端声明，不依赖sshd接受本机环境变量。
+  return {id:'ssh_remote',title:'SSH: '+target,remote:{target,remote_path,port:settings.port||0},executable:settings.ssh_path||executable,args:[...connection_arguments(settings,true),target,(remote_path?'cd -- '+quoted+' && ':'')+'exec env TERM=xterm-256color COLORTERM=truecolor TERM_PROGRAM=Typora "${SHELL:-/bin/sh}" -i']};
 }
 async function resolve_connection_identity(target,settings={}){
  validate_target(target);const result=await new Promise((resolve,reject)=>child_process.execFile(settings.ssh_path||'ssh',['-G',...connection_arguments(settings),target],{windowsHide:true,timeout:15000,maxBuffer:Infinity},(error,stdout)=>error?reject(Error('无法读取SSH连接配置，请检查主机和SSH程序。')):resolve(stdout)));

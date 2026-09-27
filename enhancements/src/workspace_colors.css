@@ -14,6 +14,8 @@
   --vscode-textPreformat-background:#ECECEC;
   --vscode-textPreformat-foreground:#606060;
   --vscode-terminal-selectionBackground:#0069CC26;
+  --vscode-terminal-foreground:#3B3B3B;
+  --vscode-terminal-inactiveSelectionBackground:#E5EBF1;
   --vscode-terminalCursor-foreground:#202020;
   --vscode-terminalCursor-background:#FFFFFF;
   --workspace-markdown-heading:#0069CC;
@@ -100,6 +102,8 @@
   --vscode-textPreformat-background:#262626;
   --vscode-textPreformat-foreground:#8C8C8C;
   --vscode-terminal-selectionBackground:#3994BC33;
+  --vscode-terminal-foreground:#CCCCCC;
+  --vscode-terminal-inactiveSelectionBackground:#3A3D41;
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
   --workspace-markdown-heading:#CE9178;

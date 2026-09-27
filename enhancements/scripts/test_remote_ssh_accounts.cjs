@@ -15,7 +15,7 @@ const roundtrip=(bridge,token,prompt)=>new Promise((resolve,reject)=>{const sock
   await Promise.all(records.slice(0,20).map(item=>second.remove(item.id)));assert.equal((await first.list()).length,80);checks.push('100并发记录保存、主机别名共享、账号独立修改、20删除');
   await assert.rejects(first.save({target:'-oProxyCommand=bad'}));await assert.rejects(first.save({target:'host',port:65536}));await assert.rejects(first.save({target:'host',folder:'relative'}));
   const a=await resolve_connection_identity('alice@fixture.invalid',{port:2222}),b=await resolve_connection_identity('bob@fixture.invalid',{port:2222}),c=await resolve_connection_identity('alice@fixture.invalid',{port:2223});assert.notEqual(a.key,b.key);assert.notEqual(a.key,c.key);
-  assert.equal(remote_terminal_profile('alice@fixture.invalid','','ssh',{port:2222}).args.at(-1),'exec "${SHELL:-/bin/sh}" -l');checks.push('真实ssh -G用户/端口身份隔离及默认远程主目录');
+  assert.equal(remote_terminal_profile('alice@fixture.invalid','','ssh',{port:2222}).args.at(-1),'exec env TERM=xterm-256color COLORTERM=truecolor TERM_PROGRAM=Typora "${SHELL:-/bin/sh}" -i');checks.push('真实ssh -G用户/端口身份隔离及默认远程主目录');
   const data=new Map(),storage={supported:true,read:async key=>data.get(key),write:async(key,value)=>{assert(Buffer.byteLength(value)<=2560);data.set(key,value);},remove:async key=>data.delete(key),list:async prefix=>[...data.keys()].filter(key=>key.startsWith(prefix))};
   const credentials=create_credential_store(root,storage),vault=create_password_vault(credentials,fn=>with_store_lock(root,fn));
   await credentials.save(a.key,'auto-login');await vault.setup('first-master-password',[a.key]);assert.equal(await vault.reveal(a.key,'first-master-password'),'auto-login');await assert.rejects(vault.reveal(a.key,'wrong'),/保险密码/);

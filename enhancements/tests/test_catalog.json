@@ -1767,12 +1767,14 @@
       "purpose": "implementation",
       "requirements": [
         "R006",
-        "R006.7"
+        "R006.7",
+        "R070.10"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
         "enhancements/src/terminal_theme.ts",
-        "enhancements/src/terminal_workspace.ts"
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_colors.css"
       ],
       "related_modules": [
         "keyboard",
@@ -6036,7 +6038,8 @@
       "domain": "remote",
       "purpose": "implementation",
       "requirements": [
-        "R070"
+        "R070",
+        "R070.10"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
@@ -6045,7 +6048,9 @@
         "enhancements/src/workspace_remote_ssh.ts",
         "enhancements/src/terminal_session.ts",
         "enhancements/src/terminal_settings.ts",
-        "enhancements/src/terminal_workspace.ts"
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/terminal_theme.ts",
+        "enhancements/src/workspace_colors.css"
       ],
       "related_modules": [
         "files",
@@ -6322,14 +6327,17 @@
         "R070.6",
         "R070.7",
         "R070.8",
-        "R070.9"
+        "R070.9",
+        "R070.10"
       ],
       "design": "docs/remote_ssh.md",
       "implementation": [
         "enhancements/src/remote_workspace_context.ts",
         "enhancements/src/terminal_workspace.ts",
         "enhancements/src/workspace_remote_ssh.ts",
-        "enhancements/src/workspace_file_tree.ts"
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/terminal_theme.ts",
+        "enhancements/src/workspace_colors.css"
       ],
       "related_modules": [
         "SSH",
@@ -6339,9 +6347,11 @@
       "script": "enhancements/fixtures/remote_terminal_native.js",
       "runner": "enhancements/scripts/prepare_stability_native.py",
       "environment": "Windows原始Typora1.14.10隔离副本及Linux真实SSH",
-      "preconditions": "已信任测试主机；凭据仅由环境提供；随机远端临时目录",
+      "preconditions": "已信任测试主机；凭据通过系统凭据库在内存读取；随机远端临时目录",
       "steps": [
-        "默认终端选择远端、已有本地进程保留、20轮命令及独立通道回读、拆分、重启、断线拒绝本地回落"
+        "默认终端选择远端、已有本地进程保留、20轮命令及独立通道回读、拆分、重启、断线拒绝本地回落",
+        "远端交互Shell与TERM/COLORTERM、ANSI/256/RGB实际xterm字符格",
+        "2026明暗明切换保持远端PID、缓冲、选区和RGB；终端专用颜色核对"
       ],
       "expected": [
         "实际PTY在指定远端目录，原本地文档及会话保持，清理仅限测试目录"
@@ -6554,7 +6564,8 @@
       "requirements": [
         "R069.2",
         "R069.4",
-        "R069.5"
+        "R069.5",
+        "R069.12"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6573,7 +6584,8 @@
       "environment": "隔离Electron、临时文档与本地HTTP服务器",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "浮动预览与终端重叠区域真实命中、关闭恢复和打开顺序"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -8685,6 +8697,41 @@
       "required_executables": [
         "clangd"
       ]
+    },
+    {
+      "id": "TC-terminal-preview-native",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R069.12"
+      ],
+      "design": "docs/link_preview.md",
+      "implementation": [
+        "enhancements/src/workspace_link_dock.ts",
+        "enhancements/src/workspace_lookup_preview.css",
+        "enhancements/src/terminal_panel.ts"
+      ],
+      "related_modules": [
+        "preview",
+        "terminal",
+        "theme"
+      ],
+      "script": "enhancements/fixtures/terminal_preview_native.js",
+      "environment": [
+        "原始Typora 1.14.10私有桌面"
+      ],
+      "preconditions": [
+        "标准运行器准备最终候选及独立宿主"
+      ],
+      "steps": [
+        "两种打开顺序、明暗和缩放的真实重叠命中；固定/外部退出、关闭恢复"
+      ],
+      "expected": [
+        "重叠区归预览、终端其他区域可达、原文不变"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
     }
   ]
 }

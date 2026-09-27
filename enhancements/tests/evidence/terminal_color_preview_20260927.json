@@ -1,0 +1,126 @@
+{
+  "requirements": [
+    "R070.10",
+    "R069.12"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.22",
+  "baseline": "214da77e21db078e6aa8b7867785e1a20bd89216",
+  "asset_sha256": "a4ce92b599868ff15d9821149b3873bcc0045707280501355b3332c77253fb91",
+  "upstream": {
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "shell": "terminalProfileResolverService.ts:256-263 Linux默认非登录Shell；terminalProcess.ts:152-154 xterm-256color；terminalEnvironment.ts:addTerminalEnvironmentKeys 真彩能力",
+    "colors": "官方2026 resolved.json terminal.foreground/inactiveSelectionBackground；xtermTerminal.ts背景继承panel.background；terminalColorRegistry.ts ANSI色表",
+    "layer": "contextview的独立浮层职责；101是本产品终端100以上的宿主适配值"
+  },
+  "cause": [
+    "真实SSH旧登录Shell缺失ls颜色别名，交互Shell恢复；ANSI传输正常",
+    "终端前景误用工作台通用角色，失焦选区沿用旧值",
+    "body同级预览z-index 2低于终端100"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "id": "c9775202a01044eead7fdc5fdfcd025f",
+      "boundary": "最终产品实现；随后仅补充原生夹具、测试目录及交付记录"
+    },
+    "catalog": {
+      "status": "PASS",
+      "classified_suites": 250,
+      "is_executed_count": false
+    },
+    "ui": [
+      {
+        "id": "9fec9e39ac0c41439794e7365ec04fa6",
+        "suite": "terminal_theme",
+        "checks": 10
+      },
+      {
+        "id": "09acd7fb8f9149e0a9a577465af3ef33",
+        "suite": "workspace_preview_dock",
+        "checks": 54
+      }
+    ],
+    "native": [
+      {
+        "id": "055490743f2047f18d690e82c2343003",
+        "suite": "remote_terminal_native",
+        "status": "PASS",
+        "checks": 68,
+        "real_command_cycles": 20,
+        "scope": "单一Linux主机真实SSH/ConPTY/xterm；ANSI/256/RGB字符格、明暗往返、PID/正文/选区保持、拆分重启"
+      },
+      {
+        "id": "feabd69fd6b44b9395c7e04ee4892ca4",
+        "suite": "terminal_preview_native",
+        "status": "PASS",
+        "checks": 21,
+        "scope": "原始Typora实际重叠命中、明暗/缩放/打开顺序/关闭/固定；截图已核对"
+      }
+    ],
+    "install_cycles": {
+      "status": "PASS",
+      "id": "90f3785cc9934021a0697795ec8a7621",
+      "scope": "公开安装、检查、restore卸载、重装、detach卸载、重装和数据保持"
+    },
+    "uninstall_cases": {
+      "status": "PASS",
+      "id": "3e5bb9bf255b4fe5ad80c22deba8efe7",
+      "checks": 65,
+      "scope": "失败、取消、回滚"
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "7a02257e4ba1703314dca15a7776f4f4e50e50547c5f8abe91747522f5d2f1bb",
+      "window_restarted": false
+    }
+  },
+  "failure_history": [
+    {
+      "id": "917bcc8a4c724df3a499f1872a1024a8",
+      "cause": "旧SSH账号测试期望-l；按新交互契约更新后完整check通过"
+    },
+    {
+      "ids": [
+        "12779b7227674b58b06bb9dfab8797ad",
+        "c0d1b8f0a96846acb4d8197567e235b4"
+      ],
+      "cause": "旧调色板断言；第二次修改命令路径错误未生效，最终按固定官方值修正复验"
+    },
+    {
+      "id": "ecc9ee3231a840b0933651fef3369560",
+      "cause": "新原生验证仍查固定前的aria-label；固定操作改变标签导致夹具失败"
+    },
+    {
+      "id": "a935a355823e4855bf2168b866b63de2",
+      "cause": "旧link_preview_native要求iframe，当前网页使用webview；未宣称整套通过，保留旧夹具并新增本次层级专用原生套件"
+    }
+  ],
+  "cleanup": {
+    "policy": "R077受管载荷清理；保留结果日志截图",
+    "final_payload_bytes_reclaimed": [
+      531386610,
+      531368177,
+      2075932335,
+      131163209
+    ],
+    "backup_retention": "标准安装器回收上一份有标记自动升级备份；旧版缺少清单/retention的备份保留，不纳入本轮手工删除"
+  },
+  "limits": [
+    "未执行全量UI，既有失败保持独立跟踪",
+    "原生宿主DOM事件与坐标命中不等于物理鼠标跨设备验收；其他平台未测",
+    "SSH只验证一个Linux主机，远端主动禁用颜色时不伪造配色，不修改远端启动文件",
+    "用户运行窗口未重启；保存后重启Typora并新建SSH终端加载",
+    "R068.6定义跳转按用户要求暂缓；其他历史未决项保持"
+  ]
+}

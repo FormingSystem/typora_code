@@ -16,7 +16,7 @@ const assert_palette = async (background, foreground, red, selection) => {
   assert.equal(actual.theme.foreground, foreground); assert.equal(actual.theme.cursor, foreground); assert.equal(actual.theme.cursorAccent, background); assert.equal(actual.theme.red, red); assert.equal(actual.theme.selectionBackground, selection);
   assert.equal(actual.ansi[1].toLowerCase(), red); assert.equal(actual.ansi.length, 16);
   const ansi_keys = ['black','red','green','yellow','blue','magenta','cyan','white','brightBlack','brightRed','brightGreen','brightYellow','brightBlue','brightMagenta','brightCyan','brightWhite'];
-  assert.deepEqual(actual.ansi.map(color=>color.toLowerCase().replace(/^(#[0-9a-f]{6})ff$/, '$1')), ansi_keys.map(key=>actual.theme[key]));
+  assert.deepEqual(actual.ansi.map(color=>color.toLowerCase().replace(/^(#[0-9a-f]{6})ff$/, '$1')), ansi_keys.map(key=>actual.theme[key].toLowerCase()));
   assert.equal(actual.selection.toLowerCase().replace(/^(#[0-9a-f]{6})ff$/, '$1'), selection);
   assert.equal(actual.cursor.toLowerCase().replace(/^(#[0-9a-f]{6})ff$/, '$1'), /^rgb/.test(foreground) ? '#'+foreground.match(/\d+/g).map(value=>Number(value).toString(16).padStart(2,'0')).join('') : foreground);
   await delay(100);
@@ -40,7 +40,7 @@ app.whenReady().then(async () => {
     window.output_text=()=>Array.from({length:view.term.buffer.active.length},(_,index)=>view.term.buffer.active.getLine(index)?.translateToString()).join('\\n');
     view.term.write('PRESERVED_OUTPUT\\r\\n\\x1b[31mANSI_RED\\x1b[0m \\x1b[92mANSI_BRIGHT_GREEN\\x1b[0m\\r\\nREADING_POSITION',()=>{window.output_ready=true;});
   })()`);
-  await wait('window.output_ready === true'); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#a31515', '#add6ff');
+  await wait('window.output_ready === true'); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#cd3131', '#add6ff');
   const baseline = await evaluate('output_text()'); const rows = await evaluate('view.term.rows');
   assert(baseline.includes('ANSI_RED') && baseline.includes('READING_POSITION'));
   await evaluate('view.term.select(0,0,16);view.term.focus()'); await delay(100);
@@ -57,26 +57,37 @@ app.whenReady().then(async () => {
 
   await evaluate(`document.querySelector('#fixture-theme').textContent='html{background:#fff}body{background:#fff;color:#333}body.night{background:#202020;color:#eeeeee}html.night body{background:#202020;color:#eeeeee}';document.body.classList.add('night')`);
   await assert_palette('rgb(32, 32, 32)', 'rgb(238, 238, 238)', '#cd3131', '#264f78');
-  await evaluate("document.body.classList.remove('night')"); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#a31515', '#add6ff');
+  await evaluate("document.body.classList.remove('night')"); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#cd3131', '#add6ff');
   await evaluate("document.documentElement.classList.add('night')"); await assert_palette('rgb(32, 32, 32)', 'rgb(238, 238, 238)', '#cd3131', '#264f78');
-  await evaluate("document.documentElement.classList.remove('night')"); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#a31515', '#add6ff');
+  await evaluate("document.documentElement.classList.remove('night')"); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#cd3131', '#add6ff');
   checks.push('body and root class changes switch themes in both directions');
 
   await evaluate(`window.theme_link=document.createElement('link');theme_link.rel='stylesheet';theme_link.href='data:text/css,'+encodeURIComponent(${JSON.stringify(dark)});document.head.append(theme_link)`);
   await assert_palette('rgb(30, 30, 30)', 'rgb(212, 212, 212)', '#cd3131', '#264f78');
-  await evaluate(`theme_link.href='data:text/css,'+encodeURIComponent(${JSON.stringify(light)})`); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#a31515', '#add6ff');
+  await evaluate(`theme_link.href='data:text/css,'+encodeURIComponent(${JSON.stringify(light)})`); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#cd3131', '#add6ff');
   await evaluate(`theme_link.href='data:text/css,'+encodeURIComponent(${JSON.stringify(dark)})`); await assert_palette('rgb(30, 30, 30)', 'rgb(212, 212, 212)', '#cd3131', '#264f78');
-  await evaluate('theme_link.remove()'); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#a31515', '#add6ff');
+  await evaluate('theme_link.remove()'); await assert_palette('rgb(255, 255, 255)', 'rgb(51, 51, 51)', '#cd3131', '#add6ff');
   checks.push('new and replaced external stylesheets update after their actual load event');
 
   await evaluate("document.querySelector('#fixture-theme').textContent='html{background:#101010}body{background:rgba(255,255,255,0);color:#eeeeee}'");
   await assert_palette('rgb(16, 16, 16)', 'rgb(238, 238, 238)', '#cd3131', '#264f78');
   await evaluate("document.body.style.backgroundColor='rgba(255,255,255,0.5)'");
-  await assert_palette('rgb(136, 136, 136)', 'rgb(238, 238, 238)', '#a31515', '#add6ff');
+  await assert_palette('rgb(136, 136, 136)', 'rgb(238, 238, 238)', '#cd3131', '#add6ff');
   await evaluate("document.body.style.backgroundColor='rgba(255,255,255,0)'");
   await assert_palette('rgb(16, 16, 16)', 'rgb(238, 238, 238)', '#cd3131', '#264f78');
   checks.push('transparent and translucent backgrounds use the actual root/body composite rather than the hidden RGB channels');
   assert.equal(await evaluate('output_text()'), baseline);
+  const resolved=JSON.parse(fs.readFileSync(path.join(__dirname,'../vendor/vscode_themes/resolved.json'),'utf8'));
+  await evaluate(`{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_colors.css'),'utf8'))};document.head.append(style);}`);
+  for(const mode of ['light','dark','light']){
+    const colors=resolved[mode+'_2026'].colors;
+    await evaluate(`document.querySelector('#fixture-theme').textContent=${JSON.stringify(mode==='dark'?dark:light)};document.documentElement.setAttribute('data-workspace-colors','${mode}')`);
+    await wait(`view.term.options.theme.foreground.toLowerCase()===${JSON.stringify(colors['terminal.foreground'].toLowerCase())}`);
+    const actual=await evaluate('view.term.options.theme');
+    for(const [key,role] of [['foreground','terminal.foreground'],['background','panel.background'],['selectionBackground','terminal.selectionBackground'],['selectionInactiveBackground','terminal.inactiveSelectionBackground'],['cursor','terminalCursor.foreground'],['cursorAccent','terminalCursor.background']])assert.equal(actual[key].toLowerCase(),colors[role].toLowerCase(),mode+' '+role);
+    assert.equal(await evaluate('output_text()'),baseline);assert.equal(await evaluate('view.term.getSelection()'),'PRESERVED_OUTPUT');
+  }
+  checks.push('2026 light/dark/light terminal-specific foreground background cursor and both selections follow official tokens and preserve existing output');
   fs.writeFileSync(path.join(evidence,'terminal_theme_dark.png'),(await test_window.webContents.capturePage()).toPNG());
   await evaluate('window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path:terminal_host.context_path()}}))');
   await wait('typeof resolve_terminal_root === "function"');

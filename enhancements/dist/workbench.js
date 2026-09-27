@@ -201263,14 +201263,14 @@ https://creativecommons.org/licenses/by/4.0/
     const palette_background = palette?.getPropertyValue("--workspace-ui-chrome").trim();
     const background = palette_background || "rgb(".concat(rgb.join(", "), ")");
     const dark = rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128;
-    const foreground2 = palette?.getPropertyValue("--workspace-ui-foreground").trim() || body.color || (dark ? "#d4d4d4" : "#333333");
+    const foreground2 = palette?.getPropertyValue("--vscode-terminal-foreground").trim() || palette?.getPropertyValue("--workspace-ui-foreground").trim() || body.color || (dark ? "#d4d4d4" : "#333333");
     const theme2 = {
       background,
       foreground: foreground2,
       cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground2,
       cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
       selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"),
-      selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+      selectionInactiveBackground: palette?.getPropertyValue("--vscode-terminal-inactiveSelectionBackground").trim() || (dark ? "#3a3d41" : "#d3d3d3"),
       black: dark ? "#000000" : "#000000",
       red: dark ? "#cd3131" : "#cd3131",
       green: dark ? "#0DBC79" : "#107C10",
@@ -243582,6 +243582,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092722,
+        version: "2026.09.27.22",
+        date: "2026-09-27",
+        notes: [
+          "SSH\u7EC8\u7AEF\u52A0\u8F7D\u8FDC\u7AEF\u4EA4\u4E92Shell\u914D\u7F6E\u5E76\u58F0\u660E256\u8272/\u771F\u5F69\u80FD\u529B\uFF0C\u6062\u590D\u7531\u8FDC\u7AEF\u914D\u7F6E\u63D0\u4F9B\u7684\u63D0\u793A\u7B26\u4E0E\u76EE\u5F55\u989C\u8272\u3002",
+          "\u6D6E\u52A8\u94FE\u63A5\u9884\u89C8\u663E\u793A\u5728\u7EC8\u7AEF\u9762\u677F\u4E0A\u65B9\uFF0C\u91CD\u53E0\u533A\u57DF\u7684\u9605\u8BFB\u4E0E\u64CD\u4F5C\u4E0D\u518D\u88AB\u7EC8\u7AEF\u906E\u6321\u3002",
+          "\u672C\u5730\u4E0ESSH\u7EC8\u7AEF\u5171\u540C\u8DDF\u968F\u660E\u6697\u4E3B\u9898\uFF0C\u8865\u9F502026\u7EC8\u7AEF\u4E13\u7528\u6587\u5B57\u548C\u5931\u7126\u9009\u533A\u989C\u8272\uFF0C\u4FDD\u7559\u5DF2\u8F93\u51FA\u5185\u5BB9\u3002"
+        ]
+      },
       {
         sequence: 2026092721,
         version: "2026.09.27.21",

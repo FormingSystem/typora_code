@@ -10,7 +10,7 @@ const {validate_target,create_remote_ssh,remote_terminal_profile,connection_argu
  assert.deepEqual(configured_terminal.args.slice(0,-2),connection_arguments(configured,true));
  const launch=remote_terminal_profile('test-alias',"/tmp/中文 ' ${env:NOT_LOCAL} $(no-command)",'ssh.exe');
  assert.deepEqual(launch.args.slice(0,-1),['-tt','-o','ConnectTimeout=15','-o','ServerAliveInterval=15','-o','ServerAliveCountMax=3','-o','StrictHostKeyChecking=ask','test-alias']);
- assert.equal(launch.args.at(-1),"cd -- '/tmp/中文 '\\'' ${env:NOT_LOCAL} $(no-command)' && exec \"${SHELL:-/bin/sh}\" -l");
+ assert.equal(launch.args.at(-1),"cd -- '/tmp/中文 '\\'' ${env:NOT_LOCAL} $(no-command)' && exec env TERM=xterm-256color COLORTERM=truecolor TERM_PROGRAM=Typora \"${SHELL:-/bin/sh}\" -i");
  for(const value of ['relative','/bad\0path',null])assert.throws(()=>remote_terminal_profile('alias',value,'ssh.exe'));
  assert.throws(()=>remote_terminal_profile('-oProxyCommand=bad','/tmp','ssh.exe'));
  for(let i=0;i<1000;i++){

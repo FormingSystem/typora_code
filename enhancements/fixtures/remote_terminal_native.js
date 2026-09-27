@@ -1,7 +1,7 @@
-// 正式构建、原生Typora和真实SSH；认证只取运行器环境，不进入证据。
+// 正式构建、原生Typora和真实SSH；认证在内存读取，不进入证据。
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
- const env=reqnode('process').env,target=env.TYPORA_TEST_SSH_TARGET,password=env.TYPORA_TEST_SSH_PASSWORD;
+ const env=reqnode('process').env,target=env.TYPORA_TEST_SSH_TARGET;let password=env.TYPORA_TEST_SSH_PASSWORD;
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
@@ -19,6 +19,7 @@
  let root='',panel,local,remote,result;
  const remove_owned=async current=>{if(!root||!current.startsWith(root)||!root.includes('/.typora-terminal-'))throw Error('cleanup boundary');const listing=await service.request('list',{path:current});for(const entry of listing.entries){const child=current+'/'+entry.name;if(entry.directory&&!entry.link)await remove_owned(child);else await service.request('remove',{path:child});}await service.request('remove',{path:current});};
  try{
+  if(!password&&env.TYPORA_TEST_SSH_CREDENTIAL_ROOT&&target){const identity=await api.resolve_connection_identity(target);const storage=reqnode(path.join(assets,'remote_ssh_credentials.cjs')).create_system_credentials(env.TYPORA_TEST_SSH_CREDENTIAL_ROOT);password=await storage.read('login/'+crypto.createHash('sha256').update(identity.key).digest('hex'));}
   if(!target||!password)throw Error('需要明确的SSH测试目标和内存凭据');await pause(1000);
   const original_path=File.bundle.filePath,original=fs.readFileSync(original_path);
   const identity=await api.resolve_connection_identity(target);
@@ -62,6 +63,26 @@
   command('terminal_toggle');remote=await active_entry();
   assert(remote.session.launch_profile?.remote.target===target,'活动栏创建远端终端');
   await authenticate(remote);await send(remote,"printf 'DIR=%s\\n' \"$PWD\"",'DIR='+root);assert(text(remote).includes('DIR='+root),'实际Shell位于选定远端目录');
+  await send(remote,"printf 'TERM_CAP=%s/%s/%s\\n' \"$TERM\" \"$COLORTERM\" \"$TERM_PROGRAM\"; case $- in *i*) echo INTERACTIVE_OK;; esac",'INTERACTIVE_OK');
+  assert(text(remote).includes('TERM_CAP=xterm-256color/truecolor/Typora'),'真实SSH远端收到终端颜色能力');
+  await send(remote,"printf '\\033[31mTC_RED\\033[0m \\033[38;5;196mTC_256\\033[0m \\033[38;2;12;123;234mTC_RGB\\033[0m\\n'; printf 'COLOR_%s\\n' DONE",'COLOR_DONE');
+  const colored_cell=marker=>{const b=remote.surface.term.buffer.active;for(let row=0;row<b.length;row++){const line=b.getLine(row),index=line.translateToString().indexOf(marker);if(index>=0){const cell=line.getCell(index);if(!cell.isFgDefault())return cell;}}};
+  assert(!!colored_cell('TC_RED'),'真实SSH的ANSI红色到达xterm字符格');
+  assert(!!colored_cell('TC_256'),'真实SSH的256色到达xterm字符格');
+  const rgb_cell=colored_cell('TC_RGB');assert(rgb_cell?.isFgRGB()&&rgb_cell.getFgColor()===0x0c7bea,'真实SSH的RGB颜色无损到达xterm');
+  const terminal=remote.surface.term,screen=text(remote);terminal.select(0,0,8);const selection=terminal.getSelection(),pid=remote.session.pid;
+  for(const [theme,mode,foreground,background,inactive,cursor] of [
+   ['vscode2026_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
+   ['vscode2026_dark.css','dark','#cccccc','#191a1b','#3a3d41','#bfbfbf'],
+   ['vscode2026_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
+  ]){
+   await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);
+   await wait(()=>terminal.options.theme.foreground?.toLowerCase()===foreground,'原生终端主题未切换 '+mode);
+   assert(terminal.options.theme.background.toLowerCase()===background&&terminal.options.theme.cursor.toLowerCase()===cursor&&terminal.options.theme.selectionInactiveBackground.toLowerCase()===inactive,'原生终端背景光标及失焦选区 '+mode);
+   assert(text(remote)===screen&&terminal.getSelection()===selection&&remote.session.pid===pid,'原生终端主题切换保留正文选区和进程 '+mode);
+   assert(colored_cell('TC_RGB')?.getFgColor()===0x0c7bea,'主题切换保留远端真彩 '+mode);
+  }
+  terminal.clearSelection();
   for(let i=0;i<20;i++)await send(remote,"printf 'CYCLE_%s\\n' "+i,'CYCLE_'+i);assert(true,'真实SSH连续20轮命令输出');
   await send(remote,"printf 'remote write' > proof.txt; printf 'WRITE_%s\\n' DONE",'WRITE_DONE');const proof=await service.request('read',{path:root+'/proof.txt'});assert(reqnode('buffer').Buffer.from(proof.data,'base64').toString()==='remote write','默认终端写入由独立SSH通道回读确认');
   command('terminal_split');const split=await active_entry();assert(split.session.launch_profile.remote.remote_path===root,'原生拆分保留远端目录');await authenticate(split);await send(split,"printf 'SPLIT=%s\\n' \"$PWD\"",'SPLIT='+root);command('terminal_kill');

@@ -9,9 +9,9 @@ export function terminal_theme(theme_document:Document=document): ITheme {
   const palette_background=palette?.getPropertyValue('--workspace-ui-chrome').trim();
   const background = palette_background || `rgb(${rgb.join(", ")})`;
   const dark = rgb[0] * .2126 + rgb[1] * .7152 + rgb[2] * .0722 < 128;
-  const foreground = palette?.getPropertyValue('--workspace-ui-foreground').trim() || body.color || (dark ? "#d4d4d4" : "#333333");
+  const foreground = palette?.getPropertyValue('--vscode-terminal-foreground').trim() || palette?.getPropertyValue('--workspace-ui-foreground').trim() || body.color || (dark ? "#d4d4d4" : "#333333");
   const theme:ITheme={background, foreground, cursor: palette?.getPropertyValue("--vscode-terminalCursor-foreground").trim() || foreground, cursorAccent: palette?.getPropertyValue("--vscode-terminalCursor-background").trim() || background,
-    selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"), selectionInactiveBackground: dark ? "#3a3d41" : "#d3d3d3",
+    selectionBackground: palette?.getPropertyValue("--vscode-terminal-selectionBackground").trim() || (dark ? "#264f78" : "#add6ff"), selectionInactiveBackground: palette?.getPropertyValue('--vscode-terminal-inactiveSelectionBackground').trim() || (dark ? "#3a3d41" : "#d3d3d3"),
     black: dark ? "#000000" : "#000000",
     red: dark ? "#cd3131" : "#cd3131",
     green: dark ? "#0DBC79" : "#107C10",

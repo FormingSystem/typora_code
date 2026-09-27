@@ -201,3 +201,15 @@ R070.8布局补充（2026-09-23）：用户要求将路径输入与正文面包�
 正则搜索能力由共享匹配服务管理，正文搜索与路径搜索使用相同语法、大小写、错误及取消规则；文件快速打开保留可关闭正则后使用的既有模糊匹配。新查询默认正则；选中文字直接查找仍按字面量，避免把正文字符解释成表达式。这是用户新要求覆盖原快速打开默认模糊匹配的范围，不修改文件系统路径解析。
 
 验证包含真实pointerdown/mousedown/click序列、外部目标仍执行、嵌套Esc、中文/空格/正则特殊字符路径、非法和高耗时表达式、迟到stat/list/Worker、20轮进出、100/1000候选虚拟化、明暗及窄窗缩放。真实SSH、原始宿主与受控提供者的结果分别记录。
+
+## R070.10 远程终端颜色与交互Shell
+
+2026-09-27：SSH终端应显示远端真实ANSI颜色并跟随共同明暗色表。实测旧启动强制`-l`，当前Linux账号的登录启动链没有加载交互配置：TTY和TERM正常，但`ls`不是彩色别名；ANSI探针能通过ConPTY。交互Shell加载后彩色别名和提示符恢复。客户端不能给普通文本猜测着色，也不能替用户改远端dotfiles。
+
+固定VS Code `6807068` 的 `terminalProfileResolverService.ts:256–263` 在Linux默认不强制登录Shell，`terminalProcess.ts:152–154`声明`xterm-256color`，`terminalEnvironment.ts:addTerminalEnvironmentKeys`声明真彩能力。SSH服务在已有`-tt`和安全目录参数之后启动远端交互Shell，显式传递`TERM=xterm-256color`、`COLORTERM=truecolor`与本产品`TERM_PROGRAM=Typora`；不依赖sshd的AcceptEnv。当前远端协议针对Linux/POSIX，其他系统的登录策略不在本次验收范围。
+
+认证和取消继续由现有SSH认证协调器管理；文件协议仍为非TTY，不注入终端变量。新建、拆分、重启复用同一配置生成器；已有进程不重启、不注入命令，修复需新建终端生效。远端自主关闭颜色、非彩色Shell或程序主动输出纯文本时如实呈现。xterm和共同主题服务仍是渲染及色表的唯一所有者。
+
+验收分开记录远端TTY/环境/交互配置与本地16色、256色、RGB渲染；真实SSH输出、目录安全转义、断线/取消、明暗切换保留缓冲与选择、拆分/重启和原生宿主分别验证。不以ANSI数量冒充实际颜色单元格正确，也不以替身冒充真实SSH。
+
+R070.10补充：用户再次强调明暗转换。固定2026主题的terminal.foreground分别为Dark #CCCCCC、Light #3B3B3B，inactiveSelectionBackground分别为#3A3D41/#E5EBF1；不能误用通用工作台前景和旧选区色。共同色表声明这两个终端角色，terminal_theme读取并经现有订阅更新所有会话；用户显式终端覆盖仍最后应用。背景按xtermTerminal.ts的terminal.background→panel.background，当前为#191A1B/#FAFAFD；光标及活动选区沿原终端专用角色。原生验收明→暗→明时正文、选区、PID和远端RGB值保持，16色索引按主题重新绘制。

@@ -6,6 +6,8 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-remote-terminal-color-001 SSH终端无彩色提示与目录 | R070.10 | 启动/呈现/P2 | 强制登录Shell绕过当前账号交互配置；本机COLORTERM未传到远端；终端通用前景和失焦选区未取2026专用角色 | 交互Shell与远端能力声明、共同主题角色；真实SSH及原生明暗/字符格证据见terminal_color_preview_20260927.json |
+| BUG-preview-terminal-layer-001 浮动预览被终端覆盖 | R069.12 | 层级/P2 | body同级预览2低于终端100 | 独立dock层101，保持菜单/对话框更高；重叠命中和明暗/缩放/最大化验证见terminal_color_preview_20260927.json |
 | BUG-search-scope-001 可见源码正文无法搜到 | R058.4 | 搜索/P2 | 仅扫描磁盘，没有VS Code的打开模型合并层；被忽略的打开文件丢失，零结果缺少范围解释 | 全工程扫描与当前模型合并、共同文本读取及定位；包含/排除、未打开文件、零匹配覆盖、取消和替换保护，见search_scope_20260927.json |
 | BUG-quick-open-glob-001 通配符被送入严格正则 | R058.3 | 搜索/P2 | 原入口只有默认正则及模糊，缺少文件通配符语法选择；*.c在严格正则下量词无对象 | 新增互斥glob模式，共享解析器与Worker；三套UI、搜索范围及取消回归、原生55项通过，见quick_open_glob_20260927.json |
 | BUG-workspace-dismissal-001 顶栏空白无法关闭浮层 | R033 | 交互/P2 | 顶栏仍声明原生drag，系统截获事件；旧DOM外点用例绕过了原生命中，不能验证这一边界 | 共享退出栈投影no-drag并保持至手势结束，嵌套/销毁恢复；见dismissal_titlebar_20260927.json |
@@ -16,7 +18,7 @@
 | BUG-workspace-shortcuts-001 原生编辑快捷键被工作台占用 | R079 | 输入归属/P1 | 直接采用VS Code全局Ctrl键且Git重复注册侧栏，未先核对Typora正文命令 | 冲突Ctrl改Alt、共享严格修饰键与唯一侧栏所有者；5套UI、原生真实加粗及20轮切换，见native_shortcuts_20260927.json |
 | BUG-code-editor-state-001 暗色代码光标及选区不可见 | R068.3 | 呈现/P2 | 配色仅覆盖语法，遗漏编辑状态；默认行/token不透明背景遮选区 | 共同代码主题适配编辑状态并透明化默认底层；303项UI及65项原生，见editor_project_20260927.json |
 | BUG-vscode-project-001 子目录被作为独立工程打开 | R078.1 | 资源身份/P2 | 入口只传选中路径，没有传工作区所有者 | 统一传工程根和目标文件，目录优先README，空目录保持根；服务15项、UI23项、原生18项，外部启动替身 |
-| TEST-ui-baseline-20260925 全量UI旧夹具与当前行为失配 | R074.4/R074.5 | 测试/P2 | 97套首轮76通过/21失败；补充Worker打包插件及当前菜单/颜色/重选事件契约后13套复验通过，仍有8套失败；旧e19ad40及相同补充插件夹具复现相同失败 | 剩余：SCM文件分组/透明操作背景/200px操作列、终端旧调色板断言、剪贴板替身缺availableFormats、已取消2MiB门槛断言、旧齿轮偏好入口、快速打开512候选等待。保留待修，不归为本轮颜色通过；见color_settings_20260925.json与本地基线日志 |
+| TEST-ui-baseline-20260925 全量UI旧夹具与当前行为失配 | R074.4/R074.5 | 测试/P2 | 97套首轮76通过/21失败；补充Worker打包插件及当前菜单/颜色/重选事件契约后13套复验通过，仍有8套失败（其中终端旧调色板断言于2026-09-27按固定上游修正并复验通过）；旧e19ad40及相同补充插件夹具复现相同失败 | 剩余：SCM文件分组/透明操作背景/200px操作列、剪贴板替身缺availableFormats、已取消2MiB门槛断言、旧齿轮偏好入口、快速打开512候选等待。保留待修，不归为本轮颜色通过；见color_settings_20260925.json与本地基线日志 |
 | BUG-preview-web-001 正常网站在预览中空白 | R069.11 | 浏览器承载/P2 | iframe受站点禁止内嵌及opaque来源、表单/存储限制；下载网络配置不能改变网页承载方式 | 使用原始宿主已开放的隔离Chromium guest；真实GitHub、拒绝iframe回环页、跨来源历史、严格TLS及20轮清理，见web_preview_browser_20260924.json |
 | BUG-reading-link-001 正文链接编辑手势被导航接管 | R067.2 | 交互归属/P2 | 原生正文普通点击可编辑，但非活动主Markdown分栏排除链接编辑切换，根代理对全部链接执行打开 | 主Markdown分栏普通左键进入来源编辑，根代理只保留明确修饰键导航；独立预览沿原会话浏览，见body_link_editing_20260924.json |
 | BUG-git-source-001 比较正文与来源行失联 | R034.4 | 状态所有权/P2 | 提交图文件没有来源选择投影，变更列表只记最后单击文件；差异视图缺少仓库/版本/路径来源契约，虚拟行首次定位还未建立滚动高度 | 差异持有结构化来源，活动视图事件与行创建共用投影；独立定位命令先建立虚拟范围再聚焦，不重开正文；20/100/1000文件、筛选外提交/改名、取消与原始宿主验收见git_diff_source_20260924.json |
@@ -460,3 +462,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 
 2026-09-27 R068.7：BUG-source-input-owner——Find/Replace右键和快捷键落入源码/宿主正文命令；按辅助输入目标及焦点隔离，六项文本动作共享适配。BUG-source-clipboard-host——原始宿主execCommand复制及嵌入Monaco粘贴缺少有效主进程端口，源码菜单/顶栏复用宿主剪贴板与Monaco处理器，实际剪切粘贴及撤销验证。原生明暗查找状态已符合官方颜色，未凭截图重配。
 2026-09-27 R068.8：BUG-source-inactive-regions——未声明/接收clangd未激活范围，条件裁剪仍按活动代码显示；补能力协商、当前版本采样、模型装饰和清理，真实20轮宏切换及原生45项通过。R068.6用户暂缓。夹具错误、偶发Save As文件系统失败及构建EPERM保留在source_input_inactive_20260927.json，未将复跑通过冒充原因已确定。
+
+2026-09-27 TEST-native-web-preview-baseline：旧link_preview_native仍查询iframe，当前R069.11生产为webview，导致“网页未进入预览”。本轮未改网页实现；层级专用terminal_preview_native已通过21项，不抵消旧套件失败。后续更新旧套件浏览器适配并复验网页历史；失败证据见terminal_color_preview_20260927.json。

@@ -13,7 +13,7 @@
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
 /* 独立预览仅覆盖自己的矩形；主编辑区不为预览预留整列。 */
-.workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:2}
+.workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:101}
 .workspace-link-dock[hidden]{display:none}
 body.has-workspace-link-preview #typora-sidebar{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important;height:auto!important}
 body.has-workspace-link-preview #typora-sidebar > #sidebar-content{bottom:0!important}
