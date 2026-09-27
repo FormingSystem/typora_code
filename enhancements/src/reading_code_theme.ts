@@ -6,6 +6,7 @@ import cpp from '../vendor/vscode_cpp/syntaxes/cpp.tmLanguage.json';
 import macro from '../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.tmLanguage.json';
 import platform from '../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json';
 import themes from '../vendor/vscode_themes/resolved.json';
+import {code_editor_state_css} from './reading_code_editor_colors';
 import {observe_workspace_theme,workspace_theme_mode} from './workspace_theme';
 
 const modes=['light','dark'] as const;
@@ -35,8 +36,9 @@ export function load_code_themes(){return loading ||= (async()=>{
    const metadata=grammars[index].fallback.tokenizeLine2(key,INITIAL).tokens[1],color=registries[index].getColorMap()[(metadata>>>15)&511];
    css.push(`${prefix} :is(.cm-${key},.lookup-code-${key}${(aliases[key]||[]).map(alias=>',.cm-'+alias+',.lookup-code-'+alias).join('')}){color:${color}!important}`);
   }
-  registries[index].getColorMap().forEach((color,id)=>{if(color)css.push(`${prefix} :is(.cm-vsc-${mode}-fg-${id},.vsc-${mode}-fg-${id}){color:${color}!important}`,`${prefix} :is(.cm-vsc-${mode}-bg-${id},.vsc-${mode}-bg-${id}){background-color:${color}!important}`);});
+  registries[index].getColorMap().forEach((color,id)=>{if(color)css.push(`${prefix} :is(.cm-vsc-${mode}-fg-${id},.vsc-${mode}-fg-${id}){color:${color}!important}`,`${prefix} :is(.cm-vsc-${mode}-bg-${id},.vsc-${mode}-bg-${id}){background-color:${color.toLowerCase()===colors['editor.background'].toLowerCase()?'transparent':color}!important}`);});
   for(let style=0;style<16;style++)css.push(`${prefix} :is(.cm-vsc-${mode}-style-${style},.vsc-${mode}-style-${style}){font-style:${style&1?'italic':'normal'}!important;font-weight:${style&2?'bold':'normal'}!important;text-decoration:${[style&4?'underline':'',style&8?'line-through':''].filter(Boolean).join(' ')||'none'}!important}`);
+  css.push(code_editor_state_css(mode));
  });
  const pair=(language:'c'|'cpp'):themed_grammar=>({tokenizeLine(line,stack){
   const results=grammars.map((grammar,index)=>grammar[language].tokenizeLine2(line,stack[index]));

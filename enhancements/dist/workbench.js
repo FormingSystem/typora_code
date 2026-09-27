@@ -186528,6 +186528,32 @@ https://creativecommons.org/licenses/by/4.0/
     }
   };
 
+  // src/reading_code_editor_colors.ts
+  function code_editor_state_css(mode) {
+    const dark = mode === "dark", colors = resolved_default[mode].colors;
+    const color = (key3, light, night = light) => colors[key3] || (dark ? night : light);
+    const prefix = ":root[data-workspace-code-theme=".concat(mode, "] #write .CodeMirror");
+    const cursor = color("editorCursor.foreground", "#000000", "#AEAFAD"), background = colors["editor.background"];
+    const rules = [];
+    const rule = (selector, body) => rules.push("".concat(prefix).concat(selector, "{").concat(body, "}"));
+    rule("", "caret-color:".concat(cursor, "!important"));
+    rule(" pre:is(.CodeMirror-line,.CodeMirror-line-like)", "background-color:transparent!important");
+    rule(" .CodeMirror-cursor", "border-left-color:".concat(cursor, "!important;border-right-color:").concat(cursor, "!important"));
+    rule(" .CodeMirror-overwrite", "border-bottom-color:".concat(cursor, "!important"));
+    rule(".cm-fat-cursor .CodeMirror-cursor", "background-color:".concat(cursor, "!important;color:").concat(background, "!important"));
+    rule(" .CodeMirror-selected", "background-color:".concat(color("editor.inactiveSelectionBackground", "#E5EBF1", "#3A3D41"), "!important"));
+    rule(".CodeMirror-focused .CodeMirror-selected", "background-color:".concat(color("editor.selectionBackground", "#ADD6FF", "#264F78"), "!important"));
+    rule(" .CodeMirror-selectedtext", "background-color:transparent!important;text-shadow:none!important");
+    rule(" ::selection", "background-color:".concat(color("editor.selectionBackground", "#ADD6FF", "#264F78"), "!important"));
+    rule(" :is(.CodeMirror-gutters,.CodeMirror-gutter-filler,.CodeMirror-scrollbar-filler)", "background-color:".concat(background, "!important;border-color:transparent!important"));
+    rule(" .CodeMirror-activeline-gutter .CodeMirror-linenumber", "color:".concat(colors["editorLineNumber.activeForeground"], "!important"));
+    rule(" .CodeMirror-activeline-background", "background-color:".concat(color("editor.lineHighlightBackground", "transparent"), "!important;box-shadow:inset 0 0 0 1px ").concat(color("editor.lineHighlightBorder", "#EEEEEE", "#282828")));
+    rule(" .CodeMirror-matchingbracket", "background-color:".concat(color("editorBracketMatch.background", "#0064001A"), "!important;outline:1px solid ").concat(color("editorBracketMatch.border", "#B9B9B9", "#888888"), ";outline-offset:-1px"));
+    rule(" .cm-searching", "background-color:".concat(color("editor.findMatchHighlightBackground", "#EA5C0055"), "!important"));
+    rule(" .CodeMirror-composing", "border-bottom-color:".concat(color("editor.compositionBorder", "#000000", "#FFFFFF"), "!important"));
+    return rules.join("\n");
+  }
+
   // src/reading_code_theme.ts
   var modes = ["light", "dark"];
   var initial_code_stack = () => [import_vscode_textmate.INITIAL, import_vscode_textmate.INITIAL];
@@ -186555,9 +186581,10 @@ https://creativecommons.org/licenses/by/4.0/
           css.push("".concat(prefix, " :is(.cm-").concat(key3, ",.lookup-code-").concat(key3).concat((aliases[key3] || []).map((alias) => ",.cm-" + alias + ",.lookup-code-" + alias).join(""), "){color:").concat(color, "!important}"));
         }
         registries[index].getColorMap().forEach((color, id) => {
-          if (color) css.push("".concat(prefix, " :is(.cm-vsc-").concat(mode, "-fg-").concat(id, ",.vsc-").concat(mode, "-fg-").concat(id, "){color:").concat(color, "!important}"), "".concat(prefix, " :is(.cm-vsc-").concat(mode, "-bg-").concat(id, ",.vsc-").concat(mode, "-bg-").concat(id, "){background-color:").concat(color, "!important}"));
+          if (color) css.push("".concat(prefix, " :is(.cm-vsc-").concat(mode, "-fg-").concat(id, ",.vsc-").concat(mode, "-fg-").concat(id, "){color:").concat(color, "!important}"), "".concat(prefix, " :is(.cm-vsc-").concat(mode, "-bg-").concat(id, ",.vsc-").concat(mode, "-bg-").concat(id, "){background-color:").concat(color.toLowerCase() === colors["editor.background"].toLowerCase() ? "transparent" : color, "!important}"));
         });
         for (let style = 0; style < 16; style++) css.push("".concat(prefix, " :is(.cm-vsc-").concat(mode, "-style-").concat(style, ",.vsc-").concat(mode, "-style-").concat(style, "){font-style:").concat(style & 1 ? "italic" : "normal", "!important;font-weight:").concat(style & 2 ? "bold" : "normal", "!important;text-decoration:").concat([style & 4 ? "underline" : "", style & 8 ? "line-through" : ""].filter(Boolean).join(" ") || "none", "!important}"));
+        css.push(code_editor_state_css(mode));
       });
       const pair = (language44) => ({ tokenizeLine(line, stack) {
         const results = grammars.map((grammar, index) => grammar[language44].tokenizeLine2(line, stack[index]));
@@ -189498,16 +189525,25 @@ https://creativecommons.org/licenses/by/4.0/
     }
     throw new Error("\u672A\u627E\u5230 VS Code\u3002\u8BF7\u5B89\u88C5 Visual Studio Code\uFF0C\u5E76\u542F\u7528\u201C\u6DFB\u52A0\u5230 PATH\u201D\uFF1B\u5B89\u88C5\u540E\u53EF\u76F4\u63A5\u91CD\u8BD5\u3002");
   }
-  async function open_resource_in_vscode(runtime3, target) {
+  async function open_resource_in_vscode(runtime3, target, workspace_root) {
     if (!target || !runtime3.path_api.isAbsolute(target)) throw new Error("\u8BF7\u5148\u5C06\u6587\u6863\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6\uFF0C\u518D\u5728 VS Code \u4E2D\u6253\u5F00\u3002");
     const stat = await runtime3.fs.promises.stat(target).catch(() => {
       throw new Error("\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u4E0D\u5B58\u5728\uFF0C\u6216\u5F53\u524D\u65E0\u6743\u8BBF\u95EE\uFF1A" + target);
     });
     if (!stat.isFile() && !stat.isDirectory()) throw new Error("\u53EA\u80FD\u5728 VS Code \u4E2D\u6253\u5F00\u666E\u901A\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u3002");
+    const root = workspace_root || (stat.isDirectory() ? target : runtime3.path_api.dirname(target));
+    if (!runtime3.path_api.isAbsolute(root) || !(await runtime3.fs.promises.stat(root).catch(() => null))?.isDirectory()) throw new Error("\u5DE5\u7A0B\u6839\u76EE\u5F55\u4E0D\u5B58\u5728\u6216\u65E0\u6CD5\u8BBF\u95EE\uFF1A" + root);
+    let file = stat.isFile() ? target : void 0;
+    if (stat.isDirectory()) {
+      const entries3 = await runtime3.fs.promises.readdir(target, { withFileTypes: true });
+      const names = entries3.filter((entry) => entry.isFile()).map((entry) => entry.name);
+      names.sort((a, b2) => Number(/^readme(?:\.|$)/iu.test(b2)) - Number(/^readme(?:\.|$)/iu.test(a)) || a.localeCompare(b2));
+      if (names.length) file = runtime3.path_api.join(target, names[0]);
+    }
     const application = await discover_vscode(runtime3), env2 = { ...runtime3.env };
     for (const key3 of Object.keys(env2)) if (["ELECTRON_RUN_AS_NODE", "VSCODE_IPC_HOOK_CLI"].includes(key3.toUpperCase())) delete env2[key3];
     try {
-      await runtime3.launch(application.file, [...application.args, "--", target], env2);
+      await runtime3.launch(application.file, [...application.args, "--", root, ...file ? [file] : []], env2);
     } catch (error) {
       throw new Error("\u65E0\u6CD5\u542F\u52A8 VS Code\uFF1A" + (error instanceof Error ? error.message : String(error)));
     }
@@ -189536,14 +189572,16 @@ https://creativecommons.org/licenses/by/4.0/
     return runtime3.reqnode("path").isAbsolute(path);
   }
   function vscode_resource_entry(path) {
-    return { id: "open_vscode", title: "\u5728 VS Code \u4E2D\u6253\u5F00", icon: vscode_menu_icon, disabled: !vscode_resource_available(path), action: () => {
+    const core = window[Symbol.for("typora-code:workspace")];
+    const workspace_root = core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host?.context_root();
+    return { id: "open_vscode", title: "VS Code \u6253\u5F00\u5DE5\u7A0B", icon: vscode_menu_icon, disabled: !vscode_resource_available(path), action: () => {
       void (async () => {
         if (!vscode_resource_available(path)) throw new Error("\u8BF7\u5148\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6\uFF1B\u8FDC\u7AEF\u6587\u4EF6\u6682\u4E0D\u652F\u6301\u6B64\u64CD\u4F5C\u3002");
         const runtime3 = window;
-        await open_resource_in_vscode(create_vscode_environment((name) => runtime3.reqnode(name)), path);
+        await open_resource_in_vscode(create_vscode_environment((name) => runtime3.reqnode(name)), path, workspace_root);
       })().catch((error) => {
-        const core = window[Symbol.for("typora-code:workspace")];
-        if (core?.Notice) new core.Notice(error instanceof Error ? error.message : String(error), 5e3);
+        const core2 = window[Symbol.for("typora-code:workspace")];
+        if (core2?.Notice) new core2.Notice(error instanceof Error ? error.message : String(error), 5e3);
         else console.error("Typora Code VS Code:", error);
       });
     } };
@@ -189553,7 +189591,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!context?.show || !menu) return { dispose() {
     } };
     let disposed = false, target = "";
-    const item = workspace_element("li", "hide"), anchor = workspace_element("a", "", "\u5728 VS Code \u4E2D\u6253\u5F00");
+    const item = workspace_element("li", "hide"), anchor = workspace_element("a", "", "VS Code \u6253\u5F00\u5DE5\u7A0B");
     item.dataset.key = "typora-code-open-vscode";
     anchor.tabIndex = 0;
     anchor.setAttribute("role", "menuitem");
@@ -189572,7 +189610,7 @@ https://creativecommons.org/licenses/by/4.0/
       item.classList.toggle("hide", !source?.closest("#write"));
       item.classList.toggle("disabled", !available);
       anchor.setAttribute("aria-disabled", String(!available));
-      anchor.title = available ? "\u6253\u5F00\u78C1\u76D8\u6587\u4EF6\uFF1B\u672A\u4FDD\u5B58\u7684\u7F16\u8F91\u4ECD\u4FDD\u7559\u5728 Typora" : "\u8BF7\u5148\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6";
+      anchor.title = available ? "\u6253\u5F00\u6574\u4E2A\u5DE5\u7A0B\u5E76\u8DF3\u8F6C\u5230\u78C1\u76D8\u6587\u4EF6\uFF1B\u672A\u4FDD\u5B58\u7684\u7F16\u8F91\u4ECD\u4FDD\u7559\u5728 Typora" : "\u8BF7\u5148\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6";
       return original.call(this, event, node);
     };
     for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
@@ -249509,6 +249547,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092702,
+        version: "2026.09.27.2",
+        date: "2026-09-27",
+        notes: [
+          "\u4EE3\u7801\u5757\u8865\u9F50\u660E\u6697\u5149\u6807\u3001\u805A\u7126/\u5931\u7126\u9009\u533A\u3001\u884C\u53F7\u3001\u62EC\u53F7\u4E0E\u67E5\u627E\u72B6\u6001\uFF0C\u4F7F\u7528\u5185\u7F6EVS Code\u4E3B\u9898\u989C\u8272\u3002",
+          "\u4FEE\u590D\u4EE3\u7801\u884C\u548C\u9ED8\u8BA4\u8BED\u6CD5token\u80CC\u666F\u906E\u4F4F\u9009\u533A\u7684\u95EE\u9898\uFF1B\u4E3B\u9898\u5207\u6362\u4FDD\u7559\u539F\u751F\u7F16\u8F91\u884C\u4E3A\u3001\u5B57\u4F53\u53CA\u6B63\u6587\u3002",
+          "\u201CVS Code \u6253\u5F00\u5DE5\u7A0B\u201D\u59CB\u7EC8\u643A\u5E26\u5F53\u524D\u5DE5\u7A0B\u6839\uFF1B\u6587\u4EF6\u76F4\u63A5\u6253\u5F00\uFF0C\u5B50\u76EE\u5F55\u4F18\u5148\u7528README\u5B9A\u4F4D\uFF0C\u4E0D\u518D\u4F5C\u4E3A\u72EC\u7ACB\u5C0F\u5DE5\u7A0B\u3002"
+        ]
+      },
       {
         sequence: 2026092701,
         version: "2026.09.27.1",

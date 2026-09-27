@@ -63,12 +63,22 @@ export async function discover_vscode(runtime:vscode_environment):Promise<{file:
   throw new Error("未找到 VS Code。请安装 Visual Studio Code，并启用“添加到 PATH”；安装后可直接重试。");
 }
 
-export async function open_resource_in_vscode(runtime:vscode_environment,target:string):Promise<void> {
+export async function open_resource_in_vscode(runtime:vscode_environment,target:string,workspace_root?:string):Promise<void> {
   if(!target||!runtime.path_api.isAbsolute(target))throw new Error("请先将文档保存为本地文件，再在 VS Code 中打开。");
   const stat=await runtime.fs.promises.stat(target).catch(()=>{throw new Error("文件或文件夹不存在，或当前无权访问："+target);});
   if(!stat.isFile()&&!stat.isDirectory())throw new Error("只能在 VS Code 中打开普通文件或文件夹。");
+  const root=workspace_root||(stat.isDirectory()?target:runtime.path_api.dirname(target));
+  if(!runtime.path_api.isAbsolute(root)||!(await runtime.fs.promises.stat(root).catch(()=>null))?.isDirectory())throw new Error("工程根目录不存在或无法访问："+root);
+  let file=stat.isFile()?target:undefined;
+  if(stat.isDirectory()){
+    // 保留工程根。目录以直属文件定位，不递归扫描、不创建占位文件。
+    const entries=await runtime.fs.promises.readdir(target,{withFileTypes:true});
+    const names=entries.filter((entry:any)=>entry.isFile()).map((entry:any)=>entry.name) as string[];
+    names.sort((a,b)=>Number(/^readme(?:\.|$)/iu.test(b))-Number(/^readme(?:\.|$)/iu.test(a))||a.localeCompare(b));
+    if(names.length)file=runtime.path_api.join(target,names[0]);
+  }
   const application=await discover_vscode(runtime),env={...runtime.env};
   for(const key of Object.keys(env))if(["ELECTRON_RUN_AS_NODE","VSCODE_IPC_HOOK_CLI"].includes(key.toUpperCase()))delete env[key];
-  try{await runtime.launch(application.file,[...application.args,"--",target],env);}
+  try{await runtime.launch(application.file,[...application.args,"--",root,...(file?[file]:[])],env);}
   catch(error){throw new Error("无法启动 VS Code："+(error instanceof Error?error.message:String(error)));}
 }

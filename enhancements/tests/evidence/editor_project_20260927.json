@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "date": "2026-09-27",
+  "release": "2026.09.27.2",
+  "requirements": [
+    "R068.3",
+    "R078.1"
+  ],
+  "design": [
+    "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
+    "docs/open_in_vscode.md#r0781-工程身份与跳转目标"
+  ],
+  "upstream": {
+    "vscode": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/editor/common/core/editorColorRegistry.ts",
+      "src/vs/platform/theme/common/colors/editorColors.ts"
+    ],
+    "typora": "1.14.10"
+  },
+  "manifest_sha256": "a29c752f5e34e35cb3fb9a797bed116d4d026d14b2b2174475a979550e90d75f",
+  "validation": {
+    "build": "PASS code_editor_build_final.log",
+    "check": "PASS npm run check exit 0: code_editor_check.log",
+    "editor_ui": "303 assertions; 20 theme switches; dynamic and cleanup: code_editor_ui_extended_final.log",
+    "vscode_service": "15 checks passed",
+    "vscode_ui": "23 assertions, label/icon and light/dark/zoom",
+    "mermaid_ui": "PASS test_mermaid_theme.cjs",
+    "native_editor": {
+      "status": "PASS",
+      "assertions": 65,
+      "samples": [
+        {
+          "mode": "dark",
+          "lang": "c",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        },
+        {
+          "mode": "dark",
+          "lang": "bash",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        },
+        {
+          "mode": "dark",
+          "lang": "plain",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        },
+        {
+          "mode": "light",
+          "lang": "c",
+          "color": "rgb(0, 0, 0)",
+          "selected": "rgb(229, 235, 241)"
+        },
+        {
+          "mode": "light",
+          "lang": "bash",
+          "color": "rgb(0, 0, 0)",
+          "selected": "rgb(229, 235, 241)"
+        },
+        {
+          "mode": "light",
+          "lang": "plain",
+          "color": "rgb(0, 0, 0)",
+          "selected": "rgb(229, 235, 241)"
+        },
+        {
+          "mode": "dark",
+          "lang": "c",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        },
+        {
+          "mode": "dark",
+          "lang": "bash",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        },
+        {
+          "mode": "dark",
+          "lang": "plain",
+          "color": "rgb(174, 175, 173)",
+          "selected": "rgb(58, 61, 65)"
+        }
+      ],
+      "screenshots": [
+        "stage_editor_dark_528456.png",
+        "stage_editor_light_528456.png"
+      ]
+    },
+    "native_vscode": {
+      "status": "PASS",
+      "assertions": 18,
+      "scope": "真实Typora菜单与工程根/目标参数；外部启动替身"
+    },
+    "install_cycle": "PASS restore and detach uninstall, reinstall/check; documents/settings/backups preserved",
+    "uninstall": "65 assertions PASS",
+    "local_install": "PASS 48 manifest assets and 24 terminal assets; 5 protected files unchanged; actual uninstall read-only preflight",
+    "runtime_loaded": false,
+    "test_payloads": "native and install test payloads reclaimed by owner; evidence retained"
+  },
+  "failed_attempts": [
+    "PS7继承PSModulePath影响PS5.1 Get-FileHash；移除该环境变量后两套安装测试通过",
+    "UI夹具data URL缺UTF-8、动态token选择器失配；修正夹具后通过",
+    "代码行背景选择器优先级不足；改成同等语义特异性后原生及UI通过",
+    "括号透明度CSS序列化为0.1，修正预期后通过"
+  ],
+  "limitations": [
+    "外部VS Code窗口与autoReveal实际行为待用户确认；不改其个人配置",
+    "空目录只打开工程，CLI不提供任意目录选择；不创建占位文件",
+    "覆盖光标、括号及输入组合态为UI状态样式验证，未做物理IME输入验收",
+    "未测Linux/macOS/Win10原生，8项旧UI失败与R047.6/R071.4保持独立跟踪"
+  ]
+}

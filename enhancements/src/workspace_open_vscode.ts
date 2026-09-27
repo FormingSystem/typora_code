@@ -19,10 +19,12 @@ export function vscode_resource_available(path:string):boolean {
 
 /** 所有文件入口调用同一服务；只打开磁盘文件，不隐式保存文档。 */
 export function vscode_resource_entry(path:string):workspace_menu_entry {
-  return {id:"open_vscode",title:"在 VS Code 中打开",icon:vscode_menu_icon,disabled:!vscode_resource_available(path),action:()=>{void (async()=>{
+  const core=(window as any)[Symbol.for("typora-code:workspace")];
+  const workspace_root=core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host?.context_root();
+  return {id:"open_vscode",title:"VS Code 打开工程",icon:vscode_menu_icon,disabled:!vscode_resource_available(path),action:()=>{void (async()=>{
     if(!vscode_resource_available(path))throw new Error("请先保存为本地文件；远端文件暂不支持此操作。");
     const runtime=window as unknown as {reqnode(name:string):any};
-    await open_resource_in_vscode(create_vscode_environment(name=>runtime.reqnode(name)),path);
+    await open_resource_in_vscode(create_vscode_environment(name=>runtime.reqnode(name)),path,workspace_root);
   })().catch(error=>{
     const core=(window as any)[Symbol.for("typora-code:workspace")];
     if(core?.Notice)new core.Notice(error instanceof Error?error.message:String(error),5000);
@@ -34,7 +36,7 @@ export function bind_native_vscode_menu(files:workspace_file_host){
   const runtime=window as unknown as {File?:any},context=runtime.File?.editor?.contextMenu,menu=document.querySelector("#context-menu");
   if(!context?.show||!menu)return {dispose(){}};
   let disposed=false,target="";
-  const item=el("li","hide"),anchor=el("a","","在 VS Code 中打开");
+  const item=el("li","hide"),anchor=el("a","","VS Code 打开工程");
   item.dataset.key="typora-code-open-vscode";anchor.tabIndex=0;anchor.setAttribute("role","menuitem");const slot=el("span","workspace-native-menu-icon");slot.append(vscode_menu_icon());anchor.prepend(slot);item.append(anchor);menu.append(item);
   const style=acquire_workspace_style("typora-code-style:open_vscode",vscode_css);
   const interaction=acquire_workspace_interaction(item),events=new AbortController(),original=context.show;
@@ -43,7 +45,7 @@ export function bind_native_vscode_menu(files:workspace_file_host){
     const source=node||(event.target instanceof Element?event.target:undefined);
     target=source?.closest("#write")?files.current_file():"";
     const available=vscode_resource_available(target);item.classList.toggle("hide",!source?.closest("#write"));item.classList.toggle("disabled",!available);
-    anchor.setAttribute("aria-disabled",String(!available));anchor.title=available?"打开磁盘文件；未保存的编辑仍保留在 Typora":"请先保存为本地文件";
+    anchor.setAttribute("aria-disabled",String(!available));anchor.title=available?"打开整个工程并跳转到磁盘文件；未保存的编辑仍保留在 Typora":"请先保存为本地文件";
     return original.call(this,event,node);
   };
   for(const name of ["pointerdown","mousedown","mouseup","click","keydown"]){

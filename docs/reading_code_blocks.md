@@ -53,3 +53,13 @@
 ## 本轮代码与配色方案验证
 
 2026-09-25交付2026.09.25.8（R068.2/R074.6）：代码围栏独立内置固定VS Code Light/Dark Modern主题配置，修复暗色普通文字、运算符及标点不可读；C/C++正文和预览使用同一TextMate主题匹配，其他语言保留原词法器并适配官方颜色。颜色表显示实际色值，支持复制/粘贴、命名方案另存、顶部主题切换、JSON往返、双方案对照及预览双向定位；有效修改自动保存。构建、完整check、6套关联UI和原始Typora16项通过，原生模板截图已核对；219套目录仅表示分类，不表示全量UI执行，8套旧UI失败继续独立跟踪。同候选两类隔离卸载重装、65卸载断言和ZIP更新通过，本机46+24资产匹配、5保护项不变、check OK；实际环境仅卸载只读预检。用户窗口未重启，保存后正常重启加载。Win10/Linux原生、物理输入和历史R047.6/R071.4未决项保持。见[本次证据](../enhancements/tests/evidence/code_colors_profiles_20260925.json)。
+
+## R068.3 代码编辑状态明暗适配
+
+2026-09-27：原适配只对文字、围栏背景和TextMate token分类，遗漏编辑器交互状态；Dark未导入Night的codeblock.dark.css，光标继承浅色值。另一个关联问题是每个CodeMirror行和默认token被涂不透明底色，会遮住后方选区/当前行。目标是沿同一主题来源完整适配已有编辑状态，不更换原生CodeMirror、不新增查找或光标行为，也不修改Markdown普通正文、Mermaid、Monaco及终端各自的主题所有者。
+
+统一代码主题服务负责静态外观映射，CodeMirror继续负责焦点、选区、插入/覆盖、组合输入、括号和查找标记的生成。主题切换仅改变现有根属性；动态实例自动继承，销毁移除样式并恢复原属性。不改正文DOM、光标位置、滚动、撤销和用户字体；只读预览只有颜色，不生成编辑光标。
+
+以固定VS Code 6807068的Light/Dark Modern配置为优先，其未显式定义的值来自src/vs/editor/common/core/editorColorRegistry.ts及src/vs/platform/theme/common/colors/editorColors.ts。光标为浅色#000000/暗色#AEAFAD；聚焦选区#ADD6FF/#264F78，失焦选区来自已内置主题#E5EBF1/#3A3D41；行号沿editorLineNumber，当前行无填充、边线#EEEEEE/#282828；匹配括号底色#0064001A、边线#B9B9B9/#888888；查找命中沿editor.findMatchHighlightBackground #EA5C0055，组合输入边线#000000/#FFFFFF。映射见reading_code_editor_colors.ts；这是CodeMirror适配而非共享外部VS Code配置。保留宿主实际状态启用条件，不因设置颜色就开启整行高亮或额外括号匹配。
+
+CodeMirror行和默认token背景透明，让原有选区层正常可见；非默认token背景仍保留。光标仅改变颜色，不改闪烁、位置、粗细及失焦隐藏规则。用真实宿主验证C/C++、Bash和无语言块，以及明暗往返、动态实例、聚焦/失焦、选择和编辑内容不变；Electron隔离测试验证色值、透明叠层及销毁，不以合成DOM代替宿主验收。跨平台及物理输入延迟仍分别记录。

@@ -7873,6 +7873,70 @@
         "单次传递正确路径，正文和dirty不变"
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-code-editor-colors-ui",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.3"
+      ],
+      "design": "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
+      "implementation": [
+        "enhancements/src/reading_code_theme.ts",
+        "enhancements/src/reading_code_editor_colors.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "CodeMirror"
+      ],
+      "script": "enhancements/scripts/test_code_editor_colors.cjs",
+      "environment": [
+        "Electron"
+      ],
+      "preconditions": [
+        "独立测试目录及最终构建"
+      ],
+      "steps": [
+        "明暗切换、光标、聚焦/失焦选区、背景叠层、动态及销毁"
+      ],
+      "expected": [
+        "编辑状态可见，原文及编辑所有者保持"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-code-editor-colors-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.3"
+      ],
+      "design": "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
+      "implementation": [
+        "enhancements/src/reading_code_theme.ts",
+        "enhancements/src/reading_code_editor_colors.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "CodeMirror"
+      ],
+      "script": "enhancements/fixtures/code_editor_colors_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "独立测试目录及最终构建"
+      ],
+      "steps": [
+        "明暗切换、光标、聚焦/失焦选区、背景叠层、动态及销毁"
+      ],
+      "expected": [
+        "编辑状态可见，原文及编辑所有者保持"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }
