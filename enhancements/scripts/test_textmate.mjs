@@ -86,14 +86,16 @@ for(const language of ['c','cpp']){
  const token_color=(offset,mode)=>{const token=parsed.tokens.find(token=>token.startIndex<=offset&&token.endIndex>offset),id=token.style.match(new RegExp('vsc-'+mode+'-fg-(\\d+)'))[1];return themed.css.match(new RegExp('vsc-'+mode+'-fg-'+id+'\\)\\{color:([^!]+)'))[1];};
  assert.equal(token_color(0,'dark').toUpperCase(),language==='c'?'#CCCCCC':'#9CDCFE');assert.equal(token_color(0,'light').toUpperCase(),language==='c'?'#3B3B3B':'#001080');
  assert.equal(token_color(line.indexOf('rcu'),'dark').toUpperCase(),'#DCDCAA');assert.equal(token_color(line.indexOf('rcu'),'light').toUpperCase(),'#795E26');
+ assert.equal(token_color(line.indexOf('rcu'),'dark_2026').toUpperCase(),'#D2A8FF');
+ assert.equal(token_color(line.indexOf('rcu'),'light_2026').toUpperCase(),'#8250DF');
  let stack=production.initial_code_stack();const start=performance.now();
- for(let i=0;i<1000;i++){const source=macro_lines[i%macro_lines.length][0],result=themed[language].tokenizeLine(source,stack);stack=result.ruleStack;assert.equal(result.tokens.map(token=>source.slice(token.startIndex,token.endIndex)).join(''),source);assert(result.tokens.every(token=>token.style.includes('vsc-light-')&&token.style.includes('vsc-dark-')));}
- console.log(JSON.stringify({language,checks:'production defaults/function/1000 multiline reconstruction with two independent theme stacks',ms:performance.now()-start}));
+ for(let i=0;i<1000;i++){const source=macro_lines[i%macro_lines.length][0],result=themed[language].tokenizeLine(source,stack);stack=result.ruleStack;assert.equal(result.tokens.map(token=>source.slice(token.startIndex,token.endIndex)).join(''),source);assert(result.tokens.every(token=>['light','dark','dark_2026','light_2026'].every(mode=>token.style.includes('vsc-'+mode+'-'))));}
+ console.log(JSON.stringify({language,checks:'production defaults/function/1000 multiline reconstruction with four independent theme stacks',ms:performance.now()-start}));
 }
 
 const {default:ts}=await import('typescript'),{createHash}=await import('node:crypto');
 const upstream_root='vendor/vscode_themes/',manifest=JSON.parse(fs.readFileSync(upstream_root+'SOURCE.json','utf8'));
 for(const [name,hash]of Object.entries(manifest.files))assert.equal(createHash('sha256').update(fs.readFileSync(upstream_root+name)).digest('hex'),hash,name+' upstream SHA256');
 function resolve_theme(name){const raw=ts.parseConfigFileTextToJson(name,fs.readFileSync(upstream_root+name,'utf8')).config,parent=raw.include?resolve_theme(raw.include.replace('./','')):{colors:{},tokenColors:[]};return{colors:{...parent.colors,...raw.colors},tokenColors:[...parent.tokenColors,...(raw.tokenColors||[])]};}
-assert.deepEqual(JSON.parse(fs.readFileSync(upstream_root+'resolved.json','utf8')),{light:resolve_theme('light_modern.json'),dark:resolve_theme('dark_modern.json')});
+assert.deepEqual(JSON.parse(fs.readFileSync(upstream_root+'resolved.json','utf8')),{light:resolve_theme('light_modern.json'),dark:resolve_theme('dark_modern.json'),dark_2026:resolve_theme('2026-dark.json'),light_2026:resolve_theme('2026-light.json')});
 console.log('PASS official theme source SHA256 and complete JSONC include resolution');

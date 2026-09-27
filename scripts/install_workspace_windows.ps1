@@ -38,7 +38,7 @@ assert_typora_window_source $window_source $head
 $terminal_source = Join-Path $source 'terminal_runtime'
 $terminal_assets = @(get_typora_terminal_assets $terminal_source)
 assert_typora_workspace_assets $terminal_source $terminal_assets
-$theme_names = @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css')
+$theme_names = @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css')
 if ($include_theme) { foreach ($name in $theme_names) { if (-not (Test-Path -LiteralPath (Join-Path $tools_root $name) -PathType Leaf)) { throw 'Theme source is missing.' } } }
 if (-not $backup_root) { $managed_backup = $true; $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
 $backup_root = [IO.Path]::GetFullPath($backup_root)
@@ -175,7 +175,7 @@ write_typora_install_log $install_log SUCCESS ('安装完成，总用时 {0:N1} 
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
 write_typora_install_log $install_log INFO '保存文档后正常重启 Typora，即可加载本次安装。'
-if ($include_theme) { write_typora_install_log $install_log INFO '在“主题”菜单选择 CppGithubConsoles_Light 或 CppGithubConsoles_Dark；已有偏好设置保留。' }
+if ($include_theme) { write_typora_install_log $install_log INFO '在“主题”菜单选择 VSCode2026_Light 或 VSCode2026_Dark；原 CppGithubConsoles_Light/Dark、Night 和已有偏好设置保留。' }
 } catch {
     write_typora_install_log $install_log ERROR ('{0}失败：{1}' -f $install_log.step, $_.Exception.Message)
     if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO '安装尚未写入目标文件，无须回滚。' }

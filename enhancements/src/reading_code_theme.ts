@@ -9,15 +9,22 @@ import themes from '../vendor/vscode_themes/resolved.json';
 import {code_editor_state_css} from './reading_code_editor_colors';
 import {observe_workspace_theme,workspace_theme_mode} from './workspace_theme';
 
-const modes=['light','dark'] as const;
-export type code_stack=[StateStack,StateStack];
-export const initial_code_stack=():code_stack=>[INITIAL,INITIAL];
+const modes=['light','dark','dark_2026','light_2026'] as const;
+export type code_stack=[StateStack,StateStack,StateStack,StateStack];
+export const initial_code_stack=():code_stack=>[INITIAL,INITIAL,INITIAL,INITIAL];
+/** 基础主题显式选择配置；其他主题继续沿其原来的明暗代码配置。 */
+export function workspace_code_theme(doc:Document=document):typeof modes[number]{
+ const declared=doc.defaultView?.getComputedStyle(doc.documentElement).getPropertyValue('--workspace-code-theme').trim();
+ if(declared==='dark_2026'||declared==='light_2026')return declared;
+ const mode=doc.documentElement.dataset.workspaceColors||(doc===document?workspace_theme_mode():'light');
+ return mode==='dark'?'dark':'light';
+}
 type code_token={startIndex:number;endIndex:number;style:string};
 export type themed_grammar={tokenizeLine(line:string,stack:code_stack):{tokens:code_token[];ruleStack:code_stack}};
 let loading:Promise<{c:themed_grammar;cpp:themed_grammar;css:string}>|undefined;
 const fallback_scopes:Record<string,string>={comment:'comment',string:'string',number:'constant.numeric',keyword:'keyword',def:'entity.name.function',type:'entity.name.type',variable:'variable',property:'variable.other.property',operator:'keyword.operator',atom:'constant.language',meta:'meta.preprocessor',builtin:'support.function',tag:'entity.name.tag',attribute:'entity.other.attribute-name',regexp:'string.regexp'};
 function metadata_class(mode:string,metadata:number){return `vsc-${mode}-fg-${(metadata>>>15)&511} vsc-${mode}-bg-${(metadata>>>24)&255} vsc-${mode}-style-${(metadata>>>11)&15}`;}
-/** 两套独立token元数据，切换明暗只切CSS，不复用另一主题的ruleStack/colorMap。 */
+/** 各配置独立token元数据；切换只切CSS，不复用其他配置的ruleStack/colorMap。 */
 export function load_code_themes(){return loading ||= (async()=>{
  await loadWASM(wasm.buffer);
  const sources=new Map([['source.c',c],['source.cpp',cpp],['source.cpp.embedded.macro',macro],['source.c.platform',platform]].map(([scope,value])=>[scope as string,parseRawGrammar(JSON.stringify(value),'grammar.json')]));
@@ -42,7 +49,7 @@ export function load_code_themes(){return loading ||= (async()=>{
  });
  const pair=(language:'c'|'cpp'):themed_grammar=>({tokenizeLine(line,stack){
   const results=grammars.map((grammar,index)=>grammar[language].tokenizeLine2(line,stack[index]));
-  const boundaries=[...new Set([0,line.length,...results.flatMap(result=>Array.from(result.tokens).filter((_,index)=>index%2===0))])].filter(n=>n<=line.length).sort((a,b)=>a-b),positions=[0,0];
+  const boundaries=[...new Set([0,line.length,...results.flatMap(result=>Array.from(result.tokens).filter((_,index)=>index%2===0))])].filter(n=>n<=line.length).sort((a,b)=>a-b),positions=modes.map(()=>0);
   return {ruleStack:results.map(result=>result.ruleStack) as code_stack,tokens:boundaries.slice(0,-1).map((start,index)=>({startIndex:start,endIndex:boundaries[index+1],style:results.map((result,side)=>{while(positions[side]+2<result.tokens.length&&result.tokens[positions[side]+2]<=start)positions[side]+=2;return metadata_class(modes[side],result.tokens[positions[side]+1]);}).join(' ')}))};
  }});
  return {c:pair('c'),cpp:pair('cpp'),css:css.join('\n')};
@@ -51,7 +58,7 @@ export function load_code_themes(){return loading ||= (async()=>{
 export async function bind_code_theme(){
  const data=await load_code_themes(),style=document.createElement('style');style.id='typora-code-official-code-theme';style.textContent=data.css;document.head.append(style);
  const root=document.documentElement,previous=root.getAttribute('data-workspace-code-theme');
- const refresh=()=>{const mode=root.dataset.workspaceColors||workspace_theme_mode();if(root.dataset.workspaceCodeTheme!==mode)root.dataset.workspaceCodeTheme=mode;};
+ const refresh=()=>{const mode=workspace_code_theme();if(root.dataset.workspaceCodeTheme!==mode)root.dataset.workspaceCodeTheme=mode;};
  refresh();const release=observe_workspace_theme(refresh);
  return ()=>{release();style.remove();if(previous===null)root.removeAttribute('data-workspace-code-theme');else root.setAttribute('data-workspace-code-theme',previous);};
 }

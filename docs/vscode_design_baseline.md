@@ -134,3 +134,5 @@ R069.2读取固定1.137.0提交的[sash.css](https://github.com/microsoft/vscode
 ## 2026-09-27 R065.3 / R074.7核对
 
 固定6807068的menu.ts仅生成有值的keybinding与真实子菜单indicator，24px行高、2em标签左右留白，标签右2em加快捷键左2em共4em；本工具按最大真实行计算宽度、右箭头复用尾部留白，避免永久三轨，并补实际滚动条占用。此为既有菜单适配，不新增菜单功能。2026-dark.json的editor.background/foreground分别#121314/#BBBEBF，正文Dark改用该基线；标题#CE9178为用户保留值，Night及Cpp字体几何不改。代码块独立VS Code主题继续由现有服务管理。
+
+2026-09-27 R074.7追加：新增VSCode2026_Light/Dark，官方2026-light/dark.json完整include链与摘要保存在vendor/vscode_themes；代码服务读取主题显式身份，编辑状态和token同源。Light editor #FFFFFF/#202020、cursor #202020、selection #0069CC40；Dark editor #121314/#BBBEBF、cursor #BBBEBF、selection #276782dd。原Cpp双主题/Night沿原配置，标题和字体例外见workspace_colors设计。

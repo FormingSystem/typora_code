@@ -4,7 +4,7 @@ const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora-color-settings-'));app.s
 const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),ev=s=>win.webContents.executeJavaScript(s),check=async(s,label)=>{assert(await ev(s),label);checks.push(label);};
 app.whenReady().then(async()=>{
  win=new BrowserWindow({show:false,width:1200,height:900,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});
- for(const name of ['cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css'])fs.copyFileSync(path.join(__dirname,'../..',name),path.join(base,name));
+ for(const name of ['cpp_github-consolas.css','vscode2026_light.css','vscode2026_dark.css'])fs.copyFileSync(path.join(__dirname,'../..',name),path.join(base,name));
  const css=fs.readFileSync(path.join(__dirname,'../dist/workspace.css'),'utf8');
  fs.writeFileSync(path.join(base,'workspace.css'),css);
  fs.writeFileSync(path.join(base,'test.html'),`<link id=theme_css href=night.css><link id=typora-code-workspace-styles rel=stylesheet href=workspace.css><style>body{background:#191a1b;color:#bbb;--bg-color:#191a1b;--text-color:#bbb}#write{font:18px/1.6 Georgia;background:#222;color:#bbb}#write h1{font-size:32px}#write td{border:2px solid #888}#write a{color:#ccc}</style><body><div id=write><h1>标题</h1><p>正文 <a href=#target>链接</a></p><table><tr><td>表格</td></tr></table><pre><code class=hljs-string>字符串</code></pre></div><aside id=typora-sidebar></aside></body>`);
@@ -23,8 +23,9 @@ app.whenReady().then(async()=>{
  await check(`qa.read_color_config().profiles[0].name==='柔和夜色'`,'另存为独立命名方案');
  await check(`qa.parse_color_config(qa.serialize_color_config(qa.read_color_config())).profiles[0].name==='柔和夜色'`,'JSON保留命名方案身份');
  await ev(`window.applied_theme='';window.ClientCommand={setTheme(file){applied_theme=file;document.querySelector('#theme_css').href=file;}};action('activate');void 0`);await pause(180);
- await check(`applied_theme==='cpp_github-consolas_dark.css'&&qa.read_color_config().active.dark===qa.read_color_config().profiles[0].id`,'应用命名方案切换对应基础并保存活动身份');
- await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['cpp_github-consolas_dark.css'],current:'cpp_github-consolas_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return entries.some(entry=>entry.label==='柔和夜色'&&entry.checked)&&!entries.find(entry=>entry.label==='CppGithubConsoles_Dark').checked;})()`,'主题菜单展示自定义方案且只有实际方案勾选');
+ await check(`applied_theme==='vscode2026_dark.css'&&qa.read_color_config().active.dark===qa.read_color_config().profiles[0].id`,'应用命名方案切换对应基础并保存活动身份');
+ await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['vscode2026_dark.css'],current:'vscode2026_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return entries.some(entry=>entry.label==='柔和夜色'&&entry.checked)&&!entries.find(entry=>entry.label==='VSCode2026_Dark').checked;})()`,'主题菜单展示自定义方案且只有实际方案勾选');
+ await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css','night.css'],current:'cpp_github-consolas_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return ['CppGithubConsoles_Light','CppGithubConsoles_Dark','VSCode2026_Light','VSCode2026_Dark','Night'].every(name=>entries.some(e=>e.label===name));})()`,'主题菜单保留原双主题和Night，新增2026双主题');
  await ev(`qa.activate_color_profile('dark',()=>{});void 0`);await pause(20);
  await ev(`input('markdown_link','#456789');document.querySelector('[aria-label="对照配色方案"]').value='dark';document.querySelector('[aria-label="对照配色方案"]').dispatchEvent(new Event('change'));void 0`);await pause(350);
  await check(`qa.read_color_config().profiles[0].colors.markdown_link==='#456789'&&!qa.read_color_config().themes.dark.markdown_link`,'方案编辑不覆盖基础配置');

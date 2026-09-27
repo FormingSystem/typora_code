@@ -63,3 +63,10 @@
 以固定VS Code 6807068的Light/Dark Modern配置为优先，其未显式定义的值来自src/vs/editor/common/core/editorColorRegistry.ts及src/vs/platform/theme/common/colors/editorColors.ts。光标为浅色#000000/暗色#AEAFAD；聚焦选区#ADD6FF/#264F78，失焦选区来自已内置主题#E5EBF1/#3A3D41；行号沿editorLineNumber，当前行无填充、边线#EEEEEE/#282828；匹配括号底色#0064001A、边线#B9B9B9/#888888；查找命中沿editor.findMatchHighlightBackground #EA5C0055，组合输入边线#000000/#FFFFFF。映射见reading_code_editor_colors.ts；这是CodeMirror适配而非共享外部VS Code配置。保留宿主实际状态启用条件，不因设置颜色就开启整行高亮或额外括号匹配。
 
 CodeMirror行和默认token背景透明，让原有选区层正常可见；非默认token背景仍保留。光标仅改变颜色，不改闪烁、位置、粗细及失焦隐藏规则。用真实宿主验证C/C++、Bash和无语言块，以及明暗往返、动态实例、聚焦/失焦、选择和编辑内容不变；Electron隔离测试验证色值、透明叠层及销毁，不以合成DOM代替宿主验收。跨平台及物理输入延迟仍分别记录。
+
+
+## R068.2 / R074.7 2026代码配置身份（2026-09-27）
+
+新增VSCode2026_Light/Dark，保留原CppGithubConsoles_Light/Dark和Night。新主题通过`--workspace-code-theme`声明light_2026/dark_2026；共享代码服务按明确身份选择完整官方include链，未声明的原主题继续既有Modern明暗映射。此约定补齐此前仅判断明暗、导致正文和代码配置不同的遗漏，不改变原词法器、字体或几何。
+
+TextMate四套注册表与代码编辑状态使用同一配置；同明暗主题间切换也失效更新，设置模板从实际加载CSS取身份，Shadow阅读复用共享样式。光标、选区、普通文字与语法颜色同步，切换不改内容、编辑位置和宿主状态。来源及取舍见[2026配色设计](workspace_colors.md#2026-09-27-完整2026配色与独立命名)，本次原生86项、三套UI和安装卸载证据见[交付记录](../enhancements/tests/evidence/code_palette_20260927.json)。

@@ -1,5 +1,5 @@
 import {terminal_theme} from './terminal_theme';
-import {load_code_themes,initial_code_stack} from './reading_code_theme';
+import {load_code_themes,initial_code_stack,workspace_code_theme} from './reading_code_theme';
 import {WORKSPACE_COLOR_ROLES,type workspace_color_role} from './workspace_color_catalog';
 import {color_config_css,empty_color_config,official_code_role,type color_mode} from './workspace_color_settings';
 
@@ -23,8 +23,8 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
    const clone=source.cloneNode(true) as HTMLElement;
    if(clone instanceof HTMLLinkElement){
     clone.href=(source as HTMLLinkElement).href;clone.rel='stylesheet';
-    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`cpp_github-consolas_${mode}.css`);
-    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`cpp_github-consolas_${mode}.user.css`);
+    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode2026_${mode}.css`);
+    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode2026_${mode}.user.css`);
     loads.push(new Promise((resolve,reject)=>{clone.onload=()=>resolve();clone.onerror=()=>['base_user_css','theme_user_css'].includes(source.id)?resolve():reject(Error('预览主题样式加载失败：'+clone.href));}));
    }
    current.head.append(clone);
@@ -34,6 +34,7 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
   current.body.innerHTML='<main id="write"><h1 data-color-target="markdown_heading">标题：阅读与配色</h1><p data-color-target="markdown_foreground">正文颜色，<a href="#" data-color-target="markdown_link">跳转链接</a>，<strong data-color-target="markdown_strong">加粗重点</strong>和<em data-color-target="markdown_emphasis">斜体</em>。<code data-color-target="markdown_code_foreground">inline_code</code></p><blockquote data-color-target="markdown_quote_foreground">引用文字和背景、左侧边线</blockquote><table data-color-target="markdown_table_border"><thead><tr><th data-color-target="markdown_table_header_background">项目</th><th>说明</th></tr></thead><tbody><tr><td data-color-target="markdown_table_foreground">表格</td><td>文字和边线</td></tr><tr data-color-target="markdown_table_alternate_background"><td>隔行</td><td>背景颜色</td></tr></tbody></table><pre data-color-target="markdown_fence_foreground"><code>p = rcu_dereference(table[id]);</code></pre><hr data-color-target="markdown_rule"><mark data-color-target="markdown_mark_background">高亮标记</mark><h2 data-color-target="markdown_heading_2">二级标题</h2><h3 data-color-target="markdown_heading_3">三级标题</h3><h4 data-color-target="markdown_heading_4">四级标题</h4><h5 data-color-target="markdown_heading_5">五级标题</h5><h6 data-color-target="markdown_heading_6">六级标题</h6></main><section class="color-role-samples" aria-label="全部工作台及正文颜色角色"></section>';
   current.addEventListener('click',event=>{const target=(event.target as Element).closest<HTMLElement>('[data-color-target]');if(target){event.preventDefault();on_select(target.dataset.colorTarget!);}});
   await Promise.all(loads);if(disposed||revision!==request)return null;
+  root.dataset.workspaceCodeTheme=workspace_code_theme(current);
   const code_theme=await load_code_themes();if(disposed||revision!==request)return null;const code_style=current.createElement('style');code_style.textContent=code_theme.css;current.head.append(code_style);
   const code=current.querySelector('pre code')!;code.replaceChildren();const text='p = rcu_dereference(table[id]);';for(const token of code_theme.c.tokenizeLine(text,initial_code_stack()).tokens){const span=current.createElement('span');span.className=token.style;span.textContent=text.slice(token.startIndex,token.endIndex);code.append(span);}
   const fallback=current.createElement('pre');for(const [key,label]of Object.entries({comment:'// 注释',keyword:'const',string:'"字符串"',number:'42',type:'int',variable:'value',property:'field',operator:'=',def:'function()',atom:'true',meta:'#define',builtin:'sizeof',tag:'tag'})){const span=current.createElement('span');span.className='cm-'+key;span.textContent=label+' ';fallback.append(span);}current.getElementById('write')!.append(fallback);

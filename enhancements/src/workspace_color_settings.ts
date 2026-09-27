@@ -50,7 +50,7 @@ export async function activate_color_profile(id:string,set_theme:(file:string,na
  const previous=read_color_config(),next=structuredClone(previous),profile=next.profiles?.find(item=>item.id===id),mode=profile?.mode||id as color_mode;
  if(mode!=='light'&&mode!=='dark')throw Error('配色方案不存在。');
  next.active||={};if(profile)next.active[mode]=id;else delete next.active[mode];
- save_color_config(next);try{return await set_theme(`cpp_github-consolas_${mode}.css`,profile?.name||`CppGithubConsolas_${mode==='dark'?'Dark':'Light'}`);}catch(error){if(serialize_color_config(read_color_config())===serialize_color_config(next))save_color_config(previous);throw error;}
+ save_color_config(next);try{return await set_theme(`vscode2026_${mode}.css`,profile?.name||`VSCode2026_${mode==='dark'?'Dark':'Light'}`);}catch(error){if(serialize_color_config(read_color_config())===serialize_color_config(next))save_color_config(previous);throw error;}
 }
 export const official_code_role=(key:string)=>key.startsWith('markdown_syntax_')||key.startsWith('markdown_fence_');
 export function parse_color_config(text:string){return validate_color_config(JSON.parse(text.replace(/^\uFEFF/u,'')));}

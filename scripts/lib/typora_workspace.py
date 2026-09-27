@@ -12,7 +12,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-THEME_FILES = ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']
+THEME_FILES = ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css']
 
 class install_log:
     """每次安装的日志独立保存；记录失败不改变安装或回滚结果。"""
@@ -408,7 +408,7 @@ def install_files(tools_root, typora_root, user_data, backup, log, managed_backu
     log.write('INFO', 'Backup: ' + str(backup))
     if log.path:
         log.write('INFO', 'Log: ' + str(log.path))
-    log.write('INFO', '保存文档后正常重启 Typora，在“主题”菜单选择 cpp github consolas。')
+    log.write('INFO', '保存文档后正常重启 Typora，可选择 VSCode2026_Light / VSCode2026_Dark；原 CppGithubConsoles_Light/Dark 和 Night 保留。')
 
 def check(tools_root, typora_root, user_data):
     if read_native_profile(asset_path(user_data, 'profile.data'))['data'].get('framelessWindow') is not True:

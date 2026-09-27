@@ -2,6 +2,15 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026092713,
+      "version": "2026.09.27.13",
+      "date": "2026-09-27",
+      "notes": [
+        "新增VSCode2026_Light/Dark，分别采用官方2026 Light/Dark配色；正文、代码块及光标/选区/行号和预览使用对应配置。",
+        "保留CppGithubConsoles_Light/Dark与Night供切换对比；新主题沿用原字体和排版，Dark保留土色标题。"
+      ]
+    },
+    {
       "sequence": 2026092712,
       "version": "2026.09.27.12",
       "date": "2026-09-27",

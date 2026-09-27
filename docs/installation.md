@@ -219,3 +219,5 @@ Typora官方更新若覆盖启动入口，重新运行本工程标准安装与�
 ### R081 安装后的操作指导
 
 每次标准安装成功生成新的安装标识，下一次启动就绪的窗口自动显示一次指导，同版本重装也会提示；多个窗口去重，跳过或完成后普通重启不再重复。帮助菜单始终可重看及打开离线 user_guide.md。安装失败回滚标识，不提前关闭用户窗口。设计见[操作指导](onboarding.md)。
+
+2026-09-27新增主题 `VSCode2026_Light` / `VSCode2026_Dark`，分别采用固定 VS Code 2026 Light / Dark 配色，沿用 Consolas 字体与现有排版。原 `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` 和 `Night` 保留。安装不会切换当前主题，重启后在主题菜单选择新主题。

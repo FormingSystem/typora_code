@@ -57,7 +57,7 @@ Ctrl+P 查找工程文件。Ctrl+Shift+F 搜索工作区内容，可设置包含
 
 左下齿轮或 Ctrl+, 打开唯一设置窗口。可搜索配置，按编辑器、终端、Git、网络等分类调整；原生偏好和社区插件设置保留各自的配置所有者。
 
-主题菜单选择 CppGithubConsoles_Light / Dark；Dark 使用配套字体和布局、暗色配色。自定义颜色支持查看颜色值、输入/复制数值、即时预览、恢复默认及 JSON 导入/导出。可将搭配另存为主题，在主题菜单中切换比较。预览模板用于了解颜色对应区域。
+主题菜单新增 VSCode2026_Light / VSCode2026_Dark，分别采用 VS Code 2026 Light / Dark 颜色，保留 Consolas 字体与原排版，Dark 标题保留土色。原 CppGithubConsoles_Light / CppGithubConsoles_Dark 和 Night 仍可选择并对比。自定义颜色支持查看颜色值、输入/复制数值、即时预览、恢复默认及 JSON 导入/导出。可将搭配另存为主题，在主题菜单中切换比较。预览模板用于了解颜色对应区域。
 
 ## 8. 常用快捷键（默认配置）
 

@@ -1,0 +1,58 @@
+{
+  "requirement": [
+    "R074.7",
+    "R068.2"
+  ],
+  "version": "2026.09.27.13",
+  "date": "2026-09-27",
+  "scope": "新增VSCode2026_Light/Dark，原Cpp双主题及Night保留；新主题以明确身份统一正文/代码/预览颜色，保留字体排版和Dark土色标题。",
+  "checks": {
+    "build_static_core_deployment": "PASS",
+    "catalog_classified_suites": 241,
+    "ui": {
+      "code_editor_colors": {
+        "id": "ca242e6e9c2f4564be6ecf995fefd071",
+        "assertions": 311
+      },
+      "color_settings": {
+        "id": "995d92f64f0f4e4a9f3c559319b852dd",
+        "assertions": 46
+      },
+      "theme_pair": {
+        "id": "63c33ac1076348a4883fd65493a8c2d1",
+        "assertions": 15
+      }
+    },
+    "textmate": "四配置include链/摘要及C、C++各1000行文本重建通过，不代表输入延迟测试",
+    "native": {
+      "id": "91d746ab1e834e77b989f07fd96c671a",
+      "assertions": 86,
+      "host": "Typora 1.14.10",
+      "asset_sha256": "ccedd3fa995fcfffd359a4b0ef80f9861c8a723a60efcfb0538b751bfce64607"
+    },
+    "install_cycle": "614d7bf9b04c4c81a2c6d4a28aa63c60",
+    "uninstall_65_assertions": "fff967cf7b49462bbc81aa0cae2b0de6",
+    "portable_install": "Python Linux事务模拟通过；执行环境为Windows，并非真实Linux验收",
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "286d7c05a7c475cf7e158f6e05320cd3bf3e72b35a9d26e8d60a50406eb74703",
+      "window_restarted": false
+    }
+  },
+  "limitations": [
+    "未重跑全量check/UI；历史8套UI、R047.6/R071.4与物理输入和其他平台边界不由本轮关闭。",
+    "隐藏窗口帧调度导致早期UI夹具失败，offscreen实际绘制后通过；失败证据保留。",
+    "旧主题换行符曾被重写，已恢复安装前原字节，重新安装后8项保护摘要一致。",
+    "一个Python部署测试临时目录删除被自动审批策略拒绝，未提供具体原因；目录保留，未绕过。其他受管理载荷已回收。",
+    "本机磁盘安装成功，用户运行窗口未重启，原主题选择不变。"
+  ]
+}

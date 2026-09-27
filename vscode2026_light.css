@@ -1,0 +1,36 @@
+/* 颜色来源：固定VS Code 6807068的2026 Light；字体、字号和排版共享。 */
+@import url("./cpp_github-consolas.css");
+
+:root {
+    --workspace-code-theme: light_2026;
+    --bg-color: #FFFFFF;
+    --text-color: #202020;
+    --side-bar-bg-color: #FAFAFD;
+    --control-text-color: #606060;
+    --control-text-hover-color: #202020;
+    --select-text-bg-color: #0069CC40;
+    --active-file-bg-color: #00000025;
+    --active-file-text-color: #202020;
+    --active-file-border-color: #0069CC;
+    --item-hover-bg-color: #00000014;
+    --item-hover-text-color: #202020;
+    --primary-color: #0069CC;
+    --rawblock-edit-panel-bd: #EAEAEA;
+    --search-select-bg-color: #0069CC26;
+}
+
+html, body { background-color: var(--bg-color); color: var(--text-color); }
+h1, h2, h3, h4, h5, h6 { color: #0069CC; border-color: #EEEEEE; }
+a, a:visited, a:hover, a:focus { color: #0069CC; }
+hr { background-color: #EEEEEE; }
+blockquote { color: #606060; background-color: #EAEAEA; border-color: #F0F1F2; }
+table tr, table th, table td { border-color: #F0F1F2; }
+table thead, table tr:nth-child(2n) { background-color: #FAFAFD; }
+b, strong, th, dt { color: #202020; }
+code, tt { color: #606060; background-color: #ECECEC; border-color: #F0F1F2; }
+.md-fences, .md-fences .CodeMirror { color: #202020; background-color: #EAEAEA; border-color: #F0F1F2; }
+.CodeMirror-gutters { background-color: #EAEAEA; border-color: #F0F1F2; }
+#write pre.md-meta-block { color: #606060; background-color: #FAFAFD; }
+.md-footnote, .md-def-name, .md-image > .md-meta { color: #606060; }
+.md-toc, .md-toc-content, .md-rawblock-control { background-color: #FAFAFD; border-color: #F0F1F2; }
+:root:root:root { --workspace-markdown-link: #0069CC; }

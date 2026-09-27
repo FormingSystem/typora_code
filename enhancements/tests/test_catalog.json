@@ -1793,7 +1793,8 @@
       "requirements": [
         "R043",
         "H008",
-        "R068.2"
+        "R068.2",
+        "R074.7"
       ],
       "design": "docs/editor_header.md",
       "implementation": [
@@ -7605,8 +7606,8 @@
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
-        "cpp_github-consolas_light.css",
-        "cpp_github-consolas_dark.css",
+        "vscode2026_light.css",
+        "vscode2026_dark.css",
         "enhancements/src/workspace_markdown_theme.ts",
         "enhancements/src/workspace_titlebar.css"
       ],
@@ -7678,7 +7679,7 @@
       "design": "docs/reading_media_viewer.md",
       "implementation": [
         "enhancements/src/reading_mermaid_theme.ts",
-        "cpp_github-consolas_dark.css"
+        "vscode2026_dark.css"
       ],
       "related_modules": [
         "native",
@@ -7909,7 +7910,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R068.3"
+        "R068.3",
+        "R074.7"
       ],
       "design": "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
       "implementation": [
@@ -7941,7 +7943,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R068.3"
+        "R068.3",
+        "R074.7"
       ],
       "design": "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
       "implementation": [
