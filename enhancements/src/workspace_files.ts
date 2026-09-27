@@ -1,3 +1,4 @@
+import {bind_source_navigation} from "./source_navigation";
 import {subscribe_document_symbols} from "./workspace_document_symbols";
 import {prepare_deleted_native_document} from "./workspace_native_document";
 import {workspace_context_switching,workspace_context_epoch,assert_workspace_context_ready} from "./workspace_context";
@@ -359,6 +360,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       dialog.content.append(select);dialog.footer.prepend(button("重新打开",()=>{if(this.dirty()||this.loading){this.status.textContent="请先保存修改，再以其他编码重新打开。";return;}dialog.close();void this.load_file(select.value);}));
     }
     menu_entries(){return [
+      ...(core.app.workspace.activeLeaf===this.leaf?source_navigation?.entries()||[]:[]),
       vscode_resource_entry(this.file_path),
       {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
       {title:"另存为…",shortcut:"Ctrl+Shift+S",action:()=>void this.save_as()},
@@ -447,13 +449,29 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(offset+20<entries.length)await new Promise(resolve=>setTimeout(resolve,0));
     }
   };
+  let source_navigation:ReturnType<typeof bind_source_navigation>|undefined;
   let analysis_model:any,analysis_path="",analysis_root="",analysis_binding:ReturnType<typeof subscribe_document_symbols>|undefined;
+  let source_navigation_editor:git_diff_editor|undefined,source_navigation_language:monaco.IDisposable|undefined,analysis_language="";
   function refresh_source_analysis(){
     const leaf=core.app.workspace.activeLeaf,view=[...views].find(item=>item.leaf===leaf&&!item.disposed),model=view?.loaded?view.editor?.models[0]:undefined;
     const file=view?.file_path||"",root=context_root();
-    if(model===analysis_model&&file===analysis_path&&root===analysis_root)return;
+    if(model===analysis_model&&file===analysis_path&&root===analysis_root&&source_navigation_editor===view?.editor&&analysis_language===model?.getLanguageId())return;
+    source_navigation?.dispose();source_navigation=undefined;source_navigation_language?.dispose();source_navigation_language=undefined;source_navigation_editor=view?.editor;analysis_language=model?.getLanguageId();
+    if(analysis_model&&!analysis_model.isDisposed())monaco.editor.setModelMarkers(analysis_model,"typora_code_lsp",[]);
     analysis_binding?.dispose();analysis_binding=undefined;analysis_model=model;analysis_path=file;analysis_root=root;
-    if(model&&!remote_files_for(file))analysis_binding=subscribe_document_symbols(model,file,root,()=>{});
+    if(model&&!remote_files_for(file)){
+      source_navigation_language=model.onDidChangeLanguage(refresh_source_analysis);
+      analysis_binding=subscribe_document_symbols(model,file,root,state=>{
+        if(model.isDisposed())return;
+        monaco.editor.setModelMarkers(model,"typora_code_lsp",state.diagnostics_version===model.getVersionId()?(state.diagnostics||[]).map(item=>({startLineNumber:item.range.start.line+1,startColumn:item.range.start.character+1,endLineNumber:item.range.end.line+1,endColumn:item.range.end.character+1,message:item.message,source:item.source,severity:item.severity===2?monaco.MarkerSeverity.Warning:item.severity===3?monaco.MarkerSeverity.Info:item.severity===4?monaco.MarkerSeverity.Hint:monaco.MarkerSeverity.Error})):[]);
+      });
+      if(model.getLanguageId()!=="markdown"&&model.getLanguageId()!=="plaintext")source_navigation=bind_source_navigation(view!.editor!.focused_editor(),{
+        valid:()=>!view!.disposed&&!["markdown","plaintext"].includes(model.getLanguageId())&&core.app.workspace.activeLeaf===view!.leaf&&context_root()===root&&!workspace_context_switching(),
+        query:(kind,position,signal)=>analysis_binding!.navigate(kind,position,signal),
+        open:async(target,signal)=>{await open_file(target.file_path,{source:true,preview:true,signal,line:target.range.start.line+1,column:target.range.start.character+1,end_line:target.range.end.line+1,end_column:target.range.end.character+1});},
+        notice:message=>{new core.Notice(message,5000);}
+      });
+    }
   }
   const release_analysis_active=core.app.workspace.on("active-leaf:change",refresh_source_analysis);
   const release_analysis_open=core.app.workspace.on("file:open",refresh_source_analysis);
@@ -1123,7 +1141,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
-    binding.active = false;window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
+    binding.active = false;window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);source_navigation?.dispose();source_navigation_language?.dispose();if(analysis_model&&!analysis_model.isDisposed())monaco.editor.setModelMarkers(analysis_model,"typora_code_lsp",[]);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;

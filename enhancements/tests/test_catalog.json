@@ -8,12 +8,14 @@
       "purpose": "implementation",
       "requirements": [
         "H005",
-        "R043"
+        "R043",
+        "R068.6"
       ],
       "design": "docs/source_outline.md",
       "implementation": [
         "enhancements/src/language_analysis_service.ts",
-        "enhancements/src/language_server_transport.ts"
+        "enhancements/src/language_server_transport.ts",
+        "enhancements/src/source_navigation.ts"
       ],
       "related_modules": [
         "outline",
@@ -1470,11 +1472,13 @@
       "purpose": "implementation",
       "requirements": [
         "H005",
-        "R043"
+        "R043",
+        "R068.6"
       ],
       "design": "docs/source_outline.md",
       "implementation": [
-        "enhancements/src/source_outline_settings.ts"
+        "enhancements/src/source_outline_settings.ts",
+        "enhancements/src/source_navigation.ts"
       ],
       "related_modules": [
         "outline",
@@ -8527,13 +8531,15 @@
       "purpose": "implementation",
       "requirements": [
         "R068.4",
-        "R068.5"
+        "R068.5",
+        "R068.6"
       ],
       "design": "docs/code_analysis_colors.md",
       "implementation": [
         "enhancements/src/monaco_code_theme.ts",
         "enhancements/src/language_analysis_service.ts",
-        "enhancements/src/workspace_document_symbols.ts"
+        "enhancements/src/workspace_document_symbols.ts",
+        "enhancements/src/source_navigation.ts"
       ],
       "related_modules": [
         "theme",

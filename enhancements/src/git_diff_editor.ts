@@ -1,3 +1,4 @@
+import {source_navigation_gestures} from "./source_navigation_gesture";
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {initialize_monaco_code_theme,sync_monaco_code_theme} from './monaco_code_theme';
 import {read_text_presentation,update_text_presentation,observe_text_presentation} from './workspace_text_presentation';
@@ -359,7 +360,7 @@ export class git_diff_editor {
     let pending: {query: string; selection: monaco.Selection; x: number; y: number} | undefined;
     const lookup = (event: MouseEvent) => {
       pending = undefined;
-      if (!event.isTrusted || event.button !== 0 || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
+      if (source_navigation_gestures.has(view)||!event.isTrusted || event.button !== 0 || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
       const selection = view.getSelection(), model = view.getModel();
       const target = view.getTargetAtClientPoint(event.clientX, event.clientY)?.position;
       if (!selection || selection.isEmpty() || !model || !target || !selection.containsPosition(target)) return;

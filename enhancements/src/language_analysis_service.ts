@@ -1,10 +1,11 @@
+import {language_locations,valid_language_range,type language_navigation_kind,type language_position,type language_location,type language_diagnostic} from "./language_locations";
 import type {language_service_profile} from "./language_service_settings";
 import type {semantic_tokens} from "./source_semantic_tokens";
 import {SEMANTIC_TYPES,SEMANTIC_MODIFIERS} from "./source_semantic_tokens";
 import type {source_symbol} from "./source_symbols";
 import {create_language_server_transport} from "./language_server_transport";
 
-export type clangd_options={executable?:string;workspace_root?:string;compile_commands_dir?:string;fallback_flags?:string[]};
+export type clangd_options={executable?:string;workspace_root?:string;compile_commands_dir?:string;fallback_flags?:string[];background_index?:boolean};
 export type language_analysis_request=clangd_options&{file_path:string;language:string;text:string;server?:language_service_profile};
 export type clangd_environment={executable:string;compile_commands_dir:string;candidates:string[];compile_commands_candidates:string[]};
 export type language_analysis_result={symbols:source_symbol[];incomplete:false;provider:string;semantic_tokens?:semantic_tokens;notice:string;executable:string;compile_commands_dir:string;diagnostics:{received:boolean;errors:number;warnings:number;messages:string[]}};
@@ -74,7 +75,7 @@ export function language_document_symbols(items:any,text:string):source_symbol[]
   return Array.isArray(items)?map(items):[];
 }
 
-export function create_language_analysis_service(node=host_node,on_semantic_refresh:()=>void=()=>{}){
+export function create_language_analysis_service(node=host_node,on_semantic_refresh:()=>void=()=>{},on_diagnostics:(text:string,items:language_diagnostic[])=>void=()=>{}){
   const path=node("path"),url=node("url");
   let disposed=false,transport:ReturnType<typeof create_language_server_transport>|undefined,environment:clangd_environment|undefined,configuration="",document_uri="",document_text="",document_language="",document_version=0;
   let capabilities:any;
@@ -82,7 +83,7 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
   const diagnostics=new Map<string,{version?:number;items:any[]}>();
   const abort_error=()=>new DOMException("分析已取消","AbortError");
   const close=async()=>{const previous=transport;transport=undefined;configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();await previous?.dispose();};
-  const parse=async(options:language_analysis_request,signal:AbortSignal):Promise<language_analysis_result>=>{
+  const run=async(options:language_analysis_request,signal:AbortSignal,navigation?:{kind:language_navigation_kind;position:language_position;fallback:boolean}):Promise<language_analysis_result|language_location[]>=>{
     if(disposed||signal.aborted)throw abort_error();if(!path.isAbsolute(options.file_path))throw new Error("代码大纲需要绝对文件路径。");
     const generic=options.server?.provider==="lsp";
     if(!generic&&options.language!=="c"&&options.language!=="cpp")throw new Error("请为此语言配置LSP服务。");
@@ -91,13 +92,16 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
     const check=()=>{if(disposed||controller.signal.aborted)throw abort_error();};
     const operation=queue.catch(()=>{}).then(async()=>{
       check();const root=options.workspace_root&&path.isAbsolute(options.workspace_root)?options.workspace_root:path.dirname(options.file_path);
-      const key=JSON.stringify([root,options.executable||"",options.compile_commands_dir||"",options.fallback_flags||[],options.server]);
+      const key=JSON.stringify([root,options.executable||"",options.compile_commands_dir||"",options.fallback_flags||[],options.background_index===true,options.server]);
       if(key!==configuration||!transport||transport.failure){
         await close();check();environment=generic?{executable:await discover_language_server(options.server!.command!,node),compile_commands_dir:"",candidates:[],compile_commands_candidates:[]}:await discover_clangd_environment({...options,workspace_root:root},node);check();
-        const args=generic?[...(options.server!.args||[])]:["--background-index=false","--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
+        const args=generic?[...(options.server!.args||[])]:[`--background-index=${options.background_index===true}`,"--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
         if(environment.compile_commands_dir)args.push(`--compile-commands-dir=${environment.compile_commands_dir}`);
         transport=create_language_server_transport(node,environment.executable,args,root,(method,params)=>{
-          if(method==="textDocument/publishDiagnostics"&&typeof params?.uri==="string"&&Array.isArray(params.diagnostics))diagnostics.set(params.uri,{version:params.version,items:params.diagnostics});
+          if(method==="textDocument/publishDiagnostics"&&typeof params?.uri==="string"&&Array.isArray(params.diagnostics)){
+            diagnostics.set(params.uri,{version:params.version,items:params.diagnostics});
+            if(!disposed&&params.uri===document_uri&&params.version===document_version)on_diagnostics(document_text,params.diagnostics.filter((item:any)=>valid_language_range(item?.range)&&typeof item.message==="string").map((item:any)=>({range:item.range,message:item.message,severity:item.severity||1,source:item.source})));
+          }
         },(method,params)=>{
           if(method==="workspace/configuration")return (params?.items||[]).map((item:any)=>{let value:any=options.server?.settings||{};for(const part of String(item.section||"").split(".").filter(Boolean))value=value?.[part];return value??null;});
           if(method==="workspace/workspaceFolders")return [{uri:url.pathToFileURL(root).href,name:path.basename(root)}];
@@ -106,11 +110,11 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
           return undefined;
         });
         try{
-          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
+          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{definition:{linkSupport:true},declaration:{linkSupport:true},implementation:{linkSupport:true},references:{},semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
           const encoding=response?.capabilities?.positionEncoding||response?.offsetEncoding||"utf-16";
           if(encoding!=="utf-16")throw new Error("clangd 未接受 UTF-16 定位协议。");
           capabilities=response?.capabilities||{};
-          if(!capabilities.documentSymbolProvider&&!capabilities.semanticTokensProvider?.full)throw new Error("所选语言服务未提供文档符号或完整语义着色能力。");
+          if(!capabilities.documentSymbolProvider&&!capabilities.semanticTokensProvider?.full&&!capabilities.definitionProvider&&!capabilities.declarationProvider)throw new Error("所选语言服务未提供文档符号或完整语义着色能力。");
           transport.notify("initialized",{});if(generic)transport.notify("workspace/didChangeConfiguration",{settings:options.server?.settings||{}});configuration=key;
         }catch(error){await close();throw error;}
       }
@@ -120,6 +124,16 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
         diagnostics.clear();document_uri=uri;document_language=options.language;document_text=options.text;document_version++;
         target.notify("textDocument/didOpen",{textDocument:{uri,languageId:options.language,version:document_version,text:options.text}});
       }else if(document_text!==options.text){document_text=options.text;document_version++;diagnostics.delete(uri);target.notify("textDocument/didChange",{textDocument:{uri,version:document_version},contentChanges:[{text:options.text}]});}
+      if(navigation){
+        const query=async(kind:language_navigation_kind)=>{
+          if(!capabilities[kind+"Provider"])return undefined;
+          const result=await target.request("textDocument/"+kind,{textDocument:{uri},position:navigation.position,...(kind==="references"?{context:{includeDeclaration:true}}:{})},controller.signal);check();return language_locations(result,node);
+        };
+        let result=await query(navigation.kind);
+        if(navigation.kind==="definition"&&navigation.fallback&&!result?.length)result=await query("declaration")??result;
+        if(!result)throw Error("当前语言服务不支持此导航能力，请检查语言服务配置。");
+        return result;
+      }
       const items=capabilities.documentSymbolProvider?await target.request("textDocument/documentSymbol",{textDocument:{uri}},controller.signal):[];check();
       let semantic_tokens:semantic_tokens|undefined,notice=capabilities.documentSymbolProvider?"":"服务不提供文档符号。";
       const semantic=capabilities.semanticTokensProvider;
@@ -133,5 +147,7 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
     });
     queue=operation;try{return await operation;}finally{signal.removeEventListener("abort",abort);}
   };
-  return {parse,async dispose(){if(disposed)return;disposed=true;active?.abort();await queue.catch(()=>{});await close();}};
+  return {parse:(options:language_analysis_request,signal:AbortSignal)=>run(options,signal) as Promise<language_analysis_result>,
+    navigate:(options:language_analysis_request,kind:language_navigation_kind,position:language_position,signal:AbortSignal,fallback=true)=>run(options,signal,{kind,position,fallback}) as Promise<language_location[]>,
+    async dispose(){if(disposed)return;disposed=true;active?.abort();await queue.catch(()=>{});await close();}};
 }

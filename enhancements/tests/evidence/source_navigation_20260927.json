@@ -1,0 +1,123 @@
+{
+  "requirements": [
+    "R068.6"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.20",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/editor/contrib/gotoSymbol/browser/goToCommands.ts",
+      "src/vs/editor/contrib/gotoSymbol/browser/link/goToDefinitionAtPosition.ts",
+      "src/vs/editor/contrib/gotoSymbol/browser/link/clickLinkGesture.ts"
+    ],
+    "adaptation": "定义为空后查询声明是用户明确约定。"
+  },
+  "checks": {
+    "full_check": {
+      "status": "PASS",
+      "id": "fa8185756c544414879c86fdcdb81ecf",
+      "boundary": "最后手势归属和语言切换接线前执行；最终差量另有目标UI、原生、静态/核心/部署及目录检查。"
+    },
+    "build_static_core_deployment_catalog": "PASS",
+    "catalog_count": 248,
+    "catalog_is_not_executed_suite_count": true,
+    "clangd": {
+      "status": "PASS",
+      "id": "3ac3e0cb031548a9907627056b8a166c",
+      "checks": 20,
+      "scope": "真实跨文件定义/独立声明/引用、未打开实现索引、协议回退/错误/取消和诊断版本。"
+    },
+    "ui": {
+      "navigation": {
+        "id": "9ffa82d9fa694a839446d3fe8e4f09b5",
+        "checks": 12,
+        "late_edits": 20
+      },
+      "settings": {
+        "id": "4c44cca3a20c401fa32544a204ca6ce7",
+        "checks": 12
+      },
+      "file_editing": {
+        "id": "dc1eac4b93c34b5ab6e164c8715cfb98",
+        "checks": 24
+      }
+    },
+    "native": {
+      "id": "d85041a316be49daa4d505acf6f5e720",
+      "status": "PASS",
+      "checks": [
+        "隔离工作区",
+        "原始宿主真实clangd语义着色",
+        "官方主题背景 dark_2026 rgb(18, 19, 20)",
+        "主题切换保留光标 dark_2026",
+        "官方主题背景 light_2026 rgb(255, 255, 255)",
+        "主题切换保留光标 light_2026",
+        "分析不改写用户文件",
+        "源码右键含声明入口",
+        "保留目标未保存模型",
+        "目标按LSP行列定位",
+        "Ctrl左键进入公共文件导航",
+        "跨文件导航不保存源文件和目标草稿",
+        "后退恢复调用位置",
+        "源码导航复用前后历史",
+        "clangd当前内存诊断进入原生源码标记",
+        "Rust语言配置入口",
+        "Python虚拟环境入口可用",
+        "系统PATH程序下拉展示",
+        "取消关闭环境表单"
+      ],
+      "asset_sha256": "56464e679d09035317a609a6cbbff7dd0c35a831f8739811414ded7c8452af6c",
+      "limits": "隔离原始宿主DOM事件；未测物理键鼠、其他平台和第三方服务全部能力。"
+    },
+    "install_cycle": {
+      "id": "ecf5dcf97ac64c35b103827493742493",
+      "status": "PASS",
+      "scope": "同候选安装/检查/restore卸载/重装/检查/detach卸载/重装/检查；正文、设置和备份保持。"
+    },
+    "uninstall": {
+      "id": "acb0d531252f475fa5a9d98702362d00",
+      "status": "PASS",
+      "assertions": 65
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "7ca798d2fd0ae347cabaf5cfd1267d34a353e677bd5a7b6a446783233ec68550",
+      "window_restarted": false
+    }
+  },
+  "failures_preserved": [
+    "文件编辑旧测试期待dirty搜索替换预览，但R058.4提前拒绝；失败46b0769bcf2f42fbad4dccd0e160dc9d、ad671ecd44ce42a385b9f58847124767；HEAD复跑2ee5a530c14a45899ad292fff5338896同样失败。",
+    "旧剪贴板替身缺availableFormats，失败4b0c3f5bd2c047e9b2b37b326878173a；修复夹具后24项通过。",
+    "一次运行器从仓库根调用路径错误；改从enhancements运行后通过。"
+  ],
+  "limits": [
+    "未执行全量UI。",
+    "真实导航验证以Windows C/C++为主；R068.5其他语言符号/语义验证不能代替导航实测。",
+    "原始Typora为隔离DOM输入，可信鼠标输入来自Electron；未测物理键鼠与其他平台。",
+    "跨文件目标草稿保留，但所有已打开未保存缓冲尚未同步给同一工程服务器；目标前置编辑可能使磁盘索引位置偏移。",
+    "未知版本诊断不绘制当前精确标记；没有调用图、补全或重构。"
+  ],
+  "cleanup": {
+    "native_bytes": 531356063,
+    "install_bytes": 2075711440,
+    "uninstall_bytes": 131163209,
+    "state": "cleaned",
+    "logs_results_retained": true
+  },
+  "delivery": {
+    "installed": true,
+    "window_restarted": false,
+    "commit": "pending",
+    "push": "pending"
+  }
+}

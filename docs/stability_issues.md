@@ -455,3 +455,5 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-27 R074.8：BUG-workspace-colors-001续查，快速输入透明底板和通用input.border误用造成色差；旧发行正式CSS的颜色用例6d3193b980af4c14907a80b5006fb51b已复现。共同quick-open/最近选择按quickInput与widget角色修复，覆盖明暗、焦点及用户覆盖；最终颜色/设置及关联UI、原始Typora77项、安装卸载通过；见quick_input_colors_20260927.json。首轮安装夹具因并发重建复制不一致而校验拒绝，冻结候选后复验通过，不归为产品回滚失败。
 
 2026-09-27 R068.4/R068.5：BUG-code-lexical-semantic-theme——源码Monaco仍使用vs/vs-dark和Monarch，而正文C/C++围栏使用官方TextMate，导致背景和类别不一致。统一主题/词法来源，语义沿共享语言分析会话及模型版本投影；服务配置、环境发现和表单分别持有职责。实测PowerShell缺少NonInteractive时initialize超时，补充正确启动参数及精确超时报错；Python/Bash所测服务未提供完整语义token，按能力保留基础高亮。夹具早于源码模型就绪取editor及懒加载分词未就绪两次失败均修正等待条件，保留失败证据，不计为生产缺陷。最终检查与安装证据见code_analysis_20260927.json。
+
+2026-09-27 R068.6：BUG-source-ctrl-click-owner——原有选文搜索捕获源码选区中的Ctrl左键，阻挡定义导航。编程源码活动编辑器登记导航手势所有权，关闭/切换释放；Markdown和独立预览维持各自行为。真实Chromium输入验证普通点击、Ctrl点击和选区内点击，20轮编辑后的迟到响应均不跳转。TEST-file-editing-stale-fixture：旧替换测试仍期待dirty文件预览，但R058.4已提前拒绝；HEAD版本复跑同样失败，更新预期并补齐剪贴板替身availableFormats后24项通过，不将其算作生产修复。证据见source_navigation_20260927.json。

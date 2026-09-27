@@ -81,8 +81,31 @@ try{
   await fs.writeFile(path.join(evidence,'cpp_result.json'),JSON.stringify(cpp,null,2),'utf8');
   const cpp_all=flatten(cpp.symbols);for(const name of ['engine','Device','state','reset','Color','Red','Blue'])assert(cpp_all.some(item=>item.name===name));
   assert.equal(cpp_all.find(item=>item.name==='Color').kind,'enum');assert.equal(cpp_all.find(item=>item.name==='Red').kind,'enum-member');checks.push('C++ compiler symbols preserve namespaces, classes, enum values and methods');
+  const navigation_text='int destination(int value) { return value; }\nint call(void) { return destination(7); }\n';
+  const nav_request={...request,text:navigation_text};
+  const definition=await service.navigate(nav_request,'definition',{line:1,character:25},signal());
+  assert.equal(definition[0].file_path,file);assert.equal(definition[0].range.start.line,0);
+  const declaration=await service.navigate(nav_request,'declaration',{line:1,character:25},signal());assert.equal(declaration[0].range.start.line,0);
+  const refs=await service.navigate(nav_request,'references',{line:0,character:7},signal());assert(refs.length>=2);
+  assert.deepEqual(await service.navigate(nav_request,'definition',{line:1,character:0},signal()),[]);
+  checks.push('real clangd definition, declaration, references and no target from unsaved buffer');
   await service.dispose();await assert.rejects(service.parse(request,signal()),error=>error.name==='AbortError');checks.push('shutdown and disposal reject later work');
 }finally{await service.dispose();}
+
+// 未打开实现文件：必须来自编译数据库的真实工程索引，而非当前AST。
+const indexed_root=path.join(evidence,'indexed project'),caller=path.join(indexed_root,'caller.c'),implementation=path.join(indexed_root,'implementation.c'),header=path.join(indexed_root,'api.h');
+await fs.mkdir(indexed_root);await fs.writeFile(header,'int project_function(int value);\n');await fs.writeFile(implementation,'#include "api.h"\nint project_function(int value) { return value + 1; }\n');
+const caller_text='#include "api.h"\nint caller(void) { return project_function(7); }\n';await fs.writeFile(caller,caller_text);
+await fs.writeFile(path.join(indexed_root,'compile_commands.json'),JSON.stringify([caller,implementation].map(file=>({directory:indexed_root,file,arguments:['clang','-c',file]}))));
+const indexed_service=api.create_language_analysis_service(node),indexed_request={file_path:caller,workspace_root:indexed_root,language:'c',text:caller_text,background_index:true};
+try{
+ let definitions=[];for(let i=0;i<80;i++){definitions=await indexed_service.navigate(indexed_request,'definition',{line:1,character:28},signal());if(definitions.some(item=>item.file_path===implementation))break;await new Promise(resolve=>setTimeout(resolve,100));}
+ assert(definitions.some(item=>item.file_path===implementation&&item.range.start.line===1),'unopened implementation from project index');
+ const declarations=await indexed_service.navigate(indexed_request,'declaration',{line:1,character:28},signal());assert(declarations.some(item=>item.file_path===header));
+ const references=await indexed_service.navigate(indexed_request,'references',{line:1,character:28},signal());assert(references.some(item=>item.file_path===caller)&&references.some(item=>item.file_path===implementation));
+ assert.equal(await fs.readFile(caller,'utf8'),caller_text);
+ checks.push('real project index: unopened implementation, separate header declaration, cross-translation-unit references; source unchanged');
+}finally{await indexed_service.dispose();}
 
 let diagnostic_document,diagnostic_mode='none';
 on_fake_write=message=>{
@@ -125,6 +148,26 @@ for(const language of ['python','java']){
  }finally{await language_service.dispose();on_fake_write=undefined;}
 }
 checks.push('Python/Java stdio LSP profiles preserve language, initialization, configuration, semantic legend and reject edits (protocol fixture)');
+
+// 严格区分无定义、协议失败与声明回退；不允许任意协议目标。
+const target_uri=node('url').pathToFileURL(file).href,range={start:{line:0,character:4},end:{line:0,character:8}};
+let navigation_mode='fallback',navigation_diagnostics=[];
+on_fake_write=message=>{
+ if(message.method==='initialize')respond({id:message.id,result:{capabilities:{definitionProvider:true,declarationProvider:true,referencesProvider:true,documentSymbolProvider:true}}});
+ if(message.method==='textDocument/didOpen'||message.method==='textDocument/didChange')diagnostic_document=message.params.textDocument;
+ if(message.method==='textDocument/definition')respond(navigation_mode==='error'?{id:message.id,error:{code:-32603,message:'navigation failure'}}:{id:message.id,result:[]});
+ if(message.method==='textDocument/declaration')respond({id:message.id,result:[{targetUri:target_uri,targetRange:range,targetSelectionRange:range},{uri:target_uri,range},{uri:'https://invalid.test/x',range},{uri:target_uri,range:{start:{line:-1,character:0},end:{line:1,character:1}}}]});
+};
+const navigation_service=api.create_language_analysis_service(fake_node,()=>{},(text,items)=>navigation_diagnostics.push({text,items}));
+try{
+ writes=[];const result=await navigation_service.navigate(diagnostic_request,'definition',{line:0,character:4},signal());assert.equal(result.length,1);assert.equal(result[0].file_path,file);
+ assert(writes.findIndex(m=>m.method==='textDocument/definition')<writes.findIndex(m=>m.method==='textDocument/declaration'));
+ respond({method:'textDocument/publishDiagnostics',params:{uri:diagnostic_document.uri,version:diagnostic_document.version,diagnostics:[{range,severity:1,message:'late valid error'}]}});assert.equal(navigation_diagnostics.at(-1).items[0].message,'late valid error');
+ respond({method:'textDocument/publishDiagnostics',params:{uri:diagnostic_document.uri,version:diagnostic_document.version-1,diagnostics:[{range,severity:1,message:'stale error'}]}});assert.equal(navigation_diagnostics.length,1);
+ navigation_mode='error';writes=[];await assert.rejects(navigation_service.navigate(diagnostic_request,'definition',{line:0,character:4},signal()),/navigation failure/);assert(!writes.some(m=>m.method==='textDocument/declaration'));
+ const aborted=new AbortController();aborted.abort();await assert.rejects(navigation_service.navigate(diagnostic_request,'definition',{line:0,character:4},aborted.signal),e=>e.name==='AbortError');
+}finally{await navigation_service.dispose();on_fake_write=undefined;}
+checks.push('definition falls back only on empty results, LocationLink/dedup/URI validation, error and cancellation preserve origin, late diagnostic version guard');
 
 const launch_fail=api.create_language_analysis_service(node);
 try{await assert.rejects(launch_fail.parse({file_path:file,workspace_root:project,language:'c',text:disk,executable:process.execPath},signal()),/clangd/);checks.push('non-LSP executable exit rejects without hanging');}finally{await launch_fail.dispose();}

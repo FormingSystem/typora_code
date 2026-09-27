@@ -5,8 +5,8 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_button, workspace_dialog, workspace_element} from "./workspace_widgets";
 import {discover_clangd_environment} from "./language_analysis_service";
 
-export type source_outline_settings = {clangd_path:string;compile_commands_dir:string;fallback_flags:string[]};
-type project_settings = Pick<source_outline_settings,"compile_commands_dir"|"fallback_flags">;
+export type source_outline_settings = {clangd_path:string;compile_commands_dir:string;fallback_flags:string[];background_index?:boolean};
+type project_settings = Pick<source_outline_settings,"compile_commands_dir"|"fallback_flags"|"background_index">;
 type stored_settings = {clangd_path?:string;workspaces?:Record<string,project_settings>};
 const SETTINGS_KEY="source_outline";
 let current_dialog:ReturnType<typeof workspace_dialog>|undefined;
@@ -31,14 +31,15 @@ function validate_settings(value:source_outline_settings):source_outline_setting
     if(typeof value[field]!=="string"||/[\r\n\0]/u.test(value[field]))throw new Error("路径必须是单行文本。");
   }
   if(!Array.isArray(value.fallback_flags)||value.fallback_flags.some(flag=>typeof flag!=="string"||/[\r\n\0]/u.test(flag)))throw new Error("编译参数必须每行一项。");
-  return {clangd_path:value.clangd_path.trim(),compile_commands_dir:value.compile_commands_dir.trim(),fallback_flags:value.fallback_flags.map(flag=>flag.trim()).filter(Boolean)};
+  if(value.background_index!==undefined&&typeof value.background_index!=="boolean")throw new Error("工程索引必须为开关值。");
+  return {background_index:value.background_index!==false,clangd_path:value.clangd_path.trim(),compile_commands_dir:value.compile_commands_dir.trim(),fallback_flags:value.fallback_flags.map(flag=>flag.trim()).filter(Boolean)};
 }
 /** clangd 路径全局共用，构建目录和参数只覆盖指定工作区，不在工程中写文件。 */
 export function read_source_outline_settings(root:string):source_outline_settings {
   const stored=read_stored_settings(),key=workspace_key(root);
   const projects=stored.workspaces&&typeof stored.workspaces==="object"&&!Array.isArray(stored.workspaces)?stored.workspaces:{};
   const project=Object.hasOwn(projects,key)?projects[key]:undefined;
-  return {clangd_path:typeof stored.clangd_path==="string"?stored.clangd_path:"",compile_commands_dir:typeof project?.compile_commands_dir==="string"?relative_database(root,project.compile_commands_dir):"",fallback_flags:Array.isArray(project?.fallback_flags)?project.fallback_flags.filter((flag):flag is string=>typeof flag==="string"):[]};
+  return {background_index:project?.background_index!==false,clangd_path:typeof stored.clangd_path==="string"?stored.clangd_path:"",compile_commands_dir:typeof project?.compile_commands_dir==="string"?relative_database(root,project.compile_commands_dir):"",fallback_flags:Array.isArray(project?.fallback_flags)?project.fallback_flags.filter((flag):flag is string=>typeof flag==="string"):[]};
 }
 export function save_source_outline_settings(root:string,value:source_outline_settings):void {
   const settings=get_workspace_app()?.settings;
@@ -47,7 +48,7 @@ export function save_source_outline_settings(root:string,value:source_outline_se
   next.compile_commands_dir=relative_database(root,next.compile_commands_dir);
   const projects=stored.workspaces&&typeof stored.workspaces==="object"&&!Array.isArray(stored.workspaces)?stored.workspaces:{};
   // 保存前重读并合并，只替换当前工作区；set_and_save 在持久化成功后才发布更新。
-  settings.set_and_save(SETTINGS_KEY,{...stored,clangd_path:next.clangd_path,workspaces:{...projects,[key]:{compile_commands_dir:next.compile_commands_dir,fallback_flags:next.fallback_flags}}});notify_language_services();
+  settings.set_and_save(SETTINGS_KEY,{...stored,clangd_path:next.clangd_path,workspaces:{...projects,[key]:{compile_commands_dir:next.compile_commands_dir,fallback_flags:next.fallback_flags,background_index:next.background_index}}});notify_language_services();
 }
 
 /** 复用现有模态框与键盘行为；路径检测不会启动 shell 或修改工作区。 */
@@ -71,8 +72,10 @@ export function open_source_outline_settings(root:string,on_saved?:()=>void) {
   const executable=add_field("clangd_path","clangd 可执行文件（所有工作区）","留空自动查找本机 clangd；可填写完整可执行文件路径。");executable.value=initial.clangd_path;
   const database=add_field("compile_commands_dir","编译数据库文件夹（当前文件夹）","填写包含 compile_commands.json 的目录，如 build/bringup；留空自动查找。");database.value=initial.compile_commands_dir;
   const flags=add_field("fallback_flags","后备编译参数（当前文件夹）","仅在没有编译命令时使用。每行一个参数，含空格也不加额外引号。",true);flags.value=initial.fallback_flags.join("\n");
+  const index_label=workspace_element("label","source-outline-settings-field"),index=workspace_element("input");index.type="checkbox";index.dataset.field="background_index";index.checked=initial.background_index!==false;
+  index_label.append(index,workspace_element("span","","工程后台索引（当前文件夹）"),workspace_element("small","","用于未打开文件的定义和引用；clangd在编译数据库旁增量复用.cache/clangd/index，系统头文件使用用户缓存。可关闭以减少磁盘与后台开销。"));dialog.content.append(index_label);
   const status=workspace_element("p","source-outline-settings-status");status.setAttribute("role","status");status.setAttribute("aria-live","polite");dialog.content.append(status);
-  const read_form=()=>validate_settings({clangd_path:executable.value,compile_commands_dir:database.value,fallback_flags:flags.value.split(/\r?\n/u)});
+  const read_form=()=>validate_settings({background_index:index.checked,clangd_path:executable.value,compile_commands_dir:database.value,fallback_flags:flags.value.split(/\r?\n/u)});
   let generation=0;
   const report=(message:string,error=false)=>{status.textContent=message;status.classList.toggle("is-error",error);};
   const detect=workspace_button("检测路径",()=>{

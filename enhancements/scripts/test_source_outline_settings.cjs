@@ -21,9 +21,9 @@ app.whenReady().then(async()=>{
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`window.config=new settings_qa.ConfigRepository();window.store=new settings_qa.Settings({filename:'workspace',version:1},{debug(){}},config);window[Symbol.for('typora-code:workspace')]={app:{settings:store}};store.set_and_save('unrelated',{retained:42});void 0`);
   const settings_file=path.join(root,'settings/workspace.json');
-  assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_one)'),{clangd_path:'',compile_commands_dir:'',fallback_flags:[]},'defaults select automatic discovery');
+  assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_one)'),{background_index:true,clangd_path:'',compile_commands_dir:'',fallback_flags:[]},'defaults select automatic discovery');
   await evaluate(`settings_qa.save_source_outline_settings(workspace_one,{clangd_path:'custom-clangd',compile_commands_dir:require('path').join(workspace_one,'build','debug'),fallback_flags:['-Iinclude with spaces','-DFEATURE=1']});settings_qa.save_source_outline_settings(workspace_two,{clangd_path:'custom-clangd',compile_commands_dir:'out',fallback_flags:['-std=c++20']});void 0`);
-  assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_one)'),{clangd_path:'custom-clangd',compile_commands_dir:path.join('build','debug'),fallback_flags:['-Iinclude with spaces','-DFEATURE=1']});
+  assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_one)'),{background_index:true,clangd_path:'custom-clangd',compile_commands_dir:path.join('build','debug'),fallback_flags:['-Iinclude with spaces','-DFEATURE=1']});
   assert.deepEqual(JSON.parse(fs.readFileSync(settings_file,'utf8')).settings.unrelated,{retained:42});
   if(process.platform==='win32')assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_one.toUpperCase())'),await evaluate('settings_qa.read_source_outline_settings(workspace_one)'),'case aliases share Windows workspace settings');
   const previous=fs.readFileSync(settings_file,'utf8');
@@ -46,6 +46,8 @@ app.whenReady().then(async()=>{
   assert(await evaluate(`dialog.root.isConnected&&saved_calls===0&&dialog.root.querySelector('[role="status"]').textContent.includes('保存失败')`),'failed save remains reviewable and never reports success');
   await evaluate(`failure_mode='';dialog.root.querySelector('[data-field="fallback_flags"]').value=${JSON.stringify('-Iinclude with spaces\n-DFEATURE=2')};dialog.root.querySelector('[data-action="save"]').click();void 0`);await pause();
   assert.equal(await evaluate('saved_calls'),1);assert.equal(await evaluate('dialog.root.isConnected'),false);assert.equal(await evaluate('document.activeElement.id'),'opener');
+  assert.equal(await evaluate('settings_qa.read_source_outline_settings(workspace_one).background_index'),true);
+  await evaluate(`settings_qa.save_source_outline_settings(workspace_one,{...settings_qa.read_source_outline_settings(workspace_one),background_index:false});void 0`);assert.equal(await evaluate('settings_qa.read_source_outline_settings(workspace_one).background_index'),false);assert.equal(await evaluate('settings_qa.read_source_outline_settings(workspace_two).background_index'),true);
   assert.equal(await evaluate('settings_qa.read_source_outline_settings(workspace_one).fallback_flags[0]'),'-Iinclude with spaces','parameters retain whitespace within one argument');
   assert.deepEqual(await evaluate('settings_qa.read_source_outline_settings(workspace_two).fallback_flags'),['-std=c++20'],'other workspace unchanged');
   const saved_bytes=fs.readFileSync(settings_file,'utf8');

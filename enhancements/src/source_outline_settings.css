@@ -17,3 +17,5 @@
 @media(max-width:500px){.source-outline-settings.git-graph-dialog-shade{padding:8px}.source-outline-settings>.git-graph-dialog{width:100%;max-height:calc(100vh - 16px)}}
 
 .source-outline-settings .source-outline-settings-field[hidden]{display:none}
+
+.source-outline-settings input[type="checkbox"]{width:auto;align-self:flex-start;padding:0}
