@@ -1,9 +1,15 @@
 // 原生Markdown连续链接与Alt导航；隔离临时文档。
 (async()=>{
- const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
+ const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[],latencies=[];
  let native_clicks=0;document.addEventListener('click',event=>{if(event.isTrusted&&event.target.closest?.('.workspace-titlebar-history'))native_clicks++;},true);
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
  const pause=ms=>new Promise(r=>setTimeout(r,ms));
+ document.addEventListener('pointerdown',event=>{
+  if(!event.isTrusted||!event.target.closest?.('.workspace-titlebar-history'))return;
+  const started=performance.now(),before=files.current_file(),sample={};latencies.push(sample);
+  const frame=()=>{if(files.current_file()!==before&&sample.first_frame_ms===undefined)sample.first_frame_ms=performance.now()-started;if((document.documentElement.dataset.linuxNoteHistoryForward==='true'||document.documentElement.dataset.linuxNoteHistoryBack==='true')&&sample.first_frame_ms!==undefined){sample.ready_ms=performance.now()-started;return}if(performance.now()-started<5000)requestAnimationFrame(frame)};requestAnimationFrame(frame);
+ },true);
+
  const snapshot=label=>samples.push({label,file:files.current_file(),back:document.documentElement.dataset.linuxNoteHistoryBack,forward:document.documentElement.dataset.linuxNoteHistoryForward,active:document.activeElement?.outerHTML.slice(0,400),modals:[...document.querySelectorAll('.reading-media-viewer,.modal.in,[role="dialog"][aria-modal="true"]')].map(n=>({html:n.outerHTML.slice(0,300),display:getComputedStyle(n).display,rect:n.getBoundingClientRect().toJSON()})),cursor:File.editor.selection.buildUndo(),busy:[File._onInitParse,File._onFileSwitching]});
  const assert=(value,label)=>{snapshot(label);if(!value)throw Error(label);checks.push(label)};
  try{
@@ -41,6 +47,6 @@
    await click_button(buttons[0]);assert(files.current_file()===docs[2],'顶栏连续后退 '+i);
    await click_button(buttons[1]);assert(files.current_file()===docs[3],'顶栏连续前进 '+i);
   }
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS' ,checks,samples},null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS' ,checks,samples,latencies},null,2));
  }catch(error){snapshot('error');fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack),checks,samples},null,2));}
 })();

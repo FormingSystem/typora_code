@@ -194599,37 +194599,56 @@ https://creativecommons.org/licenses/by/4.0/
         if (position2) remember(context, position2);
       }
     };
-    const restore = async (context, position2) => {
-      if (disposed) return false;
+    const restore = async (context, position2, options2 = {}) => {
+      if (disposed || options2.signal?.aborted) return false;
       const token = {};
       restoring.set(context.view_id, token);
       remember(context, position2, false);
-      let applied = false;
-      let previous_geometry = "";
-      let stable_since = Date.now();
-      const started = Date.now();
-      while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5e3) {
-        const nodes = elements(context);
-        if (nodes) {
-          const geometry = "".concat(nodes.root.getBoundingClientRect().height, ":").concat(nodes.scroller.clientHeight, ":").concat(nodes.scroller.scrollHeight);
-          const before_top = nodes.scroller.scrollTop;
-          const before_left = nodes.scroller.scrollLeft;
-          apply_position(nodes.scroller, nodes.root, position2);
-          if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > 0.5 || Math.abs(before_left - nodes.scroller.scrollLeft) > 0.5) {
-            previous_geometry = geometry;
-            stable_since = Date.now();
+      const stop = () => {
+        if (restoring.get(context.view_id) === token) restoring.delete(context.view_id);
+      };
+      options2.signal?.addEventListener("abort", stop, { once: true });
+      let first_applied;
+      const initial = new Promise((resolve3) => {
+        first_applied = resolve3;
+      });
+      const settle = async () => {
+        let applied = false;
+        try {
+          let previous_geometry = "";
+          let stable_since = Date.now();
+          const started = Date.now();
+          while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5e3) {
+            const nodes = elements(context);
+            if (nodes) {
+              const geometry = "".concat(nodes.root.getBoundingClientRect().height, ":").concat(nodes.scroller.clientHeight, ":").concat(nodes.scroller.scrollHeight);
+              const before_top = nodes.scroller.scrollTop;
+              const before_left = nodes.scroller.scrollLeft;
+              apply_position(nodes.scroller, nodes.root, position2);
+              if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > 0.5 || Math.abs(before_left - nodes.scroller.scrollLeft) > 0.5) {
+                previous_geometry = geometry;
+                stable_since = Date.now();
+              }
+              applied = true;
+              first_applied(true);
+              if (applied && Date.now() - stable_since >= 250) break;
+            }
+            await reading_delay(40, controller.signal);
           }
-          applied = true;
-          if (applied && Date.now() - stable_since >= 250) break;
+          if (restoring.get(context.view_id) === token) {
+            restoring.delete(context.view_id);
+            const nodes = elements(context);
+            if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
+          }
+          return !disposed && !options2.signal?.aborted && applied;
+        } finally {
+          stop();
+          options2.signal?.removeEventListener("abort", stop);
+          first_applied(false);
         }
-        await reading_delay(40, controller.signal);
-      }
-      if (restoring.get(context.view_id) === token) {
-        restoring.delete(context.view_id);
-        const nodes = elements(context);
-        if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
-      }
-      return !disposed && applied;
+      };
+      const settled = settle();
+      return options2.background ? Promise.race([initial, settled]) : settled;
     };
     const stop_restoring = (context) => {
       if (context) restoring.delete(context.view_id);
@@ -195004,6 +195023,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed || signal.aborted) return false;
         const from = capture() ?? last_location;
         workspace.checkpoint();
+        workspace.stop_restoring();
         workspace.hold(path, true);
         held_path = path;
         let target;
@@ -195017,10 +195037,14 @@ https://creativecommons.org/licenses/by/4.0/
           if (!opened || !target || !await activate(target, signal)) target = void 0;
         } else target = await open_target(path, location?.view_id, signal);
         if (disposed || signal.aborted || !target) return false;
-        await reading_delay(100, signal);
+        if (!location) await reading_delay(100, signal);
         if (disposed || signal.aborted) return false;
         workspace.stop_restoring(target);
         const restore_position = async (position2) => {
+          if (location && position2) {
+            await workspace.restore(target, position2, { background: true, signal });
+            return;
+          }
           const stop = () => workspace.stop_restoring(target);
           signal.addEventListener("abort", stop, { once: true });
           try {
@@ -195053,7 +195077,6 @@ https://creativecommons.org/licenses/by/4.0/
             else if (location.cursor) editor2.undo?.exeCommand(location.cursor);
           } catch {
           }
-          await reading_delay(40, signal);
           if (disposed || signal.aborted) return false;
           await restore_position(location.position ?? location);
         } else await restore_position();
@@ -195099,6 +195122,7 @@ https://creativecommons.org/licenses/by/4.0/
       finish_pending();
       const current2 = capture();
       if (!current2) return false;
+      workspace.stop_restoring();
       const pending = history.travel(direction, current2, async (location) => {
         const result = location.kind != null ? await navigation_editor()?.restore(location, context_controller.signal) ?? false : await navigate(location.file_path, void 0, location, { signal: context_controller.signal });
         if (result) last_location = capture();
@@ -243639,6 +243663,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092725,
+        version: "2026.09.27.25",
+        date: "2026-09-27",
+        notes: [
+          "\u52A0\u5FEBAlt\u5DE6\u53F3\u53CA\u9876\u680F\u5386\u53F2\u5BFC\u822A\uFF1A\u5C31\u7EEA\u7684Markdown\u7ACB\u5373\u6062\u590D\u4F4D\u7F6E\uFF0C\u4E0D\u518D\u7B49\u5F85\u56FA\u5B9A\u505C\u987F\u548C\u6392\u7248\u7A33\u5B9A\u671F\u3002",
+          "\u4F4D\u7F6E\u540E\u7EED\u6821\u6B63\u4FDD\u7559\uFF0C\u65B0\u5BFC\u822A\u4E0E\u7528\u6237\u8F93\u5165\u53D6\u6D88\u65E7\u6062\u590D\uFF0C\u7EE7\u7EED\u5171\u7528\u6240\u6709\u6587\u4EF6\u7684\u7A97\u53E3\u5386\u53F2\u3002"
+        ]
+      },
       {
         sequence: 2026092724,
         version: "2026.09.27.24",

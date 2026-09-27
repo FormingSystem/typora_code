@@ -1150,7 +1150,8 @@
         "R043",
         "H008",
         "R067",
-        "R067.3"
+        "R067.3",
+        "R067.4"
       ],
       "design": "docs/navigation_history.md",
       "implementation": [
@@ -5677,7 +5678,8 @@
       "requirements": [
         "R067",
         "R067.2",
-        "R067.3"
+        "R067.3",
+        "R067.4"
       ],
       "design": "docs/navigation_history.md",
       "implementation": [
@@ -8804,7 +8806,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R067.3"
+        "R067.3",
+        "R067.4"
       ],
       "design": "docs/navigation_history.md",
       "implementation": [

@@ -18,6 +18,7 @@ app.whenReady().then(async () => {
   await test_window.loadFile(filename);
   const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { register_navigation_editor, notify_navigation_selection } from "./src/reading_navigation_ports"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
   await evaluate(bundle.outputFiles[0].text);
+  await evaluate(`window.navigation_sample={};window.addEventListener('keydown',function measure(event){if(window.measure_navigation&&event.altKey&&event.key==='ArrowLeft'){window.removeEventListener('keydown',measure,true);const started=performance.now();const sample=()=>{if(document.querySelector('content').scrollTop===120&&!navigation_sample.first_frame_ms)navigation_sample.first_frame_ms=performance.now()-started;if(document.documentElement.dataset.linuxNoteHistoryForward==='true'){navigation_sample.ready_ms=performance.now()-started;return}requestAnimationFrame(sample)};requestAnimationFrame(sample)}},true);void 0`);
   await evaluate(`(() => {
     window.subscriptions=new Map(); window.commands=new Map(); window.notices=[]; window.copy_count=0;
     const on=(name,callback)=>{let set=subscriptions.get(name);if(!set)subscriptions.set(name,set=new Set());set.add(callback);return()=>set.delete(callback)};
@@ -81,6 +82,19 @@ app.whenReady().then(async () => {
   assert(await evaluate('![...document.documentElement.attributes].some(a=>/data-linux-note-(reading|copy-path|history)/.test(a.name))'));
   await evaluate(`window.workspace=qa.create_reading_workspace(()=>File.bundle.filePath,()=>false);window.restore_pending=workspace.restore(workspace.active(),{scroll_top:600,scroll_left:0});workspace.dispose();workspace.dispose();document.querySelector('content').scrollTop=900;`);
   assert.equal(await evaluate('restore_pending'),false);await delay(100);assert.equal(await evaluate("document.querySelector('content').scrollTop"),900);
+  // 首次位置交付不等稳定期，迟到宿主滚动仍校正；新任务及取消不能被旧任务拉回。
+  await evaluate(`window.workspace=qa.create_reading_workspace(()=>File.bundle.filePath,()=>false);window.position_abort=new AbortController();window.initial_started=performance.now();void 0`);
+  assert(await evaluate(`workspace.restore(workspace.active(),{scroll_top:600,scroll_left:0},{background:true,signal:position_abort.signal})`));
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),600);
+  await delay(80);await evaluate("document.querySelector('content').scrollTop=0;void 0");await delay(90);
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),600,'晚到宿主滚动由原位置任务校正');
+  await evaluate("position_abort.abort();document.querySelector('content').scrollTop=900;void 0");await delay(100);
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),900,'取消后不再校正');
+  for(let round=0;round<20;round++){
+    await evaluate(`workspace.restore(workspace.active(),{scroll_top:${100+round*10},scroll_left:0},{background:true})`);
+  }
+  await delay(320);assert.equal(await evaluate("document.querySelector('content').scrollTop"),290,'20次新恢复均替换旧任务');
+  await evaluate('workspace.dispose();void 0');
   await evaluate('window.dispose_nav2=qa.bind_reading_navigation();window.dispose_paths2=qa.bind_file_path_actions();window.dispose_map2=qa.bind_reading_minimap();void 0;');
   assert.equal(await evaluate('commands.size'),2);assert.equal(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length'),1);
   await evaluate('dispose_nav2();dispose_paths2();dispose_map2();');
@@ -91,10 +105,14 @@ app.whenReady().then(async () => {
   await delay(320);
   assert.equal(await evaluate("document.querySelector('content').scrollTop"),1200);
   await evaluate(`document.querySelector('#write').contentEditable='true';document.querySelector('#write').focus();void 0`);
+  await evaluate('window.measure_navigation=true;void 0');
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});
   await delay(600);
   assert.equal(await evaluate("document.querySelector('content').scrollTop"),120,'内部链接入口可由Alt后退恢复来源');
+  console.log('NAVIGATION_LATENCY '+JSON.stringify(await evaluate('navigation_sample')));
+  assert((await evaluate('navigation_sample.first_frame_ms'))<120,'就绪同文历史不再固定等待140ms');
+  assert((await evaluate('navigation_sample.ready_ms'))<220,'首次定位不等待250ms稳定期');
   // Alt保持按下，多次方向键在同一历史上往返；真实Chromium键盘事件。
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Alt'});
   for(let round=0;round<5;round++){

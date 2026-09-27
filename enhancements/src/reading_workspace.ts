@@ -93,39 +93,55 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       if (position) remember(context, position);
     }
   };
-  const restore = async (context: reading_context, position: reading_position): Promise<boolean> => {
-    if (disposed) return false;
+  const restore = async (context: reading_context, position: reading_position, options: {background?: boolean; signal?: AbortSignal} = {}): Promise<boolean> => {
+    if (disposed || options.signal?.aborted) return false;
     const token = {};
     restoring.set(context.view_id, token);
     remember(context, position, false);
-    let applied = false;
-    let previous_geometry = "";
-    let stable_since = Date.now();
-    const started = Date.now();
-    // 等待异步预览、代码限高与排版；用户开始滚动/编辑时立即停止，避免把新位置拉回去。
-    while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5000) {
-      const nodes = elements(context);
-      if (nodes) {
-        const geometry = `${nodes.root.getBoundingClientRect().height}:${nodes.scroller.clientHeight}:${nodes.scroller.scrollHeight}`;
-        const before_top = nodes.scroller.scrollTop; const before_left = nodes.scroller.scrollLeft;
-        // 宿主恢复选区可能在正文高度不变时重置滚动；每轮核对实际位置，而非只等正文高度稳定。
-        // 视口尺寸变化和宿主再次挪动滚动条都会重新开始稳定期；真实用户输入仍立即取消恢复。
-        apply_position(nodes.scroller, nodes.root, position);
-        if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > .5 || Math.abs(before_left - nodes.scroller.scrollLeft) > .5) {
-          previous_geometry = geometry;
-          stable_since = Date.now();
+    const stop = () => { if (restoring.get(context.view_id) === token) restoring.delete(context.view_id); };
+    options.signal?.addEventListener("abort", stop, {once: true});
+    let first_applied!: (value: boolean) => void;
+    const initial = new Promise<boolean>(resolve => { first_applied = resolve; });
+    const settle = async () => {
+      let applied = false;
+      try {
+      let previous_geometry = "";
+      let stable_since = Date.now();
+      const started = Date.now();
+      // 等待异步预览、代码限高与排版；用户开始滚动/编辑时立即停止，避免把新位置拉回去。
+      while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5000) {
+        const nodes = elements(context);
+        if (nodes) {
+          const geometry = `${nodes.root.getBoundingClientRect().height}:${nodes.scroller.clientHeight}:${nodes.scroller.scrollHeight}`;
+          const before_top = nodes.scroller.scrollTop; const before_left = nodes.scroller.scrollLeft;
+          // 宿主恢复选区可能在正文高度不变时重置滚动；每轮核对实际位置，而非只等正文高度稳定。
+          // 视口尺寸变化和宿主再次挪动滚动条都会重新开始稳定期；真实用户输入仍立即取消恢复。
+          apply_position(nodes.scroller, nodes.root, position);
+          if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > .5 || Math.abs(before_left - nodes.scroller.scrollLeft) > .5) {
+            previous_geometry = geometry;
+            stable_since = Date.now();
+          }
+          applied = true;
+          first_applied(true);
+          if (applied && Date.now() - stable_since >= 250) break;
         }
-        applied = true;
-        if (applied && Date.now() - stable_since >= 250) break;
+        await reading_delay(40, controller.signal);
       }
-      await reading_delay(40, controller.signal);
-    }
-    if (restoring.get(context.view_id) === token) {
-      restoring.delete(context.view_id);
-      const nodes = elements(context);
-      if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
-    }
-    return !disposed && applied;
+      if (restoring.get(context.view_id) === token) {
+        restoring.delete(context.view_id);
+        const nodes = elements(context);
+        if (applied && nodes) remember(context, capture_position(nodes.scroller, nodes.root));
+      }
+      return !disposed && !options.signal?.aborted && applied;
+      } finally {
+        stop();
+        options.signal?.removeEventListener("abort", stop);
+        first_applied(false);
+      }
+    };
+    const settled = settle();
+    // 首次定位即可接受下一次导航，晚到布局仍由同一个可取消的位置任务校正。
+    return options.background ? Promise.race([initial, settled]) : settled;
   };
   const stop_restoring = (context?: reading_context) => {
     if (context) restoring.delete(context.view_id);

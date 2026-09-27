@@ -1,0 +1,126 @@
+{
+  "requirements": [
+    "R067.4"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.25",
+  "baseline": {
+    "commit": "a8295effaca2f035e6b018f858e4c39beab79df8",
+    "ui": {
+      "id": "1842757d83204b40bb730fd981225593",
+      "first_frame_ms": 155.3,
+      "ready_ms": 438.5
+    },
+    "native": {
+      "id": "aea8e566d1624000ab82371b64110bae",
+      "status": "PASS",
+      "checks": 53,
+      "samples": 23,
+      "latencies_ms": {
+        "first_frame_ms": {
+          "median": 8.100000001490116,
+          "max": 10.100000001490116
+        },
+        "ready_ms": {
+          "median": 448.1000000014901,
+          "max": 483
+        }
+      }
+    }
+  },
+  "asset_sha256": "56b9b34ddcd944d47cd1e88adcbd455bc2ff97ffbeec55cba6ed70fa094bfb8d",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/workbench/services/history/browser/historyService.ts",
+    "adoption": "navigate/doNavigate等待openEditor恢复，无无条件停顿；宿主晚到排版仍由原位置服务校正"
+  },
+  "cause": "Markdown历史恢复在目标就绪后固定等待100+40ms，再等待至少250ms稳定期才释放导航事务。",
+  "change": "历史定位首次应用即完成导航，250ms稳定保护由原服务后台持有；下一次导航、实际用户输入、切工作区或销毁取消旧任务。普通打开/锚点继续原完成契约。",
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "5a75c1f470d44f7987c5cb1a85a0244b",
+      "status": "PASS"
+    },
+    "ui": [
+      {
+        "id": "02f236d46cac439e846002d1134637a5",
+        "suite": "reading_lifecycle",
+        "status": "PASS",
+        "first_frame_ms": 0.7,
+        "ready_ms": 0.7,
+        "scope": "真实Chromium Alt事件、同文位置首帧、持续Alt5轮、20次恢复替换、迟到滚动校正和取消/销毁"
+      },
+      {
+        "id": "a6d748e67f7e4901bd6e1d932cef4283",
+        "suite": "workspace_titlebar",
+        "status": "PASS",
+        "boundary": "最终异常清理stop补充前；最终顶栏由原生用例覆盖"
+      }
+    ],
+    "native": [
+      {
+        "id": "c46f2de8c38543b3b6afbfca8d11c136",
+        "status": "PASS",
+        "checks": 53,
+        "samples": 23,
+        "latencies_ms": {
+          "first_frame_ms": {
+            "median": 8.700000002980232,
+            "max": 11
+          },
+          "ready_ms": {
+            "median": 51,
+            "max": 55.79999999701977
+          }
+        }
+      },
+      {
+        "id": "4dfdb88b2f324a46bc78873ed01d70f5",
+        "status": "PASS",
+        "checks": 59
+      }
+    ],
+    "install_cycles": {
+      "id": "f5b643b57bfd43c294ce1b2aebdd9e51",
+      "status": "PASS",
+      "scope": "公开安装/检查/恢复备份卸载/重装/检查/无兼容备份撤销入口/重装/检查"
+    },
+    "uninstall": {
+      "id": "bea183bb496240bb9b0fc7a34256bc49",
+      "status": "PASS",
+      "assertions": 65,
+      "scope": "隔离实际卸载、失败/取消/回滚"
+    }
+  },
+  "boundaries": [
+    "UI首帧为隔离Electron rAF采样，不等于物理屏幕延迟；首次采样监听位于导航拦截后而为空，调整监听注册时序再测量",
+    "原生23次Windows可信顶栏输入；first_frame只表示当前路径切换，不能当作正文最终位置绘制，ready表示恢复首次应用且导航释放",
+    "外部浏览器仍为桥接替身；长文、远程网络、其他平台及物理设备没有本轮耗时承诺",
+    "保持所有文件共用历史；本次去除等待的是原生Markdown恢复，源码/Git仍由其端口恢复",
+    "原生112项回归覆盖跨文件/分栏/关闭重开/源码往返；未执行全量UI",
+    "受管测试载荷已回收；R068.6暂缓、R068.10现场持续裁切与其他历史未决项不由本轮关闭"
+  ],
+  "delivery": {
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "56b9b34ddcd944d47cd1e88adcbd455bc2ff97ffbeec55cba6ed70fa094bfb8d",
+      "window_restarted": false
+    },
+    "version": "2026.09.27.25",
+    "actual_uninstall": "只读预检",
+    "runtime_loaded": false,
+    "load_instruction": "保存后正常重启Typora",
+    "pushed": false,
+    "commit_state": "证据生成时待提交，以Git提交及台账回执为准"
+  }
+}

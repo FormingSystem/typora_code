@@ -184,6 +184,7 @@ export function bind_reading_navigation(): () => void {
     if (disposed || signal.aborted) return false;
     const from = capture() ?? last_location;
     workspace.checkpoint();
+    workspace.stop_restoring();
     workspace.hold(path, true);
     held_path=path;
       let target: reading_context | undefined;
@@ -197,11 +198,12 @@ export function bind_reading_navigation(): () => void {
         if (!opened || !target || !await activate(target, signal)) target = undefined;
       } else target = await open_target(path, location?.view_id, signal);
       if (disposed || signal.aborted || !target) return false;
-      // 文件事件、交换回调与代码块限高都可能异步改变布局；先让这些步骤完成再定位。
-      await reading_delay(100, signal);
+      // 历史目标已就绪，立即定位；晚到布局由位置服务继续校正。普通打开保留原完成契约。
+      if (!location) await reading_delay(100, signal);
       if (disposed || signal.aborted) return false;
       workspace.stop_restoring(target);
       const restore_position = async (position?: reading_location["position"]) => {
+        if (location && position) { await workspace.restore(target!, position, {background: true, signal}); return; }
         const stop = () => workspace.stop_restoring(target);
         signal.addEventListener("abort", stop, {once: true});
         try { if (!signal.aborted) await (position ? workspace.restore(target!, position) : workspace.resume(target!)); }
@@ -233,7 +235,6 @@ export function bind_reading_navigation(): () => void {
           if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location as file_location, signal);
           else if (location.cursor) editor.undo?.exeCommand(location.cursor);
         } catch { /* 正文发生变化或失效光标不阻止阅读位置恢复。 */ }
-        await reading_delay(40, signal);
         if (disposed || signal.aborted) return false;
         await restore_position(location.position ?? location);
       } else await restore_position();
@@ -275,6 +276,7 @@ export function bind_reading_navigation(): () => void {
     finish_pending();
     const current = capture();
     if (!current) return false;
+    workspace.stop_restoring();
     const pending = history.travel(direction, current, async location => {
       const result = location.kind != null
         ? await navigation_editor()?.restore(location, context_controller.signal) ?? false
