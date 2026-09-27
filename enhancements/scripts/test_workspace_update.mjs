@@ -1,3 +1,4 @@
+import {randomUUID} from "node:crypto";
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
@@ -72,8 +73,10 @@ checks.push('解压后的公告、构建版本与所有资产摘要一致才接�
 const network_snapshot={proxy_mode:'manual',http_proxy_url:'http://localhost:31080',https_proxy_url:'http://localhost:31443',ca_file:''};
 const user_data=path.join(root,'user_data'),installed=path.join(user_data,'typora_code/assets/update');fs.mkdirSync(installed,{recursive:true});fs.writeFileSync(path.join(installed,'release.json'),JSON.stringify(old));
 async function run_case(name,{cancel=false,failure=false,network=false,uac_cancel=false}={}){
- const job=path.join(root,name);fs.mkdirSync(job);fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root:root,user_data,host_root:path.join(root,'host'),plan,network:network_snapshot}));let installed_count=0;
+ const job=path.join(root,randomUUID());fs.mkdirSync(job);fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root:root,user_data,host_root:path.join(root,'host'),plan,network:network_snapshot}));let installed_count=0;
  await service.run_worker(path.join(job,'request.json'),{request:async(_url,{file,on_progress,network:actual_network})=>{assert.deepEqual(actual_network,network_snapshot);on_progress(3,6);const progress=JSON.parse(fs.readFileSync(path.join(job,"status.json"),"utf8"));assert.equal(progress.bytes,3);assert.equal(progress.total_bytes,6);if(network)throw Error('network failure');fs.writeFileSync(file,'fixture');if(cancel)fs.writeFileSync(path.join(job,'cancel'),'yes');},unpack:async()=>payload,install:async()=>{installed_count++;if(uac_cancel)throw Error('[TYPORA_INSTALL_CANCELLED] 已取消系统授权，未修改安装目标');if(failure)throw Error('权限不足，安装已回滚');fs.writeFileSync(path.join(installed,'release.json'),notes);fs.writeFileSync(service.update_paths(user_data).manifest_file,manifest);}});
+ assert(!fs.existsSync(path.join(job,'repository.zip')),'任意退出路径回收ZIP');assert(!fs.existsSync(path.join(job,'payload')),'仅回收当前任务解压树');assert(fs.existsSync(payload),'不删除注入适配器返回的外部目录');
+ assert(JSON.parse(fs.readFileSync(path.join(job,'ownership.json'),'utf8')).cleaned_at,'结束有回收回执');
  return {status:JSON.parse(fs.readFileSync(path.join(job,'status.json'),'utf8')),installed_count};
 }
 let result=await run_case('cancel',{cancel:true});assert.equal(result.status.phase,'cancelled');assert.equal(result.installed_count,0);
@@ -104,3 +107,13 @@ for(const invalid of ['broken json','null','{}','42']){fs.writeFileSync(service.
 const paths=service.update_paths(bootstrap);assert.equal(paths.state_root,path.join(bootstrap,'temp','typora_code_updates'));assert(!fs.existsSync(paths.state_root));assert(service.claim_startup(paths.state_root,'222-333'));assert(fs.existsSync(paths.state_root));
 checks.push('无Git首次ZIP按清单建立等价SHA，同序号新SHA可安装，失败回执不变，手工换装/坏回执失效，用户temp自动创建');
 console.log(JSON.stringify({status:'PASS',checks,iterations,evidence:root},null,2));
+
+// R047.9：生命周期测试使用真实小载荷；不触及任何用户安装或备份。
+const lifecycle_root=path.join(root,'lifecycle');fs.mkdirSync(lifecycle_root);
+const make_owned=(pid=process.pid)=>{const job=randomUUID(),directory=path.join(lifecycle_root,job);fs.mkdirSync(path.join(directory,'payload'),{recursive:true});fs.writeFileSync(path.join(directory,'repository.zip'),Buffer.alloc(4096));fs.writeFileSync(path.join(directory,'payload','asset'),Buffer.alloc(4096));fs.writeFileSync(path.join(directory,'ownership.json'),JSON.stringify({schema:1,kind:'typora-code-update',job,pid,children:[],created_at:new Date(Date.now()-172800000).toISOString()}));return {job,directory};};
+for(let cycle=0;cycle<20;cycle++){const item=make_owned();assert(await service.cleanup_update_payload(lifecycle_root,item.job,{current:true}));const record=JSON.parse(fs.readFileSync(path.join(item.directory,'ownership.json'),'utf8'));assert.equal(record.reclaimed_bytes,8192);assert(!fs.existsSync(path.join(item.directory,'payload')));}
+const active=make_owned();assert.equal(await service.cleanup_update_payload(lifecycle_root,active.job),false);assert(fs.existsSync(path.join(active.directory,'repository.zip')));
+const incomplete=make_owned();fs.unlinkSync(path.join(incomplete.directory,'ownership.json'));await assert.rejects(service.cleanup_update_payload(lifecycle_root,incomplete.job,{current:true}));assert(fs.existsSync(path.join(incomplete.directory,'repository.zip')));
+const linked=make_owned(),outside=path.join(root,'outside-retained');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'keep'),'yes');fs.symlinkSync(outside,path.join(linked.directory,'payload','link'),process.platform==='win32'?'junction':'dir');await assert.rejects(service.cleanup_update_payload(lifecycle_root,linked.job,{current:true}),/链接/);assert.equal(fs.readFileSync(path.join(outside,'keep'),'utf8'),'yes');fs.unlinkSync(path.join(linked.directory,'payload','link'));await service.cleanup_update_payload(lifecycle_root,linked.job,{current:true});
+const abandoned=make_owned(99999999);await service.sweep_update_jobs(lifecycle_root,'');assert(!fs.existsSync(path.join(abandoned.directory,'payload')));assert(fs.existsSync(path.join(active.directory,'payload')));assert(fs.existsSync(path.join(incomplete.directory,'payload')));
+console.log('R047.9: 20 cycles reclaim 163840 bytes; active, unowned and external paths preserved; crash payload reclaimed');

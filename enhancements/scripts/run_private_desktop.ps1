@@ -1,11 +1,14 @@
 ﻿# 在未切换的独立桌面运行专用宿主副本，只终止该副本的进程。
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
 $case_root = [IO.Path]::GetFullPath($case_root)
 $evidence_root = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../../.cache/issue_tracking/native'))
 if (!$case_root.StartsWith($evidence_root + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath (Join-Path $case_root 'setup.json'))) { throw 'Expected prepared private native fixture under repository evidence root' }
+$artifact_manager = Join-Path $PSScriptRoot 'manage_test_artifacts.py'
+& python -X utf8 $artifact_manager claim $case_root --pid $PID
+if ($LASTEXITCODE -ne 0) { throw 'Test artifact claim failed' }
 $probe_root = $case_root
 $case_name = Split-Path -Leaf $case_root
 $document_path = Join-Path $case_root 'workspace/front.md'
@@ -13,6 +16,7 @@ $exit_on_checks = !$wait_for_normal_exit
 New-Item -ItemType Directory -Force -Path $case_root,(Join-Path $case_root 'appdata'),(Join-Path $case_root 'localappdata'),(Join-Path $case_root 'user_data') | Out-Null
 $env:APPDATA = Join-Path $case_root 'appdata'
 $env:LOCALAPPDATA = Join-Path $case_root 'localappdata'
+$env:GIT_CEILING_DIRECTORIES = (@($env:GIT_CEILING_DIRECTORIES,$case_root) | Where-Object { $_ }) -join [IO.Path]::PathSeparator
 Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 Add-Type -TypeDefinition @'
 using System;
@@ -67,6 +71,8 @@ if (!$restore_session) { [void]$command.Append(' "' + $document_path + '"') }
 $watch = [Diagnostics.Stopwatch]::StartNew()
 try {
  if (-not [isolated_desktop]::CreateProcess($exe,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0,[IntPtr]::Zero,(Join-Path $probe_root 'host'),[ref]$startup,[ref]$info)) { throw ('CreateProcess failed: '+[Runtime.InteropServices.Marshal]::GetLastWin32Error()) }
+ & python -X utf8 $artifact_manager claim $case_root --pid $info.pid --child
+ if ($LASTEXITCODE -ne 0) { throw 'Test child registration failed' }
  [void][isolated_desktop]::WaitForSingleObject($info.process,5000)
  $resize=[isolated_desktop+enum_windows]{param($hwnd,$state)
    $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
@@ -167,4 +173,8 @@ try {
  if ($info.thread -ne [IntPtr]::Zero) { [void][isolated_desktop]::CloseHandle($info.thread) }
  if ($info.process -ne [IntPtr]::Zero) { [void][isolated_desktop]::CloseHandle($info.process) }
  [void][isolated_desktop]::CloseDesktop($desktop)
+ if (!$keep_test_work) {
+  & python -X utf8 $artifact_manager finish $case_root --pid $PID
+  if ($LASTEXITCODE -ne 0) { Write-Warning 'Test payload cleanup failed; evidence retained.' }
+ }
 }

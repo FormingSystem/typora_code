@@ -7,7 +7,7 @@ import re
 import shutil
 import subprocess
 import sys
-import uuid
+from manage_test_artifacts import create, finish
 import zipfile
 
 repository_root = Path(__file__).resolve().parents[2]
@@ -18,95 +18,105 @@ assert fixture_path.parent == fixture_directory and fixture_path.suffix == '.js'
 subprocess.run(['node', '--check', str(fixture_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host_root = Path(sys.argv[1]).resolve(strict=True)
 release = repository_root / 'enhancements/dist'
-case = repository_root / '.cache/issue_tracking/native' / uuid.uuid4().hex
-host = case / 'host'
-digest = lambda file: hashlib.sha256(file.read_bytes()).hexdigest()
-asar = host_root / 'resources/app.asar'
-# 已核对的原始宿主；其他版本必须重新核对端口，不能静默复用结论。
-expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
-assert digest(asar) == expected_asar, 'Native fixture requires verified original Typora 1.14.10'
-assert (host_root / 'Typora.exe').is_file()
-shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
-if fixture_path.name in ('network_settings_native.js', 'web_preview_browser_native.js'):
-    shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
-workspace = case / 'workspace'
-workspace.mkdir()
-if fixture_path.name == 'community_plugins_native.js':
-    plugin_archive = repository_root / '.cache/community_copy_plugin/plugin.zip'
-    assert digest(plugin_archive) == '41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704', 'Prepare verified Codeblock Copy Button 1.2.0 archive'
-    shutil.copyfile(plugin_archive, case / 'community_plugin.zip')
-    mapper_archive = repository_root / '.cache/community_mapper_plugin/plugin.zip'
-    assert digest(mapper_archive) == 'eb38a5f5a9e5388edcd06d86fecf1d7e22971b4403f16a0355500c27364ea756', 'Prepare verified Codeblock Highlight Mapper 1.2.1 archive'
-    shutil.copyfile(mapper_archive, case / 'community_mapper_plugin.zip')
-    with zipfile.ZipFile(case / 'community_api_plugin.zip', 'w') as archive:
-        archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
-        archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
-(workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
-if fixture_path.name == 'session_restart_native.js':
-    corpus = case / 'corpus'
-    corpus.mkdir()
-    sources = [repository_root / 'README.md', repository_root / 'enhancements/README.md']
-    sources += sorted((repository_root / 'docs').glob('*.md'), key=lambda file: file.stat().st_size, reverse=True)[:28]
-    for index, source in enumerate(sources):
-        shutil.copyfile(source, corpus / f'{index}.md')
-    (case / 'corpus.json').write_text(json.dumps([{'source': source.relative_to(repository_root).as_posix(), 'sha256': digest(source), 'bytes': source.stat().st_size} for source in sources], ensure_ascii=False, indent=2), encoding='utf-8')
-# 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
-git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
-for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:
-    subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-if fixture_path.name in ('git_responsiveness_native.js', 'git_scale_native.js'):
-    large = workspace / 'large'
-    large.mkdir()
-    for index in range(100000 if fixture_path.name == 'git_scale_native.js' else 10000):
-        (large / f'file-{index:05d}.md').write_text('test\n', encoding='utf-8')
-user_data = case / 'user_data'
-user_data.mkdir()
-(user_data / 'themes').mkdir()
-for theme_name in ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']:
-    shutil.copyfile(repository_root / theme_name, user_data / 'themes' / theme_name)
-for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
-    if not line.strip():
-        continue
-    expected, name = line.split(None, 1)
-    relative = Path(name.strip())
-    assert not relative.is_absolute() and '..' not in relative.parts
-    source = release / relative
-    assert digest(source) == expected, f'Invalid candidate asset: {relative}'
-    target = user_data / 'typora_code' / relative
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target)
-# 运行时只复制；安装器负责的私有Node不借用系统PATH。
-runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal_runtime'
-if runtime.is_dir():
-    shutil.copytree(runtime, user_data / 'linux_note_enhancements/terminal_runtime')
-# Shell 后端必须来自本次候选，不能让新脚本配上本机旧 ConPTY。
-terminal_release = release / 'terminal_runtime'
-for line in (terminal_release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
-    if not line.strip():
-        continue
-    expected, name = line.split(None, 1)
-    relative = Path(name.strip())
-    assert not relative.is_absolute() and '..' not in relative.parts
-    source = terminal_release / relative
-    assert digest(source) == expected, f'Invalid terminal candidate asset: {relative}'
-    target = user_data / 'linux_note_enhancements/terminal_runtime' / relative
-    target.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, target)
-(user_data / 'profile.data').write_text(json.dumps({'framelessWindow': True, 'enableAutoSave': False}).encode('utf-8').hex(), encoding='ascii')
-fixture = fixture_path.read_text(encoding='utf-8').replace('__CASE_ROOT__', json.dumps(case.as_posix()))
-runner = '(()=>{const poll=setInterval(async()=>{const core=window[Symbol.for("typora-code:workspace")];if(!core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host||!core.app.workspace.activeLeaf)return;clearInterval(poll);await (0,eval)(' + json.dumps(fixture) + ')},100)})();'
-html = (host / 'resources/window.html').read_text(encoding='utf-8')
-html = re.sub(r'<!-- typora-code:begin -->.*?<!-- typora-code:end -->', '', html, flags=re.S)
-head = (repository_root / 'enhancements/runtime_head.html').read_text(encoding='utf-8')
-early_digest = None
-if len(sys.argv) > 3:
-    early_path = (fixture_directory / sys.argv[3]).resolve(strict=True)
-    assert early_path.parent == fixture_directory and early_path.suffix == '.js'
-    subprocess.run(['node', '--check', str(early_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
-    early_digest = digest(early_path)
-    head = '<script>' + early_path.read_text(encoding='utf-8') + '</script>' + head
-html = html.replace('</head>', head + '<script>window.addEventListener("DOMContentLoaded",()=>{' + runner + '});</script></head>')
-(host / 'resources/window.html').write_text(html, encoding='utf-8')
-assert digest(asar) == expected_asar == digest(host / 'resources/app.asar')
-(case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'terminal_manifest_sha256': digest(terminal_release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
-print(case)
+case = create('native', os.getppid())
+try:
+    host = case / 'host'
+    digest = lambda file: hashlib.sha256(file.read_bytes()).hexdigest()
+    asar = host_root / 'resources/app.asar'
+    # 已核对的原始宿主；其他版本必须重新核对端口，不能静默复用结论。
+    expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
+    assert digest(asar) == expected_asar, 'Native fixture requires verified original Typora 1.14.10'
+    assert (host_root / 'Typora.exe').is_file()
+    shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
+    if fixture_path.name in ('network_settings_native.js', 'web_preview_browser_native.js'):
+        shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
+    workspace = case / 'workspace'
+    workspace.mkdir()
+    if fixture_path.name == 'community_plugins_native.js':
+        plugin_archive = repository_root / '.cache/community_copy_plugin/plugin.zip'
+        assert digest(plugin_archive) == '41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704', 'Prepare verified Codeblock Copy Button 1.2.0 archive'
+        shutil.copyfile(plugin_archive, case / 'community_plugin.zip')
+        mapper_archive = repository_root / '.cache/community_mapper_plugin/plugin.zip'
+        assert digest(mapper_archive) == 'eb38a5f5a9e5388edcd06d86fecf1d7e22971b4403f16a0355500c27364ea756', 'Prepare verified Codeblock Highlight Mapper 1.2.1 archive'
+        shutil.copyfile(mapper_archive, case / 'community_mapper_plugin.zip')
+        with zipfile.ZipFile(case / 'community_api_plugin.zip', 'w') as archive:
+            archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
+            archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
+    (workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
+    if fixture_path.name == 'session_restart_native.js':
+        corpus = case / 'corpus'
+        corpus.mkdir()
+        sources = [repository_root / 'README.md', repository_root / 'enhancements/README.md']
+        sources += sorted((repository_root / 'docs').glob('*.md'), key=lambda file: file.stat().st_size, reverse=True)[:28]
+        for index, source in enumerate(sources):
+            shutil.copyfile(source, corpus / f'{index}.md')
+        (case / 'corpus.json').write_text(json.dumps([{'source': source.relative_to(repository_root).as_posix(), 'sha256': digest(source), 'bytes': source.stat().st_size} for source in sources], ensure_ascii=False, indent=2), encoding='utf-8')
+    # 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
+    git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
+    for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:
+        subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    if fixture_path.name in ('git_responsiveness_native.js', 'git_scale_native.js'):
+        large = workspace / 'large'
+        large.mkdir()
+        for index in range(100000 if fixture_path.name == 'git_scale_native.js' else 10000):
+            (large / f'file-{index:05d}.md').write_text('test\n', encoding='utf-8')
+    user_data = case / 'user_data'
+    user_data.mkdir()
+    (user_data / 'themes').mkdir()
+    if fixture_path.name == 'mermaid_theme_native.js':
+        original_night = Path(os.environ['TYPORA_ORIGINAL_NIGHT_ROOT'])
+        assert digest(original_night / 'night.css') == '8a88f1e138d30240234cdfd50fe7e7efc393dda4de4ff4284e6fa2aedb6b5f25', 'Use verified pre-customization Night snapshot'
+        shutil.copyfile(original_night / 'night.css', user_data / 'themes/night.css')
+        shutil.copytree(original_night / 'night', user_data / 'themes/night')
+
+    for theme_name in ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']:
+        shutil.copyfile(repository_root / theme_name, user_data / 'themes' / theme_name)
+    for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
+        if not line.strip():
+            continue
+        expected, name = line.split(None, 1)
+        relative = Path(name.strip())
+        assert not relative.is_absolute() and '..' not in relative.parts
+        source = release / relative
+        assert digest(source) == expected, f'Invalid candidate asset: {relative}'
+        target = user_data / 'typora_code' / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    # 运行时只复制；安装器负责的私有Node不借用系统PATH。
+    runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal_runtime'
+    if runtime.is_dir():
+        shutil.copytree(runtime, user_data / 'linux_note_enhancements/terminal_runtime')
+    # Shell 后端必须来自本次候选，不能让新脚本配上本机旧 ConPTY。
+    terminal_release = release / 'terminal_runtime'
+    for line in (terminal_release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
+        if not line.strip():
+            continue
+        expected, name = line.split(None, 1)
+        relative = Path(name.strip())
+        assert not relative.is_absolute() and '..' not in relative.parts
+        source = terminal_release / relative
+        assert digest(source) == expected, f'Invalid terminal candidate asset: {relative}'
+        target = user_data / 'linux_note_enhancements/terminal_runtime' / relative
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(source, target)
+    (user_data / 'profile.data').write_text(json.dumps({'framelessWindow': True, 'enableAutoSave': False}).encode('utf-8').hex(), encoding='ascii')
+    fixture = fixture_path.read_text(encoding='utf-8').replace('__CASE_ROOT__', json.dumps(case.as_posix()))
+    runner = '(()=>{const poll=setInterval(async()=>{const core=window[Symbol.for("typora-code:workspace")];if(!core?.app?.[Symbol.for("linux-note.workspace-files@v1")]?.host||!core.app.workspace.activeLeaf)return;clearInterval(poll);await (0,eval)(' + json.dumps(fixture) + ')},100)})();'
+    html = (host / 'resources/window.html').read_text(encoding='utf-8')
+    html = re.sub(r'<!-- typora-code:begin -->.*?<!-- typora-code:end -->', '', html, flags=re.S)
+    head = (repository_root / 'enhancements/runtime_head.html').read_text(encoding='utf-8')
+    early_digest = None
+    if len(sys.argv) > 3:
+        early_path = (fixture_directory / sys.argv[3]).resolve(strict=True)
+        assert early_path.parent == fixture_directory and early_path.suffix == '.js'
+        subprocess.run(['node', '--check', str(early_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        early_digest = digest(early_path)
+        head = '<script>' + early_path.read_text(encoding='utf-8') + '</script>' + head
+    html = html.replace('</head>', head + '<script>window.addEventListener("DOMContentLoaded",()=>{' + runner + '});</script></head>')
+    (host / 'resources/window.html').write_text(html, encoding='utf-8')
+    assert digest(asar) == expected_asar == digest(host / 'resources/app.asar')
+    (case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'terminal_manifest_sha256': digest(terminal_release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
+    print(case)
+except BaseException:
+    finish(case, 'prepare_failed', os.getppid())
+    raise

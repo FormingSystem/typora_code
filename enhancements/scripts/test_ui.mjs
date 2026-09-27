@@ -1,7 +1,7 @@
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { createRequire } from "node:module";
-import { readdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { readdirSync, mkdirSync, appendFileSync } from "node:fs";
+import { dirname, join, delimiter } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const script_directory = dirname(fileURLToPath(import.meta.url));
@@ -22,6 +22,8 @@ const host_fixture_environment = Object.freeze([
 // Keep this list explicit. Each entry is an isolated hidden-Electron fixture that
 // creates its own temporary workspace and does not launch or modify real Typora.
 const ui_tests = Object.freeze([
+  "test_workspace_vscode_ui.cjs",
+  "test_mermaid_theme.cjs",
   "test_remote_workspace_picker.cjs",
   "test_reading_performance.cjs",
   "test_git_markdown_diff.cjs",
@@ -166,22 +168,42 @@ function print_list() {
 
 function run_test(electron_executable, name, position, total) {
   return new Promise((resolve) => {
+    const artifact = (...args) => {
+      const result = spawnSync("python", ["-X", "utf8", join(script_directory, "manage_test_artifacts.py"), ...args], {encoding:"utf8", windowsHide:true});
+      if (result.status !== 0) throw Error(result.stderr || "Test artifact operation failed");
+      return result.stdout.trim();
+    };
+    const artifact_root = artifact("create", "--pid", String(process.pid), "--keep-json");
+    const evidence = join(artifact_root, "evidence");mkdirSync(evidence);
     const started_at = performance.now();
     const child_environment = { ...process.env };
     for (const name of host_fixture_environment) delete child_environment[name];
+    for (const key of ["TEMP", "TMP", "TMPDIR"]) child_environment[key] = join(artifact_root, "work");
+    child_environment.GIT_CEILING_DIRECTORIES = [child_environment.GIT_CEILING_DIRECTORIES, artifact_root].filter(Boolean).join(delimiter);
     console.log(`\n[UI ${position}/${total}] ${name}`);
     const child = spawn(electron_executable, [join(script_directory, name)], {
       cwd: package_directory,
       env: child_environment,
-      stdio: "inherit",
+      stdio: ["ignore", "pipe", "pipe"],
       windowsHide: true,
     });
+    for (const [stream, target, filename] of [[child.stdout,process.stdout,"stdout.log"],[child.stderr,process.stderr,"stderr.log"]]) {
+      stream.on("data", data => {target.write(data);appendFileSync(join(evidence, filename), data);});
+    }
     let spawn_error;
+    try {
+      if (child.pid) artifact("claim", artifact_root, "--pid", String(child.pid), "--child");
+    } catch (error) {
+      spawn_error = error;
+      if (process.platform === "win32" && child.pid) spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], { windowsHide: true });
+      else child.kill("SIGKILL");
+    }
     let timed_out = false;
     const timeout = setTimeout(() => {
       timed_out = true;
       console.error(`[UI TIMEOUT] ${name} exceeded ${test_timeout_ms} ms`);
-      child.kill("SIGKILL");
+      if(process.platform === "win32") spawnSync("taskkill", ["/PID", String(child.pid), "/T", "/F"], {windowsHide:true});
+      else child.kill("SIGKILL");
     }, test_timeout_ms);
     child.once("error", (error) => {
       spawn_error = error;
@@ -191,7 +213,11 @@ function run_test(electron_executable, name, position, total) {
       const duration_ms = Math.round(performance.now() - started_at);
       const passed = !spawn_error && !timed_out && code === 0;
       console.log(`[UI ${passed ? "PASS" : "FAIL"}] ${name} (${duration_ms} ms)`);
-      resolve({ name, passed, code, signal, duration_ms, timed_out, error: spawn_error?.message });
+      let cleanup_error;
+      try {artifact("finish", artifact_root, "--pid", String(process.pid), "--status", passed ? "passed" : "failed");}
+      catch(error){cleanup_error=error.message;console.error(`[UI CLEANUP FAIL] ${cleanup_error}`);}
+      console.log(`Evidence: ${evidence}`);
+      resolve({ name, passed:passed&&!cleanup_error, code, signal, duration_ms, timed_out, error: spawn_error?.message || cleanup_error });
     });
   });
 }

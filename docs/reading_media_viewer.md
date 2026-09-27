@@ -35,3 +35,13 @@
 在唯一入口样式 `reading_media_entry.css` 中声明公共交互的局部hover背景和前景，分别引用原宿主阅读背景、正文文字色；图片和Mermaid同时生效，不增加另一套主题识别或事件。沿用原生Light／Night不透明阅读底色及既有按钮尺寸、边框、图标、圆角，普通显现、按钮悬停和键盘焦点均保留实体背景。公共层继续管理hover／焦点绘制，显隐仍归现有入口状态，不改变外侧右上定位、命中桥、默认隐藏或正文零占位。
 
 回归以实际鼠标移入媒体、移至按钮、再移出为一个完整周期，覆盖图片和Mermaid、明暗主题。显示时按钮opacity与背景alpha均为1，文字和图标对比可读；移出且无键盘焦点时隐藏，不新增正文行或改变图片、段落几何。继续执行按钮打开、图片单击选中／双击放大、Esc焦点恢复、窄窗和卸载回归。损坏资源与来源消失仍由原有生命周期隐藏入口，不新增失败状态。
+
+## R031.1 Mermaid跟随原生主题
+
+2026-09-25：Dark遗漏原版Night的Mermaid入口，R068.2又将所有pre按代码背景着色，包含图表。用户后续明确要求Mermaid直接沿Typora自身处理，此约定取代本轮尚未交付的VS Code主题变量映射方案。
+
+原版依据为2026-09-10隔离保存的Night：night.css SHA256为8a88f1e138d30240234cdfd50fe7e7efc393dda4de4ff4284e6fa2aedb6b5f25，其导入night/mermaid.dark.css，声明--mermaid-theme:night。不是当前已经修改的Night。Typora1.14.10的diagrams.loadMermaidTheme在原生端把night转换为内置dark主题及原生themeVariables，负责初始化和重绘。
+
+Dark补齐该变量，代码背景规则排除图表，图表容器透明以沿用正文背景；不引入VS Code图表调色板、不覆盖SVG fill/stroke、不改语法/作者style。独立预览读取原生getCurrentMermaidOptions快照，仍在各自隔离的内置Mermaid实例渲染，不改中央实例；尚未加载时只按已核对的night转换约定选择内置主题。共享适配只转发原生loadMermaidTheme完成通知，订阅者按配置指纹刷新并丢弃迟到/已关闭结果，销毁还原方法。全屏继续复制当前原生SVG及实际颜色，保留现有模态缩放/关闭行为；主题入口位于模态外，退出全屏切换主题后再次打开采用新的原生SVG。
+
+验收比较原始Night、Dark、Light的实际原生配置、流程/时序/饼图、作者style及SVG计算颜色；覆盖20次切换、预览隔离、全屏变化、正文/dirty不变及清理。相关代码/阅读器回归和候选安装/卸载成对验证，未测平台单独保留。

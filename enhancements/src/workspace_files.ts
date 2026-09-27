@@ -24,6 +24,7 @@ import { prepare_workspace_rename, prepare_workspace_move, renamed_workspace_pat
 import { reveal_markdown_location } from "./workspace_markdown_location";
 import { SOURCE_FILE_VIEW_ID, is_empty_editor_path, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
 import * as monaco from "monaco-editor/editor/editor.api";
+import {vscode_resource_entry} from "./workspace_open_vscode";
 import files_css from "./workspace_files.css";
 
 export type file_location = {reason?:"restore";line?: number; column?: number; end_line?: number; end_column?: number; source?: boolean; expected_text?: string; hash?: string; preview?: boolean; preserve_focus?: boolean; signal?: AbortSignal};
@@ -332,6 +333,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       dialog.content.append(select);dialog.footer.prepend(button("重新打开",()=>{if(this.dirty()||this.loading){this.status.textContent="请先保存修改，再以其他编码重新打开。";return;}dialog.close();void this.load_file(select.value);}));
     }
     menu_entries(){return [
+      vscode_resource_entry(this.file_path),
       {title:"保存文件（Ctrl+S）",action:()=>void this.save()},
       {title:"另存为…",shortcut:"Ctrl+Shift+S",action:()=>void this.save_as()},
       {title:"从磁盘重新加载",action:()=>this.confirm_reload()},
@@ -480,6 +482,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   };
   const copy = (text: string) => { if(file_clipboard.is_busy())throw new Error("文件剪贴板正在处理，请稍后复制路径。");file_clipboard.invalidate(); runtime.reqnode("electron").clipboard.writeText(remote_files_for(text)?.remote_path(text)||text); };
   const file_menu = (event: MouseEvent, file_path: string) => workspace_menu(event, [
+    vscode_resource_entry(file_path),
     {title: "打开文件", action: () => void open_file(file_path)},
     {title: "在右侧打开", action: () => void open_file(file_path, {}, "right")},
     {title: "复制路径", action: () => copy(file_path)},

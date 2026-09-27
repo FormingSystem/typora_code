@@ -14,6 +14,7 @@ export type titlebar_runtime = {
   ClientCommand?: Record<string, (...args: any[]) => unknown>;
   JSBridge?: { invoke(name: string, ...args: unknown[]): any; showInBrowser?(url: string): unknown };
   reqnode?(name: string): any;
+  dirname?: string;
   _options?: {userDataPath?: string};
   $?: any;
 };
@@ -193,12 +194,38 @@ export function create_workspace_titlebar_definitions(
       })];
     } catch {return [customize,separator(),{label: "无法读取主题列表", disabled: true}];}
   };
-  const help_entries = async (): Promise<entry[]> => [
-    {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
-    {label: "Typora Code GitHub 仓库", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://github.com/FormingSystem/typora_code")},
-    {label: "支持文档", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://support.typora.io/")},
-    {label: "Typora 官网", disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.("https://typora.io/")},
-  ];
+  const help_document = (label: string, filename = label): entry => ({label,
+    disabled: !runtime.dirname || !runtime.JSBridge?.invoke,
+    action: () => runtime.dirname && runtime.JSBridge?.invoke("app.openFile", `${runtime.dirname}/Docs/${filename}.md`, {forceCreateWindow: true}),
+  });
+  const help_url = (label: string, url: string): entry => ({label,
+    disabled: !runtime.JSBridge?.showInBrowser, action: () => runtime.JSBridge?.showInBrowser?.(url),
+  });
+  const help_invoke = (label: string, method: string): entry => ({label,
+    disabled: !runtime.JSBridge?.invoke, action: () => runtime.JSBridge?.invoke(method),
+  });
+  const help_entries = async (): Promise<entry[]> => {
+    // Typora 1.14.10原生帮助：本地Docs、镜像选项及宿主IPC，不另建帮助/许可所有者。
+    const domain = runtime.File?.option?.useMirrorInCN ? "typoraio.cn" : "typora.io";
+    return [help_url("What's New...", `https://support.${domain}/What's-New/`), separator(),
+      help_document("Quick Start"), help_document("Markdown Reference"), help_document("Install and Use Pandoc"),
+      help_document("Custom Themes"), help_document("Use Images in Typora"),
+      help_document("Data Recovery and Version Control", "Auto Save, Version Control and Recovery"),
+      help_url("More Topics...", `https://support.${domain}/`), separator(),
+      help_document("鸣谢", "Credits"), help_document("更新日志", "Change Log"), help_document("隐私条款", "Privacy Policy"),
+      help_url("官方网站", `https://${domain}`), help_url("反馈", "mailto:hi@typora.io"), separator(),
+      help_invoke("检查更新...", "updater.checkForUpdates"), help_invoke("我的许可证...", "license.show"),
+      {label: "关于", disabled: !runtime.File?.megaMenu?.show || !runtime.$,
+        action: () => {
+          runtime.File?.megaMenu?.closePreferencePanel();
+          if (document.body.classList.contains("native-window")) {
+            runtime.$('.modal:not(.block-modal)').modal('hide'); runtime.$('#about-dialog').modal('show'); runtime.$('*:focus').blur();
+          } else {runtime.File?.megaMenu?.show(); runtime.$('#m-about').trigger('click');}
+        }}, separator(),
+      {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
+      help_url("Typora Code GitHub 仓库", "https://github.com/FormingSystem/typora_code"),
+    ];
+  };
   return [
     {label: "文件", mnemonic: "F", entries: file_entries}, {label: "编辑", mnemonic: "E", entries: edit_entries},
     {label: "段落", mnemonic: "P", entries: paragraph_entries}, {label: "格式", mnemonic: "O", entries: format_entries},

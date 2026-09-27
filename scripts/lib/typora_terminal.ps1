@@ -21,6 +21,7 @@ function prepare_typora_node {
     try {$cache_key=[BitConverter]::ToString($provider.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cache_root.ToLowerInvariant()+'|'+$name)))).Replace('-','')} finally {$provider.Dispose()}
     $cache_mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeNodeCache_'+$cache_key))
     $owns_cache=$false
+    $partial=$null
     try {
     try {$owns_cache=$cache_mutex.WaitOne(120000)} catch [Threading.AbandonedMutexException] {$owns_cache=$true}
     if(!$owns_cache){throw 'Timed out waiting for the shared Node cache. Retry after the other installation finishes.'}
@@ -60,7 +61,7 @@ function prepare_typora_node {
     foreach ($filename in @('node.exe', 'LICENSE')) { $assets += [pscustomobject]@{ relative_path = "node/$($release.version)/$filename"; sha256 = (Get-FileHash -LiteralPath (Join-Path $target_directory $filename) -Algorithm SHA256).Hash } }
     & $report '运行时已就绪。'
     return [pscustomobject]@{ root = $stage; assets = $assets }
-    } finally {if($owns_cache){$cache_mutex.ReleaseMutex()};$cache_mutex.Dispose()}
+    } finally {try {if($partial -and (Test-Path -LiteralPath $partial -PathType Leaf)){[IO.File]::Delete($partial)}} finally {if($owns_cache){$cache_mutex.ReleaseMutex()};$cache_mutex.Dispose()}}
 }
 
 function assert_typora_node {

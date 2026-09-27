@@ -1238,6 +1238,9 @@ content.typ-deactive .linux-note-reading-minimap,
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }
 
+/* Mermaid画布属于图表，不继承普通源码围栏的底色。 */
+#write .md-fences.md-diagram[lang="mermaid"] {background-color:transparent!important;}
+
 /* workspace_activity.css */
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item {
   box-sizing: border-box;
@@ -2162,6 +2165,12 @@ body.hide-footer {--typ-footer-height:0px;}
   max-width:var(--workspace-toolbar-width);box-sizing:border-box;
 }
 .ty-editor-toolbar[data-workspace-toolbar-suspended=true] {display:none!important;}
+
+/* workspace_open_vscode.css */
+/* 原生菜单贡献沿用共同 2em 图标列与 16px 产品标识，不重排其他原生项。 */
+#context-menu [data-key="typora-code-open-vscode"]>a{position:relative;padding-left:2em}
+#context-menu [data-key="typora-code-open-vscode"] .workspace-native-menu-icon{position:absolute;left:0;top:0;width:2em;height:100%;display:flex;align-items:center;justify-content:center}
+#context-menu [data-key="typora-code-open-vscode"].hide{display:none!important}
 
 /* workspace_outline.css */
 /* 原生外围有 18px padding，标题行还有按级缩进；仅移除重复的外围留白。 */

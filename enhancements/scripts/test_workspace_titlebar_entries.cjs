@@ -20,6 +20,18 @@ app.whenReady().then(async()=>{
  check((await get('视图','面包屑导航')).checked,'breadcrumbs menu reads shared defaults');(await get('视图','面包屑导航')).action();check(!(await get('视图','面包屑导航')).checked,'breadcrumbs menu writes shared settings');
  (await get('视图','扩展')).action();check(calls.at(-1).join('|')==='core|typora_code:community_plugins','extensions view routes to shared sidebar command');
  check(!(await get('帮助','社区插件…')),'plugin manager is removed from Help');
+ const native_help=["What's New...",'|','Quick Start','Markdown Reference','Install and Use Pandoc','Custom Themes','Use Images in Typora','Data Recovery and Version Control','More Topics...','|','鸣谢','更新日志','隐私条款','官方网站','反馈','|','检查更新...','我的许可证...','关于','|','检查 Typora Code 更新…','Typora Code GitHub 仓库'];
+ check(JSON.stringify((await defs.at(-1).entries()).map(e=>e.separator?'|':e.label))===JSON.stringify(native_help),'帮助原生名称、顺序和分组完整');
+ check((await get('帮助','Quick Start')).disabled&&(await get('帮助','关于')).disabled,'缺失宿主能力保持可见禁用');
+ runtime.dirname='C:/Program Files/Typora/resources';const original_invoke=runtime.JSBridge.invoke;
+ runtime.JSBridge.invoke=async(...args)=>calls.push(args);runtime.JSBridge.showInBrowser=record('browser');
+ for(const [label,filename] of [['Quick Start','Quick Start'],['Markdown Reference','Markdown Reference'],['Install and Use Pandoc','Install and Use Pandoc'],['Custom Themes','Custom Themes'],['Use Images in Typora','Use Images in Typora'],['Data Recovery and Version Control','Auto Save, Version Control and Recovery'],['鸣谢','Credits'],['更新日志','Change Log'],['隐私条款','Privacy Policy']]){
+   const entry=await get('帮助',label);check(!entry.disabled,'教程可用 '+label);await entry.action();const call=calls.at(-1);check(call[0]==='app.openFile'&&call[1]===runtime.dirname+'/Docs/'+filename+'.md'&&call[2].forceCreateWindow===true,'原生教程路径和新窗口 '+label);
+ }
+ for(const [label,method] of [['检查更新...','updater.checkForUpdates'],['我的许可证...','license.show']]){await(await get('帮助',label)).action();check(calls.at(-1).join('|')===method,'原生所有者 '+label);}
+ runtime.File.option.useMirrorInCN=true;await(await get('帮助','More Topics...')).action();check(calls.at(-1)[1]==='https://support.typoraio.cn/','帮助尊重原生镜像选项');await(await get('帮助','反馈')).action();check(calls.at(-1)[1]==='mailto:hi@typora.io','原生反馈邮件');
+ runtime.JSBridge.invoke=original_invoke;
+
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,终端,帮助','seven native categories plus the authorized terminal menu');
  (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');

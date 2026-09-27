@@ -2,7 +2,10 @@
 param()
 $ErrorActionPreference = 'Stop'
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-uninstall-' + [guid]::NewGuid().ToString('N'))
+$artifact_manager = Join-Path $PSScriptRoot 'manage_test_artifacts.py'
+$artifact_root = (& python -X utf8 $artifact_manager create --pid $PID | Select-Object -Last 1)
+if ($LASTEXITCODE -ne 0) { throw 'Test artifact allocation failed' }
+$test_root = Join-Path $artifact_root 'work'
 $package_root = Join-Path $test_root 'portable package [test]'
 $previous_appdata = $env:APPDATA
 $previous_cache = $env:TYPORA_TERMINAL_CACHE
@@ -134,8 +137,8 @@ try {
     function Read-Host { return '2' }
     try { assert_equal (select_typora_uninstall_context).backup_root $second 'Candidate number was not accepted' }
     finally { Remove-Item Function:\Read-Host }
-    function Get-Process { [pscustomobject]@{Path=(Join-Path $installation 'Typora.exe')} }
-    try { assert_rejected { & (Join-Path $package_root 'uninstall_windows.ps1') -backup_root $first } 'Save your documents' }
+    function Get-Process { [pscustomobject]@{Path=(Join-Path $installation 'Typora.exe');Id=2468} }
+    try { assert_rejected { & (Join-Path $package_root 'uninstall_windows.ps1') -backup_root $first } '请先保存文档并完全退出 Typora 后重试（检测到进程编号：2468）' }
     finally { Remove-Item Function:\Get-Process }
     assert_equal (snapshot) $before 'Cancelled, ambiguous, wrong-target or running-host request wrote files'
 
@@ -271,11 +274,6 @@ try {
 } finally {
     $env:APPDATA = $previous_appdata
     $env:TYPORA_TERMINAL_CACHE = $previous_cache
-    if ($passed) {
-        $resolved_root = [IO.Path]::GetFullPath($test_root)
-        $temporary_root = [IO.Path]::GetFullPath([IO.Path]::GetTempPath()).TrimEnd('\') + '\'
-        if (-not $resolved_root.StartsWith($temporary_root, [StringComparison]::OrdinalIgnoreCase) -or
-            (Split-Path -Leaf $resolved_root) -notmatch '^typora-uninstall-[a-f0-9]{32}$') { throw 'Unexpected fixture cleanup path.' }
-        Remove-Item -LiteralPath $resolved_root -Recurse -Force
-    } else { Write-Host "Failed fixtures preserved at: $test_root" }
+    & python -X utf8 $artifact_manager finish $artifact_root --pid $PID --status $(if($passed){'passed'}else{'failed'})
+    if ($LASTEXITCODE -ne 0) { Write-Warning 'Test payload cleanup failed; see artifact marker.' }
 }

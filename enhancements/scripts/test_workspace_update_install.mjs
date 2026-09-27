@@ -1,3 +1,4 @@
+import {randomUUID} from "node:crypto";
 // 真ZIP + 真PowerShell事务安装器，目标全部位于新临时目录；网络下载用本地ZIP字节替身。
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';import {createRequire} from 'node:module';import {execFileSync,spawnSync,spawn} from 'node:child_process';import {fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url),service=require('../src/workspace_update_service.cjs'),repository=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
@@ -26,7 +27,7 @@ with zipfile.ZipFile(sys.argv[2],'w',zipfile.ZIP_DEFLATED) as z:
 `;
 const zipped=spawnSync('python',['-X','utf8','-',checkout,archive],{input:create_zip,encoding:'utf8',windowsHide:true});assert.equal(zipped.status,0,zipped.stderr);
 const commit='a'.repeat(40),plan={commit,release,notes_sha256:service.digest(fs.readFileSync(path.join(checkout,'enhancements/release.json'))),manifest_sha256:service.digest(fs.readFileSync(path.join(checkout,'enhancements/dist/SHA256SUMS'))),archive_url:'https://codeload.github.com/FormingSystem/typora_code/zip/'+commit};
-const job=path.join(state_root,'case');fs.mkdirSync(job);fs.copyFileSync(path.join(repository,'enhancements/src/workspace_update_archive.ps1'),path.join(job,'workspace_update_archive.ps1'));fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root,user_data,host_root:host,plan}));
+const job=path.join(state_root,randomUUID());fs.mkdirSync(job);fs.copyFileSync(path.join(repository,'enhancements/src/workspace_update_archive.ps1'),path.join(job,'workspace_update_archive.ps1'));fs.writeFileSync(path.join(job,'request.json'),JSON.stringify({state_root,user_data,host_root:host,plan}));
 const node_version=JSON.parse(fs.readFileSync(path.join(checkout,'enhancements/node_runtime.json'),'utf8')).version;
 const private_node=path.join(user_data,'linux_note_enhancements/terminal_runtime/node',node_version,'node.exe');
 const cached_node=path.join(process.env.TYPORA_TERMINAL_CACHE||path.join(process.env.LOCALAPPDATA,'Typora/terminal_downloads'),'node-v'+node_version+'-win-'+process.arch+'-verified/node',node_version,'node.exe');

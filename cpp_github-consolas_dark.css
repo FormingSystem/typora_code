@@ -4,6 +4,8 @@
 @import url("./cpp_github-consolas.css");
 
 :root {
+    /* 原始Typora Night的Mermaid入口，交给宿主转换/渲染。 */
+    --mermaid-theme: night;
     --bg-color: #363b40;
     --text-color: #b8bfc6;
     --side-bar-bg-color: #2e3033;

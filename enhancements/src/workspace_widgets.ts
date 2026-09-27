@@ -64,7 +64,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   active_dialogs.add(close);
   return { root, content, footer, close };
 }
-export type workspace_menu_entry = { title: string; action: () => void; shortcut?:string; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
+export type workspace_menu_entry = { title: string; action: () => void; icon?:()=>HTMLElement; shortcut?:string; id?: string; disabled?: boolean; checked?: boolean; separator?: boolean; children?: workspace_menu_entry[] };
 let close_active_menu: (() => void) | undefined;
 export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[], class_name="", on_close?:()=>void, options:{anchor?:HTMLElement;align?:"left"|"right"}={}): () => void {
   close_active_menu?.(); event.preventDefault(); event.stopPropagation();
@@ -85,6 +85,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
       const check = create_workspace_menu_check(node, entry.checked, "git-menu-check");
       const arrow = workspace_element("span", "git-menu-arrow"); if (entry.children) arrow.append(git_icon("chevron-right"));
       if (check) node.append(check);
+      else if(entry.icon){const slot=workspace_element("span","git-menu-check");slot.setAttribute("aria-hidden","true");slot.append(entry.icon());node.append(slot);}
       node.append(workspace_element("span", "git-menu-label", entry.title));
       node.append(workspace_element("span","git-menu-shortcut",entry.shortcut||""));
       node.append(arrow);

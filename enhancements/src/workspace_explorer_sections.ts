@@ -1,3 +1,4 @@
+import {vscode_resource_entry} from "./workspace_open_vscode";
 import {is_empty_editor_path} from "./workspace_file_uri";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
@@ -43,7 +44,7 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   const folder_toggle=el("button","workspace-explorer-section-title workspace-section-title"),folder_caret=el("span","workspace-explorer-folder-caret"),folder_actions=root.querySelector<HTMLElement>(".workspace-explorer-actions")!;
   folder_toggle.type="button";folder_caret.setAttribute("aria-hidden","true");root_title.before(folder_toggle);folder_toggle.append(folder_caret,root_title);
   root.classList.add("workspace-explorer-section-heading","workspace-section-header");root_title.classList.add("workspace-explorer-section-label");folder_actions.classList.add("workspace-explorer-section-actions","workspace-section-actions");
-  const section_menu=(event:MouseEvent)=>{event.preventDefault();event.stopPropagation();workspace_menu(event,visibility(),"workspace-menu-compact");};
+  const section_menu=(event:MouseEvent)=>{event.preventDefault();event.stopPropagation();workspace_menu(event,[vscode_resource_entry(files.context_root()),...visibility()],"workspace-menu-compact");};
   root.oncontextmenu=section_menu;root_title.oncontextmenu=section_menu;
   folder_toggle.onclick=()=>{collapsed.folders=!collapsed.folders;remember();render_layout();};
   toggle.onclick=()=>{collapsed.open=!collapsed.open;remember();render_layout();};heading.oncontextmenu=event=>{event.preventDefault();workspace_menu(event,visibility(),"workspace-menu-compact");};
@@ -75,7 +76,7 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
         button.type="button";button.title=state.file_path||label;button.dataset.editorPath=state.file_path;button.setAttribute("aria-label",label+(state.dirty?"，未保存":""));button.setAttribute("aria-current",String(leaf===workspace.activeLeaf));
         button.append(state.file_path?workspace_file_icon(state.file_path):git_icon("files"),el("span","workspace-explorer-open-name",label),el("span","workspace-explorer-open-description",description==="."?"":description));
         button.onclick=()=>{if(leaves().includes(leaf)){workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);render_opened();}};button.ondblclick=()=>files.keep_open(leaf);
-        row.oncontextmenu=event=>{event.preventDefault();const order=["reopen","close","close_others","close_saved","close_all"],entries=editor_entries(leaf).filter(entry=>order.includes(entry.id||"")).sort((a,b)=>order.indexOf(a.id!)-order.indexOf(b.id!)).map(entry=>({...entry,separator:entry.id==="close"}));workspace_menu(event,entries,"workspace-menu-compact");};
+        row.oncontextmenu=event=>{event.preventDefault();const order=["reopen","open_vscode","close","close_others","close_saved","close_all"],entries=editor_entries(leaf).filter(entry=>order.includes(entry.id||"")).sort((a,b)=>order.indexOf(a.id!)-order.indexOf(b.id!)).map(entry=>({...entry,separator:entry.id==="close"}));workspace_menu(event,entries,"workspace-menu-compact");};
         row.append(close,button);body.append(row);
       }
     }

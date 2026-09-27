@@ -1,3 +1,4 @@
+import {vscode_resource_entry} from "./workspace_open_vscode";
 import {get_workspace_quick_open} from "./workspace_quick_open";
 import type {graph_core,graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
@@ -138,6 +139,7 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
         ]})]:[]),
       entry("reveal_system","在系统文件管理器中显示",()=>reveal(leaf,true),{shortcut:"Shift+Alt+R",separator:true,disabled:!file}),
       entry("reveal_explorer","在资源管理器视图中显示",()=>reveal(leaf,false),{disabled:!file}),
+      {...vscode_resource_entry(ordinary?state.file_path:""),action:()=>{if(present(leaf)&&ordinary)return vscode_resource_entry(state.file_path).action();}},
       entry("keep_open","保持打开",()=>{files.keep_open(leaf);refresh();},{separator:true,shortcut:"Ctrl+K Enter",disabled:!leaf.state.workspace_preview}),
       entry("pin",leaf.state.workspace_pinned?"取消固定":"固定",()=>pin(leaf),{shortcut:"Ctrl+K Shift+Enter"}),
       entry("split_right","向右拆分",()=>split(leaf,"right"),{separator:true,shortcut:"Ctrl+\\",disabled:!ordinary||state.busy}),

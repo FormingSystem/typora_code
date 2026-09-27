@@ -1,0 +1,7 @@
+{
+  "repository": "https://github.com/microsoft/vscode",
+  "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "path": "src/vs/sessions/browser/media/vscode-icon.svg",
+  "sha256": "914cf3a167b1f956fe4b1a39bff32673c0e4fac56a9dff9e7f069f73b28a8dea",
+  "usage": "标识在 Visual Studio Code 中打开动作，不表示微软官方产品或背书。"
+}

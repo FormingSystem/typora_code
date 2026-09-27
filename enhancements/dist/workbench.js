@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners7 = this._listeners;
-          const index = listeners7.indexOf(listener);
+          const listeners8 = this._listeners;
+          const index = listeners8.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners7[index] = void 0;
+          listeners8[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners7.length) {
+          if (this._size * compactionThreshold <= listeners8.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners7.length; i++) {
-              if (listeners7[i]) {
-                listeners7[n2++] = listeners7[i];
+            for (let i = 0; i < listeners8.length; i++) {
+              if (listeners8[i]) {
+                listeners8[n2++] = listeners8[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners7.length = n2;
+            listeners8.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners7 = dq.current._listeners;
+          const listeners8 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners7[dq.i++], dq.value);
+            this._deliver(listeners8[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners7 = [];
-          listeners7.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners7.push(value.onWillDispose(() => {
+          const listeners8 = [];
+          listeners8.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners8.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners7);
+            dispose(listeners8);
           }));
           return value;
         }
@@ -158147,6 +158147,111 @@ https://creativecommons.org/licenses/by/4.0/
     }
   });
 
+  // src/workspace_theme.ts
+  function workspace_surface_background(element) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = 1;
+    const context = canvas.getContext("2d");
+    if (!context) return [255, 255, 255];
+    const chain = [];
+    for (let node = element; node; node = node.parentElement) chain.unshift(node);
+    context.fillStyle = "#ffffff";
+    context.fillRect(0, 0, 1, 1);
+    for (const node of chain) {
+      context.fillStyle = getComputedStyle(node).backgroundColor;
+      context.fillRect(0, 0, 1, 1);
+    }
+    return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
+  }
+  var listeners = /* @__PURE__ */ new Set();
+  var palette_listeners = /* @__PURE__ */ new Set();
+  var observer;
+  var frame = 0;
+  function workspace_theme_mode() {
+    const rgb = workspace_surface_background(document.body);
+    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light";
+  }
+  var scheme = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : void 0;
+  var update = () => {
+    if (frame) return;
+    frame = requestAnimationFrame(() => {
+      frame = 0;
+      for (const listener of palette_listeners) listener();
+      for (const listener of listeners) listener();
+    });
+  };
+  function observe_workspace_theme(listener, role = "consumer") {
+    const owners2 = role === "palette" ? palette_listeners : listeners;
+    owners2.add(listener);
+    if (!observer) {
+      observer = new MutationObserver(update);
+      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
+      observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+      observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+      document.head.addEventListener("load", update, true);
+      window.addEventListener("focus", update);
+      scheme?.addEventListener("change", update);
+    }
+    update();
+    return () => {
+      owners2.delete(listener);
+      if (!listeners.size && !palette_listeners.size) {
+        observer?.disconnect();
+        observer = void 0;
+        cancelAnimationFrame(frame);
+        frame = 0;
+        document.head.removeEventListener("load", update, true);
+        window.removeEventListener("focus", update);
+        scheme?.removeEventListener("change", update);
+      }
+    };
+  }
+
+  // src/reading_mermaid_theme.ts
+  var listeners2 = /* @__PURE__ */ new Set();
+  var runtime = () => window;
+  function mermaid_theme_options() {
+    const configured = runtime().File?.editor?.diagrams?.getCurrentMermaidOptions?.();
+    if (configured) return structuredClone(configured);
+    const theme2 = getComputedStyle(document.body).getPropertyValue("--mermaid-theme").trim().replace(/["']/gu, "");
+    return theme2 === "night" ? { theme: "dark", themeVariables: { darkMode: false } } : { theme: ["base", "default", "dark", "forest", "neutral"].includes(theme2) ? theme2 : "default", themeVariables: {} };
+  }
+  function observe_mermaid_theme(listener) {
+    listeners2.add(listener);
+    const unwatch = observe_workspace_theme(listener);
+    return () => {
+      listeners2.delete(listener);
+      unwatch();
+    };
+  }
+  function bind_native_mermaid_theme() {
+    let owner2, original, wrapper, disposed = false;
+    const restore = () => {
+      if (owner2 && owner2.loadMermaidTheme === wrapper && original) owner2.loadMermaidTheme = original;
+    };
+    const reconcile = () => {
+      if (disposed) return;
+      const next = runtime().File?.editor?.diagrams;
+      if (!next || next === owner2) return;
+      restore();
+      owner2 = next;
+      original = next.loadMermaidTheme;
+      const load = original;
+      wrapper = function() {
+        const value = load.call(next);
+        for (const listener of listeners2) listener();
+        return value;
+      };
+      next.loadMermaidTheme = wrapper;
+    };
+    const unwatch = observe_workspace_theme(reconcile);
+    return { reconcile, dispose() {
+      disposed = true;
+      unwatch();
+      restore();
+    } };
+  }
+
   // src/reading_code_geometry.ts
   function bind_reading_code_geometry() {
     const entries3 = /* @__PURE__ */ new Map();
@@ -158296,8 +158401,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
   var service_key = Symbol.for("typora-code:workspace-dismissal");
   function register_workspace_dismissal(roots, cancel, options2 = {}) {
-    const runtime2 = window;
-    if (!runtime2[service_key]) {
+    const runtime3 = window;
+    if (!runtime3[service_key]) {
       const stack = [];
       let pending, listening = false, dismissing = false;
       let gesture;
@@ -158413,7 +158518,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (owner2?.options.window_blur) cancel_record(owner2, "window-blur");
         cleanup();
       };
-      runtime2[service_key] = { add(record) {
+      runtime3[service_key] = { add(record) {
         record.focused = inside(record, active_element());
         stack.push(record);
         if (!listening) {
@@ -158427,7 +158532,7 @@ https://creativecommons.org/licenses/by/4.0/
         } };
       } };
     }
-    return runtime2[service_key].add({ roots, cancel, options: options2, focused: false });
+    return runtime3[service_key].add({ roots, cancel, options: options2, focused: false });
   }
 
   // src/workspace_interaction.css
@@ -160347,21 +160452,21 @@ https://creativecommons.org/licenses/by/4.0/
   };
   var dictionaries = { "zh-cn": zh_cn, en };
   function language_candidates() {
-    const runtime2 = globalThis;
-    const plugin_env = runtime2[Symbol.for("typora-code:workspace:env")];
+    const runtime3 = globalThis;
+    const plugin_env = runtime3[Symbol.for("typora-code:workspace:env")];
     return [
       plugin_env?.userLang,
-      runtime2._options?.displayLang,
-      runtime2._options?.userLang,
-      runtime2._options?.appLocale,
-      runtime2._options?.locale,
-      runtime2.File?.option?.displayLang,
-      runtime2.File?.option?.userLang,
-      runtime2.File?.option?.locale,
-      runtime2.document?.documentElement?.lang,
-      runtime2.document?.body?.lang,
-      ...runtime2.navigator?.languages || [],
-      runtime2.navigator?.language
+      runtime3._options?.displayLang,
+      runtime3._options?.userLang,
+      runtime3._options?.appLocale,
+      runtime3._options?.locale,
+      runtime3.File?.option?.displayLang,
+      runtime3.File?.option?.userLang,
+      runtime3.File?.option?.locale,
+      runtime3.document?.documentElement?.lang,
+      runtime3.document?.body?.lang,
+      ...runtime3.navigator?.languages || [],
+      runtime3.navigator?.language
     ].filter((value) => typeof value === "string" && Boolean(value.trim()));
   }
   function resolve_git_graph_locale(language44) {
@@ -160566,6 +160671,12 @@ https://creativecommons.org/licenses/by/4.0/
         const arrow = workspace_element("span", "git-menu-arrow");
         if (entry.children) arrow.append(git_icon("chevron-right"));
         if (check2) node.append(check2);
+        else if (entry.icon) {
+          const slot = workspace_element("span", "git-menu-check");
+          slot.setAttribute("aria-hidden", "true");
+          slot.append(entry.icon());
+          node.append(slot);
+        }
         node.append(workspace_element("span", "git-menu-label", entry.title));
         node.append(workspace_element("span", "git-menu-shortcut", entry.shortcut || ""));
         node.append(arrow);
@@ -160919,66 +161030,6 @@ https://creativecommons.org/licenses/by/4.0/
         disposed = true;
         for (const element of entries3.keys()) remove(element);
         overlay.dispose();
-      }
-    };
-  }
-
-  // src/workspace_theme.ts
-  function workspace_surface_background(element) {
-    const canvas = document.createElement("canvas");
-    canvas.width = canvas.height = 1;
-    const context = canvas.getContext("2d");
-    if (!context) return [255, 255, 255];
-    const chain = [];
-    for (let node = element; node; node = node.parentElement) chain.unshift(node);
-    context.fillStyle = "#ffffff";
-    context.fillRect(0, 0, 1, 1);
-    for (const node of chain) {
-      context.fillStyle = getComputedStyle(node).backgroundColor;
-      context.fillRect(0, 0, 1, 1);
-    }
-    return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
-  }
-  var listeners = /* @__PURE__ */ new Set();
-  var palette_listeners = /* @__PURE__ */ new Set();
-  var observer;
-  var frame = 0;
-  function workspace_theme_mode() {
-    const rgb = workspace_surface_background(document.body);
-    return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light";
-  }
-  var scheme = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : void 0;
-  var update = () => {
-    if (frame) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0;
-      for (const listener of palette_listeners) listener();
-      for (const listener of listeners) listener();
-    });
-  };
-  function observe_workspace_theme(listener, role = "consumer") {
-    const owners2 = role === "palette" ? palette_listeners : listeners;
-    owners2.add(listener);
-    if (!observer) {
-      observer = new MutationObserver(update);
-      observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
-      observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-      observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
-      document.head.addEventListener("load", update, true);
-      window.addEventListener("focus", update);
-      scheme?.addEventListener("change", update);
-    }
-    update();
-    return () => {
-      owners2.delete(listener);
-      if (!listeners.size && !palette_listeners.size) {
-        observer?.disconnect();
-        observer = void 0;
-        cancelAnimationFrame(frame);
-        frame = 0;
-        document.head.removeEventListener("load", update, true);
-        window.removeEventListener("focus", update);
-        scheme?.removeEventListener("change", update);
       }
     };
   }
@@ -161350,8 +161401,8 @@ https://creativecommons.org/licenses/by/4.0/
   var meta_selector = ".md-meta,.md-content";
   var forbidden_selector = ".CodeMirror,.md-math,.md-inline-math,.md-image,.md-fences,.md-rawblock,script,style,textarea,input";
   var clone = (value) => JSON.parse(JSON.stringify(value));
-  function capture_text_color(runtime2, owner2) {
-    const file = runtime2.File, e = file?.editor, root = document.querySelector("#write"), s15 = window.getSelection();
+  function capture_text_color(runtime3, owner2) {
+    const file = runtime3.File, e = file?.editor, root = document.querySelector("#write"), s15 = window.getSelection();
     if (!e?.undo?.UndoManager?.buildReplaceUndo || !e.contextMenu?.hide || !file?.bundle || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || !root || !s15 || s15.isCollapsed || s15.rangeCount !== 1) return;
     const range2 = s15.getRangeAt(0);
     if (!root.contains(range2.startContainer) || !root.contains(range2.endContainer)) return;
@@ -161426,8 +161477,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (!blocks3.length) return;
     return { editor: e, bundle: file.bundle, owner: owner2, markdown: e.getMarkdown(), cursor: clone(cursor), blocks: blocks3 };
   }
-  function apply_text_color(runtime2, owner2, snapshot, color) {
-    const e = snapshot.editor, file = runtime2.File;
+  function apply_text_color(runtime3, owner2, snapshot, color) {
+    const e = snapshot.editor, file = runtime3.File;
     if (!file || file.editor !== e || file.bundle !== snapshot.bundle || owner2 !== snapshot.owner || file.isLocked || file.isFileLoading?.() || e.sourceView.inSourceMode || e.getMarkdown() !== snapshot.markdown) throw new Error("\u6587\u6863\u6216\u9009\u533A\u5DF2\u53D8\u5316\uFF0C\u8BF7\u91CD\u65B0\u9009\u4E2D\u6587\u5B57\u540E\u8BBE\u7F6E\u989C\u8272\u3002");
     const changes = snapshot.blocks.map((block3) => {
       const node = e.getNode(block3.id);
@@ -161556,7 +161607,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/markdown_color_menu.ts
   function bind_markdown_color_menu(core) {
-    const runtime2 = window, e = runtime2.File?.editor, menu = document.querySelector("#context-menu");
+    const runtime3 = window, e = runtime3.File?.editor, menu = document.querySelector("#context-menu");
     const theme2 = bind_markdown_color_theme();
     if (!e?.contextMenu?.show || !menu) return { dispose: () => theme2.dispose() };
     const style = acquire_workspace_style("typora-code-style:markdown_color", markdown_color_menu_default), events = new AbortController();
@@ -161582,7 +161633,7 @@ https://creativecommons.org/licenses/by/4.0/
       item.classList.add("hide");
       const element = target || (event.target instanceof Element ? event.target : null);
       if (element?.closest("#write")) try {
-        snapshot = capture_text_color(runtime2, owner2());
+        snapshot = capture_text_color(runtime3, owner2());
       } catch (error) {
         reason = error instanceof Error ? error.message : String(error);
       }
@@ -161606,7 +161657,7 @@ https://creativecommons.org/licenses/by/4.0/
       e.contextMenu.hide();
       dialog2?.close();
       const restore = (restore_focus) => {
-        if (restore_focus && runtime2.File?.bundle === selection.bundle && owner2() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
+        if (restore_focus && runtime3.File?.bundle === selection.bundle && owner2() === selection.owner && e.getMarkdown() === selection.markdown) e.undo.exeCommand(selection.cursor);
       };
       const panel = dialog2 = workspace_dialog("\u5B57\u4F53\u989C\u8272", "\u53D6\u6D88", restore);
       panel.root.classList.add("workspace-color-dialog");
@@ -161617,7 +161668,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (color) color = normalize_text_color(color);
           panel.close();
           dialog2 = void 0;
-          apply_text_color(runtime2, owner2(), selection, color);
+          apply_text_color(runtime3, owner2(), selection, color);
           theme2.refresh();
         } catch (error) {
           fail(error);
@@ -162297,8 +162348,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_native_document.ts
-  function prepare_deleted_native_document(runtime2, includes, read_text) {
-    const file = runtime2.File, path = String(file?.bundle?.filePath || "");
+  function prepare_deleted_native_document(runtime3, includes, read_text) {
+    const file = runtime3.File, path = String(file?.bundle?.filePath || "");
     if (!path || !includes(path)) return;
     if (typeof file.changeCounter?.isDocumentEdited !== "function") throw new Error("\u5BBF\u4E3B\u65E0\u6CD5\u786E\u8BA4\u672A\u4FDD\u5B58\u72B6\u6001\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
     if (file.changeCounter.isDocumentEdited() || file.isFileLoading?.() || file._onFileSwitching || file._onInitParse || file.inSavingProcess) throw new Error("Markdown\u6B63\u5728\u7F16\u8F91\u3001\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5220\u9664\u3002");
@@ -162347,19 +162398,19 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_native_trash.ts
-  async function trash_native_path(runtime2, target) {
+  async function trash_native_path(runtime3, target) {
     const remote = remote_files_for(target);
     if (remote) {
       await remote.trash(target);
       return;
     }
-    const fs2 = runtime2.reqnode("fs").promises;
-    if (runtime2.JSBridge?.invoke) {
-      if (await runtime2.JSBridge.invoke("shell.trashItem", target) !== true) {
+    const fs2 = runtime3.reqnode("fs").promises;
+    if (runtime3.JSBridge?.invoke) {
+      if (await runtime3.JSBridge.invoke("shell.trashItem", target) !== true) {
         throw new Error("\u672A\u80FD\u79FB\u5230\u56DE\u6536\u7AD9\uFF1A" + target + "\u3002\u8BF7\u68C0\u67E5\u6587\u4EF6\u5360\u7528\u3001\u76EE\u5F55\u6743\u9650\u53CA\u56DE\u6536\u7AD9\u652F\u6301\uFF1B\u672A\u6267\u884C\u6C38\u4E45\u5220\u9664\u3002");
       }
     } else {
-      const shell = runtime2.reqnode("electron")?.shell;
+      const shell = runtime3.reqnode("electron")?.shell;
       if (typeof shell?.trashItem !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u56DE\u6536\u7AD9\u63A5\u53E3\uFF0C\u6587\u4EF6\u5DF2\u4FDD\u7559\u3002");
       await shell.trashItem(target);
     }
@@ -162422,20 +162473,20 @@ https://creativecommons.org/licenses/by/4.0/
   // src/reading_native_scroll.ts
   function stop_native_reading_scroll(scroller) {
     if (scroller.tagName !== "CONTENT") return;
-    const runtime2 = window;
-    runtime2.$?.(scroller).stop?.(true, false);
+    const runtime3 = window;
+    runtime3.$?.(scroller).stop?.(true, false);
   }
-  function bind_reading_native_scroll(editor2, runtime2) {
+  function bind_reading_native_scroll(editor2, runtime3) {
     const selection = editor2?.selection, original = selection?.scrollAdjust;
     if (typeof original !== "function") return () => {
     };
     const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
     const adjusted = function(target, margin, duration, force) {
       const content = document.querySelector("content.typ-workspace-binding");
-      const file = runtime2.File;
+      const file = runtime3.File;
       if (content && typeof margin === "number" && Number.isFinite(margin) && !editor2.sourceView?.inSourceMode && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
-        const title = file?.isNodeHtml ? runtime2.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
-        const search2 = runtime2.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
+        const title = file?.isNodeHtml ? runtime3.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
+        const search2 = runtime3.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
         margin += Math.max(0, reading_viewport_bounds(content).top - title - search2);
       }
       return original.call(this, target, margin, duration, force);
@@ -162699,16 +162750,16 @@ https://creativecommons.org/licenses/by/4.0/
     { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
     { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
   ];
-  function workspace_zoom_available(runtime2, id) {
+  function workspace_zoom_available(runtime3, id) {
     const action = WORKSPACE_ZOOM_ACTIONS.find((action2) => action2.id === id);
-    return Boolean(action && typeof runtime2.ClientCommand?.[action.native_command] === "function");
+    return Boolean(action && typeof runtime3.ClientCommand?.[action.native_command] === "function");
   }
   function workspace_zoom_shortcut(event) {
     if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph") || event.ctrlKey === event.metaKey) return;
     if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
     if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
   }
-  function bind_workspace_zoom_commands(app, runtime2) {
+  function bind_workspace_zoom_commands(app, runtime3) {
     const lifetime = create_workspace_lifetime();
     let wheel_frame = 0;
     let wheel_target;
@@ -162721,7 +162772,7 @@ https://creativecommons.org/licenses/by/4.0/
       const event = raw, root = reading_wheel_root(event);
       if (!root) return;
       const id = wheel_zoom_direction(event) > 0 ? "linux_note:zoom_in" : "linux_note:zoom_out";
-      if (!workspace_zoom_available(runtime2, id)) return;
+      if (!workspace_zoom_available(runtime3, id)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       wheel_target = root;
@@ -162735,17 +162786,17 @@ https://creativecommons.org/licenses/by/4.0/
         let scroller = target.parentElement;
         while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
         const action = WORKSPACE_ZOOM_ACTIONS.find((item) => item.id === wheel_action);
-        if (!action || !workspace_zoom_available(runtime2, wheel_action)) return;
-        const run = () => runtime2.ClientCommand[action.native_command]();
+        if (!action || !workspace_zoom_available(runtime3, wheel_action)) return;
+        const run = () => runtime3.ClientCommand[action.native_command]();
         if (scroller && scroller !== document.body) change_reading_geometry(scroller, target, run);
         else run();
       });
     }, { capture: true, passive: false });
     try {
       for (const action of WORKSPACE_ZOOM_ACTIONS) {
-        if (!workspace_zoom_available(runtime2, action.id)) continue;
+        if (!workspace_zoom_available(runtime3, action.id)) continue;
         lifetime.add(app.commands.register({ id: action.id, title: "\u89C6\u56FE\uFF1A" + action.label, scope: "global", callback() {
-          if (!lifetime.disposed && workspace_zoom_available(runtime2, action.id)) runtime2.ClientCommand[action.native_command]();
+          if (!lifetime.disposed && workspace_zoom_available(runtime3, action.id)) runtime3.ClientCommand[action.native_command]();
         } }));
       }
     } catch (error) {
@@ -164120,7 +164171,7 @@ https://creativecommons.org/licenses/by/4.0/
       return style.display !== "none" && style.visibility !== "hidden";
     });
   }
-  function install_workspace_shortcuts(app, runtime2) {
+  function install_workspace_shortcuts(app, runtime3) {
     if (active_binding) return active_binding;
     let chord_started = 0;
     const consumed = /* @__PURE__ */ new Set();
@@ -164141,7 +164192,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (primary_modifier(event) && document.querySelector(".workspace-titlebar-popup")) window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
       const zoom_command = workspace_zoom_shortcut(event);
-      if (zoom_command && workspace_zoom_available(runtime2, zoom_command) && !visible_modal(".reading-media-viewer")) {
+      if (zoom_command && workspace_zoom_available(runtime3, zoom_command) && !visible_modal(".reading-media-viewer")) {
         run(event, () => app.commands.run(zoom_command));
         return;
       }
@@ -164284,8 +164335,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function initialize_workspace(signal) {
     const lifetime = create_workspace_lifetime();
-    const runtime2 = window;
-    if (!runtime2.reqnode || !runtime2._options?.userDataPath) return lifetime;
+    const runtime3 = window;
+    if (!runtime3.reqnode || !runtime3._options?.userDataPath) return lifetime;
     document.documentElement.setAttribute("data-linux-note-workspace", "loading");
     const core = window[Symbol.for(WORKSPACE_NAMESPACE)];
     if (!core?.ready) throw new Error("Typora Code workspace runtime is unavailable; rerun the configuration installer.");
@@ -164310,8 +164361,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (current) sidebar.activePanel = current;
     };
     lifetime.listen(document, "click", reconcile_sidebar, true);
-    lifetime.own(bind_workspace_zoom_commands(app, runtime2));
-    lifetime.own(install_workspace_shortcuts(app, runtime2));
+    lifetime.own(bind_workspace_zoom_commands(app, runtime3));
+    lifetime.own(install_workspace_shortcuts(app, runtime3));
     lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
     document.documentElement.setAttribute("data-linux-note-workspace", "ready");
     return lifetime;
@@ -164320,7 +164371,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_editor_settings.ts
   var WORKSPACE_EDITOR_DEFAULTS = Object.freeze({ enable_preview: true, wrap_tabs: false, link_preview_enabled: true });
   var KEY = "workspace_editor";
-  var listeners2 = /* @__PURE__ */ new Set();
+  var listeners3 = /* @__PURE__ */ new Set();
   var locked_groups = /* @__PURE__ */ new WeakSet();
   function read_workspace_editor_settings() {
     const value = get_workspace_app()?.settings.get(KEY);
@@ -164338,12 +164389,12 @@ https://creativecommons.org/licenses/by/4.0/
     if (enabled === void 0) delete value[key3];
     else value[key3] = enabled;
     settings.set_and_save(KEY, value);
-    for (const listener of listeners2) listener();
+    for (const listener of listeners3) listener();
   }
   function observe_workspace_editor_settings(listener) {
-    listeners2.add(listener);
+    listeners3.add(listener);
     return () => {
-      listeners2.delete(listener);
+      listeners3.delete(listener);
     };
   }
   function workspace_editor_group_locked(group) {
@@ -164483,8 +164534,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners7 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners7) listener();
+    const listeners8 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners8) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -164514,8 +164565,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate: invalidate2,
       subscribe(listener) {
-        listeners7.add(listener);
-        return () => listeners7.delete(listener);
+        listeners8.add(listener);
+        return () => listeners8.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -164559,7 +164610,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners7.clear();
+        listeners8.clear();
         adapter.dispose();
       }
     };
@@ -186496,7 +186547,7 @@ https://creativecommons.org/licenses/by/4.0/
       const css = [];
       modes.forEach((mode, index) => {
         const prefix = ":root[data-workspace-code-theme=".concat(mode, "] #write"), colors = resolved_default[mode].colors;
-        css.push("".concat(prefix, " :is(.md-fences,.CodeMirror,pre,pre code){color:").concat(colors["editor.foreground"], "!important;background-color:").concat(colors["editor.background"], "!important}"), "".concat(prefix, " .CodeMirror-linenumber{color:").concat(colors["editorLineNumber.foreground"], "!important}"));
+        css.push("".concat(prefix, " :is(.md-fences:not(.md-diagram),.CodeMirror,pre:not(.md-diagram),pre code){color:").concat(colors["editor.foreground"], "!important;background-color:").concat(colors["editor.background"], "!important}"), "".concat(prefix, " .CodeMirror-linenumber{color:").concat(colors["editorLineNumber.foreground"], "!important}"));
         css.push("".concat(prefix, " :where(.CodeMirror-line span,pre code span){color:").concat(colors["editor.foreground"], "!important}"));
         for (const key3 of Object.keys(fallback_scopes)) {
           const aliases = { variable: ["variable-2"], type: ["variable-3", "qualifier"], string: ["string-2"], meta: ["metatag"], def: ["function"] };
@@ -186587,6 +186638,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function create_preview_diagrams() {
     let frame3, loading2;
+    const entries3 = /* @__PURE__ */ new Set();
+    let theme_fingerprint = JSON.stringify(mermaid_theme_options());
     let disposed = false, queued = Promise.resolve(), cancel_load;
     const load = () => loading2 ||= new Promise((resolve3, reject) => {
       frame3 = document.createElement("iframe");
@@ -186614,20 +186667,28 @@ https://creativecommons.org/licenses/by/4.0/
       script.onerror = () => finish(new Error("\u65E0\u6CD5\u8F7D\u5165\u5185\u7F6E\u56FE\u8868\u6E32\u67D3\u5668\u3002"));
       doc.head.append(script);
     });
+    const render_current = async (api2, source, current) => {
+      while (!disposed && current()) {
+        const options2 = mermaid_theme_options(), fingerprint = JSON.stringify(options2);
+        api2.initialize({ ...options2, startOnLoad: false, securityLevel: "strict", suppressErrorRendering: true, htmlLabels: false, flowchart: { ...options2.flowchart, htmlLabels: false } });
+        const result = await api2.render("linux_note_lookup_diagram_".concat(++diagram_serial), source);
+        if (fingerprint === JSON.stringify(mermaid_theme_options())) return result;
+      }
+      return void 0;
+    };
     const render = async (code, width2, show_source, current) => {
       const task = queued.then(async () => {
         if (disposed || !current()) return false;
         const api2 = await load();
         if (disposed || !current() || !frame3) return false;
         frame3.style.width = "".concat(Math.max(180, width2), "px");
-        const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
-        api2.initialize({ startOnLoad: false, securityLevel: "strict", suppressErrorRendering: true, theme: color[0] + color[1] + color[2] > 450 ? "dark" : "default", htmlLabels: false, flowchart: { htmlLabels: false } });
-        const result = await api2.render("linux_note_lookup_diagram_".concat(++diagram_serial), code.textContent || "");
-        if (disposed || !current()) return false;
+        const result = await render_current(api2, code.textContent || "", current);
+        if (!result || disposed || !current()) return false;
         const diagram = document.createElement("div");
         diagram.className = "lookup-diagram";
         diagram.innerHTML = purify2.sanitize(result.svg, { ADD_TAGS: ["foreignObject"], HTML_INTEGRATION_POINTS: { foreignobject: true }, FORBID_TAGS: ["script", "img", "image", "iframe", "object", "embed", "audio", "video", "source", "form"], FORBID_ATTR: ["href", "xlink:href"] });
         if (!diagram.querySelector("svg")) return false;
+        entries3.add({ element: diagram, source: code.textContent || "", width: width2, current, revision: 0 });
         const pre = code.closest("pre");
         if (show_source) {
           pre?.before(diagram);
@@ -186641,8 +186702,32 @@ https://creativecommons.org/licenses/by/4.0/
       queued = task;
       return task;
     };
+    const unwatch = observe_mermaid_theme(() => {
+      const fingerprint = JSON.stringify(mermaid_theme_options());
+      if (fingerprint === theme_fingerprint) return;
+      theme_fingerprint = fingerprint;
+      for (const entry of entries3) {
+        if (!entry.element.isConnected || !entry.current()) {
+          entries3.delete(entry);
+          continue;
+        }
+        const revision = ++entry.revision;
+        queued = queued.then(async () => {
+          if (disposed || revision !== entry.revision || !entry.element.isConnected || !entry.current()) return;
+          const api2 = await load();
+          if (disposed || !frame3) return;
+          frame3.style.width = "".concat(Math.max(180, entry.width), "px");
+          const result = await render_current(api2, entry.source, () => revision === entry.revision && entry.element.isConnected && entry.current());
+          if (!result || disposed || revision !== entry.revision || !entry.element.isConnected || !entry.current()) return;
+          entry.element.innerHTML = purify2.sanitize(result.svg, { ADD_TAGS: ["foreignObject"], HTML_INTEGRATION_POINTS: { foreignobject: true }, FORBID_TAGS: ["script", "img", "image", "iframe", "object", "embed", "audio", "video", "source", "form"], FORBID_ATTR: ["href", "xlink:href"] });
+        }).catch(() => {
+        });
+      }
+    });
     return { render, dispose() {
       disposed = true;
+      unwatch();
+      entries3.clear();
       cancel_load?.();
       frame3?.remove();
       frame3 = void 0;
@@ -188801,7 +188886,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/reading_navigation_ports.ts
   var ports = /* @__PURE__ */ new Map();
-  var listeners3 = /* @__PURE__ */ new Set();
+  var listeners4 = /* @__PURE__ */ new Set();
   function register_navigation_editor(port, kind = "source") {
     ports.set(kind, port);
     return () => {
@@ -188824,11 +188909,11 @@ https://creativecommons.org/licenses/by/4.0/
     return editor_port;
   }
   function notify_navigation_selection(explicit = false) {
-    for (const listener of listeners3) listener(explicit);
+    for (const listener of listeners4) listener(explicit);
   }
   function observe_navigation_selection(listener) {
-    listeners3.add(listener);
-    return () => listeners3.delete(listener);
+    listeners4.add(listener);
+    return () => listeners4.delete(listener);
   }
 
   // src/reading_navigation.ts
@@ -188859,8 +188944,8 @@ https://creativecommons.org/licenses/by/4.0/
     const previous_attrs = attrs.map((name) => document.documentElement.getAttribute(name));
     const app = get_workspace_app();
     const stop_native_scroll = bind_reading_native_scroll(editor2, window);
-    const runtime2 = window;
-    const path_api = app ? runtime2.reqnode("path") : void 0;
+    const runtime3 = window;
+    const path_api = app ? runtime3.reqnode("path") : void 0;
     const history = create_reading_history();
     const publish_history_state = () => {
       if (disposed) return;
@@ -188981,7 +189066,7 @@ https://creativecommons.org/licenses/by/4.0/
           path = resolved;
           assert_remote_owner(path);
           await remote_files_for(path)?.prepare(path, false, () => !disposed && !signal.aborted);
-          const fs2 = runtime2.reqnode("fs");
+          const fs2 = runtime3.reqnode("fs");
           if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
         }
         if (disposed || signal.aborted) return false;
@@ -189313,6 +189398,209 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_files.ts
   init_editor_api();
 
+  // src/workspace_vscode_service.ts
+  function create_vscode_environment(reqnode) {
+    const process2 = reqnode("process"), child_process = reqnode("child_process");
+    const lookup_env = { ...process2.env };
+    for (const key3 of Object.keys(lookup_env)) if (key3.toLowerCase() === "psmodulepath") delete lookup_env[key3];
+    return {
+      platform: process2.platform,
+      env: process2.env,
+      fs: reqnode("fs"),
+      path_api: reqnode("path"),
+      execute: (file, args) => new Promise((resolve3, reject) => child_process.execFile(file, args, { windowsHide: true, timeout: 5e3, encoding: "utf8", env: lookup_env }, (error, stdout) => error ? reject(error) : resolve3(stdout))),
+      launch: (file, args, env2) => new Promise((resolve3, reject) => {
+        const child = child_process.spawn(file, args, { shell: false, detached: true, stdio: "ignore", windowsHide: true, env: env2 });
+        child.once("error", reject);
+        child.once("spawn", () => {
+          child.unref();
+          resolve3();
+        });
+      })
+    };
+  }
+  async function discover_vscode(runtime3) {
+    const { fs: fs2, path_api, platform: platform3, env: env2 } = runtime3;
+    const variable = (name) => Object.entries(env2).find(([key3]) => key3.toLowerCase() === name.toLowerCase())?.[1] || "";
+    const expand = (value) => value.replace(/%([^%]+)%/gu, (_2, key3) => variable(key3));
+    const valid = async (file) => {
+      try {
+        if (!path_api.isAbsolute(file)) return false;
+        const stat = await fs2.promises.stat(file);
+        if (!stat.isFile()) return false;
+        if (platform3 !== "win32") await fs2.promises.access(file, fs2.constants.X_OK);
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    const checked = /* @__PURE__ */ new Set();
+    const candidate = async (file) => {
+      const key3 = platform3 === "win32" ? file.toLowerCase() : file;
+      if (checked.has(key3)) return;
+      checked.add(key3);
+      return await valid(file) ? { file, args: [] } : void 0;
+    };
+    const from_path = async (value) => {
+      for (const part of value.split(platform3 === "win32" ? ";" : ":")) {
+        const directory = expand(part.trim().replace(/^"|"$/gu, ""));
+        if (!directory || !path_api.isAbsolute(directory)) continue;
+        if (platform3 === "win32") {
+          const executable = await candidate(path_api.join(directory, "Code.exe"));
+          if (executable) return executable;
+          if (await valid(path_api.join(directory, "code.cmd"))) {
+            const installed = await candidate(path_api.resolve(directory, "..", "Code.exe"));
+            if (installed) return installed;
+          }
+        } else {
+          const executable = await candidate(path_api.join(directory, "code"));
+          if (executable) return executable;
+        }
+      }
+    };
+    const path_result = await from_path(variable("PATH"));
+    if (path_result) return path_result;
+    if (platform3 === "win32") {
+      const system_root = variable("SystemRoot") || variable("windir");
+      if (system_root) {
+        const powershell = path_api.join(system_root, "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+        const query = async (key3, value) => {
+          const registry_key = key3.replace(/^HKCU/u, "HKEY_CURRENT_USER").replace(/^HKLM/u, "HKEY_LOCAL_MACHINE");
+          try {
+            return (await runtime3.execute(powershell, ["-NoProfile", "-NonInteractive", "-Command", "[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$key=Get-Item -LiteralPath 'Registry::".concat(registry_key, "' -ErrorAction Stop;try{$key.GetValue('").concat(value || "", "','','DoNotExpandEnvironmentNames')}finally{$key.Close()}")])).trim();
+          } catch {
+            return "";
+          }
+        };
+        for (const key3 of ["HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe", "HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe", "HKLM\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe"]) {
+          const registered = expand(await query(key3)).replace(/^"|"$/gu, "");
+          const result = await candidate(registered);
+          if (result) return result;
+        }
+        for (const key3 of ["HKCU\\Environment", "HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment"]) {
+          const result = await from_path(await query(key3, "Path"));
+          if (result) return result;
+        }
+      }
+      for (const [base, parts] of [[variable("LOCALAPPDATA"), ["Programs", "Microsoft VS Code", "Code.exe"]], [variable("ProgramW6432"), ["Microsoft VS Code", "Code.exe"]], [variable("ProgramFiles"), ["Microsoft VS Code", "Code.exe"]], [variable("ProgramFiles(x86)"), ["Microsoft VS Code", "Code.exe"]]]) {
+        if (base) {
+          const result = await candidate(path_api.join(base, ...parts));
+          if (result) return result;
+        }
+      }
+    }
+    if (platform3 === "darwin") {
+      try {
+        const apps = await runtime3.execute("/usr/bin/mdfind", ["kMDItemCFBundleIdentifier == 'com.microsoft.VSCode'"]);
+        for (const app of apps.split(/\r?\n/u).filter(Boolean)) if (await valid(path_api.join(app, "Contents", "MacOS", "Electron"))) return { file: "/usr/bin/open", args: ["-a", app, "--args"] };
+      } catch {
+      }
+    }
+    throw new Error("\u672A\u627E\u5230 VS Code\u3002\u8BF7\u5B89\u88C5 Visual Studio Code\uFF0C\u5E76\u542F\u7528\u201C\u6DFB\u52A0\u5230 PATH\u201D\uFF1B\u5B89\u88C5\u540E\u53EF\u76F4\u63A5\u91CD\u8BD5\u3002");
+  }
+  async function open_resource_in_vscode(runtime3, target) {
+    if (!target || !runtime3.path_api.isAbsolute(target)) throw new Error("\u8BF7\u5148\u5C06\u6587\u6863\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6\uFF0C\u518D\u5728 VS Code \u4E2D\u6253\u5F00\u3002");
+    const stat = await runtime3.fs.promises.stat(target).catch(() => {
+      throw new Error("\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u4E0D\u5B58\u5728\uFF0C\u6216\u5F53\u524D\u65E0\u6743\u8BBF\u95EE\uFF1A" + target);
+    });
+    if (!stat.isFile() && !stat.isDirectory()) throw new Error("\u53EA\u80FD\u5728 VS Code \u4E2D\u6253\u5F00\u666E\u901A\u6587\u4EF6\u6216\u6587\u4EF6\u5939\u3002");
+    const application = await discover_vscode(runtime3), env2 = { ...runtime3.env };
+    for (const key3 of Object.keys(env2)) if (["ELECTRON_RUN_AS_NODE", "VSCODE_IPC_HOOK_CLI"].includes(key3.toUpperCase())) delete env2[key3];
+    try {
+      await runtime3.launch(application.file, [...application.args, "--", target], env2);
+    } catch (error) {
+      throw new Error("\u65E0\u6CD5\u542F\u52A8 VS Code\uFF1A" + (error instanceof Error ? error.message : String(error)));
+    }
+  }
+
+  // vendor/vscode_brand/icon.json
+  var svg3 = '<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">\n<g filter="url(#filter0_d_1844_64)">\n<mask id="mask0_1844_64" style="mask-type:alpha" maskUnits="userSpaceOnUse" x="6" y="6" width="84" height="84">\n<path fill-rule="evenodd" clip-rule="evenodd" d="M65.566 89.4264C66.889 89.9418 68.3976 89.9087 69.7329 89.2662L87.0271 80.9446C88.8444 80.0701 90 78.231 90 76.2132V19.7872C90 17.7695 88.8444 15.9303 87.0271 15.0559L69.7329 6.73395C67.9804 5.89069 65.9295 6.09724 64.3914 7.21543C64.1716 7.37517 63.9624 7.55352 63.7659 7.75007L30.6583 37.9548L16.2372 27.0081C14.8948 25.9891 13.0171 26.0726 11.7702 27.2067L7.14495 31.4141C5.61986 32.8014 5.61811 35.2007 7.14117 36.5902L19.6476 48.0001L7.14117 59.4099C5.61811 60.7995 5.61986 63.1988 7.14495 64.5861L11.7702 68.7934C13.0171 69.9276 14.8948 70.0111 16.2372 68.9921L30.6583 58.0453L63.7659 88.2501C64.2897 88.7741 64.9046 89.1688 65.566 89.4264ZM69.0128 28.9311L43.8917 48.0001L69.0128 67.069V28.9311Z" fill="white"/>\n</mask>\n<g mask="url(#mask0_1844_64)">\n<path d="M87.0275 15.0688L69.7198 6.73546C67.7164 5.77087 65.3223 6.17776 63.75 7.75L7.09081 59.4099C5.56682 60.7994 5.56857 63.1987 7.09459 64.586L11.7227 68.7934C12.9703 69.9275 14.8491 70.011 16.1924 68.992L84.4232 17.2307C86.7122 15.4942 90 17.1268 90 20V19.7991C90 17.7823 88.8447 15.9437 87.0275 15.0688Z" fill="#0065A9"/>\n<g filter="url(#filter1_d_1844_64)">\n<path d="M87.0275 80.9312L69.7198 89.2646C67.7164 90.2292 65.3223 89.8223 63.75 88.25L7.09081 36.5902C5.56682 35.2007 5.56857 32.8013 7.09459 31.414L11.7227 27.2067C12.9703 26.0725 14.8491 25.989 16.1924 27.008L84.4232 78.7693C86.7122 80.5058 90 78.8732 90 76V76.201C90 78.2178 88.8447 80.0563 87.0275 80.9312Z" fill="#007ACC"/>\n</g>\n<g filter="url(#filter2_d_1844_64)">\n<path d="M69.7206 89.2661C67.7166 90.2298 65.3224 89.8223 63.75 88.25C65.6874 90.1873 69 88.8152 69 86.0753V9.92459C69 7.18472 65.6874 5.81259 63.75 7.74996C65.3224 6.17757 67.7166 5.77012 69.7206 6.73385L87.0253 15.0558C88.8437 15.9302 90 17.7694 90 19.7871V76.2131C90 78.2309 88.8436 80.07 87.0253 80.9445L69.7206 89.2661Z" fill="#1F9CF0"/>\n</g>\n<g opacity="0.25" style="mix-blend-mode:overlay">\n<path fill-rule="evenodd" clip-rule="evenodd" d="M65.5149 89.4264C66.8379 89.9417 68.3465 89.9087 69.6818 89.2662L86.976 80.9445C88.7933 80.0701 89.9489 78.2309 89.9489 76.2132V19.7871C89.9489 17.7694 88.7933 15.9303 86.9761 15.0558L69.6818 6.7339C67.9294 5.89064 65.8784 6.09718 64.3403 7.21538C64.1206 7.37512 63.9113 7.55347 63.7149 7.75001L30.6072 37.9548L16.1862 27.008C14.8437 25.989 12.966 26.0725 11.7192 27.2067L7.09389 31.4141C5.5688 32.8013 5.56705 35.2007 7.09011 36.5902L19.5965 48L7.09011 59.4099C5.56705 60.7994 5.5688 63.1987 7.09389 64.586L11.7192 68.7934C12.966 69.9275 14.8437 70.011 16.1862 68.992L30.6072 58.0453L63.7149 88.25C64.2386 88.7741 64.8536 89.1687 65.5149 89.4264ZM68.9617 28.9311L43.8406 48L68.9617 67.069V28.9311Z" fill="url(#paint0_linear_1844_64)"/>\n</g>\n</g>\n</g>\n<defs>\n<filter id="filter0_d_1844_64" x="3" y="4" width="90" height="90" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">\n<feFlood flood-opacity="0" result="BackgroundImageFix"/>\n<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>\n<feOffset dy="1"/>\n<feGaussianBlur stdDeviation="1.5"/>\n<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>\n<feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_1844_64"/>\n<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1844_64" result="shape"/>\n</filter>\n<filter id="filter1_d_1844_64" x="-1.05106" y="19.2964" width="98.0511" height="77.4863" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">\n<feFlood flood-opacity="0" result="BackgroundImageFix"/>\n<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>\n<feOffset/>\n<feGaussianBlur stdDeviation="3.5"/>\n<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>\n<feBlend mode="overlay" in2="BackgroundImageFix" result="effect1_dropShadow_1844_64"/>\n<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1844_64" result="shape"/>\n</filter>\n<filter id="filter2_d_1844_64" x="56.75" y="-0.783493" width="40.25" height="97.5669" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">\n<feFlood flood-opacity="0" result="BackgroundImageFix"/>\n<feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>\n<feOffset/>\n<feGaussianBlur stdDeviation="3.5"/>\n<feColorMatrix type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0.25 0"/>\n<feBlend mode="overlay" in2="BackgroundImageFix" result="effect1_dropShadow_1844_64"/>\n<feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1844_64" result="shape"/>\n</filter>\n<linearGradient id="paint0_linear_1844_64" x1="47.9489" y1="6.21656" x2="47.9489" y2="89.7835" gradientUnits="userSpaceOnUse">\n<stop stop-color="white"/>\n<stop offset="1" stop-color="white" stop-opacity="0"/>\n</linearGradient>\n</defs>\n</svg>\n';
+
+  // src/workspace_open_vscode.css
+  var workspace_open_vscode_default = "";
+
+  // src/workspace_open_vscode.ts
+  function vscode_menu_icon() {
+    const icon = workspace_element("img");
+    icon.src = "data:image/svg+xml," + encodeURIComponent(svg3);
+    icon.alt = "";
+    icon.width = 16;
+    icon.height = 16;
+    icon.setAttribute("aria-hidden", "true");
+    icon.dataset.productIcon = "vscode";
+    return icon;
+  }
+  function vscode_resource_available(path) {
+    if (!path || remote_files_for(path)) return false;
+    const runtime3 = window;
+    return runtime3.reqnode("path").isAbsolute(path);
+  }
+  function vscode_resource_entry(path) {
+    return { id: "open_vscode", title: "\u5728 VS Code \u4E2D\u6253\u5F00", icon: vscode_menu_icon, disabled: !vscode_resource_available(path), action: () => {
+      void (async () => {
+        if (!vscode_resource_available(path)) throw new Error("\u8BF7\u5148\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6\uFF1B\u8FDC\u7AEF\u6587\u4EF6\u6682\u4E0D\u652F\u6301\u6B64\u64CD\u4F5C\u3002");
+        const runtime3 = window;
+        await open_resource_in_vscode(create_vscode_environment((name) => runtime3.reqnode(name)), path);
+      })().catch((error) => {
+        const core = window[Symbol.for("typora-code:workspace")];
+        if (core?.Notice) new core.Notice(error instanceof Error ? error.message : String(error), 5e3);
+        else console.error("Typora Code VS Code:", error);
+      });
+    } };
+  }
+  function bind_native_vscode_menu(files) {
+    const runtime3 = window, context = runtime3.File?.editor?.contextMenu, menu = document.querySelector("#context-menu");
+    if (!context?.show || !menu) return { dispose() {
+    } };
+    let disposed = false, target = "";
+    const item = workspace_element("li", "hide"), anchor = workspace_element("a", "", "\u5728 VS Code \u4E2D\u6253\u5F00");
+    item.dataset.key = "typora-code-open-vscode";
+    anchor.tabIndex = 0;
+    anchor.setAttribute("role", "menuitem");
+    const slot = workspace_element("span", "workspace-native-menu-icon");
+    slot.append(vscode_menu_icon());
+    anchor.prepend(slot);
+    item.append(anchor);
+    menu.append(item);
+    const style = acquire_workspace_style("typora-code-style:open_vscode", workspace_open_vscode_default);
+    const interaction = acquire_workspace_interaction(item), events = new AbortController(), original = context.show;
+    const show2 = context.show = function(event, node) {
+      if (disposed) return original.call(this, event, node);
+      const source = node || (event.target instanceof Element ? event.target : void 0);
+      target = source?.closest("#write") ? files.current_file() : "";
+      const available = vscode_resource_available(target);
+      item.classList.toggle("hide", !source?.closest("#write"));
+      item.classList.toggle("disabled", !available);
+      anchor.setAttribute("aria-disabled", String(!available));
+      anchor.title = available ? "\u6253\u5F00\u78C1\u76D8\u6587\u4EF6\uFF1B\u672A\u4FDD\u5B58\u7684\u7F16\u8F91\u4ECD\u4FDD\u7559\u5728 Typora" : "\u8BF7\u5148\u4FDD\u5B58\u4E3A\u672C\u5730\u6587\u4EF6";
+      return original.call(this, event, node);
+    };
+    for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
+      document.addEventListener(name, (event) => {
+        if (!(event.target instanceof Node) || !item.contains(event.target)) return;
+        if (event instanceof KeyboardEvent && !["Enter", " "].includes(event.key)) return;
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if ((name === "click" || event instanceof KeyboardEvent && !event.repeat) && target === files.current_file() && vscode_resource_available(target)) {
+          const entry = vscode_resource_entry(target);
+          context.hide();
+          void Promise.resolve().then(() => entry.action?.()).catch((error) => {
+            if (!disposed) new files.core.Notice(String(error instanceof Error ? error.message : error), 5e3);
+          });
+        }
+      }, { capture: true, signal: events.signal });
+    }
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      events.abort();
+      if (context.show === show2) context.show = original;
+      item.remove();
+      interaction.remove();
+      style.remove();
+    } };
+  }
+
   // src/workspace_files.css
   var workspace_files_default = "";
 
@@ -189394,8 +189682,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_tree.ts
   var ROW_HEIGHT = 26;
   function create_workspace_file_tree(options2) {
-    const runtime2 = window;
-    const fs2 = options2.fs || runtime2.reqnode("fs"), path_api = options2.path_api || runtime2.reqnode("path");
+    const runtime3 = window;
+    const fs2 = options2.fs || runtime3.reqnode("fs"), path_api = options2.path_api || runtime3.reqnode("path");
     const style = acquire_workspace_style("typora-code-style:workspace_explorer", workspace_explorer_default, {});
     const container = workspace_element("section", "linux-note-workspace-explorer");
     if (options2.selection) container.classList.add("workspace-file-tree-selection");
@@ -190624,11 +190912,11 @@ https://creativecommons.org/licenses/by/4.0/
       active_host = existing_binding.host;
       return existing_binding.host;
     }
-    const runtime2 = window;
-    const fs2 = workspace_resource_fs(runtime2.reqnode("fs"));
-    const path_api = runtime2.reqnode("path");
-    const shell = runtime2.reqnode("electron").shell;
-    if (runtime2._options?.userDataPath) protect_remote_cache(path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache"), path_api);
+    const runtime3 = window;
+    const fs2 = workspace_resource_fs(runtime3.reqnode("fs"));
+    const path_api = runtime3.reqnode("path");
+    const shell = runtime3.reqnode("electron").shell;
+    if (runtime3._options?.userDataPath) protect_remote_cache(path_api.join(runtime3._options.userDataPath, "typora_code", "remote_cache"), path_api);
     let native_app_open_file = core.app.openFile;
     const style = acquire_workspace_style("typora-code-style:workspace_files", workspace_files_default, {});
     const group_locations = /* @__PURE__ */ new Map();
@@ -190659,7 +190947,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       if (previous && previous !== leaf && previous_exists) {
         const source = [...views].find((view) => view.leaf === previous);
-        const native_dirty = runtime2.File?.changeCounter?.isDocumentEdited() && file_key(runtime2.File?.bundle?.filePath || "") === file_key(previous.state.path);
+        const native_dirty = runtime3.File?.changeCounter?.isDocumentEdited() && file_key(runtime3.File?.bundle?.filePath || "") === file_key(previous.state.path);
         if (source?.dirty() || source?.saving || native_dirty) keep_open(previous);
         else previous.parent.removeTab?.(previous.state.path);
       }
@@ -190736,7 +191024,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (source_path) return source_path;
       return "";
     };
-    const context_root = () => active_remote_files()?.root || (runtime2.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || ""));
+    const context_root = () => active_remote_files()?.root || (runtime3.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || ""));
     class source_file_view extends core.WorkspaceView {
       navigation_id = next_navigation_id--;
       containerEl = workspace_element("section", "linux-note-source-file");
@@ -190993,7 +191281,7 @@ https://creativecommons.org/licenses/by/4.0/
           return false;
         }
         if (this.saving || this.loading || !this.editor || !this.format) return false;
-        if (runtime2.File?.bundle?.filePath === this.file_path && runtime2.File?.changeCounter?.isDocumentEdited()) {
+        if (runtime3.File?.bundle?.filePath === this.file_path && runtime3.File?.changeCounter?.isDocumentEdited()) {
           this.status.textContent = "\u8BE5 Markdown \u7684\u6B63\u6587\u7F16\u8F91\u5668\u6709\u672A\u4FDD\u5B58\u4FEE\u6539\uFF0C\u8BF7\u5148\u5904\u7406\u6B63\u6587\u8349\u7A3F\u3002";
           return false;
         }
@@ -191018,11 +191306,11 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       async save_as() {
-        if (this.disposed || this.saving || this.loading || renaming || !this.editor || !this.format || !runtime2.JSBridge?.invoke) return false;
+        if (this.disposed || this.saving || this.loading || renaming || !this.editor || !this.format || !runtime3.JSBridge?.invoke) return false;
         this.saving = true;
         this.refresh_shared();
         try {
-          const result = remote_files_for(this.file_path) ? { filePath: await choose_remote_resource(false, this.file_path) } : await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u53E6\u5B58\u4E3A", defaultPath: this.file_path, properties: ["showOverwriteConfirmation"], filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] });
+          const result = remote_files_for(this.file_path) ? { filePath: await choose_remote_resource(false, this.file_path) } : await runtime3.JSBridge.invoke("dialog.showSaveDialog", { title: "\u53E6\u5B58\u4E3A", defaultPath: this.file_path, properties: ["showOverwriteConfirmation"], filters: [{ name: "\u6240\u6709\u6587\u4EF6", extensions: ["*"] }] });
           if (this.disposed || core.app.workspace.activeLeaf !== this.leaf || result?.canceled || !result?.filePath) return false;
           if (!path_api.isAbsolute(result.filePath)) throw new Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u4FDD\u5B58\u8DEF\u5F84\u65E0\u6548\u3002");
           const target = path_api.normalize(result.filePath);
@@ -191034,7 +191322,7 @@ https://creativecommons.org/licenses/by/4.0/
           core.app.workspace.eachLeaves((leaf) => {
             if (leaf !== this.leaf && file_key(real_path(leaf)) === file_key(target)) opened = true;
           });
-          if (opened || file_key(runtime2.File?.bundle?.filePath || "") === file_key(target)) throw new Error("\u76EE\u6807\u6587\u4EF6\u5DF2\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\uFF0C\u8BF7\u5148\u5173\u95ED\u76EE\u6807\u6807\u7B7E\u5E76\u5904\u7406\u5176\u4FEE\u6539\u3002");
+          if (opened || file_key(runtime3.File?.bundle?.filePath || "") === file_key(target)) throw new Error("\u76EE\u6807\u6587\u4EF6\u5DF2\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\uFF0C\u8BF7\u5148\u5173\u95ED\u76EE\u6807\u6807\u7B7E\u5E76\u5904\u7406\u5176\u4FEE\u6539\u3002");
           const parent = this.leaf.parent;
           if (typeof parent.renameTab !== "function") throw new Error("\u5F53\u524D\u7F16\u8F91\u7EC4\u4E0D\u652F\u6301\u66F4\u65B0\u6587\u4EF6\u8EAB\u4EFD\u3002");
           const model = this.editor.models[0], version = model.getAlternativeVersionId(), format3 = { ...this.format }, format_key = this.format_key();
@@ -191163,6 +191451,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       menu_entries() {
         return [
+          vscode_resource_entry(this.file_path),
           { title: "\u4FDD\u5B58\u6587\u4EF6\uFF08Ctrl+S\uFF09", action: () => void this.save() },
           { title: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", action: () => void this.save_as() },
           { title: "\u4ECE\u78C1\u76D8\u91CD\u65B0\u52A0\u8F7D", action: () => this.confirm_reload() },
@@ -191340,22 +191629,22 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     const routed_app_open_file = function(target) {
-      const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime2.File?.bundle?.filePath || "";
+      const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime3.File?.bundle?.filePath || "";
       target = resolve_host_open_file_target(path_api, source, target);
       const markdown = resolve_markdown_file_target(path_api, context_root(), target);
       if (markdown) return open_file(markdown.file_path, { hash: markdown.hash });
       if (!target.startsWith("typ://")) return open_file(target);
       return native_app_open_file.call(this, target);
     };
-    let library = runtime2.File?.editor?.library;
+    let library = runtime3.File?.editor?.library;
     let native_library_open_file = typeof library?.openFile === "function" ? library.openFile : void 0;
     const routed_library_open_file = function(target, ...args) {
       if (typeof target === "string" && !target.startsWith("typ://") && !parse_markdown_file_target(target)) {
-        const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime2.File?.bundle?.filePath || "";
+        const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime3.File?.bundle?.filePath || "";
         return open_file(resolve_host_open_file_target(path_api, source, target));
       }
       if (typeof target === "string" && parse_markdown_file_target(target)) {
-        const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime2.File?.bundle?.filePath || "";
+        const source = real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || runtime3.File?.bundle?.filePath || "";
         const markdown = resolve_markdown_file_target(path_api, context_root(), resolve_host_open_file_target(path_api, source, target));
         const remote = markdown && remote_files_for(markdown.file_path);
         if (markdown && remote && !remote.prepared(markdown.file_path)) {
@@ -191379,7 +191668,7 @@ https://creativecommons.org/licenses/by/4.0/
           const callback = args[0];
           const completed = function(...callback_args) {
             const result = typeof callback === "function" ? callback.apply(this, callback_args) : void 0;
-            if (binding.active && file_key(runtime2.File?.bundle?.filePath || "") === file_key(markdown.file_path) && file_key(real_path(core.app.workspace.activeLeaf)) === file_key(markdown.file_path)) {
+            if (binding.active && file_key(runtime3.File?.bundle?.filePath || "") === file_key(markdown.file_path) && file_key(real_path(core.app.workspace.activeLeaf)) === file_key(markdown.file_path)) {
               void navigate_reading_target(markdown.file_path, { hash: markdown.hash }).catch((error) => console.error("Typora Code link navigation:", error));
             }
             return result;
@@ -191393,9 +191682,10 @@ https://creativecommons.org/licenses/by/4.0/
     const copy = (text3) => {
       if (file_clipboard.is_busy()) throw new Error("\u6587\u4EF6\u526A\u8D34\u677F\u6B63\u5728\u5904\u7406\uFF0C\u8BF7\u7A0D\u540E\u590D\u5236\u8DEF\u5F84\u3002");
       file_clipboard.invalidate();
-      runtime2.reqnode("electron").clipboard.writeText(remote_files_for(text3)?.remote_path(text3) || text3);
+      runtime3.reqnode("electron").clipboard.writeText(remote_files_for(text3)?.remote_path(text3) || text3);
     };
     const file_menu = (event, file_path) => workspace_menu(event, [
+      vscode_resource_entry(file_path),
       { title: "\u6253\u5F00\u6587\u4EF6", action: () => void open_file(file_path) },
       { title: "\u5728\u53F3\u4FA7\u6253\u5F00", action: () => void open_file(file_path, {}, "right") },
       { title: "\u590D\u5236\u8DEF\u5F84", action: () => copy(file_path) },
@@ -191403,10 +191693,10 @@ https://creativecommons.org/licenses/by/4.0/
       { title: "\u5728\u6587\u4EF6\u5939\u4E2D\u663E\u793A", action: () => remote_files_for(file_path) ? core.app.commands.run("linux_note:reveal_in_explorer", [file_path, context_root()]) : shell.showItemInFolder(file_path) }
     ]);
     const relocate_file = async (root, old_path, name, moving = false) => {
-      if (renaming || runtime2.File?._onFileSwitching || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
+      if (renaming || runtime3.File?._onFileSwitching || runtime3.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u91CD\u8BD5\u3002");
       renaming = true;
       const relocations = [];
-      const library2 = runtime2.File?.editor?.library;
+      const library2 = runtime3.File?.editor?.library;
       let paused = false, native_watch_paused = false, old_native_path = "", new_native_path = "", applied = false, renamed_path = "";
       try {
         const plan = await (moving ? prepare_workspace_move : prepare_workspace_rename)({ fs: fs2, path_api }, root, old_path, name);
@@ -191418,9 +191708,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (view.loading || view.saving) throw new Error("\u6709\u5173\u6807\u7B7E\u6B63\u5728\u8BFB\u53D6\u6216\u4FDD\u5B58\uFF0C\u8BF7\u7A0D\u540E\u518D\u91CD\u547D\u540D\u3002");
           relocations.push({ view, target, previous_path: view.file_path, became_markdown: !is_markdown_file(view.file_path) && is_markdown_file(target), transaction: await view.text_document.prepare_relocation(target) });
         }
-        old_native_path = runtime2.File?.bundle?.filePath || "";
+        old_native_path = runtime3.File?.bundle?.filePath || "";
         new_native_path = map(old_native_path) || "";
-        if (new_native_path && typeof runtime2.doApplyRename !== "function") throw new Error("\u5F53\u524D Typora \u672A\u63D0\u4F9B\u539F\u751F\u6587\u6863\u6539\u540D\u63A5\u53E3\uFF0C\u5DF2\u505C\u6B62\u91CD\u547D\u540D\u4EE5\u4FDD\u7559\u7F16\u8F91\u5185\u5BB9\u3002");
+        if (new_native_path && typeof runtime3.doApplyRename !== "function") throw new Error("\u5F53\u524D Typora \u672A\u63D0\u4F9B\u539F\u751F\u6587\u6863\u6539\u540D\u63A5\u53E3\uFF0C\u5DF2\u505C\u6B62\u91CD\u547D\u540D\u4EE5\u4FDD\u7559\u7F16\u8F91\u5185\u5BB9\u3002");
         const tabs = [];
         const all_leaves = [];
         core.app.workspace.eachLeaves((leaf) => {
@@ -191435,7 +191725,7 @@ https://creativecommons.org/licenses/by/4.0/
         });
         library2?.pauseOnChange?.();
         paused = true;
-        const ipc = runtime2.reqnode("electron").ipcRenderer;
+        const ipc = runtime3.reqnode("electron").ipcRenderer;
         if (new_native_path) {
           await ipc.invoke("app.sendEvent", "willRename", { oldPath: plan.old_path });
           native_watch_paused = true;
@@ -191473,11 +191763,11 @@ https://creativecommons.org/licenses/by/4.0/
           }
           view.update_status();
         }
-        if (new_native_path) runtime2.doApplyRename(new_native_path);
+        if (new_native_path) runtime3.doApplyRename(new_native_path);
         rename_reading_paths(map);
         editor_status.refresh();
         editor_status.schedule();
-        runtime2.File?.editor?.quickOpenPanel?.updateCacheByRename?.(plan.old_path, plan.new_path);
+        runtime3.File?.editor?.quickOpenPanel?.updateCacheByRename?.(plan.old_path, plan.new_path);
         window.dispatchEvent(new CustomEvent("linux-note-workspace-renamed", { detail: { old_path: plan.old_path, new_path: plan.new_path, directory: plan.directory } }));
         await ipc.invoke("app.sendEvent", "didRename", { oldPath: plan.old_path, newPath: plan.new_path });
         if (problems.length) throw new Error("\u540D\u79F0\u5DF2\u66F4\u65B0\uFF0C\u4F46\u78C1\u76D8\u5185\u5BB9\u540C\u65F6\u53D1\u751F\u53D8\u5316\u3002\u8349\u7A3F\u4ECD\u4FDD\u7559\uFF0C\u8BF7\u6BD4\u8F83\u540E\u518D\u4FDD\u5B58\u3002\n" + problems.join("\n"));
@@ -191487,7 +191777,7 @@ https://creativecommons.org/licenses/by/4.0/
         throw error;
       } finally {
         for (const relocation of relocations) relocation.transaction.cancel();
-        if (!applied && native_watch_paused && old_native_path) runtime2.doApplyRename?.(old_native_path);
+        if (!applied && native_watch_paused && old_native_path) runtime3.doApplyRename?.(old_native_path);
         if (paused) library2?.resumeOnChange?.();
         renaming = false;
       }
@@ -191517,10 +191807,10 @@ https://creativecommons.org/licenses/by/4.0/
     const pending_native_saves = /* @__PURE__ */ new Set();
     let native_open_pending = false;
     const release_save_active = core.app.workspace.on("active-leaf:change", () => {
-      if (native_document_active2()) native_open_pending = file_key(core.app.workspace.activeLeaf?.state.path || "") !== file_key(runtime2.File?.bundle?.filePath || "") || Boolean(runtime2.File?.isFileLoading?.() || runtime2.File?._onInitParse || runtime2.File?._onFileSwitching);
+      if (native_document_active2()) native_open_pending = file_key(core.app.workspace.activeLeaf?.state.path || "") !== file_key(runtime3.File?.bundle?.filePath || "") || Boolean(runtime3.File?.isFileLoading?.() || runtime3.File?._onInitParse || runtime3.File?._onFileSwitching);
     });
     const release_save_open = core.app.workspace.on("file:open", (opened) => {
-      if (typeof opened === "string" && file_key(opened) === file_key(core.app.workspace.activeLeaf?.state.path || "") && file_key(opened) === file_key(runtime2.File?.bundle?.filePath || "")) native_open_pending = false;
+      if (typeof opened === "string" && file_key(opened) === file_key(core.app.workspace.activeLeaf?.state.path || "") && file_key(opened) === file_key(runtime3.File?.bundle?.filePath || "")) native_open_pending = false;
     });
     const save_leaf = async (leaf) => {
       const port = document_port(leaf);
@@ -191529,7 +191819,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (source) return source.save();
       if (leaf.state.path.startsWith("typ://") || !binding.active) return false;
       const target = file_key(leaf.state.path), workspace = core.app.workspace;
-      const native_matches = () => workspace.activeLeaf === leaf && file_key(runtime2.File?.bundle?.filePath || "") === target;
+      const native_matches = () => workspace.activeLeaf === leaf && file_key(runtime3.File?.bundle?.filePath || "") === target;
       const preview_only = () => typeof leaf.view.isEditor === "function" && !leaf.view.isEditor();
       if (workspace.activeLeaf === leaf && preview_only()) return false;
       if (workspace.activeLeaf !== leaf || native_open_pending || !native_matches()) {
@@ -191569,9 +191859,9 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (preview_only()) return false;
       if (!binding.active || !native_matches()) return false;
-      if (runtime2.File?.isNode && typeof runtime2.File.saveUseNode === "function") return await runtime2.File.saveUseNode(false) === true;
-      if (typeof runtime2.ClientCommand?.save !== "function") return false;
-      await Promise.resolve(runtime2.ClientCommand.save());
+      if (runtime3.File?.isNode && typeof runtime3.File.saveUseNode === "function") return await runtime3.File.saveUseNode(false) === true;
+      if (typeof runtime3.ClientCommand?.save !== "function") return false;
+      await Promise.resolve(runtime3.ClientCommand.save());
       return true;
     };
     const save_active = async () => {
@@ -191584,19 +191874,19 @@ https://creativecommons.org/licenses/by/4.0/
       if (!state.file_path || state.busy || !state.dirty) return false;
       const source = [...views].find((view) => view.leaf === leaf && !view.disposed);
       if (source) return source.save();
-      if (state.kind !== "markdown" || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(state.file_path) || runtime2.File?.isReadonlyMode || runtime2.File?.isLocked) return false;
-      return runtime2.File?.isNode && typeof runtime2.File.saveUseNode === "function" ? await runtime2.File.saveUseNode(false, true) === true : false;
+      if (state.kind !== "markdown" || file_key(runtime3.File?.bundle?.filePath || "") !== file_key(state.file_path) || runtime3.File?.isReadonlyMode || runtime3.File?.isLocked) return false;
+      return runtime3.File?.isNode && typeof runtime3.File.saveUseNode === "function" ? await runtime3.File.saveUseNode(false, true) === true : false;
     };
     const native_ready = () => {
       const leaf = core.app.workspace.activeLeaf;
-      return binding.active && native_document_active2() && file_key(leaf.state.path) === file_key(runtime2.File?.bundle?.filePath || "") && (!leaf.view.isEditor || leaf.view.isEditor()) && !runtime2.File?._onFileSwitching && !runtime2.File?.inSavingProcess;
+      return binding.active && native_document_active2() && file_key(leaf.state.path) === file_key(runtime3.File?.bundle?.filePath || "") && (!leaf.view.isEditor || leaf.view.isEditor()) && !runtime3.File?._onFileSwitching && !runtime3.File?.inSavingProcess;
     };
     const save_as_active = async () => {
       const source = active_source_view();
       if (source) return source.save_as();
-      const old_path = runtime2.File?.bundle?.filePath || "", remote = remote_files_for(old_path) || (!old_path ? active_remote_files() : void 0);
+      const old_path = runtime3.File?.bundle?.filePath || "", remote = remote_files_for(old_path) || (!old_path ? active_remote_files() : void 0);
       if (remote) {
-        if (!native_ready() || typeof runtime2.File?.saveAsUseNode !== "function") return false;
+        if (!native_ready() || typeof runtime3.File?.saveAsUseNode !== "function") return false;
         const leaf = core.app.workspace.activeLeaf, epoch2 = workspace_context_epoch();
         const target = await choose_remote_resource(false, old_path || path_api.join(remote.root, "Untitled.md"));
         if (!target) return false;
@@ -191607,17 +191897,17 @@ https://creativecommons.org/licenses/by/4.0/
           if (item !== leaf && file_key(real_path(item)) === file_key(target)) opened = true;
         });
         if (opened) throw Error("\u76EE\u6807\u6587\u4EF6\u5DF2\u5728\u7F16\u8F91\u5668\u4E2D\u6253\u5F00\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u6807\u7B7E\u7684\u4FEE\u6539\u3002");
-        const text3 = runtime2.File.editor.getMarkdown(), valid = () => binding.active && core.app.workspace.activeLeaf === leaf && (runtime2.File.bundle.filePath || "") === old_path && runtime2.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
+        const text3 = runtime3.File.editor.getMarkdown(), valid = () => binding.active && core.app.workspace.activeLeaf === leaf && (runtime3.File.bundle.filePath || "") === old_path && runtime3.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
         await save_text_document_as({ fs: fs2, path_api }, target, text3, { text: text3, encoding: "utf-8", bom: false, eol: "LF" });
         if (!valid()) return false;
         await remote.prepare(target, true, valid);
         if (!valid()) return false;
-        const error = await runtime2.File.saveAsUseNode(target);
+        const error = await runtime3.File.saveAsUseNode(target);
         if (error) throw error;
         return true;
       }
-      if (!native_ready() || !runtime2.ClientCommand?.saveAs) return false;
-      await Promise.resolve(runtime2.ClientCommand.saveAs());
+      if (!native_ready() || !runtime3.ClientCommand?.saveAs) return false;
+      await Promise.resolve(runtime3.ClientCommand.saveAs());
       return true;
     };
     const reload_active = () => {
@@ -191627,19 +191917,19 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       if (!native_ready()) return;
-      const path = runtime2.File?.bundle?.filePath || "", remote = remote_files_for(path);
+      const path = runtime3.File?.bundle?.filePath || "", remote = remote_files_for(path);
       if (!remote) {
-        runtime2.ClientCommand?.reloadFromDisk?.();
+        runtime3.ClientCommand?.reloadFromDisk?.();
         return;
       }
       const reload = async () => {
-        const text3 = runtime2.File.editor.getMarkdown(), epoch2 = workspace_context_epoch();
-        const valid = () => native_ready() && runtime2.File.bundle.filePath === path && runtime2.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
+        const text3 = runtime3.File.editor.getMarkdown(), epoch2 = workspace_context_epoch();
+        const valid = () => native_ready() && runtime3.File.bundle.filePath === path && runtime3.File.editor.getMarkdown() === text3 && epoch2 === workspace_context_epoch();
         await remote.prepare(path, true, valid);
-        if (valid()) await runtime2.File.reloadFromDisk(true);
+        if (valid()) await runtime3.File.reloadFromDisk(true);
       };
       const perform = () => void reload().catch((error) => new core.Notice(String(error.message), 6e3));
-      if (runtime2.File?.changeCounter?.isDocumentEdited()) {
+      if (runtime3.File?.changeCounter?.isDocumentEdited()) {
         const dialog2 = workspace_dialog("\u91CD\u65B0\u52A0\u8F7D\u8FDC\u7A0B\u6587\u4EF6");
         dialog2.content.append(workspace_element("p", "", "\u91CD\u65B0\u52A0\u8F7D\u4F1A\u4E22\u5F03\u6B64\u6587\u6863\u672A\u4FDD\u5B58\u7684\u4FEE\u6539\u3002"));
         dialog2.footer.prepend(workspace_button("\u4E22\u5F03\u4FEE\u6539\u5E76\u91CD\u65B0\u52A0\u8F7D", () => {
@@ -191665,7 +191955,7 @@ https://creativecommons.org/licenses/by/4.0/
       }).map((view) => view.save());
       source_saves.push(...[...document_ports].filter((port) => !port.disposed && port.dirty()).map((port) => port.save()));
       const [, source_results] = await Promise.all([
-        Promise.resolve().then(() => runtime2.ClientCommand?.saveAll?.()),
+        Promise.resolve().then(() => runtime3.ClientCommand?.saveAll?.()),
         Promise.all(source_saves)
       ]);
       return source_results.every(Boolean);
@@ -191675,12 +191965,12 @@ https://creativecommons.org/licenses/by/4.0/
       if (port) return { file_path: "", kind: "other", dirty: port.dirty(), busy: port.busy() };
       const source = [...views].find((view) => view.leaf === leaf && !view.disposed), file_path = real_path(leaf);
       const markdown = !source && (is_markdown_file(file_path) || leaf.state.path === "");
-      const native_same = markdown && file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
+      const native_same = markdown && file_key(runtime3.File?.bundle?.filePath || "") === file_key(file_path);
       return {
         file_path,
         kind: source ? "source" : markdown ? "markdown" : "other",
-        dirty: source ? source.dirty() : Boolean(native_same && runtime2.File?.changeCounter?.isDocumentEdited()),
-        busy: Boolean(renaming || source?.saving || source?.loading || native_same && (runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || runtime2.File?._onFileSwitching))
+        dirty: source ? source.dirty() : Boolean(native_same && runtime3.File?.changeCounter?.isDocumentEdited()),
+        busy: Boolean(renaming || source?.saving || source?.loading || native_same && (runtime3.File?.isFileLoading?.() || runtime3.File?.inSavingProcess || runtime3.File?._onFileSwitching))
       };
     };
     const prepare_workspace_switch = async () => {
@@ -191690,7 +191980,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       const check2 = () => {
         assert_workspace_context_ready();
-        if (!binding.active || renaming || file_operation_count || file_clipboard.is_busy() || runtime2.File?.isFileLoading?.() || runtime2.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
+        if (!binding.active || renaming || file_operation_count || file_clipboard.is_busy() || runtime3.File?.isFileLoading?.() || runtime3.File?.inSavingProcess || leaves.some((leaf) => editor_state(leaf).busy)) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u4FDD\u5B58\u6216\u79FB\u52A8\uFF0C\u8BF7\u5B8C\u6210\u540E\u518D\u5207\u6362\u5DE5\u4F5C\u533A\u3002");
         const current = [];
         core.app.workspace.eachLeaves((leaf) => {
           current.push(leaf);
@@ -191810,13 +192100,13 @@ https://creativecommons.org/licenses/by/4.0/
       });
       controls.push(save_button);
       dialog2.footer.prepend(save_button);
-      if (path && typeof runtime2.File?.reloadFromDisk === "function") {
+      if (path && typeof runtime3.File?.reloadFromDisk === "function") {
         const discard_button = workspace_button("\u4E0D\u4FDD\u5B58\u5E76\u5173\u95ED", () => {
           if (saving || !identity5()) return;
           set_busy(true);
           void (async () => {
-            if (file_key(runtime2.File?.bundle?.filePath || "") !== file_key(path)) return;
-            await runtime2.File.reloadFromDisk(true);
+            if (file_key(runtime3.File?.bundle?.filePath || "") !== file_key(path)) return;
+            await runtime3.File.reloadFromDisk(true);
             if (dialog2.root.isConnected && identity5() && !editor_state(leaf).dirty) await finish();
           })().catch((error) => {
             message.textContent = String(error);
@@ -191896,7 +192186,7 @@ https://creativecommons.org/licenses/by/4.0/
       return true;
     };
     const refresh_renamed_editors = async () => {
-      if (refreshing_renamed_editors || renaming || runtime2.File?.changeCounter?.isDocumentEdited()) return;
+      if (refreshing_renamed_editors || renaming || runtime3.File?.changeCounter?.isDocumentEdited()) return;
       refreshing_renamed_editors = true;
       const active2 = core.app.workspace.activeLeaf;
       let desired_active = active2;
@@ -191928,17 +192218,17 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return present;
     };
-    const transfer_loading = () => Boolean(runtime2.File?.isFileLoading?.() || runtime2.File?._onFileSwitching || runtime2.File?._onInitParse);
+    const transfer_loading = () => Boolean(runtime3.File?.isFileLoading?.() || runtime3.File?._onFileSwitching || runtime3.File?._onInitParse);
     const transfer_guard = (signal) => {
       if (signal?.aborted || !binding.active) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
-      if (renaming || runtime2.File?.isFileLoading?.() || runtime2.File?._onFileSwitching || runtime2.File?._onInitParse || runtime2.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
+      if (renaming || runtime3.File?.isFileLoading?.() || runtime3.File?._onFileSwitching || runtime3.File?._onInitParse || runtime3.File?.inSavingProcess) throw new Error("\u6587\u4EF6\u6B63\u5728\u8BFB\u53D6\u3001\u5207\u6362\u3001\u4FDD\u5B58\u6216\u91CD\u547D\u540D\uFF0C\u8BF7\u7A0D\u540E\u518D\u79FB\u81F3\u65B0\u7A97\u53E3\u3002");
     };
     const prepare_transfer = async (current, signal) => {
       const deadline = Date.now() + 5e3, epoch2 = workspace_context_epoch();
       const valid = () => epoch2 === workspace_context_epoch() && !workspace_context_switching() && current();
       while (transfer_loading()) {
         if (signal?.aborted || !binding.active || !valid()) throw new Error("\u7A97\u53E3\u79FB\u4EA4\u5DF2\u53D6\u6D88\u6216\u76EE\u6807\u5DF2\u6539\u53D8\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
-        if (renaming || runtime2.File?.inSavingProcess || Date.now() >= deadline) transfer_guard(signal);
+        if (renaming || runtime3.File?.inSavingProcess || Date.now() >= deadline) transfer_guard(signal);
         await new Promise((resolve3) => setTimeout(resolve3, 20));
       }
       transfer_guard(signal);
@@ -191946,7 +192236,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const transfer_hash = async (value) => {
       const bytes = typeof value === "string" ? new TextEncoder().encode(value) : value;
-      const digest = await runtime2.reqnode("crypto").webcrypto.subtle.digest("SHA-256", bytes);
+      const digest = await runtime3.reqnode("crypto").webcrypto.subtle.digest("SHA-256", bytes);
       return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
     };
     const transfer_disk = async (file_path, signal) => {
@@ -192005,8 +192295,8 @@ https://creativecommons.org/licenses/by/4.0/
       return { encoding, bom: bom === "true", eol };
     };
     const native_transfer_text = () => {
-      if (typeof runtime2.File?.editor?.getMarkdown !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u8BFB\u53D6\u539F\u751FMarkdown\u8349\u7A3F\u3002");
-      const text3 = runtime2.File.editor.getMarkdown();
+      if (typeof runtime3.File?.editor?.getMarkdown !== "function") throw new Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u8BFB\u53D6\u539F\u751FMarkdown\u8349\u7A3F\u3002");
+      const text3 = runtime3.File.editor.getMarkdown();
       if (typeof text3 !== "string") throw new Error("\u539F\u751FMarkdown\u6B63\u6587\u5C1A\u672A\u5C31\u7EEA\u3002");
       return text3;
     };
@@ -192047,16 +192337,16 @@ https://creativecommons.org/licenses/by/4.0/
         if (!is_markdown_file(file_path)) throw new Error("\u6B64\u6807\u7B7E\u4E0D\u662F\u53EF\u4EE5\u79FB\u4EA4\u7684\u6E90\u7801\u6216Markdown\u6587\u4EF6\u3002");
         const disk = await transfer_disk(file_path, signal);
         transfer_guard(signal);
-        const native_matches = file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
-        const decoded = decode_file_bytes(disk.bytes, native_matches ? (runtime2.File?.bundle?.fileEncode || "utf8").replace(/-bom$/u, "") : "utf-8");
+        const native_matches = file_key(runtime3.File?.bundle?.filePath || "") === file_key(file_path);
+        const decoded = decode_file_bytes(disk.bytes, native_matches ? (runtime3.File?.bundle?.fileEncode || "utf8").replace(/-bom$/u, "") : "utf-8");
         snapshot.disk_sha256 = disk.sha256;
         snapshot.markdown_baseline = decoded.text;
         if (native_matches) {
-          const saved = runtime2.File?.bundle?.savedContent;
+          const saved = runtime3.File?.bundle?.savedContent;
           if (typeof saved !== "string" || normalized_transfer_text(saved) !== normalized_transfer_text(decoded.text)) throw new Error("Markdown\u78C1\u76D8\u5185\u5BB9\u4E0E\u5F53\u524D\u52A0\u8F7D\u57FA\u7EBF\u4E0D\u540C\uFF0C\u8BF7\u5148\u6BD4\u8F83\u540E\u518D\u79FB\u4EA4\u3002");
           snapshot.text = native_transfer_text();
-          snapshot.dirty = Boolean(runtime2.File?.changeCounter?.isDocumentEdited());
-          if (snapshot.dirty && runtime2.File?.option?.enableAutoSave) throw new Error("\u5F53\u524D\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u65E0\u6CD5\u4FDD\u8BC1\u8349\u7A3F\u79FB\u4EA4\u4E0D\u5199\u5165\u78C1\u76D8\uFF1B\u8BF7\u5148\u5904\u7406\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+          snapshot.dirty = Boolean(runtime3.File?.changeCounter?.isDocumentEdited());
+          if (snapshot.dirty && runtime3.File?.option?.enableAutoSave) throw new Error("\u5F53\u524D\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u65E0\u6CD5\u4FDD\u8BC1\u8349\u7A3F\u79FB\u4EA4\u4E0D\u5199\u5165\u78C1\u76D8\uFF1B\u8BF7\u5148\u5904\u7406\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
           const content = document.querySelector("content"), write = content?.querySelector(":scope > #write");
           if (content && write) snapshot.reading_position = capture_position(content, write);
         } else {
@@ -192067,8 +192357,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (!snapshot.dirty && normalized_transfer_text(snapshot.text) !== normalized_transfer_text(decoded.text)) throw new Error("Markdown\u6B63\u6587\u4E0E\u78C1\u76D8\u57FA\u7EBF\u4E0D\u540C\uFF0C\u4E0D\u80FD\u4F5C\u4E3A\u5DF2\u4FDD\u5B58\u6587\u6863\u79FB\u4EA4\u3002");
         verify_content = () => {
           transfer_guard(signal);
-          const still_native = file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path);
-          if (still_native !== native_matches || still_native && (native_transfer_text() !== snapshot.text || Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) !== snapshot.dirty || snapshot.dirty && runtime2.File?.option?.enableAutoSave)) throw new Error("Markdown\u6B63\u6587\u6216\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\u5728\u6355\u83B7\u671F\u95F4\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u79FB\u4EA4\u3002");
+          const still_native = file_key(runtime3.File?.bundle?.filePath || "") === file_key(file_path);
+          if (still_native !== native_matches || still_native && (native_transfer_text() !== snapshot.text || Boolean(runtime3.File?.changeCounter?.isDocumentEdited()) !== snapshot.dirty || snapshot.dirty && runtime3.File?.option?.enableAutoSave)) throw new Error("Markdown\u6B63\u6587\u6216\u81EA\u52A8\u4FDD\u5B58\u8BBE\u7F6E\u5728\u6355\u83B7\u671F\u95F4\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u79FB\u4EA4\u3002");
         };
       }
       snapshot.capture_fingerprint = await transfer_fingerprint(snapshot);
@@ -192134,8 +192424,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const leaf2 = existing.find((item) => item === core.app.workspace.activeLeaf) || existing[0];
-        if (snapshot.kind === "markdown" && file_key(runtime2.File?.bundle?.filePath || "") !== file_key(snapshot.file_path)) {
-          if (runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F53\u524D\u6709\u53E6\u4E00\u4EFD\u672A\u4FDD\u5B58\u7684Markdown\u8349\u7A3F\uFF0C\u5DF2\u4FDD\u7559\u6587\u6863\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u8349\u7A3F\u3002");
+        if (snapshot.kind === "markdown" && file_key(runtime3.File?.bundle?.filePath || "") !== file_key(snapshot.file_path)) {
+          if (runtime3.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F53\u524D\u6709\u53E6\u4E00\u4EFD\u672A\u4FDD\u5B58\u7684Markdown\u8349\u7A3F\uFF0C\u5DF2\u4FDD\u7559\u6587\u6863\uFF0C\u8BF7\u5148\u5904\u7406\u8BE5\u8349\u7A3F\u3002");
           core.app.workspace.activeLeaf = leaf2;
           await navigate_reading_target(snapshot.file_path, { signal });
         } else if (core.app.workspace.activeLeaf !== leaf2) core.app.workspace.activeLeaf = leaf2;
@@ -192148,7 +192438,7 @@ https://creativecommons.org/licenses/by/4.0/
         keep_open(leaf2);
         return leaf2;
       }
-      const native_before = { path: runtime2.File?.bundle?.filePath || "", dirty: Boolean(runtime2.File?.changeCounter?.isDocumentEdited()), text: native_transfer_text() };
+      const native_before = { path: runtime3.File?.bundle?.filePath || "", dirty: Boolean(runtime3.File?.changeCounter?.isDocumentEdited()), text: native_transfer_text() };
       const check_destination = (received) => {
         transfer_guard(signal);
         let present = false, duplicate = false;
@@ -192163,11 +192453,11 @@ https://creativecommons.org/licenses/by/4.0/
         if (duplicate) throw new Error("\u76EE\u6807\u7A97\u53E3\u5DF2\u6253\u5F00\u540C\u4E00\u6587\u4EF6\uFF1B\u4E3A\u4FDD\u7559\u5176\u5185\u5BB9\u548C\u8349\u7A3F\uFF0C\u672A\u5408\u5E76\u8BE5\u6807\u7B7E\u3002");
         if (!present || context_root() !== target_root) throw new Error("\u63A5\u6536\u7F16\u8F91\u7EC4\u6216\u5DE5\u4F5C\u533A\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u62D6\u52A8\u3002");
         if (!received && (children.length !== target_children.length || children.some((leaf2, index) => leaf2 !== target_children[index]))) throw new Error("\u63A5\u6536\u7F16\u8F91\u7EC4\u7684\u6807\u7B7E\u987A\u5E8F\u5DF2\u6539\u53D8\uFF0C\u8BF7\u91CD\u65B0\u62D6\u52A8\u3002");
-        if (snapshot.kind === "source" && ((runtime2.File?.bundle?.filePath || "") !== native_before.path || Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) !== native_before.dirty || native_transfer_text() !== native_before.text)) throw new Error("\u76EE\u6807\u7A97\u53E3\u7684Markdown\u8349\u7A3F\u53D1\u751F\u53D8\u5316\uFF0C\u505C\u6B62\u6062\u590D\u5E76\u4FDD\u7559\u5F53\u524D\u5185\u5BB9\u3002");
-        if (snapshot.kind === "markdown" && !received && runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F53\u524D\u6709\u672A\u4FDD\u5B58\u7684Markdown\u8349\u7A3F\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5904\u7406\u8BE5\u8349\u7A3F\uFF0C\u518D\u5408\u5E76Markdown\u6807\u7B7E\u3002");
+        if (snapshot.kind === "source" && ((runtime3.File?.bundle?.filePath || "") !== native_before.path || Boolean(runtime3.File?.changeCounter?.isDocumentEdited()) !== native_before.dirty || native_transfer_text() !== native_before.text)) throw new Error("\u76EE\u6807\u7A97\u53E3\u7684Markdown\u8349\u7A3F\u53D1\u751F\u53D8\u5316\uFF0C\u505C\u6B62\u6062\u590D\u5E76\u4FDD\u7559\u5F53\u524D\u5185\u5BB9\u3002");
+        if (snapshot.kind === "markdown" && !received && runtime3.File?.changeCounter?.isDocumentEdited()) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F53\u524D\u6709\u672A\u4FDD\u5B58\u7684Markdown\u8349\u7A3F\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5904\u7406\u8BE5\u8349\u7A3F\uFF0C\u518D\u5408\u5E76Markdown\u6807\u7B7E\u3002");
       };
       check_destination();
-      if (snapshot.kind === "markdown" && snapshot.dirty && runtime2.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F00\u542FMarkdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u63A5\u6536\u672A\u4FDD\u5B58\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+      if (snapshot.kind === "markdown" && snapshot.dirty && runtime3.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5F00\u542FMarkdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u63A5\u6536\u672A\u4FDD\u5B58\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
       if ((await transfer_disk(snapshot.file_path, signal)).sha256 !== snapshot.disk_sha256) throw new Error("\u63A5\u6536\u524D\u78C1\u76D8\u6587\u4EF6\u53D1\u751F\u53D8\u5316\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
       check_destination();
       const insert_received = (type, path) => {
@@ -192223,24 +192513,24 @@ https://creativecommons.org/licenses/by/4.0/
           transaction2.cancel();
         }
       }
-      if (!is_markdown_file(snapshot.file_path) || typeof snapshot.markdown_baseline !== "string" || typeof runtime2.File?.reloadContent !== "function") throw new Error("\u76EE\u6807\u5BBF\u4E3B\u65E0\u6CD5\u63A5\u6536Markdown\u5FEB\u7167\u3002");
+      if (!is_markdown_file(snapshot.file_path) || typeof snapshot.markdown_baseline !== "string" || typeof runtime3.File?.reloadContent !== "function") throw new Error("\u76EE\u6807\u5BBF\u4E3B\u65E0\u6CD5\u63A5\u6536Markdown\u5FEB\u7167\u3002");
       const leaf = insert_received("core.markdown", snapshot.file_path);
       await navigate_reading_target(snapshot.file_path, { signal });
       transfer_guard(signal);
-      const inherited_markdown = () => snapshot.dirty && Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) && normalized_transfer_text(native_transfer_text()) === normalized_transfer_text(snapshot.text);
+      const inherited_markdown = () => snapshot.dirty && Boolean(runtime3.File?.changeCounter?.isDocumentEdited()) && normalized_transfer_text(native_transfer_text()) === normalized_transfer_text(snapshot.text);
       const check_markdown = () => {
         check_destination(leaf);
-        if (!transfer_present(leaf) || leaf.parent !== target_group || core.app.workspace.activeLeaf !== leaf || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(snapshot.file_path) || runtime2.File?.changeCounter?.isDocumentEdited() && !inherited_markdown()) throw new Error("\u76EE\u6807Markdown\u5C1A\u672A\u5C31\u7EEA\u6216\u5DF2\u6709\u4FEE\u6539\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
+        if (!transfer_present(leaf) || leaf.parent !== target_group || core.app.workspace.activeLeaf !== leaf || file_key(runtime3.File?.bundle?.filePath || "") !== file_key(snapshot.file_path) || runtime3.File?.changeCounter?.isDocumentEdited() && !inherited_markdown()) throw new Error("\u76EE\u6807Markdown\u5C1A\u672A\u5C31\u7EEA\u6216\u5DF2\u6709\u4FEE\u6539\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
       };
       check_markdown();
       const disk = await transfer_disk(snapshot.file_path, signal);
       check_markdown();
-      if (disk.sha256 !== snapshot.disk_sha256 || normalized_transfer_text(runtime2.File?.bundle?.savedContent || "") !== normalized_transfer_text(snapshot.markdown_baseline) || !inherited_markdown() && normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.markdown_baseline)) throw new Error("\u76EE\u6807Markdown\u4E0E\u78C1\u76D8\u57FA\u7EBF\u4E0D\u540C\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
+      if (disk.sha256 !== snapshot.disk_sha256 || normalized_transfer_text(runtime3.File?.bundle?.savedContent || "") !== normalized_transfer_text(snapshot.markdown_baseline) || !inherited_markdown() && normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.markdown_baseline)) throw new Error("\u76EE\u6807Markdown\u4E0E\u78C1\u76D8\u57FA\u7EBF\u4E0D\u540C\uFF0C\u672A\u6062\u590D\u8349\u7A3F\u3002");
       if (snapshot.dirty) {
-        if (runtime2.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5728\u52A0\u8F7D\u671F\u95F4\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u6062\u590D\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
-        if (!inherited_markdown()) runtime2.File.reloadContent(snapshot.text, { delayRefresh: false, skipChangeCount: false, skipStore: true });
-        if (!runtime2.File.changeCounter?.isDocumentEdited()) runtime2.File.updateChangeCount?.(runtime2.File.ChangeType?.NSChangeDone);
-        if (!runtime2.File.changeCounter?.isDocumentEdited() || normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.text)) throw new Error("Markdown\u8349\u7A3F\u672A\u5B8C\u6574\u6062\u590D\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+        if (runtime3.File?.option?.enableAutoSave) throw new Error("\u76EE\u6807\u7A97\u53E3\u5728\u52A0\u8F7D\u671F\u95F4\u5F00\u542F\u4E86Markdown\u81EA\u52A8\u4FDD\u5B58\uFF0C\u672A\u6062\u590D\u8349\u7A3F\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
+        if (!inherited_markdown()) runtime3.File.reloadContent(snapshot.text, { delayRefresh: false, skipChangeCount: false, skipStore: true });
+        if (!runtime3.File.changeCounter?.isDocumentEdited()) runtime3.File.updateChangeCount?.(runtime3.File.ChangeType?.NSChangeDone);
+        if (!runtime3.File.changeCounter?.isDocumentEdited() || normalized_transfer_text(native_transfer_text()) !== normalized_transfer_text(snapshot.text)) throw new Error("Markdown\u8349\u7A3F\u672A\u5B8C\u6574\u6062\u590D\uFF0C\u539F\u6807\u7B7E\u4ECD\u4FDD\u7559\u3002");
       }
       const content = document.querySelector("content"), write = content?.querySelector(":scope > #write");
       if (content && write && snapshot.reading_position) apply_position(content, write, snapshot.reading_position);
@@ -192257,16 +192547,16 @@ https://creativecommons.org/licenses/by/4.0/
         transfer_guard(signal);
         if (current.capture_fingerprint !== snapshot.capture_fingerprint || transfer_captures.get(leaf) !== captured || !transfer_present(leaf)) return false;
         const source = [...views].find((view) => view.leaf === leaf && !view.disposed), previous_version = source?.saved_version, previous_format = source?.saved_format;
-        const native_markdown_ready = () => snapshot.kind === "markdown" && snapshot.dirty && file_key(runtime2.File?.bundle?.filePath || "") === file_key(snapshot.file_path) && real_path(leaf) === snapshot.file_path && context_root() === snapshot.root && native_transfer_text() === snapshot.text && Boolean(runtime2.File?.changeCounter?.isDocumentEdited()) && normalized_transfer_text(runtime2.File?.bundle?.savedContent || "") === normalized_transfer_text(snapshot.markdown_baseline || "") && !runtime2.File?.option?.enableAutoSave;
+        const native_markdown_ready = () => snapshot.kind === "markdown" && snapshot.dirty && file_key(runtime3.File?.bundle?.filePath || "") === file_key(snapshot.file_path) && real_path(leaf) === snapshot.file_path && context_root() === snapshot.root && native_transfer_text() === snapshot.text && Boolean(runtime3.File?.changeCounter?.isDocumentEdited()) && normalized_transfer_text(runtime3.File?.bundle?.savedContent || "") === normalized_transfer_text(snapshot.markdown_baseline || "") && !runtime3.File?.option?.enableAutoSave;
         let shared_markdown = false;
         if (snapshot.kind === "markdown" && snapshot.dirty) {
-          if (!native_markdown_ready() || typeof runtime2.JSBridge?.invoke !== "function") return false;
-          const no_other_window = await runtime2.JSBridge.invoke("document.noOtherWindow");
+          if (!native_markdown_ready() || typeof runtime3.JSBridge?.invoke !== "function") return false;
+          const no_other_window = await runtime3.JSBridge.invoke("document.noOtherWindow");
           transfer_guard(signal);
           if (no_other_window !== false || !native_markdown_ready() || transfer_captures.get(leaf) !== captured || !transfer_present(leaf)) return false;
           shared_markdown = true;
         }
-        if (runtime2.File?.changeCounter?.isDocumentEdited() && !shared_markdown) {
+        if (runtime3.File?.changeCounter?.isDocumentEdited() && !shared_markdown) {
           if (!source) return false;
           const group = leaf.parent;
           const children = group.children || [], index = children.indexOf(leaf), next = children[index - 1] || children[index + 1];
@@ -192343,7 +192633,7 @@ https://creativecommons.org/licenses/by/4.0/
     const install = () => {
       if (binding.active) return;
       native_app_open_file = core.app.openFile;
-      library = runtime2.File?.editor?.library;
+      library = runtime3.File?.editor?.library;
       native_library_open_file = typeof library?.openFile === "function" ? library.openFile : void 0;
       core.app.openFile = routed_app_open_file;
       if (library && native_library_open_file) library.openFile = routed_library_open_file;
@@ -192360,7 +192650,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const create_entry = (root, parent, name, directory) => file_operation(() => create_workspace_entry({ fs: fs2, path_api }, root, parent, name, directory));
-    const file_clipboard = create_workspace_file_clipboard(create_resource_file_clipboard((name) => runtime2.reqnode(name)), {
+    const file_clipboard = create_workspace_file_clipboard(create_resource_file_clipboard((name) => runtime3.reqnode(name)), {
       validate: (root, paths) => file_operation(() => validate_workspace_entries({ fs: fs2, path_api }, root, paths)),
       transfer: (root, paths, target, move, external) => file_operation(() => transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, move ? move_file : void 0, external))
     });
@@ -192368,11 +192658,11 @@ https://creativecommons.org/licenses/by/4.0/
       const includes = (candidate) => paths.some((path) => renamed_workspace_path(path_api, candidate, path, path, true) !== void 0);
       const affected = [...views].filter((view) => includes(view.file_path));
       if (renaming || affected.some((view) => view.dirty() || view.saving)) throw new Error("\u5F85\u5220\u9664\u9879\u76EE\u5305\u542B\u672A\u4FDD\u5B58\u6216\u6B63\u5728\u4FDD\u5B58\u7684\u6E90\u7801\uFF0C\u8BF7\u5148\u4FDD\u5B58\uFF0C\u6216\u5173\u95ED\u6807\u7B7E\u5E76\u5904\u7406\u4FEE\u6539\u540E\u518D\u5220\u9664\u3002");
-      if (includes(runtime2.File?.bundle?.filePath || "") && runtime2.File?.changeCounter?.isDocumentEdited()) throw new Error("\u5F85\u5220\u9664\u9879\u76EE\u5305\u542B\u672A\u4FDD\u5B58\u7684 Markdown\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u6587\u6863\u540E\u518D\u5220\u9664\u3002");
+      if (includes(runtime3.File?.bundle?.filePath || "") && runtime3.File?.changeCounter?.isDocumentEdited()) throw new Error("\u5F85\u5220\u9664\u9879\u76EE\u5305\u542B\u672A\u4FDD\u5B58\u7684 Markdown\uFF0C\u8BF7\u5148\u4FDD\u5B58\u6216\u5173\u95ED\u6587\u6863\u540E\u518D\u5220\u9664\u3002");
       await trash_workspace_entries({ fs: fs2, path_api }, root, paths, async (target) => {
         if ([...views].some((view) => includes(view.file_path) && (view.dirty() || view.saving))) throw new Error("\u6E90\u7801\u5728\u5220\u9664\u671F\u95F4\u53D1\u751F\u4FEE\u6539\uFF0C\u5DF2\u505C\u6B62\u540E\u7EED\u5220\u9664\u3002");
-        const release_native = prepare_deleted_native_document(runtime2, (candidate) => renamed_workspace_path(path_api, candidate, target, target, true) !== void 0, native_transfer_text);
-        await trash_native_path(runtime2, target);
+        const release_native = prepare_deleted_native_document(runtime3, (candidate) => renamed_workspace_path(path_api, candidate, target, target, true) !== void 0, native_transfer_text);
+        await trash_native_path(runtime3, target);
         if (release_native) await release_native();
         const leaves = [];
         core.app.workspace.eachLeaves((leaf) => {
@@ -192431,11 +192721,11 @@ https://creativecommons.org/licenses/by/4.0/
         if (port) return port.read_text();
         const source = [...views].find((view) => !view.disposed && file_key(view.file_path) === file_key(file_path) && view.editor?.models[0]);
         if (source) return source.editor.models[0].getValue();
-        if (file_key(runtime2.File?.bundle?.filePath || "") === file_key(file_path)) return native_transfer_text();
+        if (file_key(runtime3.File?.bundle?.filePath || "") === file_key(file_path)) return native_transfer_text();
         return (await create_text_document({ fs: fs2, path_api }, file_path).load()).text;
       },
       current_file: () => real_path(core.app.workspace.activeLeaf),
-      can_write: (file_path) => ![...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty()) && (!runtime2.File?.changeCounter?.isDocumentEdited() || file_key(runtime2.File?.bundle?.filePath || "") !== file_key(file_path)),
+      can_write: (file_path) => ![...views].some((view) => file_key(view.file_path) === file_key(file_path) && view.dirty()) && (!runtime3.File?.changeCounter?.isDocumentEdited() || file_key(runtime3.File?.bundle?.filePath || "") !== file_key(file_path)),
       refresh_files: (paths) => {
         const keys = new Set(paths.map(file_key));
         for (const view of views) if (keys.has(file_key(view.file_path)) && !view.dirty()) void view.load_file();
@@ -192625,8 +192915,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (active_dispose2) return active_dispose2;
     if (!app) return () => {
     };
-    const runtime2 = window;
-    if (!runtime2.reqnode || !runtime2.JSBridge?.invoke) return () => {
+    const runtime3 = window;
+    if (!runtime3.reqnode || !runtime3.JSBridge?.invoke) return () => {
     };
     let disposed = false;
     const controller = new AbortController();
@@ -192636,13 +192926,13 @@ https://creativecommons.org/licenses/by/4.0/
     const collect = (value) => {
       if (typeof value === "function") cleanups.push(value);
     };
-    const api2 = runtime2.reqnode("path");
+    const api2 = runtime3.reqnode("path");
     const core = window[Symbol.for("typora-code:workspace")];
     const get_path = (target, relative2) => {
       const source_path = source_file_path(target, api2);
       if (is_source_file_uri(target) && !source_path) return null;
       if (source_path) target = source_path;
-      return format_file_path(api2, target, get_workspace_files()?.context_root() || runtime2.File.getMountFolder(), relative2);
+      return format_file_path(api2, target, get_workspace_files()?.context_root() || runtime3.File.getMountFolder(), relative2);
     };
     const copy_path = (target, relative2) => {
       if (disposed) return;
@@ -192651,7 +192941,7 @@ https://creativecommons.org/licenses/by/4.0/
         new core.Notice("\u8BF7\u5148\u4FDD\u5B58\u6587\u6863\uFF0C\u518D\u590D\u5236\u8DEF\u5F84\u3002", 2e3);
         return;
       }
-      void Promise.resolve().then(() => !disposed && runtime2.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }))).then(() => {
+      void Promise.resolve().then(() => !disposed && runtime3.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }))).then(() => {
         if (disposed) return;
         new core.Notice(relative2 ? "\u5DF2\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84" : "\u5DF2\u590D\u5236\u7EDD\u5BF9\u8DEF\u5F84", 1500);
       }).catch((error) => {
@@ -194114,13 +194404,13 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_graph_tab_icon.ts
   function git_graph_tab_icon(theme2) {
-    const ns2 = "http://www.w3.org/2000/svg", svg3 = document.createElementNS(ns2, "svg");
-    svg3.setAttribute("viewBox", "0 0 16 16");
-    svg3.setAttribute("width", "16");
-    svg3.setAttribute("height", "16");
-    svg3.setAttribute("class", "git-standard-icon");
-    svg3.setAttribute("aria-hidden", "true");
-    svg3.dataset.graphTabTheme = theme2;
+    const ns2 = "http://www.w3.org/2000/svg", svg4 = document.createElementNS(ns2, "svg");
+    svg4.setAttribute("viewBox", "0 0 16 16");
+    svg4.setAttribute("width", "16");
+    svg4.setAttribute("height", "16");
+    svg4.setAttribute("class", "git-standard-icon");
+    svg4.setAttribute("aria-hidden", "true");
+    svg4.dataset.graphTabTheme = theme2;
     const main = theme2 === "colour" ? "#0085d9" : "currentColor", side = theme2 === "colour" ? "#d9008f" : "currentColor";
     for (const [d, color] of [["M4 3v10", main], ["M4 10c0-4 8-2 8-7", side]]) {
       const path = document.createElementNS(ns2, "path");
@@ -194128,7 +194418,7 @@ https://creativecommons.org/licenses/by/4.0/
       path.setAttribute("stroke", color);
       path.setAttribute("stroke-width", "1.5");
       path.setAttribute("fill", "none");
-      svg3.append(path);
+      svg4.append(path);
     }
     for (const [x, y, color] of [[4, 3, main], [4, 13, main], [12, 3, side]]) {
       const dot = document.createElementNS(ns2, "circle");
@@ -194136,16 +194426,16 @@ https://creativecommons.org/licenses/by/4.0/
       dot.setAttribute("cy", String(y));
       dot.setAttribute("r", "2");
       dot.setAttribute("fill", color);
-      svg3.append(dot);
+      svg4.append(dot);
     }
-    return svg3;
+    return svg4;
   }
 
   // src/workspace_native_picker.ts
   async function choose_local_directory(default_path = "") {
-    const runtime2 = window;
-    if (!runtime2.JSBridge?.invoke) throw Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
-    const result = await runtime2.JSBridge.invoke("dialog.showOpenDialog", { title: "\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939", properties: ["openDirectory"], ...default_path ? { defaultPath: default_path } : {} });
+    const runtime3 = window;
+    if (!runtime3.JSBridge?.invoke) throw Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
+    const result = await runtime3.JSBridge.invoke("dialog.showOpenDialog", { title: "\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939", properties: ["openDirectory"], ...default_path ? { defaultPath: default_path } : {} });
     return result?.canceled ? void 0 : result?.filePaths?.[0];
   }
 
@@ -194309,7 +194599,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function bind_workspace_editor_actions(files, windows) {
     const core = files.core, workspace = core.app.workspace;
-    const runtime2 = window;
+    const runtime3 = window;
     const cleanups = [], batches = /* @__PURE__ */ new WeakSet();
     let disposed = false, close_menu;
     const owned_locks = /* @__PURE__ */ new Set();
@@ -194413,7 +194703,7 @@ https://creativecommons.org/licenses/by/4.0/
     const reveal = (leaf, system) => {
       const path = files.editor_state(leaf).file_path;
       if (!path || !present(leaf)) return;
-      if (system) return runtime2.reqnode("electron").shell.showItemInFolder(path);
+      if (system) return runtime3.reqnode("electron").shell.showItemInFolder(path);
       const root = files.context_root(), relative2 = files.path_api.relative(root, path);
       const inside = relative2 !== ".." && !relative2.startsWith(".." + files.path_api.sep) && !files.path_api.isAbsolute(relative2);
       core.app.commands.run("linux_note:reveal_in_explorer", [path, inside ? root : files.path_api.dirname(path)]);
@@ -194421,7 +194711,7 @@ https://creativecommons.org/licenses/by/4.0/
     const preview = async (leaf) => {
       if (!await files.reopen_leaf(leaf, false)) return;
       const active2 = workspace.activeLeaf;
-      if (active2 && files.editor_state(active2).kind === "markdown" && runtime2.File?.editor?.sourceView?.inSourceMode && runtime2.File?.bundle?.filePath === active2.state.path) runtime2.File.toggleSourceMode();
+      if (active2 && files.editor_state(active2).kind === "markdown" && runtime3.File?.editor?.sourceView?.inSourceMode && runtime3.File?.bundle?.filePath === active2.state.path) runtime3.File.toggleSourceMode();
       refresh();
     };
     const entries3 = (leaf) => {
@@ -194451,6 +194741,9 @@ https://creativecommons.org/licenses/by/4.0/
         ] : [],
         entry("reveal_system", "\u5728\u7CFB\u7EDF\u6587\u4EF6\u7BA1\u7406\u5668\u4E2D\u663E\u793A", () => reveal(leaf, true), { shortcut: "Shift+Alt+R", separator: true, disabled: !file }),
         entry("reveal_explorer", "\u5728\u8D44\u6E90\u7BA1\u7406\u5668\u89C6\u56FE\u4E2D\u663E\u793A", () => reveal(leaf, false), { disabled: !file }),
+        { ...vscode_resource_entry(ordinary ? state.file_path : ""), action: () => {
+          if (present(leaf) && ordinary) return vscode_resource_entry(state.file_path).action();
+        } },
         entry("keep_open", "\u4FDD\u6301\u6253\u5F00", () => {
           files.keep_open(leaf);
           refresh();
@@ -195098,7 +195391,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners7 = /* @__PURE__ */ new Set();
+    const listeners8 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -195127,14 +195420,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners7) listener(structuredClone(current));
+        for (const listener of listeners8) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners7.add(listener);
-        return () => listeners7.delete(listener);
+        listeners8.add(listener);
+        return () => listeners8.delete(listener);
       },
       dispose() {
-        listeners7.clear();
+        listeners8.clear();
       }
     };
   }
@@ -195160,9 +195453,9 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_settings_registry.ts
   var sections = /* @__PURE__ */ new Map();
-  var listeners4 = /* @__PURE__ */ new Set();
+  var listeners5 = /* @__PURE__ */ new Set();
   function notify_workspace_settings() {
-    for (const listener of listeners4) listener();
+    for (const listener of listeners5) listener();
   }
   function register_workspace_settings(section) {
     if (sections.has(section.id)) throw Error("\u8BBE\u7F6E\u5206\u7C7B\u5DF2\u767B\u8BB0\uFF1A" + section.id);
@@ -195179,9 +195472,9 @@ https://creativecommons.org/licenses/by/4.0/
     return [...sections.values()];
   }
   function observe_workspace_settings(listener) {
-    listeners4.add(listener);
+    listeners5.add(listener);
     return () => {
-      listeners4.delete(listener);
+      listeners5.delete(listener);
     };
   }
 
@@ -195310,18 +195603,18 @@ https://creativecommons.org/licenses/by/4.0/
   };
 
   // src/terminal_pty_client.ts
-  function start_terminal_pty(runtime2, request, callbacks) {
+  function start_terminal_pty(runtime3, request, callbacks) {
     return new Promise((resolve3, reject) => {
-      if (runtime2.signal?.aborted) {
+      if (runtime3.signal?.aborted) {
         reject(new Error("\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88\u3002"));
         return;
       }
-      const child = runtime2.child_process.fork(runtime2.broker, [], {
-        execPath: runtime2.executable,
+      const child = runtime3.child_process.fork(runtime3.broker, [], {
+        execPath: runtime3.executable,
         execArgv: [],
         windowsHide: true,
         silent: true,
-        env: { ...runtime2.process_api.env, ELECTRON_RUN_AS_NODE: "1", NODE_OPTIONS: "" }
+        env: { ...runtime3.process_api.env, ELECTRON_RUN_AS_NODE: "1", NODE_OPTIONS: "" }
       });
       let ready = false;
       let stopped = false;
@@ -195366,8 +195659,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (!ready) reject(new Error("\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88\u3002"));
         proxy.kill();
       };
-      const clear_abort = () => runtime2.signal?.removeEventListener("abort", on_abort);
-      runtime2.signal?.addEventListener("abort", on_abort, { once: true });
+      const clear_abort = () => runtime3.signal?.removeEventListener("abort", on_abort);
+      runtime3.signal?.addEventListener("abort", on_abort, { once: true });
       child.stderr?.on("data", (data) => {
         stderr = (stderr + String(data)).slice(-4e3);
       });
@@ -195458,10 +195751,10 @@ https://creativecommons.org/licenses/by/4.0/
       this.changed();
       let received_output = false;
       const current = () => !this.disposed && generation === this.generation && this.is_current();
-      const runtime2 = window;
+      const runtime3 = window;
       try {
         if (this.host.process_api.platform !== "win32") throw new Error("\u96C6\u6210\u7EC8\u7AEF\u8FD0\u884C\u5305\u5F53\u524D\u652F\u6301 Windows x64/ARM64\u3002");
-        if (Number(runtime2.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
+        if (Number(runtime3.reqnode("os").release().split(".")[2]) < 18309) throw new Error("\u96C6\u6210\u7EC8\u7AEF\u9700\u8981 Windows 10 1903 \u6216\u66F4\u65B0\u7248\u672C\u7684 ConPTY\u3002");
         await new Promise((resolve3) => setTimeout(resolve3, 0));
         if (!current()) return;
         if (this.resolve_cwd) {
@@ -195495,12 +195788,12 @@ https://creativecommons.org/licenses/by/4.0/
           Object.assign(launch.env, auth.env);
         }
         this.root = launch.cwd;
-        const base = this.host.path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime");
+        const base = this.host.path_api.join(runtime3._options.userDataPath, "linux_note_enhancements", "terminal_runtime");
         const start_cols = this.cols, start_rows = this.rows;
         const pty = await start_terminal_pty(
           {
             signal: startup.signal,
-            child_process: runtime2.reqnode("child_process"),
+            child_process: runtime3.reqnode("child_process"),
             process_api: this.host.process_api,
             broker: this.host.path_api.join(base, "1.1.0", "terminal_broker.cjs"),
             executable: this.host.path_api.join(base, "node", node_runtime_default.version, "node.exe")
@@ -207257,10 +207550,10 @@ https://creativecommons.org/licenses/by/4.0/
         parent.appendChild(leaf);
         core.app.workspace.activeLeaf = leaf;
       };
-      const runtime2 = window;
+      const runtime3 = window;
       const style = acquire_workspace_style("typora-code-style:terminal_workspace", xterm_default + "\n" + terminal_workspace_default, { "data-workspace-terminal-style": "ready" });
       lifetime.add(style.remove);
-      const profile_service = lifetime.own(create_terminal_profile_service({ process_api: host.process_api, path_api: host.path_api, fs: host.fs, child_process: runtime2.reqnode("child_process") }));
+      const profile_service = lifetime.own(create_terminal_profile_service({ process_api: host.process_api, path_api: host.path_api, fs: host.fs, child_process: runtime3.reqnode("child_process") }));
       const settings = lifetime.own(create_terminal_settings(localStorage, profile_service));
       const setting_titles = { profile: "\u9ED8\u8BA4Shell\u914D\u7F6E", profiles: "\u81EA\u5B9A\u4E49Shell\u914D\u7F6E\uFF08JSON\uFF09", cwd: "\u9ED8\u8BA4\u5DE5\u4F5C\u76EE\u5F55", env: "\u73AF\u5883\u53D8\u91CF\uFF08JSON\uFF09", font_family: "\u5B57\u4F53\u7CFB\u5217", font_size: "\u5B57\u4F53\u5927\u5C0F", font_weight: "\u5B57\u91CD", line_height: "\u884C\u9AD8\u500D\u6570", letter_spacing: "\u5B57\u7B26\u95F4\u8DDD", cursor_style: "\u5149\u6807\u6837\u5F0F", cursor_blink: "\u5149\u6807\u95EA\u70C1", cursor_width: "\u5149\u6807\u5BBD\u5EA6", scrollback: "\u6EDA\u52A8\u7F13\u51B2\u884C\u6570", smooth_scrolling: "\u5E73\u6ED1\u6EDA\u52A8", scroll_sensitivity: "\u6EDA\u8F6E\u901F\u5EA6", fast_scroll_sensitivity: "Alt\u6EDA\u8F6E\u500D\u901F", minimum_contrast: "\u6700\u5C0F\u5BF9\u6BD4\u5EA6", tab_stop_width: "\u5236\u8868\u7B26\u5BBD\u5EA6", right_click: "\u53F3\u952E\u64CD\u4F5C", copy_on_selection: "\u9009\u4E2D\u5373\u590D\u5236", confirm_multiline: "\u7C98\u8D34\u591A\u884C\u524D\u786E\u8BA4", tabs_location: "\u4F1A\u8BDD\u5217\u8868\u4F4D\u7F6E", tabs_hide: "\u81EA\u52A8\u9690\u85CF\u4F1A\u8BDD\u5217\u8868", split_cwd: "\u62C6\u5206\u540E\u7684\u5DE5\u4F5C\u76EE\u5F55", location: "\u9ED8\u8BA4\u7EC8\u7AEF\u4F4D\u7F6E" };
       lifetime.add(register_workspace_settings({ id: "terminal", title: "\u7EC8\u7AEF", scope: () => "\u7528\u6237\u8BBE\u7F6E", defaults: terminal_defaults, fields: Object.keys(terminal_defaults).map((key3) => ({ key: key3, title: setting_titles[key3], choices: terminal_setting_choices[key3], description: ["profile", "profiles", "env", "cwd"].includes(key3) ? "Shell\u3001\u73AF\u5883\u4E0E\u521D\u59CB\u76EE\u5F55\u7684\u53D8\u66F4\u5728\u65B0\u5EFA\u6216\u91CD\u542F\u4F1A\u8BDD\u65F6\u751F\u6548\u3002" : void 0 })), read: settings.get, write: (key3, value) => settings.update({ ...settings.get(), [key3]: value }) }));
@@ -207404,7 +207697,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (![...sessions.values()].some((item) => item.location === "panel")) panel.hide();
       };
       const ssh_profile = (target, remote_path, port = 0, name = "") => {
-        const api2 = runtime2.reqnode(host.path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
+        const api2 = runtime3.reqnode(host.path_api.join(runtime3._options.userDataPath, "typora_code", "assets", "remote", "remote_ssh_service.cjs"));
         const executable = host.path_api.join(host.process_api.env.SystemRoot || "C:\\Windows", "System32", "OpenSSH", "ssh.exe");
         const profile = api2.remote_terminal_profile(target, remote_path, executable, { ...read_remote_ssh_settings(), port });
         if (name) profile.title = "SSH: " + name;
@@ -207421,7 +207714,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (remote) launch_profile = ssh_profile(remote.target, explicit_cwd && remote_files_for(root) ? remote_files_for(root).remote_path(root) : remote.remote_path, remote.port, remote.name);
         }
         if (launch_profile?.remote) {
-          root = runtime2._options.userDataPath;
+          root = runtime3._options.userDataPath;
           explicit_cwd = true;
           resolve_cwd = void 0;
         }
@@ -207436,7 +207729,7 @@ https://creativecommons.org/licenses/by/4.0/
             schedule();
           }
         }, explicit_cwd, resolve_cwd, () => !lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch(), launch_profile);
-        const windows_pty = host.process_api.platform === "win32" ? { backend: "conpty", buildNumber: Number(runtime2.reqnode("os").release().split(".")[2]) } : void 0;
+        const windows_pty = host.process_api.platform === "win32" ? { backend: "conpty", buildNumber: Number(runtime3.reqnode("os").release().split(".")[2]) } : void 0;
         const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, font_size: (size) => settings.update({ ...settings.get(), font_size: size }), active: () => {
           if (active_id !== id) activate(id, false);
         } }, windows_pty);
@@ -207489,7 +207782,7 @@ https://creativecommons.org/licenses/by/4.0/
         try {
           if (current_remote_workspace()) throw Error("SSH\u5DE5\u4F5C\u533A\u4E0D\u80FD\u542F\u52A8\u672C\u5730\u7BA1\u7406\u5458\u7EC8\u7AEF\uFF0C\u8BF7\u5148\u6253\u5F00\u672C\u5730\u6587\u4EF6\u5939\u3002");
           const launch2 = administrator_launch(root, host.process_api, host.path_api);
-          runtime2.reqnode("child_process").execFile(launch2.executable, launch2.args, { cwd: root, windowsHide: true, shell: false }, (error) => {
+          runtime3.reqnode("child_process").execFile(launch2.executable, launch2.args, { cwd: root, windowsHide: true, shell: false }, (error) => {
             if (error) fail("\u7BA1\u7406\u5458\u7EC8\u7AEF\u672A\u542F\u52A8\uFF08UAC \u53EF\u80FD\u5DF2\u53D6\u6D88\uFF09\uFF1A" + error.message);
           });
         } catch (error) {
@@ -208112,16 +208405,16 @@ https://creativecommons.org/licenses/by/4.0/
   // src/git_graph_host.ts
   var graph_dialog = (title) => workspace_dialog(title, git_graph_text("common.close"));
   function create_graph_host(core) {
-    const runtime2 = window;
-    const fs2 = workspace_resource_fs(runtime2.reqnode("fs"));
-    const path_api = runtime2.reqnode("path");
-    const process_api = runtime2.reqnode("process");
+    const runtime3 = window;
+    const fs2 = workspace_resource_fs(runtime3.reqnode("fs"));
+    const path_api = runtime3.reqnode("path");
+    const process_api = runtime3.reqnode("process");
     const editor_status = bind_workspace_editor_status(core);
     const file_icon_style = acquire_workspace_file_icons();
-    const child_process = runtime2.reqnode("child_process");
-    const crypto2 = runtime2.reqnode("crypto");
+    const child_process = runtime3.reqnode("child_process");
+    const crypto2 = runtime3.reqnode("crypto");
     const contents = /* @__PURE__ */ new Map();
-    const cache_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
+    const cache_path = path_api.join(runtime3._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
     let serial2 = 0, view_serial = 0, disposed = false;
     const views = /* @__PURE__ */ new Set();
     const runners = /* @__PURE__ */ new Set();
@@ -208380,12 +208673,12 @@ https://creativecommons.org/licenses/by/4.0/
       },
       context_path(use_active = true) {
         const active2 = core.app.workspace.activeLeaf;
-        const mounted = runtime2.File?.getMountFolder?.();
+        const mounted = runtime3.File?.getMountFolder?.();
         if (typeof mounted === "string") return mounted;
-        return use_active && active2?.state.path && path_api.isAbsolute(active2.state.path) ? path_api.dirname(active2.state.path) : active2?.state.git_cwd || (runtime2.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
+        return use_active && active2?.state.path && path_api.isAbsolute(active2.state.path) ? path_api.dirname(active2.state.path) : active2?.state.git_cwd || (runtime3.File?.getMountFolder?.() ?? (core.app.workspace.activeFile ? path_api.dirname(core.app.workspace.activeFile) : ""));
       },
       can_change_files() {
-        if (runtime2.File?.changeCounter?.isDocumentEdited()) return false;
+        if (runtime3.File?.changeCounter?.isDocumentEdited()) return false;
         const files = get_workspace_files();
         let allowed = true;
         if (files) core.app.workspace.eachLeaves((leaf) => {
@@ -208408,7 +208701,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         for (let index = 0; index < targets.length; index++) {
           try {
-            await trash_native_path(runtime2, targets[index]);
+            await trash_native_path(runtime3, targets[index]);
           } catch (error) {
             throw new Error(git_graph_text("host.trash_partial_failure", { count: index, file: files[index], error: String(error) }));
           }
@@ -208426,12 +208719,12 @@ https://creativecommons.org/licenses/by/4.0/
         return "";
       },
       copy(text3) {
-        return runtime2.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }));
+        return runtime3.JSBridge.invoke("clipboard.write", JSON.stringify({ text: text3 }));
       },
       open_url(url) {
         const parsed = new URL(url);
         if (!["https:", "http:"].includes(parsed.protocol)) throw new Error(git_graph_text("host.http_only"));
-        return runtime2.reqnode("electron").shell.openExternal(parsed.href);
+        return runtime3.reqnode("electron").shell.openExternal(parsed.href);
       },
       async open_file(root, file, settings) {
         const target = ensure_file_path(root, file);
@@ -208462,7 +208755,7 @@ https://creativecommons.org/licenses/by/4.0/
         core.app.commands.run("linux_note:reveal_in_explorer", [ensure_file_path(root, file), root]);
       },
       reveal_file(root, file) {
-        runtime2.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
+        runtime3.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
       },
       async revision_text(root, revision, file, settings) {
         if (revision === EMPTY) return "";
@@ -208527,7 +208820,7 @@ https://creativecommons.org/licenses/by/4.0/
           const mime = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".avif": "image/avif", ".bmp": "image/bmp" };
           if (!mime[extension]) throw new Error(git_graph_text("host.historical_image_unsupported"));
           const data = await this.runner(settings).run_bytes(root, ["show", "".concat(require_revision(revision), ":").concat(target)]);
-          return "data:".concat(mime[extension], ";base64,").concat(runtime2.reqnode("buffer").Buffer.from(data).toString("base64"));
+          return "data:".concat(mime[extension], ";base64,").concat(runtime3.reqnode("buffer").Buffer.from(data).toString("base64"));
         }, (explicit) => {
           if (core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container)) notify_navigation_selection(explicit);
         });
@@ -208558,7 +208851,7 @@ https://creativecommons.org/licenses/by/4.0/
       async discover(root, depth, signal) {
         const resources = git_workspace_resources(path_api);
         resources.assert(root);
-        const reader = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
+        const reader = create_git_runner({ child_process: runtime3.reqnode("child_process"), process: runtime3.reqnode("process") });
         const cancel = () => reader.cancel();
         signal?.addEventListener("abort", cancel, { once: true });
         try {
@@ -208576,7 +208869,7 @@ https://creativecommons.org/licenses/by/4.0/
         const target = path_api.join(cache_path, hash2 + ".png");
         if (fs2.existsSync(target)) return "data:image/png;base64," + fs2.readFileSync(target).toString("base64");
         return new Promise((resolve3, reject) => {
-          const request = runtime2.reqnode("https").get("https://www.gravatar.com/avatar/".concat(hash2, "?s=32&d=identicon"), (response) => {
+          const request = runtime3.reqnode("https").get("https://www.gravatar.com/avatar/".concat(hash2, "?s=32&d=identicon"), (response) => {
             if (response.statusCode !== 200 || !String(response.headers["content-type"]).startsWith("image/png")) {
               response.resume();
               reject(new Error(git_graph_text("host.avatar_unavailable")));
@@ -208588,7 +208881,7 @@ https://creativecommons.org/licenses/by/4.0/
               chunks.push(chunk);
             });
             response.on("end", () => {
-              const data = runtime2.reqnode("buffer").Buffer.concat(chunks);
+              const data = runtime3.reqnode("buffer").Buffer.concat(chunks);
               fs2.mkdirSync(cache_path, { recursive: true });
               fs2.writeFileSync(target, data);
               resolve3("data:image/png;base64," + data.toString("base64"));
@@ -211450,10 +211743,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
         const graph_row = graph.rows[index];
         const row_lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
-        const svg3 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
-        svg3.classList.add("git-scm-history-topology");
-        svg3.setAttribute("viewBox", "0 0 ".concat((row_lanes + 1) * HISTORY_LANE_WIDTH, " ").concat(HISTORY_ROW_HEIGHT));
-        row.append(disclosure, svg3, summary);
+        const svg4 = panel.draw_graph(graph_row, row_lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
+        svg4.classList.add("git-scm-history-topology");
+        svg4.setAttribute("viewBox", "0 0 ".concat((row_lanes + 1) * HISTORY_LANE_WIDTH, " ").concat(HISTORY_ROW_HEIGHT));
+        row.append(disclosure, svg4, summary);
         row.oncontextmenu = (event) => panel.target_menu(event, "commit", commit.hash, commit.hash);
         entry.append(row);
         if (expanded2) {
@@ -211508,14 +211801,14 @@ https://creativecommons.org/licenses/by/4.0/
       row.title = history_range_title(range2);
       this.selection.bind(row, range2.id);
       const lanes = Math.max(graph_row.lane, ...graph_row.edges.flatMap((edge) => [edge.from, edge.to])) + 1;
-      const svg3 = this.owner.panel.draw_graph(graph_row, lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, "range");
-      svg3.classList.add("git-scm-history-topology");
+      const svg4 = this.owner.panel.draw_graph(graph_row, lanes, { lane_width: HISTORY_LANE_WIDTH, first_x: HISTORY_LANE_WIDTH, right_gap: HISTORY_LANE_WIDTH, height: HISTORY_ROW_HEIGHT }, "range");
+      svg4.classList.add("git-scm-history-topology");
       const disclosure = workspace_element("span", "git-scm-history-disclosure");
       disclosure.append(git_disclosure());
       const summary = workspace_element("span", "git-scm-history-summary"), label = workspace_element("span", "git-scm-history-label");
       label.append(workspace_element("span", "git-scm-history-subject", history_range_label(range2)), workspace_element("span", "git-scm-history-author", range2.branch));
       summary.append(label);
-      row.append(disclosure, svg3, summary);
+      row.append(disclosure, svg4, summary);
       entry.append(row);
       if (expanded2) {
         const lanes2 = Math.max(-1, ...graph_row.edges.filter((edge) => !edge.upper).map((edge) => edge.to)) + 1;
@@ -211537,12 +211830,12 @@ https://creativecommons.org/licenses/by/4.0/
     /** 文件展开区域延长每条离开当前提交的轨道，保持上下提交连线连续。 */
     continuation(row, width2) {
       const ns2 = "http://www.w3.org/2000/svg";
-      const svg3 = document.createElementNS(ns2, "svg");
-      svg3.classList.add("git-scm-history-continuation");
-      svg3.setAttribute("aria-hidden", "true");
-      svg3.setAttribute("width", String((width2 + 1) * HISTORY_LANE_WIDTH));
-      svg3.setAttribute("viewBox", "0 0 ".concat((width2 + 1) * HISTORY_LANE_WIDTH, " 1"));
-      svg3.setAttribute("preserveAspectRatio", "none");
+      const svg4 = document.createElementNS(ns2, "svg");
+      svg4.classList.add("git-scm-history-continuation");
+      svg4.setAttribute("aria-hidden", "true");
+      svg4.setAttribute("width", String((width2 + 1) * HISTORY_LANE_WIDTH));
+      svg4.setAttribute("viewBox", "0 0 ".concat((width2 + 1) * HISTORY_LANE_WIDTH, " 1"));
+      svg4.setAttribute("preserveAspectRatio", "none");
       const lanes = /* @__PURE__ */ new Set();
       for (const edge of row.edges) if (!edge.upper && !lanes.has(edge.to)) {
         lanes.add(edge.to);
@@ -211555,9 +211848,9 @@ https://creativecommons.org/licenses/by/4.0/
         line.setAttribute("stroke", this.owner.panel.graph_color?.(edge.color) || this.owner.panel.settings.colors[edge.color % this.owner.panel.settings.colors.length]);
         line.setAttribute("stroke-width", "2");
         line.setAttribute("vector-effect", "non-scaling-stroke");
-        svg3.append(line);
+        svg4.append(line);
       }
-      return svg3;
+      return svg4;
     }
     async load_files(state, commit, target, epoch2, from = this.comparison_from.get(commit.hash) || commit.parents[0] || EMPTY, cache_key = commit.hash) {
       try {
@@ -235257,10 +235550,10 @@ https://creativecommons.org/licenses/by/4.0/
     }
     draw_graph(row, width2, geometry = { lane_width: 16, first_x: 10, right_gap: 10, height: 24 }, node_kind = "normal") {
       const ns2 = "http://www.w3.org/2000/svg";
-      const svg3 = document.createElementNS(ns2, "svg");
-      svg3.setAttribute("width", String((width2 - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap));
-      svg3.setAttribute("height", String(geometry.height));
-      svg3.setAttribute("aria-hidden", "true");
+      const svg4 = document.createElementNS(ns2, "svg");
+      svg4.setAttribute("width", String((width2 - 1) * geometry.lane_width + geometry.first_x + geometry.right_gap));
+      svg4.setAttribute("height", String(geometry.height));
+      svg4.setAttribute("aria-hidden", "true");
       const x = (lane) => lane * geometry.lane_width + geometry.first_x;
       const half_height = geometry.height / 2;
       for (const edge of row.edges) {
@@ -235271,10 +235564,10 @@ https://creativecommons.org/licenses/by/4.0/
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", _git_graph_panel.prototype.graph_color.call(this, edge.color));
         path.setAttribute("stroke-width", "2");
-        svg3.append(path);
+        svg4.append(path);
       }
-      svg3.classList.add("git-history-node");
-      svg3.dataset.nodeKind = node_kind;
+      svg4.classList.add("git-history-node");
+      svg4.dataset.nodeKind = node_kind;
       const circle = (radius, stroke_width, fill) => {
         const dot = document.createElementNS(ns2, "circle");
         dot.setAttribute("cx", String(x(row.lane)));
@@ -235282,7 +235575,7 @@ https://creativecommons.org/licenses/by/4.0/
         dot.setAttribute("r", String(radius));
         dot.setAttribute("stroke-width", String(stroke_width));
         if (fill) dot.setAttribute("fill", fill);
-        svg3.append(dot);
+        svg4.append(dot);
         return dot;
       };
       const color = _git_graph_panel.prototype.graph_color.call(this, row.color);
@@ -235299,7 +235592,7 @@ https://creativecommons.org/licenses/by/4.0/
         circle(6, 2, color);
         circle(3, 2, color);
       } else circle(5, 2, color);
-      return svg3;
+      return svg4;
     }
     render_history() {
       this.column_binding?.dispose();
@@ -235404,8 +235697,8 @@ https://creativecommons.org/licenses/by/4.0/
         row.oncontextmenu = (event) => this.target_menu(event, commit.stash ? "stash" : "commit", commit.stash || commit.hash, commit.hash);
         const graph_row = graph.rows[index + (connected ? 1 : 0)];
         row.style.setProperty("--git-graph-ref-color", this.graph_color(graph_row.color));
-        const svg3 = this.draw_graph(graph_row, graph.width, void 0, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
-        svg3.onmouseenter = () => {
+        const svg4 = this.draw_graph(graph_row, graph.width, void 0, commit.hash === state.head ? "head" : commit.parents.length > 1 ? "merge" : "normal");
+        svg4.onmouseenter = () => {
           const epoch2 = this.epoch;
           if (!this.containment.has(commit.hash)) void commit_containment(this.runner.run, state, commit.hash).then((value) => {
             if (this.disposed || epoch2 !== this.epoch) return;
@@ -235483,7 +235776,7 @@ https://creativecommons.org/licenses/by/4.0/
         subject.append(refs, workspace_element("span", "git-graph-subject-text", this.emoji(commit.subject)));
         if (tag_refs.childElementCount) subject.append(tag_refs);
         const graph_cell = workspace_element("span", "git-graph-cell");
-        graph_cell.append(svg3);
+        graph_cell.append(svg4);
         if (this.settings.label_alignment === "graph") graph_cell.append(refs);
         if (state.head === commit.hash && this.settings.uncommitted_style === "head") row.classList.add("git-graph-open-head");
         row.append(graph_cell, subject, workspace_element("span", "git-graph-date", this.date(commit)), workspace_element("span", "git-graph-author", commit.author), workspace_element("code", "git-graph-hash", commit.hash.slice(0, 8)));
@@ -237592,7 +237885,7 @@ https://creativecommons.org/licenses/by/4.0/
     WORKSPACE_COLOR_ROLES.push({ key: "graph_" + key3, title: "Git\u652F\u7EBF\xB7" + title, variable: "--workspace-graph-" + key3.replaceAll("_", "-") });
 
   // src/workspace_color_settings.ts
-  var listeners5 = /* @__PURE__ */ new Set();
+  var listeners6 = /* @__PURE__ */ new Set();
   var known_keys = new Set(WORKSPACE_COLOR_ROLES.map((role) => role.key));
   var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {} } });
   function normalize_custom_color(value) {
@@ -237688,9 +237981,9 @@ https://creativecommons.org/licenses/by/4.0/
     return raw === void 0 ? empty_color_config() : validate_color_config(raw);
   }
   function observe_color_config(listener) {
-    listeners5.add(listener);
+    listeners6.add(listener);
     return () => {
-      listeners5.delete(listener);
+      listeners6.delete(listener);
     };
   }
   function save_color_config(value) {
@@ -237698,7 +237991,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!settings) throw Error("\u7528\u6237\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     if (serialize_color_config(next) === serialize_color_config(read_color_config())) return;
     settings.set_and_save("workspace_colors", next);
-    for (const listener of listeners5) listener();
+    for (const listener of listeners6) listener();
   }
   function color_config_css(config) {
     const css = [];
@@ -237766,14 +238059,14 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_zoom_status.ts
   var bindings = /* @__PURE__ */ new WeakMap();
-  function bind_workspace_zoom_status(app, runtime2 = window) {
+  function bind_workspace_zoom_status(app, runtime3 = window) {
     const footer = document.querySelector("footer.ty-footer");
     if (!footer) return;
     const existing = bindings.get(footer);
     if (existing) return existing;
     let frame3;
     try {
-      frame3 = runtime2.reqnode?.("electron")?.webFrame;
+      frame3 = runtime3.reqnode?.("electron")?.webFrame;
       if (!frame3 || typeof frame3.getZoomLevel !== "function" || typeof frame3.getZoomFactor !== "function") return;
     } catch {
       return;
@@ -237818,7 +238111,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!lifetime.disposed && !update_frame) update_frame = requestAnimationFrame(sync);
     };
     const run = (id) => {
-      if (!workspace_zoom_available(runtime2, id)) return;
+      if (!workspace_zoom_available(runtime3, id)) return;
       try {
         app.commands.run(id);
         sync();
@@ -237865,9 +238158,9 @@ https://creativecommons.org/licenses/by/4.0/
       reset2.dataset.zoomAction = "reset";
       reset2.title = "\u6062\u590D\u5B9E\u9645\u5927\u5C0F\uFF08100%\uFF09";
       const settings = button("settings-gear", "\u7F29\u653E\u8BBE\u7F6E\uFF08\u504F\u597D\u8BBE\u7F6E \u2192 \u5916\u89C2\uFF09", "settings", () => {
-        if (typeof runtime2.ClientCommand?.showPreferencePanel !== "function") return;
+        if (typeof runtime3.ClientCommand?.showPreferencePanel !== "function") return;
         close(true);
-        runtime2.ClientCommand.showPreferencePanel();
+        runtime3.ClientCommand.showPreferencePanel();
       });
       right.append(reset2, settings);
       content.append(out, value, into, right);
@@ -237875,10 +238168,10 @@ https://creativecommons.org/licenses/by/4.0/
         const state = read2();
         value.textContent = state ? String(Math.round(state.level * 100) / 100) : "";
         value.title = state ? "\u7F29\u653E\u6BD4\u4F8B\uFF1A".concat(Math.round(state.factor * 100), "%") : "\u65E0\u6CD5\u8BFB\u53D6\u7A97\u53E3\u6BD4\u4F8B";
-        out.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_out");
-        into.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_in");
-        reset2.disabled = !workspace_zoom_available(runtime2, "linux_note:zoom_reset");
-        settings.disabled = typeof runtime2.ClientCommand?.showPreferencePanel !== "function";
+        out.disabled = !workspace_zoom_available(runtime3, "linux_note:zoom_out");
+        into.disabled = !workspace_zoom_available(runtime3, "linux_note:zoom_in");
+        reset2.disabled = !workspace_zoom_available(runtime3, "linux_note:zoom_reset");
+        settings.disabled = typeof runtime3.ClientCommand?.showPreferencePanel !== "function";
       };
       update_popup();
       content.addEventListener("keydown", (event) => {
@@ -238132,8 +238425,8 @@ https://creativecommons.org/licenses/by/4.0/
   var object2 = (v2) => v2 && typeof v2 === "object" && !Array.isArray(v2) ? v2 : {};
   function root_key(root) {
     if (!root) return "";
-    const runtime2 = window, p = runtime2.reqnode("path").resolve(root);
-    return runtime2.reqnode("process").platform === "win32" ? p.toLowerCase() : p;
+    const runtime3 = window, p = runtime3.reqnode("path").resolve(root);
+    return runtime3.reqnode("process").platform === "win32" ? p.toLowerCase() : p;
   }
   function stored_settings() {
     return object2(get_workspace_app()?.settings.get(KEY3));
@@ -238288,12 +238581,12 @@ https://creativecommons.org/licenses/by/4.0/
     const sent_languages = /* @__PURE__ */ new Set();
     let sent_runtime = false;
     const pending = /* @__PURE__ */ new Map();
-    const runtime2 = window;
+    const runtime3 = window;
     const assets = /* @__PURE__ */ new Map();
     const read2 = (name) => {
       let promise = assets.get(name);
       if (!promise) {
-        promise = runtime2.reqnode("fs").promises.readFile(runtime2.reqnode("path").join(runtime2._options.userDataPath, "typora_code", "assets", "source_symbols", name)).then((bytes) => new Uint8Array(bytes));
+        promise = runtime3.reqnode("fs").promises.readFile(runtime3.reqnode("path").join(runtime3._options.userDataPath, "typora_code", "assets", "source_symbols", name)).then((bytes) => new Uint8Array(bytes));
         assets.set(name, promise);
       }
       return promise;
@@ -238668,9 +238961,9 @@ https://creativecommons.org/licenses/by/4.0/
   var current_dialog;
   function workspace_key(root) {
     if (!root) return "";
-    const runtime2 = window;
-    const resolved = runtime2.reqnode("path").resolve(root);
-    return runtime2.reqnode("process").platform === "win32" ? resolved.toLowerCase() : resolved;
+    const runtime3 = window;
+    const resolved = runtime3.reqnode("path").resolve(root);
+    return runtime3.reqnode("process").platform === "win32" ? resolved.toLowerCase() : resolved;
   }
   function relative_database(root, directory) {
     if (!root || !directory) return directory;
@@ -238820,10 +239113,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key3 = file_path + "\0" + workspace_root;
     let owner2 = entries3.get(key3);
     if (!owner2) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners7 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners8 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners7) callback(state);
+        for (const callback of listeners8) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -238853,7 +239146,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner2 = { state, listeners: listeners7, refresh, dispose() {
+      owner2 = { state, listeners: listeners8, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -238862,7 +239155,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners7.clear();
+        listeners8.clear();
       } };
       entries3.set(key3, owner2);
       refresh();
@@ -239480,17 +239773,17 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return { active_id, sidebar_visible: sidebar.isShown };
   }
-  function native_document_active(files, runtime2) {
+  function native_document_active(files, runtime3) {
     const leaf = files.core.app.workspace.activeLeaf;
     const path_key = (value) => String(value || "").replace(/\\/g, "/");
-    return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime2.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
+    return Boolean(leaf) && !files.source_editor_active() && !String(leaf?.state.path || "").startsWith("typ://") && path_key(leaf?.state.path) === path_key(runtime3.File?.bundle?.filePath) && (!leaf?.view?.isEditor || leaf.view.isEditor());
   }
 
   // src/workspace_native_toolbar.css
   var workspace_native_toolbar_default = "";
 
   // src/workspace_native_toolbar.ts
-  function bind_workspace_native_toolbar(files, runtime2) {
+  function bind_workspace_native_toolbar(files, runtime3) {
     const lifetime = create_workspace_lifetime();
     const style = acquire_workspace_style("typora-code-style:workspace_native_toolbar", workspace_native_toolbar_default);
     lifetime.add(style.remove);
@@ -239500,7 +239793,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const layout2 = () => {
       if (lifetime.disposed) return;
-      const node = runtime2.File?.editor?.toolbar?.dom;
+      const node = runtime3.File?.editor?.toolbar?.dom;
       if (node instanceof HTMLElement && node !== toolbar) {
         toolbar = node;
         const attributes = ["data-workspace-native-toolbar", "data-workspace-toolbar-suspended"].map((name) => [name, node.getAttribute(name)]);
@@ -239520,7 +239813,7 @@ https://creativecommons.org/licenses/by/4.0/
         refresh.observe_mutations(node, { attributes: true, attributeFilter: ["style", "class"] });
       }
       if (!toolbar) return;
-      const active2 = native_document_active(files, runtime2), leaf = files.core.app.workspace.activeLeaf;
+      const active2 = native_document_active(files, runtime3), leaf = files.core.app.workspace.activeLeaf;
       const owner2 = leaf?.containerEl;
       const bounds = owner2?.isConnected ? reading_viewport_bounds(owner2) : void 0;
       const root2 = document.querySelector(".typ-workspace-root")?.getBoundingClientRect();
@@ -239771,19 +240064,19 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_open_dialog.ts
   async function open_workspace_window(root, anchor = "#") {
-    const runtime2 = window;
-    if (!runtime2.JSBridge?.invoke) throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u65B0\u7A97\u53E3\u5165\u53E3\u3002");
+    const runtime3 = window;
+    if (!runtime3.JSBridge?.invoke) throw new Error("\u5F53\u524D\u5BBF\u4E3B\u672A\u63D0\u4F9B\u65B0\u7A97\u53E3\u5165\u53E3\u3002");
     if (!anchor.startsWith("#") || /[\u0000-\u0020]/u.test(anchor)) throw new Error("\u65B0\u7A97\u53E3\u951A\u70B9\u5FC5\u987B\u662F\u5B89\u5168\u7684\u6587\u5185\u7247\u6BB5\u3002");
-    return runtime2.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
+    return runtime3.JSBridge.invoke("app.openFile", null, { mountFolder: root, anchor });
   }
   function bind_workspace_open_dialog(files, changed2, sessions, open_recent_folder) {
-    const runtime2 = window;
+    const runtime3 = window;
     let disposed = false, pending, revision = 0, changing = false;
-    const library = runtime2.File?.editor?.library, native_root_changed = library?.onRootChanged;
+    const library = runtime3.File?.editor?.library, native_root_changed = library?.onRootChanged;
     const same_root = (left, right) => files.path_api.sep === "\\" ? left.toLowerCase() === right.toLowerCase() : left === right;
     const switch_folder = async (target, prepared_close) => {
       if (changing) throw new Error("\u5DE5\u4F5C\u533A\u6B63\u5728\u5207\u6362\uFF0C\u8BF7\u5B8C\u6210\u5F53\u524D\u64CD\u4F5C\u540E\u91CD\u8BD5\u3002");
-      if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+      if (!runtime3.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       changing = true;
       try {
         await sessions.ready;
@@ -239810,7 +240103,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (remote) remote.root = target;
           select_remote_files(remote);
           const mounted = target.endsWith(files.path_api.sep) ? target + files.path_api.sep : target;
-          runtime2.File.setMountFolder(mounted);
+          runtime3.File.setMountFolder(mounted);
           committed = true;
           native_root_changed?.call(library, mounted, true);
         } finally {
@@ -239830,13 +240123,13 @@ https://creativecommons.org/licenses/by/4.0/
       const target = files.path_api.resolve(selected), stat = await files.fs.promises.stat(target);
       if (disposed || current !== revision) return;
       if (!stat.isDirectory()) throw new Error("\u6240\u9009\u9879\u76EE\u4E0D\u662F\u6587\u4EF6\u5939\u3002");
-      if (!runtime2.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+      if (!runtime3.File?.setMountFolder) throw new Error("Typora \u6587\u4EF6\u5939\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       await switch_folder(target, prepared_close);
       if (remote_files_for(target)) return;
       if (disposed || !same_root(files.context_root(), target)) return;
-      if (!runtime2.JSBridge?.invoke) throw new Error("\u6587\u4EF6\u5939\u5DF2\u6253\u5F00\uFF0C\u4F46\u5BBF\u4E3B\u6700\u8FD1\u76EE\u5F55\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+      if (!runtime3.JSBridge?.invoke) throw new Error("\u6587\u4EF6\u5939\u5DF2\u6253\u5F00\uFF0C\u4F46\u5BBF\u4E3B\u6700\u8FD1\u76EE\u5F55\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
       try {
-        await runtime2.JSBridge.invoke("setting.addRecentFolder", target);
+        await runtime3.JSBridge.invoke("setting.addRecentFolder", target);
       } catch (error) {
         throw new Error("\u6587\u4EF6\u5939\u5DF2\u6253\u5F00\uFF0C\u4F46\u6700\u8FD1\u76EE\u5F55\u66F4\u65B0\u5931\u8D25\uFF1A" + String(error));
       }
@@ -239866,9 +240159,9 @@ https://creativecommons.org/licenses/by/4.0/
           if (selected2 && !disposed && current === revision) await set_folder(selected2);
           return;
         }
-        if (!runtime2.JSBridge?.invoke) throw new Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
+        if (!runtime3.JSBridge?.invoke) throw new Error("\u7CFB\u7EDF\u6587\u4EF6\u9009\u62E9\u7A97\u53E3\u4E0D\u53EF\u7528\u3002");
         const root = files.context_root();
-        const result = await runtime2.JSBridge.invoke("dialog.showOpenDialog", {
+        const result = await runtime3.JSBridge.invoke("dialog.showOpenDialog", {
           title: directory ? "\u6253\u5F00\u6587\u4EF6\u5939" : "\u6253\u5F00\u6587\u4EF6",
           properties: directory ? ["openDirectory"] : ["openFile"],
           ...root && files.path_api.isAbsolute(root) ? { defaultPath: root } : {},
@@ -239933,7 +240226,7 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_detached_window(files, options2 = {}) {
     const existing = bindings5.get(files);
     if (existing) return existing;
-    const runtime2 = window;
+    const runtime3 = window;
     const make_channel = options2.channel || ((name) => new BroadcastChannel(name));
     const timeout_ms = options2.timeout_ms ?? TRANSFER_TIMEOUT_MS;
     const notify = options2.notify || ((message) => {
@@ -239946,8 +240239,8 @@ https://creativecommons.org/licenses/by/4.0/
     const pending_leaves = /* @__PURE__ */ new WeakSet();
     const senders = /* @__PURE__ */ new Map();
     const receivers = /* @__PURE__ */ new Set();
-    const anchor = options2.initial_anchor ?? runtime2._options?.initAnchor ?? runtime2.File?.option?.initAnchor ?? "";
-    const initial_token = window_transfer_token(runtime2._options?.initFilePath, anchor);
+    const anchor = options2.initial_anchor ?? runtime3._options?.initAnchor ?? runtime3.File?.option?.initAnchor ?? "";
+    const initial_token = window_transfer_token(runtime3._options?.initFilePath, anchor);
     const auxiliary = Boolean(initial_token);
     let disposed = false;
     const report = (error) => {
@@ -239966,15 +240259,15 @@ https://creativecommons.org/licenses/by/4.0/
         files.core.app.workspace.eachLeaves((leaf) => {
           if (leaf.state.path && !leaf.state.path.startsWith("typ://core.empty")) occupied = true;
         });
-        return !occupied && !disposed && !runtime2.File?.isFileLoading?.() && !runtime2.File?.inSavingProcess && !runtime2.File?._onFileSwitching && !runtime2.File?._onInitParse;
+        return !occupied && !disposed && !runtime3.File?.isFileLoading?.() && !runtime3.File?.inSavingProcess && !runtime3.File?._onFileSwitching && !runtime3.File?._onInitParse;
       };
-      if (!auxiliary || !empty2() || !runtime2.JSBridge) return;
-      if (runtime2.File?.changeCounter?.isDocumentEdited()) {
-        const file = runtime2.File, bundle = file.bundle, counter = file.changeCounter;
-        const same_draft = () => runtime2.File === file && file.bundle === bundle && file.changeCounter === counter && file.bundle?.filePath === snapshot.file_path && counter?.isDocumentEdited() && file.editor?.getMarkdown().replace(/\r\n?/gu, "\n") === snapshot.text.replace(/\r\n?/gu, "\n");
-        if (snapshot.kind !== "markdown" || !same_draft() || await runtime2.JSBridge.invoke("document.noOtherWindow") !== false || !empty2() || !same_draft()) return;
+      if (!auxiliary || !empty2() || !runtime3.JSBridge) return;
+      if (runtime3.File?.changeCounter?.isDocumentEdited()) {
+        const file = runtime3.File, bundle = file.bundle, counter = file.changeCounter;
+        const same_draft = () => runtime3.File === file && file.bundle === bundle && file.changeCounter === counter && file.bundle?.filePath === snapshot.file_path && counter?.isDocumentEdited() && file.editor?.getMarkdown().replace(/\r\n?/gu, "\n") === snapshot.text.replace(/\r\n?/gu, "\n");
+        if (snapshot.kind !== "markdown" || !same_draft() || await runtime3.JSBridge.invoke("document.noOtherWindow") !== false || !empty2() || !same_draft()) return;
       }
-      await runtime2.JSBridge.invoke("window.close");
+      await runtime3.JSBridge.invoke("window.close");
     };
     const start_sender = (leaf, token, copy = false) => {
       if (disposed || pending_leaves.has(leaf) || senders.has(token) || !owns_leaf(leaf)) return;
@@ -240207,9 +240500,9 @@ https://creativecommons.org/licenses/by/4.0/
     document.addEventListener("typora-code:tab-drag-start", drag_start);
     document.addEventListener("typora-code:tab-drop", drop);
     document.addEventListener("typora-code:tab-drag-end", drag_end);
-    if (auxiliary && !runtime2.File?.bundle?.filePath && !runtime2.File?.changeCounter?.isDocumentEdited()) {
-      if (runtime2._options?.initAnchor === anchor) runtime2._options.initAnchor = "";
-      if (runtime2.File?.option?.initAnchor === anchor) runtime2.File.option.initAnchor = "";
+    if (auxiliary && !runtime3.File?.bundle?.filePath && !runtime3.File?.changeCounter?.isDocumentEdited()) {
+      if (runtime3._options?.initAnchor === anchor) runtime3._options.initAnchor = "";
+      if (runtime3.File?.option?.initAnchor === anchor) runtime3.File.option.initAnchor = "";
       let initial_leaf = files.core.app.workspace.activeLeaf;
       if (!initial_leaf) files.core.app.workspace.eachLeaves((leaf) => {
         initial_leaf ||= leaf;
@@ -241519,20 +241812,20 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_selection_search.ts
   var position_compare = (left, right) => left.line - right.line || left.ch - right.ch;
   function bind_workspace_selection_search(core, files, search2) {
-    const runtime2 = window;
+    const runtime3 = window;
     const source_path = (target) => {
       let path = "";
       core.app.workspace.eachLeaves((leaf) => {
         if (leaf.view.containerEl.contains(target) && files.path_api.isAbsolute(leaf.state.path)) path = leaf.state.path;
       });
-      return path || files.current_file() || runtime2.File?.bundle?.filePath || "";
+      return path || files.current_file() || runtime3.File?.bundle?.filePath || "";
     };
     const selected_at = (event) => {
       const target = event.target instanceof Element ? event.target : null;
       if (!target || target.closest("a[href],a[data-href],.monaco-editor,.linux-note-workspace-search,input,textarea,button,select,.CodeMirror-gutters")) return;
       const wrapper = target.closest(".CodeMirror");
       if (wrapper) {
-        const source = runtime2.File?.editor?.sourceView;
+        const source = runtime3.File?.editor?.sourceView;
         const cm = wrapper.CodeMirror || (source?.inSourceMode && source.cm?.getWrapperElement() === wrapper ? source.cm : void 0);
         if (!cm || !target.closest(".CodeMirror-code,.CodeMirror-lines")) return;
         const selected_box = [...wrapper.querySelectorAll(".CodeMirror-selected")].some((node) => {
@@ -241605,10 +241898,10 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.add(() => style.remove());
       const file_icon_style = acquire_workspace_file_icons();
       lifetime.add(() => file_icon_style.remove());
-      const runtime2 = window;
-      const runner = create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") });
+      const runtime3 = window;
+      const runner = create_git_runner({ child_process: runtime3.reqnode("child_process"), process: runtime3.reqnode("process") });
       lifetime.add(() => runner.cancel());
-      const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime2.reqnode("process").platform });
+      const engine = create_workspace_search_engine({ fs: files.fs, path_api: files.path_api, git_run: runner.run, platform: runtime3.reqnode("process").platform });
       const native_sidebar = document.querySelector("#typora-sidebar");
       const input = (label, placeholder = label) => {
         const node = workspace_element("input");
@@ -244384,7 +244677,7 @@ https://creativecommons.org/licenses/by/4.0/
     return bindings8.get(files);
   }
   function bind_workspace_recents(files, open_folder) {
-    const runtime2 = window;
+    const runtime3 = window;
     const notice = (message) => {
       new files.core.Notice(message, 5e3);
     };
@@ -244394,8 +244687,8 @@ https://creativecommons.org/licenses/by/4.0/
       open_file: files.open_file,
       open_folder,
       invoke: (name, ...args) => {
-        if (!runtime2.JSBridge?.invoke) return Promise.reject(new Error("\u6700\u8FD1\u6253\u5F00\u63A5\u53E3\u4E0D\u53EF\u7528\u3002"));
-        return runtime2.JSBridge.invoke(name, ...args);
+        if (!runtime3.JSBridge?.invoke) return Promise.reject(new Error("\u6700\u8FD1\u6253\u5F00\u63A5\u53E3\u4E0D\u53EF\u7528\u3002"));
+        return runtime3.JSBridge.invoke(name, ...args);
       },
       context_epoch: workspace_context_epoch,
       context_switching: workspace_context_switching,
@@ -244453,7 +244746,7 @@ https://creativecommons.org/licenses/by/4.0/
     "timeline.enabled": true
   });
   var KEY4 = "workspace_files";
-  var listeners6 = /* @__PURE__ */ new Set();
+  var listeners7 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -244477,12 +244770,12 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     settings.set_and_save(KEY4, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners6) listener();
+    for (const listener of listeners7) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners6.add(listener);
+    listeners7.add(listener);
     return () => {
-      listeners6.delete(listener);
+      listeners7.delete(listener);
     };
   }
   var current_dialog2;
@@ -244556,14 +244849,14 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_titlebar_entries.ts
   var separator = () => ({ separator: true });
-  function create_workspace_titlebar_definitions(files, runtime2, open_files) {
+  function create_workspace_titlebar_definitions(files, runtime3, open_files) {
     const workspace = files.core.app.workspace;
-    const editor2 = () => runtime2.File?.editor;
-    const native_active = () => native_document_active(files, runtime2);
-    const native_writable = () => native_active() && !runtime2.File?.isLocked && !runtime2.File?.isReadonlyMode;
+    const editor2 = () => runtime3.File?.editor;
+    const native_active = () => native_document_active(files, runtime3);
+    const native_writable = () => native_active() && !runtime3.File?.isLocked && !runtime3.File?.isReadonlyMode;
     const rich_writable = () => native_writable() && !editor2()?.sourceView?.inSourceMode;
-    const has_command = (name) => typeof runtime2.ClientCommand?.[name] === "function";
-    const call_command = (name, args = []) => runtime2.ClientCommand[name](...args);
+    const has_command = (name) => typeof runtime3.ClientCommand?.[name] === "function";
+    const call_command = (name, args = []) => runtime3.ClientCommand[name](...args);
     const command = (label, name, shortcut) => ({
       label,
       shortcut,
@@ -244579,7 +244872,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (available()) return target()[method](...args);
       } };
     };
-    const native_command = (label, name, shortcut, writable = true) => native_entry(label, () => runtime2.ClientCommand, name, [], shortcut, writable);
+    const native_command = (label, name, shortcut, writable = true) => native_entry(label, () => runtime3.ClientCommand, name, [], shortcut, writable);
     const style = (label, method, args = [], shortcut) => native_entry(label, () => editor2()?.stylize, method, args, shortcut, true, true);
     const edit_command = (label, native_name, source_name, shortcut, writable = true) => {
       const leaf = workspace.activeLeaf;
@@ -244596,10 +244889,10 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const export_entries = async () => {
       try {
-        const data = await runtime2.JSBridge?.invoke("setting.loadExports");
+        const data = await runtime3.JSBridge?.invoke("setting.loadExports");
         const [builtin, custom] = typeof data === "string" ? JSON.parse(data) : data;
         return Object.entries({ ...builtin, ...custom }).filter(([, value]) => value && typeof value === "object").map(([key3, value]) => {
-          const item = native_entry(value.name || key3, () => runtime2.ClientCommand, "export", [value], void 0, false);
+          const item = native_entry(value.name || key3, () => runtime3.ClientCommand, "export", [value], void 0, false);
           return item;
         });
       } catch {
@@ -244636,7 +244929,7 @@ https://creativecommons.org/licenses/by/4.0/
         separator(),
         command("\u5BFC\u5165\u2026", "import"),
         { label: "\u5BFC\u51FA", children: exports, disabled: !native_active() },
-        { ...native_command("\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", "exportLast", void 0, false), disabled: !native_active() || !has_command("exportLast") || !(runtime2.File?.option?.lastExport || runtime2.File?.option?._lastExport) },
+        { ...native_command("\u4F7F\u7528\u4E0A\u4E00\u6B21\u8BBE\u7F6E\u5BFC\u51FA", "exportLast", void 0, false), disabled: !native_active() || !has_command("exportLast") || !(runtime3.File?.option?.lastExport || runtime3.File?.option?._lastExport) },
         native_command("\u6253\u5370\u2026", "print", void 0, false),
         separator(),
         { label: "\u5173\u95ED\u6807\u7B7E", shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {
@@ -244755,10 +245048,10 @@ https://creativecommons.org/licenses/by/4.0/
       const sidebar = read_workspace_sidebar_state(workspace.sidebar), terminal = read_terminal_state(files.core.app);
       const toolbar = editor2()?.toolbar?.dom;
       return [
-        { ...native_entry("\u6E90\u4EE3\u7801\u6A21\u5F0F", () => runtime2.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor2()?.sourceView?.inSourceMode) },
-        { ...native_entry("\u53EA\u8BFB\u6A21\u5F0F", () => runtime2.EditHelper, "toggleReadonlyMode", [], void 0, false), checked: Boolean(native_active() && runtime2.File?.isReadonlyMode) },
-        { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime2.File?.isFocusMode) },
-        { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime2.File?.isTypeWriterMode) },
+        { ...native_entry("\u6E90\u4EE3\u7801\u6A21\u5F0F", () => runtime3.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor2()?.sourceView?.inSourceMode) },
+        { ...native_entry("\u53EA\u8BFB\u6A21\u5F0F", () => runtime3.EditHelper, "toggleReadonlyMode", [], void 0, false), checked: Boolean(native_active() && runtime3.File?.isReadonlyMode) },
+        { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime3.File?.isFocusMode) },
+        { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime3.File?.isTypeWriterMode) },
         separator(),
         { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", checked: sidebar.sidebar_visible, action: () => workspace.sidebar.toggle() },
         { label: "\u9762\u5305\u5C51\u5BFC\u822A", checked: read_breadcrumb_settings(files.context_root()).enabled, action: () => set_breadcrumb_enabled(files.context_root(), !read_breadcrumb_settings(files.context_root()).enabled) },
@@ -244773,9 +245066,9 @@ https://creativecommons.org/licenses/by/4.0/
         ...WORKSPACE_ZOOM_ACTIONS.map(({ id, label, shortcut }) => ({
           label,
           shortcut,
-          disabled: !workspace_zoom_available(runtime2, id),
+          disabled: !workspace_zoom_available(runtime3, id),
           action: () => {
-            if (workspace_zoom_available(runtime2, id)) files.core.app.commands.run(id);
+            if (workspace_zoom_available(runtime3, id)) files.core.app.commands.run(id);
           }
         }))
       ];
@@ -244783,7 +245076,7 @@ https://creativecommons.org/licenses/by/4.0/
     const theme_entries = async () => {
       const customize = { label: "\u81EA\u5B9A\u4E49\u989C\u8272\u2026", action: () => files.core.app.commands.run("typora_code:custom_colors") };
       try {
-        const data = await runtime2.JSBridge?.invoke("setting.getThemes");
+        const data = await runtime3.JSBridge?.invoke("setting.getThemes");
         if (!Array.isArray(data?.all)) throw new Error("invalid themes");
         const config = read_color_config(), profiles = (config.profiles || []).map((profile) => ({ label: profile.name, checked: data.current === "cpp_github-consolas_".concat(profile.mode, ".css") && config.active?.[profile.mode] === profile.id, disabled: !has_command("setTheme"), action: () => activate_color_profile(profile.id, (file, name) => call_command("setTheme", [file, name])) }));
         return [customize, ...profiles, separator(), ...data.all.filter((name) => typeof name === "string").map((name) => {
@@ -244802,12 +245095,62 @@ https://creativecommons.org/licenses/by/4.0/
         return [customize, separator(), { label: "\u65E0\u6CD5\u8BFB\u53D6\u4E3B\u9898\u5217\u8868", disabled: true }];
       }
     };
-    const help_entries = async () => [
-      { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
-      { label: "Typora Code GitHub \u4ED3\u5E93", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://github.com/FormingSystem/typora_code") },
-      { label: "\u652F\u6301\u6587\u6863", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://support.typora.io/") },
-      { label: "Typora \u5B98\u7F51", disabled: !runtime2.JSBridge?.showInBrowser, action: () => runtime2.JSBridge?.showInBrowser?.("https://typora.io/") }
-    ];
+    const help_document = (label, filename = label) => ({
+      label,
+      disabled: !runtime3.dirname || !runtime3.JSBridge?.invoke,
+      action: () => runtime3.dirname && runtime3.JSBridge?.invoke("app.openFile", "".concat(runtime3.dirname, "/Docs/").concat(filename, ".md"), { forceCreateWindow: true })
+    });
+    const help_url = (label, url) => ({
+      label,
+      disabled: !runtime3.JSBridge?.showInBrowser,
+      action: () => runtime3.JSBridge?.showInBrowser?.(url)
+    });
+    const help_invoke = (label, method) => ({
+      label,
+      disabled: !runtime3.JSBridge?.invoke,
+      action: () => runtime3.JSBridge?.invoke(method)
+    });
+    const help_entries = async () => {
+      const domain = runtime3.File?.option?.useMirrorInCN ? "typoraio.cn" : "typora.io";
+      return [
+        help_url("What's New...", "https://support.".concat(domain, "/What's-New/")),
+        separator(),
+        help_document("Quick Start"),
+        help_document("Markdown Reference"),
+        help_document("Install and Use Pandoc"),
+        help_document("Custom Themes"),
+        help_document("Use Images in Typora"),
+        help_document("Data Recovery and Version Control", "Auto Save, Version Control and Recovery"),
+        help_url("More Topics...", "https://support.".concat(domain, "/")),
+        separator(),
+        help_document("\u9E23\u8C22", "Credits"),
+        help_document("\u66F4\u65B0\u65E5\u5FD7", "Change Log"),
+        help_document("\u9690\u79C1\u6761\u6B3E", "Privacy Policy"),
+        help_url("\u5B98\u65B9\u7F51\u7AD9", "https://".concat(domain)),
+        help_url("\u53CD\u9988", "mailto:hi@typora.io"),
+        separator(),
+        help_invoke("\u68C0\u67E5\u66F4\u65B0...", "updater.checkForUpdates"),
+        help_invoke("\u6211\u7684\u8BB8\u53EF\u8BC1...", "license.show"),
+        {
+          label: "\u5173\u4E8E",
+          disabled: !runtime3.File?.megaMenu?.show || !runtime3.$,
+          action: () => {
+            runtime3.File?.megaMenu?.closePreferencePanel();
+            if (document.body.classList.contains("native-window")) {
+              runtime3.$(".modal:not(.block-modal)").modal("hide");
+              runtime3.$("#about-dialog").modal("show");
+              runtime3.$("*:focus").blur();
+            } else {
+              runtime3.File?.megaMenu?.show();
+              runtime3.$("#m-about").trigger("click");
+            }
+          }
+        },
+        separator(),
+        { label: "\u68C0\u67E5 Typora Code \u66F4\u65B0\u2026", action: () => files.core.app.commands.run("typora_code:check_update") },
+        help_url("Typora Code GitHub \u4ED3\u5E93", "https://github.com/FormingSystem/typora_code")
+      ];
+    };
     return [
       { label: "\u6587\u4EF6", mnemonic: "F", entries: file_entries },
       { label: "\u7F16\u8F91", mnemonic: "E", entries: edit_entries },
@@ -244843,9 +245186,9 @@ https://creativecommons.org/licenses/by/4.0/
   var setting_request;
   function install_workspace_titlebar(files, open_files) {
     if (active_binding2) return active_binding2;
-    const runtime2 = window;
-    if (!runtime2.File?.isNode || runtime2.File.isMac) return;
-    const platform3 = runtime2.reqnode?.("process").platform;
+    const runtime3 = window;
+    if (!runtime3.File?.isNode || runtime3.File.isMac) return;
+    const platform3 = runtime3.reqnode?.("process").platform;
     if (platform3 && !["win32", "linux"].includes(platform3)) return;
     const root = document.documentElement, bar = document.querySelector("#top-titlebar");
     if (!bar) return;
@@ -244861,10 +245204,10 @@ https://creativecommons.org/licenses/by/4.0/
       else root.setAttribute("data-linux-note-titlebar", previous);
     } };
     active_binding2 = binding;
-    if (runtime2.File.option?.framelessWindow !== true) {
+    if (runtime3.File.option?.framelessWindow !== true) {
       root.dataset.linuxNoteTitlebar = "next-window";
       if (!setting_request) {
-        setting_request = Promise.resolve().then(() => runtime2.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", true));
+        setting_request = Promise.resolve().then(() => runtime3.reqnode("electron").ipcRenderer.invoke("setting.put", "framelessWindow", true));
         void setting_request.catch(() => {
           setting_request = void 0;
         });
@@ -244909,7 +245252,7 @@ https://creativecommons.org/licenses/by/4.0/
     logo.height = 24;
     logo.src = new URL("./assets/icon/icon_32x32@2x.png", document.baseURI).href;
     left.append(logo);
-    const menu = create_workspace_titlebar_menu(bar, create_workspace_titlebar_definitions(files, runtime2, open_files));
+    const menu = create_workspace_titlebar_menu(bar, create_workspace_titlebar_definitions(files, runtime3, open_files));
     left.append(menu.element);
     cleanup.push(() => menu.dispose());
     const events = new AbortController();
@@ -245089,10 +245432,10 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_sessions.ts
   function bind_workspace_sessions(files) {
-    const runtime2 = window, workspace = files.core.app.workspace;
-    const store = create_workspace_session_store(files.fs, files.path_api, runtime2.reqnode("crypto"), files.path_api.join(runtime2._options.userDataPath, "typora_code", "state", "workspace_sessions"));
+    const runtime3 = window, workspace = files.core.app.workspace;
+    const store = create_workspace_session_store(files.fs, files.path_api, runtime3.reqnode("crypto"), files.path_api.join(runtime3._options.userDataPath, "typora_code", "state", "workspace_sessions"));
     let disposed = false, paused = true, timer, reported = false;
-    let owns_session = !window_transfer_token(runtime2._options?.initFilePath, runtime2._options?.initAnchor ?? runtime2.File?.option?.initAnchor ?? "");
+    let owns_session = !window_transfer_token(runtime3._options?.initFilePath, runtime3._options?.initAnchor ?? runtime3.File?.option?.initAnchor ?? "");
     let restore_controller = new AbortController(), activation_controller = new AbortController(), intent_revision = 0;
     const interrupt = () => {
       intent_revision++;
@@ -245154,8 +245497,8 @@ https://creativecommons.org/licenses/by/4.0/
     const stops = [workspace.on("layout-changed", schedule), workspace.on("active-leaf:change", schedule), workspace.on("file:open", schedule)];
     window.addEventListener("beforeunload", flush);
     const enabled = async () => {
-      const raw = await runtime2.JSBridge?.invoke?.("setting.getExtraOption");
-      const options2 = typeof raw === "string" ? JSON.parse(raw) : raw || runtime2.File?.option;
+      const raw = await runtime3.JSBridge?.invoke?.("setting.getExtraOption");
+      const options2 = typeof raw === "string" ? JSON.parse(raw) : raw || runtime3.File?.option;
       return String(options2?.restoreWhenLaunch) === "2";
     };
     const restore = async (initial = false) => {
@@ -245578,8 +245921,8 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_native_save.ts
-  function bind_native_save(runtime2, hooks) {
-    const file = runtime2.File, bridge = runtime2.JSBridge, releases = [];
+  function bind_native_save(runtime3, hooks) {
+    const file = runtime3.File, bridge = runtime3.JSBridge, releases = [];
     let disposed = false, save_depth = 0, option;
     function replace(owner2, key3, wrap) {
       const original = owner2?.[key3];
@@ -245623,7 +245966,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (typeof text3 !== "string") return Promise.reject(Error("\u8FDC\u7A0BMarkdown\u6B63\u6587\u5C1A\u672A\u5C31\u7EEA\u3002"));
         if (this.validateContentForSave?.() === false) return Promise.reject(Error("\u539F\u751F\u7F16\u8F91\u5668\u62D2\u7EDD\u4FDD\u5B58\u5F53\u524D\u6B63\u6587\uFF0C\u8349\u7A3F\u5DF2\u4FDD\u7559\u3002"));
         const current = this.editor.getMarkdown(), format3 = this.bundle.fileEncode || "utf8";
-        const codec = runtime2.reqnode("iconv-lite"), encoding = format3.replace(/-bom$/u, "");
+        const codec = runtime3.reqnode("iconv-lite"), encoding = format3.replace(/-bom$/u, "");
         let bytes = codec.encode(text3, encoding, { addBOM: format3.endsWith("-bom") });
         if (!encoding.toLowerCase().includes("utf") && codec.decode(bytes, encoding) !== text3) bytes = codec.encode(text3, "utf8");
         remote_saving = true;
@@ -245667,10 +246010,10 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_save_service.ts
-  function bind_workspace_save_service(files, runtime2 = window) {
+  function bind_workspace_save_service(files, runtime3 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners7 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners7) listener();
+    const listeners8 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners8) listener();
     };
     const notify_history = () => {
       notify();
@@ -245679,9 +246022,9 @@ https://creativecommons.org/licenses/by/4.0/
     const report = (error) => {
       if (!lifetime.disposed) new files.core.Notice(String(error instanceof Error ? error.message : error), 6e3);
     };
-    const user_data = runtime2._options?.userDataPath;
+    const user_data = runtime3._options?.userDataPath;
     if (typeof user_data !== "string" || !files.path_api.isAbsolute(user_data)) throw new Error("\u65E0\u6CD5\u786E\u5B9A\u672C\u5730\u5386\u53F2\u7684\u5E94\u7528\u5B58\u50A8\u76EE\u5F55\u3002");
-    const history = create_local_history_store({ fs: files.fs, path_api: files.path_api, crypto: runtime2.reqnode("crypto") }, files.path_api.join(user_data, "typora_code", "History"), () => {
+    const history = create_local_history_store({ fs: files.fs, path_api: files.path_api, crypto: runtime3.reqnode("crypto") }, files.path_api.join(user_data, "typora_code", "History"), () => {
       const value = read_workspace_save_settings();
       return { enabled: value["workbench.localHistory.enabled"], max_entries: value["workbench.localHistory.maxFileEntries"], merge_window: value["workbench.localHistory.mergeWindow"], exclude: value["workbench.localHistory.exclude"], workspace_root: files.context_root() };
     });
@@ -245692,7 +246035,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
       return result;
     };
-    const native = lifetime.own(bind_native_save(runtime2, {
+    const native = lifetime.own(bind_native_save(runtime3, {
       save_as: files.save_as_active,
       changed: publish_workspace_file_changed,
       saved: (path) => publish_workspace_file_saved({ file_path: path }),
@@ -245708,7 +246051,7 @@ https://creativecommons.org/licenses/by/4.0/
       state: (leaf) => {
         const state = files.editor_state(leaf), root = files.context_root(), relative2 = root ? files.path_api.relative(root, state.file_path) : "..";
         const in_workspace = Boolean(root) && !files.path_api.isAbsolute(relative2) && relative2 !== ".." && !relative2.startsWith(".." + files.path_api.sep);
-        const native_ready = state.kind !== "markdown" || file_key(runtime2.File?.bundle?.filePath || "") === file_key(state.file_path) && !runtime2.File?.isReadonlyMode && !runtime2.File?.isLocked;
+        const native_ready = state.kind !== "markdown" || file_key(runtime3.File?.bundle?.filePath || "") === file_key(state.file_path) && !runtime3.File?.isReadonlyMode && !runtime3.File?.isLocked;
         const settings = read_workspace_save_settings();
         return { ...state, busy: state.busy || composing, eligible: leaves().includes(leaf) && Boolean(state.file_path) && state.kind !== "other" && native_ready && (!settings["files.autoSaveWorkspaceFilesOnly"] || in_workspace) && (!settings["files.autoSaveWhenNoErrors"] || !files.has_editor_errors(leaf)) };
       },
@@ -245759,7 +246102,7 @@ https://creativecommons.org/licenses/by/4.0/
       notify();
     }));
     lifetime.add(workspace.on("file:will-open", (path) => {
-      const current = runtime2.File?.bundle?.filePath;
+      const current = runtime3.File?.bundle?.filePath;
       if (typeof path !== "string" || !current || file_key(current) === file_key(path)) return;
       for (const leaf of leaves()) if (files.editor_state(leaf).kind === "markdown" && file_key(files.editor_state(leaf).file_path) === file_key(current)) auto.focus_lost(leaf);
     }));
@@ -245779,9 +246122,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners7.add(listener);
+      listeners8.add(listener);
       return () => {
-        listeners7.delete(listener);
+        listeners8.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -245790,7 +246133,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners7.clear();
+      listeners8.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -246104,7 +246447,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_timeline.ts
   function bind_workspace_timeline(files, saves, viewer, explorer) {
-    const lifetime = create_workspace_lifetime(), settings = get_workspace_app().settings, workspace = files.core.app.workspace, runtime2 = window;
+    const lifetime = create_workspace_lifetime(), settings = get_workspace_app().settings, workspace = files.core.app.workspace, runtime3 = window;
     const initial = settings.get("workspace_timeline");
     const state = { collapsed: initial?.collapsed !== false, git: initial?.git !== false, local: initial?.local !== false, pinned: false };
     let target = "", epoch2 = 0, refresh_timer;
@@ -246166,7 +246509,7 @@ https://creativecommons.org/licenses/by/4.0/
         run(load);
       }
     }
-    const make_runner = () => create_git_runner({ child_process: runtime2.reqnode("child_process"), process: runtime2.reqnode("process") }, { executable: load_graph_settings(localStorage, files.context_root() || "").git_path });
+    const make_runner = () => create_git_runner({ child_process: runtime3.reqnode("child_process"), process: runtime3.reqnode("process") }, { executable: load_graph_settings(localStorage, files.context_root() || "").git_path });
     async function load() {
       const revision = ++epoch2;
       listing?.cancel();
@@ -246384,7 +246727,7 @@ https://creativecommons.org/licenses/by/4.0/
     const section_menu = (event) => {
       event.preventDefault();
       event.stopPropagation();
-      workspace_menu(event, visibility(), "workspace-menu-compact");
+      workspace_menu(event, [vscode_resource_entry(files.context_root()), ...visibility()], "workspace-menu-compact");
     };
     root.oncontextmenu = section_menu;
     root_title.oncontextmenu = section_menu;
@@ -246474,7 +246817,7 @@ https://creativecommons.org/licenses/by/4.0/
           button.ondblclick = () => files.keep_open(leaf);
           row.oncontextmenu = (event) => {
             event.preventDefault();
-            const order = ["reopen", "close", "close_others", "close_saved", "close_all"], entries3 = editor_entries(leaf).filter((entry) => order.includes(entry.id || "")).sort((a, b2) => order.indexOf(a.id) - order.indexOf(b2.id)).map((entry) => ({ ...entry, separator: entry.id === "close" }));
+            const order = ["reopen", "open_vscode", "close", "close_others", "close_saved", "close_all"], entries3 = editor_entries(leaf).filter((entry) => order.includes(entry.id || "")).sort((a, b2) => order.indexOf(a.id) - order.indexOf(b2.id)).map((entry) => ({ ...entry, separator: entry.id === "close" }));
             workspace_menu(event, entries3, "workspace-menu-compact");
           };
           row.append(close, button);
@@ -246544,11 +246887,11 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/remote_ssh_authentication.ts
-  function create_ssh_authentication(runtime2, asset_root, node_path) {
-    const path = runtime2.reqnode("path"), root = path.join(runtime2._options.userDataPath, "typora_code", "ssh_credentials");
-    const api2 = runtime2.reqnode(path.join(asset_root, "remote_ssh_service.cjs"));
-    const directory_api = runtime2.reqnode(path.join(asset_root, "remote_ssh_connections.cjs"));
-    const credential_api = runtime2.reqnode(path.join(asset_root, "remote_ssh_credentials.cjs"));
+  function create_ssh_authentication(runtime3, asset_root, node_path) {
+    const path = runtime3.reqnode("path"), root = path.join(runtime3._options.userDataPath, "typora_code", "ssh_credentials");
+    const api2 = runtime3.reqnode(path.join(asset_root, "remote_ssh_service.cjs"));
+    const directory_api = runtime3.reqnode(path.join(asset_root, "remote_ssh_connections.cjs"));
+    const credential_api = runtime3.reqnode(path.join(asset_root, "remote_ssh_credentials.cjs"));
     const directory = directory_api.create_connection_store(root), credentials = credential_api.create_credential_store(root);
     const vault = credential_api.create_password_vault(credentials, (operation) => directory_api.with_store_lock(root, operation));
     const sessions = /* @__PURE__ */ new Map();
@@ -246660,7 +247003,7 @@ https://creativecommons.org/licenses/by/4.0/
     const release = register_ssh_auth_owner({ list: () => directory.list(), prepare: async (target, port, current) => {
       const auth = await attempt(target, port, current, true);
       if (disposed || !current()) throw Error("SSH\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88");
-      const bridge = await runtime2.reqnode(path.join(asset_root, "remote_ssh_auth.cjs")).create_ssh_auth({ asset_root, node_path, authenticate: auth.authenticate, is_current: current });
+      const bridge = await runtime3.reqnode(path.join(asset_root, "remote_ssh_auth.cjs")).create_ssh_auth({ asset_root, node_path, authenticate: auth.authenticate, is_current: current });
       if (disposed || !current()) {
         bridge.dispose();
         throw Error("SSH\u7EC8\u7AEF\u542F\u52A8\u5DF2\u53D6\u6D88");
@@ -246911,12 +247254,12 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_remote_ssh_default = "";
 
   // src/workspace_remote_ssh.ts
-  function bind_workspace_remote_ssh(core, files, set_folder, runtime2 = window) {
-    const path_api = runtime2.reqnode("path"), buffer_api = runtime2.reqnode("buffer").Buffer;
-    const asset_root = path_api.join(runtime2._options.userDataPath, "typora_code", "assets", "remote");
-    const api2 = runtime2.reqnode(path_api.join(asset_root, "remote_ssh_service.cjs"));
-    const node_path = path_api.join(runtime2._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
-    const auth = create_ssh_authentication(runtime2, asset_root, node_path);
+  function bind_workspace_remote_ssh(core, files, set_folder, runtime3 = window) {
+    const path_api = runtime3.reqnode("path"), buffer_api = runtime3.reqnode("buffer").Buffer;
+    const asset_root = path_api.join(runtime3._options.userDataPath, "typora_code", "assets", "remote");
+    const api2 = runtime3.reqnode(path_api.join(asset_root, "remote_ssh_service.cjs"));
+    const node_path = path_api.join(runtime3._options.userDataPath, "linux_note_enhancements", "terminal_runtime", "node", node_runtime_default.version, "node.exe");
+    const auth = create_ssh_authentication(runtime3, asset_root, node_path);
     let auth_attempt;
     let port = 0, active_record, owner_key = "", username = "";
     const style = acquire_workspace_style("typora-code-style:workspace_remote_ssh", workspace_remote_ssh_default);
@@ -247063,8 +247406,8 @@ https://creativecommons.org/licenses/by/4.0/
     const restore_provider = (owner2, display = target) => {
       const existing = host_providers.get(owner2);
       if (existing) return existing;
-      const host_key = runtime2.reqnode("crypto").createHash("sha256").update(owner2).digest("hex");
-      const value = new remote_file_provider({ target: display, port, username, name: active_record ? active_record.host_name + " / " + active_record.name : display, connected: () => connected() && owner_key === owner2, poll_interval: () => read_remote_ssh_settings().refresh_interval * 1e3, request: (operation, values) => service.request(operation, values) }, runtime2.reqnode("fs"), path_api, path_api.join(runtime2._options.userDataPath, "typora_code", "remote_cache", host_key), buffer_api);
+      const host_key = runtime3.reqnode("crypto").createHash("sha256").update(owner2).digest("hex");
+      const value = new remote_file_provider({ target: display, port, username, name: active_record ? active_record.host_name + " / " + active_record.name : display, connected: () => connected() && owner_key === owner2, poll_interval: () => read_remote_ssh_settings().refresh_interval * 1e3, request: (operation, values) => service.request(operation, values) }, runtime3.reqnode("fs"), path_api, path_api.join(runtime3._options.userDataPath, "typora_code", "remote_cache", host_key), buffer_api);
       host_providers.set(owner2, value);
       provider_releases.push(register_remote_files(value));
       return value;
@@ -247182,7 +247525,7 @@ https://creativecommons.org/licenses/by/4.0/
         saved = JSON.parse(localStorage.getItem("typora-code:ssh:last-connection") || "null");
       } catch {
       }
-      const mounted = runtime2.File?.getMountFolder?.();
+      const mounted = runtime3.File?.getMountFolder?.();
       target = input.value;
       port = saved?.port || 0;
       owner_key = saved?.owner_key || target;
@@ -247197,7 +247540,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     try {
-      const config = files.fs.readFileSync(path_api.join(runtime2.reqnode("os").homedir(), ".ssh", "config"), "utf8");
+      const config = files.fs.readFileSync(path_api.join(runtime3.reqnode("os").homedir(), ".ssh", "config"), "utf8");
       const names = /* @__PURE__ */ new Set();
       for (const match2 of config.matchAll(/^\s*Host\s+(.+)$/gimu)) for (const name of match2[1].split(/\s+/u)) {
         if (/[!*?#]/u.test(name)) continue;
@@ -247294,22 +247637,22 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function write_network_setting(key3, value) {
     if (!(key3 in NETWORK_DEFAULTS)) throw Error("\u672A\u77E5\u7F51\u7EDC\u8BBE\u7F6E\u3002");
-    const runtime2 = window, settings = get_workspace_app()?.settings;
-    if (!settings || !runtime2._options?.userDataPath) throw Error("\u7F51\u7EDC\u8BBE\u7F6E\u670D\u52A1\u5C1A\u672A\u5C31\u7EEA\u3002");
-    const path = runtime2.reqnode("path"), service = runtime2.reqnode(path.join(runtime2._options.userDataPath, "typora_code/assets/update/workspace_network.cjs"));
+    const runtime3 = window, settings = get_workspace_app()?.settings;
+    if (!settings || !runtime3._options?.userDataPath) throw Error("\u7F51\u7EDC\u8BBE\u7F6E\u670D\u52A1\u5C1A\u672A\u5C31\u7EEA\u3002");
+    const path = runtime3.reqnode("path"), service = runtime3.reqnode(path.join(runtime3._options.userDataPath, "typora_code/assets/update/workspace_network.cjs"));
     const next = service.validate({ ...read_network_settings(), [key3]: value });
     settings.set_and_save("workspace_network", next);
   }
 
   // src/workspace_color_files.ts
   async function export_color_file(text3, is_active) {
-    const runtime2 = window;
-    if (!runtime2.JSBridge?.invoke || !runtime2.reqnode) throw Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u5BFC\u51FA\u6587\u4EF6\u3002");
-    const result = await runtime2.JSBridge.invoke("dialog.showSaveDialog", { title: "\u5BFC\u51FA\u989C\u8272\u914D\u7F6E", defaultPath: "typora-code-colors.json", properties: ["showOverwriteConfirmation"], filters: [{ name: "JSON\u989C\u8272\u914D\u7F6E", extensions: ["json"] }] });
+    const runtime3 = window;
+    if (!runtime3.JSBridge?.invoke || !runtime3.reqnode) throw Error("\u5F53\u524D\u5BBF\u4E3B\u4E0D\u652F\u6301\u5BFC\u51FA\u6587\u4EF6\u3002");
+    const result = await runtime3.JSBridge.invoke("dialog.showSaveDialog", { title: "\u5BFC\u51FA\u989C\u8272\u914D\u7F6E", defaultPath: "typora-code-colors.json", properties: ["showOverwriteConfirmation"], filters: [{ name: "JSON\u989C\u8272\u914D\u7F6E", extensions: ["json"] }] });
     if (!is_active() || result?.canceled || !result?.filePath) return false;
-    const path = runtime2.reqnode("path");
+    const path = runtime3.reqnode("path");
     if (!path.isAbsolute(result.filePath)) throw Error("\u7CFB\u7EDF\u8FD4\u56DE\u7684\u4FDD\u5B58\u8DEF\u5F84\u65E0\u6548\u3002");
-    await runtime2.reqnode("fs").promises.writeFile(result.filePath, text3, "utf8");
+    await runtime3.reqnode("fs").promises.writeFile(result.filePath, text3, "utf8");
     return true;
   }
 
@@ -247629,8 +247972,8 @@ https://creativecommons.org/licenses/by/4.0/
         const copy = workspace_button("\u590D\u5236", async () => {
           try {
             if (!input.value || invalid.has(role.key)) throw Error("\u6CA1\u6709\u6709\u6548\u8272\u503C\u53EF\u590D\u5236\u3002");
-            const runtime2 = window;
-            if (runtime2.JSBridge?.invoke) await runtime2.JSBridge.invoke("clipboard.write", JSON.stringify({ text: input.value }));
+            const runtime3 = window;
+            if (runtime3.JSBridge?.invoke) await runtime3.JSBridge.invoke("clipboard.write", JSON.stringify({ text: input.value }));
             else await navigator.clipboard.writeText(input.value);
             if (!disposed) status2("\u5DF2\u590D\u5236 " + input.value);
           } catch (error) {
@@ -247687,9 +248030,9 @@ https://creativecommons.org/licenses/by/4.0/
     duplicate.dataset.colorAction = "duplicate";
     const activate = workspace_button("\u5E94\u7528\u4E3B\u9898", async () => {
       try {
-        const runtime2 = window;
-        if (!runtime2.ClientCommand?.setTheme) throw Error("\u5F53\u524D\u5BBF\u4E3B\u65E0\u6CD5\u5207\u6362\u4E3B\u9898\u3002");
-        await activate_color_profile(id, (file, label) => runtime2.ClientCommand.setTheme(file, label));
+        const runtime3 = window;
+        if (!runtime3.ClientCommand?.setTheme) throw Error("\u5F53\u524D\u5BBF\u4E3B\u65E0\u6CD5\u5207\u6362\u4E3B\u9898\u3002");
+        await activate_color_profile(id, (file, label) => runtime3.ClientCommand.setTheme(file, label));
         status2("\u4E3B\u9898\u5DF2\u5E94\u7528\u3002");
       } catch (error) {
         report(error);
@@ -247866,9 +248209,9 @@ https://creativecommons.org/licenses/by/4.0/
         surface.remove();
       } };
     }
-    const runtime2 = window, panel = document.getElementById("uni-preference-panel"), menu = runtime2.File?.megaMenu;
-    if (!panel || !runtime2.ClientCommand?.showPreferencePanel || !menu?.closePreferencePanel) throw Error("\u5F53\u524D\u5BBF\u4E3B\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
-    runtime2.ClientCommand.showPreferencePanel();
+    const runtime3 = window, panel = document.getElementById("uni-preference-panel"), menu = runtime3.File?.megaMenu;
+    if (!panel || !runtime3.ClientCommand?.showPreferencePanel || !menu?.closePreferencePanel) throw Error("\u5F53\u524D\u5BBF\u4E3B\u539F\u751F\u504F\u597D\u63A5\u53E3\u4E0D\u53EF\u7528\u3002");
+    runtime3.ClientCommand.showPreferencePanel();
     const release_geometry = bind_owner_geometry(anchor, panel);
     const observer3 = new MutationObserver(() => {
       if (!document.body.classList.contains("show-preference-panel")) on_return();
@@ -248055,8 +248398,8 @@ https://creativecommons.org/licenses/by/4.0/
                 picker.value = "";
                 if (!file) return;
                 try {
-                  const runtime2 = window;
-                  const path = file.path || runtime2.reqnode("electron").webUtils?.getPathForFile(file);
+                  const runtime3 = window;
+                  const path = file.path || runtime3.reqnode("electron").webUtils?.getPathForFile(file);
                   if (!path) throw Error("\u65E0\u6CD5\u53D6\u5F97\u6240\u9009\u8BC1\u4E66\u6587\u4EF6\u8DEF\u5F84\u3002");
                   save2(path);
                 } catch (error) {
@@ -248187,12 +248530,12 @@ https://creativecommons.org/licenses/by/4.0/
     const status2 = workspace_element("div", "workspace-link-web-status");
     status2.setAttribute("role", "status");
     let disposed = false, ready = false, current = url, failed = false, timer;
-    const listeners7 = [];
+    const listeners8 = [];
     const listen = (name, handler) => {
       const guarded = (event) => {
         if (!disposed) handler(event);
       };
-      listeners7.push([name, guarded]);
+      listeners8.push([name, guarded]);
       frame3.addEventListener(name, guarded);
     };
     const report = (state, text3) => {
@@ -248273,7 +248616,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       clearTimeout(timer);
-      for (const [name, handler] of listeners7) frame3.removeEventListener(name, handler);
+      for (const [name, handler] of listeners8) frame3.removeEventListener(name, handler);
       try {
         if (ready) frame3.stop();
       } catch {
@@ -248358,7 +248701,7 @@ https://creativecommons.org/licenses/by/4.0/
     const content = workspace_element("div", "workspace-link-preview-content"), message = workspace_element("p", "workspace-lookup-preview-message");
     message.hidden = true;
     message.setAttribute("role", "status");
-    const runtime2 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
+    const runtime3 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
     const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
     let web;
     let target, request, failed_request, generation = 0, disposed = false;
@@ -248390,7 +248733,7 @@ https://creativecommons.org/licenses/by/4.0/
       open.disabled = true;
       try {
         if (target?.kind === "file") await files.open_file(target.path, { hash: target.hash });
-        else if (target?.kind === "web") await runtime2.JSBridge?.showInBrowser?.(web?.current_url() || target.url);
+        else if (target?.kind === "web") await runtime3.JSBridge?.showInBrowser?.(web?.current_url() || target.url);
       } catch (error) {
         if (!disposed && version === generation) fail(error);
       } finally {
@@ -248586,7 +248929,7 @@ https://creativecommons.org/licenses/by/4.0/
         title.title = resolved.kind === "file" ? resolved.path + resolved.hash : resolved.url;
         open.title = resolved.kind === "file" ? "\u6253\u5F00\u6E90\u6587\u4EF6" : "\u5728\u9ED8\u8BA4\u6D4F\u89C8\u5668\u6253\u5F00";
         open.setAttribute("aria-label", open.title);
-        open.disabled = !!directory || resolved.kind === "web" && !runtime2.JSBridge?.showInBrowser;
+        open.disabled = !!directory || resolved.kind === "web" && !runtime3.JSBridge?.showInBrowser;
         scale.container.hidden = resolved.kind !== "file" || !!directory;
         sync_scale();
         container.dataset.state = "ready";
@@ -248654,11 +248997,11 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_link_selection.ts
   function bind_workspace_link_selection(core, files, visible3, preview, interaction) {
-    const lifetime = create_workspace_lifetime(), runtime2 = window, type = "linux_note.link_preview";
+    const lifetime = create_workspace_lifetime(), runtime3 = window, type = "linux_note.link_preview";
     const payloads = /* @__PURE__ */ new Map(), views = /* @__PURE__ */ new Set();
     let disposed = false, timer = 0, last = "", ignore_selection = false, close_menu;
     const source_for = (node) => {
-      if (node.closest("#write") && runtime2.File?.bundle?.filePath) return String(runtime2.File.bundle.filePath);
+      if (node.closest("#write") && runtime3.File?.bundle?.filePath) return String(runtime3.File.bundle.filePath);
       let source = "";
       core.app.workspace.eachLeaves((leaf) => {
         if (leaf.view.containerEl.contains(node)) source = files.editor_state(leaf).file_path;
@@ -248671,7 +249014,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (link3?.getRootNode() instanceof ShadowRoot) return;
       if (!link3?.closest("#write,.typ-markdown-preview") || link3.closest(".workspace-link-preview,.workspace-lookup-preview")) return;
       let href = link3.getAttribute("href") || link3.getAttribute("data-href") || "";
-      if (link3.dataset.ref && link3.closest("#write")) href = runtime2.File?.editor?.nodeMap?.link_list?.getHrefByRef?.(link3.dataset.ref, true, true) || "";
+      if (link3.dataset.ref && link3.closest("#write")) href = runtime3.File?.editor?.nodeMap?.link_list?.getHrefByRef?.(link3.dataset.ref, true, true) || "";
       return { source: source_for(link3), href };
     };
     const selected = () => {
@@ -248776,7 +249119,7 @@ https://creativecommons.org/licenses/by/4.0/
       { title: "\u5DE6\u53F3\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", action: () => split(request, "right") },
       { title: "\u4E0A\u4E0B\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", action: () => split(request, "down") }
     ];
-    const menu = document.querySelector("#context-menu"), context = runtime2.File?.editor?.contextMenu;
+    const menu = document.querySelector("#context-menu"), context = runtime3.File?.editor?.contextMenu;
     let menu_request;
     if (menu && context?.show) {
       const items = ["\u5DE6\u53F3\u5206\u5C4F\u9884\u89C8\u94FE\u63A5", "\u4E0A\u4E0B\u5206\u5C4F\u9884\u89C8\u94FE\u63A5"].map((label, index) => {
@@ -248955,7 +249298,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/remote_workspace_media.ts
-  function bind_remote_workspace_media(runtime2 = window) {
+  function bind_remote_workspace_media(runtime3 = window) {
     let disposed = false, scheduled = false, running = false, rescan = false;
     const attempted = /* @__PURE__ */ new WeakMap();
     const urls = /* @__PURE__ */ new Map();
@@ -248974,7 +249317,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (attempted.get(image) === source) continue;
           let path;
           try {
-            path = runtime2.reqnode("url").fileURLToPath(image.src);
+            path = runtime3.reqnode("url").fileURLToPath(image.src);
           } catch {
             continue;
           }
@@ -248986,9 +249329,9 @@ https://creativecommons.org/licenses/by/4.0/
             if (!disposed && image.isConnected && image.getAttribute("src") === source) {
               let url = urls.get(path);
               if (!url) {
-                const bytes = await runtime2.reqnode("fs").promises.readFile(path);
+                const bytes = await runtime3.reqnode("fs").promises.readFile(path);
                 if (disposed || !image.isConnected) return;
-                const extension = runtime2.reqnode("path").extname(path).slice(1).toLowerCase();
+                const extension = runtime3.reqnode("path").extname(path).slice(1).toLowerCase();
                 const mime = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", bmp: "image/bmp", avif: "image/avif" }[extension];
                 if (!mime) throw Error("\u4E0D\u652F\u6301\u6B64\u8FDC\u7A0B\u56FE\u7247\u683C\u5F0F\u3002");
                 url = URL.createObjectURL(new Blob([bytes], { type: mime }));
@@ -249039,6 +249382,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(bind_workspace_colors());
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files = lifetime.own(bind_workspace_files(core));
+      lifetime.own(bind_native_vscode_menu(files));
       lifetime.own(bind_remote_workspace_media());
       lifetime.own(bind_workspace_link_dock(core, files));
       lifetime.own(bind_workspace_reading_reflow());
@@ -249068,6 +249412,7 @@ https://creativecommons.org/licenses/by/4.0/
         terminal: (cwd2) => window.dispatchEvent(new CustomEvent("linux-note-open-terminal", { detail: { cwd: cwd2 } })),
         compare: async (left, right) => core.app.commands.run("linux_note:compare_files", [left, right]),
         extra_menu: (path, is_directory) => [
+          vscode_resource_entry(path),
           { title: "Git\uFF1A\u67E5\u770B\u4ED3\u5E93\u63D0\u4EA4\u56FE", action: () => window.dispatchEvent(new CustomEvent("linux-note-open-git", { detail: { path } })) },
           { title: "\u5728\u4ED3\u5E93\u6839\u76EE\u5F55\u6253\u5F00\u7EC8\u7AEF", action: () => window.dispatchEvent(new CustomEvent("linux-note-open-terminal", { detail: { path } })) },
           { title: "\u4EE5\u7BA1\u7406\u5458\u8EAB\u4EFD\u6253\u5F00\u4ED3\u5E93\u7EC8\u7AEF\uFF08UAC\uFF09", disabled: window.reqnode("process").platform !== "win32", action: () => window.dispatchEvent(new CustomEvent("linux-note-open-terminal", { detail: { path, admin: true } })) }
@@ -249164,6 +249509,27 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092701,
+        version: "2026.09.27.1",
+        date: "2026-09-27",
+        notes: [
+          "\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u53CA\u6B63\u6587\u53F3\u952E\u65B0\u589E\u5E26\u5B98\u65B9\u56FE\u6807\u7684\u201C\u5728 VS Code \u4E2D\u6253\u5F00\u201D\uFF0C\u4ECE\u5F53\u524D\u7CFB\u7EDF\u73AF\u5883\u8BC6\u522B\u5B89\u88C5\u4F4D\u7F6E\uFF0C\u76F4\u63A5\u6253\u5F00\u76EE\u6807\u6587\u4EF6\u3002",
+          "\u5347\u7EA7\u7ED3\u675F\u81EA\u52A8\u56DE\u6536\u4E0B\u8F7D\u5305\u548C\u89E3\u538B\u76EE\u5F55\uFF1B\u4FDD\u7559\u539F\u59CB\u6062\u590D\u57FA\u7EBF\u4E0E\u6700\u8FD1\u81EA\u52A8\u5347\u7EA7\u5907\u4EFD\uFF0C\u5F52\u5C5E\u4E0D\u660E\u6216\u5305\u542B\u989D\u5916\u6587\u4EF6\u7684\u5907\u4EFD\u4E0D\u5220\u9664\u3002",
+          "\u6D4B\u8BD5\u8FD0\u884C\u5668\u5728\u6210\u529F\u3001\u5931\u8D25\u53CA\u8D85\u65F6\u540E\u56DE\u6536\u9694\u79BB\u8F7D\u8377\uFF0C\u4FDD\u7559\u68C0\u67E5\u7ED3\u679C\u3001\u65E5\u5FD7\u548C\u622A\u56FE\uFF0C\u907F\u514D\u91CD\u590D\u9A8C\u8BC1\u5806\u79EF\u78C1\u76D8\u7A7A\u95F4\u3002"
+        ]
+      },
+      {
+        sequence: 2026092509,
+        version: "2026.09.25.9",
+        date: "2026-09-25",
+        notes: [
+          "Dark\u8865\u9F50Typora\u539F\u7248Night\u7684Mermaid\u4E3B\u9898\u5165\u53E3\uFF0C\u56FE\u8868\u4F7F\u7528\u5BBF\u4E3B\u81EA\u5E26\u6E32\u67D3\u4E0E\u914D\u8272\uFF0C\u4E0D\u518D\u8BEF\u5957\u666E\u901A\u4EE3\u7801\u5757\u5E95\u8272\u3002",
+          "\u6B63\u6587\u548C\u72EC\u7ACB\u9884\u89C8\u540C\u6B65\u539F\u751F\u56FE\u8868\u4E3B\u9898\uFF0C\u5168\u5C4F\u91C7\u7528\u5F53\u524D\u539F\u751FSVG\u989C\u8272\uFF0C\u4FDD\u7559\u4F5C\u8005\u6307\u5B9A\u6837\u5F0F\u3002",
+          "\u5378\u8F7D\u68C0\u6D4B\u5230\u8FD0\u884C\u4E2D\u7684Typora\u65F6\u7528\u4E2D\u6587\u63D0\u793A\u4FDD\u5B58\u5E76\u9000\u51FA\uFF0C\u663E\u793A\u8FDB\u7A0B\u7F16\u53F7\uFF0C\u4FDD\u6301\u4E2D\u6B62\u65F6\u4E0D\u5173\u95ED\u8FDB\u7A0B\u3001\u4E0D\u4FEE\u6539\u6587\u4EF6\u3002",
+          "\u5E2E\u52A9\u83DC\u5355\u8865\u9F50\u539F\u751F\u6559\u7A0B\u3001\u9E23\u8C22\u3001\u9690\u79C1\u3001\u53CD\u9988\u3001\u66F4\u65B0\u3001\u8BB8\u53EF\u8BC1\u548C\u5173\u4E8E\uFF0C\u4FDD\u7559\u539F\u751F\u5206\u7EC4\u53CA\u5B9E\u9645\u5165\u53E3\u3002"
+        ]
+      },
       {
         sequence: 2026092508,
         version: "2026.09.25.8",
@@ -250022,13 +250388,13 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_update.ts
   function bind_workspace_update() {
     const lifetime = create_workspace_lifetime(), app = get_workspace_app();
-    const runtime2 = window;
-    if (!app || !runtime2.reqnode || !runtime2._options?.userDataPath) return lifetime;
-    const fs2 = runtime2.reqnode("fs"), path = runtime2.reqnode("path"), process2 = runtime2.reqnode("process");
-    const user_data = runtime2._options.userDataPath, installed_root = path.join(user_data, "typora_code");
+    const runtime3 = window;
+    if (!app || !runtime3.reqnode || !runtime3._options?.userDataPath) return lifetime;
+    const fs2 = runtime3.reqnode("fs"), path = runtime3.reqnode("path"), process2 = runtime3.reqnode("process");
+    const user_data = runtime3._options.userDataPath, installed_root = path.join(user_data, "typora_code");
     let service, loaded_identity;
     try {
-      service = runtime2.reqnode(path.join(installed_root, "assets/update/workspace_update_service.cjs"));
+      service = runtime3.reqnode(path.join(installed_root, "assets/update/workspace_update_service.cjs"));
       loaded_identity = service.installed_identity(user_data)?.commit;
     } catch (error) {
       console.error("Typora Code\u66F4\u65B0\u6A21\u5757\u52A0\u8F7D\u5931\u8D25", error);
@@ -250472,25 +250838,25 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
   function bind_community_plugins() {
-    const runtime2 = window, core = runtime2[Symbol.for("typora-code:workspace")];
-    if (!core?.app || !runtime2.reqnode) return { dispose() {
+    const runtime3 = window, core = runtime3[Symbol.for("typora-code:workspace")];
+    if (!core?.app || !runtime3.reqnode) return { dispose() {
     } };
     const abi_key = Symbol.for("typora-plugin-core@v2");
-    if (runtime2[abi_key] && runtime2[abi_key].app !== core.app) throw Error("\u68C0\u6D4B\u5230\u53E6\u4E00\u4E2A\u793E\u533A\u6838\u5FC3\uFF1B\u8BF7\u505C\u7528\u65E7\u6838\u5FC3\u540E\u91CD\u65B0\u6253\u5F00\u3002");
-    const previous_abi = runtime2[abi_key], abi = { ...core };
+    if (runtime3[abi_key] && runtime3[abi_key].app !== core.app) throw Error("\u68C0\u6D4B\u5230\u53E6\u4E00\u4E2A\u793E\u533A\u6838\u5FC3\uFF1B\u8BF7\u505C\u7528\u65E7\u6838\u5FC3\u540E\u91CD\u65B0\u6253\u5F00\u3002");
+    const previous_abi = runtime3[abi_key], abi = { ...core };
     let construction_scope;
     for (const name of ["Plugin", "PluginSettings", "I18n", "Events", "WorkspaceRibbon", "Sidebar", "StatisticHandler", "StatisticContext", "ExportProcessor", "HtmlExportProcessor", "CodeblockExportProcessor", "Component", "SettingTab", "SettingItem", "View", "Modal", "SidebarPanel", "WorkspaceView", "PostProcessor", "HtmlPostProcessor", "CodeblockPostProcessor", "EditorSuggest", "TextSuggest"]) if (core[name]) abi[name] = community_constructor(core[name], name === "Plugin" ? (value) => construction_scope?.add(value) : void 0);
     if (core.PluginSettings) abi.PluginSettings = community_constructor(community_settings_class(core.PluginSettings));
-    const fs2 = runtime2.reqnode("fs"), path = runtime2.reqnode("path"), url = runtime2.reqnode("url");
-    const asset_root = path.join(runtime2._options.userDataPath, "typora_code");
-    const api2 = runtime2.reqnode(path.join(asset_root, "assets/plugins/community_plugin_service.cjs"));
-    const network = runtime2.reqnode(path.join(asset_root, "assets/update/workspace_update_service.cjs"));
+    const fs2 = runtime3.reqnode("fs"), path = runtime3.reqnode("path"), url = runtime3.reqnode("url");
+    const asset_root = path.join(runtime3._options.userDataPath, "typora_code");
+    const api2 = runtime3.reqnode(path.join(asset_root, "assets/plugins/community_plugin_service.cjs"));
+    const network = runtime3.reqnode(path.join(asset_root, "assets/update/workspace_update_service.cjs"));
     const abort = new AbortController();
     let disposed = false;
     const service = api2.create_community_service({
       root: path.join(asset_root, "community"),
       acquire_lock: () => network.acquire_update_lock(path.join(asset_root, "community")),
-      host_version: runtime2._options.appVersion,
+      host_version: runtime3._options.appVersion,
       request: (address, options2) => network.download(address, { ...options2, signal: abort.signal, network: read_network_settings() }),
       extract: (archive, destination) => network.execute(network.powershell(), ["-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", path.join(asset_root, "assets/update/workspace_update_archive.ps1"), "-archive", archive, "-destination", destination, "-package_kind", "plugin"], { timeout: 6e4 }),
       async load_plugin(manifest) {
@@ -250523,7 +250889,7 @@ https://creativecommons.org/licenses/by/4.0/
       unload_plugin: (instance) => instance.unload()
     });
     const style = acquire_workspace_style("typora-code-style:community_plugins", community_plugins_default);
-    runtime2[abi_key] = abi;
+    runtime3[abi_key] = abi;
     let refresh_manager = () => {
     };
     const settings = create_community_plugin_settings(() => service.list(), () => refresh_manager(), (mode) => {
@@ -250577,7 +250943,7 @@ https://creativecommons.org/licenses/by/4.0/
       picker.onchange = () => {
         const file = picker.files?.[0];
         if (!file) return;
-        const archive = file.path || runtime2.reqnode("electron").webUtils?.getPathForFile(file);
+        const archive = file.path || runtime3.reqnode("electron").webUtils?.getPathForFile(file);
         picker.value = "";
         if (!archive) {
           message.textContent = "\u65E0\u6CD5\u53D6\u5F97\u6240\u9009\u6587\u4EF6\u8DEF\u5F84\u3002";
@@ -250620,7 +250986,7 @@ https://creativecommons.org/licenses/by/4.0/
             source.title = source.href;
             source.onclick = (event) => {
               event.preventDefault();
-              void runtime2.reqnode("electron").shell.openExternal(source.href).catch((error) => {
+              void runtime3.reqnode("electron").shell.openExternal(source.href).catch((error) => {
                 if (alive) message.textContent = "\u6253\u5F00\u9879\u76EE\u8BF4\u660E\u5931\u8D25\uFF1A" + error.message;
               });
             };
@@ -250654,7 +251020,7 @@ https://creativecommons.org/licenses/by/4.0/
               search2.value = info.id;
               return "\u5DF2\u5B89\u88C5 ".concat(result?.name || info.name, "\uFF0C\u9ED8\u8BA4\u505C\u7528\u3002\u70B9\u51FB\u201C\u4FE1\u4EFB\u5E76\u542F\u7528\u201D\u540E\u4F7F\u7528\u63D2\u4EF6\u3002");
             }));
-            if (info.platforms?.length && !info.platforms.includes(runtime2.reqnode("process").platform)) {
+            if (info.platforms?.length && !info.platforms.includes(runtime3.reqnode("process").platform)) {
               install.dataset.unavailable = "true";
               install.title = "\u6B64\u63D2\u4EF6\u4E0D\u652F\u6301\u5F53\u524D\u7CFB\u7EDF";
             }
@@ -250756,9 +251122,9 @@ https://creativecommons.org/licenses/by/4.0/
       void service.dispose().catch(console.error);
       style.remove();
       if (core.app.community_plugins === binding) delete core.app.community_plugins;
-      if (runtime2[abi_key] === abi) {
-        if (previous_abi) runtime2[abi_key] = previous_abi;
-        else delete runtime2[abi_key];
+      if (runtime3[abi_key] === abi) {
+        if (previous_abi) runtime3[abi_key] = previous_abi;
+        else delete runtime3[abi_key];
       }
     } };
   }
@@ -251405,6 +251771,7 @@ https://creativecommons.org/licenses/by/4.0/
   var cpp_textmate_grammar = null;
   var scan_timer = 0;
   var mermaid_buttons = /* @__PURE__ */ new Map();
+  var mermaid_theme;
   var mermaid_entries;
   var runtime_active = false;
   var runtime_controller;
@@ -251605,6 +251972,7 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function scan_document() {
     if (!runtime_active) return;
+    mermaid_theme?.reconcile();
     if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding = runtime_lifetime.own(bind_reading_navigation());
     document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
     const fences3 = [...document.querySelectorAll(".md-fences")];
@@ -251631,16 +251999,16 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   }
-  function namespace_svg_ids(svg3) {
+  function namespace_svg_ids(svg4) {
     const prefix = "linux-note-mermaid-".concat(Date.now().toString(36));
     const replacements = /* @__PURE__ */ new Map();
-    svg3.querySelectorAll("[id]").forEach((element) => {
+    svg4.querySelectorAll("[id]").forEach((element) => {
       const old_id = element.id;
       const new_id = "".concat(prefix, "-").concat(old_id);
       replacements.set(old_id, new_id);
       element.id = new_id;
     });
-    svg3.querySelectorAll("*").forEach((element) => {
+    svg4.querySelectorAll("*").forEach((element) => {
       for (const attribute of Array.from(element.attributes)) {
         let value = attribute.value;
         for (const [old_id, new_id] of replacements) {
@@ -251649,7 +252017,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (value !== attribute.value) element.setAttribute(attribute.name, value);
       }
     });
-    svg3.querySelectorAll("style").forEach((style) => {
+    svg4.querySelectorAll("style").forEach((style) => {
       let value = style.textContent ?? "";
       for (const [old_id, new_id] of replacements) value = value.replaceAll("#".concat(old_id), "#".concat(new_id));
       style.textContent = value;
@@ -251658,40 +252026,40 @@ https://creativecommons.org/licenses/by/4.0/
   function clone_mermaid_svg(preview) {
     const source = preview.querySelector("svg");
     if (!(source instanceof SVGSVGElement)) return null;
-    const svg3 = source.cloneNode(true);
-    namespace_svg_ids(svg3);
+    const svg4 = source.cloneNode(true);
+    namespace_svg_ids(svg4);
     try {
       const bounds = source.getBBox();
       if (!bounds.width || !bounds.height) throw new Error("empty SVG bounds");
       const padding = Math.max(12, Math.min(32, Math.max(bounds.width, bounds.height) * 0.025));
       const width2 = Math.ceil(bounds.width + padding * 2);
       const height = Math.ceil(bounds.height + padding * 2);
-      svg3.setAttribute("viewBox", [bounds.x - padding, bounds.y - padding, width2, height].join(" "));
-      svg3.setAttribute("width", String(width2));
-      svg3.setAttribute("height", String(height));
+      svg4.setAttribute("viewBox", [bounds.x - padding, bounds.y - padding, width2, height].join(" "));
+      svg4.setAttribute("width", String(width2));
+      svg4.setAttribute("height", String(height));
     } catch {
-      const view_box = svg3.getAttribute("viewBox")?.trim().split(/\s+/u).map(Number);
+      const view_box = svg4.getAttribute("viewBox")?.trim().split(/\s+/u).map(Number);
       if (view_box?.length === 4 && view_box.every(Number.isFinite)) {
-        svg3.setAttribute("width", String(Math.max(1, Math.ceil(view_box[2] ?? 1))));
-        svg3.setAttribute("height", String(Math.max(1, Math.ceil(view_box[3] ?? 1))));
+        svg4.setAttribute("width", String(Math.max(1, Math.ceil(view_box[2] ?? 1))));
+        svg4.setAttribute("height", String(Math.max(1, Math.ceil(view_box[3] ?? 1))));
       } else {
         const bounds = source.getBoundingClientRect();
-        svg3.setAttribute("width", String(Math.max(1, Math.ceil(bounds.width))));
-        svg3.setAttribute("height", String(Math.max(1, Math.ceil(bounds.height))));
+        svg4.setAttribute("width", String(Math.max(1, Math.ceil(bounds.width))));
+        svg4.setAttribute("height", String(Math.max(1, Math.ceil(bounds.height))));
       }
     }
-    svg3.removeAttribute("style");
-    svg3.style.backgroundColor = "transparent";
-    svg3.setAttribute("preserveAspectRatio", "xMidYMid meet");
-    return svg3;
+    svg4.removeAttribute("style");
+    svg4.style.backgroundColor = "transparent";
+    svg4.setAttribute("preserveAspectRatio", "xMidYMid meet");
+    return svg4;
   }
   function clamp3(value, minimum, maximum) {
     return Math.min(maximum, Math.max(minimum, value));
   }
   function open_mermaid_viewer(preview) {
-    const svg3 = clone_mermaid_svg(preview);
-    if (!svg3) return;
-    open_reading_media({ content: svg3, source: preview, width: Number(svg3.getAttribute("width")), height: Number(svg3.getAttribute("height")), label: "Mermaid \u56FE\u8868\u5168\u5C4F\u67E5\u770B" });
+    const svg4 = clone_mermaid_svg(preview);
+    if (!svg4) return;
+    open_reading_media({ content: svg4, source: preview, width: Number(svg4.getAttribute("width")), height: Number(svg4.getAttribute("height")), label: "Mermaid \u56FE\u8868\u5168\u5C4F\u67E5\u770B" });
   }
   function mermaid_container_for_preview(preview) {
     return preview.closest(".md-fences") ?? preview.closest(".md-diagram-panel") ?? preview.parentElement ?? preview;
@@ -251772,6 +252140,11 @@ https://creativecommons.org/licenses/by/4.0/
     await grammar_loading;
     if (!current()) return;
     lifetime.add(await bind_code_theme());
+    mermaid_theme = bind_native_mermaid_theme();
+    lifetime.add(() => {
+      mermaid_theme?.dispose();
+      mermaid_theme = void 0;
+    });
     if (!current()) return;
     performance.measure("typora-code:grammar", "typora-code:grammar:start");
     if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
@@ -251880,10 +252253,10 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_entry.ts
   var entry_key = Symbol.for("typora-code:startup");
-  var runtime = window;
-  if (!runtime[entry_key]) {
-    runtime[entry_key] = start_typora_code();
-    void runtime[entry_key].catch((error) => {
+  var runtime2 = window;
+  if (!runtime2[entry_key]) {
+    runtime2[entry_key] = start_typora_code();
+    void runtime2[entry_key].catch((error) => {
       acquire_workspace_style("typora-code-style:workspace_entry", workspace_entry_default);
       console.error("[Typora Code startup]", error);
       document.documentElement.dataset.typoraCodeStartup = "error";

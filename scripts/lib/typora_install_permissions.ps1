@@ -61,7 +61,7 @@ $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $request=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__PAYLOAD__'))|ConvertFrom-Json
 $env:TYPORA_TERMINAL_CACHE=$request.cache_root
-$arguments=@{typora_root=$request.typora_root;user_data=$request.user_data;backup_root=$request.backup_root;include_theme=[bool]$request.include_theme;non_interactive=$true;elevation_attempted=$true}
+$arguments=@{typora_root=$request.typora_root;user_data=$request.user_data;backup_root=$request.backup_root;include_theme=[bool]$request.include_theme;non_interactive=$true;elevation_attempted=$true;managed_backup=[bool]$request.managed_backup}
 $result=@{status='failed';message='安装子进程未完成';exit_code=1}
 try { & $request.installer @arguments; $result=@{status='success';message='已授权的安装事务完成';exit_code=0} }
 catch { $result.message=$_.Exception.Message }

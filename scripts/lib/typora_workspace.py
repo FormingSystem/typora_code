@@ -257,10 +257,52 @@ def group_roots(user_data):
             'terminal': user_data / 'linux_note_enhancements/terminal_runtime',
             'settings': user_data / 'plugins/settings', 'theme': user_data / 'themes', 'native_profile': user_data}
 
-def install(tools_root, typora_root, user_data, backup):
+def retained_backup(backup, user_data, typora_root):
+    parent = user_data / 'backups/typora_code_configuration'
+    if backup.parent.resolve() != parent.resolve():
+        raise ValueError('Backup is outside automatic backup directory')
+    manifest = read_object(asset_path(backup, 'manifest.json'))
+    if (manifest.get('schema_version') != 4 or manifest.get('retention', {}).get('schema') != 1
+            or manifest['retention']['kind'] not in ('baseline', 'upgrade')
+            or Path(manifest['user_data']).resolve() != user_data.resolve()
+            or Path(manifest['typora_root']).resolve() != typora_root.resolve()):
+        raise ValueError('Backup ownership differs')
+    if digest(asset_path(backup, 'window.html')) != manifest['window_sha256']:
+        raise ValueError('Backup window digest differs')
+    expected = {'manifest.json', 'window.html'}
+    for name, root in group_roots(user_data).items():
+        validate_records(root, backup / name, manifest[name], name)
+        expected.update(name + '/' + row['relative_path'] for row in manifest[name] if row['existed'])
+    pending = [backup]
+    while pending:
+        for entry in pending.pop().iterdir():
+            if entry.is_symlink() or getattr(entry, 'is_junction', lambda: False)():
+                raise ValueError('Backup contains linked entry')
+            if entry.is_dir():
+                pending.append(entry)
+            elif entry.relative_to(backup).as_posix() not in expected:
+                raise ValueError('Backup contains unregistered file')
+    return manifest
+
+
+def prune_automatic_backups(current, user_data, typora_root, log):
+    if retained_backup(current, user_data, typora_root)['retention']['kind'] != 'upgrade':
+        return
+    for backup in current.parent.iterdir():
+        if backup == current or not backup.is_dir():
+            continue
+        try:
+            if retained_backup(backup, user_data, typora_root)['retention']['kind'] == 'upgrade':
+                shutil.rmtree(backup)
+                log.write('INFO', '已回收旧自动升级备份：' + backup.name)
+        except Exception as error:
+            log.write('WARN', '备份保留，未自动回收：' + backup.name + '；' + str(error))
+
+
+def install(tools_root, typora_root, user_data, backup, managed_backup=False):
     log = install_log(user_data)
     try:
-        install_files(tools_root, typora_root, user_data, backup, log)
+        install_files(tools_root, typora_root, user_data, backup, log, managed_backup)
     except Exception as error:
         log.write('ERROR', f'{log.current}失败：{error}')
         if log.rollback == 'not_required':
@@ -269,7 +311,7 @@ def install(tools_root, typora_root, user_data, backup):
             log.write('INFO', 'Log: ' + str(log.path))
         raise
 
-def install_files(tools_root, typora_root, user_data, backup, log):
+def install_files(tools_root, typora_root, user_data, backup, log, managed_backup=False):
     log.step(1, '校验安装包')
     source = tools_root / 'enhancements/dist'
     assets = release_assets(source)
@@ -306,6 +348,7 @@ def install_files(tools_root, typora_root, user_data, backup, log):
     backup.mkdir(parents=True)
     shutil.copy2(window, backup / 'window.html')
     records = {name: snapshot(roots[name], backup / name, entries) for name, entries in paths.items()}
+    retention = {'retention': {'schema': 1, 'kind': 'upgrade' if (user_data / 'typora_code/assets/update/release.json').is_file() else 'baseline'}} if managed_backup else {}
     created = False
     profile_changed = False
     settings_target = user_data / 'typora_code/settings/workspace.json'
@@ -333,7 +376,7 @@ def install_files(tools_root, typora_root, user_data, backup, log):
         verify_assets(roots['product'], assets)
         check_window(window.read_text(encoding='utf-8'), head)
         profile_changed = update_native_profile(profile_path, 'install', profile_before['sha256'])
-        write_json(backup / 'manifest.json', {'schema_version': 4, 'typora_root': str(typora_root), 'user_data': str(user_data), 'window_sha256': digest(backup / 'window.html'), **records})
+        write_json(backup / 'manifest.json', {'schema_version': 4, 'typora_root': str(typora_root), 'user_data': str(user_data), 'window_sha256': digest(backup / 'window.html'), **records, **retention})
     except Exception as error:
         log.rollback = 'running'
         log.write('WARN', '安装未完成，正在恢复安装前状态。原因：' + str(error))
@@ -353,6 +396,11 @@ def install_files(tools_root, typora_root, user_data, backup, log):
             log.write('ERROR', '自动回滚未完成：' + str(rollback_error))
             log.write('INFO', '请保留备份和日志用于恢复。Backup: ' + str(backup))
         raise
+    if managed_backup:
+        try:
+            prune_automatic_backups(backup, user_data, typora_root, log)
+        except Exception as error:
+            log.write('WARN', '升级备份回收未完成，安装结果保留：' + str(error))
     log.complete()
     log.write('SUCCESS', f'安装完成，总用时 {time.monotonic() - log.started:.1f} 秒。')
     log.write('INFO', 'Backup: ' + str(backup))
@@ -441,7 +489,7 @@ def main():
     args = parser.parse_args()
     if args.operation == 'install':
         backup = args.backup_root or args.user_data / 'backups/typora_code_configuration' / uuid.uuid4().hex
-        install(args.tools_root, args.typora_root, args.user_data, backup)
+        install(args.tools_root, args.typora_root, args.user_data, backup, managed_backup=args.backup_root is None)
     elif args.operation == 'check':
         check(args.tools_root, args.typora_root, args.user_data)
     else:

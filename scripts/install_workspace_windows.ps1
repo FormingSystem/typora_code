@@ -1,10 +1,11 @@
 ﻿[CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='', [switch]$allow_elevation, [switch]$elevation_attempted)
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='', [switch]$allow_elevation, [switch]$elevation_attempted, [switch]$managed_backup)
 $ErrorActionPreference = 'Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $tools_root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_workspace.ps1')
+. (Join-Path $tools_root 'scripts/lib/typora_backup_retention.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_install_log.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_install_permissions.ps1')
@@ -39,7 +40,7 @@ $terminal_assets = @(get_typora_terminal_assets $terminal_source)
 assert_typora_workspace_assets $terminal_source $terminal_assets
 $theme_names = @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css')
 if ($include_theme) { foreach ($name in $theme_names) { if (-not (Test-Path -LiteralPath (Join-Path $tools_root $name) -PathType Leaf)) { throw 'Theme source is missing.' } } }
-if (-not $backup_root) { $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
+if (-not $backup_root) { $managed_backup = $true; $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
 $backup_root = [IO.Path]::GetFullPath($backup_root)
 $manifest_path = resolve_typora_asset_path $backup_root 'manifest.json'
 if (Test-Path -LiteralPath $backup_root) { throw 'Use a new, empty backup destination for each transaction.' }
@@ -95,7 +96,7 @@ if ($permission_action -ne 'continue') {
     $install_mutex.Dispose(); $install_mutex = $null
     $cache_root = Split-Path -Parent $node_stage.root
     $rollback_state = 'delegated'
-    invoke_typora_elevated_install ([pscustomobject]@{installer=(Join-Path $tools_root 'scripts/install_workspace_windows.ps1');typora_root=$typora_root;user_data=$user_data;backup_root=$backup_root;cache_root=$cache_root;include_theme=[bool]$include_theme})
+    invoke_typora_elevated_install ([pscustomobject]@{installer=(Join-Path $tools_root 'scripts/install_workspace_windows.ps1');typora_root=$typora_root;user_data=$user_data;backup_root=$backup_root;cache_root=$cache_root;include_theme=[bool]$include_theme;managed_backup=[bool]$managed_backup})
     write_typora_install_log $install_log SUCCESS ('已授权安装完成。Backup: ' + $backup_root)
     write_typora_install_log $install_log INFO '保存文档后正常重启Typora加载新版；安装子进程日志位于原用户数据目录的logs/installation。'
     return
@@ -105,6 +106,7 @@ write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 New-Item -ItemType Directory -Path $backup_root | Out-Null
 Copy-Item -LiteralPath $window -Destination (Join-Path $backup_root 'window.html')
 $manifest = [ordered]@{schema_version=4;installed_at=(Get-Date).ToString('o');typora_root=$typora_root;user_data=$user_data;window_sha256=(Get-FileHash -LiteralPath (Join-Path $backup_root 'window.html') -Algorithm SHA256).Hash.ToLowerInvariant()}
+if ($managed_backup) { $manifest['retention'] = @{schema=1;kind=$(if(Test-Path -LiteralPath (Join-Path $user_data 'typora_code/assets/update/release.json')){'upgrade'}else{'baseline'})} }
 foreach ($group in $groups) {
     $records = @(backup_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.assets)
     $group | Add-Member -NotePropertyName records -NotePropertyValue $records
@@ -160,6 +162,10 @@ try {
         write_typora_install_log $install_log INFO ('请保留备份和日志用于恢复。Backup: ' + $backup_root)
     }
     throw $failure
+}
+if ($managed_backup) {
+    try { prune_typora_automatic_backups $backup_root $user_data $typora_root {param($message) write_typora_install_log $install_log INFO $message} }
+    catch { write_typora_install_log $install_log WARN ('升级备份回收未完成，安装结果保留：' + $_.Exception.Message) }
 }
 complete_typora_install_step $install_log
 write_typora_install_log $install_log SUCCESS ('安装完成，总用时 {0:N1} 秒。' -f $install_log.clock.Elapsed.TotalSeconds)

@@ -27,7 +27,7 @@ export function load_code_themes(){return loading ||= (async()=>{
  const css:string[]=[];
  modes.forEach((mode,index)=>{
   const prefix=`:root[data-workspace-code-theme=${mode}] #write`,colors=themes[mode].colors;
-  css.push(`${prefix} :is(.md-fences,.CodeMirror,pre,pre code){color:${colors['editor.foreground']}!important;background-color:${colors['editor.background']}!important}`,`${prefix} .CodeMirror-linenumber{color:${colors['editorLineNumber.foreground']}!important}`);
+  css.push(`${prefix} :is(.md-fences:not(.md-diagram),.CodeMirror,pre:not(.md-diagram),pre code){color:${colors['editor.foreground']}!important;background-color:${colors['editor.background']}!important}`,`${prefix} .CodeMirror-linenumber{color:${colors['editorLineNumber.foreground']}!important}`);
   css.push(`${prefix} :where(.CodeMirror-line span,pre code span){color:${colors['editor.foreground']}!important}`);
   // 先映射宿主后备token；真实TextMate的精确metadata规则排列在其后。
   for(const key of Object.keys(fallback_scopes)){

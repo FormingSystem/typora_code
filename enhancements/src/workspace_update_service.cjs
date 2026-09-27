@@ -89,7 +89,8 @@ async function check_update(current,{request=download,signal,user_data,network}=
 function powershell(){return path.join(process.env.SystemRoot||'C:\\Windows','System32/WindowsPowerShell/v1.0/powershell.exe');}
 function child_environment(){const env={...process.env};delete env.ELECTRON_RUN_AS_NODE;for(const key of Object.keys(env))if(key.toLowerCase()==='psmodulepath')delete env[key];return env;}
 function execute(executable,args,options={}){
- return new Promise((resolve,reject)=>child_process.execFile(executable,args,{windowsHide:true,env:child_environment(),timeout:15000,maxBuffer:Infinity,...options},(error,stdout,stderr)=>error?reject(Error((stderr||stdout||error.message).trim())):resolve(stdout.trim())));
+ const {on_spawn,...settings}=options;
+ return new Promise((resolve,reject)=>{const child=child_process.execFile(executable,args,{windowsHide:true,env:child_environment(),timeout:15000,maxBuffer:Infinity,...settings},(error,stdout,stderr)=>error?reject(Error((stderr||stdout||error.message).trim())):resolve(stdout.trim()));if(child.pid)on_spawn?.(child.pid);});
 }
 async function session_identity(parent_pid=process.ppid,executable=process.execPath){
  if(process.platform!=='win32')throw Error('当前平台暂未支持自动安装。');
@@ -107,6 +108,53 @@ function claim_startup(state_root,session){
 function validate_job_root(state_root,job){
  if(!/^[a-f0-9-]{36}$/.test(job))throw Error('无效更新任务。');
  const root=path.join(state_root,job);if(fs.lstatSync(root).isSymbolicLink())throw Error('更新目录不能是链接。');return root;
+}
+// 只回收带本版本所有权记录的 UUID 任务；用户备份属于标准安装事务。
+function no_links(target){
+ if(!fs.existsSync(target))return;
+ const stat=fs.lstatSync(target);if(stat.isSymbolicLink())throw Error('更新回收拒绝链接：'+target);
+ if(stat.isDirectory())for(const name of fs.readdirSync(target))no_links(path.join(target,name));
+}
+function live_process(pid){if(!Number.isSafeInteger(pid)||pid<=0)return false;try{process.kill(pid,0);return true;}catch(error){return error.code!=='ESRCH';}}
+function owned_job(state_root,job){
+ const root=validate_job_root(state_root,job);
+ for(let parent=path.resolve(root);;parent=path.dirname(parent)){if(fs.lstatSync(parent).isSymbolicLink())throw Error('更新路径含链接');if(path.dirname(parent)===parent)break;}
+ const owner=read_json(path.join(root,'ownership.json'));
+ if(owner.schema!==1||owner.job!==job||owner.kind!=='typora-code-update')throw Error('更新回收归属不匹配');
+ return {root,owner};
+}
+async function cleanup_update_payload(state_root,job,{current=false}={}){
+ const {root,owner}=owned_job(state_root,job);
+ if((!current&&live_process(owner.pid))||(owner.children||[]).some(live_process))return false;
+ const targets=['repository.zip','payload'].map(name=>path.join(root,name));
+ for(const target of targets)no_links(target);
+ let reclaimed=0;const size=target=>{if(!fs.existsSync(target))return 0;const stat=fs.lstatSync(target);return stat.isDirectory()?fs.readdirSync(target).reduce((sum,name)=>sum+size(path.join(target,name)),0):stat.size;};
+ for(const target of targets){reclaimed+=size(target);await fs.promises.rm(target,{recursive:true,force:true,maxRetries:5,retryDelay:150});}
+ write_json(path.join(root,'ownership.json'),{...owner,children:[],cleaned_at:new Date().toISOString(),reclaimed_bytes:(owner.reclaimed_bytes||0)+reclaimed});
+ return true;
+}
+async function sweep_update_jobs(state_root,current_job){
+ const completed=[];
+ for(const job of fs.readdirSync(state_root)){
+  if(job===current_job||!/^[a-f0-9-]{36}$/.test(job))continue;
+  try{
+   const {root,owner}=owned_job(state_root,job);
+   if(live_process(owner.pid)||(owner.children||[]).some(live_process))continue;
+   // 崩溃时 UAC 安装子进程可能仍活着；按任务脚本路径核对，不只看 worker PID。
+   if(process.platform==='win32'){
+    const encoded=Buffer.from(path.resolve(root),'utf8').toString('base64');
+    const active=await execute(powershell(),['-NoProfile','-NonInteractive','-Command',`$root=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${encoded}')); @(Get-CimInstance Win32_Process -ErrorAction Stop | Where-Object {$_.CommandLine -and $_.CommandLine.IndexOf($root,[StringComparison]::OrdinalIgnoreCase) -ge 0}).Count`]);
+    if(active!=='0')continue;
+   }
+   if(!owner.cleaned_at&&Date.now()-Date.parse(owner.created_at)>86400000)await cleanup_update_payload(state_root,job);
+   const updated=read_json(path.join(root,'ownership.json'));
+   if(updated.cleaned_at){
+    const known=new Set(['ownership.json','request.json','status.json','cancel','worker.log','install.log','workspace_update_service.cjs','workspace_update_archive.ps1','workspace_network.cjs']);
+    if(fs.readdirSync(root).every(name=>known.has(name))){no_links(root);completed.push({root,finished:Date.parse(updated.cleaned_at)});}
+   }
+  }catch(error){console.warn('更新目录保留，未自动回收：',job,error.message);}
+ }
+ for(const entry of completed.sort((a,b)=>b.finished-a.finished).slice(19))await fs.promises.rm(entry.root,{recursive:true,force:true,maxRetries:3,retryDelay:150});
 }
 function status_of(state_root,job){
  const root=validate_job_root(state_root,job);let status;
@@ -146,10 +194,16 @@ async function acquire_update_lock(state_root){
 }
 async function run_worker(request_file,{request=download,unpack,install}={}){
  const root=path.dirname(request_file),configuration=read_json(request_file),{state_root,user_data,host_root,plan}=configuration;
- let unlock,timer,installing=false;const abort=new AbortController();
+ let unlock,timer,installing=false,owner;const abort=new AbortController();
+ const register_child=pid=>{owner.children.push(pid);write_json(path.join(root,'ownership.json'),owner);};
  const status=(phase,message,extra={})=>write_json(path.join(root,'status.json'),{phase,message,pid:process.pid,updated_at:new Date().toISOString(),...extra});
  try{
   unlock=await acquire_update_lock(state_root);
+  if(path.resolve(validate_job_root(state_root,path.basename(root)))!==path.resolve(root))throw Error('更新任务目录不匹配');
+  no_links(root);
+  owner={schema:1,kind:'typora-code-update',job:path.basename(root),pid:process.pid,children:[],created_at:new Date().toISOString()};
+  write_json(path.join(root,'ownership.json'),owner);
+  await sweep_update_jobs(state_root,owner.job);
   write_json(path.join(state_root,'active_job.json'),{job:path.basename(root)});
   release_info(plan.release);
   if(!/^[a-f0-9]{40}$/.test(plan.commit)||plan.archive_url!==`https://codeload.github.com/${repository}/zip/${plan.commit}`)throw Error('下载地址与固定提交不匹配。');
@@ -162,7 +216,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   await request(plan.archive_url,{network:configuration.network,file:archive,timeout_ms:180000,signal:abort.signal,on_progress:(bytes,total_bytes)=>{if(Date.now()-last_progress>500||bytes===total_bytes){last_progress=Date.now();status('downloading','正在下载…',{bytes,total_bytes});}}});
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   status('verifying','正在校验并解压更新包…');
-  const payload=unpack?await unpack(archive,root):await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'workspace_update_archive.ps1'),'-archive',archive,'-destination',path.join(root,'payload')],{timeout:120000});
+  const payload=unpack?await unpack(archive,root):await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(root,'workspace_update_archive.ps1'),'-archive',archive,'-destination',path.join(root,'payload')],{timeout:120000,on_spawn:register_child});
   validate_payload(payload,plan);
   if(fs.existsSync(path.join(root,'cancel')))throw Error('已取消更新。');
   clearInterval(timer);timer=undefined;
@@ -171,7 +225,7 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   if(install)await install(payload,configuration);else{
    const env=child_environment();env.APPDATA=path.dirname(user_data);
    // 写入事务没有强杀超时；备份／回滚必须允许安装器完整结束。
-   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive','-allow_elevation'],{env,timeout:0,maxBuffer:Infinity});
+   const output=await execute(powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(payload,'install_windows.ps1'),'-typora_root',host_root,'-user_data',user_data,'-non_interactive','-allow_elevation'],{env,timeout:0,maxBuffer:Infinity,on_spawn:register_child});
    fs.writeFileSync(path.join(root,'install.log'),output,'utf8');
   }
   const installed=release_info(read_json(path.join(user_data,'typora_code/assets/update/release.json')));
@@ -179,7 +233,11 @@ async function run_worker(request_file,{request=download,unpack,install}={}){
   record_identity(user_data,plan,'installed-archive');
   status('succeeded','更新已安装。请保存文档后手动重启所有 Typora 窗口以加载新版。',{version:installed.releases[0].version,commit:plan.commit});
  }catch(error){const message=String(error.message||error);status(message.includes('[TYPORA_INSTALL_CANCELLED]')||(!installing&&(abort.signal.aborted||fs.existsSync(path.join(root,'cancel'))))?'cancelled':'failed',message);}
- finally{clearInterval(timer);if(unlock)await unlock();}
+ finally{
+  clearInterval(timer);
+  if(owner)try{if(!await cleanup_update_payload(state_root,owner.job,{current:true}))throw Error('安装或解压子进程尚未结束');}catch(error){const previous=read_json(path.join(root,'status.json'));write_json(path.join(root,'status.json'),{...previous,cleanup_error:String(error.message),message:previous.message+' 临时文件暂未清理，将在后续更新中重试。'});}
+  if(unlock)await unlock();
+ }
 }
-module.exports={update_paths,installed_identity,execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest};
+module.exports={update_paths,installed_identity,execute,powershell,release_info,allowed_url,download,check_update,session_identity,claim_startup,start_update,status_of,cancel_update,validate_payload,acquire_update_lock,run_worker,digest,cleanup_update_payload,sweep_update_jobs};
 if(require.main===module&&process.argv[2]==='--worker')run_worker(process.argv[3]).catch(error=>{console.error(error);process.exitCode=1;});

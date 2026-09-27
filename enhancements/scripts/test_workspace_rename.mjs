@@ -26,9 +26,15 @@ checks.push('cross-directory move preserves bytes and refuses nesting or workspa
 const original=file('a/inside.c'),prefix=file('abc/inside.c'),directory=path.dirname(original);const dir_plan=await prepare(directory,'b');await dir_plan.apply();assert.equal(fs.readFileSync(path.join(workspace,'b','inside.c'),'utf8'),'original\r\n');assert(fs.existsSync(prefix));
 assert.equal(renamed_workspace_path(path,original,directory,dir_plan.new_path,true),path.join(workspace,'b','inside.c'));assert.equal(renamed_workspace_path(path,prefix,directory,dir_plan.new_path,true),undefined);
 assert.equal(renamed_workspace_path(path,path.join(directory,'child'),directory,dir_plan.new_path,false),undefined);checks.push('directory rename preserves descendants and path mapping excludes same-prefix siblings');
-const outside=path.join(root,'outside');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'secret.txt'),'secret');const link=path.join(workspace,'link');fs.symlinkSync(outside,link,process.platform==='win32'?'junction':'dir');
+const outside=path.join(root,'outside');fs.mkdirSync(outside);fs.writeFileSync(path.join(outside,'secret.txt'),'secret');const link=path.join(workspace,'link'),internal_link=path.join(workspace,'internal_link');
+try {
+fs.symlinkSync(outside,link,process.platform==='win32'?'junction':'dir');
 await assert.rejects(prepare(link,'renamed_link'),/符号链接/u);await assert.rejects(prepare(path.join(link,'secret.txt'),'new.txt'),/工作区外|符号链接/u);assert.equal(fs.readFileSync(path.join(outside,'secret.txt'),'utf8'),'secret');
-const internal_link=path.join(workspace,'internal_link');fs.symlinkSync(path.join(workspace,'b'),internal_link,process.platform==='win32'?'junction':'dir');await assert.rejects(prepare(path.join(internal_link,'inside.c'),'next.c'),/符号链接/u);checks.push('external and internal symlink ancestors and link entries are rejected without touching targets');
+fs.symlinkSync(path.join(workspace,'b'),internal_link,process.platform==='win32'?'junction':'dir');await assert.rejects(prepare(path.join(internal_link,'inside.c'),'next.c'),/符号链接/u);checks.push('external and internal symlink ancestors and link entries are rejected without touching targets');
+} finally {
+// 只撤销本用例创建的链接本身，不递归进入目标；外层运行器随后回收普通载荷。
+for (const entry of [link,internal_link]) { if (fs.lstatSync(entry,{throwIfNoEntry:false})?.isSymbolicLink()) fs.unlinkSync(entry); }
+}
 const document_path=file('document.txt',Buffer.concat([Buffer.from([0xff,0xfe]),Buffer.from('原始\r\n','utf16le')]));const document=create_text_document({fs,path_api:path},document_path);await document.load();const document_plan=await prepare(document_path,'renamed_document.txt');const relocation=await document.prepare_relocation(document_plan.new_path);
 await assert.rejects(document.save('草稿\n'),/正在读取或保存/u);await document_plan.apply();await relocation.commit();assert.equal(document.file_path,document_plan.new_path);await document.save('草稿\n');assert(fs.readFileSync(document_plan.new_path).equals(Buffer.concat([Buffer.from([0xff,0xfe]),Buffer.from('草稿\r\n','utf16le')])));assert(!fs.existsSync(document_path));checks.push('open-document baseline retarget keeps BOM/EOL and later draft save writes only the new path');
 const rejected_path=file('rejected.txt'),rejected=create_text_document({fs,path_api:path},rejected_path);await rejected.load();const cancelled=await rejected.prepare_relocation(path.join(workspace,'unused.txt'));cancelled.cancel();await rejected.save('after cancel');assert.equal(fs.readFileSync(rejected_path,'utf8'),'after cancel');

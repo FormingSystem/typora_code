@@ -1,3 +1,4 @@
+import {bind_native_vscode_menu,vscode_resource_entry} from "./workspace_open_vscode";
 import {workspace_context_switching} from "./workspace_context";
 import {bind_workspace_colors} from './workspace_colors';
 import {is_composing_key} from "./workspace_keyboard";
@@ -39,6 +40,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_colors());
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
+  lifetime.own(bind_native_vscode_menu(files));
   lifetime.own(bind_remote_workspace_media());
   lifetime.own(bind_workspace_link_dock(core,files));
   lifetime.own(bind_workspace_reading_reflow());
@@ -57,6 +59,7 @@ export function bind_workspace_browser() {
     terminal:cwd=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{cwd}})),
     compare:async(left,right)=>core.app.commands.run("linux_note:compare_files",[left,right]),
     extra_menu:(path,is_directory)=>[
+      vscode_resource_entry(path),
       {title:"Git：查看仓库提交图",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-git",{detail:{path}}))},
       {title:"在仓库根目录打开终端",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path}}))},
       {title:"以管理员身份打开仓库终端（UAC）",disabled:(window as unknown as {reqnode(name:string):any}).reqnode("process").platform!=="win32",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path,admin:true}}))}

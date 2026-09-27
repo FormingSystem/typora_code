@@ -1,3 +1,4 @@
+import {bind_native_mermaid_theme} from './reading_mermaid_theme';
 import {bind_reading_code_geometry} from "./reading_code_geometry";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
@@ -72,6 +73,7 @@ let c_textmate_grammar: themed_grammar | null = null;
 let cpp_textmate_grammar: themed_grammar | null = null;
 let scan_timer = 0;
 const mermaid_buttons = new Map<Element, reading_media_entry>();
+let mermaid_theme:ReturnType<typeof bind_native_mermaid_theme>|undefined;
 let mermaid_entries:ReturnType<typeof bind_reading_media_entries>|undefined;
 let runtime_active = false;
 let runtime_controller: AbortController | undefined;
@@ -295,6 +297,7 @@ function schedule_scan(): void {
 
 function scan_document(): void {
   if (!runtime_active) return;
+  mermaid_theme?.reconcile();
   if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding=runtime_lifetime.own(bind_reading_navigation());
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
   const fences=[...document.querySelectorAll<HTMLElement>(".md-fences")];
@@ -454,6 +457,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   await grammar_loading;
   if(!current())return;
   lifetime.add(await bind_code_theme());
+  mermaid_theme=bind_native_mermaid_theme();lifetime.add(()=>{mermaid_theme?.dispose();mermaid_theme=undefined;});
   if(!current())return;
   performance.measure("typora-code:grammar","typora-code:grammar:start");
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");

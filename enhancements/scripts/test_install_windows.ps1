@@ -6,7 +6,12 @@ function assert_rejected([scriptblock]$operation, [string]$message) { $rejected=
 function write_fixture([string]$path, [string]$value) { New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null; [IO.File]::WriteAllText($path,$value,[Text.UTF8Encoding]::new($false)) }
 function write_profile_fixture([string]$path, [object]$data) { write_fixture $path ([BitConverter]::ToString([Text.Encoding]::UTF8.GetBytes(($data | ConvertTo-Json -Depth 100 -Compress))).Replace('-', '').ToLowerInvariant()) }
 function read_profile_fixture([string]$path) { $hex=[IO.File]::ReadAllText($path,[Text.Encoding]::UTF8); $bytes=New-Object byte[] ($hex.Length/2); for ($index=0; $index -lt $bytes.Length; $index++) { $bytes[$index]=[Convert]::ToByte($hex.Substring($index*2,2),16) }; return ([Text.Encoding]::UTF8.GetString($bytes) | ConvertFrom-Json) }
-$test_root = Join-Path ([IO.Path]::GetTempPath()) ('typora-direct-install-' + [guid]::NewGuid().ToString('N'))
+$artifact_manager = Join-Path $PSScriptRoot 'manage_test_artifacts.py'
+$artifact_root = (& python -X utf8 $artifact_manager create --pid $PID | Select-Object -Last 1)
+if ($LASTEXITCODE -ne 0) { throw 'Test artifact allocation failed' }
+$test_root = Join-Path $artifact_root 'work'
+$artifact_success = $false
+try {
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
@@ -334,3 +339,9 @@ function start_typora_elevated_install {
     Write-Host 'PASS: candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved.'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }
+
+$artifact_success = $true
+} finally {
+    & python -X utf8 $artifact_manager finish $artifact_root --pid $PID --status $(if($artifact_success){'passed'}else{'failed'})
+    if ($LASTEXITCODE -ne 0) { Write-Warning 'Test payload cleanup failed; see artifact marker.' }
+}

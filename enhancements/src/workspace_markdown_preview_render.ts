@@ -1,3 +1,4 @@
+import {mermaid_theme_options,observe_mermaid_theme} from './reading_mermaid_theme';
 import {load_code_themes,initial_code_stack} from './reading_code_theme';
 import * as monaco from "monaco-editor/editor/editor.api";
 import DOMPurify from "dompurify";
@@ -39,6 +40,8 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
 /** 每个预览拥有隔离的 Mermaid 实例，避免图表指令污染正在渲染的中央正文配置。 */
 export function create_preview_diagrams() {
   let frame:HTMLIFrameElement|undefined, loading:Promise<diagram_api>|undefined;
+  const entries=new Set<{element:HTMLElement;source:string;width:number;current:()=>boolean;revision:number}>();
+  let theme_fingerprint=JSON.stringify(mermaid_theme_options());
   let disposed=false, queued:Promise<unknown>=Promise.resolve(), cancel_load:(()=>void)|undefined;
   const load = () => loading ||= new Promise<diagram_api>((resolve,reject)=>{
     frame=document.createElement("iframe");frame.setAttribute("aria-hidden","true");frame.tabIndex=-1;
@@ -57,18 +60,27 @@ export function create_preview_diagrams() {
     script.src=new URL("./lib.asar/diagram/mermaid.min.js",document.baseURI).href;
     script.onload=()=>finish();script.onerror=()=>finish(new Error("无法载入内置图表渲染器。"));doc.head.append(script);
   });
+  // 初次渲染期间也可能切换主题；只提交与当前原生配置一致的结果。
+  const render_current=async(api:diagram_api,source:string,current:()=>boolean)=>{
+    while(!disposed&&current()){
+      const options=mermaid_theme_options(),fingerprint=JSON.stringify(options);
+      api.initialize({...options,startOnLoad:false,securityLevel:"strict",suppressErrorRendering:true,htmlLabels:false,flowchart:{...(options.flowchart as Record<string,unknown>|undefined),htmlLabels:false}});
+      const result=await api.render(`linux_note_lookup_diagram_${++diagram_serial}`,source);
+      if(fingerprint===JSON.stringify(mermaid_theme_options()))return result;
+    }
+    return undefined;
+  };
   const render=async(code:HTMLElement,width:number,show_source:boolean,current:()=>boolean):Promise<boolean>=>{
     const task=queued.then(async()=>{
       if(disposed||!current())return false;
       const api=await load();if(disposed||!current()||!frame)return false;
       frame.style.width=`${Math.max(180,width)}px`;
-      const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];
-      api.initialize({startOnLoad:false,securityLevel:"strict",suppressErrorRendering:true,theme:color[0]+color[1]+color[2]>450?"dark":"default",htmlLabels:false,flowchart:{htmlLabels:false}});
-      const result=await api.render(`linux_note_lookup_diagram_${++diagram_serial}`,code.textContent||"");
-      if(disposed||!current())return false;
+      const result=await render_current(api,code.textContent||"",current);
+      if(!result||disposed||!current())return false;
       const diagram=document.createElement("div");diagram.className="lookup-diagram";
       diagram.innerHTML=DOMPurify.sanitize(result.svg,{ADD_TAGS:["foreignObject"],HTML_INTEGRATION_POINTS:{foreignobject:true},FORBID_TAGS:["script","img","image","iframe","object","embed","audio","video","source","form"],FORBID_ATTR:["href","xlink:href"]});
       if(!diagram.querySelector("svg"))return false;
+      entries.add({element:diagram,source:code.textContent||"",width,current,revision:0});
       const pre=code.closest("pre");
       if(show_source){pre?.before(diagram);const label=document.createElement("div");label.className="lookup-diagram-source-label";label.textContent="命中源码";pre?.before(label);}
       else pre?.replaceWith(diagram);
@@ -76,5 +88,19 @@ export function create_preview_diagrams() {
     }).catch(()=>false);
     queued=task;return task;
   };
-  return {render,dispose(){disposed=true;cancel_load?.();frame?.remove();frame=undefined;}};
+  const unwatch=observe_mermaid_theme(()=>{
+    const fingerprint=JSON.stringify(mermaid_theme_options());if(fingerprint===theme_fingerprint)return;theme_fingerprint=fingerprint;
+    for(const entry of entries){
+      if(!entry.element.isConnected||!entry.current()){entries.delete(entry);continue;}
+      const revision=++entry.revision;
+      queued=queued.then(async()=>{
+        if(disposed||revision!==entry.revision||!entry.element.isConnected||!entry.current())return;
+        const api=await load();if(disposed||!frame)return;frame.style.width=`${Math.max(180,entry.width)}px`;
+        const result=await render_current(api,entry.source,()=>revision===entry.revision&&entry.element.isConnected&&entry.current());
+        if(!result||disposed||revision!==entry.revision||!entry.element.isConnected||!entry.current())return;
+        entry.element.innerHTML=DOMPurify.sanitize(result.svg,{ADD_TAGS:["foreignObject"],HTML_INTEGRATION_POINTS:{foreignobject:true},FORBID_TAGS:["script","img","image","iframe","object","embed","audio","video","source","form"],FORBID_ATTR:["href","xlink:href"]});
+      }).catch(()=>{ /* 失败保留此前可读SVG；后续主题事件可重试。 */ });
+    }
+  });
+  return {render,dispose(){disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};
 }

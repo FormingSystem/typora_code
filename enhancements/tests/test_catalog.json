@@ -3514,7 +3514,8 @@
         "R017",
         "R040",
         "R041",
-        "R060"
+        "R060",
+        "R047.7"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -7600,6 +7601,278 @@
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/test_ui.mjs"
+    },
+    {
+      "id": "TC-reading-mermaid-theme",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.1"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "implementation": [
+        "enhancements/src/reading_mermaid_theme.ts",
+        "enhancements/src/reading_code_theme.ts",
+        "enhancements/src/workspace_markdown_preview_render.ts",
+        "enhancements/src/reading_media_viewer.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "history",
+        "minimap"
+      ],
+      "script": "enhancements/scripts/test_mermaid_theme.cjs",
+      "environment": "隐藏Electron与宿主端口夹具",
+      "preconditions": [
+        "构建当前候选；实际Mermaid渲染需TYPORA_NATIVE_TEST_ROOT指向原始宿主"
+      ],
+      "steps": [
+        "核对Typora原生配置快照与1000次无DOM副作用读取",
+        "核对原生完成通知转发和销毁还原，不改中央配置",
+        "设置TYPORA_NATIVE_TEST_ROOT时用实际内置Mermaid验证预览与20次切换、取消清理"
+      ],
+      "expected": [
+        "原生Night转换及隔离配置一致；不覆盖作者样式；关闭后不回写"
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-mermaid-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.1"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "implementation": [
+        "enhancements/src/reading_mermaid_theme.ts",
+        "cpp_github-consolas_dark.css"
+      ],
+      "related_modules": [
+        "native",
+        "reading",
+        "theme"
+      ],
+      "script": "enhancements/fixtures/mermaid_theme_native.js",
+      "environment": [
+        "Windows",
+        "Typora 1.14.10 private desktop"
+      ],
+      "preconditions": [
+        "原始宿主以及TYPORA_ORIGINAL_NIGHT_ROOT指向已校验的整改前Night快照"
+      ],
+      "steps": [
+        "prepare_stability_native.py准备专属副本",
+        "run_private_desktop.ps1执行；读checks.json并核对实际SVG颜色"
+      ],
+      "expected": [
+        "Dark和原版Night渲染颜色一致，作者颜色、dirty和正文不变，切换及全屏生命周期正常"
+      ],
+      "timeout_ms": 90000
+    },
+    {
+      "id": "TC-help-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R047.10"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "enhancements/src/workspace_titlebar_entries.ts"
+      ],
+      "related_modules": [
+        "menu",
+        "native",
+        "theme"
+      ],
+      "script": "enhancements/fixtures/help_native.js",
+      "environment": [
+        "Windows",
+        "Typora 1.14.10 private desktop"
+      ],
+      "preconditions": [
+        "构建当前候选及原始Typora 1.14.10隔离副本"
+      ],
+      "steps": [
+        "正常及窄窗明暗主题验证原生帮助菜单",
+        "检查真实Docs文件、单次命令分发和原生关于面板"
+      ],
+      "expected": [
+        "条目及分组完整，接口归宿主所有，草稿不变"
+      ],
+      "timeout_ms": 90000
+    },
+    {
+      "id": "TC-test-artifact-lifecycle",
+      "domain": "infrastructure",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R077"
+      ],
+      "design": "docs/test_artifacts.md",
+      "implementation": [
+        "enhancements/scripts/manage_test_artifacts.py",
+        "enhancements/scripts/test_ui.mjs",
+        "enhancements/scripts/run_private_desktop.ps1",
+        "enhancements/scripts/run_test_command.py"
+      ],
+      "related_modules": [
+        "testing",
+        "installation",
+        "native"
+      ],
+      "script": "enhancements/scripts/test_artifact_lifecycle.py",
+      "environment": [
+        "Python 3",
+        "Windows / Linux"
+      ],
+      "preconditions": [
+        "专属测试根可写"
+      ],
+      "steps": [
+        "真实文件成功/失败回收与证据保留",
+        "子进程租约、PID复用、超期及调试保留",
+        "外部路径、缺失标记、junction边界拒绝"
+      ],
+      "expected": [
+        "仅回收无活动进程的自有载荷，证据和外部文件不变"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-open-vscode-environment",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R078"
+      ],
+      "design": "docs/open_in_vscode.md",
+      "implementation": [
+        "enhancements/src/workspace_vscode_service.ts",
+        "enhancements/src/workspace_open_vscode.ts"
+      ],
+      "related_modules": [
+        "files",
+        "menus"
+      ],
+      "script": "enhancements/scripts/test_workspace_vscode.mjs",
+      "environment": [
+        "Node / Electron"
+      ],
+      "preconditions": [
+        "独立环境，无需启动真实VS Code"
+      ],
+      "steps": [
+        "验证环境发现与路径参数"
+      ],
+      "expected": [
+        "正确目标单次执行，错误可见，原生菜单与正文保持"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-open-vscode-menus",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R078"
+      ],
+      "design": "docs/open_in_vscode.md",
+      "implementation": [
+        "enhancements/src/workspace_vscode_service.ts",
+        "enhancements/src/workspace_open_vscode.ts"
+      ],
+      "related_modules": [
+        "files",
+        "menus"
+      ],
+      "script": "enhancements/scripts/test_workspace_vscode_ui.cjs",
+      "environment": [
+        "Node / Electron"
+      ],
+      "preconditions": [
+        "独立环境，无需启动真实VS Code"
+      ],
+      "steps": [
+        "正文及共享菜单品牌图标、草稿与销毁"
+      ],
+      "expected": [
+        "正确目标单次执行，错误可见，原生菜单与正文保持"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-upgrade-backup-retention",
+      "domain": "infrastructure",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R047.9"
+      ],
+      "design": "docs/workspace_update.md",
+      "implementation": [
+        "scripts/lib/typora_backup_retention.ps1",
+        "scripts/lib/typora_workspace.py"
+      ],
+      "related_modules": [
+        "files",
+        "menus"
+      ],
+      "script": "enhancements/scripts/test_backup_retention.py",
+      "environment": [
+        "Python 3",
+        "Windows PowerShell 5.1"
+      ],
+      "preconditions": [
+        "独立环境，无需启动真实VS Code"
+      ],
+      "steps": [
+        "两实现分别20次自动备份轮换"
+      ],
+      "expected": [
+        "仅最近自动升级备份保留；基线、未知和损坏备份保持"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-open-vscode-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R078"
+      ],
+      "design": "docs/open_in_vscode.md",
+      "implementation": [
+        "enhancements/src/workspace_vscode_service.ts",
+        "enhancements/src/workspace_open_vscode.ts"
+      ],
+      "related_modules": [
+        "files",
+        "menus"
+      ],
+      "script": "enhancements/fixtures/open_vscode_native.js",
+      "environment": [
+        "Typora 1.14.10 Windows隔离宿主"
+      ],
+      "preconditions": [
+        "原始宿主与最终候选"
+      ],
+      "steps": [
+        "真实正文、资源树文件/目录/根菜单，明暗品牌图标"
+      ],
+      "expected": [
+        "单次传递正确路径，正文和dirty不变"
+      ],
+      "timeout_ms": 60000
     }
   ]
 }

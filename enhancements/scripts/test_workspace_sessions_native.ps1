@@ -1,4 +1,4 @@
-[CmdletBinding()]
+﻿[CmdletBinding()]
 param([string]$typora_root=$env:TYPORA_NATIVE_TEST_ROOT)
 $ErrorActionPreference='Stop'
 if (!$typora_root) { throw 'Set TYPORA_NATIVE_TEST_ROOT to the verified original Typora 1.14.10 installation.' }
@@ -6,8 +6,9 @@ $case_root = & python -X utf8 (Join-Path $PSScriptRoot 'prepare_stability_native
 if ($LASTEXITCODE -ne 0) { throw 'Native fixture preparation failed' }
 $case_root = ($case_root | Select-Object -Last 1).Trim()
 Write-Output ('Native evidence: ' + $case_root)
+try {
 foreach ($phase in @(1,2)) {
- & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'run_private_desktop.ps1') -case_root $case_root -wait_for_normal_exit
+ & powershell -NoProfile -ExecutionPolicy Bypass -File (Join-Path $PSScriptRoot 'run_private_desktop.ps1') -case_root $case_root -wait_for_normal_exit -keep_test_work
  if ($LASTEXITCODE -ne 0) { throw 'Private desktop failed' }
  $checks_file=Join-Path $case_root 'checks.json'
  if (!(Test-Path -LiteralPath $checks_file)) { throw ('Native fixture timed out: '+$case_root) }
@@ -19,4 +20,9 @@ foreach ($phase in @(1,2)) {
  Copy-Item -LiteralPath $result_file -Destination (Join-Path $case_root ('result_phase_'+$phase+'.json'))
  $checks | ConvertTo-Json -Depth 12
  Move-Item -LiteralPath $checks_file -Destination (Join-Path $case_root ('checks_phase_'+$phase+'.json'))
+}
+
+} finally {
+ & python -X utf8 (Join-Path $PSScriptRoot 'manage_test_artifacts.py') claim $case_root --pid $PID
+ if($LASTEXITCODE -eq 0){ & python -X utf8 (Join-Path $PSScriptRoot 'manage_test_artifacts.py') finish $case_root --pid $PID }
 }

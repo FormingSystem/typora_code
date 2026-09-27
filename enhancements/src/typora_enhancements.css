@@ -72,3 +72,6 @@
 /* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }
+
+/* Mermaid画布属于图表，不继承普通源码围栏的底色。 */
+#write .md-fences.md-diagram[lang="mermaid"] {background-color:transparent!important;}

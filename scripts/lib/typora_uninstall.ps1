@@ -73,7 +73,7 @@ function assert_typora_uninstall_closed {
         $process_path = $null
         try { $process_path = $process.Path } catch { }
         if (-not $process_path -or $process_path -eq $executable) {
-            throw 'Save your documents and exit the target Typora before uninstalling. No process was closed and no files were changed.'
+            throw ('请先保存文档并完全退出 Typora 后重试（检测到进程编号：{0}）。本次未关闭进程，也未修改任何文件。' -f $process.Id)
         }
     }
 }
