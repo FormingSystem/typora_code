@@ -132,8 +132,8 @@ app.whenReady().then(async () => {
     await evaluate(`window.width_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'Typora 偏好设置…',shortcut:'Ctrl+,',action(){}},{title:'插件设置…',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}},{title:'Long menu label '.repeat(12),children:[{title:'Child',action(){}}],action(){}}],${JSON.stringify(kind)});void 0`);await delay(30);
     const metrics=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu'),box=menu.getBoundingClientRect();return{scroll:menu.scrollWidth,client:menu.clientWidth,right:box.right,viewport:innerWidth,rows:[...menu.querySelectorAll('button')].map(node=>{const parts=[...node.children].map(part=>({name:part.className,box:part.getBoundingClientRect().toJSON(),scroll:part.scrollWidth,client:part.clientWidth}));return parts;})}})()`);
     assert(metrics.scroll<=metrics.client&&metrics.right<=metrics.viewport,JSON.stringify(metrics));
-    for(const parts of metrics.rows){assert.equal(parts.length,3);assert(parts.every(part=>Math.abs(part.box.top+part.box.height/2-parts[0].box.top-parts[0].box.height/2)<1),JSON.stringify(parts));assert(parts[0].box.right<=parts[1].box.left+.5&&parts[1].box.right<=parts[2].box.left+.5);assert(parts[1].scroll<=parts[1].client);}
-    checks.push(`R065 ${kind||'standard'} width ${width} zoom ${zoom}: plain rows have three aligned cells, full shortcut, no horizontal overflow`);
+    for(const parts of metrics.rows){const visible=parts.filter(part=>part.box.width>0);assert(visible.every(part=>Math.abs(part.box.top+part.box.height/2-parts[0].box.top-parts[0].box.height/2)<1),JSON.stringify(parts));if(parts[1].box.width)assert(parts[0].box.right<=parts[1].box.left+.5);if(parts[2].box.width)assert(parts[0].box.right<=parts[2].box.left+.5);assert(parts[1].scroll<=parts[1].client);}
+    checks.push(`R065 ${kind||'standard'} width ${width} zoom ${zoom}: only actual shortcuts/arrows occupy space, no overlap or horizontal overflow`);
     await evaluate('width_close();void 0');
   }
   for(const zoom of [1,1.25])for(const width of [800,320])for(const dark of [false,true])for(const kind of ['', 'workspace-menu-compact']){
@@ -141,11 +141,19 @@ app.whenReady().then(async () => {
     await evaluate(`document.body.style.setProperty('--bg-color','${dark?'#191a1b':'#fff'}');document.body.style.setProperty('--text-color','${dark?'#ddd':'#24292f'}');window.mixed_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:20}),[{title:'普通命令',shortcut:'Ctrl+Shift+X',action(){}},{title:'不可用命令',disabled:true,action(){}},{title:'未选功能',checked:false,action(){}},{title:'已选功能',checked:true,action(){}},{title:'不可用开关',checked:false,disabled:true,action(){}},{title:'子菜单',children:[{title:'普通子项',action(){}}],action(){}}],${JSON.stringify(kind)});void 0`);
     const rows=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu');return [...menu.children].map(row=>{const label=row.querySelector('.git-menu-label'),check=row.querySelector('.git-menu-check'),style=getComputedStyle(row);return{role:row.getAttribute('role'),checked:row.getAttribute('aria-checked'),slot:!!check,glyph:!!check?.firstElementChild,inset:label.getBoundingClientRect().left-row.getBoundingClientRect().left,expected:parseFloat(style.paddingLeft),shortcut:row.querySelector('.git-menu-shortcut').getBoundingClientRect().left};});})()`);
     assert.deepEqual(rows.map(row=>[row.role,row.checked,row.slot,row.glyph]),[['menuitem',null,false,false],['menuitem',null,false,false],['menuitemcheckbox','false',true,false],['menuitemcheckbox','true',true,true],['menuitemcheckbox','false',true,false],['menuitem',null,false,false]]);
-    for(const row of rows){assert(Math.abs(row.inset-26)<1,JSON.stringify(row));assert(Math.abs(row.shortcut-rows[0].shortcut)<1,'right shortcut column remains aligned');}
+    for(const row of rows){assert(Math.abs(row.inset-26)<1,JSON.stringify(row));}
     assert.equal(rows[2].inset,rows[3].inset,'checked state never shifts label');
     await evaluate('mixed_close();void 0');checks.push(`R065.1 mixed menu ${kind}/${dark}/${width}/${zoom}: common 26px label start, stable checkbox and aligned shortcut`);
   }
   // 当前真实菜单只有两项；长名称会撑宽初始布局，掩盖对已换行文字的错误测量。
+  // Git组菜单无快捷键；菜单宽度只含真实文字与两侧2em，不保留空快捷键/箭头列。
+  for(const zoom of [1,.9,1.25]){
+    test_window.setContentSize(800,600);test_window.webContents.setZoomFactor(zoom);
+    await evaluate(`window.group_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:20}),['取消暂存此组中的所有更改','折叠所有分组','展开所有分组','以树形显示','配置此右键菜单…'].map(title=>({title,action(){}})));void 0`);
+    const result=await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu'),row=menu.querySelector('button'),label=row.querySelector('.git-menu-label'),range=document.createRange();range.selectNodeContents(label);return{width:menu.getBoundingClientRect().width,text:range.getBoundingClientRect().width,lines:range.getClientRects().length,empty:[...menu.querySelectorAll('.git-menu-shortcut,.git-menu-arrow')].every(node=>node.getBoundingClientRect().width===0)}})()`);
+    assert.equal(result.lines,1);assert(result.empty);assert(Math.abs(result.width-result.text-62)<2,JSON.stringify(result));
+    await evaluate('group_close();void 0');checks.push('Git无快捷键菜单无空尾列，按最长文字宽度 '+zoom);
+  }
   // 同时覆盖宿主/调用方给予初始宽度的情况，最终宽度仍由公共测量决定。
   await test_window.webContents.insertCSS('.git-graph-menu[role=menu].workspace-preferences-menu {width:190px}');
   for(const font of ['Segoe UI','Consolas'])for(const zoom of [1,.9,1.25])for(const width of [800,320])for(const dark of [false,true]){

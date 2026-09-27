@@ -106,13 +106,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
     });
     document.body.append(menu);
     // 每一行共用列宽，不能让某行长快捷键挤掉另一行功能名。按实际字体测量，缩放自然计入。
-    const {label_width,shortcut_width}=align_workspace_menu_columns(menu,':scope > button','.git-menu-label','.git-menu-shortcut');
-    const row=menu.querySelector('button'),row_style=row&&getComputedStyle(row),menu_style=getComputedStyle(menu);
-    const horizontal=(style:CSSStyleDeclaration)=>['paddingLeft','paddingRight','borderLeftWidth','borderRightWidth'].reduce((sum,key)=>sum+(parseFloat((style as any)[key])||0),0);
-    if(row_style){
-      const gap=parseFloat(row_style.columnGap)||0;
-      menu.style.width=Math.ceil(label_width+shortcut_width+16+2*gap+8+horizontal(row_style)+horizontal(menu_style))+'px';
-    }
+    align_workspace_menu_columns(menu,':scope > button','.git-menu-label','.git-menu-shortcut');
     const bounds = menu.getBoundingClientRect();
     if(!parent&&options.anchor?.isConnected){const anchor=options.anchor.getBoundingClientRect();x=options.align==="right"?anchor.right-bounds.width:anchor.left;y=anchor.bottom;}
     if (parent && x + bounds.width > innerWidth - 4) x = parent.getBoundingClientRect().left - bounds.width + 2;

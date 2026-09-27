@@ -17,7 +17,7 @@ app.whenReady().then(async()=>{
   // Shadow使用实际正文继承；容器宽度由各视图拥有，这里只比较文字与块几何属性。
   assert.deepEqual(preview,actual,theme+' shadow');checks.push(theme+' CSS导入后Shadow字体/边线/间距一致');
   const colors=await ev(`Object.fromEntries(['p','h1','a','th','td','pre'].map(q=>{const c=getComputedStyle(document.querySelector('#write '+q));return[q,{color:c.color,bg:c.backgroundColor}]}))`);samples.push({theme,geometry:actual,colors});
-  if(theme.endsWith('_dark.css')){assert.equal(colors.p.color,'rgb(184, 191, 198)');assert.equal(colors.pre.bg,'rgb(51, 51, 51)');assert.equal(await ev('getComputedStyle(document.body).backgroundColor'),'rgb(54, 59, 64)');checks.push('Dark实际Night正文/背景/围栏配色');}
+  if(theme.endsWith('_dark.css')){assert.equal(colors.p.color,'rgb(187, 190, 191)');assert.equal(colors.pre.bg,'rgb(36, 37, 38)');assert.equal(colors.a.color,'rgb(72, 160, 199)');assert.equal(colors.h1.color,'rgb(206, 145, 120)');assert.equal(await ev('getComputedStyle(document.body).backgroundColor'),'rgb(18, 19, 20)');assert.equal(await ev('getComputedStyle(shadow.querySelector("a")).color'),colors.a.color);checks.push('Dark实际2026 Dark正文/背景/围栏/链接与Shadow同源，土色标题保留');}
   for(const zoom of [1,1.25]){win.webContents.setZoomFactor(zoom);await pause(60);assert(await ev(`[...document.querySelectorAll('.workspace-titlebar-label,.workspace-titlebar-shortcut')].every(node=>{const range=document.createRange();range.selectNodeContents(node);const r=range.getBoundingClientRect(),b=node.getBoundingClientRect();return r.top>=b.top-0.5&&r.bottom<=b.bottom+0.5})`),'menu glyph');checks.push(theme+' '+zoom+' 菜单真实文字行盒完整');}
   win.webContents.setZoomFactor(1);
  }

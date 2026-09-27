@@ -158774,8 +158774,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_menu_item.ts
   function align_workspace_menu_columns(menu, row_selector, label_selector, shortcut_selector) {
     const rows = [...menu.querySelectorAll(row_selector)];
-    const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
-      const node = row.querySelector(selector);
+    const text_width = (node) => {
       if (!node) return 0;
       const value = node.style.getPropertyValue("white-space"), priority = node.style.getPropertyPriority("white-space");
       try {
@@ -158787,11 +158786,19 @@ https://creativecommons.org/licenses/by/4.0/
         if (value) node.style.setProperty("white-space", value, priority);
         else node.style.removeProperty("white-space");
       }
-    })) : 0;
+    };
     menu.style.setProperty("--workspace-menu-leading-width", "2em");
-    const shortcut_width = Math.ceil(text_width(shortcut_selector));
-    menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
-    return { label_width: Math.ceil(text_width(label_selector)), shortcut_width };
+    const horizontal = (style, keys) => keys.reduce((sum, key3) => sum + (parseFloat(style.getPropertyValue(key3)) || 0), 0);
+    const width2 = Math.max(0, ...rows.map((row) => {
+      const label = row.querySelector(label_selector), shortcut = shortcut_selector ? row.querySelector(shortcut_selector) : null;
+      const has_shortcut = Boolean(shortcut?.textContent?.trim());
+      row.dataset.menuShortcut = String(has_shortcut);
+      const style = getComputedStyle(row);
+      return text_width(label) + (has_shortcut ? text_width(shortcut) + 4 * parseFloat(style.fontSize) : 0) + horizontal(style, ["padding-left", "padding-right", "border-left-width", "border-right-width", "margin-left", "margin-right"]);
+    }));
+    menu.style.width = Math.ceil(width2 + horizontal(getComputedStyle(menu), ["padding-left", "padding-right", "border-left-width", "border-right-width"])) + "px";
+    const gutter = Math.max(0, menu.offsetWidth - menu.clientWidth - horizontal(getComputedStyle(menu), ["border-left-width", "border-right-width"]));
+    if (gutter) menu.style.width = parseFloat(menu.style.width) + Math.ceil(gutter) + "px";
   }
   function create_workspace_menu_check(item, checked, class_name) {
     const checkable = typeof checked === "boolean";
@@ -160789,13 +160796,7 @@ https://creativecommons.org/licenses/by/4.0/
         input.stopPropagation();
       });
       document.body.append(menu);
-      const { label_width, shortcut_width } = align_workspace_menu_columns(menu, ":scope > button", ".git-menu-label", ".git-menu-shortcut");
-      const row = menu.querySelector("button"), row_style = row && getComputedStyle(row), menu_style2 = getComputedStyle(menu);
-      const horizontal = (style) => ["paddingLeft", "paddingRight", "borderLeftWidth", "borderRightWidth"].reduce((sum, key3) => sum + (parseFloat(style[key3]) || 0), 0);
-      if (row_style) {
-        const gap = parseFloat(row_style.columnGap) || 0;
-        menu.style.width = Math.ceil(label_width + shortcut_width + 16 + 2 * gap + 8 + horizontal(row_style) + horizontal(menu_style2)) + "px";
-      }
+      align_workspace_menu_columns(menu, ":scope > button", ".git-menu-label", ".git-menu-shortcut");
       const bounds = menu.getBoundingClientRect();
       if (!parent && options2.anchor?.isConnected) {
         const anchor = options2.anchor.getBoundingClientRect();
@@ -238276,6 +238277,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092711,
+        version: "2026.09.27.11",
+        date: "2026-09-27",
+        notes: [
+          "CppGithubConsoles_Dark\u91C7\u7528VS Code 2026 Dark\u6DF1\u8272\u80CC\u666F\u4E0E\u6B63\u6587\u914D\u8272\uFF0C\u4FDD\u7559\u571F\u8272\u6807\u9898\u3001\u539F\u5B57\u4F53\u548C\u6392\u7248\uFF1B\u539F\u751FNight\u4E0D\u53D8\u3002",
+          "\u83DC\u5355\u6309\u771F\u5B9E\u540D\u79F0\u548C\u53EF\u9009\u5FEB\u6377\u952E\u786E\u5B9A\u5BBD\u5EA6\uFF0C\u53BB\u6389\u65E0\u6548\u7BAD\u5934/\u5FEB\u6377\u952E\u7A7A\u5217\uFF0C\u9876\u680F\u3001Git\u53F3\u952E\u4E0E\u9F7F\u8F6E\u83DC\u5355\u5171\u7528\u5E03\u5C40\u3002"
+        ]
+      },
+      {
         sequence: 2026092710,
         version: "2026.09.27.10",
         date: "2026-09-27",
@@ -246061,12 +246071,7 @@ https://creativecommons.org/licenses/by/4.0/
         }, { signal: signal2 });
         panel.append(item);
       }
-      const columns = align_workspace_menu_columns(panel, ":scope > button", ".workspace-titlebar-label", ".workspace-titlebar-shortcut");
-      const row = panel.querySelector("button");
-      if (row) {
-        const style = getComputedStyle(row);
-        panel.style.width = Math.ceil(columns.label_width + columns.shortcut_width + 16 + 16 + 8 + parseFloat(style.paddingLeft) + parseFloat(style.paddingRight) + 2) + "px";
-      }
+      align_workspace_menu_columns(panel, ":scope > button", ".workspace-titlebar-label", ".workspace-titlebar-shortcut");
       const size = panel.getBoundingClientRect();
       const left = depth === 0 ? rect.left : rect.right + size.width <= innerWidth - 4 ? rect.right : rect.left - size.width;
       const top = depth === 0 ? top_limit : Math.max(top_limit, Math.min(rect.top, innerHeight - size.height - 4));

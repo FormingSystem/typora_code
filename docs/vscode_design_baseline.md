@@ -130,3 +130,7 @@ R072.2/R073沿用1.137.0固定提交645f29cc3176500b4b5762ba887cf2a7f0ffdf2c。`
 ## 2026-09-23 独立预览的边缘与角落调整
 
 R069.2读取固定1.137.0提交的[sash.css](https://github.com/microsoft/vscode/blob/645f29cc3176500b4b5762ba887cf2a7f0ffdf2c/src/vs/base/browser/ui/sash/sash.css)，采用4px边缘和8px正交角落、方向光标；170px侧栏最小宽度和220px编辑区保留既有共享契约。初始40%/最低120px高度沿用本项目预览，独立左下停靠由用户本次需求定义，不称为上游默认布局。关闭使用已有官方close图标及24px共同操作容器。原生验证包含矩形和elementFromPoint真实命中，避免侧栏背景遮挡被外框检查遗漏。
+
+## 2026-09-27 R065.3 / R074.7核对
+
+固定6807068的menu.ts仅生成有值的keybinding与真实子菜单indicator，24px行高、2em标签左右留白，标签右2em加快捷键左2em共4em；本工具按最大真实行计算宽度、右箭头复用尾部留白，避免永久三轨，并补实际滚动条占用。此为既有菜单适配，不新增菜单功能。2026-dark.json的editor.background/foreground分别#121314/#BBBEBF，正文Dark改用该基线；标题#CE9178为用户保留值，Night及Cpp字体几何不改。代码块独立VS Code主题继续由现有服务管理。

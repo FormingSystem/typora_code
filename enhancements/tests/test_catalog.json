@@ -7597,7 +7597,8 @@
       "purpose": "implementation",
       "requirements": [
         "R074.5",
-        "R065.2"
+        "R065.2",
+        "R074.7"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -7619,7 +7620,7 @@
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
         "逐属性比较原Cpp/Light/Dark正文与Shadow的字体、字号、行距、边框和间距",
-        "验证Night配色与100%/125%实际菜单文字行盒"
+        "验证2026 Dark配色、土色标题、链接及Shadow同源，与100%/125%实际菜单文字行盒"
       ],
       "expected": [
         "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切"
@@ -8307,7 +8308,8 @@
       "level": "system",
       "purpose": "stress",
       "requirements": [
-        "R065.3"
+        "R065.3",
+        "R074.7"
       ],
       "design": "docs/workspace_interaction.md#r0653-普通宽度错误换行2026-09-27",
       "implementation": [
@@ -8323,10 +8325,11 @@
       "environment": "原始Typora 1.14.10私有桌面",
       "preconditions": "标准运行器创建隔离宿主和用户数据，最终清理载荷",
       "steps": [
-        "实际齿轮两项，三主题三缩放、正常与受限初始宽度，检查单行与完整文字"
+        "实际齿轮与段落菜单，三主题三缩放、正常与受限初始宽度，检查文字及滚动条占用",
+        "验证Light/Dark实际字体几何与Dark正文色，主题/菜单切换保持正文"
       ],
       "expected": [
-        "36断言通过，实际文字单行且快捷键完整；退出清理载荷"
+        "75断言通过，文字单行完整，无快捷键行用满宽度，Dark颜色与排版符合契约；退出清理载荷"
       ],
       "timeout_ms": 240000
     }

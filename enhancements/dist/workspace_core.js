@@ -3033,8 +3033,7 @@ ${doc.documentElement.outerHTML}`;
   // src/workspace_menu_item.ts
   function align_workspace_menu_columns(menu, row_selector, label_selector, shortcut_selector) {
     const rows = [...menu.querySelectorAll(row_selector)];
-    const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
-      const node = row.querySelector(selector);
+    const text_width = (node) => {
       if (!node) return 0;
       const value = node.style.getPropertyValue("white-space"), priority = node.style.getPropertyPriority("white-space");
       try {
@@ -3046,11 +3045,19 @@ ${doc.documentElement.outerHTML}`;
         if (value) node.style.setProperty("white-space", value, priority);
         else node.style.removeProperty("white-space");
       }
-    })) : 0;
+    };
     menu.style.setProperty("--workspace-menu-leading-width", "2em");
-    const shortcut_width = Math.ceil(text_width(shortcut_selector));
-    menu.style.setProperty("--workspace-menu-shortcut-width", shortcut_width + "px");
-    return { label_width: Math.ceil(text_width(label_selector)), shortcut_width };
+    const horizontal = (style, keys) => keys.reduce((sum, key) => sum + (parseFloat(style.getPropertyValue(key)) || 0), 0);
+    const width = Math.max(0, ...rows.map((row) => {
+      const label = row.querySelector(label_selector), shortcut = shortcut_selector ? row.querySelector(shortcut_selector) : null;
+      const has_shortcut = Boolean(shortcut?.textContent?.trim());
+      row.dataset.menuShortcut = String(has_shortcut);
+      const style = getComputedStyle(row);
+      return text_width(label) + (has_shortcut ? text_width(shortcut) + 4 * parseFloat(style.fontSize) : 0) + horizontal(style, ["padding-left", "padding-right", "border-left-width", "border-right-width", "margin-left", "margin-right"]);
+    }));
+    menu.style.width = Math.ceil(width + horizontal(getComputedStyle(menu), ["padding-left", "padding-right", "border-left-width", "border-right-width"])) + "px";
+    const gutter = Math.max(0, menu.offsetWidth - menu.clientWidth - horizontal(getComputedStyle(menu), ["border-left-width", "border-right-width"]));
+    if (gutter) menu.style.width = parseFloat(menu.style.width) + Math.ceil(gutter) + "px";
   }
   function create_workspace_menu_check(item, checked, class_name) {
     const checkable = typeof checked === "boolean";

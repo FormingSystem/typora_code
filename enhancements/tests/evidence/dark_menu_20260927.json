@@ -1,0 +1,80 @@
+{
+  "requirements": [
+    "R065.3",
+    "R074.7"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.11",
+  "baseline": "e7438a006b8c8ae8803d16d95f533871f90ae424",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "menu": "src/vs/base/browser/ui/menu/menu.ts: optional keybinding/submenu indicator, flex, 2em label padding and 2em keybinding padding",
+    "colors": "extensions/theme-defaults/themes/2026-dark.json: editor #121314/#BBBEBF, textCodeBlock #242526, textLink #48A0C7",
+    "adopted": "每行真实内容求最大宽度，无快捷键行占满；右箭头复用留白；计入实际滚动条；土色标题用户例外，Night与字体几何不动"
+  },
+  "regression": {
+    "initial_native": "799688361d724bf4bce1c55e5d424366",
+    "finding": "125%缩放长段落菜单实际折行；修正菜单纵向滚动条占用后通过",
+    "fixture_correction": "Light/Dark几何比较先复位同一缩放，避免前一轮125%残留造成字号假失败",
+    "first_widgets": "0c62dd0f19c9437faafebab62fec7ad2",
+    "old_assertion": "固定三空列断言与新可选尾部契约矛盾，改为实际可见内容不重叠并加无快捷键行宽断言"
+  },
+  "verification": {
+    "native_case": "d5efed1075dd4361839b5f45c7ce78c6",
+    "native_checks": 75,
+    "asset_sha256": "c89bebd7d9b82e3870f7980809e9157169bb48a26dd0ea52c1c54b0ac1a7000d",
+    "theme_sha256": "9b3f0d7e56d0c1ad112cf83f593a64e363bda796cc8e3f10c76e438cf9620822",
+    "ui_cases": {
+      "widgets": "55920ba659b34be0a55059502f936389",
+      "titlebar": "390cb6ab3b5643baae2b34fe66227962",
+      "theme_pair": "be01790005d84f02a8ec79ee68fe9591",
+      "colors": "b80095cadf254429a273b08127e92676"
+    },
+    "results": "四套相关UI通过；原生三主题/三缩放/两种初始宽度与正文保持共75项通过；实际Dark颜色和几何已核对",
+    "static": "构建、静态、核心、部署、240套目录分类通过；未重复完整check或全量UI",
+    "screenshot": "此前同布局候选6f98d1bc52eb4df0b4d84030b6873ec4/window_2560746.png已查看，深色背景/土色标题及齿轮两项单行"
+  },
+  "installation": {
+    "cycle": "0427cc2e6e034512bb81d9551ecdb4d1",
+    "uninstall": "14760c09c08a4d6aa17dfdc678242dc1",
+    "uninstall_assertions": 65,
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 7,
+      "manifest_sha256": "56f09632ff28bb84538d2459d545484df5392ef8f95d930bce11064ddeb41e9e",
+      "window_restarted": false
+    },
+    "dark_installed_hash_verified": true,
+    "window_restarted": false
+  },
+  "limitations": [
+    "用户当前运行窗口未重启，真实现场需加载新版本后确认",
+    "Windows原生及Electron受控输入；其他DPI设备、Win10/Linux与物理手感未验收",
+    "8套历史UI失败、R047.6/R071.4等此前未决项保持，不能声称全部历史任务完成"
+  ],
+  "cleanup": [
+    {
+      "case": "d5efed1075dd4361839b5f45c7ce78c6",
+      "state": "cleaned",
+      "payload_bytes": 527826213
+    },
+    {
+      "case": "0427cc2e6e034512bb81d9551ecdb4d1",
+      "state": "cleaned",
+      "payload_bytes": 2072166904
+    },
+    {
+      "case": "14760c09c08a4d6aa17dfdc678242dc1",
+      "state": "cleaned",
+      "payload_bytes": 131163498
+    }
+  ]
+}
