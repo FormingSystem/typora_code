@@ -61,6 +61,8 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const history_button=(name:git_icon_name,label:string,direction:number)=>{
     const button=document.createElement("button");button.type="button";button.dataset.workspaceInteraction="action";button.className="workspace-titlebar-history";
     button.title=label;button.setAttribute("aria-label",label);button.append(git_icon(name));
+    // 鼠标导航保留正文焦点与选区，键盘Tab仍可正常聚焦按钮。
+    button.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
     button.addEventListener("click",()=>window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel",{detail:{direction}})),{signal:events.signal});
     center.append(button);return button;
   };

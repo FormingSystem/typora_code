@@ -83,3 +83,23 @@ for(const count of [20,100,1000]){
   }
   console.log(`workspace navigation invalidation: ${count} pending old/new callbacks passed`);
 }
+
+// 返回正文后，工具栏/外部浏览器带来的选区丢失不能创建新分支。
+for (const kind of [undefined,'source','git']) {
+ const h=create_reading_history(),a={...location('a',120),kind,view_id:1,cursor:{id:'n2',start:3}},b={...location('b',230),kind,view_id:2,cursor:{id:'n4',start:0}};
+ assert.equal(h.checkpoint(a),false,'尚无当前位置不能吞掉首项');
+ h.record_jump(a,b);assert(await h.travel(-1,b,async()=>true));
+ assert.equal(h.checkpoint({...a,kind:'other'}),false,'其他编辑器不能被当成焦点恢复');
+ h.record_selection({...a,cursor:null});
+ assert(h.can_travel(1),'失焦缺失选区保留前进 '+kind);
+ h.checkpoint({...a,scroll_top:125,cursor:null});
+ assert(h.can_travel(1),'工具栏检查点不截断前进 '+kind);
+ assert(await h.travel(1,a,async target=>{assert.equal(target.file_path,'b');return true;}));
+ assert(await h.travel(-1,b,async target=>{assert.equal(target.cursor.id,'n2');return true;}));
+ h.checkpoint({...a,cursor:{id:'rebuilt',start:3}});
+ h.record_selection({...a,cursor:{id:'rebuilt',start:3}});
+ assert(h.can_travel(1),'恢复后的新cid不新增历史 '+kind);
+ h.record_selection({...a,cursor:{id:'new-selection',start:9}},true);
+ assert(!h.can_travel(1),'真正的新定位仍截断前进 '+kind);
+}
+console.log('navigation checkpoints: blur, toolbar, restored selection and explicit branching passed');

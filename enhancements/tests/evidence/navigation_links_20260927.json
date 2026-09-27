@@ -1,0 +1,123 @@
+{
+  "requirements": [
+    "R067.3"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.24",
+  "baseline": "d86a5ce6e53aa2c731c0969ba1c70092ddd2d2b0",
+  "asset_sha256": "b44f112c8c36f5488456e47841d6ae8ad0a35794f585d3e0afec4591761742f7",
+  "upstream": {
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/workbench/services/history/browser/historyService.ts",
+    "rules": [
+      "EditorNavigationStack.MAX_STACK_SIZE=50",
+      "goBack/goForward共用索引，navigate期间抑制选择入栈"
+    ],
+    "adoption": "窗口共享导航，不按文件类型分栈，不按闲置时间过期；位置恢复仍由各编辑器端口拥有"
+  },
+  "reproduction": [
+    {
+      "id": "8948b599c0134192977718c5d5e5df96",
+      "result": "FAIL",
+      "cause": "建立真实正文选区后Ctrl链接、Alt后退、顶栏前进；pointerdown的新选区入栈截断前进分支。未设置正文选区的旧夹具漏报。"
+    },
+    {
+      "id": "a33e742d4abc4e15ac009391f94eab39",
+      "result": "FAIL",
+      "cause": "外部浏览器桥接替身清空选区、模拟焦点返回后错误追加位置；因此增加同编辑器焦点检查点。"
+    }
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "id": "4828243d9ac14227a8d93be5cf820b4b",
+      "boundary": "最终产品实现与测试目录；之后仅文档/证据修改"
+    },
+    "ui": [
+      {
+        "suite": "reading_lifecycle",
+        "id": "1ec8a8e934184acdb9f02f23998de200",
+        "status": "PASS",
+        "scope": "实际Chromium输入事件保持Alt按下并往返5轮；失焦后新源码身份仍记录"
+      },
+      {
+        "suite": "workspace_titlebar",
+        "id": "fe16335707344ce7aa1ed26e29875355",
+        "status": "PASS",
+        "boundary": "最后同编辑器焦点守卫修正前通过；修正后的顶栏真实输入另由最终原生用例覆盖"
+      }
+    ],
+    "native": [
+      {
+        "id": "b2e5c148fbd14b31b24d8ee0ac18e77a",
+        "status": "PASS",
+        "checks": 53,
+        "trusted_titlebar_clicks": 23,
+        "history_travels": 20,
+        "scope": "四个跨目录Markdown、正文选区、文内/跨文链接、Alt与顶栏、浏览器桥接替身和失焦返回、等待后前进保持",
+        "boundary": "Windows隔离桌面PostMessage触发可信鼠标事件；Ctrl链接和Alt为DOM合成事件，系统浏览器未实际启动"
+      },
+      {
+        "id": "0aa24e7d7d7c4583bd7939cfb6c70d04",
+        "status": "PASS",
+        "checks": 59,
+        "scope": "文内/跨文锚点、编码路径、源码与Markdown20轮往返、关闭重开、分栏及正文保护"
+      }
+    ],
+    "install_cycles": {
+      "status": "PASS",
+      "id": "76cce2d0206b4eb2add93e62d85e7073",
+      "scope": "公开安装/检查/有效备份恢复卸载/重装/检查/无兼容备份撤销入口/重装/检查；正文、配置、备份保留"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "id": "e4107d63f26c44ada5c164c4d5e14344",
+      "assertions": 65,
+      "scope": "隔离CMD/PowerShell5.1，含失败、取消及回滚"
+    }
+  },
+  "failed_or_unresolved": [
+    {
+      "id": "afc4411421c5475a96430429e37d65ab",
+      "scope": "新增持有Alt用例误以1200为前进位置；夹具先聚焦contenteditable根实际已将离开位置改为0，修正期待为真实离开快照后通过"
+    },
+    {
+      "scope": "一次根目录执行build报ENOENT；一次workbench.js原子替换EPERM，停止该构建并正常重建通过；最终检查及安装仅使用已核对资产"
+    },
+    {
+      "scope": "实际系统浏览器进程焦点返回、物理设备延迟和用户所感卡顿未本轮量化；不宣称已消除卡顿"
+    },
+    {
+      "scope": "R068.6按用户要求暂缓；R068.10现场持续裁切、终端平滑滚动旧用例、R047.9旧备份提示及其他历史未决项保持"
+    }
+  ],
+  "delivery": {
+    "installed": true,
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "b44f112c8c36f5488456e47841d6ae8ad0a35794f585d3e0afec4591761742f7",
+      "window_restarted": false
+    },
+    "actual_uninstall": "仅只读预检",
+    "runtime_loaded": false,
+    "load_instruction": "保存后正常重启Typora",
+    "commit_state": "证据生成时待提交，以Git提交为准",
+    "pushed": false
+  },
+  "boundaries": [
+    "仅Windows Typora1.14.10原生验证；未执行全量UI",
+    "主编辑区统一历史；独立浮动预览和系统浏览器各自拥有历史",
+    "历史最多50项，无闲置过期；切工程/销毁清理，不是正文缓存或跨重启历史持久化",
+    "受管隔离测试载荷已回收；未重启或关闭用户窗口"
+  ]
+}

@@ -95,7 +95,7 @@ try {
   $input_path=Join-Path $case_root 'native_input_request.json'
   if(Test-Path -LiteralPath $input_path) {
    try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
-   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -eq 'wheel' -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
+   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
     $delivered=$false
     $input_window=[isolated_desktop+enum_windows]{param($hwnd,$state)
      $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
@@ -104,8 +104,17 @@ try {
       $bounds=New-Object isolated_desktop+rect;[void][isolated_desktop]::GetWindowRect($hwnd,[ref]$bounds)
       $x=[int]($bounds.left+$input_request.x*($bounds.right-$bounds.left)/$input_request.width)
       $y=[int]($bounds.top+$input_request.y*($bounds.bottom-$bounds.top)/$input_request.height)
-      $delta=[int]$input_request.delta
-      $script:delivered=[isolated_desktop]::PostMessage($hwnd,0x020A,[IntPtr]::new(($delta -band 0xffff) -shl 16),[IntPtr]::new(($y -shl 16) -bor ($x -band 0xffff)))
+      if($input_request.kind -eq 'wheel') {
+       $delta=[int]$input_request.delta
+       $script:delivered=[isolated_desktop]::PostMessage($hwnd,0x020A,[IntPtr]::new(($delta -band 0xffff) -shl 16),[IntPtr]::new(($y -shl 16) -bor ($x -band 0xffff)))
+      } else {
+       $origin=New-Object isolated_desktop+point;[void][isolated_desktop]::ClientToScreen($hwnd,[ref]$origin)
+       $position=[IntPtr]::new((($y-$origin.y) -shl 16) -bor (($x-$origin.x) -band 0xffff))
+       [void][isolated_desktop]::PostMessage($hwnd,0x0200,[IntPtr]::Zero,$position)
+       $down=[isolated_desktop]::PostMessage($hwnd,0x0201,[IntPtr]::new(1),$position)
+       $up=[isolated_desktop]::PostMessage($hwnd,0x0202,[IntPtr]::Zero,$position)
+       $script:delivered=$down -and $up
+      }
      }
      return $true
     };[void][isolated_desktop]::EnumDesktopWindows($desktop,$input_window,[IntPtr]::Zero)

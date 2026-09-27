@@ -472,3 +472,7 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-27 R068.8：BUG-source-inactive-regions——未声明/接收clangd未激活范围，条件裁剪仍按活动代码显示；补能力协商、当前版本采样、模型装饰和清理，真实20轮宏切换及原生45项通过。R068.6用户暂缓。夹具错误、偶发Save As文件系统失败及构建EPERM保留在source_input_inactive_20260927.json，未将复跑通过冒充原因已确定。
 
 2026-09-27 TEST-native-web-preview-baseline：旧link_preview_native仍查询iframe，当前R069.11生产为webview，导致“网页未进入预览”。本轮未改网页实现；层级专用terminal_preview_native已通过21项，不抵消旧套件失败。后续更新旧套件浏览器适配并复验网页历史；失败证据见terminal_color_preview_20260927.json。
+
+## R067.3 链接与焦点切换截断历史（2026-09-27）
+
+BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢复Markdown时的空选区导致前进分支被截断；旧夹具未建立链接选区而漏检。补齐选区后8948b599c0134192977718c5d5e5df96失败，位置检查点修复后767b15043d7d4aa194cf3c39e1d8a9f0通过。浏览器失焦/返回另在a33e742d4abc4e15ac009391f94eab39复现，焦点恢复保护后58ba4866bb7a4319896a28fdfef18b96通过，含23次可信顶栏点击。浏览器启动边界用替身记录，未宣称真实外部进程焦点验收。历史沿固定VS Code保留50项，无闲置过期；不同文件编辑器共享状态。

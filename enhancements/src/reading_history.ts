@@ -29,6 +29,14 @@ export function create_reading_history(maximum_entries = 50) {
     remap_paths(map: (path: string) => string | undefined) {
       for (const entry of entries) entry.file_path = map(entry.file_path) ?? entry.file_path;
     },
+    // 工具栏/窗口失焦只更新当前位置，不能把失去的正文选区当成新的跳转。
+    checkpoint(current: reading_location) {
+      if (navigating) return false;
+      const previous = entries[index];
+      if (!previous || previous.file_path !== current.file_path || previous.kind !== current.kind || previous.view_id !== current.view_id) return false;
+      entries[index] = {...current, cursor: current.cursor ?? previous.cursor};
+      return true;
+    },
     record_selection(current: reading_location, explicit = false) {
       if (navigating) return;
       const previous = entries[index];
@@ -38,7 +46,7 @@ export function create_reading_history(maximum_entries = 50) {
       const nearby = current.line != null && previous.line != null
         ? Math.abs(current.line - previous.line) < 10
         : previous.cursor?.id === current.cursor?.id && previous.cursor?.startId === current.cursor?.startId;
-      if (same_editor && (same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = current;
+      if (same_editor && ((!explicit && current.cursor === null) || same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = {...current, cursor: current.cursor ?? previous.cursor};
       else {
         entries = entries.slice(0, index + 1); entries.push(current);
         if (entries.length > maximum_entries) entries.shift();

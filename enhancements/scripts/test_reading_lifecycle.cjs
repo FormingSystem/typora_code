@@ -95,10 +95,21 @@ app.whenReady().then(async () => {
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});
   await delay(600);
   assert.equal(await evaluate("document.querySelector('content').scrollTop"),120,'内部链接入口可由Alt后退恢复来源');
+  // Alt保持按下，多次方向键在同一历史上往返；真实Chromium键盘事件。
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Alt'});
+  for(let round=0;round<5;round++){
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Right',modifiers:['alt']});
+    test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(600);
+    assert.equal(await evaluate("document.querySelector('content').scrollTop"),0,'持续Alt前进 '+round);
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
+    test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(600);
+    assert.equal(await evaluate("document.querySelector('content').scrollTop"),120,'持续Alt后退 '+round);
+  }
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Alt'});
   await evaluate('dispose_inner();void 0');
   assert(await evaluate('File.editor.tryOpenUrl_===native_inner'),'销毁恢复真实内部链接入口');
   // Monaco以textarea接收键盘，不能被普通表单的Alt保护误拦截。
-  await evaluate(`window.source_position={kind:'source',file_path:'/test/code.c',view_id:-1,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position=location;qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();source_position={...source_position,line:11,cursor:{startLineNumber:11}};qa.notify_navigation_selection(true);const source_panel=document.createElement('section');source_panel.className='linux-note-source-file';source_panel.innerHTML='<textarea></textarea>';document.body.append(source_panel);source_panel.firstChild.focus();void 0;`);
+  await evaluate(`window.source_position={kind:'source',file_path:'/test/code.c',view_id:-1,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position=location;qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();window.dispatchEvent(new Event('blur'));qa.notify_navigation_selection();source_position={...source_position,line:11,cursor:{startLineNumber:11}};qa.notify_navigation_selection(true);const source_panel=document.createElement('section');source_panel.className='linux-note-source-file';source_panel.innerHTML='<textarea></textarea>';document.body.append(source_panel);source_panel.firstChild.focus();void 0;`);
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(50);
   assert.equal(await evaluate('source_position.line'),10,'源码输入面中的Alt后退走共同历史');

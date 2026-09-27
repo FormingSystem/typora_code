@@ -76,6 +76,7 @@ export function bind_reading_navigation(): () => void {
   let pending_from: reading_location | null = null;
   let pending_timer = 0;
   let selection_timer = 0;
+  let restoring_focus = false;
   let last_location: reading_location | null = null;
   const owned_remap_paths = remap_paths = map => {
     if (disposed) return;
@@ -282,8 +283,12 @@ export function bind_reading_navigation(): () => void {
       return result;
     });
     publish_history_state();
-    try { return await pending; }
-    finally { publish_history_state(); }
+    try {
+      const result = await pending;
+      // 原生重载会重建cid；以恢复后的真实快照更新当前项，迟到选区不能截断前进分支。
+      if (result) { const restored = capture(); if (restored) history.checkpoint(restored); }
+      return result;
+    } finally { publish_history_state(); }
   };
 
   const owned_open_url = editor[url_method] = function (url: string, ...args: unknown[]) {
@@ -291,6 +296,8 @@ export function bind_reading_navigation(): () => void {
     const local_url = url.trim().replace(/^<|>$/gu, "");
     if (navigating) return;
     if (editor.sourceView?.inSourceMode || (!/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url))) {
+      // 外部程序往返可能清空再重建原生选区；它不是正文内的新定位。
+      restoring_focus = true; clearTimeout(selection_timer);
       return original_open_url.call(this, url, ...args);
     }
     if (local_url.startsWith("#")) {
@@ -354,7 +361,8 @@ export function bind_reading_navigation(): () => void {
     if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
     const current = capture();
     if (!current) return;
-    history.record_selection(current, explicit); last_location = current; publish_history_state();
+    if (!(restoring_focus && !explicit && history.checkpoint(current))) history.record_selection(current, explicit);
+    last_location = current; publish_history_state();
   };
   collect(observe_navigation_selection(record_selection));
   const schedule_selection = () => {
@@ -362,13 +370,21 @@ export function bind_reading_navigation(): () => void {
     selection_timer = window.setTimeout(() => record_selection(), 100);
   };
   // 点击前更新来源的滚动位置；定位由对应入口提交，滚轮本身不新增记录。
-  document.addEventListener("pointerdown", event => {if(!(event.target instanceof Element&&event.target.closest(".workspace-link-preview")))record_selection();}, {capture: true, signal: controller.signal});
+  document.addEventListener("pointerdown", event => {
+    if (event.target instanceof Element && event.target.closest(".workspace-link-preview")) return;
+    if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
+    const current = capture();
+    if (current) { history.checkpoint(current); last_location = current; }
+    if (event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
+  }, {capture: true, signal: controller.signal});
   document.addEventListener("selectionchange", () => {
     if (window.getSelection()?.anchorNode?.getRootNode()===document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
   }, {signal: controller.signal});
   if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
   schedule_selection();
+  window.addEventListener("blur", () => { restoring_focus = true; clearTimeout(selection_timer); }, {signal: controller.signal});
   window.addEventListener("keydown", (event) => {
+    if (!event.altKey && !["Control", "Shift", "Meta"].includes(event.key) && event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document")) restoring_focus = false;
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing
         || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
     const active = document.activeElement;
@@ -402,7 +418,7 @@ export function bind_reading_navigation(): () => void {
   };
   active_dispose = dispose;
   window.addEventListener("linux-note-workspace-context-changed",()=>{
-    context_controller.abort();context_controller=new AbortController();clearTimeout(pending_timer);clearTimeout(selection_timer);pending_from=null;last_location=null;history.clear();publish_history_state();
+    context_controller.abort();context_controller=new AbortController();clearTimeout(pending_timer);clearTimeout(selection_timer);pending_from=null;last_location=null;restoring_focus=false;history.clear();publish_history_state();
   },{signal:controller.signal});
   return dispose;
 }

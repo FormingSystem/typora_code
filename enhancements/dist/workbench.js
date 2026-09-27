@@ -194435,6 +194435,14 @@ https://creativecommons.org/licenses/by/4.0/
       remap_paths(map) {
         for (const entry of entries3) entry.file_path = map(entry.file_path) ?? entry.file_path;
       },
+      // 工具栏/窗口失焦只更新当前位置，不能把失去的正文选区当成新的跳转。
+      checkpoint(current2) {
+        if (navigating) return false;
+        const previous = entries3[index];
+        if (!previous || previous.file_path !== current2.file_path || previous.kind !== current2.kind || previous.view_id !== current2.view_id) return false;
+        entries3[index] = { ...current2, cursor: current2.cursor ?? previous.cursor };
+        return true;
+      },
       record_selection(current2, explicit = false) {
         if (navigating) return;
         const previous = entries3[index];
@@ -194446,7 +194454,7 @@ https://creativecommons.org/licenses/by/4.0/
         const same_editor = previous.file_path === current2.file_path && previous.kind === current2.kind && previous.view_id === current2.view_id;
         const same_line = current2.line != null && previous.line === current2.line;
         const nearby = current2.line != null && previous.line != null ? Math.abs(current2.line - previous.line) < 10 : previous.cursor?.id === current2.cursor?.id && previous.cursor?.startId === current2.cursor?.startId;
-        if (same_editor && (same_location(previous, current2) || same_line || !explicit && nearby)) entries3[index] = current2;
+        if (same_editor && (!explicit && current2.cursor === null || same_location(previous, current2) || same_line || !explicit && nearby)) entries3[index] = { ...current2, cursor: current2.cursor ?? previous.cursor };
         else {
           entries3 = entries3.slice(0, index + 1);
           entries3.push(current2);
@@ -194887,6 +194895,7 @@ https://creativecommons.org/licenses/by/4.0/
     let pending_from = null;
     let pending_timer = 0;
     let selection_timer = 0;
+    let restoring_focus = false;
     let last_location = null;
     const owned_remap_paths = remap_paths = (map) => {
       if (disposed) return;
@@ -195097,7 +195106,12 @@ https://creativecommons.org/licenses/by/4.0/
       });
       publish_history_state();
       try {
-        return await pending;
+        const result = await pending;
+        if (result) {
+          const restored = capture();
+          if (restored) history.checkpoint(restored);
+        }
+        return result;
       } finally {
         publish_history_state();
       }
@@ -195107,6 +195121,8 @@ https://creativecommons.org/licenses/by/4.0/
       const local_url = url.trim().replace(/^<|>$/gu, "");
       if (navigating) return;
       if (editor2.sourceView?.inSourceMode || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
+        restoring_focus = true;
+        clearTimeout(selection_timer);
         return original_open_url.call(this, url, ...args);
       }
       if (local_url.startsWith("#")) {
@@ -195175,7 +195191,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
       const current2 = capture();
       if (!current2) return;
-      history.record_selection(current2, explicit);
+      if (!(restoring_focus && !explicit && history.checkpoint(current2))) history.record_selection(current2, explicit);
       last_location = current2;
       publish_history_state();
     };
@@ -195185,14 +195201,26 @@ https://creativecommons.org/licenses/by/4.0/
       selection_timer = window.setTimeout(() => record_selection(), 100);
     };
     document.addEventListener("pointerdown", (event) => {
-      if (!(event.target instanceof Element && event.target.closest(".workspace-link-preview"))) record_selection();
+      if (event.target instanceof Element && event.target.closest(".workspace-link-preview")) return;
+      if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
+      const current2 = capture();
+      if (current2) {
+        history.checkpoint(current2);
+        last_location = current2;
+      }
+      if (event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
     }, { capture: true, signal: controller.signal });
     document.addEventListener("selectionchange", () => {
       if (window.getSelection()?.anchorNode?.getRootNode() === document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
     }, { signal: controller.signal });
     if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
     schedule_selection();
+    window.addEventListener("blur", () => {
+      restoring_focus = true;
+      clearTimeout(selection_timer);
+    }, { signal: controller.signal });
     window.addEventListener("keydown", (event) => {
+      if (!event.altKey && !["Control", "Shift", "Meta"].includes(event.key) && event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document")) restoring_focus = false;
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active2 = document.activeElement;
       if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
@@ -195239,6 +195267,7 @@ https://creativecommons.org/licenses/by/4.0/
       clearTimeout(selection_timer);
       pending_from = null;
       last_location = null;
+      restoring_focus = false;
       history.clear();
       publish_history_state();
     }, { signal: controller.signal });
@@ -243611,6 +243640,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092724,
+        version: "2026.09.27.24",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u590D\u94FE\u63A5\u540E\u9000\u540E\u9876\u680F\u524D\u8FDB\u5931\u6548\uFF1A\u5DE5\u5177\u680F\u70B9\u51FB\u548C\u6B63\u6587\u9009\u533A\u4E22\u5931\u4E0D\u518D\u622A\u65AD\u5BFC\u822A\u5386\u53F2\u3002",
+          "\u5916\u90E8\u6D4F\u89C8\u5668\u5F80\u8FD4\u4FDD\u7559\u6587\u6863\u524D\u540E\u5386\u53F2\uFF1BMarkdown\u3001\u6E90\u7801\u548C\u53EA\u8BFB\u7248\u672C\u5171\u7528\u7A97\u53E3\u5BFC\u822A\uFF0C\u5386\u53F2\u4E0D\u56E0\u95F2\u7F6E\u800C\u8FC7\u671F\u3002"
+        ]
+      },
+      {
         sequence: 2026092723,
         version: "2026.09.27.23",
         date: "2026-09-27",
@@ -251593,6 +251631,7 @@ https://creativecommons.org/licenses/by/4.0/
       button.title = label;
       button.setAttribute("aria-label", label);
       button.append(git_icon(name));
+      button.addEventListener("mousedown", (event) => event.preventDefault(), { signal: events.signal });
       button.addEventListener("click", () => window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel", { detail: { direction } })), { signal: events.signal });
       center.append(button);
       return button;
