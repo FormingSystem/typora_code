@@ -29,7 +29,7 @@ export function bind_workspace_file_header(files:workspace_file_host,actions:edi
   };
   const entries=(state:header_state):workspace_menu_entry[]=>{
     const leaf=state.leaf,path=state.path;
-    const result=actions.title_entries(leaf).map(entry=>({...entry,shortcut:entry.id==="close_all"?"Ctrl+K W":entry.id==="close_saved"?"Ctrl+K U":entry.shortcut}));
+    const result=actions.title_entries(leaf).map(entry=>({...entry,shortcut:entry.id==="close_all"?"Alt+K W":entry.id==="close_saved"?"Alt+K U":entry.shortcut}));
     const reopen=actions.entries(leaf).find(entry=>entry.id==="reopen");
     if(reopen)result.push({...reopen,title:"重新打开方式",separator:true});
     // 菜单动作在点击时再复核叶子和组，不能沿用被重命名或移走的标签快照。

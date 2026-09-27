@@ -1,3 +1,4 @@
+import {workspace_alt_modifier} from "./workspace_keyboard";
 import { create_workspace_lifetime } from "./workspace_lifetime";
 import {reading_wheel_root,wheel_zoom_direction} from "./workspace_wheel_zoom";
 import {change_reading_geometry} from "./reading_reflow";
@@ -6,8 +7,8 @@ export type workspace_zoom_runtime = { ClientCommand?: Record<string, (...args: 
 
 // 菜单、命令面板和快捷键共享身份；比例及持久化只归宿主管理。
 export const WORKSPACE_ZOOM_ACTIONS = [
-  {id: "linux_note:zoom_in", label: "放大", native_command: "zoomIn", shortcut: "Ctrl+="},
-  {id: "linux_note:zoom_out", label: "缩小", native_command: "zoomOut", shortcut: "Ctrl+-"},
+  {id: "linux_note:zoom_in", label: "放大", native_command: "zoomIn", shortcut: "Alt+="},
+  {id: "linux_note:zoom_out", label: "缩小", native_command: "zoomOut", shortcut: "Alt+-"},
   {id: "linux_note:zoom_reset", label: "实际大小", native_command: "resetZoom", shortcut: undefined},
 ] as const;
 
@@ -17,8 +18,7 @@ export function workspace_zoom_available(runtime: workspace_zoom_runtime, id: st
 }
 
 export function workspace_zoom_shortcut(event: KeyboardEvent): string | undefined {
-  if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph")
-      || event.ctrlKey === event.metaKey) return;
+  if (!workspace_alt_modifier(event)) return;
   // Equal/Minus 包含 Shift 组合；小键盘不占用额外的 Shift 组合。
   if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd"
       || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";

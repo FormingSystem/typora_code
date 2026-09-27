@@ -941,7 +941,6 @@ export class git_graph_panel {
   keydown(event: KeyboardEvent): void {
     if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector('.git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker') || is_composing_key(event) || is_terminal_input(event)) return;
     if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
-    if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") { event.preventDefault(); this.host.core.app.workspace.sidebar.toggle(); return; }
     if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
     if (event.target instanceof Element && event.target !== document.body && event.target !== document.documentElement && !this.container.contains(event.target)) return;
     const editing = event.target instanceof Element && event.target.matches("input,textarea,select");

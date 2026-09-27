@@ -1,0 +1,66 @@
+{
+  "requirement": "R079",
+  "date": "2026-09-27",
+  "version": "2026.09.27.3",
+  "status": "实现及Windows候选安装通过，运行用户窗口未重启",
+  "manifest_sha256": "3ac236f9e840ee76920227d9e99576da606889f89ce1613f5fe184ef0f688638",
+  "build": "npm run build PASS",
+  "full_check": "npm run check exit 0；不是全量UI",
+  "ui": {
+    "suites": [
+      "test_workspace_shortcuts.cjs",
+      "test_workspace_zoom.cjs",
+      "test_terminal_capture.cjs",
+      "test_terminal_panel.cjs",
+      "test_workspace_titlebar_entries.cjs"
+    ],
+    "result": "5套通过；补充断言后的菜单/终端2套复验通过",
+    "shortcut_checks": 49,
+    "zoom_checks": 67,
+    "terminal_capture_checks": 39,
+    "titlebar_checks": 86,
+    "catalog_suites": 230
+  },
+  "native": {
+    "host": "Typora 1.14.10",
+    "case": "34bc64a0c88b427c8c41b01a8b0aa4c0",
+    "checks": 6,
+    "actual_bold": true,
+    "sidebar_alt_b_rounds": 20,
+    "boundary": "renderer合成事件实际生成strong；其他原生编辑键验证未被工作台截断，不冒充全部OS accelerator或物理按键验收"
+  },
+  "installation": {
+    "restore_and_detach_cycles": "同候选安装/检查/卸载/重装/检查通过",
+    "uninstall_assertions": 65,
+    "local_preflight": 0,
+    "local_install": 0,
+    "local_check": 0,
+    "workbench_assets": 48,
+    "terminal_assets": 24,
+    "protected_files_unchanged": 5,
+    "user_window_restarted": false
+  },
+  "cleanup": {
+    "native_payload_bytes_reclaimed": 531090319,
+    "install_cycle_payload_bytes_reclaimed": 2070920825,
+    "uninstall_payload_bytes_reclaimed": 131163479,
+    "evidence_retained": true
+  },
+  "test_repair": "新增菜单断言时模板字符串内反引号造成测试SyntaxError；改用String.fromCharCode(96)后86项通过，失败日志保留。",
+  "remaining": [
+    "物理键盘及不同键盘布局、Linux/macOS未本轮验收",
+    "历史8套UI基线失败和R047.6/R071.4继续独立跟踪",
+    "不改用户自定义热键；第三方自定义冲突需按实际配置核对"
+  ],
+  "logs": [
+    "shortcuts_build.log",
+    "shortcuts_check.log",
+    "shortcuts_ui.log",
+    "shortcuts_ui_final.log",
+    "shortcuts_ui_final_retry.log",
+    "shortcuts_native_final.log",
+    "shortcuts_install_cycle.log",
+    "shortcuts_uninstall.log",
+    "shortcuts_local_delivery.json"
+  ]
+}

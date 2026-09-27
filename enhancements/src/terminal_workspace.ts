@@ -1,7 +1,7 @@
 import {saved_ssh_connections} from './remote_ssh_auth_context';
 import {remote_files_for} from './remote_workspace_files';
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
-import {is_composing_key} from "./workspace_keyboard";
+import {workspace_alt_modifier,is_composing_key} from "./workspace_keyboard";
 import {bind_terminal_state} from "./terminal_state";
 import {acquire_workspace_style} from "./workspace_styles";
 import {git_icon,git_icon_button,type git_icon_name} from "./git_icons";
@@ -227,9 +227,9 @@ export function bind_terminal_workspace(host:graph_host){
     }catch(error){fail(error);}
   }) as EventListener);
   lifetime.listen(window,"keydown",((event:KeyboardEvent)=>{
-    if(is_composing_key(event)||!event.ctrlKey||event.altKey||event.metaKey||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
-    if(event.code==="Backquote"){event.preventDefault();event.stopImmediatePropagation();event.shiftKey?launch():toggle();}
-    else if(event.shiftKey&&event.code==="Digit5"&&event.target instanceof Element&&event.target.closest(".linux-note-terminal")){event.preventDefault();event.stopImmediatePropagation();split();}
+    if(is_composing_key(event)||document.querySelector('[role="dialog"][aria-modal="true"]'))return;
+    if(event.code==="Backquote"&&(event.shiftKey?workspace_alt_modifier(event):event.ctrlKey&&!event.altKey&&!event.metaKey)){event.preventDefault();event.stopImmediatePropagation();event.shiftKey?launch():toggle();}
+    else if(event.ctrlKey&&!event.altKey&&!event.metaKey&&event.shiftKey&&event.code==="Digit5"&&event.target instanceof Element&&event.target.closest(".linux-note-terminal")){event.preventDefault();event.stopImmediatePropagation();split();}
   }) as EventListener,true);
   lifetime.add(settings.subscribe(config=>{for(const entry of sessions.values())entry.surface.apply_settings(config);render();}));
   lifetime.add(observe_terminal_theme(theme=>{for(const entry of sessions.values())entry.surface.term.options.theme=theme;}));

@@ -162453,6 +162453,18 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_keyboard.ts
+  function is_composing_key(event) {
+    return event.isComposing || event.keyCode === 229;
+  }
+  function is_terminal_input(event) {
+    const target = event.composedPath().find((node) => node instanceof Element) || event.target;
+    return target instanceof Element && !!target.closest(".linux-note-terminal") && !target.closest(".linux-note-source-file");
+  }
+  function workspace_alt_modifier(event) {
+    return event.altKey && !event.ctrlKey && !event.metaKey && !event.getModifierState("AltGraph") && !is_composing_key(event);
+  }
+
   // src/workspace_wheel_zoom.ts
   function wheel_zoom_direction(event) {
     return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && Number.isFinite(event.deltaY) && event.deltaY !== 0 ? event.deltaY < 0 ? 1 : -1 : 0;
@@ -162746,8 +162758,8 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_zoom.ts
   var WORKSPACE_ZOOM_ACTIONS = [
-    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
-    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
+    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Alt+=" },
+    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Alt+-" },
     { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
   ];
   function workspace_zoom_available(runtime3, id) {
@@ -162755,7 +162767,7 @@ https://creativecommons.org/licenses/by/4.0/
     return Boolean(action && typeof runtime3.ClientCommand?.[action.native_command] === "function");
   }
   function workspace_zoom_shortcut(event) {
-    if (event.isComposing || event.keyCode === 229 || event.altKey || event.getModifierState("AltGraph") || event.ctrlKey === event.metaKey) return;
+    if (!workspace_alt_modifier(event)) return;
     if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
     if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
   }
@@ -162804,15 +162816,6 @@ https://creativecommons.org/licenses/by/4.0/
       throw error;
     }
     return lifetime;
-  }
-
-  // src/workspace_keyboard.ts
-  function is_composing_key(event) {
-    return event.isComposing || event.keyCode === 229;
-  }
-  function is_terminal_input(event) {
-    const target = event.composedPath().find((node) => node instanceof Element) || event.target;
-    return target instanceof Element && !!target.closest(".linux-note-terminal") && !target.closest(".linux-note-source-file");
   }
 
   // src/workspace_leaf_tab.ts
@@ -164211,6 +164214,27 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
+      const in_chord = chord_started > 0 && Date.now() - chord_started < 2e3;
+      if (in_chord) {
+        const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
+        const primary = workspace_alt_modifier(event) && !event.shiftKey;
+        if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
+        else if (event.code === "KeyW" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_all"));
+        else if (event.code === "KeyU" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_saved"));
+        else if (event.code === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) run(event, () => app.commands.run(event.shiftKey ? "linux_note:editor_pin" : "linux_note:editor_keep_open"));
+        else if (event.code === "KeyO" && unmodified) run(event, () => app.commands.run("linux_note:editor_copy_window"));
+        else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
+        else if (event.code === "KeyS" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:save_all"));
+        else if (event.code === "KeyF" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:close_folder"));
+        else if (event.code === "KeyC" && workspace_alt_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
+        else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("linux_note:editor_split_down"));
+        else reset_chord();
+        return;
+      }
+      if (!event.shiftKey && workspace_alt_modifier(event) && event.code === "KeyB") {
+        run(event, () => app.workspace.sidebar.toggle());
+        return;
+      }
       if (primary_modifier(event)) {
         if (event.code === "KeyX" && event.shiftKey) {
           run(event, () => app.commands.run("typora_code:community_plugins"));
@@ -164244,10 +164268,6 @@ https://creativecommons.org/licenses/by/4.0/
           run(event, () => app.commands.run("linux_note:search"));
           return;
         }
-        if (!event.shiftKey && event.code === "KeyB") {
-          run(event, () => app.workspace.sidebar.toggle());
-          return;
-        }
         if (!event.shiftKey && ["PageUp", "PageDown"].includes(event.code)) {
           const parent = app.workspace.activeLeaf?.parent?.containerEl;
           const tabs = parent ? [...parent.querySelectorAll(".typ-workspace-tab-header .typ-tab")].filter((tab) => !tab.dataset.id?.startsWith("typ://core.empty/")) : [];
@@ -164259,23 +164279,6 @@ https://creativecommons.org/licenses/by/4.0/
           return;
         }
       }
-      const in_chord = chord_started > 0 && Date.now() - chord_started < 2e3;
-      if (in_chord) {
-        const unmodified = !event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey;
-        const primary = primary_modifier(event) && !event.shiftKey;
-        if (event.code === "KeyP" && unmodified) run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
-        else if (event.code === "KeyW" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_all"));
-        else if (event.code === "KeyU" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:editor_close_saved"));
-        else if (event.code === "Enter" && !event.ctrlKey && !event.metaKey && !event.altKey) run(event, () => app.commands.run(event.shiftKey ? "linux_note:editor_pin" : "linux_note:editor_keep_open"));
-        else if (event.code === "KeyO" && unmodified) run(event, () => app.commands.run("linux_note:editor_copy_window"));
-        else if (event.code === "KeyO" && primary) run(event, () => app.commands.run("linux_note:open_folder"));
-        else if (event.code === "KeyS" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:save_all"));
-        else if (event.code === "KeyF" && (unmodified || primary)) run(event, () => app.commands.run("linux_note:close_folder"));
-        else if (event.code === "KeyC" && primary_modifier(event) && event.shiftKey) run(event, () => app.commands.run(COPY_RELATIVE_PATH));
-        else if (event.code === "Backslash" && primary) run(event, () => app.commands.run("linux_note:editor_split_down"));
-        else reset_chord();
-        return;
-      }
       if (event.code === "KeyR" && event.altKey && event.shiftKey && !event.ctrlKey && !event.metaKey) {
         run(event, () => app.commands.run("linux_note:editor_reveal_system"));
         return;
@@ -164284,7 +164287,7 @@ https://creativecommons.org/licenses/by/4.0/
         run(event, () => app.commands.run(COPY_ABSOLUTE_PATH));
         return;
       }
-      if (!primary_modifier(event) || event.shiftKey) {
+      if (!workspace_alt_modifier(event) || event.shiftKey) {
         reset_chord();
         return;
       }
@@ -190107,7 +190110,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (node.directory && options2.file_clipboard) entries3.push({ title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node)) });
       entries3.push(
         { title: "\u590D\u5236\u8DEF\u5F84", shortcut: "Shift+Alt+C", separator: true, action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, false) || node.path)) },
-        { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", shortcut: "Ctrl+K Ctrl+Shift+C", action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, true) || node.name)) }
+        { title: "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", shortcut: "Alt+K Alt+Shift+C", action: () => run(() => options2.copy(format_file_path(path_api, node.path, root?.path, true) || node.name)) }
       );
       if (node !== root) entries3.push({ title: "\u91CD\u547D\u540D", shortcut: "F2", separator: true, disabled: Boolean(rename_state?.busy) || operation_busy, action: () => begin_rename(node) });
       if (node !== root && options2.trash) entries3.push({ title: "\u5220\u9664", shortcut: "Del", disabled: operation_busy, action: () => confirm_trash() });
@@ -194762,9 +194765,9 @@ https://creativecommons.org/licenses/by/4.0/
         split_items.push(entry("move_" + side, "\u79FB\u52A8\u5230" + title + "\u7EC4", () => move(leaf, side), { separator: side === "up", disabled: state.busy || !neighbor(leaf, side) }));
       return [
         entry("close", "\u5173\u95ED", () => files.close_leaf(leaf), { shortcut: "Ctrl+F4", disabled: state.busy }),
-        ...[["others", "\u5173\u95ED\u5176\u4ED6", ""], ["right", "\u5173\u95ED\u53F3\u4FA7", ""], ["saved", "\u5173\u95ED\u5DF2\u4FDD\u5B58", "Ctrl+K U"], ["all", "\u5173\u95ED\u5168\u90E8", "Ctrl+K W"]].map(([mode, title, shortcut]) => entry("close_" + mode, title, () => close_batch(leaf, mode), { shortcut, disabled: !candidates(leaf, mode).length || batches.has(leaf.parent) })),
+        ...[["others", "\u5173\u95ED\u5176\u4ED6", ""], ["right", "\u5173\u95ED\u53F3\u4FA7", ""], ["saved", "\u5173\u95ED\u5DF2\u4FDD\u5B58", "Alt+K U"], ["all", "\u5173\u95ED\u5168\u90E8", "Alt+K W"]].map(([mode, title, shortcut]) => entry("close_" + mode, title, () => close_batch(leaf, mode), { shortcut, disabled: !candidates(leaf, mode).length || batches.has(leaf.parent) })),
         entry("copy_path", "\u590D\u5236\u8DEF\u5F84", () => copy_path(leaf, "absolute"), { shortcut: "Shift+Alt+C", separator: true, disabled: !file }),
-        entry("copy_relative_path", "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", () => copy_path(leaf, "relative"), { shortcut: "Ctrl+K Ctrl+Shift+C", disabled: !file }),
+        entry("copy_relative_path", "\u590D\u5236\u76F8\u5BF9\u8DEF\u5F84", () => copy_path(leaf, "relative"), { shortcut: "Alt+K Alt+Shift+C", disabled: !file }),
         entry("copy_breadcrumbs_path", "\u590D\u5236\u9762\u5305\u5C51\u8DEF\u5F84", () => copy_path(leaf, "breadcrumbs"), { disabled: !file }),
         ...markdown ? [
           entry("preview", "\u6253\u5F00\u9884\u89C8", () => preview(leaf), { separator: true, disabled: state.busy }),
@@ -194785,13 +194788,13 @@ https://creativecommons.org/licenses/by/4.0/
         entry("keep_open", "\u4FDD\u6301\u6253\u5F00", () => {
           files.keep_open(leaf);
           refresh();
-        }, { separator: true, shortcut: "Ctrl+K Enter", disabled: !leaf.state.workspace_preview }),
-        entry("pin", leaf.state.workspace_pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A", () => pin(leaf), { shortcut: "Ctrl+K Shift+Enter" }),
-        entry("split_right", "\u5411\u53F3\u62C6\u5206", () => split(leaf, "right"), { separator: true, shortcut: "Ctrl+\\", disabled: !ordinary || state.busy }),
+        }, { separator: true, shortcut: "Alt+K Enter", disabled: !leaf.state.workspace_preview }),
+        entry("pin", leaf.state.workspace_pinned ? "\u53D6\u6D88\u56FA\u5B9A" : "\u56FA\u5B9A", () => pin(leaf), { shortcut: "Alt+K Shift+Enter" }),
+        entry("split_right", "\u5411\u53F3\u62C6\u5206", () => split(leaf, "right"), { separator: true, shortcut: "Alt+\\", disabled: !ordinary || state.busy }),
         entry("split_move", "\u62C6\u5206\u4E0E\u79FB\u52A8", () => {
         }, { children: split_items }),
         entry("move_window", "\u79FB\u52A8\u5230\u65B0\u7A97\u53E3", () => windows.open(leaf), { separator: true, disabled: !file || !ordinary || state.busy }),
-        entry("copy_window", "\u590D\u5236\u5230\u65B0\u7A97\u53E3", () => windows.open(leaf, true), { shortcut: "Ctrl+K O", disabled: !file || !ordinary || state.busy })
+        entry("copy_window", "\u590D\u5236\u5230\u65B0\u7A97\u53E3", () => windows.open(leaf, true), { shortcut: "Alt+K O", disabled: !file || !ordinary || state.busy })
       ];
     };
     const title_entries = (leaf) => {
@@ -207998,12 +208001,12 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }));
       lifetime.listen(window, "keydown", ((event) => {
-        if (is_composing_key(event) || !event.ctrlKey || event.altKey || event.metaKey || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
-        if (event.code === "Backquote") {
+        if (is_composing_key(event) || document.querySelector('[role="dialog"][aria-modal="true"]')) return;
+        if (event.code === "Backquote" && (event.shiftKey ? workspace_alt_modifier(event) : event.ctrlKey && !event.altKey && !event.metaKey)) {
           event.preventDefault();
           event.stopImmediatePropagation();
           event.shiftKey ? launch() : toggle();
-        } else if (event.shiftKey && event.code === "Digit5" && event.target instanceof Element && event.target.closest(".linux-note-terminal")) {
+        } else if (event.ctrlKey && !event.altKey && !event.metaKey && event.shiftKey && event.code === "Digit5" && event.target instanceof Element && event.target.closest(".linux-note-terminal")) {
           event.preventDefault();
           event.stopImmediatePropagation();
           split();
@@ -236731,11 +236734,6 @@ https://creativecommons.org/licenses/by/4.0/
     keydown(event) {
       if (!this.active || this.host.core.app.workspace.activeLeaf?.view.containerEl !== this.container || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker") || is_composing_key(event) || is_terminal_input(event)) return;
       if (event.target instanceof Element && event.target.closest("[role=separator], .git-graph-document")) return;
-      if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "b") {
-        event.preventDefault();
-        this.host.core.app.workspace.sidebar.toggle();
-        return;
-      }
       if (event.target instanceof Element && event.target.closest(".git-scm-sidebar")) return;
       if (event.target instanceof Element && event.target !== document.body && event.target !== document.documentElement && !this.container.contains(event.target)) return;
       const editing = event.target instanceof Element && event.target.matches("input,textarea,select");
@@ -237404,10 +237402,6 @@ https://creativecommons.org/licenses/by/4.0/
           event.stopImmediatePropagation();
           show_source_control();
           source_sidebar.panel?.workbench.message.focus();
-        } else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "b" && (source_sidebar.containerEl.contains(event.target) || event.target?.closest?.(".git-graph-document"))) {
-          event.preventDefault();
-          event.stopImmediatePropagation();
-          core.app.workspace.sidebar.toggle();
         }
       }, true);
       document.documentElement.setAttribute("data-linux-note-source-control", "ready");
@@ -239634,7 +239628,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const entries3 = (state) => {
       const leaf = state.leaf, path = state.path;
-      const result = actions.title_entries(leaf).map((entry) => ({ ...entry, shortcut: entry.id === "close_all" ? "Ctrl+K W" : entry.id === "close_saved" ? "Ctrl+K U" : entry.shortcut }));
+      const result = actions.title_entries(leaf).map((entry) => ({ ...entry, shortcut: entry.id === "close_all" ? "Alt+K W" : entry.id === "close_saved" ? "Alt+K U" : entry.shortcut }));
       const reopen = actions.entries(leaf).find((entry) => entry.id === "reopen");
       if (reopen) result.push({ ...reopen, title: "\u91CD\u65B0\u6253\u5F00\u65B9\u5F0F", separator: true });
       const guard = (entry) => ({ ...entry, action: () => {
@@ -244946,14 +244940,14 @@ https://creativecommons.org/licenses/by/4.0/
         command("\u65B0\u5EFA\u7A97\u53E3", "newWindow", "Ctrl+Shift+N"),
         separator(),
         { label: "\u6253\u5F00\u2026", shortcut: "Ctrl+O", action: () => files.core.app.commands.run("linux_note:open_file") },
-        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Ctrl+K Ctrl+O", action: () => files.core.app.commands.run("linux_note:open_folder") },
+        { label: "\u6253\u5F00\u6587\u4EF6\u5939\u2026", shortcut: "Alt+K Alt+O", action: () => files.core.app.commands.run("linux_note:open_folder") },
         { label: "\u6253\u5F00\u6700\u8FD1", children: recent_entries },
         { label: "\u5FEB\u901F\u6253\u5F00\u2026", shortcut: "Ctrl+P", action: open_files },
         separator(),
         { label: "\u4FDD\u5B58", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {
           if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");
         } },
-        { label: "\u4FDD\u5B58\u5168\u90E8", shortcut: "Ctrl+K S", action: () => files.core.app.commands.run("linux_note:save_all") },
+        { label: "\u4FDD\u5B58\u5168\u90E8", shortcut: "Alt+K S", action: () => files.core.app.commands.run("linux_note:save_all") },
         { label: "\u81EA\u52A8\u4FDD\u5B58", checked: read_workspace_save_settings()["files.autoSave"] !== "off", action: () => files.core.app.commands.run("linux_note:auto_save") },
         { label: "\u81EA\u52A8\u4FDD\u5B58\u4E0E\u672C\u5730\u5386\u53F2\u8BBE\u7F6E\u2026", action: () => files.core.app.commands.run("linux_note:save_settings") },
         { label: "\u53E6\u5B58\u4E3A\u2026", shortcut: "Ctrl+Shift+S", disabled: !files.source_editor_active() && !native_writable(), action: () => {
@@ -244973,7 +244967,7 @@ https://creativecommons.org/licenses/by/4.0/
         { label: "\u5173\u95ED\u6807\u7B7E", shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {
           if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");
         } },
-        { label: "\u5173\u95ED\u6587\u4EF6\u5939", shortcut: "Ctrl+K F", disabled: !files.context_root(), action: () => files.core.app.commands.run("linux_note:close_folder") },
+        { label: "\u5173\u95ED\u6587\u4EF6\u5939", shortcut: "Alt+K F", disabled: !files.context_root(), action: () => files.core.app.commands.run("linux_note:close_folder") },
         command("\u504F\u597D\u8BBE\u7F6E\u2026", "showPreferencePanel", "Ctrl+,"),
         command("\u5173\u95ED\u7A97\u53E3", "close", "Alt+F4")
       ];
@@ -245012,8 +245006,8 @@ https://creativecommons.org/licenses/by/4.0/
     const paragraph_entries = async () => [
       ...[1, 2, 3, 4, 5, 6].map((level) => style("".concat(["\u4E00", "\u4E8C", "\u4E09", "\u56DB", "\u4E94", "\u516D"][level - 1], "\u7EA7\u6807\u9898"), "changeBlock", ["header".concat(level)], "Ctrl+".concat(level))),
       style("\u6B63\u6587", "changeBlock", ["paragraph"], "Ctrl+0"),
-      style("\u63D0\u5347\u6807\u9898\u7EA7\u522B", "increaseHeaderLevel"),
-      style("\u964D\u4F4E\u6807\u9898\u7EA7\u522B", "decreaseHeaderLevel"),
+      style("\u63D0\u5347\u6807\u9898\u7EA7\u522B", "increaseHeaderLevel", [], "Ctrl+="),
+      style("\u964D\u4F4E\u6807\u9898\u7EA7\u522B", "decreaseHeaderLevel", [], "Ctrl+-"),
       separator(),
       native_entry("\u8868\u683C\u2026", () => editor2()?.tableEdit, "insertTable", [], "Ctrl+T", true, true),
       style("\u4EE3\u7801\u5757", "toggleFences"),
@@ -245048,9 +245042,9 @@ https://creativecommons.org/licenses/by/4.0/
           ["\u6CE8\u91CA", "comment"],
           ["\u8D85\u94FE\u63A5", "link"],
           ["\u56FE\u50CF", "image"]
-        ].map(([label, name]) => ({ ...style(label, "toggleStyle", [name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name)) })),
+        ].map(([label, name]) => ({ ...style(label, "toggleStyle", [name], { strong: "Ctrl+B", em: "Ctrl+I", underline: "Ctrl+U", code: "Ctrl+Shift+`", link: "Ctrl+K", image: "Ctrl+Shift+I" }[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name)) })),
         separator(),
-        style("\u6E05\u9664\u6837\u5F0F", "clearStyle")
+        style("\u6E05\u9664\u6837\u5F0F", "clearStyle", [], "Ctrl+\\")
       ];
     };
     const terminal_entries = async () => {
@@ -245060,7 +245054,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (current && (!session || Boolean(current.active_id) && current.active_id === session_id)) files.core.app.commands.run("linux_note:" + id);
       } });
       return [
-        terminal_entry("\u65B0\u5EFA\u7EC8\u7AEF", "terminal", false, "Ctrl+Shift+`"),
+        terminal_entry("\u65B0\u5EFA\u7EC8\u7AEF", "terminal", false, "Alt+Shift+`"),
         terminal_entry("\u62C6\u5206\u7EC8\u7AEF", "terminal_split", true),
         { ...terminal_entry("\u663E\u793A\uFF0F\u9690\u85CF\u7EC8\u7AEF", "terminal_toggle", false, "Ctrl+`"), checked: Boolean(state?.panel_visible) },
         separator(),
@@ -245091,7 +245085,7 @@ https://creativecommons.org/licenses/by/4.0/
         { ...native_entry("\u4E13\u6CE8\u6A21\u5F0F", editor2, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime3.File?.isFocusMode) },
         { ...native_entry("\u6253\u5B57\u673A\u6A21\u5F0F", editor2, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime3.File?.isTypeWriterMode) },
         separator(),
-        { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Ctrl+B", checked: sidebar.sidebar_visible, action: () => workspace.sidebar.toggle() },
+        { label: "\u663E\u793A\uFF0F\u9690\u85CF\u4FA7\u680F", shortcut: "Alt+B", checked: sidebar.sidebar_visible, action: () => workspace.sidebar.toggle() },
         { label: "\u9762\u5305\u5C51\u5BFC\u822A", checked: read_breadcrumb_settings(files.context_root()).enabled, action: () => set_breadcrumb_enabled(files.context_root(), !read_breadcrumb_settings(files.context_root()).enabled) },
         { label: "\u9762\u5305\u5C51\u8BBE\u7F6E\u2026", action: () => files.core.app.commands.run("linux_note:breadcrumbs_settings") },
         { label: "\u5927\u7EB2", checked: sidebar.sidebar_visible && sidebar.active_id === "core.outline", action: () => toggle_sidebar_view("core.outline", "linux_note:outline") },
@@ -249547,6 +249541,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092703,
+        version: "2026.09.27.3",
+        date: "2026-09-27",
+        notes: [
+          "\u4FA7\u680F\u663E\u9690\u6539\u4E3AAlt+B\uFF0CCtrl+B\u6062\u590DTypora\u539F\u751F\u52A0\u7C97\u3002",
+          "\u5DE5\u4F5C\u53F0\u51B2\u7A81\u952E\u8FC1\u5230Alt\uFF1A\u7EC4\u5408\u952E\u524D\u7F00Alt+K\u3001\u5411\u53F3\u62C6\u5206Alt+\u53CD\u659C\u6760\u3001\u7A97\u53E3\u7F29\u653EAlt+=/-\u3001\u65B0\u7EC8\u7AEFAlt+Shift+\u53CD\u5F15\u53F7\uFF1B\u539F\u751F\u94FE\u63A5\u3001\u6E05\u9664\u683C\u5F0F\u3001\u6807\u9898\u5347\u964D\u548C\u884C\u5185\u4EE3\u7801\u4FDD\u7559\u3002",
+          "\u83DC\u5355\u4E0E\u5DE5\u5177\u63D0\u793A\u540C\u6B65\u952E\u4F4D\uFF0C\u79FB\u9664Git\u91CD\u590DCtrl+B\uFF0C\u4FDD\u7559\u7EC8\u7AEF\u548C\u8F93\u5165\u6CD5\u7684\u8F93\u5165\u8FB9\u754C\u3002"
+        ]
+      },
       {
         sequence: 2026092702,
         version: "2026.09.27.2",

@@ -33,11 +33,12 @@ app.whenReady().then(async()=>{
  runtime.JSBridge.invoke=original_invoke;
 
  check(defs.map(d=>d.label).join(',')==='文件,编辑,段落,格式,视图,主题,终端,帮助','seven native categories plus the authorized terminal menu');
- (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Ctrl+K Ctrl+O');
+ (await get('文件','打开文件夹…')).action();check(calls.at(-1).join('|')==='core|linux_note:open_folder','menu folder action shares the guarded workspace command with Alt+K Alt+O');
  const heading=await get('段落','一级标题');heading.action();check(calls.at(-1).join('|')==='block|header1','real heading argument');
  (await get('段落','链接引用')).action();check(calls.at(-1)[1]==='def_link','native link definition type');
  (await get('段落','脚注')).action();check(calls.at(-1)[1]==='def_footnote','native footnote definition type');
- const strong=await get('格式','加粗');strong.action();check(calls.at(-1)[1]==='strong','native style argument');
+ check((await get('视图','显示／隐藏侧栏')).shortcut==='Alt+B','sidebar Alt+B hint');check((await get('文件','打开文件夹…')).shortcut==='Alt+K Alt+O','folder chord hint');check((await get('格式','超链接')).shortcut==='Ctrl+K','native link hint');check((await get('终端','新建终端')).shortcut==='Alt+Shift+'+String.fromCharCode(96),'new terminal Alt hint');
+ const strong=await get('格式','加粗');check(strong.shortcut==='Ctrl+B','native bold Ctrl+B hint');strong.action();check(calls.at(-1)[1]==='strong','native style argument');
  check((await get('段落','公式块')).disabled,'absent method disabled');
  let count=calls.length;workspace.activeLeaf={state:{path:'typ://git-graph'}};strong.action();heading.action();check(calls.length===count,'stale actions do not edit background Markdown');check((await get('格式','加粗')).disabled,'tool tab disabled');
  workspace.activeLeaf=leaf;runtime.File.bundle.filePath='other.md';check((await get('格式','加粗')).disabled,'pending path change disabled');runtime.File.bundle.filePath=leaf.state.path;

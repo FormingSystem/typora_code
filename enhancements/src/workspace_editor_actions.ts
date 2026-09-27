@@ -126,10 +126,10 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
       split_items.push(entry("move_"+side,"移动到"+title+"组",()=>move(leaf,side),{separator:side==="up",disabled:state.busy||!neighbor(leaf,side)}));
     return [
       entry("close","关闭",()=>files.close_leaf(leaf),{shortcut:"Ctrl+F4",disabled:state.busy}),
-      ...([["others","关闭其他",""],["right","关闭右侧",""],["saved","关闭已保存","Ctrl+K U"],["all","关闭全部","Ctrl+K W"]] as const)
+      ...([["others","关闭其他",""],["right","关闭右侧",""],["saved","关闭已保存","Alt+K U"],["all","关闭全部","Alt+K W"]] as const)
         .map(([mode,title,shortcut])=>entry("close_"+mode,title,()=>close_batch(leaf,mode),{shortcut,disabled:!candidates(leaf,mode).length||batches.has(leaf.parent)})),
       entry("copy_path","复制路径",()=>copy_path(leaf,"absolute"),{shortcut:"Shift+Alt+C",separator:true,disabled:!file}),
-      entry("copy_relative_path","复制相对路径",()=>copy_path(leaf,"relative"),{shortcut:"Ctrl+K Ctrl+Shift+C",disabled:!file}),
+      entry("copy_relative_path","复制相对路径",()=>copy_path(leaf,"relative"),{shortcut:"Alt+K Alt+Shift+C",disabled:!file}),
       entry("copy_breadcrumbs_path","复制面包屑路径",()=>copy_path(leaf,"breadcrumbs"),{disabled:!file}),
       ...(markdown?[
         entry("preview","打开预览",()=>preview(leaf),{separator:true,disabled:state.busy}),
@@ -140,12 +140,12 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
       entry("reveal_system","在系统文件管理器中显示",()=>reveal(leaf,true),{shortcut:"Shift+Alt+R",separator:true,disabled:!file}),
       entry("reveal_explorer","在资源管理器视图中显示",()=>reveal(leaf,false),{disabled:!file}),
       {...vscode_resource_entry(ordinary?state.file_path:""),action:()=>{if(present(leaf)&&ordinary)return vscode_resource_entry(state.file_path).action();}},
-      entry("keep_open","保持打开",()=>{files.keep_open(leaf);refresh();},{separator:true,shortcut:"Ctrl+K Enter",disabled:!leaf.state.workspace_preview}),
-      entry("pin",leaf.state.workspace_pinned?"取消固定":"固定",()=>pin(leaf),{shortcut:"Ctrl+K Shift+Enter"}),
-      entry("split_right","向右拆分",()=>split(leaf,"right"),{separator:true,shortcut:"Ctrl+\\",disabled:!ordinary||state.busy}),
+      entry("keep_open","保持打开",()=>{files.keep_open(leaf);refresh();},{separator:true,shortcut:"Alt+K Enter",disabled:!leaf.state.workspace_preview}),
+      entry("pin",leaf.state.workspace_pinned?"取消固定":"固定",()=>pin(leaf),{shortcut:"Alt+K Shift+Enter"}),
+      entry("split_right","向右拆分",()=>split(leaf,"right"),{separator:true,shortcut:"Alt+\\",disabled:!ordinary||state.busy}),
       entry("split_move","拆分与移动",()=>{},{children:split_items}),
       entry("move_window","移动到新窗口",()=>windows.open(leaf),{separator:true,disabled:!file||!ordinary||state.busy}),
-      entry("copy_window","复制到新窗口",()=>windows.open(leaf,true),{shortcut:"Ctrl+K O",disabled:!file||!ordinary||state.busy})
+      entry("copy_window","复制到新窗口",()=>windows.open(leaf,true),{shortcut:"Alt+K O",disabled:!file||!ordinary||state.busy})
     ];
   };
   const title_entries=(leaf:graph_leaf):workspace_menu_entry[]=>{

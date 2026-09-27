@@ -1568,7 +1568,8 @@
       "purpose": "implementation",
       "requirements": [
         "R006",
-        "R006.7"
+        "R006.7",
+        "R079"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
@@ -1667,7 +1668,8 @@
         "R006",
         "R006.7",
         "R006.8",
-        "R070.7"
+        "R070.7",
+        "R079"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
@@ -3225,7 +3227,8 @@
       "requirements": [
         "R020",
         "R044",
-        "R060"
+        "R060",
+        "R079"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3515,7 +3518,8 @@
         "R040",
         "R041",
         "R060",
-        "R047.7"
+        "R047.7",
+        "R079"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -3617,7 +3621,8 @@
       "purpose": "implementation",
       "requirements": [
         "R014",
-        "R014.1"
+        "R014.1",
+        "R079"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -7935,6 +7940,43 @@
       ],
       "expected": [
         "编辑状态可见，原文及编辑所有者保持"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-native-shortcuts-priority",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R079"
+      ],
+      "design": "docs/workspace_shortcuts.md",
+      "implementation": [
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_keyboard.ts",
+        "enhancements/src/workspace_zoom.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "Typora Markdown",
+        "Git",
+        "titlebar"
+      ],
+      "script": "enhancements/fixtures/native_shortcuts_priority.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "原生隔离宿主和当前构建"
+      ],
+      "steps": [
+        "Ctrl+B原生加粗",
+        "旧冲突Ctrl释放",
+        "Alt+B二十轮和Alt组合键"
+      ],
+      "expected": [
+        "正文原生快捷键保持，工作台仅Alt执行一次"
       ],
       "timeout_ms": 60000
     }

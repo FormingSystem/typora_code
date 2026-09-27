@@ -303,7 +303,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (node !== root && options.file_clipboard) entries.push({title: "剪切",shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => run(() => set_clipboard(true))}, {title: "复制",shortcut:"Ctrl+C", disabled:operation_busy, action: () => run(() => set_clipboard(false))});
     if (node.directory && options.file_clipboard) entries.push({title: "粘贴",shortcut:"Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node))});
     entries.push({title: "复制路径",shortcut:"Shift+Alt+C",separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
-      {title: "复制相对路径",shortcut:"Ctrl+K Ctrl+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
+      {title: "复制相对路径",shortcut:"Alt+K Alt+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
     if (node !== root) entries.push({title: "重命名",shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
     if (node !== root && options.trash) entries.push({title: "删除",shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
     if (node.directory) entries.push({title: "刷新文件夹",separator:true, action: () => run(() => load_children(node, true))});

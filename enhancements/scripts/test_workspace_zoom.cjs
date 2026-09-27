@@ -30,7 +30,7 @@ app.whenReady().then(async()=>{
   window.host={commands:{register(c){commands.set(c.id,c);return()=>commands.delete(c.id)},run(id){commands.get(id)?.callback()}},workspace:{activeLeaf:{state:{path:'test.md'}},sidebar:{toggle(){}},activeFile:'test.md'}};
   window.zoom_binding=zoom_qa.bind_workspace_zoom_commands(host,runtime);window.binding=zoom_qa.install_workspace_shortcuts(host,runtime);
   document.addEventListener('keyup',()=>keyup_leaks++);
-  window.send=(code,key,options={},selector='#editor')=>{const target=document.querySelector(selector);const down=new KeyboardEvent('keydown',{code,key,ctrlKey:true,bubbles:true,cancelable:true,...options});target.dispatchEvent(down);const up=new KeyboardEvent('keyup',{code,key,ctrlKey:true,bubbles:true,cancelable:true,...options});target.dispatchEvent(up);return down.defaultPrevented;};
+  window.send=(code,key,options={},selector='#editor')=>{const target=document.querySelector(selector);const down=new KeyboardEvent('keydown',{code,key,altKey:true,bubbles:true,cancelable:true,...options});target.dispatchEvent(down);const up=new KeyboardEvent('keyup',{code,key,altKey:true,bubbles:true,cancelable:true,...options});target.dispatchEvent(up);return down.defaultPrevented;};
   window.reset=()=>{frame.setZoomLevel(0);calls.length=0;keyup_leaks=0};
   window.view=new zoom_qa.terminal_surface(zoom_qa.terminal_defaults,{input:data=>terminal_input.push(data),resize(){},copy:async()=>{},active(){},error:error=>{throw error}});
   document.querySelector('#terminal').append(view.container);view.mount();view.term.write('preserved terminal buffer',()=>window.output_ready=true);
@@ -40,28 +40,28 @@ app.whenReady().then(async()=>{
  for(const [code,key,options,direction] of [
   ['Equal','=',{},1],['Equal','+',{shiftKey:true},1],['NumpadAdd','+',{location:3},1],
   ['Minus','-',{},-1],['Minus','_',{shiftKey:true},-1],['NumpadSubtract','-',{location:3},-1],
-  ['BracketRight','+',{},1],['','-',{},-1],['Equal','=',{ctrlKey:false,metaKey:true},1],
+  ['BracketRight','+',{},1],['','-',{},-1],['Equal','=',{altKey:true},1],
  ]) await check(`reset();send(${JSON.stringify(code)},${JSON.stringify(key)},${JSON.stringify(options)})&&frame.getZoomLevel()===${direction}&&calls.length===1&&keyup_leaks===0`,code+' '+key+' routes one native zoom step and consumes key release');
  for(const [label,id,level]of [['放大','in',1],['缩小','out',-1],['实际大小','reset',0]])await check(`(async()=>{reset();const entry=await menu(${JSON.stringify(label)});entry.action();return !entry.disabled&&calls.join()===${JSON.stringify(id)}&&frame.getZoomLevel()===${level}})()`,label+' menu shares the registered zoom command');
  for(const selector of ['#search','#dialog-input','.xterm-helper-textarea']){
   await check(`reset();document.querySelector('#dialog').hidden=${selector!=='#dialog-input'};send('Equal','=',{},${JSON.stringify(selector)})&&frame.getZoomLevel()===1&&calls.length===1`,selector+' focus keeps window zoom active');
  }
  await check(`document.querySelector('#dialog').hidden=true;reset();send('Equal','=',{});send('Equal','=',{repeat:true});frame.getZoomLevel()===2&&calls.length===2&&keyup_leaks===0`,'held key repeats once per keydown without keyup duplication');
- for(const options of [{ctrlKey:false},{altKey:true},{metaKey:true},{isComposing:true},{keyCode:229}])await check(`reset();!send('Equal','=',${JSON.stringify(options)})&&calls.length===0&&frame.getZoomLevel()===0`,'non-shortcut or composing input does not zoom '+JSON.stringify(options));
+ for(const options of [{altKey:false},{ctrlKey:true},{metaKey:true},{isComposing:true},{keyCode:229}])await check(`reset();!send('Equal','=',${JSON.stringify(options)})&&calls.length===0&&frame.getZoomLevel()===0`,'non-shortcut or composing input does not zoom '+JSON.stringify(options));
  await check(`reset();!send('Digit0','0')&&calls.length===0`,'Ctrl+0 remains owned by native paragraph formatting');
  await check(`reset();document.querySelector('.reading-media-viewer').hidden=false;!send('Equal','=')&&calls.length===0`,'visible diagram viewer retains local zoom priority');
  await check(`document.querySelector('.reading-media-viewer').hidden=true;reset();send('Equal','=')&&calls.length===1`,'hidden diagram viewer does not suppress window zoom');
  // 真实 Electron 输入进入实际编辑控件及 xterm，验证字符不会被写入草稿或发给 PTY。
  for(const [selector,terminal]of [['#editor',false],['.xterm-helper-textarea',true]]){
   await evaluate(`reset();document.querySelector(${JSON.stringify(selector)}).focus();terminal_input.length=0;`);
-  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'=',modifiers:['control']});
-  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'=',modifiers:['control']});
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'=',modifiers:['alt']});
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'=',modifiers:['alt']});
   await delay(80);
-  await check(`frame.getZoomLevel()===1&&calls.join()==='in'&&terminal_input.length===0&&document.querySelector('#editor').value==='unchanged draft'`,'real Ctrl+= under '+selector+' changes webFrame without document or terminal input');
-  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'-',modifiers:['control']});
-  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'-',modifiers:['control']});
+  await check(`frame.getZoomLevel()===1&&calls.join()==='in'&&terminal_input.length===0&&document.querySelector('#editor').value==='unchanged draft'`,'real Alt+= under '+selector+' changes webFrame without document or terminal input');
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'-',modifiers:['alt']});
+  test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'-',modifiers:['alt']});
   await delay(80);
-  await check(`frame.getZoomLevel()===0&&calls.join()==='in,out'&&terminal_input.length===0&&view.term.buffer.active.getLine(0).translateToString(true)==='preserved terminal buffer'`,'real Ctrl+- restores the same window and retains terminal buffer '+terminal);
+  await check(`frame.getZoomLevel()===0&&calls.join()==='in,out'&&terminal_input.length===0&&view.term.buffer.active.getLine(0).translateToString(true)==='preserved terminal buffer'`,'real Alt+- restores the same window and retains terminal buffer '+terminal);
  }
  await check(`(async()=>{reset();const original=runtime.ClientCommand.zoomIn;delete runtime.ClientCommand.zoomIn;const disabled=(await menu('放大')).disabled;const free=!send('Equal','=');runtime.ClientCommand.zoomIn=original;return disabled&&free&&calls.length===0})()`,'missing host capability disables menu and releases shortcut');
  await check(`(()=>{let active=0;try{zoom_qa.bind_workspace_zoom_commands({commands:{register(){if(active)throw Error('fixture');active++;return()=>active--}}},runtime)}catch{}return active===0})()`,'partial registration failure removes earlier commands');
@@ -98,7 +98,7 @@ app.whenReady().then(async()=>{
  await origin_input();await open_panel();
  await evaluate('frame.setZoomFactor(1.25)');await until(level_matches,'open panel reflects externally changed webFrame factor');
  await check(`document.querySelector('.workspace-zoom-level').textContent==='1.22'&&document.querySelector('.workspace-zoom-level').title.includes('125%')`,'external fractional zoom displays its real level and percentage without writing a rounded level back');
- await evaluate('calls.length=0');await key('=', ['control']);await until(`${level_matches}&&calls.length===1`);
+ await evaluate('calls.length=0');await key('=', ['alt']);await until(`${level_matches}&&calls.length===1`);
  await check(`calls.join()==='in'&&Math.abs(frame.getZoomFactor()-1.5)<.001`,'real global shortcut updates native zoom and an already open status panel');
  await click('[data-zoom-action="reset"]');await until(`Math.abs(frame.getZoomLevel())<.001&&${status_visible}&&${panel_visible}`,'reset returns to native zero and keeps the entry and controls accessible');
  await check(`calls.join()==='in,reset'`,'reset delegates once to the original native command');

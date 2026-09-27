@@ -208,7 +208,6 @@ export function bind_git_graph() {
   lifetime.listen(window, "keydown", event => {
     if (is_composing_key(event) || document.querySelector(".git-graph-dialog-shade, .git-graph-menu, .git-scm-ref-picker")) return;
     if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "g") { event.preventDefault(); event.stopImmediatePropagation(); show_source_control(); source_sidebar.panel?.workbench.message.focus(); }
-    else if ((event.ctrlKey || event.metaKey) && !event.shiftKey && event.key.toLowerCase() === "b" && (source_sidebar.containerEl.contains(event.target as Node) || (event.target as Element)?.closest?.(".git-graph-document"))) { event.preventDefault(); event.stopImmediatePropagation(); core.app.workspace.sidebar.toggle(); }
   }, true);
   document.documentElement.setAttribute("data-linux-note-source-control", "ready");
   document.documentElement.setAttribute("data-linux-note-monaco-diff", "ready");

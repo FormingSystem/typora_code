@@ -93,9 +93,9 @@ app.whenReady().then(async () => {
       await check(`(()=>{const count=pty_starts.length;const prevented=send(first.surface.term.textarea,${JSON.stringify({ ...options, ...flags })});return !prevented&&pty_starts.length===count&&!document.querySelector('.typora-terminal-panel').hidden&&!sidebar.isShown&&first.surface.container.querySelector('.terminal-find').hidden&&document.activeElement===first.surface.term.textarea;})()`, mode + ': ' + label + ' preserves terminal event, focus and state');
     }
     await evaluate('menu_binding.close();sidebar.hide();document.querySelector("#editor").focus();calls.length=0;void 0');
-    await check(`!send(document.querySelector('#editor'),${JSON.stringify({ key: 'b', code: 'KeyB', ctrlKey: true, ...flags })})&&calls.length===0&&document.activeElement===document.querySelector('#editor')`, mode + ': ordinary workspace shortcut preserves editor composition');
-    await evaluate('send(document.querySelector("#editor"),{key:"b",code:"KeyB",ctrlKey:true});first.surface.focus();void 0');
-    await check(`!send(first.surface.term.textarea,${JSON.stringify({ key: 'b', code: 'KeyB', ctrlKey: true, ...flags })},'keyup')&&document.activeElement===first.surface.term.textarea`, mode + ': composition keyup after a prior global shortcut is released');
+    await check(`!send(document.querySelector('#editor'),${JSON.stringify({ key: 'b', code: 'KeyB', altKey: true, ...flags })})&&calls.length===0&&document.activeElement===document.querySelector('#editor')`, mode + ': ordinary workspace shortcut preserves editor composition');
+    await evaluate('send(document.querySelector("#editor"),{key:"b",code:"KeyB",altKey:true});first.surface.focus();void 0');
+    await check(`!send(first.surface.term.textarea,${JSON.stringify({ key: 'b', code: 'KeyB', altKey: true, ...flags })},'keyup')&&document.activeElement===first.surface.term.textarea`, mode + ': composition keyup after a prior global shortcut is released');
     await evaluate('reset_terminal();menu_binding.element.querySelector("button").click();void 0');
     await wait('Boolean(document.querySelector(".workspace-titlebar-popup"))');
     await evaluate('first.surface.focus();void 0');
@@ -110,8 +110,8 @@ app.whenReady().then(async () => {
   await evaluate('reset_terminal();document.querySelector("#source-editor").focus();void 0');
   await check(`send(document.querySelector('#source-editor'),{key:'f',code:'KeyF',ctrlKey:true,shiftKey:true})&&sidebar.isShown&&document.activeElement===search_binding.container.querySelector('textarea')`, 'source-file shared shell is an editor and still opens workspace search');
   await evaluate('sidebar.hide();document.querySelector("#editor").focus();calls.length=0;void 0');
-  await check(`send(document.querySelector('#editor'),{key:'b',code:'KeyB',ctrlKey:true})&&calls.filter(value=>value==='sidebar-toggle').length===1`, 'normal Ctrl+B invokes shared workspace action once');
-  await check(`send(document.querySelector('#editor'),{key:'b',code:'KeyB',ctrlKey:true},'keyup')`, 'normal consumed shortcut keyup remains paired');
+  await check(`send(document.querySelector('#editor'),{key:'b',code:'KeyB',altKey:true})&&calls.filter(value=>value==='sidebar-toggle').length===1`, 'normal Alt+B invokes shared workspace action once');
+  await check(`send(document.querySelector('#editor'),{key:'b',code:'KeyB',altKey:true},'keyup')`, 'normal consumed shortcut keyup remains paired');
   await evaluate('reset_terminal();void 0');
   await check(`send(first.surface.term.textarea,${JSON.stringify({ key: '`', code: 'Backquote', ctrlKey: true })})&&document.querySelector('.typora-terminal-panel').hidden`, 'normal terminal toggle still executes');
   await evaluate('terminal_binding.toggle();reset_terminal();void 0');
@@ -147,7 +147,7 @@ app.whenReady().then(async () => {
   for (const options of [
     { key: 'f', code: 'KeyF', ctrlKey: true, shiftKey: true },
     { key: '`', code: 'Backquote', ctrlKey: true },
-    { key: 'b', code: 'KeyB', ctrlKey: true },
+    { key: 'b', code: 'KeyB', altKey: true },
     { key: 'f', code: 'KeyF', altKey: true },
     { key: ';', code: 'Semicolon', ctrlKey: true, shiftKey: true },
   ]) await check(`!send(document.querySelector('#editor'),${JSON.stringify(options)})&&calls.length===0`, 'disposed capture releases ' + options.code + JSON.stringify(options));

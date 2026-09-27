@@ -79,11 +79,11 @@ export function create_workspace_titlebar_definitions(
     const exports = await export_entries();
     const leaf = workspace.activeLeaf;
     return [command("新建", "newFile", "Ctrl+N"), command("新建窗口", "newWindow", "Ctrl+Shift+N"), separator(),
-      {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Ctrl+K Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
+      {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Alt+K Alt+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
       {label:"打开最近",children:recent_entries},
       {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
       {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
-      {label: "保存全部",shortcut:"Ctrl+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
+      {label: "保存全部",shortcut:"Alt+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
       {label:"自动保存",checked:read_workspace_save_settings()["files.autoSave"]!=="off",action:()=>files.core.app.commands.run("linux_note:auto_save")},
       {label:"自动保存与本地历史设置…",action:()=>files.core.app.commands.run("linux_note:save_settings")},
       {label:"另存为…",shortcut:"Ctrl+Shift+S",disabled:!files.source_editor_active()&&!native_writable(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:save_as");}},
@@ -93,7 +93,7 @@ export function create_workspace_titlebar_definitions(
       {...native_command("使用上一次设置导出", "exportLast", undefined, false), disabled: !native_active() || !has_command("exportLast") || !(runtime.File?.option?.lastExport || runtime.File?.option?._lastExport)},
       native_command("打印…", "print", undefined, false), separator(),
       {label: "关闭标签", shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");}},
-      {label:"关闭文件夹",shortcut:"Ctrl+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
+      {label:"关闭文件夹",shortcut:"Alt+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
       command("偏好设置…", "showPreferencePanel", "Ctrl+,"), command("关闭窗口", "close", "Alt+F4")];
   };
   const search_entry = (replace: boolean): entry => {
@@ -123,7 +123,7 @@ export function create_workspace_titlebar_definitions(
   const paragraph_entries = async (): Promise<entry[]> => [
     ...[1,2,3,4,5,6].map(level => style(`${["一","二","三","四","五","六"][level-1]}级标题`, "changeBlock", [`header${level}`], `Ctrl+${level}`)),
     style("正文", "changeBlock", ["paragraph"], "Ctrl+0"),
-    style("提升标题级别", "increaseHeaderLevel"), style("降低标题级别", "decreaseHeaderLevel"), separator(),
+    style("提升标题级别", "increaseHeaderLevel", [], "Ctrl+="), style("降低标题级别", "decreaseHeaderLevel", [], "Ctrl+-"), separator(),
     native_entry("表格…", () => editor()?.tableEdit, "insertTable", [], "Ctrl+T", true, true),
     style("代码块", "toggleFences"), style("公式块", "toggleMathBlock"), style("引用", "toggleIndent", ["blockquote"]),
     style("有序列表", "toggleIndent", ["ol"]), style("无序列表", "toggleIndent", ["ul"]), style("任务列表", "toggleIndent", ["tasklist"]),
@@ -137,8 +137,8 @@ export function create_workspace_titlebar_definitions(
     const bookmark = editor()?.styleBookmark?.style;
     return [...([ ["加粗","strong"], ["斜体","em"], ["下划线","underline"], ["代码","code"], ["内联公式","inline_math"],
       ["删除线","del"], ["高亮","highlight"], ["上标","superscript"], ["下标","subscript"], ["注释","comment"],
-      ["超链接","link"], ["图像","image"] ] as const).map(([label,name]) => ({...style(label,"toggleStyle",[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name))})),
-      separator(), style("清除样式", "clearStyle")];
+      ["超链接","link"], ["图像","image"] ] as const).map(([label,name]) => ({...style(label,"toggleStyle",[name],({strong:"Ctrl+B",em:"Ctrl+I",underline:"Ctrl+U",code:"Ctrl+Shift+`",link:"Ctrl+K",image:"Ctrl+Shift+I"} as Record<string,string>)[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name))})),
+      separator(), style("清除样式", "clearStyle", [], "Ctrl+\\")];
   };
   const terminal_entries=async():Promise<entry[]>=>{
     const state=read_terminal_state(files.core.app),session_id=state?.active_id;
@@ -146,7 +146,7 @@ export function create_workspace_titlebar_definitions(
       const current=read_terminal_state(files.core.app);
       if(current&&(!session||Boolean(current.active_id)&&current.active_id===session_id))files.core.app.commands.run("linux_note:"+id);
     }});
-    return [terminal_entry("新建终端","terminal",false,"Ctrl+Shift+`"),terminal_entry("拆分终端","terminal_split",true),
+    return [terminal_entry("新建终端","terminal",false,"Alt+Shift+`"),terminal_entry("拆分终端","terminal_split",true),
       {...terminal_entry("显示／隐藏终端","terminal_toggle",false,"Ctrl+`"),checked:Boolean(state?.panel_visible)},separator(),
       terminal_entry("查找…","terminal_find",true),terminal_entry("清屏","terminal_clear",true),terminal_entry("重命名…","terminal_rename",true),separator(),
       {...terminal_entry("移动到编辑器","terminal_move_editor",true),disabled:!state?.active_id||state.location==="editor"},
@@ -166,7 +166,7 @@ export function create_workspace_titlebar_definitions(
     {...native_entry("只读模式", () => runtime.EditHelper, "toggleReadonlyMode", [], undefined, false), checked: Boolean(native_active() && runtime.File?.isReadonlyMode)},
     {...native_entry("专注模式", editor, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime.File?.isFocusMode)},
     {...native_entry("打字机模式", editor, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime.File?.isTypeWriterMode)}, separator(),
-    {label: "显示／隐藏侧栏", shortcut: "Ctrl+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
+    {label: "显示／隐藏侧栏", shortcut: "Alt+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
     {label:"面包屑导航",checked:read_breadcrumb_settings(files.context_root()).enabled,action:()=>set_breadcrumb_enabled(files.context_root(),!read_breadcrumb_settings(files.context_root()).enabled)},
     {label:"面包屑设置…",action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
     {label: "大纲", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},

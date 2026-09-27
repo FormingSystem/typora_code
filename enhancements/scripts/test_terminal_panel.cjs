@@ -314,11 +314,14 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('pty_starts[13].request.args.at(-2)'),'alias','toggle starts SSH even with a visible local terminal');
   assert(await evaluate('pty_starts[13].request.args.at(-1).includes("/tmp/项目")&&pty_starts[12].killed===1'),'workspace switch closes old local PTY');
   await evaluate('pty_starts[13].ready();void 0');await delay(30);
+  const before_native_code=await evaluate('pty_starts.length');
+  assert(await evaluate(`(()=>{const e=new KeyboardEvent('keydown',{code:'Backquote',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true});window.dispatchEvent(e);return !e.defaultPrevented;})()`),'native inline code key released');
+  await delay(30);assert.equal(await evaluate('pty_starts.length'),before_native_code,'Ctrl+Shift+Backquote must not launch a terminal');
   for(const operation of [
     'commands.get("linux_note:terminal").callback()',
     'document.querySelector(".terminal-panel-actions button[title^=新建终端]").click()',
     'window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{cwd:"C:/irrelevant"}}))',
-    'window.dispatchEvent(new KeyboardEvent("keydown",{code:"Backquote",ctrlKey:true,shiftKey:true,bubbles:true}))'
+    'window.dispatchEvent(new KeyboardEvent("keydown",{code:"Backquote",altKey:true,shiftKey:true,bubbles:true}))'
   ]){
     const count=await evaluate('pty_starts.length');await evaluate(operation+';void 0');await wait('pty_starts.length==='+String(count+1));
     assert.equal(await evaluate(`pty_starts[${count}].request.args.at(-2)`),'alias','shared default entry uses remote host');

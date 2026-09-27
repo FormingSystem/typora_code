@@ -8,3 +8,8 @@ export function is_terminal_input(event:Event):boolean{
   const target=event.composedPath().find(node=>node instanceof Element)||event.target;
   return target instanceof Element&&!!target.closest(".linux-note-terminal")&&!target.closest(".linux-note-source-file");
 }
+
+/** 工作台冲突键迁到Alt；AltGr、组合输入及混合修饰键仍归输入所有者。 */
+export function workspace_alt_modifier(event:KeyboardEvent):boolean{
+  return event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.getModifierState("AltGraph")&&!is_composing_key(event);
+}
