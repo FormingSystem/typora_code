@@ -1,4 +1,4 @@
-"""R047.9：用专属小备份验证 Windows/Python 同一保留契约。"""
+"""R047.9/R047.11：验证 Windows/Python 轮换及原生备份保护。"""
 import importlib.util
 import json
 import os
@@ -45,22 +45,63 @@ for platform in ['python'] + (['powershell'] if os.name == 'nt' else []):
     baseline, legacy, extra, damaged = make('baseline', 'baseline'), make('legacy', None), make('extra'), make('damaged')
     (extra / 'personal.txt').write_text('keep', encoding='utf-8')
     (damaged / 'product/workbench.js').write_text('tampered', encoding='utf-8')
+    native_backup = user_data / 'backups/native_document.md'
+    native_backup.write_text('native backup must remain', encoding='utf-8')
+
+    def make_old(number, schema=4, change=None):
+        backup = make('20260901-120000-000-' + f'{number:032x}', None)
+        (backup / 'window.html').write_text('<script defer src="typora://app/userData/typora_code/workbench.js"></script>', encoding='utf-8')
+        manifest = json.loads((backup / 'manifest.json').read_text(encoding='utf-8'))
+        manifest.update(schema_version=schema, window_sha256=workspace.digest(backup / 'window.html'))
+        if schema == 3:
+            del manifest['native_profile']
+        if change:
+            change(backup, manifest)
+        (backup / 'manifest.json').write_text(json.dumps(manifest), encoding='utf-8')
+        return backup
+
+    old_upgrades = [make_old(1, 3), make_old(2)]
+    native_old = make_old(3, change=lambda backup, manifest: (
+        (backup / 'window.html').write_text('native before enhancement', encoding='utf-8'),
+        manifest.update(window_sha256=workspace.digest(backup / 'window.html'))))
+    old_extra = make_old(4)
+    (old_extra / 'personal.txt').write_text('keep', encoding='utf-8')
+    old_bad = make_old(5)
+    (old_bad / 'product/workbench.js').write_text('tampered', encoding='utf-8')
+    old_foreign = make_old(6, change=lambda backup, manifest: manifest.update(user_data=str(root / 'another-user')))
+    old_unknown = make_old(7, change=lambda backup, manifest: manifest.update(retention=dict(schema=2, kind='upgrade')))
+    old_baseline = make_old(8, change=lambda backup, manifest: manifest.update(retention=dict(schema=1, kind='baseline')))
+    old_missing = make_old(9)
+    (old_missing / 'manifest.json').unlink()
+    protected = [baseline, legacy, extra, damaged, native_backup, native_old, old_extra, old_bad, old_foreign, old_unknown, old_baseline, old_missing]
+
+    def snapshot():
+        return {str(file): workspace.digest(file) for entry in protected
+                for file in ([entry] if entry.is_file() else entry.rglob('*')) if file.is_file()}
+
+    before = snapshot()
     if platform == 'powershell':
         script = root / 'prune.ps1'
         script.write_text('param($repository,$current,$profile,$host_root)\n$ErrorActionPreference="Stop"\n'
                           '. (Join-Path $repository "scripts/lib/typora_workspace.ps1")\n'
                           '. (Join-Path $repository "scripts/lib/typora_backup_retention.ps1")\n'
                           'prune_typora_automatic_backups $current $profile $host_root {param($message)}\n', encoding='utf-8-sig')
-    for number in range(20):
-        current = make('run-' + str(number))
+    def prune(current):
         if platform == 'python':
             workspace.prune_automatic_backups(current, user_data, host, log())
         else:
             subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-ExecutionPolicy', 'Bypass', '-File', str(script), str(repository), str(current), str(user_data), str(host)], check=True)
+
+    prune(baseline)
+    assert all(entry.is_dir() for entry in old_upgrades)
+    for number in range(20):
+        current = make('run-' + str(number))
+        prune(current)
         assert sorted(p.name for p in parent.glob('run-*')) == [current.name]
-        assert all(p.is_dir() for p in (baseline, legacy, extra, damaged))
-        assert (extra / 'personal.txt').read_text(encoding='utf-8') == 'keep'
-    checks.append(platform + ': 20次轮换仅保留最近自动升级备份，基线/旧备份/附加文件/损坏备份不动')
+        assert all(not entry.exists() for entry in old_upgrades)
+        assert all(entry.exists() for entry in protected)
+        assert snapshot() == before
+    checks.append(platform + ': 20次轮换回收已核实schema3/4旧升级，仅保留最新升级；原生/基线/未知/异常备份逐文件摘要不变')
     # 当前备份校验失败时不得删除仍可恢复的旧备份。
     latest = current
     invalid = make('invalid-current')

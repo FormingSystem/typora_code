@@ -7880,7 +7880,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R047.9"
+        "R047.9",
+        "R047.11"
       ],
       "design": "docs/workspace_update.md",
       "implementation": [
@@ -7900,10 +7901,11 @@
         "独立环境，无需启动真实VS Code"
       ],
       "steps": [
-        "两实现分别20次自动备份轮换"
+        "两实现分别20次自动备份轮换",
+        "schema3/4遗留升级归属核对及原生/异常备份逐文件摘要保护"
       ],
       "expected": [
-        "仅最近自动升级备份保留；基线、未知和损坏备份保持"
+        "仅最新可验证升级保留；原生、基线、未知、损坏、附加文件和错误身份备份保持，当前备份无效不清理"
       ],
       "timeout_ms": 60000
     },

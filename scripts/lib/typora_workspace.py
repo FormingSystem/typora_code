@@ -262,15 +262,26 @@ def retained_backup(backup, user_data, typora_root):
     if backup.parent.resolve() != parent.resolve():
         raise ValueError('Backup is outside automatic backup directory')
     manifest = read_object(asset_path(backup, 'manifest.json'))
-    if (manifest.get('schema_version') != 4 or manifest.get('retention', {}).get('schema') != 1
-            or manifest['retention']['kind'] not in ('baseline', 'upgrade')
+    if (manifest.get('schema_version') not in (3, 4)
             or Path(manifest['user_data']).resolve() != user_data.resolve()
             or Path(manifest['typora_root']).resolve() != typora_root.resolve()):
         raise ValueError('Backup ownership differs')
+    if 'retention' in manifest:
+        if manifest['retention'].get('schema') != 1 or manifest['retention'].get('kind') not in ('baseline', 'upgrade'):
+            raise ValueError('Unsupported backup retention marker')
+    else:
+        saved_source = asset_path(backup, 'window.html').read_text(encoding='utf-8-sig')
+        product_entry = [row for row in manifest['product'] if row['relative_path'] == 'workbench.js' and row['existed']]
+        if (not re.fullmatch(r'\d{8}-\d{6}-\d{3}-[a-f0-9]{32}', backup.name) or len(product_entry) != 1
+                or len(re.findall(r"<script\b[^>]*\bsrc=[\"']typora://app/userData/typora_code/workbench\.js[\"'][^>]*>", saved_source)) != 1):
+            raise ValueError('旧备份不是可确认的TyporaCode升级，保留原生或未知恢复资料。')
+        manifest['retention'] = {'schema': 1, 'kind': 'upgrade'}
     if digest(asset_path(backup, 'window.html')) != manifest['window_sha256']:
         raise ValueError('Backup window digest differs')
     expected = {'manifest.json', 'window.html'}
     for name, root in group_roots(user_data).items():
+        if name == 'native_profile' and manifest['schema_version'] == 3 and name not in manifest:
+            continue
         validate_records(root, backup / name, manifest[name], name)
         expected.update(name + '/' + row['relative_path'] for row in manifest[name] if row['existed'])
     pending = [backup]

@@ -1,0 +1,106 @@
+{
+  "requirements": [
+    "R047.11",
+    "R047.9",
+    "R077"
+  ],
+  "date": "2026-09-28",
+  "version": "2026.09.28.1",
+  "build": "PASS",
+  "checks": {
+    "retention": {
+      "id": "a616083d76394ed28b38bf6854788adc",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "payload_bytes": 20108,
+      "platforms": [
+        "Windows Python",
+        "Windows PowerShell 5.1"
+      ],
+      "cycles_per_implementation": 20,
+      "coverage": [
+        "旧schema3/4产品升级回收",
+        "原生/基线/缺清单/附加文件/损坏/外部用户身份/未知标记逐文件摘要保护",
+        "当前备份无效或baseline时不轮换"
+      ]
+    },
+    "update": {
+      "id": "777a87ac3992406db37ac90d8e952aab",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "payload_bytes": 38529,
+      "cycles": 20,
+      "coverage": [
+        "临时载荷成功/失败/取消回收",
+        "活动、无归属和外部路径保留",
+        "崩溃载荷回收"
+      ]
+    },
+    "full_check": {
+      "id": "28159dafb12247ae8ebea9f804568fec",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "payload_bytes": 32697857
+    },
+    "installation": {
+      "id": "a17e4844f7fc458e8f191ce707e21240",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "payload_bytes": 2076118741,
+      "coverage": [
+        "公开安装→检查→恢复卸载→重装→检查",
+        "无兼容备份撤销入口→重装→检查"
+      ]
+    },
+    "uninstallation": {
+      "id": "ccb6307304ed4d41841d7e064c56b316",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "payload_bytes": 131163209,
+      "assertions": 65,
+      "coverage": [
+        "隔离卸载、失败、取消、回滚"
+      ]
+    }
+  },
+  "actual_cleanup": {
+    "removed": 160,
+    "reclaimed_bytes": 17937739686,
+    "preserved_directories": 6,
+    "protected_backup_files_unchanged": 352,
+    "latest_upgrade_backups": 1,
+    "remaining_directories": 7,
+    "remaining_bytes": 783318876,
+    "net_backup_bytes_reduced": 17822824752
+  },
+  "temp_inventory": {
+    "update_payload_jobs": 0,
+    "expired_managed_test_jobs": 0
+  },
+  "delivery": {
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "c9fcad61823a4e9e6bd43f641d050310cb314436ca4e19d3beba3870a8854b80",
+      "window_restarted": false
+    },
+    "actual_uninstall": "仅只读预检",
+    "runtime_loaded": false,
+    "pushed": false,
+    "commit_state": "证据生成时待提交，以Git及本地台账回执为准"
+  },
+  "boundaries": [
+    "原生Typora备份和其他备份目录不在清理范围；6份基线/未知资料逐文件摘要验证不变",
+    "不按时间或名字直接删除无归属TEMP；活动、失败恢复现场和日志保留",
+    "Python契约在Windows执行，本轮没有Linux/macOS整机安装验收",
+    "未更改界面，未执行UI或原生编辑交互检查；此前未决项不由本轮关闭"
+  ]
+}
