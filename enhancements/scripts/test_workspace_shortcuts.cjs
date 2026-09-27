@@ -51,7 +51,7 @@ app.whenReady().then(async () => {
     window.chord=(second_code,second_options={})=>{send('KeyK',{key:'k',altKey:true});return send(second_code,second_options);};
   })()`);
 
-  for(const code of ['KeyB','KeyK','Backslash','Equal','Minus'])check(await evaluate(`calls=[];!send('${code}',{ctrlKey:true})&&calls.length===0`),'native Ctrl key released: '+code);
+  for(const code of ['KeyB','KeyK','Backslash'])check(await evaluate(`calls=[];!send('${code}',{ctrlKey:true})&&calls.length===0`),'native Ctrl key released: '+code);
   check(await evaluate(`calls=[];!send('KeyB',{altKey:true,ctrlKey:true})&&calls.length===0`),'AltGr mixed modifiers released');
   check(await evaluate('same_binding'), 'shortcut installation is idempotent');
   check(await evaluate(`calls=[];send('KeyB',{key:'b',altKey:true})&&calls[0][0]==='sidebar'`), 'Alt+B toggles the workspace sidebar');

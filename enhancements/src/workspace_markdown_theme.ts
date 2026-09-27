@@ -1,3 +1,4 @@
+import {reading_base_font} from './reading_font_zoom';
 import {observe_workspace_theme} from './workspace_theme';
 let cached_rules:string|undefined,observer:MutationObserver|undefined,users=0;
 const invalidate=()=>{cached_rules=undefined;};
@@ -12,10 +13,10 @@ export function markdown_theme_rules():string {
   if(observer?.takeRecords().length)invalidate();
   // Shadow宿主位于功能区，继承的是界面字体；以真实正文计算值建立阅读继承基线。
   const native=document.querySelector('content > #write')||document.querySelector('#write')||document.body;
-  const computed=getComputedStyle(native),properties=['font-family','font-size','font-weight','font-style','line-height','letter-spacing','word-spacing','color','text-align','text-indent','text-transform'];
+  const base=reading_base_font(native as HTMLElement),computed=getComputedStyle(native),properties=['font-family','font-size','font-weight','font-style','line-height','letter-spacing','word-spacing','color','text-align','text-indent','text-transform'];
   // 无单位行高应继续随子元素字号缩放；不能把1.6冻结为正文的25.6px。
   const typed_line_height=(native as any).computedStyleMap?.().get('line-height');
-  const inherited='#write{'+properties.map(name=>name+':'+(name==='line-height'&&typed_line_height?.unit==='number'?String(typed_line_height.value):computed.getPropertyValue(name))+';').join('')+'}\n';
+  const inherited='#write{'+properties.map(name=>name+':'+(name==='font-size'&&base?base.font+'px':name==='line-height'&&base?base.line:name==='line-height'&&typed_line_height?.unit==='number'?String(typed_line_height.value):computed.getPropertyValue(name))+';').join('')+'}\n';
   if(users&&cached_rules!==undefined)return inherited+cached_rules;
   const stack=new Set<CSSStyleSheet>();
   const collect=(sheet:CSSStyleSheet):string=>{

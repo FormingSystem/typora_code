@@ -5970,8 +5970,8 @@ https://creativecommons.org/licenses/by/4.0/
             this._size = 0;
             return;
           }
-          const listeners8 = this._listeners;
-          const index = listeners8.indexOf(listener);
+          const listeners9 = this._listeners;
+          const index = listeners9.indexOf(listener);
           if (index === -1) {
             console.log("disposed?", this._disposed);
             console.log("size?", this._size);
@@ -5979,13 +5979,13 @@ https://creativecommons.org/licenses/by/4.0/
             throw new Error("Attempted to dispose unknown listener");
           }
           this._size--;
-          listeners8[index] = void 0;
+          listeners9[index] = void 0;
           const adjustDeliveryQueue = this._deliveryQueue.current === this;
-          if (this._size * compactionThreshold <= listeners8.length) {
+          if (this._size * compactionThreshold <= listeners9.length) {
             let n2 = 0;
-            for (let i = 0; i < listeners8.length; i++) {
-              if (listeners8[i]) {
-                listeners8[n2++] = listeners8[i];
+            for (let i = 0; i < listeners9.length; i++) {
+              if (listeners9[i]) {
+                listeners9[n2++] = listeners9[i];
               } else if (adjustDeliveryQueue && n2 < this._deliveryQueue.end) {
                 this._deliveryQueue.end--;
                 if (n2 < this._deliveryQueue.i) {
@@ -5993,7 +5993,7 @@ https://creativecommons.org/licenses/by/4.0/
                 }
               }
             }
-            listeners8.length = n2;
+            listeners9.length = n2;
           }
         }
         _deliver(listener, value) {
@@ -6013,9 +6013,9 @@ https://creativecommons.org/licenses/by/4.0/
         }
         /** Delivers items in the queue. Assumes the queue is ready to go. */
         _deliverQueue(dq) {
-          const listeners8 = dq.current._listeners;
+          const listeners9 = dq.current._listeners;
           while (dq.i < dq.end) {
-            this._deliver(listeners8[dq.i++], dq.value);
+            this._deliver(listeners9[dq.i++], dq.value);
           }
           dq.reset();
         }
@@ -41415,12 +41415,12 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function bounceElement(element, opts) {
     const frames = [];
-    const steps = Math.max(opts.scale?.length ?? 0, opts.rotate?.length ?? 0, opts.translateY?.length ?? 0);
-    if (steps === 0) {
+    const steps2 = Math.max(opts.scale?.length ?? 0, opts.rotate?.length ?? 0, opts.translateY?.length ?? 0);
+    if (steps2 === 0) {
       return;
     }
-    for (let i = 0; i < steps; i++) {
-      const frame3 = { offset: steps === 1 ? 1 : i / (steps - 1) };
+    for (let i = 0; i < steps2; i++) {
+      const frame3 = { offset: steps2 === 1 ? 1 : i / (steps2 - 1) };
       let transformParts = "";
       const scale = opts.scale?.[i];
       if (scale !== void 0) {
@@ -118450,9 +118450,9 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const value = new ObjectCollectionBufferEntry(this.view, this._propertySpecsMap, this._dirtyTracker, this._entries.size, data);
           const removeFromEntries = this._entries.push(value);
-          const listeners8 = [];
-          listeners8.push(Event2.forward(value.onDidChange, this._onDidChange));
-          listeners8.push(value.onWillDispose(() => {
+          const listeners9 = [];
+          listeners9.push(Event2.forward(value.onDidChange, this._onDidChange));
+          listeners9.push(value.onWillDispose(() => {
             const deletedEntryIndex = value.i;
             removeFromEntries();
             this.view.set(this.view.subarray(deletedEntryIndex * this._entrySize + 2, this._entries.size * this._entrySize + 2), deletedEntryIndex * this._entrySize);
@@ -118462,7 +118462,7 @@ https://creativecommons.org/licenses/by/4.0/
               }
             }
             this._dirtyTracker.flag(deletedEntryIndex, (this._entries.size - deletedEntryIndex) * this._entrySize);
-            dispose(listeners8);
+            dispose(listeners9);
           }));
           return value;
         }
@@ -158181,8 +158181,8 @@ https://creativecommons.org/licenses/by/4.0/
     });
   };
   function observe_workspace_theme(listener, role = "consumer") {
-    const owners2 = role === "palette" ? palette_listeners : listeners;
-    owners2.add(listener);
+    const owners3 = role === "palette" ? palette_listeners : listeners;
+    owners3.add(listener);
     if (!observer) {
       observer = new MutationObserver(update);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
@@ -158194,7 +158194,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     update();
     return () => {
-      owners2.delete(listener);
+      owners3.delete(listener);
       if (!listeners.size && !palette_listeners.size) {
         observer?.disconnect();
         observer = void 0;
@@ -162465,6 +162465,88 @@ https://creativecommons.org/licenses/by/4.0/
     return event.altKey && !event.ctrlKey && !event.metaKey && !event.getModifierState("AltGraph") && !is_composing_key(event);
   }
 
+  // src/workspace_content_zoom.ts
+  var listeners3 = /* @__PURE__ */ new Map();
+  var startup_factor = 1;
+  var window_factor = 1;
+  var owners = 0;
+  var steps = { editor: 0, terminal: 0 };
+  var emit = () => {
+    for (const listener of listeners3.keys()) listener();
+  };
+  function prepare_content_zoom() {
+    for (const prepare of listeners3.values()) prepare?.();
+  }
+  function content_font_size(base, role = "editor") {
+    return Math.max(6, base + steps[role]) * startup_factor / window_factor;
+  }
+  function change_content_font(role, direction, base = 14) {
+    const next = Math.max(6, Math.min(role === "terminal" ? 100 : 1e3, base + steps[role] + direction)) - base;
+    if (next !== steps[role]) {
+      prepare_content_zoom();
+      steps[role] = next;
+      emit();
+    }
+  }
+  function reset_content_font(role) {
+    if (steps[role]) {
+      steps[role] = 0;
+      emit();
+    }
+  }
+  function observe_content_zoom(listener, prepare) {
+    listeners3.set(listener, prepare);
+    return () => {
+      listeners3.delete(listener);
+    };
+  }
+  function bind_content_zoom(runtime3) {
+    const read2 = () => {
+      try {
+        const value = runtime3.reqnode?.("electron")?.webFrame?.getZoomFactor();
+        return Number.isFinite(value) && value > 0 ? value : 1;
+      } catch {
+        return 1;
+      }
+    };
+    if (!owners++) {
+      startup_factor = window_factor = read2();
+      steps.editor = steps.terminal = 0;
+    }
+    let frame3 = 0, disposed = false;
+    const sync = () => {
+      if (disposed) return;
+      const value = read2();
+      if (value !== window_factor) {
+        window_factor = value;
+        emit();
+      }
+    };
+    const schedule = () => {
+      if (!frame3) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        sync();
+      });
+    };
+    window.addEventListener("resize", schedule);
+    window.addEventListener("focus", schedule);
+    const observer3 = new MutationObserver(schedule), hint = document.querySelector("#zoom-hint-current");
+    if (hint) observer3.observe(hint, { childList: true, subtree: true, characterData: true });
+    return { sync, dispose() {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      observer3.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("focus", schedule);
+      if (!--owners) {
+        startup_factor = window_factor = 1;
+        steps.editor = steps.terminal = 0;
+        emit();
+      }
+    } };
+  }
+
   // src/workspace_wheel_zoom.ts
   function wheel_zoom_direction(event) {
     return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && Number.isFinite(event.deltaY) && event.deltaY !== 0 ? event.deltaY < 0 ? 1 : -1 : 0;
@@ -162475,291 +162557,18 @@ https://creativecommons.org/licenses/by/4.0/
     if (path.some((node) => node instanceof Element && node.matches(".workspace-link-preview,.workspace-lookup-preview"))) return;
     const target = path[0];
     if (!(target instanceof Element)) return;
-    if (target.closest('pre,code,.md-fences,.md-diagram,.md-math,.md-inline-math,.md-htmlblock,.md-image,.md-video,.md-audio,.md-rawblock,.CodeMirror,.monaco-editor,.mermaid,svg,canvas,img,picture,video,audio,iframe,webview,a,button,input,textarea,select,[role="button"],.workspace-link-preview,.workspace-lookup-preview')) return;
-    const root = target.closest("#write,.typ-markdown-preview");
-    if (!root || !target.closest("p,h1,h2,h3,h4,h5,h6,li,blockquote,td,th")) return;
+    if (target.closest('.md-diagram,.md-math,.md-inline-math,.md-image,.md-video,.md-audio,svg,canvas,img,video,audio,iframe,webview,button,input,select,[role="button"]')) return;
+    const padding_root = target.matches("content") ? target.querySelector(":scope > #write") : target.matches("#typora-source") ? target.querySelector(".CodeMirror") : void 0;
+    const root = target.closest("#write,.typ-markdown-preview,.monaco-editor,#typora-source .CodeMirror") || (padding_root?.getClientRects().length ? padding_root : void 0);
+    if (!root) return;
     if ([...document.querySelectorAll('.reading-media-viewer,[role="dialog"][aria-modal="true"],.modal.in')].some((node) => !node.hidden && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden")) return;
     return root;
   }
 
-  // src/reading_native_scroll.ts
-  function stop_native_reading_scroll(scroller) {
-    if (scroller.tagName !== "CONTENT") return;
-    const runtime3 = window;
-    runtime3.$?.(scroller).stop?.(true, false);
-  }
-  function bind_reading_native_scroll(editor2, runtime3) {
-    const selection = editor2?.selection, original = selection?.scrollAdjust;
-    if (typeof original !== "function") return () => {
-    };
-    const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
-    const adjusted = function(target, margin, duration, force) {
-      const content = document.querySelector("content.typ-workspace-binding");
-      const file = runtime3.File;
-      if (content && typeof margin === "number" && Number.isFinite(margin) && !editor2.sourceView?.inSourceMode && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
-        const title = file?.isNodeHtml ? runtime3.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
-        const search2 = runtime3.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
-        margin += Math.max(0, reading_viewport_bounds(content).top - title - search2);
-      }
-      return original.call(this, target, margin, duration, force);
-    };
-    selection.scrollAdjust = adjusted;
-    return () => {
-      if (selection.scrollAdjust !== adjusted) return;
-      if (descriptor) Object.defineProperty(selection, "scrollAdjust", descriptor);
-      else delete selection.scrollAdjust;
-    };
-  }
-
-  // src/reading_blocks.ts
-  var indexes = /* @__PURE__ */ new WeakMap();
-  function create_block_index(root) {
-    let dirty = true, width2 = -1, height = -1, items = [], ordered = true;
-    const invalidate2 = () => {
-      dirty = true;
-    };
-    const mutation = new MutationObserver(invalidate2);
-    mutation.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
-    const resize = new ResizeObserver(invalidate2);
-    resize.observe(root);
-    const styles = new MutationObserver(invalidate2);
-    styles.observe(document.head, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
-    styles.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
-    styles.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
-    document.fonts?.addEventListener("loadingdone", invalidate2);
-    document.head.addEventListener("load", invalidate2, true);
-    return {
-      read() {
-        if (mutation.takeRecords().length || styles.takeRecords().length) dirty = true;
-        const box = root.getBoundingClientRect();
-        if (dirty || width2 !== box.width || height !== box.height) {
-          dirty = false;
-          width2 = box.width;
-          height = box.height;
-          items = [];
-          ordered = true;
-          let previous = -Infinity;
-          for (const node of root.children) {
-            if (!(node instanceof HTMLElement) || node.matches("script,style,button")) continue;
-            const rect = node.getBoundingClientRect();
-            if (!rect.height) continue;
-            const bottom = rect.bottom - box.top;
-            if (bottom < previous) ordered = false;
-            previous = bottom;
-            items.push({ node, top: rect.top - box.top, bottom });
-          }
-        }
-        return { items, top: box.top, ordered };
-      },
-      invalidate: invalidate2,
-      dispose() {
-        mutation.disconnect();
-        resize.disconnect();
-        styles.disconnect();
-        document.fonts?.removeEventListener("loadingdone", invalidate2);
-        document.head.removeEventListener("load", invalidate2, true);
-        items = [];
-      }
-    };
-  }
-  function acquire_reading_blocks(root) {
-    let entry = indexes.get(root);
-    if (!entry) {
-      entry = { index: create_block_index(root), users: 0 };
-      indexes.set(root, entry);
-    }
-    entry.users++;
-    let disposed = false;
-    return { invalidate: entry.index.invalidate, dispose() {
-      if (disposed) return;
-      disposed = true;
-      if (!--entry.users) {
-        entry.index.dispose();
-        indexes.delete(root);
-      }
-    } };
-  }
-  function reading_block_at(root, target) {
-    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root), index = owned2 || temporary;
-    try {
-      const { items, top, ordered } = index.read(), relative2 = target - top;
-      let low = 0, high = items.length;
-      if (ordered) {
-        while (low < high) {
-          const mid = low + high >>> 1;
-          if (items[mid].bottom <= relative2) low = mid + 1;
-          else high = mid;
-        }
-      } else {
-        low = items.findIndex((item2) => item2.bottom > relative2);
-        if (low < 0) low = items.length;
-      }
-      const at3 = Math.min(low, items.length - 1), item = items[at3];
-      return item ? { node: item.node, index: at3, top: item.top + top } : void 0;
-    } finally {
-      temporary?.dispose();
-    }
-  }
-  function reading_block_snapshot(root) {
-    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root);
-    try {
-      return (owned2 || temporary).read();
-    } finally {
-      temporary?.dispose();
-    }
-  }
-
-  // src/reading_reflow.ts
-  var active_bindings = /* @__PURE__ */ new WeakMap();
-  function character_rect(node, offset) {
-    const range2 = document.createRange();
-    range2.setStart(node, Math.min(offset, node.length));
-    range2.setEnd(node, Math.min(offset + 1, node.length));
-    return range2.getBoundingClientRect();
-  }
-  function capture_reflow_anchor(scroller, root) {
-    if (!root.isConnected || !scroller.clientHeight) return;
-    const viewport = scroller.getBoundingClientRect(), target = viewport.top + viewport.height / 3;
-    const find = (element) => {
-      const rect = element.getBoundingClientRect();
-      if (rect.bottom <= target || rect.top >= viewport.bottom || !rect.width || !rect.height) return;
-      for (const child of element.childNodes) {
-        if (child instanceof Element) {
-          if (child.matches('script,style,button,[aria-hidden="true"]')) continue;
-          const anchor = find(child);
-          if (anchor) return anchor;
-        } else if (child instanceof Text && child.textContent?.trim()) {
-          const range2 = document.createRange();
-          range2.selectNodeContents(child);
-          const box = range2.getBoundingClientRect();
-          if (box.bottom <= target || box.top >= viewport.bottom) continue;
-          let low = 0, high = child.length - 1;
-          while (low < high) {
-            const mid = low + high >>> 1;
-            if (character_rect(child, mid).bottom <= target) low = mid + 1;
-            else high = mid;
-          }
-          const point = character_rect(child, low);
-          if (point.height) return { node: child, offset: low, top: point.top - viewport.top };
-        }
-      }
-    };
-    const block3 = reading_block_at(root, target);
-    if (!block3) return find(root);
-    for (let node = block3.node; node; node = node.nextElementSibling) {
-      if (node.getBoundingClientRect().top >= viewport.bottom) break;
-      const anchor = find(node);
-      if (anchor) return anchor;
-    }
-  }
-  function restore_reflow_anchor(scroller, root, anchor) {
-    if (!anchor || !root.contains(anchor.node) || !root.getClientRects().length) return;
-    const rect = character_rect(anchor.node, anchor.offset), viewport = scroller.getBoundingClientRect();
-    let ratio = 1, node = scroller;
-    while (node) {
-      ratio *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
-      node = node.parentElement;
-    }
-    scroller.scrollTop += (rect.top - viewport.top - anchor.top) / ratio;
-  }
-  function change_reading_geometry(scroller, root, action) {
-    const binding = active_bindings.get(root);
-    if (binding) {
-      binding.change(action);
-      return;
-    }
-    stop_native_reading_scroll(scroller);
-    const anchor = capture_reflow_anchor(scroller, root);
-    action();
-    restore_reflow_anchor(scroller, root, anchor);
-  }
-  function bind_reading_reflow(scroller, root) {
-    const blocks3 = acquire_reading_blocks(root);
-    let disposed = false, frame3 = 0, anchor;
-    let geometry = "";
-    const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
-    const capture = () => {
-      if (disposed) return;
-      geometry = size();
-      anchor = capture_reflow_anchor(scroller, root);
-    };
-    const restore = () => {
-      if (disposed) return;
-      stop_native_reading_scroll(scroller);
-      restore_reflow_anchor(scroller, root, anchor);
-      capture();
-    };
-    const resize = new ResizeObserver(() => {
-      if (size() !== geometry) restore();
-    });
-    resize.observe(scroller);
-    resize.observe(root);
-    const scroll = () => {
-      const next = size();
-      if (next !== geometry) return;
-      anchor = capture_reflow_anchor(scroller, root);
-    };
-    scroller.addEventListener("scroll", scroll, { passive: true });
-    capture();
-    const binding = { capture, change(action) {
-      stop_native_reading_scroll(scroller);
-      capture();
-      action();
-      blocks3.invalidate();
-      restore_reflow_anchor(scroller, root, anchor);
-      cancelAnimationFrame(frame3);
-      frame3 = requestAnimationFrame(restore);
-    }, dispose() {
-      disposed = true;
-      cancelAnimationFrame(frame3);
-      resize.disconnect();
-      blocks3.dispose();
-      scroller.removeEventListener("scroll", scroll);
-      anchor = void 0;
-      if (active_bindings.get(root) === binding) active_bindings.delete(root);
-    } };
-    active_bindings.set(root, binding);
-    return binding;
-  }
-  function bind_workspace_reading_reflow() {
-    const bindings9 = /* @__PURE__ */ new Map();
-    let frame3 = 0, disposed = false;
-    const refresh = () => {
-      frame3 = 0;
-      if (disposed) return;
-      for (const [root, entry] of bindings9) if (!root.isConnected) {
-        entry.binding.dispose();
-        bindings9.delete(root);
-      }
-      for (const root of document.querySelectorAll("#write,.typ-markdown-preview")) {
-        if (root.closest(".workspace-link-preview,.workspace-lookup-preview")) continue;
-        let scroller = root.parentElement;
-        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
-        if (!scroller || scroller === document.body) continue;
-        const old = bindings9.get(root);
-        if (old?.scroller === scroller) continue;
-        old?.binding.dispose();
-        bindings9.set(root, { scroller, binding: bind_reading_reflow(scroller, root) });
-      }
-    };
-    const observer3 = new MutationObserver(() => {
-      if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
-    });
-    observer3.observe(document.body, { childList: true, subtree: true });
-    refresh();
-    return { dispose() {
-      disposed = true;
-      observer3.disconnect();
-      cancelAnimationFrame(frame3);
-      for (const { binding } of bindings9.values()) binding.dispose();
-      bindings9.clear();
-    } };
-  }
-
   // src/workspace_zoom.ts
   var WORKSPACE_ZOOM_ACTIONS = [
-    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Alt+=" },
-    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Alt+-" },
+    { id: "linux_note:zoom_in", label: "\u653E\u5927", native_command: "zoomIn", shortcut: "Ctrl+=" },
+    { id: "linux_note:zoom_out", label: "\u7F29\u5C0F", native_command: "zoomOut", shortcut: "Ctrl+-" },
     { id: "linux_note:zoom_reset", label: "\u5B9E\u9645\u5927\u5C0F", native_command: "resetZoom", shortcut: void 0 }
   ];
   function workspace_zoom_available(runtime3, id) {
@@ -162767,12 +162576,14 @@ https://creativecommons.org/licenses/by/4.0/
     return Boolean(action && typeof runtime3.ClientCommand?.[action.native_command] === "function");
   }
   function workspace_zoom_shortcut(event) {
-    if (!workspace_alt_modifier(event)) return;
+    if (!event.ctrlKey || event.altKey || event.metaKey || event.getModifierState("AltGraph") || is_composing_key(event)) return;
     if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd" || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
     if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract" || event.code === "NumpadSubtract" && !event.shiftKey) return "linux_note:zoom_out";
   }
   function bind_workspace_zoom_commands(app, runtime3) {
     const lifetime = create_workspace_lifetime();
+    const content = bind_content_zoom(runtime3);
+    lifetime.own(content);
     let wheel_frame = 0;
     let wheel_target;
     let wheel_action = "";
@@ -162784,7 +162595,6 @@ https://creativecommons.org/licenses/by/4.0/
       const event = raw, root = reading_wheel_root(event);
       if (!root) return;
       const id = wheel_zoom_direction(event) > 0 ? "linux_note:zoom_in" : "linux_note:zoom_out";
-      if (!workspace_zoom_available(runtime3, id)) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       wheel_target = root;
@@ -162795,20 +162605,18 @@ https://creativecommons.org/licenses/by/4.0/
         const target = wheel_target;
         wheel_target = void 0;
         if (lifetime.disposed || !target?.isConnected) return;
-        let scroller = target.parentElement;
-        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
-        const action = WORKSPACE_ZOOM_ACTIONS.find((item) => item.id === wheel_action);
-        if (!action || !workspace_zoom_available(runtime3, wheel_action)) return;
-        const run = () => runtime3.ClientCommand[action.native_command]();
-        if (scroller && scroller !== document.body) change_reading_geometry(scroller, target, run);
-        else run();
+        change_content_font("editor", wheel_action === "linux_note:zoom_in" ? 1 : -1);
       });
     }, { capture: true, passive: false });
     try {
       for (const action of WORKSPACE_ZOOM_ACTIONS) {
         if (!workspace_zoom_available(runtime3, action.id)) continue;
         lifetime.add(app.commands.register({ id: action.id, title: "\u89C6\u56FE\uFF1A" + action.label, scope: "global", callback() {
-          if (!lifetime.disposed && workspace_zoom_available(runtime3, action.id)) runtime3.ClientCommand[action.native_command]();
+          if (!lifetime.disposed && workspace_zoom_available(runtime3, action.id)) {
+            prepare_content_zoom();
+            runtime3.ClientCommand[action.native_command]();
+            content.sync();
+          }
         } }));
       }
     } catch (error) {
@@ -164374,7 +164182,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_editor_settings.ts
   var WORKSPACE_EDITOR_DEFAULTS = Object.freeze({ enable_preview: true, wrap_tabs: false, link_preview_enabled: true });
   var KEY = "workspace_editor";
-  var listeners3 = /* @__PURE__ */ new Set();
+  var listeners4 = /* @__PURE__ */ new Set();
   var locked_groups = /* @__PURE__ */ new WeakSet();
   function read_workspace_editor_settings() {
     const value = get_workspace_app()?.settings.get(KEY);
@@ -164392,12 +164200,12 @@ https://creativecommons.org/licenses/by/4.0/
     if (enabled === void 0) delete value[key3];
     else value[key3] = enabled;
     settings.set_and_save(KEY, value);
-    for (const listener of listeners3) listener();
+    for (const listener of listeners4) listener();
   }
   function observe_workspace_editor_settings(listener) {
-    listeners3.add(listener);
+    listeners4.add(listener);
     return () => {
-      listeners3.delete(listener);
+      listeners4.delete(listener);
     };
   }
   function workspace_editor_group_locked(group) {
@@ -164537,8 +164345,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_file_clipboard.ts
   function create_workspace_file_clipboard(adapter, actions) {
     let cut, disposed = false, busy = false;
-    const listeners8 = /* @__PURE__ */ new Set(), notify = () => {
-      if (!disposed) for (const listener of listeners8) listener();
+    const listeners9 = /* @__PURE__ */ new Set(), notify = () => {
+      if (!disposed) for (const listener of listeners9) listener();
     };
     const validate = (snapshot) => {
       if (!snapshot || !Array.isArray(snapshot.paths) || typeof snapshot.version !== "string" || typeof snapshot.move_requested !== "boolean" || snapshot.paths.some((path) => typeof path !== "string" || !path || /[\x00-\x1f]/u.test(path))) throw new Error("\u7CFB\u7EDF\u526A\u8D34\u677F\u4E2D\u7684\u6587\u4EF6\u5217\u8868\u4E0D\u5408\u6CD5\u3002");
@@ -164568,8 +164376,8 @@ https://creativecommons.org/licenses/by/4.0/
       is_cut: (path) => !disposed && Boolean(cut?.snapshot.paths.includes(path)),
       invalidate: invalidate2,
       subscribe(listener) {
-        listeners8.add(listener);
-        return () => listeners8.delete(listener);
+        listeners9.add(listener);
+        return () => listeners9.delete(listener);
       },
       async refresh() {
         if (disposed || busy || !cut) return;
@@ -164613,7 +164421,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         cut = void 0;
-        listeners8.clear();
+        listeners9.clear();
         adapter.dispose();
       }
     };
@@ -181218,6 +181026,396 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/native_source_font_zoom.ts
+  function bind_native_source_font_zoom(root) {
+    const editor2 = root.CodeMirror;
+    if (!editor2) return;
+    const original = ["font-size", "line-height"].map((name) => [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)]);
+    let base = 14, line = "normal", retained;
+    const restore_style = () => {
+      for (const [name, value, priority] of original) if (value) root.style.setProperty(name, value, priority);
+      else root.style.removeProperty(name);
+    };
+    const capture = () => {
+      if (!root.getClientRects().length) return;
+      const info = editor2.getScrollInfo(), position2 = editor2.coordsChar({ left: info.left, top: info.top }, "local");
+      return { position: position2, offset: info.top - editor2.charCoords(position2, "local").top, left: info.left };
+    };
+    const apply3 = () => {
+      const size = content_font_size(base), height = line === "normal" ? line : String(Number.parseFloat(line) / base);
+      if (root.style.fontSize === size + "px" && root.style.lineHeight === height) {
+        retained = void 0;
+        return;
+      }
+      const anchor = retained || capture();
+      retained = void 0;
+      root.style.setProperty("font-size", size + "px", "important");
+      root.style.setProperty("line-height", height, "important");
+      editor2.refresh();
+      if (anchor) editor2.scrollTo(anchor.left, editor2.charCoords(anchor.position, "local").top + anchor.offset);
+    };
+    const refresh = () => {
+      retained = capture();
+      restore_style();
+      const style = getComputedStyle(root);
+      base = Number.parseFloat(style.fontSize) || 14;
+      line = style.lineHeight || "normal";
+      apply3();
+    };
+    const stop = observe_content_zoom(apply3, () => {
+      retained = capture();
+    }), theme2 = observe_workspace_theme(refresh);
+    refresh();
+    return { dispose() {
+      stop();
+      theme2();
+      restore_style();
+      retained = void 0;
+      editor2.refresh();
+    } };
+  }
+
+  // src/reading_native_scroll.ts
+  function stop_native_reading_scroll(scroller) {
+    if (scroller.tagName !== "CONTENT") return;
+    const runtime3 = window;
+    runtime3.$?.(scroller).stop?.(true, false);
+  }
+  function bind_reading_native_scroll(editor2, runtime3) {
+    const selection = editor2?.selection, original = selection?.scrollAdjust;
+    if (typeof original !== "function") return () => {
+    };
+    const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
+    const adjusted = function(target, margin, duration, force) {
+      const content = document.querySelector("content.typ-workspace-binding");
+      const file = runtime3.File;
+      if (content && typeof margin === "number" && Number.isFinite(margin) && !editor2.sourceView?.inSourceMode && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
+        const title = file?.isNodeHtml ? runtime3.$?.("#top-titlebar").height() || 0 : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
+        const search2 = runtime3.$?.(".on-search-panel-open #md-searchpanel").height() || 0;
+        margin += Math.max(0, reading_viewport_bounds(content).top - title - search2);
+      }
+      return original.call(this, target, margin, duration, force);
+    };
+    selection.scrollAdjust = adjusted;
+    return () => {
+      if (selection.scrollAdjust !== adjusted) return;
+      if (descriptor) Object.defineProperty(selection, "scrollAdjust", descriptor);
+      else delete selection.scrollAdjust;
+    };
+  }
+
+  // src/reading_blocks.ts
+  var indexes = /* @__PURE__ */ new WeakMap();
+  function create_block_index(root) {
+    let dirty = true, width2 = -1, height = -1, items = [], ordered = true;
+    const invalidate2 = () => {
+      dirty = true;
+    };
+    const mutation = new MutationObserver(invalidate2);
+    mutation.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
+    const resize = new ResizeObserver(invalidate2);
+    resize.observe(root);
+    const styles = new MutationObserver(invalidate2);
+    styles.observe(document.head, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
+    styles.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
+    styles.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style"] });
+    document.fonts?.addEventListener("loadingdone", invalidate2);
+    document.head.addEventListener("load", invalidate2, true);
+    return {
+      read() {
+        if (mutation.takeRecords().length || styles.takeRecords().length) dirty = true;
+        const box = root.getBoundingClientRect();
+        if (dirty || width2 !== box.width || height !== box.height) {
+          dirty = false;
+          width2 = box.width;
+          height = box.height;
+          items = [];
+          ordered = true;
+          let previous = -Infinity;
+          for (const node of root.children) {
+            if (!(node instanceof HTMLElement) || node.matches("script,style,button")) continue;
+            const rect = node.getBoundingClientRect();
+            if (!rect.height) continue;
+            const bottom = rect.bottom - box.top;
+            if (bottom < previous) ordered = false;
+            previous = bottom;
+            items.push({ node, top: rect.top - box.top, bottom });
+          }
+        }
+        return { items, top: box.top, ordered };
+      },
+      invalidate: invalidate2,
+      dispose() {
+        mutation.disconnect();
+        resize.disconnect();
+        styles.disconnect();
+        document.fonts?.removeEventListener("loadingdone", invalidate2);
+        document.head.removeEventListener("load", invalidate2, true);
+        items = [];
+      }
+    };
+  }
+  function acquire_reading_blocks(root) {
+    let entry = indexes.get(root);
+    if (!entry) {
+      entry = { index: create_block_index(root), users: 0 };
+      indexes.set(root, entry);
+    }
+    entry.users++;
+    let disposed = false;
+    return { invalidate: entry.index.invalidate, dispose() {
+      if (disposed) return;
+      disposed = true;
+      if (!--entry.users) {
+        entry.index.dispose();
+        indexes.delete(root);
+      }
+    } };
+  }
+  function reading_block_at(root, target) {
+    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root), index = owned2 || temporary;
+    try {
+      const { items, top, ordered } = index.read(), relative2 = target - top;
+      let low = 0, high = items.length;
+      if (ordered) {
+        while (low < high) {
+          const mid = low + high >>> 1;
+          if (items[mid].bottom <= relative2) low = mid + 1;
+          else high = mid;
+        }
+      } else {
+        low = items.findIndex((item2) => item2.bottom > relative2);
+        if (low < 0) low = items.length;
+      }
+      const at3 = Math.min(low, items.length - 1), item = items[at3];
+      return item ? { node: item.node, index: at3, top: item.top + top } : void 0;
+    } finally {
+      temporary?.dispose();
+    }
+  }
+  function reading_block_snapshot(root) {
+    const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root);
+    try {
+      return (owned2 || temporary).read();
+    } finally {
+      temporary?.dispose();
+    }
+  }
+
+  // src/reading_reflow.ts
+  var active_bindings = /* @__PURE__ */ new WeakMap();
+  function character_rect(node, offset) {
+    const range2 = document.createRange();
+    range2.setStart(node, Math.min(offset, node.length));
+    range2.setEnd(node, Math.min(offset + 1, node.length));
+    return range2.getBoundingClientRect();
+  }
+  function capture_reflow_anchor(scroller, root) {
+    if (!root.isConnected || !scroller.clientHeight) return;
+    const viewport = scroller.getBoundingClientRect(), target = viewport.top + viewport.height / 3;
+    const find = (element) => {
+      const rect = element.getBoundingClientRect();
+      if (rect.bottom <= target || rect.top >= viewport.bottom || !rect.width || !rect.height) return;
+      for (const child of element.childNodes) {
+        if (child instanceof Element) {
+          if (child.matches('script,style,button,[aria-hidden="true"]')) continue;
+          const anchor = find(child);
+          if (anchor) return anchor;
+        } else if (child instanceof Text && child.textContent?.trim()) {
+          const range2 = document.createRange();
+          range2.selectNodeContents(child);
+          const box = range2.getBoundingClientRect();
+          if (box.bottom <= target || box.top >= viewport.bottom) continue;
+          let low = 0, high = child.length - 1;
+          while (low < high) {
+            const mid = low + high >>> 1;
+            if (character_rect(child, mid).bottom <= target) low = mid + 1;
+            else high = mid;
+          }
+          const point = character_rect(child, low);
+          if (point.height) return { node: child, offset: low, top: point.top - viewport.top };
+        }
+      }
+    };
+    const block3 = reading_block_at(root, target);
+    if (!block3) return find(root);
+    for (let node = block3.node; node; node = node.nextElementSibling) {
+      if (node.getBoundingClientRect().top >= viewport.bottom) break;
+      const anchor = find(node);
+      if (anchor) return anchor;
+    }
+  }
+  function restore_reflow_anchor(scroller, root, anchor) {
+    if (!anchor || !root.contains(anchor.node) || !root.getClientRects().length) return;
+    const rect = character_rect(anchor.node, anchor.offset), viewport = scroller.getBoundingClientRect();
+    let ratio = 1, node = scroller;
+    while (node) {
+      ratio *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
+      node = node.parentElement;
+    }
+    scroller.scrollTop += (rect.top - viewport.top - anchor.top) / ratio;
+  }
+  function change_reading_geometry(scroller, root, action, retained) {
+    const binding = active_bindings.get(root);
+    if (binding) {
+      binding.change(action, retained);
+      return;
+    }
+    stop_native_reading_scroll(scroller);
+    const anchor = retained || capture_reflow_anchor(scroller, root);
+    action();
+    restore_reflow_anchor(scroller, root, anchor);
+  }
+  function bind_reading_reflow(scroller, root) {
+    const blocks3 = acquire_reading_blocks(root);
+    let disposed = false, frame3 = 0, anchor;
+    let geometry = "";
+    const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
+    const capture = () => {
+      if (disposed) return;
+      geometry = size();
+      anchor = capture_reflow_anchor(scroller, root);
+    };
+    const restore = () => {
+      if (disposed) return;
+      stop_native_reading_scroll(scroller);
+      restore_reflow_anchor(scroller, root, anchor);
+      capture();
+    };
+    const resize = new ResizeObserver(() => {
+      if (size() !== geometry) restore();
+    });
+    resize.observe(scroller);
+    resize.observe(root);
+    const scroll = () => {
+      const next = size();
+      if (next !== geometry) return;
+      anchor = capture_reflow_anchor(scroller, root);
+    };
+    scroller.addEventListener("scroll", scroll, { passive: true });
+    capture();
+    const binding = { capture, change(action, retained) {
+      stop_native_reading_scroll(scroller);
+      capture();
+      if (retained) anchor = retained;
+      action();
+      blocks3.invalidate();
+      restore_reflow_anchor(scroller, root, anchor);
+      cancelAnimationFrame(frame3);
+      frame3 = requestAnimationFrame(restore);
+    }, dispose() {
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      resize.disconnect();
+      blocks3.dispose();
+      scroller.removeEventListener("scroll", scroll);
+      anchor = void 0;
+      if (active_bindings.get(root) === binding) active_bindings.delete(root);
+    } };
+    active_bindings.set(root, binding);
+    return binding;
+  }
+  function bind_workspace_reading_reflow() {
+    const sources = /* @__PURE__ */ new Map();
+    const bindings9 = /* @__PURE__ */ new Map();
+    let frame3 = 0, disposed = false;
+    const refresh = () => {
+      frame3 = 0;
+      if (disposed) return;
+      for (const [root, binding] of sources) if (!root.isConnected) {
+        binding.dispose();
+        sources.delete(root);
+      }
+      for (const root of document.querySelectorAll("#typora-source .CodeMirror")) if (!sources.has(root)) {
+        const binding = bind_native_source_font_zoom(root);
+        if (binding) sources.set(root, binding);
+      }
+      for (const [root, entry] of bindings9) if (!root.isConnected) {
+        entry.font.dispose();
+        entry.binding.dispose();
+        bindings9.delete(root);
+      }
+      for (const root of document.querySelectorAll("#write,.typ-markdown-preview")) {
+        if (root.closest(".workspace-link-preview,.workspace-lookup-preview")) continue;
+        let scroller = root.parentElement;
+        while (scroller && scroller !== document.body && !/auto|scroll/.test(getComputedStyle(scroller).overflowY)) scroller = scroller.parentElement;
+        if (!scroller || scroller === document.body) continue;
+        const old = bindings9.get(root);
+        if (old?.scroller === scroller) continue;
+        old?.font.dispose();
+        old?.binding.dispose();
+        bindings9.set(root, { scroller, binding: bind_reading_reflow(scroller, root), font: bind_reading_font_zoom(scroller, root) });
+      }
+    };
+    const observer3 = new MutationObserver(() => {
+      if (!frame3 && !disposed) frame3 = requestAnimationFrame(refresh);
+    });
+    observer3.observe(document.body, { childList: true, subtree: true });
+    refresh();
+    return { dispose() {
+      disposed = true;
+      observer3.disconnect();
+      cancelAnimationFrame(frame3);
+      for (const { binding, font } of bindings9.values()) {
+        font.dispose();
+        binding.dispose();
+      }
+      bindings9.clear();
+      for (const binding of sources.values()) binding.dispose();
+      sources.clear();
+    } };
+  }
+
+  // src/reading_font_zoom.ts
+  var fonts = /* @__PURE__ */ new WeakMap();
+  function reading_base_font(root) {
+    return fonts.get(root);
+  }
+  function bind_reading_font_zoom(scroller, root) {
+    const original = ["font-size", "line-height"].map((name) => [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)]);
+    let base = 16, line = "normal", disposed = false, retained;
+    const restore = () => {
+      for (const [name, value, priority] of original) if (value) root.style.setProperty(name, value, priority);
+      else root.style.removeProperty(name);
+    };
+    const apply3 = () => {
+      const size = content_font_size(base), height = line === "normal" ? line : String(Number.parseFloat(line) / base);
+      if (root.style.fontSize === size + "px" && root.style.lineHeight === height) {
+        retained = void 0;
+        return;
+      }
+      change_reading_geometry(scroller, root, () => {
+        root.style.setProperty("font-size", size + "px", "important");
+        root.style.setProperty("line-height", height, "important");
+      }, retained);
+      retained = void 0;
+    };
+    const refresh = () => {
+      if (disposed) return;
+      const current_font = root.style.getPropertyValue("font-size"), current_line = root.style.getPropertyValue("line-height");
+      restore();
+      const style = getComputedStyle(root), next = Number.parseFloat(style.fontSize) || 16, next_line = style.lineHeight || "normal";
+      const typed = root.computedStyleMap?.().get("line-height");
+      fonts.set(root, { font: next, line: typed?.unit === "number" ? String(typed.value) : next_line });
+      if (current_font) root.style.setProperty("font-size", current_font, "important");
+      if (current_line) root.style.setProperty("line-height", current_line, "important");
+      base = next;
+      line = next_line;
+      apply3();
+    };
+    const stop = observe_content_zoom(apply3, () => {
+      retained = capture_reflow_anchor(scroller, root);
+    }), theme2 = observe_workspace_theme(refresh);
+    refresh();
+    return { refresh, dispose() {
+      disposed = true;
+      stop();
+      theme2();
+      fonts.delete(root);
+      restore();
+    } };
+  }
+
   // src/git_markdown_inline.ts
   function highlight_markdown_inline(left, right) {
     if (left.querySelector("pre,svg") || right.querySelector("pre,svg")) return;
@@ -184999,9 +185197,9 @@ https://creativecommons.org/licenses/by/4.0/
   function markdown_theme_rules() {
     if (observer2?.takeRecords().length) invalidate();
     const native = document.querySelector("content > #write") || document.querySelector("#write") || document.body;
-    const computed = getComputedStyle(native), properties2 = ["font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "word-spacing", "color", "text-align", "text-indent", "text-transform"];
+    const base = reading_base_font(native), computed = getComputedStyle(native), properties2 = ["font-family", "font-size", "font-weight", "font-style", "line-height", "letter-spacing", "word-spacing", "color", "text-align", "text-indent", "text-transform"];
     const typed_line_height = native.computedStyleMap?.().get("line-height");
-    const inherited = "#write{" + properties2.map((name) => name + ":" + (name === "line-height" && typed_line_height?.unit === "number" ? String(typed_line_height.value) : computed.getPropertyValue(name)) + ";").join("") + "}\n";
+    const inherited = "#write{" + properties2.map((name) => name + ":" + (name === "font-size" && base ? base.font + "px" : name === "line-height" && base ? base.line : name === "line-height" && typed_line_height?.unit === "number" ? String(typed_line_height.value) : computed.getPropertyValue(name)) + ";").join("") + "}\n";
     if (users && cached_rules !== void 0) return inherited + cached_rules;
     const stack = /* @__PURE__ */ new Set();
     const collect = (sheet) => {
@@ -186836,13 +187034,13 @@ https://creativecommons.org/licenses/by/4.0/
     return { staged, unstaged };
   }
   async function sort_git_changes(items, compare2) {
-    let current = items.slice(), next = new Array(items.length), steps = 0;
+    let current = items.slice(), next = new Array(items.length), steps2 = 0;
     for (let width2 = 1; width2 < items.length; width2 *= 2) {
       for (let start = 0; start < items.length; start += width2 * 2) {
         let a = start, b2 = Math.min(start + width2, items.length), end = b2, limit = Math.min(start + width2 * 2, items.length);
         for (let i = start; i < limit; i++) {
           next[i] = a < end && (b2 >= limit || compare2(current[a], current[b2]) <= 0) ? current[a++] : current[b2++];
-          if (++steps % 2048 === 0) await git_yield();
+          if (++steps2 % 2048 === 0) await git_yield();
         }
       }
       [current, next] = [next, current];
@@ -187099,8 +187297,13 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (changed3) overview.refresh();
     };
-    const observer3 = observe_markdown_theme(theme2);
+    let font;
+    const observer3 = observe_markdown_theme(() => {
+      theme2();
+      font?.refresh();
+    });
     theme2();
+    font = bind_reading_font_zoom(scroll, reader);
     const navigate = (direction) => {
       if (!changed2.length) return;
       active2 = (active2 + (direction === "next" ? 1 : -1) + changed2.length) % changed2.length;
@@ -187221,6 +187424,7 @@ https://creativecommons.org/licenses/by/4.0/
         active2 = -1;
         scroll.scrollTop = top;
         container.dataset.ready = "true";
+        font?.refresh();
         for (const code of code_tasks) {
           if (!current()) return;
           if (code.classList.contains("language-mermaid")) await diagrams.render(code, container.clientWidth / 2, false, current);
@@ -187238,6 +187442,7 @@ https://creativecommons.org/licenses/by/4.0/
         disposed = true;
         generation++;
         observer3();
+        font?.dispose();
         overview.dispose();
         diagrams.dispose();
         container.remove();
@@ -187291,7 +187496,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
       const minimap = { enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1 };
-      const options2 = { wordWrap: this.wrapped ? "on" : "off", automaticLayout: true, readOnly: true, fontSize: vscode_design_baseline_default.editor_font_size, lineHeight: vscode_design_baseline_default.editor_line_height, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
+      const options2 = { wordWrap: this.wrapped ? "on" : "off", automaticLayout: true, readOnly: true, fontSize: content_font_size(vscode_design_baseline_default.editor_font_size), lineHeight: content_font_size(vscode_design_baseline_default.editor_font_size) * vscode_design_baseline_default.editor_line_height / vscode_design_baseline_default.editor_font_size, fontFamily: vscode_design_baseline_default.editor_font_family, minimap, scrollbar: { verticalScrollbarSize: 8, horizontalScrollbarSize: 8 }, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: { top: 8 }, links: false, unicodeHighlight: { ambiguousCharacters: false }, ariaLabel: data.title };
       if (data.right != null) {
         const modified = model(data.right, "modified");
         const editor2 = editor.createDiffEditor(this.body, { ...options2, diffWordWrap: this.wrapped ? "on" : "off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 0, maxFileSize: 0 });
@@ -187352,6 +187557,19 @@ https://creativecommons.org/licenses/by/4.0/
         this.pending_anchor = void 0;
       }, { capture: true, passive: true });
       this.release_settings = watch_git_diff_preferences((value) => this.apply_preferences(value));
+      let font_anchor, font_size = content_font_size(vscode_design_baseline_default.editor_font_size);
+      this.subscriptions.push({ dispose: observe_content_zoom(() => {
+        const anchor = font_anchor || this.capture_content_anchor();
+        font_anchor = void 0;
+        const font = content_font_size(vscode_design_baseline_default.editor_font_size);
+        if (font === font_size) return;
+        font_size = font;
+        this.editor.updateOptions({ fontSize: font, lineHeight: font * vscode_design_baseline_default.editor_line_height / vscode_design_baseline_default.editor_font_size });
+        this.editor.layout();
+        if (anchor) this.restore_content_anchor(anchor);
+      }, () => {
+        font_anchor = this.capture_content_anchor();
+      }) });
       this.observer = new ResizeObserver(() => this.editor.layout());
       this.observer.observe(this.body);
       const diff_root = this.body.querySelector(".monaco-diff-editor");
@@ -188408,7 +188626,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.setAttribute("aria-label", "\u5F53\u524D\u7F16\u8F91\u5668\u72B6\u6001");
     const style = acquire_workspace_style("typora-code-style:workspace_editor_status", workspace_editor_status_default, {});
     const layout_style = acquire_workspace_footer_layout();
-    const owners2 = /* @__PURE__ */ new Map();
+    const owners3 = /* @__PURE__ */ new Map();
     let disposed = false, frame3 = 0, observed_controls;
     if (footer) footer.insertBefore(container, footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
     const layout2 = () => {
@@ -188430,7 +188648,7 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       if (disposed) return;
       const active2 = core.app.workspace.activeLeaf;
-      const controls = active2 ? owners2.get(active2) : void 0;
+      const controls = active2 ? owners3.get(active2) : void 0;
       footer?.toggleAttribute("data-empty-editor", !active2 || is_empty_editor_path(active2.state.path));
       if (observed_controls !== controls) {
         contents.disconnect();
@@ -188475,7 +188693,7 @@ https://creativecommons.org/licenses/by/4.0/
       document.removeEventListener("focusin", schedule, true);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("unload", dispose2);
-      owners2.clear();
+      owners3.clear();
       container.remove();
       footer?.removeAttribute("data-editor-status");
       layout_style.remove();
@@ -188484,10 +188702,10 @@ https://creativecommons.org/licenses/by/4.0/
     };
     window.addEventListener("unload", dispose2);
     const binding = { container, register(leaf, controls) {
-      owners2.set(leaf, controls);
+      owners3.set(leaf, controls);
       refresh();
     }, release(leaf) {
-      owners2.delete(leaf);
+      owners3.delete(leaf);
       refresh();
     }, refresh, schedule, dispose: dispose2 };
     status_bindings.set(core, binding);
@@ -188921,7 +189139,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/reading_navigation_ports.ts
   var ports = /* @__PURE__ */ new Map();
-  var listeners4 = /* @__PURE__ */ new Set();
+  var listeners5 = /* @__PURE__ */ new Set();
   function register_navigation_editor(port, kind = "source") {
     ports.set(kind, port);
     return () => {
@@ -188944,11 +189162,11 @@ https://creativecommons.org/licenses/by/4.0/
     return editor_port;
   }
   function notify_navigation_selection(explicit = false) {
-    for (const listener of listeners4) listener(explicit);
+    for (const listener of listeners5) listener(explicit);
   }
   function observe_navigation_selection(listener) {
-    listeners4.add(listener);
-    return () => listeners4.delete(listener);
+    listeners5.add(listener);
+    return () => listeners5.delete(listener);
   }
 
   // src/reading_navigation.ts
@@ -189651,7 +189869,7 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_files_default = "";
 
   // src/workspace_list_selection.ts
-  var owners = /* @__PURE__ */ new WeakMap();
+  var owners2 = /* @__PURE__ */ new WeakMap();
   function apply_workspace_row_selection(row, selected, focused = false) {
     row.dataset.workspaceSelected = String(selected);
     row.dataset.workspaceFocused = String(focused);
@@ -189664,13 +189882,13 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function workspace_selection_owner(row) {
     const root = row.closest("[data-workspace-list]");
-    return root ? owners.get(root) : void 0;
+    return root ? owners2.get(root) : void 0;
   }
   var workspace_list_selection = class {
     constructor(root) {
       this.root = root;
       root.dataset.workspaceList = "";
-      owners.set(root, this);
+      owners2.set(root, this);
       root.addEventListener("focusin", this.focus);
     }
     keys = /* @__PURE__ */ new Set();
@@ -189716,7 +189934,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     dispose() {
       this.root.removeEventListener("focusin", this.focus);
-      owners.delete(this.root);
+      owners2.delete(this.root);
       delete this.root.dataset.workspaceList;
       this.keys.clear();
     }
@@ -192027,10 +192245,10 @@ https://creativecommons.org/licenses/by/4.0/
         for (const leaf of leaves) if (!await save_leaf(leaf)) return false;
         return true;
       }
-      const owners2 = /* @__PURE__ */ new Set();
+      const owners3 = /* @__PURE__ */ new Set();
       const source_saves = [...views].filter((view) => {
-        if (view.disposed || !view.dirty() || owners2.has(view.shared)) return false;
-        owners2.add(view.shared);
+        if (view.disposed || !view.dirty() || owners3.has(view.shared)) return false;
+        owners3.add(view.shared);
         return true;
       }).map((view) => view.save());
       source_saves.push(...[...document_ports].filter((port) => !port.disposed && port.dirty()).map((port) => port.save()));
@@ -195474,7 +195692,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     } catch {
     }
-    const listeners8 = /* @__PURE__ */ new Set();
+    const listeners9 = /* @__PURE__ */ new Set();
     const profiles = () => {
       const values = new Map(catalog.profiles().map((item) => [item.id, item]));
       for (const item of current.profiles) values.set(item.id, item);
@@ -195503,14 +195721,14 @@ https://creativecommons.org/licenses/by/4.0/
         if (next.profile && next.profile !== current.profile && !ids.has(next.profile)) throw new Error("\u9ED8\u8BA4 Shell \u4E0D\u5B58\u5728\u3002");
         storage.setItem(TERMINAL_SETTINGS_KEY, JSON.stringify(next));
         current = next;
-        for (const listener of listeners8) listener(structuredClone(current));
+        for (const listener of listeners9) listener(structuredClone(current));
       },
       subscribe(listener) {
-        listeners8.add(listener);
-        return () => listeners8.delete(listener);
+        listeners9.add(listener);
+        return () => listeners9.delete(listener);
       },
       dispose() {
-        listeners8.clear();
+        listeners9.clear();
       }
     };
   }
@@ -195536,9 +195754,9 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/workspace_settings_registry.ts
   var sections = /* @__PURE__ */ new Map();
-  var listeners5 = /* @__PURE__ */ new Set();
+  var listeners6 = /* @__PURE__ */ new Set();
   function notify_workspace_settings() {
-    for (const listener of listeners5) listener();
+    for (const listener of listeners6) listener();
   }
   function register_workspace_settings(section) {
     if (sections.has(section.id)) throw Error("\u8BBE\u7F6E\u5206\u7C7B\u5DF2\u767B\u8BB0\uFF1A" + section.id);
@@ -195555,9 +195773,9 @@ https://creativecommons.org/licenses/by/4.0/
     return [...sections.values()];
   }
   function observe_workspace_settings(listener) {
-    listeners5.add(listener);
+    listeners6.add(listener);
     return () => {
-      listeners5.delete(listener);
+      listeners6.delete(listener);
     };
   }
 
@@ -206826,6 +207044,13 @@ https://creativecommons.org/licenses/by/4.0/
       this.settings = settings;
       this.term = new Dl({ allowProposedApi: false, theme: terminal_theme(), windowsPty: windows_pty });
       this.apply_settings(settings);
+      this.lifetime.add(observe_content_zoom(() => {
+        if (content_font_size(this.settings.font_size, "terminal") === this.term.options.fontSize) {
+          this.clear_font_anchor();
+          return;
+        }
+        this.apply_settings(this.settings);
+      }, () => this.remember_font_anchor()));
       if (windows_pty?.backend === "conpty") this.lifetime.own(this.term.parser.registerCsiHandler({ final: "c" }, (params) => {
         if (!params.length || params.length === 1 && params[0] === 0) {
           actions.input("\x1B[?61;4c");
@@ -206908,7 +207133,7 @@ https://creativecommons.org/licenses/by/4.0/
           this.clear_font_anchor();
           return;
         }
-        if (event.defaultPrevented || !this.actions.font_size) return;
+        if (event.defaultPrevented) return;
         event.preventDefault();
         event.stopImmediatePropagation();
         this.font_direction = direction;
@@ -206916,12 +207141,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.font_frame = requestAnimationFrame(() => {
           this.font_frame = 0;
           if (this.lifetime.disposed) return;
-          const size = Math.max(6, Math.min(100, this.settings.font_size + this.font_direction));
-          if (size !== this.settings.font_size) try {
-            this.actions.font_size?.(size);
-          } catch (error) {
-            this.actions.error(error);
-          }
+          change_content_font("terminal", this.font_direction, this.settings.font_size);
         });
       }, { capture: true, passive: false });
       for (const type of ["keydown", "keypress", "keyup", "beforeinput", "input", "compositionstart", "compositionupdate", "compositionend"]) {
@@ -206971,17 +207191,21 @@ https://creativecommons.org/licenses/by/4.0/
       this.resize();
     }
     apply_settings(settings) {
-      if (this.opened && !this.resize_anchor && ["font_family", "font_size", "font_weight", "line_height", "letter_spacing"].some((key3) => settings[key3] !== this.settings[key3])) {
-        const buffer = this.term.buffer.active;
-        if (buffer.type === "normal") {
-          let start = buffer.viewportY;
-          while (start > 0 && buffer.getLine(start)?.isWrapped) start--;
-          this.resize_anchor = { bottom: buffer.viewportY === buffer.baseY, marker: this.term.registerMarker(start - buffer.baseY - buffer.cursorY), cell_offset: (buffer.viewportY - start) * this.term.cols };
-        }
+      const font_size = content_font_size(settings.font_size, "terminal");
+      if (this.opened && !this.resize_anchor && (font_size !== this.term.options.fontSize || ["font_family", "font_size", "font_weight", "line_height", "letter_spacing"].some((key3) => settings[key3] !== this.settings[key3]))) {
+        this.remember_font_anchor();
       }
       this.settings = settings;
-      this.term.options = { fontFamily: settings.font_family, fontSize: settings.font_size, fontWeight: settings.font_weight, lineHeight: settings.line_height, letterSpacing: settings.letter_spacing, cursorStyle: settings.cursor_style, cursorBlink: settings.cursor_blink, cursorWidth: settings.cursor_width, scrollback: settings.scrollback, smoothScrollDuration: settings.smooth_scrolling ? 100 : 0, scrollSensitivity: settings.scroll_sensitivity, fastScrollSensitivity: settings.fast_scroll_sensitivity, minimumContrastRatio: settings.minimum_contrast, tabStopWidth: settings.tab_stop_width };
+      this.term.options = { fontFamily: settings.font_family, fontSize: font_size, fontWeight: settings.font_weight, lineHeight: settings.line_height, letterSpacing: settings.letter_spacing, cursorStyle: settings.cursor_style, cursorBlink: settings.cursor_blink, cursorWidth: settings.cursor_width, scrollback: settings.scrollback, smoothScrollDuration: settings.smooth_scrolling ? 100 : 0, scrollSensitivity: settings.scroll_sensitivity, fastScrollSensitivity: settings.fast_scroll_sensitivity, minimumContrastRatio: settings.minimum_contrast, tabStopWidth: settings.tab_stop_width };
       this.resize();
+    }
+    remember_font_anchor() {
+      if (!this.opened || this.resize_anchor) return;
+      const buffer = this.term.buffer.active;
+      if (buffer.type !== "normal") return;
+      let start = buffer.viewportY;
+      while (start > 0 && buffer.getLine(start)?.isWrapped) start--;
+      this.resize_anchor = { bottom: buffer.viewportY === buffer.baseY, marker: this.term.registerMarker(start - buffer.baseY - buffer.cursorY), cell_offset: (buffer.viewportY - start) * this.term.cols };
     }
     resize() {
       if (this.frame || this.lifetime.disposed) return;
@@ -207813,7 +208037,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }, explicit_cwd, resolve_cwd, () => !lifetime.disposed && !workspace_context_switching() && epoch2 === workspace_context_epoch(), launch_profile);
         const windows_pty = host.process_api.platform === "win32" ? { backend: "conpty", buildNumber: Number(runtime3.reqnode("os").release().split(".")[2]) } : void 0;
-        const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, font_size: (size) => settings.update({ ...settings.get(), font_size: size }), active: () => {
+        const surface = new terminal_surface(settings.get(), { input: (data) => session.write(data), resize: (cols, rows) => session.resize(cols, rows), copy: host.copy, error: fail, active: () => {
           if (active_id !== id) activate(id, false);
         } }, windows_pty);
         entry = { session, surface, location, moving: false };
@@ -208054,7 +208278,12 @@ https://creativecommons.org/licenses/by/4.0/
           split();
         }
       }), true);
+      let configured_font_size = settings.get().font_size;
       lifetime.add(settings.subscribe((config) => {
+        if (config.font_size !== configured_font_size) {
+          configured_font_size = config.font_size;
+          reset_content_font("terminal");
+        }
         for (const entry of sessions.values()) entry.surface.apply_settings(config);
         render();
       }));
@@ -237959,7 +238188,7 @@ https://creativecommons.org/licenses/by/4.0/
     WORKSPACE_COLOR_ROLES.push({ key: "graph_" + key3, title: "Git\u652F\u7EBF\xB7" + title, variable: "--workspace-graph-" + key3.replaceAll("_", "-") });
 
   // src/workspace_color_settings.ts
-  var listeners6 = /* @__PURE__ */ new Set();
+  var listeners7 = /* @__PURE__ */ new Set();
   var known_keys = new Set(WORKSPACE_COLOR_ROLES.map((role) => role.key));
   var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {} } });
   function normalize_custom_color(value) {
@@ -238055,9 +238284,9 @@ https://creativecommons.org/licenses/by/4.0/
     return raw === void 0 ? empty_color_config() : validate_color_config(raw);
   }
   function observe_color_config(listener) {
-    listeners6.add(listener);
+    listeners7.add(listener);
     return () => {
-      listeners6.delete(listener);
+      listeners7.delete(listener);
     };
   }
   function save_color_config(value) {
@@ -238065,7 +238294,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!settings) throw Error("\u7528\u6237\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     if (serialize_color_config(next) === serialize_color_config(read_color_config())) return;
     settings.set_and_save("workspace_colors", next);
-    for (const listener of listeners6) listener();
+    for (const listener of listeners7) listener();
   }
   function color_config_css(config) {
     const css = [];
@@ -239187,10 +239416,10 @@ https://creativecommons.org/licenses/by/4.0/
     const key3 = file_path + "\0" + workspace_root;
     let owner2 = entries3.get(key3);
     if (!owner2) {
-      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners8 = /* @__PURE__ */ new Set();
+      const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners9 = /* @__PURE__ */ new Set();
       let disposed = false, timer = 0, request, worker, clangd;
       const notify = () => {
-        for (const callback of listeners8) callback(state);
+        for (const callback of listeners9) callback(state);
       };
       const parse5 = async () => {
         timer = 0;
@@ -239220,7 +239449,7 @@ https://creativecommons.org/licenses/by/4.0/
         timer = window.setTimeout(parse5, 150);
       };
       const content = model.onDidChangeContent(refresh), language44 = model.onDidChangeLanguage(refresh);
-      owner2 = { state, listeners: listeners8, refresh, dispose() {
+      owner2 = { state, listeners: listeners9, refresh, dispose() {
         if (disposed) return;
         disposed = true;
         clearTimeout(timer);
@@ -239229,7 +239458,7 @@ https://creativecommons.org/licenses/by/4.0/
         language44.dispose();
         worker?.dispose();
         void clangd?.dispose();
-        listeners8.clear();
+        listeners9.clear();
       } };
       entries3.set(key3, owner2);
       refresh();
@@ -244820,7 +245049,7 @@ https://creativecommons.org/licenses/by/4.0/
     "timeline.enabled": true
   });
   var KEY4 = "workspace_files";
-  var listeners7 = /* @__PURE__ */ new Set();
+  var listeners8 = /* @__PURE__ */ new Set();
   function normalize_workspace_save_settings(value) {
     const input = value && typeof value === "object" ? value : {};
     const result = { ...FILE_SETTING_DEFAULTS };
@@ -244844,12 +245073,12 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = get_workspace_app()?.settings;
     if (!settings) throw new Error("\u5DE5\u4F5C\u53F0\u8BBE\u7F6E\u5C1A\u672A\u5C31\u7EEA\u3002");
     settings.set_and_save(KEY4, normalize_workspace_save_settings({ ...read_workspace_save_settings(), ...patch }));
-    for (const listener of listeners7) listener();
+    for (const listener of listeners8) listener();
   }
   function observe_workspace_save_settings(listener) {
-    listeners7.add(listener);
+    listeners8.add(listener);
     return () => {
-      listeners7.delete(listener);
+      listeners8.delete(listener);
     };
   }
   var current_dialog2;
@@ -246086,8 +246315,8 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_save_service.ts
   function bind_workspace_save_service(files, runtime3 = window) {
     const lifetime = create_workspace_lifetime(), workspace = files.core.app.workspace;
-    const listeners8 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
-      if (!lifetime.disposed) for (const listener of listeners8) listener();
+    const listeners9 = /* @__PURE__ */ new Set(), history_listeners = /* @__PURE__ */ new Set(), notify = () => {
+      if (!lifetime.disposed) for (const listener of listeners9) listener();
     };
     const notify_history = () => {
       notify();
@@ -246196,9 +246425,9 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.add(files.core.app.commands.register({ id: "linux_note:auto_save", title: "\u6587\u4EF6\uFF1A\u5207\u6362\u81EA\u52A8\u4FDD\u5B58", scope: "global", callback: () => set_workspace_save_settings({ "files.autoSave": read_workspace_save_settings()["files.autoSave"] === "off" ? "afterDelay" : "off" }) }));
     lifetime.add(close_workspace_save_settings);
     return { history, report, notify: notify_history, subscribe(listener) {
-      listeners8.add(listener);
+      listeners9.add(listener);
       return () => {
-        listeners8.delete(listener);
+        listeners9.delete(listener);
       };
     }, subscribe_history(listener) {
       history_listeners.add(listener);
@@ -246207,7 +246436,7 @@ https://creativecommons.org/licenses/by/4.0/
       };
     }, dispose() {
       lifetime.dispose();
-      listeners8.clear();
+      listeners9.clear();
       history_listeners.clear();
       tracked.clear();
     } };
@@ -248604,12 +248833,12 @@ https://creativecommons.org/licenses/by/4.0/
     const status2 = workspace_element("div", "workspace-link-web-status");
     status2.setAttribute("role", "status");
     let disposed = false, ready = false, current = url, failed = false, timer;
-    const listeners8 = [];
+    const listeners9 = [];
     const listen = (name, handler) => {
       const guarded = (event) => {
         if (!disposed) handler(event);
       };
-      listeners8.push([name, guarded]);
+      listeners9.push([name, guarded]);
       frame3.addEventListener(name, guarded);
     };
     const report = (state, text3) => {
@@ -248690,7 +248919,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       clearTimeout(timer);
-      for (const [name, handler] of listeners8) frame3.removeEventListener(name, handler);
+      for (const [name, handler] of listeners9) frame3.removeEventListener(name, handler);
       try {
         if (ready) frame3.stop();
       } catch {
@@ -249583,6 +249812,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092705,
+        version: "2026.09.27.5",
+        date: "2026-09-27",
+        notes: [
+          "\u7F16\u8F91\u533ACtrl+\u6EDA\u8F6E\u4EC5\u8C03\u5185\u5BB9\u5B57\u53F7\uFF1BCtrl+=/-\u7F29\u653E\u754C\u9762\uFF0C\u5F53\u524D\u6B63\u6587\u3001\u6E90\u7801\u53CA\u7EC8\u7AEF\u4FDD\u6301\u89C6\u89C9\u5B57\u53F7\u3002",
+          "\u5F53\u524D\u7A97\u53E3\u65B0\u5F00\u7684\u6587\u6863\u4E0E\u7EC8\u7AEF\u7EE7\u627F\u5404\u81EA\u5B57\u53F7\uFF0C\u91CD\u542F\u6062\u590D\u4FDD\u5B58\u7684\u57FA\u7840\u914D\u7F6E\uFF1B\u7F29\u653E\u4FDD\u7559\u9605\u8BFB\u5B57\u7B26\u3001\u6E90\u7801\u884C\u4E0E\u7EC8\u7AEF\u5386\u53F2\u4F4D\u7F6E\u3002"
+        ]
+      },
       {
         sequence: 2026092704,
         version: "2026.09.27.4",

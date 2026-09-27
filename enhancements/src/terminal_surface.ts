@@ -1,3 +1,4 @@
+import {content_font_size,observe_content_zoom,change_content_font} from './workspace_content_zoom';
 import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
 import type {Terminal,IWindowsPty,IMarker} from "@xterm/xterm";
@@ -20,8 +21,8 @@ export class terminal_surface {
   private opened=false;private progress=create_workspace_progress_view();private sent_cols=0;private sent_rows=0;
   private font_frame=0;private font_direction=0;private restore_frame=0;
   private resize_anchor:{marker?:IMarker;bottom:boolean;cell_offset:number}|undefined;
-  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void;font_size?(size:number):void},windows_pty?:IWindowsPty){
-    this.settings=settings;this.term=new terminal_constructor({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);
+  constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void},windows_pty?:IWindowsPty){
+    this.settings=settings;this.term=new terminal_constructor({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);this.lifetime.add(observe_content_zoom(()=>{if(content_font_size(this.settings.font_size,"terminal")===this.term.options.fontSize){this.clear_font_anchor();return;}this.apply_settings(this.settings);},()=>this.remember_font_anchor()));
     // 与 VS Code 一样回应 ConPTY 的 DA1 握手，避免新版后端等待能力响应。
     if(windows_pty?.backend==="conpty")this.lifetime.own(this.term.parser.registerCsiHandler({final:"c"},params=>{if(!params.length||params.length===1&&params[0]===0){actions.input("\x1b[?61;4c");return true;}return false;}));
     this.term.loadAddon(this.fit);this.term.loadAddon(this.search);
@@ -50,13 +51,12 @@ export class terminal_surface {
     this.lifetime.listen(this.viewport,"wheel",raw=>{
       const event=raw as WheelEvent,direction=wheel_zoom_direction(event);
       if(!direction){this.clear_font_anchor();return;}
-      if(event.defaultPrevented||!this.actions.font_size)return;
+      if(event.defaultPrevented)return;
       event.preventDefault();event.stopImmediatePropagation();this.font_direction=direction;
       if(this.font_frame)return;
       this.font_frame=requestAnimationFrame(()=>{
         this.font_frame=0;if(this.lifetime.disposed)return;
-        const size=Math.max(6,Math.min(100,this.settings.font_size+this.font_direction));
-        if(size!==this.settings.font_size)try{this.actions.font_size?.(size);}catch(error){this.actions.error(error);}
+        change_content_font("terminal",this.font_direction,this.settings.font_size);
       });
     },{capture:true,passive:false});
     // xterm 先处理目标事件；包括 Shift 抬起在内的完整输入链不冒泡到宿主编辑器。
@@ -71,15 +71,17 @@ export class terminal_surface {
   }
   mount(){if(this.lifetime.disposed)return;if(!this.opened){this.opened=true;this.term.open(this.viewport);if(this.term.textarea)this.lifetime.own(bind_terminal_composition(this.term.textarea));}this.resize();}
   apply_settings(settings:terminal_settings){
-    if(this.opened&&!this.resize_anchor&&['font_family','font_size','font_weight','line_height','letter_spacing'].some(key=>(settings as any)[key]!==(this.settings as any)[key])){
-      const buffer=this.term.buffer.active;
-      if(buffer.type==='normal'){
-        // 被折行的物理行可能在重排时删除；固定逻辑行起点及字符格偏移。
-        let start=buffer.viewportY;while(start>0&&buffer.getLine(start)?.isWrapped)start--;
-        this.resize_anchor={bottom:buffer.viewportY===buffer.baseY,marker:this.term.registerMarker(start-buffer.baseY-buffer.cursorY),cell_offset:(buffer.viewportY-start)*this.term.cols};
-      }
+    const font_size=content_font_size(settings.font_size,'terminal');
+    if(this.opened&&!this.resize_anchor&&(font_size!==this.term.options.fontSize||['font_family','font_size','font_weight','line_height','letter_spacing'].some(key=>(settings as any)[key]!==(this.settings as any)[key]))){
+      this.remember_font_anchor();
     }
-    this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:settings.font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();
+    this.settings=settings;this.term.options={fontFamily:settings.font_family,fontSize:font_size,fontWeight:settings.font_weight,lineHeight:settings.line_height,letterSpacing:settings.letter_spacing,cursorStyle:settings.cursor_style,cursorBlink:settings.cursor_blink,cursorWidth:settings.cursor_width,scrollback:settings.scrollback,smoothScrollDuration:settings.smooth_scrolling?100:0,scrollSensitivity:settings.scroll_sensitivity,fastScrollSensitivity:settings.fast_scroll_sensitivity,minimumContrastRatio:settings.minimum_contrast,tabStopWidth:settings.tab_stop_width};this.resize();
+  }
+  private remember_font_anchor(){
+    if(!this.opened||this.resize_anchor)return;
+    const buffer=this.term.buffer.active;if(buffer.type!=='normal')return;
+    let start=buffer.viewportY;while(start>0&&buffer.getLine(start)?.isWrapped)start--;
+    this.resize_anchor={bottom:buffer.viewportY===buffer.baseY,marker:this.term.registerMarker(start-buffer.baseY-buffer.cursorY),cell_offset:(buffer.viewportY-start)*this.term.cols};
   }
   resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{
     this.fit.fit();

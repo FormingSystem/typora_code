@@ -1,0 +1,200 @@
+{
+  "requirement": "R014.2",
+  "date": "2026-09-27",
+  "version": "2026.09.27.5",
+  "status": "实现、构建、Windows候选安装通过；用户运行窗口未重启",
+  "manifest_sha256": "fb05124174860c6af53ec238895de6f0f53d75f93db0f96ae3164a96cb44afb6",
+  "full_check": "前两轮npm run check退出0。最终留白修正后完整集合已执行：首次到文件保存测试遇到Windows文件占用/权限错误，从失败项起顺序复验通过；补跑器npm未用.cmd的入口错误另行修正，末尾产物与VS Code检查通过。全部日志保留，未声称最终单次全量命令退出0。",
+  "ui": {
+    "suites": [
+      "test_workspace_zoom.cjs",
+      "test_wheel_zoom.cjs",
+      "test_workspace_shortcuts.cjs",
+      "test_terminal_panel.cjs",
+      "test_git_markdown_diff.cjs",
+      "test_workspace_editor_actions.cjs"
+    ],
+    "result": "6套关联UI通过；原生源码适配后3套复验通过；最后留白修正后窗口缩放67项、滚轮31项通过。",
+    "trusted_input_samples": [
+      {
+        "role": "terminal",
+        "trusted": true,
+        "next_frame_ms": 16.700000001117587
+      },
+      {
+        "role": "editor",
+        "trusted": true,
+        "next_frame_ms": 16.399999998509884
+      }
+    ],
+    "boundary": "隐藏Electron/Chromium真实输入注入；下一帧单次采样不代表物理输入或跨设备性能保证。退出重绑检验当前窗口字体复位，未自动重启用户程序。"
+  },
+  "native": {
+    "host": "Typora 1.14.10",
+    "platform": "Windows 11",
+    "case": "cf6101d01be44c16bc9596484f862699",
+    "checks": 78,
+    "coverage": [
+      "100%入口常驻",
+      "100%入口可打开控制",
+      "重置后入口仍可操作",
+      "原生编辑区留白消费Ctrl滚轮",
+      "原生编辑区留白只调整内容字号",
+      "捕获原生正文阅读字符",
+      "原生正文消费Ctrl滚轮",
+      "原生正文只改变内容字体",
+      "缩放后阅读字符仍保持在原文字行附近",
+      "正文滚轮可恢复100%",
+      "原生排除区域存在 #write .md-fences",
+      "原生嵌入区域不改变窗口比例 #write .md-fences",
+      "原生排除区域存在 #write .md-diagram",
+      "原生嵌入区域不改变窗口比例 #write .md-diagram",
+      "正文保留非缩放组合 {\"ctrlKey\":false}",
+      "正文保留非缩放组合 {\"altKey\":true}",
+      "正文保留非缩放组合 {\"shiftKey\":true}",
+      "原生终端历史行保持 0",
+      "终端不缩放窗口 0",
+      "原生终端历史行保持 1",
+      "终端不缩放窗口 1",
+      "原生终端历史行保持 2",
+      "终端不缩放窗口 2",
+      "原生终端历史行保持 3",
+      "终端不缩放窗口 3",
+      "原生终端历史行保持 4",
+      "终端不缩放窗口 4",
+      "原生终端历史行保持 5",
+      "终端不缩放窗口 5",
+      "原生终端历史行保持 6",
+      "终端不缩放窗口 6",
+      "原生终端历史行保持 7",
+      "终端不缩放窗口 7",
+      "原生终端历史行保持 8",
+      "终端不缩放窗口 8",
+      "原生终端历史行保持 9",
+      "终端不缩放窗口 9",
+      "原生终端历史行保持 10",
+      "终端不缩放窗口 10",
+      "原生终端历史行保持 11",
+      "终端不缩放窗口 11",
+      "原生终端历史行保持 12",
+      "终端不缩放窗口 12",
+      "原生终端历史行保持 13",
+      "终端不缩放窗口 13",
+      "原生终端历史行保持 14",
+      "终端不缩放窗口 14",
+      "原生终端历史行保持 15",
+      "终端不缩放窗口 15",
+      "原生终端历史行保持 16",
+      "终端不缩放窗口 16",
+      "原生终端历史行保持 17",
+      "终端不缩放窗口 17",
+      "原生终端历史行保持 18",
+      "终端不缩放窗口 18",
+      "原生终端历史行保持 19",
+      "终端不缩放窗口 19",
+      "往返字体和Shell身份保持",
+      "移入编辑组后同一表面缩放",
+      "原生终端底部继续跟随",
+      "界面缩放保持终端视觉字号",
+      "界面缩放保持正文视觉字号",
+      "界面缩放保持终端历史位置",
+      "界面缩放保持正文所读字符",
+      "会话字体调整不写永久配置",
+      "源码Ctrl滚轮由内容层接管",
+      "源码字体调整不改变窗口",
+      "源码逻辑行保持",
+      "源码继承会话增量并补偿窗口恢复",
+      "代码围栏字体随编辑区滚轮变化",
+      "原生Markdown源码接管Ctrl滚轮",
+      "原生Markdown源码只调整字体",
+      "原生Markdown源码保持逻辑行",
+      "原生Markdown源码补偿窗口比例",
+      "原生Markdown源码保留正文及编辑光标",
+      "主题下100%入口可见 Night",
+      "主题下100%入口可见 Cpp Github Consolas",
+      "正文磁盘未修改"
+    ],
+    "samples": [
+      {
+        "offset": 202.18749237060547,
+        "after": 202.15178680419922,
+        "zoom": 1
+      },
+      {
+        "theme": "Night",
+        "color": "rgb(255, 255, 255)",
+        "background": "rgb(57, 148, 188)",
+        "font_size": 14
+      },
+      {
+        "theme": "Cpp Github Consolas",
+        "color": "rgb(255, 255, 255)",
+        "background": "rgba(0, 105, 204, 0.867)",
+        "font_size": 14
+      }
+    ],
+    "iterations": 20,
+    "boundary": "Typora1.14.10/Windows11真实Shell与原生渲染；滚轮由renderer事件触发，Chromium输入注入由独立Electron测试，未验证物理鼠标或Win10实机"
+  },
+  "installation": {
+    "restore_and_detach_cycles": "最终同候选两类安装/检查/卸载/重装/检查通过",
+    "uninstall_assertions": 65,
+    "local": {
+      "preflight": 0,
+      "install": 0,
+      "check": 0
+    },
+    "workbench_assets": 48,
+    "terminal_assets": 24,
+    "protected_files_unchanged": 5,
+    "user_window_restarted": false
+  },
+  "cleanup": [
+    {
+      "case": "cf6101d01be44c16bc9596484f862699",
+      "state": "cleaned",
+      "payload_bytes_reclaimed": 527869345
+    },
+    {
+      "case": "c212cb05800a4b9fb9bea46d6aff30df",
+      "state": "cleaned",
+      "payload_bytes_reclaimed": 2071168553
+    },
+    {
+      "case": "e6e2dc453c514d55ae657bb1ce9eb8b7",
+      "state": "cleaned",
+      "payload_bytes_reclaimed": 131163479
+    }
+  ],
+  "test_repairs": [
+    "早期UI夹具遗留Alt缩放键和返回函数导致IPC克隆失败，修正后通过。",
+    "滚轮后程序scrollToBottom与尚未结束的字体恢复竞争；夹具按真实用户输入先pointerdown取消迟到恢复，再验证底部跟随。",
+    "人工资产核对初始把终端运行时写成工作台目录，改用安装器实际独立目标后24项一致；标准安装检查始终通过。",
+    "最终全量文本保存用例在Windows文件操作时返回占用/权限异常，独立顺序复验通过，真实占用者未确认；不修改生产保存保护。补跑器末尾npm改为Windows npm.cmd后完成剩余检查。"
+  ],
+  "remaining": [
+    "Win10/Linux/macOS、物理键鼠与长期压力未本轮验证；当前运行窗口须用户保存后正常重启。",
+    "历史8套UI基线失败、R047.6/R071.4继续独立跟踪，不由本次目标回归宣称解决。",
+    "一次Windows文本保存测试占用/权限异常后复验通过，触发占用者尚未确认，保留TEST-text-save-windows-lock。"
+  ],
+  "logs": [
+    "content_zoom_build_delivery.log",
+    "content_zoom_check_delivery.log",
+    "content_zoom_ui_final.log",
+    "content_zoom_ui_source.log",
+    "content_zoom_input_last.log",
+    "content_zoom_native_source.log",
+    "content_zoom_install_delivery.log",
+    "content_zoom_uninstall_delivery.log",
+    "content_zoom_local_delivery.json",
+    "content_zoom_build_padding.log",
+    "content_zoom_ui_padding.log",
+    "content_zoom_native_padding.log",
+    "content_zoom_check_padding.log",
+    "content_zoom_check_remaining.log",
+    "content_zoom_check_remaining_last.log",
+    "content_zoom_install_padding.log",
+    "content_zoom_uninstall_padding.log",
+    "content_zoom_local_final.json"
+  ]
+}

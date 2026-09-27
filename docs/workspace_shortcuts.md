@@ -1,6 +1,6 @@
 # R079 原生 Markdown 快捷键优先
 
-2026-09-27用户明确：保留Typora编辑习惯；与原生Markdown编辑冲突的工作台Ctrl键改Alt。本设计替代R014窗口缩放和工作台组合键对应旧键位，命令行为、配置与界面布局保持。
+2026-09-27用户明确：保留Typora编辑习惯；与原生Markdown编辑冲突的工作台Ctrl键改Alt。同日后续R014.2明确例外：Ctrl+=/-恢复窗口缩放，编辑区Ctrl+滚轮只调内容字号；此最新约定替代此前Alt缩放键，其他已迁移键保持。
 
 ## 核对与采用
 
@@ -11,10 +11,10 @@
 | Ctrl+B 加粗 | 侧栏显隐 | Alt+B |
 | Ctrl+K 插入链接 | 工作台组合键前缀 | Alt+K，后续Ctrl也改Alt，如Alt+K Alt+O打开工程目录 |
 | Ctrl+\ 清除格式 | 向右拆分编辑组 | Alt+\ |
-| Ctrl+= / Ctrl+- 标题升降 | 窗口放大/缩小 | Alt+= / Alt+-，保留Alt+Shift及小键盘变体 |
+| Ctrl+= / Ctrl+- 按R014.2明确让给窗口缩放 | 窗口放大/缩小 | Ctrl+= / Ctrl+-，含Shift及小键盘变体；标题升降仍可从原生菜单执行 |
 | Ctrl+Shift+` 行内代码 | 新建终端 | Alt+Shift+` |
 
-Ctrl+P原生即快速打开，Ctrl+O/S/Shift+S是同义文件操作；Ctrl+R最近、Ctrl+Shift+P命令、Ctrl+Shift+X扩展、Ctrl+Shift+F工作区查找和Ctrl+`终端显隐无本次原生编辑冲突，保留。Ctrl+Shift+=/-原生窗口缩放直接让宿主处理。差异编辑器局部Ctrl+K Ctrl+Alt+S/R属于独立源码选区操作，不在可编辑原生正文注册，不改其私有键位。远端地址栏Ctrl+L和终端局部键不越过视图所有权。
+Ctrl+P原生即快速打开，Ctrl+O/S/Shift+S是同义文件操作；Ctrl+R最近、Ctrl+Shift+P命令、Ctrl+Shift+X扩展、Ctrl+Shift+F工作区查找和Ctrl+`终端显隐无本次原生编辑冲突，保留。Ctrl+Shift+=/-与Ctrl+=/-共用唯一窗口命令。差异编辑器局部Ctrl+K Ctrl+Alt+S/R属于独立源码选区操作，不在可编辑原生正文注册，不改其私有键位。远端地址栏Ctrl+L和终端局部键不越过视图所有权。
 
 ## 职责、失败与取消
 

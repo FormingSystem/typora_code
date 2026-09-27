@@ -1,3 +1,4 @@
+import {bind_reading_font_zoom} from './reading_font_zoom';
 import {refine_markdown_change} from './git_markdown_semantics';
 import {marked,type TokensList} from 'marked';
 import DOMPurify from 'dompurify';
@@ -68,7 +69,7 @@ export function create_git_markdown_diff(){
   for(const name of ['pointerdown','wheel'])shadow.addEventListener(name,event=>{const side=(event.target as Element)?.closest<HTMLElement>('[data-side]')?.dataset.side;if(side==='left'||side==='right')last_side=side;},{passive:true});
   let generation=0,disposed=false,active=-1;let changed:HTMLElement[]=[];const diagrams=create_preview_diagrams();
   const theme=()=>{const content=markdown_theme_rules()+'\n'+css;const changed=style.textContent!==content;if(changed)style.textContent=content;const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0],mode=color[0]+color[1]+color[2]>450?'dark':'light';if(container.dataset.theme!==mode){container.dataset.theme=mode;scroll.dataset.theme=mode;}if(changed)overview.refresh();};
-  const observer=observe_markdown_theme(theme);theme();
+  let font:ReturnType<typeof bind_reading_font_zoom>|undefined;const observer=observe_markdown_theme(()=>{theme();font?.refresh();});theme();font=bind_reading_font_zoom(scroll,reader);
   const navigate=(direction:'previous'|'next')=>{if(!changed.length)return;active=(active+(direction==='next'?1:-1)+changed.length)%changed.length;const target=changed[active];scroll.scrollTop+=target.getBoundingClientRect().top-scroll.getBoundingClientRect().top-(reader.querySelector('.markdown-diff-head')?.getBoundingClientRect().height||0);target.focus({preventScroll:true});};
   shadow.addEventListener('click',event=>{if((event.target as Element).closest('a,input'))event.preventDefault();});
   const nodes=(side:string)=>[...reader.querySelectorAll<HTMLElement>(`[data-side=${side}] [data-source-line]`)];
@@ -112,11 +113,11 @@ export function create_git_markdown_diff(){
           }row.append(cell);
         }if(pair.changed)targets.push(...refine_markdown_change(row));fragment.append(row);if(i%24===23)await git_yield();
       }
-      if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';
+      if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';font?.refresh();
       // 高亮和图表在当前文档发布后渐进完成；旧代不能再替换节点。
       for(const code of code_tasks){if(!current())return;if(code.classList.contains('language-mermaid'))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
     },
     invalidate(){generation++;container.dataset.ready='false';overview.suspend();},
-    dispose(){disposed=true;generation++;observer();overview.dispose();diagrams.dispose();container.remove();}
+    dispose(){disposed=true;generation++;observer();font?.dispose();overview.dispose();diagrams.dispose();container.remove();}
   };
 }

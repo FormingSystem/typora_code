@@ -1,3 +1,4 @@
+import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {read_text_presentation,update_text_presentation,observe_text_presentation} from './workspace_text_presentation';
 import type {markdown_view_anchor} from './git_markdown_diff';
 import {StandaloneServices} from "monaco-editor/editor/standalone/browser/standaloneServices.js";
@@ -106,7 +107,7 @@ export class git_diff_editor {
     const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
     // 普通单文件保留全文缩略图；Git 差异只显示原生红绿改动概览。
     const minimap: monaco.editor.IEditorMinimapOptions = {enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
-    const options = {wordWrap:this.wrapped?"on" as const:"off" as const,automaticLayout: true, readOnly: true, fontSize: design_baseline.editor_font_size, lineHeight: design_baseline.editor_line_height, fontFamily: design_baseline.editor_font_family, minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
+    const options = {wordWrap:this.wrapped?"on" as const:"off" as const,automaticLayout: true, readOnly: true, fontSize: content_font_size(design_baseline.editor_font_size), lineHeight: content_font_size(design_baseline.editor_font_size)*design_baseline.editor_line_height/design_baseline.editor_font_size, fontFamily: design_baseline.editor_font_family, minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, theme: color[0] + color[1] + color[2] > 450 ? "vs-dark" : "vs", padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
       // 历史比较两侧只读，不实例化需要可写模型的hunk操作菜单及其延迟context订阅。
@@ -142,6 +143,13 @@ export class git_diff_editor {
     this.release_presentation=observe_text_presentation(value=>this.apply_wrap(value.word_wrap));
     for(const name of ['wheel','pointerdown','keydown'])this.container.addEventListener(name,()=>{this.input_epoch++;this.pending_anchor=undefined;},{capture:true,passive:true});
     this.release_settings=watch_git_diff_preferences(value=>this.apply_preferences(value));
+    let font_anchor:markdown_view_anchor|undefined,font_size=content_font_size(design_baseline.editor_font_size);
+    this.subscriptions.push({dispose:observe_content_zoom(()=>{
+      const anchor=font_anchor||this.capture_content_anchor();font_anchor=undefined;
+      const font=content_font_size(design_baseline.editor_font_size);if(font===font_size)return;font_size=font;
+      this.editor.updateOptions({fontSize:font,lineHeight:font*design_baseline.editor_line_height/design_baseline.editor_font_size});this.editor.layout();
+      if(anchor)this.restore_content_anchor(anchor);
+    },()=>{font_anchor=this.capture_content_anchor();})});
     this.observer = new ResizeObserver(() => this.editor.layout()); this.observer.observe(this.body);
     const diff_root=this.body.querySelector(".monaco-diff-editor");
     if(diff_root){this.mode_observer=new MutationObserver(()=>this.refresh_labels());this.mode_observer.observe(diff_root,{attributes:true,attributeFilter:["class"]});this.refresh_labels();}

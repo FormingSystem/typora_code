@@ -429,3 +429,7 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-25 R027.2：BUG-graph-reference-color——轨道分配忽略HEAD/上游/基准身份，同一第一父链跨过引用仍同色。共享图模型在引用节点切换出线，入线保持前段颜色；拓扑编号不得因调色板复用而相同，否则12支线会提前合并。真实Git、UI及原始宿主回归覆盖该边界，证据见branch_colors_20260925.json。
 
 2026-09-25 R034.10：BUG-breadcrumb-inline-baseline——22px导航行内放入24px定位按钮，右侧文字依赖inline基线，造成视觉下沉。共享组和类型按钮改flex居中及22px边界，实际Range/SVG和原生明暗回归验证；版本标题保持原样并核对同高。普通文件顶栏夹具仍引用旧设置/子菜单，现接入生产统一设置与QuickPick，原失败与修正后结果见breadcrumb_alignment_20260925.json。
+
+2026-09-27 R014.2：BUG-content-window-zoom-coupling——正文滚轮误路由整窗，终端字号没有窗口比例补偿；共享当前窗口会话状态分别拥有编辑与终端增量，适配原生Markdown/CodeMirror、Monaco及xterm。补齐原生源码模式遗漏，变更前捕获逻辑位置；主题提取只传基础字体，避免Shadow正文二次放大。真实宿主78项、20轮终端定位及最终Chromium输入/生命周期31项通过；单次约17ms采样不等于全平台延迟保证，见content_zoom_20260927.json。
+
+2026-09-27 TEST-text-save-windows-lock：R014.2最后全量检查中，未改动的test_workspace_text_document在新副本再次保存时收到Windows占用/权限错误；此前两轮全量及该项顺序复验通过，保留原错误日志和未确认占用者的边界，不扩大为修改文件保存保护。末尾两项补跑器npm入口改为npm.cmd后通过；见content_zoom_20260927.json。

@@ -1,3 +1,4 @@
+import {reset_content_font} from './workspace_content_zoom';
 import {saved_ssh_connections} from './remote_ssh_auth_context';
 import {remote_files_for} from './remote_workspace_files';
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
@@ -107,7 +108,7 @@ export function bind_terminal_workspace(host:graph_host){
     const id="terminal_"+(++serial);let entry:session_entry;
     const session=new terminal_session(id,root,profile,host,settings,(data,done)=>surface.term.write(data,done),()=>{if(entry){surface.container.dataset.cwd=session.root;surface.container.dataset.pid=String(session.pid);surface.set_status(session.state,session.status,session.launch_pending);schedule();}},explicit_cwd,resolve_cwd,()=>!lifetime.disposed&&!workspace_context_switching()&&epoch===workspace_context_epoch(),launch_profile);
     const windows_pty=host.process_api.platform==="win32"?{backend:"conpty" as const,buildNumber:Number(runtime.reqnode("os").release().split(".")[2])}:undefined;
-    const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,font_size:size=>settings.update({...settings.get(),font_size:size}),active:()=>{if(active_id!==id)activate(id,false);}},windows_pty);
+    const surface=new terminal_surface(settings.get(),{input:data=>session.write(data),resize:(cols,rows)=>session.resize(cols,rows),copy:host.copy,error:fail,active:()=>{if(active_id!==id)activate(id,false);}},windows_pty);
     entry={session,surface,location,moving:false};sessions.set(id,entry);surface.container.dataset.session=id;active_id=id;
     if(split_id&&sessions.get(split_id)?.location==="panel")session.group=sessions.get(split_id)!.session.group;
     surface.container.oncontextmenu=event=>{const config=settings.get();if(!event.shiftKey&&config.right_click!=="menu"){event.preventDefault();if(config.right_click==="copy_paste"&&surface.term.hasSelection())void host.copy(surface.term.getSelection()).catch(fail);else void surface.paste();return;}menu(event,session_menu(id));};
@@ -231,7 +232,8 @@ export function bind_terminal_workspace(host:graph_host){
     if(event.code==="Backquote"&&(event.shiftKey?workspace_alt_modifier(event):event.ctrlKey&&!event.altKey&&!event.metaKey)){event.preventDefault();event.stopImmediatePropagation();event.shiftKey?launch():toggle();}
     else if(event.ctrlKey&&!event.altKey&&!event.metaKey&&event.shiftKey&&event.code==="Digit5"&&event.target instanceof Element&&event.target.closest(".linux-note-terminal")){event.preventDefault();event.stopImmediatePropagation();split();}
   }) as EventListener,true);
-  lifetime.add(settings.subscribe(config=>{for(const entry of sessions.values())entry.surface.apply_settings(config);render();}));
+  let configured_font_size=settings.get().font_size;
+  lifetime.add(settings.subscribe(config=>{if(config.font_size!==configured_font_size){configured_font_size=config.font_size;reset_content_font("terminal");}for(const entry of sessions.values())entry.surface.apply_settings(config);render();}));
   lifetime.add(observe_terminal_theme(theme=>{for(const entry of sessions.values())entry.surface.term.options.theme=theme;}));
   lifetime.add(()=>{cancelAnimationFrame(render_frame);for(const id of [...sessions.keys()])kill(id);document.documentElement.removeAttribute("data-linux-note-terminal");document.documentElement.removeAttribute("data-linux-note-terminal-theme");});
   lifetime.listen(window,"unload",lifetime.dispose);

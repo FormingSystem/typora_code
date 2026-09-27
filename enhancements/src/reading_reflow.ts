@@ -1,3 +1,5 @@
+import {bind_reading_font_zoom} from './reading_font_zoom';
+import {bind_native_source_font_zoom} from './native_source_font_zoom';
 import {stop_native_reading_scroll} from "./reading_native_scroll";
 import {acquire_reading_blocks,reading_block_at} from "./reading_blocks";
 /** 活着的文档使用字符锚点；不写磁盘，不持有已关闭文档。 */
@@ -39,11 +41,11 @@ export function restore_reflow_anchor(scroller:HTMLElement,root:HTMLElement,anch
   while(node){ratio*=Number.parseFloat(getComputedStyle(node).zoom)||1;node=node.parentElement;}
   scroller.scrollTop+=(rect.top-viewport.top-anchor.top)/ratio;
 }
-export function change_reading_geometry(scroller:HTMLElement,root:HTMLElement,action:()=>void){
+export function change_reading_geometry(scroller:HTMLElement,root:HTMLElement,action:()=>void,retained?:text_anchor){
   const binding=active_bindings.get(root);
-  if(binding){binding.change(action);return;}
+  if(binding){binding.change(action,retained);return;}
   stop_native_reading_scroll(scroller);
-  const anchor=capture_reflow_anchor(scroller,root);action();restore_reflow_anchor(scroller,root,anchor);
+  const anchor=retained||capture_reflow_anchor(scroller,root);action();restore_reflow_anchor(scroller,root,anchor);
 }
 export function bind_reading_reflow(scroller:HTMLElement,root:HTMLElement){
   const blocks=acquire_reading_blocks(root);
@@ -55,25 +57,28 @@ export function bind_reading_reflow(scroller:HTMLElement,root:HTMLElement){
   const resize=new ResizeObserver(()=>{if(size()!==geometry)restore();});resize.observe(scroller);resize.observe(root);
   const scroll=()=>{const next=size();if(next!==geometry)return;anchor=capture_reflow_anchor(scroller,root);};
   scroller.addEventListener("scroll",scroll,{passive:true});capture();
-  const binding={capture,change(action:()=>void){stop_native_reading_scroll(scroller);capture();action();blocks.invalidate();restore_reflow_anchor(scroller,root,anchor);cancelAnimationFrame(frame);frame=requestAnimationFrame(restore);},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();blocks.dispose();scroller.removeEventListener("scroll",scroll);anchor=undefined;if(active_bindings.get(root)===binding)active_bindings.delete(root);}};
+  const binding={capture,change(action:()=>void,retained?:text_anchor){stop_native_reading_scroll(scroller);capture();if(retained)anchor=retained;action();blocks.invalidate();restore_reflow_anchor(scroller,root,anchor);cancelAnimationFrame(frame);frame=requestAnimationFrame(restore);},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();blocks.dispose();scroller.removeEventListener("scroll",scroll);anchor=undefined;if(active_bindings.get(root)===binding)active_bindings.delete(root);}};
   active_bindings.set(root,binding);return binding;
 }
 
 /** 原生正文和非活动组的 Markdown 均保留各自的滚动所有者。 */
 export function bind_workspace_reading_reflow(){
-  const bindings=new Map<HTMLElement,{scroller:HTMLElement;binding:ReturnType<typeof bind_reading_reflow>}>();
+  const sources=new Map<HTMLElement,{dispose():void}>();
+  const bindings=new Map<HTMLElement,{scroller:HTMLElement;binding:ReturnType<typeof bind_reading_reflow>;font:ReturnType<typeof bind_reading_font_zoom>}>();
   let frame=0,disposed=false;
   const refresh=()=>{
     frame=0;if(disposed)return;
-    for(const [root,entry]of bindings)if(!root.isConnected){entry.binding.dispose();bindings.delete(root);}
+    for(const [root,binding]of sources)if(!root.isConnected){binding.dispose();sources.delete(root);}
+    for(const root of document.querySelectorAll<HTMLElement>('#typora-source .CodeMirror'))if(!sources.has(root)){const binding=bind_native_source_font_zoom(root);if(binding)sources.set(root,binding);}
+    for(const [root,entry]of bindings)if(!root.isConnected){entry.font.dispose();entry.binding.dispose();bindings.delete(root);}
     for(const root of document.querySelectorAll<HTMLElement>('#write,.typ-markdown-preview')){
       if(root.closest('.workspace-link-preview,.workspace-lookup-preview'))continue;
       let scroller=root.parentElement;
       while(scroller&&scroller!==document.body&&!/auto|scroll/.test(getComputedStyle(scroller).overflowY))scroller=scroller.parentElement;
       if(!scroller||scroller===document.body)continue;
-      const old=bindings.get(root);if(old?.scroller===scroller)continue;old?.binding.dispose();bindings.set(root,{scroller,binding:bind_reading_reflow(scroller,root)});
+      const old=bindings.get(root);if(old?.scroller===scroller)continue;old?.font.dispose();old?.binding.dispose();bindings.set(root,{scroller,binding:bind_reading_reflow(scroller,root),font:bind_reading_font_zoom(scroller,root)});
     }
   };
   const observer=new MutationObserver(()=>{if(!frame&&!disposed)frame=requestAnimationFrame(refresh);});observer.observe(document.body,{childList:true,subtree:true});refresh();
-  return {dispose(){disposed=true;observer.disconnect();cancelAnimationFrame(frame);for(const {binding}of bindings.values())binding.dispose();bindings.clear();}};
+  return {dispose(){disposed=true;observer.disconnect();cancelAnimationFrame(frame);for(const {binding,font}of bindings.values()){font.dispose();binding.dispose();}bindings.clear();for(const binding of sources.values())binding.dispose();sources.clear();}};
 }

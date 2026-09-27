@@ -3625,7 +3625,8 @@
       "requirements": [
         "R014",
         "R014.1",
-        "R079"
+        "R079",
+        "R014.2"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -3635,7 +3636,10 @@
         "enhancements/src/workspace_shortcuts.ts",
         "enhancements/src/workspace_titlebar_entries.ts",
         "enhancements/src/workspace_zoom.ts",
-        "enhancements/src/workspace_zoom_status.ts"
+        "enhancements/src/workspace_zoom_status.ts",
+        "enhancements/src/workspace_content_zoom.ts",
+        "enhancements/src/reading_font_zoom.ts",
+        "enhancements/src/native_source_font_zoom.ts"
       ],
       "related_modules": [
         "menu",
@@ -6633,7 +6637,8 @@
       "purpose": "implementation",
       "requirements": [
         "R014.1",
-        "R069.8"
+        "R069.8",
+        "R014.2"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -6645,7 +6650,10 @@
         "enhancements/src/workspace_zoom.ts",
         "enhancements/src/workspace_zoom_status.ts",
         "enhancements/src/workspace_wheel_zoom.ts",
-        "enhancements/src/reading_reflow.ts"
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_content_zoom.ts",
+        "enhancements/src/reading_font_zoom.ts",
+        "enhancements/src/native_source_font_zoom.ts"
       ],
       "related_modules": [
         "menu",
@@ -6671,7 +6679,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R014.1"
+        "R014.1",
+        "R014.2"
       ],
       "design": "docs/workspace_zoom.md",
       "implementation": [
@@ -6683,7 +6692,10 @@
         "enhancements/src/workspace_zoom.ts",
         "enhancements/src/workspace_zoom_status.ts",
         "enhancements/src/workspace_wheel_zoom.ts",
-        "enhancements/src/reading_reflow.ts"
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/workspace_content_zoom.ts",
+        "enhancements/src/reading_font_zoom.ts",
+        "enhancements/src/native_source_font_zoom.ts"
       ],
       "related_modules": [
         "menu",
