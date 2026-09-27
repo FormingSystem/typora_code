@@ -27,6 +27,8 @@ fs.writeFileSync("dist/licenses/vscode_quick_open.txt",fs.readFileSync("vendor/v
 fs.copyFileSync("vendor/xterm/LICENSE","dist/licenses/xterm.txt");
 fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
 // 公告与后台辅助程序随同一资产清单安装，普通用户不依赖源码仓库或全局Node。
+fs.mkdirSync("dist/assets/help",{recursive:true});
+fs.writeFileSync("dist/assets/help/user_guide.md",fs.readFileSync("../docs/user_guide.md","utf8").replace(/\r\n?/gu,"\n"));
 const update_root="dist/assets/update";
 fs.mkdirSync(update_root,{recursive:true});
 const {release_info}=await import("../src/workspace_update_service.cjs");

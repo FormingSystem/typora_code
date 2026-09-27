@@ -8068,6 +8068,102 @@
         "每组一个未编辑预览；常驻及编辑内容保留，原生正文即时显示，预览斜体可辨识"
       ],
       "timeout_ms": 90000
+    },
+    {
+      "id": "TC-onboarding-state",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R081"
+      ],
+      "design": "docs/onboarding.md",
+      "implementation": [
+        "enhancements/src/workspace_onboarding.ts",
+        "enhancements/src/workspace_onboarding_view.ts",
+        "enhancements/src/workspace_onboarding_state.cjs"
+      ],
+      "related_modules": [
+        "help",
+        "installation",
+        "focus",
+        "shortcuts"
+      ],
+      "script": "enhancements/scripts/test_workspace_onboarding.mjs",
+      "environment": "Node 临时用户目录",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
+    },
+    {
+      "id": "TC-onboarding-ui",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R081"
+      ],
+      "design": "docs/onboarding.md",
+      "implementation": [
+        "enhancements/src/workspace_onboarding.ts",
+        "enhancements/src/workspace_onboarding_view.ts",
+        "enhancements/src/workspace_onboarding_state.cjs"
+      ],
+      "related_modules": [
+        "help",
+        "installation",
+        "focus",
+        "shortcuts"
+      ],
+      "script": "enhancements/scripts/test_workspace_onboarding.cjs",
+      "environment": "隔离 Electron",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
+    },
+    {
+      "id": "TC-onboarding-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R081"
+      ],
+      "design": "docs/onboarding.md",
+      "implementation": [
+        "enhancements/src/workspace_onboarding.ts",
+        "enhancements/src/workspace_onboarding_view.ts",
+        "enhancements/src/workspace_onboarding_state.cjs"
+      ],
+      "related_modules": [
+        "help",
+        "installation",
+        "focus",
+        "shortcuts"
+      ],
+      "script": "enhancements/fixtures/onboarding_native.js",
+      "environment": "原始 Typora 1.14.10 私有桌面",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
     }
   ]
 }

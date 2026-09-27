@@ -165,6 +165,9 @@ try {
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid profile')) $false 'Malformed profile created backup'
     write_fixture $profile $profile_before
     # 配置字段已改写后再失败，必须回滚到原来的 false。
+    $receipt_before=Join-Path $user_data 'typora_code/installation.json'
+    write_fixture $receipt_before '{"schema":1,"install_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":1}'
+    $receipt_hash=(Get-FileHash -LiteralPath $receipt_before).Hash
     $global:typora_test_manifest_failed=$false
     function global:ConvertTo-Json {
         [CmdletBinding()]param([Parameter(ValueFromPipeline=$true)]$InputObject,[int]$Depth=2,[switch]$Compress)
@@ -179,6 +182,7 @@ try {
     try { assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'late profile rollback') -non_interactive } 'Final manifest failure ignored' }
     finally { Remove-Item Function:\ConvertTo-Json }
     assert_equal $global:typora_test_manifest_failed $true 'Fault did not reach final manifest'
+    assert_equal (Get-FileHash -LiteralPath $receipt_before).Hash $receipt_hash 'Failed installation changed onboarding receipt'
     assert_equal (read_profile_fixture $profile).framelessWindow $false 'Late install rollback lost original window preference'
     assert_equal (read_profile_fixture $profile).later 2 'Late rollback removed later preferences'
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Late rollback changed window'
@@ -321,6 +325,10 @@ function start_typora_elevated_install {
     $uninstaller=Join-Path $tools_copy 'uninstall_windows.ps1'
     & $installer -typora_root $cycle_root -backup_root $cycle_backup -non_interactive
     & $checker -typora_root $cycle_root -non_interactive
+    $receipt_path=Join-Path $env:APPDATA 'Typora/typora_code/installation.json'
+    $first_receipt=[IO.File]::ReadAllText($receipt_path)|ConvertFrom-Json
+    assert_equal ($first_receipt.install_id -match '^[a-f0-9]{32}$') $true 'Missing onboarding install identity'
+    assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/assets/help/user_guide.md')) $true 'Offline guide missing'
     & $uninstaller -typora_root $cycle_root -backup_root $cycle_backup -non_interactive
     assert_equal ([IO.File]::ReadAllText($cycle_window)) $cycle_native 'Restore uninstall did not restore native startup'
     assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $false 'Restore uninstall left managed bundle'
@@ -331,6 +339,9 @@ function start_typora_elevated_install {
     assert_equal (([IO.File]::ReadAllText($cycle_window)).Contains('typora-code:begin')) $false 'Detach left startup entry'
     assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $true 'Detach removed reusable assets'
     & $installer -typora_root $cycle_root -backup_root (Join-Path $test_root 'lifecycle final backup') -non_interactive
+    $last_receipt=[IO.File]::ReadAllText($receipt_path)|ConvertFrom-Json
+    assert_equal ($last_receipt.install_id -ne $first_receipt.install_id) $true 'Same version reinstall must issue new tutorial identity'
+    assert_equal $last_receipt.sequence $first_receipt.sequence 'Reinstall changed release sequence'
     & $checker -typora_root $cycle_root -non_interactive
     assert_equal (Get-FileHash -LiteralPath $cycle_document).Hash $document_hash 'Lifecycle changed document'
     assert_equal (Get-FileHash -LiteralPath $cycle_settings).Hash $settings_hash 'Lifecycle changed workspace settings'

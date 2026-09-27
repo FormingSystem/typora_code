@@ -222,6 +222,8 @@ export function create_workspace_titlebar_definitions(
             runtime.$('.modal:not(.block-modal)').modal('hide'); runtime.$('#about-dialog').modal('show'); runtime.$('*:focus').blur();
           } else {runtime.File?.megaMenu?.show(); runtime.$('#m-about').trigger('click');}
         }}, separator(),
+      {label: "操作指导…", action: () => files.core.app.commands.run("typora_code:operation_guide")},
+      {label: "操作说明与快捷键…", action: () => files.core.app.commands.run("typora_code:operation_manual")},
       {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
       help_url("Typora Code GitHub 仓库", "https://github.com/FormingSystem/typora_code"),
     ];

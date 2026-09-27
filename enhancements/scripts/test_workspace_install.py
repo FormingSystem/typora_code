@@ -57,6 +57,10 @@ with redirect_stdout(install_output):
     deployment.install(tools, root, user, backup)
 assert install_output.getvalue() == '', 'Installation logs must not pollute command output'
 deployment.check(tools, root, user)
+receipt_path = user / 'typora_code/installation.json'
+first_install_id = json.loads(receipt_path.read_text(encoding='utf-8'))['install_id']
+assert len(first_install_id) == 32
+assert (user / 'typora_code/assets/help/user_guide.md').is_file()
 assert deployment.read_native_profile(profile)['data']['framelessWindow'] is True
 write_profile({**deployment.read_native_profile(profile)['data'], 'later': 2})
 assert not retired.exists()

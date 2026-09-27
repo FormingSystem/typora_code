@@ -232,7 +232,7 @@ def validate_records(root, backup, records, scope):
     for record in records:
         relative = record['relative_path']
         target, saved = asset_path(root, relative), asset_path(backup, relative)
-        valid = {'product': product_path(relative) or relative in RETIRED_PRODUCT_FILES, 'migration': relative in MIGRATION_FILES,
+        valid = {'product': product_path(relative) or relative in RETIRED_PRODUCT_FILES or relative == 'installation.json', 'migration': relative in MIGRATION_FILES,
                  'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative in THEME_FILES,
                  'terminal': bool(re.fullmatch(r'([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))', relative))}[scope]
         if not valid or relative in seen or type(record['existed']) is not bool or target.is_dir():
@@ -335,7 +335,7 @@ def install_files(tools_root, typora_root, user_data, backup, log, managed_backu
         theme.read_bytes()
     assets['SHA256SUMS'] = digest(source / 'SHA256SUMS')
     roots = group_roots(user_data)
-    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES, 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': THEME_FILES, 'native_profile': ['profile.data']}
+    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES + ['installation.json'], 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': THEME_FILES, 'native_profile': ['profile.data']}
     for name, entries in paths.items():
         for relative in entries:
             if asset_path(roots[name], relative).is_dir():
@@ -376,6 +376,8 @@ def install_files(tools_root, typora_root, user_data, backup, log, managed_backu
         verify_assets(roots['product'], assets)
         check_window(window.read_text(encoding='utf-8'), head)
         profile_changed = update_native_profile(profile_path, 'install', profile_before['sha256'])
+        release = json.loads((source / 'assets/update/release.json').read_text(encoding='utf-8'))['releases'][0]
+        write_json(roots['product'] / 'installation.json', {'schema': 1, 'install_id': uuid.uuid4().hex, 'sequence': release['sequence']})
         write_json(backup / 'manifest.json', {'schema_version': 4, 'typora_root': str(typora_root), 'user_data': str(user_data), 'window_sha256': digest(backup / 'window.html'), **records, **retention})
     except Exception as error:
         log.rollback = 'running'

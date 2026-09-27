@@ -126,3 +126,7 @@ Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux
 原创维护者为 **FormingSystem**，联系邮箱为 `lizhaojun97@qq.com`，项目地址为 [FormingSystem/typora_code](https://github.com/FormingSystem/typora_code)。原创署名、二次开发与官方贡献、非官方分叉及未来版本边界统一见 [版权、开源与贡献声明](COPYRIGHT.md)。
 
 Typora Code 是独立维护的社区增强项目。Typora 本体、第三方依赖与资源保留其原有版权和许可证；用户打开、编辑和导出的文档仍归各自权利人。本项目的许可证不重新授权这些内容。
+
+## 操作指导
+
+安装后正常重启即可进入可跳过的逐步教学；“帮助 → 操作指导”可重看，“帮助 → 操作说明与快捷键”打开安装包内的离线说明。预览/常驻标签、内容缩放、Git、终端及默认键位见[操作说明与快捷键](docs/user_guide.md)。

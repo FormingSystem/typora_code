@@ -54,7 +54,7 @@ $profile_changed = $false
 $assets += [pscustomobject]@{relative_path='SHA256SUMS';sha256=(Get-FileHash -LiteralPath (Join-Path $source 'SHA256SUMS') -Algorithm SHA256).Hash}
 $retired_assets = @(get_typora_retired_product_assets)
 $groups = @(
-    [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');assets=@($assets + $retired_assets)},
+    [pscustomobject]@{name='product';root=(Join-Path $user_data 'typora_code');assets=@($assets + $retired_assets + [pscustomobject]@{relative_path='installation.json'})},
     [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');assets=@(get_typora_migration_assets)},
     [pscustomobject]@{name='terminal';root=(Join-Path $user_data 'linux_note_enhancements/terminal_runtime');assets=@($terminal_assets + $node_stage.assets)},
     [pscustomobject]@{name='settings';root=(Join-Path $user_data 'plugins/settings');assets=@([pscustomobject]@{relative_path='plugins.json'})},
@@ -144,6 +144,9 @@ try {
     assert_typora_workspace_assets $groups[0].root $assets
     $profile_result = invoke_typora_native_profile $profile_node $tools_root install $profile_path $profile_before.sha256
     $profile_changed = $profile_result.changed
+    $release = ([IO.File]::ReadAllText((Join-Path $source 'assets/update/release.json'), [Text.Encoding]::UTF8) | ConvertFrom-Json).releases[0]
+    $receipt = @{schema=1;install_id=[guid]::NewGuid().ToString('N');sequence=$release.sequence}
+    [IO.File]::WriteAllText((Join-Path $groups[0].root 'installation.json'), ($receipt | ConvertTo-Json), [Text.UTF8Encoding]::new($false))
     [IO.File]::WriteAllText($manifest_path, ($manifest | ConvertTo-Json -Depth 100), [Text.UTF8Encoding]::new($false))
 } catch {
     $failure = $_

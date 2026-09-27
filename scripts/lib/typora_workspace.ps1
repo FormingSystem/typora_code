@@ -223,7 +223,7 @@ function assert_typora_record_scope {
     foreach ($record in $records) {
         $valid = switch ($scope) {
             'native_profile' { $record.relative_path -eq 'profile.data' }
-            'product' { $record.relative_path -match '^(appearance_bootstrap\.js|workspace_core\.(js|css)|workspace\.css|workbench\.js|SHA256SUMS|(assets|locales|licenses)/[a-zA-Z0-9_./-]+)$' }
+            'product' { $record.relative_path -match '^(installation\.json|appearance_bootstrap\.js|workspace_core\.(js|css)|workspace\.css|workbench\.js|SHA256SUMS|(assets|locales|licenses)/[a-zA-Z0-9_./-]+)$' }
             'migration' { $migration -contains $record.relative_path }
             'terminal' { $record.relative_path -match '^([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))$' }
             'settings' { $record.relative_path -eq 'plugins.json' }

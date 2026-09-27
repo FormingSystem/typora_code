@@ -1,3 +1,4 @@
+import {bind_workspace_onboarding} from './workspace_onboarding';
 import {bind_native_vscode_menu,vscode_resource_entry} from "./workspace_open_vscode";
 import {workspace_context_switching} from "./workspace_context";
 import {bind_workspace_colors} from './workspace_colors';
@@ -123,6 +124,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_explorer_sections(files,explorer,saves,editor_actions.entries));
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
+  lifetime.own(bind_workspace_onboarding(files));
   return{files,explorer,search,dispose(){files.assert_can_dispose();lifetime.dispose();}};
   } catch(error) {lifetime.dispose();throw error;}
 }

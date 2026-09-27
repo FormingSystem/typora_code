@@ -82,6 +82,10 @@ try:
         target = user_data / 'typora_code' / relative
         target.parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(source, target)
+    if fixture_path.name == 'onboarding_native.js':
+        import uuid
+        info = json.loads((release / 'assets/update/release.json').read_text(encoding='utf-8'))
+        (user_data / 'typora_code/installation.json').write_text(json.dumps({'schema': 1, 'install_id': uuid.uuid4().hex, 'sequence': info['releases'][0]['sequence']}), encoding='utf-8')
     # 运行时只复制；安装器负责的私有Node不借用系统PATH。
     runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal_runtime'
     if runtime.is_dir():

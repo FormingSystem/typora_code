@@ -1,0 +1,44 @@
+import {workspace_context_switching} from './workspace_context';
+import {create_workspace_lifetime} from './workspace_lifetime';
+import {show_workspace_onboarding} from './workspace_onboarding_view';
+import {create_onboarding_store} from './workspace_onboarding_state.cjs';
+import bundled_release from '../release.json';
+import type {workspace_file_host} from './workspace_files';
+
+export function bind_workspace_onboarding(files:workspace_file_host) {
+ const lifetime=create_workspace_lifetime(),runtime=window as any;
+ const waiting=create_workspace_lifetime();lifetime.own(waiting);
+ let store:ReturnType<typeof create_onboarding_store>|undefined;
+ let tour:ReturnType<typeof show_workspace_onboarding>|undefined;
+ const notice=(error:unknown)=>new files.core.Notice('操作指导：'+String(error instanceof Error?error.message:error),5000);
+ const open_guide=()=>{void(async()=>{try{
+  const path=files.path_api.join(runtime._options.userDataPath,'typora_code/assets/help/user_guide.md');
+  await files.fs.promises.access(path);if(lifetime.disposed)return;
+  if(!runtime.JSBridge?.invoke)throw Error('原生文件打开接口不可用。');
+  await runtime.JSBridge.invoke('app.openFile',path,{forceCreateWindow:true});
+ }catch(error){if(!lifetime.disposed)notice(error);}})();};
+ const show=()=>{if(lifetime.disposed)return;tour?.close();tour=show_workspace_onboarding(open_guide,()=>{tour=undefined;});};
+ lifetime.add(files.core.app.commands.register({id:'typora_code:operation_guide',title:'操作指导',scope:'global',callback:()=>{waiting.dispose();try{if(store?.claim(show))return;}catch(error){notice(error);}show();}}));
+ lifetime.add(files.core.app.commands.register({id:'typora_code:operation_manual',title:'操作说明与快捷键',scope:'global',callback:open_guide}));
+ lifetime.add(()=>tour?.close());
+ // 自动引导只读取启动时的安装标识；已运行的旧窗口不消费随后安装的新版本。
+ if(!runtime.reqnode||!runtime._options?.userDataPath)return lifetime;
+ let timer=0;
+ try{
+  store=create_onboarding_store({fs:files.fs,path:files.path_api,process:runtime.reqnode('process'),root:files.path_api.join(runtime._options.userDataPath,'typora_code'),sequence:bundled_release.releases[0].sequence});
+  const attempt=()=>{
+   timer=0;if(waiting.disposed)return;
+   try{
+    if(!store!.pending()){waiting.dispose();return;}
+    if(document.documentElement.getAttribute('data-linux-note-typora-enhancements')!=='ready'||document.hidden||!document.hasFocus()||document.querySelector('[role="dialog"][aria-modal="true"], .modal.in'))return;
+    if(runtime.File?.isFileLoading?.()||runtime.File?._onFileSwitching||workspace_context_switching()){schedule();return;}
+    if(store!.claim(show))waiting.dispose();else schedule();
+   }catch(error){waiting.dispose();notice(error);}
+  };
+  const schedule=()=>{if(!timer&&!waiting.disposed)timer=window.setTimeout(attempt,500);};
+  const observer=new MutationObserver(schedule);observer.observe(document.documentElement,{attributes:true,attributeFilter:['data-linux-note-typora-enhancements']});observer.observe(document.body,{childList:true});
+  waiting.add(()=>{observer.disconnect();clearTimeout(timer);});
+  waiting.listen(window,'focus',schedule);waiting.listen(document,'visibilitychange',schedule);schedule();
+ }catch(error){waiting.dispose();notice(error);}
+ return lifetime;
+}

@@ -1,0 +1,136 @@
+{
+  "requirement": "R081",
+  "date": "2026-09-27",
+  "version": "2026.09.27.7",
+  "manifest_sha256": "f1332f558253e8b40be2c38ea0ee51100b40fe244918ef39725f6059dd3ccbd1",
+  "status": "源码、候选、本机安装通过；用户窗口未重启",
+  "coverage": {
+    "state_checks": 117,
+    "real_processes": 8,
+    "reinstall_rounds": 100,
+    "ui_checks": 112,
+    "help_menu_checks": 88,
+    "shared_ui": [
+      "workspace_widgets",
+      "workspace_escape_focus"
+    ],
+    "native": {
+      "case": "e4623ff67a4542ac8c3a0c62c956c205",
+      "host": "Typora 1.14.10",
+      "checks": 55,
+      "coverage": [
+        "auto only after ready",
+        "automatic tour records install",
+        "step within native viewport 0",
+        "native next step 0",
+        "step within native viewport 1",
+        "native next step 1",
+        "native region target 1",
+        "step within native viewport 2",
+        "native next step 2",
+        "native region target 2",
+        "step within native viewport 3",
+        "native next step 3",
+        "native region target 3",
+        "step within native viewport 4",
+        "native next step 4",
+        "native region target 4",
+        "step within native viewport 5",
+        "native next step 5",
+        "native region target 5",
+        "step within native viewport 6",
+        "native next step 6",
+        "native region target 6",
+        "step within native viewport 7",
+        "native next step 7",
+        "native region target 7",
+        "step within native viewport 8",
+        "native next step 8",
+        "native region target 8",
+        "step within native viewport 9",
+        "native next step 9",
+        "native region target 9",
+        "complete removes modal",
+        "no automatic repeat",
+        "tutorial preserves document and path",
+        "replay single modal 0",
+        "replay single modal 1",
+        "replay single modal 2",
+        "replay single modal 3",
+        "replay single modal 4",
+        "replay single modal 5",
+        "replay single modal 6",
+        "replay single modal 7",
+        "replay single modal 8",
+        "replay single modal 9",
+        "replay single modal 10",
+        "replay single modal 11",
+        "replay single modal 12",
+        "replay single modal 13",
+        "replay single modal 14",
+        "replay single modal 15",
+        "replay single modal 16",
+        "replay single modal 17",
+        "replay single modal 18",
+        "replay single modal 19",
+        "no orphan highlight"
+      ],
+      "payload_cleaned": true
+    },
+    "full_check": {
+      "exit_code": 0,
+      "case": "0ee05eeadcf44572a4afda9254dd6c77",
+      "final_followup": "最终构建静态/部署/235套目录通过；状态117、UI112及帮助88使用最终实现"
+    },
+    "install_cycles": {
+      "case": "3eac451240d64fecb7ce264fa18c638c",
+      "exit_code": 0,
+      "coverage": [
+        "安装检查",
+        "恢复卸载重装检查",
+        "无兼容备份撤销入口卸载重装检查",
+        "同版本重新产生install_id",
+        "安装末尾失败恢复原标识",
+        "离线文档打包"
+      ],
+      "payload_cleaned": true
+    },
+    "uninstall": {
+      "case": "7c484d73a595497ea2450221baf4da4e",
+      "assertions": 65,
+      "payload_cleaned": true
+    },
+    "portable_transaction": {
+      "case": "fcdc5b1f82be49f6904792ec17cea307",
+      "host": "Windows运行Python便携事务夹具",
+      "exit_code": 0
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 5,
+      "manifest_sha256": "f1332f558253e8b40be2c38ea0ee51100b40fe244918ef39725f6059dd3ccbd1",
+      "window_restarted": false
+    }
+  },
+  "failures_resolved": [
+    {
+      "case": "d361e0cf18c64c749f19cc9e03e49272",
+      "failure": "恢复白名单未包括installation.json，恢复故障注入尚未到达目标阶段",
+      "fix": "Windows和Python恢复范围明确纳入该托管标识，复跑完整事务通过；失败载荷已回收"
+    }
+  ],
+  "limitations": [
+    "原始宿主以renderer事件完成步骤，未替代物理鼠标/屏幕阅读器验收",
+    "Linux/macOS真实宿主及安装未测；Python事务在Windows隔离目录测试",
+    "动态教学为轻量步骤示意，不是实际操作录屏",
+    "保留既有8套UI、R047.6/R071.4及其他历史未完成项，未宣称全量UI全部通过"
+  ]
+}

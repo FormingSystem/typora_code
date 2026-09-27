@@ -2166,6 +2166,28 @@ body.hide-footer {--typ-footer-height:0px;}
 }
 .ty-editor-toolbar[data-workspace-toolbar-suspended=true] {display:none!important;}
 
+/* workspace_onboarding.css */
+/* VS Code 6807068 spotlight.css：320px卡片、16px间距、1.4行高；焦点仍由公共对话框管理。 */
+.workspace-onboarding.git-graph-dialog-shade { background: #0005; padding: 16px; }
+.workspace-onboarding > .git-graph-dialog { position: fixed; width: 320px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); margin: 0; z-index: 1; background: var(--workspace-ui-elevated, var(--bg-color)); color: var(--workspace-ui-foreground, var(--text-color)); }
+.workspace-onboarding .git-graph-dialog-content { padding: 16px; white-space: normal; line-height: 1.4; }
+.workspace-onboarding h4 { margin: 0 0 8px; font: inherit; font-weight: 600; }
+.workspace-onboarding p { margin: 0 0 16px; }
+.workspace-onboarding-hint { opacity: .8; }
+.workspace-onboarding .git-graph-dialog-footer { flex-wrap: wrap; justify-content: space-between; padding: 12px 16px; gap: 8px; }
+.workspace-onboarding-actions { display: flex; gap: 8px; margin-inline-start: auto; }
+.workspace-onboarding button { white-space: normal; }
+.workspace-onboarding-progress { align-self: center; }
+.workspace-onboarding-highlight { position: fixed; pointer-events: none; border: 2px solid var(--workspace-ui-focus, #0078d4); border-radius: 4px; box-sizing: border-box; box-shadow: 0 0 0 9999px #0003; }
+.workspace-onboarding-highlight[hidden], .workspace-onboarding-demo[hidden], .workspace-onboarding-hint[hidden] { display: none; }
+.workspace-onboarding-demo { padding: 12px; margin-bottom: 16px; border: 1px solid var(--workspace-ui-border, #8888); border-radius: 4px; }
+.workspace-onboarding-phase { margin: 8px 0; padding: 8px; border-inline-start: 2px solid var(--workspace-ui-focus, #0078d4); }
+.workspace-onboarding-phase-first { animation: workspace-onboarding-emphasis 6s infinite; }
+.workspace-onboarding-phase-second { animation: workspace-onboarding-emphasis 6s 3s infinite; }
+.workspace-onboarding-demo[data-paused="true"] .workspace-onboarding-phase { animation: none; }
+@keyframes workspace-onboarding-emphasis { 0%, 45%, 100% { background: transparent; } 50%, 95% { background: var(--workspace-ui-hover, #8883); } }
+@media (prefers-reduced-motion: reduce) { .workspace-onboarding-phase { animation: none; } }
+
 /* workspace_open_vscode.css */
 /* 原生菜单贡献沿用共同 2em 图标列与 16px 产品标识，不重排其他原生项。 */
 #context-menu [data-key="typora-code-open-vscode"]>a{position:relative;padding-left:2em}
