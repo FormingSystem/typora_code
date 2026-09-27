@@ -1,5 +1,6 @@
 import {bind_native_mermaid_theme} from './reading_mermaid_theme';
 import {bind_reading_code_geometry} from "./reading_code_geometry";
+import {bind_reading_code_wheel} from "./reading_code_wheel";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {open_reading_media,close_reading_media} from "./reading_media_viewer";
@@ -41,6 +42,7 @@ type code_mirror_instance = {
   getOption(name: string): unknown;
   setOption(name: string, value: unknown): void;
   refresh(): void;
+  scrollTo(left: number | null, top: number): void;
 };
 
 type code_mirror_constructor = {
@@ -201,13 +203,16 @@ function render_code_toggle(button: HTMLButtonElement, expanded: boolean): void 
 }
 
 function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expanded: boolean): void {
-  fence.classList.toggle("is-code-expanded", expanded);
-  fence.classList.toggle("is-code-collapsed", !expanded);
-  render_code_toggle(button, expanded);
-  if (!expanded) {
+  // 先同步原生模型与DOM偏移，再撤销限高；否则浏览器只夹紧旧偏移，首行仍可能被裁剪。
+  const editor = code_mirror_for_fence(fence);
+  if (editor) editor.scrollTo(null, 0);
+  else {
     const scroller = fence.querySelector<HTMLElement>(".CodeMirror-scroll");
     if (scroller) scroller.scrollTop = 0;
   }
+  fence.classList.toggle("is-code-expanded", expanded);
+  fence.classList.toggle("is-code-collapsed", !expanded);
+  render_code_toggle(button, expanded);
   code_geometry?.refresh(fence);
 }
 
@@ -467,6 +472,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
   lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
   code_geometry=bind_reading_code_geometry();
+  runtime_lifetime.add(bind_reading_code_wheel());
   code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error("剪贴板尚未就绪");files.copy(text);});
   dispose_reading_action_events = bind_reading_action_events();
   scan_document();

@@ -91,6 +91,28 @@ try {
  }
  $captured_stages=[Collections.Generic.HashSet[string]]::new()
  do {
+  # 输入只投递到本次独立宿主窗口；不移动真实桌面鼠标或激活用户窗口。
+  $input_path=Join-Path $case_root 'native_input_request.json'
+  if(Test-Path -LiteralPath $input_path) {
+   try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
+   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -eq 'wheel' -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
+    $delivered=$false
+    $input_window=[isolated_desktop+enum_windows]{param($hwnd,$state)
+     $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
+     $title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024)
+     if($owner -eq $info.pid -and $title.ToString().EndsWith(' - Typora')) {
+      $bounds=New-Object isolated_desktop+rect;[void][isolated_desktop]::GetWindowRect($hwnd,[ref]$bounds)
+      $x=[int]($bounds.left+$input_request.x*($bounds.right-$bounds.left)/$input_request.width)
+      $y=[int]($bounds.top+$input_request.y*($bounds.bottom-$bounds.top)/$input_request.height)
+      $delta=[int]$input_request.delta
+      $script:delivered=[isolated_desktop]::PostMessage($hwnd,0x020A,[IntPtr]::new(($delta -band 0xffff) -shl 16),[IntPtr]::new(($y -shl 16) -bor ($x -band 0xffff)))
+     }
+     return $true
+    };[void][isolated_desktop]::EnumDesktopWindows($desktop,$input_window,[IntPtr]::Zero)
+    $last_input_id=$input_request.id
+    @{id=$last_input_id;delivered=$delivered}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'native_input_result.json') -Encoding utf8
+   }
+  }
   $request_path=Join-Path $case_root 'capture_request.json'
   if(Test-Path -LiteralPath $request_path) {
    try {$request=Get-Content -LiteralPath $request_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$request=$null}

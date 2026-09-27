@@ -158607,6 +158607,65 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/reading_viewport.ts
+  function reading_viewport_bounds(owner2) {
+    const rect = owner2.getBoundingClientRect();
+    const view = owner2.ownerDocument.defaultView;
+    const client_left = rect.left + owner2.clientLeft;
+    const client_top = rect.top + owner2.clientTop;
+    const left = Math.max(0, client_left);
+    let top = Math.max(0, client_top);
+    const right = Math.min(rect.right, client_left + owner2.clientWidth, view?.innerWidth ?? rect.right);
+    let bottom = Math.min(rect.bottom, client_top + owner2.clientHeight, view?.innerHeight ?? rect.bottom);
+    for (const header of owner2.ownerDocument.querySelectorAll(".workspace-tab-strip,.workspace-breadcrumbs")) {
+      const box = header.getBoundingClientRect(), style = view?.getComputedStyle(header);
+      if (!header.isConnected || header.hidden || box.width <= 0 || box.height <= 0 || style?.visibility === "hidden" || style?.display === "none" || Number(style?.opacity) === 0 || box.right <= left || box.left >= right || box.top > top + 1 || box.bottom <= top || box.bottom >= bottom) continue;
+      top = box.bottom;
+    }
+    for (const footer of owner2.ownerDocument.querySelectorAll("footer.ty-footer")) {
+      const footer_rect = footer.getBoundingClientRect();
+      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
+      let visible3 = true;
+      for (let element = footer; element; element = element.parentElement) {
+        const style = view?.getComputedStyle(element);
+        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
+          visible3 = false;
+          break;
+        }
+      }
+      if (visible3) bottom = Math.max(top, footer_rect.top);
+    }
+    return { top, bottom, left, right };
+  }
+
+  // src/reading_code_wheel.ts
+  function bind_reading_code_wheel(owner_document = document) {
+    const on_wheel = (event) => {
+      if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.shiftKey || !event.deltaY || Math.abs(event.deltaX) > Math.abs(event.deltaY)) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const fence = target.closest(".md-fences.linux-note-code-collapsible.is-code-collapsed");
+      const owner2 = fence?.closest("content");
+      const scroller = fence?.querySelector(".CodeMirror-scroll");
+      const button = fence?.querySelector(".linux-note-code-toggle");
+      if (!fence || !owner2 || !scroller || !button || !scroller.contains(target)) return;
+      const bounds = reading_viewport_bounds(owner2), box = fence.getBoundingClientRect(), button_box = button.getBoundingClientRect();
+      const fully_visible = box.height > 0 && button_box.height > 0 && box.top >= bounds.top && box.bottom <= bounds.bottom && button_box.top >= bounds.top && button_box.bottom <= bounds.bottom;
+      const can_scroll = event.deltaY < 0 ? scroller.scrollTop > 0 : scroller.scrollTop + scroller.clientHeight < scroller.scrollHeight - 1;
+      if (fully_visible && can_scroll) return;
+      event.preventDefault();
+      event.stopPropagation();
+      let amount = event.deltaY;
+      if (event.deltaMode === WheelEvent.DOM_DELTA_LINE) {
+        const style = owner_document.defaultView.getComputedStyle(owner2);
+        amount *= parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.2;
+      } else if (event.deltaMode === WheelEvent.DOM_DELTA_PAGE) amount *= Math.max(0, bounds.bottom - bounds.top);
+      owner2.scrollTop += amount;
+    };
+    owner_document.addEventListener("wheel", on_wheel, { capture: true, passive: false });
+    return () => owner_document.removeEventListener("wheel", on_wheel, true);
+  }
+
   // src/workspace_focus.ts
   var active_element = () => {
     let node = document.activeElement;
@@ -161068,37 +161127,6 @@ https://creativecommons.org/licenses/by/4.0/
   function shortcut_matches(event, shortcut) {
     const parts = shortcut.toLowerCase().split("+");
     return parts.at(-1) === event.key.toLowerCase() && parts.includes("mod") === (event.ctrlKey || event.metaKey) && parts.includes("shift") === event.shiftKey && parts.includes("alt") === event.altKey;
-  }
-
-  // src/reading_viewport.ts
-  function reading_viewport_bounds(owner2) {
-    const rect = owner2.getBoundingClientRect();
-    const view = owner2.ownerDocument.defaultView;
-    const client_left = rect.left + owner2.clientLeft;
-    const client_top = rect.top + owner2.clientTop;
-    const left = Math.max(0, client_left);
-    let top = Math.max(0, client_top);
-    const right = Math.min(rect.right, client_left + owner2.clientWidth, view?.innerWidth ?? rect.right);
-    let bottom = Math.min(rect.bottom, client_top + owner2.clientHeight, view?.innerHeight ?? rect.bottom);
-    for (const header of owner2.ownerDocument.querySelectorAll(".workspace-tab-strip,.workspace-breadcrumbs")) {
-      const box = header.getBoundingClientRect(), style = view?.getComputedStyle(header);
-      if (!header.isConnected || header.hidden || box.width <= 0 || box.height <= 0 || style?.visibility === "hidden" || style?.display === "none" || Number(style?.opacity) === 0 || box.right <= left || box.left >= right || box.top > top + 1 || box.bottom <= top || box.bottom >= bottom) continue;
-      top = box.bottom;
-    }
-    for (const footer of owner2.ownerDocument.querySelectorAll("footer.ty-footer")) {
-      const footer_rect = footer.getBoundingClientRect();
-      if (!footer.isConnected || footer_rect.width <= 0 || footer_rect.height <= 0 || footer_rect.right <= left || footer_rect.left >= right || footer_rect.bottom <= top || footer_rect.top >= bottom) continue;
-      let visible3 = true;
-      for (let element = footer; element; element = element.parentElement) {
-        const style = view?.getComputedStyle(element);
-        if (style && (style.display === "none" || element === footer && style.visibility !== "visible" || Number(style.opacity) === 0)) {
-          visible3 = false;
-          break;
-        }
-      }
-      if (visible3) bottom = Math.max(top, footer_rect.top);
-    }
-    return { top, bottom, left, right };
   }
 
   // src/reading_media_entry.css
@@ -243583,6 +243611,15 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026092723,
+        version: "2026.09.27.23",
+        date: "2026-09-27",
+        notes: [
+          "\u6536\u8D77\u4EE3\u7801\u5757\u548C\u5C55\u5F00\u6309\u94AE\u5B8C\u6574\u53EF\u89C1\u540E\u624D\u6EDA\u52A8\u5185\u90E8\u5185\u5BB9\uFF1B\u672A\u5B8C\u6574\u53EF\u89C1\u6216\u5185\u90E8\u5230\u8FBE\u8FB9\u754C\u65F6\uFF0C\u6EDA\u8F6E\u7EE7\u7EED\u6EDA\u52A8\u6B63\u6587\u3002",
+          "\u5C55\u5F00\u548C\u6536\u8D77\u65F6\u540C\u6B65\u539F\u751F\u4EE3\u7801\u7F16\u8F91\u5668\u7684\u6EDA\u52A8\u4F4D\u7F6E\uFF0C\u6D88\u9664\u6EDA\u5230\u5E95\u540E\u5C55\u5F00\u6B8B\u7559\u5185\u90E8\u504F\u79FB\u9020\u6210\u7684\u9996\u884C\u88C1\u5207\u3002"
+        ]
+      },
+      {
         sequence: 2026092722,
         version: "2026.09.27.22",
         date: "2026-09-27",
@@ -257467,13 +257504,15 @@ https://creativecommons.org/licenses/by/4.0/
     button.title = expanded2 ? "\u6062\u590D\u957F\u4EE3\u7801\u5757\u7684\u9650\u9AD8\u663E\u793A" : "\u5C55\u793A\u8FD9\u4E2A\u4EE3\u7801\u5757\u7684\u5168\u90E8\u5185\u5BB9";
   }
   function set_code_expanded(fence, button, expanded2) {
-    fence.classList.toggle("is-code-expanded", expanded2);
-    fence.classList.toggle("is-code-collapsed", !expanded2);
-    render_code_toggle(button, expanded2);
-    if (!expanded2) {
+    const editor2 = code_mirror_for_fence(fence);
+    if (editor2) editor2.scrollTo(null, 0);
+    else {
       const scroller = fence.querySelector(".CodeMirror-scroll");
       if (scroller) scroller.scrollTop = 0;
     }
+    fence.classList.toggle("is-code-expanded", expanded2);
+    fence.classList.toggle("is-code-collapsed", !expanded2);
+    render_code_toggle(button, expanded2);
     code_geometry?.refresh(fence);
   }
   function bind_reading_action_events() {
@@ -257740,6 +257779,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     });
     code_geometry = bind_reading_code_geometry();
+    runtime_lifetime.add(bind_reading_code_wheel());
     code_copy = bind_reading_code_copy(document.body, (text3) => {
       const files = get_workspace_files();
       if (!files) throw new Error("\u526A\u8D34\u677F\u5C1A\u672A\u5C31\u7EEA");

@@ -1,0 +1,143 @@
+{
+  "requirements": [
+    "R068.9",
+    "R068.10"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.23",
+  "baseline": "53696d35fe30df9d61ece371ec3664564013a62d",
+  "asset_sha256": "5579e062d32dcfd8dc35022e9b58c6601369b850ad66b0faf8fec05f234fcddc",
+  "upstream": {
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/base/browser/ui/scrollbar/scrollableElement.ts:_onMouseWheel",
+      "src/vs/editor/common/config/editorOptions.ts:alwaysConsumeMouseWheel"
+    ],
+    "adoption": "当前方向可滚与消费边界；完整可见条件来自用户明确阅读需求，不声称VS Code默认",
+    "native": "Typora 1.14.10 CodeMirror.scrollTo(null,0)，展开前同步模型与DOM垂直偏移，保留横向和选区"
+  },
+  "reproduction": {
+    "wheel": "UI旧嵌套滚动在按钮屏外时截获；绑定新适配后正文先滚动",
+    "clip": {
+      "id": "ee5ac2e4d5a045129a3c2ce17b46b1fa",
+      "asset_sha256": "6ec42582c1426eaed671466db47408ea09a65afbb2db51c9e6eec7fac40d0687",
+      "before_model_top": 568,
+      "after_dom_top": 34.857,
+      "text_above_clip_px": 30.286,
+      "limitation": "展开立即裁切已确认；该样本250ms后恢复，尚未复现用户持续到点击才恢复的全部条件。探索夹具PASS仅表示保存检查，不代表首行正确。"
+    }
+  },
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "id": "892e57b9e39c462dabe75719cbf941a1",
+      "boundary": "最终产品实现和测试目录；之后仅文档与证据变化"
+    },
+    "catalog": {
+      "classified_suites": 252,
+      "is_executed_count": false
+    },
+    "ui": [
+      {
+        "suite": "reading_code_wheel",
+        "id": "16f8c0a81eab45d190aea68138025ebd",
+        "checks": 38,
+        "status": "PASS"
+      },
+      {
+        "suite": "reading_code_geometry",
+        "id": "17f0908dd05f4b039e9f9d26c650306f",
+        "checks": 9,
+        "cycles": 20,
+        "status": "PASS"
+      }
+    ],
+    "native": [
+      {
+        "id": "c65fdce30b28492a9b0cc86d1f4a453a",
+        "status": "PASS",
+        "checks": 46,
+        "trusted_wheel_events": 48,
+        "repeat_cycles": 20,
+        "sample": "用户文档隔离副本",
+        "asset_sha256": "5579e062d32dcfd8dc35022e9b58c6601369b850ad66b0faf8fec05f234fcddc",
+        "max_event_to_frame_ms": 6.100000001490116,
+        "boundary": "Windows消息投递，确认Chromium可信事件；主题2种/窗口比例1与1.25/内容放大8步；20轮几何重复另计，不代表物理设备延迟"
+      },
+      {
+        "id": "9c6cf8c55c074111832b46f4083e4bff",
+        "status": "PASS",
+        "checks": 46,
+        "trusted_wheel_events": 56,
+        "repeat_cycles": 20,
+        "sample": "生成32行C围栏",
+        "asset_sha256": "5579e062d32dcfd8dc35022e9b58c6601369b850ad66b0faf8fec05f234fcddc",
+        "max_event_to_frame_ms": 2.2000000029802322,
+        "boundary": "Windows消息投递，确认Chromium可信事件；主题2种/窗口比例1与1.25/内容放大8步；20轮几何重复另计，不代表物理设备延迟"
+      }
+    ],
+    "install_cycles": {
+      "status": "PASS",
+      "id": "2cb1f289922f4d0ca2c8f660ee0f9ed8",
+      "scope": "公开安装/检查/restore卸载/重装/检查/detach卸载/重装/检查；文档、配置与备份保持"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "id": "2337e4da04f2436dbb568a8768f92117",
+      "assertions": 65,
+      "scope": "包含卸载失败、取消及回滚"
+    }
+  },
+  "failed_or_unresolved": [
+    {
+      "suite": "wheel_zoom",
+      "ids": [
+        "8786745d882d46388ff413a48c8d8112",
+        "efea93d564b5494f991446cfa0c9651e"
+      ],
+      "error": "viewportY===baseY平滑滚动到底轮询超时",
+      "scope": "前4项及20轮历史保持通过，后续未执行；未加载本轮修改模块，保持TEST-terminal-smooth-scroll-poll未解决"
+    },
+    {
+      "id": "c6f784b6da1a414080d123910b1f53e3",
+      "error": "调用误写test_workspace_wheel_zoom.cjs，测试未执行"
+    },
+    {
+      "id": "c2ce79faf4eb4593aee648ef3ce6e91d",
+      "error": "新增R068.10正式索引遗漏，补齐后全check重新通过"
+    },
+    {
+      "ids": [
+        "aad8db1497454e20a328685370031228",
+        "307f0e0717b24c0183a189a0480a8ca5",
+        "e82fa92ddca84ea6a453cc8305d96ab6",
+        "76edb46062544d2bb6faa06504524dc3"
+      ],
+      "error": "早期UI夹具使用window.fence保留属性/前一滚轮手势未结束；改夹具后重新通过"
+    }
+  ],
+  "local_install": {
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      49,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "9527a1865de506ab017a1e5a12def28d19b3d7d93de1d6061ec89109036693e5",
+    "window_restarted": false
+  },
+  "limits": [
+    "未运行全量UI，252是分类数",
+    "现场持续裁切仍待用户保存并重启加载候选后复核，不标为全部关闭",
+    "用户真实环境仅卸载只读预检；未关闭或重启用户窗口",
+    "未测非Windows、物理鼠标设备及长期压力",
+    "R068.6按用户要求暂缓；既有历史未决项保留"
+  ],
+  "cleanup": "本次原生、UI、完整check、隔离安装与卸载受管载荷均回收；日志、JSON及截图保留",
+  "delivery": "本机已安装；本记录随代码候选提交，未推送"
+}

@@ -8732,6 +8732,67 @@
       ],
       "timeout_ms": 240000,
       "required_executables": []
+    },
+    {
+      "id": "TC-reading-code-wheel",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.9"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_wheel.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "reading",
+        "scroll",
+        "code"
+      ],
+      "script": "enhancements/scripts/test_reading_code_wheel.cjs",
+      "environment": "Electron真实滚轮及几何夹具",
+      "preconditions": "隔离文档与受管运行器",
+      "steps": [
+        "部分可见与完整可见、边界、缩放、生命周期及正文保持"
+      ],
+      "expected": [
+        "滚轮归属正确，正文不变"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
+    },
+    {
+      "id": "TC-code-wheel-native",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.9",
+        "R068.10"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_wheel.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "reading",
+        "scroll",
+        "code"
+      ],
+      "script": "enhancements/fixtures/code_wheel_native.js",
+      "environment": "原始Typora私有桌面，Windows投递可信滚轮",
+      "preconditions": "隔离文档与受管运行器",
+      "steps": [
+        "先内部滚到底，点击一次展开，滚轮回顶部；首行立即/下一帧/稳定边界；明暗、字号与窗口缩放、20轮往返及正文保持"
+      ],
+      "expected": [
+        "滚轮归属正确，正文不变"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
     }
   ]
 }
