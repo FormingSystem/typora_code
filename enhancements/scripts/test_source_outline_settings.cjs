@@ -4,13 +4,13 @@ const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_outline_settings_'));
 const base=path.resolve(__dirname,'..'),core=path.join(base,'vendor/workspace_core');
 app.setPath('userData',path.join(root,'electron'));app.disableHardwareAcceleration();
 app.whenReady().then(async()=>{
-  const bundle=await require('esbuild').build({stdin:{contents:'export * from "./src/source_outline_settings"; export {Settings} from "./vendor/workspace_core/src/settings/settings"; export {ConfigRepository} from "./vendor/workspace_core/src/io/config-repository";',resolveDir:base},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'settings_qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[...require('./editor_bundle.cjs').editor_plugins(),{name:'settings-fixture',setup(ctx){
+  const bundle=await require('esbuild').build({stdin:{contents:'export * from "./src/source_outline_settings";export * from "./src/language_service_settings";export * from "./src/language_service_settings_view";export * from "./src/language_environment"; export {Settings} from "./vendor/workspace_core/src/settings/settings"; export {ConfigRepository} from "./vendor/workspace_core/src/io/config-repository";',resolveDir:base},bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'settings_qa',tsconfigRaw:{compilerOptions:{experimentalDecorators:true}},plugins:[...require('./editor_bundle.cjs').editor_plugins(),{name:'settings-fixture',setup(ctx){
     ctx.onResolve({filter:/.*/,namespace:'fixture'},args=>path.isAbsolute(args.path)?{path:args.path,namespace:'file'}:undefined);
-    ctx.onResolve({filter:/clangd_symbol_service$/},()=>({path:'discovery',namespace:'fixture'}));
+    ctx.onResolve({filter:/language_analysis_service$/},()=>({path:'discovery',namespace:'fixture'}));
     ctx.onResolve({filter:/^src\/common\/constants$/},()=>({path:'constants',namespace:'fixture'}));
     ctx.onResolve({filter:/^src\/common\/service$/},()=>({path:'service',namespace:'fixture'}));
     ctx.onResolve({filter:/^src\/utils$/},()=>({path:'utils',namespace:'fixture'}));
-    ctx.onLoad({filter:/.*/,namespace:'fixture'},({path:entry})=>({contents:entry==='constants'?'export const globalConfigDir=()=>window.settings_store_root;':entry==='service'?'export function useService(){throw new Error("unexpected service lookup");}':entry==='discovery'?'export const discover_clangd_environment=options=>window.fixture_discovery(options);':`export {Store} from ${JSON.stringify(path.join(core,'src/utils/store.ts'))};export {debounced} from ${JSON.stringify(path.join(core,'src/utils/decorator/debounced.ts'))};`,loader:'js'}));
+    ctx.onLoad({filter:/.*/,namespace:'fixture'},({path:entry})=>({contents:entry==='constants'?'export const globalConfigDir=()=>window.settings_store_root;':entry==='service'?'export function useService(){throw new Error("unexpected service lookup");}':entry==='discovery'?'export const discover_clangd_environment=options=>window.fixture_discovery(options);export const discover_language_server=async command=>{if(command==="invalid")throw Error("程序不存在");return command;};':`export {Store} from ${JSON.stringify(path.join(core,'src/utils/store.ts'))};export {debounced} from ${JSON.stringify(path.join(core,'src/utils/decorator/debounced.ts'))};`,loader:'js'}));
     ctx.onResolve({filter:/^src\//},args=>({path:path.join(core,args.path)+'.ts'}));
   }}]});
   const win=new BrowserWindow({show:false,width:1000,height:760,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true}});
@@ -63,6 +63,43 @@ app.whenReady().then(async()=>{
   await evaluate(`dialog.close();void 0`);await pause();
   assert.equal(await evaluate(`document.getElementById('typora-code-source-outline-settings')===null`),true,'closing last dialog releases module style');
   assert(!fs.existsSync(path.join(root,'project-one'))&&!fs.existsSync(path.join(root,'project-two')),'no writes within user project paths');
-  console.log(JSON.stringify({status:'PASS',checks:['automatic defaults','project and global scope','per-line arguments','atomic rename/partial-write failure','no false success','reload persistence','stale discovery','cancel/focus restore','small viewport and dark theme','no project writes'],evidence:root}));
+  await evaluate(`settings_qa.save_language_service_profiles(workspace_one,'user',{python:{provider:'lsp',command:'python',args:['-m','pylsp']},java:{provider:'disabled'}});settings_qa.save_language_service_profiles(workspace_one,'workspace',{python:{provider:'disabled'}});void 0`);
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').provider`),'disabled');
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_two,'python').command`),'python');
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'java').provider`),'disabled');
+  await evaluate(`settings_qa.save_language_service_profiles(workspace_one,'workspace',{});void 0`);
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').provider`),'lsp');
+  const config_before=fs.readFileSync(settings_file,'utf8');
+  assert.match(await evaluate(`(()=>{try{settings_qa.save_language_service_profiles(workspace_one,'user',{python:{provider:'lsp',command:'python',args:'-m pylsp'}});return 'no error'}catch(error){return error.message}})()`),/args/);
+  await evaluate(`failure_mode='rename';void 0`);
+  assert.match(await evaluate(`(()=>{try{settings_qa.save_language_service_profiles(workspace_one,'user',{});return 'no error'}catch(error){return error.message}})()`),/rename denied/);
+  assert.equal(fs.readFileSync(settings_file,'utf8'),config_before);assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').provider`),'lsp');
+  await evaluate(`failure_mode='';void 0`);
+  // 探测使用专属目录与环境替身，保存/显示使用真实DOM和同一设置所有者。
+  const executable=process.platform==='win32'?'python.exe':'python';
+  const venv_bin=path.join(root,'project-one','.venv',process.platform==='win32'?'Scripts':'bin');fs.mkdirSync(venv_bin,{recursive:true});fs.writeFileSync(path.join(venv_bin,executable),'fixture');
+  if(process.platform!=='win32')fs.chmodSync(path.join(venv_bin,executable),0o755);
+  const cargo_bin=path.join(root,'cargo home','bin');fs.mkdirSync(cargo_bin,{recursive:true});for(const name of ['rust-analyzer','rustc','cargo']){const file=path.join(cargo_bin,name+(process.platform==='win32'?'.exe':''));fs.writeFileSync(file,'fixture');if(process.platform!=='win32')fs.chmodSync(file,0o755);}
+  const env_before=process.env.PATH;
+  await evaluate(`window.environment_node=name=>name==='process'?{platform:require('process').platform,env:{PATH:''}}:require(name);void 0`);
+  const rust_candidates=await evaluate(`settings_qa.discover_language_environments('rust',workspace_one,name=>name==='process'?{platform:require('process').platform,env:{CARGO_HOME:${JSON.stringify(path.dirname(cargo_bin))},PATH:${JSON.stringify(cargo_bin)}}}:require(name))`);
+  assert.equal(rust_candidates.length,3);assert.equal(rust_candidates.filter(item=>item.kind==='server').length,1);
+  const detected=await evaluate(`settings_qa.discover_language_environments('python',workspace_one,environment_node)`);
+  assert.equal(detected.length,1);assert.deepEqual(detected[0].args,['-m','pylsp']);
+  assert.equal(await evaluate(`settings_qa.resolve_python_environment('.venv',workspace_one)`),path.join(venv_bin,executable));
+  await evaluate(`dialog=settings_qa.open_language_service_settings(workspace_one);window.field=name=>dialog.root.querySelector('[data-field="'+name+'"]');if(getComputedStyle(field('venv').parentElement).display!=='none')throw Error('非Python不显示venv字段');field('language').value='python';field('language').dispatchEvent(new Event('change'));void 0`);await pause();
+  await evaluate(`field('command').value=${JSON.stringify(path.join(venv_bin,executable))};field('provider').value='lsp';field('args').value='["-m","pylsp"]';dialog.root.querySelector('[data-action="save"]').click();void 0`);await pause();
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').command`),path.join(venv_bin,executable));
+  await evaluate(`field('command').value='invalid';dialog.root.querySelector('[data-action="save"]').click();void 0`);await pause();
+  assert.match(await evaluate(`dialog.root.querySelector('[role="status"]').textContent`),/保存失败/);
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').command`),path.join(venv_bin,executable));
+  assert(await evaluate(`(()=>{const r=dialog.root.querySelector('.git-graph-dialog').getBoundingClientRect();return r.right<=innerWidth&&r.bottom<=innerHeight&&dialog.footer.getBoundingClientRect().bottom<=innerHeight})()`));
+  assert.equal(await evaluate(`getComputedStyle(field('language')).backgroundColor`),'rgb(24, 24, 24)');
+  await evaluate(`dialog.root.querySelector('[data-action="inherit"]').click();dialog.close();void 0`);await pause();
+  assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').command`),'python');
+  assert.equal(process.env.PATH,env_before);
+  await evaluate(`dialog=settings_qa.open_language_service_settings(workspace_one);if(![...dialog.root.querySelector('[data-field="language"]').options].some(option=>option.value==='rust'))throw Error('Rust选项缺失');dialog.close();void 0`);
+  assert.equal(await evaluate(`document.getElementById('typora-code-source-outline-settings')===null`),true);
+  console.log(JSON.stringify({status:'PASS',checks:['automatic defaults','project and global scope','per-line arguments','atomic rename/partial-write failure','no false success','reload persistence','stale discovery','cancel/focus restore','small viewport and dark theme','no project writes','language profiles user/workspace inheritance, validation and atomic failure','PATH and project venv discovery, manual selection/save/inherit, unavailable executable, narrow geometry and themed select, no PATH changes'],evidence:root}));
   win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(root);app.exit(1)});

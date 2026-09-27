@@ -47,6 +47,7 @@ export function bind_workspace_settings_view(core:graph_core){
         let values:Record<string,unknown>;try{values=section.read();}catch(error){this.body.append(el('p','',String(error)));continue;}
         for(const field of fields){count++;const value=values[field.key],baseline=section.defaults[field.key];
           const row=el('div','workspace-setting-row'),label=el('label','workspace-setting-label',field.title),key=el('small','',field.key);
+          if(field.action){const action=button(field.title,field.action);action.dataset.setting=section.id+'.'+field.key;row.append(action);if(field.description)row.append(el('p','',field.description));this.body.append(row);continue;}
           const control=field.choices?el('select'):typeof baseline==='object'?el('textarea'):el('input');control.dataset.setting=section.id+'.'+field.key;control.setAttribute('aria-label',field.title);
           if(control instanceof HTMLSelectElement)for(const choice of field.choices!)control.append(new Option(choice,choice));
           const fill=()=>{const current=section.read()[field.key];if(control instanceof HTMLInputElement&&typeof baseline==='boolean'){control.type='checkbox';control.checked=current===true;}else{if(control instanceof HTMLInputElement)control.type=typeof baseline==='number'?'number':'text';control.value=typeof baseline==='object'?JSON.stringify(current,null,2):String(current??'');}};fill();

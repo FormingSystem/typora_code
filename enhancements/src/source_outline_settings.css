@@ -4,14 +4,16 @@
 .source-outline-settings .source-outline-settings-context{margin:0 0 12px;font-size:12px;opacity:.8}
 .source-outline-settings .source-outline-settings-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px}
 .source-outline-settings small{font-size:12px;opacity:.75}
-.source-outline-settings button,.source-outline-settings input,.source-outline-settings textarea{box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid #8885;border-radius:4px;padding:6px 9px;margin:0}
-.source-outline-settings input,.source-outline-settings textarea{width:100%;min-width:0}
+.source-outline-settings button,.source-outline-settings input,.source-outline-settings select,.source-outline-settings textarea{box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid #8885;border-radius:4px;padding:6px 9px;margin:0}
+.source-outline-settings select,.source-outline-settings input,.source-outline-settings textarea{width:100%;min-width:0}
 .source-outline-settings textarea{resize:vertical;min-height:84px;max-height:25vh;font-family:Consolas,monospace}
 .source-outline-settings button{cursor:pointer}
 
 .source-outline-settings button:disabled{cursor:default;opacity:.5}
-.source-outline-settings :is(input,textarea):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
+.source-outline-settings :is(input,select,textarea):focus-visible{outline:1px solid var(--active-file-border-color,#007acc);outline-offset:1px}
 .source-outline-settings button.source-outline-settings-save{color:var(--linux-note-button-foreground,#fff);background:var(--linux-note-button-background,#0069cc);border-color:transparent}
 .source-outline-settings .source-outline-settings-status{margin:0;white-space:pre-wrap;font-size:12px;min-height:18px}
 .source-outline-settings .source-outline-settings-status.is-error{color:var(--notification-error-color,#c72e0f)}
 @media(max-width:500px){.source-outline-settings.git-graph-dialog-shade{padding:8px}.source-outline-settings>.git-graph-dialog{width:100%;max-height:calc(100vh - 16px)}}
+
+.source-outline-settings .source-outline-settings-field[hidden]{display:none}

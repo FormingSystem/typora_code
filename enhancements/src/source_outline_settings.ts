@@ -1,8 +1,9 @@
+import {notify_language_services} from "./language_service_settings";
 import css from "./source_outline_settings.css";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_button, workspace_dialog, workspace_element} from "./workspace_widgets";
-import {discover_clangd_environment} from "./clangd_symbol_service";
+import {discover_clangd_environment} from "./language_analysis_service";
 
 export type source_outline_settings = {clangd_path:string;compile_commands_dir:string;fallback_flags:string[]};
 type project_settings = Pick<source_outline_settings,"compile_commands_dir"|"fallback_flags">;
@@ -46,7 +47,7 @@ export function save_source_outline_settings(root:string,value:source_outline_se
   next.compile_commands_dir=relative_database(root,next.compile_commands_dir);
   const projects=stored.workspaces&&typeof stored.workspaces==="object"&&!Array.isArray(stored.workspaces)?stored.workspaces:{};
   // 保存前重读并合并，只替换当前工作区；set_and_save 在持久化成功后才发布更新。
-  settings.set_and_save(SETTINGS_KEY,{...stored,clangd_path:next.clangd_path,workspaces:{...projects,[key]:{compile_commands_dir:next.compile_commands_dir,fallback_flags:next.fallback_flags}}});
+  settings.set_and_save(SETTINGS_KEY,{...stored,clangd_path:next.clangd_path,workspaces:{...projects,[key]:{compile_commands_dir:next.compile_commands_dir,fallback_flags:next.fallback_flags}}});notify_language_services();
 }
 
 /** 复用现有模态框与键盘行为；路径检测不会启动 shell 或修改工作区。 */

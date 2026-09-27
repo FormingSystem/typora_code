@@ -1,6 +1,8 @@
+import {read_language_service_profile,observe_language_services} from "./language_service_settings";
+import {set_source_semantics} from "./source_semantic_tokens";
 import {marked} from "marked";
 import {create_source_symbol_service} from "./source_symbol_service";
-import {create_clangd_symbol_service} from "./clangd_symbol_service";
+import {create_language_analysis_service} from "./language_analysis_service";
 import {read_source_outline_settings} from "./source_outline_settings";
 import type {source_symbol} from "./source_symbols";
 
@@ -29,22 +31,31 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
   let owner=entries.get(key);
   if(!owner){
     const state:document_symbols={symbols:[],version:-1,language:"",loading:true,error:"",incomplete:false,provider:"",notice:""},listeners=new Set<(s:document_symbols)=>void>();
-    let disposed=false,timer=0,request:AbortController|undefined,worker:ReturnType<typeof create_source_symbol_service>|undefined,clangd:ReturnType<typeof create_clangd_symbol_service>|undefined;
+    let analysis_running=false,semantic_refresh_pending=false;
+    let disposed=false,timer=0,request:AbortController|undefined,worker:ReturnType<typeof create_source_symbol_service>|undefined,clangd:ReturnType<typeof create_language_analysis_service>|undefined;
     const notify=()=>{for(const callback of listeners)callback(state);};
     const parse=async()=>{
-      timer=0;if(disposed||model.isDisposed())return;const controller=request=new AbortController(),version=model.getVersionId(),language=model.getLanguageId();
+      timer=0;if(disposed||model.isDisposed())return;analysis_running=true;const controller=request=new AbortController(),version=model.getVersionId(),language=model.getLanguageId();
       Object.assign(state,{loading:true,symbols:[],error:"",notice:"",language,version:-1});notify();
       try{
+        const profile=read_language_service_profile(workspace_root,language);
         const compiled=language==="c"||language==="cpp",settings=compiled?read_source_outline_settings(workspace_root):undefined;
-        const result=language==="markdown"?{symbols:markdown_document_symbols(model.getValue()),incomplete:false}:compiled?await (clangd??=create_clangd_symbol_service()).parse({file_path,workspace_root,language,text:model.getValue(),executable:settings!.clangd_path,compile_commands_dir:settings!.compile_commands_dir,fallback_flags:settings!.fallback_flags},controller.signal):await(worker??=create_source_symbol_service()).parse(language,model.getValue(),controller.signal);
+        const use_lsp=profile.provider==="lsp"||(compiled&&profile.provider==="default");
+        if(!use_lsp&&clangd){await clangd.dispose();clangd=undefined;}
+        const result=profile.provider==="disabled"?{symbols:[],incomplete:false}:language==="markdown"?{symbols:markdown_document_symbols(model.getValue()),incomplete:false}:use_lsp?await (clangd??=create_language_analysis_service(undefined,semantic_refresh)).parse({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags},controller.signal):await(worker??=create_source_symbol_service()).parse(language,model.getValue(),controller.signal);
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())return;
-        const notice="provider" in result?result.diagnostics.errors?`clangd 报告 ${result.diagnostics.errors} 项诊断；请核对解析设置。`:!result.compile_commands_dir?"未找到编译数据库，使用后备参数。":"":result.incomplete?"语法尚未完整，显示可识别符号。":"";
-        Object.assign(state,{symbols:result.symbols,version,loading:false,incomplete:result.incomplete,provider:compiled?"clangd":language==="markdown"?"markdown":"tree-sitter",notice});notify();
+        set_source_semantics(model,"semantic_tokens" in result?result.semantic_tokens:undefined);
+        const notice="provider" in result?[result.notice,result.diagnostics.errors?`${result.provider} 报告 ${result.diagnostics.errors} 项诊断；请核对解析设置。`:result.provider==="clangd"&&!result.compile_commands_dir?"未找到编译数据库，使用后备参数。":""].filter(Boolean).join(" "):profile.provider==="disabled"?"已关闭此语言分析。":result.incomplete?"语法尚未完整，显示可识别符号。":"";
+        Object.assign(state,{symbols:result.symbols,version,loading:false,incomplete:result.incomplete,provider:"provider" in result?result.provider:profile.provider==="disabled"?"disabled":language==="markdown"?"markdown":"tree-sitter",notice});notify();
       }catch(error){if(!disposed&&!controller.signal.aborted){Object.assign(state,{symbols:[],loading:false,error:String(error instanceof Error?error.message:error),version});notify();}}
+      finally{analysis_running=false;if(semantic_refresh_pending){semantic_refresh_pending=false;semantic_refresh();}}
     };
-    const refresh=()=>{request?.abort();clearTimeout(timer);Object.assign(state,{symbols:[],loading:true,version:-1,error:""});notify();timer=window.setTimeout(parse,150);};
+    // 服务完成工程/标准库加载后合并刷新；不打断当前响应、不清空已有颜色。
+    const semantic_refresh=()=>{if(disposed||model.isDisposed())return;if(analysis_running){semantic_refresh_pending=true;return;}clearTimeout(timer);timer=window.setTimeout(parse,150);};
+    const refresh=()=>{request?.abort();set_source_semantics(model);clearTimeout(timer);Object.assign(state,{symbols:[],loading:true,version:-1,error:""});notify();timer=window.setTimeout(parse,150);};
+    const settings_release=observe_language_services(refresh);
     const content=model.onDidChangeContent(refresh),language=model.onDidChangeLanguage(refresh);
-    owner={state,listeners,refresh,dispose(){if(disposed)return;disposed=true;clearTimeout(timer);request?.abort();content.dispose();language.dispose();worker?.dispose();void clangd?.dispose();listeners.clear();}};entries.set(key,owner);refresh();
+    owner={state,listeners,refresh,dispose(){if(disposed)return;disposed=true;settings_release();set_source_semantics(model);clearTimeout(timer);request?.abort();content.dispose();language.dispose();worker?.dispose();void clangd?.dispose();listeners.clear();}};entries.set(key,owner);refresh();
   }
   const target=owner;target.listeners.add(listener);listener(target.state);let released=false;
   return{get state(){return target.state;},refresh:target.refresh,dispose(){if(released)return;released=true;target.listeners.delete(listener);if(!target.listeners.size){target.dispose();entries!.delete(key);if(!entries!.size)models.delete(model);}}};

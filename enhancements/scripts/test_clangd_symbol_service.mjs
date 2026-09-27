@@ -7,12 +7,12 @@ import {EventEmitter} from 'node:events';
 import {build} from 'esbuild';
 
 const node=createRequire(import.meta.url),checks=[];
-const compiled=await build({entryPoints:['src/clangd_symbol_service.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const compiled=await build({entryPoints:['src/language_analysis_service.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const api=await import(`data:text/javascript;base64,${Buffer.from(compiled.outputFiles[0].text).toString('base64')}`);
 const evidence=await fs.mkdtemp(path.join(os.tmpdir(),'typora_clangd_'));
 const signal=()=>new AbortController().signal;
 const flatten=items=>items.flatMap(item=>[item,...flatten(item.children)]);
-const transport_bundle=await build({entryPoints:['src/clangd_transport.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const transport_bundle=await build({entryPoints:['src/language_server_transport.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const transport_api=await import(`data:text/javascript;base64,${Buffer.from(transport_bundle.outputFiles[0].text).toString('base64')}`);
 let child,writes=[],spawn_options,on_fake_write;
 const fake_node=name=>name==='child_process'?{spawn(executable,args,options){
@@ -23,7 +23,7 @@ const fake_node=name=>name==='child_process'?{spawn(executable,args,options){
 const frame=message=>{const body=Buffer.from(JSON.stringify({jsonrpc:'2.0',...message}),'utf8');return Buffer.concat([Buffer.from(`Content-Length: ${body.length}\r\n\r\n`),body]);};
 const respond=message=>child.stdout.emit('data',frame(message));
 const notifications=[];
-const transport=transport_api.create_clangd_transport(fake_node,'clangd',['--background-index=false'],evidence,(method,params)=>notifications.push([method,params]));
+const transport=transport_api.create_language_server_transport(fake_node,'clangd',['--background-index=false'],evidence,(method,params)=>notifications.push([method,params]));
 assert.equal(spawn_options.shell,false);assert.equal(spawn_options.windowsHide,true);
 const framed_request=transport.request('symbols',{}),framed_bytes=frame({id:writes.at(-1).id,result:'中文 😀'});
 child.stdout.emit('data',framed_bytes.subarray(0,19));child.stdout.emit('data',framed_bytes.subarray(19,framed_bytes.length-3));child.stdout.emit('data',Buffer.concat([framed_bytes.subarray(framed_bytes.length-3),frame({method:'status',params:{ready:true}})]));
@@ -32,9 +32,9 @@ const cancel_controller=new AbortController(),cancel_request=transport.request('
 respond({id:300,method:'workspace/applyEdit',params:{edit:{}}});assert(writes.some(item=>item.id===300&&item.error?.code===-32601));
 await assert.rejects(transport.request('timeout',{},undefined,10),/超时/);checks.push('cancellation, late responses, request timeouts and server edit refusal');
 await transport.dispose();assert.equal(child.exitCode,0);checks.push('transport requests graceful shutdown then exit');
-const broken=transport_api.create_clangd_transport(fake_node,'clangd',[],evidence,()=>{}),broken_request=broken.request('bad',{});child.stdout.emit('data',Buffer.from('Wrong: bad\r\n\r\n{}'));await assert.rejects(broken_request,/协议头/);assert.equal(child.exitCode,1);await broken.dispose();checks.push('malformed protocol fails pending requests and terminates owned process');
+const broken=transport_api.create_language_server_transport(fake_node,'clangd',[],evidence,()=>{}),broken_request=broken.request('bad',{});child.stdout.emit('data',Buffer.from('Wrong: bad\r\n\r\n{}'));await assert.rejects(broken_request,/协议头/);assert.equal(child.exitCode,1);await broken.dispose();checks.push('malformed protocol fails pending requests and terminates owned process');
 for(const channel of ['stdin','stdout','stderr']){
-  const failed_channel=transport_api.create_clangd_transport(fake_node,'clangd',[],evidence,()=>{});
+  const failed_channel=transport_api.create_language_server_transport(fake_node,'clangd',[],evidence,()=>{});
   const requests=Promise.allSettled([failed_channel.request('first',{}),failed_channel.request('second',{})]);
   assert.doesNotThrow(()=>child[channel].emit('error',new Error('fixture pipe failure')));
   const settled=await requests;
@@ -46,9 +46,9 @@ for(const channel of ['stdin','stdout','stderr']){
 }
 checks.push('stdin, stdout and stderr errors reject all pending work, terminate the owned child and remain handled after disposal');
 
-const mapped=api.clangd_document_symbols([{name:'变量',kind:13,range:{start:{line:1,character:0},end:{line:1,character:8}},selectionRange:{start:{line:1,character:4},end:{line:1,character:6}}}],'// 😀\r\nint 变量;\r\n');
+const mapped=api.language_document_symbols([{name:'变量',kind:13,range:{start:{line:1,character:0},end:{line:1,character:8}},selectionRange:{start:{line:1,character:4},end:{line:1,character:6}}}],'// 😀\r\nint 变量;\r\n');
 assert.equal('// 😀\r\nint 变量;\r\n'.slice(mapped[0].selection_start,mapped[0].selection_end),'变量');
-assert.deepEqual(api.clangd_document_symbols([{name:'invalid',range:{start:{line:-1,character:0}}}],'x'),[]);
+assert.deepEqual(api.language_document_symbols([{name:'invalid',range:{start:{line:-1,character:0}}}],'x'),[]);
 checks.push('UTF-16 with astral text, CRLF and invalid ranges');
 
 await assert.rejects(api.discover_clangd_environment({executable:path.join(evidence,'missing-clangd.exe')},node),/clangd/);
@@ -63,7 +63,7 @@ await fs.writeFile(file,disk,'utf8');
 await fs.writeFile(path.join(project,'build','debug','compile_commands.json'),JSON.stringify([{directory:project,file,arguments:['clang','-x','c','-DPROJECT_FEATURE',file]}]),'utf8');
 const discovered=await api.discover_clangd_environment({workspace_root:project},node);
 assert.equal(discovered.compile_commands_dir,path.join(project,'build','debug'));checks.push('bounded build child database discovery');
-const service=api.create_clangd_symbol_service(node);
+const service=api.create_language_analysis_service(node);
 try{
   const request={file_path:file,workspace_root:project,language:'c',text:disk};
   const first=await service.parse(request,signal()),all=flatten(first.symbols);
@@ -71,7 +71,7 @@ try{
   for(const name of ['port_t','external','prototype','real','device','state','configured'])assert(all.some(item=>item.name===name),name+' in real clangd symbols');
   const real=all.find(item=>item.name==='real');assert.equal(disk.slice(real.selection_start,real.selection_end),'real');
   assert.equal(all.find(item=>item.name==='device').kind,'struct');assert.equal(all.find(item=>item.name==='prototype').kind,'function');
-  assert.equal(first.provider,'clangd');assert.equal(first.incomplete,false);checks.push('real clangd C conditional header, database macro, declarations, definitions, fields and exact selection');
+  assert(first.semantic_tokens?.data.length>0,'real clangd semantic tokens');assert(first.semantic_tokens.token_types.includes('function'));assert.equal(first.provider,'clangd');assert.equal(first.incomplete,false);checks.push('real clangd C conditional header, database macro, declarations, definitions, fields and exact selection');
   const next=await service.parse({...request,text:disk+'\r\nint unsaved_only;\r\n'},signal());assert(flatten(next.symbols).some(item=>item.name==='unsaved_only'));
   assert.equal(await fs.readFile(file,'utf8'),disk);checks.push('didChange analyzes unsaved buffer without disk writes');
   const cancelled=new AbortController();const stale=service.parse({...request,text:'int stale;'},cancelled.signal);cancelled.abort();await assert.rejects(stale,error=>error.name==='AbortError');
@@ -93,7 +93,7 @@ on_fake_write=message=>{
     respond({id:message.id,result:[]});
   }
 };
-const diagnostic_service=api.create_clangd_symbol_service(fake_node),diagnostic_request={file_path:file,workspace_root:project,language:'c',text:disk};
+const diagnostic_service=api.create_language_analysis_service(fake_node),diagnostic_request={file_path:file,workspace_root:project,language:'c',text:disk};
 try{
   const pending_diagnostic=await diagnostic_service.parse(diagnostic_request,signal());
   assert.equal(pending_diagnostic.diagnostics.received,false,'symbols can precede their diagnostics');
@@ -104,13 +104,35 @@ try{
 }finally{await diagnostic_service.dispose();on_fake_write=undefined;}
 checks.push('diagnostics distinguish not-yet-received, current-version, stale and unversioned notifications');
 
-const launch_fail=api.create_clangd_symbol_service(node);
+// 多语言协议验证：真实子进程仍由下面的clangd用例验证。
+for(const language of ['python','java']){
+ writes=[];
+ on_fake_write=message=>{
+  if(message.method==='initialize')queueMicrotask(()=>respond({id:message.id,result:{capabilities:{positionEncoding:'utf-16',documentSymbolProvider:true,semanticTokensProvider:{full:true,legend:{tokenTypes:['function'],tokenModifiers:['declaration']}}}}}));
+  if(message.method==='textDocument/documentSymbol')queueMicrotask(()=>respond({id:message.id,result:[]}));
+  if(message.method==='textDocument/semanticTokens/full')queueMicrotask(()=>respond({id:message.id,result:{data:[0,0,3,0,1]}}));
+ };
+ let semantic_refreshes=0;const language_service=api.create_language_analysis_service(fake_node,()=>{semantic_refreshes++;});
+ try{
+  const result=await language_service.parse({file_path:file,workspace_root:project,language,text:'abc',server:{provider:'lsp',command:process.execPath,args:['server.js','--stdio'],initialization_options:{test:true},settings:{demo:{enabled:true}}}},signal());
+  respond({id:557,method:'workspace/semanticTokens/refresh',params:{}});assert.equal(semantic_refreshes,1);assert.equal(writes.find(m=>m.id===557).result,null);assert.equal(writes.find(m=>m.method==='initialize').params.capabilities.workspace.semanticTokens.refreshSupport,true);
+  assert.equal(result.provider,'lsp');assert.equal(result.semantic_tokens.data.length,5);
+  assert.equal(writes.find(m=>m.method==='textDocument/didOpen').params.textDocument.languageId,language);
+  assert.deepEqual(writes.find(m=>m.method==='initialize').params.initializationOptions,{test:true});
+  respond({id:555,method:'workspace/configuration',params:{items:[{section:'demo'},{section:'missing'}]}});
+  assert.deepEqual(writes.find(m=>m.id===555).result,[{enabled:true},null]);
+  respond({id:556,method:'workspace/applyEdit',params:{}});assert.equal(writes.find(m=>m.id===556).error.code,-32601);
+ }finally{await language_service.dispose();on_fake_write=undefined;}
+}
+checks.push('Python/Java stdio LSP profiles preserve language, initialization, configuration, semantic legend and reject edits (protocol fixture)');
+
+const launch_fail=api.create_language_analysis_service(node);
 try{await assert.rejects(launch_fail.parse({file_path:file,workspace_root:project,language:'c',text:disk,executable:process.execPath},signal()),/clangd/);checks.push('non-LSP executable exit rejects without hanging');}finally{await launch_fail.dispose();}
 
 // 可选只读工程验证仅在显式传入时执行，不把个人工作区路径写入产品或夹具。
 if(process.env.TYPORA_CLANGD_TEST_FILE){
   const file_path=path.resolve(process.env.TYPORA_CLANGD_TEST_FILE),workspace_root=path.resolve(process.env.TYPORA_CLANGD_TEST_ROOT||path.dirname(file_path)),text=await fs.readFile(file_path,'utf8');
-  const real_service=api.create_clangd_symbol_service(node);
+  const real_service=api.create_language_analysis_service(node);
   try{const result=await real_service.parse({file_path,workspace_root,language:/\.cpp$/i.test(file_path)?'cpp':'c',text},signal());assert.equal(await fs.readFile(file_path,'utf8'),text);await fs.writeFile(path.join(evidence,'project_result.json'),JSON.stringify(result,null,2),'utf8');checks.push('explicit project header read-only parse: '+result.symbols.length+' roots');}finally{await real_service.dispose();}
 }
 assert.equal(await fs.readFile(file,'utf8'),disk);

@@ -2,6 +2,15 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026092719,
+      "version": "2026.09.27.19",
+      "date": "2026-09-27",
+      "notes": [
+        "源码、搜索预览和历史代码采用统一官方主题，C/C++接入TextMate语法及clangd语义颜色，修复默认Monaco颜色偏差。",
+        "新增Python、Java、Bash、PowerShell、C#及Rust等按语言配置LSP；支持系统程序下拉、手填路径和Python venv，不修改系统PATH。"
+      ]
+    },
+    {
       "sequence": 2026092718,
       "version": "2026.09.27.18",
       "date": "2026-09-27",

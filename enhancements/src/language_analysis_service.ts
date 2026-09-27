@@ -1,10 +1,13 @@
+import type {language_service_profile} from "./language_service_settings";
+import type {semantic_tokens} from "./source_semantic_tokens";
+import {SEMANTIC_TYPES,SEMANTIC_MODIFIERS} from "./source_semantic_tokens";
 import type {source_symbol} from "./source_symbols";
-import {create_clangd_transport} from "./clangd_transport";
+import {create_language_server_transport} from "./language_server_transport";
 
 export type clangd_options={executable?:string;workspace_root?:string;compile_commands_dir?:string;fallback_flags?:string[]};
-export type clangd_symbol_request=clangd_options&{file_path:string;language:"c"|"cpp";text:string};
+export type language_analysis_request=clangd_options&{file_path:string;language:string;text:string;server?:language_service_profile};
 export type clangd_environment={executable:string;compile_commands_dir:string;candidates:string[];compile_commands_candidates:string[]};
-export type clangd_symbol_result={symbols:source_symbol[];incomplete:false;provider:"clangd";executable:string;compile_commands_dir:string;diagnostics:{received:boolean;errors:number;warnings:number;messages:string[]}};
+export type language_analysis_result={symbols:source_symbol[];incomplete:false;provider:string;semantic_tokens?:semantic_tokens;notice:string;executable:string;compile_commands_dir:string;diagnostics:{received:boolean;errors:number;warnings:number;messages:string[]}};
 const host_node=(name:string)=>(window as unknown as {reqnode:(name:string)=>any}).reqnode(name);
 
 /** 有界查找 PATH、LLVM 标准安装目录和当前工作区构建目录，不扫描磁盘或执行编译器。 */
@@ -43,8 +46,20 @@ export async function discover_clangd_environment(options:clangd_options={},node
   return {executable:available[0],compile_commands_dir:compile_commands_candidates[0]||"",candidates:available,compile_commands_candidates};
 }
 
+/** 显式程序或系统PATH发现；Windows仅执行exe，不经cmd解释脚本参数。 */
+export async function discover_language_server(command:string,node=host_node):Promise<string>{
+ const path=node("path"),process=node("process"),fs=node("fs").promises;
+ if(typeof command!=="string"||!command.trim()||/[\r\n\0]/.test(command))throw Error("语言服务command必须是有效程序名或绝对路径。");
+ const value=command.trim(),windows=process.platform==="win32";
+ if(!path.isAbsolute(value)&&/[\\/]/.test(value))throw Error("语言服务请使用绝对路径或系统PATH命令。");
+ const name=windows&&!path.extname(value)?value+".exe":value;
+ const paths=path.isAbsolute(name)?[name]:String(process.env.PATH||process.env.Path||"").split(path.delimiter).filter(Boolean).map((dir:string)=>path.join(dir.replace(/^"|"$/g,""),name));
+ for(const candidate of paths){if(windows&&path.extname(candidate).toLowerCase()!==".exe")continue;try{if((await fs.stat(candidate)).isFile()){if(!windows)await fs.access(candidate,node("fs").constants.X_OK);return candidate;}}catch{}}
+ throw Error("未找到语言服务程序。请安装相应服务并填写程序路径；脚本服务可使用node、python或java及args启动。");
+}
+
 /** LSP 行列按 UTF-16 转成 Monaco 字符偏移，保留分析器给出的符号种类和选择范围。 */
-export function clangd_document_symbols(items:any,text:string):source_symbol[]{
+export function language_document_symbols(items:any,text:string):source_symbol[]{
   const starts=[0];for(let index=0;index<text.length;index++)if(text.charCodeAt(index)===10)starts.push(index+1);
   const offset=(position:any)=>{const line=position?.line,character=position?.character;if(!Number.isInteger(line)||!Number.isInteger(character)||line<0||character<0||line>=starts.length)return undefined;const start=starts[line],end=line+1<starts.length?starts[line+1]-1:text.length;return Math.min(start+character,end);};
   const kinds:Record<number,string>={1:"file",2:"namespace",3:"namespace",4:"namespace",5:"class",6:"method",7:"property",8:"field",9:"method",10:"enum",11:"interface",12:"function",13:"variable",14:"constant",15:"string",16:"number",17:"boolean",18:"array",19:"object",20:"property",21:"namespace",22:"enum-member",23:"struct",24:"event",25:"operator",26:"type-parameter"};
@@ -59,35 +74,44 @@ export function clangd_document_symbols(items:any,text:string):source_symbol[]{
   return Array.isArray(items)?map(items):[];
 }
 
-export function create_clangd_symbol_service(node=host_node){
+export function create_language_analysis_service(node=host_node,on_semantic_refresh:()=>void=()=>{}){
   const path=node("path"),url=node("url");
-  let disposed=false,transport:ReturnType<typeof create_clangd_transport>|undefined,environment:clangd_environment|undefined,configuration="",document_uri="",document_text="",document_language="",document_version=0;
+  let disposed=false,transport:ReturnType<typeof create_language_server_transport>|undefined,environment:clangd_environment|undefined,configuration="",document_uri="",document_text="",document_language="",document_version=0;
+  let capabilities:any;
   let active:AbortController|undefined,queue:Promise<unknown>=Promise.resolve();
   const diagnostics=new Map<string,{version?:number;items:any[]}>();
   const abort_error=()=>new DOMException("分析已取消","AbortError");
   const close=async()=>{const previous=transport;transport=undefined;configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();await previous?.dispose();};
-  const parse=async(options:clangd_symbol_request,signal:AbortSignal):Promise<clangd_symbol_result>=>{
+  const parse=async(options:language_analysis_request,signal:AbortSignal):Promise<language_analysis_result>=>{
     if(disposed||signal.aborted)throw abort_error();if(!path.isAbsolute(options.file_path))throw new Error("代码大纲需要绝对文件路径。");
-    if(options.language!=="c"&&options.language!=="cpp")throw new Error("clangd 仅用于 C/C++ 大纲。");
+    const generic=options.server?.provider==="lsp";
+    if(!generic&&options.language!=="c"&&options.language!=="cpp")throw new Error("请为此语言配置LSP服务。");
     if(options.fallback_flags&&(!Array.isArray(options.fallback_flags)||options.fallback_flags.some(flag=>typeof flag!=="string"||flag.includes("\0"))))throw new Error("备用编译参数必须为字符串列表。");
     active?.abort();const controller=active=new AbortController();const abort=()=>controller.abort();signal.addEventListener("abort",abort,{once:true});
     const check=()=>{if(disposed||controller.signal.aborted)throw abort_error();};
     const operation=queue.catch(()=>{}).then(async()=>{
       check();const root=options.workspace_root&&path.isAbsolute(options.workspace_root)?options.workspace_root:path.dirname(options.file_path);
-      const key=JSON.stringify([root,options.executable||"",options.compile_commands_dir||"",options.fallback_flags||[]]);
+      const key=JSON.stringify([root,options.executable||"",options.compile_commands_dir||"",options.fallback_flags||[],options.server]);
       if(key!==configuration||!transport||transport.failure){
-        await close();check();environment=await discover_clangd_environment({...options,workspace_root:root},node);check();
-        const args=["--background-index=false","--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
+        await close();check();environment=generic?{executable:await discover_language_server(options.server!.command!,node),compile_commands_dir:"",candidates:[],compile_commands_candidates:[]}:await discover_clangd_environment({...options,workspace_root:root},node);check();
+        const args=generic?[...(options.server!.args||[])]:["--background-index=false","--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
         if(environment.compile_commands_dir)args.push(`--compile-commands-dir=${environment.compile_commands_dir}`);
-        transport=create_clangd_transport(node,environment.executable,args,root,(method,params)=>{
+        transport=create_language_server_transport(node,environment.executable,args,root,(method,params)=>{
           if(method==="textDocument/publishDiagnostics"&&typeof params?.uri==="string"&&Array.isArray(params.diagnostics))diagnostics.set(params.uri,{version:params.version,items:params.diagnostics});
+        },(method,params)=>{
+          if(method==="workspace/configuration")return (params?.items||[]).map((item:any)=>{let value:any=options.server?.settings||{};for(const part of String(item.section||"").split(".").filter(Boolean))value=value?.[part];return value??null;});
+          if(method==="workspace/workspaceFolders")return [{uri:url.pathToFileURL(root).href,name:path.basename(root)}];
+          if(method==="workspace/semanticTokens/refresh"){if(!disposed)on_semantic_refresh();return null;}
+          if(method==="window/workDoneProgress/create")return null;
+          return undefined;
         });
         try{
-          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},capabilities:{general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
+          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
           const encoding=response?.capabilities?.positionEncoding||response?.offsetEncoding||"utf-16";
           if(encoding!=="utf-16")throw new Error("clangd 未接受 UTF-16 定位协议。");
-          if(!response?.capabilities?.documentSymbolProvider)throw new Error("所选 clangd 未提供文档符号分析能力。");
-          transport.notify("initialized",{});configuration=key;
+          capabilities=response?.capabilities||{};
+          if(!capabilities.documentSymbolProvider&&!capabilities.semanticTokensProvider?.full)throw new Error("所选语言服务未提供文档符号或完整语义着色能力。");
+          transport.notify("initialized",{});if(generic)transport.notify("workspace/didChangeConfiguration",{settings:options.server?.settings||{}});configuration=key;
         }catch(error){await close();throw error;}
       }
       check();const target=transport!,uri=url.pathToFileURL(options.file_path).href;
@@ -96,10 +120,16 @@ export function create_clangd_symbol_service(node=host_node){
         diagnostics.clear();document_uri=uri;document_language=options.language;document_text=options.text;document_version++;
         target.notify("textDocument/didOpen",{textDocument:{uri,languageId:options.language,version:document_version,text:options.text}});
       }else if(document_text!==options.text){document_text=options.text;document_version++;diagnostics.delete(uri);target.notify("textDocument/didChange",{textDocument:{uri,version:document_version},contentChanges:[{text:options.text}]});}
-      const items=await target.request("textDocument/documentSymbol",{textDocument:{uri}},controller.signal);check();
+      const items=capabilities.documentSymbolProvider?await target.request("textDocument/documentSymbol",{textDocument:{uri}},controller.signal):[];check();
+      let semantic_tokens:semantic_tokens|undefined,notice=capabilities.documentSymbolProvider?"":"服务不提供文档符号。";
+      const semantic=capabilities.semanticTokensProvider;
+      if(semantic?.full&&Array.isArray(semantic.legend?.tokenTypes)){
+        try{const result=await target.request("textDocument/semanticTokens/full",{textDocument:{uri}},controller.signal);check();if(Array.isArray(result?.data))semantic_tokens={data:result.data,token_types:semantic.legend.tokenTypes,token_modifiers:semantic.legend.tokenModifiers||[]};}
+        catch(error){check();notice+="语义着色暂不可用，保留基础着色："+String((error as Error).message||error);}
+      }else notice+="服务不提供完整语义着色，保留基础着色。";
       // 诊断通知可晚于 documentSymbol。只采样明确属于当前版本的结果，空缓存不表示无错误。
       const latest=diagnostics.get(uri),received=Boolean(latest&&latest.version===document_version),valid=received?latest!.items:[];
-      return {symbols:clangd_document_symbols(items,options.text),incomplete:false as const,provider:"clangd" as const,executable:environment!.executable,compile_commands_dir:environment!.compile_commands_dir,diagnostics:{received,errors:valid.filter((item:any)=>item.severity===1).length,warnings:valid.filter((item:any)=>item.severity===2).length,messages:valid.filter((item:any)=>item.severity<=2&&typeof item.message==="string").slice(0,5).map((item:any)=>item.message)}};
+      return {symbols:language_document_symbols(items,options.text),incomplete:false as const,provider:generic?"lsp":"clangd",semantic_tokens,notice,executable:environment!.executable,compile_commands_dir:environment!.compile_commands_dir,diagnostics:{received,errors:valid.filter((item:any)=>item.severity===1).length,warnings:valid.filter((item:any)=>item.severity===2).length,messages:valid.filter((item:any)=>item.severity<=2&&typeof item.message==="string").slice(0,5).map((item:any)=>item.message)}};
     });
     queue=operation;try{return await operation;}finally{signal.removeEventListener("abort",abort);}
   };

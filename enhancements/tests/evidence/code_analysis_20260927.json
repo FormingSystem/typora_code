@@ -1,0 +1,228 @@
+{
+  "requirements": [
+    "R068.4",
+    "R068.5"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.19",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/platform/theme/common/tokenClassificationRegistry.ts",
+      "src/vs/workbench/services/textMate/browser/textMateTokenizationFeatureImpl.ts",
+      "extensions/theme-defaults/themes/2026-dark.json",
+      "extensions/theme-defaults/themes/2026-light.json"
+    ]
+  },
+  "checks": {
+    "full_check": {
+      "status": "PASS",
+      "id": "a413b4aa338d42abb105ea3ac0a22583",
+      "boundary": "在最终Rust入口与语义refresh接线前执行；最终差量另跑目标UI、LSP、原生、构建与部署检查。"
+    },
+    "build_static_deployment_catalog": "PASS",
+    "catalog_count": 248,
+    "catalog_is_not_executed_suite_count": true,
+    "clangd": {
+      "status": "PASS",
+      "id": "c128c4cf07db4f828debf31c7b6ea5d7",
+      "checks": 17
+    },
+    "ui": {
+      "code_colors": "5b396cd97142446da387186169e12ede",
+      "language_environment": "61d6e324bf884764a9466fa7639eeaf1",
+      "unified_settings": "4ab3d0e82cdc4bf1a29b4a99e12ec13f",
+      "breadcrumb": "24ba1b5bebd645a9ad2974d152ebc41c",
+      "files_search": "e17ed588e7134b9c87527db2848e7eef"
+    },
+    "native": {
+      "id": "bcb4f48f784d47c3a5183127434e4be3",
+      "status": "PASS",
+      "checks": [
+        "隔离工作区",
+        "原始宿主真实clangd语义着色",
+        "官方主题背景 dark_2026 rgb(18, 19, 20)",
+        "主题切换保留光标 dark_2026",
+        "官方主题背景 light_2026 rgb(255, 255, 255)",
+        "主题切换保留光标 light_2026",
+        "分析不改写用户文件",
+        "Rust语言配置入口",
+        "Python虚拟环境入口可用",
+        "系统PATH程序下拉展示",
+        "取消关闭环境表单"
+      ],
+      "asset_sha256": "cfd284af2961576c6ff586e609c0ab51e1fab5308cb362e585070d30caabba03",
+      "limits": "隔离原始宿主DOM事件；未测物理键鼠、其他平台和第三方服务全部能力。"
+    },
+    "real_languages": {
+      "id": "1145bfaa02664fa6ba4ae3f75078d8e5",
+      "results": [
+        {
+          "language": "python",
+          "status": "PASS",
+          "symbols": [
+            "greet"
+          ],
+          "semantic_tokens": 0,
+          "notice": "服务不提供完整语义着色，保留基础着色。",
+          "elapsed_ms": 408,
+          "processes_released": true
+        },
+        {
+          "language": "java",
+          "status": "PASS",
+          "symbols": [
+            "Sample",
+            "twice(int)"
+          ],
+          "semantic_tokens": 30,
+          "notice": "",
+          "elapsed_ms": 2659,
+          "processes_released": true
+        },
+        {
+          "language": "shell",
+          "status": "PASS",
+          "symbols": [
+            "greet",
+            "name"
+          ],
+          "semantic_tokens": 0,
+          "notice": "服务不提供完整语义着色，保留基础着色。",
+          "elapsed_ms": 1164,
+          "processes_released": true
+        },
+        {
+          "language": "powershell",
+          "status": "PASS",
+          "symbols": [
+            "function Get-Greeting ()"
+          ],
+          "semantic_tokens": 30,
+          "notice": "",
+          "elapsed_ms": 1128,
+          "processes_released": true
+        },
+        {
+          "language": "csharp",
+          "status": "PASS",
+          "symbols": [
+            "Sample.cs",
+            "Sample",
+            "Twice(int value)"
+          ],
+          "semantic_tokens": 60,
+          "notice": "",
+          "elapsed_ms": 2516,
+          "processes_released": true
+        }
+      ],
+      "semantic_tokens_unit": "encoded integer array length, 5 integers per token"
+    },
+    "rust_standalone": {
+      "id": "eb28a839a07c4988822be5c5143153f3",
+      "results": [
+        {
+          "language": "rust",
+          "status": "PASS",
+          "symbols": [
+            "twice"
+          ],
+          "semantic_tokens": 50,
+          "notice": "",
+          "elapsed_ms": 26,
+          "processes_released": true
+        }
+      ]
+    },
+    "transactions": {
+      "codes": {
+        "test_install_windows": 0,
+        "test_uninstall_windows": 0
+      },
+      "install_case": "048fb2fcbdf2416bb21b0b107fb2f7c9",
+      "uninstall_case": "bfa8c891741942a5a890f28701a4977f",
+      "uninstall_assertions": 65,
+      "restore_detach_reinstall": true
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "5e07020b6023c29b36154d4f98d716d6d0032c01c0f40c7c388d8f0097c855c8",
+      "window_restarted": false
+    },
+    "rust_toolchain": {
+      "id": "9071cec413c94bfc9beb71815c641d97",
+      "versions": {
+        "rustc": "rustc 1.98.1 (48a229cea 2026-09-01)",
+        "cargo": "cargo 1.98.1 (797e8a9bc 2026-08-05)",
+        "rust-analyzer": "rust-analyzer 1.98.1 (48a229ce 2026-09-01)"
+      },
+      "cargo_check_offline": "PASS",
+      "results": [
+        {
+          "language": "rust",
+          "status": "PASS",
+          "symbols": [
+            "helper",
+            "twice"
+          ],
+          "semantic_tokens": 190,
+          "semantic_expectations": [
+            {
+              "text": "HashMap",
+              "type": "struct"
+            },
+            {
+              "text": "adjust",
+              "type": "function"
+            }
+          ],
+          "notice": "",
+          "elapsed_ms": 44,
+          "processes_released": true
+        }
+      ],
+      "download_sha256_verified": true,
+      "cleanup": {
+        "state": "cleaned",
+        "payload_bytes": 751283492
+      }
+    }
+  },
+  "limits": [
+    "Python pylsp和Bash服务本次未提供semanticTokens/full，保留基础高亮。",
+    "原始宿主是隔离DOM事件，未测物理键鼠及非Windows平台。",
+    "只接文档符号与完整语义token，不含补全、重构、调试或VS Code扩展宿主。",
+    "非C/C++基础语法沿Monaco内置；独立历史快照与Markdown示例不套当前工程语义。",
+    "历史未完成需求不由本次关闭。",
+    "Rust第三方依赖下载、build.rs及proc-macro未验收；默认检测及所测分析配置不启用它们。"
+  ],
+  "failures_preserved": [
+    "Monaco color map首项为空导致undefined.match，已修正索引并复验。",
+    "PowerShell未加NonInteractive导致initialize超时；本次采用真实可响应参数。",
+    "原生夹具未等源模型就绪及UI懒加载采样过早，已修正夹具等待；保留早期失败。",
+    "一次check:clangd从仓库根运行缺package.json，已从enhancements重新执行通过。",
+    "Rust完整GET下载停滞，取消专属安装进程、核对并移除rustup自建内部符号链接后回收；改用官方哈希分段下载。",
+    "Rust预下载脚本首次误用manifest组件名rust-analyzer，修正为rust-analyzer-preview后重跑通过；失败载荷已回收。"
+  ],
+  "delivery": {
+    "installed": true,
+    "window_restarted": false,
+    "commit": "pending",
+    "push": "pending"
+  },
+  "cleanup": {
+    "tested_payloads": "cleaned",
+    "logs_results_retained": true,
+    "rustup_links": "仅核对并解除受管根内rustup自身链接，再交R077清理；不修改通用清理器或用户目录。"
+  }
+}

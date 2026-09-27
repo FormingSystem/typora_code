@@ -24,6 +24,7 @@ const host_fixture_environment = Object.freeze([
 const ui_tests = Object.freeze([
   "test_workspace_onboarding.cjs",
   "test_code_editor_colors.cjs",
+  "test_code_analysis_colors.cjs",
   "test_workspace_vscode_ui.cjs",
   "test_mermaid_theme.cjs",
   "test_remote_workspace_picker.cjs",

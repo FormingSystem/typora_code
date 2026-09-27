@@ -1,3 +1,4 @@
+import {subscribe_document_symbols} from "./workspace_document_symbols";
 import {prepare_deleted_native_document} from "./workspace_native_document";
 import {workspace_context_switching,workspace_context_epoch,assert_workspace_context_ready} from "./workspace_context";
 import {trash_native_path} from "./workspace_native_trash";
@@ -213,7 +214,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         ||{file_path,text_document:create_text_document({fs,path_api},file_path),saved_format:"",saved_version:0,saving:false,loading:false,loaded:false};
       leaf.state.git_cwd = path_api.dirname(this.file_path); views.add(this);
       this.target=group_locations.get(leaf.state.path);this.focus_requested=!this.target?.preserve_focus;group_locations.delete(leaf.state.path);
-      this.language_button.title = "选择语言模式（仅改变语法高亮）"; this.language_button.setAttribute("aria-label", "语言模式");
+      this.language_button.title = "选择语言模式（语法与语言服务）"; this.language_button.setAttribute("aria-label", "语言模式");
       this.encoding_button.title = "选择保存编码"; this.encoding_button.setAttribute("aria-label", "保存编码");
       this.encoding_button.textContent="UTF-8";
       this.eol_button.title = "选择行尾序列"; this.eol_button.setAttribute("aria-label", "行尾序列");
@@ -235,7 +236,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     onOpen() {
       this.guard_close();this.sync_tab_label();
-      this.attach_shared_editor();this.update_status();
+      this.attach_shared_editor();this.update_status();refresh_source_analysis();
       editor_status.refresh();editor_status.schedule();
       if (!this.loaded && !this.loading) this.load_task=this.load_file(); else this.reveal();
       queueMicrotask(()=>{if(!this.disposed&&this.focus_requested&&core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();});
@@ -262,7 +263,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         }
         this.editor.focused_editor().updateOptions({readOnly:false});
         this.saved_version=this.editor.models[0].getAlternativeVersionId();
-        this.loaded = true; this.refresh_shared(); this.reveal();
+        this.loaded = true; this.refresh_shared(); this.reveal();refresh_source_analysis();
         if(this.focus_requested&&core.app.workspace.activeLeaf===this.leaf)this.editor.focused_editor().focus();
       } catch (error) {
         if(this.disposed)return;
@@ -340,7 +341,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(!this.editor||this.loading)return;const dialog=workspace_dialog("选择语言模式");const select=el("select");select.setAttribute("aria-label","文件语言模式");
       const choices=new Map(FILE_LANGUAGE_RULES.filter(rule=>!rule.category||rule.category==="text").map(rule=>[rule.language,rule.label]));choices.set("plaintext","纯文本");
       for(const [value,label]of choices){const option=el("option","",label);option.value=value;select.append(option);}select.value=this.editor.models[0].getLanguageId();
-      dialog.content.append(select,el("p","","语言模式只改变高亮；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.refresh_shared();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
+      dialog.content.append(select,el("p","","语言模式决定语法高亮和对应语言服务；保存沿用原文件名和后缀。"));dialog.footer.prepend(button("应用",()=>{if(this.loading)return;monaco.editor.setModelLanguage(this.editor!.models[0],select.value);this.refresh_shared();dialog.close();if(core.app.workspace.activeLeaf===this.leaf)this.editor?.focused_editor().focus();}));
     }
     choose_format(kind:"encoding"|"eol"){
       if(this.loading)return;
@@ -446,6 +447,18 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(offset+20<entries.length)await new Promise(resolve=>setTimeout(resolve,0));
     }
   };
+  let analysis_model:any,analysis_path="",analysis_root="",analysis_binding:ReturnType<typeof subscribe_document_symbols>|undefined;
+  function refresh_source_analysis(){
+    const leaf=core.app.workspace.activeLeaf,view=[...views].find(item=>item.leaf===leaf&&!item.disposed),model=view?.loaded?view.editor?.models[0]:undefined;
+    const file=view?.file_path||"",root=context_root();
+    if(model===analysis_model&&file===analysis_path&&root===analysis_root)return;
+    analysis_binding?.dispose();analysis_binding=undefined;analysis_model=model;analysis_path=file;analysis_root=root;
+    if(model&&!remote_files_for(file))analysis_binding=subscribe_document_symbols(model,file,root,()=>{});
+  }
+  const release_analysis_active=core.app.workspace.on("active-leaf:change",refresh_source_analysis);
+  const release_analysis_open=core.app.workspace.on("file:open",refresh_source_analysis);
+  window.addEventListener("linux-note-workspace-context-changed",refresh_source_analysis);
+
   const release_navigation = register_navigation_editor({
     capture() {
       const view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf);
@@ -1110,7 +1123,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
-    binding.active = false;file_clipboard.dispose();release_navigation();
+    binding.active = false;window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
