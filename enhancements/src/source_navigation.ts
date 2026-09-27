@@ -1,3 +1,4 @@
+import {monaco_text_input} from "./monaco_text_input";
 import * as monaco from "monaco-editor/editor/editor.api";
 import type {language_navigation_kind,language_position,language_location} from "./language_locations";
 import {pick_history_item} from "./workspace_history_picker";
@@ -38,10 +39,10 @@ export function bind_source_navigation(editor:monaco.editor.ICodeEditor,options:
  }),editor.onDidChangeCursorPosition(()=>request?.abort()),model.onDidChangeContent(cancel),model.onDidChangeLanguage(cancel)];
  const key=(event:KeyboardEvent)=>{
   if(event.key==="Escape"){cancel();return;}
-  if(!options.valid())return;
+  if(!options.valid()||monaco_text_input(event.target))return;
   if(event.isComposing||event.altKey||event.metaKey||event.key!=="F12"||event.ctrlKey&&event.shiftKey)return;
   event.preventDefault();event.stopImmediatePropagation();void run(event.shiftKey?"references":event.ctrlKey?"implementation":"definition");
  };
  root.addEventListener("keydown",key,true);
- return {run,entries:()=>Object.entries(labels).map(([kind,title])=>({title,shortcut:kind==="definition"?"F12":kind==="implementation"?"Ctrl+F12":kind==="references"?"Shift+F12":undefined,action:()=>void run(kind as language_navigation_kind)})),dispose(){if(disposed)return;disposed=true;source_navigation_gestures.delete(editor);cancel();root.removeEventListener("keydown",key,true);for(const listener of listeners)listener.dispose();}};
+ return {run,entries:()=>Object.entries(labels).map(([kind,title])=>({id:"source_navigation_"+kind,title,shortcut:kind==="definition"?"F12":kind==="implementation"?"Ctrl+F12":kind==="references"?"Shift+F12":undefined,action:()=>void run(kind as language_navigation_kind)})),dispose(){if(disposed)return;disposed=true;source_navigation_gestures.delete(editor);cancel();root.removeEventListener("keydown",key,true);for(const listener of listeners)listener.dispose();}};
 }

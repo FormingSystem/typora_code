@@ -1087,6 +1087,10 @@ content.typ-deactive .linux-note-reading-minimap,
 .workspace-resource-picker-content>p:empty {display:none;}
 .workspace-resource-picker-content>p {margin:4px 0;overflow-wrap:anywhere;}
 
+/* source_inactive_regions.css */
+/* vscode-clangd inactiveRegions.opacity默认0.55；保留原语法色，不淡化行号和背景。 */
+.monaco-editor .source-inactive-region {opacity:0.55;}
+
 /* source_outline_settings.css */
 /* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
 .source-outline-settings>.git-graph-dialog{width:min(600px,95vw)}

@@ -1,4 +1,4 @@
-import {language_locations,valid_language_range,type language_navigation_kind,type language_position,type language_location,type language_diagnostic} from "./language_locations";
+import {language_locations,valid_language_range,type language_navigation_kind,type language_position,type language_location,type language_diagnostic,type language_range} from "./language_locations";
 import type {language_service_profile} from "./language_service_settings";
 import type {semantic_tokens} from "./source_semantic_tokens";
 import {SEMANTIC_TYPES,SEMANTIC_MODIFIERS} from "./source_semantic_tokens";
@@ -8,7 +8,7 @@ import {create_language_server_transport} from "./language_server_transport";
 export type clangd_options={executable?:string;workspace_root?:string;compile_commands_dir?:string;fallback_flags?:string[];background_index?:boolean};
 export type language_analysis_request=clangd_options&{file_path:string;language:string;text:string;server?:language_service_profile};
 export type clangd_environment={executable:string;compile_commands_dir:string;candidates:string[];compile_commands_candidates:string[]};
-export type language_analysis_result={symbols:source_symbol[];incomplete:false;provider:string;semantic_tokens?:semantic_tokens;notice:string;executable:string;compile_commands_dir:string;diagnostics:{received:boolean;errors:number;warnings:number;messages:string[]}};
+export type language_analysis_result={symbols:source_symbol[];incomplete:false;provider:string;semantic_tokens?:semantic_tokens;inactive_regions?:language_range[];notice:string;executable:string;compile_commands_dir:string;diagnostics:{received:boolean;errors:number;warnings:number;messages:string[]}};
 const host_node=(name:string)=>(window as unknown as {reqnode:(name:string)=>any}).reqnode(name);
 
 /** 有界查找 PATH、LLVM 标准安装目录和当前工作区构建目录，不扫描磁盘或执行编译器。 */
@@ -80,9 +80,10 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
   let disposed=false,transport:ReturnType<typeof create_language_server_transport>|undefined,environment:clangd_environment|undefined,configuration="",document_uri="",document_text="",document_language="",document_version=0;
   let capabilities:any;
   let active:AbortController|undefined,queue:Promise<unknown>=Promise.resolve();
+  const inactive_regions=new Map<string,language_range[]>();
   const diagnostics=new Map<string,{version?:number;items:any[]}>();
   const abort_error=()=>new DOMException("分析已取消","AbortError");
-  const close=async()=>{const previous=transport;transport=undefined;configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();await previous?.dispose();};
+  const close=async()=>{const previous=transport;transport=undefined;configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();inactive_regions.clear();await previous?.dispose();};
   const run=async(options:language_analysis_request,signal:AbortSignal,navigation?:{kind:language_navigation_kind;position:language_position;fallback:boolean}):Promise<language_analysis_result|language_location[]>=>{
     if(disposed||signal.aborted)throw abort_error();if(!path.isAbsolute(options.file_path))throw new Error("代码大纲需要绝对文件路径。");
     const generic=options.server?.provider==="lsp";
@@ -97,7 +98,13 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
         await close();check();environment=generic?{executable:await discover_language_server(options.server!.command!,node),compile_commands_dir:"",candidates:[],compile_commands_candidates:[]}:await discover_clangd_environment({...options,workspace_root:root},node);check();
         const args=generic?[...(options.server!.args||[])]:[`--background-index=${options.background_index===true}`,"--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
         if(environment.compile_commands_dir)args.push(`--compile-commands-dir=${environment.compile_commands_dir}`);
-        transport=create_language_server_transport(node,environment.executable,args,root,(method,params)=>{
+        let current_transport:ReturnType<typeof create_language_server_transport>;
+        transport=current_transport=create_language_server_transport(node,environment.executable,args,root,(method,params)=>{
+          if(disposed||transport!==current_transport)return;
+          if(method==="textDocument/inactiveRegions"&&params?.textDocument?.uri===document_uri&&Array.isArray(params.regions)){
+            const version=params.textDocument.version;
+            if(version==null||version===document_version)inactive_regions.set(document_uri,params.regions.filter(valid_language_range));
+          }
           if(method==="textDocument/publishDiagnostics"&&typeof params?.uri==="string"&&Array.isArray(params.diagnostics)){
             diagnostics.set(params.uri,{version:params.version,items:params.diagnostics});
             if(!disposed&&params.uri===document_uri&&params.version===document_version)on_diagnostics(document_text,params.diagnostics.filter((item:any)=>valid_language_range(item?.range)&&typeof item.message==="string").map((item:any)=>({range:item.range,message:item.message,severity:item.severity||1,source:item.source})));
@@ -110,7 +117,7 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
           return undefined;
         });
         try{
-          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{definition:{linkSupport:true},declaration:{linkSupport:true},implementation:{linkSupport:true},references:{},semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
+          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{inactiveRegionsCapabilities:{inactiveRegions:true},definition:{linkSupport:true},declaration:{linkSupport:true},implementation:{linkSupport:true},references:{},semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
           const encoding=response?.capabilities?.positionEncoding||response?.offsetEncoding||"utf-16";
           if(encoding!=="utf-16")throw new Error("clangd 未接受 UTF-16 定位协议。");
           capabilities=response?.capabilities||{};
@@ -121,9 +128,9 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
       check();const target=transport!,uri=url.pathToFileURL(options.file_path).href;
       if(document_uri!==uri||document_language!==options.language){
         if(document_uri)target.notify("textDocument/didClose",{textDocument:{uri:document_uri}});
-        diagnostics.clear();document_uri=uri;document_language=options.language;document_text=options.text;document_version++;
+        diagnostics.clear();inactive_regions.clear();document_uri=uri;document_language=options.language;document_text=options.text;document_version++;
         target.notify("textDocument/didOpen",{textDocument:{uri,languageId:options.language,version:document_version,text:options.text}});
-      }else if(document_text!==options.text){document_text=options.text;document_version++;diagnostics.delete(uri);target.notify("textDocument/didChange",{textDocument:{uri,version:document_version},contentChanges:[{text:options.text}]});}
+      }else if(document_text!==options.text){document_text=options.text;document_version++;diagnostics.delete(uri);inactive_regions.delete(uri);target.notify("textDocument/didChange",{textDocument:{uri,version:document_version},contentChanges:[{text:options.text}]});}
       if(navigation){
         const query=async(kind:language_navigation_kind)=>{
           if(!capabilities[kind+"Provider"])return undefined;
@@ -143,7 +150,8 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
       }else notice+="服务不提供完整语义着色，保留基础着色。";
       // 诊断通知可晚于 documentSymbol。只采样明确属于当前版本的结果，空缓存不表示无错误。
       const latest=diagnostics.get(uri),received=Boolean(latest&&latest.version===document_version),valid=received?latest!.items:[];
-      return {symbols:language_document_symbols(items,options.text),incomplete:false as const,provider:generic?"lsp":"clangd",semantic_tokens,notice,executable:environment!.executable,compile_commands_dir:environment!.compile_commands_dir,diagnostics:{received,errors:valid.filter((item:any)=>item.severity===1).length,warnings:valid.filter((item:any)=>item.severity===2).length,messages:valid.filter((item:any)=>item.severity<=2&&typeof item.message==="string").slice(0,5).map((item:any)=>item.message)}};
+      // clangd18通知无版本；只在当前documentSymbol/semantic请求的AST屏障后提交快照。
+      return {inactive_regions:inactive_regions.get(uri),symbols:language_document_symbols(items,options.text),incomplete:false as const,provider:generic?"lsp":"clangd",semantic_tokens,notice,executable:environment!.executable,compile_commands_dir:environment!.compile_commands_dir,diagnostics:{received,errors:valid.filter((item:any)=>item.severity===1).length,warnings:valid.filter((item:any)=>item.severity===2).length,messages:valid.filter((item:any)=>item.severity<=2&&typeof item.message==="string").slice(0,5).map((item:any)=>item.message)}};
     });
     queue=operation;try{return await operation;}finally{signal.removeEventListener("abort",abort);}
   };

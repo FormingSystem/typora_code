@@ -1,3 +1,5 @@
+import {monaco_text_input,monaco_text_input_menu,monaco_text_input_key} from "./monaco_text_input";
+import {run_monaco_source_command} from './monaco_source_command';
 import {source_navigation_gestures} from "./source_navigation_gesture";
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {initialize_monaco_code_theme,sync_monaco_code_theme} from './monaco_code_theme';
@@ -156,8 +158,13 @@ export class git_diff_editor {
     const diff_root=this.body.querySelector(".monaco-diff-editor");
     if(diff_root){this.mode_observer=new MutationObserver(()=>this.refresh_labels());this.mode_observer.observe(diff_root,{attributes:true,attributeFilter:["class"]});this.refresh_labels();}
     this.container.oncontextmenu = event => this.context_menu(event);
+    for(const name of ['copy','cut','paste'])this.container.addEventListener(name,event=>{
+      // 保留Chromium输入框默认编辑，阻止事件冒泡到Typora正文剪贴板处理器。
+      if(monaco_text_input(event.target))event.stopPropagation();
+    });
     this.container.addEventListener("keydown",event=>{
-      if(this.disposed)return;
+      if(this.disposed||monaco_text_input_key(event))return;
+      if(monaco_text_input(event.target))return;
       const now=Date.now(),modifier=event.ctrlKey||event.metaKey;
       if(this.range_action&&modifier&&event.key.toLowerCase()==="k"&&!event.altKey&&!event.shiftKey){this.range_chord_until=now+2000;event.preventDefault();event.stopImmediatePropagation();return;}
       if(this.range_chord_until&&!["Control","Meta","Alt","Shift"].includes(event.key)){
@@ -391,10 +398,15 @@ export class git_diff_editor {
     if(this.rendered_markdown)void this.render_markdown();
   }
   context_menu(event: MouseEvent): void {
+    const input=monaco_text_input(event.target);
+    if(input){this.close_menu?.();this.close_menu=monaco_text_input_menu(event,input);return;}
     if(this.rendered_markdown){this.title_menu(event);return;}
-    const view = this.focused_editor();
+    const view = this.focused_editor(),readonly=view.getOption(monaco.editor.EditorOption.readOnly);
+    const command=(id:string)=>run_monaco_source_command(view,id);
     const entries: workspace_menu_entry[] = [
-      {id: "copy", title: text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run()},
+      {id:"cut",title:"剪切",shortcut:"Ctrl+X",disabled:readonly,action:()=>command("editor.action.clipboardCutAction")},
+      {id:"copy",title:text("diff.copy"),shortcut:"Ctrl+C",action:()=>command("editor.action.clipboardCopyAction")},
+      {id:"paste",title:"粘贴",shortcut:"Ctrl+V",disabled:readonly,action:()=>command("editor.action.clipboardPasteAction")},
       {id: "select_all", title: text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null)},
       {id: "find", title: text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run()},
       {id: "word_wrap", title: text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => update_text_presentation(!this.wrapped)},
@@ -409,7 +421,9 @@ export class git_diff_editor {
         {id: "accessible_diff", title: text("diff.accessible_diff"), action:()=>this.accessible_diff()},
         {id: "ignore_whitespace", title: text("diff.ignore_whitespace"), checked: this.ignore_whitespace, action: () => { this.set_preferences({ignore_trim_whitespace:!this.ignore_whitespace}); }});
     }
-    workspace_menu(event, [...entries, ...this.extra_menu()]);
+    const extra=this.extra_menu(),navigation=extra.filter(item=>item.id?.startsWith('source_navigation_')),remaining=extra.filter(item=>!item.id?.startsWith('source_navigation_'));
+    if(navigation.length)entries[0].separator=true;
+    this.close_menu?.();this.close_menu=workspace_menu(event,[...navigation,...entries,...remaining]);
   }
   dispose(): void { if(this.disposed)return;this.disposed=true;this.markdown_epoch++;this.markdown_preview?.dispose();this.range_action=undefined;this.range_available=()=>false;this.title_entries=()=>[];this.close_menu?.();this.release_settings?.();this.release_presentation?.();this.detach_toolbar();this.mode_observer?.disconnect();this.observer.disconnect(); this.subscriptions.forEach(item => item.dispose()); this.editor.dispose(); this.models.forEach(model => { const count = (model_users.get(model) || 1) - 1; if (count) model_users.set(model, count); else { model_users.delete(model); model.dispose(); } }); this.container.remove(); }
 }

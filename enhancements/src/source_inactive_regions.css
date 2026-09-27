@@ -1,0 +1,2 @@
+/* vscode-clangd inactiveRegions.opacity默认0.55；保留原语法色，不淡化行号和背景。 */
+.monaco-editor .source-inactive-region {opacity:0.55;}

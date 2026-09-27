@@ -1,3 +1,5 @@
+import {monaco_text_input,run_text_input_command} from "./monaco_text_input";
+import {run_monaco_source_command} from './monaco_source_command';
 import {bind_source_navigation} from "./source_navigation";
 import {subscribe_document_symbols} from "./workspace_document_symbols";
 import {prepare_deleted_native_document} from "./workspace_native_document";
@@ -638,8 +640,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const native_document_active = () => Boolean(core.app.workspace.activeLeaf)
     && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
   const run_editor_command=(command:string)=>{
+    const input=monaco_text_input(document.activeElement),input_command=({"editor.action.clipboardCopyAction":"copy","editor.action.clipboardCutAction":"cut","editor.action.clipboardPasteAction":"paste","editor.action.selectAll":"selectAll",undo:"undo",redo:"redo"} as Record<string,string>)[command];
+    if(input&&input_command){run_text_input_command(input,input_command);return;}
     const editor=active_source_view()?.editor?.focused_editor();if(!editor)return;
-    editor.focus();const action=editor.getAction(command);if(action)void action.run();else editor.trigger("workspace-menu",command,null);
+    run_monaco_source_command(editor,command);
   };
   const source_editor_active=()=>Boolean(active_source_view()?.editor);
   const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view()) || native_document_active();

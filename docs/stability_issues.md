@@ -457,3 +457,6 @@ BUG-session-source-label-040：源码标题只在onOpen从内部URI修正为文�
 2026-09-27 R068.4/R068.5：BUG-code-lexical-semantic-theme——源码Monaco仍使用vs/vs-dark和Monarch，而正文C/C++围栏使用官方TextMate，导致背景和类别不一致。统一主题/词法来源，语义沿共享语言分析会话及模型版本投影；服务配置、环境发现和表单分别持有职责。实测PowerShell缺少NonInteractive时initialize超时，补充正确启动参数及精确超时报错；Python/Bash所测服务未提供完整语义token，按能力保留基础高亮。夹具早于源码模型就绪取editor及懒加载分词未就绪两次失败均修正等待条件，保留失败证据，不计为生产缺陷。最终检查与安装证据见code_analysis_20260927.json。
 
 2026-09-27 R068.6：BUG-source-ctrl-click-owner——原有选文搜索捕获源码选区中的Ctrl左键，阻挡定义导航。编程源码活动编辑器登记导航手势所有权，关闭/切换释放；Markdown和独立预览维持各自行为。真实Chromium输入验证普通点击、Ctrl点击和选区内点击，20轮编辑后的迟到响应均不跳转。TEST-file-editing-stale-fixture：旧替换测试仍期待dirty文件预览，但R058.4已提前拒绝；HEAD版本复跑同样失败，更新预期并补齐剪贴板替身availableFormats后24项通过，不将其算作生产修复。证据见source_navigation_20260927.json。
+
+2026-09-27 R068.7：BUG-source-input-owner——Find/Replace右键和快捷键落入源码/宿主正文命令；按辅助输入目标及焦点隔离，六项文本动作共享适配。BUG-source-clipboard-host——原始宿主execCommand复制及嵌入Monaco粘贴缺少有效主进程端口，源码菜单/顶栏复用宿主剪贴板与Monaco处理器，实际剪切粘贴及撤销验证。原生明暗查找状态已符合官方颜色，未凭截图重配。
+2026-09-27 R068.8：BUG-source-inactive-regions——未声明/接收clangd未激活范围，条件裁剪仍按活动代码显示；补能力协商、当前版本采样、模型装饰和清理，真实20轮宏切换及原生45项通过。R068.6用户暂缓。夹具错误、偶发Save As文件系统失败及构建EPERM保留在source_input_inactive_20260927.json，未将复跑通过冒充原因已确定。

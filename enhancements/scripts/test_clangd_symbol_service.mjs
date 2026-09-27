@@ -72,6 +72,14 @@ try{
   const real=all.find(item=>item.name==='real');assert.equal(disk.slice(real.selection_start,real.selection_end),'real');
   assert.equal(all.find(item=>item.name==='device').kind,'struct');assert.equal(all.find(item=>item.name==='prototype').kind,'function');
   assert(first.semantic_tokens?.data.length>0,'real clangd semantic tokens');assert(first.semantic_tokens.token_types.includes('function'));assert.equal(first.provider,'clangd');assert.equal(first.incomplete,false);checks.push('real clangd C conditional header, database macro, declarations, definitions, fields and exact selection');
+  const conditional='#if FLAG\nint off;\n#if 1\nint nested;\n#endif\n#else\nint on;\n#endif\n';
+  for(let index=0;index<20;index++){
+    const enabled=index%2,result=await service.parse({...request,text:'#define FLAG '+enabled+'\n'+conditional},signal());
+    assert(result.inactive_regions?.some(range=>range.start.line===(enabled?7:2)),JSON.stringify(result.inactive_regions));
+    assert(!result.inactive_regions.some(range=>range.start.line===(enabled?2:7)));
+  }
+  const empty=await service.parse({...request,text:'int all_active;\n'},signal());assert.deepEqual(empty.inactive_regions,[]);
+  checks.push('20 real clangd macro/else changes keep latest inactive ranges; active-only clears snapshot');
   const next=await service.parse({...request,text:disk+'\r\nint unsaved_only;\r\n'},signal());assert(flatten(next.symbols).some(item=>item.name==='unsaved_only'));
   assert.equal(await fs.readFile(file,'utf8'),disk);checks.push('didChange analyzes unsaved buffer without disk writes');
   const cancelled=new AbortController();const stale=service.parse({...request,text:'int stale;'},cancelled.signal);cancelled.abort();await assert.rejects(stale,error=>error.name==='AbortError');

@@ -158444,8 +158444,8 @@ https://creativecommons.org/licenses/by/4.0/
     });
   };
   function observe_workspace_theme(listener, role = "consumer") {
-    const owners3 = role === "palette" ? palette_listeners : listeners;
-    owners3.add(listener);
+    const owners4 = role === "palette" ? palette_listeners : listeners;
+    owners4.add(listener);
     if (!observer) {
       observer = new MutationObserver(update);
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
@@ -158457,7 +158457,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     update();
     return () => {
-      owners3.delete(listener);
+      owners4.delete(listener);
       if (!listeners.size && !palette_listeners.size) {
         observer?.disconnect();
         observer = void 0;
@@ -162061,6 +162061,82 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/monaco_text_input.ts
+  function monaco_text_input(target) {
+    if ((target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement) && target.closest(".monaco-editor") && !target.classList.contains("inputarea")) return target;
+  }
+  function run_text_input_command(input, command) {
+    if (!input.isConnected || input.disabled) return;
+    if (input.readOnly && !["copy", "selectAll"].includes(command)) return;
+    input.focus({ preventScroll: true });
+    if (command === "selectAll") {
+      input.select();
+      return;
+    }
+    if (["copy", "cut", "paste"].includes(command)) {
+      const runtime3 = window;
+      const clipboard = runtime3.reqnode?.("electron")?.clipboard;
+      if (clipboard) {
+        if (command === "paste") input.ownerDocument.execCommand("insertText", false, clipboard.readText());
+        else {
+          const start = input.selectionStart ?? 0, end = input.selectionEnd ?? start;
+          if (start !== end) {
+            clipboard.writeText(input.value.slice(start, end));
+            if (command === "cut") input.ownerDocument.execCommand("delete");
+          }
+        }
+        return;
+      }
+    }
+    input.ownerDocument.execCommand(command);
+  }
+  function monaco_text_input_menu(event, input) {
+    const start = input.selectionStart, end = input.selectionEnd;
+    const entries3 = [["undo", "\u64A4\u9500", "Ctrl+Z"], ["redo", "\u91CD\u505A", "Ctrl+Y"], ["cut", "\u526A\u5207", "Ctrl+X"], ["copy", "\u590D\u5236", "Ctrl+C"], ["paste", "\u7C98\u8D34", "Ctrl+V"], ["selectAll", "\u5168\u9009", "Ctrl+A"]];
+    return workspace_menu(event, entries3.map(([command, title, shortcut]) => ({ id: "input_" + command, title, shortcut, separator: command === "cut" || command === "selectAll", disabled: input.disabled || input.readOnly && !["copy", "selectAll"].includes(command) || ["copy", "cut"].includes(command) && start === end, action: () => {
+      if (!input.isConnected) return;
+      input.focus({ preventScroll: true });
+      input.setSelectionRange(start, end);
+      run_text_input_command(input, command);
+    } })), "workspace-text-input-menu");
+  }
+  function monaco_text_input_key(event) {
+    const input = monaco_text_input(event.target);
+    if (!input || event.isComposing || event.altKey || !(event.ctrlKey || event.metaKey)) return false;
+    const key4 = event.key.toLowerCase(), command = key4 === "z" ? event.shiftKey ? "redo" : "undo" : !event.shiftKey ? { y: "redo", x: "cut", c: "copy", v: "paste", a: "selectAll" }[key4] : void 0;
+    if (!command) return false;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    run_text_input_command(input, command);
+    return true;
+  }
+
+  // src/monaco_source_command.ts
+  init_editor_api();
+  init_clipboardUtils();
+  function run_monaco_source_command(editor2, command) {
+    editor2.focus();
+    if (["editor.action.clipboardPasteAction", "editor.action.clipboardCopyAction", "editor.action.clipboardCutAction"].includes(command)) {
+      if (command !== "editor.action.clipboardCopyAction" && editor2.getOption(editor.EditorOption.readOnly)) return;
+      const runtime3 = window, clipboard = runtime3.reqnode?.("electron")?.clipboard;
+      if (clipboard) {
+        if (command !== "editor.action.clipboardPasteAction") {
+          if (!editor2.hasModel() || editor2.getSelection()?.isEmpty() && !editor2.getOption(editor.EditorOption.emptySelectionClipboard)) return;
+          const { dataToCopy: data_to_copy } = generateDataToCopyAndStoreInMemory(editor2._getViewModel(), void 0, false);
+          clipboard.writeText(data_to_copy.text);
+          if (command === "editor.action.clipboardCutAction") editor2.trigger("workspace-menu", "cut", null);
+          return;
+        }
+        const text3 = clipboard.readText(), metadata = InMemoryClipboardMetadataManager.INSTANCE.get(text3);
+        if (text3) editor2.trigger("workspace-menu", "paste", { text: text3, pasteOnNewLine: !!metadata?.isFromEmptySelection && editor2.getOption(editor.EditorOption.emptySelectionClipboard), multicursorText: metadata?.multicursorText ?? null, mode: metadata?.mode ?? null });
+        return;
+      }
+    }
+    const action = editor2.getAction(command);
+    if (action) void action.run();
+    else editor2.trigger("workspace-menu", command, null);
+  }
+
   // src/source_navigation.ts
   init_editor_api();
 
@@ -162925,14 +163001,14 @@ https://creativecommons.org/licenses/by/4.0/
         cancel();
         return;
       }
-      if (!options2.valid()) return;
+      if (!options2.valid() || monaco_text_input(event.target)) return;
       if (event.isComposing || event.altKey || event.metaKey || event.key !== "F12" || event.ctrlKey && event.shiftKey) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       void run(event.shiftKey ? "references" : event.ctrlKey ? "implementation" : "definition");
     };
     root.addEventListener("keydown", key4, true);
-    return { run, entries: () => Object.entries(labels).map(([kind, title]) => ({ title, shortcut: kind === "definition" ? "F12" : kind === "implementation" ? "Ctrl+F12" : kind === "references" ? "Shift+F12" : void 0, action: () => void run(kind) })), dispose() {
+    return { run, entries: () => Object.entries(labels).map(([kind, title]) => ({ id: "source_navigation_" + kind, title, shortcut: kind === "definition" ? "F12" : kind === "implementation" ? "Ctrl+F12" : kind === "references" ? "Shift+F12" : void 0, action: () => void run(kind) })), dispose() {
       if (disposed) return;
       disposed = true;
       source_navigation_gestures.delete(editor2);
@@ -162940,6 +163016,33 @@ https://creativecommons.org/licenses/by/4.0/
       root.removeEventListener("keydown", key4, true);
       for (const listener of listeners12) listener.dispose();
     } };
+  }
+
+  // src/source_inactive_regions.css
+  var source_inactive_regions_default = "";
+
+  // src/source_inactive_regions.ts
+  var owners = /* @__PURE__ */ new WeakMap();
+  function set_source_inactive_regions(model, ranges2 = []) {
+    const previous = owners.get(model);
+    if (model.isDisposed()) {
+      previous?.style.remove();
+      owners.delete(model);
+      return;
+    }
+    const line_count = model.getLineCount();
+    const valid = ranges2.filter((range2) => range2.start.line < line_count && range2.end.line < line_count && range2.start.character <= model.getLineMaxColumn(range2.start.line + 1) - 1 && range2.end.character <= model.getLineMaxColumn(range2.end.line + 1) - 1);
+    if (!valid.length) {
+      if (previous) {
+        model.deltaDecorations(previous.ids, []);
+        previous.style.remove();
+        owners.delete(model);
+      }
+      return;
+    }
+    const owner2 = previous || { ids: [], style: acquire_workspace_style("typora-code:inactive-regions", source_inactive_regions_default) };
+    owner2.ids = model.deltaDecorations(owner2.ids, valid.map((range2) => ({ range: { startLineNumber: range2.start.line + 1, startColumn: range2.start.character + 1, endLineNumber: range2.end.line + 1, endColumn: range2.end.character + 1 }, options: { description: "clangd inactive region", inlineClassName: "source-inactive-region" } })));
+    owners.set(model, owner2);
   }
 
   // src/workspace_keyboard.ts
@@ -162958,7 +163061,7 @@ https://creativecommons.org/licenses/by/4.0/
   var listeners5 = /* @__PURE__ */ new Map();
   var startup_factor = 1;
   var window_factor = 1;
-  var owners = 0;
+  var owners2 = 0;
   var steps = { editor: 0, terminal: 0 };
   var emit = () => {
     for (const listener of listeners5.keys()) listener();
@@ -162998,7 +163101,7 @@ https://creativecommons.org/licenses/by/4.0/
         return 1;
       }
     };
-    if (!owners++) {
+    if (!owners2++) {
       startup_factor = window_factor = read3();
       steps.editor = steps.terminal = 0;
     }
@@ -163028,7 +163131,7 @@ https://creativecommons.org/licenses/by/4.0/
       observer3.disconnect();
       window.removeEventListener("resize", schedule);
       window.removeEventListener("focus", schedule);
-      if (!--owners) {
+      if (!--owners2) {
         startup_factor = window_factor = 1;
         steps.editor = steps.terminal = 0;
         emit();
@@ -167938,6 +168041,7 @@ https://creativecommons.org/licenses/by/4.0/
     let disposed = false, transport, environment, configuration = "", document_uri = "", document_text = "", document_language = "", document_version = 0;
     let capabilities;
     let active2, queue2 = Promise.resolve();
+    const inactive_regions = /* @__PURE__ */ new Map();
     const diagnostics = /* @__PURE__ */ new Map();
     const abort_error = () => new DOMException("\u5206\u6790\u5DF2\u53D6\u6D88", "AbortError");
     const close = async () => {
@@ -167948,6 +168052,7 @@ https://creativecommons.org/licenses/by/4.0/
       document_text = "";
       document_language = "";
       diagnostics.clear();
+      inactive_regions.clear();
       await previous?.dispose();
     };
     const run = async (options2, signal, navigation) => {
@@ -167975,7 +168080,13 @@ https://creativecommons.org/licenses/by/4.0/
           check2();
           const args = generic ? [...options2.server.args || []] : ["--background-index=".concat(options2.background_index === true), "--clang-tidy=false", "--pch-storage=memory", "--log=error", "--enable-config=false"];
           if (environment.compile_commands_dir) args.push("--compile-commands-dir=".concat(environment.compile_commands_dir));
-          transport = create_language_server_transport(node, environment.executable, args, root, (method, params) => {
+          let current_transport;
+          transport = current_transport = create_language_server_transport(node, environment.executable, args, root, (method, params) => {
+            if (disposed || transport !== current_transport) return;
+            if (method === "textDocument/inactiveRegions" && params?.textDocument?.uri === document_uri && Array.isArray(params.regions)) {
+              const version = params.textDocument.version;
+              if (version == null || version === document_version) inactive_regions.set(document_uri, params.regions.filter(valid_language_range));
+            }
             if (method === "textDocument/publishDiagnostics" && typeof params?.uri === "string" && Array.isArray(params.diagnostics)) {
               diagnostics.set(params.uri, { version: params.version, items: params.diagnostics });
               if (!disposed && params.uri === document_uri && params.version === document_version) on_diagnostics(document_text, params.diagnostics.filter((item) => valid_language_range(item?.range) && typeof item.message === "string").map((item) => ({ range: item.range, message: item.message, severity: item.severity || 1, source: item.source })));
@@ -167995,7 +168106,7 @@ https://creativecommons.org/licenses/by/4.0/
             return void 0;
           });
           try {
-            const response = await transport.request("initialize", { processId: node("process").pid, rootUri: url.pathToFileURL(root).href, clientInfo: { name: "TyporaCode", version: "1" }, workspaceFolders: [{ uri: url.pathToFileURL(root).href, name: path.basename(root) }], capabilities: { workspace: { configuration: true, workspaceFolders: true, semanticTokens: { refreshSupport: true } }, general: { positionEncodings: ["utf-16"] }, offsetEncoding: ["utf-16"], textDocument: { definition: { linkSupport: true }, declaration: { linkSupport: true }, implementation: { linkSupport: true }, references: {}, semanticTokens: { requests: { full: true }, tokenTypes: SEMANTIC_TYPES, tokenModifiers: SEMANTIC_MODIFIERS, formats: ["relative"], overlappingTokenSupport: false, multilineTokenSupport: false }, documentSymbol: { hierarchicalDocumentSymbolSupport: true, symbolKind: { valueSet: Array.from({ length: 26 }, (_2, index) => index + 1) } }, publishDiagnostics: { versionSupport: true } } }, initializationOptions: generic ? options2.server?.initialization_options || {} : { fallbackFlags: options2.fallback_flags || [] } }, controller.signal);
+            const response = await transport.request("initialize", { processId: node("process").pid, rootUri: url.pathToFileURL(root).href, clientInfo: { name: "TyporaCode", version: "1" }, workspaceFolders: [{ uri: url.pathToFileURL(root).href, name: path.basename(root) }], capabilities: { workspace: { configuration: true, workspaceFolders: true, semanticTokens: { refreshSupport: true } }, general: { positionEncodings: ["utf-16"] }, offsetEncoding: ["utf-16"], textDocument: { inactiveRegionsCapabilities: { inactiveRegions: true }, definition: { linkSupport: true }, declaration: { linkSupport: true }, implementation: { linkSupport: true }, references: {}, semanticTokens: { requests: { full: true }, tokenTypes: SEMANTIC_TYPES, tokenModifiers: SEMANTIC_MODIFIERS, formats: ["relative"], overlappingTokenSupport: false, multilineTokenSupport: false }, documentSymbol: { hierarchicalDocumentSymbolSupport: true, symbolKind: { valueSet: Array.from({ length: 26 }, (_2, index) => index + 1) } }, publishDiagnostics: { versionSupport: true } } }, initializationOptions: generic ? options2.server?.initialization_options || {} : { fallbackFlags: options2.fallback_flags || [] } }, controller.signal);
             const encoding = response?.capabilities?.positionEncoding || response?.offsetEncoding || "utf-16";
             if (encoding !== "utf-16") throw new Error("clangd \u672A\u63A5\u53D7 UTF-16 \u5B9A\u4F4D\u534F\u8BAE\u3002");
             capabilities = response?.capabilities || {};
@@ -168013,6 +168124,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (document_uri !== uri || document_language !== options2.language) {
           if (document_uri) target.notify("textDocument/didClose", { textDocument: { uri: document_uri } });
           diagnostics.clear();
+          inactive_regions.clear();
           document_uri = uri;
           document_language = options2.language;
           document_text = options2.text;
@@ -168022,6 +168134,7 @@ https://creativecommons.org/licenses/by/4.0/
           document_text = options2.text;
           document_version++;
           diagnostics.delete(uri);
+          inactive_regions.delete(uri);
           target.notify("textDocument/didChange", { textDocument: { uri, version: document_version }, contentChanges: [{ text: options2.text }] });
         }
         if (navigation) {
@@ -168051,7 +168164,7 @@ https://creativecommons.org/licenses/by/4.0/
           }
         } else notice += "\u670D\u52A1\u4E0D\u63D0\u4F9B\u5B8C\u6574\u8BED\u4E49\u7740\u8272\uFF0C\u4FDD\u7559\u57FA\u7840\u7740\u8272\u3002";
         const latest = diagnostics.get(uri), received = Boolean(latest && latest.version === document_version), valid = received ? latest.items : [];
-        return { symbols: language_document_symbols(items, options2.text), incomplete: false, provider: generic ? "lsp" : "clangd", semantic_tokens, notice, executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
+        return { inactive_regions: inactive_regions.get(uri), symbols: language_document_symbols(items, options2.text), incomplete: false, provider: generic ? "lsp" : "clangd", semantic_tokens, notice, executable: environment.executable, compile_commands_dir: environment.compile_commands_dir, diagnostics: { received, errors: valid.filter((item) => item.severity === 1).length, warnings: valid.filter((item) => item.severity === 2).length, messages: valid.filter((item) => item.severity <= 2 && typeof item.message === "string").slice(0, 5).map((item) => item.message) } };
       });
       queue2 = operation;
       try {
@@ -168269,12 +168382,14 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const result = profile.provider === "disabled" ? { symbols: [], incomplete: false } : language45 === "markdown" ? { symbols: markdown_document_symbols(model.getValue()), incomplete: false } : use_lsp ? await (clangd ??= create_language_analysis_service(void 0, semantic_refresh, receive_diagnostics)).parse({ file_path, workspace_root, language: language45, text: model.getValue(), server: profile, executable: settings?.clangd_path, compile_commands_dir: settings?.compile_commands_dir, fallback_flags: settings?.fallback_flags, background_index: settings?.background_index }, controller.signal) : await (worker ??= create_source_symbol_service()).parse(language45, model.getValue(), controller.signal);
           if (disposed || controller.signal.aborted || model.isDisposed() || version !== model.getVersionId()) return;
+          set_source_inactive_regions(model, "inactive_regions" in result ? result.inactive_regions : []);
           set_source_semantics(model, "semantic_tokens" in result ? result.semantic_tokens : void 0);
           const notice = "provider" in result ? [result.notice, result.diagnostics.errors ? "".concat(result.provider, " \u62A5\u544A ").concat(result.diagnostics.errors, " \u9879\u8BCA\u65AD\uFF1B\u8BF7\u6838\u5BF9\u89E3\u6790\u8BBE\u7F6E\u3002") : result.provider === "clangd" && !result.compile_commands_dir ? "\u672A\u627E\u5230\u7F16\u8BD1\u6570\u636E\u5E93\uFF0C\u4F7F\u7528\u540E\u5907\u53C2\u6570\u3002" : ""].filter(Boolean).join(" ") : profile.provider === "disabled" ? "\u5DF2\u5173\u95ED\u6B64\u8BED\u8A00\u5206\u6790\u3002" : result.incomplete ? "\u8BED\u6CD5\u5C1A\u672A\u5B8C\u6574\uFF0C\u663E\u793A\u53EF\u8BC6\u522B\u7B26\u53F7\u3002" : "";
           Object.assign(state, { symbols: result.symbols, version, loading: false, incomplete: result.incomplete, provider: "provider" in result ? result.provider : profile.provider === "disabled" ? "disabled" : language45 === "markdown" ? "markdown" : "tree-sitter", notice });
           notify();
         } catch (error) {
           if (!disposed && !controller.signal.aborted) {
+            set_source_inactive_regions(model, []);
             Object.assign(state, { symbols: [], loading: false, error: String(error instanceof Error ? error.message : error), version });
             notify();
           }
@@ -168329,6 +168444,7 @@ https://creativecommons.org/licenses/by/4.0/
         state.diagnostics = [];
         state.diagnostics_version = -1;
         set_source_semantics(model);
+        set_source_inactive_regions(model, []);
         clearTimeout(timer);
         Object.assign(state, { symbols: [], loading: true, version: -1, error: "" });
         notify();
@@ -168342,6 +168458,7 @@ https://creativecommons.org/licenses/by/4.0/
         navigation?.abort();
         settings_release();
         set_source_semantics(model);
+        set_source_inactive_regions(model, []);
         clearTimeout(timer);
         request?.abort();
         content.dispose();
@@ -193121,8 +193238,12 @@ https://creativecommons.org/licenses/by/4.0/
         this.refresh_labels();
       }
       this.container.oncontextmenu = (event) => this.context_menu(event);
+      for (const name of ["copy", "cut", "paste"]) this.container.addEventListener(name, (event) => {
+        if (monaco_text_input(event.target)) event.stopPropagation();
+      });
       this.container.addEventListener("keydown", (event) => {
-        if (this.disposed) return;
+        if (this.disposed || monaco_text_input_key(event)) return;
+        if (monaco_text_input(event.target)) return;
         const now = Date.now(), modifier = event.ctrlKey || event.metaKey;
         if (this.range_action && modifier && event.key.toLowerCase() === "k" && !event.altKey && !event.shiftKey) {
           this.range_chord_until = now + 2e3;
@@ -193564,13 +193685,22 @@ https://creativecommons.org/licenses/by/4.0/
       if (this.rendered_markdown) void this.render_markdown();
     }
     context_menu(event) {
+      const input = monaco_text_input(event.target);
+      if (input) {
+        this.close_menu?.();
+        this.close_menu = monaco_text_input_menu(event, input);
+        return;
+      }
       if (this.rendered_markdown) {
         this.title_menu(event);
         return;
       }
-      const view = this.focused_editor();
+      const view = this.focused_editor(), readonly = view.getOption(editor.EditorOption.readOnly);
+      const command = (id) => run_monaco_source_command(view, id);
       const entries3 = [
-        { id: "copy", title: git_graph_text("diff.copy"), action: () => void view.getAction("editor.action.clipboardCopyAction")?.run() },
+        { id: "cut", title: "\u526A\u5207", shortcut: "Ctrl+X", disabled: readonly, action: () => command("editor.action.clipboardCutAction") },
+        { id: "copy", title: git_graph_text("diff.copy"), shortcut: "Ctrl+C", action: () => command("editor.action.clipboardCopyAction") },
+        { id: "paste", title: "\u7C98\u8D34", shortcut: "Ctrl+V", disabled: readonly, action: () => command("editor.action.clipboardPasteAction") },
         { id: "select_all", title: git_graph_text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null) },
         { id: "find", title: git_graph_text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run() },
         { id: "word_wrap", title: git_graph_text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => update_text_presentation(!this.wrapped) }
@@ -193596,7 +193726,10 @@ https://creativecommons.org/licenses/by/4.0/
           } }
         );
       }
-      workspace_menu(event, [...entries3, ...this.extra_menu()]);
+      const extra = this.extra_menu(), navigation = extra.filter((item) => item.id?.startsWith("source_navigation_")), remaining = extra.filter((item) => !item.id?.startsWith("source_navigation_"));
+      if (navigation.length) entries3[0].separator = true;
+      this.close_menu?.();
+      this.close_menu = workspace_menu(event, [...navigation, ...entries3, ...remaining]);
     }
     dispose() {
       if (this.disposed) return;
@@ -194167,7 +194300,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.setAttribute("aria-label", "\u5F53\u524D\u7F16\u8F91\u5668\u72B6\u6001");
     const style = acquire_workspace_style("typora-code-style:workspace_editor_status", workspace_editor_status_default, {});
     const layout_style = acquire_workspace_footer_layout();
-    const owners3 = /* @__PURE__ */ new Map();
+    const owners4 = /* @__PURE__ */ new Map();
     let disposed = false, frame3 = 0, observed_controls;
     if (footer) footer.insertBefore(container, footer.querySelector("#ty-sidebar-footer,.footer-item-right"));
     const layout2 = () => {
@@ -194189,7 +194322,7 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       if (disposed) return;
       const active2 = core.app.workspace.activeLeaf;
-      const controls = active2 ? owners3.get(active2) : void 0;
+      const controls = active2 ? owners4.get(active2) : void 0;
       footer?.toggleAttribute("data-empty-editor", !active2 || is_empty_editor_path(active2.state.path));
       if (observed_controls !== controls) {
         contents.disconnect();
@@ -194234,7 +194367,7 @@ https://creativecommons.org/licenses/by/4.0/
       document.removeEventListener("focusin", schedule, true);
       window.removeEventListener("resize", schedule);
       window.removeEventListener("unload", dispose2);
-      owners3.clear();
+      owners4.clear();
       container.remove();
       footer?.removeAttribute("data-editor-status");
       layout_style.remove();
@@ -194243,10 +194376,10 @@ https://creativecommons.org/licenses/by/4.0/
     };
     window.addEventListener("unload", dispose2);
     const binding = { container, register(leaf, controls) {
-      owners3.set(leaf, controls);
+      owners4.set(leaf, controls);
       refresh();
     }, release(leaf) {
-      owners3.delete(leaf);
+      owners4.delete(leaf);
       refresh();
     }, refresh, schedule, dispose: dispose2 };
     status_bindings.set(core, binding);
@@ -195378,7 +195511,7 @@ https://creativecommons.org/licenses/by/4.0/
   var workspace_files_default = "";
 
   // src/workspace_list_selection.ts
-  var owners2 = /* @__PURE__ */ new WeakMap();
+  var owners3 = /* @__PURE__ */ new WeakMap();
   function apply_workspace_row_selection(row, selected, focused = false) {
     row.dataset.workspaceSelected = String(selected);
     row.dataset.workspaceFocused = String(focused);
@@ -195391,13 +195524,13 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function workspace_selection_owner(row) {
     const root = row.closest("[data-workspace-list]");
-    return root ? owners2.get(root) : void 0;
+    return root ? owners3.get(root) : void 0;
   }
   var workspace_list_selection = class {
     constructor(root) {
       this.root = root;
       root.dataset.workspaceList = "";
-      owners2.set(root, this);
+      owners3.set(root, this);
       root.addEventListener("focusin", this.focus);
     }
     keys = /* @__PURE__ */ new Set();
@@ -195443,7 +195576,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     dispose() {
       this.root.removeEventListener("focusin", this.focus);
-      owners2.delete(this.root);
+      owners3.delete(this.root);
       delete this.root.dataset.workspaceList;
       this.keys.clear();
     }
@@ -197665,12 +197798,14 @@ https://creativecommons.org/licenses/by/4.0/
     const active_source_view = () => [...views].find((view) => view.leaf === core.app.workspace.activeLeaf);
     const native_document_active2 = () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
     const run_editor_command = (command) => {
+      const input = monaco_text_input(document.activeElement), input_command = { "editor.action.clipboardCopyAction": "copy", "editor.action.clipboardCutAction": "cut", "editor.action.clipboardPasteAction": "paste", "editor.action.selectAll": "selectAll", undo: "undo", redo: "redo" }[command];
+      if (input && input_command) {
+        run_text_input_command(input, input_command);
+        return;
+      }
       const editor2 = active_source_view()?.editor?.focused_editor();
       if (!editor2) return;
-      editor2.focus();
-      const action = editor2.getAction(command);
-      if (action) void action.run();
-      else editor2.trigger("workspace-menu", command, null);
+      run_monaco_source_command(editor2, command);
     };
     const source_editor_active = () => Boolean(active_source_view()?.editor);
     const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view()) || native_document_active2();
@@ -197817,10 +197952,10 @@ https://creativecommons.org/licenses/by/4.0/
         for (const leaf of leaves) if (!await save_leaf(leaf)) return false;
         return true;
       }
-      const owners3 = /* @__PURE__ */ new Set();
+      const owners4 = /* @__PURE__ */ new Set();
       const source_saves = [...views].filter((view) => {
-        if (view.disposed || !view.dirty() || owners3.has(view.shared)) return false;
-        owners3.add(view.shared);
+        if (view.disposed || !view.dirty() || owners4.has(view.shared)) return false;
+        owners4.add(view.shared);
         return true;
       }).map((view) => view.save());
       source_saves.push(...[...document_ports].filter((port) => !port.disposed && port.dirty()).map((port) => port.save()));
@@ -243447,6 +243582,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092721,
+        version: "2026.09.27.21",
+        date: "2026-09-27",
+        notes: [
+          "\u6E90\u7801\u67E5\u627E/\u66FF\u6362\u8F93\u5165\u6846\u72EC\u7ACB\u5904\u7406\u590D\u5236\u3001\u7C98\u8D34\u3001\u64A4\u9500\u548C\u53F3\u952E\u83DC\u5355\uFF1B\u6E90\u7801\u83DC\u5355\u8865\u9F50\u526A\u5207\u7C98\u8D34\u5E76\u6309\u80FD\u529B\u5206\u7EC4\uFF0C\u4E0D\u5F71\u54CDMarkdown\u3002",
+          "C/C++\u6309clangd\u4E0E\u5DE5\u7A0B\u5B8F\u914D\u7F6E\u6DE1\u5316\u672A\u6FC0\u6D3B\u4EE3\u7801\uFF0C\u7F16\u8F91\u548C\u5207\u6362\u540E\u6E05\u7406\u65E7\u8303\u56F4\uFF0C\u4FDD\u7559\u539F\u8BED\u6CD5\u989C\u8272\u3002"
+        ]
+      },
       {
         sequence: 2026092720,
         version: "2026.09.27.20",

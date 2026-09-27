@@ -9,7 +9,8 @@
       "requirements": [
         "H005",
         "R043",
-        "R068.6"
+        "R068.6",
+        "R068.8"
       ],
       "design": "docs/source_outline.md",
       "implementation": [
@@ -27,7 +28,8 @@
       "environment": "Node规则/临时工作区",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "真实clangd执行20轮宏开关切换，嵌套/else范围及空范围清除"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -8532,14 +8534,19 @@
       "requirements": [
         "R068.4",
         "R068.5",
-        "R068.6"
+        "R068.6",
+        "R068.7",
+        "R068.8"
       ],
       "design": "docs/code_analysis_colors.md",
       "implementation": [
         "enhancements/src/monaco_code_theme.ts",
         "enhancements/src/language_analysis_service.ts",
         "enhancements/src/workspace_document_symbols.ts",
-        "enhancements/src/source_navigation.ts"
+        "enhancements/src/source_navigation.ts",
+        "enhancements/src/monaco_text_input.ts",
+        "enhancements/src/source_inactive_regions.ts",
+        "enhancements/src/monaco_source_command.ts"
       ],
       "related_modules": [
         "theme",
@@ -8553,7 +8560,8 @@
         "独立测试目录及最终构建"
       ],
       "steps": [
-        "明暗切换、光标、聚焦/失焦选区、背景叠层、动态及销毁"
+        "明暗切换、光标、聚焦/失焦选区、背景叠层、动态及销毁",
+        "真实Find/Replace快捷键及六项菜单；预览和差异输入不改模型；真实clangd未激活分支、宏切换和装饰清理"
       ],
       "expected": [
         "编辑状态可见，原文及编辑所有者保持"
@@ -8632,6 +8640,46 @@
       ],
       "expected": [
         "当前版本符号与语义能力可核对；无文件误写及进程泄漏"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "clangd"
+      ]
+    },
+    {
+      "id": "TC-source-input-inactive-native",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.7",
+        "R068.8"
+      ],
+      "design": "docs/code_analysis_colors.md",
+      "implementation": [
+        "enhancements/src/monaco_text_input.ts",
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/source_inactive_regions.ts",
+        "enhancements/src/workspace_document_symbols.ts",
+        "enhancements/src/monaco_source_command.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "source",
+        "search"
+      ],
+      "script": "enhancements/fixtures/source_input_native.js",
+      "environment": [
+        "原始Typora 1.14.10私有桌面"
+      ],
+      "preconditions": [
+        "标准运行器准备最终候选及独立宿主，clangd可用"
+      ],
+      "steps": [
+        "查找/替换复制粘贴撤销重做、输入菜单与源码菜单分离；明暗状态；宏裁剪和内存切换"
+      ],
+      "expected": [
+        "操作不误改源码/Markdown；clangd范围淡化并及时清除；原文未落盘；候选摘要一致"
       ],
       "timeout_ms": 240000,
       "required_executables": [

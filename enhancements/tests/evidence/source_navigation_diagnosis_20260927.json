@@ -1,0 +1,48 @@
+{
+  "date": "2026-09-27",
+  "requirement": "R068.6",
+  "status": "DEFERRED_BY_USER",
+  "clangd": "18.1.8",
+  "database": "build/bringup/compile_commands.json",
+  "macro_original": 0,
+  "macro_isolated": 4096,
+  "original_calls": [
+    {
+      "line": 105,
+      "targets": 0
+    },
+    {
+      "line": 129,
+      "targets": 0
+    },
+    {
+      "line": 150,
+      "targets": 0
+    }
+  ],
+  "enabled_calls": [
+    {
+      "line": 105,
+      "target_lines": [
+        6596
+      ]
+    },
+    {
+      "line": 129,
+      "target_lines": [
+        105
+      ]
+    },
+    {
+      "line": 150,
+      "target_lines": [
+        105
+      ]
+    }
+  ],
+  "limitations": [
+    "后台索引关闭，仅当前翻译单元",
+    "原工程源码、数据库及配置未改",
+    "定义本身触发clangd原生声明切换，不修改此行为"
+  ]
+}

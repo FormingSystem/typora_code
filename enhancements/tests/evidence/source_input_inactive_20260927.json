@@ -1,0 +1,179 @@
+{
+  "requirements": [
+    "R068.7",
+    "R068.8"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.21",
+  "baseline": "3e1011b3d97cef657b96a35f58d48f46563a5c03",
+  "upstream": {
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "input": "src/vs/workbench/browser/actions/textInputActions.ts",
+    "clipboard": "包内editor/contrib/clipboard/browser/clipboard.js及clipboardUtils.js；Electron复制回退、元数据与Monaco粘贴处理器",
+    "vscode_clangd_commit": "e026b3572d1f14979bbddd09b894d83a6320d6e2",
+    "inactive": "src/inactive-regions.ts及package.json，opacity=0.55；clangd通知决定范围"
+  },
+  "checks": {
+    "full_check": {
+      "status": "PASS",
+      "id": "f85ae02099294bbf82ce7a8d3b13cac1",
+      "boundary": "最后剪贴板宿主适配前通过；最终候选另有目标UI、原生及静态/核心/部署检查"
+    },
+    "build_static_core_deployment_catalog": "PASS",
+    "catalog_count": 249,
+    "catalog_is_not_executed_suite_count": true,
+    "clangd": {
+      "status": "PASS",
+      "id": "f3f95b9051be4c33ba6cd4c2056315fa",
+      "checks": 21,
+      "macro_switches": 20
+    },
+    "ui": {
+      "source_inputs_colors": {
+        "id": "447546c6015a43c684da425f04718fdd",
+        "checks": 18,
+        "scope": "真实Chromium快捷键、菜单实际复制剪切粘贴及撤销、预览/差异输入隔离、四主题实际鼠标悬停、宏裁剪和取消"
+      },
+      "file_editing": {
+        "id": "af72cd461f914a77b8d1662258f6f553",
+        "checks": 24,
+        "boundary": "最后仅本地变量snake_case改名前；运行逻辑相同"
+      }
+    },
+    "native": {
+      "id": "c62d96369d564e0da6f3b245b62b367e",
+      "status": "PASS",
+      "checks": [
+        "隔离工作区",
+        "原始宿主真实clangd语义着色",
+        "官方主题背景 dark_2026 rgb(18, 19, 20)",
+        "主题切换保留光标 dark_2026",
+        "官方主题背景 light_2026 rgb(255, 255, 255)",
+        "主题切换保留光标 light_2026",
+        "find-part复制只读本框",
+        "find-part粘贴进入本框",
+        "find-part撤销不改源码",
+        "find-part重做",
+        "find-part专属文本菜单",
+        "find-part菜单剪切保留源码",
+        "replace-part复制只读本框",
+        "replace-part粘贴进入本框",
+        "replace-part撤销不改源码",
+        "replace-part重做",
+        "replace-part专属文本菜单",
+        "replace-part菜单剪切保留源码",
+        "dark_2026选项选中 monaco-custom-toggle codicon codicon-case-sensitive checked",
+        "dark_2026选项默认 monaco-custom-toggle codicon codicon-case-sensitive",
+        "dark_2026选项选中 monaco-custom-toggle codicon codicon-whole-word checked",
+        "dark_2026选项默认 monaco-custom-toggle codicon codicon-whole-word",
+        "dark_2026选项选中 monaco-custom-toggle codicon codicon-regex checked",
+        "dark_2026选项默认 monaco-custom-toggle codicon codicon-regex",
+        "dark_2026禁用选项",
+        "dark_2026查找输入背景",
+        "light_2026选项选中 monaco-custom-toggle codicon codicon-case-sensitive checked",
+        "light_2026选项默认 monaco-custom-toggle codicon codicon-case-sensitive",
+        "light_2026选项选中 monaco-custom-toggle codicon codicon-whole-word checked",
+        "light_2026选项默认 monaco-custom-toggle codicon codicon-whole-word",
+        "light_2026选项选中 monaco-custom-toggle codicon codicon-regex checked",
+        "light_2026选项默认 monaco-custom-toggle codicon codicon-regex",
+        "light_2026禁用选项",
+        "light_2026查找输入背景",
+        "源码菜单含导航与剪贴板",
+        "源码菜单操作模型",
+        "源码菜单复制实际选区",
+        "源码菜单粘贴实际修改",
+        "源码粘贴可撤销",
+        "源码菜单剪切实际修改",
+        "源码剪切可撤销",
+        "未激活区域保留语法色并淡化",
+        "修改立即清除旧淡化",
+        "宏切换重分析",
+        "查找操作和分析未保存文件"
+      ],
+      "asset_sha256": "01b449796a2f6f5019a9a8b9b6ae6330e5fa37f2ba712cbf17b7410ab82356c2",
+      "limits": "隔离原始宿主DOM事件；未测物理键鼠、其他平台和第三方服务全部能力。"
+    },
+    "install_cycle": {
+      "id": "35e65677762b4d93b48d468d0749d83b",
+      "status": "PASS",
+      "scope": "最终候选安装/检查/restore卸载/重装/检查/detach卸载/重装/检查，正文配置备份保持"
+    },
+    "uninstall": {
+      "id": "ec5781e26a9b452ea5a5da91845ae9f7",
+      "status": "PASS",
+      "assertions": 65
+    },
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "997b931d42585e1a2a46523d9014a17b011112331ec16cbd1f92482403b3cca6",
+      "window_restarted": false
+    }
+  },
+  "failures_preserved": [
+    {
+      "id": "d595cb65f4934b5797df12df9f9e0197",
+      "finding": "原生Find焦点及选区正确，execCommand复制没有更新剪贴板，改为局部宿主剪贴板适配"
+    },
+    {
+      "id": "d3da9bdc864344ec94a1ce66a0faeb07",
+      "finding": "源码菜单粘贴无效，嵌入式Monaco缺少原生triggerPaste；统一适配修复"
+    },
+    {
+      "id": "27f90572de92421a916e50465dbe0966",
+      "finding": "原生源码复制也未更新剪贴板，采用包内上游Electron复制回退"
+    },
+    {
+      "id": "b77715dbdd4142408cc239549cf609d2",
+      "finding": "夹具误要求禁用的选区按钮进入选中，修正为禁用opacity断言"
+    },
+    {
+      "id": "b68db198e0204a2380256cefca2fe870",
+      "finding": "夹具对diff原侧隐藏的Find输入强制聚焦失败；按实际共享Find入口验证"
+    },
+    {
+      "id": "55c8e041d1524b7788498f44586eff83",
+      "finding": "一次源码Save As后写入报告占用/权限失败，同候选复跑通过；未确定偶发文件系统原因，保留记录不修改保存逻辑"
+    },
+    "两次构建rename报EPERM，重试成功后才作为最终候选；误准备的旧资产副本0647ed1c1494442d966b99394438ef15未运行，按所有权回收",
+    "早期主题测试未同步工作台模式、脚本字符串换行错误已修正；失败证据仍保留"
+  ],
+  "limits": [
+    "未运行全量UI；其他平台和物理输入未本轮验收",
+    "原生默认/选中/禁用明暗颜色符合官方角色，未新增颜色覆盖；真实hover在Electron测试",
+    "宏范围取决于当前clangd工程配置，与微软C/C++扩展可能不同；未自动改变用户宏",
+    "未知版本通知在串行AST屏障后采样；不支持服务保留基础高亮；历史快照和Markdown围栏不套当前工程宏",
+    "R068.6定义跳转按用户要求暂缓；截图中AI扩展、重构、调用层级等能力未移植",
+    "菜单复制使用上游纯文本回退，不承诺富文本；其他历史未决项保持"
+  ],
+  "cleanup": {
+    "native": {
+      "state": "cleaned",
+      "bytes": 531365647,
+      "logs_results_retained": true
+    },
+    "install": {
+      "state": "cleaned",
+      "bytes": 2075892618,
+      "logs_results_retained": true
+    },
+    "uninstall": {
+      "state": "cleaned",
+      "bytes": 131163209,
+      "logs_results_retained": true
+    }
+  },
+  "delivery": {
+    "installed": true,
+    "window_restarted": false,
+    "commit": "pending"
+  }
+}

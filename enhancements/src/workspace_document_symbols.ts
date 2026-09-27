@@ -1,3 +1,4 @@
+import {set_source_inactive_regions} from "./source_inactive_regions";
 import type {language_navigation_kind,language_position,language_location,language_diagnostic} from "./language_locations";
 import {read_language_service_profile,observe_language_services} from "./language_service_settings";
 import {set_source_semantics} from "./source_semantic_tokens";
@@ -46,10 +47,11 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
         if(!use_lsp&&clangd){await clangd.dispose();clangd=undefined;}
         const result=profile.provider==="disabled"?{symbols:[],incomplete:false}:language==="markdown"?{symbols:markdown_document_symbols(model.getValue()),incomplete:false}:use_lsp?await (clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics)).parse({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},controller.signal):await(worker??=create_source_symbol_service()).parse(language,model.getValue(),controller.signal);
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())return;
+        set_source_inactive_regions(model,"inactive_regions" in result?result.inactive_regions:[]);
         set_source_semantics(model,"semantic_tokens" in result?result.semantic_tokens:undefined);
         const notice="provider" in result?[result.notice,result.diagnostics.errors?`${result.provider} 报告 ${result.diagnostics.errors} 项诊断；请核对解析设置。`:result.provider==="clangd"&&!result.compile_commands_dir?"未找到编译数据库，使用后备参数。":""].filter(Boolean).join(" "):profile.provider==="disabled"?"已关闭此语言分析。":result.incomplete?"语法尚未完整，显示可识别符号。":"";
         Object.assign(state,{symbols:result.symbols,version,loading:false,incomplete:result.incomplete,provider:"provider" in result?result.provider:profile.provider==="disabled"?"disabled":language==="markdown"?"markdown":"tree-sitter",notice});notify();
-      }catch(error){if(!disposed&&!controller.signal.aborted){Object.assign(state,{symbols:[],loading:false,error:String(error instanceof Error?error.message:error),version});notify();}}
+      }catch(error){if(!disposed&&!controller.signal.aborted){set_source_inactive_regions(model,[]);Object.assign(state,{symbols:[],loading:false,error:String(error instanceof Error?error.message:error),version});notify();}}
       finally{analysis_running=false;if(semantic_refresh_pending){semantic_refresh_pending=false;semantic_refresh();}}
     };
     // 服务完成工程/标准库加载后合并刷新；不打断当前响应、不清空已有颜色。
@@ -70,10 +72,10 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())throw new DOMException("导航已取消","AbortError");return result;
       }finally{signal.removeEventListener("abort",abort);if(navigation===controller){navigation=undefined;semantic_refresh();}}
     };
-    const refresh=()=>{navigation?.abort();request?.abort();state.diagnostics=[];state.diagnostics_version=-1;set_source_semantics(model);clearTimeout(timer);Object.assign(state,{symbols:[],loading:true,version:-1,error:""});notify();timer=window.setTimeout(parse,150);};
+    const refresh=()=>{navigation?.abort();request?.abort();state.diagnostics=[];state.diagnostics_version=-1;set_source_semantics(model);set_source_inactive_regions(model,[]);clearTimeout(timer);Object.assign(state,{symbols:[],loading:true,version:-1,error:""});notify();timer=window.setTimeout(parse,150);};
     const settings_release=observe_language_services(refresh);
     const content=model.onDidChangeContent(refresh),language=model.onDidChangeLanguage(refresh);
-    owner={state,listeners,navigate,refresh,dispose(){if(disposed)return;disposed=true;navigation?.abort();settings_release();set_source_semantics(model);clearTimeout(timer);request?.abort();content.dispose();language.dispose();worker?.dispose();void clangd?.dispose();listeners.clear();}};entries.set(key,owner);refresh();
+    owner={state,listeners,navigate,refresh,dispose(){if(disposed)return;disposed=true;navigation?.abort();settings_release();set_source_semantics(model);set_source_inactive_regions(model,[]);clearTimeout(timer);request?.abort();content.dispose();language.dispose();worker?.dispose();void clangd?.dispose();listeners.clear();}};entries.set(key,owner);refresh();
   }
   const target=owner;target.listeners.add(listener);listener(target.state);let released=false;
   return{get state(){return target.state;},navigate:target.navigate,refresh:target.refresh,dispose(){if(released)return;released=true;target.listeners.delete(listener);if(!target.listeners.size){target.dispose();entries!.delete(key);if(!entries!.size)models.delete(model);}}};
