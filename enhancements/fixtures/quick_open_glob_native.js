@@ -14,7 +14,10 @@
   assert(regex.hidden&&glob.hidden,'功能首页隐藏模式按钮');
   const query=async text=>{input.value=text;input.dispatchEvent(new Event('input'));await wait(()=>!panel.querySelector('.workspace-quick-open-status').textContent.includes('正在'),'匹配完成');};
   const names=()=>[...panel.querySelectorAll('.workspace-quick-open-name')].map(item=>item.textContent).sort().join(',');
-  await query('*.c');assert(regex.getAttribute('aria-pressed')==='true'&&panel.textContent.includes('正则表达式无效'),'默认仍为严格正则');
+  await query('*.c');await wait(()=>names().includes('.codecov.yml'),'默认上游模糊结果');
+  assert(regex.getAttribute('aria-pressed')==='false'&&glob.getAttribute('aria-pressed')==='false'&&!panel.textContent.includes('正则表达式无效'),'默认双按钮关闭并采用上游模糊');
+  regex.click();await wait(()=>panel.textContent.includes('正则表达式无效'),'手动正则错误');assert(true,'正则仅由手动开启');
+  regex.click();await wait(()=>names().includes('.codecov.yml'),'关闭正则恢复模糊');assert(true,'关闭模式恢复上游模糊');
   glob.click();await wait(()=>names()==='main.c,next.c','通配符匹配C文件');assert(true,'排除cpp、点文件与.c目录内文件');
   assert(regex.getAttribute('aria-pressed')==='false'&&glob.getAttribute('aria-pressed')==='true'&&document.activeElement===input,'模式互斥与焦点');
   await query('**/*.{c,h}');assert(names()==='file1.h,main.c,next.c','递归与后缀备选');

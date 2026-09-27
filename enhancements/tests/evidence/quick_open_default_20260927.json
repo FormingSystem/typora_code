@@ -1,0 +1,174 @@
+{
+  "requirements": [
+    "R058.3"
+  ],
+  "date": "2026-09-27",
+  "version": "2026.09.27.17",
+  "scope": "默认上游模糊评分；正则/文件类型通配符手动互斥开启，关闭恢复模糊，无自动推断。",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/base/common/fuzzyScorer.ts:normalizeQuery/prepareQuery，沿用当前适配算法"
+  },
+  "checks": {
+    "build_static_core_deployment": "PASS",
+    "catalog_suites": 244,
+    "ui": {
+      "quick_open": "9ad4e599ec8c4b7499aee130b2dac251",
+      "command_center": "70a55f46f3fd45509e13913f83d73707",
+      "editor_actions": "8a844f0204204efd88c7ed35c10c46e4",
+      "colors": "be90dd7e14d44e94b79451bc203cb2fa"
+    },
+    "matcher_search_worker": "PASS",
+    "native": {
+      "id": "39c03619edb64a61900bb644f374b10e",
+      "count": 79,
+      "status": "PASS",
+      "checks": [
+        "隔离工程",
+        "功能首页隐藏模式按钮",
+        "默认双按钮关闭并采用上游模糊",
+        "正则仅由手动开启",
+        "关闭模式恢复上游模糊",
+        "排除cpp、点文件与.c目录内文件",
+        "模式互斥与焦点",
+        "递归与后缀备选",
+        "根路径锚定",
+        "单字符通配符",
+        "Windows路径分隔与字符类",
+        "真实特殊文件名优先",
+        "正则模式 0",
+        "通配符模式 0",
+        "正则模式 1",
+        "通配符模式 1",
+        "正则模式 2",
+        "通配符模式 2",
+        "正则模式 3",
+        "通配符模式 3",
+        "正则模式 4",
+        "通配符模式 4",
+        "正则模式 5",
+        "通配符模式 5",
+        "正则模式 6",
+        "通配符模式 6",
+        "正则模式 7",
+        "通配符模式 7",
+        "正则模式 8",
+        "通配符模式 8",
+        "正则模式 9",
+        "通配符模式 9",
+        "正则模式 10",
+        "通配符模式 10",
+        "正则模式 11",
+        "通配符模式 11",
+        "正则模式 12",
+        "通配符模式 12",
+        "正则模式 13",
+        "通配符模式 13",
+        "正则模式 14",
+        "通配符模式 14",
+        "正则模式 15",
+        "通配符模式 15",
+        "正则模式 16",
+        "通配符模式 16",
+        "正则模式 17",
+        "通配符模式 17",
+        "正则模式 18",
+        "通配符模式 18",
+        "正则模式 19",
+        "通配符模式 19",
+        "无效模式保留错误",
+        "错误后恢复",
+        "Esc关闭",
+        "重开保留当前模式",
+        "共同文件服务打开目标",
+        "浮层颜色 light 顶栏首页",
+        "输入/焦点颜色 light 顶栏首页",
+        "实际命中 顶栏首页",
+        "浮层颜色 light 文件查询",
+        "输入/焦点颜色 light 文件查询",
+        "实际命中 文件查询",
+        "主题切换保留搜索模式",
+        "浮层颜色 light 打开最近",
+        "输入/焦点颜色 light 打开最近",
+        "实际命中 打开最近",
+        "浮层操作保留正文 light",
+        "浮层颜色 dark 顶栏首页",
+        "输入/焦点颜色 dark 顶栏首页",
+        "实际命中 顶栏首页",
+        "浮层颜色 dark 文件查询",
+        "输入/焦点颜色 dark 文件查询",
+        "实际命中 文件查询",
+        "主题切换保留搜索模式",
+        "浮层颜色 dark 打开最近",
+        "输入/焦点颜色 dark 打开最近",
+        "实际命中 打开最近",
+        "浮层操作保留正文 dark"
+      ],
+      "asset_sha256": "e1dbb88470c189b9ba74b6fa225e40a9d2377e84c9902c2195a34a1844b759da",
+      "css_sha256": "8a8228018adfe5f46eaafb1e87affb4d038df0340b50d7a4a4a140052224e015",
+      "limits": "隔离原始Typora DOM事件，未代表物理键鼠或其他平台。"
+    },
+    "transactions": {
+      "test_install_windows": 0,
+      "test_uninstall_windows": 0
+    },
+    "uninstall_assertions": 65,
+    "full_check_ui": "未执行全量；运行4套关联UI及匹配/搜索/Worker目标回归。"
+  },
+  "cleanup": {
+    "quick_open": {
+      "id": "9ad4e599ec8c4b7499aee130b2dac251",
+      "state": "cleaned",
+      "payload_bytes": 1879294
+    },
+    "command_center": {
+      "id": "70a55f46f3fd45509e13913f83d73707",
+      "state": "cleaned",
+      "payload_bytes": 1926230
+    },
+    "editor_actions": {
+      "id": "8a844f0204204efd88c7ed35c10c46e4",
+      "state": "cleaned",
+      "payload_bytes": 3974103
+    },
+    "colors": {
+      "id": "be90dd7e14d44e94b79451bc203cb2fa",
+      "state": "cleaned",
+      "payload_bytes": 2455602
+    },
+    "native": {
+      "id": "39c03619edb64a61900bb644f374b10e",
+      "state": "cleaned",
+      "payload_bytes": 531267718
+    },
+    "installation": {
+      "id": "6d8d4608d76241d1bb36f34db61469cf",
+      "state": "cleaned",
+      "payload_bytes": 2074076571
+    },
+    "uninstall": {
+      "id": "7462f82b8f244ff4ad1398a244368d26",
+      "state": "cleaned",
+      "payload_bytes": 131163209
+    }
+  },
+  "local_install": {
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      49,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "8274435e61d20f6f3acc299ddba459bea34ada0720462774d9cc1f35f88a667e",
+    "window_restarted": false
+  },
+  "limits": [
+    "原生宿主DOM事件不代表物理键鼠或跨平台验收。",
+    "当前用户窗口未重启；磁盘安装成功，正常重启加载。",
+    "历史未决项不由本次关闭。"
+  ]
+}

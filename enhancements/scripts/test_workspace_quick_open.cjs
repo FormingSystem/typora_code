@@ -22,7 +22,10 @@ app.whenReady().then(async()=>{
   const first_reads=await evaluate('directory_reads');
   for(let iteration=0;iteration<20;iteration++){await evaluate('picker.close();picker.open();void 0');await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);assert(!await evaluate(`picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在查找')`));}
   assert.equal(await evaluate('directory_reads'),first_reads,'20次真实打开无目录重扫');
-  assert(await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").getAttribute("aria-pressed")==="true"'));
+  assert(await evaluate('[...picker.root.querySelectorAll("[aria-pressed]")].every(button=>button.getAttribute("aria-pressed")==="false")'),'默认不启用正则或通配符');
+  await query('main bringup');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
+  await query('*.c');assert(!await evaluate('picker.root.textContent.includes("正则表达式无效")'),'默认星号沿用上游模糊规则');
+  await evaluate('picker.root.querySelector("[aria-label=使用正则表达式]").click();void 0');
   await query('main[.]c$');assert.equal(await evaluate('picker.root.querySelector(".workspace-quick-open-name").textContent'),'main.c');
   await query('[');assert(await evaluate('picker.root.textContent.includes("正则表达式无效")'));
   await query('*.c');assert(await evaluate('picker.root.textContent.includes("正则表达式无效")'),'通配符不会被静默当成正则');

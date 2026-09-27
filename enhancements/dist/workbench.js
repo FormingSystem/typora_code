@@ -164284,7 +164284,7 @@ https://creativecommons.org/licenses/by/4.0/
     input.setAttribute("aria-controls", "workspace-quick-open-list");
     input.autocomplete = "off";
     input.spellcheck = false;
-    let match_mode = DEFAULT_SEARCH_REGEX ? "regex" : "fuzzy", match_controller;
+    let match_mode = "fuzzy", match_controller;
     const set_mode = (mode) => {
       match_mode = match_mode === mode ? "fuzzy" : mode;
       sync_mode();
@@ -164302,7 +164302,8 @@ https://creativecommons.org/licenses/by/4.0/
       regex_button.setAttribute("aria-pressed", String(match_mode === "regex"));
       glob_button.setAttribute("aria-pressed", String(match_mode === "glob"));
     };
-    glob_button.title = "\u4F7F\u7528\u901A\u914D\u7B26\uFF1A*.c\u3001**/*.h\u3001file?.md\uFF1B\u4E0E\u6B63\u5219\u4E92\u65A5";
+    regex_button.title = "\u4F7F\u7528\u6B63\u5219\u8868\u8FBE\u5F0F\uFF1B\u5173\u95ED\u4E24\u4E2A\u6A21\u5F0F\u6309\u94AE\u65F6\u4F7F\u7528 VS Code \u6587\u4EF6\u540D/\u8DEF\u5F84\u6A21\u7CCA\u641C\u7D22";
+    glob_button.title = "\u4F7F\u7528\u901A\u914D\u7B26\u7B5B\u9009\u6587\u4EF6\u7C7B\u578B\uFF1A*.c\u3001**/*.h\u3001file?.md\uFF1B\u4E0E\u6B63\u5219\u4E92\u65A5";
     sync_mode();
     input_row.append(input, regex_button, glob_button);
     const results = document.createElement("div");
@@ -241489,6 +241490,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092717,
+        version: "2026.09.27.17",
+        date: "2026-09-27",
+        notes: [
+          "\u6587\u4EF6\u5FEB\u901F\u6253\u5F00\u9ED8\u8BA4\u91C7\u7528VS Code\u6587\u4EF6\u540D\u548C\u8DEF\u5F84\u6A21\u7CCA\u641C\u7D22\uFF0C\u6B63\u5219\u548C\u901A\u914D\u7B26\u6309\u94AE\u521D\u59CB\u5747\u5173\u95ED\u3002",
+          "\u9700\u8981\u6B63\u5219\u6216\u6309\u6587\u4EF6\u7C7B\u578B\u7B5B\u9009\u65F6\u624B\u52A8\u5F00\u542F\u5BF9\u5E94\u6309\u94AE\uFF1B\u4E24\u79CD\u6A21\u5F0F\u4E92\u65A5\uFF0C\u5173\u95ED\u540E\u6062\u590D\u6A21\u7CCA\u641C\u7D22\uFF0C\u5F53\u524D\u7A97\u53E3\u4FDD\u7559\u9009\u62E9\u3002"
+        ]
+      },
       {
         sequence: 2026092716,
         version: "2026.09.27.16",
