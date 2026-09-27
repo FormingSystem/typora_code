@@ -158777,9 +158777,16 @@ https://creativecommons.org/licenses/by/4.0/
     const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
       const node = row.querySelector(selector);
       if (!node) return 0;
-      const range2 = document.createRange();
-      range2.selectNodeContents(node);
-      return range2.getBoundingClientRect().width;
+      const value = node.style.getPropertyValue("white-space"), priority = node.style.getPropertyPriority("white-space");
+      try {
+        node.style.setProperty("white-space", "nowrap", "important");
+        const range2 = document.createRange();
+        range2.selectNodeContents(node);
+        return range2.getBoundingClientRect().width;
+      } finally {
+        if (value) node.style.setProperty("white-space", value, priority);
+        else node.style.removeProperty("white-space");
+      }
     })) : 0;
     menu.style.setProperty("--workspace-menu-leading-width", "2em");
     const shortcut_width = Math.ceil(text_width(shortcut_selector));
@@ -238268,6 +238275,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092710,
+        version: "2026.09.27.10",
+        date: "2026-09-27",
+        notes: [
+          "\u4FEE\u590D\u83DC\u5355\u521D\u59CB\u5BBD\u5EA6\u5F71\u54CD\u6587\u5B57\u6D4B\u91CF\u7684\u95EE\u9898\uFF1A\u8BBE\u7F6E\u3001\u6269\u5C55\u7B49\u540D\u79F0\u6309\u5B8C\u6574\u5355\u884C\u6587\u5B57\u786E\u5B9A\u83DC\u5355\u5BBD\u5EA6\uFF0C\u89C6\u53E3\u8DB3\u591F\u65F6\u4E0D\u518D\u9519\u8BEF\u6362\u884C\u3002"
+        ]
+      },
       {
         sequence: 2026092709,
         version: "2026.09.27.9",

@@ -3036,9 +3036,16 @@ ${doc.documentElement.outerHTML}`;
     const text_width = (selector) => selector ? Math.max(0, ...rows.map((row) => {
       const node = row.querySelector(selector);
       if (!node) return 0;
-      const range = document.createRange();
-      range.selectNodeContents(node);
-      return range.getBoundingClientRect().width;
+      const value = node.style.getPropertyValue("white-space"), priority = node.style.getPropertyPriority("white-space");
+      try {
+        node.style.setProperty("white-space", "nowrap", "important");
+        const range = document.createRange();
+        range.selectNodeContents(node);
+        return range.getBoundingClientRect().width;
+      } finally {
+        if (value) node.style.setProperty("white-space", value, priority);
+        else node.style.removeProperty("white-space");
+      }
     })) : 0;
     menu.style.setProperty("--workspace-menu-leading-width", "2em");
     const shortcut_width = Math.ceil(text_width(shortcut_selector));

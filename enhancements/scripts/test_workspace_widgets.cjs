@@ -145,13 +145,17 @@ app.whenReady().then(async () => {
     assert.equal(rows[2].inset,rows[3].inset,'checked state never shifts label');
     await evaluate('mixed_close();void 0');checks.push(`R065.1 mixed menu ${kind}/${dark}/${width}/${zoom}: common 26px label start, stable checkbox and aligned shortcut`);
   }
-  // 不放人为超长条目来撑宽菜单：正是三项设置菜单在真实用户截图中再次失败。
-  for(const zoom of [1,1.25])for(const width of [800,320]){
+  // 当前真实菜单只有两项；长名称会撑宽初始布局，掩盖对已换行文字的错误测量。
+  // 同时覆盖宿主/调用方给予初始宽度的情况，最终宽度仍由公共测量决定。
+  await test_window.webContents.insertCSS('.git-graph-menu[role=menu].workspace-preferences-menu {width:190px}');
+  for(const font of ['Segoe UI','Consolas'])for(const zoom of [1,.9,1.25])for(const width of [800,320])for(const dark of [false,true]){
     test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
-    await evaluate(`window.actual_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'Typora 偏好设置…',shortcut:'Ctrl+,',action(){}},{title:'插件设置…',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}}],'workspace-preferences-menu');void 0`);await delay(20);
+    await evaluate(`document.body.style.setProperty('--linux-note-ui-font-family','${font}')`);
+    await evaluate(`document.body.style.setProperty('--bg-color','${dark?'#191a1b':'#fff'}');window.actual_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'设置',shortcut:'Ctrl+,',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}}],'workspace-preferences-menu');void 0`);await delay(20);
+    assert(await evaluate(`[...document.querySelectorAll('.workspace-preferences-menu .git-menu-label')].every(node=>{const range=document.createRange();range.selectNodeContents(node);return range.getClientRects().length===1;})`),'actual two-item menu labels must remain on one line when viewport has room');
     assert(await evaluate(`(()=>{const menu=document.querySelector('.git-graph-menu');return menu.scrollWidth<=menu.clientWidth&&[...menu.querySelectorAll('.git-menu-label,.git-menu-shortcut')].every(node=>{const range=document.createRange();range.selectNodeContents(node);const box=node.getBoundingClientRect();return [...range.getClientRects()].every(text=>text.left>=box.left-.5&&text.right<=box.right+.5&&text.bottom<=box.bottom+.5);});})()`),'actual three commands must show every text line');
     await evaluate('actual_close();void 0');
-    checks.push(`actual preferences menu full labels and shortcuts at ${width}/${zoom}`);
+    checks.push(`actual two-item preferences menu single-line labels and shortcuts at ${font}/${width}/${zoom}/${dark}`);
   }
   // R066：真实共享样式在普通/大纲领域、明暗与窄视口下都有可访问的关闭和右侧操作。
   await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/source_outline_settings.css'),'utf8'));

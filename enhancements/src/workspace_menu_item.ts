@@ -4,8 +4,13 @@ import {check as check_icon} from "../vendor/codicons/icons.json";
 export function align_workspace_menu_columns(menu: HTMLElement, row_selector: string, label_selector: string, shortcut_selector?: string): {label_width:number;shortcut_width:number} {
   const rows = [...menu.querySelectorAll<HTMLElement>(row_selector)];
   const text_width = (selector?: string) => selector ? Math.max(0,...rows.map(row => {
-    const node = row.querySelector(selector); if (!node) return 0;
-    const range = document.createRange(); range.selectNodeContents(node); return range.getBoundingClientRect().width;
+    const node = row.querySelector<HTMLElement>(selector); if (!node) return 0;
+    // 初始菜单可能已经压窄；测完整单行宽度，不能把折行后的Range当作固有宽度。
+    const value=node.style.getPropertyValue('white-space'),priority=node.style.getPropertyPriority('white-space');
+    try{
+      node.style.setProperty('white-space','nowrap','important');
+      const range = document.createRange(); range.selectNodeContents(node); return range.getBoundingClientRect().width;
+    }finally{if(value)node.style.setProperty('white-space',value,priority);else node.style.removeProperty('white-space');}
   })) : 0;
   menu.style.setProperty('--workspace-menu-leading-width', '2em');
   const shortcut_width = Math.ceil(text_width(shortcut_selector));

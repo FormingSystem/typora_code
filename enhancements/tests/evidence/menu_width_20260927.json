@@ -1,0 +1,86 @@
+{
+  "requirement": "R065.3",
+  "date": "2026-09-27",
+  "version": "2026.09.27.10",
+  "baseline": "0343a3dbccd1452879f33bc886504866723a3ff8",
+  "status": "共同测量修复、本次候选验证与安装通过；用户原窗口具体初始约束尚未复现",
+  "upstream": {
+    "commit": "6807068",
+    "file": "src/vs/base/browser/ui/menu/menu.ts",
+    "rule": "monaco-action-bar white-space:nowrap",
+    "adopted": "先测完整单行内容，再限制到视口；保留极窄可读换行"
+  },
+  "red": {
+    "case": "3bf0dccd29e04e7a89f6be4c0d8818c1",
+    "constraint": "受控190px初始宽度，实际设置/扩展两项",
+    "result": "旧版单行断言失败",
+    "clean_native_case": "b3665d7c6f57450d887b1b8b825e111b",
+    "clean_native_result": "默认环境18项布局均通过，结尾摘要路径替身拼写错误致ERROR，未将其当作原生通过；最终修正摘要路径重新执行"
+  },
+  "candidate": {
+    "native_case": "e163dca5528c4278a84f309485910635",
+    "native_checks": 36,
+    "native_asset_sha256": "05dc064b400daec383e02a1f58b12e198b6189e0c8682797be12c643a7941dc1",
+    "matrix": "三主题、三缩放、正常/受控初始宽度；实际文字单行且完整",
+    "widgets_case": "138b06157f0444709e01b78098100e65",
+    "titlebar_case": "8d04749301e9449e8d311520d32a9a43",
+    "ui": "两种字体×三缩放×两窗口宽度×明暗，长项/子菜单/键盘/取消与顶栏回归通过",
+    "build_static_deployment_catalogue": "通过，240套仅分类检查；本轮未重复运行完整check"
+  },
+  "installation": {
+    "cycle": "3bee8673c91044b9b7bbd837edc9d956",
+    "uninstall_case": "f9fb0a9a4f2e42b3b4443ff127395425",
+    "uninstall_assertions": 65,
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 5,
+      "manifest_sha256": "8ca12a155ec399bbf33b26959535efcfbdba8b0ec355f8eab10b5f5a4e6f2b16",
+      "window_restarted": false
+    },
+    "user_window_restarted": false
+  },
+  "limitations": [
+    "用户原窗口具体初始约束待重启后核对，干净宿主默认布局未重现截图；受控条件旧失败新通过",
+    "物理输入、其他DPI设备/平台及历史未决项未本轮全部验收"
+  ],
+  "cleanup": [
+    {
+      "case": "e163dca5528c4278a84f309485910635",
+      "state": "cleaned",
+      "payload_bytes": 527821045
+    },
+    {
+      "case": "b3665d7c6f57450d887b1b8b825e111b",
+      "state": "cleaned",
+      "payload_bytes": 527819061
+    },
+    {
+      "case": "3bee8673c91044b9b7bbd837edc9d956",
+      "state": "cleaned",
+      "payload_bytes": 2072126895
+    },
+    {
+      "case": "f9fb0a9a4f2e42b3b4443ff127395425",
+      "state": "cleaned",
+      "payload_bytes": 131163498
+    },
+    {
+      "case": "138b06157f0444709e01b78098100e65",
+      "state": "cleaned",
+      "payload_bytes": 1793298
+    },
+    {
+      "case": "8d04749301e9449e8d311520d32a9a43",
+      "state": "cleaned",
+      "payload_bytes": 2371834
+    }
+  ]
+}
