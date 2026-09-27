@@ -8164,6 +8164,68 @@
       ],
       "timeout_ms": 240000,
       "required_executables": []
+    },
+    {
+      "id": "TC-terminal-visibility",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.11"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_layout.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "layout",
+        "session",
+        "focus"
+      ],
+      "script": "enhancements/scripts/test_terminal_visibility.cjs",
+      "environment": "隔离 Electron，真实输入，Shell探测挂起",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
+    },
+    {
+      "id": "TC-terminal-toggle-native",
+      "domain": "terminal",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.11"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_layout.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "layout",
+        "session",
+        "focus"
+      ],
+      "script": "enhancements/fixtures/terminal_toggle_native.js",
+      "environment": "原始 Typora 1.14.10 私有桌面、真实ConPTY",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000,
+      "required_executables": []
     }
   ]
 }

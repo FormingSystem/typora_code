@@ -16,7 +16,8 @@ export function create_terminal_panel(changed:()=>void){
   let visible=false,maximized=false,frame=0,height_ratio=0.4;
   try{const value=Number(localStorage.getItem("linux-note-terminal-panel-height"));if(value>=0.15&&value<=0.9)height_ratio=value;}catch{}
   const layout=()=>{
-    frame=0;if(lifetime.disposed)return;
+    // 同步显隐也消费已排队的布局，避免快关快启丢失句柄并累积旧回调。
+    cancelAnimationFrame(frame);frame=0;if(lifetime.disposed)return;
     const root_rect=root?.getBoundingClientRect();
     const footer=document.querySelector<HTMLElement>("footer.ty-footer"),footer_rect=footer?.getBoundingClientRect();
     const bottom=footer?footer_rect?.height&&getComputedStyle(footer).display!=="none"?innerHeight-footer_rect.top:0:parseFloat(base_bottom)||0;
@@ -39,6 +40,7 @@ export function create_terminal_panel(changed:()=>void){
   sash.onkeydown=event=>{if(event.key!=="ArrowUp"&&event.key!=="ArrowDown")return;event.preventDefault();height_ratio=Math.min(0.9,Math.max(0.15,height_ratio+(event.key==="ArrowUp"?0.05:-0.05)));maximized=false;persist();schedule();};
   lifetime.add(()=>{cancelAnimationFrame(frame);container.remove();if(root)root.style.bottom=initial_bottom;});
   return {container,header,title,toolbar,body,tabs,panes,get visible(){return visible;},get maximized(){return maximized;},
-    show(){if(lifetime.disposed)return;visible=true;container.hidden=false;schedule();},hide(){if(lifetime.disposed)return;visible=false;container.hidden=true;layout();},
+    // 先恢复可测量尺寸，再由调用方挂载/聚焦xterm；不展示上一轮隐藏的零高度。
+    show(){if(lifetime.disposed||visible)return;visible=true;container.hidden=false;layout();},hide(){if(lifetime.disposed||!visible)return;visible=false;container.hidden=true;layout();},
     maximize(){if(lifetime.disposed)return;maximized=!maximized;schedule();},layout:schedule,dispose:lifetime.dispose};
 }

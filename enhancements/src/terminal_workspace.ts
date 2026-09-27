@@ -182,6 +182,8 @@ export function bind_terminal_workspace(host:graph_host){
     const remote=current_remote_workspace();
     const matches=(entry:session_entry)=>entry.location==='panel'&&(remote?entry.session.launch_profile?.remote?.target===remote.target&&(entry.session.launch_profile.remote.port||0)===(remote.port||0):!entry.session.launch_profile?.remote);
     if(panel.visible&&active()&&matches(active()!)){panel.hide();return;}
+    // 重开优先恢复刚隐藏的活动会话，不跳回列表第一项或重建未变化的列表。
+    const current=active();if(current&&matches(current)){panel.show();current.surface.resize();current.surface.focus();return;}
     const entry=[...sessions.values()].find(matches);if(entry)activate(entry.session.id);else launch();
   };
   const profile_menu=(event:MouseEvent,refresh=false)=>{

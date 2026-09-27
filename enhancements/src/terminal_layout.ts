@@ -15,7 +15,7 @@ export function create_terminal_layout(body:HTMLElement,tabs:HTMLElement,changed
   const list_width=(value:number)=>value<63?46:Math.max(80,Math.min(500,value));
   lifetime.own(bind_terminal_sash(sash,{read:()=>{direction=body.dataset.tabsLocation==="left"?1:-1;return width*direction;},write:value=>{width=list_width(value*direction);layout();},commit:save,reset:()=>{width=120;layout();}}));
   function layout(){
-    frame=0;if(lifetime.disposed)return;
+    cancelAnimationFrame(frame);frame=0;if(lifetime.disposed)return;
     const available=body.clientWidth,effective=Math.min(width,Math.max(46,available-120));
     tabs.style.width=effective+"px";tabs.dataset.narrow=String(effective<80);sash.hidden=tabs.hidden;
     const bounds=body.getBoundingClientRect(),tab_bounds=tabs.getBoundingClientRect(),left=body.dataset.tabsLocation==="left";

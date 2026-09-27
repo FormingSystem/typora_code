@@ -207482,6 +207482,7 @@ https://creativecommons.org/licenses/by/4.0/
       layout2();
     } }));
     function layout2() {
+      cancelAnimationFrame(frame3);
       frame3 = 0;
       if (lifetime.disposed) return;
       const available = body.clientWidth, effective = Math.min(width2, Math.max(46, available - 120));
@@ -207676,6 +207677,7 @@ https://creativecommons.org/licenses/by/4.0/
     } catch {
     }
     const layout2 = () => {
+      cancelAnimationFrame(frame3);
       frame3 = 0;
       if (lifetime.disposed) return;
       const root_rect = root?.getBoundingClientRect();
@@ -207766,14 +207768,15 @@ https://creativecommons.org/licenses/by/4.0/
       get maximized() {
         return maximized;
       },
+      // 先恢复可测量尺寸，再由调用方挂载/聚焦xterm；不展示上一轮隐藏的零高度。
       show() {
-        if (lifetime.disposed) return;
+        if (lifetime.disposed || visible3) return;
         visible3 = true;
         container.hidden = false;
-        schedule();
+        layout2();
       },
       hide() {
-        if (lifetime.disposed) return;
+        if (lifetime.disposed || !visible3) return;
         visible3 = false;
         container.hidden = true;
         layout2();
@@ -208248,6 +208251,13 @@ https://creativecommons.org/licenses/by/4.0/
         const matches = (entry2) => entry2.location === "panel" && (remote ? entry2.session.launch_profile?.remote?.target === remote.target && (entry2.session.launch_profile.remote.port || 0) === (remote.port || 0) : !entry2.session.launch_profile?.remote);
         if (panel.visible && active2() && matches(active2())) {
           panel.hide();
+          return;
+        }
+        const current = active2();
+        if (current && matches(current)) {
+          panel.show();
+          current.surface.resize();
+          current.surface.focus();
           return;
         }
         const entry = [...sessions.values()].find(matches);
@@ -237952,6 +237962,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092708,
+        version: "2026.09.27.8",
+        date: "2026-09-27",
+        notes: [
+          "\u7EC8\u7AEF\u5FEB\u901F\u9690\u85CF\u540E\u91CD\u5F00\u7ACB\u5373\u6062\u590D\u6709\u6548\u5E03\u5C40\uFF0C\u53D6\u6D88\u9057\u7559\u7684\u91CD\u590D\u5E03\u5C40\u56DE\u8C03\uFF0C\u4FDD\u7559\u8FDB\u7A0B\u548C\u8F93\u51FA\u5386\u53F2\u3002",
+          "\u591A\u7EC8\u7AEF\u91CD\u5F00\u6062\u590D\u521A\u624D\u7684\u6D3B\u52A8\u4F1A\u8BDD\uFF0C\u4E0D\u518D\u8DF3\u56DE\u7B2C\u4E00\u4E2A\u7EC8\u7AEF\uFF1B\u672A\u53D8\u5316\u7684\u4F1A\u8BDD\u5217\u8868\u4FDD\u6301\u539F\u8282\u70B9\u3002"
+        ]
+      },
       {
         sequence: 2026092707,
         version: "2026.09.27.7",

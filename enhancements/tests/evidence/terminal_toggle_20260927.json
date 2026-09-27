@@ -1,0 +1,204 @@
+{
+  "requirement": "R006.11",
+  "date": "2026-09-27",
+  "version": "2026.09.27.8",
+  "manifest_sha256": "3d7e2ee4c869b261c033d28b2b8eaf61f9b47dc8e155be1879fdd94ad9a7e468",
+  "status": "源码、最终候选验证与本机安装通过；用户窗口未重启",
+  "upstream": {
+    "commit": "6807068",
+    "path": "src/vs/workbench/contrib/terminal/browser/terminalInstance.ts",
+    "method": "setVisible",
+    "adopted": "复用原表面并先恢复有效几何，不修改Shell启动或退出宽限"
+  },
+  "baseline": {
+    "commit": "1d99401f27b6d8fe2dc8abde54816018fdafd7d2",
+    "native": {
+      "case": "cf5792420e4d42ab86f320a41d83a9bc",
+      "status": "PASS",
+      "checks": 221,
+      "viewport": {
+        "width": 1187,
+        "height": 737,
+        "dpi": 1.75
+      },
+      "asset_sha256": "71ba32651596d77c020c8ec2090c9ddf0044d5a31d9933412a52bf9dfcc3f1e7",
+      "rounds": 100,
+      "zero_height": 100,
+      "timing_ms": {
+        "command_ms": {
+          "median": 1.599999999627471,
+          "max": 2.599999999627471
+        },
+        "next_frame_ms": {
+          "median": 7.849999999627471,
+          "max": 10.200000001117587
+        }
+      },
+      "startup": {
+        "first_frame_ms": 20.90000000037253,
+        "first_output_ms": 2353.9000000003725
+      },
+      "payload_state": "cleaned"
+    },
+    "controlled_frames_after_dispose": 1000,
+    "reopened_session": "terminal_1",
+    "expected_session": "terminal_2"
+  },
+  "candidate": {
+    "native": {
+      "case": "43aa9a02321048a6aa42207a0dcaf085",
+      "status": "PASS",
+      "checks": 262,
+      "viewport": {
+        "width": 1187,
+        "height": 737,
+        "dpi": 1.75
+      },
+      "asset_sha256": "8e9bcc4346cee3b77e430ebd246b80db014d08e61acddc40f0fc99b55a1d3740",
+      "rounds": 100,
+      "zero_height": 0,
+      "timing_ms": {
+        "command_ms": {
+          "median": 1.400000000372529,
+          "max": 2.5
+        },
+        "next_frame_ms": {
+          "median": 7.1499999994412065,
+          "max": 11.300000000745058
+        }
+      },
+      "startup": {
+        "first_frame_ms": 26.09999999962747,
+        "first_output_ms": 2367.0999999996275
+      },
+      "payload_state": "cleaned"
+    },
+    "ui": {
+      "status": "PASS",
+      "checks": [
+        "重开命令返回时恢复有效高度",
+        "重开保留第二个活动会话",
+        "焦点回到所属终端",
+        "20次同栈显隐保留列表节点和几何",
+        "100次同栈显隐保留列表节点和几何",
+        "1000次同栈显隐保留列表节点和几何",
+        "真实鼠标关闭仅隐藏",
+        "真实快捷键下一帧显示所属终端",
+        "1000轮同步布局消费旧帧、重复show无更新、销毁无遗留帧"
+      ],
+      "samples": [
+        {
+          "baseline": {
+            "reopen_height": 234,
+            "selected": "terminal_2",
+            "expected": "terminal_2"
+          }
+        },
+        {
+          "count": 20,
+          "duration_ms": 14,
+          "rows_retained": true,
+          "height": 234
+        },
+        {
+          "count": 100,
+          "duration_ms": 67.5,
+          "rows_retained": true,
+          "height": 234
+        },
+        {
+          "count": 1000,
+          "duration_ms": 755.0999999996275,
+          "rows_retained": true,
+          "height": 234
+        },
+        {
+          "trusted": true,
+          "next_frame_ms": 2.200000001117587,
+          "height": 234
+        },
+        {
+          "pending_after_show": 0,
+          "pending_after_toggle": 0,
+          "pending_after_dispose": 0,
+          "redundant": 0,
+          "split_pending": 0
+        }
+      ],
+      "limits": "真实Chromium输入；PTY/Shell探测被挂起，启动性能由原生ConPTY夹具另测"
+    },
+    "related_ui_passed": [
+      "test_terminal_panel.cjs",
+      "test_terminal_geometry.cjs (54 cases)",
+      "test_terminal_conpty.cjs (24 cases)",
+      "test_wheel_zoom.cjs (31 checks, independent retry)"
+    ],
+    "full_check": {
+      "exit_code": 0,
+      "catalog_suites": 237,
+      "case": "558bb4618c0b42c49e996c4f13dbb260"
+    }
+  },
+  "delivery": {
+    "install_cycle_case": "0ec4d160de524890889821cefaa937ae",
+    "install_cycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check passed",
+    "uninstall_case": "f3a683cf45a34dd181e8fb061e19de34",
+    "uninstall_checks": 65,
+    "local": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 5,
+      "manifest_sha256": "3d7e2ee4c869b261c033d28b2b8eaf61f9b47dc8e155be1879fdd94ad9a7e468",
+      "window_restarted": false
+    }
+  },
+  "test_findings": [
+    {
+      "case": "90ffa34e38b747c78017fe54fb20faf5",
+      "status": "ERROR",
+      "reason": "原列表身份断言跨过隐藏帧，可能包含Shell首次输出状态刷新；采样改为同步重开前后，不改变生产刷新语义",
+      "final": "43aa9a02321048a6aa42207a0dcaf085 passed 262 checks"
+    },
+    {
+      "case": "2c4d94d8a0b0465894fe391ee4332f34",
+      "reason": "滚轮smooth-scroll到底部轮询超时；该用例未加载本轮修改模块，未改滚动逻辑",
+      "retry_case": "ab00c13610f64b679208904572710dd3",
+      "retry_checks": 31,
+      "limitation": "保留一次非稳定失败，独立复验通过不证明所有调度条件稳定"
+    }
+  ],
+  "limitations": [
+    "本机未复现普遍长时间卡顿，测量只是固定视口和文档样本，不承诺跨设备速度或Shell初始化加速",
+    "原始宿主为命令回放，可信输入在隔离Chromium；物理鼠标、其他平台及长期堆分析未本轮验证",
+    "历史8套UI、R047.6/R071.4等未完成项保留，未宣称全量UI全部通过"
+  ],
+  "cleanup": [
+    {
+      "case": "558bb4618c0b42c49e996c4f13dbb260",
+      "state": "cleaned",
+      "bytes": 32697914
+    },
+    {
+      "case": "0ec4d160de524890889821cefaa937ae",
+      "state": "cleaned",
+      "bytes": 2071818589
+    },
+    {
+      "case": "f3a683cf45a34dd181e8fb061e19de34",
+      "state": "cleaned",
+      "bytes": 131163498
+    },
+    {
+      "case": "682f4771cac54185b4f3e6bbda7aa69b",
+      "state": "cleaned",
+      "bytes": 1793216
+    }
+  ]
+}
