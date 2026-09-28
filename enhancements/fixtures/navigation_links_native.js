@@ -18,6 +18,7 @@
   for(const name of docs)fs.mkdirSync(path.dirname(name),{recursive:true});
   window.addEventListener('linux-note-workspace-context-changed',()=>snapshot('context changed'));
   for(let i=0;i<docs.length;i++)fs.writeFileSync(docs[i],'# 文档'+i+'\n\n[继续]('+path.relative(path.dirname(docs[i]),docs[(i+1)%docs.length]).replace(/\\/g,'/')+')\n\n[网页](https://example.com/navigation-history)\n\n'+('正文段落。\n\n'.repeat(30)));
+  const original_bytes=docs.map(file=>fs.readFileSync(file));
   await files.open_file(docs[0]);await pause(1000);
   for(let i=1;i<docs.length;i++){
    const link=document.querySelector('#write a');const range=document.createRange();range.selectNodeContents(link);range.collapse(true);window.getSelection().removeAllRanges();window.getSelection().addRange(range);await pause(150);for(const type of ['mousedown','mouseup','click'])link.dispatchEvent(new MouseEvent(type,{ctrlKey:true,bubbles:true,cancelable:true,button:0,buttons:type==='mousedown'?1:0,view:window}));
@@ -47,6 +48,24 @@
    await click_button(buttons[0]);assert(files.current_file()===docs[2],'顶栏连续后退 '+i);
    await click_button(buttons[1]);assert(files.current_file()===docs[3],'顶栏连续前进 '+i);
   }
+  // 不在方向键之间睡眠：四文档完整逆序/正序，中途真实关闭目标标签。
+  const transitions=[];
+  const stop_trace=core.app.workspace.on('file:open',()=>{const file=File.bundle.filePath;if(docs.includes(file)&&transitions.at(-1)!==file)transitions.push(file);samples.push({event:'file:open',file,cursor:File.editor.selection.buildUndo()});});
+  const wait_path=async target=>{const start=Date.now();while(files.current_file()!==target&&Date.now()-start<10000)await pause(20);await pause(250);assert(files.current_file()===target,'连续指令最终资源 '+path.basename(target));};
+  const burst=keys=>{for(const key of keys)window.dispatchEvent(new KeyboardEvent('keydown',{key,altKey:true,bubbles:true,cancelable:true}));};
+  const assert_trace=expected=>{samples.push({transitions:[...transitions],expected});assert(JSON.stringify(transitions)===JSON.stringify(expected),'连续指令每一步资源顺序');transitions.length=0;};
+  burst(['ArrowLeft','ArrowLeft','ArrowLeft']);await wait_path(docs[0]);assert_trace([docs[2],docs[1],docs[0]]);
+  const all_leaves=[];core.app.workspace.eachLeaves(leaf=>{all_leaves.push(leaf);});
+  for(const target of [docs[1],docs[2]]){const leaf=all_leaves.find(leaf=>path.normalize(leaf.state.path)===target);assert(!!leaf,'关闭连续前进目标存在');assert(await files.close_leaf(leaf),'关闭连续前进目标');}
+  burst(['ArrowRight','ArrowRight','ArrowRight']);await wait_path(docs[3]);assert_trace([docs[1],docs[2],docs[3]]);
+  for(let i=0;i<20;i++){
+   if(i%2){for(let step=0;step<3;step++){assert(!buttons[0].disabled,'快速顶栏后退可用 '+i+'/'+step);buttons[0].click();}}else burst(['ArrowLeft','ArrowLeft','ArrowLeft']);
+   await wait_path(docs[0]);assert_trace([docs[2],docs[1],docs[0]]);
+   if(i%2){for(let step=0;step<3;step++){assert(!buttons[1].disabled,'快速顶栏前进可用 '+i+'/'+step);buttons[1].click();}}else burst(['ArrowRight','ArrowRight','ArrowRight']);
+   await wait_path(docs[3]);assert_trace([docs[1],docs[2],docs[3]]);
+  }
+  if(typeof stop_trace==='function')stop_trace();
+  for(let i=0;i<docs.length;i++)assert(fs.readFileSync(docs[i]).equals(original_bytes[i]),'导航未改写临时正文 '+i);
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS' ,checks,samples,latencies},null,2));
  }catch(error){snapshot('error');fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack),checks,samples},null,2));}
 })();

@@ -146,6 +146,32 @@ app.whenReady().then(async () => {
     test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(50);
     assert.equal(await evaluate('source_position.line'),11,'重开后连续前进 '+round);
   }
+  // 不给每次恢复预留等待：真实键盘连按必须逐项执行，包含反向与浏览器重复键。
+  await evaluate(`dispose_source_nav();release_port();source_position={kind:'source',file_path:'/test/burst.c',view_id:500,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.burst_trace=[];window.fail_burst=false;window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async(location,signal)=>{await new Promise(resolve=>setTimeout(resolve,30));if(signal.aborted||fail_burst)return false;source_position={...location};burst_trace.push(location.line);qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();for(const line of [30,50,70]){source_position={...source_position,line,cursor:{startLineNumber:line},scroll_top:line};qa.notify_navigation_selection(true);}void 0`);
+  const burst_keys=keys=>{for(const keyCode of keys){test_window.webContents.sendInputEvent({type:'keyDown',keyCode,modifiers:['alt']});test_window.webContents.sendInputEvent({type:'keyUp',keyCode,modifiers:['alt']});}};
+  burst_keys(['Left','Left','Left']);await delay(300);
+  assert.deepEqual(await evaluate('burst_trace'),[50,30,10],'连续三次后退逐步兑现，不丢弃忙碌期间按键');
+  await evaluate('burst_trace=[];void 0');burst_keys(['Right','Right','Right']);await delay(300);
+  assert.deepEqual(await evaluate('burst_trace'),[30,50,70],'连续三次前进逐步兑现');
+  await evaluate('burst_trace=[];void 0');burst_keys(['Left','Left','Right','Left','Right','Right']);await delay(400);
+  assert.deepEqual(await evaluate('burst_trace'),[50,30,50,30,50,70],'连续反向请求保留接收顺序');
+  await evaluate(`burst_trace=[];for(let i=0;i<3;i++)window.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',altKey:true,repeat:i>0,bubbles:true}));void 0`);await delay(300);
+  assert.deepEqual(await evaluate('burst_trace'),[50,30,10],'重复方向键不忽略');
+  await evaluate('burst_trace=[];fail_burst=true;void 0');burst_keys(['Right','Right','Right']);await delay(300);
+  assert.deepEqual(await evaluate('burst_trace'),[],'失败不推进，余下请求不在失败后重放');
+  await evaluate('fail_burst=false;void 0');burst_keys(['Right']);await delay(100);assert.equal(await evaluate('source_position.line'),30,'失败后的新请求仍可执行');
+  await evaluate('burst_trace=[];void 0');burst_keys(['Right','Right']);
+  await evaluate(`window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);await delay(200);
+  assert.deepEqual(await evaluate('burst_trace'),[],'切工程取消执行中及排队导航');
+  await evaluate(`dispose_source_nav();window.dispose_source_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();source_position={...source_position,line:70,cursor:{startLineNumber:70}};qa.notify_navigation_selection(true);release_port();window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async(location,signal)=>{await new Promise(resolve=>setTimeout(resolve,0));if(signal.aborted)return false;source_position={...location};burst_trace.push(location.line);qa.notify_navigation_selection();return true}});void 0`);
+  for(const rounds of [20,100,1000]){
+    assert(await evaluate(`(async()=>{burst_trace=[];for(let round=0;round<${rounds};round++){
+      for(const direction of [-1,1])window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction}}));
+      const deadline=performance.now()+2000;while(burst_trace.length<(round+1)*2&&performance.now()<deadline)await new Promise(resolve=>setTimeout(resolve,1));
+      if(burst_trace[round*2]!==30||burst_trace[round*2+1]!==70)return false;
+    }return source_position.line===70;})()`),'连续反向队列压力 '+rounds);
+    console.log('NAVIGATION_QUEUE '+rounds+' rounds / '+rounds*2+' ordered restores');
+  }
   await evaluate(`dispose_source_nav();release_port();document.querySelector('.linux-note-source-file').remove();void 0;`);
   // 原生定位跨帧等待期间取消：不得滚动新视口或恢复旧选区。
   await evaluate(`(() => {

@@ -34,8 +34,8 @@ assert.equal(await history.travel(-1, current, restore), true, '打开异常后�
 history.record_jump(current, current);
 let finish;
 const pending = history.travel(-1, current, () => new Promise((resolve) => { finish = resolve; }));
-assert.equal(history.can_travel(-1), false, '导航期间禁用历史按钮');
-assert.equal(history.can_travel(1), false, '导航期间禁用前进按钮');
+assert.equal(history.can_travel(-1,-1), false, '排队到起点后后退不可用');
+assert.equal(history.can_travel(1,-1), true, '恢复期间按逻辑目标启用前进');
 assert.equal(await history.travel(-1, current, restore), false, '导航期间不重复打开文件');
 finish(false);
 await pending;
@@ -147,3 +147,14 @@ const stale_travel=stale.travel(-1,null,()=>new Promise(resolve=>complete_stale=
 stale.clear();stale.record_jump(source(50,5),source(70,7));
 complete_stale(source(10,100));assert.equal(await stale_travel,false);
 assert(await stale.travel(-1,null,async target=>{assert.equal(target.view_id,5);return target;}),'迟到重开身份不能污染新工程');
+
+// 文件就绪时没有选区，首次真实选区应补全该项，而不是制造原地停顿。
+for(const kind of [undefined,'source','git']){
+ const h=create_reading_history();let current={...location('a',0),kind,view_id:1};h.record_selection(current);
+ for(const [offset,name]of ['b','c','d'].entries()){
+  current={...current,cursor:{id:'first-valid-selection',start:1}};h.record_selection(current);
+  const next={...location(name,0),kind,view_id:offset+2};h.record_jump(current,next);current=next;
+ }
+ for(const name of ['c','b','a'])assert(await h.travel(-1,current,async target=>{assert.equal(target.file_path,name);current=target;return target;}));
+ for(const name of ['b','c','d'])assert(await h.travel(1,current,async target=>{assert.equal(target.file_path,name);current=target;return target;}));
+}

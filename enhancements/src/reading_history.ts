@@ -25,7 +25,8 @@ export function create_reading_history(maximum_entries = 50) {
   return {
     clear(){revision++;entries=[];index=-1;navigating=false;},
     is_navigating: () => navigating,
-    can_travel: (direction: -1 | 1) => !navigating && index + direction >= 0 && index + direction < entries.length,
+    // 是否可接收下一方向只取决于逻辑栈边界；恢复串行化由导航入口拥有。
+    can_travel: (direction: -1 | 1, pending_offset = 0) => index + pending_offset + direction >= 0 && index + pending_offset + direction < entries.length,
     remap_paths(map: (path: string) => string | undefined) {
       for (const entry of entries) entry.file_path = map(entry.file_path) ?? entry.file_path;
     },
@@ -46,7 +47,8 @@ export function create_reading_history(maximum_entries = 50) {
       const nearby = current.line != null && previous.line != null
         ? Math.abs(current.line - previous.line) < 10
         : previous.cursor?.id === current.cursor?.id && previous.cursor?.startId === current.cursor?.startId;
-      if (same_editor && ((!explicit && current.cursor === null) || same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = {...current, cursor: current.cursor ?? previous.cursor};
+      // VS Code shouldReplaceStackEntry：尚无具体选区的资源项由首次有效选区补全。
+      if (same_editor && (previous.cursor === null || (!explicit && current.cursor === null) || same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = {...current, cursor: current.cursor ?? previous.cursor};
       else {
         entries = entries.slice(0, index + 1); entries.push(current);
         if (entries.length > maximum_entries) entries.shift();
@@ -56,7 +58,7 @@ export function create_reading_history(maximum_entries = 50) {
     record_jump(from: reading_location, to: reading_location) {
       if (navigating || same_location(from, to)) return;
       if (index < 0) { entries = [from]; index = 0; }
-      else if (entries[index].file_path === from.file_path && entries[index].kind === from.kind && entries[index].view_id === from.view_id) entries[index] = from;
+      else if (entries[index].file_path === from.file_path && entries[index].kind === from.kind && entries[index].view_id === from.view_id) entries[index] = {...from, cursor: from.cursor ?? entries[index].cursor};
       else { entries = entries.slice(0, index + 1); entries.push(from); index += 1; }
       entries = entries.slice(0, index + 1);
       entries.push(to);
@@ -75,7 +77,7 @@ export function create_reading_history(maximum_entries = 50) {
         if (!restored || current_revision !== revision) return false;
         // 关闭仅销毁视图。恢复端交付真实身份后，原视图的所有位置一起重绑定，其他分栏不受影响。
         if (typeof restored !== "boolean" && (restored.file_path !== target.file_path || restored.kind !== target.kind)) return false;
-        if (current && entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = current;
+        if (current && entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = {...current, cursor: current.cursor ?? entries[index].cursor};
         if (typeof restored !== "boolean") {
           for (const entry of entries) {
             if (entry.file_path === target.file_path && entry.kind === target.kind && entry.view_id === target.view_id) entry.view_id = restored.view_id;

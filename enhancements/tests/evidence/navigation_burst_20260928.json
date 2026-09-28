@@ -1,0 +1,158 @@
+{
+  "requirements": [
+    "R067.5"
+  ],
+  "date": "2026-09-28",
+  "version": "2026.09.28.3",
+  "baseline": {
+    "commit": "015927555944a061fc076ba13cfc644253c63aab",
+    "ui_failure": "48fcc6bdce184f329b6421a6d45070ef：三次后退预期50/30/10，仅执行50",
+    "native_failure": "c999e2306b7f49c39c139d7661325145：四文档连续三次后退失败",
+    "queue_only_failure": "73c1e12ada3b485ca81885d6154ba37a：排队后仍出现同文件重复步骤",
+    "diagnostic_only": "fdeade045d2e4ee382478f718653d858：仅隔离宿主副本注入跟踪，确认A/A/B/B/C/C/D，不计验收"
+  },
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "version": "1.140.0开发快照",
+    "sources": [
+      "src/vs/workbench/services/history/browser/historyService.ts",
+      "src/vs/workbench/browser/parts/editor/editorActions.ts",
+      "src/vs/workbench/browser/workbench.contribution.ts"
+    ],
+    "adoption": "默认跨编辑器/组历史；按逻辑索引判定方向可用；首次有效选区替换原空选区；保留50项资源历史",
+    "adaptation": "Typora单个原生Markdown编辑器串行恢复，方向请求按序排队；失败/取消终止余下请求，不复制VS Code并发openEditor"
+  },
+  "cause": [
+    "忙碌直接拒绝与重复按键过滤丢失连续方向",
+    "首次有效选区重复入栈，空选区还会覆盖离开前的有效位置"
+  ],
+  "source_sha256": {
+    "enhancements/src/reading_history.ts": "36df8678621131c28aaf22f196181b4a3e6525e19b80b56ce83c27f19dbf40cf",
+    "enhancements/src/reading_navigation.ts": "5a4ee55efcdc73f8c317c921d54d07372aa4f051fbd69a45731a27acbc92b923"
+  },
+  "asset_sha256": "f3f4455b398b5cc8bff8d23be8f2ae5e70dcaf5b61bd423edb9fecc3e2a8d4d9",
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "eade181e289a4e5b96cc5a401dfff217",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 253
+    },
+    "unit": {
+      "status": "PASS",
+      "rounds_per_kind": [
+        20,
+        100,
+        1000
+      ],
+      "kinds": [
+        "Markdown",
+        "source",
+        "Git"
+      ],
+      "new_case": "四资源首次选区补全后完整逆序/正序"
+    },
+    "ui": [
+      {
+        "id": "40d6b84f3956422794d2b15f35f111ac",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "reading_lifecycle",
+        "queue_rounds": [
+          20,
+          100,
+          1000
+        ],
+        "restores": [
+          40,
+          200,
+          2000
+        ],
+        "first_frame_ms": 14.9,
+        "ready_ms": 15,
+        "scope": "真实Chromium Alt、混合方向、repeat、失败、切库及旧关闭重开回归"
+      },
+      {
+        "id": "ac0f89200ff148f4985c3a23123579ba",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "git_revision_reader",
+        "checks": 17,
+        "closed_reopen_rounds": 20
+      },
+      {
+        "id": "552bfb37e9cf433cb07a6cae3b67ac32",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "workspace_titlebar"
+      }
+    ],
+    "native": [
+      {
+        "id": "d5051ed5e2c6484eacf0264b718b7ea2",
+        "status": "PASS",
+        "payload_state": "cleaned",
+        "checks": 205,
+        "suite": "navigation_links",
+        "rapid_rounds": 20,
+        "trusted_toolbar_clicks": 23,
+        "scope": "四Markdown链接、逐步目标追踪、关闭B/C后重开、快速双向DOM按键与顶栏点击、正文完整字节保护"
+      },
+      {
+        "id": "22da0c58c60242b380904b30096948e5",
+        "status": "PASS",
+        "payload_state": "running",
+        "checks": 271,
+        "cleanup": "宿主app.asar文件占用，登记进程已结束；公共回收入口重试仍失败，保留受管目录待过期回收",
+        "suite": "navigation_history",
+        "closed_reopen_rounds": 20,
+        "scope": "Markdown/源码关闭与全部关闭、模型释放、分栏、失败及正文保护"
+      }
+    ],
+    "install_cycles": {
+      "id": "af52ad5f516041be8f2c1c9e1abc16f4",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "b742714b7f1e4ed09848626a052d728e",
+      "status": "passed",
+      "payload_state": "cleaned",
+      "assertions": 65
+    }
+  },
+  "fixture_corrections": [
+    "顶栏夹具原固定7个可见菜单受字体/DPI与自适应溢出影响；改为检查可见前缀及溢出，仍核对完整8项菜单和边界；失败24d23e29ffee47c3870304f4e87f1083保留"
+  ],
+  "boundaries": [
+    "原始Typora1.14.10正式候选，两套共476项断言，不是476种场景",
+    "原生快速连按/连点为DOM输入，另23次顶栏使用可信Windows鼠标；Chromium按键及模拟端口耗时不等于物理设备时延",
+    "外部浏览器端口受控模拟并模拟失焦/恢复，没有本轮真实浏览器进程验收",
+    "未执行全量UI、真实远端高延迟和非Windows整机；不得宣称极端情况穷举",
+    "R068.6暂停、R068.10持续裁切现场、终端平滑滚动旧用例、R047.9提示及其他未决项保持"
+  ],
+  "delivery": {
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "f3f4455b398b5cc8bff8d23be8f2ae5e70dcaf5b61bd423edb9fecc3e2a8d4d9",
+      "window_restarted": false
+    },
+    "runtime_loaded": false,
+    "actual_uninstall": "仅只读预检",
+    "pushed": false,
+    "commit_state": "证据生成时待提交，回执见Git及本地台账"
+  }
+}

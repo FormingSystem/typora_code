@@ -485,3 +485,5 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-navigation-closed-view：历史记住已释放的view_id；关闭后返回虽然重开了资源，checkpoint仍按旧身份拒绝，迟到选区新增分支并删除前进。空编辑区又要求必须有当前位置。原生旧构建在“关闭重开源码后仍可前进Markdown”断言失败；共用历史成功提交实际快照并重绑定原视图各位置，空编辑区允许历史恢复。
 - TEST-navigation-close-coverage：旧夹具只断言重开，没有继续前进；新增压力必须断言实际标签存在、关闭成功、新视图和最后Monaco模型释放。源码内部URI不能当文件路径；最后关闭后保留core.empty不是文档残留。宿主eachLeaves回调返回真值会停止枚举，收集回调必须显式不返回push的长度；错误枚举的失败运行不能计作压力通过。Git读者用例仍查询已被TextMate替代的lookup-code-keyword，改为核对当前官方token类；不把测试选择器过期算作产品颜色修复。
 - 当前验证和交付状态统一见R067.5证据及本地台账；既有未决项不由本轮关闭。
+- BUG-navigation-busy-drop（2026-09-28复开）：恢复期间方向键直接返回，重复键被忽略，顶栏也按忙碌禁用。三次真实Chromium后退只执行一次；改为共同入口顺序执行，逻辑边界决定按钮状态，失败/切库取消余下请求。
+- BUG-navigation-empty-selection：原生四文档链形成A/A/B/B/C/C/D；文件初次无选区与随后有效选区重复入栈。按固定上游shouldReplaceStackEntry补全原项；无选区离开保留有效光标。只修排队的候选仍失败，诊断运行与最终正式资产验收分开记录。

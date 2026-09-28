@@ -194431,7 +194431,8 @@ https://creativecommons.org/licenses/by/4.0/
         navigating = false;
       },
       is_navigating: () => navigating,
-      can_travel: (direction) => !navigating && index + direction >= 0 && index + direction < entries3.length,
+      // 是否可接收下一方向只取决于逻辑栈边界；恢复串行化由导航入口拥有。
+      can_travel: (direction, pending_offset = 0) => index + pending_offset + direction >= 0 && index + pending_offset + direction < entries3.length,
       remap_paths(map) {
         for (const entry of entries3) entry.file_path = map(entry.file_path) ?? entry.file_path;
       },
@@ -194454,7 +194455,7 @@ https://creativecommons.org/licenses/by/4.0/
         const same_editor = previous.file_path === current2.file_path && previous.kind === current2.kind && previous.view_id === current2.view_id;
         const same_line = current2.line != null && previous.line === current2.line;
         const nearby = current2.line != null && previous.line != null ? Math.abs(current2.line - previous.line) < 10 : previous.cursor?.id === current2.cursor?.id && previous.cursor?.startId === current2.cursor?.startId;
-        if (same_editor && (!explicit && current2.cursor === null || same_location(previous, current2) || same_line || !explicit && nearby)) entries3[index] = { ...current2, cursor: current2.cursor ?? previous.cursor };
+        if (same_editor && (previous.cursor === null || !explicit && current2.cursor === null || same_location(previous, current2) || same_line || !explicit && nearby)) entries3[index] = { ...current2, cursor: current2.cursor ?? previous.cursor };
         else {
           entries3 = entries3.slice(0, index + 1);
           entries3.push(current2);
@@ -194467,7 +194468,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (index < 0) {
           entries3 = [from];
           index = 0;
-        } else if (entries3[index].file_path === from.file_path && entries3[index].kind === from.kind && entries3[index].view_id === from.view_id) entries3[index] = from;
+        } else if (entries3[index].file_path === from.file_path && entries3[index].kind === from.kind && entries3[index].view_id === from.view_id) entries3[index] = { ...from, cursor: from.cursor ?? entries3[index].cursor };
         else {
           entries3 = entries3.slice(0, index + 1);
           entries3.push(from);
@@ -194488,7 +194489,7 @@ https://creativecommons.org/licenses/by/4.0/
           const restored = await restore(target);
           if (!restored || current_revision !== revision) return false;
           if (typeof restored !== "boolean" && (restored.file_path !== target.file_path || restored.kind !== target.kind)) return false;
-          if (current2 && entries3[index]?.file_path === current2.file_path && entries3[index]?.kind === current2.kind && entries3[index]?.view_id === current2.view_id) entries3[index] = current2;
+          if (current2 && entries3[index]?.file_path === current2.file_path && entries3[index]?.kind === current2.kind && entries3[index]?.view_id === current2.view_id) entries3[index] = { ...current2, cursor: current2.cursor ?? entries3[index].cursor };
           if (typeof restored !== "boolean") {
             for (const entry of entries3) {
               if (entry.file_path === target.file_path && entry.kind === target.kind && entry.view_id === target.view_id) entry.view_id = restored.view_id;
@@ -194906,9 +194907,16 @@ https://creativecommons.org/licenses/by/4.0/
     const runtime3 = window;
     const path_api = app ? runtime3.reqnode("path") : void 0;
     const history = create_reading_history();
+    let travel_queue = [];
+    const cancel_travel_queue = () => {
+      const previous = travel_queue;
+      travel_queue = [];
+      for (const request of previous) request.resolve(false);
+    };
     const publish_history_state = () => {
       if (disposed) return;
-      const detail = { back: history.can_travel(-1), forward: history.can_travel(1) };
+      const offset = travel_queue.reduce((sum, request) => sum + request.direction, 0);
+      const detail = { back: history.can_travel(-1, offset), forward: history.can_travel(1, offset) };
       document.documentElement.dataset.linuxNoteHistoryBack = String(detail.back);
       document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
       window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
@@ -195116,7 +195124,7 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         if (disposed || operation.signal.aborted) return false;
         const started = Date.now();
-        while (navigating || history.is_navigating()) {
+        while (navigating || history.is_navigating() || travel_queue.length) {
           if (disposed || operation.signal.aborted || Date.now() - started > 15e3) return false;
           await reading_delay(40, operation.signal);
         }
@@ -195126,25 +195134,39 @@ https://creativecommons.org/licenses/by/4.0/
         for (const signal of signals) signal.removeEventListener("abort", abort);
       }
     };
-    const travel_history = async (direction) => {
-      if (disposed || navigating || history.is_navigating() || is_busy()) return false;
-      finish_pending();
-      const current2 = capture();
-      workspace.stop_restoring();
-      const signal = context_controller.signal;
-      const pending = history.travel(direction, current2, async (location) => {
-        const result = location.kind != null ? await navigation_editor()?.restore(location, signal) ?? false : await navigate(location.file_path, void 0, location, { signal });
-        if (!result || disposed || signal.aborted) return false;
-        return capture() ?? false;
-      });
-      publish_history_state();
+    const drain_travel_queue = async (queue2, signal) => {
       try {
-        const result = await pending;
-        if (result) last_location = capture();
-        return result;
+        while (queue2 === travel_queue && queue2.length && !disposed && !signal.aborted) {
+          if (!await wait_for(() => !navigating && !history.is_navigating() && !is_busy(), signal)) break;
+          finish_pending();
+          workspace.stop_restoring();
+          const result = await history.travel(queue2[0].direction, capture(), async (location) => {
+            const restored = location.kind != null ? await navigation_editor().restore(location, signal) : await navigate(location.file_path, void 0, location, { signal });
+            return restored && !disposed && !signal.aborted ? capture() ?? false : false;
+          });
+          if (queue2 !== travel_queue || disposed || signal.aborted) break;
+          queue2.shift().resolve(result);
+          if (!result) break;
+          last_location = capture();
+          publish_history_state();
+        }
+      } catch (error) {
+        report(error);
       } finally {
+        if (queue2 === travel_queue) cancel_travel_queue();
         publish_history_state();
       }
+    };
+    const travel_history = (direction) => {
+      if (disposed) return Promise.resolve(false);
+      if (!navigating && !history.is_navigating() && !is_busy()) finish_pending();
+      const offset = travel_queue.reduce((sum, request) => sum + request.direction, 0);
+      if ((travel_queue.length || !navigating && !is_busy()) && !history.can_travel(direction, offset)) return Promise.resolve(false);
+      const first = travel_queue.length === 0;
+      const result = new Promise((resolve3) => travel_queue.push({ direction, resolve: resolve3 }));
+      publish_history_state();
+      if (first) void drain_travel_queue(travel_queue, context_controller.signal);
+      return result;
     };
     const owned_open_url = editor2[url_method] = function(url, ...args) {
       if (disposed) return original_open_url.call(this, url, ...args);
@@ -195157,7 +195179,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (local_url.startsWith("#")) {
         const context = workspace.active();
-        if (context) void navigate(context.file_path, local_url).catch(report);
+        if (context) void owned_navigate_target(context.file_path, { hash: local_url }).catch(report);
         return;
       }
       const markdown_target = parse_markdown_file_target(local_url);
@@ -195169,7 +195191,7 @@ https://creativecommons.org/licenses/by/4.0/
           } catch {
           }
         }
-        void navigate(path, markdown_target.hash).catch(report);
+        void owned_navigate_target(path, { hash: markdown_target.hash }).catch(report);
         return;
       }
       return original_open_url.call(this, url, ...args);
@@ -195179,12 +195201,12 @@ https://creativecommons.org/licenses/by/4.0/
       if (navigating || callback || editor2.sourceView?.inSourceMode) return original_open_file.call(this, path, callback);
       const parsed = parse_markdown_file_target(path);
       if (!parsed?.hash) {
-        void navigate(path).catch(report);
+        void owned_navigate_target(path, {}).catch(report);
         return;
       }
       const source = workspace.active()?.file_path;
       const target = path_api && source ? resolve_workspace_file(path_api, path_api.dirname(source), parsed.file_path) : parsed.file_path;
-      void navigate(target ?? parsed.file_path, parsed.hash).catch(report);
+      void owned_navigate_target(target ?? parsed.file_path, { hash: parsed.hash }).catch(report);
     };
     if (app) {
       const original_workspace_open_file = app.workspace.activeEditor.openFile;
@@ -195192,7 +195214,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed) return original_workspace_open_file.call(app.workspace.activeEditor, target);
         if (editor2.sourceView?.inSourceMode) return original_workspace_open_file.call(app.workspace.activeEditor, target);
         const url = typeof target === "string" ? { pathname: target } : target;
-        void navigate(url.pathname, url.hash).catch(report);
+        void owned_navigate_target(url.pathname, { hash: url.hash }).catch(report);
       };
       const original_app_open_file = app.openFile;
       const owned_app_open_file = app.openFile = function(path) {
@@ -195257,7 +195279,6 @@ https://creativecommons.org/licenses/by/4.0/
       if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, .linux-note-source-file, .git-graph-document")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      if (event.repeat) return;
       void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
     }, { capture: true, signal: controller.signal });
     window.addEventListener("linux-note-reading-history-travel", (event) => {
@@ -195271,6 +195292,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       controller.abort();
+      context_controller.abort();
+      cancel_travel_queue();
       clearTimeout(pending_timer);
       clearTimeout(selection_timer);
       pending_from = null;
@@ -195293,6 +195316,7 @@ https://creativecommons.org/licenses/by/4.0/
     window.addEventListener("linux-note-workspace-context-changed", () => {
       context_controller.abort();
       context_controller = new AbortController();
+      cancel_travel_queue();
       clearTimeout(pending_timer);
       clearTimeout(selection_timer);
       pending_from = null;
@@ -243664,6 +243688,16 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092803,
+        version: "2026.09.28.3",
+        date: "2026-09-28",
+        notes: [
+          "\u4FEE\u590D\u8FDE\u7EED\u6309Alt\u5DE6\u53F3\u6216\u5FEB\u901F\u70B9\u51FB\u9876\u680F\u65F6\u4E22\u5931\u540E\u7EED\u5BFC\u822A\uFF1A\u524D\u8FDB\u3001\u540E\u9000\u6309\u63A5\u6536\u987A\u5E8F\u6062\u590D\u6587\u4EF6\u548C\u4F4D\u7F6E\u3002",
+          "\u4FEE\u590D\u6587\u4EF6\u6253\u5F00\u540E\u7684\u9996\u6B21\u9009\u533A\u751F\u6210\u91CD\u590D\u5386\u53F2\uFF0C\u907F\u514D\u591A\u6B21\u540E\u9000\u4ECD\u505C\u5728\u540C\u4E00\u6587\u4EF6\uFF1B\u5931\u7126\u65F6\u4FDD\u7559\u6709\u6548\u4F4D\u7F6E\u3002",
+          "\u6062\u590D\u671F\u95F4\u6309\u903B\u8F91\u5386\u53F2\u542F\u7528\u5DE6\u53F3\u6309\u94AE\uFF1B\u5931\u8D25\u3001\u5207\u5DE5\u7A0B\u6216\u9000\u51FA\u53D6\u6D88\u5269\u4F59\u64CD\u4F5C\uFF0C\u5173\u95ED\u6587\u4EF6\u540E\u4ECD\u53EF\u91CD\u5F00\u5E76\u8FDE\u7EED\u5F80\u8FD4\u3002"
+        ]
+      },
       {
         sequence: 2026092802,
         version: "2026.09.28.2",
