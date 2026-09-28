@@ -103,3 +103,47 @@ for (const kind of [undefined,'source','git']) {
  assert(!h.can_travel(1),'真正的新定位仍截断前进 '+kind);
 }
 console.log('navigation checkpoints: blur, toolbar, restored selection and explicit branching passed');
+
+for (const kind of [undefined, 'source', 'git']) {
+ const h=create_reading_history(),a={...location('closed',120),kind,view_id:1},b={...location('other',230),kind,view_id:2};
+ h.record_jump(a,b);
+ const reopened={...a,view_id:3};
+ assert(await h.travel(-1,b,async()=>reopened));
+ h.record_selection(reopened);
+ assert(h.can_travel(1),'关闭重开后的选区通知必须保留前进 '+kind);
+ assert(await h.travel(1,reopened,async()=>b));
+ assert(await h.travel(-1,null,async target=>{assert.equal(target.view_id,3);return reopened;}),'空编辑区仍可返回');
+}
+// 同一资源的多个历史位置随原视图重绑定；独立分栏不能一起改变身份。
+for (const kind of [undefined,'source','git']) {
+ const h=create_reading_history();
+ const a={...location('same',10),kind,view_id:1},far={...a,scroll_top:800},pane={...far,view_id:2};
+ h.record_jump(a,far);h.record_jump(far,pane);
+ assert(await h.travel(-1,pane,async target=>({...target,view_id:3})));
+ assert(await h.travel(-1,null,async target=>{assert.equal(target.view_id,3);assert.equal(target.scroll_top,10);return target;}));
+ assert(await h.travel(1,null,async target=>{assert.equal(target.view_id,3);assert.equal(target.scroll_top,800);return target;}));
+ assert(await h.travel(1,null,async target=>{assert.equal(target.view_id,2);return target;}));
+}
+for (const rounds of [20,100,1000]) {
+ for (const kind of [undefined,'source','git']) {
+  const h=create_reading_history();
+  let a={...location('a',120),kind,view_id:1},b={...location('b',230),kind,view_id:2};
+  h.record_jump(a,b);
+  for(let i=0;i<rounds;i++) {
+   assert.equal(await h.travel(-1,null,async target=>({...target,file_path:'wrong',view_id:999})),false,'错误资源不能提交');
+   assert.equal(await h.travel(-1,null,async()=>false),false,'文件删除/取消不消费历史');
+   assert(await h.travel(-1,null,async target=>{a={...target,view_id:3+i*2};return a;}));
+   h.record_selection(a);assert(h.can_travel(1));assert(!h.can_travel(-1));
+   assert(await h.travel(1,null,async target=>{b={...target,view_id:4+i*2};return b;}));
+   h.record_selection(b);assert(h.can_travel(-1));assert(!h.can_travel(1));
+   assert.equal(a.scroll_top,120);assert.equal(b.scroll_top,230);
+  }
+ }
+ console.log(`closed views: ${rounds} reopen/back/forward rounds per Markdown/source/Git, missing/invalid targets and empty editor passed`);
+}
+const stale=create_reading_history();stale.record_jump(source(10),source(30));
+let complete_stale;
+const stale_travel=stale.travel(-1,null,()=>new Promise(resolve=>complete_stale=resolve));
+stale.clear();stale.record_jump(source(50,5),source(70,7));
+complete_stale(source(10,100));assert.equal(await stale_travel,false);
+assert(await stale.travel(-1,null,async target=>{assert.equal(target.view_id,5);return target;}),'迟到重开身份不能污染新工程');

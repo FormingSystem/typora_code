@@ -275,20 +275,19 @@ export function bind_reading_navigation(): () => void {
     if (disposed || navigating || history.is_navigating() || is_busy()) return false;
     finish_pending();
     const current = capture();
-    if (!current) return false;
     workspace.stop_restoring();
+    const signal = context_controller.signal;
     const pending = history.travel(direction, current, async location => {
       const result = location.kind != null
-        ? await navigation_editor()?.restore(location, context_controller.signal) ?? false
-        : await navigate(location.file_path, undefined, location,{signal:context_controller.signal});
-      if (result) last_location = capture();
-      return result;
+        ? await navigation_editor()?.restore(location, signal) ?? false
+        : await navigate(location.file_path, undefined, location,{signal});
+      if (!result || disposed || signal.aborted) return false;
+      return capture() ?? false;
     });
     publish_history_state();
     try {
       const result = await pending;
-      // 原生重载会重建cid；以恢复后的真实快照更新当前项，迟到选区不能截断前进分支。
-      if (result) { const restored = capture(); if (restored) history.checkpoint(restored); }
+      if (result) last_location = capture();
       return result;
     } finally { publish_history_state(); }
   };

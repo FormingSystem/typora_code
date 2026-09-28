@@ -63,15 +63,25 @@ export function create_reading_history(maximum_entries = 50) {
       if (entries.length > maximum_entries) entries.splice(0, entries.length - maximum_entries);
       index = entries.length - 1;
     },
-    async travel(direction: -1 | 1, current: reading_location,
-      restore: (location: reading_location) => Promise<boolean>): Promise<boolean> {
+    async travel(direction: -1 | 1, current: reading_location | null,
+      restore: (location: reading_location) => Promise<boolean | reading_location>): Promise<boolean> {
       const target_index = index + direction;
       if (navigating || target_index < 0 || target_index >= entries.length) return false;
       navigating = true;
       const current_revision = revision;
       try {
-        if (!await restore(entries[target_index]) || current_revision !== revision) return false;
-        if (entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = current;
+        const target = {...entries[target_index]};
+        const restored = await restore(target);
+        if (!restored || current_revision !== revision) return false;
+        // 关闭仅销毁视图。恢复端交付真实身份后，原视图的所有位置一起重绑定，其他分栏不受影响。
+        if (typeof restored !== "boolean" && (restored.file_path !== target.file_path || restored.kind !== target.kind)) return false;
+        if (current && entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = current;
+        if (typeof restored !== "boolean") {
+          for (const entry of entries) {
+            if (entry.file_path === target.file_path && entry.kind === target.kind && entry.view_id === target.view_id) entry.view_id = restored.view_id;
+          }
+          entries[target_index] = {...restored, cursor: restored.cursor ?? target.cursor};
+        }
         index = target_index;
         return true;
       } finally {

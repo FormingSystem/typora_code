@@ -350,8 +350,8 @@ export function create_graph_host(core: graph_core) {
       }
       if(disposed||signal.aborted||!target)return false;
       core.app.workspace.activeLeaf=target.leaf.parent.toggleTab(target.leaf.state.path);target.onOpen();
-      if(target.editor&&'view_state' in state.position){const restored=await target.editor.restore_navigation_state(state.position,signal);if(restored)location.view_id=target.navigation_id;return restored;}
-      if(target.document?.options.navigation){target.document.options.navigation.restore(state.position);location.view_id=target.navigation_id;return true;}
+      if(target.editor&&'view_state' in state.position)return target.editor.restore_navigation_state(state.position,signal);
+      if(target.document?.options.navigation){target.document.options.navigation.restore(state.position);return true;}
       return false;
     }
   },'git');

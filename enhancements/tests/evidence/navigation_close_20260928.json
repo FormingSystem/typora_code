@@ -1,0 +1,148 @@
+{
+  "requirements": [
+    "R067.5"
+  ],
+  "date": "2026-09-28",
+  "version": "2026.09.28.2",
+  "baseline": {
+    "commit": "83d5c66213ba487d415efdeaaaf964b4ce5e46e6",
+    "native": {
+      "id": "63cb350163fb4503b852f886b302ce90",
+      "status": "ERROR",
+      "checks": 43,
+      "payload_state": "cleaned"
+    },
+    "failure": "关闭源码后后退重开成功，随后前进Markdown失败；单元新视图通知同样截断前进"
+  },
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/workbench/services/history/browser/historyService.ts",
+    "adoption": "preferResourceEditorInput保留可重开资源，视图销毁不删除资源导航；保持50项容量和分栏身份"
+  },
+  "cause": "旧view_id使恢复后的checkpoint失败、选区新增分支；空编辑区被current为空阻断；Git端口独自修改历史身份",
+  "change": "恢复成功且代际有效后共同历史提交实际快照，只重绑定相同原视图的位置；空编辑区允许恢复；失败、错误资源及迟到结果不消费索引",
+  "asset_sha256": "d6975265d0f649a11675fe6a7d3641465622a9e601362ede221d168e8a76a8f8",
+  "source_sha256": {
+    "enhancements/src/reading_history.ts": "2be4e95b39a2ea4f2f94b09c2f30349343a3589620a337acd5ddf85907c7ed0d",
+    "enhancements/src/reading_navigation.ts": "55351a8dc5387519cb154a82d1878d6a5ebc286bc5aaebea743283f12974726b",
+    "enhancements/src/git_graph_host.ts": "be079ec9b5a1e390f3b048c51834e251674be95a774edf5582a2cc3cd0a06bc0"
+  },
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "371b3ac612e346b0bff4449e9ce82364",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 253
+    },
+    "unit_stress": {
+      "status": "PASS",
+      "rounds_per_kind": [
+        20,
+        100,
+        1000
+      ],
+      "kinds": [
+        "Markdown",
+        "source",
+        "Git"
+      ],
+      "scope": [
+        "关闭重开及延迟选区",
+        "空编辑区",
+        "错误资源与失败恢复",
+        "切库迟到回调",
+        "同资源多个位置和分栏",
+        "50项容量"
+      ]
+    },
+    "ui": [
+      {
+        "id": "51187628f6324cf49158faebcd01d3fc",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "reading_lifecycle",
+        "closed_reopen_alt_rounds": 20,
+        "first_frame_ms": 11.3,
+        "ready_ms": 11.3
+      },
+      {
+        "id": "030b1f3c858b4cde8182473ede9062cc",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "git_revision_reader",
+        "closed_reopen_rounds": 20
+      }
+    ],
+    "native": [
+      {
+        "id": "97492ccd8e6e4ce8993f480f0690ab3a",
+        "status": "PASS",
+        "checks": 271,
+        "payload_state": "cleaned",
+        "closed_reopen_rounds": 20,
+        "scope": "Markdown与源码真实关闭重开、最后模型释放、空编辑区、分栏位置、失败路径及正文保护"
+      },
+      {
+        "id": "cf132e5d94c54d7881610eb88700cedf",
+        "status": "PASS",
+        "checks": 53,
+        "payload_state": "cleaned",
+        "trusted_toolbar_clicks": 23
+      }
+    ],
+    "install_cycles": {
+      "id": "61ee19a67b954a689ae209de0bf9305a",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "9320c6dd4de542848d71e695d1971158",
+      "status": "passed",
+      "payload_state": "cleaned",
+      "assertions": 65
+    }
+  },
+  "fixture_corrections": [
+    "源码标签是内部URI，需检查实际文件身份和model.isDisposed而非只判断路径",
+    "eachLeaves回调返回push长度会提前停止；修正为无返回值后重新完整运行",
+    "最后文件关闭会保留core.empty，不能断言所有叶子数量为零",
+    "Git C高亮已用TextMate；旧lookup-code-keyword断言更新为真实官方token，不是生产配色变更"
+  ],
+  "failed_candidate_runs": [
+    "f68c450bd9644ceea29077b09f3560b0",
+    "ac6750e7febd4825b6b4cd41bfe1d657",
+    "8b834f828e6c4e69b21f70dfa7490bd2",
+    "ba1cc2834c38413db900a33de342b4b7"
+  ],
+  "boundaries": [
+    "Windows原始Typora1.14.10正式候选；文件压力走公共导航命令和DOM手势，顶栏另有可信Windows鼠标输入",
+    "UI实际Chromium Alt事件和模拟编辑器端口，不等于物理键盘全链路",
+    "远端离线/高延迟、其他平台和所有可能文件规模未穷举；失败与取消由单元及现有事务用例覆盖",
+    "未执行全量UI；用户当前窗口未重启，保存后正常重启加载",
+    "R068.6暂停、R068.10现场持续裁切、终端平滑滚动旧用例和R047.9旧提示等未决项保持"
+  ],
+  "delivery": {
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "d6975265d0f649a11675fe6a7d3641465622a9e601362ede221d168e8a76a8f8",
+      "window_restarted": false
+    },
+    "runtime_loaded": false,
+    "actual_uninstall": "仅只读预检",
+    "pushed": false,
+    "commit_state": "证据生成时待提交，回执见Git与本地台账"
+  }
+}

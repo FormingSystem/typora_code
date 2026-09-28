@@ -134,6 +134,18 @@ app.whenReady().then(async () => {
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Right',modifiers:['alt']});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(50);
   assert.equal(await evaluate('source_position.line'),11,'恢复引起的选区事件不污染前进历史');
+  await evaluate(`release_port();window.reopened_id=100;window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position={...location,view_id:++reopened_id};host.workspace.activeLeaf=leaf;setTimeout(()=>qa.notify_navigation_selection(),10);return true}});void 0;`);
+  for(let round=0;round<20;round++){
+    // 没有活动文件也必须响应；恢复端返回新视图，其迟到选区不能切断前进。
+    await evaluate('source_position=null;host.workspace.activeLeaf={view:{}};void 0');
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
+    test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(50);
+    assert.equal(await evaluate('source_position?.line'),10,'空编辑区重开后退 '+round);
+    assert.equal(await evaluate('document.documentElement.dataset.linuxNoteHistoryForward'),'true','重开选区后仍有前进 '+round);
+    test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Right',modifiers:['alt']});
+    test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(50);
+    assert.equal(await evaluate('source_position.line'),11,'重开后连续前进 '+round);
+  }
   await evaluate(`dispose_source_nav();release_port();document.querySelector('.linux-note-source-file').remove();void 0;`);
   // 原生定位跨帧等待期间取消：不得滚动新视口或恢复旧选区。
   await evaluate(`(() => {

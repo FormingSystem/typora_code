@@ -194484,8 +194484,17 @@ https://creativecommons.org/licenses/by/4.0/
         navigating = true;
         const current_revision = revision;
         try {
-          if (!await restore(entries3[target_index]) || current_revision !== revision) return false;
-          if (entries3[index]?.file_path === current2.file_path && entries3[index]?.kind === current2.kind && entries3[index]?.view_id === current2.view_id) entries3[index] = current2;
+          const target = { ...entries3[target_index] };
+          const restored = await restore(target);
+          if (!restored || current_revision !== revision) return false;
+          if (typeof restored !== "boolean" && (restored.file_path !== target.file_path || restored.kind !== target.kind)) return false;
+          if (current2 && entries3[index]?.file_path === current2.file_path && entries3[index]?.kind === current2.kind && entries3[index]?.view_id === current2.view_id) entries3[index] = current2;
+          if (typeof restored !== "boolean") {
+            for (const entry of entries3) {
+              if (entry.file_path === target.file_path && entry.kind === target.kind && entry.view_id === target.view_id) entry.view_id = restored.view_id;
+            }
+            entries3[target_index] = { ...restored, cursor: restored.cursor ?? target.cursor };
+          }
           index = target_index;
           return true;
         } finally {
@@ -195121,20 +195130,17 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || navigating || history.is_navigating() || is_busy()) return false;
       finish_pending();
       const current2 = capture();
-      if (!current2) return false;
       workspace.stop_restoring();
+      const signal = context_controller.signal;
       const pending = history.travel(direction, current2, async (location) => {
-        const result = location.kind != null ? await navigation_editor()?.restore(location, context_controller.signal) ?? false : await navigate(location.file_path, void 0, location, { signal: context_controller.signal });
-        if (result) last_location = capture();
-        return result;
+        const result = location.kind != null ? await navigation_editor()?.restore(location, signal) ?? false : await navigate(location.file_path, void 0, location, { signal });
+        if (!result || disposed || signal.aborted) return false;
+        return capture() ?? false;
       });
       publish_history_state();
       try {
         const result = await pending;
-        if (result) {
-          const restored = capture();
-          if (restored) history.checkpoint(restored);
-        }
+        if (result) last_location = capture();
         return result;
       } finally {
         publish_history_state();
@@ -215047,14 +215053,9 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed || signal.aborted || !target) return false;
         core.app.workspace.activeLeaf = target.leaf.parent.toggleTab(target.leaf.state.path);
         target.onOpen();
-        if (target.editor && "view_state" in state.position) {
-          const restored = await target.editor.restore_navigation_state(state.position, signal);
-          if (restored) location.view_id = target.navigation_id;
-          return restored;
-        }
+        if (target.editor && "view_state" in state.position) return target.editor.restore_navigation_state(state.position, signal);
         if (target.document?.options.navigation) {
           target.document.options.navigation.restore(state.position);
-          location.view_id = target.navigation_id;
           return true;
         }
         return false;
@@ -243663,6 +243664,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092802,
+        version: "2026.09.28.2",
+        date: "2026-09-28",
+        notes: [
+          "\u4FEE\u590D\u5173\u95ED\u6587\u4EF6\u540E\u540E\u9000\u80FD\u91CD\u5F00\u3001\u524D\u8FDB\u5374\u65AD\u5F00\u7684\u5386\u53F2\u95EE\u9898\uFF1B\u91CD\u5F00\u540E\u4FDD\u7559\u8FDE\u7EED\u5F80\u8FD4\u548C\u539F\u9605\u8BFB\u4F4D\u7F6E\u3002",
+          "\u5173\u95ED\u5168\u90E8\u7F16\u8F91\u5668\u540E\u4ECD\u53EF\u4F7F\u7528\u5DE6\u53F3\u5386\u53F2\u6062\u590D\u6587\u4EF6\uFF1B\u5171\u4EAB\u5BFC\u822A\u7EE7\u7EED\u9650\u5236\u5386\u53F2\u5BB9\u91CF\uFF0C\u5173\u95ED\u65F6\u91CA\u653E\u7F16\u8F91\u89C6\u56FE\u3002"
+        ]
+      },
       {
         sequence: 2026092801,
         version: "2026.09.28.1",

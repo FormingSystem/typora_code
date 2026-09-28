@@ -46,10 +46,36 @@
   assert(editor.getPosition().lineNumber===31,'跨编辑器保留源码行列');
   await travel(1);assert(files.current_file()===a,'源码前进到Markdown');
   for(let i=0;i<10;i++){await travel(-1);assert(files.current_file()===code,'反复返回源码 '+i);await travel(1);assert(files.current_file()===a,'反复前进Markdown '+i);}
-  const code_leaf=[...(()=>{const leaves=[];core.app.workspace.eachLeaves(leaf=>leaves.push(leaf));return leaves;})()].find(leaf=>leaf.view.editor?.focused_editor()===editor);
+  const code_leaf=[...(()=>{const leaves=[];core.app.workspace.eachLeaves(leaf=>{leaves.push(leaf);});return leaves;})()].find(leaf=>leaf.view.editor?.focused_editor()===editor);
   await files.close_leaf(code_leaf);await pause(150);await travel(-1);
   assert(files.current_file()===code,'已关闭源码标签可由历史重开');
   assert(core.app.workspace.activeLeaf.view.editor.focused_editor().getPosition().lineNumber===31,'重开保留源码行列');
+  await travel(1);assert(files.current_file()===a,'关闭重开源码后仍可前进Markdown');
+  await travel(-1);assert(files.current_file()===code,'关闭重开后连续返回源码');
+  // 真正释放标签，再等待重开后的选区通知；覆盖Markdown与Monaco，不能只断言文件路径曾切换。
+  const leaves=()=>{const result=[];core.app.workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
+  await travel(1);assert(files.current_file()===a,'关闭压力从Markdown开始');
+  for(let round=0;round<20;round++){
+   const old_code=leaves().find(leaf=>leaf.view.file_path===code);assert(!!old_code,'源码标签确实存在 '+round);
+   const old_model=old_code.view.editor.focused_editor().getModel();
+   assert(await files.close_leaf(old_code),'源码关闭成功 '+round);assert(old_model.isDisposed(),'关闭释放最后源码模型 '+round);
+   await pause(150);await travel(-1);assert(files.current_file()===code,'关闭源码后返回 '+round);
+   const source_view=core.app.workspace.activeLeaf;
+   assert(source_view!==old_code,'源码重开创建新视图 '+round);
+   assert(source_view.view.editor.focused_editor().getPosition().lineNumber===31,'源码重开位置 '+round);
+   const old_md=leaves().find(leaf=>path.normalize(leaf.state.path).toLowerCase()===path.normalize(a).toLowerCase());assert(!!old_md,'Markdown标签确实存在 '+round+' '+JSON.stringify(leaves().map(leaf=>leaf.state.path)));assert(await files.close_leaf(old_md),'Markdown关闭成功 '+round);
+   await pause(150);await travel(1);assert(files.current_file()===a,'关闭Markdown后前进 '+round);
+   assert(core.app.workspace.activeLeaf!==old_md,'Markdown重开创建新视图 '+round);
+  }
+  // 先关非活动来源，最后关活动目标，避免自动激活其他文件成为新的导航。
+  const final_leaf=core.app.workspace.activeLeaf;
+  for(const leaf of leaves())if(leaf!==final_leaf){assert(await files.close_leaf(leaf),'关闭其余文件');await pause(150);}
+  assert(await files.close_leaf(final_leaf),'关闭最后活动文件');
+  await pause(650);samples.push({empty:leaves().map(leaf=>leaf.state.path)});
+  assert(leaves().every(leaf=>leaf.state.path.startsWith('typ://core.empty/')),'关闭全部编辑器后仅保留空视图');
+  await travel(-1);assert(files.current_file()===code,'空编辑区后退重开源码');
+  await travel(1);assert(files.current_file()===a,'空编辑区恢复后仍能前进Markdown');
+  await travel(-1);assert(files.current_file()===code,'关闭全部后继续后退源码');
   const left=core.app.workspace.activeLeaf;
   await files.open_file(code,{line:60,column:4},'right');await pause(600);const right=core.app.workspace.activeLeaf;
   assert(left!==right&&left.parent!==right.parent,'同源码在独立编辑组打开');
