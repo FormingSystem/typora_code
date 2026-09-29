@@ -18,6 +18,16 @@ app.whenReady().then(async()=>{
     for(const type of ['compositionstart','compositionupdate','compositionend','input'])surface.term.textarea.addEventListener(type,event=>trace.push({type,data:event.data,inputType:event.inputType,value:surface.term.textarea.value}));
   };make_surface();void 0`);
   win.webContents.debugger.attach('1.3');
+  // Keep system clipboard data out of the isolated keyboard fixture.
+  await evaluate(`window.reqnode=()=>({clipboard:{readText:()=> 'terminal_paste_fixture'}});writes=[];surface.focus();`);
+  for(const modifiers of [['control'],['control','shift']]){
+    await evaluate('writes=[];surface.focus();');
+    win.webContents.sendInputEvent({type:'keyDown',keyCode:'v',modifiers});
+    win.webContents.sendInputEvent({type:'keyUp',keyCode:'v',modifiers});await pause(100);
+    assert.equal(await evaluate('writes.join("")'),'terminal_paste_fixture');
+    checks.push('Trusted '+modifiers.join('+')+'+V sends one controlled clipboard payload to terminal input');
+  }
+  await evaluate('make_surface();void 0');
   const compose=(text,extra={})=>win.webContents.debugger.sendCommand('Input.imeSetComposition',{text,selectionStart:text.length,selectionEnd:text.length,...extra});
   const commit=text=>win.webContents.debugger.sendCommand('Input.insertText',{text});
   // 搜狗可在纯Shift按下后直接产生insertText，未必经过compositionend。

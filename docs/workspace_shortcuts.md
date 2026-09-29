@@ -25,3 +25,16 @@ workspace_shortcuts唯一拥有工作台侧栏和组合键，移除Git局部重�
 隐藏Electron验证新键位、旧键不被消费、组合键第二键优先级、重复抬键、IME/AltGraph、终端/模态与卸载。原始Typora隔离窗口核对真实正文加粗/链接/清除格式/标题升降/行内代码入口及侧栏状态，分开合成事件与物理输入证据。全量检查、菜单/缩放/终端关联回归、同候选两类卸载重装及本机安装后再交付；不关闭用户窗口。
 
 本次2026.09.27.3验证与安装结果见[证据](../enhancements/tests/evidence/native_shortcuts_20260927.json)。真实宿主已验证Ctrl+B生成加粗；其余编辑组合键只确认工作台放行，物理键盘与OS accelerator仍需实机补验。
+
+## R079.1 源码剪贴板命令接线（2026-09-29）
+
+问题与目标：原始Typora中源码Ctrl+V被Monaco阻止默认行为后没有修改模型，而同一位置的菜单粘贴能插入。固定VS Code `6807068` 的 `src/vs/editor/contrib/clipboard/browser/clipboard.ts` 将桌面粘贴交给 `IClipboardService.triggerPaste`；`src/vs/workbench/services/clipboard/electron-browser/clipboardService.ts` 再调用原生宿主。嵌入的Monaco沿用了桌面快捷键，却只有返回undefined的BrowserClipboardService，且桌面分支不会进入Web readText后备，形成静默空操作。
+
+范围与职责：源码、源码比较和只读版本的Monaco剪贴板命令统一接到已有 `monaco_source_command` 宿主适配。沿用上游命令注册和键位，只为当前具有正文焦点的已登记编辑器提供高优先级实现；每个编辑器销毁时注销。查找/替换输入框继续用自己的文本适配，普通搜索、Markdown、终端、文件树保留原所有者，不增加全局Ctrl+V拦截或复制另一份快捷键表。
+
+实现与失败：复制、剪切、粘贴均与菜单共用命令，保留整行/多光标元数据和撤销；只读允许复制，拒绝剪切/粘贴。无Electron剪贴板端口时不接管原命令，宿主失败不改写模型或重复后备执行。同步剪贴板读取不会在异步等待后把内容写进另一文档。剪贴板服务仍不修改系统配置。
+
+验收：以当前构建的原始宿主记录Ctrl+V默认已阻止但模型未改变的修复前证据；修复后验证实际模型、单次插入、中文多行、整行/多光标、撤销/重做、只读、搜索输入和Markdown边界。Electron可信键盘与原始宿主renderer事件分别记录，不能把菜单通过算作物理键盘通过。压力按20轮真实输入、100/1000轮可低成本的命令/生命周期覆盖。完整检查与隔离卸载重装、本机安装各自留证。
+
+
+同轮扩查终端：可信Ctrl+V实际向xterm发送了控制字符`0x16`，没有执行粘贴。固定上游 `terminalContrib/clipboard/browser/terminal.clipboard.contribution.ts` 的Paste命令在Windows为Ctrl+V/ Ctrl+Shift+V，Linux保留Ctrl+V给Shell。本地终端按同样平台边界在自己的按键处理器接到既有paste入口；Electron读取与原菜单共用该入口，浏览器环境保留navigator回退，仍走原多行确认与销毁保护。Ctrl+C无选区仍中断进程，AltGr与输入法不触发粘贴；不把终端命令转交正文服务。

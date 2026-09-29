@@ -1,5 +1,5 @@
 import {monaco_text_input,monaco_text_input_menu,monaco_text_input_key} from "./monaco_text_input";
-import {run_monaco_source_command} from './monaco_source_command';
+import {run_monaco_source_command,bind_monaco_source_clipboard} from './monaco_source_command';
 import {source_navigation_gestures} from "./source_navigation_gesture";
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {initialize_monaco_code_theme,sync_monaco_code_theme} from './monaco_code_theme';
@@ -360,6 +360,7 @@ export class git_diff_editor {
     sync_monaco_code_theme();
   }
   bind_editor(view: monaco.editor.IStandaloneCodeEditor): void {
+    this.subscriptions.push(bind_monaco_source_clipboard(view));
     this.subscriptions.push(view.onDidFocusEditorText(()=>{this.last_focused_editor=view;}));
     // 右键不受正文是否先获焦影响；菜单作用于刚刚右击的这一侧。
     this.subscriptions.push(view.onContextMenu(event => { view.focus(); this.context_menu(event.event.browserEvent as MouseEvent); }));

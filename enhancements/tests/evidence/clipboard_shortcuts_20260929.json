@@ -1,0 +1,112 @@
+{
+  "requirements": [
+    "R079.1"
+  ],
+  "date": "2026-09-29",
+  "version": "2026.09.29.3",
+  "baseline": "0058418",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/editor/contrib/clipboard/browser/clipboard.ts",
+      "src/vs/workbench/services/clipboard/electron-browser/clipboardService.ts",
+      "src/vs/workbench/contrib/terminalContrib/clipboard/browser/terminal.clipboard.contribution.ts"
+    ]
+  },
+  "reproduction": [
+    "Unbound native Monaco PasteAction consumes trusted Ctrl+V without clipboard read or model mutation; same test passes after registering host command implementation.",
+    "Original Typora diagnostic 4d4d820553b54e23979c11cc31df5c55: source Ctrl+V prevented with unchanged model, native menu paste succeeds; diagnostic only, zero assertions.",
+    "Terminal trusted-input baseline 00732023824b4efcbb81dce9e62a7cc8 sends control character 0x16 instead of paste."
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "d02d121a1c70493aace1ae8e69c6f61e",
+      "payload_state": "cleaned",
+      "status": "PASS"
+    },
+    "ui": [
+      {
+        "id": "8f9fe911b7884baabb86ca6854b4ed24",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      },
+      {
+        "id": "97b0bd63831a40a5b9349dcb9c21440f",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      },
+      {
+        "id": "c5118469ce154c639f663071bec19463",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      },
+      {
+        "id": "351e77ff26914e14be4dc0a45f3e9ce8",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      }
+    ],
+    "monaco_assertions": 35,
+    "terminal_assertions": 15,
+    "native": {
+      "id": "7c260213a25148e089aaca011597e2c2",
+      "payload_state": "cleaned",
+      "status": "PASS",
+      "assertions": 120,
+      "workbench_sha256": "ded493f90581dfc071c6db8d313c3cbf623799567cea79fddcb4ed34883c97bb"
+    },
+    "stress": {
+      "trusted_source_pastes": 20,
+      "native_source_paste_undo_redo": 20,
+      "native_terminal_pastes": 20,
+      "registration_disposal": [
+        100,
+        1000
+      ]
+    },
+    "install": {
+      "id": "f495d997c95a402f88746cfaa8019669",
+      "payload_state": "cleaned",
+      "status": "PASS"
+    },
+    "uninstall": {
+      "id": "f39ffb42f5d14126be62cb3e4f228bd2",
+      "payload_state": "cleaned",
+      "status": "PASS",
+      "assertions": 65
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 255
+    }
+  },
+  "delivery": {
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      49,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "8911a71e98b37053dd763e49a77b1a66612aa5ffb912b5d9310f1843db2f6de3",
+    "window_restarted": false
+  },
+  "fixture_failures": [
+    "Initial Electron data URL lacks clipboard registration; final fixture uses file URL, reproduces pre-binding failure and verifies trusted input.",
+    "Native sendInputEvent bridge is unsupported (2fb5ee891f8347d6883841e664231800); production debug switch rejected (e397a8db44434f2facca3c2907fca3ce); no bypass retained.",
+    "Native ordinary-input paste-data override cannot alter Chromium default insertion (db7cdcfdf16c495da5386eb382f03981); final test separates keyboard ownership from controlled insertText."
+  ],
+  "boundaries": [
+    "System clipboard was not written; controlled in-memory clipboard adapter and fixed paste event data validate routing and model edits, not full OS clipboard integration.",
+    "Trusted Electron keyboard events and original Typora 1.14.10 renderer events are distinct; physical Windows keyboard, images/rich text and non-Windows hosts not tested.",
+    "Full core check and four targeted UI suites passed; full UI suite not run.",
+    "Existing user windows were not restarted; save documents and restart normally to load installed candidate.",
+    "R082 localization, paused R068.6, live R068.10 clipping, old terminal smooth-scroll fixture, R047.9 notice and previous occupied payload remain separate open items."
+  ],
+  "commit_state": "pending at evidence generation; receipt in Git and local ledger",
+  "pushed": false
+}

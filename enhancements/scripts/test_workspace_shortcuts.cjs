@@ -52,6 +52,7 @@ app.whenReady().then(async () => {
   })()`);
 
   for(const code of ['KeyB','KeyK','Backslash'])check(await evaluate(`calls=[];!send('${code}',{ctrlKey:true})&&calls.length===0`),'native Ctrl key released: '+code);
+  for(const selector of ['#editor','#terminal'])for(const key of ['c','x','v','a','z','y'])check(await evaluate(`calls=[];!send('Key${key.toUpperCase()}',{key:'${key}',ctrlKey:true},'${selector}')&&calls.length===0`),'native editing key remains with focused owner '+selector+' '+key);
   check(await evaluate(`calls=[];!send('KeyB',{altKey:true,ctrlKey:true})&&calls.length===0`),'AltGr mixed modifiers released');
   check(await evaluate('same_binding'), 'shortcut installation is idempotent');
   check(await evaluate(`calls=[];send('KeyB',{key:'b',altKey:true})&&calls[0][0]==='sidebar'`), 'Alt+B toggles the workspace sidebar');

@@ -162142,6 +162142,4571 @@ https://creativecommons.org/licenses/by/4.0/
   // src/monaco_source_command.ts
   init_editor_api();
   init_clipboardUtils();
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js
+  init_browser();
+  init_dom();
+  init_platform();
+  init_nls();
+  init_actions2();
+  init_clipboardService2();
+  init_contextkey();
+  init_log();
+  init_clipboardUtils();
+  init_nativeEditContextRegistry();
+  init_editorExtensions();
+  init_codeEditorService();
+  init_editorContextKeys();
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
+  init_arrays();
+  init_async();
+  init_cancellation();
+  init_dataTransfer();
+  init_errors();
+
+  // node_modules/monaco-editor/esm/vs/base/common/hierarchicalKind.js
+  var HierarchicalKind = class _HierarchicalKind {
+    static {
+      this.sep = ".";
+    }
+    static {
+      this.None = new _HierarchicalKind("@@none@@");
+    }
+    static {
+      this.Empty = new _HierarchicalKind("");
+    }
+    constructor(value) {
+      this.value = value;
+    }
+    equals(other) {
+      return this.value === other.value;
+    }
+    contains(other) {
+      return this.equals(other) || this.value === "" || other.value.startsWith(this.value + _HierarchicalKind.sep);
+    }
+    intersects(other) {
+      return this.contains(other) || other.contains(this);
+    }
+    append(...parts) {
+      return new _HierarchicalKind((this.value ? [this.value, ...parts] : parts).join(_HierarchicalKind.sep));
+    }
+  };
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
+  init_lifecycle();
+  init_mime();
+  init_types();
+  init_uuid();
+  init_nls();
+  init_clipboardService2();
+  init_commands();
+  init_configuration();
+  init_contextkey();
+  init_instantiation();
+  init_log();
+  init_progress();
+  init_quickInput();
+  init_bulkEditService();
+  init_languages();
+  init_languageFeatures();
+  init_editorState();
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/inlineProgress/browser/inlineProgress.js
+  init_dom();
+  init_async();
+  init_codicons();
+  init_lifecycle();
+  init_strings();
+  init_themables();
+  init_range();
+  init_textModel();
+  init_instantiation();
+  var __decorate82 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param75 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var inlineProgressDecoration = ModelDecorationOptions.register({
+    description: "inline-progress-widget",
+    stickiness: 1,
+    showIfCollapsed: true,
+    after: {
+      content: noBreakWhitespace,
+      inlineClassName: "inline-editor-progress-decoration",
+      inlineClassNameAffectsLetterSpacing: true
+    }
+  });
+  var InlineProgressWidget = class _InlineProgressWidget extends Disposable {
+    static {
+      this.baseId = "editor.widget.inlineProgressWidget";
+    }
+    constructor(typeId, editor2, range2, title, delegate) {
+      super();
+      this.typeId = typeId;
+      this.editor = editor2;
+      this.range = range2;
+      this.delegate = delegate;
+      this.allowEditorOverflow = false;
+      this.suppressMouseDown = true;
+      this.create(title);
+      this.editor.addContentWidget(this);
+      this.editor.layoutContentWidget(this);
+    }
+    create(title) {
+      this.domNode = $(".inline-progress-widget");
+      this.domNode.role = "button";
+      this.domNode.title = title;
+      const iconElement = $("span.icon");
+      this.domNode.append(iconElement);
+      iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), "codicon-modifier-spin");
+      const updateSize = () => {
+        const lineHeight = this.editor.getOption(
+          75
+          /* EditorOption.lineHeight */
+        );
+        this.domNode.style.height = "".concat(lineHeight, "px");
+        this.domNode.style.width = "".concat(Math.ceil(0.8 * lineHeight), "px");
+      };
+      updateSize();
+      this._register(this.editor.onDidChangeConfiguration((c) => {
+        if (c.hasChanged(
+          61
+          /* EditorOption.fontSize */
+        ) || c.hasChanged(
+          75
+          /* EditorOption.lineHeight */
+        )) {
+          updateSize();
+        }
+      }));
+      this._register(addDisposableListener(this.domNode, EventType.CLICK, (e) => {
+        this.delegate.cancel();
+      }));
+    }
+    getId() {
+      return _InlineProgressWidget.baseId + "." + this.typeId;
+    }
+    getDomNode() {
+      return this.domNode;
+    }
+    getPosition() {
+      return {
+        position: { lineNumber: this.range.startLineNumber, column: this.range.startColumn },
+        preference: [
+          0
+          /* ContentWidgetPositionPreference.EXACT */
+        ]
+      };
+    }
+    dispose() {
+      super.dispose();
+      this.editor.removeContentWidget(this);
+    }
+  };
+  var InlineProgressManager = class InlineProgressManager2 extends Disposable {
+    constructor(id, _editor, _instantiationService) {
+      super();
+      this.id = id;
+      this._editor = _editor;
+      this._instantiationService = _instantiationService;
+      this._showDelay = 500;
+      this._showPromise = this._register(new MutableDisposable());
+      this._currentWidget = this._register(new MutableDisposable());
+      this._operationIdPool = 0;
+      this._currentDecorations = _editor.createDecorationsCollection();
+    }
+    dispose() {
+      super.dispose();
+      this._currentDecorations.clear();
+    }
+    async showWhile(position2, title, promise, delegate, delayOverride) {
+      const operationId = this._operationIdPool++;
+      this._currentOperation = operationId;
+      this.clear();
+      this._showPromise.value = disposableTimeout(() => {
+        const range2 = Range.fromPositions(position2);
+        const decorationIds = this._currentDecorations.set([{
+          range: range2,
+          options: inlineProgressDecoration
+        }]);
+        if (decorationIds.length > 0) {
+          this._currentWidget.value = this._instantiationService.createInstance(InlineProgressWidget, this.id, this._editor, range2, title, delegate);
+        }
+      }, delayOverride ?? this._showDelay);
+      try {
+        return await promise;
+      } finally {
+        if (this._currentOperation === operationId) {
+          this.clear();
+          this._currentOperation = void 0;
+        }
+      }
+    }
+    clear() {
+      this._showPromise.clear();
+      this._currentDecorations.clear();
+      this._currentWidget.clear();
+    }
+  };
+  InlineProgressManager = __decorate82([
+    __param75(2, IInstantiationService)
+  ], InlineProgressManager);
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/message/browser/messageController.js
+  init_markdownRenderer();
+  init_aria2();
+  init_event();
+  init_htmlContent();
+  init_lifecycle();
+  init_editorExtensions();
+  init_range();
+  init_markdownRenderer2();
+  init_nls();
+  init_contextkey();
+  init_opener();
+  init_dom();
+  var __decorate83 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param76 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var MessageController_1;
+  var MessageController = class MessageController2 {
+    static {
+      MessageController_1 = this;
+    }
+    static {
+      this.ID = "editor.contrib.messageController";
+    }
+    static {
+      this.MESSAGE_VISIBLE = new RawContextKey("messageVisible", false, localize(1333, "Whether the editor is currently showing an inline message"));
+    }
+    static get(editor2) {
+      return editor2.getContribution(MessageController_1.ID);
+    }
+    constructor(editor2, contextKeyService, _openerService) {
+      this._openerService = _openerService;
+      this._messageWidget = new MutableDisposable();
+      this._messageListeners = new DisposableStore();
+      this._mouseOverMessage = false;
+      this._editor = editor2;
+      this._visible = MessageController_1.MESSAGE_VISIBLE.bindTo(contextKeyService);
+    }
+    dispose() {
+      this._messageListeners.dispose();
+      this._messageWidget.dispose();
+      this._visible.reset();
+    }
+    showMessage(message, position2) {
+      alert(isMarkdownString(message) ? message.value : message);
+      this._visible.set(true);
+      this._messageWidget.clear();
+      this._messageListeners.clear();
+      if (isMarkdownString(message)) {
+        const renderedMessage = this._messageListeners.add(renderMarkdown(message, {
+          actionHandler: (url, mdStr) => {
+            this.closeMessage();
+            openLinkFromMarkdown(this._openerService, url, mdStr.isTrusted);
+          }
+        }));
+        this._messageWidget.value = new MessageWidget(this._editor, position2, renderedMessage.element);
+      } else {
+        this._messageWidget.value = new MessageWidget(this._editor, position2, message);
+      }
+      this._messageListeners.add(Event2.debounce(this._editor.onDidBlurEditorText, (last, event) => event, 0)(() => {
+        if (this._mouseOverMessage) {
+          return;
+        }
+        if (this._messageWidget.value && isAncestor(getActiveElement(), this._messageWidget.value.getDomNode())) {
+          return;
+        }
+        this.closeMessage();
+      }));
+      this._messageListeners.add(this._editor.onDidChangeCursorPosition(() => this.closeMessage()));
+      this._messageListeners.add(this._editor.onDidDispose(() => this.closeMessage()));
+      this._messageListeners.add(this._editor.onDidChangeModel(() => this.closeMessage()));
+      this._messageListeners.add(addDisposableListener(this._messageWidget.value.getDomNode(), EventType.MOUSE_ENTER, () => this._mouseOverMessage = true, true));
+      this._messageListeners.add(addDisposableListener(this._messageWidget.value.getDomNode(), EventType.MOUSE_LEAVE, () => this._mouseOverMessage = false, true));
+      let bounds;
+      this._messageListeners.add(this._editor.onMouseMove((e) => {
+        if (!e.target.position) {
+          return;
+        }
+        if (!bounds) {
+          bounds = new Range(position2.lineNumber - 3, 1, e.target.position.lineNumber + 3, 1);
+        } else if (!bounds.containsPosition(e.target.position)) {
+          this.closeMessage();
+        }
+      }));
+    }
+    closeMessage() {
+      this._visible.reset();
+      this._messageListeners.clear();
+      if (this._messageWidget.value) {
+        this._messageListeners.add(MessageWidget.fadeOut(this._messageWidget.value));
+      }
+    }
+  };
+  MessageController = MessageController_1 = __decorate83([
+    __param76(1, IContextKeyService),
+    __param76(2, IOpenerService)
+  ], MessageController);
+  var MessageCommand = EditorCommand.bindToContribution(MessageController.get);
+  registerEditorCommand(new MessageCommand({
+    id: "leaveEditorMessage",
+    precondition: MessageController.MESSAGE_VISIBLE,
+    handler: (c) => c.closeMessage(),
+    kbOpts: {
+      weight: 100 + 30,
+      primary: 9
+      /* KeyCode.Escape */
+    }
+  }));
+  var MessageWidget = class {
+    static fadeOut(messageWidget) {
+      const dispose2 = () => {
+        messageWidget.dispose();
+        clearTimeout(handle);
+        messageWidget.getDomNode().removeEventListener("animationend", dispose2);
+      };
+      const handle = setTimeout(dispose2, 110);
+      messageWidget.getDomNode().addEventListener("animationend", dispose2);
+      messageWidget.getDomNode().classList.add("fadeOut");
+      return { dispose: dispose2 };
+    }
+    constructor(editor2, { lineNumber, column }, text3) {
+      this.allowEditorOverflow = true;
+      this.suppressMouseDown = false;
+      this._editor = editor2;
+      this._editor.revealLinesInCenterIfOutsideViewport(
+        lineNumber,
+        lineNumber,
+        0
+        /* ScrollType.Smooth */
+      );
+      this._position = { lineNumber, column };
+      this._domNode = document.createElement("div");
+      this._domNode.classList.add("monaco-editor-overlaymessage");
+      this._domNode.style.marginLeft = "-6px";
+      const anchorTop = document.createElement("div");
+      anchorTop.classList.add("anchor", "top");
+      this._domNode.appendChild(anchorTop);
+      const message = document.createElement("div");
+      if (typeof text3 === "string") {
+        message.classList.add("message");
+        message.textContent = text3;
+      } else {
+        text3.classList.add("message");
+        message.appendChild(text3);
+      }
+      this._domNode.appendChild(message);
+      const anchorBottom = document.createElement("div");
+      anchorBottom.classList.add("anchor", "below");
+      this._domNode.appendChild(anchorBottom);
+      this._editor.addContentWidget(this);
+      this._domNode.classList.add("fadeIn");
+    }
+    dispose() {
+      this._editor.removeContentWidget(this);
+    }
+    getId() {
+      return "messageoverlay";
+    }
+    getDomNode() {
+      return this._domNode;
+    }
+    getPosition() {
+      return {
+        position: this._position,
+        preference: [
+          1,
+          2
+        ],
+        positionAffinity: 1
+      };
+    }
+    afterRender(position2) {
+      this._domNode.classList.toggle(
+        "below",
+        position2 === 2
+        /* ContentWidgetPositionPreference.BELOW */
+      );
+    }
+  };
+  registerEditorContribution(
+    MessageController.ID,
+    MessageController,
+    4
+    /* EditorContributionInstantiation.Lazy */
+  );
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/defaultProviders.js
+  init_arrays();
+  init_dataTransfer();
+  init_lifecycle();
+  init_mime();
+  init_network();
+  init_resources();
+  init_uri();
+  init_nls();
+  init_workspace();
+  init_languages();
+  init_languageFeatures();
+  var __decorate84 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param77 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var SimplePasteAndDropProvider = class {
+    constructor(kind) {
+      this.copyMimeTypes = [];
+      this.kind = kind;
+      this.providedDropEditKinds = [this.kind];
+      this.providedPasteEditKinds = [this.kind];
+    }
+    async provideDocumentPasteEdits(_model, _ranges, dataTransfer, context, token) {
+      const edit3 = await this.getEdit(dataTransfer, token);
+      if (!edit3) {
+        return void 0;
+      }
+      return {
+        edits: [{ insertText: edit3.insertText, title: edit3.title, kind: edit3.kind, handledMimeType: edit3.handledMimeType, yieldTo: edit3.yieldTo }],
+        dispose() {
+        }
+      };
+    }
+    async provideDocumentDropEdits(_model, _position, dataTransfer, token) {
+      const edit3 = await this.getEdit(dataTransfer, token);
+      if (!edit3) {
+        return;
+      }
+      return {
+        edits: [{ insertText: edit3.insertText, title: edit3.title, kind: edit3.kind, handledMimeType: edit3.handledMimeType, yieldTo: edit3.yieldTo }],
+        dispose() {
+        }
+      };
+    }
+  };
+  var DefaultTextPasteOrDropEditProvider = class _DefaultTextPasteOrDropEditProvider extends SimplePasteAndDropProvider {
+    static {
+      this.id = "text";
+    }
+    constructor() {
+      super(HierarchicalKind.Empty.append("text", "plain"));
+      this.id = _DefaultTextPasteOrDropEditProvider.id;
+      this.dropMimeTypes = [Mimes.text];
+      this.pasteMimeTypes = [Mimes.text];
+    }
+    async getEdit(dataTransfer, _token) {
+      const textEntry = dataTransfer.get(Mimes.text);
+      if (!textEntry) {
+        return;
+      }
+      if (dataTransfer.has(Mimes.uriList)) {
+        return;
+      }
+      const insertText = await textEntry.asString();
+      return {
+        handledMimeType: Mimes.text,
+        title: localize(965, "Insert Plain Text"),
+        insertText,
+        kind: this.kind
+      };
+    }
+  };
+  var PathProvider = class extends SimplePasteAndDropProvider {
+    constructor() {
+      super(HierarchicalKind.Empty.append("uri", "path", "absolute"));
+      this.dropMimeTypes = [Mimes.uriList];
+      this.pasteMimeTypes = [Mimes.uriList];
+    }
+    async getEdit(dataTransfer, token) {
+      const entries3 = await extractUriList(dataTransfer);
+      if (!entries3.length || token.isCancellationRequested) {
+        return;
+      }
+      let uriCount = 0;
+      const insertText = entries3.map(({ uri, originalText }) => {
+        if (uri.scheme === Schemas.file) {
+          return uri.fsPath;
+        } else {
+          uriCount++;
+          return originalText;
+        }
+      }).join(" ");
+      let label;
+      if (uriCount > 0) {
+        label = entries3.length > 1 ? localize(966, "Insert Uris") : localize(967, "Insert Uri");
+      } else {
+        label = entries3.length > 1 ? localize(968, "Insert Paths") : localize(969, "Insert Path");
+      }
+      return {
+        handledMimeType: Mimes.uriList,
+        insertText,
+        title: label,
+        kind: this.kind
+      };
+    }
+  };
+  var RelativePathProvider = class RelativePathProvider2 extends SimplePasteAndDropProvider {
+    constructor(_workspaceContextService) {
+      super(HierarchicalKind.Empty.append("uri", "path", "relative"));
+      this._workspaceContextService = _workspaceContextService;
+      this.dropMimeTypes = [Mimes.uriList];
+      this.pasteMimeTypes = [Mimes.uriList];
+    }
+    async getEdit(dataTransfer, token) {
+      const entries3 = await extractUriList(dataTransfer);
+      if (!entries3.length || token.isCancellationRequested) {
+        return;
+      }
+      const relativeUris = coalesce(entries3.map(({ uri }) => {
+        const root = this._workspaceContextService.getWorkspaceFolder(uri);
+        return root ? relativePath(root.uri, uri) : void 0;
+      }));
+      if (!relativeUris.length) {
+        return;
+      }
+      return {
+        handledMimeType: Mimes.uriList,
+        insertText: relativeUris.join(" "),
+        title: entries3.length > 1 ? localize(970, "Insert Relative Paths") : localize(971, "Insert Relative Path"),
+        kind: this.kind
+      };
+    }
+  };
+  RelativePathProvider = __decorate84([
+    __param77(0, IWorkspaceContextService)
+  ], RelativePathProvider);
+  var PasteHtmlProvider = class {
+    constructor() {
+      this.kind = new HierarchicalKind("html");
+      this.providedPasteEditKinds = [this.kind];
+      this.copyMimeTypes = [];
+      this.pasteMimeTypes = ["text/html"];
+      this._yieldTo = [{ mimeType: Mimes.text }];
+    }
+    async provideDocumentPasteEdits(_model, _ranges, dataTransfer, context, token) {
+      if (context.triggerKind !== DocumentPasteTriggerKind.PasteAs && !context.only?.contains(this.kind)) {
+        return;
+      }
+      const entry = dataTransfer.get("text/html");
+      const htmlText = await entry?.asString();
+      if (!htmlText || token.isCancellationRequested) {
+        return;
+      }
+      return {
+        dispose() {
+        },
+        edits: [{
+          insertText: htmlText,
+          yieldTo: this._yieldTo,
+          title: localize(972, "Insert HTML"),
+          kind: this.kind
+        }]
+      };
+    }
+  };
+  async function extractUriList(dataTransfer) {
+    const urlListEntry = dataTransfer.get(Mimes.uriList);
+    if (!urlListEntry) {
+      return [];
+    }
+    const strUriList = await urlListEntry.asString();
+    const entries3 = [];
+    for (const entry of UriList.parse(strUriList)) {
+      try {
+        entries3.push({ uri: URI.parse(entry), originalText: entry });
+      } catch {
+      }
+    }
+    return entries3;
+  }
+  var genericLanguageSelector = { scheme: "*", hasAccessToAllModels: true };
+  var DefaultDropProvidersFeature = class DefaultDropProvidersFeature2 extends Disposable {
+    constructor(languageFeaturesService, workspaceContextService) {
+      super();
+      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new DefaultTextPasteOrDropEditProvider()));
+      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new PathProvider()));
+      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new RelativePathProvider(workspaceContextService)));
+    }
+  };
+  DefaultDropProvidersFeature = __decorate84([
+    __param77(0, ILanguageFeaturesService),
+    __param77(1, IWorkspaceContextService)
+  ], DefaultDropProvidersFeature);
+  var DefaultPasteProvidersFeature = class DefaultPasteProvidersFeature2 extends Disposable {
+    constructor(languageFeaturesService, workspaceContextService) {
+      super();
+      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new DefaultTextPasteOrDropEditProvider()));
+      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new PathProvider()));
+      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new RelativePathProvider(workspaceContextService)));
+      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new PasteHtmlProvider()));
+    }
+  };
+  DefaultPasteProvidersFeature = __decorate84([
+    __param77(0, ILanguageFeaturesService),
+    __param77(1, IWorkspaceContextService)
+  ], DefaultPasteProvidersFeature);
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/edit.js
+  init_bulkEditService();
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/snippet/browser/snippetParser.js
+  var Scanner2 = class _Scanner {
+    constructor() {
+      this.value = "";
+      this.pos = 0;
+    }
+    static {
+      this._table = {
+        [
+          36
+          /* CharCode.DollarSign */
+        ]: 0,
+        [
+          58
+          /* CharCode.Colon */
+        ]: 1,
+        [
+          44
+          /* CharCode.Comma */
+        ]: 2,
+        [
+          123
+          /* CharCode.OpenCurlyBrace */
+        ]: 3,
+        [
+          125
+          /* CharCode.CloseCurlyBrace */
+        ]: 4,
+        [
+          92
+          /* CharCode.Backslash */
+        ]: 5,
+        [
+          47
+          /* CharCode.Slash */
+        ]: 6,
+        [
+          124
+          /* CharCode.Pipe */
+        ]: 7,
+        [
+          43
+          /* CharCode.Plus */
+        ]: 11,
+        [
+          45
+          /* CharCode.Dash */
+        ]: 12,
+        [
+          63
+          /* CharCode.QuestionMark */
+        ]: 13
+      };
+    }
+    static isDigitCharacter(ch) {
+      return ch >= 48 && ch <= 57;
+    }
+    static isVariableCharacter(ch) {
+      return ch === 95 || ch >= 97 && ch <= 122 || ch >= 65 && ch <= 90;
+    }
+    text(value) {
+      this.value = value;
+      this.pos = 0;
+    }
+    tokenText(token) {
+      return this.value.substr(token.pos, token.len);
+    }
+    next() {
+      if (this.pos >= this.value.length) {
+        return { type: 14, pos: this.pos, len: 0 };
+      }
+      const pos = this.pos;
+      let len = 0;
+      let ch = this.value.charCodeAt(pos);
+      let type;
+      type = _Scanner._table[ch];
+      if (typeof type === "number") {
+        this.pos += 1;
+        return { type, pos, len: 1 };
+      }
+      if (_Scanner.isDigitCharacter(ch)) {
+        type = 8;
+        do {
+          len += 1;
+          ch = this.value.charCodeAt(pos + len);
+        } while (_Scanner.isDigitCharacter(ch));
+        this.pos += len;
+        return { type, pos, len };
+      }
+      if (_Scanner.isVariableCharacter(ch)) {
+        type = 9;
+        do {
+          ch = this.value.charCodeAt(pos + ++len);
+        } while (_Scanner.isVariableCharacter(ch) || _Scanner.isDigitCharacter(ch));
+        this.pos += len;
+        return { type, pos, len };
+      }
+      type = 10;
+      do {
+        len += 1;
+        ch = this.value.charCodeAt(pos + len);
+      } while (!isNaN(ch) && typeof _Scanner._table[ch] === "undefined" && !_Scanner.isDigitCharacter(ch) && !_Scanner.isVariableCharacter(ch));
+      this.pos += len;
+      return { type, pos, len };
+    }
+  };
+  var Marker = class {
+    constructor() {
+      this._children = [];
+    }
+    appendChild(child) {
+      if (child instanceof Text2 && this._children[this._children.length - 1] instanceof Text2) {
+        this._children[this._children.length - 1].value += child.value;
+      } else {
+        child.parent = this;
+        this._children.push(child);
+      }
+      return this;
+    }
+    replace(child, others) {
+      const { parent } = child;
+      const idx = parent.children.indexOf(child);
+      const newChildren = parent.children.slice(0);
+      newChildren.splice(idx, 1, ...others);
+      parent._children = newChildren;
+      (function _fixParent(children, parent2) {
+        for (const child2 of children) {
+          child2.parent = parent2;
+          _fixParent(child2.children, child2);
+        }
+      })(others, parent);
+    }
+    get children() {
+      return this._children;
+    }
+    get rightMostDescendant() {
+      if (this._children.length > 0) {
+        return this._children[this._children.length - 1].rightMostDescendant;
+      }
+      return this;
+    }
+    get snippet() {
+      let candidate = this;
+      while (true) {
+        if (!candidate) {
+          return void 0;
+        }
+        if (candidate instanceof TextmateSnippet) {
+          return candidate;
+        }
+        candidate = candidate.parent;
+      }
+    }
+    toString() {
+      return this.children.reduce((prev, cur) => prev + cur.toString(), "");
+    }
+    len() {
+      return 0;
+    }
+  };
+  var Text2 = class _Text extends Marker {
+    constructor(value) {
+      super();
+      this.value = value;
+    }
+    toString() {
+      return this.value;
+    }
+    len() {
+      return this.value.length;
+    }
+    clone() {
+      return new _Text(this.value);
+    }
+  };
+  var TransformableMarker = class extends Marker {
+  };
+  var Placeholder = class _Placeholder extends TransformableMarker {
+    static compareByIndex(a, b2) {
+      if (a.index === b2.index) {
+        return 0;
+      } else if (a.isFinalTabstop) {
+        return 1;
+      } else if (b2.isFinalTabstop) {
+        return -1;
+      } else if (a.index < b2.index) {
+        return -1;
+      } else if (a.index > b2.index) {
+        return 1;
+      } else {
+        return 0;
+      }
+    }
+    constructor(index) {
+      super();
+      this.index = index;
+    }
+    get isFinalTabstop() {
+      return this.index === 0;
+    }
+    get choice() {
+      return this._children.length === 1 && this._children[0] instanceof Choice ? this._children[0] : void 0;
+    }
+    clone() {
+      const ret = new _Placeholder(this.index);
+      if (this.transform) {
+        ret.transform = this.transform.clone();
+      }
+      ret._children = this.children.map((child) => child.clone());
+      return ret;
+    }
+  };
+  var Choice = class _Choice extends Marker {
+    constructor() {
+      super(...arguments);
+      this.options = [];
+    }
+    appendChild(marker) {
+      if (marker instanceof Text2) {
+        marker.parent = this;
+        this.options.push(marker);
+      }
+      return this;
+    }
+    toString() {
+      return this.options[0].value;
+    }
+    len() {
+      return this.options[0].len();
+    }
+    clone() {
+      const ret = new _Choice();
+      this.options.forEach(ret.appendChild, ret);
+      return ret;
+    }
+  };
+  var Transform = class _Transform extends Marker {
+    constructor() {
+      super(...arguments);
+      this.regexp = new RegExp("");
+    }
+    resolve(value) {
+      const _this = this;
+      let didMatch = false;
+      let ret = value.replace(this.regexp, function() {
+        didMatch = true;
+        return _this._replace(Array.prototype.slice.call(arguments, 0, -2));
+      });
+      if (!didMatch && this._children.some((child) => child instanceof FormatString && Boolean(child.elseValue))) {
+        ret = this._replace([]);
+      }
+      return ret;
+    }
+    _replace(groups) {
+      let ret = "";
+      for (const marker of this._children) {
+        if (marker instanceof FormatString) {
+          let value = groups[marker.index] || "";
+          value = marker.resolve(value);
+          ret += value;
+        } else {
+          ret += marker.toString();
+        }
+      }
+      return ret;
+    }
+    toString() {
+      return "";
+    }
+    clone() {
+      const ret = new _Transform();
+      ret.regexp = new RegExp(this.regexp.source, (this.regexp.ignoreCase ? "i" : "") + (this.regexp.global ? "g" : ""));
+      ret._children = this.children.map((child) => child.clone());
+      return ret;
+    }
+  };
+  var FormatString = class _FormatString extends Marker {
+    constructor(index, shorthandName, ifValue, elseValue) {
+      super();
+      this.index = index;
+      this.shorthandName = shorthandName;
+      this.ifValue = ifValue;
+      this.elseValue = elseValue;
+    }
+    resolve(value) {
+      if (this.shorthandName === "upcase") {
+        return !value ? "" : value.toLocaleUpperCase();
+      } else if (this.shorthandName === "downcase") {
+        return !value ? "" : value.toLocaleLowerCase();
+      } else if (this.shorthandName === "capitalize") {
+        return !value ? "" : value[0].toLocaleUpperCase() + value.substr(1);
+      } else if (this.shorthandName === "pascalcase") {
+        return !value ? "" : this._toPascalCase(value);
+      } else if (this.shorthandName === "camelcase") {
+        return !value ? "" : this._toCamelCase(value);
+      } else if (this.shorthandName === "kebabcase") {
+        return !value ? "" : this._toKebabCase(value);
+      } else if (this.shorthandName === "snakecase") {
+        return !value ? "" : this._toSnakeCase(value);
+      } else if (Boolean(value) && typeof this.ifValue === "string") {
+        return this.ifValue;
+      } else if (!Boolean(value) && typeof this.elseValue === "string") {
+        return this.elseValue;
+      } else {
+        return value || "";
+      }
+    }
+    // Note: word-based case transforms rely on uppercase/lowercase distinctions.
+    // For scripts without case, transforms are effectively no-ops.
+    _toKebabCase(value) {
+      const match2 = value.match(/[\p{L}0-9]+/gu);
+      if (!match2) {
+        return value;
+      }
+      if (!value.match(/[\p{L}0-9]/u)) {
+        return value.trim().toLowerCase().replace(/^_+|_+$/g, "").replace(/[\s_]+/g, "-");
+      }
+      const cleaned = value.trim().replace(/^_+|_+$/g, "");
+      const match22 = cleaned.match(new RegExp("\\p{Lu}{2,}(?=\\p{Lu}\\p{Ll}+[0-9]*|[\\s_-]|$)|\\p{Lu}?\\p{Ll}+[0-9]*|\\p{Lu}(?=\\p{Lu}\\p{Ll})|\\p{Lu}(?=[\\s_-]|$)|[0-9]+", "gu"));
+      if (!match22) {
+        return cleaned.split(/[\s_-]+/).filter((word) => word.length > 0).map((word) => word.toLowerCase()).join("-");
+      }
+      return match22.map((x) => x.toLowerCase()).join("-");
+    }
+    _toPascalCase(value) {
+      const match2 = value.match(/[\p{L}0-9]+/gu);
+      if (!match2) {
+        return value;
+      }
+      return match2.map((word) => {
+        return word.charAt(0).toUpperCase() + word.substr(1);
+      }).join("");
+    }
+    _toCamelCase(value) {
+      const match2 = value.match(/[\p{L}0-9]+/gu);
+      if (!match2) {
+        return value;
+      }
+      return match2.map((word, index) => {
+        if (index === 0) {
+          return word.charAt(0).toLowerCase() + word.substr(1);
+        }
+        return word.charAt(0).toUpperCase() + word.substr(1);
+      }).join("");
+    }
+    _toSnakeCase(value) {
+      return value.replace(new RegExp("(\\p{Ll})(\\p{Lu})", "gu"), "$1_$2").replace(/[\s\-]+/g, "_").toLowerCase();
+    }
+    clone() {
+      const ret = new _FormatString(this.index, this.shorthandName, this.ifValue, this.elseValue);
+      return ret;
+    }
+  };
+  var Variable = class _Variable extends TransformableMarker {
+    constructor(name) {
+      super();
+      this.name = name;
+    }
+    resolve(resolver) {
+      let value = resolver.resolve(this);
+      if (this.transform) {
+        value = this.transform.resolve(value || "");
+      }
+      if (value !== void 0) {
+        this._children = [new Text2(value)];
+        return true;
+      }
+      return false;
+    }
+    clone() {
+      const ret = new _Variable(this.name);
+      if (this.transform) {
+        ret.transform = this.transform.clone();
+      }
+      ret._children = this.children.map((child) => child.clone());
+      return ret;
+    }
+  };
+  function walk(marker, visitor) {
+    const stack = [...marker];
+    while (stack.length > 0) {
+      const marker2 = stack.shift();
+      const recurse = visitor(marker2);
+      if (!recurse) {
+        break;
+      }
+      stack.unshift(...marker2.children);
+    }
+  }
+  var TextmateSnippet = class _TextmateSnippet extends Marker {
+    get placeholderInfo() {
+      if (!this._placeholders) {
+        const all = [];
+        let last;
+        this.walk(function(candidate) {
+          if (candidate instanceof Placeholder) {
+            all.push(candidate);
+            last = !last || last.index < candidate.index ? candidate : last;
+          }
+          return true;
+        });
+        this._placeholders = { all, last };
+      }
+      return this._placeholders;
+    }
+    get placeholders() {
+      const { all } = this.placeholderInfo;
+      return all;
+    }
+    offset(marker) {
+      let pos = 0;
+      let found = false;
+      this.walk((candidate) => {
+        if (candidate === marker) {
+          found = true;
+          return false;
+        }
+        pos += candidate.len();
+        return true;
+      });
+      if (!found) {
+        return -1;
+      }
+      return pos;
+    }
+    fullLen(marker) {
+      let ret = 0;
+      walk([marker], (marker2) => {
+        ret += marker2.len();
+        return true;
+      });
+      return ret;
+    }
+    enclosingPlaceholders(placeholder) {
+      const ret = [];
+      let { parent } = placeholder;
+      while (parent) {
+        if (parent instanceof Placeholder) {
+          ret.push(parent);
+        }
+        parent = parent.parent;
+      }
+      return ret;
+    }
+    resolveVariables(resolver) {
+      this.walk((candidate) => {
+        if (candidate instanceof Variable) {
+          if (candidate.resolve(resolver)) {
+            this._placeholders = void 0;
+          }
+        }
+        return true;
+      });
+      return this;
+    }
+    appendChild(child) {
+      this._placeholders = void 0;
+      return super.appendChild(child);
+    }
+    replace(child, others) {
+      this._placeholders = void 0;
+      return super.replace(child, others);
+    }
+    clone() {
+      const ret = new _TextmateSnippet();
+      ret._children = this.children.map((child) => child.clone());
+      return ret;
+    }
+    walk(visitor) {
+      walk(this.children, visitor);
+    }
+  };
+  var SnippetParser = class {
+    constructor() {
+      this._scanner = new Scanner2();
+      this._token = { type: 14, pos: 0, len: 0 };
+    }
+    static escape(value) {
+      return value.replace(/\$|}|\\/g, "\\$&");
+    }
+    static guessNeedsClipboard(template) {
+      return /\${?CLIPBOARD/.test(template);
+    }
+    parse(value, insertFinalTabstop, enforceFinalTabstop) {
+      const snippet = new TextmateSnippet();
+      this.parseFragment(value, snippet);
+      this.ensureFinalTabstop(snippet, enforceFinalTabstop ?? false, insertFinalTabstop ?? false);
+      return snippet;
+    }
+    parseFragment(value, snippet) {
+      const offset = snippet.children.length;
+      this._scanner.text(value);
+      this._token = this._scanner.next();
+      while (this._parse(snippet)) {
+      }
+      const placeholderDefaultValues = /* @__PURE__ */ new Map();
+      const incompletePlaceholders = [];
+      snippet.walk((marker) => {
+        if (marker instanceof Placeholder) {
+          if (marker.isFinalTabstop) {
+            placeholderDefaultValues.set(0, void 0);
+          } else if (!placeholderDefaultValues.has(marker.index) && marker.children.length > 0) {
+            placeholderDefaultValues.set(marker.index, marker.children);
+          } else {
+            incompletePlaceholders.push(marker);
+          }
+        }
+        return true;
+      });
+      const fillInIncompletePlaceholder = (placeholder, stack2) => {
+        const defaultValues = placeholderDefaultValues.get(placeholder.index);
+        if (!defaultValues) {
+          return;
+        }
+        const clone4 = new Placeholder(placeholder.index);
+        clone4.transform = placeholder.transform;
+        for (const child of defaultValues) {
+          const newChild = child.clone();
+          clone4.appendChild(newChild);
+          if (newChild instanceof Placeholder && placeholderDefaultValues.has(newChild.index) && !stack2.has(newChild.index)) {
+            stack2.add(newChild.index);
+            fillInIncompletePlaceholder(newChild, stack2);
+            stack2.delete(newChild.index);
+          }
+        }
+        snippet.replace(placeholder, [clone4]);
+      };
+      const stack = /* @__PURE__ */ new Set();
+      for (const placeholder of incompletePlaceholders) {
+        fillInIncompletePlaceholder(placeholder, stack);
+      }
+      return snippet.children.slice(offset);
+    }
+    ensureFinalTabstop(snippet, enforceFinalTabstop, insertFinalTabstop) {
+      if (enforceFinalTabstop || insertFinalTabstop && snippet.placeholders.length > 0) {
+        const finalTabstop = snippet.placeholders.find((p) => p.index === 0);
+        if (!finalTabstop) {
+          snippet.appendChild(new Placeholder(0));
+        }
+      }
+    }
+    _accept(type, value) {
+      if (type === void 0 || this._token.type === type) {
+        const ret = !value ? true : this._scanner.tokenText(this._token);
+        this._token = this._scanner.next();
+        return ret;
+      }
+      return false;
+    }
+    _backTo(token) {
+      this._scanner.pos = token.pos + token.len;
+      this._token = token;
+      return false;
+    }
+    _until(type) {
+      const start = this._token;
+      while (this._token.type !== type) {
+        if (this._token.type === 14) {
+          return false;
+        } else if (this._token.type === 5) {
+          const nextToken = this._scanner.next();
+          if (nextToken.type !== 0 && nextToken.type !== 4 && nextToken.type !== 5) {
+            return false;
+          }
+        }
+        this._token = this._scanner.next();
+      }
+      const value = this._scanner.value.substring(start.pos, this._token.pos).replace(/\\(\$|}|\\)/g, "$1");
+      this._token = this._scanner.next();
+      return value;
+    }
+    _parse(marker) {
+      return this._parseEscaped(marker) || this._parseTabstopOrVariableName(marker) || this._parseComplexPlaceholder(marker) || this._parseComplexVariable(marker) || this._parseAnything(marker);
+    }
+    // \$, \\, \} -> just text
+    _parseEscaped(marker) {
+      let value;
+      if (value = this._accept(5, true)) {
+        value = this._accept(0, true) || this._accept(4, true) || this._accept(5, true) || value;
+        marker.appendChild(new Text2(value));
+        return true;
+      }
+      return false;
+    }
+    // $foo -> variable, $1 -> tabstop
+    _parseTabstopOrVariableName(parent) {
+      let value;
+      const token = this._token;
+      const match2 = this._accept(
+        0
+        /* TokenType.Dollar */
+      ) && (value = this._accept(9, true) || this._accept(8, true));
+      if (!match2) {
+        return this._backTo(token);
+      }
+      parent.appendChild(/^\d+$/.test(value) ? new Placeholder(Number(value)) : new Variable(value));
+      return true;
+    }
+    // ${1:<children>}, ${1} -> placeholder
+    _parseComplexPlaceholder(parent) {
+      let index;
+      const token = this._token;
+      const match2 = this._accept(
+        0
+        /* TokenType.Dollar */
+      ) && this._accept(
+        3
+        /* TokenType.CurlyOpen */
+      ) && (index = this._accept(8, true));
+      if (!match2) {
+        return this._backTo(token);
+      }
+      const placeholder = new Placeholder(Number(index));
+      if (this._accept(
+        1
+        /* TokenType.Colon */
+      )) {
+        while (true) {
+          if (this._accept(
+            4
+            /* TokenType.CurlyClose */
+          )) {
+            parent.appendChild(placeholder);
+            return true;
+          }
+          if (this._parse(placeholder)) {
+            continue;
+          }
+          parent.appendChild(new Text2("${" + index + ":"));
+          placeholder.children.forEach(parent.appendChild, parent);
+          return true;
+        }
+      } else if (placeholder.index > 0 && this._accept(
+        7
+        /* TokenType.Pipe */
+      )) {
+        const choice = new Choice();
+        while (true) {
+          if (this._parseChoiceElement(choice)) {
+            if (this._accept(
+              2
+              /* TokenType.Comma */
+            )) {
+              continue;
+            }
+            if (this._accept(
+              7
+              /* TokenType.Pipe */
+            )) {
+              placeholder.appendChild(choice);
+              if (this._accept(
+                4
+                /* TokenType.CurlyClose */
+              )) {
+                parent.appendChild(placeholder);
+                return true;
+              }
+            }
+          }
+          this._backTo(token);
+          return false;
+        }
+      } else if (this._accept(
+        6
+        /* TokenType.Forwardslash */
+      )) {
+        if (this._parseTransform(placeholder)) {
+          parent.appendChild(placeholder);
+          return true;
+        }
+        this._backTo(token);
+        return false;
+      } else if (this._accept(
+        4
+        /* TokenType.CurlyClose */
+      )) {
+        parent.appendChild(placeholder);
+        return true;
+      } else {
+        return this._backTo(token);
+      }
+    }
+    _parseChoiceElement(parent) {
+      const token = this._token;
+      const values = [];
+      while (true) {
+        if (this._token.type === 2 || this._token.type === 7) {
+          break;
+        }
+        let value;
+        if (value = this._accept(5, true)) {
+          value = this._accept(2, true) || this._accept(7, true) || this._accept(5, true) || value;
+        } else {
+          value = this._accept(void 0, true);
+        }
+        if (!value) {
+          this._backTo(token);
+          return false;
+        }
+        values.push(value);
+      }
+      if (values.length === 0) {
+        this._backTo(token);
+        return false;
+      }
+      parent.appendChild(new Text2(values.join("")));
+      return true;
+    }
+    // ${foo:<children>}, ${foo} -> variable
+    _parseComplexVariable(parent) {
+      let name;
+      const token = this._token;
+      const match2 = this._accept(
+        0
+        /* TokenType.Dollar */
+      ) && this._accept(
+        3
+        /* TokenType.CurlyOpen */
+      ) && (name = this._accept(9, true));
+      if (!match2) {
+        return this._backTo(token);
+      }
+      const variable = new Variable(name);
+      if (this._accept(
+        1
+        /* TokenType.Colon */
+      )) {
+        while (true) {
+          if (this._accept(
+            4
+            /* TokenType.CurlyClose */
+          )) {
+            parent.appendChild(variable);
+            return true;
+          }
+          if (this._parse(variable)) {
+            continue;
+          }
+          parent.appendChild(new Text2("${" + name + ":"));
+          variable.children.forEach(parent.appendChild, parent);
+          return true;
+        }
+      } else if (this._accept(
+        6
+        /* TokenType.Forwardslash */
+      )) {
+        if (this._parseTransform(variable)) {
+          parent.appendChild(variable);
+          return true;
+        }
+        this._backTo(token);
+        return false;
+      } else if (this._accept(
+        4
+        /* TokenType.CurlyClose */
+      )) {
+        parent.appendChild(variable);
+        return true;
+      } else {
+        return this._backTo(token);
+      }
+    }
+    _parseTransform(parent) {
+      const transform = new Transform();
+      let regexValue = "";
+      let regexOptions = "";
+      while (true) {
+        if (this._accept(
+          6
+          /* TokenType.Forwardslash */
+        )) {
+          break;
+        }
+        let escaped;
+        if (escaped = this._accept(5, true)) {
+          escaped = this._accept(6, true) || escaped;
+          regexValue += escaped;
+          continue;
+        }
+        if (this._token.type !== 14) {
+          regexValue += this._accept(void 0, true);
+          continue;
+        }
+        return false;
+      }
+      while (true) {
+        if (this._accept(
+          6
+          /* TokenType.Forwardslash */
+        )) {
+          break;
+        }
+        let escaped;
+        if (escaped = this._accept(5, true)) {
+          escaped = this._accept(5, true) || this._accept(6, true) || escaped;
+          transform.appendChild(new Text2(escaped));
+          continue;
+        }
+        if (this._parseFormatString(transform) || this._parseAnything(transform)) {
+          continue;
+        }
+        return false;
+      }
+      while (true) {
+        if (this._accept(
+          4
+          /* TokenType.CurlyClose */
+        )) {
+          break;
+        }
+        if (this._token.type !== 14) {
+          regexOptions += this._accept(void 0, true);
+          continue;
+        }
+        return false;
+      }
+      try {
+        transform.regexp = new RegExp(regexValue, regexOptions);
+      } catch (e) {
+        return false;
+      }
+      parent.transform = transform;
+      return true;
+    }
+    _parseFormatString(parent) {
+      const token = this._token;
+      if (!this._accept(
+        0
+        /* TokenType.Dollar */
+      )) {
+        return false;
+      }
+      let complex = false;
+      if (this._accept(
+        3
+        /* TokenType.CurlyOpen */
+      )) {
+        complex = true;
+      }
+      const index = this._accept(8, true);
+      if (!index) {
+        this._backTo(token);
+        return false;
+      } else if (!complex) {
+        parent.appendChild(new FormatString(Number(index)));
+        return true;
+      } else if (this._accept(
+        4
+        /* TokenType.CurlyClose */
+      )) {
+        parent.appendChild(new FormatString(Number(index)));
+        return true;
+      } else if (!this._accept(
+        1
+        /* TokenType.Colon */
+      )) {
+        this._backTo(token);
+        return false;
+      }
+      if (this._accept(
+        6
+        /* TokenType.Forwardslash */
+      )) {
+        const shorthand = this._accept(9, true);
+        if (!shorthand || !this._accept(
+          4
+          /* TokenType.CurlyClose */
+        )) {
+          this._backTo(token);
+          return false;
+        } else {
+          parent.appendChild(new FormatString(Number(index), shorthand));
+          return true;
+        }
+      } else if (this._accept(
+        11
+        /* TokenType.Plus */
+      )) {
+        const ifValue = this._until(
+          4
+          /* TokenType.CurlyClose */
+        );
+        if (ifValue) {
+          parent.appendChild(new FormatString(Number(index), void 0, ifValue, void 0));
+          return true;
+        }
+      } else if (this._accept(
+        12
+        /* TokenType.Dash */
+      )) {
+        const elseValue = this._until(
+          4
+          /* TokenType.CurlyClose */
+        );
+        if (elseValue) {
+          parent.appendChild(new FormatString(Number(index), void 0, void 0, elseValue));
+          return true;
+        }
+      } else if (this._accept(
+        13
+        /* TokenType.QuestionMark */
+      )) {
+        const ifValue = this._until(
+          1
+          /* TokenType.Colon */
+        );
+        if (ifValue) {
+          const elseValue = this._until(
+            4
+            /* TokenType.CurlyClose */
+          );
+          if (elseValue) {
+            parent.appendChild(new FormatString(Number(index), void 0, ifValue, elseValue));
+            return true;
+          }
+        }
+      } else {
+        const elseValue = this._until(
+          4
+          /* TokenType.CurlyClose */
+        );
+        if (elseValue) {
+          parent.appendChild(new FormatString(Number(index), void 0, void 0, elseValue));
+          return true;
+        }
+      }
+      this._backTo(token);
+      return false;
+    }
+    _parseAnything(marker) {
+      if (this._token.type !== 14) {
+        marker.appendChild(new Text2(this._scanner.tokenText(this._token)));
+        this._accept(void 0);
+        return true;
+      }
+      return false;
+    }
+  };
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/edit.js
+  function createCombinedWorkspaceEdit(uri, ranges2, edit3) {
+    if (typeof edit3.insertText === "string" ? edit3.insertText === "" : edit3.insertText.snippet === "") {
+      return {
+        edits: edit3.additionalEdit?.edits ?? []
+      };
+    }
+    return {
+      edits: [
+        ...ranges2.map((range2) => new ResourceTextEdit(uri, { range: range2, text: typeof edit3.insertText === "string" ? SnippetParser.escape(edit3.insertText) + "$0" : edit3.insertText.snippet, insertAsSnippet: true })),
+        ...edit3.additionalEdit?.edits ?? []
+      ]
+    };
+  }
+  function sortEditsByYieldTo(edits) {
+    function yieldsTo(yTo, other) {
+      if ("mimeType" in yTo) {
+        return yTo.mimeType === other.handledMimeType;
+      }
+      return !!other.kind && yTo.kind.contains(other.kind);
+    }
+    const yieldsToMap = /* @__PURE__ */ new Map();
+    for (const edit3 of edits) {
+      for (const yTo of edit3.yieldTo ?? []) {
+        for (const other of edits) {
+          if (other === edit3) {
+            continue;
+          }
+          if (yieldsTo(yTo, other)) {
+            let arr = yieldsToMap.get(edit3);
+            if (!arr) {
+              arr = [];
+              yieldsToMap.set(edit3, arr);
+            }
+            arr.push(other);
+          }
+        }
+      }
+    }
+    if (!yieldsToMap.size) {
+      return Array.from(edits);
+    }
+    const visited = /* @__PURE__ */ new Set();
+    const tempStack = [];
+    function visit(nodes) {
+      if (!nodes.length) {
+        return [];
+      }
+      const node = nodes[0];
+      if (tempStack.includes(node)) {
+        console.warn("Yield to cycle detected", node);
+        return nodes;
+      }
+      if (visited.has(node)) {
+        return visit(nodes.slice(1));
+      }
+      let pre = [];
+      const yTo = yieldsToMap.get(node);
+      if (yTo) {
+        tempStack.push(node);
+        pre = visit(yTo);
+        tempStack.pop();
+      }
+      visited.add(node);
+      return [...pre, node, ...visit(nodes.slice(1))];
+    }
+    return visit(Array.from(edits));
+  }
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
+  init_dom();
+  init_button2();
+  init_async();
+  init_codicons();
+
+  // node_modules/monaco-editor/esm/vs/base/common/errorMessage.js
+  init_arrays();
+  init_types();
+  init_nls();
+  function exceptionToErrorMessage(exception, verbose) {
+    if (verbose && (exception.stack || exception.stacktrace)) {
+      return localize(33, "{0}: {1}", detectSystemErrorMessage(exception), stackToString(exception.stack) || stackToString(exception.stacktrace));
+    }
+    return detectSystemErrorMessage(exception);
+  }
+  function stackToString(stack) {
+    if (Array.isArray(stack)) {
+      return stack.join("\n");
+    }
+    return stack;
+  }
+  function detectSystemErrorMessage(exception) {
+    if (exception.code === "ERR_UNC_HOST_NOT_ALLOWED") {
+      return "".concat(exception.message, ". Please update the 'security.allowedUNCHosts' setting if you want to allow this host.");
+    }
+    if (typeof exception.code === "string" && typeof exception.errno === "number" && typeof exception.syscall === "string") {
+      return localize(34, "A system error occurred ({0})", exception.message);
+    }
+    return exception.message || localize(35, "An unknown error occurred. Please consult the log for more details.");
+  }
+  function toErrorMessage(error = null, verbose = false) {
+    if (!error) {
+      return localize(36, "An unknown error occurred. Please consult the log for more details.");
+    }
+    if (Array.isArray(error)) {
+      const errors = coalesce(error);
+      const msg = toErrorMessage(errors[0], verbose);
+      if (errors.length > 1) {
+        return localize(37, "{0} ({1} errors in total)", msg, errors.length);
+      }
+      return msg;
+    }
+    if (isString(error)) {
+      return error;
+    }
+    if (error.detail) {
+      const detail = error.detail;
+      if (detail.error) {
+        return exceptionToErrorMessage(detail.error, verbose);
+      }
+      if (detail.exception) {
+        return exceptionToErrorMessage(detail.exception, verbose);
+      }
+    }
+    if (error.stack) {
+      return exceptionToErrorMessage(error, verbose);
+    }
+    if (error.message) {
+      return error.message;
+    }
+    return localize(38, "An unknown error occurred. Please consult the log for more details.");
+  }
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
+  init_errors();
+  init_event();
+  init_lifecycle();
+  init_themables();
+  init_nls();
+
+  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionWidget.js
+  init_dom();
+  init_actionbar2();
+  init_lifecycle();
+  init_nls();
+
+  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionList.js
+  init_dom();
+  init_markdownRenderer();
+  init_actionbar2();
+  init_contextview2();
+  init_keybindingLabel2();
+  init_listWidget();
+  init_actions();
+  init_cancellation();
+  init_codicons();
+  init_event();
+  init_htmlContent();
+  init_lifecycle();
+  init_platform();
+  init_themables();
+  init_uri();
+  init_nls();
+  init_contextView();
+  init_keybinding();
+  init_opener();
+  init_defaultStyles();
+  init_colorUtils();
+  init_baseColors();
+  init_chartsColors();
+  init_editorColors();
+  init_inputColors();
+  init_listColors();
+  init_menuColors();
+  init_minimapColors();
+  init_miscColors();
+  init_quickpickColors();
+  init_searchColors();
+  init_layoutService();
+  init_instantiation();
+  var __decorate85 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param78 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var ActionListWidget_1;
+  var acceptSelectedActionCommand = "acceptSelectedCodeAction";
+  var previewSelectedActionCommand = "previewSelectedCodeAction";
+  var HeaderRenderer = class {
+    get templateId() {
+      return "header";
+    }
+    renderTemplate(container) {
+      container.classList.add("group-header");
+      const text3 = document.createElement("span");
+      container.append(text3);
+      return { container, text: text3 };
+    }
+    renderElement(element, _index, templateData) {
+      templateData.text.textContent = element.group?.title ?? element.label ?? "";
+    }
+    disposeTemplate(_templateData) {
+    }
+  };
+  var SeparatorRenderer = class {
+    get templateId() {
+      return "separator";
+    }
+    renderTemplate(container) {
+      container.classList.add("separator");
+      const text3 = document.createElement("span");
+      container.append(text3);
+      return { container, text: text3 };
+    }
+    renderElement(element, _index, templateData) {
+      templateData.text.textContent = element.label ?? "";
+    }
+    disposeTemplate(_templateData) {
+    }
+  };
+  var ActionItemRenderer = class ActionItemRenderer2 {
+    get templateId() {
+      return "action";
+    }
+    constructor(_supportsPreview, _onRemoveItem, _onShowSubmenu, _hasAnySubmenuActions, _groupTitleByIndex, _linkHandler, _hideDefaultKeybindingTooltip, _keybindingService, _openerService) {
+      this._supportsPreview = _supportsPreview;
+      this._onRemoveItem = _onRemoveItem;
+      this._onShowSubmenu = _onShowSubmenu;
+      this._hasAnySubmenuActions = _hasAnySubmenuActions;
+      this._groupTitleByIndex = _groupTitleByIndex;
+      this._linkHandler = _linkHandler;
+      this._hideDefaultKeybindingTooltip = _hideDefaultKeybindingTooltip;
+      this._keybindingService = _keybindingService;
+      this._openerService = _openerService;
+    }
+    renderTemplate(container) {
+      container.classList.add(this.templateId);
+      const icon = document.createElement("div");
+      icon.className = "icon";
+      container.append(icon);
+      const text3 = document.createElement("span");
+      text3.className = "title";
+      container.append(text3);
+      const badge = document.createElement("span");
+      badge.className = "action-item-badge";
+      container.append(badge);
+      const description = document.createElement("span");
+      description.className = "description";
+      container.append(description);
+      const groupTitle = document.createElement("span");
+      groupTitle.className = "group-title";
+      container.append(groupTitle);
+      const detail = document.createElement("span");
+      detail.className = "detail";
+      container.append(detail);
+      const keybinding = new KeybindingLabel(container, OS);
+      const toolbar = document.createElement("div");
+      toolbar.className = "action-list-item-toolbar";
+      container.append(toolbar);
+      const submenuIndicator = document.createElement("div");
+      submenuIndicator.className = "action-list-submenu-indicator";
+      container.append(submenuIndicator);
+      const elementDisposables = new DisposableStore();
+      return { container, icon, text: text3, detail, badge, description, groupTitle, keybinding, toolbar, submenuIndicator, elementDisposables };
+    }
+    renderElement(element, _index, data) {
+      data.elementDisposables.clear();
+      if (element.group?.icon) {
+        data.icon.className = ThemeIcon.asClassName(element.group.icon);
+        if (element.group.icon.color) {
+          data.icon.style.color = asCssVariable(element.group.icon.color.id);
+        }
+      } else {
+        data.icon.className = ThemeIcon.asClassName(Codicon.lightBulb);
+        data.icon.style.color = "var(--vscode-editorLightBulb-foreground)";
+      }
+      if (!element.item || !element.label) {
+        return;
+      }
+      setVisibility(!element.hideIcon, data.icon);
+      if (element.isSectionToggle) {
+        const expanded2 = element.group?.icon === Codicon.chevronDown;
+        data.container.setAttribute("aria-expanded", String(expanded2));
+      } else {
+        data.container.removeAttribute("aria-expanded");
+      }
+      if (data.previousClassName) {
+        data.container.classList.remove(data.previousClassName);
+      }
+      data.container.classList.toggle("action-list-custom", !!element.className);
+      if (element.className) {
+        data.container.classList.add(element.className);
+      }
+      data.previousClassName = element.className;
+      data.text.textContent = stripNewlines(element.label);
+      if (element.badge) {
+        data.badge.textContent = element.badge;
+        data.badge.style.display = "";
+      } else {
+        data.badge.textContent = "";
+        data.badge.style.display = "none";
+      }
+      if (element.keybinding) {
+        data.description.textContent = element.keybinding.getLabel();
+        data.description.style.display = "inline";
+        data.description.style.letterSpacing = "0.5px";
+      } else if (element.description) {
+        clearNode(data.description);
+        if (typeof element.description === "string") {
+          data.description.textContent = stripNewlines(element.description);
+        } else {
+          const rendered = renderMarkdown(element.description, {
+            actionHandler: (content) => {
+              const uri = URI.parse(content);
+              if (this._linkHandler) {
+                this._linkHandler(uri, element);
+              } else {
+                void this._openerService.open(uri, { allowCommands: true });
+              }
+            }
+          });
+          data.elementDisposables.add(rendered);
+          data.description.appendChild(rendered.element);
+        }
+        data.description.style.display = "inline";
+      } else {
+        data.description.textContent = "";
+        data.description.style.display = "none";
+      }
+      const groupTitleText = this._groupTitleByIndex.get(_index);
+      if (groupTitleText) {
+        data.groupTitle.textContent = groupTitleText;
+        data.groupTitle.style.display = "";
+      } else {
+        data.groupTitle.textContent = "";
+        data.groupTitle.style.display = "none";
+      }
+      if (element.detail) {
+        data.detail.textContent = stripNewlines(element.detail);
+        data.detail.style.display = "";
+      } else {
+        data.detail.textContent = "";
+        data.detail.style.display = "none";
+      }
+      const actionTitle = this._keybindingService.lookupKeybinding(acceptSelectedActionCommand)?.getLabel();
+      const previewTitle = this._keybindingService.lookupKeybinding(previewSelectedActionCommand)?.getLabel();
+      data.container.classList.toggle("option-disabled", !!element.disabled);
+      if (element.hover !== void 0) {
+        data.container.title = "";
+      } else if (element.tooltip) {
+        data.container.title = element.tooltip;
+      } else if (element.disabled) {
+        data.container.title = element.label;
+      } else if (this._hideDefaultKeybindingTooltip) {
+        data.container.title = "";
+      } else if (actionTitle && previewTitle) {
+        if (this._supportsPreview && element.canPreview) {
+          data.container.title = localize(1705, "{0} to Apply, {1} to Preview", actionTitle, previewTitle);
+        } else {
+          data.container.title = localize(1706, "{0} to Apply", actionTitle);
+        }
+      } else {
+        data.container.title = "";
+      }
+      clearNode(data.toolbar);
+      const toolbarActions = [...element.toolbarActions ?? []];
+      if (element.onRemove) {
+        toolbarActions.push(toAction({
+          id: "actionList.remove",
+          label: localize(1707, "Remove"),
+          class: ThemeIcon.asClassName(Codicon.close),
+          run: async () => {
+            await element.onRemove();
+            this._onRemoveItem?.(element);
+          }
+        }));
+      }
+      data.container.classList.toggle("has-toolbar", toolbarActions.length > 0);
+      if (toolbarActions.length > 0) {
+        const actionBar = new ActionBar(data.toolbar);
+        data.elementDisposables.add(actionBar);
+        actionBar.push(toolbarActions, { icon: true, label: false });
+      }
+      if (element.submenuActions?.length && !element.hover?.content) {
+        data.submenuIndicator.className = "action-list-submenu-indicator has-submenu " + ThemeIcon.asClassName(Codicon.chevronRight);
+        data.submenuIndicator.style.display = "";
+        data.submenuIndicator.style.visibility = "";
+        data.elementDisposables.add(addDisposableListener(data.submenuIndicator, EventType.CLICK, (e) => {
+          e.stopPropagation();
+          this._onShowSubmenu?.(element);
+        }));
+      } else if (this._hasAnySubmenuActions) {
+        data.submenuIndicator.className = "action-list-submenu-indicator";
+        data.submenuIndicator.style.display = "";
+        data.submenuIndicator.style.visibility = "hidden";
+      } else {
+        data.submenuIndicator.className = "action-list-submenu-indicator";
+        data.submenuIndicator.style.display = "none";
+      }
+    }
+    disposeTemplate(templateData) {
+      templateData.keybinding.dispose();
+      templateData.elementDisposables.dispose();
+    }
+  };
+  ActionItemRenderer = __decorate85([
+    __param78(7, IKeybindingService),
+    __param78(8, IOpenerService)
+  ], ActionItemRenderer);
+  var AcceptSelectedEvent = class extends UIEvent {
+    constructor() {
+      super("acceptSelectedAction");
+    }
+  };
+  var PreviewSelectedEvent = class extends UIEvent {
+    constructor() {
+      super("previewSelectedAction");
+    }
+  };
+  function getKeyboardNavigationLabel(item) {
+    if (item.kind === "action") {
+      return item.label;
+    }
+    return void 0;
+  }
+  var ActionListWidget = ActionListWidget_1 = class ActionListWidget2 extends Disposable {
+    constructor(user, _supportsPreview, items, _delegate, accessibilityProvider, _options, _keybindingService, _openerService, _instantiationService) {
+      super();
+      this._supportsPreview = _supportsPreview;
+      this._delegate = _delegate;
+      this._options = _options;
+      this._keybindingService = _keybindingService;
+      this._openerService = _openerService;
+      this._instantiationService = _instantiationService;
+      this._headerLineHeight = 24;
+      this._separatorLineHeight = 8;
+      this.cts = this._register(new CancellationTokenSource());
+      this._submenuDisposables = this._register(new DisposableStore());
+      this._collapsedSections = /* @__PURE__ */ new Set();
+      this._filterText = "";
+      this._suppressHover = false;
+      this._hasLaidOut = false;
+      this._filterCts = this._register(new MutableDisposable());
+      this._groupTitleByIndex = /* @__PURE__ */ new Map();
+      this._onDidRequestLayout = this._register(new Emitter());
+      this.onDidRequestLayout = this._onDidRequestLayout.event;
+      this.domNode = document.createElement("div");
+      this.domNode.classList.add("actionList");
+      if (this._options?.inlineDescription) {
+        this.domNode.classList.add("inline-description");
+      }
+      if (this._options?.className) {
+        const classNames = this._options.className.split(/\s+/).filter((className2) => className2.length > 0);
+        if (classNames.length > 0) {
+          this.domNode.classList.add(...classNames);
+        }
+      }
+      this._actionLineHeight = 24;
+      this._submenuContainer = document.createElement("div");
+      this._submenuContainer.className = "action-list-submenu-panel action-widget";
+      this._submenuContainer.style.display = "none";
+      this._submenuContainer.tabIndex = -1;
+      this.domNode.append(this._submenuContainer);
+      this._register(addDisposableListener(this._submenuContainer, "mouseenter", () => {
+        this._cancelSubmenuHide();
+      }));
+      this._register(addDisposableListener(this._submenuContainer, "mouseleave", () => {
+        this._scheduleSubmenuHide();
+      }));
+      this._register(toDisposable(() => {
+        this._cancelSubmenuHide();
+        this._cancelSubmenuShow();
+      }));
+      if (this._options?.collapsedByDefault) {
+        for (const section of this._options.collapsedByDefault) {
+          this._collapsedSections.add(section);
+        }
+      }
+      const virtualDelegate = {
+        getHeight: (element) => {
+          return this._getItemHeight(element);
+        },
+        getTemplateId: (element) => element.kind
+      };
+      const reserveSubmenuSpace = this._options?.reserveSubmenuSpace ?? true;
+      const hasAnySubmenuActions = reserveSubmenuSpace && items.some((item) => !!item.submenuActions?.length && !item.hover?.content);
+      this._list = this._register(new List(user, this.domNode, virtualDelegate, [
+        new ActionItemRenderer(this._supportsPreview, (item) => this._removeItem(item), (item) => this._showSubmenuForItem(item), hasAnySubmenuActions, this._groupTitleByIndex, this._options?.linkHandler, this._options?.hideDefaultKeybindingTooltip ?? false, this._keybindingService, this._openerService),
+        new HeaderRenderer(),
+        new SeparatorRenderer()
+      ], {
+        keyboardSupport: false,
+        typeNavigationEnabled: !this._options?.showFilter,
+        keyboardNavigationLabelProvider: { getKeyboardNavigationLabel },
+        accessibilityProvider: {
+          getAriaLabel: (element) => {
+            if (element.kind === "action") {
+              let label = element.label ? stripNewlines(element?.label) : "";
+              if (element.detail) {
+                label = label + ", " + stripNewlines(element.detail);
+              }
+              if (element.ariaDescription) {
+                label = label + ", " + stripNewlines(element.ariaDescription);
+              } else if (element.description) {
+                const descText = typeof element.description === "string" ? element.description : element.description.value;
+                label = label + ", " + stripNewlines(descText);
+              }
+              if (element.hover?.content && !element.ariaDescription && !element.description) {
+                const hoverContent = element.hover.content;
+                const hoverText = typeof hoverContent === "string" ? hoverContent : isMarkdownString(hoverContent) ? hoverContent.value : isHTMLElement(hoverContent) ? hoverContent.textContent ?? void 0 : void 0;
+                if (hoverText && (!element.detail || stripNewlines(element.detail) !== stripNewlines(hoverText))) {
+                  label = label + ", " + stripNewlines(hoverText);
+                }
+              }
+              if (element.group?.title) {
+                label = label + ", " + element.group.title;
+              }
+              if (element.disabled) {
+                label = localize(1708, "{0}, Disabled Reason: {1}", label, element.disabled);
+              }
+              if (element.submenuActions?.length) {
+                label = localize(1709, "{0}, use right arrow to access options", label);
+              }
+              return label;
+            }
+            return null;
+          },
+          getWidgetAriaLabel: () => localize(1710, "Action Widget"),
+          getRole: (e) => {
+            switch (e.kind) {
+              case "action":
+                return "option";
+              case "separator":
+                return "separator";
+              default:
+                return "separator";
+            }
+          },
+          getWidgetRole: () => "listbox",
+          ...accessibilityProvider
+        }
+      }));
+      this._list.style(defaultListStyles);
+      this._register(this._list.onMouseClick((e) => this.onListClick(e)));
+      this._register(this._list.onMouseOver((e) => this.onListHover(e)));
+      this._register(this._list.onDidChangeFocus(() => this.onFocus()));
+      this._register(this._list.onDidChangeSelection((e) => this.onListSelection(e)));
+      this._allMenuItems = [...items];
+      if (this._options?.showFilter || this._options?.secondaryHeading) {
+        this._filterContainer = document.createElement("div");
+        this._filterContainer.className = "action-list-filter";
+        const filterRow = append(this._filterContainer, $(".action-list-filter-row"));
+        if (this._options?.showFilter) {
+          this._filterInput = document.createElement("input");
+          this._filterInput.type = "text";
+          this._filterInput.className = "action-list-filter-input";
+          this._filterInput.placeholder = this._options?.filterPlaceholder ?? localize(1711, "Search...");
+          this._filterInput.setAttribute("aria-label", localize(1712, "Filter items"));
+          filterRow.appendChild(this._filterInput);
+          const filterActions = this._options?.filterActions ?? [];
+          if (filterActions.length > 0) {
+            const filterActionsContainer = append(filterRow, $(".action-list-filter-actions"));
+            const filterActionBar = this._register(new ActionBar(filterActionsContainer));
+            filterActionBar.push(filterActions, { icon: true, label: false });
+          }
+          this._register(addDisposableListener(this._filterInput, "input", () => {
+            this._filterText = this._filterInput.value;
+            this._applyOrUpdateFilter();
+          }));
+        }
+        if (this._options?.secondaryHeading) {
+          const filterLabelEl = append(filterRow, $(".action-list-filter-label"));
+          filterLabelEl.textContent = this._options.secondaryHeading;
+        }
+      }
+      if (this._options?.footerText) {
+        this._footerContainer = document.createElement("div");
+        this._footerContainer.className = "action-list-footer";
+        this._footerContainer.textContent = this._options.footerText;
+      }
+      if (this._options?.headerText) {
+        this._headerContainer = document.createElement("div");
+        this._headerContainer.className = "action-list-header";
+        if (this._options.headerIcon) {
+          const icon = append(this._headerContainer, $("span.action-list-header-icon"));
+          icon.classList.add(...ThemeIcon.asClassNameArray(this._options.headerIcon));
+          icon.setAttribute("aria-hidden", "true");
+        }
+        const text3 = append(this._headerContainer, $("span.action-list-header-text"));
+        text3.textContent = this._options.headerText;
+      }
+      this._applyFilter();
+      if (this._list.length) {
+        this._focusCheckedOrFirst();
+      }
+      this._register(addDisposableListener(this.domNode, "keydown", (e) => {
+        if (e.key === "ArrowRight") {
+          const focused = this._list.getFocus();
+          if (focused.length > 0) {
+            const element = this._list.element(focused[0]);
+            if (element?.submenuActions?.length) {
+              EventHelper.stop(e, true);
+              const rowElement = this._getRowElement(focused[0]);
+              if (rowElement) {
+                this._showSubmenuForElement(element, rowElement);
+                this._currentSubmenuWidget?.focus();
+              }
+            }
+          }
+        }
+      }));
+      if (this._filterInput) {
+        this._register(addDisposableListener(this.domNode, "keydown", (e) => {
+          if (this._filterInput && !isActiveElement(this._filterInput) && e.key.length === 1 && e.key !== " " && !e.ctrlKey && !e.metaKey && !e.altKey) {
+            this._filterInput.focus();
+            this._filterInput.value = e.key;
+            this._filterText = e.key;
+            this._applyOrUpdateFilter();
+            e.preventDefault();
+            e.stopPropagation();
+          }
+        }));
+      }
+    }
+    _toggleSection(section) {
+      if (this._collapsedSections.has(section)) {
+        this._collapsedSections.delete(section);
+      } else {
+        this._collapsedSections.add(section);
+      }
+      this._options?.onDidToggleSection?.(section, this._collapsedSections.has(section));
+      this._applyFilter();
+    }
+    _applyOrUpdateFilter() {
+      if (!this._delegate.onFilter) {
+        this._applyFilter();
+        return;
+      }
+      const filterText = this._filterText;
+      this._filterCts.value?.cancel();
+      const cts = new CancellationTokenSource();
+      this._filterCts.value = cts;
+      this._delegate.onFilter(filterText, cts.token).then((items) => {
+        if (cts.token.isCancellationRequested) {
+          return;
+        }
+        this._allMenuItems = [...items];
+        this._applyFilter(true);
+      }).catch(() => {
+      });
+    }
+    _applyFilter(skipTextFilter = false, fireLayout = true) {
+      const filterLower = skipTextFilter ? "" : this._filterText.toLowerCase();
+      const isFiltering = !skipTextFilter && filterLower.length > 0;
+      const visible3 = [];
+      const focusedIndexes = this._list.getFocus();
+      let focusedItem;
+      if (focusedIndexes.length > 0) {
+        focusedItem = this._list.element(focusedIndexes[0]);
+      }
+      if (isFiltering) {
+        let pendingSeparator;
+        let filteredSectionItems = [];
+        let hasMatchingActionInSection = false;
+        const flushFilteredSection = () => {
+          if (pendingSeparator && hasMatchingActionInSection) {
+            visible3.push(pendingSeparator);
+          }
+          visible3.push(...filteredSectionItems);
+          pendingSeparator = void 0;
+          filteredSectionItems = [];
+          hasMatchingActionInSection = false;
+        };
+        const matchesFilter = (item) => {
+          const label = (item.label ?? "").toLowerCase();
+          const descValue = typeof item.description === "string" ? item.description : item.description?.value ?? "";
+          return label.includes(filterLower) || descValue.toLowerCase().includes(filterLower);
+        };
+        for (const item of this._allMenuItems) {
+          if (item.kind === "header") {
+            continue;
+          }
+          if (item.kind === "separator") {
+            flushFilteredSection();
+            pendingSeparator = item.label ? item : void 0;
+            continue;
+          }
+          if (item.showAlways) {
+            filteredSectionItems.push(item);
+            continue;
+          }
+          if (item.isSectionToggle) {
+            continue;
+          }
+          if (matchesFilter(item)) {
+            hasMatchingActionInSection = true;
+            filteredSectionItems.push(item);
+          }
+        }
+        flushFilteredSection();
+      } else {
+        for (const item of this._allMenuItems) {
+          if (item.kind === "header") {
+            visible3.push(item);
+            continue;
+          }
+          if (item.kind === "separator") {
+            if (item.section && this._collapsedSections.has(item.section)) {
+              continue;
+            }
+            visible3.push(item);
+            continue;
+          }
+          if (item.isSectionToggle && item.section) {
+            const collapsed2 = this._collapsedSections.has(item.section);
+            visible3.push({
+              ...item,
+              group: { ...item.group, icon: collapsed2 ? Codicon.chevronRight : Codicon.chevronDown }
+            });
+            continue;
+          }
+          if (item.section && this._collapsedSections.has(item.section)) {
+            continue;
+          }
+          visible3.push(item);
+        }
+      }
+      const hasActionBefore = [];
+      let seenAction = false;
+      for (let i = 0; i < visible3.length; i++) {
+        hasActionBefore[i] = seenAction;
+        if (visible3[i].kind === "action") {
+          seenAction = true;
+        }
+      }
+      const hasActionBeforeNextSeparator = [];
+      let seenActionInSection = false;
+      for (let i = visible3.length - 1; i >= 0; i--) {
+        if (visible3[i].kind === "action") {
+          seenActionInSection = true;
+          continue;
+        }
+        if (visible3[i].kind !== "separator") {
+          continue;
+        }
+        hasActionBeforeNextSeparator[i] = seenActionInSection;
+        seenActionInSection = false;
+      }
+      for (let i = visible3.length - 1; i >= 0; i--) {
+        const item = visible3[i];
+        if (item.kind !== "separator") {
+          continue;
+        }
+        const hasFollowingActionInSection = hasActionBeforeNextSeparator[i];
+        const isLeadingUnlabeledDivider = !item.label && !hasActionBefore[i];
+        if (!hasFollowingActionInSection || isLeadingUnlabeledDivider) {
+          visible3.splice(i, 1);
+        }
+      }
+      if (this._options?.showGroupTitleOnFirstItem) {
+        this._recomputeGroupTitles(visible3);
+      }
+      const filterInputHasFocus = this._filterInput && isActiveElement(this._filterInput);
+      this._list.splice(0, this._list.length, visible3);
+      if (fireLayout) {
+        this._onDidRequestLayout.fire();
+      }
+      if (filterInputHasFocus) {
+        this._filterInput?.focus();
+        this._focusCheckedOrFirst();
+      } else if (this._hasLaidOut) {
+        if (focusedItem) {
+          const focusedItemId = focusedItem.item?.id;
+          if (focusedItemId) {
+            for (let i = 0; i < this._list.length; i++) {
+              const el2 = this._list.element(i);
+              if (el2.item?.id === focusedItemId) {
+                this._list.setFocus([i]);
+                this._list.reveal(i);
+                this._list.domFocus();
+                break;
+              }
+            }
+          }
+        }
+      }
+    }
+    /**
+     * Returns the filter container element, if filter is enabled.
+     * The caller is responsible for appending it to the widget DOM.
+     */
+    get filterContainer() {
+      return this._filterContainer;
+    }
+    get footerContainer() {
+      return this._footerContainer;
+    }
+    get headerContainer() {
+      return this._headerContainer;
+    }
+    get filterInput() {
+      return this._filterInput;
+    }
+    focusCondition(element) {
+      return !element.disabled && element.kind === "action";
+    }
+    focus() {
+      if (this._filterInput && this._options?.focusFilterOnOpen) {
+        this._filterInput.focus();
+        this._focusCheckedOrFirst();
+        return;
+      }
+      this._list.domFocus();
+      this._focusCheckedOrFirst();
+    }
+    clearFocus() {
+      this._list.setFocus([]);
+    }
+    getFocusedElement() {
+      const focused = this._list.getFocus();
+      if (focused.length > 0) {
+        return this._list.element(focused[0]);
+      }
+      return void 0;
+    }
+    _focusCheckedOrFirst() {
+      this._suppressHover = true;
+      try {
+        for (let i = 0; i < this._list.length; i++) {
+          const element = this._list.element(i);
+          if (element.kind === "action" && element.item?.checked) {
+            this._list.setFocus([i]);
+            this._list.reveal(i);
+            return;
+          }
+        }
+        this._list.focusFirst(void 0, this.focusCondition);
+        const focused = this._list.getFocus();
+        if (focused.length > 0) {
+          this._list.reveal(focused[0]);
+        }
+      } finally {
+        this._suppressHover = false;
+      }
+    }
+    hide(didCancel) {
+      this._delegate.onHide(didCancel);
+      this.cts.cancel();
+      this._filterCts.value?.cancel();
+      this._filterCts.clear();
+      this._hideSubmenu();
+    }
+    clearFilter() {
+      if (this._filterInput && this._filterText) {
+        this._filterInput.value = "";
+        this._filterText = "";
+        this._applyOrUpdateFilter();
+        return true;
+      }
+      return false;
+    }
+    /**
+     * Whether this widget uses dynamic height (has filter or collapsible sections).
+     */
+    get hasDynamicHeight() {
+      if (this._options?.showFilter) {
+        return true;
+      }
+      return this._allMenuItems.some((item) => item.isSectionToggle);
+    }
+    /**
+     * The height of a single action row in pixels.
+     */
+    get lineHeight() {
+      return this._actionLineHeight;
+    }
+    /**
+     * Returns the height for an action item, using a taller line height
+     * for items with a detail (second line).
+     */
+    _getItemHeight(item) {
+      switch (item.kind) {
+        case "header":
+          return this._headerLineHeight;
+        case "separator":
+          return item.label ? this._actionLineHeight : this._separatorLineHeight;
+        default:
+          return item.detail ? this._options?.detailItemHeight ?? 48 : this._actionLineHeight;
+      }
+    }
+    /**
+     * Computes the total height of all items (including collapsed/filtered items).
+     */
+    computeFullHeight() {
+      let fullHeight = 0;
+      for (const item of this._allMenuItems) {
+        fullHeight += this._getItemHeight(item);
+      }
+      return fullHeight;
+    }
+    /**
+     * Computes the total height of visible items in the list.
+     */
+    computeListHeight() {
+      const visibleCount = this._list.length;
+      let listHeight = 0;
+      for (let i = 0; i < visibleCount; i++) {
+        const element = this._list.element(i);
+        listHeight += this._getItemHeight(element);
+      }
+      return listHeight;
+    }
+    /**
+     * Lays out the list widget with the given explicit dimensions.
+     */
+    layout(height, width2) {
+      this._hasLaidOut = true;
+      this._list.layout(height, width2);
+      this.domNode.style.height = "".concat(height, "px");
+      if (this._filterContainer && this._filterContainer.parentElement) {
+        this._filterContainer.parentElement.insertBefore(this._filterContainer, this.domNode);
+      }
+    }
+    computeMaxWidth(minWidth) {
+      const visibleCount = this._list.length;
+      const effectiveMinWidth = Math.max(minWidth, this._options?.minWidth ?? 0);
+      const rawMaxWidthCap = this._options?.maxWidth ?? Number.POSITIVE_INFINITY;
+      const maxWidthCap = Math.max(rawMaxWidthCap, effectiveMinWidth);
+      const clamp4 = (w) => Math.min(Math.max(w, effectiveMinWidth), maxWidthCap);
+      let maxWidth = effectiveMinWidth;
+      const totalItemCount = this._allMenuItems.length;
+      if (totalItemCount >= 50) {
+        return clamp4(380);
+      }
+      if (totalItemCount > visibleCount) {
+        const visibleItems = [];
+        for (let i = 0; i < visibleCount; i++) {
+          visibleItems.push(this._list.element(i));
+        }
+        const allItems = [...this._allMenuItems];
+        this._list.splice(0, visibleCount, allItems);
+        let allItemsHeight = 0;
+        for (const item of allItems) {
+          allItemsHeight += this._getItemHeight(item);
+        }
+        this._list.layout(allItemsHeight);
+        const itemWidths2 = [];
+        for (let i = 0; i < allItems.length; i++) {
+          const element = this._getRowElement(i);
+          if (element) {
+            element.style.width = "auto";
+            const width2 = element.getBoundingClientRect().width;
+            element.style.width = "";
+            itemWidths2.push(width2 + this._computeToolbarWidth(allItems[i]));
+          }
+        }
+        maxWidth = clamp4(Math.max(...itemWidths2));
+        this._list.splice(0, allItems.length, visibleItems);
+        return maxWidth;
+      }
+      const itemWidths = [];
+      for (let i = 0; i < visibleCount; i++) {
+        const element = this._getRowElement(i);
+        if (element) {
+          element.style.width = "auto";
+          const width2 = element.getBoundingClientRect().width;
+          element.style.width = "";
+          itemWidths.push(width2 + this._computeToolbarWidth(this._list.element(i)));
+        }
+      }
+      return clamp4(Math.max(...itemWidths));
+    }
+    focusPrevious() {
+      if (this._filterInput && isActiveElement(this._filterInput)) {
+        this._list.domFocus();
+        const current2 = this._list.getFocus();
+        if (current2.length > 0) {
+          this._list.focusPrevious(1, false, void 0, this.focusCondition);
+          const focused2 = this._list.getFocus();
+          if (focused2.length > 0 && focused2[0] >= current2[0]) {
+            this._filterInput.focus();
+          } else if (focused2.length > 0) {
+            this._list.reveal(focused2[0]);
+          }
+        } else {
+          this._list.focusLast(void 0, this.focusCondition);
+          const focused2 = this._list.getFocus();
+          if (focused2.length > 0) {
+            this._list.reveal(focused2[0]);
+          }
+        }
+        return;
+      }
+      const previousFocus = this._list.getFocus();
+      this._list.focusPrevious(1, true, void 0, this.focusCondition);
+      const focused = this._list.getFocus();
+      if (focused.length > 0) {
+        if (this._filterInput && previousFocus.length > 0 && focused[0] > previousFocus[0]) {
+          this._list.setFocus([]);
+          this._filterInput.focus();
+          return;
+        }
+        this._list.reveal(focused[0]);
+      }
+    }
+    focusNext() {
+      if (this._filterInput && isActiveElement(this._filterInput)) {
+        this._list.domFocus();
+        const current2 = this._list.getFocus();
+        if (current2.length > 0) {
+          this._list.focusNext(1, false, void 0, this.focusCondition);
+          const focused2 = this._list.getFocus();
+          if (focused2.length > 0) {
+            this._list.reveal(focused2[0]);
+          }
+        } else {
+          this._list.focusFirst(void 0, this.focusCondition);
+          const focused2 = this._list.getFocus();
+          if (focused2.length > 0) {
+            this._list.reveal(focused2[0]);
+          }
+        }
+        return;
+      }
+      const previousFocus = this._list.getFocus();
+      this._list.focusNext(1, true, void 0, this.focusCondition);
+      const focused = this._list.getFocus();
+      if (focused.length > 0) {
+        if (this._filterInput && previousFocus.length > 0 && focused[0] < previousFocus[0]) {
+          this._list.setFocus([]);
+          this._filterInput.focus();
+          return;
+        }
+        this._list.reveal(focused[0]);
+      }
+    }
+    collapseFocusedSection() {
+      const section = this._getFocusedSection();
+      if (section && !this._collapsedSections.has(section)) {
+        this._toggleSection(section);
+      }
+    }
+    expandFocusedSection() {
+      const section = this._getFocusedSection();
+      if (section && this._collapsedSections.has(section)) {
+        this._toggleSection(section);
+      }
+    }
+    toggleFocusedSection() {
+      const focused = this._list.getFocus();
+      if (focused.length === 0) {
+        return false;
+      }
+      const element = this._list.element(focused[0]);
+      if (element.isSectionToggle && element.section) {
+        this._toggleSection(element.section);
+        return true;
+      }
+      return false;
+    }
+    _getFocusedSection() {
+      const focused = this._list.getFocus();
+      if (focused.length === 0) {
+        return void 0;
+      }
+      const element = this._list.element(focused[0]);
+      if (element.isSectionToggle && element.section) {
+        return element.section;
+      }
+      return element.section;
+    }
+    acceptSelected(preview) {
+      const focused = this._list.getFocus();
+      if (focused.length === 0) {
+        return;
+      }
+      const focusIndex = focused[0];
+      const element = this._list.element(focusIndex);
+      if (!this.focusCondition(element)) {
+        return;
+      }
+      const event = preview ? new PreviewSelectedEvent() : new AcceptSelectedEvent();
+      this._list.setSelection([focusIndex], event);
+    }
+    onListSelection(e) {
+      if (!e.elements.length) {
+        return;
+      }
+      const element = e.elements[0];
+      if (element.isSectionToggle && element.section) {
+        this._list.setSelection([]);
+        const section = element.section;
+        queueMicrotask(() => {
+          this._toggleSection(section);
+        });
+        return;
+      }
+      if (isMouseEvent(e.browserEvent)) {
+        const target = e.browserEvent.target;
+        if (isHTMLElement(target) && (target.closest(".action-list-item-toolbar") || target.closest(".action-list-submenu-indicator"))) {
+          this._list.setSelection([]);
+          return;
+        }
+      }
+      if (element.item && this.focusCondition(element)) {
+        const isPreviewEvent = e.browserEvent instanceof PreviewSelectedEvent;
+        this._delegate.onSelect(element.item, isPreviewEvent && this._supportsPreview);
+      } else {
+        this._list.setSelection([]);
+      }
+    }
+    onFocus() {
+      const focused = this._list.getFocus();
+      if (focused.length === 0) {
+        return;
+      }
+      const focusIndex = focused[0];
+      const element = this._list.element(focusIndex);
+      this._delegate.onFocus?.(element.item);
+      if (!this._suppressHover) {
+        this._showHoverForElement(element, focusIndex);
+      }
+    }
+    _removeItem(item) {
+      const index = this._allMenuItems.indexOf(item);
+      if (index >= 0) {
+        this._allMenuItems.splice(index, 1);
+        this._applyFilter();
+      }
+    }
+    _recomputeGroupTitles(items) {
+      this._groupTitleByIndex.clear();
+      const seenTitles = /* @__PURE__ */ new Set();
+      for (let i = 0; i < items.length; i++) {
+        const item = items[i];
+        if (item.kind === "action" && item.group?.title && !seenTitles.has(item.group.title)) {
+          seenTitles.add(item.group.title);
+          this._groupTitleByIndex.set(i, item.group.title);
+        }
+      }
+    }
+    _computeToolbarWidth(item) {
+      let actionCount = item.toolbarActions?.length ?? 0;
+      if (item.onRemove) {
+        actionCount++;
+      }
+      if (actionCount === 0) {
+        return 0;
+      }
+      const actionButtonWidth = 22;
+      return actionCount * actionButtonWidth + 6;
+    }
+    _getRowElement(index) {
+      return this.domNode.ownerDocument.getElementById(this._list.getElementID(index));
+    }
+    _showHoverForElement(element, index) {
+      if (this._currentSubmenuElement === element) {
+        return;
+      }
+      const hasHoverContent = !!element.hover?.content;
+      const hasSubmenuActions = !!element.submenuActions?.length;
+      if (hasHoverContent || hasSubmenuActions) {
+        const rowElement = this._getRowElement(index);
+        if (rowElement) {
+          this._showSubmenuForElement(element, rowElement);
+        }
+        return;
+      }
+      this._hideSubmenu();
+    }
+    _showSubmenuForItem(item) {
+      const index = this._list.indexOf(item);
+      if (index >= 0) {
+        const rowElement = this._getRowElement(index);
+        if (rowElement) {
+          this._showSubmenuForElement(item, rowElement);
+        }
+      }
+    }
+    _showSubmenuForElement(element, anchor) {
+      if (this._currentSubmenuElement === element) {
+        return;
+      }
+      this._submenuDisposables.clear();
+      this._currentSubmenuElement = element;
+      this._clearSubmenuContainer();
+      let hoverHeader;
+      const hoverContent = element.hover?.content;
+      if (hoverContent) {
+        if (isHTMLElement(hoverContent)) {
+          hoverHeader = hoverContent;
+          if (element.hover?.disposable) {
+            this._register(element.hover.disposable);
+          }
+        } else {
+          const markdown = typeof hoverContent === "string" ? new MarkdownString(hoverContent) : hoverContent;
+          const linkHandler = this._options?.linkHandler;
+          const rendered = renderMarkdown(markdown, {
+            actionHandler: (url) => {
+              const uri = URI.parse(url);
+              if (linkHandler) {
+                linkHandler(uri, element);
+              } else {
+                this._openerService.open(uri, { allowCommands: true });
+              }
+            }
+          });
+          this._submenuDisposables.add(rendered);
+          hoverHeader = rendered.element;
+        }
+        hoverHeader.classList.add("action-list-submenu-hover-header");
+        if (element.submenuActions?.length) {
+          hoverHeader.classList.add("has-submenu");
+        }
+        this._submenuContainer.appendChild(hoverHeader);
+      }
+      const hasSubmenuActions = !!element.submenuActions?.length;
+      this._submenuContainer.style.display = "";
+      this._submenuContainer.style.position = "absolute";
+      this._submenuContainer.removeAttribute("role");
+      const anchorRect = anchor.getBoundingClientRect();
+      const parentRect = this.domNode.getBoundingClientRect();
+      const targetWindow = getWindow(this.domNode);
+      let totalHeight = 0;
+      let maxWidth = hoverHeader ? hoverHeader.offsetWidth : 0;
+      if (hasSubmenuActions) {
+        const submenuItems = [];
+        const submenuGroups = element.submenuActions.filter((a) => a instanceof SubmenuAction);
+        const groupsWithActions = submenuGroups.filter((g) => g.actions.length > 0);
+        for (let gi2 = 0; gi2 < groupsWithActions.length; gi2++) {
+          const group = groupsWithActions[gi2];
+          if (group.label) {
+            submenuItems.push({
+              kind: "header",
+              group: { title: group.label },
+              label: group.label
+            });
+          }
+          for (let ci2 = 0; ci2 < group.actions.length; ci2++) {
+            const child = group.actions[ci2];
+            const extendedChild = child;
+            const icon = extendedChild.icon ?? ThemeIcon.fromId(child.checked ? Codicon.check.id : Codicon.blank.id);
+            const hoverContent2 = extendedChild.hoverContent;
+            submenuItems.push({
+              item: child,
+              kind: "action",
+              label: child.label,
+              description: child.tooltip || void 0,
+              group: { title: "", icon },
+              hideIcon: false,
+              hover: hoverContent2 ? { content: hoverContent2 } : {},
+              onRemove: extendedChild.onRemove
+            });
+          }
+          if (gi2 < groupsWithActions.length - 1) {
+            submenuItems.push({ kind: "separator", label: "" });
+          }
+        }
+        for (const action of element.submenuActions) {
+          if (!(action instanceof SubmenuAction)) {
+            const extendedAction = action;
+            submenuItems.push({
+              item: action,
+              kind: "action",
+              label: action.label,
+              description: action.tooltip || void 0,
+              group: { title: "" },
+              hideIcon: false,
+              hover: {},
+              onRemove: extendedAction.onRemove
+            });
+          }
+        }
+        const submenuDelegate = {
+          onHide: () => {
+          },
+          onSelect: (action) => {
+            action.run();
+            const parentItem = this._currentSubmenuElement?.item;
+            this._hideSubmenu();
+            if (parentItem) {
+              this._delegate.onSelect(parentItem);
+            }
+            this.hide();
+          }
+        };
+        const submenuWidget = this._submenuDisposables.add(this._instantiationService.createInstance(ActionListWidget_1, "submenu", false, submenuItems, submenuDelegate, void 0, void 0));
+        this._submenuContainer.appendChild(submenuWidget.domNode);
+        this._currentSubmenuWidget = submenuWidget;
+        submenuWidget.clearFocus();
+        totalHeight = submenuWidget.computeListHeight();
+        submenuWidget.layout(totalHeight);
+        const submenuMaxWidth = submenuWidget.computeMaxWidth(0);
+        maxWidth = Math.max(maxWidth, submenuMaxWidth);
+        submenuWidget.layout(totalHeight, maxWidth);
+        submenuWidget.domNode.style.width = "".concat(maxWidth, "px");
+        this._submenuDisposables.add(addDisposableListener(submenuWidget.domNode, "keydown", (e) => {
+          if (e.key === "ArrowLeft" || e.key === "Escape") {
+            EventHelper.stop(e, true);
+            this._hideSubmenu();
+            this._list.domFocus();
+          } else if (e.key === "Enter") {
+            EventHelper.stop(e, true);
+            const focused = submenuWidget.getFocusedElement();
+            if (focused?.item) {
+              focused.item.run();
+              const parentItem = this._currentSubmenuElement?.item;
+              this._hideSubmenu();
+              if (parentItem) {
+                this._delegate.onSelect(parentItem);
+              }
+              this.hide();
+            }
+          } else if (e.key === "ArrowDown") {
+            EventHelper.stop(e, true);
+            submenuWidget.focusNext();
+          } else if (e.key === "ArrowUp") {
+            EventHelper.stop(e, true);
+            submenuWidget.focusPrevious();
+          }
+        }));
+      }
+      const viewportWidth = targetWindow.innerWidth;
+      const spaceRight = viewportWidth - anchorRect.right;
+      const spaceLeft = parentRect.left;
+      const panelWidth = maxWidth + 10;
+      const gap = 4;
+      if (spaceRight >= panelWidth || spaceRight >= spaceLeft) {
+        this._submenuContainer.style.left = "".concat(parentRect.right - parentRect.left + gap, "px");
+      } else {
+        this._submenuContainer.style.left = "".concat(-panelWidth - gap, "px");
+      }
+      const hoverHeaderHeight = hoverHeader ? hoverHeader.offsetHeight : 0;
+      const totalPanelHeight = totalHeight + hoverHeaderHeight;
+      const viewportHeight = targetWindow.innerHeight;
+      const anchorHeight = anchorRect.height;
+      let top = anchorRect.top - parentRect.top + (anchorHeight - totalPanelHeight) / 2;
+      const panelBottom = parentRect.top + top + totalPanelHeight;
+      if (panelBottom > viewportHeight) {
+        top -= panelBottom - viewportHeight + 8;
+      }
+      if (parentRect.top + top < 0) {
+        top = -parentRect.top;
+      }
+      this._submenuContainer.style.top = "".concat(top, "px");
+    }
+    _hideSubmenu() {
+      this._cancelSubmenuHide();
+      this._cancelSubmenuShow();
+      this._submenuDisposables.clear();
+      this._currentSubmenuWidget = void 0;
+      this._currentSubmenuElement = void 0;
+      this._clearSubmenuContainer();
+      this._submenuContainer.style.display = "none";
+    }
+    /**
+     * Clears the submenu/hover panel. If focus currently lives inside the panel
+     * (e.g. the user clicked a button in the hover content), focus is first moved
+     * back to the list. Otherwise clearing the panel would drop focus to <body>,
+     * which blurs the action widget and dismisses it.
+     */
+    _clearSubmenuContainer() {
+      if (this._submenuContainer.contains(getActiveElement())) {
+        this._list.domFocus();
+      }
+      clearNode(this._submenuContainer);
+    }
+    _scheduleSubmenuHide() {
+      this._cancelSubmenuHide();
+      this._submenuHideTimeout = setTimeout(() => {
+        this._hideSubmenu();
+      }, 300);
+    }
+    _cancelSubmenuHide() {
+      if (this._submenuHideTimeout !== void 0) {
+        clearTimeout(this._submenuHideTimeout);
+        this._submenuHideTimeout = void 0;
+      }
+    }
+    _scheduleSubmenuShow(element, index) {
+      this._cancelSubmenuShow();
+      this._submenuShowTimeout = setTimeout(() => {
+        this._submenuShowTimeout = void 0;
+        const rowElement = typeof index === "number" ? this._getRowElement(index) : null;
+        if (rowElement) {
+          this._showSubmenuForElement(element, rowElement);
+        }
+      }, 500);
+    }
+    _cancelSubmenuShow() {
+      if (this._submenuShowTimeout !== void 0) {
+        clearTimeout(this._submenuShowTimeout);
+        this._submenuShowTimeout = void 0;
+      }
+    }
+    async onListHover(e) {
+      const element = e.element;
+      if (element && element.item && this.focusCondition(element)) {
+        const isHoveringToolbar = isHTMLElement(e.browserEvent.target) && e.browserEvent.target.closest(".action-list-item-toolbar") !== null;
+        if (isHoveringToolbar) {
+          if (!element.submenuActions?.length) {
+            this._cancelSubmenuShow();
+          }
+          this._list.setFocus([]);
+          return;
+        }
+        const hasPanel = !!(element.submenuActions?.length || element.hover?.content);
+        if (hasPanel) {
+          this._suppressHover = true;
+        }
+        this._list.setFocus(typeof e.index === "number" ? [e.index] : []);
+        if (hasPanel) {
+          this._suppressHover = false;
+        }
+        if (hasPanel) {
+          if (this._currentSubmenuElement === element) {
+            this._cancelSubmenuHide();
+            this._cancelSubmenuShow();
+          } else {
+            this._hideSubmenu();
+            this._scheduleSubmenuShow(element, e.index);
+          }
+          return;
+        }
+        if (this._currentSubmenuElement === element) {
+          this._cancelSubmenuHide();
+        } else {
+          this._cancelSubmenuShow();
+          this._hideSubmenu();
+        }
+        if (this._delegate.onHover && !element.disabled && element.kind === "action" && this._currentSubmenuElement !== element) {
+          const result = await this._delegate.onHover(element.item, this.cts.token);
+          const canPreview = result ? result.canPreview : void 0;
+          if (canPreview !== element.canPreview) {
+            element.canPreview = canPreview;
+            if (typeof e.index === "number") {
+              this._list.splice(e.index, 1, [element]);
+              this._list.setFocus([e.index]);
+            }
+          }
+        }
+      } else if (element && element.hover?.content && typeof e.index === "number") {
+        if (this._currentSubmenuElement === element) {
+          this._cancelSubmenuHide();
+          this._cancelSubmenuShow();
+        } else {
+          this._hideSubmenu();
+          this._scheduleSubmenuShow(element, e.index);
+        }
+      }
+    }
+    onListClick(e) {
+      if (e.element && this.focusCondition(e.element)) {
+        this._list.setFocus([]);
+      }
+    }
+  };
+  ActionListWidget = ActionListWidget_1 = __decorate85([
+    __param78(6, IKeybindingService),
+    __param78(7, IOpenerService),
+    __param78(8, IInstantiationService)
+  ], ActionListWidget);
+  var ActionList = class ActionList2 extends Disposable {
+    get domNode() {
+      return this._widget.domNode;
+    }
+    get filterContainer() {
+      return this._widget.filterContainer;
+    }
+    get footerContainer() {
+      return this._widget.footerContainer;
+    }
+    get headerContainer() {
+      return this._widget.headerContainer;
+    }
+    get filterInput() {
+      return this._widget.filterInput;
+    }
+    /**
+     * Returns the resolved anchor position after the first layout.
+     * Used by the context view delegate to lock the dropdown direction.
+     */
+    get anchorPosition() {
+      if (this._showAbove === void 0) {
+        return void 0;
+      }
+      return this._showAbove ? 1 : 0;
+    }
+    constructor(user, preview, items, _delegate, accessibilityProvider, options2, anchor, _contextViewService, _layoutService, instantiationService) {
+      super();
+      this._contextViewService = _contextViewService;
+      this._layoutService = _layoutService;
+      this._lastMinWidth = 0;
+      this._hasLaidOut = false;
+      this._anchor = anchor;
+      this._widget = this._register(instantiationService.createInstance(ActionListWidget, user, preview, items, _delegate, accessibilityProvider, options2));
+      this._register(this._widget.onDidRequestLayout(() => {
+        if (this._hasLaidOut) {
+          this.layout(this._lastMinWidth);
+          this._contextViewService.layout();
+        }
+      }));
+    }
+    focus() {
+      this._widget.focus();
+    }
+    hide(didCancel) {
+      this._widget.hide(didCancel);
+      this._contextViewService.hideContextView();
+    }
+    clearFilter() {
+      return this._widget.clearFilter();
+    }
+    focusPrevious() {
+      this._widget.focusPrevious();
+    }
+    focusNext() {
+      this._widget.focusNext();
+    }
+    collapseFocusedSection() {
+      this._widget.collapseFocusedSection();
+    }
+    expandFocusedSection() {
+      this._widget.expandFocusedSection();
+    }
+    toggleFocusedSection() {
+      return this._widget.toggleFocusedSection();
+    }
+    acceptSelected(preview) {
+      this._widget.acceptSelected(preview);
+    }
+    hasDynamicHeight() {
+      return this._widget.hasDynamicHeight;
+    }
+    computeActionWidgetVerticalChromeHeight() {
+      const widgetContainer = this.domNode.parentElement?.closest(".action-widget");
+      if (!widgetContainer) {
+        return 0;
+      }
+      const style = getWindow(widgetContainer).getComputedStyle(widgetContainer);
+      const toPixels = (value) => Number.parseFloat(value) || 0;
+      return toPixels(style.paddingTop) + toPixels(style.paddingBottom) + toPixels(style.borderTopWidth) + toPixels(style.borderBottomWidth);
+    }
+    computeHeight() {
+      const listHeight = this._widget.computeListHeight();
+      const filterHeight = this._widget.filterContainer ? 36 : 0;
+      const footerHeight = this._widget.footerContainer ? 32 : 0;
+      const headerHeight = this._widget.headerContainer ? this._widget.headerContainer.offsetHeight || 36 : 0;
+      const chromeHeight = filterHeight + footerHeight + headerHeight;
+      const targetWindow = getWindow(this.domNode);
+      let availableHeight;
+      if (this.hasDynamicHeight()) {
+        const viewportHeight = targetWindow.innerHeight;
+        const anchorRect = getAnchorRect(this._anchor);
+        const anchorTopInViewport = anchorRect.top - targetWindow.pageYOffset;
+        const bottomGap = 30;
+        const spaceBelow = viewportHeight - anchorTopInViewport - anchorRect.height - bottomGap;
+        const spaceAbove = anchorTopInViewport;
+        if (this._showAbove === void 0) {
+          const fullHeight = chromeHeight + this._widget.computeFullHeight();
+          this._showAbove = fullHeight > spaceBelow && spaceAbove > spaceBelow;
+        }
+        availableHeight = Math.max(0, (this._showAbove ? spaceAbove : spaceBelow) - this.computeActionWidgetVerticalChromeHeight());
+      } else {
+        const padding = 10;
+        const windowHeight = this._layoutService.getContainer(targetWindow).clientHeight;
+        const widgetTop = this.domNode.getBoundingClientRect().top;
+        availableHeight = widgetTop > 0 ? windowHeight - widgetTop - padding : windowHeight * 0.7;
+      }
+      const viewportMaxHeight = Math.floor(targetWindow.innerHeight * 0.6);
+      const actionLineHeight = this._widget.lineHeight;
+      const maxHeight = Math.min(Math.max(availableHeight, actionLineHeight * 3 + chromeHeight), viewportMaxHeight);
+      const height = Math.min(listHeight + chromeHeight, maxHeight);
+      return height - chromeHeight;
+    }
+    layout(minWidth) {
+      this._hasLaidOut = true;
+      this._lastMinWidth = minWidth;
+      const listHeight = this.computeHeight();
+      this._widget.layout(listHeight);
+      const computedWidth = this._widget.computeMaxWidth(minWidth);
+      this._cachedMaxWidth = computedWidth;
+      this._widget.layout(listHeight, this._cachedMaxWidth);
+      return this._cachedMaxWidth;
+    }
+  };
+  ActionList = __decorate85([
+    __param78(7, IContextViewService),
+    __param78(8, ILayoutService),
+    __param78(9, IInstantiationService)
+  ], ActionList);
+  function stripNewlines(str) {
+    return str.replace(/\r\n|\r|\n/g, " ");
+  }
+
+  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionWidget.js
+  init_actions2();
+  init_contextkey();
+  init_contextView();
+  init_extensions();
+  init_instantiation();
+  init_colorUtils();
+  init_baseColors();
+  init_chartsColors();
+  init_editorColors();
+  init_inputColors();
+  init_listColors();
+  init_menuColors();
+  init_minimapColors();
+  init_miscColors();
+  init_quickpickColors();
+  init_searchColors();
+  var __decorate86 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param79 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  registerColor("actionBar.toggledBackground", inputActiveOptionBackground, localize(1713, "Background color for toggled action items in action bar."));
+  var ActionWidgetContextKeys = {
+    Visible: new RawContextKey("codeActionMenuVisible", false, localize(1714, "Whether the action widget list is visible")),
+    FilterFocused: new RawContextKey("codeActionMenuFilterFocused", false, localize(1715, "Whether the action widget filter input is focused"))
+  };
+  var IActionWidgetService = createDecorator("actionWidgetService");
+  var ActionWidgetService = class ActionWidgetService2 extends Disposable {
+    get isVisible() {
+      return ActionWidgetContextKeys.Visible.getValue(this._contextKeyService) || false;
+    }
+    constructor(_contextViewService, _contextKeyService, _instantiationService) {
+      super();
+      this._contextViewService = _contextViewService;
+      this._contextKeyService = _contextKeyService;
+      this._instantiationService = _instantiationService;
+      this._list = this._register(new MutableDisposable());
+    }
+    show(user, supportsPreview, items, delegate, anchor, container, actionBarActions, accessibilityProvider, listOptions) {
+      const visibleContext = ActionWidgetContextKeys.Visible.bindTo(this._contextKeyService);
+      const list3 = this._instantiationService.createInstance(ActionList, user, supportsPreview, items, delegate, accessibilityProvider, listOptions, anchor);
+      this._contextViewService.showContextView({
+        getAnchor: () => anchor,
+        render: (container2) => {
+          visibleContext.set(true);
+          return this._renderWidget(container2, list3, actionBarActions ?? []);
+        },
+        onHide: (didCancel) => {
+          visibleContext.reset();
+          this._onWidgetClosed(didCancel);
+        },
+        get anchorPosition() {
+          return list3.anchorPosition;
+        }
+      }, container, false);
+    }
+    acceptSelected(preview) {
+      this._list.value?.acceptSelected(preview);
+    }
+    focusPrevious() {
+      this._list?.value?.focusPrevious();
+    }
+    focusNext() {
+      this._list?.value?.focusNext();
+    }
+    collapseSection() {
+      this._list?.value?.collapseFocusedSection();
+    }
+    expandSection() {
+      this._list?.value?.expandFocusedSection();
+    }
+    toggleSection() {
+      return this._list?.value?.toggleFocusedSection() ?? false;
+    }
+    clearFilter() {
+      return this._list?.value?.clearFilter() ?? false;
+    }
+    hide(didCancel) {
+      this._list.value?.hide(didCancel);
+      this._list.clear();
+    }
+    _renderWidget(element, list3, actionBarActions) {
+      const widget = document.createElement("div");
+      widget.classList.add("action-widget");
+      element.appendChild(widget);
+      this._list.value = list3;
+      if (this._list.value) {
+        if (this._list.value.headerContainer) {
+          widget.appendChild(this._list.value.headerContainer);
+        }
+        if (this._list.value.filterContainer) {
+          widget.appendChild(this._list.value.filterContainer);
+        }
+        widget.appendChild(this._list.value.domNode);
+        if (this._list.value.footerContainer) {
+          widget.appendChild(this._list.value.footerContainer);
+        }
+      } else {
+        throw new Error("List has no value");
+      }
+      const renderDisposables = new DisposableStore();
+      const headerContainer = this._list.value.headerContainer;
+      if (headerContainer) {
+        renderDisposables.add(addDisposableGenericMouseDownListener(headerContainer, (e) => e.preventDefault()));
+      }
+      const menuBlock = document.createElement("div");
+      const block3 = element.appendChild(menuBlock);
+      block3.classList.add("context-view-block");
+      renderDisposables.add(addDisposableGenericMouseDownListener(block3, (e) => e.stopPropagation()));
+      const pointerBlockDiv = document.createElement("div");
+      const pointerBlock = element.appendChild(pointerBlockDiv);
+      pointerBlock.classList.add("context-view-pointerBlock");
+      renderDisposables.add(addDisposableListener(pointerBlock, EventType.POINTER_MOVE, () => pointerBlock.remove()));
+      renderDisposables.add(addDisposableGenericMouseDownListener(pointerBlock, () => pointerBlock.remove()));
+      let actionBarWidth = 0;
+      if (actionBarActions.length) {
+        const actionBar = this._createActionBar(".action-widget-action-bar", actionBarActions);
+        if (actionBar) {
+          widget.appendChild(actionBar.getContainer().parentElement);
+          renderDisposables.add(actionBar);
+          actionBarWidth = actionBar.getContainer().offsetWidth;
+        }
+      }
+      const width2 = this._list.value?.layout(actionBarWidth);
+      widget.style.width = "".concat(width2, "px");
+      this._list.value?.focus();
+      const filterFocusedContext = ActionWidgetContextKeys.FilterFocused.bindTo(this._contextKeyService);
+      renderDisposables.add({ dispose: () => filterFocusedContext.reset() });
+      if (this._list.value?.filterInput) {
+        const filterInput = this._list.value.filterInput;
+        renderDisposables.add(addDisposableListener(filterInput, "focus", () => filterFocusedContext.set(true)));
+        renderDisposables.add(addDisposableListener(filterInput, "blur", () => filterFocusedContext.set(false)));
+      }
+      const focusTracker = renderDisposables.add(trackFocus(element));
+      renderDisposables.add(focusTracker.onDidBlur(() => {
+        const activeElement = getActiveElement();
+        if (activeElement?.closest(".action-widget-hover") || activeElement?.closest(".action-list-submenu-panel")) {
+          return;
+        }
+        this.hide(true);
+      }));
+      return renderDisposables;
+    }
+    _createActionBar(className2, actions) {
+      if (!actions.length) {
+        return void 0;
+      }
+      const container = $(className2);
+      const actionBar = new ActionBar(container);
+      actionBar.push(actions, { icon: false, label: true });
+      return actionBar;
+    }
+    _onWidgetClosed(didCancel) {
+      this._list.value?.hide(didCancel);
+    }
+  };
+  ActionWidgetService = __decorate86([
+    __param79(0, IContextViewService),
+    __param79(1, IContextKeyService),
+    __param79(2, IInstantiationService)
+  ], ActionWidgetService);
+  registerSingleton(
+    IActionWidgetService,
+    ActionWidgetService,
+    1
+    /* InstantiationType.Delayed */
+  );
+  var weight = 100 + 1e3;
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "hideCodeActionWidget",
+        title: localize2(1716, "Hide action widget"),
+        precondition: ActionWidgetContextKeys.Visible,
+        keybinding: {
+          weight,
+          primary: 9,
+          secondary: [
+            1024 | 9
+            /* KeyCode.Escape */
+          ]
+        }
+      });
+    }
+    run(accessor) {
+      accessor.get(IActionWidgetService).hide(true);
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "clearFilterCodeActionWidget",
+        title: localize2(1717, "Clear action widget filter"),
+        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused),
+        keybinding: {
+          weight: weight + 1,
+          primary: 9
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        if (!widgetService.clearFilter()) {
+          widgetService.hide(true);
+        }
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "selectPrevCodeAction",
+        title: localize2(1718, "Select previous action"),
+        precondition: ActionWidgetContextKeys.Visible,
+        keybinding: {
+          weight,
+          primary: 16,
+          secondary: [
+            2048 | 16
+            /* KeyCode.UpArrow */
+          ],
+          mac: { primary: 16, secondary: [
+            2048 | 16,
+            256 | 46
+            /* KeyCode.KeyP */
+          ] }
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.focusPrevious();
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "selectNextCodeAction",
+        title: localize2(1719, "Select next action"),
+        precondition: ActionWidgetContextKeys.Visible,
+        keybinding: {
+          weight,
+          primary: 18,
+          secondary: [
+            2048 | 18
+            /* KeyCode.DownArrow */
+          ],
+          mac: { primary: 18, secondary: [
+            2048 | 18,
+            256 | 44
+            /* KeyCode.KeyN */
+          ] }
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.focusNext();
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "collapseSectionCodeAction",
+        title: localize2(1720, "Collapse section"),
+        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
+        keybinding: {
+          weight,
+          primary: 15
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.collapseSection();
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "expandSectionCodeAction",
+        title: localize2(1721, "Expand section"),
+        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
+        keybinding: {
+          weight,
+          primary: 17
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.expandSection();
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: "toggleSectionCodeAction",
+        title: localize2(1722, "Toggle section"),
+        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
+        keybinding: {
+          weight,
+          primary: 10
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        if (!widgetService.toggleSection()) {
+          widgetService.acceptSelected();
+        }
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: acceptSelectedActionCommand,
+        title: localize2(1723, "Accept selected action"),
+        precondition: ActionWidgetContextKeys.Visible,
+        keybinding: {
+          weight,
+          primary: 3,
+          secondary: [
+            2048 | 89
+            /* KeyCode.Period */
+          ]
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.acceptSelected();
+      }
+    }
+  });
+  registerAction2(class extends Action2 {
+    constructor() {
+      super({
+        id: previewSelectedActionCommand,
+        title: localize2(1724, "Preview selected action"),
+        precondition: ActionWidgetContextKeys.Visible,
+        keybinding: {
+          weight,
+          primary: 2048 | 3
+        }
+      });
+    }
+    run(accessor) {
+      const widgetService = accessor.get(IActionWidgetService);
+      if (widgetService instanceof ActionWidgetService) {
+        widgetService.acceptSelected(true);
+      }
+    }
+  });
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
+  init_contextkey();
+  init_instantiation();
+  init_keybinding();
+  init_notification();
+  init_bulkEditService();
+  init_editorState();
+  var __decorate87 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param80 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var PostEditWidget_1;
+  var PostEditWidget = class PostEditWidget2 extends Disposable {
+    static {
+      PostEditWidget_1 = this;
+    }
+    static {
+      this.baseId = "editor.widget.postEditWidget";
+    }
+    constructor(typeId, editor2, visibleContext, showCommand, range2, edits, onSelectNewEdit, additionalActions, contextKeyService, _keybindingService, _actionWidgetService) {
+      super();
+      this.typeId = typeId;
+      this.editor = editor2;
+      this.showCommand = showCommand;
+      this.range = range2;
+      this.edits = edits;
+      this.onSelectNewEdit = onSelectNewEdit;
+      this.additionalActions = additionalActions;
+      this._keybindingService = _keybindingService;
+      this._actionWidgetService = _actionWidgetService;
+      this.allowEditorOverflow = true;
+      this.suppressMouseDown = true;
+      this.create();
+      this.visibleContext = visibleContext.bindTo(contextKeyService);
+      this.visibleContext.set(true);
+      this._register(toDisposable(() => this.visibleContext.reset()));
+      this.editor.addContentWidget(this);
+      this.editor.layoutContentWidget(this);
+      this._register(toDisposable((() => this.editor.removeContentWidget(this))));
+      this._register(this.editor.onDidChangeCursorPosition((e) => {
+        this.dispose();
+      }));
+      this._register(Event2.runAndSubscribe(_keybindingService.onDidUpdateKeybindings, () => {
+        this._updateButtonTitle();
+      }));
+    }
+    _updateButtonTitle() {
+      this.button.element.title = this._keybindingService.appendKeybinding(this.showCommand.label, this.showCommand.id);
+    }
+    create() {
+      this.domNode = $(".post-edit-widget");
+      this.button = this._register(new Button(this.domNode, {
+        supportIcons: true
+      }));
+      this.button.label = "$(insert)";
+      this._register(addDisposableListener(this.domNode, EventType.CLICK, () => this.showSelector()));
+    }
+    getId() {
+      return PostEditWidget_1.baseId + "." + this.typeId;
+    }
+    getDomNode() {
+      return this.domNode;
+    }
+    getPosition() {
+      return {
+        position: this.range.getEndPosition(),
+        preference: [
+          2
+          /* ContentWidgetPositionPreference.BELOW */
+        ]
+      };
+    }
+    showSelector() {
+      const pos = getDomNodePagePosition(this.button.element);
+      const anchor = { x: pos.left + pos.width, y: pos.top + pos.height };
+      this._actionWidgetService.show("postEditWidget", false, this.edits.allEdits.map((edit3, i) => {
+        return {
+          kind: "action",
+          item: edit3,
+          label: edit3.title,
+          disabled: false,
+          canPreview: false,
+          group: { title: "", icon: ThemeIcon.fromId(i === this.edits.activeEditIndex ? Codicon.check.id : Codicon.blank.id) }
+        };
+      }), {
+        onHide: () => {
+          this.editor.focus();
+        },
+        onSelect: (item) => {
+          this._actionWidgetService.hide(false);
+          const i = this.edits.allEdits.findIndex((edit3) => edit3 === item);
+          if (i !== this.edits.activeEditIndex) {
+            return this.onSelectNewEdit(i);
+          }
+        }
+      }, anchor, this.editor.getDomNode() ?? void 0, this.additionalActions);
+    }
+  };
+  PostEditWidget = PostEditWidget_1 = __decorate87([
+    __param80(8, IContextKeyService),
+    __param80(9, IKeybindingService),
+    __param80(10, IActionWidgetService)
+  ], PostEditWidget);
+  var PostEditWidgetManager = class PostEditWidgetManager2 extends Disposable {
+    constructor(_id, _editor, _visibleContext, _showCommand, _getAdditionalActions, _instantiationService, _bulkEditService, _notificationService) {
+      super();
+      this._id = _id;
+      this._editor = _editor;
+      this._visibleContext = _visibleContext;
+      this._showCommand = _showCommand;
+      this._getAdditionalActions = _getAdditionalActions;
+      this._instantiationService = _instantiationService;
+      this._bulkEditService = _bulkEditService;
+      this._notificationService = _notificationService;
+      this._currentWidget = this._register(new MutableDisposable());
+      this._register(Event2.any(_editor.onDidChangeModel, _editor.onDidChangeModelContent)(() => this.clear()));
+    }
+    async applyEditAndShowIfNeeded(ranges2, edits, canShowWidget, resolve3, token) {
+      if (!ranges2.length || !this._editor.hasModel()) {
+        return;
+      }
+      const model = this._editor.getModel();
+      const edit3 = edits.allEdits.at(edits.activeEditIndex);
+      if (!edit3) {
+        return;
+      }
+      const onDidSelectEdit = async (newEditIndex) => {
+        const model2 = this._editor.getModel();
+        if (!model2) {
+          return;
+        }
+        await model2.undo();
+        this.applyEditAndShowIfNeeded(ranges2, { activeEditIndex: newEditIndex, allEdits: edits.allEdits }, canShowWidget, resolve3, token);
+      };
+      const handleError = (e, message) => {
+        if (isCancellationError(e)) {
+          return;
+        }
+        this._notificationService.error(message);
+        if (canShowWidget) {
+          this.show(ranges2[0], edits, onDidSelectEdit);
+        }
+      };
+      const editorStateCts = new EditorStateCancellationTokenSource(this._editor, 1 | 2, void 0, token);
+      let resolvedEdit;
+      try {
+        resolvedEdit = await raceCancellationError(resolve3(edit3, editorStateCts.token), editorStateCts.token);
+      } catch (e) {
+        return handleError(e, localize(976, "Error resolving edit '{0}':\n{1}", edit3.title, toErrorMessage(e)));
+      } finally {
+        editorStateCts.dispose();
+      }
+      if (token.isCancellationRequested) {
+        return;
+      }
+      const combinedWorkspaceEdit = createCombinedWorkspaceEdit(model.uri, ranges2, resolvedEdit);
+      const primaryRange = ranges2[0];
+      const editTrackingDecoration = model.deltaDecorations([], [{
+        range: primaryRange,
+        options: {
+          description: "paste-line-suffix",
+          stickiness: 0
+          /* TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges */
+        }
+      }]);
+      this._editor.focus();
+      let editResult;
+      let editRange;
+      try {
+        editResult = await this._bulkEditService.apply(combinedWorkspaceEdit, { editor: this._editor, token });
+        editRange = model.getDecorationRange(editTrackingDecoration[0]);
+      } catch (e) {
+        return handleError(e, localize(977, "Error applying edit '{0}':\n{1}", edit3.title, toErrorMessage(e)));
+      } finally {
+        model.deltaDecorations(editTrackingDecoration, []);
+      }
+      if (token.isCancellationRequested) {
+        return;
+      }
+      if (canShowWidget && editResult.isApplied && edits.allEdits.length > 1) {
+        this.show(editRange ?? primaryRange, edits, onDidSelectEdit);
+      }
+    }
+    show(range2, edits, onDidSelectEdit) {
+      this.clear();
+      if (this._editor.hasModel()) {
+        this._currentWidget.value = this._instantiationService.createInstance(PostEditWidget, this._id, this._editor, this._visibleContext, this._showCommand, range2, edits, onDidSelectEdit, this._getAdditionalActions());
+      }
+    }
+    clear() {
+      this._currentWidget.clear();
+    }
+    tryShowSelector() {
+      this._currentWidget.value?.showSelector();
+    }
+  };
+  PostEditWidgetManager = __decorate87([
+    __param80(5, IInstantiationService),
+    __param80(6, IBulkEditService),
+    __param80(7, INotificationService)
+  ], PostEditWidgetManager);
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
+  var __decorate88 = function(decorators, target, key4, desc) {
+    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
+    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
+    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
+    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
+  };
+  var __param81 = function(paramIndex, decorator) {
+    return function(target, key4) {
+      decorator(target, key4, paramIndex);
+    };
+  };
+  var CopyPasteController_1;
+  var changePasteTypeCommandId = "editor.changePasteType";
+  var pasteAsPreferenceConfig = "editor.pasteAs.preferences";
+  var pasteWidgetVisibleCtx = new RawContextKey("pasteWidgetVisible", false, localize(956, "Whether the paste widget is showing"));
+  var vscodeClipboardMime = "application/vnd.code.copymetadata";
+  var CopyPasteController = class CopyPasteController2 extends Disposable {
+    static {
+      CopyPasteController_1 = this;
+    }
+    static {
+      this.ID = "editor.contrib.copyPasteActionController";
+    }
+    static get(editor2) {
+      return editor2.getContribution(CopyPasteController_1.ID);
+    }
+    constructor(editor2, instantiationService, _logService, _bulkEditService, _clipboardService, _commandService, _configService, _languageFeaturesService, _quickInputService, _progressService) {
+      super();
+      this._logService = _logService;
+      this._bulkEditService = _bulkEditService;
+      this._clipboardService = _clipboardService;
+      this._commandService = _commandService;
+      this._configService = _configService;
+      this._languageFeaturesService = _languageFeaturesService;
+      this._quickInputService = _quickInputService;
+      this._progressService = _progressService;
+      this._editor = editor2;
+      this._register(editor2.onWillCopy((e) => this.handleCopy(e)));
+      this._register(editor2.onWillCut((e) => this.handleCopy(e)));
+      this._register(editor2.onWillPaste((e) => this.handlePaste(e)));
+      this._pasteProgressManager = this._register(new InlineProgressManager("pasteIntoEditor", editor2, instantiationService));
+      this._postPasteWidgetManager = this._register(instantiationService.createInstance(PostEditWidgetManager, "pasteIntoEditor", editor2, pasteWidgetVisibleCtx, { id: changePasteTypeCommandId, label: localize(957, "Show paste options...") }, () => CopyPasteController_1._configureDefaultAction ? [CopyPasteController_1._configureDefaultAction] : []));
+    }
+    changePasteType() {
+      this._postPasteWidgetManager.tryShowSelector();
+    }
+    async pasteAs(preferred) {
+      this._logService.trace("CopyPasteController.pasteAs");
+      this._editor.focus();
+      try {
+        this._logService.trace("Before calling editor.action.clipboardPasteAction");
+        this._pasteAsActionContext = { preferred };
+        await this._commandService.executeCommand("editor.action.clipboardPasteAction");
+      } finally {
+        this._pasteAsActionContext = void 0;
+      }
+    }
+    clearWidgets() {
+      this._postPasteWidgetManager.clear();
+    }
+    isPasteAsEnabled() {
+      return this._editor.getOption(
+        97
+        /* EditorOption.pasteAs */
+      ).enabled;
+    }
+    async finishedPaste() {
+      await this._currentPasteOperation;
+    }
+    handleCopy(e) {
+      this._logService.trace("CopyPasteController#handleCopy");
+      if (!this._editor.hasTextFocus()) {
+        return;
+      }
+      this._clipboardService.clearInternalState?.();
+      if (!this.isPasteAsEnabled()) {
+        return;
+      }
+      const model = this._editor.getModel();
+      const viewModel = this._editor._getViewModel();
+      const selections = this._editor.getSelections();
+      if (!model || !viewModel || !selections?.length) {
+        return;
+      }
+      const defaultPastePayload = {
+        multicursorText: e.dataToCopy.multicursorText ?? null,
+        pasteOnNewLine: e.dataToCopy.isFromEmptySelection,
+        mode: null
+      };
+      const providers4 = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
+      if (!providers4.length) {
+        this.setCopyMetadata(e.clipboardData, { defaultPastePayload });
+        return;
+      }
+      const dataTransfer = new VSDataTransfer();
+      const providerCopyMimeTypes = providers4.flatMap((x) => x.copyMimeTypes ?? []);
+      const handle = generateUuid();
+      this.setCopyMetadata(e.clipboardData, {
+        id: handle,
+        providerCopyMimeTypes,
+        defaultPastePayload
+      });
+      const operations = providers4.map((provider) => {
+        return {
+          providerMimeTypes: provider.copyMimeTypes,
+          operation: createCancelablePromise((token) => provider.prepareDocumentPaste(model, e.dataToCopy.sourceRanges, dataTransfer, token).catch((err) => {
+            console.error(err);
+            return void 0;
+          }))
+        };
+      });
+      CopyPasteController_1._currentCopyOperation?.operations.forEach((entry) => entry.operation.cancel());
+      CopyPasteController_1._currentCopyOperation = { handle, operations };
+    }
+    async handlePaste(e) {
+      this._logService.trace("CopyPasteController#handlePaste for id : ", e.metadata?.id);
+      if (!this._editor.hasTextFocus()) {
+        return;
+      }
+      const dataTransfer = e.toExternalVSDataTransfer();
+      if (!dataTransfer) {
+        return;
+      }
+      dataTransfer.delete(vscodeClipboardMime);
+      MessageController.get(this._editor)?.closeMessage();
+      this._currentPasteOperation?.cancel();
+      this._currentPasteOperation = void 0;
+      const model = this._editor.getModel();
+      const selections = this._editor.getSelections();
+      if (!selections?.length || !model) {
+        return;
+      }
+      if (this._editor.getOption(
+        104
+        /* EditorOption.readOnly */
+      ) || !this.isPasteAsEnabled() && !this._pasteAsActionContext) {
+        return;
+      }
+      const metadata = this.fetchCopyMetadata(e);
+      this._logService.trace("CopyPasteController#handlePaste with metadata : ", metadata?.id, " and text.length : ", e.clipboardData.getData("text/plain").length);
+      const fileTypes = Array.from(e.clipboardData.files).map((file) => file.type);
+      const allPotentialMimeTypes = [
+        ...e.clipboardData.types,
+        ...fileTypes,
+        ...metadata?.providerCopyMimeTypes ?? [],
+        // TODO: always adds `uri-list` because this get set if there are resources in the system clipboard.
+        // However we can only check the system clipboard async. For this early check, just add it in.
+        // We filter providers again once we have the final dataTransfer we will use.
+        Mimes.uriList
+      ];
+      const allProviders = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((provider) => {
+        const preference = this._pasteAsActionContext?.preferred;
+        if (preference) {
+          if (!this.providerMatchesPreference(provider, preference)) {
+            return false;
+          }
+        }
+        return provider.pasteMimeTypes?.some((type) => matchesMimeType(type, allPotentialMimeTypes));
+      });
+      if (!allProviders.length) {
+        if (this._pasteAsActionContext?.preferred) {
+          this.showPasteAsNoEditMessage(selections, this._pasteAsActionContext.preferred);
+          e.setHandled();
+        }
+        return;
+      }
+      e.setHandled();
+      if (this._pasteAsActionContext) {
+        this.showPasteAsPick(this._pasteAsActionContext.preferred, allProviders, selections, dataTransfer, metadata);
+      } else {
+        this.doPasteInline(allProviders, selections, dataTransfer, metadata, e.browserEvent);
+      }
+    }
+    showPasteAsNoEditMessage(selections, preference) {
+      const kindLabel = "only" in preference ? preference.only.value : "preferences" in preference ? preference.preferences.length ? preference.preferences.map((preference2) => preference2.value).join(", ") : localize(958, "empty") : preference.providerId;
+      MessageController.get(this._editor)?.showMessage(localize(959, "No paste edits for '{0}' found", kindLabel), selections[0].getStartPosition());
+    }
+    doPasteInline(allProviders, selections, dataTransfer, metadata, clipboardEvent) {
+      this._logService.trace("CopyPasteController#doPasteInline");
+      const editor2 = this._editor;
+      if (!editor2.hasModel()) {
+        return;
+      }
+      const editorStateCts = new EditorStateCancellationTokenSource(editor2, 1 | 2, void 0);
+      const p = createCancelablePromise(async (pToken) => {
+        const editor3 = this._editor;
+        if (!editor3.hasModel()) {
+          return;
+        }
+        const model = editor3.getModel();
+        const disposables = new DisposableStore();
+        const cts = disposables.add(new CancellationTokenSource(pToken));
+        disposables.add(editorStateCts.token.onCancellationRequested(() => cts.cancel()));
+        const token = cts.token;
+        try {
+          await this.mergeInDataFromCopy(allProviders, dataTransfer, metadata, token);
+          if (token.isCancellationRequested) {
+            return;
+          }
+          const supportedProviders = allProviders.filter((provider) => this.isSupportedPasteProvider(provider, dataTransfer));
+          if (!supportedProviders.length || supportedProviders.length === 1 && supportedProviders[0] instanceof DefaultTextPasteOrDropEditProvider) {
+            return this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
+          }
+          const context = {
+            triggerKind: DocumentPasteTriggerKind.Automatic
+          };
+          const editSession = await this.getPasteEdits(supportedProviders, dataTransfer, model, selections, context, token);
+          disposables.add(editSession);
+          if (token.isCancellationRequested) {
+            return;
+          }
+          if (editSession.edits.length === 1 && editSession.edits[0].provider instanceof DefaultTextPasteOrDropEditProvider) {
+            return this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
+          }
+          if (editSession.edits.length) {
+            const canShowWidget = editor3.getOption(
+              97
+              /* EditorOption.pasteAs */
+            ).showPasteSelector === "afterPaste";
+            return this._postPasteWidgetManager.applyEditAndShowIfNeeded(selections, { activeEditIndex: this.getInitialActiveEditIndex(model, editSession.edits), allEdits: editSession.edits }, canShowWidget, async (edit3, resolveToken) => {
+              if (!edit3.provider.resolveDocumentPasteEdit) {
+                return edit3;
+              }
+              const resolveP = edit3.provider.resolveDocumentPasteEdit(edit3, resolveToken);
+              const showP = new DeferredPromise();
+              const resolved = await this._pasteProgressManager.showWhile(selections[0].getEndPosition(), localize(960, "Resolving paste edit for '{0}'. Click to cancel", edit3.title), raceCancellation(Promise.race([showP.p, resolveP]), resolveToken), {
+                cancel: () => showP.cancel()
+              }, 0);
+              if (resolved) {
+                edit3.insertText = resolved.insertText;
+                edit3.additionalEdit = resolved.additionalEdit;
+              }
+              return edit3;
+            }, token);
+          }
+          await this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
+        } finally {
+          disposables.dispose();
+          if (this._currentPasteOperation === p) {
+            this._currentPasteOperation = void 0;
+          }
+        }
+      });
+      this._pasteProgressManager.showWhile(selections[0].getEndPosition(), localize(961, "Running paste handlers. Click to cancel and do basic paste"), p, {
+        cancel: async () => {
+          p.cancel();
+          if (editorStateCts.token.isCancellationRequested) {
+            return;
+          }
+          await this.applyDefaultPasteHandler(dataTransfer, metadata, editorStateCts.token, clipboardEvent);
+        }
+      }).finally(() => {
+        editorStateCts.dispose();
+      });
+      this._currentPasteOperation = p;
+    }
+    showPasteAsPick(preference, allProviders, selections, dataTransfer, metadata) {
+      this._logService.trace("CopyPasteController#showPasteAsPick");
+      const p = createCancelablePromise(async (token) => {
+        const editor2 = this._editor;
+        if (!editor2.hasModel()) {
+          return;
+        }
+        const model = editor2.getModel();
+        const disposables = new DisposableStore();
+        const tokenSource = disposables.add(new EditorStateCancellationTokenSource(editor2, 1 | 2, void 0, token));
+        try {
+          await this.mergeInDataFromCopy(allProviders, dataTransfer, metadata, tokenSource.token);
+          if (tokenSource.token.isCancellationRequested) {
+            return;
+          }
+          let supportedProviders = allProviders.filter((provider) => this.isSupportedPasteProvider(provider, dataTransfer, preference));
+          if (preference) {
+            supportedProviders = supportedProviders.filter((provider) => this.providerMatchesPreference(provider, preference));
+          }
+          const context = {
+            triggerKind: DocumentPasteTriggerKind.PasteAs,
+            only: preference && "only" in preference ? preference.only : void 0
+          };
+          let editSession = disposables.add(await this.getPasteEdits(supportedProviders, dataTransfer, model, selections, context, tokenSource.token));
+          if (tokenSource.token.isCancellationRequested) {
+            return;
+          }
+          if (preference) {
+            editSession = {
+              edits: editSession.edits.filter((edit3) => {
+                if ("only" in preference) {
+                  return preference.only.contains(edit3.kind);
+                } else if ("preferences" in preference) {
+                  return preference.preferences.some((preference2) => preference2.contains(edit3.kind));
+                } else {
+                  return preference.providerId === edit3.provider.id;
+                }
+              }),
+              dispose: editSession.dispose
+            };
+          }
+          if (!editSession.edits.length) {
+            if (preference) {
+              this.showPasteAsNoEditMessage(selections, preference);
+            }
+            return;
+          }
+          let pickedEdit;
+          if (preference) {
+            pickedEdit = editSession.edits.at(0);
+          } else {
+            const configureDefaultItem = {
+              id: "editor.pasteAs.default",
+              label: localize(962, "Configure default paste action"),
+              edit: void 0
+            };
+            const selected = await this._quickInputService.pick([
+              ...editSession.edits.map((edit3) => ({
+                label: edit3.title,
+                description: edit3.kind?.value,
+                edit: edit3
+              })),
+              ...CopyPasteController_1._configureDefaultAction ? [
+                upcast({ type: "separator" }),
+                {
+                  label: CopyPasteController_1._configureDefaultAction.label,
+                  edit: void 0
+                }
+              ] : []
+            ], {
+              placeHolder: localize(963, "Select Paste Action")
+            });
+            if (selected === configureDefaultItem) {
+              CopyPasteController_1._configureDefaultAction?.run();
+              return;
+            }
+            pickedEdit = selected?.edit;
+          }
+          if (!pickedEdit) {
+            return;
+          }
+          const combinedWorkspaceEdit = createCombinedWorkspaceEdit(model.uri, selections, pickedEdit);
+          await this._bulkEditService.apply(combinedWorkspaceEdit, { editor: this._editor });
+        } finally {
+          disposables.dispose();
+          if (this._currentPasteOperation === p) {
+            this._currentPasteOperation = void 0;
+          }
+        }
+      });
+      this._progressService.withProgress({
+        location: 10,
+        title: localize(964, "Running paste handlers")
+      }, () => p);
+    }
+    setCopyMetadata(clipboardData, metadata) {
+      this._logService.trace("CopyPasteController#setCopyMetadata new id : ", metadata.id);
+      clipboardData.setData(vscodeClipboardMime, JSON.stringify(metadata));
+    }
+    fetchCopyMetadata(e) {
+      this._logService.trace("CopyPasteController#fetchCopyMetadata");
+      const rawMetadata = e.clipboardData.getData(vscodeClipboardMime);
+      if (rawMetadata) {
+        try {
+          return JSON.parse(rawMetadata);
+        } catch {
+          return void 0;
+        }
+      }
+      if (e.metadata) {
+        return {
+          defaultPastePayload: {
+            mode: e.metadata.mode,
+            multicursorText: e.metadata.multicursorText ?? null,
+            pasteOnNewLine: !!e.metadata.isFromEmptySelection
+          }
+        };
+      }
+      return void 0;
+    }
+    async mergeInDataFromCopy(allProviders, dataTransfer, metadata, token) {
+      this._logService.trace("CopyPasteController#mergeInDataFromCopy with metadata : ", metadata?.id);
+      if (metadata?.id && CopyPasteController_1._currentCopyOperation?.handle === metadata.id) {
+        const toResolve = CopyPasteController_1._currentCopyOperation.operations.filter((op) => allProviders.some((provider) => provider.pasteMimeTypes.some((type) => matchesMimeType(type, op.providerMimeTypes)))).map((op) => op.operation);
+        const toMergeResults = await Promise.all(toResolve);
+        if (token.isCancellationRequested) {
+          return;
+        }
+        for (const toMergeData of toMergeResults.reverse()) {
+          if (toMergeData) {
+            for (const [key4, value] of toMergeData) {
+              dataTransfer.replace(key4, value);
+            }
+          }
+        }
+      }
+      if (!dataTransfer.has(Mimes.uriList)) {
+        const resources = await this._clipboardService.readResources();
+        if (token.isCancellationRequested) {
+          return;
+        }
+        if (resources.length) {
+          dataTransfer.append(Mimes.uriList, createStringDataTransferItem(UriList.create(resources)));
+        }
+      }
+    }
+    async getPasteEdits(providers4, dataTransfer, model, selections, context, token) {
+      const disposables = new DisposableStore();
+      const results = await raceCancellation(Promise.all(providers4.map(async (provider) => {
+        try {
+          const edits2 = await provider.provideDocumentPasteEdits?.(model, selections, dataTransfer, context, token);
+          if (edits2) {
+            disposables.add(edits2);
+          }
+          return edits2?.edits?.map((edit3) => ({ ...edit3, provider }));
+        } catch (err) {
+          if (!isCancellationError(err)) {
+            console.error(err);
+          }
+          return void 0;
+        }
+      })), token);
+      const edits = coalesce(results ?? []).flat().filter((edit3) => {
+        return !context.only || context.only.contains(edit3.kind);
+      });
+      return {
+        edits: sortEditsByYieldTo(edits),
+        dispose: () => disposables.dispose()
+      };
+    }
+    async applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent) {
+      const textDataTransfer = dataTransfer.get(Mimes.text) ?? dataTransfer.get("text");
+      const text3 = await textDataTransfer?.asString() ?? "";
+      if (token.isCancellationRequested) {
+        return;
+      }
+      const payload = {
+        clipboardEvent,
+        text: text3,
+        pasteOnNewLine: metadata?.defaultPastePayload.pasteOnNewLine ?? false,
+        multicursorText: metadata?.defaultPastePayload.multicursorText ?? null,
+        mode: null
+      };
+      this._logService.trace("CopyPasteController#applyDefaultPasteHandler for id : ", metadata?.id);
+      this._editor.trigger("keyboard", "paste", payload);
+    }
+    /**
+     * Filter out providers if they:
+     * - Don't handle any of the data transfer types we have
+     * - Don't match the preferred paste kind
+     */
+    isSupportedPasteProvider(provider, dataTransfer, preference) {
+      if (!provider.pasteMimeTypes?.some((type) => dataTransfer.matches(type))) {
+        return false;
+      }
+      return !preference || this.providerMatchesPreference(provider, preference);
+    }
+    providerMatchesPreference(provider, preference) {
+      if ("only" in preference) {
+        return provider.providedPasteEditKinds.some((providedKind) => preference.only.contains(providedKind));
+      } else if ("preferences" in preference) {
+        return provider.providedPasteEditKinds.some((providedKind) => preference.preferences.some((preferredKind) => preferredKind.contains(providedKind)));
+      } else {
+        return provider.id === preference.providerId;
+      }
+    }
+    getInitialActiveEditIndex(model, edits) {
+      const preferredProviders = this._configService.getValue(pasteAsPreferenceConfig, { resource: model.uri });
+      for (const config of Array.isArray(preferredProviders) ? preferredProviders : []) {
+        const desiredKind = new HierarchicalKind(config);
+        const editIndex = edits.findIndex((edit3) => desiredKind.contains(edit3.kind));
+        if (editIndex >= 0) {
+          return editIndex;
+        }
+      }
+      return 0;
+    }
+  };
+  CopyPasteController = CopyPasteController_1 = __decorate88([
+    __param81(1, IInstantiationService),
+    __param81(2, ILogService),
+    __param81(3, IBulkEditService),
+    __param81(4, IClipboardService),
+    __param81(5, ICommandService),
+    __param81(6, IConfigurationService),
+    __param81(7, ILanguageFeaturesService),
+    __param81(8, IQuickInputService),
+    __param81(9, IProgressService)
+  ], CopyPasteController);
+
+  // node_modules/monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js
+  var CLIPBOARD_CONTEXT_MENU_GROUP = "9_cutcopypaste";
+  var supportsCut = isNative || document.queryCommandSupported("cut");
+  var supportsCopy = isNative || document.queryCommandSupported("copy");
+  var supportsPaste = typeof navigator.clipboard === "undefined" || isFirefox2 ? document.queryCommandSupported("paste") : true;
+  function registerCommand4(command) {
+    command.register();
+    return command;
+  }
+  var CutAction = supportsCut ? registerCommand4(new MultiCommand({
+    id: "editor.action.clipboardCutAction",
+    precondition: void 0,
+    kbOpts: (
+      // Do not bind cut keybindings in the browser,
+      // since browsers do that for us and it avoids security prompts
+      isNative ? {
+        primary: 2048 | 54,
+        win: { primary: 2048 | 54, secondary: [
+          1024 | 20
+          /* KeyCode.Delete */
+        ] },
+        weight: 100
+        /* KeybindingWeight.EditorContrib */
+      } : void 0
+    ),
+    menuOpts: [{
+      menuId: MenuId.MenubarEditMenu,
+      group: "2_ccp",
+      title: localize(849, "Cu&&t"),
+      order: 1
+    }, {
+      menuId: MenuId.EditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(850, "Cut"),
+      when: EditorContextKeys.writable,
+      order: 1
+    }, {
+      menuId: MenuId.CommandPalette,
+      group: "",
+      title: localize(851, "Cut"),
+      order: 1
+    }, {
+      menuId: MenuId.SimpleEditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(852, "Cut"),
+      when: EditorContextKeys.writable,
+      order: 1
+    }]
+  })) : void 0;
+  var CopyAction = supportsCopy ? registerCommand4(new MultiCommand({
+    id: "editor.action.clipboardCopyAction",
+    precondition: void 0,
+    kbOpts: (
+      // Do not bind copy keybindings in the browser,
+      // since browsers do that for us and it avoids security prompts
+      isNative ? {
+        primary: 2048 | 33,
+        win: { primary: 2048 | 33, secondary: [
+          2048 | 19
+          /* KeyCode.Insert */
+        ] },
+        weight: 100
+        /* KeybindingWeight.EditorContrib */
+      } : void 0
+    ),
+    menuOpts: [{
+      menuId: MenuId.MenubarEditMenu,
+      group: "2_ccp",
+      title: localize(853, "&&Copy"),
+      order: 2
+    }, {
+      menuId: MenuId.EditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(854, "Copy"),
+      order: 2
+    }, {
+      menuId: MenuId.CommandPalette,
+      group: "",
+      title: localize(855, "Copy"),
+      order: 1
+    }, {
+      menuId: MenuId.SimpleEditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(856, "Copy"),
+      order: 2
+    }]
+  })) : void 0;
+  MenuRegistry.appendMenuItem(MenuId.MenubarEditMenu, { submenu: MenuId.MenubarCopy, title: localize2(861, "Copy As"), group: "2_ccp", order: 3 });
+  MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextCopy, title: localize2(862, "Copy As"), group: CLIPBOARD_CONTEXT_MENU_GROUP, order: 3 });
+  MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextShare, title: localize2(863, "Share"), group: "11_share", order: -1, when: ContextKeyExpr.and(ContextKeyExpr.notEquals("resourceScheme", "output"), EditorContextKeys.editorTextFocus) });
+  MenuRegistry.appendMenuItem(MenuId.ExplorerContext, { submenu: MenuId.ExplorerContextShare, title: localize2(864, "Share"), group: "11_share", order: -1 });
+  var PasteAction = supportsPaste ? registerCommand4(new MultiCommand({
+    id: "editor.action.clipboardPasteAction",
+    precondition: void 0,
+    kbOpts: (
+      // Do not bind paste keybindings in the browser,
+      // since browsers do that for us and it avoids security prompts
+      isNative ? {
+        primary: 2048 | 52,
+        win: { primary: 2048 | 52, secondary: [
+          1024 | 19
+          /* KeyCode.Insert */
+        ] },
+        linux: { primary: 2048 | 52, secondary: [
+          1024 | 19
+          /* KeyCode.Insert */
+        ] },
+        weight: 100
+        /* KeybindingWeight.EditorContrib */
+      } : void 0
+    ),
+    menuOpts: [{
+      menuId: MenuId.MenubarEditMenu,
+      group: "2_ccp",
+      title: localize(857, "&&Paste"),
+      order: 4
+    }, {
+      menuId: MenuId.EditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(858, "Paste"),
+      when: EditorContextKeys.writable,
+      order: 4
+    }, {
+      menuId: MenuId.CommandPalette,
+      group: "",
+      title: localize(859, "Paste"),
+      order: 1
+    }, {
+      menuId: MenuId.SimpleEditorContext,
+      group: CLIPBOARD_CONTEXT_MENU_GROUP,
+      title: localize(860, "Paste"),
+      when: EditorContextKeys.writable,
+      order: 4
+    }]
+  })) : void 0;
+  var ExecCommandCopyWithSyntaxHighlightingAction = class extends EditorAction {
+    constructor() {
+      super({
+        id: "editor.action.clipboardCopyWithSyntaxHighlightingAction",
+        label: localize2(865, "Copy with Syntax Highlighting"),
+        precondition: void 0,
+        kbOpts: {
+          kbExpr: EditorContextKeys.textInputFocus,
+          primary: 0,
+          weight: 100
+          /* KeybindingWeight.EditorContrib */
+        }
+      });
+    }
+    run(accessor, editor2) {
+      const logService = accessor.get(ILogService);
+      const clipboardService = accessor.get(IClipboardService);
+      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction#run");
+      if (!editor2.hasModel()) {
+        return;
+      }
+      const emptySelectionClipboard = editor2.getOption(
+        45
+        /* EditorOption.emptySelectionClipboard */
+      );
+      if (!emptySelectionClipboard && editor2.getSelection().isEmpty()) {
+        return;
+      }
+      CopyOptions.forceCopyWithSyntaxHighlighting = true;
+      editor2.focus();
+      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction (before execCommand copy)");
+      executeClipboardCopyWithWorkaround(editor2, clipboardService);
+      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction (after execCommand copy)");
+      CopyOptions.forceCopyWithSyntaxHighlighting = false;
+    }
+  };
+  function executeClipboardCopyWithWorkaround(editor2, clipboardService) {
+    CopyOptions.electronBugWorkaroundCopyEventHasFired = false;
+    editor2.getContainerDomNode().ownerDocument.execCommand("copy");
+    if (isNative && CopyOptions.electronBugWorkaroundCopyEventHasFired === false) {
+      const { dataToCopy } = generateDataToCopyAndStoreInMemory(editor2._getViewModel(), void 0, isFirefox2);
+      clipboardService.writeText(dataToCopy.text);
+    }
+  }
+  function registerExecCommandImpl(target, browserCommand) {
+    if (!target) {
+      return;
+    }
+    target.addImplementation(1e4, "code-editor", (accessor, args) => {
+      const logService = accessor.get(ILogService);
+      const clipboardService = accessor.get(IClipboardService);
+      logService.trace("registerExecCommandImpl (addImplementation code-editor for : ", browserCommand, ")");
+      const focusedEditor = accessor.get(ICodeEditorService).getFocusedCodeEditor();
+      if (focusedEditor && focusedEditor.hasTextFocus() && focusedEditor.hasModel()) {
+        const emptySelectionClipboard = focusedEditor.getOption(
+          45
+          /* EditorOption.emptySelectionClipboard */
+        );
+        const selection = focusedEditor.getSelection();
+        if (selection && selection.isEmpty() && !emptySelectionClipboard) {
+          return true;
+        }
+        if (focusedEditor.getOption(
+          170
+          /* EditorOption.effectiveEditContext */
+        ) && browserCommand === "cut") {
+          logCopyCommand(focusedEditor);
+          logService.trace("registerExecCommandImpl (before execCommand copy)");
+          executeClipboardCopyWithWorkaround(focusedEditor, clipboardService);
+          focusedEditor.trigger(void 0, "cut", void 0);
+          logService.trace("registerExecCommandImpl (after execCommand copy)");
+        } else {
+          logCopyCommand(focusedEditor);
+          logService.trace("registerExecCommandImpl (before execCommand " + browserCommand + ")");
+          if (browserCommand === "copy") {
+            executeClipboardCopyWithWorkaround(focusedEditor, clipboardService);
+          } else {
+            focusedEditor.getContainerDomNode().ownerDocument.execCommand(browserCommand);
+          }
+          logService.trace("registerExecCommandImpl (after execCommand " + browserCommand + ")");
+        }
+        return true;
+      }
+      return false;
+    });
+    target.addImplementation(0, "generic-dom", (accessor, args) => {
+      const logService = accessor.get(ILogService);
+      logService.trace("registerExecCommandImpl (addImplementation generic-dom for : ", browserCommand, ")");
+      logService.trace("registerExecCommandImpl (before execCommand " + browserCommand + ")");
+      getActiveDocument().execCommand(browserCommand);
+      logService.trace("registerExecCommandImpl (after execCommand " + browserCommand + ")");
+      return true;
+    });
+  }
+  function logCopyCommand(editor2) {
+    const editContextEnabled = editor2.getOption(
+      170
+      /* EditorOption.effectiveEditContext */
+    );
+    if (editContextEnabled) {
+      const nativeEditContext = NativeEditContextRegistry.get(editor2.getId());
+      if (nativeEditContext) {
+        nativeEditContext.handleWillCopy();
+      }
+    }
+  }
+  registerExecCommandImpl(CutAction, "cut");
+  registerExecCommandImpl(CopyAction, "copy");
+  if (PasteAction) {
+    PasteAction.addImplementation(1e4, "code-editor", (accessor, args) => {
+      const logService = accessor.get(ILogService);
+      logService.trace("registerExecCommandImpl (addImplementation code-editor for : paste)");
+      const codeEditorService = accessor.get(ICodeEditorService);
+      const clipboardService = accessor.get(IClipboardService);
+      const focusedEditor = codeEditorService.getFocusedCodeEditor();
+      if (focusedEditor && focusedEditor.hasModel() && focusedEditor.hasTextFocus()) {
+        const editContextEnabled = focusedEditor.getOption(
+          170
+          /* EditorOption.effectiveEditContext */
+        );
+        if (editContextEnabled) {
+          const nativeEditContext = NativeEditContextRegistry.get(focusedEditor.getId());
+          if (nativeEditContext) {
+            nativeEditContext.handleWillPaste();
+          }
+        }
+        logService.trace("registerExecCommandImpl (before triggerPaste)");
+        const triggerPaste = clipboardService.triggerPaste(getActiveWindow().vscodeWindowId);
+        if (triggerPaste) {
+          logService.trace("registerExecCommandImpl (triggerPaste defined)");
+          return triggerPaste.then(async () => {
+            logService.trace("registerExecCommandImpl (after triggerPaste)");
+            return CopyPasteController.get(focusedEditor)?.finishedPaste() ?? Promise.resolve();
+          });
+        } else {
+          logService.trace("registerExecCommandImpl (triggerPaste undefined)");
+        }
+        if (isWeb) {
+          logService.trace("registerExecCommandImpl (Paste handling on web)");
+          return (async () => {
+            const clipboardText = await clipboardService.readText();
+            if (clipboardText !== "") {
+              const metadata = InMemoryClipboardMetadataManager.INSTANCE.get(clipboardText);
+              let pasteOnNewLine = false;
+              let multicursorText = null;
+              let mode = null;
+              if (metadata) {
+                pasteOnNewLine = focusedEditor.getOption(
+                  45
+                  /* EditorOption.emptySelectionClipboard */
+                ) && !!metadata.isFromEmptySelection;
+                multicursorText = typeof metadata.multicursorText !== "undefined" ? metadata.multicursorText : null;
+                mode = metadata.mode;
+              }
+              logService.trace("registerExecCommandImpl (clipboardText.length : ", clipboardText.length, " id : ", metadata?.id, ")");
+              focusedEditor.trigger("keyboard", "paste", {
+                text: clipboardText,
+                pasteOnNewLine,
+                multicursorText,
+                mode
+              });
+            }
+          })();
+        }
+        return true;
+      }
+      return false;
+    });
+    PasteAction.addImplementation(0, "generic-dom", (accessor, args) => {
+      const logService = accessor.get(ILogService);
+      logService.trace("registerExecCommandImpl (addImplementation generic-dom for : paste)");
+      const triggerPaste = accessor.get(IClipboardService).triggerPaste(getActiveWindow().vscodeWindowId);
+      return triggerPaste ?? false;
+    });
+  }
+  if (supportsCopy) {
+    registerEditorAction(ExecCommandCopyWithSyntaxHighlightingAction);
+  }
+
+  // src/monaco_source_command.ts
+  function bind_monaco_source_clipboard(editor2) {
+    const actions = [CopyAction, CutAction, PasteAction].filter(Boolean);
+    const bindings9 = actions.map((action) => action.addImplementation(10001, "typora-code-source", () => {
+      if (!editor2.hasTextFocus() || !editor2.hasModel() || !window.reqnode?.("electron")?.clipboard) return false;
+      run_monaco_source_command(editor2, action.id);
+      return true;
+    }));
+    return { dispose() {
+      for (const binding of bindings9) binding.dispose();
+    } };
+  }
   function run_monaco_source_command(editor2, command) {
     editor2.focus();
     if (["editor.action.clipboardPasteAction", "editor.action.clipboardCopyAction", "editor.action.clipboardCutAction"].includes(command)) {
@@ -169296,13 +173861,13 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // node_modules/monaco-editor/esm/vs/editor/contrib/semanticTokens/browser/documentSemanticTokens.js
-  var __decorate82 = function(decorators, target, key4, desc) {
+  var __decorate89 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param75 = function(paramIndex, decorator) {
+  var __param82 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -169384,13 +173949,13 @@ https://creativecommons.org/licenses/by/4.0/
       super.dispose();
     }
   };
-  DocumentSemanticTokensFeature = __decorate82([
-    __param75(0, ISemanticTokensStylingService),
-    __param75(1, IModelService),
-    __param75(2, IThemeService),
-    __param75(3, IConfigurationService),
-    __param75(4, ILanguageFeatureDebounceService),
-    __param75(5, ILanguageFeaturesService)
+  DocumentSemanticTokensFeature = __decorate89([
+    __param82(0, ISemanticTokensStylingService),
+    __param82(1, IModelService),
+    __param82(2, IThemeService),
+    __param82(3, IConfigurationService),
+    __param82(4, ILanguageFeatureDebounceService),
+    __param82(5, ILanguageFeaturesService)
   ], DocumentSemanticTokensFeature);
   var ModelSemanticColoring = class ModelSemanticColoring2 extends Disposable {
     static {
@@ -169620,11 +174185,11 @@ https://creativecommons.org/licenses/by/4.0/
       rescheduleIfNeeded();
     }
   };
-  ModelSemanticColoring = ModelSemanticColoring_1 = __decorate82([
-    __param75(1, ISemanticTokensStylingService),
-    __param75(2, IThemeService),
-    __param75(3, ILanguageFeatureDebounceService),
-    __param75(4, ILanguageFeaturesService)
+  ModelSemanticColoring = ModelSemanticColoring_1 = __decorate89([
+    __param82(1, ISemanticTokensStylingService),
+    __param82(2, IThemeService),
+    __param82(3, ILanguageFeatureDebounceService),
+    __param82(4, ILanguageFeaturesService)
   ], ModelSemanticColoring);
   var SemanticTokensResponse = class {
     constructor(provider, resultId, data) {
@@ -174306,13 +178871,13 @@ https://creativecommons.org/licenses/by/4.0/
   init_resolverService();
   init_types();
   init_uri();
-  var __decorate83 = function(decorators, target, key4, desc) {
+  var __decorate90 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param76 = function(paramIndex, decorator) {
+  var __param83 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -174399,8 +178964,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   };
-  SmartSelectController = SmartSelectController_1 = __decorate83([
-    __param76(1, ILanguageFeaturesService)
+  SmartSelectController = SmartSelectController_1 = __decorate90([
+    __param83(1, ILanguageFeaturesService)
   ], SmartSelectController);
   var AbstractSmartSelect = class extends EditorAction {
     constructor(forward, opts) {
@@ -176658,13 +181223,13 @@ https://creativecommons.org/licenses/by/4.0/
   init_nls();
   init_lifecycle();
   init_dom();
-  var __decorate84 = function(decorators, target, key4, desc) {
+  var __decorate91 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param77 = function(paramIndex, decorator) {
+  var __param84 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -176718,8 +181283,8 @@ https://creativecommons.org/licenses/by/4.0/
       this._register(registerAndCreateHistoryNavigationContext(scopedContextKeyService, this.inputBox));
     }
   };
-  ContextScopedFindInput = __decorate84([
-    __param77(3, IContextKeyService)
+  ContextScopedFindInput = __decorate91([
+    __param84(3, IContextKeyService)
   ], ContextScopedFindInput);
   var ContextScopedReplaceInput = class ContextScopedReplaceInput2 extends ReplaceInput {
     constructor(container, contextViewProvider, options2, contextKeyService, showReplaceOptions = false) {
@@ -176728,8 +181293,8 @@ https://creativecommons.org/licenses/by/4.0/
       this._register(registerAndCreateHistoryNavigationContext(scopedContextKeyService, this.inputBox));
     }
   };
-  ContextScopedReplaceInput = __decorate84([
-    __param77(3, IContextKeyService)
+  ContextScopedReplaceInput = __decorate91([
+    __param84(3, IContextKeyService)
   ], ContextScopedReplaceInput);
   KeybindingsRegistry.registerCommandAndKeybindingRule({
     id: "history.showPrevious",
@@ -178028,13 +182593,13 @@ https://creativecommons.org/licenses/by/4.0/
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/findWidgetSearchHistory.js
   init_event();
   init_storage2();
-  var __decorate85 = function(decorators, target, key4, desc) {
+  var __decorate92 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param78 = function(paramIndex, decorator) {
+  var __param85 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -178116,20 +182681,20 @@ https://creativecommons.org/licenses/by/4.0/
       });
     }
   };
-  FindWidgetSearchHistory = FindWidgetSearchHistory_1 = __decorate85([
-    __param78(0, IStorageService)
+  FindWidgetSearchHistory = FindWidgetSearchHistory_1 = __decorate92([
+    __param85(0, IStorageService)
   ], FindWidgetSearchHistory);
 
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/replaceWidgetHistory.js
   init_event();
   init_storage2();
-  var __decorate86 = function(decorators, target, key4, desc) {
+  var __decorate93 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param79 = function(paramIndex, decorator) {
+  var __param86 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -178211,20 +182776,20 @@ https://creativecommons.org/licenses/by/4.0/
       });
     }
   };
-  ReplaceWidgetHistory = ReplaceWidgetHistory_1 = __decorate86([
-    __param79(0, IStorageService)
+  ReplaceWidgetHistory = ReplaceWidgetHistory_1 = __decorate93([
+    __param86(0, IStorageService)
   ], ReplaceWidgetHistory);
 
   // node_modules/monaco-editor/esm/vs/editor/contrib/find/browser/findController.js
   init_configuration();
   init_accessibility();
-  var __decorate87 = function(decorators, target, key4, desc) {
+  var __decorate94 = function(decorators, target, key4, desc) {
     var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
     if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
     else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
     return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
   };
-  var __param80 = function(paramIndex, decorator) {
+  var __param87 = function(paramIndex, decorator) {
     return function(target, key4) {
       decorator(target, key4, paramIndex);
     };
@@ -178558,12 +183123,12 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
   };
-  CommonFindController = CommonFindController_1 = __decorate87([
-    __param80(1, IContextKeyService),
-    __param80(2, IStorageService),
-    __param80(3, IClipboardService),
-    __param80(4, INotificationService),
-    __param80(5, IHoverService)
+  CommonFindController = CommonFindController_1 = __decorate94([
+    __param87(1, IContextKeyService),
+    __param87(2, IStorageService),
+    __param87(3, IClipboardService),
+    __param87(4, INotificationService),
+    __param87(5, IHoverService)
   ], CommonFindController);
   var FindController2 = class FindController3 extends CommonFindController {
     constructor(editor2, _contextViewService, _contextKeyService, _keybindingService, notificationService, _storageService, clipboardService, hoverService, _configurationService, _accessibilityService) {
@@ -178630,16 +183195,16 @@ https://creativecommons.org/licenses/by/4.0/
       this._widget?.setViewState(state);
     }
   };
-  FindController2 = __decorate87([
-    __param80(1, IContextViewService),
-    __param80(2, IContextKeyService),
-    __param80(3, IKeybindingService),
-    __param80(4, INotificationService),
-    __param80(5, IStorageService),
-    __param80(6, IClipboardService),
-    __param80(7, IHoverService),
-    __param80(8, IConfigurationService),
-    __param80(9, IAccessibilityService)
+  FindController2 = __decorate94([
+    __param87(1, IContextViewService),
+    __param87(2, IContextKeyService),
+    __param87(3, IKeybindingService),
+    __param87(4, INotificationService),
+    __param87(5, IStorageService),
+    __param87(6, IClipboardService),
+    __param87(7, IHoverService),
+    __param87(8, IConfigurationService),
+    __param87(9, IAccessibilityService)
   ], FindController2);
   var StartFindAction = registerMultiEditorAction(new MultiEditorAction({
     id: FIND_IDS.StartFindAction,
@@ -179272,4558 +183837,6 @@ https://creativecommons.org/licenses/by/4.0/
       /* KeyCode.Enter */
     }
   }));
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js
-  init_browser();
-  init_dom();
-  init_platform();
-  init_nls();
-  init_actions2();
-  init_clipboardService2();
-  init_contextkey();
-  init_log();
-  init_clipboardUtils();
-  init_nativeEditContextRegistry();
-  init_editorExtensions();
-  init_codeEditorService();
-  init_editorContextKeys();
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
-  init_arrays();
-  init_async();
-  init_cancellation();
-  init_dataTransfer();
-  init_errors();
-
-  // node_modules/monaco-editor/esm/vs/base/common/hierarchicalKind.js
-  var HierarchicalKind = class _HierarchicalKind {
-    static {
-      this.sep = ".";
-    }
-    static {
-      this.None = new _HierarchicalKind("@@none@@");
-    }
-    static {
-      this.Empty = new _HierarchicalKind("");
-    }
-    constructor(value) {
-      this.value = value;
-    }
-    equals(other) {
-      return this.value === other.value;
-    }
-    contains(other) {
-      return this.equals(other) || this.value === "" || other.value.startsWith(this.value + _HierarchicalKind.sep);
-    }
-    intersects(other) {
-      return this.contains(other) || other.contains(this);
-    }
-    append(...parts) {
-      return new _HierarchicalKind((this.value ? [this.value, ...parts] : parts).join(_HierarchicalKind.sep));
-    }
-  };
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
-  init_lifecycle();
-  init_mime();
-  init_types();
-  init_uuid();
-  init_nls();
-  init_clipboardService2();
-  init_commands();
-  init_configuration();
-  init_contextkey();
-  init_instantiation();
-  init_log();
-  init_progress();
-  init_quickInput();
-  init_bulkEditService();
-  init_languages();
-  init_languageFeatures();
-  init_editorState();
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/inlineProgress/browser/inlineProgress.js
-  init_dom();
-  init_async();
-  init_codicons();
-  init_lifecycle();
-  init_strings();
-  init_themables();
-  init_range();
-  init_textModel();
-  init_instantiation();
-  var __decorate88 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param81 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var inlineProgressDecoration = ModelDecorationOptions.register({
-    description: "inline-progress-widget",
-    stickiness: 1,
-    showIfCollapsed: true,
-    after: {
-      content: noBreakWhitespace,
-      inlineClassName: "inline-editor-progress-decoration",
-      inlineClassNameAffectsLetterSpacing: true
-    }
-  });
-  var InlineProgressWidget = class _InlineProgressWidget extends Disposable {
-    static {
-      this.baseId = "editor.widget.inlineProgressWidget";
-    }
-    constructor(typeId, editor2, range2, title, delegate) {
-      super();
-      this.typeId = typeId;
-      this.editor = editor2;
-      this.range = range2;
-      this.delegate = delegate;
-      this.allowEditorOverflow = false;
-      this.suppressMouseDown = true;
-      this.create(title);
-      this.editor.addContentWidget(this);
-      this.editor.layoutContentWidget(this);
-    }
-    create(title) {
-      this.domNode = $(".inline-progress-widget");
-      this.domNode.role = "button";
-      this.domNode.title = title;
-      const iconElement = $("span.icon");
-      this.domNode.append(iconElement);
-      iconElement.classList.add(...ThemeIcon.asClassNameArray(Codicon.loading), "codicon-modifier-spin");
-      const updateSize = () => {
-        const lineHeight = this.editor.getOption(
-          75
-          /* EditorOption.lineHeight */
-        );
-        this.domNode.style.height = "".concat(lineHeight, "px");
-        this.domNode.style.width = "".concat(Math.ceil(0.8 * lineHeight), "px");
-      };
-      updateSize();
-      this._register(this.editor.onDidChangeConfiguration((c) => {
-        if (c.hasChanged(
-          61
-          /* EditorOption.fontSize */
-        ) || c.hasChanged(
-          75
-          /* EditorOption.lineHeight */
-        )) {
-          updateSize();
-        }
-      }));
-      this._register(addDisposableListener(this.domNode, EventType.CLICK, (e) => {
-        this.delegate.cancel();
-      }));
-    }
-    getId() {
-      return _InlineProgressWidget.baseId + "." + this.typeId;
-    }
-    getDomNode() {
-      return this.domNode;
-    }
-    getPosition() {
-      return {
-        position: { lineNumber: this.range.startLineNumber, column: this.range.startColumn },
-        preference: [
-          0
-          /* ContentWidgetPositionPreference.EXACT */
-        ]
-      };
-    }
-    dispose() {
-      super.dispose();
-      this.editor.removeContentWidget(this);
-    }
-  };
-  var InlineProgressManager = class InlineProgressManager2 extends Disposable {
-    constructor(id, _editor, _instantiationService) {
-      super();
-      this.id = id;
-      this._editor = _editor;
-      this._instantiationService = _instantiationService;
-      this._showDelay = 500;
-      this._showPromise = this._register(new MutableDisposable());
-      this._currentWidget = this._register(new MutableDisposable());
-      this._operationIdPool = 0;
-      this._currentDecorations = _editor.createDecorationsCollection();
-    }
-    dispose() {
-      super.dispose();
-      this._currentDecorations.clear();
-    }
-    async showWhile(position2, title, promise, delegate, delayOverride) {
-      const operationId = this._operationIdPool++;
-      this._currentOperation = operationId;
-      this.clear();
-      this._showPromise.value = disposableTimeout(() => {
-        const range2 = Range.fromPositions(position2);
-        const decorationIds = this._currentDecorations.set([{
-          range: range2,
-          options: inlineProgressDecoration
-        }]);
-        if (decorationIds.length > 0) {
-          this._currentWidget.value = this._instantiationService.createInstance(InlineProgressWidget, this.id, this._editor, range2, title, delegate);
-        }
-      }, delayOverride ?? this._showDelay);
-      try {
-        return await promise;
-      } finally {
-        if (this._currentOperation === operationId) {
-          this.clear();
-          this._currentOperation = void 0;
-        }
-      }
-    }
-    clear() {
-      this._showPromise.clear();
-      this._currentDecorations.clear();
-      this._currentWidget.clear();
-    }
-  };
-  InlineProgressManager = __decorate88([
-    __param81(2, IInstantiationService)
-  ], InlineProgressManager);
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/message/browser/messageController.js
-  init_markdownRenderer();
-  init_aria2();
-  init_event();
-  init_htmlContent();
-  init_lifecycle();
-  init_editorExtensions();
-  init_range();
-  init_markdownRenderer2();
-  init_nls();
-  init_contextkey();
-  init_opener();
-  init_dom();
-  var __decorate89 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param82 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var MessageController_1;
-  var MessageController = class MessageController2 {
-    static {
-      MessageController_1 = this;
-    }
-    static {
-      this.ID = "editor.contrib.messageController";
-    }
-    static {
-      this.MESSAGE_VISIBLE = new RawContextKey("messageVisible", false, localize(1333, "Whether the editor is currently showing an inline message"));
-    }
-    static get(editor2) {
-      return editor2.getContribution(MessageController_1.ID);
-    }
-    constructor(editor2, contextKeyService, _openerService) {
-      this._openerService = _openerService;
-      this._messageWidget = new MutableDisposable();
-      this._messageListeners = new DisposableStore();
-      this._mouseOverMessage = false;
-      this._editor = editor2;
-      this._visible = MessageController_1.MESSAGE_VISIBLE.bindTo(contextKeyService);
-    }
-    dispose() {
-      this._messageListeners.dispose();
-      this._messageWidget.dispose();
-      this._visible.reset();
-    }
-    showMessage(message, position2) {
-      alert(isMarkdownString(message) ? message.value : message);
-      this._visible.set(true);
-      this._messageWidget.clear();
-      this._messageListeners.clear();
-      if (isMarkdownString(message)) {
-        const renderedMessage = this._messageListeners.add(renderMarkdown(message, {
-          actionHandler: (url, mdStr) => {
-            this.closeMessage();
-            openLinkFromMarkdown(this._openerService, url, mdStr.isTrusted);
-          }
-        }));
-        this._messageWidget.value = new MessageWidget(this._editor, position2, renderedMessage.element);
-      } else {
-        this._messageWidget.value = new MessageWidget(this._editor, position2, message);
-      }
-      this._messageListeners.add(Event2.debounce(this._editor.onDidBlurEditorText, (last, event) => event, 0)(() => {
-        if (this._mouseOverMessage) {
-          return;
-        }
-        if (this._messageWidget.value && isAncestor(getActiveElement(), this._messageWidget.value.getDomNode())) {
-          return;
-        }
-        this.closeMessage();
-      }));
-      this._messageListeners.add(this._editor.onDidChangeCursorPosition(() => this.closeMessage()));
-      this._messageListeners.add(this._editor.onDidDispose(() => this.closeMessage()));
-      this._messageListeners.add(this._editor.onDidChangeModel(() => this.closeMessage()));
-      this._messageListeners.add(addDisposableListener(this._messageWidget.value.getDomNode(), EventType.MOUSE_ENTER, () => this._mouseOverMessage = true, true));
-      this._messageListeners.add(addDisposableListener(this._messageWidget.value.getDomNode(), EventType.MOUSE_LEAVE, () => this._mouseOverMessage = false, true));
-      let bounds;
-      this._messageListeners.add(this._editor.onMouseMove((e) => {
-        if (!e.target.position) {
-          return;
-        }
-        if (!bounds) {
-          bounds = new Range(position2.lineNumber - 3, 1, e.target.position.lineNumber + 3, 1);
-        } else if (!bounds.containsPosition(e.target.position)) {
-          this.closeMessage();
-        }
-      }));
-    }
-    closeMessage() {
-      this._visible.reset();
-      this._messageListeners.clear();
-      if (this._messageWidget.value) {
-        this._messageListeners.add(MessageWidget.fadeOut(this._messageWidget.value));
-      }
-    }
-  };
-  MessageController = MessageController_1 = __decorate89([
-    __param82(1, IContextKeyService),
-    __param82(2, IOpenerService)
-  ], MessageController);
-  var MessageCommand = EditorCommand.bindToContribution(MessageController.get);
-  registerEditorCommand(new MessageCommand({
-    id: "leaveEditorMessage",
-    precondition: MessageController.MESSAGE_VISIBLE,
-    handler: (c) => c.closeMessage(),
-    kbOpts: {
-      weight: 100 + 30,
-      primary: 9
-      /* KeyCode.Escape */
-    }
-  }));
-  var MessageWidget = class {
-    static fadeOut(messageWidget) {
-      const dispose2 = () => {
-        messageWidget.dispose();
-        clearTimeout(handle);
-        messageWidget.getDomNode().removeEventListener("animationend", dispose2);
-      };
-      const handle = setTimeout(dispose2, 110);
-      messageWidget.getDomNode().addEventListener("animationend", dispose2);
-      messageWidget.getDomNode().classList.add("fadeOut");
-      return { dispose: dispose2 };
-    }
-    constructor(editor2, { lineNumber, column }, text3) {
-      this.allowEditorOverflow = true;
-      this.suppressMouseDown = false;
-      this._editor = editor2;
-      this._editor.revealLinesInCenterIfOutsideViewport(
-        lineNumber,
-        lineNumber,
-        0
-        /* ScrollType.Smooth */
-      );
-      this._position = { lineNumber, column };
-      this._domNode = document.createElement("div");
-      this._domNode.classList.add("monaco-editor-overlaymessage");
-      this._domNode.style.marginLeft = "-6px";
-      const anchorTop = document.createElement("div");
-      anchorTop.classList.add("anchor", "top");
-      this._domNode.appendChild(anchorTop);
-      const message = document.createElement("div");
-      if (typeof text3 === "string") {
-        message.classList.add("message");
-        message.textContent = text3;
-      } else {
-        text3.classList.add("message");
-        message.appendChild(text3);
-      }
-      this._domNode.appendChild(message);
-      const anchorBottom = document.createElement("div");
-      anchorBottom.classList.add("anchor", "below");
-      this._domNode.appendChild(anchorBottom);
-      this._editor.addContentWidget(this);
-      this._domNode.classList.add("fadeIn");
-    }
-    dispose() {
-      this._editor.removeContentWidget(this);
-    }
-    getId() {
-      return "messageoverlay";
-    }
-    getDomNode() {
-      return this._domNode;
-    }
-    getPosition() {
-      return {
-        position: this._position,
-        preference: [
-          1,
-          2
-        ],
-        positionAffinity: 1
-      };
-    }
-    afterRender(position2) {
-      this._domNode.classList.toggle(
-        "below",
-        position2 === 2
-        /* ContentWidgetPositionPreference.BELOW */
-      );
-    }
-  };
-  registerEditorContribution(
-    MessageController.ID,
-    MessageController,
-    4
-    /* EditorContributionInstantiation.Lazy */
-  );
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/defaultProviders.js
-  init_arrays();
-  init_dataTransfer();
-  init_lifecycle();
-  init_mime();
-  init_network();
-  init_resources();
-  init_uri();
-  init_nls();
-  init_workspace();
-  init_languages();
-  init_languageFeatures();
-  var __decorate90 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param83 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var SimplePasteAndDropProvider = class {
-    constructor(kind) {
-      this.copyMimeTypes = [];
-      this.kind = kind;
-      this.providedDropEditKinds = [this.kind];
-      this.providedPasteEditKinds = [this.kind];
-    }
-    async provideDocumentPasteEdits(_model, _ranges, dataTransfer, context, token) {
-      const edit3 = await this.getEdit(dataTransfer, token);
-      if (!edit3) {
-        return void 0;
-      }
-      return {
-        edits: [{ insertText: edit3.insertText, title: edit3.title, kind: edit3.kind, handledMimeType: edit3.handledMimeType, yieldTo: edit3.yieldTo }],
-        dispose() {
-        }
-      };
-    }
-    async provideDocumentDropEdits(_model, _position, dataTransfer, token) {
-      const edit3 = await this.getEdit(dataTransfer, token);
-      if (!edit3) {
-        return;
-      }
-      return {
-        edits: [{ insertText: edit3.insertText, title: edit3.title, kind: edit3.kind, handledMimeType: edit3.handledMimeType, yieldTo: edit3.yieldTo }],
-        dispose() {
-        }
-      };
-    }
-  };
-  var DefaultTextPasteOrDropEditProvider = class _DefaultTextPasteOrDropEditProvider extends SimplePasteAndDropProvider {
-    static {
-      this.id = "text";
-    }
-    constructor() {
-      super(HierarchicalKind.Empty.append("text", "plain"));
-      this.id = _DefaultTextPasteOrDropEditProvider.id;
-      this.dropMimeTypes = [Mimes.text];
-      this.pasteMimeTypes = [Mimes.text];
-    }
-    async getEdit(dataTransfer, _token) {
-      const textEntry = dataTransfer.get(Mimes.text);
-      if (!textEntry) {
-        return;
-      }
-      if (dataTransfer.has(Mimes.uriList)) {
-        return;
-      }
-      const insertText = await textEntry.asString();
-      return {
-        handledMimeType: Mimes.text,
-        title: localize(965, "Insert Plain Text"),
-        insertText,
-        kind: this.kind
-      };
-    }
-  };
-  var PathProvider = class extends SimplePasteAndDropProvider {
-    constructor() {
-      super(HierarchicalKind.Empty.append("uri", "path", "absolute"));
-      this.dropMimeTypes = [Mimes.uriList];
-      this.pasteMimeTypes = [Mimes.uriList];
-    }
-    async getEdit(dataTransfer, token) {
-      const entries3 = await extractUriList(dataTransfer);
-      if (!entries3.length || token.isCancellationRequested) {
-        return;
-      }
-      let uriCount = 0;
-      const insertText = entries3.map(({ uri, originalText }) => {
-        if (uri.scheme === Schemas.file) {
-          return uri.fsPath;
-        } else {
-          uriCount++;
-          return originalText;
-        }
-      }).join(" ");
-      let label;
-      if (uriCount > 0) {
-        label = entries3.length > 1 ? localize(966, "Insert Uris") : localize(967, "Insert Uri");
-      } else {
-        label = entries3.length > 1 ? localize(968, "Insert Paths") : localize(969, "Insert Path");
-      }
-      return {
-        handledMimeType: Mimes.uriList,
-        insertText,
-        title: label,
-        kind: this.kind
-      };
-    }
-  };
-  var RelativePathProvider = class RelativePathProvider2 extends SimplePasteAndDropProvider {
-    constructor(_workspaceContextService) {
-      super(HierarchicalKind.Empty.append("uri", "path", "relative"));
-      this._workspaceContextService = _workspaceContextService;
-      this.dropMimeTypes = [Mimes.uriList];
-      this.pasteMimeTypes = [Mimes.uriList];
-    }
-    async getEdit(dataTransfer, token) {
-      const entries3 = await extractUriList(dataTransfer);
-      if (!entries3.length || token.isCancellationRequested) {
-        return;
-      }
-      const relativeUris = coalesce(entries3.map(({ uri }) => {
-        const root = this._workspaceContextService.getWorkspaceFolder(uri);
-        return root ? relativePath(root.uri, uri) : void 0;
-      }));
-      if (!relativeUris.length) {
-        return;
-      }
-      return {
-        handledMimeType: Mimes.uriList,
-        insertText: relativeUris.join(" "),
-        title: entries3.length > 1 ? localize(970, "Insert Relative Paths") : localize(971, "Insert Relative Path"),
-        kind: this.kind
-      };
-    }
-  };
-  RelativePathProvider = __decorate90([
-    __param83(0, IWorkspaceContextService)
-  ], RelativePathProvider);
-  var PasteHtmlProvider = class {
-    constructor() {
-      this.kind = new HierarchicalKind("html");
-      this.providedPasteEditKinds = [this.kind];
-      this.copyMimeTypes = [];
-      this.pasteMimeTypes = ["text/html"];
-      this._yieldTo = [{ mimeType: Mimes.text }];
-    }
-    async provideDocumentPasteEdits(_model, _ranges, dataTransfer, context, token) {
-      if (context.triggerKind !== DocumentPasteTriggerKind.PasteAs && !context.only?.contains(this.kind)) {
-        return;
-      }
-      const entry = dataTransfer.get("text/html");
-      const htmlText = await entry?.asString();
-      if (!htmlText || token.isCancellationRequested) {
-        return;
-      }
-      return {
-        dispose() {
-        },
-        edits: [{
-          insertText: htmlText,
-          yieldTo: this._yieldTo,
-          title: localize(972, "Insert HTML"),
-          kind: this.kind
-        }]
-      };
-    }
-  };
-  async function extractUriList(dataTransfer) {
-    const urlListEntry = dataTransfer.get(Mimes.uriList);
-    if (!urlListEntry) {
-      return [];
-    }
-    const strUriList = await urlListEntry.asString();
-    const entries3 = [];
-    for (const entry of UriList.parse(strUriList)) {
-      try {
-        entries3.push({ uri: URI.parse(entry), originalText: entry });
-      } catch {
-      }
-    }
-    return entries3;
-  }
-  var genericLanguageSelector = { scheme: "*", hasAccessToAllModels: true };
-  var DefaultDropProvidersFeature = class DefaultDropProvidersFeature2 extends Disposable {
-    constructor(languageFeaturesService, workspaceContextService) {
-      super();
-      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new DefaultTextPasteOrDropEditProvider()));
-      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new PathProvider()));
-      this._register(languageFeaturesService.documentDropEditProvider.register(genericLanguageSelector, new RelativePathProvider(workspaceContextService)));
-    }
-  };
-  DefaultDropProvidersFeature = __decorate90([
-    __param83(0, ILanguageFeaturesService),
-    __param83(1, IWorkspaceContextService)
-  ], DefaultDropProvidersFeature);
-  var DefaultPasteProvidersFeature = class DefaultPasteProvidersFeature2 extends Disposable {
-    constructor(languageFeaturesService, workspaceContextService) {
-      super();
-      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new DefaultTextPasteOrDropEditProvider()));
-      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new PathProvider()));
-      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new RelativePathProvider(workspaceContextService)));
-      this._register(languageFeaturesService.documentPasteEditProvider.register(genericLanguageSelector, new PasteHtmlProvider()));
-    }
-  };
-  DefaultPasteProvidersFeature = __decorate90([
-    __param83(0, ILanguageFeaturesService),
-    __param83(1, IWorkspaceContextService)
-  ], DefaultPasteProvidersFeature);
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/edit.js
-  init_bulkEditService();
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/snippet/browser/snippetParser.js
-  var Scanner2 = class _Scanner {
-    constructor() {
-      this.value = "";
-      this.pos = 0;
-    }
-    static {
-      this._table = {
-        [
-          36
-          /* CharCode.DollarSign */
-        ]: 0,
-        [
-          58
-          /* CharCode.Colon */
-        ]: 1,
-        [
-          44
-          /* CharCode.Comma */
-        ]: 2,
-        [
-          123
-          /* CharCode.OpenCurlyBrace */
-        ]: 3,
-        [
-          125
-          /* CharCode.CloseCurlyBrace */
-        ]: 4,
-        [
-          92
-          /* CharCode.Backslash */
-        ]: 5,
-        [
-          47
-          /* CharCode.Slash */
-        ]: 6,
-        [
-          124
-          /* CharCode.Pipe */
-        ]: 7,
-        [
-          43
-          /* CharCode.Plus */
-        ]: 11,
-        [
-          45
-          /* CharCode.Dash */
-        ]: 12,
-        [
-          63
-          /* CharCode.QuestionMark */
-        ]: 13
-      };
-    }
-    static isDigitCharacter(ch) {
-      return ch >= 48 && ch <= 57;
-    }
-    static isVariableCharacter(ch) {
-      return ch === 95 || ch >= 97 && ch <= 122 || ch >= 65 && ch <= 90;
-    }
-    text(value) {
-      this.value = value;
-      this.pos = 0;
-    }
-    tokenText(token) {
-      return this.value.substr(token.pos, token.len);
-    }
-    next() {
-      if (this.pos >= this.value.length) {
-        return { type: 14, pos: this.pos, len: 0 };
-      }
-      const pos = this.pos;
-      let len = 0;
-      let ch = this.value.charCodeAt(pos);
-      let type;
-      type = _Scanner._table[ch];
-      if (typeof type === "number") {
-        this.pos += 1;
-        return { type, pos, len: 1 };
-      }
-      if (_Scanner.isDigitCharacter(ch)) {
-        type = 8;
-        do {
-          len += 1;
-          ch = this.value.charCodeAt(pos + len);
-        } while (_Scanner.isDigitCharacter(ch));
-        this.pos += len;
-        return { type, pos, len };
-      }
-      if (_Scanner.isVariableCharacter(ch)) {
-        type = 9;
-        do {
-          ch = this.value.charCodeAt(pos + ++len);
-        } while (_Scanner.isVariableCharacter(ch) || _Scanner.isDigitCharacter(ch));
-        this.pos += len;
-        return { type, pos, len };
-      }
-      type = 10;
-      do {
-        len += 1;
-        ch = this.value.charCodeAt(pos + len);
-      } while (!isNaN(ch) && typeof _Scanner._table[ch] === "undefined" && !_Scanner.isDigitCharacter(ch) && !_Scanner.isVariableCharacter(ch));
-      this.pos += len;
-      return { type, pos, len };
-    }
-  };
-  var Marker = class {
-    constructor() {
-      this._children = [];
-    }
-    appendChild(child) {
-      if (child instanceof Text2 && this._children[this._children.length - 1] instanceof Text2) {
-        this._children[this._children.length - 1].value += child.value;
-      } else {
-        child.parent = this;
-        this._children.push(child);
-      }
-      return this;
-    }
-    replace(child, others) {
-      const { parent } = child;
-      const idx = parent.children.indexOf(child);
-      const newChildren = parent.children.slice(0);
-      newChildren.splice(idx, 1, ...others);
-      parent._children = newChildren;
-      (function _fixParent(children, parent2) {
-        for (const child2 of children) {
-          child2.parent = parent2;
-          _fixParent(child2.children, child2);
-        }
-      })(others, parent);
-    }
-    get children() {
-      return this._children;
-    }
-    get rightMostDescendant() {
-      if (this._children.length > 0) {
-        return this._children[this._children.length - 1].rightMostDescendant;
-      }
-      return this;
-    }
-    get snippet() {
-      let candidate = this;
-      while (true) {
-        if (!candidate) {
-          return void 0;
-        }
-        if (candidate instanceof TextmateSnippet) {
-          return candidate;
-        }
-        candidate = candidate.parent;
-      }
-    }
-    toString() {
-      return this.children.reduce((prev, cur) => prev + cur.toString(), "");
-    }
-    len() {
-      return 0;
-    }
-  };
-  var Text2 = class _Text extends Marker {
-    constructor(value) {
-      super();
-      this.value = value;
-    }
-    toString() {
-      return this.value;
-    }
-    len() {
-      return this.value.length;
-    }
-    clone() {
-      return new _Text(this.value);
-    }
-  };
-  var TransformableMarker = class extends Marker {
-  };
-  var Placeholder = class _Placeholder extends TransformableMarker {
-    static compareByIndex(a, b2) {
-      if (a.index === b2.index) {
-        return 0;
-      } else if (a.isFinalTabstop) {
-        return 1;
-      } else if (b2.isFinalTabstop) {
-        return -1;
-      } else if (a.index < b2.index) {
-        return -1;
-      } else if (a.index > b2.index) {
-        return 1;
-      } else {
-        return 0;
-      }
-    }
-    constructor(index) {
-      super();
-      this.index = index;
-    }
-    get isFinalTabstop() {
-      return this.index === 0;
-    }
-    get choice() {
-      return this._children.length === 1 && this._children[0] instanceof Choice ? this._children[0] : void 0;
-    }
-    clone() {
-      const ret = new _Placeholder(this.index);
-      if (this.transform) {
-        ret.transform = this.transform.clone();
-      }
-      ret._children = this.children.map((child) => child.clone());
-      return ret;
-    }
-  };
-  var Choice = class _Choice extends Marker {
-    constructor() {
-      super(...arguments);
-      this.options = [];
-    }
-    appendChild(marker) {
-      if (marker instanceof Text2) {
-        marker.parent = this;
-        this.options.push(marker);
-      }
-      return this;
-    }
-    toString() {
-      return this.options[0].value;
-    }
-    len() {
-      return this.options[0].len();
-    }
-    clone() {
-      const ret = new _Choice();
-      this.options.forEach(ret.appendChild, ret);
-      return ret;
-    }
-  };
-  var Transform = class _Transform extends Marker {
-    constructor() {
-      super(...arguments);
-      this.regexp = new RegExp("");
-    }
-    resolve(value) {
-      const _this = this;
-      let didMatch = false;
-      let ret = value.replace(this.regexp, function() {
-        didMatch = true;
-        return _this._replace(Array.prototype.slice.call(arguments, 0, -2));
-      });
-      if (!didMatch && this._children.some((child) => child instanceof FormatString && Boolean(child.elseValue))) {
-        ret = this._replace([]);
-      }
-      return ret;
-    }
-    _replace(groups) {
-      let ret = "";
-      for (const marker of this._children) {
-        if (marker instanceof FormatString) {
-          let value = groups[marker.index] || "";
-          value = marker.resolve(value);
-          ret += value;
-        } else {
-          ret += marker.toString();
-        }
-      }
-      return ret;
-    }
-    toString() {
-      return "";
-    }
-    clone() {
-      const ret = new _Transform();
-      ret.regexp = new RegExp(this.regexp.source, (this.regexp.ignoreCase ? "i" : "") + (this.regexp.global ? "g" : ""));
-      ret._children = this.children.map((child) => child.clone());
-      return ret;
-    }
-  };
-  var FormatString = class _FormatString extends Marker {
-    constructor(index, shorthandName, ifValue, elseValue) {
-      super();
-      this.index = index;
-      this.shorthandName = shorthandName;
-      this.ifValue = ifValue;
-      this.elseValue = elseValue;
-    }
-    resolve(value) {
-      if (this.shorthandName === "upcase") {
-        return !value ? "" : value.toLocaleUpperCase();
-      } else if (this.shorthandName === "downcase") {
-        return !value ? "" : value.toLocaleLowerCase();
-      } else if (this.shorthandName === "capitalize") {
-        return !value ? "" : value[0].toLocaleUpperCase() + value.substr(1);
-      } else if (this.shorthandName === "pascalcase") {
-        return !value ? "" : this._toPascalCase(value);
-      } else if (this.shorthandName === "camelcase") {
-        return !value ? "" : this._toCamelCase(value);
-      } else if (this.shorthandName === "kebabcase") {
-        return !value ? "" : this._toKebabCase(value);
-      } else if (this.shorthandName === "snakecase") {
-        return !value ? "" : this._toSnakeCase(value);
-      } else if (Boolean(value) && typeof this.ifValue === "string") {
-        return this.ifValue;
-      } else if (!Boolean(value) && typeof this.elseValue === "string") {
-        return this.elseValue;
-      } else {
-        return value || "";
-      }
-    }
-    // Note: word-based case transforms rely on uppercase/lowercase distinctions.
-    // For scripts without case, transforms are effectively no-ops.
-    _toKebabCase(value) {
-      const match2 = value.match(/[\p{L}0-9]+/gu);
-      if (!match2) {
-        return value;
-      }
-      if (!value.match(/[\p{L}0-9]/u)) {
-        return value.trim().toLowerCase().replace(/^_+|_+$/g, "").replace(/[\s_]+/g, "-");
-      }
-      const cleaned = value.trim().replace(/^_+|_+$/g, "");
-      const match22 = cleaned.match(new RegExp("\\p{Lu}{2,}(?=\\p{Lu}\\p{Ll}+[0-9]*|[\\s_-]|$)|\\p{Lu}?\\p{Ll}+[0-9]*|\\p{Lu}(?=\\p{Lu}\\p{Ll})|\\p{Lu}(?=[\\s_-]|$)|[0-9]+", "gu"));
-      if (!match22) {
-        return cleaned.split(/[\s_-]+/).filter((word) => word.length > 0).map((word) => word.toLowerCase()).join("-");
-      }
-      return match22.map((x) => x.toLowerCase()).join("-");
-    }
-    _toPascalCase(value) {
-      const match2 = value.match(/[\p{L}0-9]+/gu);
-      if (!match2) {
-        return value;
-      }
-      return match2.map((word) => {
-        return word.charAt(0).toUpperCase() + word.substr(1);
-      }).join("");
-    }
-    _toCamelCase(value) {
-      const match2 = value.match(/[\p{L}0-9]+/gu);
-      if (!match2) {
-        return value;
-      }
-      return match2.map((word, index) => {
-        if (index === 0) {
-          return word.charAt(0).toLowerCase() + word.substr(1);
-        }
-        return word.charAt(0).toUpperCase() + word.substr(1);
-      }).join("");
-    }
-    _toSnakeCase(value) {
-      return value.replace(new RegExp("(\\p{Ll})(\\p{Lu})", "gu"), "$1_$2").replace(/[\s\-]+/g, "_").toLowerCase();
-    }
-    clone() {
-      const ret = new _FormatString(this.index, this.shorthandName, this.ifValue, this.elseValue);
-      return ret;
-    }
-  };
-  var Variable = class _Variable extends TransformableMarker {
-    constructor(name) {
-      super();
-      this.name = name;
-    }
-    resolve(resolver) {
-      let value = resolver.resolve(this);
-      if (this.transform) {
-        value = this.transform.resolve(value || "");
-      }
-      if (value !== void 0) {
-        this._children = [new Text2(value)];
-        return true;
-      }
-      return false;
-    }
-    clone() {
-      const ret = new _Variable(this.name);
-      if (this.transform) {
-        ret.transform = this.transform.clone();
-      }
-      ret._children = this.children.map((child) => child.clone());
-      return ret;
-    }
-  };
-  function walk(marker, visitor) {
-    const stack = [...marker];
-    while (stack.length > 0) {
-      const marker2 = stack.shift();
-      const recurse = visitor(marker2);
-      if (!recurse) {
-        break;
-      }
-      stack.unshift(...marker2.children);
-    }
-  }
-  var TextmateSnippet = class _TextmateSnippet extends Marker {
-    get placeholderInfo() {
-      if (!this._placeholders) {
-        const all = [];
-        let last;
-        this.walk(function(candidate) {
-          if (candidate instanceof Placeholder) {
-            all.push(candidate);
-            last = !last || last.index < candidate.index ? candidate : last;
-          }
-          return true;
-        });
-        this._placeholders = { all, last };
-      }
-      return this._placeholders;
-    }
-    get placeholders() {
-      const { all } = this.placeholderInfo;
-      return all;
-    }
-    offset(marker) {
-      let pos = 0;
-      let found = false;
-      this.walk((candidate) => {
-        if (candidate === marker) {
-          found = true;
-          return false;
-        }
-        pos += candidate.len();
-        return true;
-      });
-      if (!found) {
-        return -1;
-      }
-      return pos;
-    }
-    fullLen(marker) {
-      let ret = 0;
-      walk([marker], (marker2) => {
-        ret += marker2.len();
-        return true;
-      });
-      return ret;
-    }
-    enclosingPlaceholders(placeholder) {
-      const ret = [];
-      let { parent } = placeholder;
-      while (parent) {
-        if (parent instanceof Placeholder) {
-          ret.push(parent);
-        }
-        parent = parent.parent;
-      }
-      return ret;
-    }
-    resolveVariables(resolver) {
-      this.walk((candidate) => {
-        if (candidate instanceof Variable) {
-          if (candidate.resolve(resolver)) {
-            this._placeholders = void 0;
-          }
-        }
-        return true;
-      });
-      return this;
-    }
-    appendChild(child) {
-      this._placeholders = void 0;
-      return super.appendChild(child);
-    }
-    replace(child, others) {
-      this._placeholders = void 0;
-      return super.replace(child, others);
-    }
-    clone() {
-      const ret = new _TextmateSnippet();
-      ret._children = this.children.map((child) => child.clone());
-      return ret;
-    }
-    walk(visitor) {
-      walk(this.children, visitor);
-    }
-  };
-  var SnippetParser = class {
-    constructor() {
-      this._scanner = new Scanner2();
-      this._token = { type: 14, pos: 0, len: 0 };
-    }
-    static escape(value) {
-      return value.replace(/\$|}|\\/g, "\\$&");
-    }
-    static guessNeedsClipboard(template) {
-      return /\${?CLIPBOARD/.test(template);
-    }
-    parse(value, insertFinalTabstop, enforceFinalTabstop) {
-      const snippet = new TextmateSnippet();
-      this.parseFragment(value, snippet);
-      this.ensureFinalTabstop(snippet, enforceFinalTabstop ?? false, insertFinalTabstop ?? false);
-      return snippet;
-    }
-    parseFragment(value, snippet) {
-      const offset = snippet.children.length;
-      this._scanner.text(value);
-      this._token = this._scanner.next();
-      while (this._parse(snippet)) {
-      }
-      const placeholderDefaultValues = /* @__PURE__ */ new Map();
-      const incompletePlaceholders = [];
-      snippet.walk((marker) => {
-        if (marker instanceof Placeholder) {
-          if (marker.isFinalTabstop) {
-            placeholderDefaultValues.set(0, void 0);
-          } else if (!placeholderDefaultValues.has(marker.index) && marker.children.length > 0) {
-            placeholderDefaultValues.set(marker.index, marker.children);
-          } else {
-            incompletePlaceholders.push(marker);
-          }
-        }
-        return true;
-      });
-      const fillInIncompletePlaceholder = (placeholder, stack2) => {
-        const defaultValues = placeholderDefaultValues.get(placeholder.index);
-        if (!defaultValues) {
-          return;
-        }
-        const clone4 = new Placeholder(placeholder.index);
-        clone4.transform = placeholder.transform;
-        for (const child of defaultValues) {
-          const newChild = child.clone();
-          clone4.appendChild(newChild);
-          if (newChild instanceof Placeholder && placeholderDefaultValues.has(newChild.index) && !stack2.has(newChild.index)) {
-            stack2.add(newChild.index);
-            fillInIncompletePlaceholder(newChild, stack2);
-            stack2.delete(newChild.index);
-          }
-        }
-        snippet.replace(placeholder, [clone4]);
-      };
-      const stack = /* @__PURE__ */ new Set();
-      for (const placeholder of incompletePlaceholders) {
-        fillInIncompletePlaceholder(placeholder, stack);
-      }
-      return snippet.children.slice(offset);
-    }
-    ensureFinalTabstop(snippet, enforceFinalTabstop, insertFinalTabstop) {
-      if (enforceFinalTabstop || insertFinalTabstop && snippet.placeholders.length > 0) {
-        const finalTabstop = snippet.placeholders.find((p) => p.index === 0);
-        if (!finalTabstop) {
-          snippet.appendChild(new Placeholder(0));
-        }
-      }
-    }
-    _accept(type, value) {
-      if (type === void 0 || this._token.type === type) {
-        const ret = !value ? true : this._scanner.tokenText(this._token);
-        this._token = this._scanner.next();
-        return ret;
-      }
-      return false;
-    }
-    _backTo(token) {
-      this._scanner.pos = token.pos + token.len;
-      this._token = token;
-      return false;
-    }
-    _until(type) {
-      const start = this._token;
-      while (this._token.type !== type) {
-        if (this._token.type === 14) {
-          return false;
-        } else if (this._token.type === 5) {
-          const nextToken = this._scanner.next();
-          if (nextToken.type !== 0 && nextToken.type !== 4 && nextToken.type !== 5) {
-            return false;
-          }
-        }
-        this._token = this._scanner.next();
-      }
-      const value = this._scanner.value.substring(start.pos, this._token.pos).replace(/\\(\$|}|\\)/g, "$1");
-      this._token = this._scanner.next();
-      return value;
-    }
-    _parse(marker) {
-      return this._parseEscaped(marker) || this._parseTabstopOrVariableName(marker) || this._parseComplexPlaceholder(marker) || this._parseComplexVariable(marker) || this._parseAnything(marker);
-    }
-    // \$, \\, \} -> just text
-    _parseEscaped(marker) {
-      let value;
-      if (value = this._accept(5, true)) {
-        value = this._accept(0, true) || this._accept(4, true) || this._accept(5, true) || value;
-        marker.appendChild(new Text2(value));
-        return true;
-      }
-      return false;
-    }
-    // $foo -> variable, $1 -> tabstop
-    _parseTabstopOrVariableName(parent) {
-      let value;
-      const token = this._token;
-      const match2 = this._accept(
-        0
-        /* TokenType.Dollar */
-      ) && (value = this._accept(9, true) || this._accept(8, true));
-      if (!match2) {
-        return this._backTo(token);
-      }
-      parent.appendChild(/^\d+$/.test(value) ? new Placeholder(Number(value)) : new Variable(value));
-      return true;
-    }
-    // ${1:<children>}, ${1} -> placeholder
-    _parseComplexPlaceholder(parent) {
-      let index;
-      const token = this._token;
-      const match2 = this._accept(
-        0
-        /* TokenType.Dollar */
-      ) && this._accept(
-        3
-        /* TokenType.CurlyOpen */
-      ) && (index = this._accept(8, true));
-      if (!match2) {
-        return this._backTo(token);
-      }
-      const placeholder = new Placeholder(Number(index));
-      if (this._accept(
-        1
-        /* TokenType.Colon */
-      )) {
-        while (true) {
-          if (this._accept(
-            4
-            /* TokenType.CurlyClose */
-          )) {
-            parent.appendChild(placeholder);
-            return true;
-          }
-          if (this._parse(placeholder)) {
-            continue;
-          }
-          parent.appendChild(new Text2("${" + index + ":"));
-          placeholder.children.forEach(parent.appendChild, parent);
-          return true;
-        }
-      } else if (placeholder.index > 0 && this._accept(
-        7
-        /* TokenType.Pipe */
-      )) {
-        const choice = new Choice();
-        while (true) {
-          if (this._parseChoiceElement(choice)) {
-            if (this._accept(
-              2
-              /* TokenType.Comma */
-            )) {
-              continue;
-            }
-            if (this._accept(
-              7
-              /* TokenType.Pipe */
-            )) {
-              placeholder.appendChild(choice);
-              if (this._accept(
-                4
-                /* TokenType.CurlyClose */
-              )) {
-                parent.appendChild(placeholder);
-                return true;
-              }
-            }
-          }
-          this._backTo(token);
-          return false;
-        }
-      } else if (this._accept(
-        6
-        /* TokenType.Forwardslash */
-      )) {
-        if (this._parseTransform(placeholder)) {
-          parent.appendChild(placeholder);
-          return true;
-        }
-        this._backTo(token);
-        return false;
-      } else if (this._accept(
-        4
-        /* TokenType.CurlyClose */
-      )) {
-        parent.appendChild(placeholder);
-        return true;
-      } else {
-        return this._backTo(token);
-      }
-    }
-    _parseChoiceElement(parent) {
-      const token = this._token;
-      const values = [];
-      while (true) {
-        if (this._token.type === 2 || this._token.type === 7) {
-          break;
-        }
-        let value;
-        if (value = this._accept(5, true)) {
-          value = this._accept(2, true) || this._accept(7, true) || this._accept(5, true) || value;
-        } else {
-          value = this._accept(void 0, true);
-        }
-        if (!value) {
-          this._backTo(token);
-          return false;
-        }
-        values.push(value);
-      }
-      if (values.length === 0) {
-        this._backTo(token);
-        return false;
-      }
-      parent.appendChild(new Text2(values.join("")));
-      return true;
-    }
-    // ${foo:<children>}, ${foo} -> variable
-    _parseComplexVariable(parent) {
-      let name;
-      const token = this._token;
-      const match2 = this._accept(
-        0
-        /* TokenType.Dollar */
-      ) && this._accept(
-        3
-        /* TokenType.CurlyOpen */
-      ) && (name = this._accept(9, true));
-      if (!match2) {
-        return this._backTo(token);
-      }
-      const variable = new Variable(name);
-      if (this._accept(
-        1
-        /* TokenType.Colon */
-      )) {
-        while (true) {
-          if (this._accept(
-            4
-            /* TokenType.CurlyClose */
-          )) {
-            parent.appendChild(variable);
-            return true;
-          }
-          if (this._parse(variable)) {
-            continue;
-          }
-          parent.appendChild(new Text2("${" + name + ":"));
-          variable.children.forEach(parent.appendChild, parent);
-          return true;
-        }
-      } else if (this._accept(
-        6
-        /* TokenType.Forwardslash */
-      )) {
-        if (this._parseTransform(variable)) {
-          parent.appendChild(variable);
-          return true;
-        }
-        this._backTo(token);
-        return false;
-      } else if (this._accept(
-        4
-        /* TokenType.CurlyClose */
-      )) {
-        parent.appendChild(variable);
-        return true;
-      } else {
-        return this._backTo(token);
-      }
-    }
-    _parseTransform(parent) {
-      const transform = new Transform();
-      let regexValue = "";
-      let regexOptions = "";
-      while (true) {
-        if (this._accept(
-          6
-          /* TokenType.Forwardslash */
-        )) {
-          break;
-        }
-        let escaped;
-        if (escaped = this._accept(5, true)) {
-          escaped = this._accept(6, true) || escaped;
-          regexValue += escaped;
-          continue;
-        }
-        if (this._token.type !== 14) {
-          regexValue += this._accept(void 0, true);
-          continue;
-        }
-        return false;
-      }
-      while (true) {
-        if (this._accept(
-          6
-          /* TokenType.Forwardslash */
-        )) {
-          break;
-        }
-        let escaped;
-        if (escaped = this._accept(5, true)) {
-          escaped = this._accept(5, true) || this._accept(6, true) || escaped;
-          transform.appendChild(new Text2(escaped));
-          continue;
-        }
-        if (this._parseFormatString(transform) || this._parseAnything(transform)) {
-          continue;
-        }
-        return false;
-      }
-      while (true) {
-        if (this._accept(
-          4
-          /* TokenType.CurlyClose */
-        )) {
-          break;
-        }
-        if (this._token.type !== 14) {
-          regexOptions += this._accept(void 0, true);
-          continue;
-        }
-        return false;
-      }
-      try {
-        transform.regexp = new RegExp(regexValue, regexOptions);
-      } catch (e) {
-        return false;
-      }
-      parent.transform = transform;
-      return true;
-    }
-    _parseFormatString(parent) {
-      const token = this._token;
-      if (!this._accept(
-        0
-        /* TokenType.Dollar */
-      )) {
-        return false;
-      }
-      let complex = false;
-      if (this._accept(
-        3
-        /* TokenType.CurlyOpen */
-      )) {
-        complex = true;
-      }
-      const index = this._accept(8, true);
-      if (!index) {
-        this._backTo(token);
-        return false;
-      } else if (!complex) {
-        parent.appendChild(new FormatString(Number(index)));
-        return true;
-      } else if (this._accept(
-        4
-        /* TokenType.CurlyClose */
-      )) {
-        parent.appendChild(new FormatString(Number(index)));
-        return true;
-      } else if (!this._accept(
-        1
-        /* TokenType.Colon */
-      )) {
-        this._backTo(token);
-        return false;
-      }
-      if (this._accept(
-        6
-        /* TokenType.Forwardslash */
-      )) {
-        const shorthand = this._accept(9, true);
-        if (!shorthand || !this._accept(
-          4
-          /* TokenType.CurlyClose */
-        )) {
-          this._backTo(token);
-          return false;
-        } else {
-          parent.appendChild(new FormatString(Number(index), shorthand));
-          return true;
-        }
-      } else if (this._accept(
-        11
-        /* TokenType.Plus */
-      )) {
-        const ifValue = this._until(
-          4
-          /* TokenType.CurlyClose */
-        );
-        if (ifValue) {
-          parent.appendChild(new FormatString(Number(index), void 0, ifValue, void 0));
-          return true;
-        }
-      } else if (this._accept(
-        12
-        /* TokenType.Dash */
-      )) {
-        const elseValue = this._until(
-          4
-          /* TokenType.CurlyClose */
-        );
-        if (elseValue) {
-          parent.appendChild(new FormatString(Number(index), void 0, void 0, elseValue));
-          return true;
-        }
-      } else if (this._accept(
-        13
-        /* TokenType.QuestionMark */
-      )) {
-        const ifValue = this._until(
-          1
-          /* TokenType.Colon */
-        );
-        if (ifValue) {
-          const elseValue = this._until(
-            4
-            /* TokenType.CurlyClose */
-          );
-          if (elseValue) {
-            parent.appendChild(new FormatString(Number(index), void 0, ifValue, elseValue));
-            return true;
-          }
-        }
-      } else {
-        const elseValue = this._until(
-          4
-          /* TokenType.CurlyClose */
-        );
-        if (elseValue) {
-          parent.appendChild(new FormatString(Number(index), void 0, void 0, elseValue));
-          return true;
-        }
-      }
-      this._backTo(token);
-      return false;
-    }
-    _parseAnything(marker) {
-      if (this._token.type !== 14) {
-        marker.appendChild(new Text2(this._scanner.tokenText(this._token)));
-        this._accept(void 0);
-        return true;
-      }
-      return false;
-    }
-  };
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/edit.js
-  function createCombinedWorkspaceEdit(uri, ranges2, edit3) {
-    if (typeof edit3.insertText === "string" ? edit3.insertText === "" : edit3.insertText.snippet === "") {
-      return {
-        edits: edit3.additionalEdit?.edits ?? []
-      };
-    }
-    return {
-      edits: [
-        ...ranges2.map((range2) => new ResourceTextEdit(uri, { range: range2, text: typeof edit3.insertText === "string" ? SnippetParser.escape(edit3.insertText) + "$0" : edit3.insertText.snippet, insertAsSnippet: true })),
-        ...edit3.additionalEdit?.edits ?? []
-      ]
-    };
-  }
-  function sortEditsByYieldTo(edits) {
-    function yieldsTo(yTo, other) {
-      if ("mimeType" in yTo) {
-        return yTo.mimeType === other.handledMimeType;
-      }
-      return !!other.kind && yTo.kind.contains(other.kind);
-    }
-    const yieldsToMap = /* @__PURE__ */ new Map();
-    for (const edit3 of edits) {
-      for (const yTo of edit3.yieldTo ?? []) {
-        for (const other of edits) {
-          if (other === edit3) {
-            continue;
-          }
-          if (yieldsTo(yTo, other)) {
-            let arr = yieldsToMap.get(edit3);
-            if (!arr) {
-              arr = [];
-              yieldsToMap.set(edit3, arr);
-            }
-            arr.push(other);
-          }
-        }
-      }
-    }
-    if (!yieldsToMap.size) {
-      return Array.from(edits);
-    }
-    const visited = /* @__PURE__ */ new Set();
-    const tempStack = [];
-    function visit(nodes) {
-      if (!nodes.length) {
-        return [];
-      }
-      const node = nodes[0];
-      if (tempStack.includes(node)) {
-        console.warn("Yield to cycle detected", node);
-        return nodes;
-      }
-      if (visited.has(node)) {
-        return visit(nodes.slice(1));
-      }
-      let pre = [];
-      const yTo = yieldsToMap.get(node);
-      if (yTo) {
-        tempStack.push(node);
-        pre = visit(yTo);
-        tempStack.pop();
-      }
-      visited.add(node);
-      return [...pre, node, ...visit(nodes.slice(1))];
-    }
-    return visit(Array.from(edits));
-  }
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
-  init_dom();
-  init_button2();
-  init_async();
-  init_codicons();
-
-  // node_modules/monaco-editor/esm/vs/base/common/errorMessage.js
-  init_arrays();
-  init_types();
-  init_nls();
-  function exceptionToErrorMessage(exception, verbose) {
-    if (verbose && (exception.stack || exception.stacktrace)) {
-      return localize(33, "{0}: {1}", detectSystemErrorMessage(exception), stackToString(exception.stack) || stackToString(exception.stacktrace));
-    }
-    return detectSystemErrorMessage(exception);
-  }
-  function stackToString(stack) {
-    if (Array.isArray(stack)) {
-      return stack.join("\n");
-    }
-    return stack;
-  }
-  function detectSystemErrorMessage(exception) {
-    if (exception.code === "ERR_UNC_HOST_NOT_ALLOWED") {
-      return "".concat(exception.message, ". Please update the 'security.allowedUNCHosts' setting if you want to allow this host.");
-    }
-    if (typeof exception.code === "string" && typeof exception.errno === "number" && typeof exception.syscall === "string") {
-      return localize(34, "A system error occurred ({0})", exception.message);
-    }
-    return exception.message || localize(35, "An unknown error occurred. Please consult the log for more details.");
-  }
-  function toErrorMessage(error = null, verbose = false) {
-    if (!error) {
-      return localize(36, "An unknown error occurred. Please consult the log for more details.");
-    }
-    if (Array.isArray(error)) {
-      const errors = coalesce(error);
-      const msg = toErrorMessage(errors[0], verbose);
-      if (errors.length > 1) {
-        return localize(37, "{0} ({1} errors in total)", msg, errors.length);
-      }
-      return msg;
-    }
-    if (isString(error)) {
-      return error;
-    }
-    if (error.detail) {
-      const detail = error.detail;
-      if (detail.error) {
-        return exceptionToErrorMessage(detail.error, verbose);
-      }
-      if (detail.exception) {
-        return exceptionToErrorMessage(detail.exception, verbose);
-      }
-    }
-    if (error.stack) {
-      return exceptionToErrorMessage(error, verbose);
-    }
-    if (error.message) {
-      return error.message;
-    }
-    return localize(38, "An unknown error occurred. Please consult the log for more details.");
-  }
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
-  init_errors();
-  init_event();
-  init_lifecycle();
-  init_themables();
-  init_nls();
-
-  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionWidget.js
-  init_dom();
-  init_actionbar2();
-  init_lifecycle();
-  init_nls();
-
-  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionList.js
-  init_dom();
-  init_markdownRenderer();
-  init_actionbar2();
-  init_contextview2();
-  init_keybindingLabel2();
-  init_listWidget();
-  init_actions();
-  init_cancellation();
-  init_codicons();
-  init_event();
-  init_htmlContent();
-  init_lifecycle();
-  init_platform();
-  init_themables();
-  init_uri();
-  init_nls();
-  init_contextView();
-  init_keybinding();
-  init_opener();
-  init_defaultStyles();
-  init_colorUtils();
-  init_baseColors();
-  init_chartsColors();
-  init_editorColors();
-  init_inputColors();
-  init_listColors();
-  init_menuColors();
-  init_minimapColors();
-  init_miscColors();
-  init_quickpickColors();
-  init_searchColors();
-  init_layoutService();
-  init_instantiation();
-  var __decorate91 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param84 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var ActionListWidget_1;
-  var acceptSelectedActionCommand = "acceptSelectedCodeAction";
-  var previewSelectedActionCommand = "previewSelectedCodeAction";
-  var HeaderRenderer = class {
-    get templateId() {
-      return "header";
-    }
-    renderTemplate(container) {
-      container.classList.add("group-header");
-      const text3 = document.createElement("span");
-      container.append(text3);
-      return { container, text: text3 };
-    }
-    renderElement(element, _index, templateData) {
-      templateData.text.textContent = element.group?.title ?? element.label ?? "";
-    }
-    disposeTemplate(_templateData) {
-    }
-  };
-  var SeparatorRenderer = class {
-    get templateId() {
-      return "separator";
-    }
-    renderTemplate(container) {
-      container.classList.add("separator");
-      const text3 = document.createElement("span");
-      container.append(text3);
-      return { container, text: text3 };
-    }
-    renderElement(element, _index, templateData) {
-      templateData.text.textContent = element.label ?? "";
-    }
-    disposeTemplate(_templateData) {
-    }
-  };
-  var ActionItemRenderer = class ActionItemRenderer2 {
-    get templateId() {
-      return "action";
-    }
-    constructor(_supportsPreview, _onRemoveItem, _onShowSubmenu, _hasAnySubmenuActions, _groupTitleByIndex, _linkHandler, _hideDefaultKeybindingTooltip, _keybindingService, _openerService) {
-      this._supportsPreview = _supportsPreview;
-      this._onRemoveItem = _onRemoveItem;
-      this._onShowSubmenu = _onShowSubmenu;
-      this._hasAnySubmenuActions = _hasAnySubmenuActions;
-      this._groupTitleByIndex = _groupTitleByIndex;
-      this._linkHandler = _linkHandler;
-      this._hideDefaultKeybindingTooltip = _hideDefaultKeybindingTooltip;
-      this._keybindingService = _keybindingService;
-      this._openerService = _openerService;
-    }
-    renderTemplate(container) {
-      container.classList.add(this.templateId);
-      const icon = document.createElement("div");
-      icon.className = "icon";
-      container.append(icon);
-      const text3 = document.createElement("span");
-      text3.className = "title";
-      container.append(text3);
-      const badge = document.createElement("span");
-      badge.className = "action-item-badge";
-      container.append(badge);
-      const description = document.createElement("span");
-      description.className = "description";
-      container.append(description);
-      const groupTitle = document.createElement("span");
-      groupTitle.className = "group-title";
-      container.append(groupTitle);
-      const detail = document.createElement("span");
-      detail.className = "detail";
-      container.append(detail);
-      const keybinding = new KeybindingLabel(container, OS);
-      const toolbar = document.createElement("div");
-      toolbar.className = "action-list-item-toolbar";
-      container.append(toolbar);
-      const submenuIndicator = document.createElement("div");
-      submenuIndicator.className = "action-list-submenu-indicator";
-      container.append(submenuIndicator);
-      const elementDisposables = new DisposableStore();
-      return { container, icon, text: text3, detail, badge, description, groupTitle, keybinding, toolbar, submenuIndicator, elementDisposables };
-    }
-    renderElement(element, _index, data) {
-      data.elementDisposables.clear();
-      if (element.group?.icon) {
-        data.icon.className = ThemeIcon.asClassName(element.group.icon);
-        if (element.group.icon.color) {
-          data.icon.style.color = asCssVariable(element.group.icon.color.id);
-        }
-      } else {
-        data.icon.className = ThemeIcon.asClassName(Codicon.lightBulb);
-        data.icon.style.color = "var(--vscode-editorLightBulb-foreground)";
-      }
-      if (!element.item || !element.label) {
-        return;
-      }
-      setVisibility(!element.hideIcon, data.icon);
-      if (element.isSectionToggle) {
-        const expanded2 = element.group?.icon === Codicon.chevronDown;
-        data.container.setAttribute("aria-expanded", String(expanded2));
-      } else {
-        data.container.removeAttribute("aria-expanded");
-      }
-      if (data.previousClassName) {
-        data.container.classList.remove(data.previousClassName);
-      }
-      data.container.classList.toggle("action-list-custom", !!element.className);
-      if (element.className) {
-        data.container.classList.add(element.className);
-      }
-      data.previousClassName = element.className;
-      data.text.textContent = stripNewlines(element.label);
-      if (element.badge) {
-        data.badge.textContent = element.badge;
-        data.badge.style.display = "";
-      } else {
-        data.badge.textContent = "";
-        data.badge.style.display = "none";
-      }
-      if (element.keybinding) {
-        data.description.textContent = element.keybinding.getLabel();
-        data.description.style.display = "inline";
-        data.description.style.letterSpacing = "0.5px";
-      } else if (element.description) {
-        clearNode(data.description);
-        if (typeof element.description === "string") {
-          data.description.textContent = stripNewlines(element.description);
-        } else {
-          const rendered = renderMarkdown(element.description, {
-            actionHandler: (content) => {
-              const uri = URI.parse(content);
-              if (this._linkHandler) {
-                this._linkHandler(uri, element);
-              } else {
-                void this._openerService.open(uri, { allowCommands: true });
-              }
-            }
-          });
-          data.elementDisposables.add(rendered);
-          data.description.appendChild(rendered.element);
-        }
-        data.description.style.display = "inline";
-      } else {
-        data.description.textContent = "";
-        data.description.style.display = "none";
-      }
-      const groupTitleText = this._groupTitleByIndex.get(_index);
-      if (groupTitleText) {
-        data.groupTitle.textContent = groupTitleText;
-        data.groupTitle.style.display = "";
-      } else {
-        data.groupTitle.textContent = "";
-        data.groupTitle.style.display = "none";
-      }
-      if (element.detail) {
-        data.detail.textContent = stripNewlines(element.detail);
-        data.detail.style.display = "";
-      } else {
-        data.detail.textContent = "";
-        data.detail.style.display = "none";
-      }
-      const actionTitle = this._keybindingService.lookupKeybinding(acceptSelectedActionCommand)?.getLabel();
-      const previewTitle = this._keybindingService.lookupKeybinding(previewSelectedActionCommand)?.getLabel();
-      data.container.classList.toggle("option-disabled", !!element.disabled);
-      if (element.hover !== void 0) {
-        data.container.title = "";
-      } else if (element.tooltip) {
-        data.container.title = element.tooltip;
-      } else if (element.disabled) {
-        data.container.title = element.label;
-      } else if (this._hideDefaultKeybindingTooltip) {
-        data.container.title = "";
-      } else if (actionTitle && previewTitle) {
-        if (this._supportsPreview && element.canPreview) {
-          data.container.title = localize(1705, "{0} to Apply, {1} to Preview", actionTitle, previewTitle);
-        } else {
-          data.container.title = localize(1706, "{0} to Apply", actionTitle);
-        }
-      } else {
-        data.container.title = "";
-      }
-      clearNode(data.toolbar);
-      const toolbarActions = [...element.toolbarActions ?? []];
-      if (element.onRemove) {
-        toolbarActions.push(toAction({
-          id: "actionList.remove",
-          label: localize(1707, "Remove"),
-          class: ThemeIcon.asClassName(Codicon.close),
-          run: async () => {
-            await element.onRemove();
-            this._onRemoveItem?.(element);
-          }
-        }));
-      }
-      data.container.classList.toggle("has-toolbar", toolbarActions.length > 0);
-      if (toolbarActions.length > 0) {
-        const actionBar = new ActionBar(data.toolbar);
-        data.elementDisposables.add(actionBar);
-        actionBar.push(toolbarActions, { icon: true, label: false });
-      }
-      if (element.submenuActions?.length && !element.hover?.content) {
-        data.submenuIndicator.className = "action-list-submenu-indicator has-submenu " + ThemeIcon.asClassName(Codicon.chevronRight);
-        data.submenuIndicator.style.display = "";
-        data.submenuIndicator.style.visibility = "";
-        data.elementDisposables.add(addDisposableListener(data.submenuIndicator, EventType.CLICK, (e) => {
-          e.stopPropagation();
-          this._onShowSubmenu?.(element);
-        }));
-      } else if (this._hasAnySubmenuActions) {
-        data.submenuIndicator.className = "action-list-submenu-indicator";
-        data.submenuIndicator.style.display = "";
-        data.submenuIndicator.style.visibility = "hidden";
-      } else {
-        data.submenuIndicator.className = "action-list-submenu-indicator";
-        data.submenuIndicator.style.display = "none";
-      }
-    }
-    disposeTemplate(templateData) {
-      templateData.keybinding.dispose();
-      templateData.elementDisposables.dispose();
-    }
-  };
-  ActionItemRenderer = __decorate91([
-    __param84(7, IKeybindingService),
-    __param84(8, IOpenerService)
-  ], ActionItemRenderer);
-  var AcceptSelectedEvent = class extends UIEvent {
-    constructor() {
-      super("acceptSelectedAction");
-    }
-  };
-  var PreviewSelectedEvent = class extends UIEvent {
-    constructor() {
-      super("previewSelectedAction");
-    }
-  };
-  function getKeyboardNavigationLabel(item) {
-    if (item.kind === "action") {
-      return item.label;
-    }
-    return void 0;
-  }
-  var ActionListWidget = ActionListWidget_1 = class ActionListWidget2 extends Disposable {
-    constructor(user, _supportsPreview, items, _delegate, accessibilityProvider, _options, _keybindingService, _openerService, _instantiationService) {
-      super();
-      this._supportsPreview = _supportsPreview;
-      this._delegate = _delegate;
-      this._options = _options;
-      this._keybindingService = _keybindingService;
-      this._openerService = _openerService;
-      this._instantiationService = _instantiationService;
-      this._headerLineHeight = 24;
-      this._separatorLineHeight = 8;
-      this.cts = this._register(new CancellationTokenSource());
-      this._submenuDisposables = this._register(new DisposableStore());
-      this._collapsedSections = /* @__PURE__ */ new Set();
-      this._filterText = "";
-      this._suppressHover = false;
-      this._hasLaidOut = false;
-      this._filterCts = this._register(new MutableDisposable());
-      this._groupTitleByIndex = /* @__PURE__ */ new Map();
-      this._onDidRequestLayout = this._register(new Emitter());
-      this.onDidRequestLayout = this._onDidRequestLayout.event;
-      this.domNode = document.createElement("div");
-      this.domNode.classList.add("actionList");
-      if (this._options?.inlineDescription) {
-        this.domNode.classList.add("inline-description");
-      }
-      if (this._options?.className) {
-        const classNames = this._options.className.split(/\s+/).filter((className2) => className2.length > 0);
-        if (classNames.length > 0) {
-          this.domNode.classList.add(...classNames);
-        }
-      }
-      this._actionLineHeight = 24;
-      this._submenuContainer = document.createElement("div");
-      this._submenuContainer.className = "action-list-submenu-panel action-widget";
-      this._submenuContainer.style.display = "none";
-      this._submenuContainer.tabIndex = -1;
-      this.domNode.append(this._submenuContainer);
-      this._register(addDisposableListener(this._submenuContainer, "mouseenter", () => {
-        this._cancelSubmenuHide();
-      }));
-      this._register(addDisposableListener(this._submenuContainer, "mouseleave", () => {
-        this._scheduleSubmenuHide();
-      }));
-      this._register(toDisposable(() => {
-        this._cancelSubmenuHide();
-        this._cancelSubmenuShow();
-      }));
-      if (this._options?.collapsedByDefault) {
-        for (const section of this._options.collapsedByDefault) {
-          this._collapsedSections.add(section);
-        }
-      }
-      const virtualDelegate = {
-        getHeight: (element) => {
-          return this._getItemHeight(element);
-        },
-        getTemplateId: (element) => element.kind
-      };
-      const reserveSubmenuSpace = this._options?.reserveSubmenuSpace ?? true;
-      const hasAnySubmenuActions = reserveSubmenuSpace && items.some((item) => !!item.submenuActions?.length && !item.hover?.content);
-      this._list = this._register(new List(user, this.domNode, virtualDelegate, [
-        new ActionItemRenderer(this._supportsPreview, (item) => this._removeItem(item), (item) => this._showSubmenuForItem(item), hasAnySubmenuActions, this._groupTitleByIndex, this._options?.linkHandler, this._options?.hideDefaultKeybindingTooltip ?? false, this._keybindingService, this._openerService),
-        new HeaderRenderer(),
-        new SeparatorRenderer()
-      ], {
-        keyboardSupport: false,
-        typeNavigationEnabled: !this._options?.showFilter,
-        keyboardNavigationLabelProvider: { getKeyboardNavigationLabel },
-        accessibilityProvider: {
-          getAriaLabel: (element) => {
-            if (element.kind === "action") {
-              let label = element.label ? stripNewlines(element?.label) : "";
-              if (element.detail) {
-                label = label + ", " + stripNewlines(element.detail);
-              }
-              if (element.ariaDescription) {
-                label = label + ", " + stripNewlines(element.ariaDescription);
-              } else if (element.description) {
-                const descText = typeof element.description === "string" ? element.description : element.description.value;
-                label = label + ", " + stripNewlines(descText);
-              }
-              if (element.hover?.content && !element.ariaDescription && !element.description) {
-                const hoverContent = element.hover.content;
-                const hoverText = typeof hoverContent === "string" ? hoverContent : isMarkdownString(hoverContent) ? hoverContent.value : isHTMLElement(hoverContent) ? hoverContent.textContent ?? void 0 : void 0;
-                if (hoverText && (!element.detail || stripNewlines(element.detail) !== stripNewlines(hoverText))) {
-                  label = label + ", " + stripNewlines(hoverText);
-                }
-              }
-              if (element.group?.title) {
-                label = label + ", " + element.group.title;
-              }
-              if (element.disabled) {
-                label = localize(1708, "{0}, Disabled Reason: {1}", label, element.disabled);
-              }
-              if (element.submenuActions?.length) {
-                label = localize(1709, "{0}, use right arrow to access options", label);
-              }
-              return label;
-            }
-            return null;
-          },
-          getWidgetAriaLabel: () => localize(1710, "Action Widget"),
-          getRole: (e) => {
-            switch (e.kind) {
-              case "action":
-                return "option";
-              case "separator":
-                return "separator";
-              default:
-                return "separator";
-            }
-          },
-          getWidgetRole: () => "listbox",
-          ...accessibilityProvider
-        }
-      }));
-      this._list.style(defaultListStyles);
-      this._register(this._list.onMouseClick((e) => this.onListClick(e)));
-      this._register(this._list.onMouseOver((e) => this.onListHover(e)));
-      this._register(this._list.onDidChangeFocus(() => this.onFocus()));
-      this._register(this._list.onDidChangeSelection((e) => this.onListSelection(e)));
-      this._allMenuItems = [...items];
-      if (this._options?.showFilter || this._options?.secondaryHeading) {
-        this._filterContainer = document.createElement("div");
-        this._filterContainer.className = "action-list-filter";
-        const filterRow = append(this._filterContainer, $(".action-list-filter-row"));
-        if (this._options?.showFilter) {
-          this._filterInput = document.createElement("input");
-          this._filterInput.type = "text";
-          this._filterInput.className = "action-list-filter-input";
-          this._filterInput.placeholder = this._options?.filterPlaceholder ?? localize(1711, "Search...");
-          this._filterInput.setAttribute("aria-label", localize(1712, "Filter items"));
-          filterRow.appendChild(this._filterInput);
-          const filterActions = this._options?.filterActions ?? [];
-          if (filterActions.length > 0) {
-            const filterActionsContainer = append(filterRow, $(".action-list-filter-actions"));
-            const filterActionBar = this._register(new ActionBar(filterActionsContainer));
-            filterActionBar.push(filterActions, { icon: true, label: false });
-          }
-          this._register(addDisposableListener(this._filterInput, "input", () => {
-            this._filterText = this._filterInput.value;
-            this._applyOrUpdateFilter();
-          }));
-        }
-        if (this._options?.secondaryHeading) {
-          const filterLabelEl = append(filterRow, $(".action-list-filter-label"));
-          filterLabelEl.textContent = this._options.secondaryHeading;
-        }
-      }
-      if (this._options?.footerText) {
-        this._footerContainer = document.createElement("div");
-        this._footerContainer.className = "action-list-footer";
-        this._footerContainer.textContent = this._options.footerText;
-      }
-      if (this._options?.headerText) {
-        this._headerContainer = document.createElement("div");
-        this._headerContainer.className = "action-list-header";
-        if (this._options.headerIcon) {
-          const icon = append(this._headerContainer, $("span.action-list-header-icon"));
-          icon.classList.add(...ThemeIcon.asClassNameArray(this._options.headerIcon));
-          icon.setAttribute("aria-hidden", "true");
-        }
-        const text3 = append(this._headerContainer, $("span.action-list-header-text"));
-        text3.textContent = this._options.headerText;
-      }
-      this._applyFilter();
-      if (this._list.length) {
-        this._focusCheckedOrFirst();
-      }
-      this._register(addDisposableListener(this.domNode, "keydown", (e) => {
-        if (e.key === "ArrowRight") {
-          const focused = this._list.getFocus();
-          if (focused.length > 0) {
-            const element = this._list.element(focused[0]);
-            if (element?.submenuActions?.length) {
-              EventHelper.stop(e, true);
-              const rowElement = this._getRowElement(focused[0]);
-              if (rowElement) {
-                this._showSubmenuForElement(element, rowElement);
-                this._currentSubmenuWidget?.focus();
-              }
-            }
-          }
-        }
-      }));
-      if (this._filterInput) {
-        this._register(addDisposableListener(this.domNode, "keydown", (e) => {
-          if (this._filterInput && !isActiveElement(this._filterInput) && e.key.length === 1 && e.key !== " " && !e.ctrlKey && !e.metaKey && !e.altKey) {
-            this._filterInput.focus();
-            this._filterInput.value = e.key;
-            this._filterText = e.key;
-            this._applyOrUpdateFilter();
-            e.preventDefault();
-            e.stopPropagation();
-          }
-        }));
-      }
-    }
-    _toggleSection(section) {
-      if (this._collapsedSections.has(section)) {
-        this._collapsedSections.delete(section);
-      } else {
-        this._collapsedSections.add(section);
-      }
-      this._options?.onDidToggleSection?.(section, this._collapsedSections.has(section));
-      this._applyFilter();
-    }
-    _applyOrUpdateFilter() {
-      if (!this._delegate.onFilter) {
-        this._applyFilter();
-        return;
-      }
-      const filterText = this._filterText;
-      this._filterCts.value?.cancel();
-      const cts = new CancellationTokenSource();
-      this._filterCts.value = cts;
-      this._delegate.onFilter(filterText, cts.token).then((items) => {
-        if (cts.token.isCancellationRequested) {
-          return;
-        }
-        this._allMenuItems = [...items];
-        this._applyFilter(true);
-      }).catch(() => {
-      });
-    }
-    _applyFilter(skipTextFilter = false, fireLayout = true) {
-      const filterLower = skipTextFilter ? "" : this._filterText.toLowerCase();
-      const isFiltering = !skipTextFilter && filterLower.length > 0;
-      const visible3 = [];
-      const focusedIndexes = this._list.getFocus();
-      let focusedItem;
-      if (focusedIndexes.length > 0) {
-        focusedItem = this._list.element(focusedIndexes[0]);
-      }
-      if (isFiltering) {
-        let pendingSeparator;
-        let filteredSectionItems = [];
-        let hasMatchingActionInSection = false;
-        const flushFilteredSection = () => {
-          if (pendingSeparator && hasMatchingActionInSection) {
-            visible3.push(pendingSeparator);
-          }
-          visible3.push(...filteredSectionItems);
-          pendingSeparator = void 0;
-          filteredSectionItems = [];
-          hasMatchingActionInSection = false;
-        };
-        const matchesFilter = (item) => {
-          const label = (item.label ?? "").toLowerCase();
-          const descValue = typeof item.description === "string" ? item.description : item.description?.value ?? "";
-          return label.includes(filterLower) || descValue.toLowerCase().includes(filterLower);
-        };
-        for (const item of this._allMenuItems) {
-          if (item.kind === "header") {
-            continue;
-          }
-          if (item.kind === "separator") {
-            flushFilteredSection();
-            pendingSeparator = item.label ? item : void 0;
-            continue;
-          }
-          if (item.showAlways) {
-            filteredSectionItems.push(item);
-            continue;
-          }
-          if (item.isSectionToggle) {
-            continue;
-          }
-          if (matchesFilter(item)) {
-            hasMatchingActionInSection = true;
-            filteredSectionItems.push(item);
-          }
-        }
-        flushFilteredSection();
-      } else {
-        for (const item of this._allMenuItems) {
-          if (item.kind === "header") {
-            visible3.push(item);
-            continue;
-          }
-          if (item.kind === "separator") {
-            if (item.section && this._collapsedSections.has(item.section)) {
-              continue;
-            }
-            visible3.push(item);
-            continue;
-          }
-          if (item.isSectionToggle && item.section) {
-            const collapsed2 = this._collapsedSections.has(item.section);
-            visible3.push({
-              ...item,
-              group: { ...item.group, icon: collapsed2 ? Codicon.chevronRight : Codicon.chevronDown }
-            });
-            continue;
-          }
-          if (item.section && this._collapsedSections.has(item.section)) {
-            continue;
-          }
-          visible3.push(item);
-        }
-      }
-      const hasActionBefore = [];
-      let seenAction = false;
-      for (let i = 0; i < visible3.length; i++) {
-        hasActionBefore[i] = seenAction;
-        if (visible3[i].kind === "action") {
-          seenAction = true;
-        }
-      }
-      const hasActionBeforeNextSeparator = [];
-      let seenActionInSection = false;
-      for (let i = visible3.length - 1; i >= 0; i--) {
-        if (visible3[i].kind === "action") {
-          seenActionInSection = true;
-          continue;
-        }
-        if (visible3[i].kind !== "separator") {
-          continue;
-        }
-        hasActionBeforeNextSeparator[i] = seenActionInSection;
-        seenActionInSection = false;
-      }
-      for (let i = visible3.length - 1; i >= 0; i--) {
-        const item = visible3[i];
-        if (item.kind !== "separator") {
-          continue;
-        }
-        const hasFollowingActionInSection = hasActionBeforeNextSeparator[i];
-        const isLeadingUnlabeledDivider = !item.label && !hasActionBefore[i];
-        if (!hasFollowingActionInSection || isLeadingUnlabeledDivider) {
-          visible3.splice(i, 1);
-        }
-      }
-      if (this._options?.showGroupTitleOnFirstItem) {
-        this._recomputeGroupTitles(visible3);
-      }
-      const filterInputHasFocus = this._filterInput && isActiveElement(this._filterInput);
-      this._list.splice(0, this._list.length, visible3);
-      if (fireLayout) {
-        this._onDidRequestLayout.fire();
-      }
-      if (filterInputHasFocus) {
-        this._filterInput?.focus();
-        this._focusCheckedOrFirst();
-      } else if (this._hasLaidOut) {
-        if (focusedItem) {
-          const focusedItemId = focusedItem.item?.id;
-          if (focusedItemId) {
-            for (let i = 0; i < this._list.length; i++) {
-              const el2 = this._list.element(i);
-              if (el2.item?.id === focusedItemId) {
-                this._list.setFocus([i]);
-                this._list.reveal(i);
-                this._list.domFocus();
-                break;
-              }
-            }
-          }
-        }
-      }
-    }
-    /**
-     * Returns the filter container element, if filter is enabled.
-     * The caller is responsible for appending it to the widget DOM.
-     */
-    get filterContainer() {
-      return this._filterContainer;
-    }
-    get footerContainer() {
-      return this._footerContainer;
-    }
-    get headerContainer() {
-      return this._headerContainer;
-    }
-    get filterInput() {
-      return this._filterInput;
-    }
-    focusCondition(element) {
-      return !element.disabled && element.kind === "action";
-    }
-    focus() {
-      if (this._filterInput && this._options?.focusFilterOnOpen) {
-        this._filterInput.focus();
-        this._focusCheckedOrFirst();
-        return;
-      }
-      this._list.domFocus();
-      this._focusCheckedOrFirst();
-    }
-    clearFocus() {
-      this._list.setFocus([]);
-    }
-    getFocusedElement() {
-      const focused = this._list.getFocus();
-      if (focused.length > 0) {
-        return this._list.element(focused[0]);
-      }
-      return void 0;
-    }
-    _focusCheckedOrFirst() {
-      this._suppressHover = true;
-      try {
-        for (let i = 0; i < this._list.length; i++) {
-          const element = this._list.element(i);
-          if (element.kind === "action" && element.item?.checked) {
-            this._list.setFocus([i]);
-            this._list.reveal(i);
-            return;
-          }
-        }
-        this._list.focusFirst(void 0, this.focusCondition);
-        const focused = this._list.getFocus();
-        if (focused.length > 0) {
-          this._list.reveal(focused[0]);
-        }
-      } finally {
-        this._suppressHover = false;
-      }
-    }
-    hide(didCancel) {
-      this._delegate.onHide(didCancel);
-      this.cts.cancel();
-      this._filterCts.value?.cancel();
-      this._filterCts.clear();
-      this._hideSubmenu();
-    }
-    clearFilter() {
-      if (this._filterInput && this._filterText) {
-        this._filterInput.value = "";
-        this._filterText = "";
-        this._applyOrUpdateFilter();
-        return true;
-      }
-      return false;
-    }
-    /**
-     * Whether this widget uses dynamic height (has filter or collapsible sections).
-     */
-    get hasDynamicHeight() {
-      if (this._options?.showFilter) {
-        return true;
-      }
-      return this._allMenuItems.some((item) => item.isSectionToggle);
-    }
-    /**
-     * The height of a single action row in pixels.
-     */
-    get lineHeight() {
-      return this._actionLineHeight;
-    }
-    /**
-     * Returns the height for an action item, using a taller line height
-     * for items with a detail (second line).
-     */
-    _getItemHeight(item) {
-      switch (item.kind) {
-        case "header":
-          return this._headerLineHeight;
-        case "separator":
-          return item.label ? this._actionLineHeight : this._separatorLineHeight;
-        default:
-          return item.detail ? this._options?.detailItemHeight ?? 48 : this._actionLineHeight;
-      }
-    }
-    /**
-     * Computes the total height of all items (including collapsed/filtered items).
-     */
-    computeFullHeight() {
-      let fullHeight = 0;
-      for (const item of this._allMenuItems) {
-        fullHeight += this._getItemHeight(item);
-      }
-      return fullHeight;
-    }
-    /**
-     * Computes the total height of visible items in the list.
-     */
-    computeListHeight() {
-      const visibleCount = this._list.length;
-      let listHeight = 0;
-      for (let i = 0; i < visibleCount; i++) {
-        const element = this._list.element(i);
-        listHeight += this._getItemHeight(element);
-      }
-      return listHeight;
-    }
-    /**
-     * Lays out the list widget with the given explicit dimensions.
-     */
-    layout(height, width2) {
-      this._hasLaidOut = true;
-      this._list.layout(height, width2);
-      this.domNode.style.height = "".concat(height, "px");
-      if (this._filterContainer && this._filterContainer.parentElement) {
-        this._filterContainer.parentElement.insertBefore(this._filterContainer, this.domNode);
-      }
-    }
-    computeMaxWidth(minWidth) {
-      const visibleCount = this._list.length;
-      const effectiveMinWidth = Math.max(minWidth, this._options?.minWidth ?? 0);
-      const rawMaxWidthCap = this._options?.maxWidth ?? Number.POSITIVE_INFINITY;
-      const maxWidthCap = Math.max(rawMaxWidthCap, effectiveMinWidth);
-      const clamp4 = (w) => Math.min(Math.max(w, effectiveMinWidth), maxWidthCap);
-      let maxWidth = effectiveMinWidth;
-      const totalItemCount = this._allMenuItems.length;
-      if (totalItemCount >= 50) {
-        return clamp4(380);
-      }
-      if (totalItemCount > visibleCount) {
-        const visibleItems = [];
-        for (let i = 0; i < visibleCount; i++) {
-          visibleItems.push(this._list.element(i));
-        }
-        const allItems = [...this._allMenuItems];
-        this._list.splice(0, visibleCount, allItems);
-        let allItemsHeight = 0;
-        for (const item of allItems) {
-          allItemsHeight += this._getItemHeight(item);
-        }
-        this._list.layout(allItemsHeight);
-        const itemWidths2 = [];
-        for (let i = 0; i < allItems.length; i++) {
-          const element = this._getRowElement(i);
-          if (element) {
-            element.style.width = "auto";
-            const width2 = element.getBoundingClientRect().width;
-            element.style.width = "";
-            itemWidths2.push(width2 + this._computeToolbarWidth(allItems[i]));
-          }
-        }
-        maxWidth = clamp4(Math.max(...itemWidths2));
-        this._list.splice(0, allItems.length, visibleItems);
-        return maxWidth;
-      }
-      const itemWidths = [];
-      for (let i = 0; i < visibleCount; i++) {
-        const element = this._getRowElement(i);
-        if (element) {
-          element.style.width = "auto";
-          const width2 = element.getBoundingClientRect().width;
-          element.style.width = "";
-          itemWidths.push(width2 + this._computeToolbarWidth(this._list.element(i)));
-        }
-      }
-      return clamp4(Math.max(...itemWidths));
-    }
-    focusPrevious() {
-      if (this._filterInput && isActiveElement(this._filterInput)) {
-        this._list.domFocus();
-        const current2 = this._list.getFocus();
-        if (current2.length > 0) {
-          this._list.focusPrevious(1, false, void 0, this.focusCondition);
-          const focused2 = this._list.getFocus();
-          if (focused2.length > 0 && focused2[0] >= current2[0]) {
-            this._filterInput.focus();
-          } else if (focused2.length > 0) {
-            this._list.reveal(focused2[0]);
-          }
-        } else {
-          this._list.focusLast(void 0, this.focusCondition);
-          const focused2 = this._list.getFocus();
-          if (focused2.length > 0) {
-            this._list.reveal(focused2[0]);
-          }
-        }
-        return;
-      }
-      const previousFocus = this._list.getFocus();
-      this._list.focusPrevious(1, true, void 0, this.focusCondition);
-      const focused = this._list.getFocus();
-      if (focused.length > 0) {
-        if (this._filterInput && previousFocus.length > 0 && focused[0] > previousFocus[0]) {
-          this._list.setFocus([]);
-          this._filterInput.focus();
-          return;
-        }
-        this._list.reveal(focused[0]);
-      }
-    }
-    focusNext() {
-      if (this._filterInput && isActiveElement(this._filterInput)) {
-        this._list.domFocus();
-        const current2 = this._list.getFocus();
-        if (current2.length > 0) {
-          this._list.focusNext(1, false, void 0, this.focusCondition);
-          const focused2 = this._list.getFocus();
-          if (focused2.length > 0) {
-            this._list.reveal(focused2[0]);
-          }
-        } else {
-          this._list.focusFirst(void 0, this.focusCondition);
-          const focused2 = this._list.getFocus();
-          if (focused2.length > 0) {
-            this._list.reveal(focused2[0]);
-          }
-        }
-        return;
-      }
-      const previousFocus = this._list.getFocus();
-      this._list.focusNext(1, true, void 0, this.focusCondition);
-      const focused = this._list.getFocus();
-      if (focused.length > 0) {
-        if (this._filterInput && previousFocus.length > 0 && focused[0] < previousFocus[0]) {
-          this._list.setFocus([]);
-          this._filterInput.focus();
-          return;
-        }
-        this._list.reveal(focused[0]);
-      }
-    }
-    collapseFocusedSection() {
-      const section = this._getFocusedSection();
-      if (section && !this._collapsedSections.has(section)) {
-        this._toggleSection(section);
-      }
-    }
-    expandFocusedSection() {
-      const section = this._getFocusedSection();
-      if (section && this._collapsedSections.has(section)) {
-        this._toggleSection(section);
-      }
-    }
-    toggleFocusedSection() {
-      const focused = this._list.getFocus();
-      if (focused.length === 0) {
-        return false;
-      }
-      const element = this._list.element(focused[0]);
-      if (element.isSectionToggle && element.section) {
-        this._toggleSection(element.section);
-        return true;
-      }
-      return false;
-    }
-    _getFocusedSection() {
-      const focused = this._list.getFocus();
-      if (focused.length === 0) {
-        return void 0;
-      }
-      const element = this._list.element(focused[0]);
-      if (element.isSectionToggle && element.section) {
-        return element.section;
-      }
-      return element.section;
-    }
-    acceptSelected(preview) {
-      const focused = this._list.getFocus();
-      if (focused.length === 0) {
-        return;
-      }
-      const focusIndex = focused[0];
-      const element = this._list.element(focusIndex);
-      if (!this.focusCondition(element)) {
-        return;
-      }
-      const event = preview ? new PreviewSelectedEvent() : new AcceptSelectedEvent();
-      this._list.setSelection([focusIndex], event);
-    }
-    onListSelection(e) {
-      if (!e.elements.length) {
-        return;
-      }
-      const element = e.elements[0];
-      if (element.isSectionToggle && element.section) {
-        this._list.setSelection([]);
-        const section = element.section;
-        queueMicrotask(() => {
-          this._toggleSection(section);
-        });
-        return;
-      }
-      if (isMouseEvent(e.browserEvent)) {
-        const target = e.browserEvent.target;
-        if (isHTMLElement(target) && (target.closest(".action-list-item-toolbar") || target.closest(".action-list-submenu-indicator"))) {
-          this._list.setSelection([]);
-          return;
-        }
-      }
-      if (element.item && this.focusCondition(element)) {
-        const isPreviewEvent = e.browserEvent instanceof PreviewSelectedEvent;
-        this._delegate.onSelect(element.item, isPreviewEvent && this._supportsPreview);
-      } else {
-        this._list.setSelection([]);
-      }
-    }
-    onFocus() {
-      const focused = this._list.getFocus();
-      if (focused.length === 0) {
-        return;
-      }
-      const focusIndex = focused[0];
-      const element = this._list.element(focusIndex);
-      this._delegate.onFocus?.(element.item);
-      if (!this._suppressHover) {
-        this._showHoverForElement(element, focusIndex);
-      }
-    }
-    _removeItem(item) {
-      const index = this._allMenuItems.indexOf(item);
-      if (index >= 0) {
-        this._allMenuItems.splice(index, 1);
-        this._applyFilter();
-      }
-    }
-    _recomputeGroupTitles(items) {
-      this._groupTitleByIndex.clear();
-      const seenTitles = /* @__PURE__ */ new Set();
-      for (let i = 0; i < items.length; i++) {
-        const item = items[i];
-        if (item.kind === "action" && item.group?.title && !seenTitles.has(item.group.title)) {
-          seenTitles.add(item.group.title);
-          this._groupTitleByIndex.set(i, item.group.title);
-        }
-      }
-    }
-    _computeToolbarWidth(item) {
-      let actionCount = item.toolbarActions?.length ?? 0;
-      if (item.onRemove) {
-        actionCount++;
-      }
-      if (actionCount === 0) {
-        return 0;
-      }
-      const actionButtonWidth = 22;
-      return actionCount * actionButtonWidth + 6;
-    }
-    _getRowElement(index) {
-      return this.domNode.ownerDocument.getElementById(this._list.getElementID(index));
-    }
-    _showHoverForElement(element, index) {
-      if (this._currentSubmenuElement === element) {
-        return;
-      }
-      const hasHoverContent = !!element.hover?.content;
-      const hasSubmenuActions = !!element.submenuActions?.length;
-      if (hasHoverContent || hasSubmenuActions) {
-        const rowElement = this._getRowElement(index);
-        if (rowElement) {
-          this._showSubmenuForElement(element, rowElement);
-        }
-        return;
-      }
-      this._hideSubmenu();
-    }
-    _showSubmenuForItem(item) {
-      const index = this._list.indexOf(item);
-      if (index >= 0) {
-        const rowElement = this._getRowElement(index);
-        if (rowElement) {
-          this._showSubmenuForElement(item, rowElement);
-        }
-      }
-    }
-    _showSubmenuForElement(element, anchor) {
-      if (this._currentSubmenuElement === element) {
-        return;
-      }
-      this._submenuDisposables.clear();
-      this._currentSubmenuElement = element;
-      this._clearSubmenuContainer();
-      let hoverHeader;
-      const hoverContent = element.hover?.content;
-      if (hoverContent) {
-        if (isHTMLElement(hoverContent)) {
-          hoverHeader = hoverContent;
-          if (element.hover?.disposable) {
-            this._register(element.hover.disposable);
-          }
-        } else {
-          const markdown = typeof hoverContent === "string" ? new MarkdownString(hoverContent) : hoverContent;
-          const linkHandler = this._options?.linkHandler;
-          const rendered = renderMarkdown(markdown, {
-            actionHandler: (url) => {
-              const uri = URI.parse(url);
-              if (linkHandler) {
-                linkHandler(uri, element);
-              } else {
-                this._openerService.open(uri, { allowCommands: true });
-              }
-            }
-          });
-          this._submenuDisposables.add(rendered);
-          hoverHeader = rendered.element;
-        }
-        hoverHeader.classList.add("action-list-submenu-hover-header");
-        if (element.submenuActions?.length) {
-          hoverHeader.classList.add("has-submenu");
-        }
-        this._submenuContainer.appendChild(hoverHeader);
-      }
-      const hasSubmenuActions = !!element.submenuActions?.length;
-      this._submenuContainer.style.display = "";
-      this._submenuContainer.style.position = "absolute";
-      this._submenuContainer.removeAttribute("role");
-      const anchorRect = anchor.getBoundingClientRect();
-      const parentRect = this.domNode.getBoundingClientRect();
-      const targetWindow = getWindow(this.domNode);
-      let totalHeight = 0;
-      let maxWidth = hoverHeader ? hoverHeader.offsetWidth : 0;
-      if (hasSubmenuActions) {
-        const submenuItems = [];
-        const submenuGroups = element.submenuActions.filter((a) => a instanceof SubmenuAction);
-        const groupsWithActions = submenuGroups.filter((g) => g.actions.length > 0);
-        for (let gi2 = 0; gi2 < groupsWithActions.length; gi2++) {
-          const group = groupsWithActions[gi2];
-          if (group.label) {
-            submenuItems.push({
-              kind: "header",
-              group: { title: group.label },
-              label: group.label
-            });
-          }
-          for (let ci2 = 0; ci2 < group.actions.length; ci2++) {
-            const child = group.actions[ci2];
-            const extendedChild = child;
-            const icon = extendedChild.icon ?? ThemeIcon.fromId(child.checked ? Codicon.check.id : Codicon.blank.id);
-            const hoverContent2 = extendedChild.hoverContent;
-            submenuItems.push({
-              item: child,
-              kind: "action",
-              label: child.label,
-              description: child.tooltip || void 0,
-              group: { title: "", icon },
-              hideIcon: false,
-              hover: hoverContent2 ? { content: hoverContent2 } : {},
-              onRemove: extendedChild.onRemove
-            });
-          }
-          if (gi2 < groupsWithActions.length - 1) {
-            submenuItems.push({ kind: "separator", label: "" });
-          }
-        }
-        for (const action of element.submenuActions) {
-          if (!(action instanceof SubmenuAction)) {
-            const extendedAction = action;
-            submenuItems.push({
-              item: action,
-              kind: "action",
-              label: action.label,
-              description: action.tooltip || void 0,
-              group: { title: "" },
-              hideIcon: false,
-              hover: {},
-              onRemove: extendedAction.onRemove
-            });
-          }
-        }
-        const submenuDelegate = {
-          onHide: () => {
-          },
-          onSelect: (action) => {
-            action.run();
-            const parentItem = this._currentSubmenuElement?.item;
-            this._hideSubmenu();
-            if (parentItem) {
-              this._delegate.onSelect(parentItem);
-            }
-            this.hide();
-          }
-        };
-        const submenuWidget = this._submenuDisposables.add(this._instantiationService.createInstance(ActionListWidget_1, "submenu", false, submenuItems, submenuDelegate, void 0, void 0));
-        this._submenuContainer.appendChild(submenuWidget.domNode);
-        this._currentSubmenuWidget = submenuWidget;
-        submenuWidget.clearFocus();
-        totalHeight = submenuWidget.computeListHeight();
-        submenuWidget.layout(totalHeight);
-        const submenuMaxWidth = submenuWidget.computeMaxWidth(0);
-        maxWidth = Math.max(maxWidth, submenuMaxWidth);
-        submenuWidget.layout(totalHeight, maxWidth);
-        submenuWidget.domNode.style.width = "".concat(maxWidth, "px");
-        this._submenuDisposables.add(addDisposableListener(submenuWidget.domNode, "keydown", (e) => {
-          if (e.key === "ArrowLeft" || e.key === "Escape") {
-            EventHelper.stop(e, true);
-            this._hideSubmenu();
-            this._list.domFocus();
-          } else if (e.key === "Enter") {
-            EventHelper.stop(e, true);
-            const focused = submenuWidget.getFocusedElement();
-            if (focused?.item) {
-              focused.item.run();
-              const parentItem = this._currentSubmenuElement?.item;
-              this._hideSubmenu();
-              if (parentItem) {
-                this._delegate.onSelect(parentItem);
-              }
-              this.hide();
-            }
-          } else if (e.key === "ArrowDown") {
-            EventHelper.stop(e, true);
-            submenuWidget.focusNext();
-          } else if (e.key === "ArrowUp") {
-            EventHelper.stop(e, true);
-            submenuWidget.focusPrevious();
-          }
-        }));
-      }
-      const viewportWidth = targetWindow.innerWidth;
-      const spaceRight = viewportWidth - anchorRect.right;
-      const spaceLeft = parentRect.left;
-      const panelWidth = maxWidth + 10;
-      const gap = 4;
-      if (spaceRight >= panelWidth || spaceRight >= spaceLeft) {
-        this._submenuContainer.style.left = "".concat(parentRect.right - parentRect.left + gap, "px");
-      } else {
-        this._submenuContainer.style.left = "".concat(-panelWidth - gap, "px");
-      }
-      const hoverHeaderHeight = hoverHeader ? hoverHeader.offsetHeight : 0;
-      const totalPanelHeight = totalHeight + hoverHeaderHeight;
-      const viewportHeight = targetWindow.innerHeight;
-      const anchorHeight = anchorRect.height;
-      let top = anchorRect.top - parentRect.top + (anchorHeight - totalPanelHeight) / 2;
-      const panelBottom = parentRect.top + top + totalPanelHeight;
-      if (panelBottom > viewportHeight) {
-        top -= panelBottom - viewportHeight + 8;
-      }
-      if (parentRect.top + top < 0) {
-        top = -parentRect.top;
-      }
-      this._submenuContainer.style.top = "".concat(top, "px");
-    }
-    _hideSubmenu() {
-      this._cancelSubmenuHide();
-      this._cancelSubmenuShow();
-      this._submenuDisposables.clear();
-      this._currentSubmenuWidget = void 0;
-      this._currentSubmenuElement = void 0;
-      this._clearSubmenuContainer();
-      this._submenuContainer.style.display = "none";
-    }
-    /**
-     * Clears the submenu/hover panel. If focus currently lives inside the panel
-     * (e.g. the user clicked a button in the hover content), focus is first moved
-     * back to the list. Otherwise clearing the panel would drop focus to <body>,
-     * which blurs the action widget and dismisses it.
-     */
-    _clearSubmenuContainer() {
-      if (this._submenuContainer.contains(getActiveElement())) {
-        this._list.domFocus();
-      }
-      clearNode(this._submenuContainer);
-    }
-    _scheduleSubmenuHide() {
-      this._cancelSubmenuHide();
-      this._submenuHideTimeout = setTimeout(() => {
-        this._hideSubmenu();
-      }, 300);
-    }
-    _cancelSubmenuHide() {
-      if (this._submenuHideTimeout !== void 0) {
-        clearTimeout(this._submenuHideTimeout);
-        this._submenuHideTimeout = void 0;
-      }
-    }
-    _scheduleSubmenuShow(element, index) {
-      this._cancelSubmenuShow();
-      this._submenuShowTimeout = setTimeout(() => {
-        this._submenuShowTimeout = void 0;
-        const rowElement = typeof index === "number" ? this._getRowElement(index) : null;
-        if (rowElement) {
-          this._showSubmenuForElement(element, rowElement);
-        }
-      }, 500);
-    }
-    _cancelSubmenuShow() {
-      if (this._submenuShowTimeout !== void 0) {
-        clearTimeout(this._submenuShowTimeout);
-        this._submenuShowTimeout = void 0;
-      }
-    }
-    async onListHover(e) {
-      const element = e.element;
-      if (element && element.item && this.focusCondition(element)) {
-        const isHoveringToolbar = isHTMLElement(e.browserEvent.target) && e.browserEvent.target.closest(".action-list-item-toolbar") !== null;
-        if (isHoveringToolbar) {
-          if (!element.submenuActions?.length) {
-            this._cancelSubmenuShow();
-          }
-          this._list.setFocus([]);
-          return;
-        }
-        const hasPanel = !!(element.submenuActions?.length || element.hover?.content);
-        if (hasPanel) {
-          this._suppressHover = true;
-        }
-        this._list.setFocus(typeof e.index === "number" ? [e.index] : []);
-        if (hasPanel) {
-          this._suppressHover = false;
-        }
-        if (hasPanel) {
-          if (this._currentSubmenuElement === element) {
-            this._cancelSubmenuHide();
-            this._cancelSubmenuShow();
-          } else {
-            this._hideSubmenu();
-            this._scheduleSubmenuShow(element, e.index);
-          }
-          return;
-        }
-        if (this._currentSubmenuElement === element) {
-          this._cancelSubmenuHide();
-        } else {
-          this._cancelSubmenuShow();
-          this._hideSubmenu();
-        }
-        if (this._delegate.onHover && !element.disabled && element.kind === "action" && this._currentSubmenuElement !== element) {
-          const result = await this._delegate.onHover(element.item, this.cts.token);
-          const canPreview = result ? result.canPreview : void 0;
-          if (canPreview !== element.canPreview) {
-            element.canPreview = canPreview;
-            if (typeof e.index === "number") {
-              this._list.splice(e.index, 1, [element]);
-              this._list.setFocus([e.index]);
-            }
-          }
-        }
-      } else if (element && element.hover?.content && typeof e.index === "number") {
-        if (this._currentSubmenuElement === element) {
-          this._cancelSubmenuHide();
-          this._cancelSubmenuShow();
-        } else {
-          this._hideSubmenu();
-          this._scheduleSubmenuShow(element, e.index);
-        }
-      }
-    }
-    onListClick(e) {
-      if (e.element && this.focusCondition(e.element)) {
-        this._list.setFocus([]);
-      }
-    }
-  };
-  ActionListWidget = ActionListWidget_1 = __decorate91([
-    __param84(6, IKeybindingService),
-    __param84(7, IOpenerService),
-    __param84(8, IInstantiationService)
-  ], ActionListWidget);
-  var ActionList = class ActionList2 extends Disposable {
-    get domNode() {
-      return this._widget.domNode;
-    }
-    get filterContainer() {
-      return this._widget.filterContainer;
-    }
-    get footerContainer() {
-      return this._widget.footerContainer;
-    }
-    get headerContainer() {
-      return this._widget.headerContainer;
-    }
-    get filterInput() {
-      return this._widget.filterInput;
-    }
-    /**
-     * Returns the resolved anchor position after the first layout.
-     * Used by the context view delegate to lock the dropdown direction.
-     */
-    get anchorPosition() {
-      if (this._showAbove === void 0) {
-        return void 0;
-      }
-      return this._showAbove ? 1 : 0;
-    }
-    constructor(user, preview, items, _delegate, accessibilityProvider, options2, anchor, _contextViewService, _layoutService, instantiationService) {
-      super();
-      this._contextViewService = _contextViewService;
-      this._layoutService = _layoutService;
-      this._lastMinWidth = 0;
-      this._hasLaidOut = false;
-      this._anchor = anchor;
-      this._widget = this._register(instantiationService.createInstance(ActionListWidget, user, preview, items, _delegate, accessibilityProvider, options2));
-      this._register(this._widget.onDidRequestLayout(() => {
-        if (this._hasLaidOut) {
-          this.layout(this._lastMinWidth);
-          this._contextViewService.layout();
-        }
-      }));
-    }
-    focus() {
-      this._widget.focus();
-    }
-    hide(didCancel) {
-      this._widget.hide(didCancel);
-      this._contextViewService.hideContextView();
-    }
-    clearFilter() {
-      return this._widget.clearFilter();
-    }
-    focusPrevious() {
-      this._widget.focusPrevious();
-    }
-    focusNext() {
-      this._widget.focusNext();
-    }
-    collapseFocusedSection() {
-      this._widget.collapseFocusedSection();
-    }
-    expandFocusedSection() {
-      this._widget.expandFocusedSection();
-    }
-    toggleFocusedSection() {
-      return this._widget.toggleFocusedSection();
-    }
-    acceptSelected(preview) {
-      this._widget.acceptSelected(preview);
-    }
-    hasDynamicHeight() {
-      return this._widget.hasDynamicHeight;
-    }
-    computeActionWidgetVerticalChromeHeight() {
-      const widgetContainer = this.domNode.parentElement?.closest(".action-widget");
-      if (!widgetContainer) {
-        return 0;
-      }
-      const style = getWindow(widgetContainer).getComputedStyle(widgetContainer);
-      const toPixels = (value) => Number.parseFloat(value) || 0;
-      return toPixels(style.paddingTop) + toPixels(style.paddingBottom) + toPixels(style.borderTopWidth) + toPixels(style.borderBottomWidth);
-    }
-    computeHeight() {
-      const listHeight = this._widget.computeListHeight();
-      const filterHeight = this._widget.filterContainer ? 36 : 0;
-      const footerHeight = this._widget.footerContainer ? 32 : 0;
-      const headerHeight = this._widget.headerContainer ? this._widget.headerContainer.offsetHeight || 36 : 0;
-      const chromeHeight = filterHeight + footerHeight + headerHeight;
-      const targetWindow = getWindow(this.domNode);
-      let availableHeight;
-      if (this.hasDynamicHeight()) {
-        const viewportHeight = targetWindow.innerHeight;
-        const anchorRect = getAnchorRect(this._anchor);
-        const anchorTopInViewport = anchorRect.top - targetWindow.pageYOffset;
-        const bottomGap = 30;
-        const spaceBelow = viewportHeight - anchorTopInViewport - anchorRect.height - bottomGap;
-        const spaceAbove = anchorTopInViewport;
-        if (this._showAbove === void 0) {
-          const fullHeight = chromeHeight + this._widget.computeFullHeight();
-          this._showAbove = fullHeight > spaceBelow && spaceAbove > spaceBelow;
-        }
-        availableHeight = Math.max(0, (this._showAbove ? spaceAbove : spaceBelow) - this.computeActionWidgetVerticalChromeHeight());
-      } else {
-        const padding = 10;
-        const windowHeight = this._layoutService.getContainer(targetWindow).clientHeight;
-        const widgetTop = this.domNode.getBoundingClientRect().top;
-        availableHeight = widgetTop > 0 ? windowHeight - widgetTop - padding : windowHeight * 0.7;
-      }
-      const viewportMaxHeight = Math.floor(targetWindow.innerHeight * 0.6);
-      const actionLineHeight = this._widget.lineHeight;
-      const maxHeight = Math.min(Math.max(availableHeight, actionLineHeight * 3 + chromeHeight), viewportMaxHeight);
-      const height = Math.min(listHeight + chromeHeight, maxHeight);
-      return height - chromeHeight;
-    }
-    layout(minWidth) {
-      this._hasLaidOut = true;
-      this._lastMinWidth = minWidth;
-      const listHeight = this.computeHeight();
-      this._widget.layout(listHeight);
-      const computedWidth = this._widget.computeMaxWidth(minWidth);
-      this._cachedMaxWidth = computedWidth;
-      this._widget.layout(listHeight, this._cachedMaxWidth);
-      return this._cachedMaxWidth;
-    }
-  };
-  ActionList = __decorate91([
-    __param84(7, IContextViewService),
-    __param84(8, ILayoutService),
-    __param84(9, IInstantiationService)
-  ], ActionList);
-  function stripNewlines(str) {
-    return str.replace(/\r\n|\r|\n/g, " ");
-  }
-
-  // node_modules/monaco-editor/esm/vs/platform/actionWidget/browser/actionWidget.js
-  init_actions2();
-  init_contextkey();
-  init_contextView();
-  init_extensions();
-  init_instantiation();
-  init_colorUtils();
-  init_baseColors();
-  init_chartsColors();
-  init_editorColors();
-  init_inputColors();
-  init_listColors();
-  init_menuColors();
-  init_minimapColors();
-  init_miscColors();
-  init_quickpickColors();
-  init_searchColors();
-  var __decorate92 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param85 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  registerColor("actionBar.toggledBackground", inputActiveOptionBackground, localize(1713, "Background color for toggled action items in action bar."));
-  var ActionWidgetContextKeys = {
-    Visible: new RawContextKey("codeActionMenuVisible", false, localize(1714, "Whether the action widget list is visible")),
-    FilterFocused: new RawContextKey("codeActionMenuFilterFocused", false, localize(1715, "Whether the action widget filter input is focused"))
-  };
-  var IActionWidgetService = createDecorator("actionWidgetService");
-  var ActionWidgetService = class ActionWidgetService2 extends Disposable {
-    get isVisible() {
-      return ActionWidgetContextKeys.Visible.getValue(this._contextKeyService) || false;
-    }
-    constructor(_contextViewService, _contextKeyService, _instantiationService) {
-      super();
-      this._contextViewService = _contextViewService;
-      this._contextKeyService = _contextKeyService;
-      this._instantiationService = _instantiationService;
-      this._list = this._register(new MutableDisposable());
-    }
-    show(user, supportsPreview, items, delegate, anchor, container, actionBarActions, accessibilityProvider, listOptions) {
-      const visibleContext = ActionWidgetContextKeys.Visible.bindTo(this._contextKeyService);
-      const list3 = this._instantiationService.createInstance(ActionList, user, supportsPreview, items, delegate, accessibilityProvider, listOptions, anchor);
-      this._contextViewService.showContextView({
-        getAnchor: () => anchor,
-        render: (container2) => {
-          visibleContext.set(true);
-          return this._renderWidget(container2, list3, actionBarActions ?? []);
-        },
-        onHide: (didCancel) => {
-          visibleContext.reset();
-          this._onWidgetClosed(didCancel);
-        },
-        get anchorPosition() {
-          return list3.anchorPosition;
-        }
-      }, container, false);
-    }
-    acceptSelected(preview) {
-      this._list.value?.acceptSelected(preview);
-    }
-    focusPrevious() {
-      this._list?.value?.focusPrevious();
-    }
-    focusNext() {
-      this._list?.value?.focusNext();
-    }
-    collapseSection() {
-      this._list?.value?.collapseFocusedSection();
-    }
-    expandSection() {
-      this._list?.value?.expandFocusedSection();
-    }
-    toggleSection() {
-      return this._list?.value?.toggleFocusedSection() ?? false;
-    }
-    clearFilter() {
-      return this._list?.value?.clearFilter() ?? false;
-    }
-    hide(didCancel) {
-      this._list.value?.hide(didCancel);
-      this._list.clear();
-    }
-    _renderWidget(element, list3, actionBarActions) {
-      const widget = document.createElement("div");
-      widget.classList.add("action-widget");
-      element.appendChild(widget);
-      this._list.value = list3;
-      if (this._list.value) {
-        if (this._list.value.headerContainer) {
-          widget.appendChild(this._list.value.headerContainer);
-        }
-        if (this._list.value.filterContainer) {
-          widget.appendChild(this._list.value.filterContainer);
-        }
-        widget.appendChild(this._list.value.domNode);
-        if (this._list.value.footerContainer) {
-          widget.appendChild(this._list.value.footerContainer);
-        }
-      } else {
-        throw new Error("List has no value");
-      }
-      const renderDisposables = new DisposableStore();
-      const headerContainer = this._list.value.headerContainer;
-      if (headerContainer) {
-        renderDisposables.add(addDisposableGenericMouseDownListener(headerContainer, (e) => e.preventDefault()));
-      }
-      const menuBlock = document.createElement("div");
-      const block3 = element.appendChild(menuBlock);
-      block3.classList.add("context-view-block");
-      renderDisposables.add(addDisposableGenericMouseDownListener(block3, (e) => e.stopPropagation()));
-      const pointerBlockDiv = document.createElement("div");
-      const pointerBlock = element.appendChild(pointerBlockDiv);
-      pointerBlock.classList.add("context-view-pointerBlock");
-      renderDisposables.add(addDisposableListener(pointerBlock, EventType.POINTER_MOVE, () => pointerBlock.remove()));
-      renderDisposables.add(addDisposableGenericMouseDownListener(pointerBlock, () => pointerBlock.remove()));
-      let actionBarWidth = 0;
-      if (actionBarActions.length) {
-        const actionBar = this._createActionBar(".action-widget-action-bar", actionBarActions);
-        if (actionBar) {
-          widget.appendChild(actionBar.getContainer().parentElement);
-          renderDisposables.add(actionBar);
-          actionBarWidth = actionBar.getContainer().offsetWidth;
-        }
-      }
-      const width2 = this._list.value?.layout(actionBarWidth);
-      widget.style.width = "".concat(width2, "px");
-      this._list.value?.focus();
-      const filterFocusedContext = ActionWidgetContextKeys.FilterFocused.bindTo(this._contextKeyService);
-      renderDisposables.add({ dispose: () => filterFocusedContext.reset() });
-      if (this._list.value?.filterInput) {
-        const filterInput = this._list.value.filterInput;
-        renderDisposables.add(addDisposableListener(filterInput, "focus", () => filterFocusedContext.set(true)));
-        renderDisposables.add(addDisposableListener(filterInput, "blur", () => filterFocusedContext.set(false)));
-      }
-      const focusTracker = renderDisposables.add(trackFocus(element));
-      renderDisposables.add(focusTracker.onDidBlur(() => {
-        const activeElement = getActiveElement();
-        if (activeElement?.closest(".action-widget-hover") || activeElement?.closest(".action-list-submenu-panel")) {
-          return;
-        }
-        this.hide(true);
-      }));
-      return renderDisposables;
-    }
-    _createActionBar(className2, actions) {
-      if (!actions.length) {
-        return void 0;
-      }
-      const container = $(className2);
-      const actionBar = new ActionBar(container);
-      actionBar.push(actions, { icon: false, label: true });
-      return actionBar;
-    }
-    _onWidgetClosed(didCancel) {
-      this._list.value?.hide(didCancel);
-    }
-  };
-  ActionWidgetService = __decorate92([
-    __param85(0, IContextViewService),
-    __param85(1, IContextKeyService),
-    __param85(2, IInstantiationService)
-  ], ActionWidgetService);
-  registerSingleton(
-    IActionWidgetService,
-    ActionWidgetService,
-    1
-    /* InstantiationType.Delayed */
-  );
-  var weight = 100 + 1e3;
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "hideCodeActionWidget",
-        title: localize2(1716, "Hide action widget"),
-        precondition: ActionWidgetContextKeys.Visible,
-        keybinding: {
-          weight,
-          primary: 9,
-          secondary: [
-            1024 | 9
-            /* KeyCode.Escape */
-          ]
-        }
-      });
-    }
-    run(accessor) {
-      accessor.get(IActionWidgetService).hide(true);
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "clearFilterCodeActionWidget",
-        title: localize2(1717, "Clear action widget filter"),
-        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused),
-        keybinding: {
-          weight: weight + 1,
-          primary: 9
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        if (!widgetService.clearFilter()) {
-          widgetService.hide(true);
-        }
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "selectPrevCodeAction",
-        title: localize2(1718, "Select previous action"),
-        precondition: ActionWidgetContextKeys.Visible,
-        keybinding: {
-          weight,
-          primary: 16,
-          secondary: [
-            2048 | 16
-            /* KeyCode.UpArrow */
-          ],
-          mac: { primary: 16, secondary: [
-            2048 | 16,
-            256 | 46
-            /* KeyCode.KeyP */
-          ] }
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.focusPrevious();
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "selectNextCodeAction",
-        title: localize2(1719, "Select next action"),
-        precondition: ActionWidgetContextKeys.Visible,
-        keybinding: {
-          weight,
-          primary: 18,
-          secondary: [
-            2048 | 18
-            /* KeyCode.DownArrow */
-          ],
-          mac: { primary: 18, secondary: [
-            2048 | 18,
-            256 | 44
-            /* KeyCode.KeyN */
-          ] }
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.focusNext();
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "collapseSectionCodeAction",
-        title: localize2(1720, "Collapse section"),
-        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
-        keybinding: {
-          weight,
-          primary: 15
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.collapseSection();
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "expandSectionCodeAction",
-        title: localize2(1721, "Expand section"),
-        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
-        keybinding: {
-          weight,
-          primary: 17
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.expandSection();
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: "toggleSectionCodeAction",
-        title: localize2(1722, "Toggle section"),
-        precondition: ContextKeyExpr.and(ActionWidgetContextKeys.Visible, ActionWidgetContextKeys.FilterFocused.negate()),
-        keybinding: {
-          weight,
-          primary: 10
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        if (!widgetService.toggleSection()) {
-          widgetService.acceptSelected();
-        }
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: acceptSelectedActionCommand,
-        title: localize2(1723, "Accept selected action"),
-        precondition: ActionWidgetContextKeys.Visible,
-        keybinding: {
-          weight,
-          primary: 3,
-          secondary: [
-            2048 | 89
-            /* KeyCode.Period */
-          ]
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.acceptSelected();
-      }
-    }
-  });
-  registerAction2(class extends Action2 {
-    constructor() {
-      super({
-        id: previewSelectedActionCommand,
-        title: localize2(1724, "Preview selected action"),
-        precondition: ActionWidgetContextKeys.Visible,
-        keybinding: {
-          weight,
-          primary: 2048 | 3
-        }
-      });
-    }
-    run(accessor) {
-      const widgetService = accessor.get(IActionWidgetService);
-      if (widgetService instanceof ActionWidgetService) {
-        widgetService.acceptSelected(true);
-      }
-    }
-  });
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/postEditWidget.js
-  init_contextkey();
-  init_instantiation();
-  init_keybinding();
-  init_notification();
-  init_bulkEditService();
-  init_editorState();
-  var __decorate93 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param86 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var PostEditWidget_1;
-  var PostEditWidget = class PostEditWidget2 extends Disposable {
-    static {
-      PostEditWidget_1 = this;
-    }
-    static {
-      this.baseId = "editor.widget.postEditWidget";
-    }
-    constructor(typeId, editor2, visibleContext, showCommand, range2, edits, onSelectNewEdit, additionalActions, contextKeyService, _keybindingService, _actionWidgetService) {
-      super();
-      this.typeId = typeId;
-      this.editor = editor2;
-      this.showCommand = showCommand;
-      this.range = range2;
-      this.edits = edits;
-      this.onSelectNewEdit = onSelectNewEdit;
-      this.additionalActions = additionalActions;
-      this._keybindingService = _keybindingService;
-      this._actionWidgetService = _actionWidgetService;
-      this.allowEditorOverflow = true;
-      this.suppressMouseDown = true;
-      this.create();
-      this.visibleContext = visibleContext.bindTo(contextKeyService);
-      this.visibleContext.set(true);
-      this._register(toDisposable(() => this.visibleContext.reset()));
-      this.editor.addContentWidget(this);
-      this.editor.layoutContentWidget(this);
-      this._register(toDisposable((() => this.editor.removeContentWidget(this))));
-      this._register(this.editor.onDidChangeCursorPosition((e) => {
-        this.dispose();
-      }));
-      this._register(Event2.runAndSubscribe(_keybindingService.onDidUpdateKeybindings, () => {
-        this._updateButtonTitle();
-      }));
-    }
-    _updateButtonTitle() {
-      this.button.element.title = this._keybindingService.appendKeybinding(this.showCommand.label, this.showCommand.id);
-    }
-    create() {
-      this.domNode = $(".post-edit-widget");
-      this.button = this._register(new Button(this.domNode, {
-        supportIcons: true
-      }));
-      this.button.label = "$(insert)";
-      this._register(addDisposableListener(this.domNode, EventType.CLICK, () => this.showSelector()));
-    }
-    getId() {
-      return PostEditWidget_1.baseId + "." + this.typeId;
-    }
-    getDomNode() {
-      return this.domNode;
-    }
-    getPosition() {
-      return {
-        position: this.range.getEndPosition(),
-        preference: [
-          2
-          /* ContentWidgetPositionPreference.BELOW */
-        ]
-      };
-    }
-    showSelector() {
-      const pos = getDomNodePagePosition(this.button.element);
-      const anchor = { x: pos.left + pos.width, y: pos.top + pos.height };
-      this._actionWidgetService.show("postEditWidget", false, this.edits.allEdits.map((edit3, i) => {
-        return {
-          kind: "action",
-          item: edit3,
-          label: edit3.title,
-          disabled: false,
-          canPreview: false,
-          group: { title: "", icon: ThemeIcon.fromId(i === this.edits.activeEditIndex ? Codicon.check.id : Codicon.blank.id) }
-        };
-      }), {
-        onHide: () => {
-          this.editor.focus();
-        },
-        onSelect: (item) => {
-          this._actionWidgetService.hide(false);
-          const i = this.edits.allEdits.findIndex((edit3) => edit3 === item);
-          if (i !== this.edits.activeEditIndex) {
-            return this.onSelectNewEdit(i);
-          }
-        }
-      }, anchor, this.editor.getDomNode() ?? void 0, this.additionalActions);
-    }
-  };
-  PostEditWidget = PostEditWidget_1 = __decorate93([
-    __param86(8, IContextKeyService),
-    __param86(9, IKeybindingService),
-    __param86(10, IActionWidgetService)
-  ], PostEditWidget);
-  var PostEditWidgetManager = class PostEditWidgetManager2 extends Disposable {
-    constructor(_id, _editor, _visibleContext, _showCommand, _getAdditionalActions, _instantiationService, _bulkEditService, _notificationService) {
-      super();
-      this._id = _id;
-      this._editor = _editor;
-      this._visibleContext = _visibleContext;
-      this._showCommand = _showCommand;
-      this._getAdditionalActions = _getAdditionalActions;
-      this._instantiationService = _instantiationService;
-      this._bulkEditService = _bulkEditService;
-      this._notificationService = _notificationService;
-      this._currentWidget = this._register(new MutableDisposable());
-      this._register(Event2.any(_editor.onDidChangeModel, _editor.onDidChangeModelContent)(() => this.clear()));
-    }
-    async applyEditAndShowIfNeeded(ranges2, edits, canShowWidget, resolve3, token) {
-      if (!ranges2.length || !this._editor.hasModel()) {
-        return;
-      }
-      const model = this._editor.getModel();
-      const edit3 = edits.allEdits.at(edits.activeEditIndex);
-      if (!edit3) {
-        return;
-      }
-      const onDidSelectEdit = async (newEditIndex) => {
-        const model2 = this._editor.getModel();
-        if (!model2) {
-          return;
-        }
-        await model2.undo();
-        this.applyEditAndShowIfNeeded(ranges2, { activeEditIndex: newEditIndex, allEdits: edits.allEdits }, canShowWidget, resolve3, token);
-      };
-      const handleError = (e, message) => {
-        if (isCancellationError(e)) {
-          return;
-        }
-        this._notificationService.error(message);
-        if (canShowWidget) {
-          this.show(ranges2[0], edits, onDidSelectEdit);
-        }
-      };
-      const editorStateCts = new EditorStateCancellationTokenSource(this._editor, 1 | 2, void 0, token);
-      let resolvedEdit;
-      try {
-        resolvedEdit = await raceCancellationError(resolve3(edit3, editorStateCts.token), editorStateCts.token);
-      } catch (e) {
-        return handleError(e, localize(976, "Error resolving edit '{0}':\n{1}", edit3.title, toErrorMessage(e)));
-      } finally {
-        editorStateCts.dispose();
-      }
-      if (token.isCancellationRequested) {
-        return;
-      }
-      const combinedWorkspaceEdit = createCombinedWorkspaceEdit(model.uri, ranges2, resolvedEdit);
-      const primaryRange = ranges2[0];
-      const editTrackingDecoration = model.deltaDecorations([], [{
-        range: primaryRange,
-        options: {
-          description: "paste-line-suffix",
-          stickiness: 0
-          /* TrackedRangeStickiness.AlwaysGrowsWhenTypingAtEdges */
-        }
-      }]);
-      this._editor.focus();
-      let editResult;
-      let editRange;
-      try {
-        editResult = await this._bulkEditService.apply(combinedWorkspaceEdit, { editor: this._editor, token });
-        editRange = model.getDecorationRange(editTrackingDecoration[0]);
-      } catch (e) {
-        return handleError(e, localize(977, "Error applying edit '{0}':\n{1}", edit3.title, toErrorMessage(e)));
-      } finally {
-        model.deltaDecorations(editTrackingDecoration, []);
-      }
-      if (token.isCancellationRequested) {
-        return;
-      }
-      if (canShowWidget && editResult.isApplied && edits.allEdits.length > 1) {
-        this.show(editRange ?? primaryRange, edits, onDidSelectEdit);
-      }
-    }
-    show(range2, edits, onDidSelectEdit) {
-      this.clear();
-      if (this._editor.hasModel()) {
-        this._currentWidget.value = this._instantiationService.createInstance(PostEditWidget, this._id, this._editor, this._visibleContext, this._showCommand, range2, edits, onDidSelectEdit, this._getAdditionalActions());
-      }
-    }
-    clear() {
-      this._currentWidget.clear();
-    }
-    tryShowSelector() {
-      this._currentWidget.value?.showSelector();
-    }
-  };
-  PostEditWidgetManager = __decorate93([
-    __param86(5, IInstantiationService),
-    __param86(6, IBulkEditService),
-    __param86(7, INotificationService)
-  ], PostEditWidgetManager);
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/dropOrPasteInto/browser/copyPasteController.js
-  var __decorate94 = function(decorators, target, key4, desc) {
-    var c = arguments.length, r4 = c < 3 ? target : desc === null ? desc = Object.getOwnPropertyDescriptor(target, key4) : desc, d;
-    if (typeof Reflect === "object" && typeof Reflect.decorate === "function") r4 = Reflect.decorate(decorators, target, key4, desc);
-    else for (var i = decorators.length - 1; i >= 0; i--) if (d = decorators[i]) r4 = (c < 3 ? d(r4) : c > 3 ? d(target, key4, r4) : d(target, key4)) || r4;
-    return c > 3 && r4 && Object.defineProperty(target, key4, r4), r4;
-  };
-  var __param87 = function(paramIndex, decorator) {
-    return function(target, key4) {
-      decorator(target, key4, paramIndex);
-    };
-  };
-  var CopyPasteController_1;
-  var changePasteTypeCommandId = "editor.changePasteType";
-  var pasteAsPreferenceConfig = "editor.pasteAs.preferences";
-  var pasteWidgetVisibleCtx = new RawContextKey("pasteWidgetVisible", false, localize(956, "Whether the paste widget is showing"));
-  var vscodeClipboardMime = "application/vnd.code.copymetadata";
-  var CopyPasteController = class CopyPasteController2 extends Disposable {
-    static {
-      CopyPasteController_1 = this;
-    }
-    static {
-      this.ID = "editor.contrib.copyPasteActionController";
-    }
-    static get(editor2) {
-      return editor2.getContribution(CopyPasteController_1.ID);
-    }
-    constructor(editor2, instantiationService, _logService, _bulkEditService, _clipboardService, _commandService, _configService, _languageFeaturesService, _quickInputService, _progressService) {
-      super();
-      this._logService = _logService;
-      this._bulkEditService = _bulkEditService;
-      this._clipboardService = _clipboardService;
-      this._commandService = _commandService;
-      this._configService = _configService;
-      this._languageFeaturesService = _languageFeaturesService;
-      this._quickInputService = _quickInputService;
-      this._progressService = _progressService;
-      this._editor = editor2;
-      this._register(editor2.onWillCopy((e) => this.handleCopy(e)));
-      this._register(editor2.onWillCut((e) => this.handleCopy(e)));
-      this._register(editor2.onWillPaste((e) => this.handlePaste(e)));
-      this._pasteProgressManager = this._register(new InlineProgressManager("pasteIntoEditor", editor2, instantiationService));
-      this._postPasteWidgetManager = this._register(instantiationService.createInstance(PostEditWidgetManager, "pasteIntoEditor", editor2, pasteWidgetVisibleCtx, { id: changePasteTypeCommandId, label: localize(957, "Show paste options...") }, () => CopyPasteController_1._configureDefaultAction ? [CopyPasteController_1._configureDefaultAction] : []));
-    }
-    changePasteType() {
-      this._postPasteWidgetManager.tryShowSelector();
-    }
-    async pasteAs(preferred) {
-      this._logService.trace("CopyPasteController.pasteAs");
-      this._editor.focus();
-      try {
-        this._logService.trace("Before calling editor.action.clipboardPasteAction");
-        this._pasteAsActionContext = { preferred };
-        await this._commandService.executeCommand("editor.action.clipboardPasteAction");
-      } finally {
-        this._pasteAsActionContext = void 0;
-      }
-    }
-    clearWidgets() {
-      this._postPasteWidgetManager.clear();
-    }
-    isPasteAsEnabled() {
-      return this._editor.getOption(
-        97
-        /* EditorOption.pasteAs */
-      ).enabled;
-    }
-    async finishedPaste() {
-      await this._currentPasteOperation;
-    }
-    handleCopy(e) {
-      this._logService.trace("CopyPasteController#handleCopy");
-      if (!this._editor.hasTextFocus()) {
-        return;
-      }
-      this._clipboardService.clearInternalState?.();
-      if (!this.isPasteAsEnabled()) {
-        return;
-      }
-      const model = this._editor.getModel();
-      const viewModel = this._editor._getViewModel();
-      const selections = this._editor.getSelections();
-      if (!model || !viewModel || !selections?.length) {
-        return;
-      }
-      const defaultPastePayload = {
-        multicursorText: e.dataToCopy.multicursorText ?? null,
-        pasteOnNewLine: e.dataToCopy.isFromEmptySelection,
-        mode: null
-      };
-      const providers4 = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((x) => !!x.prepareDocumentPaste);
-      if (!providers4.length) {
-        this.setCopyMetadata(e.clipboardData, { defaultPastePayload });
-        return;
-      }
-      const dataTransfer = new VSDataTransfer();
-      const providerCopyMimeTypes = providers4.flatMap((x) => x.copyMimeTypes ?? []);
-      const handle = generateUuid();
-      this.setCopyMetadata(e.clipboardData, {
-        id: handle,
-        providerCopyMimeTypes,
-        defaultPastePayload
-      });
-      const operations = providers4.map((provider) => {
-        return {
-          providerMimeTypes: provider.copyMimeTypes,
-          operation: createCancelablePromise((token) => provider.prepareDocumentPaste(model, e.dataToCopy.sourceRanges, dataTransfer, token).catch((err) => {
-            console.error(err);
-            return void 0;
-          }))
-        };
-      });
-      CopyPasteController_1._currentCopyOperation?.operations.forEach((entry) => entry.operation.cancel());
-      CopyPasteController_1._currentCopyOperation = { handle, operations };
-    }
-    async handlePaste(e) {
-      this._logService.trace("CopyPasteController#handlePaste for id : ", e.metadata?.id);
-      if (!this._editor.hasTextFocus()) {
-        return;
-      }
-      const dataTransfer = e.toExternalVSDataTransfer();
-      if (!dataTransfer) {
-        return;
-      }
-      dataTransfer.delete(vscodeClipboardMime);
-      MessageController.get(this._editor)?.closeMessage();
-      this._currentPasteOperation?.cancel();
-      this._currentPasteOperation = void 0;
-      const model = this._editor.getModel();
-      const selections = this._editor.getSelections();
-      if (!selections?.length || !model) {
-        return;
-      }
-      if (this._editor.getOption(
-        104
-        /* EditorOption.readOnly */
-      ) || !this.isPasteAsEnabled() && !this._pasteAsActionContext) {
-        return;
-      }
-      const metadata = this.fetchCopyMetadata(e);
-      this._logService.trace("CopyPasteController#handlePaste with metadata : ", metadata?.id, " and text.length : ", e.clipboardData.getData("text/plain").length);
-      const fileTypes = Array.from(e.clipboardData.files).map((file) => file.type);
-      const allPotentialMimeTypes = [
-        ...e.clipboardData.types,
-        ...fileTypes,
-        ...metadata?.providerCopyMimeTypes ?? [],
-        // TODO: always adds `uri-list` because this get set if there are resources in the system clipboard.
-        // However we can only check the system clipboard async. For this early check, just add it in.
-        // We filter providers again once we have the final dataTransfer we will use.
-        Mimes.uriList
-      ];
-      const allProviders = this._languageFeaturesService.documentPasteEditProvider.ordered(model).filter((provider) => {
-        const preference = this._pasteAsActionContext?.preferred;
-        if (preference) {
-          if (!this.providerMatchesPreference(provider, preference)) {
-            return false;
-          }
-        }
-        return provider.pasteMimeTypes?.some((type) => matchesMimeType(type, allPotentialMimeTypes));
-      });
-      if (!allProviders.length) {
-        if (this._pasteAsActionContext?.preferred) {
-          this.showPasteAsNoEditMessage(selections, this._pasteAsActionContext.preferred);
-          e.setHandled();
-        }
-        return;
-      }
-      e.setHandled();
-      if (this._pasteAsActionContext) {
-        this.showPasteAsPick(this._pasteAsActionContext.preferred, allProviders, selections, dataTransfer, metadata);
-      } else {
-        this.doPasteInline(allProviders, selections, dataTransfer, metadata, e.browserEvent);
-      }
-    }
-    showPasteAsNoEditMessage(selections, preference) {
-      const kindLabel = "only" in preference ? preference.only.value : "preferences" in preference ? preference.preferences.length ? preference.preferences.map((preference2) => preference2.value).join(", ") : localize(958, "empty") : preference.providerId;
-      MessageController.get(this._editor)?.showMessage(localize(959, "No paste edits for '{0}' found", kindLabel), selections[0].getStartPosition());
-    }
-    doPasteInline(allProviders, selections, dataTransfer, metadata, clipboardEvent) {
-      this._logService.trace("CopyPasteController#doPasteInline");
-      const editor2 = this._editor;
-      if (!editor2.hasModel()) {
-        return;
-      }
-      const editorStateCts = new EditorStateCancellationTokenSource(editor2, 1 | 2, void 0);
-      const p = createCancelablePromise(async (pToken) => {
-        const editor3 = this._editor;
-        if (!editor3.hasModel()) {
-          return;
-        }
-        const model = editor3.getModel();
-        const disposables = new DisposableStore();
-        const cts = disposables.add(new CancellationTokenSource(pToken));
-        disposables.add(editorStateCts.token.onCancellationRequested(() => cts.cancel()));
-        const token = cts.token;
-        try {
-          await this.mergeInDataFromCopy(allProviders, dataTransfer, metadata, token);
-          if (token.isCancellationRequested) {
-            return;
-          }
-          const supportedProviders = allProviders.filter((provider) => this.isSupportedPasteProvider(provider, dataTransfer));
-          if (!supportedProviders.length || supportedProviders.length === 1 && supportedProviders[0] instanceof DefaultTextPasteOrDropEditProvider) {
-            return this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
-          }
-          const context = {
-            triggerKind: DocumentPasteTriggerKind.Automatic
-          };
-          const editSession = await this.getPasteEdits(supportedProviders, dataTransfer, model, selections, context, token);
-          disposables.add(editSession);
-          if (token.isCancellationRequested) {
-            return;
-          }
-          if (editSession.edits.length === 1 && editSession.edits[0].provider instanceof DefaultTextPasteOrDropEditProvider) {
-            return this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
-          }
-          if (editSession.edits.length) {
-            const canShowWidget = editor3.getOption(
-              97
-              /* EditorOption.pasteAs */
-            ).showPasteSelector === "afterPaste";
-            return this._postPasteWidgetManager.applyEditAndShowIfNeeded(selections, { activeEditIndex: this.getInitialActiveEditIndex(model, editSession.edits), allEdits: editSession.edits }, canShowWidget, async (edit3, resolveToken) => {
-              if (!edit3.provider.resolveDocumentPasteEdit) {
-                return edit3;
-              }
-              const resolveP = edit3.provider.resolveDocumentPasteEdit(edit3, resolveToken);
-              const showP = new DeferredPromise();
-              const resolved = await this._pasteProgressManager.showWhile(selections[0].getEndPosition(), localize(960, "Resolving paste edit for '{0}'. Click to cancel", edit3.title), raceCancellation(Promise.race([showP.p, resolveP]), resolveToken), {
-                cancel: () => showP.cancel()
-              }, 0);
-              if (resolved) {
-                edit3.insertText = resolved.insertText;
-                edit3.additionalEdit = resolved.additionalEdit;
-              }
-              return edit3;
-            }, token);
-          }
-          await this.applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent);
-        } finally {
-          disposables.dispose();
-          if (this._currentPasteOperation === p) {
-            this._currentPasteOperation = void 0;
-          }
-        }
-      });
-      this._pasteProgressManager.showWhile(selections[0].getEndPosition(), localize(961, "Running paste handlers. Click to cancel and do basic paste"), p, {
-        cancel: async () => {
-          p.cancel();
-          if (editorStateCts.token.isCancellationRequested) {
-            return;
-          }
-          await this.applyDefaultPasteHandler(dataTransfer, metadata, editorStateCts.token, clipboardEvent);
-        }
-      }).finally(() => {
-        editorStateCts.dispose();
-      });
-      this._currentPasteOperation = p;
-    }
-    showPasteAsPick(preference, allProviders, selections, dataTransfer, metadata) {
-      this._logService.trace("CopyPasteController#showPasteAsPick");
-      const p = createCancelablePromise(async (token) => {
-        const editor2 = this._editor;
-        if (!editor2.hasModel()) {
-          return;
-        }
-        const model = editor2.getModel();
-        const disposables = new DisposableStore();
-        const tokenSource = disposables.add(new EditorStateCancellationTokenSource(editor2, 1 | 2, void 0, token));
-        try {
-          await this.mergeInDataFromCopy(allProviders, dataTransfer, metadata, tokenSource.token);
-          if (tokenSource.token.isCancellationRequested) {
-            return;
-          }
-          let supportedProviders = allProviders.filter((provider) => this.isSupportedPasteProvider(provider, dataTransfer, preference));
-          if (preference) {
-            supportedProviders = supportedProviders.filter((provider) => this.providerMatchesPreference(provider, preference));
-          }
-          const context = {
-            triggerKind: DocumentPasteTriggerKind.PasteAs,
-            only: preference && "only" in preference ? preference.only : void 0
-          };
-          let editSession = disposables.add(await this.getPasteEdits(supportedProviders, dataTransfer, model, selections, context, tokenSource.token));
-          if (tokenSource.token.isCancellationRequested) {
-            return;
-          }
-          if (preference) {
-            editSession = {
-              edits: editSession.edits.filter((edit3) => {
-                if ("only" in preference) {
-                  return preference.only.contains(edit3.kind);
-                } else if ("preferences" in preference) {
-                  return preference.preferences.some((preference2) => preference2.contains(edit3.kind));
-                } else {
-                  return preference.providerId === edit3.provider.id;
-                }
-              }),
-              dispose: editSession.dispose
-            };
-          }
-          if (!editSession.edits.length) {
-            if (preference) {
-              this.showPasteAsNoEditMessage(selections, preference);
-            }
-            return;
-          }
-          let pickedEdit;
-          if (preference) {
-            pickedEdit = editSession.edits.at(0);
-          } else {
-            const configureDefaultItem = {
-              id: "editor.pasteAs.default",
-              label: localize(962, "Configure default paste action"),
-              edit: void 0
-            };
-            const selected = await this._quickInputService.pick([
-              ...editSession.edits.map((edit3) => ({
-                label: edit3.title,
-                description: edit3.kind?.value,
-                edit: edit3
-              })),
-              ...CopyPasteController_1._configureDefaultAction ? [
-                upcast({ type: "separator" }),
-                {
-                  label: CopyPasteController_1._configureDefaultAction.label,
-                  edit: void 0
-                }
-              ] : []
-            ], {
-              placeHolder: localize(963, "Select Paste Action")
-            });
-            if (selected === configureDefaultItem) {
-              CopyPasteController_1._configureDefaultAction?.run();
-              return;
-            }
-            pickedEdit = selected?.edit;
-          }
-          if (!pickedEdit) {
-            return;
-          }
-          const combinedWorkspaceEdit = createCombinedWorkspaceEdit(model.uri, selections, pickedEdit);
-          await this._bulkEditService.apply(combinedWorkspaceEdit, { editor: this._editor });
-        } finally {
-          disposables.dispose();
-          if (this._currentPasteOperation === p) {
-            this._currentPasteOperation = void 0;
-          }
-        }
-      });
-      this._progressService.withProgress({
-        location: 10,
-        title: localize(964, "Running paste handlers")
-      }, () => p);
-    }
-    setCopyMetadata(clipboardData, metadata) {
-      this._logService.trace("CopyPasteController#setCopyMetadata new id : ", metadata.id);
-      clipboardData.setData(vscodeClipboardMime, JSON.stringify(metadata));
-    }
-    fetchCopyMetadata(e) {
-      this._logService.trace("CopyPasteController#fetchCopyMetadata");
-      const rawMetadata = e.clipboardData.getData(vscodeClipboardMime);
-      if (rawMetadata) {
-        try {
-          return JSON.parse(rawMetadata);
-        } catch {
-          return void 0;
-        }
-      }
-      if (e.metadata) {
-        return {
-          defaultPastePayload: {
-            mode: e.metadata.mode,
-            multicursorText: e.metadata.multicursorText ?? null,
-            pasteOnNewLine: !!e.metadata.isFromEmptySelection
-          }
-        };
-      }
-      return void 0;
-    }
-    async mergeInDataFromCopy(allProviders, dataTransfer, metadata, token) {
-      this._logService.trace("CopyPasteController#mergeInDataFromCopy with metadata : ", metadata?.id);
-      if (metadata?.id && CopyPasteController_1._currentCopyOperation?.handle === metadata.id) {
-        const toResolve = CopyPasteController_1._currentCopyOperation.operations.filter((op) => allProviders.some((provider) => provider.pasteMimeTypes.some((type) => matchesMimeType(type, op.providerMimeTypes)))).map((op) => op.operation);
-        const toMergeResults = await Promise.all(toResolve);
-        if (token.isCancellationRequested) {
-          return;
-        }
-        for (const toMergeData of toMergeResults.reverse()) {
-          if (toMergeData) {
-            for (const [key4, value] of toMergeData) {
-              dataTransfer.replace(key4, value);
-            }
-          }
-        }
-      }
-      if (!dataTransfer.has(Mimes.uriList)) {
-        const resources = await this._clipboardService.readResources();
-        if (token.isCancellationRequested) {
-          return;
-        }
-        if (resources.length) {
-          dataTransfer.append(Mimes.uriList, createStringDataTransferItem(UriList.create(resources)));
-        }
-      }
-    }
-    async getPasteEdits(providers4, dataTransfer, model, selections, context, token) {
-      const disposables = new DisposableStore();
-      const results = await raceCancellation(Promise.all(providers4.map(async (provider) => {
-        try {
-          const edits2 = await provider.provideDocumentPasteEdits?.(model, selections, dataTransfer, context, token);
-          if (edits2) {
-            disposables.add(edits2);
-          }
-          return edits2?.edits?.map((edit3) => ({ ...edit3, provider }));
-        } catch (err) {
-          if (!isCancellationError(err)) {
-            console.error(err);
-          }
-          return void 0;
-        }
-      })), token);
-      const edits = coalesce(results ?? []).flat().filter((edit3) => {
-        return !context.only || context.only.contains(edit3.kind);
-      });
-      return {
-        edits: sortEditsByYieldTo(edits),
-        dispose: () => disposables.dispose()
-      };
-    }
-    async applyDefaultPasteHandler(dataTransfer, metadata, token, clipboardEvent) {
-      const textDataTransfer = dataTransfer.get(Mimes.text) ?? dataTransfer.get("text");
-      const text3 = await textDataTransfer?.asString() ?? "";
-      if (token.isCancellationRequested) {
-        return;
-      }
-      const payload = {
-        clipboardEvent,
-        text: text3,
-        pasteOnNewLine: metadata?.defaultPastePayload.pasteOnNewLine ?? false,
-        multicursorText: metadata?.defaultPastePayload.multicursorText ?? null,
-        mode: null
-      };
-      this._logService.trace("CopyPasteController#applyDefaultPasteHandler for id : ", metadata?.id);
-      this._editor.trigger("keyboard", "paste", payload);
-    }
-    /**
-     * Filter out providers if they:
-     * - Don't handle any of the data transfer types we have
-     * - Don't match the preferred paste kind
-     */
-    isSupportedPasteProvider(provider, dataTransfer, preference) {
-      if (!provider.pasteMimeTypes?.some((type) => dataTransfer.matches(type))) {
-        return false;
-      }
-      return !preference || this.providerMatchesPreference(provider, preference);
-    }
-    providerMatchesPreference(provider, preference) {
-      if ("only" in preference) {
-        return provider.providedPasteEditKinds.some((providedKind) => preference.only.contains(providedKind));
-      } else if ("preferences" in preference) {
-        return provider.providedPasteEditKinds.some((providedKind) => preference.preferences.some((preferredKind) => preferredKind.contains(providedKind)));
-      } else {
-        return provider.id === preference.providerId;
-      }
-    }
-    getInitialActiveEditIndex(model, edits) {
-      const preferredProviders = this._configService.getValue(pasteAsPreferenceConfig, { resource: model.uri });
-      for (const config of Array.isArray(preferredProviders) ? preferredProviders : []) {
-        const desiredKind = new HierarchicalKind(config);
-        const editIndex = edits.findIndex((edit3) => desiredKind.contains(edit3.kind));
-        if (editIndex >= 0) {
-          return editIndex;
-        }
-      }
-      return 0;
-    }
-  };
-  CopyPasteController = CopyPasteController_1 = __decorate94([
-    __param87(1, IInstantiationService),
-    __param87(2, ILogService),
-    __param87(3, IBulkEditService),
-    __param87(4, IClipboardService),
-    __param87(5, ICommandService),
-    __param87(6, IConfigurationService),
-    __param87(7, ILanguageFeaturesService),
-    __param87(8, IQuickInputService),
-    __param87(9, IProgressService)
-  ], CopyPasteController);
-
-  // node_modules/monaco-editor/esm/vs/editor/contrib/clipboard/browser/clipboard.js
-  var CLIPBOARD_CONTEXT_MENU_GROUP = "9_cutcopypaste";
-  var supportsCut = isNative || document.queryCommandSupported("cut");
-  var supportsCopy = isNative || document.queryCommandSupported("copy");
-  var supportsPaste = typeof navigator.clipboard === "undefined" || isFirefox2 ? document.queryCommandSupported("paste") : true;
-  function registerCommand4(command) {
-    command.register();
-    return command;
-  }
-  var CutAction = supportsCut ? registerCommand4(new MultiCommand({
-    id: "editor.action.clipboardCutAction",
-    precondition: void 0,
-    kbOpts: (
-      // Do not bind cut keybindings in the browser,
-      // since browsers do that for us and it avoids security prompts
-      isNative ? {
-        primary: 2048 | 54,
-        win: { primary: 2048 | 54, secondary: [
-          1024 | 20
-          /* KeyCode.Delete */
-        ] },
-        weight: 100
-        /* KeybindingWeight.EditorContrib */
-      } : void 0
-    ),
-    menuOpts: [{
-      menuId: MenuId.MenubarEditMenu,
-      group: "2_ccp",
-      title: localize(849, "Cu&&t"),
-      order: 1
-    }, {
-      menuId: MenuId.EditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(850, "Cut"),
-      when: EditorContextKeys.writable,
-      order: 1
-    }, {
-      menuId: MenuId.CommandPalette,
-      group: "",
-      title: localize(851, "Cut"),
-      order: 1
-    }, {
-      menuId: MenuId.SimpleEditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(852, "Cut"),
-      when: EditorContextKeys.writable,
-      order: 1
-    }]
-  })) : void 0;
-  var CopyAction = supportsCopy ? registerCommand4(new MultiCommand({
-    id: "editor.action.clipboardCopyAction",
-    precondition: void 0,
-    kbOpts: (
-      // Do not bind copy keybindings in the browser,
-      // since browsers do that for us and it avoids security prompts
-      isNative ? {
-        primary: 2048 | 33,
-        win: { primary: 2048 | 33, secondary: [
-          2048 | 19
-          /* KeyCode.Insert */
-        ] },
-        weight: 100
-        /* KeybindingWeight.EditorContrib */
-      } : void 0
-    ),
-    menuOpts: [{
-      menuId: MenuId.MenubarEditMenu,
-      group: "2_ccp",
-      title: localize(853, "&&Copy"),
-      order: 2
-    }, {
-      menuId: MenuId.EditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(854, "Copy"),
-      order: 2
-    }, {
-      menuId: MenuId.CommandPalette,
-      group: "",
-      title: localize(855, "Copy"),
-      order: 1
-    }, {
-      menuId: MenuId.SimpleEditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(856, "Copy"),
-      order: 2
-    }]
-  })) : void 0;
-  MenuRegistry.appendMenuItem(MenuId.MenubarEditMenu, { submenu: MenuId.MenubarCopy, title: localize2(861, "Copy As"), group: "2_ccp", order: 3 });
-  MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextCopy, title: localize2(862, "Copy As"), group: CLIPBOARD_CONTEXT_MENU_GROUP, order: 3 });
-  MenuRegistry.appendMenuItem(MenuId.EditorContext, { submenu: MenuId.EditorContextShare, title: localize2(863, "Share"), group: "11_share", order: -1, when: ContextKeyExpr.and(ContextKeyExpr.notEquals("resourceScheme", "output"), EditorContextKeys.editorTextFocus) });
-  MenuRegistry.appendMenuItem(MenuId.ExplorerContext, { submenu: MenuId.ExplorerContextShare, title: localize2(864, "Share"), group: "11_share", order: -1 });
-  var PasteAction = supportsPaste ? registerCommand4(new MultiCommand({
-    id: "editor.action.clipboardPasteAction",
-    precondition: void 0,
-    kbOpts: (
-      // Do not bind paste keybindings in the browser,
-      // since browsers do that for us and it avoids security prompts
-      isNative ? {
-        primary: 2048 | 52,
-        win: { primary: 2048 | 52, secondary: [
-          1024 | 19
-          /* KeyCode.Insert */
-        ] },
-        linux: { primary: 2048 | 52, secondary: [
-          1024 | 19
-          /* KeyCode.Insert */
-        ] },
-        weight: 100
-        /* KeybindingWeight.EditorContrib */
-      } : void 0
-    ),
-    menuOpts: [{
-      menuId: MenuId.MenubarEditMenu,
-      group: "2_ccp",
-      title: localize(857, "&&Paste"),
-      order: 4
-    }, {
-      menuId: MenuId.EditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(858, "Paste"),
-      when: EditorContextKeys.writable,
-      order: 4
-    }, {
-      menuId: MenuId.CommandPalette,
-      group: "",
-      title: localize(859, "Paste"),
-      order: 1
-    }, {
-      menuId: MenuId.SimpleEditorContext,
-      group: CLIPBOARD_CONTEXT_MENU_GROUP,
-      title: localize(860, "Paste"),
-      when: EditorContextKeys.writable,
-      order: 4
-    }]
-  })) : void 0;
-  var ExecCommandCopyWithSyntaxHighlightingAction = class extends EditorAction {
-    constructor() {
-      super({
-        id: "editor.action.clipboardCopyWithSyntaxHighlightingAction",
-        label: localize2(865, "Copy with Syntax Highlighting"),
-        precondition: void 0,
-        kbOpts: {
-          kbExpr: EditorContextKeys.textInputFocus,
-          primary: 0,
-          weight: 100
-          /* KeybindingWeight.EditorContrib */
-        }
-      });
-    }
-    run(accessor, editor2) {
-      const logService = accessor.get(ILogService);
-      const clipboardService = accessor.get(IClipboardService);
-      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction#run");
-      if (!editor2.hasModel()) {
-        return;
-      }
-      const emptySelectionClipboard = editor2.getOption(
-        45
-        /* EditorOption.emptySelectionClipboard */
-      );
-      if (!emptySelectionClipboard && editor2.getSelection().isEmpty()) {
-        return;
-      }
-      CopyOptions.forceCopyWithSyntaxHighlighting = true;
-      editor2.focus();
-      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction (before execCommand copy)");
-      executeClipboardCopyWithWorkaround(editor2, clipboardService);
-      logService.trace("ExecCommandCopyWithSyntaxHighlightingAction (after execCommand copy)");
-      CopyOptions.forceCopyWithSyntaxHighlighting = false;
-    }
-  };
-  function executeClipboardCopyWithWorkaround(editor2, clipboardService) {
-    CopyOptions.electronBugWorkaroundCopyEventHasFired = false;
-    editor2.getContainerDomNode().ownerDocument.execCommand("copy");
-    if (isNative && CopyOptions.electronBugWorkaroundCopyEventHasFired === false) {
-      const { dataToCopy } = generateDataToCopyAndStoreInMemory(editor2._getViewModel(), void 0, isFirefox2);
-      clipboardService.writeText(dataToCopy.text);
-    }
-  }
-  function registerExecCommandImpl(target, browserCommand) {
-    if (!target) {
-      return;
-    }
-    target.addImplementation(1e4, "code-editor", (accessor, args) => {
-      const logService = accessor.get(ILogService);
-      const clipboardService = accessor.get(IClipboardService);
-      logService.trace("registerExecCommandImpl (addImplementation code-editor for : ", browserCommand, ")");
-      const focusedEditor = accessor.get(ICodeEditorService).getFocusedCodeEditor();
-      if (focusedEditor && focusedEditor.hasTextFocus() && focusedEditor.hasModel()) {
-        const emptySelectionClipboard = focusedEditor.getOption(
-          45
-          /* EditorOption.emptySelectionClipboard */
-        );
-        const selection = focusedEditor.getSelection();
-        if (selection && selection.isEmpty() && !emptySelectionClipboard) {
-          return true;
-        }
-        if (focusedEditor.getOption(
-          170
-          /* EditorOption.effectiveEditContext */
-        ) && browserCommand === "cut") {
-          logCopyCommand(focusedEditor);
-          logService.trace("registerExecCommandImpl (before execCommand copy)");
-          executeClipboardCopyWithWorkaround(focusedEditor, clipboardService);
-          focusedEditor.trigger(void 0, "cut", void 0);
-          logService.trace("registerExecCommandImpl (after execCommand copy)");
-        } else {
-          logCopyCommand(focusedEditor);
-          logService.trace("registerExecCommandImpl (before execCommand " + browserCommand + ")");
-          if (browserCommand === "copy") {
-            executeClipboardCopyWithWorkaround(focusedEditor, clipboardService);
-          } else {
-            focusedEditor.getContainerDomNode().ownerDocument.execCommand(browserCommand);
-          }
-          logService.trace("registerExecCommandImpl (after execCommand " + browserCommand + ")");
-        }
-        return true;
-      }
-      return false;
-    });
-    target.addImplementation(0, "generic-dom", (accessor, args) => {
-      const logService = accessor.get(ILogService);
-      logService.trace("registerExecCommandImpl (addImplementation generic-dom for : ", browserCommand, ")");
-      logService.trace("registerExecCommandImpl (before execCommand " + browserCommand + ")");
-      getActiveDocument().execCommand(browserCommand);
-      logService.trace("registerExecCommandImpl (after execCommand " + browserCommand + ")");
-      return true;
-    });
-  }
-  function logCopyCommand(editor2) {
-    const editContextEnabled = editor2.getOption(
-      170
-      /* EditorOption.effectiveEditContext */
-    );
-    if (editContextEnabled) {
-      const nativeEditContext = NativeEditContextRegistry.get(editor2.getId());
-      if (nativeEditContext) {
-        nativeEditContext.handleWillCopy();
-      }
-    }
-  }
-  registerExecCommandImpl(CutAction, "cut");
-  registerExecCommandImpl(CopyAction, "copy");
-  if (PasteAction) {
-    PasteAction.addImplementation(1e4, "code-editor", (accessor, args) => {
-      const logService = accessor.get(ILogService);
-      logService.trace("registerExecCommandImpl (addImplementation code-editor for : paste)");
-      const codeEditorService = accessor.get(ICodeEditorService);
-      const clipboardService = accessor.get(IClipboardService);
-      const focusedEditor = codeEditorService.getFocusedCodeEditor();
-      if (focusedEditor && focusedEditor.hasModel() && focusedEditor.hasTextFocus()) {
-        const editContextEnabled = focusedEditor.getOption(
-          170
-          /* EditorOption.effectiveEditContext */
-        );
-        if (editContextEnabled) {
-          const nativeEditContext = NativeEditContextRegistry.get(focusedEditor.getId());
-          if (nativeEditContext) {
-            nativeEditContext.handleWillPaste();
-          }
-        }
-        logService.trace("registerExecCommandImpl (before triggerPaste)");
-        const triggerPaste = clipboardService.triggerPaste(getActiveWindow().vscodeWindowId);
-        if (triggerPaste) {
-          logService.trace("registerExecCommandImpl (triggerPaste defined)");
-          return triggerPaste.then(async () => {
-            logService.trace("registerExecCommandImpl (after triggerPaste)");
-            return CopyPasteController.get(focusedEditor)?.finishedPaste() ?? Promise.resolve();
-          });
-        } else {
-          logService.trace("registerExecCommandImpl (triggerPaste undefined)");
-        }
-        if (isWeb) {
-          logService.trace("registerExecCommandImpl (Paste handling on web)");
-          return (async () => {
-            const clipboardText = await clipboardService.readText();
-            if (clipboardText !== "") {
-              const metadata = InMemoryClipboardMetadataManager.INSTANCE.get(clipboardText);
-              let pasteOnNewLine = false;
-              let multicursorText = null;
-              let mode = null;
-              if (metadata) {
-                pasteOnNewLine = focusedEditor.getOption(
-                  45
-                  /* EditorOption.emptySelectionClipboard */
-                ) && !!metadata.isFromEmptySelection;
-                multicursorText = typeof metadata.multicursorText !== "undefined" ? metadata.multicursorText : null;
-                mode = metadata.mode;
-              }
-              logService.trace("registerExecCommandImpl (clipboardText.length : ", clipboardText.length, " id : ", metadata?.id, ")");
-              focusedEditor.trigger("keyboard", "paste", {
-                text: clipboardText,
-                pasteOnNewLine,
-                multicursorText,
-                mode
-              });
-            }
-          })();
-        }
-        return true;
-      }
-      return false;
-    });
-    PasteAction.addImplementation(0, "generic-dom", (accessor, args) => {
-      const logService = accessor.get(ILogService);
-      logService.trace("registerExecCommandImpl (addImplementation generic-dom for : paste)");
-      const triggerPaste = accessor.get(IClipboardService).triggerPaste(getActiveWindow().vscodeWindowId);
-      return triggerPaste ?? false;
-    });
-  }
-  if (supportsCopy) {
-    registerEditorAction(ExecCommandCopyWithSyntaxHighlightingAction);
-  }
 
   // node_modules/monaco-editor/esm/vs/editor/contrib/contextmenu/browser/contextmenu.js
   init_dom();
@@ -193650,6 +193663,7 @@ https://creativecommons.org/licenses/by/4.0/
       sync_monaco_code_theme();
     }
     bind_editor(view) {
+      this.subscriptions.push(bind_monaco_source_clipboard(view));
       this.subscriptions.push(view.onDidFocusEditorText(() => {
         this.last_focused_editor = view;
       }));
@@ -212983,11 +212997,18 @@ https://creativecommons.org/licenses/by/4.0/
       this.term.attachCustomKeyEventHandler((event) => {
         if (is_composing_key(event)) return true;
         const key4 = event.key.toLowerCase(), control = event.ctrlKey || event.metaKey;
-        if (control && (event.shiftKey && ["c", "v", "f"].includes(key4) || key4 === "c" && this.term.hasSelection())) {
+        const paste_key = key4 === "v" && !event.altKey && (control && event.shiftKey || event.metaKey && !event.ctrlKey || event.ctrlKey && !event.metaKey && /^Win/iu.test(navigator.platform));
+        if (paste_key) {
+          if (event.type === "keydown") {
+            event.preventDefault();
+            void this.paste();
+          }
+          return false;
+        }
+        if (control && (event.shiftKey && ["c", "f"].includes(key4) || key4 === "c" && this.term.hasSelection())) {
           if (event.type === "keydown") {
             event.preventDefault();
             if (key4 === "c") void actions.copy(this.term.getSelection()).catch(actions.error);
-            else if (key4 === "v") void this.paste();
             else this.find();
           }
           return false;
@@ -213153,7 +213174,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     async paste() {
       try {
-        this.paste_text(await navigator.clipboard.readText());
+        const clipboard = window.reqnode?.("electron")?.clipboard;
+        this.paste_text(clipboard ? clipboard.readText() : await navigator.clipboard.readText());
       } catch (error) {
         if (!this.lifetime.disposed) this.actions.error(error);
       }
@@ -243734,6 +243756,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092903,
+        version: "2026.09.29.3",
+        date: "2026-09-29",
+        notes: [
+          "\u4FEE\u590D\u6E90\u7801\u7F16\u8F91\u5668Ctrl+V\u88AB\u63A5\u6536\u5374\u6CA1\u6709\u7C98\u8D34\u7684\u95EE\u9898\uFF0C\u6E90\u7801\u590D\u5236\u3001\u526A\u5207\u3001\u7C98\u8D34\u5FEB\u6377\u952E\u4E0E\u83DC\u5355\u5171\u7528\u5BBF\u4E3B\u547D\u4EE4\uFF0C\u4FDD\u7559\u64A4\u9500\u3001\u591A\u5149\u6807\u53CA\u53EA\u8BFB\u4FDD\u62A4\u3002",
+          "\u4FEE\u590DWindows\u7EC8\u7AEFCtrl+V\u8BEF\u53D1\u63A7\u5236\u5B57\u7B26\uFF0C\u7C98\u8D34\u4E0E\u7EC8\u7AEF\u83DC\u5355\u5171\u7528\u5165\u53E3\uFF0C\u4FDD\u7559\u591A\u884C\u786E\u8BA4\u548CCtrl+C\u4E2D\u65AD\u3002"
+        ]
+      },
       {
         sequence: 2026092902,
         version: "2026.09.29.2",

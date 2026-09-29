@@ -42,8 +42,10 @@ export class terminal_surface {
       // 候选选择与中英切换交给输入法及 xterm，不能因快捷键移走输入焦点。
       if(is_composing_key(event))return true;
       const key=event.key.toLowerCase(),control=event.ctrlKey||event.metaKey;
-      if(control&&(event.shiftKey&&["c","v","f"].includes(key)||key==="c"&&this.term.hasSelection())){
-        if(event.type==="keydown"){event.preventDefault();if(key==="c")void actions.copy(this.term.getSelection()).catch(actions.error);else if(key==="v")void this.paste();else this.find();}return false;
+      const paste_key=key==='v'&&!event.altKey&&(control&&event.shiftKey||event.metaKey&&!event.ctrlKey||event.ctrlKey&&!event.metaKey&&/^Win/iu.test(navigator.platform));
+      if(paste_key){if(event.type==='keydown'){event.preventDefault();void this.paste();}return false;}
+      if(control&&(event.shiftKey&&["c","f"].includes(key)||key==="c"&&this.term.hasSelection())){
+        if(event.type==="keydown"){event.preventDefault();if(key==="c")void actions.copy(this.term.getSelection()).catch(actions.error);else this.find();}return false;
       }
       return true;
     });
@@ -116,7 +118,11 @@ export class terminal_surface {
       }else{this.term.paste(text);this.focus();}
   }
   async paste(){
-    try{this.paste_text(await navigator.clipboard.readText());}
+    try{
+      // Desktop commands use the host clipboard; browser fixtures retain the web port.
+      const clipboard=(window as any).reqnode?.('electron')?.clipboard;
+      this.paste_text(clipboard?clipboard.readText():await navigator.clipboard.readText());
+    }
     catch(error){if(!this.lifetime.disposed)this.actions.error(error);}
   }
   set_status(state:string,message:string,busy=state==="starting"){this.container.dataset.state=state;this.container.setAttribute("aria-busy",String(busy));this.status.textContent=message;this.status.hidden=!message;if(busy)this.progress.update(message);else this.progress.hide();}

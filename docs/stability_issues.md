@@ -491,3 +491,6 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-navigation-control-focus（R067.6，2026-09-29）：共同入口将同编辑器的活动通知按普通选区记录，工具控件引起的宿主缓存选区变化截断前进；全局按下还会更新离开位置。旧候选UI 25a720cc复现，修复在共同记录入口区分文档事件/真实编辑器切换与纯UI焦点，当前验收见台账。
 
 - BUG-quick-open-qualified-directory（R058.5，2026-09-29）：相对描述评分未处理工作区绝对前缀及`./`，目录/半截路径无结果，精确文件stat旁路掩盖问题；补共享路径适配及顶栏/原生回归，状态见台账。
+
+- BUG-source-clipboard-host（R079.1，2026-09-29补充）：R068.7已接通菜单，但Monaco键盘仍走缺失的native triggerPaste，可信Ctrl+V被消费而模型不变；本次把上游Copy/Cut/Paste命令统一接入现有适配，随编辑器销毁注销。
+- BUG-terminal-paste-control（R079.1，2026-09-29）：Windows xterm Ctrl+V落入Shell控制字符0x16，Ctrl+Shift+V却有独立粘贴入口；按上游平台键位共用原终端paste，保持Ctrl+C中断。最终验证及已安装状态见R079.1证据；测试剪贴板替身与系统实机边界分开记录。
