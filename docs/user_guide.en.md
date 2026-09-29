@@ -41,7 +41,10 @@ The copy button above the code block copies the code. Long code can be expanded/
 | Ctrl+scroll wheel with mouse in the editing area | Only changes the content font size, keeping the control size unchanged; tries to retain the current reading position |
 | Ctrl+= / Ctrl+- | Zoom in/out the workbench interface; the current document and already opened terminal maintain visual font size |
 | New document/terminal in this window | Inherits the font size of the corresponding content area in this window |
-| Restart Typora | Restores the saved basic configuration and rebuilds the font size status of this window |
+| Restart Typora | Restores editor/terminal fonts, interface zoom and terminal panel visibility, maximization and dimensions |
+| Settings → Appearance → Restore appearance defaults | Restores 100% interface zoom, base content fonts and default terminal fonts/geometry, then hides the panel without terminating running Shells |
+
+Closing the application ends the old Shell process. Reopening a previously visible panel starts a fresh default Shell without replaying commands.
 
 The terminal has its own font and scroll handling; do not mix workbench scaling, system DPI, and text font size into the same setting. For narrow screen reading, hide the sidebar or terminal, then enlarge the document content separately.
 

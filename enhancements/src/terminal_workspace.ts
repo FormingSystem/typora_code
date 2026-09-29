@@ -43,6 +43,7 @@ export function bind_terminal_workspace(host:graph_host){
   lifetime.add(register_workspace_settings({id:'terminal',title:workspace_text("terminal_panel_terminal"),scope:()=> workspace_text("terminal_workspace_user_settings"),defaults:terminal_defaults,fields:Object.keys(terminal_defaults).map(key=>({key,title:setting_titles[key],choices:terminal_setting_choices[key as keyof typeof terminal_defaults],description:['profile','profiles','env','cwd'].includes(key)?workspace_text("terminal_workspace_changes_to_shell_environment_and_initial_directory_take_effe"):undefined})),read:settings.get,write:(key,value)=>settings.update({...settings.get(),[key]:value})}));
   lifetime.add(settings.subscribe(notify_workspace_settings));
   const sessions=new Map<string,session_entry>(),groups=new Map<string,HTMLElement>();let serial=0,group_serial=0,active_id="",render_frame=0;
+  let restore_panel=false;try{restore_panel=localStorage.getItem("typora-code:terminal-panel-visible")==="true";}catch{}
   const panel=lifetime.own(create_terminal_panel(()=>{for(const entry of sessions.values())entry.surface.resize();}));
   const layout=lifetime.own(create_terminal_layout(panel.body,panel.tabs,()=>{for(const entry of sessions.values())entry.surface.resize();}));
   const tab_drag=lifetime.own(bind_terminal_tab_drag(panel.tabs,(source,target,after)=>{
@@ -76,7 +77,7 @@ export function bind_terminal_workspace(host:graph_host){
     const entry=sessions.get(id);if(!entry)return;sessions.delete(id);entry.moving=true;entry.session.dispose();entry.surface.dispose();
     if(entry.leaf)entry.leaf.parent.removeTab?.(entry.leaf.state.path);
     if(active_id===id)active_id=[...sessions.keys()].at(-1)||"";render();
-    if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide();
+    if(![...sessions.values()].some(item=>item.location==="panel"))panel.hide(!lifetime.disposed);
   };
   const edit_identity=(kind:"title"|"color"|"icon",id=active_id)=>{
     const entry=sessions.get(id);if(!entry)return;const popup=dialog(kind==="title"?workspace_text("terminal_workspace_rename_terminal"):kind==="color"?workspace_text("terminal_workspace_change_terminal_color"):workspace_text("terminal_workspace_change_terminal_icon"));
@@ -97,7 +98,7 @@ export function bind_terminal_workspace(host:graph_host){
     const executable=host.path_api.join(host.process_api.env.SystemRoot||"C:\\Windows","System32","OpenSSH","ssh.exe");
     const profile=api.remote_terminal_profile(target,remote_path,executable,{...read_remote_ssh_settings(),port});if(name)profile.title='SSH: '+name;return profile;
   };
-  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false)=>(async()=>{
+  const open=(root:string,program="",location:"panel"|"editor"=settings.get().location,split_id="",explicit_cwd=false,resolve_cwd?:()=>Promise<string>,launch_profile?:terminal_profile_config,local=false,focus=true)=>(async()=>{
     const epoch=workspace_context_epoch();if(lifetime.disposed||workspace_context_switching())return;
     const owner=require_remote_terminal_context();
     if(launch_profile?.remote&&(!owner||owner.target!==launch_profile.remote.target||(owner.port||0)!==(launch_profile.remote.port||0)))throw Error(workspace_text("terminal_workspace_please_switch_to_this_ssh_workspace_first_then_open_the_term"));
@@ -114,7 +115,7 @@ export function bind_terminal_workspace(host:graph_host){
     entry={session,surface,location,moving:false};sessions.set(id,entry);surface.container.dataset.session=id;active_id=id;
     if(split_id&&sessions.get(split_id)?.location==="panel")session.group=sessions.get(split_id)!.session.group;
     surface.container.oncontextmenu=event=>{const config=settings.get();if(!event.shiftKey&&config.right_click!=="menu"){event.preventDefault();if(config.right_click==="copy_paste"&&surface.term.hasSelection())void host.copy(surface.term.getSelection()).catch(fail);else void surface.paste();return;}menu(event,session_menu(id));};
-    if(location==="editor")attach_editor(entry);else panel.show();render();surface.mount();surface.focus();void session.start();return entry;
+    if(location==="editor")attach_editor(entry);else panel.show();render();surface.mount();if(focus)surface.focus();void session.start();return entry;
   })().catch(fail);
   const split=(id=active_id)=>{const entry=sessions.get(id);if(!entry)return;const root=settings.get().split_cwd==="workspace"?host.workspace_path():entry.session.root;
     if(entry.location==="editor")move("panel",id);open(root,entry.session.profile.id,"panel",id,true,undefined,entry.session.launch_profile,true);};
@@ -204,7 +205,7 @@ export function bind_terminal_workspace(host:graph_host){
   action("add",workspace_text("terminal_workspace_new_terminal_ctrl_shift"),()=>launch());action("chevron-down",workspace_text("terminal_workspace_select_terminal_configuration"),node=>profile_menu(at(node)));
   action("split-horizontal",workspace_text("terminal_workspace_split_terminal"),()=>split());action("trash",workspace_text("terminal_workspace_terminate_terminal"),()=>kill());
   action("more",workspace_text("terminal_workspace_more_terminal_operations"),node=>menu(at(node),active()?session_menu(active_id):[{title:workspace_text("terminal_workspace_terminal_settings_e950837d"),action:configure}]));
-  action("screen-full",workspace_text("terminal_workspace_maximize_minimize_panel"),node=>{panel.maximize();node.replaceChildren(git_icon(panel.maximized?"screen-normal":"screen-full"));});
+  const maximize_button=action(panel.maximized?"screen-normal":"screen-full",workspace_text("terminal_workspace_maximize_minimize_panel"),node=>{panel.maximize();node.replaceChildren(git_icon(panel.maximized?"screen-normal":"screen-full"));});
   action("close",workspace_text("terminal_workspace_hide_panel_keep_process"),()=>panel.hide());
   lifetime.add(core.app.viewManager.registerView(TERMINAL_TYPE,leaf=>new terminal_editor_view(leaf)));
   const commands:[string,string,()=>void][]=[
@@ -242,6 +243,19 @@ export function bind_terminal_workspace(host:graph_host){
   lifetime.add(()=>{cancelAnimationFrame(render_frame);for(const id of [...sessions.keys()])kill(id);document.documentElement.removeAttribute("data-linux-note-terminal");document.documentElement.removeAttribute("data-linux-note-terminal-theme");});
   lifetime.listen(window,"unload",lifetime.dispose);
   lifetime.listen(window,"linux-note-workspace-context-changed",()=>{for(const close of [...overlays])close();for(const id of [...sessions.keys()])kill(id);});
+  lifetime.listen(window,"typora-code:reset-appearance",()=>{
+    panel.reset();layout.reset();maximize_button.replaceChildren(git_icon("screen-full"));
+    const current=settings.get(),defaults=terminal_defaults;
+    settings.update({...current,font_family:defaults.font_family,font_size:defaults.font_size,font_weight:defaults.font_weight,line_height:defaults.line_height,letter_spacing:defaults.letter_spacing,tabs_location:defaults.tabs_location,tabs_hide:defaults.tabs_hide});
+  });
+  // Restore the panel without stealing editor focus or replaying previous commands.
+  if(restore_panel){
+    panel.show();
+    void settings.ready().then(()=>{
+      if(lifetime.disposed||!panel.visible||sessions.size||workspace_context_switching())return;
+      return open(host.workspace_path(),"","panel","",false,undefined,undefined,false,false);
+    }).catch(fail);
+  }
   document.documentElement.setAttribute("data-linux-note-terminal","ready");document.documentElement.setAttribute("data-linux-note-terminal-theme","ready");
   return {open,admin,toggle,dispose:lifetime.dispose};
   }catch(error){lifetime.dispose();throw error;}

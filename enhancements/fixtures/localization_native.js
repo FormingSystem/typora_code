@@ -30,6 +30,9 @@
   refreshed.value=locale;refreshed.dispatchEvent(new Event('change',{bubbles:true}));
   assert(modal.getBoundingClientRect().right<=innerWidth+1,'Settings stays inside the viewport');
   assert(modal.getBoundingClientRect().left>=0&&modal.scrollWidth<=modal.clientWidth+1,'Localized settings has no horizontal overflow');
+  [...modal.querySelectorAll('.workspace-settings-categories button')].find(node=>node.textContent===(english?'Appearance':'外观')).click();
+  const reset=modal.querySelector('[data-setting="appearance.reset_defaults"]');
+  assert(reset?.textContent===(english?'Restore appearance defaults':'恢复外观默认配置')&&reset.getBoundingClientRect().right<=modal.getBoundingClientRect().right,'Localized appearance reset is visible within the settings panel');
   const stage='localization_'+locale.replace('-','_')+'_settings';
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}),'utf8');
   let captured=false;

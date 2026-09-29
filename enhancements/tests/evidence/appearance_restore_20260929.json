@@ -1,0 +1,92 @@
+{
+  "schema": 1,
+  "requirement": "R014.3",
+  "date": "2026-09-29",
+  "version": "2026.09.29.6",
+  "status": "PASS",
+  "build": "npm run build passed",
+  "core": {
+    "command": "npm run check",
+    "run_id": "bdb80564721241aba027e844e2717680",
+    "status": "PASS",
+    "followup": "Final bundle/deployment and bilingual links checked after the last settings refresh change."
+  },
+  "ui": {
+    "unique_suites": 7,
+    "appearance_renderer_restarts": 20,
+    "appearance_checks": 26,
+    "wheel_checks": 31,
+    "window_zoom_checks": 67,
+    "final_run_ids": [
+      "d18bc3e046084918b30996bb86ff6c40",
+      "d6e0d8891f0d42149e31b4e58b76571f",
+      "364a90912fc142e79664a6bcc25f2603",
+      "9320ab64c9824a30ad9ad08891518f1f"
+    ],
+    "additional_run_ids": [
+      "aacd139ee325499a81c8e36df808bf7a",
+      "6860ce57b3064607943cd5db2e9fe3e2",
+      "da1525661b614c06a6e473ac2736a389"
+    ],
+    "loads": "20 renderer restarts; wheel coalescing and panel visibility up to 1000 events; settings registration 100 cycles"
+  },
+  "native": {
+    "run_id": "b067fe5952334f9e920b9b94a0b1b6c4",
+    "platform": "Windows, original Typora 1.14.10",
+    "processes": 3,
+    "checks": [
+      5,
+      11,
+      3
+    ],
+    "status": [
+      "PASS",
+      "PASS",
+      "PASS"
+    ]
+  },
+  "localization": {
+    "run_ids": [
+      "ba6cc960242d4ff3a3bc6c6765e1e212",
+      "17add0d388284a9a8b150cc326274652"
+    ],
+    "checks": [
+      15,
+      15
+    ],
+    "screenshots_reviewed": true
+  },
+  "deployment": {
+    "isolated_install_run": "d8d89ef890b14cfdb23f77429948ea48",
+    "uninstall_run": "6a82c71f1ad94f1e98d7d02b4e3d9644",
+    "uninstall_assertions": 65,
+    "paths": [
+      "install/check/restore-uninstall/reinstall/check",
+      "detach-uninstall/reinstall/check"
+    ],
+    "local": {
+      "installed_before": "2026.09.29.5",
+      "installed_after": "2026.09.29.6",
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        56,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "2b7ce7c53ab0d5887ccb9f0b31b0e45661a48e12efc5c9a6703f7cb147a52d91",
+      "window_restarted": false
+    }
+  },
+  "test_infrastructure": "Initial renderer restart fixture exited on last-window-close before completion; fixed by retaining the test app lifetime. The initial apparent pass is excluded; the final fixture completed 26 assertions.",
+  "limits": [
+    "Old Shell processes and command history are not restored; an open panel starts one fresh default Shell.",
+    "File restoration continues to follow native preferences; no full process or editor-group snapshot was added.",
+    "Physical input, non-Windows hosts and real SSH restart were not tested.",
+    "Full UI suite was not rerun; seven related suites were covered.",
+    "User windows were not restarted. Existing paused and unresolved requirements remain unchanged."
+  ]
+}

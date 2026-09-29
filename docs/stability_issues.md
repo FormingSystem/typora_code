@@ -8,6 +8,7 @@
 
 | 问题 | 需求 | 类型/严重度 | 复现与实际根因 | 方案与关联验证 |
 | --- | --- | --- | --- | --- |
+| BUG-appearance-restart-001 外观在重开后复位 | R014.3 | 状态/P2 | 旧R014.2在绑定时清空字号增量，终端可见状态未保存；新需求改为显式恢复默认 | 共同字号服务保存补偿基准，面板保存显示/最大化；20个新renderer与原生三进程验证，见appearance_restore_20260929.json |
 | BUG-upgrade-backup-growth-001 旧升级备份长期积压 | R047.11 | 生命周期/P2 | 历次产品升级备份没有后加的retention标记，被统一保留，每次重复保存运行时约百MB | 成功安装后共同轮换所有者核对旧清单、宿主/用户、启动入口及所有文件摘要；原生/基线与未知资料保留。双实现20轮与当次本机清理见backup_cleanup_20260928.json |
 | BUG-remote-terminal-color-001 SSH终端无彩色提示与目录 | R070.10 | 启动/呈现/P2 | 强制登录Shell绕过当前账号交互配置；本机COLORTERM未传到远端；终端通用前景和失焦选区未取2026专用角色 | 交互Shell与远端能力声明、共同主题角色；真实SSH及原生明暗/字符格证据见terminal_color_preview_20260927.json |
 | BUG-preview-terminal-layer-001 浮动预览被终端覆盖 | R069.12 | 层级/P2 | body同级预览2低于终端100 | 独立dock层101，保持菜单/对话框更高；重叠命中和明暗/缩放/最大化验证见terminal_color_preview_20260927.json |

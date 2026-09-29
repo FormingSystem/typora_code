@@ -3,6 +3,8 @@
 <a id="section_5d98c64e217c"></a>
 # R072 Three-level Settings and Unified Custom Configuration
 
+2026-09-29 R014.3: Appearance → Restore appearance defaults follows the [appearance restoration contract](workspace_zoom.en.md#appearance-persistence). Other settings retain their per-field reset controls.
+
 2026-09-22 User Request: Typora Native, Community Plugins, and TyporaCode Custom Features are divided into three layers; Custom Features are managed in one layer uniformly, and cannot be maintained in multiple configuration entry points with inconsistent copies.
 
 <a id="section_e55b79a57ee9"></a>

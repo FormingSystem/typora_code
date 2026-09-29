@@ -111,6 +111,7 @@ const ui_tests = Object.freeze([
   "test_workspace_shortcuts.cjs",
   "test_workspace_zoom.cjs",
   "test_wheel_zoom.cjs",
+  "test_appearance_restore.cjs",
   "test_workspace_sidebar_sash.cjs",
   "test_workspace_source_lifecycle.cjs",
   "test_workspace_titlebar.cjs",

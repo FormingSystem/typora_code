@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026092906,
+      "version": "2026.09.29.6",
+      "date": "2026-09-29",
+      "notes": [
+        "关闭并重新打开应用时，保留编辑器和终端内容字号、界面缩放，以及终端面板开关、最大化和高度。已打开的面板自动启动新的默认Shell。",
+        "设置新增“外观 → 恢复外观默认配置”，恢复默认字号和面板比例；保留正文、连接配置和当前Shell进程。"
+      ],
+      "notes_en": [
+        "Reopening the application restores editor and terminal font adjustments, interface zoom, and terminal panel visibility, maximization and height. An open panel starts a fresh default Shell.",
+        "Settings now provides Appearance → Restore appearance defaults to reset fonts and panel dimensions while preserving documents, connection settings and running Shells."
+      ]
+    },
+    {
       "sequence": 2026092905,
       "version": "2026.09.29.5",
       "date": "2026-09-29",

@@ -60,5 +60,5 @@ export function create_terminal_layout(body:HTMLElement,tabs:HTMLElement,changed
     layout();
   }
   lifetime.add(()=>{cancelAnimationFrame(frame);for(const group of groups.values())group.clear();groups.clear();sash.remove();});
-  return {update,layout:schedule,dispose:lifetime.dispose};
+  return {update,layout:schedule,reset(){width=120;save();for(const group of groups.values())for(const pane of group.panes)group.weights.set(pane.dataset.session!,1/group.panes.length);layout();},dispose:lifetime.dispose};
 }

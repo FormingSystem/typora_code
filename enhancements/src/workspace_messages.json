@@ -7654,5 +7654,17 @@
   "color_missing_theme": {
     "en": "The color configuration is missing the {theme} object.",
     "zh_cn": "颜色配置缺少{theme}对象。"
+  },
+  "appearance_section": {
+    "en": "Appearance",
+    "zh_cn": "外观"
+  },
+  "appearance_reset": {
+    "en": "Restore appearance defaults",
+    "zh_cn": "恢复外观默认配置"
+  },
+  "appearance_reset_description": {
+    "en": "Appearance is saved across restarts. Reset interface zoom to 100%, content font adjustments and terminal font/layout defaults, and hide the terminal panel. Documents, running Shells, themes, connections and other settings are retained.",
+    "zh_cn": "关闭应用后保留上次外观。此操作将界面缩放恢复100%、清除内容字号调整、恢复终端字体及面板比例并隐藏面板；保留正文、正在运行的Shell、主题、连接及其他设置。"
   }
 }

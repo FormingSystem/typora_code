@@ -22,6 +22,7 @@ app.whenReady().then(async()=>{
   window.fail_save=true;change('language.display_language','zh-cn');assert(values.get('displayLang')==='en','failed language save preserves the prior preference');window.fail_save=false;
   change('language.display_language','auto');assert(values.get('displayLang')===undefined,'following Typora removes the explicit preference');
   assert(document.querySelector('.workspace-settings-modal[role=dialog]'),'设置为独立浮动窗口');binding.show();assert(document.querySelectorAll('.workspace-settings-modal').length===1&&leaves.length===0,'重复打开复用窗口，不改动原编辑组');
+  let reset_events=0;window.addEventListener('typora-code:reset-appearance',()=>reset_events++);setting('appearance.reset_defaults').click();assert(reset_events===1&&document.activeElement===setting('appearance.reset_defaults'),'appearance reset executes once, refreshes controls and restores keyboard focus');
   change('editor.enable_preview',false);assert(!qa.read_workspace_editor_settings().enable_preview,'修改保存至原所有者');
   setting('editor.enable_preview').closest('.workspace-setting-row').querySelector('button').click();assert(qa.read_workspace_editor_settings().enable_preview,'单项恢复默认');
   window.fail_save=true;change('editor.enable_preview',false);assert(qa.read_workspace_editor_settings().enable_preview&&document.querySelector('.workspace-settings-status').textContent.includes('磁盘'),'保存失败保持配置');window.fail_save=false;

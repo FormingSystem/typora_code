@@ -9088,6 +9088,72 @@
       ],
       "platform": "win32",
       "timeout_ms": 300000
+    },
+    {
+      "id": "TC-appearance-restore-renderer",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R014.3",
+        "R072"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "implementation": [
+        "enhancements/src/workspace_content_zoom.ts",
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_settings_sections.ts"
+      ],
+      "related_modules": [
+        "terminal",
+        "settings",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_appearance_restore.cjs",
+      "environment": "Isolated Electron renderer",
+      "preconditions": "Use isolated profile and documents",
+      "steps": [
+        "Change appearance, restart, inspect restored state, reset and restart again"
+      ],
+      "expected": [
+        "Fonts and proportions remain stable; reset preserves content and running Shells"
+      ],
+      "timeout_ms": 600000,
+      "required_executables": []
+    },
+    {
+      "id": "TC-appearance-restore-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R014.3",
+        "R072"
+      ],
+      "design": "docs/workspace_zoom.md",
+      "implementation": [
+        "enhancements/src/workspace_content_zoom.ts",
+        "enhancements/src/terminal_panel.ts",
+        "enhancements/src/terminal_workspace.ts",
+        "enhancements/src/workspace_settings_sections.ts"
+      ],
+      "related_modules": [
+        "terminal",
+        "settings",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_appearance_restore_native.ps1",
+      "environment": "Original Typora 1.14.10, three isolated processes",
+      "preconditions": "Use isolated profile and documents",
+      "steps": [
+        "Change appearance, restart, inspect restored state, reset and restart again"
+      ],
+      "expected": [
+        "Fonts and proportions remain stable; reset preserves content and running Shells"
+      ],
+      "timeout_ms": 600000,
+      "required_executables": []
     }
   ]
 }

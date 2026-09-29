@@ -3,6 +3,8 @@
 <a id="section_d570085d040f"></a>
 # Terminal Operations and Configuration
 
+2026-09-29 R014.3: Panel visibility, maximization and geometry survive restarts. Visible panels start a fresh default Shell; old processes are not resumed. Appearance reset hides the panel without terminating the current Shell. See the [design](workspace_zoom.en.md#appearance-persistence).
+
 The terminal is by default located as an independent panel below the document content. Press **Ctrl+`** shows or hides the panel while retaining the shell and output; press **Alt+Shift+`** to create a new terminal. The top of the panel uses compact icons, and the right side displays the session list; full operations can be accessed from 'More' or the right-click menu of the session.
 
 <a id="section_6106eb2b16db"></a>

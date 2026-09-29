@@ -1,6 +1,6 @@
 import {workspace_text} from "./workspace_i18n";
 /** Configuration definitions are uniformly registered; data and save transactions continue to be owned by each domain uniquely. */
-export type workspace_setting_field={key:string;title:string;choices?:string[];choice_labels?:Record<string,string>;description?:string;file_extensions?:string[];action?:()=>void};
+export type workspace_setting_field={key:string;title:string;choices?:string[];choice_labels?:Record<string,string>;description?:string;file_extensions?:string[];action?:()=>void;refresh_after_action?:boolean};
 export type workspace_settings_section={
   id:string;title:string;scope:()=>string;defaults:Record<string,unknown>;fields:workspace_setting_field[];
   read:()=>Record<string,unknown>;write:(key:string,value:unknown)=>void;

@@ -3,6 +3,8 @@
 <a id="section_916b1e89966a"></a>
 # Window zoom
 
+2026-09-29: The R014.2 reset-on-exit rule is superseded by [R014.3 appearance restoration](#appearance-persistence).
+
 2026-09-27 R014.2 Latest Agreement: Ctrl+=/- restore to window zoom; document content Ctrl+scroll wheel changed to edit font size. The old key positions / document full window scroll wheel agreement for R079 and R014.1 is replaced by the R014.2 at the end.
 
 2026-09-27 R079 Historical Agreement (zoom part has been replaced by R014.2): sidebar uses Alt+B; window zoom in/out uses Alt+=, Alt+- and corresponding Shift/numeric keypad variants. Ctrl+B, Ctrl+=, Ctrl+- are returned to Typora native bold and heading level; the old date key positions are only recorded for source, other shortcuts see [native shortcuts priority](workspace_shortcuts.en.md).
@@ -100,3 +102,19 @@ Fix VS Code 6807068's editor/contrib/fontZoom/browser/fontZoom.ts and common/con
 Verify and compare the actual webFrame with the content font size product, toolbar geometry, current / new / split / hidden views, 20 operations, and destruction re-binding, dark / small screen / code fence / long text position; check that Ctrl combination events are executed only once, native format does not trigger repeatedly, and non-target areas do not accidentally consume. Original Typora and Electron input are separately recorded, and installation and two types of isolation uninstallation and reinstallation use the same candidate; un-covered platform / physical input is retained as is.
 
 This acceptance and delivery see [78 native checks and installation evidence](../enhancements/tests/evidence/content_zoom_20260927.json). Native source code uses the host CodeMirror public scroll / coords / refresh port to recover logical characters; session state does not write configuration. Window lifecycle reset is tested through destruction re-binding, and the user's running window is not restarted; complete native restart loading is still done by the user after normal exit.
+
+
+<a id="appearance-persistence"></a>
+## R014.3 Restore appearance across restarts (2026-09-29)
+
+This requirement supersedes the R014.2 reset-on-exit policy. Reopening the application retains editor and terminal font adjustments, interface zoom, terminal panel visibility, maximization, height and list width. First launch keeps the existing defaults. Settings provides Restore appearance defaults: return to 100% interface zoom, base content fonts and default terminal geometry, and hide the panel without terminating its current Shell. Native preferences, themes, community settings, SSH credentials, documents, undo and file restoration remain with their existing owners. Other settings retain their per-field reset controls.
+
+The shared content zoom owner saves font offsets, the compensation baseline and the last actual window factor. Startup restores the factor through the verified Typora ClientCommand.setZoomLevel before applying compensation once. Previously compensated CSS values never become base font sizes. Domain observers retain their existing position capture and restoration. The terminal panel owns visibility, maximization and height. The coordinator restores an open panel with a new default Shell after initialization; it does not replay commands or resume a terminated process. Hidden panels do not start Shells. Disposal must not overwrite the last deliberate visibility choice. Windows save their own changes; new windows read the last saved appearance, and disposal does not rewrite stale snapshots.
+
+Existing height and list-width storage remains with its owner. Reset invokes domain methods rather than clearing localStorage or rebuilding documents and PTYs. Terminal process history and split groups are not process snapshots. File restoration still follows the native launch preference. Invalid or missing state falls back to defaults; unavailable storage leaves the current window usable and reports a save error to the diagnostic console.
+
+References: pinned VS Code6807068 windowActions.ts BaseZoomAction, layout.ts LayoutStateKeys for panel visibility and dimensions, and the existing editor and terminal font zoom owners. Settings reuses its shared buttons and dimensions. Content compensation and persistent font adjustments are product adaptations.
+
+Validation covers new renderers sharing persisted storage, visual font size times window factor, panel visibility/maximization/dimensions, reset followed by reopen, invalid state, teardown, coalesced 20/100/1000 input, themes, narrow windows and keyboard operation. Wheel, zoom, settings and terminal regressions, native execution, installation and both uninstall paths require current evidence.
+
+Windows implementation and installation acceptance passed within the boundaries in the [current evidence](../enhancements/tests/evidence/appearance_restore_20260929.json).
