@@ -1,4 +1,4 @@
-// 独立 QuickPick 使用 Chromium 真实鼠标和键盘；范围确认只调用控制器刷新，不触碰 Git 仓库。
+// Independent QuickPick uses real Chromium mouse and keyboard; range confirmation only calls controller refresh, and does not touch Git repository.
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_scm_ref_picker_'));

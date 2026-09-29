@@ -1,4 +1,4 @@
-// 原始宿主的实际齿轮菜单；只操作隔离窗口，测量文字而非仅看外框。
+// Original host's actual gear menu; only operate isolated window, measure text rather than just the outer frame.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),frame=reqnode('electron').webFrame,base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

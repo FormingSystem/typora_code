@@ -3,7 +3,7 @@ import { git_icon,git_icon_button,type git_icon_name } from "./git_icons";
 import { git_graph_text as text } from "./git_graph_i18n";
 import { GRAPH_SETTINGS_KEY } from "./git_graph_settings";
 
-/** 固定上游 Find 的工作区开关；匹配同步完成，详情异步由面板 detail_epoch 管理。 */
+/** Fixed upstream Find workspace switch; match synchronization completion, and details are asynchronously managed by panel detail_epoch. */
 export class git_graph_find {
   case_sensitive = false; regex = false; open_details = false;
   matches: string[] = []; current = "";
@@ -13,7 +13,7 @@ export class git_graph_find {
   constructor(private panel: git_graph_panel) {
     try { const saved = JSON.parse(localStorage.getItem(GRAPH_SETTINGS_KEY + "find") || "{}");
       this.case_sensitive = saved.case_sensitive === true; this.regex = saved.regex === true; this.open_details = saved.open_details === true;
-    } catch { /* 损坏的本地选项恢复上游默认false。 */ }
+    } catch { /* Damaged local options restore upstream default false. */ }
     const modifier = (name: git_icon_name, title: string, change: () => void) => {
       const button = document.createElement("button"); button.type = "button"; button.append(git_icon(name)); button.title = title; button.setAttribute("aria-label", title);
       button.onclick = () => { change(); this.save(); this.update(true); }; return button;
@@ -43,7 +43,7 @@ export class git_graph_find {
   update(navigate = false): void {
     const panel = this.panel; if (panel.disposed || panel.find_widget.dataset.open !== "true") return;
     this.clear_highlights(); this.matches = []; this.error.textContent = ""; panel.search.removeAttribute("aria-invalid");
-    // 新输入立刻令上一查找请求的详情失效；后续选中会再取得新的详情epoch。
+    // New input immediately invalidates the details of the previous search request; subsequent selections will again obtain new details epoch.
     if (navigate && this.open_details) panel.detail_epoch++;
     const query = panel.search.value;
     try {

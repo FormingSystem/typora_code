@@ -1,4 +1,5 @@
-/** 系统环境拥有安装位置；不缓存路径，不执行拼接后的 shell 命令。 */
+import {workspace_text} from "./workspace_i18n";
+/** System environment owns the installation location; no caching of paths, no execution of the shell command after concatenation. */
 export type vscode_environment = {
   platform:string; env:Record<string,string|undefined>; fs:any; path_api:any;
   execute(file:string,args:string[]):Promise<string>;
@@ -26,7 +27,7 @@ export async function discover_vscode(runtime:vscode_environment):Promise<{file:
   const from_path=async(value:string)=>{
     for(const part of value.split(platform==="win32"?";":":")){
       const directory=expand(part.trim().replace(/^"|"$/gu,""));
-      // 相对/空 PATH 段不能让文档目录中的程序冒充已安装应用。
+      // Relative/empty PATH segment cannot let the document directory's programs impersonate installed applications.
       if(!directory||!path_api.isAbsolute(directory))continue;
       if(platform==="win32"){
         const executable=await candidate(path_api.join(directory,"Code.exe"));if(executable)return executable;
@@ -40,14 +41,14 @@ export async function discover_vscode(runtime:vscode_environment):Promise<{file:
     if(system_root){
       const powershell=path_api.join(system_root,"System32","WindowsPowerShell","v1.0","powershell.exe");
       const query=async(key:string,value?:string)=>{
-        // reg.exe 输出使用系统代码页；固定 PowerShell UTF-8，中文安装目录不乱码。
+        // reg.exe output uses the system code page; fixed PowerShell UTF-8, Chinese installation directory does not have garbled code.
         const registry_key=key.replace(/^HKCU/u,"HKEY_CURRENT_USER").replace(/^HKLM/u,"HKEY_LOCAL_MACHINE");
         try{return (await runtime.execute(powershell,["-NoProfile","-NonInteractive","-Command",`[Console]::OutputEncoding=[Text.UTF8Encoding]::new($false);$key=Get-Item -LiteralPath 'Registry::${registry_key}' -ErrorAction Stop;try{$key.GetValue('${value||""}','','DoNotExpandEnvironmentNames')}finally{$key.Close()}`])).trim();}catch{return "";}
       };
       for(const key of ["HKCU\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe","HKLM\\Software\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe","HKLM\\Software\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\App Paths\\Code.exe"]){
         const registered=expand(await query(key)).replace(/^"|"$/gu,"");const result=await candidate(registered);if(result)return result;
       }
-      // Typora 启动后才安装 VS Code 时，进程继承的 PATH 可能尚未更新。
+      // When Typora starts and installs VS Code, the process inherited PATH may not have been updated yet.
       for(const key of ["HKCU\\Environment","HKLM\\SYSTEM\\CurrentControlSet\\Control\\Session Manager\\Environment"]){const result=await from_path(await query(key,"Path"));if(result)return result;}
     }
     for(const [base,parts] of [[variable("LOCALAPPDATA"),["Programs","Microsoft VS Code","Code.exe"]],[variable("ProgramW6432"),["Microsoft VS Code","Code.exe"]],[variable("ProgramFiles"),["Microsoft VS Code","Code.exe"]],[variable("ProgramFiles(x86)"),["Microsoft VS Code","Code.exe"]]] as [string,string[]][]){
@@ -58,20 +59,20 @@ export async function discover_vscode(runtime:vscode_environment):Promise<{file:
     try{
       const apps=await runtime.execute("/usr/bin/mdfind",["kMDItemCFBundleIdentifier == 'com.microsoft.VSCode'"]);
       for(const app of apps.split(/\r?\n/u).filter(Boolean))if(await valid(path_api.join(app,"Contents","MacOS","Electron")))return {file:"/usr/bin/open",args:["-a",app,"--args"]};
-    }catch{/* 未安装或未被系统索引时，由下方统一提示。 */}
+    }catch{/* When not installed or not indexed by the system, show a unified prompt below. */}
   }
-  throw new Error("未找到 VS Code。请安装 Visual Studio Code，并启用“添加到 PATH”；安装后可直接重试。");
+  throw new Error(workspace_text("vscode_service_could_not_find_vs_code_please_install_visual_studio_code_and"));
 }
 
 export async function open_resource_in_vscode(runtime:vscode_environment,target:string,workspace_root?:string):Promise<void> {
-  if(!target||!runtime.path_api.isAbsolute(target))throw new Error("请先将文档保存为本地文件，再在 VS Code 中打开。");
-  const stat=await runtime.fs.promises.stat(target).catch(()=>{throw new Error("文件或文件夹不存在，或当前无权访问："+target);});
-  if(!stat.isFile()&&!stat.isDirectory())throw new Error("只能在 VS Code 中打开普通文件或文件夹。");
+  if(!target||!runtime.path_api.isAbsolute(target))throw new Error(workspace_text("vscode_service_please_first_save_the_document_as_a_local_file_then_open_it"));
+  const stat=await runtime.fs.promises.stat(target).catch(()=>{throw new Error(workspace_text("vscode_service_the_file_or_folder_does_not_exist_or_you_do_not_have_permiss")+target);});
+  if(!stat.isFile()&&!stat.isDirectory())throw new Error(workspace_text("vscode_service_only_can_open_ordinary_files_or_folders_in_vs_code"));
   const root=workspace_root||(stat.isDirectory()?target:runtime.path_api.dirname(target));
-  if(!runtime.path_api.isAbsolute(root)||!(await runtime.fs.promises.stat(root).catch(()=>null))?.isDirectory())throw new Error("工程根目录不存在或无法访问："+root);
+  if(!runtime.path_api.isAbsolute(root)||!(await runtime.fs.promises.stat(root).catch(()=>null))?.isDirectory())throw new Error(workspace_text("vscode_service_the_project_root_directory_does_not_exist_or_cannot_be_acces")+root);
   let file=stat.isFile()?target:undefined;
   if(stat.isDirectory()){
-    // 保留工程根。目录以直属文件定位，不递归扫描、不创建占位文件。
+    // Keep the project root. Directories are located by direct files, no recursive scanning, no creation of placeholder files.
     const entries=await runtime.fs.promises.readdir(target,{withFileTypes:true});
     const names=entries.filter((entry:any)=>entry.isFile()).map((entry:any)=>entry.name) as string[];
     names.sort((a,b)=>Number(/^readme(?:\.|$)/iu.test(b))-Number(/^readme(?:\.|$)/iu.test(a))||a.localeCompare(b));
@@ -80,5 +81,5 @@ export async function open_resource_in_vscode(runtime:vscode_environment,target:
   const application=await discover_vscode(runtime),env={...runtime.env};
   for(const key of Object.keys(env))if(["ELECTRON_RUN_AS_NODE","VSCODE_IPC_HOOK_CLI"].includes(key.toUpperCase()))delete env[key];
   try{await runtime.launch(application.file,[...application.args,"--",root,...(file?[file]:[])],env);}
-  catch(error){throw new Error("无法启动 VS Code："+(error instanceof Error?error.message:String(error)));}
+  catch(error){throw new Error(workspace_text("vscode_service_cannot_start_vs_code")+(error instanceof Error?error.message:String(error)));}
 }

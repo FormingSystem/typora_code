@@ -1,3 +1,5 @@
+[English](workbench_parity.en.md)
+
 # Typora Code 工作台范围与回归矩阵
 
 2026-09-23 R074：统一功能区域明暗背景、分隔与操作状态，正文主题独立，既有布局尺寸保持；当前范围及验证见[颜色与视觉层次](workspace_colors.md)。
@@ -70,7 +72,7 @@
 
 搜索单击不切中央文件，双击按结构化路径和范围定位；源码与Markdown保留草稿、撤销、阅读位置、编码行尾及外部冲突保护。原生异步切换不能保存错文件。Git操作只在隔离临时目录验证，并核对文件与索引；普通查询不写Git对象。启动检查静态样式、单次初始化和资源清理。
 
-当前发布为29个受清单管理的资产，head先加载两份CSS，再defer启动核心和工作台。schema 4安装与恢复预检、备份、校验和回滚；`native_profile`仅管理`framelessWindow=true`并保留其他设置，未知编码或并发摘要变化拒绝写入。安装不修改`app.asar`，不向打开的工程写配置；退休资产按精确清单备份和恢复。命令见[安装与备份](../enhancements/README.md#1.3_PowerShell单独安装扩展与备份)。
+当前发布为29个受清单管理的资产，head先加载两份CSS，再defer启动核心和工作台。schema 4安装与恢复预检、备份、校验和回滚；`native_profile`仅管理`framelessWindow=true`并保留其他设置，未知编码或并发摘要变化拒绝写入。安装不修改`app.asar`，不向打开的工程写配置；退休资产按精确清单备份和恢复。命令见[安装与备份](../enhancements/README.md#13_powershell单独安装扩展与备份)。
 
 物理键盘与原生accelerator冲突尚未实证；合成按键不能替代这一层。Windows／兼容shell中的部署检查不代表原生Linux、UCRT64或ARM64设备验收。
 

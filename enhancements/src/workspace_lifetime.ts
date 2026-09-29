@@ -1,4 +1,4 @@
-/** 一次插件激活拥有的资源；倒序释放，单个资源失败不阻断其他清理。 */
+/** A plugin activation owns resources; release in reverse order, single resource failure does not block other cleanups. */
 export function create_workspace_lifetime() {
   const cleanups: (() => void)[] = [];
   let disposed = false;

@@ -1,4 +1,4 @@
-// 首次打开时直接通过公开DOM输入；采样前不搬移、不调整终端，避免掩盖初始布局故障。
+// When first opened, directly input through the public DOM; do not move or adjust the terminal before sampling, to avoid masking initial layout faults.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

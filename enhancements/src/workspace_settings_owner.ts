@@ -1,6 +1,7 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_core} from './git_graph_host';
 
-/** 保留原始页面的DOM归属，只把显示矩形托管到设置右侧。 */
+/** Retain the original page's DOM ownership, only transfer the displayed rectangle to the settings on the right. */
 function bind_owner_geometry(anchor:HTMLElement,surface:HTMLElement){
   const properties=['position','inset','left','top','right','bottom','width','height','z-index','display','box-sizing'];
   const previous=properties.map(name=>[name,surface.style.getPropertyValue(name),surface.style.getPropertyPriority(name)]);
@@ -18,7 +19,7 @@ function bind_owner_geometry(anchor:HTMLElement,surface:HTMLElement){
 export function mount_settings_owner(core:graph_core,owner:'native'|'community',anchor:HTMLElement,on_return:()=>void,on_navigate:()=>void){
   if(owner==='community'){
     const bridge=(core.app as any).community_plugins;
-    if(!bridge?.mount_settings)throw Error('社区插件设置尚未就绪。');
+    if(!bridge?.mount_settings)throw Error(workspace_text("settings_owner_community_plugin_settings_are_not_yet_ready"));
     const surface=document.createElement('div');surface.dataset.workspaceInteraction='none';document.body.append(surface);
     const release_geometry=bind_owner_geometry(anchor,surface);
     let release_page:()=>void;
@@ -26,7 +27,7 @@ export function mount_settings_owner(core:graph_core,owner:'native'|'community',
     return{surface,dispose(){release_page();release_geometry();surface.remove();}};
   }
   const runtime=window as any,panel=document.getElementById('uni-preference-panel'),menu=runtime.File?.megaMenu;
-  if(!panel||!runtime.ClientCommand?.showPreferencePanel||!menu?.closePreferencePanel)throw Error('当前宿主原生偏好接口不可用。');
+  if(!panel||!runtime.ClientCommand?.showPreferencePanel||!menu?.closePreferencePanel)throw Error(workspace_text("settings_owner_the_native_host_preference_interface_is_currently_unavailabl"));
   runtime.ClientCommand.showPreferencePanel();
   const release_geometry=bind_owner_geometry(anchor,panel);
   const observer=new MutationObserver(()=>{if(!document.body.classList.contains('show-preference-panel'))on_return();});

@@ -1,4 +1,4 @@
-// 在独立Typora内读取真实CodeMirror；复制端口记录文本，不改用户系统剪贴板。
+// Read the real Typora within an independent CodeMirror; copy the port record text, without changing the user system clipboard.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms));const wait=async(fn,label)=>{for(let i=0;i<300;i++){if(await fn())return;await pause(30);}throw Error('timeout '+label);};

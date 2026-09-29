@@ -1,7 +1,7 @@
 import type { WorkspaceRoot } from "../workspace-root"
 import type { WorkspaceTabs } from "."
 
-// 文档菜单由工作台动作服务管理，核心仅提供精确的右键叶子身份。
+// Document menu is managed by workbench action service, core only provides precise right-click leaf identity.
 export function onTabsContextMenu(root: WorkspaceRoot) {
   return function (event: MouseEvent) {
     const tab = event.target instanceof Element ? event.target.closest<HTMLElement>('.typ-tab[data-id]') : null

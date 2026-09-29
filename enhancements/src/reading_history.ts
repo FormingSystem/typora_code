@@ -16,7 +16,7 @@ function same_location(left: reading_location, right: reading_location): boolean
     && JSON.stringify(left.cursor) === JSON.stringify(right.cursor);
 }
 
-/** 历史只保存窗口内的阅读位置；恢复成功后才移动索引，取消打开不会丢掉原记录。 */
+/** History only saves the reading position within the window; after recovery is successful, the index is moved, and closing without saving does not lose the original record. */
 export function create_reading_history(maximum_entries = 50) {
   let entries: reading_location[] = [];
   let index = -1;
@@ -27,12 +27,12 @@ export function create_reading_history(maximum_entries = 50) {
     is_navigating: () => navigating,
     is_current_editor: (current: reading_location) => entries[index]?.file_path === current.file_path
       && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id,
-    // 是否可接收下一方向只取决于逻辑栈边界；恢复串行化由导航入口拥有。
+    // Whether it can accept the next direction depends only on the logical stack boundary; the serialization of recovery is owned by the navigation entry.
     can_travel: (direction: -1 | 1, pending_offset = 0) => index + pending_offset + direction >= 0 && index + pending_offset + direction < entries.length,
     remap_paths(map: (path: string) => string | undefined) {
       for (const entry of entries) entry.file_path = map(entry.file_path) ?? entry.file_path;
     },
-    // 工具栏/窗口失焦只更新当前位置，不能把失去的正文选区当成新的跳转。
+    // The toolbar/window blur only updates the current position, and cannot treat the lost document selection as a new jump.
     checkpoint(current: reading_location) {
       if (navigating) return false;
       const previous = entries[index];
@@ -49,7 +49,7 @@ export function create_reading_history(maximum_entries = 50) {
       const nearby = current.line != null && previous.line != null
         ? Math.abs(current.line - previous.line) < 10
         : previous.cursor?.id === current.cursor?.id && previous.cursor?.startId === current.cursor?.startId;
-      // VS Code shouldReplaceStackEntry：尚无具体选区的资源项由首次有效选区补全。
+      // VS Code shouldReplaceStackEntry: Resource items without specific selections are completed by the first valid selection.
       if (same_editor && (previous.cursor === null || (!explicit && current.cursor === null) || same_location(previous, current) || same_line || (!explicit && nearby))) entries[index] = {...current, cursor: current.cursor ?? previous.cursor};
       else {
         entries = entries.slice(0, index + 1); entries.push(current);
@@ -77,7 +77,7 @@ export function create_reading_history(maximum_entries = 50) {
         const target = {...entries[target_index]};
         const restored = await restore(target);
         if (!restored || current_revision !== revision) return false;
-        // 关闭仅销毁视图。恢复端交付真实身份后，原视图的所有位置一起重绑定，其他分栏不受影响。
+        // Closing only destroys the view. After the recovery end delivers the real identity, all the original view positions are re-bound together, and other split views are unaffected.
         if (typeof restored !== "boolean" && (restored.file_path !== target.file_path || restored.kind !== target.kind)) return false;
         if (current && entries[index]?.file_path === current.file_path && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id) entries[index] = {...current, cursor: current.cursor ?? entries[index].cursor};
         if (typeof restored !== "boolean") {

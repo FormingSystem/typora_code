@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -25,7 +26,7 @@ const fixture = (name, original, modified, file = 'chosen.md') => {
   return {root, file};
 };
 const model_text = value => value.toString('utf8').replace(/^\ufeff/u, '').replace(/\r\n/g, '\n');
-// 使用随产品分发的真实 Monaco 算法；只把公开 LineRangeMapping 转成 getLineChanges 的相同边界格式。
+// Use the native Monaco algorithm distributed with the product; only convert publicly LineRangeMapping to the same boundary format as getLineChanges.
 const line_changes = (original, modified, ignore_whitespace = false) => new api.DefaultLinesDiffComputer().computeDiff(original.split('\n'), modified.split('\n'), {ignoreTrimWhitespace: ignore_whitespace, computeMoves: false, maxComputationTimeMs: 0}).changes.map(change => ({
   originalStartLineNumber: change.original.isEmpty ? change.original.startLineNumber - 1 : change.original.startLineNumber,
   originalEndLineNumber: change.original.isEmpty ? 0 : change.original.endLineNumberExclusive - 1,

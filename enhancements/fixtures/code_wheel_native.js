@@ -1,4 +1,4 @@
-// 原始宿主、隔离文档；首行检查前不调用CodeMirror.refresh/focus。
+// Original host, isolated document; do not call CodeMirror.refresh/focus before the first line check.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[],inputs=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

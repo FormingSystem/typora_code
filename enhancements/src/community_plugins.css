@@ -20,7 +20,7 @@
 .workspace-community-message:empty{display:none;}
 .workspace-community-row strong{font:600 13px/1.5 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);}
 
-/* 官方社区2.10.23 SettingsModal几何；设置内容不属于工作台通用表单。 */
+/* Official community 2.10.23 SettingsModal geometry; the content setting does not belong to the workbench common form. */
 .workspace-community-settings-root {position:fixed;inset:0;z-index:var(--typ-layer-modal,10000);display:flex;align-items:center;justify-content:center;background:rgba(var(--typ-light-bg-color,255,255,255),.4);}
 .workspace-community-settings-root>.typ-settings-modal {box-sizing:border-box;display:flex;flex-direction:column;width:90vw;height:85vh;padding:1rem;border:1px solid rgb(var(--typ-border-color,200,200,200));background:var(--bg-color,#fff);color:var(--text-color,#333);font-size:.875rem;box-shadow:0 1rem 2rem rgba(var(--typ-shadow-color,0,0,0),.5);}
 .workspace-community-settings-root .typ-modal__header {display:flex;align-items:center;justify-content:space-between;flex:none;padding-bottom:1.25rem;font-size:1.25rem;}
@@ -33,7 +33,7 @@
 .workspace-community-settings-root .typ-nav__item.active {background:var(--control-text-color,#888);color:var(--side-bar-bg-color,#fff);opacity:.8;}
 .workspace-community-settings-close {display:flex;align-items:center;justify-content:center;padding:4px;border:0;background:transparent;color:inherit;}
 
-/* 统一设置仅改变外壳承载范围，SettingTab内部继续使用社区原样式。 */
+/* Unified settings only change the shell's bearing range; the SettingTab internal continues to use the community original style. */
 .workspace-community-settings-root.is-embedded{position:relative;inset:auto;z-index:auto;width:100%;height:100%;background:var(--bg-color,#fff);align-items:stretch;justify-content:stretch}
 .workspace-community-settings-root.is-embedded>.typ-settings-modal{width:100%;height:100%;min-width:0;max-width:none;border:0;box-shadow:none;padding:0}
 .workspace-community-settings-root.is-embedded .typ-sidebar{flex:0 1 10rem;min-width:72px}

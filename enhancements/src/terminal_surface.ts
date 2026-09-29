@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {content_font_size,observe_content_zoom,change_content_font} from './workspace_content_zoom';
 import {create_workspace_progress_view} from "./workspace_progress_view";
 import {is_composing_key} from "./workspace_keyboard";
@@ -13,7 +14,7 @@ import {terminal_theme} from "./terminal_theme";
 import {bind_terminal_composition} from "./terminal_composition";
 import type {terminal_settings} from "./terminal_settings";
 
-/** 同一会话始终复用同一终端屏幕；移动容器不重建缓冲或 PTY。 */
+/** The same session always reuses the same terminal screen; moving containers do not rebuild buffers or PTY. */
 export class terminal_surface {
   readonly container=el("section","linux-note-terminal");readonly viewport=el("div","linux-note-terminal-viewport");
   readonly status=el("div","linux-note-terminal-status");readonly term:Terminal;readonly fit=new FitAddon();readonly search=new SearchAddon();
@@ -23,23 +24,23 @@ export class terminal_surface {
   private resize_anchor:{marker?:IMarker;bottom:boolean;cell_offset:number}|undefined;
   constructor(settings:terminal_settings,private actions:{input(data:string):void;resize(cols:number,rows:number):void;copy(text:string):Promise<unknown>;active():void;error(error:unknown):void},windows_pty?:IWindowsPty){
     this.settings=settings;this.term=new terminal_constructor({allowProposedApi:false,theme:terminal_theme(),windowsPty:windows_pty});this.apply_settings(settings);this.lifetime.add(observe_content_zoom(()=>{if(content_font_size(this.settings.font_size,"terminal")===this.term.options.fontSize){this.clear_font_anchor();return;}this.apply_settings(this.settings);},()=>this.remember_font_anchor()));
-    // 与 VS Code 一样回应 ConPTY 的 DA1 握手，避免新版后端等待能力响应。
+    // Respond to ConPTY's DA1 handshake in the same way as VS's Code, to avoid the new backend waiting for capability response.
     if(windows_pty?.backend==="conpty")this.lifetime.own(this.term.parser.registerCsiHandler({final:"c"},params=>{if(!params.length||params.length===1&&params[0]===0){actions.input("\x1b[?61;4c");return true;}return false;}));
     this.term.loadAddon(this.fit);this.term.loadAddon(this.search);
     this.status.setAttribute("role","status");this.status.hidden=true;this.container.append(this.progress.root,this.viewport,this.status,this.find_bar);this.lifetime.add(()=>this.progress.dispose());
     this.find_bar.hidden=true;this.find_bar.setAttribute("role","search");
-    const input=el("input"),count=el("span","terminal-find-count");input.placeholder="查找";input.setAttribute("aria-label","查找终端输出");
+    const input=el("input"),count=el("span","terminal-find-count");input.placeholder=workspace_text("terminal_surface_find");input.setAttribute("aria-label",workspace_text("terminal_surface_find_terminal_output"));
     const options={caseSensitive:false,wholeWord:false,regex:false};
-    const find=(back=false)=>{try{const found=input.value&&(back?this.search.findPrevious(input.value,options):this.search.findNext(input.value,options));count.textContent=found?"":"无结果";}catch{count.textContent="表达式无效";}};
-    const toggles=([ ["case-sensitive","区分大小写","caseSensitive"],["whole-word","全字匹配","wholeWord"],["regex","正则表达式","regex"] ]as const).map(([icon,title,key])=>{
+    const find=(back=false)=>{try{const found=input.value&&(back?this.search.findPrevious(input.value,options):this.search.findNext(input.value,options));count.textContent=found?"":workspace_text("terminal_surface_no_results");}catch{count.textContent=workspace_text("terminal_surface_invalid_expression");}};
+    const toggles=([ ["case-sensitive",workspace_text("terminal_surface_case_sensitive"),"caseSensitive"],["whole-word",workspace_text("terminal_surface_whole_word_match"),"wholeWord"],["regex",workspace_text("terminal_surface_regular_expression"),"regex"] ]as const).map(([icon,title,key])=>{
       const control=git_icon_button(icon,title,()=>{options[key]=!options[key];control.setAttribute("aria-pressed",String(options[key]));find();});control.setAttribute("aria-pressed","false");return control;
     });
-    this.find_bar.append(input,...toggles,count,git_icon_button("arrow-up","上一个匹配",()=>find(true)),git_icon_button("arrow-down","下一个匹配",()=>find()),git_icon_button("close","关闭查找",()=>{this.find_bar.hidden=true;this.search.clearDecorations();this.term.focus();}));
+    this.find_bar.append(input,...toggles,count,git_icon_button("arrow-up",workspace_text("terminal_surface_previous_match"),()=>find(true)),git_icon_button("arrow-down",workspace_text("terminal_surface_next_match"),()=>find()),git_icon_button("close",workspace_text("terminal_surface_close_find"),()=>{this.find_bar.hidden=true;this.search.clearDecorations();this.term.focus();}));
     input.oninput=()=>find();input.onkeydown=event=>{event.stopPropagation();if(is_composing_key(event))return;if(event.key==="Enter"){event.preventDefault();find(event.shiftKey);}if(event.key==="Escape"){this.find_bar.hidden=true;this.term.focus();}};
     this.lifetime.own(this.term.onData(data=>actions.input(data)));
     this.lifetime.own(this.term.onSelectionChange(()=>{if(this.settings.copy_on_selection&&this.term.hasSelection())void actions.copy(this.term.getSelection()).catch(actions.error);}));
     this.term.attachCustomKeyEventHandler(event=>{
-      // 候选选择与中英切换交给输入法及 xterm，不能因快捷键移走输入焦点。
+      // Candidate selection and Chinese/English switch are handed over to the input method and xterm, and cannot be moved away from the input focus due to shortcut keys.
       if(is_composing_key(event))return true;
       const key=event.key.toLowerCase(),control=event.ctrlKey||event.metaKey;
       const paste_key=key==='v'&&!event.altKey&&(control&&event.shiftKey||event.metaKey&&!event.ctrlKey||event.ctrlKey&&!event.metaKey&&/^Win/iu.test(navigator.platform));
@@ -61,12 +62,12 @@ export class terminal_surface {
         change_content_font("terminal",this.font_direction,this.settings.font_size);
       });
     },{capture:true,passive:false});
-    // xterm 先处理目标事件；包括 Shift 抬起在内的完整输入链不冒泡到宿主编辑器。
-    // 仅停止冒泡，保留浏览器默认输入与 xterm 的组合上屏、按键状态清理。
+    // xterm Process the target event; including Shift lift-in, the complete input chain does not bubble to the host editor.
+    // Only stop bubbling, retain the browser's default input and combination on-screen, and key state cleanup for xterm.
     for(const type of ["keydown","keypress","keyup","beforeinput","input","compositionstart","compositionupdate","compositionend"]){
       this.lifetime.listen(this.container,type,event=>event.stopPropagation());
     }
-    // Ctrl+V、系统粘贴和菜单粘贴经过同一策略，不能绕过多行确认设置。
+    // Ctrl+V , system paste and menu paste go through the same strategy, and cannot bypass the multi-line confirmation setting.
     this.viewport.addEventListener("paste",event=>{event.preventDefault();event.stopImmediatePropagation();if(event.clipboardData)this.paste_text(event.clipboardData.getData("text/plain"));},true);
     const observer=new ResizeObserver(()=>this.resize());observer.observe(this.viewport);this.lifetime.add(()=>observer.disconnect());
     this.lifetime.add(()=>{cancelAnimationFrame(this.frame);cancelAnimationFrame(this.font_frame);this.clear_font_anchor();this.term.dispose();this.container.remove();});
@@ -88,10 +89,10 @@ export class terminal_surface {
   resize(){if(this.frame||this.lifetime.disposed)return;this.frame=requestAnimationFrame(()=>{this.frame=0;if(!this.opened||!this.viewport.clientWidth||!this.viewport.clientHeight)return;try{
     this.fit.fit();
     cancelAnimationFrame(this.restore_frame);
-    // xterm在下一次绘制同步字符格与滚动像素，之后再按逻辑锚点定位。
+    // xterm synchronizes character grid with scroll pixels on the next draw, and then locates according to the logical anchor point.
     if(this.resize_anchor)this.restore_frame=requestAnimationFrame(()=>this.restore_font_anchor());
     const {cols,rows}=this.term;if(cols!==this.sent_cols||rows!==this.sent_rows){this.sent_cols=cols;this.sent_rows=rows;this.actions.resize(cols,rows);}
-  }catch{/* 初次布局等待可用尺寸。 */}});}
+  }catch{/* Initial layout waits for available dimensions. */}});}
   private clear_font_anchor(){cancelAnimationFrame(this.restore_frame);this.restore_frame=0;this.resize_anchor?.marker?.dispose();this.resize_anchor=undefined;}
   private restore_font_anchor(){
     this.restore_frame=0;const anchor=this.resize_anchor;this.resize_anchor=undefined;
@@ -103,8 +104,8 @@ export class terminal_surface {
       if(!anchor.marker||anchor.marker.isDisposed)return;
       let line=anchor.marker.line;const limit=line+Math.floor(anchor.cell_offset/this.term.cols);
       while(line<limit&&this.term.buffer.active.getLine(line+1)?.isWrapped)line++;
-      // 公共scrollToLine以当前像素偏移作相对滚动；先同步新字号的绝对底部，
-      // 同一帧内再定位锚点，避免旧字符高度的像素偏移参与计算。
+      // Public scrollToLine scrolls relatively with current pixel offset; first synchronize the absolute bottom of the new font size.
+      // Re-locate the anchor point within the same frame, avoid the pixel offset of the old character height participating in the calculation.
       this.term.scrollToBottom();this.term.scrollToLine(line);
     }finally{this.term.options.smoothScrollDuration=smooth;anchor.marker?.dispose();}
   }
@@ -113,8 +114,8 @@ export class terminal_surface {
   private paste_text(text:string){
     if(this.lifetime.disposed)return;
       if(this.settings.confirm_multiline&&/[\r\n]/u.test(text)){
-        const dialog=workspace_dialog("粘贴多行命令");this.lifetime.add(dialog.close);dialog.content.append(el("pre","",text));
-        dialog.footer.prepend(button("粘贴到终端",()=>{if(this.lifetime.disposed)return;this.term.paste(text);dialog.close();this.focus();}));
+        const dialog=workspace_dialog(workspace_text("terminal_surface_paste_multi_line_command"));this.lifetime.add(dialog.close);dialog.content.append(el("pre","",text));
+        dialog.footer.prepend(button(workspace_text("terminal_surface_paste_to_terminal"),()=>{if(this.lifetime.disposed)return;this.term.paste(text);dialog.close();this.focus();}));
       }else{this.term.paste(text);this.focus();}
   }
   async paste(){

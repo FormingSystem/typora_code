@@ -21,7 +21,7 @@
    await service.set_enabled(id,false);
    assert(!document.querySelector('#write .typ-block-operate-button'),'停用清除注册按钮 '+i);
   }
-  // 实际社区设置插件，避免仅用自制SettingTab证明兼容。
+  // Install the actual community plugin, avoid proving compatibility only with self-made SettingTab.
   const mapper_id='typora-community-plugin.codeblock-highlight-mapper',original_mode=window.getCodeMirrorMode;
   await service.install_archive(path.join(base,'community_mapper_plugin.zip'));
   await service.set_enabled(mapper_id,true);

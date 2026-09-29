@@ -1,4 +1,4 @@
-// 正式构建在原始宿主中的共享弹窗验收；更新服务使用替身，不安装或改动用户环境。
+// Official build in the original host's shared popup acceptance; update services use a stand-in, do not install or modify the user environment.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

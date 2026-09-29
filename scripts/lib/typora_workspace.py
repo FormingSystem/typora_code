@@ -1,4 +1,4 @@
-"""Linux 部署事务：路径、摘要与 JSON 由同一处验证，Bash 保留平台发现。"""
+"Linux deployment transactions: paths, summaries, and JSON are validated in the same place, Bash retains platform discovery."
 import argparse
 import hashlib
 import json
@@ -15,7 +15,7 @@ from pathlib import Path
 THEME_FILES = ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css']
 
 class install_log:
-    """每次安装的日志独立保存；记录失败不改变安装或回滚结果。"""
+    "Log for each installation is saved independently; recording failures does not change installation or rollback results."
     def __init__(self, user_data):
         self.started = time.monotonic()
         self.step_started = self.started
@@ -103,7 +103,7 @@ def update_native_profile(path, operation, expected, backup=None):
     return True
 
 CORE_FILES = {'workspace_core.js', 'workspace_core.css', 'workspace.css',  'workbench.js'}
-# 只处理明确退休的产品文件，沿用安装备份和恢复事务，不遍历删除目录。
+# Only process explicitly retired product files, carry forward backup and recovery transactions, do not traverse deleted directories.
 RETIRED_PRODUCT_FILES = ['appearance_bootstrap.js',
                          'assets/source_symbols/tree-sitter-c.wasm', 'assets/source_symbols/tree-sitter-cpp.wasm',
                          'assets/source_symbols/LICENSE_c', 'assets/source_symbols/LICENSE_cpp']

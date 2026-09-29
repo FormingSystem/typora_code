@@ -1,4 +1,4 @@
-// 仅在原始宿主独立副本运行；所有删除对象由本夹具在专属目录新建。
+// Run only in the independent copy of the original host; all deleted objects are newly created in a dedicated directory by this fixture.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

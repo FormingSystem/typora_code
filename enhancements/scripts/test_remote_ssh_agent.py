@@ -1,4 +1,4 @@
-"""真实协议进程验证：慢Git不能排在文件操作之前，Git并发有界。"""
+"Real protocol process verification: slow Git cannot be placed before file operations, Git has bounded concurrency."
 import base64
 import json
 import pathlib
@@ -13,7 +13,7 @@ def run():
     with tempfile.TemporaryDirectory(prefix="typora-ssh-agent-") as scratch:
         root = pathlib.Path(scratch)
         agent = pathlib.Path(__file__).resolve().parents[1] / "src" / "remote_ssh_agent.py"
-        # 只替换Git耗时边界，stdin/stdout、调度及文件读写均运行产品代码。
+        # Only replace the time boundary of Git, stdin/stdout, scheduling, and file read/write run product code.
         harness = """
 import importlib.util,pathlib,time,sys,os
 spec=importlib.util.spec_from_file_location('agent',sys.argv[1]); agent=importlib.util.module_from_spec(spec); spec.loader.exec_module(agent)
@@ -74,7 +74,7 @@ agent.perform=perform; agent.main()
             assert any(item['name'] == '中文.md' for item in receive(7)['result']['entries'])
             (root / 'release').touch()
             assert receive(1)['result']['text'] == '## fixture'
-            # 同一协议进程继续处理真实Git；非仓失败不破坏下一次空仓/嵌套仓查询。
+            # The same protocol process continues to process the real Git; non-cave failure does not destroy the next empty cave/nested cave query.
             plain = root / 'plain'; plain.mkdir()
             send(8, 'git_status', path=str(plain))
             assert 'error' in receive(8)

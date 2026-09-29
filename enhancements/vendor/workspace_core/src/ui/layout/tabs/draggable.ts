@@ -5,7 +5,7 @@ import type { WorkspaceTabs } from "."
 import type { WorkspaceRoot } from "../workspace-root"
 import type { WorkspaceLeaf } from '../workspace-leaf'
 
-/** 原生拖放只携带一次性令牌；正文、磁盘基线与确认协议由工作台的窗口桥负责。 */
+/** Native drag and drop only carries a one-time token; document content, disk baseline and confirmation protocol are handled by workbench window bridge. */
 export const TAB_DRAG_MIME = 'application/x-typora-code-tab';
 const TOKEN_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/iu;
 type local_drag = {
@@ -14,7 +14,7 @@ type local_drag = {
 };
 type drop_target = {group: WorkspaceTabs; index: number; header?: HTMLElement};
 
-/** 标签采用浏览器原生 HTML DnD，可进入另一个 renderer；活动栏仍使用指针排序。 */
+/** Tab uses browser native HTML DnD, can enter another renderer; active bar still uses pointer sorting. */
 export function draggableTabs(root: WorkspaceRoot, workspace = useService('workspace')) {
   const root_el = root.containerEl, doc = root_el.ownerDocument, view = doc.defaultView!;
   const marker = create_drop_marker(doc), events = new AbortController();
@@ -36,7 +36,7 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
     const drag = local; local = undefined; clear_feedback();
     if (!drag) return;
     drag.tab.removeAttribute('data-workspace-drag-source');
-    // dragend 的 buttons 是 Chromium 合成值，不能当作鼠标释放或 Esc 的可靠证据。
+    // dragend's buttons is Chromium synthesized value, cannot be considered reliable evidence of mouse release or Esc.
     doc.dispatchEvent(new CustomEvent('typora-code:tab-drag-end', {detail: {
       leaf: drag.leaf, source_group: drag.source_group, transfer_token: drag.transfer_token,
       local_drop: drag.local_drop, cancelled: cancelled || drag.cancelled,
@@ -49,7 +49,7 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
     scroll_header = undefined;
     const element = doc.elementFromPoint(event.clientX, event.clientY);
     if (element?.closest('.typ-ribbon,#typora-sidebar,#top-titlebar,footer,.workspace-menu,.workspace-titlebar-menu-panel')) return;
-    // 原生 Markdown 的 content 在 workspace DOM 外，按实际编辑组坐标确定归属。
+    // Native Markdown's content outside of workspace DOM, determined by actual editing group coordinates.
     const group = group_at(element) || (element?.closest('content') ? root.findNode(node => {
       if (node.type !== 'tabs') return false;
       const box = node.containerEl.getBoundingClientRect();
@@ -101,7 +101,7 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
     event.dataTransfer.clearData();
     event.dataTransfer.setData(TAB_DRAG_MIME, transfer_token);
     event.dataTransfer.effectAllowed = 'move';
-    // 与固定 VS Code 的单标签路径相同，直接使用原标签（含当前 Seti 图标）。
+    // The same single tab path as fixed VS Code is used directly, using original tab (including current Seti icon).
     event.dataTransfer.setDragImage(tab, 0, 0);
     tab.dataset.workspaceDragSource = 'true';
     event.stopImmediatePropagation();
@@ -109,7 +109,7 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
   };
   const on_over = (event: DragEvent) => {
     if (!has_transfer(event)) return;
-    // 必须在 document capture 阶段拦截专属类型，避免宿主改成 none 或按正文粘贴。
+    // Must intercept exclusive type during document capture phase, avoid host changing to none or pasting from document content.
     event.stopImmediatePropagation();
     if (local?.cancelled) { event.dataTransfer!.dropEffect = 'none'; clear_feedback(); return; }
     const target = resolve_target(event);
@@ -136,7 +136,7 @@ export function draggableTabs(root: WorkspaceRoot, workspace = useService('works
       if (local.transfer_token !== transfer_token || !valid_source(local)) return;
       event.dataTransfer!.dropEffect = 'move';
       move_local(local, target);
-      // 跨组移动会替换原 tab 节点，dragend 未必冒泡到 document；这里完成本地会话。
+      // Cross-group movement replaces original tab node, dragend may not bubble to document; here completes local session.
       end(event);
     } else {
       const request = new CustomEvent('typora-code:tab-drop', {cancelable: true, detail: {transfer_token, target_group: target.group, target_index: target.index}});

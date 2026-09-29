@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';
 import {plugin_id,compare_version,validate_manifest,verify_directory,create_community_service} from '../src/community_plugin_service.cjs';
@@ -14,7 +15,7 @@ let loaded=0,unloaded=0,fail=false,current={...manifest};
 const ports={root,acquire_lock:()=>acquire_update_lock(root),host_version:'1.14.10',platform:'win32',load_plugin:async m=>{if(fail)throw Error('坏插件');loaded++;return m;},unload_plugin:async()=>{unloaded++;},extract:async(_archive,dest)=>{fs.mkdirSync(dest);fs.writeFileSync(path.join(dest,'manifest.json'),JSON.stringify(current));fs.writeFileSync(path.join(dest,'main.js'),'export default class {}');},request:async()=>{throw Error('网络不可用');}};
 const service=create_community_service(ports);
 await service.install_archive('fixture');assert.equal(service.list()[0].enabled,false);assert.equal(loaded,0,'安装不执行');
-// 有界重试只能处理暂时占用，持续拒绝必须保留旧文件及旧运行状态。
+// Bounded retry can only handle temporary occupation; continuous rejection must retain old files and old runtime states.
 const rename=fs.promises.rename;let failures=2;
 try{fs.promises.rename=async(...args)=>{if(failures-->0)throw Object.assign(Error('暂时占用'),{code:'EPERM'});return rename(...args);};await service.set_enabled(manifest.id,false);assert.equal(failures,-1);}
 finally{fs.promises.rename=rename;}

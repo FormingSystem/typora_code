@@ -1,4 +1,4 @@
-// 按已核对的 Typora 原生节点及委托事件验证移动，测试不修改安装目录。
+// Verify moving by checking the already verified Typora native node and delegate events; test does not modify the installation directory.
 const {app, BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'), fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {build}=require('esbuild');
@@ -25,7 +25,7 @@ app.whenReady().then(async()=>{
   check(await evaluate('getComputedStyle(document.querySelector("#sidebar-content")).bottom==="0px"'), 'sidebar preview receives the old footer height');
   check(await evaluate('(()=>{const ids=["#sidebar-new-file-btn svg","#sidebar-menu-btn .footer-btn svg","#switch-file-list-btn .switch-file-list-btn-to-list svg","#switch-file-list-btn .switch-file-list-btn-to-tree svg","#toggle-sourceview-btn svg"];return ids.map(selector=>document.querySelector(selector)?.dataset.gitIcon).join(",")==="new-file,more,list-flat,list-tree,edit-code"})()'),'relocated native footer uses official glyphs while retaining event targets');
   check(await evaluate('footer_qa.install_workspace_footer()===binding&&document.querySelectorAll("[data-workspace-footer-style]").length===1'), 'repeated initialization does not duplicate controls or styles');
-  // 原生操作都是div；仅装载公共样式、只测自有button无法覆盖此回归。
+  // Native operations are all div; only load common styles, and only test own button cannot cover this regression.
   await evaluate('window.original_source=document.querySelector("#toggle-sourceview-btn");window.source_clicks=0;original_source.setAttribute("ty-hint","启用源代码模式");original_source.addEventListener("click",()=>{source_clicks++;document.body.classList.toggle("typora-sourceview-on")});window.hover_expected=document.createElement("span");hover_expected.style.backgroundColor="var(--workspace-action-hover)";document.body.append(hover_expected);void 0');
   const move_pointer=async selector=>{const point=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`),zoom=test_window.webContents.getZoomFactor();const position={x:Math.round(point.x*zoom),y:Math.round(point.y*zoom)};test_window.webContents.sendInputEvent({type:'mouseMove',...position});await delay(40);return position};
   const native_controls=['#toggle-sourceview-btn','#sidebar-new-file-btn','#sidebar-menu-btn>.sidebar-footer-item','#switch-file-list-btn','#footer-word-count','#footer-spell-check'];
@@ -56,7 +56,7 @@ app.whenReady().then(async()=>{
   check(Math.abs(action_width_before-metrics.actions.width)<=1&&Math.abs(metrics.actions.width-66)<=1&&Math.abs(metrics.row.width-metrics.actions.width)<=1,'list/tree switching keeps the native action group at its three-control content width');
   check(Math.abs(metrics.menu_button.width-22)<=1&&Math.abs(metrics.toggle.width-22)<=1&&metrics.label.width<=1,'the folder label remains in the original DOM without stretching the menu trigger');
   check(metrics.menu.bottom<=metrics.actions.y&&metrics.menu.x>=0&&metrics.menu.right<=900,'dropdown opens above moved controls within the window');
-  // 使用生产终端面板覆盖原生 footer z-index:4，且边距控件启用真实 containment。
+  // Use the production terminal panel to cover native footer z-index:4; and the margin control enables real containment.
   await evaluate('window.terminal_style=document.createElement("style");terminal_style.textContent=footer_qa.terminal_css+footer_qa.status_css;document.head.append(terminal_style);window.terminal_panel=footer_qa.create_terminal_panel(()=>{});terminal_panel.show();void 0');await delay(90);
   const popup_geometry=async(selector,anchor)=>evaluate(`(()=>{const menu=document.querySelector(${JSON.stringify(selector)}),r=menu.getBoundingClientRect(),a=document.querySelector(${JSON.stringify(anchor)}).getBoundingClientRect(),f=document.querySelector("footer.ty-footer").getBoundingClientRect();return {left:r.left,right:r.right,top:r.top,bottom:r.bottom,width:r.width,height:r.height,anchor_top:Math.min(a.top,f.top),hit:menu.contains(document.elementFromPoint(r.left+r.width/2,r.top+r.height/2)),fits:r.left>=3&&r.right<=innerWidth-3&&r.top>=38&&r.bottom<=Math.min(a.top,f.top)-2}})()`);
   await move_pointer('#toggle-sourceview-btn');

@@ -3,7 +3,7 @@ import {change_reading_geometry,capture_reflow_anchor} from './reading_reflow';
 import {observe_workspace_theme} from './workspace_theme';
 const fonts=new WeakMap<HTMLElement,{font:number;line:string}>();
 export function reading_base_font(root:HTMLElement){return fonts.get(root);}
-/** 只修改排版字号，保留原生编辑、媒体尺寸和工具栏所有者。 */
+/** Only modify the font size for layout, keep the native editing, media size, and toolbar owner unchanged. */
 export function bind_reading_font_zoom(scroller:HTMLElement,root:HTMLElement){
   const original=['font-size','line-height'].map(name=>[name,root.style.getPropertyValue(name),root.style.getPropertyPriority(name)]);
   let base=16,line='normal',disposed=false,retained:ReturnType<typeof capture_reflow_anchor>;

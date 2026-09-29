@@ -1,4 +1,4 @@
-/** 固定行高列表仅持有可见行；数据、选择和目录展开状态由调用方持有。 */
+/** Fixed row height list only holds visible rows; data, selection, and directory expansion states are held by the caller. */
 export function create_workspace_virtual_list<T>(options: {
   root: HTMLElement; scroller: HTMLElement; items: readonly T[]; row_height: number;
   render(item: T, index: number): HTMLElement;

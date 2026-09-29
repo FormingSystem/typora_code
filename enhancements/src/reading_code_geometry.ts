@@ -1,4 +1,4 @@
-/** 原生围栏的布局测量归各自CodeMirror；离屏延后、可见时合并刷新。 */
+/** The layout measurement of native fences belongs to their respective CodeMirror; off-screen rendering is deferred, and merged refresh is performed when visible. */
 type fence_editor = {refresh():void};
 type fence_measurement = {wrapper:HTMLElement;editor:fence_editor;visible:boolean;width:number;pending:boolean};
 export function bind_reading_code_geometry() {

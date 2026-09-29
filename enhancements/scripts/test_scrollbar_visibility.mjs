@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';

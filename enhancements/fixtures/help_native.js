@@ -1,4 +1,4 @@
-// 原始宿主隔离副本：检查原生帮助的真实文件、关于界面和菜单路由。
+// Original host isolation copy: check the real file of native help, about interface and menu routing.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],calls=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),assert=(v,label)=>{if(!v)throw Error(label);checks.push(label);};

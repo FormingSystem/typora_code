@@ -1,14 +1,31 @@
-# Typora Code copyright, open source, and contribution statement
+---
+id: tools.typora.copyright
+title: "Typora Code Copyright, Open Source, and Contribution Declaration"
+kind: policy
+status: evolving
+domains:
+  - tools
+  - governance
+---
 
-English | [Simplified Chinese original](COPYRIGHT.md)
+[Chinese](COPYRIGHT.md)
 
-This page translates the project statement. The license text distributed in [LICENSE](LICENSE) governs the licensed release.
+<a id="section_d4d73a082c24"></a>
+# Chapter 1\_Typora\_Code\_Copyright, Open Source, and Contribution Declaration
 
-## Product and original attribution
 
-Product: **Typora Code**. Original maintainer: **FormingSystem**. Contact: `lizhaojun97@qq.com`. Repository: [FormingSystem/typora_code](https://github.com/FormingSystem/typora_code).
+<a id="section_7a99325eeedc"></a>
+## 1.1\_ Product and Original Attribution
 
-Retain the following source information for the project's original program code, UI, text, documentation, themes, and installation scripts:
+Product Name: **Typora Code**
+
+Current Original Maintainer: FormingSystem
+
+Contact Email: `lizhaojun97@qq.com`
+
+Project Address: [FormingSystem/typora_code](https://github.com/FormingSystem/typora_code)
+
+The original program code, original user interface, original text, original documentation, themes, and installation scripts of Typora Code should retain the following source information:
 
 ```text
 Typora Code
@@ -17,37 +34,41 @@ Source: https://github.com/FormingSystem/typora_code
 Contact: lizhaojun97@qq.com
 ```
 
-## License of the current development release
+<a id="section_f78374f61bdc"></a>
+## 1.2\_ Current Open Source Method of the Open Development Version
 
-The current public development release uses **GPL-2.0-only**, under the GNU GPL version 2 text in the repository's [LICENSE](LICENSE). When copying, modifying, or redistributing it, comply with that license, retain copyright, licensing, product, and source information, and clearly identify modifications so that a modified version is not mistaken for an official FormingSystem release.
+The current public development version of Typora Code uses **GPL-2.0-only**. It is released according to the **GNU GPL version 2** terms in the root directory of this repository [LICENSE](LICENSE). When copying, modifying, and redistributing, you should comply with this license, retain the copyright, license, product name, and original project source, and clearly indicate the modifications made. You must not lead third parties to mistakenly believe that the modified version is an official release from FormingSystem.
 
-The source-attribution statement identifies authorship and the boundary of official releases. It does not add restrictions on modification or redistribution that conflict with the GPL. The license accompanying a release remains controlling.
+The 'retaining source' in this declaration is used to clearly indicate the original ownership and the boundary of the official version. It does not add any prohibitive clauses against modification or redistribution that conflict with GPL. Legal use still follows the actual text of the license accompanying the current version.
 
-## Derivative development and official contributions
+<a id="section_470196bffb62"></a>
+## 1.3\_ Secondary Development and Official Requirements
 
-There are two paths:
+Secondary development is divided into two paths:
 
-1. For changes intended for the official Typora Code release, coordinate requirements, design boundaries, and integration with the maintainer through email or project channels, then follow the official contribution workflow.
-2. Independent forks and derivative development may proceed under the release's license. Identify the original source, project address, and changes, and clearly label the result as unofficial.
+1. If changes are intended to enter Typora Code official version, the requirements, design boundaries, and merging methods should be aligned with maintainers via email or project channels first, and then submitted according to the official contribution process.
+2. When independently forked or self-secondary developed, it can be carried out under the current version license, but must explicitly declare the source, original project address, modified content, and clearly identify it as a non-official version.
 
-Prior coordination is a collaboration requirement for official integration. It does not restrict independent study, modification, or redistribution rights already granted by the license.
+"Aligning requirements" is a collaborative requirement for entering the official version, and does not restrict the rights of independent research, modification, and redistribution under licenses that have already been granted.
 
-## Future release plans
+<a id="section_ae41e3472053"></a>
+## 1.4\_ Future Version Plan
 
-The current open-source release does not guarantee that every future release will use the same license. FormingSystem may choose open-source, dual-license, commercial, or other distribution terms for new, unreleased versions.
+The open-source nature of the current version does not imply that all future versions will necessarily use the same license. FormingSystem can choose to continue open-source, dual-license, commercial license, or other release methods for versions that have not yet been released.
 
-A license change applies only to versions released under the new license. Previously published versions remain governed by the license distributed with them; later plans do not retroactively revoke it.
+License changes only take effect for versions that adopt the new license. Already publicly released versions continue to be subject to the license they were released with, and are not revoked retroactively due to subsequent plans.
 
-If external contributions are accepted, appropriate contribution-licensing or copyright authorization must be established before a licensing change. Other contributors' code cannot be relicensed unilaterally without the necessary rights.
+If future external contributions are accepted, an explicit contribution license or copyright authorization mechanism should be established before changing the license. Without such rights, it is not permissible to unilaterally change the license of code contributed by others.
 
-## Third-party material and user documents
+<a id="section_c5b0bcdcf4cd"></a>
+## 1.5\_ Third-party content and user documentation
 
-The workbench's layout, interaction, and some features take design inspiration from [Visual Studio Code](https://code.visualstudio.com/). The current detailed provenance record is the Chinese [interface baseline](docs/vscode_design_baseline.md).
+Typora Code's workbench layout, interaction methods, and some functional designs reference and imitate [Visual Studio Code（VS Code）](https://code.visualstudio.com/). The design references and specific adoption scope of this project are seen in [Interface Baseline](docs/vscode_design_baseline.en.md).
 
-Typora Code is an independently maintained community enhancement, not an official Typora or VS Code product. Typora's copyright, trademarks, downloads, and licensing belong to their respective rights holders and official channels. This statement grants no license to use or redistribute Typora itself.
+Typora Code is an independently maintained community-enhanced project, not an official product of Typora or VS Code. Typora The copyright, trademark, download, and licensing of the core are owned by their rights holders and official channels. This statement does not grant Typora the right to use or redistribute the core.
 
-Third-party packages, the upstream workspace core, referenced code, fonts, icons, themes, and images retain their own copyright and licenses. Typora Code attribution does not claim ownership of that material or change its terms. Sources and licenses are retained in [vendor assets](enhancements/vendor/) and [distribution notices](enhancements/dist/licenses/), including original notices in build outputs.
+Third-party software packages, upstream workspace core, referenced code, fonts, icons, themes, and images continue to follow their own copyright and license. Typora Code's original attribution does not claim ownership of these contents, and does not alter their license terms. The source and license are retained as [third-party resources](enhancements/vendor/) and [release license file](enhancements/dist/licenses/); the original copyright and license declarations in the build file are also retained.
 
-MIT, Apache, BSD, ISC, or other package licenses in `enhancements/package-lock.json` apply to their respective dependencies, not to the original Typora Code codebase as a whole.
+The licenses displayed by `enhancements/package-lock.json` MIT for Apache, BSD, ISC, and Typora are part of the corresponding dependencies, and do not represent that the original code of Code adopts these licenses.
 
-Markdown, source code, images, and other files that users open, edit, or export retain the rights and licenses determined by their respective owners. Using Typora Code does not make those files original project material or automatically subject them to GPL-2.0-only.
+The rights and licenses of the Markdown, source code, images, and other files opened, edited, or exported by the user through Typora Code are still determined by their respective rights holders, and are not automatically considered as original content of this project or automatically applicable to GPL-2.0-only.

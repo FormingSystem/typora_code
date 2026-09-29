@@ -4,7 +4,7 @@ import {HISTORY_ACTION_IDS,validate_history_shortcuts,type history_action_id} fr
 import {workspace_element as el,workspace_button as button,workspace_menu,workspace_dialog,shortcut_matches,type workspace_menu_entry} from "./workspace_widgets";
 import {git_graph_text as text} from "./git_graph_i18n";
 
-/** 工具栏和快捷键共用动作、可用条件；隐藏与宽度溢出都回到同一个更多菜单。 */
+/** Toolbars and keyboard shortcuts share actions and available conditions; hidden and width overflow both return to the same more menu. */
 export class git_scm_toolbar {
   element=el("span","git-scm-history-toolbar"); buttons=new Map<history_action_id,HTMLButtonElement>(); overflow=new Set<history_action_id>();
   more:HTMLButtonElement; observer:ResizeObserver;
@@ -53,7 +53,7 @@ export class git_scm_toolbar {
     if(!header.isConnected||header.clientWidth===0)return;
     const hidden=this.history.owner.panel.settings.history_toolbar_hidden||[];
     this.history.count.hidden=false;this.overflow.clear();for(const [id,node] of this.buttons)node.hidden=hidden.includes(id);
-    // 保留一个图标宽度供标题展开按钮；动作宽度取实际行盒，引用名称上限来自上游 100px。
+    // Keep one icon width for the title expansion button; action width takes actual line box, reference name limit comes from upstream 100px.
     const available=header.clientWidth-parseFloat(getComputedStyle(header).paddingLeft||"0")-parseFloat(getComputedStyle(header).paddingRight||"0")-this.more.getBoundingClientRect().width;
     let total=this.element.getBoundingClientRect().width;
     for(const id of [...HISTORY_ACTION_IDS].reverse()){

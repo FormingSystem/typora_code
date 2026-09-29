@@ -1,4 +1,4 @@
-// 原始Typora：源码/查找输入边界、主题状态与clangd宏裁剪。
+// Original Typora: source code/search input boundaries, theme status, and clangd macro trimming.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

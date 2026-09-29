@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {bind_git_source_row,sync_git_source_rows,git_diff_source_key,type git_diff_source} from './git_diff_source';
 import {project_git_changes,same_git_changes,sort_git_changes} from './git_status_snapshot';
 import {workspace_tree_rows} from "./workspace_tree_rows";
@@ -22,7 +23,7 @@ type change_group = {id: string; title: string; from: string; to: string; files:
 const short_revision = (revision: string) => ({[EMPTY]: text("scm.revision.empty"), [INDEX]: text("scm.revision.index"), [WORKTREE]: text("scm.revision.worktree")}[revision] || revision.slice(0, 8));
 
 
-/** 源代码管理与可展开提交历史共用主侧栏；完整提交图和文件差异使用中央编辑标签。 */
+/** Source code management and expandable commit history share the main sidebar; complete commit graph and file differences use the central edit tab. */
 export class git_source_control {
   private file_icon_style = acquire_workspace_file_icons();
   sidebar = el("aside", "git-scm-sidebar"); groups = el("div", "git-scm-groups");
@@ -46,12 +47,12 @@ export class git_source_control {
   private repository_view_state: "loading" | "empty" | "error" | "ready" = "loading";
   private empty_view = el("div", "git-scm-welcome");
   private empty_message = el("p");
-  private initialize_button = button("初始化仓库", () => void this.panel.initialize());
-  private discover_button = button("查找子文件夹中的仓库…", () => void this.panel.choose_repository(true));
-  private retry_button = button("重试", () => void this.panel.refresh(false));
-  private install_button=button('安装Git',()=>void this.panel.install_git());
-  private cancel_read=icon_button('close','取消Git状态读取',()=>this.panel.cancel_refresh());
-  private cancel_empty=button('取消读取',()=>this.panel.cancel_refresh());
+  private initialize_button = button(workspace_text("git_source_control_initialize_repository"), () => void this.panel.initialize());
+  private discover_button = button(workspace_text("git_source_control_searching_for_repositories_in_subfolders"), () => void this.panel.choose_repository(true));
+  private retry_button = button(workspace_text("git_source_control_retry"), () => void this.panel.refresh(false));
+  private install_button=button(workspace_text("git_source_control_install_git"),()=>void this.panel.install_git());
+  private cancel_read=icon_button('close',workspace_text("git_source_control_cancel_git_status_reading"),()=>this.panel.cancel_refresh());
+  private cancel_empty=button(workspace_text("git_source_control_cancel_reading"),()=>this.panel.cancel_refresh());
   set_git_missing(missing:boolean):void{this.install_button.hidden=!missing;}
   update_read_controls():void{this.cancel_read.hidden=this.cancel_empty.hidden=!this.panel.pending||this.panel.writing||this.panel.installing_git;this.install_button.disabled=this.panel.pending;}
   private path_collator = new Intl.Collator();
@@ -89,7 +90,7 @@ export class git_source_control {
       const control = icon_button(icon, label, () => {});
       control.dataset.scmTitleAction = id;
       control.onclick = event => {
-        // summary 内的操作按钮不参与折叠；键盘激活同样走原生 click。
+        // Operations buttons inside summary do not participate in folding; keyboard activation follows the native click.
         event.preventDefault(); event.stopPropagation();
         if (!this.input_action_enabled(id)) return;
         if (id === "commit") this.commit();
@@ -138,7 +139,7 @@ export class git_source_control {
     this.repository_view_state = state; this.sidebar.dataset.repositoryState = state;
     const ready = state === "ready";
     this.empty_view.hidden = ready;
-    this.empty_message.textContent = state === "loading" ? text("graph.loading_repository") : state === "empty" ? "当前打开的文件夹尚未包含 Git 仓库。" : "无法读取 Git 仓库。";
+    this.empty_message.textContent = state === "loading" ? text("graph.loading_repository") : state === "empty" ? workspace_text("git_source_control_the_currently_open_folder_does_not_contain_git_repository") : workspace_text("git_source_control_cannot_read_git_repository");
     this.initialize_button.hidden = this.discover_button.hidden = state !== "empty";
     this.retry_button.hidden = state !== "error";
     (ready ? this.changes_body : this.empty_view).append(this.notice);
@@ -159,7 +160,7 @@ export class git_source_control {
       if (!this.show_repositories && !this.show_changes && !this.show_history) this.show_changes = true;
       if (["path", "name", "status"].includes(saved.sort_order)) this.sort_order = saved.sort_order;
       this.history_tree = saved.history_tree === true;
-    } catch { /* 使用默认布局。 */ }
+    } catch { /* Use the default layout. */ }
     this.history.reset(); this.apply_history_layout();
     this.message.value = localStorage.getItem(this.storage_key("message")) || "";
     this.fit_message();
@@ -167,7 +168,7 @@ export class git_source_control {
   save_layout(): void { localStorage.setItem(this.storage_key("layout"), JSON.stringify({tree: this.tree, history_ratio: this.history_ratio, history_open: this.history_open, input_open: this.input_section.open, show_repositories: this.show_repositories, show_changes: this.show_changes, show_history: this.show_history, sort_order: this.sort_order, history_tree: this.history_tree})); }
   fit_message(): void {
     this.message.style.height = "0px";
-    // 空输入框维持单行高度，不让窄侧栏内换行的占位提示撑高输入区。
+    // Empty input boxes maintain a single-line height, preventing narrow sidebars' placeholder prompts from expanding the input area.
     const height = this.message.value ? this.message.scrollHeight + 2 : 30;
     this.message.style.height = Math.min(120, Math.max(30, height)) + "px";
     this.message.style.overflowY = height > 120 ? "auto" : "hidden";
@@ -206,7 +207,7 @@ export class git_source_control {
   commit(): void {
     if (!this.input_action_enabled("commit")) return;
     if (!this.message.value.trim()) {
-      // 标题在折叠时仍可操作；需要输入消息时先显式展开并解除 inert。
+      // Titles remain operable when folded; when input messages are needed, explicitly expand and release inert.
       this.input_section.open = true; this.changes_body.inert = false;
       this.message.focus(); this.panel.report(text("scm.message_required")); return;
     }
@@ -284,7 +285,7 @@ export class git_source_control {
       const files = sorted[groups.indexOf(group)];
       if (files.length <= 200) for (const file of files) parent_for(file.path.split("/").slice(0, -1).join("/")).append(create_file_row(file));
       else {
-        // 沿用固定 VS Code SCM ListDelegate 的22px行高。展开状态属于SCM，窗口化仅负责绘制。
+        // Continue using the fixed VS Code SCM ListDelegate of 22px line height. Expanded state belongs to SCM, and windowing is only responsible for drawing.
         const content = el("div", "git-scm-virtual-list"); section.append(content);
         const entries = () => this.tree
           ? workspace_tree_rows(files, file => file.path, this.collapsed_directories)
@@ -339,7 +340,7 @@ export class git_source_control {
       entries.push({id: staged ? "unstage" : "stage", title: staged ? text("scm.unstage_change") : text("scm.stage_change"), separator: true, action: () => void this.panel.quick_action(staged ? "unstage" : "stage", [file.path, ...(file.old_path ? [file.old_path] : [])])});
       if (!staged) entries.push({id: "discard_file", title: text("scm.discard_change"), action: () => this.panel.action_dialog("discard_changes", "file", file.path, this.panel.state?.head, {include_untracked: true}, [file.path])});
     }
-    // 菜单可能在切换仓库前已创建；执行时仍须核对生成比较的仓库身份。
+    // Menus may have been created before switching repositories; execution still requires verification of the repository identity for generating comparisons.
     return entries.map(entry => ({...entry, action: () => { if (this.repository_action_available(root)&&runner===this.panel.runner&&!this.panel.pending&&!this.panel.writing) void entry.action?.(); }}));
   }
   async ignore_file(file: string,tracked=false): Promise<void> {
@@ -349,7 +350,7 @@ export class git_source_control {
     catch (error) { message = String(error); }
     finally { this.panel.report(message); }
   }
-  /** 默认资源点击：仅当前比较的新增项没有旧基线；显式比较入口仍走 open_file。 */
+  /** Default resource click: Only new items in the current comparison do not have old baseline; explicit comparison entry still walks open_file. */
   async open_default_file(file:graph_change,from:string,to:string,files:graph_change[]):Promise<void>{
     if((to===WORKTREE||to===INDEX)&&(file.status==="??"||/^A[0-9]*$/u.test(file.status))){
       await this.open_current_file(file);
@@ -358,7 +359,7 @@ export class git_source_control {
     await this.open_file(file,from,to,files);
   }
   async open_current_file(file: graph_change): Promise<void> {
-    // 当前文件导航取代仍在读取的比较，避免旧 diff 完成后抢回活动标签。
+    // Current file navigation replaces the one still reading comparison, avoiding old diff completion to take back active tab.
     const epoch = ++this.load_epoch; const root = this.panel.root;
     try { await this.panel.host.open_file(root, file.path, this.panel.settings); }
     catch (error) { if (epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
@@ -380,7 +381,7 @@ export class git_source_control {
     for(const section of this.groups.querySelectorAll('details'))section.open=true;
     let row:HTMLElement|undefined;for(const reveal of this.change_revealers)row ||= reveal(source);
     row ||= [...this.groups.querySelectorAll<HTMLElement>('[data-git-source]')].find(node=>node.dataset.gitSource===git_diff_source_key(source));
-    if(!row)throw Error('该文件已不在对应变更组中。');row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.sync_source_selection();
+    if(!row)throw Error(workspace_text("git_source_control_the_file_is_no_longer_in_the_corresponding_change_group"));row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.sync_source_selection();
   }
   async open_file(file: graph_change, from: string, to: string, files: graph_change[] = [file]): Promise<void> {
     const epoch = ++this.load_epoch; const root = this.panel.root;
@@ -416,7 +417,7 @@ export class git_source_control {
         adjacent: direction => { if (!this.repository_action_available(root)) return; const index = files.findIndex(item => item.path === file.path); void this.open_default_file(files[(index + direction + files.length) % files.length], from, to, files); },
       });
       this.sync_source_selection();
-      // 侧栏历史可独立选择版本，不能把同名文件误记到中央页正在进行的另一场评审。
+      // Sidebar history can independently select version, cannot mistakenly record same-named file to central page ongoing another review.
       if (this.panel.from === from && this.panel.to === to) this.panel.mark_reviewed(file.path);
       this.panel.status.textContent = `${file.path} · ${short_revision(from)} ↔ ${short_revision(to)}`;
     } catch (error) { if (epoch === this.load_epoch) this.panel.report(error); }

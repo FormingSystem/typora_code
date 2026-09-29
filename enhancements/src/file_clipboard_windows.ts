@@ -1,6 +1,7 @@
 import type {file_clipboard_snapshot,file_clipboard_adapter} from "./workspace_file_clipboard";
+import {workspace_text} from './workspace_i18n';
 
-// 固定程序经stdin接收JSON；路径不拼入PowerShell或C#代码。
+// Fixed programs are received by stdin and JSON; the path is not added to PowerShell or C#code.
 const WINDOWS_CLIPBOARD_SCRIPT=String.raw`
 $ErrorActionPreference='Stop'
 [Console]::InputEncoding=New-Object System.Text.UTF8Encoding($false)
@@ -48,7 +49,7 @@ public class file_clipboard_native {
    open(window);opened=true;if(!EmptyClipboard())throw new Exception("Clipboard write failed.");
    if(SetClipboardData(15,files)==IntPtr.Zero)throw new Exception("Clipboard file list write failed.");files=IntPtr.Zero;
    if(SetClipboardData(RegisterClipboardFormat("Preferred DropEffect"),effect)==IntPtr.Zero)throw new Exception("Clipboard copy effect write failed.");effect=IntPtr.Zero;
-   // 必须持锁取得本次写入版本；释放后重读会误认其他应用复制的同路径新内容。
+   // Read this write's version while holding the lock; a later read may capture another application's copy of the same paths.
    return read_locked();
   }finally{if(opened)CloseClipboard();if(window!=IntPtr.Zero)DestroyWindow(window);if(files!=IntPtr.Zero)GlobalFree(files);if(effect!=IntPtr.Zero)GlobalFree(effect);}
  }
@@ -72,10 +73,10 @@ export function create_windows_file_clipboard(reqnode:(name:string)=>any):file_c
   const args=["-NoProfile","-NonInteractive","-STA","-EncodedCommand",buffer.from(WINDOWS_CLIPBOARD_SCRIPT,"utf16le").toString("base64")];
   const children=new Set<any>();let disposed=false;
   const invoke=<T>(request:unknown)=>new Promise<T>((resolve,reject)=>{
-    if(disposed){reject(new Error("文件剪贴板已关闭。"));return;}
+    if(disposed){reject(new Error(workspace_text('file_clipboard_closed')));return;}
     const child=child_process.execFile(program,args,{windowsHide:true,shell:false,timeout:6000,maxBuffer:Infinity,encoding:"utf8"},(error:Error|null,stdout:string)=>{
-      children.delete(child);if(disposed){reject(new Error("文件剪贴板已关闭。"));return;}
-      try{const result=JSON.parse(stdout);if(result.error)throw new Error(result.error);if(error)throw error;resolve(result.value);}catch(problem){reject(new Error("系统文件剪贴板操作失败："+String(problem instanceof Error?problem.message:problem)));}
+      children.delete(child);if(disposed){reject(new Error(workspace_text('file_clipboard_closed')));return;}
+      try{const result=JSON.parse(stdout);if(result.error)throw new Error(result.error);if(error)throw error;resolve(result.value);}catch(problem){reject(new Error(workspace_text('file_clipboard_failed',{error:String(problem instanceof Error?problem.message:problem)})));}
     });children.add(child);child.stdin.on("error",()=>{});child.stdin.end(JSON.stringify(request),"utf8");
   });
   return {read:()=>invoke<file_clipboard_snapshot>({action:"read"}),write:paths=>invoke<file_clipboard_snapshot>({action:"write",paths}),clear:version=>invoke<boolean>({action:"clear",version}),dispose(){disposed=true;for(const child of children)child.kill();children.clear();}};

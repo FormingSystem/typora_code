@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import type {bind_workspace_editor_actions} from "./workspace_editor_actions";
@@ -14,7 +15,7 @@ type editor_group=graph_leaf["parent"]&{activeLeaf?:graph_leaf};
 type header_state={group:editor_group;leaf:graph_leaf;path:string;toolbar:HTMLElement;split:HTMLButtonElement;more:HTMLButtonElement;interaction:{remove():void};legacy?:{node:HTMLElement;hidden:boolean}};
 const bindings=new WeakMap<workspace_file_host,{refresh():void;dispose():void}>();
 
-/** 每组只有一份普通文件动作；不接管历史比较、搜索预览及工具页。 */
+/** Each group has only one regular file action; it does not take over the history comparison, search preview, and tool page. */
 export function bind_workspace_file_header(files:workspace_file_host,actions:editor_actions){
   const existing=bindings.get(files);if(existing)return existing;
   const workspace=files.core.app.workspace,groups=new Map<editor_group,header_state>();
@@ -31,8 +32,8 @@ export function bind_workspace_file_header(files:workspace_file_host,actions:edi
     const leaf=state.leaf,path=state.path;
     const result=actions.title_entries(leaf).map(entry=>({...entry,shortcut:entry.id==="close_all"?"Alt+K W":entry.id==="close_saved"?"Alt+K U":entry.shortcut}));
     const reopen=actions.entries(leaf).find(entry=>entry.id==="reopen");
-    if(reopen)result.push({...reopen,title:"重新打开方式",separator:true});
-    // 菜单动作在点击时再复核叶子和组，不能沿用被重命名或移走的标签快照。
+    if(reopen)result.push({...reopen,title:workspace_text("file_header_reopen_editor_with"),separator:true});
+    // Menu actions are re-verified when clicked on the leaf and group; they cannot carry over the snapshot of renamed or moved tabs.
     const guard=(entry:workspace_menu_entry):workspace_menu_entry=>({...entry,action:()=>{if(valid(state)&&state.leaf===leaf&&state.path===path)entry.action();},children:entry.children?.map(guard)});
     return result.map(guard);
   };
@@ -66,8 +67,8 @@ export function bind_workspace_file_header(files:workspace_file_host,actions:edi
       if(!ordinary||!strip){const old=groups.get(group);if(old)release(old);continue;}
       let state=groups.get(group);
       if(!state){
-        const toolbar=workspace_element("div","workspace-file-header"),split=git_icon_button("split-horizontal","向右拆分（Ctrl+\\）",()=>{}),more=git_icon_button("more","更多编辑器操作",()=>{});
-        toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label","文件编辑器操作");
+        const toolbar=workspace_element("div","workspace-file-header"),split=git_icon_button("split-horizontal",workspace_text("file_header_split_right_ctrl"),()=>{}),more=git_icon_button("more",workspace_text("file_header_more_editor_actions"),()=>{});
+        toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label",workspace_text("file_header_file_editor_actions"));
         split.dataset.fileHeaderAction="split";more.dataset.fileHeaderAction="more";more.setAttribute("aria-haspopup","menu");more.setAttribute("aria-expanded","false");
         toolbar.append(split,more);strip.append(toolbar);
         state={group,leaf,path:leaf.state.path,toolbar,split,more,interaction:acquire_workspace_interaction(toolbar)};groups.set(group,state);const owner=state;

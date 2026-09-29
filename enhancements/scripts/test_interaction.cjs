@@ -1,4 +1,4 @@
-// 用 Electron 执行本文件；窗口保持隐藏，通过 Chromium 输入事件测试真实鼠标和键盘行为。
+// Use Electron to execute this file; window remains hidden, through Chromium input events test real mouse and keyboard behavior.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const path = require('node:path');
@@ -37,6 +37,7 @@ async function expanded() {
 
 app.whenReady().then(async () => {
   test_window = new BrowserWindow({ show: false, width: 1000, height: 800, webPreferences: { offscreen: true, backgroundThrottling: false } });
+  test_window.webContents.on('console-message',event=>{if(event.level==='error'||event.level===3)console.error(event.message);});
   const fixture_root = fs.mkdtempSync(path.join(os.tmpdir(),'typora_reading_interaction_'));
   const {static_workspace_css_plugin} = await import('./build_workspace_styles.mjs');
   const script_path = path.join(fixture_root,'startup.js');
@@ -68,7 +69,7 @@ app.whenReady().then(async () => {
   await click('.linux-note-code-toggle');
   assert.equal(await expanded(), false, '正文获焦时首次点击收起');
 
-  // 模拟编辑器复制或重建按钮，原生 addEventListener 不会随 cloneNode 复制。
+  // Simulate editor copy or rebuild button, native addEventListener will not be copied with cloneNode.
   await evaluate(`(() => {
     const toolbar = document.querySelector('.linux-note-code-toolbar');
     toolbar.replaceWith(toolbar.cloneNode(true));
@@ -95,11 +96,11 @@ app.whenReady().then(async () => {
   const colors = await evaluate(`Object.fromEntries(Array.from(document.querySelectorAll('.CodeMirror-line span'))
     .filter((span) => ['do', 'unsigned', 'typecheck', 'arch_local_irq_save', '='].includes(span.textContent))
     .map((span) => [span.textContent, getComputedStyle(span).color]))`);
-  assert.equal(colors.do, 'rgb(215, 58, 73)');
-  assert.equal(colors.unsigned, 'rgb(215, 58, 73)');
-  assert.equal(colors.typecheck, 'rgb(111, 66, 193)');
-  assert.equal(colors.arch_local_irq_save, 'rgb(111, 66, 193)');
-  assert.equal(colors['='], 'rgb(36, 41, 46)');
+  assert.equal(colors.do, 'rgb(175, 0, 219)');
+  assert.equal(colors.unsigned, 'rgb(0, 0, 255)');
+  assert.equal(colors.typecheck, 'rgb(121, 94, 38)');
+  assert.equal(colors.arch_local_irq_save, 'rgb(121, 94, 38)');
+  assert.equal(colors['='], 'rgb(0, 0, 0)');
   assert.equal(await evaluate(`document.documentElement.getAttribute('data-linux-note-reading-navigation')`), 'ready');
   async function navigate(key_code) {
     test_window.webContents.sendInputEvent({ type: 'keyDown', keyCode: key_code, modifiers: ['alt'] });

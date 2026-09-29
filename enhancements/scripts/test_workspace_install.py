@@ -1,4 +1,4 @@
-"""真实临时目录验证 Linux 部署事务；不访问已安装 Typora。"""
+"Verify the real temporary directory Linux deployment transaction; do not access already installed Typora."
 import importlib.util
 import io
 import json
@@ -165,7 +165,7 @@ assert all((user / 'typora_code' / name).read_bytes() == contents for name, cont
 print('PASS: Linux transaction, head order, migration, hashes, settings, conflicts, constrained restore and rollback')
 print('Fixtures:', fixture)
 
-# 两个平台遵守相同的严格编码与字段恢复边界。
+# Both platforms adhere to the same strict coding and field recovery boundary.
 codec = fixture / 'codec.data'
 assert deployment.update_native_profile(codec, 'install', 'missing') is True
 assert deployment.read_native_profile(codec)['data'] == {'framelessWindow': True}
@@ -184,7 +184,7 @@ deployment.update_native_profile(codec, 'restore', deployment.read_native_profil
 assert deployment.read_native_profile(codec)['data'] == {'later': 3}
 print('PASS: native profile strict codec, concurrent refusal and absent-key restoration')
 
-# 配置已经切到原生窗口后，最后的备份清单写入失败仍需恢复原字段。
+# After the configuration has switched to the native window, if the last backup list writing fails, the original field still needs to be recovered.
 real_write_json = deployment.write_json
 
 def manifest_failure(path, data):
@@ -228,7 +228,7 @@ assert unmanaged.read_text(encoding='utf-8') == 'unmanaged content'
 print('PASS: late install rollback, malformed profile preflight and absent profile full transaction')
 print('PASS: four retired C/C++ assets backed up, removed, checked, restored and rolled back byte-for-byte; unrelated files preserved')
 
-# 对真实事务结果核对日志：成功阶段完整，失败不能误报完成或回滚。
+# Verify the log of real transaction results: the successful phase is complete, and failure cannot mistakenly report completion or rollback.
 logs = [path.read_text(encoding='utf-8') for path in (user / 'logs/installation').glob('*.log')]
 success_logs = [text for text in logs if '[SUCCESS]' in text]
 assert len(success_logs) == 3
@@ -241,7 +241,7 @@ assert all('[ERROR]' in text for text in failure_logs)
 assert sum('已回滚本次安装' in text for text in failure_logs) == 3
 assert sum('尚未写入目标文件' in text for text in failure_logs) == 2
 
-# 日志不可写时降级到临时目录；保存日志失败不能让安装函数失败。
+# When log writing is not possible, downgrade to a temporary directory; log saving failure should not cause the installation function to fail.
 blocked_user = fixture / 'blocked logs'
 blocked_user.mkdir()
 (blocked_user / 'logs').write_text('not a directory', encoding='utf-8')
@@ -253,7 +253,7 @@ with redirect_stderr(io.StringIO()) as fallback_output, patch.object(deployment.
     assert fallback_log.path is None
 assert '日志文件无法继续写入' in fallback_output.getvalue()
 
-# 回滚自身失败必须说明未完成，并保留最初的安装错误。
+# If a rollback itself fails, it must explain that it is not completed, and retain the original installation error.
 real_verify_assets = deployment.verify_assets
 def installed_verification_failure(path, assets):
     if path == user / 'typora_code':

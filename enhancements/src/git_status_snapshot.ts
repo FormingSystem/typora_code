@@ -1,11 +1,12 @@
+import {workspace_text} from "./workspace_i18n";
 import type {git_run} from './git_graph_data';
 import type {graph_change} from './git_graph_repository';
 export const git_yield=()=>new Promise<void>(resolve=>{
-  // MessageChannel避免Windows/后台窗口定时器钳制造成分批任务累计十几秒等待。
+  // MessageChannel avoids Windows/ background window timer clamp causing batch task accumulation several seconds waiting.
   if(typeof MessageChannel==='undefined'){setTimeout(resolve,0);return;}
   const channel=new MessageChannel();channel.port1.onmessage=()=>{channel.port1.close();channel.port2.close();resolve();};channel.port2.postMessage(null);
 });
-/** 只保留尚未完整的NUL字段；没有全量split/JSON副本。 */
+/** Only retain incomplete NUL field; no full split/JSON copy. */
 export async function read_git_records(run:git_run,root:string,args:string[],record:(value:string)=>void):Promise<void>{
   let carry='',count=0;
   const consume=async(chunk:string)=>{
@@ -14,9 +15,9 @@ export async function read_git_records(run:git_run,root:string,args:string[],rec
     carry=value.slice(start);
   };
   const source=await run(root,args,{stdout:consume});
-  // 测试端口和远程适配允许返回字符串，仍分块消费，不能一次split。
+  // Test ports and remote adapters allow returning strings, still consume in chunks, cannot be split at once.
   for(let i=0;i<source.length;i+=65536)await consume(source.slice(i,i+65536));
-  if(carry)throw Error('Git状态记录不完整，保留上次状态。');
+  if(carry)throw Error(workspace_text("git_status_snapshot_git_status_record_is_incomplete_retaining_the_previous_statu"));
 }
 export async function read_status_snapshot(run:git_run,root:string,untracked:boolean):Promise<graph_change[]>{
   const result:graph_change[]=[];let renamed:graph_change|undefined;
@@ -26,13 +27,13 @@ export async function read_status_snapshot(run:git_run,root:string,untracked:boo
     const item:graph_change={status:status.trim(),index_status:status[0],work_status:status[1],path:value.slice(3)};
     result.push(item);if(/[RC]/u.test(status))renamed=item;
   });
-  if(renamed)throw Error('Git重命名记录不完整。');return result;
+  if(renamed)throw Error(workspace_text("git_status_snapshot_git_rename_record_is_incomplete"));return result;
 }
 export async function same_git_changes(left:graph_change[],right:graph_change[]):Promise<boolean>{
   if(left.length!==right.length)return false;
   for(let i=0;i<left.length;i++){const a=left[i],b=right[i];if(a.path!==b.path||a.status!==b.status||a.old_path!==b.old_path||a.index_status!==b.index_status||a.work_status!==b.work_status)return false;if(i%1024===1023)await git_yield();}return true;
 }
-/** porcelain的XY就是暂存区/工作区状态，SCM不再重复diff扫描整个仓库。 */
+/** The porcelain's XY is the staging area/workspace status, SCM no longer repeat diff scanning the entire repository. */
 export async function project_git_changes(changes:graph_change[]):Promise<{staged:graph_change[];unstaged:graph_change[]}>{
   const staged:graph_change[]=[],unstaged:graph_change[]=[];
   for(let i=0;i<changes.length;i++){
@@ -46,7 +47,7 @@ export async function project_git_changes(changes:graph_change[]):Promise<{stage
     if(i%1024===1023)await git_yield();
   }return {staged,unstaged};
 }
-/** 归并排序按比较次数让出线程，长路径/名称排序也不会形成一个大任务。 */
+/** Merge sort yields threads by the number of comparisons, long path/name sorting will not form a large task. */
 export async function sort_git_changes(items:graph_change[],compare:(a:graph_change,b:graph_change)=>number):Promise<graph_change[]>{
   let current=items.slice(),next=new Array<graph_change>(items.length),steps=0;
   for(let width=1;width<items.length;width*=2){
@@ -62,5 +63,5 @@ export async function read_changes_snapshot(run:git_run,root:string,args:string[
     if(!status){status=value;return;}
     if(/^[RC]/u.test(status)&&old_path===undefined){old_path=value;return;}
     result.push({status,path:value,...(old_path!==undefined?{old_path}:{})});status='';old_path=undefined;
-  });if(status)throw Error('Git差异记录不完整。');return result;
+  });if(status)throw Error(workspace_text("git_status_snapshot_git_difference_record_is_incomplete"));return result;
 }

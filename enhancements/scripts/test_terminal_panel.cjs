@@ -13,7 +13,7 @@ app.whenReady().then(async()=>{
   win=new BrowserWindow({show:false,width:1200,height:800,webPreferences:{nodeIntegration:true,contextIsolation:false,offscreen:true,backgroundThrottling:false}});
   const html=path.join(root,'fixture.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>html,body{margin:0;height:100%;overflow:hidden;background:#fff;color:#333}.typ-workspace-root{position:absolute;left:220px;right:0;top:35px;bottom:24px}.ty-footer{position:absolute;bottom:0;left:220px;height:24px;width:980px}</style><main class="typ-workspace-root">UNSAVED_DOCUMENT</main><footer class="ty-footer">status</footer>');await win.loadFile(html);
   const pty_mock=`export function start_terminal_pty(runtime,request,callbacks){return new Promise((resolve,reject)=>{const record={request,callbacks,killed:0,writes:[],sizes:[],proxy:{pid:4000+window.pty_starts.length,write(data){record.writes.push(data)},resize(cols,rows){record.sizes.push([cols,rows])},acknowledge(){},kill(){record.killed++}},ready(){resolve(record.proxy)}};window.pty_starts.push(record);runtime.signal.addEventListener('abort',()=>{record.killed++;reject(new Error('aborted'))},{once:true});});}`;
-  // 探测边界可控；使用真实设置、菜单、会话和显示代码，避免依赖测试机装了哪些 Shell。
+  // Detect boundary control; use real settings, menus, sessions, and display code, avoid depending on what is installed on the test machine Shell.
   const discovery_mock=`export function create_terminal_profile_service(){
     const record={values:[],pending:undefined,scans:0,disposed:false,complete:undefined};
     const refresh=()=>{if(record.pending)return record.pending;record.scans++;record.pending=new Promise(resolve=>{record.complete=values=>{record.values=structuredClone(values);record.pending=undefined;resolve(structuredClone(record.values));};});return record.pending;};
@@ -74,7 +74,7 @@ app.whenReady().then(async()=>{
   await evaluate('pty_starts[1].callbacks.data("EARLY_OUTPUT");pty_starts[1].ready();void 0');await delay(100);
   assert(await evaluate('!document.querySelector("[data-session=terminal_2]").textContent.includes("等待首次输出")'),'output before ready does not leave stale waiting status');
 
-  // 使用真实输入路径拖动分隔条；每次变化只调整表面几何，不创建或结束PTY。
+  // Use real input path to drag the splitter; adjust only the surface geometry on each change, do not create or end PTY.
   const sash_drag=async(selector,dx,cancel=false)=>{
     const rect=await evaluate(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
     win.webContents.sendInputEvent({type:'mouseMove',...rect});win.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...rect});await delay(30);
@@ -100,7 +100,7 @@ app.whenReady().then(async()=>{
   await open_settings();await evaluate('document.querySelector("[data-setting=tabs_location]").value="right";void 0');await dialog_action('应用');
   await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
   assert(await evaluate('pty_starts.length===2&&pty_starts.every(item=>item.killed===0)&&first.surface.term.buffer.active.getLine(0).translateToString().includes("KEEP_OUTPUT")'));
-  // 生产DnD事件路径验证身份、取消与重排；真实指针分隔条与HTML拖放分别测试。
+  // Production DnD event path verification of identity, cancellation, and rearrangement; test real pointer splitters and HTML drag and drop separately.
   await evaluate(`window.drag_terminal=(source,target,after=false,commit=true)=>{
     const row=document.querySelector('.terminal-tab[data-session="'+source+'"]'),list=document.querySelector('.terminal-tabs');const data=new DataTransfer();
     row.dispatchEvent(new DragEvent('dragstart',{bubbles:true,dataTransfer:data}));
@@ -126,8 +126,8 @@ app.whenReady().then(async()=>{
   await evaluate('document.querySelector(".terminal-tabs-sash").dispatchEvent(new KeyboardEvent("keydown",{key:"Home",bubbles:true}));void 0');
   fs.writeFileSync(path.join(root,'terminal_split_layout.png'),(await win.webContents.capturePage()).toPNG());
 
-  // R006.7：真实 Chromium 组合输入交给 xterm，PTY 边界只记录写入，不运行用户命令。
-  // CDP 输入放在 sendInputEvent 指针检查之后，避免调试会话影响 offscreen DPI 坐标。
+  // R006.7: Real Chromium combination input is passed to xterm, PTY boundary only records writes, does not run user commands.
+  // CDP input is placed after sendInputEvent pointer check, to avoid debug session affecting offscreen DPI coordinates.
   win.webContents.debugger.attach('1.3');
   const ime = (text) => win.webContents.debugger.sendCommand('Input.imeSetComposition',{text,selectionStart:text.length,selectionEnd:text.length});
   const commit_text = (text) => win.webContents.debugger.sendCommand('Input.insertText',{text});
@@ -166,7 +166,7 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('pty_starts[0].writes.join("")'),before_copy,'copy does not send a shell command');
   await evaluate('first.surface.term.clearSelection();void 0');await press('c',['control']);
   assert.equal(await evaluate('pty_starts[0].writes.at(-1)'),'\u0003','Ctrl+C without a selection still interrupts the shell');
-  // 输入法可能使用 isComposing 或遗留 229；两条路径都不能打开查找并移走候选焦点。
+  // The input method may use isComposing or legacy 229; neither path can open the search and remove the candidate focus.
   for(const flags of [{isComposing:true,keyCode:70},{keyCode:229}]){
     assert(await evaluate(`(()=>{const event=new KeyboardEvent('keydown',{key:'f',code:'KeyF',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true,...${JSON.stringify(flags)}});first.surface.term.textarea.dispatchEvent(event);return !event.defaultPrevented&&first.surface.container.querySelector('.terminal-find').hidden&&document.activeElement===first.surface.term.textarea})()`),'IME owns shortcut keys');
   }
@@ -194,7 +194,7 @@ app.whenReady().then(async()=>{
   await evaluate('pty_starts[2].ready();pty_starts[3].ready();void 0');await delay(100);
   const button_box=await evaluate('(()=>{const b=document.querySelector(".terminal-panel-actions button").getBoundingClientRect();return {w:b.width,h:b.height}})()');assert.deepEqual(button_box,{w:22,h:22});
 
-  // 新建菜单、默认配置与实际启动共用发现结果；不存在的静态候选不能冒充可用 Shell。
+  // New menu, default configuration, and actual startup share discovery results; non-existent static candidates cannot impersonate available Shell.
   await open_profiles();
   const menu_profiles=await evaluate('[...document.querySelectorAll(".git-graph-menu [data-action^=terminal_profile_]")].map(node=>({id:node.dataset.action.slice("terminal_profile_".length),title:node.querySelector(".git-menu-label").textContent}))');
   assert.deepEqual(menu_profiles,[...profiles,custom].map(({id,title})=>({id,title})));
@@ -206,7 +206,7 @@ app.whenReady().then(async()=>{
   await evaluate('drag_terminal("terminal_1","terminal_3",true);void 0');assert.deepEqual(await order(),['terminal_2','terminal_3','terminal_1']);
   await evaluate('drag_terminal("terminal_2","",true);void 0');assert.deepEqual(await order(),['terminal_3','terminal_1','terminal_2']);
   assert.deepEqual(await evaluate('pty_starts.map(item=>item.killed)'),before_killed);
-  // 未由本列表开始的外部拖放，即使复制了MIME名称，也不能移动会话。
+  // External drag-and-drop not initiated from this list, even if the MIME name is copied, cannot move the session.
   const before_external=await order();await evaluate(`(()=>{const d=new DataTransfer();d.setData('application/x-typora-code-terminal-tab','terminal_3');document.querySelector('.terminal-tabs').dispatchEvent(new DragEvent('drop',{bubbles:true,dataTransfer:d}));})()`);assert.deepEqual(await order(),before_external);
 
   await open_profiles();await click_menu('选择默认配置…');await wait('Boolean(document.querySelector("[data-setting=profile]"))');
@@ -228,7 +228,7 @@ app.whenReady().then(async()=>{
   assert.deepEqual(await evaluate('({executable:pty_starts[7].request.executable,args:pty_starts[7].request.args})'),{executable:wsl.executable,args:[...wsl.args,'--cd',root]});await evaluate('pty_starts[7].ready();void 0');
   await open_settings();assert(await evaluate('[...document.querySelector("[data-setting=profile]").options].some(item=>item.value==="wsl:Ubuntu")'));await dialog_action('关闭');
 
-  // 菜单关闭后迟到的扫描不再弹出；失效默认仍显示原选择，不能偷偷改为自动模式。
+  // After the menu is closed, late scanning no longer pops up; failed default still displays the original selection, and cannot secretly switch to automatic mode.
   await open_profiles();await click_menu('重新检测终端');assert.equal(await evaluate('profile_scans[0].scans'),3);
   await evaluate('document.querySelector(".git-graph-menu").dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));window.dispatchEvent(new KeyboardEvent("keyup",{key:"Escape",bubbles:true}));void 0');
   await evaluate(`profile_scans[0].complete(${JSON.stringify([profiles[0],profiles[1],wsl])});void 0`);await delay(50);
@@ -243,19 +243,19 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('first.surface.term.options.fontSize'),19);
   fs.writeFileSync(path.join(root,'terminal_panel.png'),(await win.webContents.capturePage()).toPNG());
 
-  // 设置自身刷新也共享扫描；关闭表单不会被完成回调重新挂回 DOM。
+  // Setting itself to refresh also shares scanning; closing the form will not be re-queued back to DOM by the completion callback.
   await open_settings();await evaluate('[...document.querySelectorAll(".terminal-settings-form button")].find(node=>node.textContent==="重新检测终端").click();void 0');
   assert.equal(await evaluate('profile_scans[0].scans'),4);await dialog_action('关闭');
   await evaluate(`profile_scans[0].complete(${JSON.stringify([...profiles,wsl])});void 0`);await delay(50);
   assert(await evaluate('!document.querySelector("[role=dialog]")&&pty_starts.length===8'));
 
-  // 探测期间仍允许用户选择；新结果不得恢复开始扫描时的旧选择。
+  // During detection, users are still allowed to select; new results cannot restore the old selection from when scanning started.
   await open_settings();await evaluate('[...document.querySelectorAll(".terminal-settings-form button")].find(node=>node.textContent==="重新检测终端").click();document.querySelector("[data-setting=profile]").value="cmd";void 0');
   await evaluate(`profile_scans[0].complete(${JSON.stringify([...profiles,wsl])});void 0`);await delay(50);
   assert.equal(await evaluate('document.querySelector("[data-setting=profile]").value'),'cmd');await dialog_action('应用');
   assert.equal(await evaluate('JSON.parse(localStorage.getItem("linux-note-terminal:v1:")).profile'),'cmd');
 
-  // 卸载时，菜单、设置、新建三个等待者不得在同一迟到结果后恢复 UI 或创建 PTY。
+  // During uninstallation, the menu, settings, and new three waiters cannot recover UI or create PTY after the same late result.
   await open_profiles();await click_menu('重新检测终端');
   await evaluate('commands.get("linux_note:terminal_settings").callback();window.pending_after_dispose=binding.open('+JSON.stringify(root)+',"cmd");void 0');
   assert(await evaluate('Boolean(document.querySelector(".git-graph-menu"))&&Boolean(document.querySelector("[role=dialog]"))&&profile_scans[0].scans===6'));
@@ -265,7 +265,7 @@ app.whenReady().then(async()=>{
   assert(await evaluate('profile_scans[0].disposed&&pty_starts.length===8&&commands.size===0&&factories.size===0&&!document.querySelector(".typora-terminal-panel,.git-graph-menu,.git-graph-dialog-shade")&&document.querySelector(".typ-workspace-root").style.bottom===""&&pty_starts.every(item=>item.killed===1)'));
   assert(await evaluate('panel_api.read_terminal_state(core.app)===undefined'),'dispose releases menu state');
   assert(await evaluate(`(()=>{const input=document.createElement('input'),surface=first.surface.container;surface.append(input);document.body.append(surface);let reached=false;const listener=()=>reached=true;document.body.addEventListener('keyup',listener,{once:true});input.dispatchEvent(new KeyboardEvent('keyup',{key:'Shift',bubbles:true}));document.body.removeEventListener('keyup',listener);surface.remove();return reached})()`),'disposed terminal releases input event listeners');
-  // 命令入口先显示真实会话；目录解析暂停、终止和切库不能留下迟到进程。
+  // The command entrance first displays the real session; directory parsing pause, termination, and switch database cannot leave late processes.
   await evaluate('window.binding=panel_api.bind_terminal_workspace(host);window.resolve_directory=undefined;host.runner=()=>({run:()=>new Promise(resolve=>window.resolve_directory=resolve)});window.file_popup=document.createElement("ul");file_menu({menu:{containerEl:file_popup},path:'+JSON.stringify(root)+'});file_popup.firstElementChild.click();void 0');
   await wait('Boolean(resolve_directory)');
   assert(await evaluate('!document.querySelector(".typora-terminal-panel").hidden&&document.querySelector(".linux-note-terminal-status").textContent.includes("工作目录")&&pty_starts.length===8'),'command paints while directory resolution is pending');
@@ -276,7 +276,7 @@ app.whenReady().then(async()=>{
   await evaluate('window.dispatchEvent(new Event("linux-note-workspace-context-changed"));profile_scans[1].complete('+JSON.stringify(profiles)+');void 0');await delay(30);
   assert(await evaluate('!document.querySelector(".linux-note-terminal")&&pty_starts.length===8'),'workspace change rejects late discovery');
   await evaluate('binding.dispose();void 0');
-  // 同一会话重启时，旧目录解析晚于新解析返回，不能污染新启动基点。
+  // When the same session is restarted, the old directory parsing returns later than the new parsing, and cannot contaminate the new startup base.
   fs.mkdirSync(path.join(root,'restart_target'));
   await evaluate('window.binding=panel_api.bind_terminal_workspace(host);window.resolve_directory=undefined;window.file_popup=document.createElement("ul");file_menu({menu:{containerEl:file_popup},path:'+JSON.stringify(root)+'});file_popup.firstElementChild.click();void 0');
   await wait('Boolean(resolve_directory)');
@@ -288,7 +288,7 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('pty_starts[8].request.options.cwd'),path.join(root,'restart_target'),'stale root resolution never overwrites restarted session cwd');
   await evaluate('commands.get("linux_note:terminal_kill").callback();pty_starts[8].ready();binding.dispose();void 0');await delay(30);
   assert(await evaluate('pty_starts[8].killed===1&&!document.querySelector(".linux-note-terminal")'),'late PTY after kill stays disposed');
-  // 远程临时配置不查本地Shell目录，不展开路径模板；拆分及重启复用同一启动协议。
+  // Remote temporary configuration does not check the local Shell directory, does not expand path templates; split and restart reuse the same startup protocol.
   const ssh_profile={id:'ssh_remote',title:'SSH: alias',executable:'ssh.exe',args:['-tt','alias',"cd -- '/tmp/${env:NOT_LOCAL}'"]};
   await evaluate('(async()=>{window.binding=panel_api.bind_terminal_workspace(host);window.remote_profile='+JSON.stringify(ssh_profile)+';window.remote=await binding.open('+JSON.stringify(root)+',"","panel","",true,undefined,remote_profile);})()');
   await evaluate('profile_scans[3].complete('+JSON.stringify(profiles)+');void 0');await wait('pty_starts.length===10');
@@ -302,9 +302,9 @@ app.whenReady().then(async()=>{
   assert.deepEqual(await evaluate('pty_starts[11].request.args'),['-tt','alias',"cd -- '/tmp/${env:NOT_LOCAL}'"]);
   await evaluate('pty_starts[11].ready();void 0');await delay(20);await evaluate('binding.dispose();void 0');await delay(30);
   assert(await evaluate('pty_starts.slice(9).every(item=>item.killed===1)&&!document.querySelector(".linux-note-terminal")'));
-  // 真实协调器的全部默认入口，保留现有本地会话及各自拆分身份。
+  // All default entries of the real coordinator retain existing local sessions and their respective split identities.
   const remote_assets=path.join(root,'typora_code/assets/remote');fs.mkdirSync(remote_assets,{recursive:true});
-  for(const name of ['remote_ssh_service.cjs','remote_ssh_auth.cjs'])fs.copyFileSync(path.join(__dirname,'../src',name),path.join(remote_assets,name));
+  for(const name of ['remote_ssh_service.cjs','remote_ssh_auth.cjs','workspace_service_i18n.cjs','workspace_service_messages.json'])fs.copyFileSync(path.join(__dirname,'../src',name),path.join(remote_assets,name));
   await evaluate(`window.auth_starts=0;window.auth_releases=0;window.release_auth=panel_api.register_ssh_auth_owner({list:async()=>[],prepare:async()=>{auth_starts++;return{env:{SSH_ASKPASS_REQUIRE:'force'},dispose(){auth_releases++;}}}});void 0`);
   await evaluate(`(async()=>{window.binding=panel_api.bind_terminal_workspace(host);window.remote_context=undefined;window.release_remote=panel_api.register_remote_workspace_context(()=>remote_context);window.local_entry=await binding.open(${JSON.stringify(root)},'cmd');profile_scans[4].complete(${JSON.stringify(profiles)});})()`);
   await wait('pty_starts.length===13');await evaluate('pty_starts[12].ready();void 0');await delay(30);

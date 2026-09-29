@@ -1,0 +1,206 @@
+{
+  "checking_the_installation_environment": {
+    "en": "Checking the installation environment",
+    "zh_cn": "检查安装环境"
+  },
+  "installation_directory": {
+    "en": "Installation directory: ",
+    "zh_cn": "安装位置："
+  },
+  "user_data": {
+    "en": "User data: ",
+    "zh_cn": "用户数据："
+  },
+  "validating_the_package": {
+    "en": "Validating the package",
+    "zh_cn": "校验安装包"
+  },
+  "validated_workbench_assets_and_terminal_assets": {
+    "en": "Validated {0} workbench assets and {1} terminal assets.",
+    "zh_cn": "已校验 {0} 项工作台资源、{1} 项终端资源。"
+  },
+  "preparing_the_terminal_runtime": {
+    "en": "Preparing the terminal runtime",
+    "zh_cn": "准备终端运行时"
+  },
+  "the_current_account_cannot_write_to_these_installation_targets": {
+    "en": "The current account cannot write to these installation targets: ",
+    "zh_cn": "当前账户不能写入以下安装目标："
+  },
+  "the_workbench_must_update_resources_window_html_in_the_typora_in": {
+    "en": "The workbench must update resources/window.html in the Typora installation directory. Protected directories require Windows administrator authorization; moving the backup does not remove this requirement.",
+    "zh_cn": "工作台需要修改Typora安装目录的resources/window.html；受保护的安装目录需要Windows管理员授权。移动备份不能免除该权限。"
+  },
+  "the_host_entry_is_unchanged_so_this_update_does_not_need_to_writ": {
+    "en": "The host entry is unchanged, so this update does not need to write to the installation directory. The restriction affects the configuration, assets, or backup paths listed above; check the selected user directory. Downloading itself does not require administrator privileges.",
+    "zh_cn": "宿主入口未变化，本次无须写入安装目录；受限的是上述配置/资源或备份位置，请核对所选用户目录。下载本身不要求管理员权限。"
+  },
+  "keeping_the_original_user_directory": {
+    "en": "Keeping the original user directory: ",
+    "zh_cn": "仍使用原用户目录："
+  },
+  "backup": {
+    "en": "; backup: ",
+    "zh_cn": "；备份："
+  },
+  "the_administrator_or_already_authorized_process_still_cannot_wri": {
+    "en": "The administrator or already authorized process still cannot write. Check the paths' ACLs and security software policies. The installer will not request authorization again or change directory permissions.",
+    "zh_cn": "管理员或已授权进程仍无写权限；请检查上述路径的ACL和安全软件策略。安装器不会重复请求授权或修改目录权限。"
+  },
+  "unattended_installation_has_not_been_authorized_to_display_uac_r": {
+    "en": "Unattended installation has not been authorized to display UAC. Retry through the normal interactive entry or pass -allow_elevation to allow Windows authorization. Installation targets were not changed.",
+    "zh_cn": "无人值守安装未授权显示UAC。请用普通交互入口重试，或显式传入-allow_elevation以允许Windows系统授权；安装目标未修改。"
+  },
+  "windows_administrator_authorization_will_be_requested_canceling": {
+    "en": "Windows administrator authorization will be requested. Canceling stops installation and preserves the current version. The authorized child process continues the same installation transaction and returns when finished.",
+    "zh_cn": "即将请求Windows管理员授权；取消则停止安装，保留原版本。授权子进程沿用同一安装事务，完成后自动返回。"
+  },
+  "authorized_installation_completed_backup": {
+    "en": "Authorized installation completed. Backup: ",
+    "zh_cn": "已授权安装完成。Backup: "
+  },
+  "save_your_documents_and_restart_typora_normally_to_load_the_new": {
+    "en": "Save your documents and restart Typora normally to load the new version. Child-process installation logs are under logs/installation in the original user data directory.",
+    "zh_cn": "保存文档后正常重启Typora加载新版；安装子进程日志位于原用户数据目录的logs/installation。"
+  },
+  "backing_up_existing_configuration": {
+    "en": "Backing up existing configuration",
+    "zh_cn": "备份现有配置"
+  },
+  "installing_the_workbench": {
+    "en": "Installing the workbench",
+    "zh_cn": "安装工作台"
+  },
+  "verifying_the_installation": {
+    "en": "Verifying the installation",
+    "zh_cn": "验证安装结果"
+  },
+  "installation_did_not_complete_restoring_the_previous_state_reaso": {
+    "en": "Installation did not complete. Restoring the previous state. Reason: ",
+    "zh_cn": "安装未完成，正在恢复安装前状态。原因："
+  },
+  "this_installation_was_rolled_back_the_backup_has_been_preserved": {
+    "en": "This installation was rolled back. The backup has been preserved.",
+    "zh_cn": "已回滚本次安装，备份已保留。"
+  },
+  "automatic_rollback_did_not_complete": {
+    "en": "Automatic rollback did not complete: ",
+    "zh_cn": "自动回滚未完成："
+  },
+  "keep_the_backup_and_logs_for_recovery_backup": {
+    "en": "Keep the backup and logs for recovery. Backup: ",
+    "zh_cn": "请保留备份和日志用于恢复。Backup: "
+  },
+  "old_upgrade_backup_cleanup_did_not_complete_the_installation_res": {
+    "en": "Old upgrade backup cleanup did not complete; the installation result is preserved: ",
+    "zh_cn": "升级备份回收未完成，安装结果保留："
+  },
+  "installation_completed_in_seconds": {
+    "en": "Installation completed in {0:N1} seconds.",
+    "zh_cn": "安装完成，总用时 {0:N1} 秒。"
+  },
+  "save_your_documents_and_restart_typora_normally_to_load_this_ins": {
+    "en": "Save your documents and restart Typora normally to load this installation.",
+    "zh_cn": "保存文档后正常重启 Typora，即可加载本次安装。"
+  },
+  "select_vscode2026_light_or_vscode2026_dark_in_the_theme_menu_exi": {
+    "en": "Select VSCode2026_Light or VSCode2026_Dark in the Theme menu. Existing CppGithubConsoles_Light/Dark, Night, and preferences are preserved.",
+    "zh_cn": "在“主题”菜单选择 VSCode2026_Light 或 VSCode2026_Dark；原 CppGithubConsoles_Light/Dark、Night 和已有偏好设置保留。"
+  },
+  "failed": {
+    "en": "{0} failed: {1}",
+    "zh_cn": "{0}失败：{1}"
+  },
+  "installation_has_not_written_any_target_files_rollback_is_unnece": {
+    "en": "Installation has not written any target files; rollback is unnecessary.",
+    "zh_cn": "安装尚未写入目标文件，无须回滚。"
+  },
+  "the_old_backup_is_not_a_verified_typoracode_upgrade_native_or_un": {
+    "en": "The old backup is not a verified TyporaCode upgrade. Native or unknown recovery data is preserved.",
+    "zh_cn": "旧备份不是可确认的TyporaCode升级，保留原生或未知恢复资料。"
+  },
+  "removed_old_automatic_upgrade_backup": {
+    "en": "Removed old automatic upgrade backup: ",
+    "zh_cn": "已回收旧自动升级备份："
+  },
+  "backup_preserved_automatic_cleanup_skipped": {
+    "en": "Backup preserved; automatic cleanup skipped: ",
+    "zh_cn": "备份保留，未自动回收："
+  },
+  "typora_code_installer": {
+    "en": "Typora Code | Installer",
+    "zh_cn": "Typora Code | 安装程序"
+  },
+  "the_log_file_cannot_be_saved_progress_will_still_be_displayed_in": {
+    "en": "The log file cannot be saved. Progress will still be displayed in this window.",
+    "zh_cn": "无法保存日志文件，本次过程仍会在此窗口显示。"
+  },
+  "the_log_file_is_no_longer_writable_installation_progress_will_st": {
+    "en": "The log file is no longer writable. Installation progress will still be displayed in this window.",
+    "zh_cn": "日志文件无法继续写入，安装过程仍会在此窗口显示。"
+  },
+  "completed_in_seconds": {
+    "en": "{0} completed in {1:N1} seconds.",
+    "zh_cn": "{0}完成，用时 {1:N1} 秒。"
+  },
+  "the_file_is_read_only_check_and_clear_the_read_only_attribute_be": {
+    "en": "The file is read-only. Check and clear the read-only attribute before retrying; elevation will not bypass it: {value_0}",
+    "zh_cn": "文件为只读，请核对并取消只读属性后重试；不会通过提权绕过：{value_0}"
+  },
+  "an_installation_target_expected_to_be_a_file_is_a_directory": {
+    "en": "An installation target expected to be a file is a directory: {value_0}",
+    "zh_cn": "应为文件的安装目标是目录：{value_0}"
+  },
+  "cannot_find_the_installation_target_s_parent_directory": {
+    "en": "Cannot find the installation target's parent directory: {value_0}",
+    "zh_cn": "找不到安装目标的父目录：{value_0}"
+  },
+  "installation_write_preflight_failed_file_locks_read_only_attribu": {
+    "en": "Installation write preflight failed (file locks, read-only attributes, and disk errors do not trigger administrator authorization): {0}; {1}",
+    "zh_cn": "安装写入预检失败（占用、只读或磁盘错误不会触发管理员授权）：{0}；{1}"
+  },
+  "typora_install_cancelled_windows_administrator_authorization_was": {
+    "en": "[TYPORA_INSTALL_CANCELLED] Windows administrator authorization was canceled. Installation targets were not changed.",
+    "zh_cn": "[TYPORA_INSTALL_CANCELLED] 已取消Windows管理员授权，安装目标未修改。"
+  },
+  "cannot_start_windows_administrator_authorization": {
+    "en": "Cannot start Windows administrator authorization: ",
+    "zh_cn": "无法启动Windows管理员授权："
+  },
+  "no_completion_receipt_was_received_check_the_installation_logs_i": {
+    "en": "No completion receipt was received. Check the installation logs in the user data directory.",
+    "zh_cn": "未收到完成记录，请检查用户数据目录下的安装日志。"
+  },
+  "administrator_installation_did_not_complete_exit_code": {
+    "en": "Administrator installation did not complete (exit code {value_0}): {value_1}",
+    "zh_cn": "管理员安装未完成（退出码 {value_0}）：{value_1}"
+  },
+  "checking_the_local_cache_for_node": {
+    "en": "Checking the local cache for Node {value_0} / {value_1}.",
+    "zh_cn": "检查 Node {value_0} / {value_1} 的本地缓存。"
+  },
+  "downloading_the_runtime_from_nodejs_org_the_first_installation_m": {
+    "en": "Downloading the runtime from nodejs.org. The first installation may take a few minutes; keep this window open.",
+    "zh_cn": "正在从 nodejs.org 下载运行时；首次安装可能需要几分钟，请保持此窗口打开。"
+  },
+  "download_complete_verifying_sha_256": {
+    "en": "Download complete. Verifying SHA-256.",
+    "zh_cn": "下载完成，正在校验 SHA-256。"
+  },
+  "reusing_the_cache_verified_by_sha_256_no_download_is_needed": {
+    "en": "Reusing the cache verified by SHA-256; no download is needed.",
+    "zh_cn": "已复用通过 SHA-256 校验的缓存，无须重新下载。"
+  },
+  "extracting_and_verifying_runtime_files": {
+    "en": "Extracting and verifying runtime files.",
+    "zh_cn": "正在解压并校验运行时文件。"
+  },
+  "the_runtime_is_ready": {
+    "en": "The runtime is ready.",
+    "zh_cn": "运行时已就绪。"
+  },
+  "save_your_documents_and_fully_exit_typora_before_retrying_detect": {
+    "en": "Save your documents and fully exit Typora before retrying (detected process IDs: {0}). No process was closed and no file was modified.",
+    "zh_cn": "请先保存文档并完全退出 Typora 后重试（检测到进程编号：{0}）。本次未关闭进程，也未修改任何文件。"
+  }
+}

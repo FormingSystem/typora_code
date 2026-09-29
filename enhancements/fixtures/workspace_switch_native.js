@@ -1,4 +1,4 @@
-// 仅在专属原始宿主副本运行，所有写入限定于夹具工作区。
+// Only run on the exclusive original host copy; all writes are limited to the fixture's workspace.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),cp=reqnode('child_process'),base=__CASE_ROOT__;
  const root=path.join(base,'workspace'),second=path.join(base,'second'),plain=fs.mkdtempSync(path.join(reqnode('os').tmpdir(),'typora_workspace_plain_')),checks=[];

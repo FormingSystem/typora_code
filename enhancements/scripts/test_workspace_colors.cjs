@@ -1,4 +1,4 @@
-// 正式静态CSS + 真实Chromium：同层/跨层颜色、正文隔离、状态和主题事件压力。
+// Official static CSS + real Chromium: same layer/cross layer colors, document isolation, status and theme event pressure.
 const {app,BrowserWindow}=require('electron'),{build}=require('esbuild');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora_colors_'));app.setPath('userData',path.join(base,'profile'));app.disableHardwareAcceleration();

@@ -1,4 +1,4 @@
-"""测试载荷的唯一生命周期；只处理专属根中由本模块登记的目录。"""
+"Test the unique lifecycle of the payload; only process directories registered by this module in the exclusive root."
 from pathlib import Path
 from contextlib import contextmanager
 from functools import wraps
@@ -22,7 +22,7 @@ MARKER = "test_artifacts.json"
 
 
 def process_identity(pid):
-    """启动身份阻止PID复用；无法查询时保守认为进程仍存活。"""
+    "Start identity blocking PID reuse; if unable to query, conservatively assume the process is still alive."
     if os.name != "nt":
         try:
             return Path(f"/proc/{pid}/stat").read_text().split(") ", 1)[1].split()[19]
@@ -61,7 +61,7 @@ def load(directory):
     kind = next((key for key, root in ROOTS.items() if directory.parent == root), None)
     if not kind or not re.fullmatch(r"[a-f0-9]{32}", directory.name):
         raise ValueError("目录不在测试产物根内")
-    # 根和标记本身也不能经由junction转到用户目录。
+    # The root and mark themselves cannot go through junction to the user directory.
     for parent in (directory, *directory.parents):
         if linked(parent):
             raise ValueError("测试目录不能经过链接")
@@ -78,7 +78,7 @@ def load(directory):
 
 @contextmanager
 def locked_directory(directory):
-    # OS锁随进程退出释放，标记更新和清理互斥，不遗留无法恢复的锁租约。
+    # The OS lock is released when the process exits; mark updates and cleanups are mutually exclusive, without leaving irrecoverable lock reservations.
     directory, _ = load(directory)
     lock_path = directory / "artifact.lock"
     if lock_path.exists() and linked(lock_path):
@@ -121,7 +121,7 @@ def serialized(operation):
 
 
 def remove_readonly(operation, path, error):
-    # Git对象在Windows可能只读；只在已校验载荷内重试原删除操作。
+    # The Git object may be read-only in Windows; only retry the original delete operation within verified payload.
     if linked(Path(path)):
         raise error[1]
     os.chmod(path, stat.S_IWRITE | stat.S_IREAD)
@@ -197,7 +197,7 @@ def finish(directory, status, owner_pid=None):
             if any(linked(entry) for entry in [Path(folder)] + [Path(folder) / name for name in dirs + names]):
                 raise ValueError("证据目录不能包含链接")
     targets = [directory / name for name in PAYLOADS[data["kind"]] if (directory / name).exists()]
-    # 全部边界先验证，再复制证据，最后删除。错误时保留载荷供复查。
+    # All boundaries are first verified, then copied as evidence, and finally deleted. In case of errors, keep the payload for review.
     files = []
     for target in targets:
         for folder, dirs, names in os.walk(target):
@@ -212,7 +212,7 @@ def finish(directory, status, owner_pid=None):
             target.parent.mkdir(parents=True, exist_ok=True)
             shutil.copyfile(source, target)
     for target in targets:
-        # 重查最终目标，禁止根目录或外部路径删除。
+        # Recheck the final goal, prohibit deletion of the root directory or external paths.
         if target.parent != directory or target.name not in PAYLOADS[data["kind"]] or linked(target):
             raise ValueError("清理目标发生变化")
         for attempt in range(5):

@@ -1,10 +1,11 @@
+import {workspace_text} from "./workspace_i18n";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {git_icon} from "./git_icons";
 import {workspace_element as el} from "./workspace_widgets";
 
 export type reading_code_source={element:HTMLElement;read_text:()=>string};
 
-/** 正文与只读预览共用复制状态；内容仍由各自编辑器/呈现器拥有。 */
+/** Document content and read-only preview share the same copy state; the content is still owned by their respective editor/presenter. */
 export function bind_reading_code_copy(root:HTMLElement,copy:(text:string)=>void){
   const overlay=bind_reading_media_entries(root);
   const entries=new Map<HTMLElement,{source:reading_code_source;entry:reading_media_entry;feedback:HTMLElement;timer:number}>();
@@ -18,13 +19,13 @@ export function bind_reading_code_copy(root:HTMLElement,copy:(text:string)=>void
       for(const source of sources){
         const existing=entries.get(source.element);if(existing){existing.source=source;continue;}
         const feedback=el("span","reading-copy-feedback");feedback.setAttribute("role","status");feedback.setAttribute("aria-live","polite");
-        const entry=overlay.add({source:source.element,host:source.element,label:"复制代码",button_class:"reading-code-copy",icon:"copy",compact:true,open:()=>{
+        const entry=overlay.add({source:source.element,host:source.element,label:workspace_text("reading_code_copy_copy_code"),button_class:"reading-code-copy",icon:"copy",compact:true,open:()=>{
           const state=entries.get(source.element);if(!state||!source.element.isConnected||disposed)return;
           clearTimeout(state.timer);
-          let label="已复制",icon:"check"|"warning"="check";
-          try{copy(state.source.read_text());}catch{label="复制失败，请重试";icon="warning";}
+          let label=workspace_text("reading_code_copy_copied"),icon:"check"|"warning"="check";
+          try{copy(state.source.read_text());}catch{label=workspace_text("reading_code_copy_copy_failed_please_retry");icon="warning";}
           entry.button.replaceChildren(git_icon(icon));entry.button.title=label;entry.button.setAttribute("aria-label",label);feedback.textContent=label;entry.button.parentElement!.classList.add("is-feedback");
-          state.timer=window.setTimeout(()=>{entry.button.replaceChildren(git_icon("copy"));entry.button.title="复制代码";entry.button.setAttribute("aria-label","复制代码");feedback.textContent="";entry.button.parentElement?.classList.remove("is-feedback");},1800);
+          state.timer=window.setTimeout(()=>{entry.button.replaceChildren(git_icon("copy"));entry.button.title=workspace_text("reading_code_copy_copy_code");entry.button.setAttribute("aria-label",workspace_text("reading_code_copy_copy_code"));feedback.textContent="";entry.button.parentElement?.classList.remove("is-feedback");},1800);
         }});
         entry.button.parentElement!.append(feedback);entries.set(source.element,{source,entry,feedback,timer:0});
       }

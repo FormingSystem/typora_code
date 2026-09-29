@@ -1,4 +1,4 @@
-// 在原始Typora的独立用户目录/私有桌面夹具中执行；__CASE_ROOT__由夹具替换。
+// Execute in the independent user directory/private desktop fixture of the original Typora; __CASE_ROOT__ is replaced by the fixture.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__;
  const checks=[],samples=[],root=path.join(base,'workspace');
@@ -49,7 +49,7 @@
   await wait(()=>File.bundle.filePath.endsWith('front.md')&&!File.isFileLoading(),'startup');await pause(1200);
   samples.push({viewport:{width:innerWidth,height:innerHeight,device_pixel_ratio:devicePixelRatio,zoom_factor:reqnode('electron').webFrame?.getZoomFactor?.()},input:'renderer事件与真实宿主API；非物理输入'});
   const before=hash(path.join(root,'front.md'));
-  // 原生宿主的真实 Monaco 草稿连续拆分/合并，检查模型、撤销栈和磁盘原文。
+  // Real Monaco draft of the original host: continuous splitting/merging of the draft, checking the model, undo stack, and disk original text.
   const drag_path=path.join(root,'split_stress.c'),drag_original='int original = 1;\n';
   fs.writeFileSync(drag_path,drag_original,'utf8');await files.open_file(drag_path);
   await wait(()=>active().view?.loaded&&active().view?.editor?.models?.[0],'split source ready');
@@ -86,7 +86,7 @@
   assert(fs.readFileSync(dirty_renamed,'utf8')==='','TC-files-rename: 改名不静默保存草稿');
   await files.save_active();await wait(()=>File.bundle.filePath===dirty_renamed&&!active().state.path.startsWith('typ://'),'save changes default editor');
   assert(File.editor.getMarkdown().includes('内存草稿')&&!File.changeCounter.isDocumentEdited(),'TC-files-rename: 保存后自动进入Markdown且正文正确');
-  // 只回收本次新建的明确对象，原生桥接不替换。
+  // Only reclaim the explicitly created objects of this session; native bridge does not replace.
   const disposable=await files.create_entry(root,root,'recycle_validation.txt',false);fs.writeFileSync(disposable,'private recycle payload','utf8');
   await files.trash_entries(root,[disposable]);assert(!fs.existsSync(disposable),'TC-files-trash: 原始Typora主进程实际回收临时文件');
   const directory=await files.create_entry(root,root,'recycle_directory',true);fs.writeFileSync(path.join(directory,'child.txt'),'child','utf8');
@@ -97,7 +97,7 @@
   for(const [theme,name]of [['github.css','Github'],['cpp_github-consolas.css','Cpp'],['night.css','Night']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(350);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    assert(document.documentElement.dataset.workspaceFileIconTheme===(name==='Night'?'dark':'light'),'实际主题完成 '+name);
-   // Explorer使用真实宿主主题；标题、文件内容和辅助动作分别核对。
+   // Explorer uses the real host theme; title, file content, and auxiliary actions are respectively verified.
    if(!document.querySelector('.linux-note-workspace-explorer')?.getBoundingClientRect().width)document.querySelector('.typ-ribbon-item[data-id="core.file-explorer"]').click();
    await wait(()=>document.querySelector('.linux-note-workspace-explorer'),'Explorer挂载');
    const explorer=document.querySelector('.linux-note-workspace-explorer');

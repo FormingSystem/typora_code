@@ -1,6 +1,7 @@
+import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 
-/** 原生Markdown的图片仍由宿主绘制；只按需补齐属于同一主机的物化资源。 */
+/** The images of native Markdown are still drawn by the host; only supplement the materialized resources belonging to the same host as needed. */
 export function bind_remote_workspace_media(runtime:any=window){
   let disposed=false,scheduled=false,running=false,rescan=false;
   const attempted=new WeakMap<HTMLImageElement,string>();
@@ -13,12 +14,12 @@ export function bind_remote_workspace_media(runtime:any=window){
         let path:string;try{path=runtime.reqnode('url').fileURLToPath(image.src);}catch{continue;}
         const provider=remote_files_for(path);if(!provider)continue;attempted.set(image,source);
         try{await provider.prepare(path);if(!disposed&&image.isConnected&&image.getAttribute('src')===source){
-          // 从已校验的远端物化资源生成只用于显示的对象URL，避免宿主本地协议的失败缓存。
+          // Generate display-only objects URL from verified remote materialized resources, avoid failure caching of the host's local protocol.
           let url=urls.get(path);
           if(!url){const bytes=await runtime.reqnode('fs').promises.readFile(path);if(disposed||!image.isConnected)return;
             const extension=runtime.reqnode('path').extname(path).slice(1).toLowerCase();
             const mime=({png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',bmp:'image/bmp',avif:'image/avif'} as Record<string,string>)[extension];
-            if(!mime)throw Error('不支持此远程图片格式。');url=URL.createObjectURL(new Blob([bytes],{type:mime}));urls.set(path,url);
+            if(!mime)throw Error(workspace_text("remote_workspace_media_the_remote_image_format_is_not_supported"));url=URL.createObjectURL(new Blob([bytes],{type:mime}));urls.set(path,url);
           }
           attempted.set(image,url);image.src=url;
         }}

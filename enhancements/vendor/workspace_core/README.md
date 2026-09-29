@@ -1,3 +1,5 @@
+[English](README.en.md)
+
 # Typora Code 常驻工作台核心
 
 从 MIT 授权的 Typora Community Plugin 2.10.15 派生。源码身份见 SOURCE.json，许可见 LICENSE.md；src 保留独立构建运行闭包及其类型依赖闭包。原上游标识符保留便于追溯。

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_inline_layout} from "./workspace_inline_layout";
 import {bind_workspace_hover} from "./workspace_hover";
@@ -10,7 +11,7 @@ import type {workspace_file_host} from "./workspace_files";
 import {read_workspace_editor_settings,observe_workspace_editor_settings} from "./workspace_editor_settings";
 
 const bindings = new WeakMap<object, {dispose():void}>();
-/** 包装原生标签并渲染真实状态，叶子与文件服务继续拥有文档和关闭动作。 */
+/** Wrap native tabs and render their actual state; leaves and the file service retain ownership of documents and close actions. */
 export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspace_file_host,"editor_state">) {
   const existing=bindings.get(core);if(existing)return existing;
   const interaction=acquire_workspace_interaction(),inline=acquire_workspace_inline_layout();
@@ -47,7 +48,7 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
       const geometry=`${enabled}:${strip.clientWidth}:${strip.parentElement?.clientHeight}:${header.textContent}`;
       if(entry.geometry===geometry)continue;entry.geometry=geometry;
       strip.classList.toggle("is-wrapping",enabled);
-      // 留出正文空间；短窗口与过多标签回退单行滚动，设置值不被覆盖。
+      // Reserve space for document content; short windows and excess tabs fall back to one scrolling row without overwriting the setting.
       if(enabled&&strip.offsetHeight>Math.max(32,(strip.parentElement?.clientHeight||0)/2))strip.classList.remove("is-wrapping");
     }
     core.app.workspace.eachLeaves(leaf=>{
@@ -62,7 +63,7 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
       tab.classList.toggle("is-workspace-dirty",Boolean(files?.editor_state(leaf).dirty||tab.querySelector(".workspace-file-dirty")));
       attr(tab,"data-workspace-interaction","tab");attr(tab,"role","tab");attr(tab,"aria-selected",String(tab.classList.contains("active")));attr(tab,"tabindex",tab.classList.contains("active")?"0":"-1");
       attr(close,"data-workspace-interaction","action");attr(close,"role","button");attr(close,"tabindex","0");
-      attr(close,"aria-label",leaf.state.workspace_pinned?"取消固定":"关闭（Ctrl+F4）");attr(close,"title","");
+      attr(close,"aria-label",leaf.state.workspace_pinned?workspace_text("editor_actions_unpin"):workspace_text("editor_actions_close_ctrl_f4"));attr(close,"title","");
     });
     for(const node of marked.keys())if(!node.isConnected)restore_attributes(node);
   };
@@ -83,7 +84,7 @@ export function bind_workspace_tab_controls(core:graph_core,files?:Pick<workspac
   },{capture:true,signal:events.signal});
   const hover=bind_workspace_hover(document.body,target=>{
     const close=target.closest<HTMLElement>(".workspace-tab-strip .typ-close");if(!close)return;
-    const label=close.getAttribute("aria-label")||"关闭（Ctrl+F4）";return {anchor:close,label,compact:true,render:content=>{content.textContent=label;}};
+    const label=close.getAttribute("aria-label")||workspace_text("editor_actions_close_ctrl_f4");return {anchor:close,label,compact:true,render:content=>{content.textContent=label;}};
   });refresh();
   const binding={dispose(){
     if(disposed)return;disposed=true;observer.disconnect();sizes.disconnect();cancelAnimationFrame(frame);events.abort();cleanups.forEach(release=>release?.());hover.dispose();

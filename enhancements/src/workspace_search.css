@@ -1,4 +1,4 @@
-﻿/* 原生文件搜索与大纲过滤共用此容器；自定义搜索卸载后选择器失效，原生显示规则自动恢复。 */
+﻿/* Native file search and outline filtering share this container; after custom search is uninstalled, the selector becomes invalid, and the native display rules automatically recover. */
 #sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }
 .linux-note-workspace-search { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }
 .workspace-search-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; gap:2px; height:35px; padding:0 var(--linux-note-shell-inset,10px); flex:none; }
@@ -10,7 +10,7 @@
 .workspace-search-input-row>.workspace-search-replace-toggle { margin-left:-6px; width:18px; min-width:18px; height:26px; }
 .workspace-search-query-box { box-sizing:border-box; display:flex; align-items:flex-start; flex:1; min-width:0; min-height:26px; padding:1px; border:1px solid var(--search-select-bg-color,#8886); border-radius:2px; background:var(--bg-color,#fff); }
 .workspace-search-query-box:focus-within { border-color:#007fd4; outline:0; box-shadow:none; }
-/* 只让外层输入框画一条焦点边框，隔离 Typora 主题给 input/textarea 的橙色轮廓和阴影。 */
+/* Only allow the outer input box to draw one focus border, isolate Typora theme for input/textarea's orange outline and shadow. */
 .linux-note-workspace-search .workspace-search-query-box input,
 .linux-note-workspace-search .workspace-search-query-box textarea { box-sizing:border-box; flex:1; width:100%; min-width:0; height:22px; resize:none; border:0!important; outline:0!important; box-shadow:none!important; padding:1px 4px!important; margin:0!important; background:transparent!important; color:inherit; font:inherit; line-height:20px; border-radius:0!important; }
 .linux-note-workspace-search .workspace-search-query-box textarea { max-height:100px; overflow-y:auto; }

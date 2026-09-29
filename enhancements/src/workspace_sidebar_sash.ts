@@ -1,8 +1,9 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_style} from "./workspace_styles";
 import sidebar_sash_css from "./workspace_sidebar_sash.css";
 
-// VS Code SidebarPart.minimumWidth=170、snap=true；SplitView 用最小宽度的一半作为收起阈值。
-// EditorPane 的 DEFAULT_EDITOR_MIN_DIMENSIONS.width=220。宽度均为 CSS 像素，不含活动栏。
+// VS Code SidebarPart.minimumWidth=170、snap=true；SplitView uses half the width of the narrowest as the collapse threshold.
+// The EditorPane's DEFAULT_EDITOR_MIN_DIMENSIONS.width=220. The width is both CSS pixels, excluding the active bar.
 // https://github.com/microsoft/vscode/blob/main/src/vs/workbench/browser/parts/sidebar/sidebarPart.ts
 // https://github.com/microsoft/vscode/blob/main/src/vs/base/browser/ui/splitview/splitview.ts
 // https://github.com/microsoft/vscode/blob/main/src/vs/workbench/browser/parts/editor/editor.ts
@@ -15,7 +16,7 @@ type sidebar_sash_options = { sidebar: sidebar_host; save_width(width: number): 
 type sidebar_sash_binding = { element: HTMLElement; set_width(width:number):void; refresh(): void; dispose(): void };
 const bindings = new WeakMap<HTMLElement, sidebar_sash_binding>();
 
-/** 替换原生分界线的拖影行为；继续通过社区核心开关面板，保持所有面板的生命周期一致。 */
+/** Replace the native separator line's drag shadow behavior; continue through the community core switch panel, maintaining consistent lifecycle for all panels. */
 export function install_workspace_sidebar_sash(options: sidebar_sash_options): sidebar_sash_binding | undefined {
   const sash = document.querySelector<HTMLElement>("#typora-sidebar-resizer");
   const sidebar_element = document.querySelector<HTMLElement>("#typora-sidebar");
@@ -46,7 +47,7 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
     root.style.setProperty("--linux-note-sidebar-sash-left", `${activity_width() + width}px`);
     sash.setAttribute("aria-valuenow", String(Math.round(width)));
     sash.setAttribute("aria-valuemax", String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available_width()))));
-    sash.setAttribute("aria-valuetext", width ? `侧栏宽度 ${Math.round(width)} 像素` : "侧栏已收起；按 Enter 或向右键展开");
+    sash.setAttribute("aria-valuetext", width ? workspace_text("sidebar_sash_sidebar_width_pixels", {value_0: String(Math.round(width))}) : workspace_text("sidebar_sash_sidebar_is_collapsed_press_enter_or_click_the_right_arrow_to"));
   };
   const apply_width = (width: number) => {
     const value = `${Math.round(width)}px`;
@@ -58,11 +59,11 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   const set_visible = (visible: boolean) => {
     if (options.sidebar.isShown === visible) return;
     if (visible) options.sidebar.show(); else options.sidebar.hide();
-    // 原生 show/hide 注册一次性 transitionend 清理；即时拖动关闭动画时也要结束该等待。
+    // Native show/hide registers a one-time transitionend cleanup; the waiting period must also end when the drag is closed immediately.
     if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
     notify_layout(); sync_sash();
   };
-  const persist = () => { try { options.save_width(preferred_width); } catch (error) { console.warn("保存侧栏宽度失败", error); } };
+  const persist = () => { try { options.save_width(preferred_width); } catch (error) { console.warn(workspace_text("sidebar_sash_failed_to_save_sidebar_width"), error); } };
   const refresh = () => {
     if (disposed || notifying) return;
     if (options.sidebar.isShown) {
@@ -110,7 +111,7 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   const resize_observer = new ResizeObserver(refresh); resize_observer.observe(root); resize_observer.observe(ribbon);
   sash.dataset.workspaceSidebarSash = "ready"; sash.tabIndex = 0;
   sash.removeAttribute("aria-hidden"); sash.setAttribute("role", "separator"); sash.setAttribute("aria-orientation", "vertical"); sash.setAttribute("aria-valuemin", "0");
-  sash.title = "调整主侧栏宽度；拖到 85 像素以下收起，向外拖动或按 Enter 展开"; sash.setAttribute("aria-label", "调整主侧栏宽度");
+  sash.title = workspace_text("sidebar_sash_adjust_the_main_sidebar_width_drag_it_to_85_pixels_or_less_t"); sash.setAttribute("aria-label", workspace_text("sidebar_sash_adjust_main_sidebar_width"));
   sash.addEventListener("pointerdown", pointer_down, true); document.addEventListener("pointermove", pointer_move, true);
   for (const name of ["pointerup", "pointercancel"]) document.addEventListener(name, pointer_finish as EventListener, true);
   sash.addEventListener("lostpointercapture", pointer_finish, true);
@@ -129,5 +130,5 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   const binding = { element: sash, set_width(width:number){preferred_width=clamp_width(width);apply_width(preferred_width);persist();}, refresh, dispose }; bindings.set(sash, binding); window.addEventListener("pagehide", dispose, { once: true }); refresh(); return binding;
 }
 
-/** 同列中的预览拖动复用侧栏宽度所有者，避免下一次 resize 恢复旧宽度。 */
+/** The preview drag within the same column reuses the side bar width owner, avoiding the next resize from restoring the old width. */
 export function resize_workspace_sidebar(width:number){const sash=document.getElementById("typora-sidebar-resizer");const binding=sash&&bindings.get(sash);if(binding){binding.set_width(width);return true;}return false;}

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {get_workspace_app} from './workspace_bootstrap';
 import {WORKSPACE_COLOR_ROLES} from './workspace_color_catalog';
 
@@ -8,36 +9,36 @@ const listeners=new Set<()=>void>();
 const known_keys=new Set(WORKSPACE_COLOR_ROLES.map(role=>role.key));
 export const empty_color_config=():workspace_color_config=>({schema:1,themes:{light:{},dark:{}}});
 export function normalize_custom_color(value:unknown):string{
-  if(typeof value!=='string')throw Error('颜色必须为十六进制文本。');
+  if(typeof value!=='string')throw Error(workspace_text("color_settings_the_color_must_be_hexadecimal_text"));
   const color=value.trim();if(!color)return '';
-  if(!/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.test(color))throw Error('请输入 #RGB、#RGBA、#RRGGBB 或 #RRGGBBAA；留空继承主题。');
+  if(!/^#(?:[\da-f]{3,4}|[\da-f]{6}|[\da-f]{8})$/iu.test(color))throw Error(workspace_text("color_settings_please_enter_rgb_rgba_rrggbb_or_rrggbbaa_leave_blank_to_inhe"));
   return (color.length<6?'#'+[...color.slice(1)].map(part=>part+part).join(''):color).toUpperCase();
 }
 function object(value:unknown):value is Record<string,unknown>{return Boolean(value)&&typeof value==='object'&&!Array.isArray(value);}
 export function validate_color_config(value:unknown):workspace_color_config{
-  if(!object(value)||value.schema!==1||Object.keys(value).some(key=>!['schema','themes','profiles','active'].includes(key))||!object(value.themes))throw Error('不是支持的颜色配置：需要schema:1和themes对象。');
-  if(Object.keys(value.themes).some(key=>key!=='light'&&key!=='dark'))throw Error('颜色配置包含未知主题。');
+  if(!object(value)||value.schema!==1||Object.keys(value).some(key=>!['schema','themes','profiles','active'].includes(key))||!object(value.themes))throw Error(workspace_text("color_settings_unsupported_color_configuration_requires_schema_1_and_themes"));
+  if(Object.keys(value.themes).some(key=>key!=='light'&&key!=='dark'))throw Error(workspace_text("color_settings_color_configuration_contains_an_unknown_theme"));
   const result=empty_color_config();
   for(const mode of ['light','dark'] as const){
-    const colors=value.themes[mode];if(!object(colors))throw Error('颜色配置缺少 '+mode+' 对象。');
+    const colors=value.themes[mode];if(!object(colors))throw Error(workspace_text("color_missing_theme",{theme:mode}));
     for(const [key,color] of Object.entries(colors)){
-      if(!known_keys.has(key))throw Error('未知颜色项目：'+key);
+      if(!known_keys.has(key))throw Error(workspace_text("color_settings_unknown_color_item")+key);
       const normalized=normalize_custom_color(color);if(normalized)result.themes[mode][key]=normalized;
     }
   }
   if(value.profiles!==undefined){
-    if(!Array.isArray(value.profiles))throw Error('配色方案必须为数组。');
+    if(!Array.isArray(value.profiles))throw Error(workspace_text("color_settings_the_color_scheme_must_be_an_array"));
     const ids=new Set<string>(),names=new Set<string>();
     result.profiles=value.profiles.map(raw=>{
-      if(!object(raw)||typeof raw.id!=='string'||!/^[\w-]+$/u.test(raw.id)||typeof raw.name!=='string'||!raw.name.trim()||!['light','dark'].includes(String(raw.mode))||!object(raw.colors))throw Error('配色方案格式无效。');
-      const name=raw.name.trim();if(ids.has(raw.id)||names.has(name.toLowerCase()))throw Error('配色方案编号或名称重复。');ids.add(raw.id);names.add(name.toLowerCase());
-      const colors:Record<string,string>={};for(const [key,color]of Object.entries(raw.colors)){if(!known_keys.has(key))throw Error('未知颜色项目：'+key);const normalized=normalize_custom_color(color);if(normalized)colors[key]=normalized;}
+      if(!object(raw)||typeof raw.id!=='string'||!/^[\w-]+$/u.test(raw.id)||typeof raw.name!=='string'||!raw.name.trim()||!['light','dark'].includes(String(raw.mode))||!object(raw.colors))throw Error(workspace_text("color_settings_invalid_color_scheme_format"));
+      const name=raw.name.trim();if(ids.has(raw.id)||names.has(name.toLowerCase()))throw Error(workspace_text("color_settings_color_scheme_number_or_name_is_duplicated"));ids.add(raw.id);names.add(name.toLowerCase());
+      const colors:Record<string,string>={};for(const [key,color]of Object.entries(raw.colors)){if(!known_keys.has(key))throw Error(workspace_text("color_settings_unknown_color_item")+key);const normalized=normalize_custom_color(color);if(normalized)colors[key]=normalized;}
       return {id:raw.id,name,mode:raw.mode as color_mode,colors};
     });
   }
   if(value.active!==undefined){
-    if(!object(value.active)||Object.keys(value.active).some(key=>key!=='light'&&key!=='dark'))throw Error('活动配色方案无效。');
-    result.active={};for(const mode of ['light','dark'] as const){const id=value.active[mode];if(id===undefined)continue;if(!result.profiles?.some(profile=>profile.id===id&&profile.mode===mode))throw Error('活动方案不存在或基础主题不一致。');result.active[mode]=String(id);}
+    if(!object(value.active)||Object.keys(value.active).some(key=>key!=='light'&&key!=='dark'))throw Error(workspace_text("color_settings_active_color_scheme_is_invalid"));
+    result.active={};for(const mode of ['light','dark'] as const){const id=value.active[mode];if(id===undefined)continue;if(!result.profiles?.some(profile=>profile.id===id&&profile.mode===mode))throw Error(workspace_text("color_settings_active_scheme_does_not_exist_or_base_theme_is_inconsistent"));result.active[mode]=String(id);}
   }
   return result;
 }
@@ -48,7 +49,7 @@ export function duplicate_color_profile(config:workspace_color_config,id:string,
 }
 export async function activate_color_profile(id:string,set_theme:(file:string,name:string)=>unknown){
  const previous=read_color_config(),next=structuredClone(previous),profile=next.profiles?.find(item=>item.id===id),mode=profile?.mode||id as color_mode;
- if(mode!=='light'&&mode!=='dark')throw Error('配色方案不存在。');
+ if(mode!=='light'&&mode!=='dark')throw Error(workspace_text("color_settings_color_scheme_does_not_exist"));
  next.active||={};if(profile)next.active[mode]=id;else delete next.active[mode];
  save_color_config(next);try{return await set_theme(`vscode2026_${mode}.css`,profile?.name||`VSCode2026_${mode==='dark'?'Dark':'Light'}`);}catch(error){if(serialize_color_config(read_color_config())===serialize_color_config(next))save_color_config(previous);throw error;}
 }
@@ -59,10 +60,10 @@ export function read_color_config():workspace_color_config{
   const raw=get_workspace_app()?.settings.get('workspace_colors');return raw===undefined?empty_color_config():validate_color_config(raw);
 }
 export function observe_color_config(listener:()=>void){listeners.add(listener);return()=>{listeners.delete(listener);};}
-/** 沿共享设置事务先落盘再发布；失败保留当前颜色，同值不重复写盘。 */
+/** Along the shared settings, write to disk first and then publish；if failed, retain the current color, and do not write the same value again to disk. */
 export function save_color_config(value:workspace_color_config){
   const next=validate_color_config(value),settings=get_workspace_app()?.settings;
-  if(!settings)throw Error('用户设置尚未就绪。');
+  if(!settings)throw Error(workspace_text("color_settings_user_settings_have_not_yet_been_initialized"));
   if(serialize_color_config(next)===serialize_color_config(read_color_config()))return;
   settings.set_and_save('workspace_colors',next);
   for(const listener of listeners)listener();

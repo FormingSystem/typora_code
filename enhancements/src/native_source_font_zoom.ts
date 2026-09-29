@@ -1,7 +1,7 @@
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {observe_workspace_theme} from './workspace_theme';
 
-/** 原生源码 CodeMirror 保留编辑/选区所有权，仅适配字体和逻辑位置。 */
+/** Native source code CodeMirror retains edit/selection ownership, and only adapts to font and logical positions. */
 export function bind_native_source_font_zoom(root:HTMLElement){
   const editor=(root as any).CodeMirror;
   if(!editor)return;

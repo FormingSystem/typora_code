@@ -1,4 +1,4 @@
-// OpenSSH 将提示作为参数传入；异步模块预加载完成前不执行 Node 的脚本入口。
+// OpenSSH supplies the prompt as an argument; Node's script entry does not run until asynchronous module preloading completes.
 import net from 'node:net';
 await new Promise(() => {
   const socket = net.connect({ host: '127.0.0.1', port: Number(process.env.TYPORA_SSH_AUTH_PORT) });

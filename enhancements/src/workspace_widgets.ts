@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_focus";
 import {workspace_interaction,acquire_workspace_interaction} from "./workspace_interaction";
 import widget_css from "./workspace_widgets.css";
@@ -18,7 +19,7 @@ export function dispose_workspace_widgets(): void {
   close_active_menu?.();
   for (const close of [...active_dialogs]) close();
 }
-export function workspace_dialog(title: string, close_title = "关闭", on_close?:(restore_focus:boolean)=>void, options:{regions?:()=>HTMLElement[];focus_out?:boolean;escape?:()=>boolean}={}): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
+export function workspace_dialog(title: string, close_title = workspace_text("community_plugin_settings_close"), on_close?:(restore_focus:boolean)=>void, options:{regions?:()=>HTMLElement[];focus_out?:boolean;escape?:()=>boolean}={}): { root: HTMLElement; content: HTMLElement; footer: HTMLElement; close(restore?:boolean): void } {
   const root = workspace_element("div", "git-graph-dialog-shade");
   root.setAttribute("role", "dialog"); root.setAttribute("aria-modal", "true"); root.setAttribute("aria-label", title);
   const panel = workspace_element("section", "git-graph-dialog"); const content = workspace_element("div", "git-graph-dialog-content"); const footer = workspace_element("div", "git-graph-dialog-footer");
@@ -28,7 +29,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
   panel.tabIndex = -1;
   let closed = false;
   const is_top_dialog = () => escape_layer.is_top();
-  // 搜索筛选、折叠或动态禁用后，只让仍可见且可操作的控件参与焦点循环。
+  // After search filtering, folding, or dynamic disabling, only the visible and operable controls participate in the focus cycle.
   const focusable_controls = () => [...new Set([root,...(options.regions?.()||[])].flatMap(region=>[...region.querySelectorAll<HTMLElement>('button,input,textarea,select,summary,a[href],[tabindex],webview')]))]
     .filter(node => node.tabIndex >= 0 && !node.matches(":disabled") && !node.closest("[hidden],[inert]") && node.getClientRects().length > 0 && !["hidden", "collapse"].includes(getComputedStyle(node).visibility))
     .sort((left, right) => (left.tabIndex > 0 ? left.tabIndex : Infinity) - (right.tabIndex > 0 ? right.tabIndex : Infinity));
@@ -40,7 +41,7 @@ export function workspace_dialog(title: string, close_title = "关闭", on_close
     on_close?.(restore_focus);
   };
   const escape_layer=register_workspace_dismissal(()=>[root,...(options.regions?.()||[])],reason=>{if(reason==="escape"&&options.escape?.())return;close(reason==="escape"||reason==="outside");},{inside:()=>[panel,...(options.regions?.()||[])],consume_outside:true,focus_out:options.focus_out});
-  // 执行按钮禁用后浏览器可能把焦点退回 body；Tab 与 Esc 仍作用于最上层弹窗。
+  // After the execution button is disabled, the browser may return the focus to body; Tab and Esc still take effect on the topmost popup.
   const global_key = (event: KeyboardEvent) => {
     if (!is_top_dialog()) return;
     if (event.key === "Tab") {
@@ -105,7 +106,7 @@ export function workspace_menu(event: MouseEvent, entries: workspace_menu_entry[
       } input.stopPropagation();
     });
     document.body.append(menu);
-    // 每一行共用列宽，不能让某行长快捷键挤掉另一行功能名。按实际字体测量，缩放自然计入。
+    // Each row shares the same column width, preventing a long shortcut from pushing away another row's function name. Measure according to actual font, with scaling naturally included.
     align_workspace_menu_columns(menu,':scope > button','.git-menu-label','.git-menu-shortcut');
     const bounds = menu.getBoundingClientRect();
     if(!parent&&options.anchor?.isConnected){const anchor=options.anchor.getBoundingClientRect();x=options.align==="right"?anchor.right-bounds.width:anchor.left;y=anchor.bottom;}

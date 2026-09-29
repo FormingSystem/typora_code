@@ -13,7 +13,7 @@ $profile_before = invoke_typora_native_profile $profile_node $tools_root snapsho
 $null = invoke_typora_native_profile $profile_node $tools_root snapshot (Join-Path $context.backup_root 'native_profile/profile.data')
 $profile_changed = $false
 $backup_root = $context.backup_root
-# 全部源和目标先校验，再保存恢复前状态；恢复失败可撤销这次恢复。
+# All sources and targets are first verified, then saved the state before recovery; if recovery fails, this recovery can be revoked.
 $attempt = Join-Path $backup_root ('restore_' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Path $attempt | Out-Null
 Copy-Item -LiteralPath $context.window -Destination (Join-Path $attempt 'window.html')

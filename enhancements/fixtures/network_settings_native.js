@@ -1,4 +1,4 @@
-// 企业CA/代理配置与宿主Node真实请求；只访问独立回环服务器。
+// Enterprise CA/ proxy configuration with host Node real request; only access independent loop server.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),https=reqnode('https'),http=reqnode('http'),net=reqnode('net'),base=__CASE_ROOT__,checks=[];
  const app=window[Symbol.for('typora-code:workspace')].app,pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),assert=(v,m)=>{if(!v)throw Error(m);checks.push(m);};
@@ -17,7 +17,7 @@
   const proxy=track(http.createServer());proxy.on('connect',(req,client,head)=>{assert(req.url==='api.github.com:443','真实代理收到GitHub CONNECT');const upstream=net.connect(origin.address().port,'127.0.0.1',()=>{client.write('HTTP/1.1 200 Connection Established\r\n\r\n');if(head.length)upstream.write(head);client.pipe(upstream);upstream.pipe(client);});client.on('end',()=>client.destroy());client.on('close',()=>upstream.destroy());upstream.on('close',()=>client.destroy());upstream.on('error',()=>client.destroy());});const port=await listen(proxy);
   const plain_origin=track(http.createServer((_req,res)=>res.end('native HTTP')));await listen(plain_origin);let forwards=0;
   const forward_proxy=track(http.createServer((req,res)=>{forwards++;const target=new URL(req.url);assert(target.protocol==='http:','HTTP代理收到完整目标URL');const upstream=http.get({agent:false,hostname:'127.0.0.1',port:plain_origin.address().port,path:target.pathname},response=>response.pipe(res));upstream.on('error',error=>res.destroy(error));}));const forward_port=await listen(forward_proxy);
-  // 模拟升级前的持久化配置，重开设置必须即时呈现两个迁移字段。
+  // Simulate upgrade prior persistence configuration, re-open settings must immediately present two migration fields.
   app.settings.set_and_save('workspace_network',{proxy_mode:'manual',proxy_url:'http://127.0.0.1:'+port,ca_file});
   document.querySelector('.workspace-settings-modal .workspace-dialog-close')?.click();await pause(80);assert(!document.querySelector('.workspace-settings-modal'),'关闭释放旧设置表单');app.commands.run('typora_code:settings');await pause(80);
   for(const key of ['http_proxy_url','https_proxy_url'])assert(document.querySelector('[data-setting="network.'+key+'"]').value==='http://127.0.0.1:'+port,'旧地址呈现在 '+key);
@@ -33,7 +33,7 @@
   assert((await service.download('https://api.github.com/test',{network:read()})).toString()==='native TLS','宿主正式资产经代理与CA完成真实TLS');
   assert(forwards===1,'HTTPS下载没有误用HTTP代理');
   document.querySelector('.workspace-settings-modal .workspace-dialog-close')?.click();
-  // 关闭并重新打开，确认持久化所有者继续提供设置。
+  // Close and re-open, confirm that persistence owner continues to provide settings.
   document.querySelector('.workspace-settings-modal .workspace-dialog-close')?.click();await pause(80);assert(!document.querySelector('.workspace-settings-modal'),'关闭释放旧设置表单');app.commands.run('typora_code:settings');await pause(80);
   assert(document.querySelector('[data-setting="network.ca_file"]').value===ca_file,'重开设置保留CA');
   for(const key of ['http_proxy_url','https_proxy_url'])assert(document.querySelector('[data-setting="network.'+key+'"]').value===read()[key],'重开设置保留独立字段 '+key);

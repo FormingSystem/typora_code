@@ -1,10 +1,11 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_hover_surface} from "./workspace_hover_surface";
 import css from "./reading_link_hover.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {parse_markdown_file_target,resolve_host_open_file_target,resolve_workspace_file} from "./workspace_file_uri";
 
-/** 仅用于显示；逐个 UTF-8 字符解码一次，保留 URI 分隔符、控制字符和损坏的转义。 */
+/** Only for display; decode each UTF-8 character once, retain URI separators, control characters, and damaged escapes. */
 function readable_link_text(value:string):string{
   return value.replace(/(?:%[0-9a-f]{2})+/giu,encoded=>{
     const bytes=encoded.match(/%[0-9a-f]{2}/giu)!;let result="";
@@ -19,7 +20,7 @@ function readable_link_text(value:string):string{
   });
 }
 
-/** 悬停只读取链接和所属文档身份，不触发打开、读取正文或改变编辑选区。 */
+/** Hover only reads the link and the identity of the associated document, without triggering open, read document content, or change editing selection. */
 export function bind_reading_link_hover() {
   const surface=acquire_workspace_hover_surface();
   const style=acquire_workspace_style("typora-code-link-hover",css);
@@ -40,7 +41,7 @@ export function bind_reading_link_hover() {
   const target_info=(link:HTMLAnchorElement)=>{
     let href=link.getAttribute("href")||"";
     if(link.dataset.ref){const refs=(window as any).File?.editor?.nodeMap?.link_list;href=refs?.getHrefByRef?.(link.dataset.ref,true,true)||href;}
-    if(!href)return {href:"",target:"未定义的链接"};
+    if(!href)return {href:"",target:workspace_text("reading_link_hover_undefined_link")};
     const source=source_file(link);
     if(source){
       try{
@@ -50,18 +51,18 @@ export function bind_reading_link_hover() {
         const markdown=parse_markdown_file_target(candidate);
         const separator=candidate.indexOf("#");const file_part=markdown?.file_path??(separator<0?candidate:candidate.slice(0,separator));
         const hash=markdown?.hash??(separator<0?"":candidate.slice(separator));
-        let decoded=file_part;if(!/^file:/iu.test(file_part)){try{decoded=decodeURIComponent(file_part);}catch{ /* 普通路径中的字面百分号仍作为路径文字。 */ }}
+        let decoded=file_part;if(!/^file:/iu.test(file_part)){try{decoded=decodeURIComponent(file_part);}catch{ /* Literal percent signs in ordinary paths are still treated as path literals. */ }}
         const target=file_part?resolve_workspace_file(path_api,path_api.dirname(source),resolve_host_open_file_target(path_api,source,decoded)):source;
         if(target){
           const project_root=String((window as any).File?.getMountFolder?.()||"");
-          if(!project_root||!path_api.isAbsolute(project_root))return {href,target:"目标：未打开项目，无法计算项目相对位置"};
+          if(!project_root||!path_api.isAbsolute(project_root))return {href,target:workspace_text("reading_link_hover_target_project_not_opened_cannot_calculate_project_relative")};
           const relative=path_api.relative(project_root,target);
-          if(path_api.isAbsolute(relative))return {href,target:"项目外：目标位于其他磁盘或共享位置"};
+          if(path_api.isAbsolute(relative))return {href,target:workspace_text("reading_link_hover_outside_the_project_target_is_located_on_other_disk_or_share")};
           const normalized=relative.split(path_api.sep).join("/"),outside=normalized===".."||normalized.startsWith("../");
-          // normalized 已经过文件路径解析，不能再次解码其中字面存在的百分号序列。
-          return {href,target:`${outside?"项目外：":"项目内：/"}${normalized}${readable_link_text(hash||"")}`};
+          // normalized has already been parsed through the file path, so it cannot be decoded again for the literal percentage sequences existing within it.
+          return {href,target:`${outside?workspace_text("reading_link_hover_outside_the_project"):workspace_text("reading_link_hover_inside_the_project")}${normalized}${readable_link_text(hash||"")}`};
         }
-      }catch{ /* 非法转义保留原链接文本，提示不执行路径猜测或文件访问。 */ }
+      }catch{ /* Illegal escape retains the original link text, and prompts do not execute path guessing or file access. */ }
     }
     return {href,target:""};
   };
@@ -69,10 +70,10 @@ export function bind_reading_link_hover() {
     const info=target_info(link),original=document.createElement("div");original.className="workspace-link-original";original.textContent=readable_link_text(info.href);tip.replaceChildren(original);
     if(info.target){const target=document.createElement("div");target.className="workspace-link-target";target.textContent=info.target;tip.append(target);}
     if(info.href){
-      const copy=document.createElement("button");copy.type="button";copy.className="workspace-link-copy";copy.textContent="复制链接";copy.setAttribute("aria-label","复制原始链接");
+      const copy=document.createElement("button");copy.type="button";copy.className="workspace-link-copy";copy.textContent=workspace_text("reading_link_hover_copy_link");copy.setAttribute("aria-label",workspace_text("reading_link_hover_copy_original_link"));
       copy.addEventListener("click",event=>{
         event.preventDefault();event.stopPropagation();keep();
-        try{(window as any).reqnode("electron").clipboard.writeText(info.href);copy.textContent="已复制";}catch{copy.textContent="复制失败";}
+        try{(window as any).reqnode("electron").clipboard.writeText(info.href);copy.textContent=workspace_text("reading_code_copy_copied");}catch{copy.textContent=workspace_text("reading_link_hover_copy_failed");}
       });tip.append(copy);
     }
   };

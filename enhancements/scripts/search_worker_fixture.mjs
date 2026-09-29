@@ -4,7 +4,7 @@ import {Worker} from 'node:worker_threads';
 import {build} from 'esbuild';
 import {execFileSync} from 'node:child_process';
 
-/** 与浏览器同一份 Worker 源码，使用真实 worker_threads 隔离 CPU 匹配。 */
+/** Using the same Worker source code as the browser, use real worker_threads to isolate CPU matching. */
 export async function build_search_test_api(source_ref) {
   const project_root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
   const source_plugins=source_ref?[{name:'search-benchmark-baseline',setup(build){build.onLoad({filter:/workspace_search(?:_engine|_matcher|_worker|_worker_client)\.ts$/},args=>({contents:execFileSync('git',['show',`${source_ref}:enhancements/src/${path.basename(args.path)}`],{cwd:project_root,encoding:'utf8',windowsHide:true}),loader:'ts'}));}}]:[];

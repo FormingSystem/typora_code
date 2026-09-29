@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -233,7 +234,7 @@ try {
   expect(fs.readdirSync(linked_directory).length === 0, 'symbolic-link or junction ignore path is rejected');
   fs.unlinkSync(ignore_file); const new_ignore = await append_ignore('untouched.md');
   expect(new_ignore.changed && fs.readFileSync(ignore_file, 'utf8') === '/untouched.md\n' && !(await reader.run(ignored_root, ['ls-files', '-z', '--', '.gitignore'])), 'missing root ignore is created without staging the rule file');
-  // 使用真实仓库验证上游选项对应的磁盘结果及复合操作边界。
+  // Use the real repository to verify the disk results corresponding to the upstream options and composite operation boundaries.
   const parity = create_repo('upstream parity'); write(parity, 'base.md', 'base'); const parity_base = commit(parity, 'base');
   const parity_remote = path.join(temp, 'parity_remote.git'); git(temp, ['init', '--bare', parity_remote]); git(parity, ['remote', 'add', 'origin', parity_remote]);
   await action(parity, 'tag_add', {tag: 'annotated-default', push: true, remote: 'origin'}, '', parity_base);
@@ -257,7 +258,7 @@ try {
   expect(head(squash_git) === no_change_head,'squash without staged differences skips a redundant empty commit');
   await assert.rejects(action(squash_git,'tag_add',{tag:'local-after-push-failure',push:true,remote:'missing'},'',squash_base),/第一步已完成/);
   expect(git(squash_git,['rev-parse','local-after-push-failure^{}']) === squash_base,'failed optional push reports the preserved local tag instead of claiming atomic rollback');
-  // 在真实squash与后续commit之间注入宿主草稿、外部暂存和读取失败。
+  // Inject host drafts, external staging, and read failures between the real squash and subsequent commit.
   for (const scenario of ['draft', 'index', 'check-error']) {
     const guarded = create_repo('squash guard '+scenario); write(guarded,'base.md','base'); const guarded_head=commit(guarded,'base');
     git(guarded,['checkout','-b','source']);write(guarded,'source.md','source');const source_head=commit(guarded,'source');git(guarded,['checkout','main']);

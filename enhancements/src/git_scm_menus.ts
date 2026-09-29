@@ -14,7 +14,7 @@ export function checkout_entries(panel:git_graph_panel,hash?:string):workspace_m
     return {id:"checkout:"+ref.name,title:name,checked:local&&state.branch===name,disabled:panel.writing||local&&state.branch===name,action:()=>panel.action_dialog(local?"branch_checkout":"remote_checkout",local?"branch":"remote",name,ref.hash,local?{}:{branch:name.slice(remote.length+1)})};
   });
 }
-/** 比较固定对象 ID；所有文件交给既有只读审阅器，保持完整的前后文件导航。 */
+/** Compare fixed object ID; all files are given to the existing read-only reviewer, maintaining complete forward and backward file navigation. */
 export async function open_scm_comparison(panel:git_graph_panel,from:string,to:string):Promise<void>{
   const state=panel.state;if(!state)return;const runner=panel.runner,root=panel.root,epoch=++panel.workbench.load_epoch;
   try{const files=await compare_files(runner.run,state,from,to);if(panel.disposed||root!==panel.root||runner!==panel.runner||epoch!==panel.workbench.load_epoch)return;if(!files.length){panel.report(text("history.no_changed_files"));return;}await panel.workbench.open_file(files[0],from,to,files);}catch(error){if(!panel.disposed&&root===panel.root&&runner===panel.runner)panel.report(error);}

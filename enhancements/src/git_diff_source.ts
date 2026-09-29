@@ -1,5 +1,5 @@
 import {apply_workspace_row_selection,workspace_selection_owner,type workspace_list_selection} from './workspace_list_selection';
-/** 差异正文拥有来源身份，列表选择由共享UI模型管理，不能从展示标题反解析。 */
+/** The diff content has the source identity; list selection is managed by shared UI model, and cannot be parsed from the display title. */
 export type git_diff_source={root:string;from:string;to:string;file:string;old_path?:string};
 export const git_diff_source_key=(source:git_diff_source|undefined)=>source?JSON.stringify([source.root,source.from,source.to,source.file,source.old_path||'']):'';
 export function sync_git_source_rows(root:HTMLElement,source:git_diff_source|undefined){

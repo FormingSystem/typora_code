@@ -1,4 +1,5 @@
-// 资源身份、迟到读取和保存并发；远端端口替身与真实临时本地物化目录分开记录。
+import './fixture_locale.cjs';
+// Resource identity, stale reads and saves concurrency; remote port proxy and real temporary local materialized directories are separately recorded.
 import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import {createRequire} from 'node:module';import {build} from 'esbuild';
 const compiled=await build({stdin:{contents:'export * from "./src/remote_workspace_files";export * from "./src/workspace_native_save";export * from "./src/workspace_file_uri";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});
 const api=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));

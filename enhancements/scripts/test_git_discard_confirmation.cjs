@@ -1,4 +1,4 @@
-// 隔离 Electron 与真实临时 Git 验证放弃确认；回收适配器保留字节，不使用系统回收站。
+// Isolate Electron from the real temporary Git verification of abandonment confirmation; the recovery adapter retains bytes, without using the system recycle bin.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),child_process=require('node:child_process');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
@@ -21,7 +21,7 @@ const create_repo=(name,mode='mixed')=>{
   if(['mixed','untracked'].includes(mode)){write(root,long_path,'new Markdown bytes\n');write(root,binary_path,Buffer.from([0,255,17,128,10,0,42]));}
   return {root,mode,files:['tracked.md','deleted.md','staged_only.md',long_path,binary_path]};
 };
-// UI刷新允许Git更新stat缓存；保护暂存路径、模式、对象ID和内容，而非缓存字节。
+// The UI refresh allows Git to update stat cache; protect the staging path, pattern, object ID, and content, not the cache bytes.
 const snapshot=fixture=>({head:git(fixture.root,['rev-parse','HEAD']),index:JSON.stringify({entries:git(fixture.root,['ls-files','--stage','-z']),patch:git(fixture.root,['diff','--cached','--binary','--no-ext-diff','--no-textconv','--'])}),files:Object.fromEntries(fixture.files.map(file=>[file,fs.existsSync(path.join(fixture.root,file))?fs.readFileSync(path.join(fixture.root,file)).toString('base64'):null]))});
 const unchanged=(fixture,before,label)=>assert.deepEqual(snapshot(fixture),before,label);
 const evaluate=async source=>{try{return await test_window.webContents.executeJavaScript(source);}catch(error){console.error(source);throw error;}};
@@ -31,7 +31,7 @@ const click_point=async coordinates=>{for(const type of ['mouseMove','mouseDown'
 const click=async selector=>{await delay(40);const coordinates=await point(selector);assert(coordinates.hit&&coordinates.width&&coordinates.height,JSON.stringify({selector,...coordinates}));await click_point(coordinates);};
 const key=async(key_code,modifiers=[])=>{test_window.webContents.sendInputEvent({type:'keyDown',keyCode:key_code,modifiers});if(key_code==='Enter')test_window.webContents.sendInputEvent({type:'char',keyCode:'\r',modifiers});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:key_code,modifiers});await delay(60);};
 const capture=async name=>fs.writeFileSync(path.join(evidence,name+'.png'),(await test_window.webContents.capturePage()).toPNG());
-// Windows缩放可能把内容尺寸取整为321×642；以真实CSS视口反馈收敛到目标。
+// The Windows zoom may round the content size to 321 × 642; use the real CSS viewport to converge to the target.
 const resize_viewport=async(width,height)=>{
   let requested_width=width,requested_height=height,actual;
   for(let attempt=0;attempt<5;attempt++){

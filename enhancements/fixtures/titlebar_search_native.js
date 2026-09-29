@@ -1,4 +1,4 @@
-// 原始Typora验证顶栏实际级联及资源树/搜索共享文件目录；仅操作隔离工作区。
+// Original Typora verifies the actual cascading of the top bar and the resource tree/search shared file directory; only operates the isolated workspace.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),frame=reqnode('electron').webFrame,base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

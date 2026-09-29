@@ -1,4 +1,5 @@
-// 生产模块只连接内存 Electron 替身；不加载 Electron、不访问系统剪贴板。
+import './fixture_locale.cjs';
+// Production modules connect only to memory Electron stand-ins; do not load Electron, do not access system clipboard.
 import assert from 'node:assert/strict';
 import {Buffer} from 'node:buffer';
 import * as crypto from 'node:crypto';
@@ -16,7 +17,7 @@ const clipboard={
   writeBuffer:(format,value)=>{contents=new Map([[format,Buffer.from(value)]]);after_write?.();},
   clear:()=>{clear_calls++;contents.clear();}
 };
-// 在 Windows 测试主机上也使用 Node 的真实 POSIX 文件 URI 转换规则。
+// Also use Node's real POSIX file URI conversion rules on the Windows test host.
 const platform_url={fileURLToPath:value=>file_url_to_path(value,{windows:false}),pathToFileURL:value=>path_to_file_url(value,{windows:false})};
 const create_adapter=(platform='linux')=>create_platform_file_clipboard(name=>{
   if(name==='process')return {platform};

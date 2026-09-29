@@ -1,4 +1,4 @@
-// 正式候选、原始宿主；仅操作隔离运行器的文档及终端。
+// Official candidate, original host; only operate on the documents and terminal of the isolated runner.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const iterations=Number(process.env.TYPORA_STRESS_ITERATIONS||20);

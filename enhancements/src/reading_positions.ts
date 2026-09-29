@@ -9,7 +9,7 @@ export type reading_position = {
 
 const POSITION_PREFIX = "linux-note-reading-position:v1:";
 
-/** 每个文件单独存储，多个 Typora 窗口不会互相覆盖整张位置表；不复制文档或保存临时 cid。 */
+/** Each file is stored separately; multiple Typora windows do not overlap the entire position table; documents are not copied or saved as temporary cid. */
 export function create_position_store(storage: Pick<Storage, "getItem" | "setItem" | "removeItem" | "key" | "length">,
   maximum_entries = 500) {
   const read_entry = (key: string) => {
@@ -52,7 +52,7 @@ export function create_position_store(storage: Pick<Storage, "getItem" | "setIte
         entries.sort((left, right) => left.key === key ? -1 : right.key === key ? 1 : right.updated_at - left.updated_at);
         for (const entry of entries.slice(maximum_entries)) storage.removeItem(entry.key);
       } catch (error) {
-        // 存储禁用或配额不足时，窗口内导航仍可用。
+        // Navigation within the window is still available when storage is disabled or quota is insufficient.
         console.warn("[linux-note reading positions] cannot persist position", error);
       }
     },
@@ -64,7 +64,7 @@ function blocks(root: HTMLElement): HTMLElement[] {
 }
 
 function block_text(block: HTMLElement): string {
-  // 仅保存短定位指纹，正文始终来自原 Markdown 文件。
+  // Only short position fingerprints are saved; the document content is always from the original Markdown file.
   return (block.textContent ?? "").trim().slice(0, 160);
 }
 

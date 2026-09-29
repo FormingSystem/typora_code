@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {bind_reading_font_zoom} from './reading_font_zoom';
 import {refine_markdown_change} from './git_markdown_semantics';
 import {marked,type TokensList} from 'marked';
@@ -19,7 +20,7 @@ async function blocks(source:string,current:()=>boolean):Promise<markdown_block[
   const tokens=marked.lexer(text.slice(front.length),{gfm:true});
   const result:markdown_block[]=[];let offset=0,line=1;
   if(front)tokens.unshift({type:'code',raw:front,text:front,lang:'yaml'});
-  const renderer=new marked.Renderer();renderer.image=token=>`<span class="markdown-diff-attachment">${escape(token.text||'图片')} [${escape(token.href)}]</span>`;
+  const renderer=new marked.Renderer();renderer.image=token=>`<span class="markdown-diff-attachment">${escape(token.text||workspace_text("git_markdown_diff_image"))} [${escape(token.href)}]</span>`;
   for(const token of tokens){
     if(!current())return [];
     const found=text.indexOf(token.raw,offset),start=found<0?offset:found;
@@ -38,7 +39,7 @@ async function blocks(source:string,current:()=>boolean):Promise<markdown_block[
   if(tail.trim())result.push({raw:tail,html:'<pre><code>'+escape(tail)+'</code></pre>',start:line,end:line+tail.replace(/\n+$/u,'').split('\n').length-1});
   return result;
 }
-/** 完整未改块是对齐锚点；跨列表/表格的差异按整块保留排版。 */
+/** Fully unmodified blocks are aligned with anchors; differences across lists / tables are preserved in whole blocks for formatting. */
 function pair_blocks(left:markdown_block[],right:markdown_block[],changes:readonly git_diff_line_change[]):markdown_pair[]{
   const pairs:markdown_pair[]=[],by_line=new Map(right.map((block,index)=>[block.start,index]));let a=0,b=0,change_index=0,delta=0;
   for(let i=0;i<left.length;i++){
@@ -52,15 +53,15 @@ function pair_blocks(left:markdown_block[],right:markdown_block[],changes:readon
     pairs.push({left:[block],right:[right[j]],changed:false});a=i+1;b=j+1;
   }
   if(a<left.length||b<right.length)pairs.push({left:left.slice(a),right:right.slice(b),changed:true});
-  // 同段差异中的同类块逐对排版，让相邻表格/列表仍能细化，而不是整段染色。
+  // Same-segment differences of similar blocks are formatted pairwise, allowing adjacent tables / lists to still be detailed, rather than entire segments being colored.
   const kind=(block:markdown_block)=>block.html.match(/^\s*<([a-z0-9]+)/iu)?.[1];
   return pairs.flatMap(pair=>pair.changed&&pair.left.length>1&&pair.left.length===pair.right.length&&pair.left.every((block,index)=>kind(block)===kind(pair.right[index]))
     ?pair.left.map((block,index)=>({left:[block],right:[pair.right[index]],changed:true})): [pair]);
 }
 
 export function create_git_markdown_diff(){
-  const container=document.createElement('section');container.className='git-markdown-diff';container.setAttribute('aria-label','Markdown渲染差异，只读');
-  // 滚动宿主留在light DOM，复用工作台滚动条绘制与显隐；只有正文进入Shadow。
+  const container=document.createElement('section');container.className='git-markdown-diff';container.setAttribute('aria-label',workspace_text("git_markdown_diff_markdown_render_differences_read_only"));
+  // Scroll host remains light DOM , reusing workbench scroll bar drawing and visibility; only document content enters Shadow.
   const scroll=document.createElement('div');scroll.className='git-markdown-diff-scroll';container.append(scroll);
   const shadow=scroll.attachShadow({mode:'open'}),style=document.createElement('style'),reader=document.createElement('article');
   scroll.tabIndex=0;reader.id='write';shadow.append(style,reader);
@@ -104,7 +105,7 @@ export function create_git_markdown_diff(){
         if(!current())return;const pair=pairs[i],row=document.createElement('section');row.className='markdown-diff-row';row.dataset.changed=String(pair.changed);row.tabIndex=-1;
 
         for(const side of ['left','right'] as const){const cell=document.createElement('div');cell.className='markdown-diff-cell';cell.dataset.side=side;cell.dataset.empty=String(!pair[side].length);
-          if(pair.changed&&pair[side].length){const sign=document.createElement('span');sign.className='markdown-diff-sign';sign.textContent=side==='left'?'− 删除 / 原内容':'+ 新增 / 修改后';sign.setAttribute('aria-hidden','true');cell.append(sign);}
+          if(pair.changed&&pair[side].length){const sign=document.createElement('span');sign.className='markdown-diff-sign';sign.textContent=side==='left'?workspace_text("git_markdown_diff_delete_original_content"):workspace_text("git_markdown_diff_add_modify");sign.setAttribute('aria-hidden','true');cell.append(sign);}
           for(const block of pair[side]){const node=document.createElement('div');node.dataset.sourceLine=String(block.start);node.dataset.sourceEnd=String(block.end);node.innerHTML=block.html;
             const table_rows=[...node.querySelectorAll<HTMLElement>('table > thead > tr,table > tbody > tr')];table_rows.forEach((item,index)=>{item.dataset.sourceLine=String(block.start+(index===0?0:index+1));item.dataset.sourceEnd=item.dataset.sourceLine;});
             for(const link of node.querySelectorAll('a')){link.title=link.getAttribute('href')||'';link.removeAttribute('href');link.removeAttribute('target');}
@@ -114,7 +115,7 @@ export function create_git_markdown_diff(){
         }if(pair.changed)targets.push(...refine_markdown_change(row));fragment.append(row);if(i%24===23)await git_yield();
       }
       if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';font?.refresh();
-      // 高亮和图表在当前文档发布后渐进完成；旧代不能再替换节点。
+      // Highlighting and charts are progressively completed after the current document is published; old versions cannot replace nodes.
       for(const code of code_tasks){if(!current())return;if(code.classList.contains('language-mermaid'))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
     },
     invalidate(){generation++;container.dataset.ready='false';overview.suspend();},

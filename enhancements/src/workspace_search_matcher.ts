@@ -1,11 +1,12 @@
-/** 纯文本匹配，不访问 DOM 或文件系统，可由浏览器与 Node Worker 共用。 */
+import {workspace_text} from "./workspace_i18n";
+/** Pure text matching, no access to DOM or file system, can be shared by browser and Node Worker. */
 import {compile_workspace_globs} from './workspace_glob';
 export type search_query_options = {query: string; regex?: boolean; case_sensitive?: boolean; whole_word?: boolean; path_glob?:boolean};
 export type search_captured_match = {start: number; end: number; line: number; column: number; end_line: number; end_column: number; text: string; preview: string; preview_ranges: {start: number; end: number}[]; captures: (string | undefined)[]; groups?: Record<string, string | undefined>};
 export type search_match_reply = {matches: search_captured_match[]};
 export const DEFAULT_SEARCH_REGEX = true;
 export type search_path_match = {index:number;start:number;end:number};
-/** 与正文搜索共用语法；仅在隔离Worker中执行可能高耗时的正则。 */
+/** Shared syntax with document search; only execute possible time-consuming regular expressions in isolated Worker. */
 export function collect_path_matches(paths:string[],options:search_query_options):search_path_match[]{
   if(options.path_glob){
     const match=compile_workspace_globs(options.query,!!options.case_sensitive,true,false),matches:search_path_match[]=[];
@@ -22,10 +23,10 @@ export function collect_path_matches(paths:string[],options:search_query_options
 const escape_regex = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&");
 
 export function query_expression(options: search_query_options): RegExp {
-  if (!options.query) throw new Error("请输入搜索内容。");
+  if (!options.query) throw new Error(workspace_text("search_matcher_enter_search_content"));
   const pattern = options.regex ? options.query : escape_regex(options.query).replace(/\r?\n/gu, "\\r?\\n");
   try { return new RegExp(pattern, "gmu" + (options.case_sensitive ? "" : "i")); }
-  catch (error) { throw new Error("正则表达式无效：" + String(error instanceof Error ? error.message : error)); }
+  catch (error) { throw new Error(workspace_text("search_matcher_invalid_regular_expression") + String(error instanceof Error ? error.message : error)); }
 }
 
 export function line_starts(text: string): number[] {

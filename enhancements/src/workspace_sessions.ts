@@ -1,26 +1,27 @@
+import {workspace_text} from "./workspace_i18n";
 import type {workspace_file_host} from "./workspace_files";
 import {create_workspace_session_store,type workspace_session_file} from "./workspace_session_store";
 import {window_transfer_token} from "./workspace_window_intent";
 import {file_key} from "./workspace_file_uri";
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 
-/** 文件会话独立于最近文件；目录切换事务显式暂停采样，避免将清空过程写成目标会话。 */
+/** File sessions are independent of the recently opened file; directory switching transactions explicitly pause sampling, avoiding writing the clear process as a target session. */
 export function bind_workspace_sessions(files:workspace_file_host){
   const runtime=window as any,workspace=files.core.app.workspace;
   const store=create_workspace_session_store(files.fs,files.path_api,runtime.reqnode("crypto"),files.path_api.join(runtime._options.userDataPath,"typora_code","state","workspace_sessions"));
   let disposed=false,paused=true,timer:ReturnType<typeof setTimeout>|undefined,reported=false;
-  // 在移交控制器清理安全锚点之前同步读取启动意图；不在异步恢复阶段重读。
+  // Synchronize reading of startup intent before transferring the controller to clean the security anchor; do not re-read during asynchronous recovery phase.
   let owns_session = !window_transfer_token(runtime._options?.initFilePath, runtime._options?.initAnchor ?? runtime.File?.option?.initAnchor ?? "");
   let restore_controller=new AbortController(),activation_controller=new AbortController(),intent_revision=0;
   const interrupt=()=>{intent_revision++;activation_controller.abort();};
   const input_events=["pointerdown","keydown","wheel","beforeinput","workspace-file-open-intent"];
   for(const event of input_events)window.addEventListener(event,interrupt,{capture:true,passive:true});
-  const notice=(error:unknown)=>{if(!disposed)new files.core.Notice("工作区文件恢复："+String(error instanceof Error?error.message:error),6000);};
+  const notice=(error:unknown)=>{if(!disposed)new files.core.Notice(workspace_text("sessions_workspace_file_recovery")+String(error instanceof Error?error.message:error),6000);};
   const snapshot=()=>{
     const entries:workspace_session_file[]=[],identities=new Map<string,number>();let active=-1;
     const leaves:NonNullable<typeof workspace.activeLeaf>[]=[];
     workspace.eachLeaves(leaf=>{leaves.push(leaf);});
-    // 核心遍历按移除安全的逆序进行；持久化应采用用户所见标签顺序。
+    // Core traversal proceeds in reverse order of removal of security; persistence should use the order of tags as perceived by the user.
     leaves.sort((left,right)=>{
       const a=left.parent.tabHeader?.getTabById(left.state.path)||left.containerEl;
       const b=right.parent.tabHeader?.getTabById(right.state.path)||right.containerEl;
@@ -40,7 +41,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
   const stops=[workspace.on("layout-changed",schedule),workspace.on("active-leaf:change",schedule),workspace.on("file:open",schedule)];
   window.addEventListener("beforeunload",flush);
   const enabled=async()=>{
-    // 原生偏好页使用getExtraOption；loadAll仅返回编辑器选项，不含启动恢复配置。
+    // Native preferences page uses getExtraOption; loadAll only returns editor options, without startup recovery configuration.
     const raw=await runtime.JSBridge?.invoke?.("setting.getExtraOption");
     const options=typeof raw==="string"?JSON.parse(raw):raw||runtime.File?.option;
     return String(options?.restoreWhenLaunch)==="2";
@@ -58,7 +59,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
     try{
       if(!root||!await enabled()||!current())return;
       const saved=store.read(root);if(!saved)return;
-      // 已有宿主文档和用户输入优先；只登记后台身份，绝不逐页借用原生编辑器。
+      // Existing host document and user input take precedence; only register background identity, never page-by-page borrow native editor.
       await files.restore_files(saved.files,operation.signal);
       if(!may_activate()||initial_state?.file_path)return;
       let dirty=false;workspace.eachLeaves(leaf=>{if(files.editor_state(leaf).dirty)dirty=true;});
@@ -67,12 +68,12 @@ export function bind_workspace_sessions(files:workspace_file_host){
       await files.open_file(preferred.path,{source:preferred.source,preview:false,signal:activation.signal,reason:"restore"});
       const active=workspace.activeLeaf,started=Date.now();
       while(current()&&!activation.signal.aborted&&workspace.activeLeaf===active&&active&&files.editor_state(active).busy){
-        if(Date.now()-started>10000)throw new Error("等待活动文件加载超时。");
+        if(Date.now()-started>10000)throw new Error(workspace_text("sessions_timeout_waiting_for_active_file_loading"));
         await new Promise(resolve=>setTimeout(resolve,16));
       }
     }catch(error){if(current()&&!activation.signal.aborted&&intent===intent_revision)notice(error);}
   };
-  // 等待阅读导航等常驻模块完成装配，不将首次空布局抢先保存到磁盘。
+  // Wait for constant modules such as reading navigation to complete assembly, do not save the first empty layout ahead to disk.
   const ready=(async()=>{
     while(!disposed&&document.documentElement.dataset.linuxNoteTyporaEnhancements==="loading")await new Promise(resolve=>setTimeout(resolve,30));
     if(disposed)return;await restore(true);paused=false;

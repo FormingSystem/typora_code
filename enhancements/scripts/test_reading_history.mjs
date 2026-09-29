@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import { transform } from "esbuild";
@@ -84,7 +85,7 @@ for(const count of [20,100,1000]){
   console.log(`workspace navigation invalidation: ${count} pending old/new callbacks passed`);
 }
 
-// 返回正文后，工具栏/外部浏览器带来的选区丢失不能创建新分支。
+// After returning to document content, tool bar / external browser brought selection loss cannot create new branch.
 for (const kind of [undefined,'source','git']) {
  const h=create_reading_history(),a={...location('a',120),kind,view_id:1,cursor:{id:'n2',start:3}},b={...location('b',230),kind,view_id:2,cursor:{id:'n4',start:0}};
  assert.equal(h.checkpoint(a),false,'尚无当前位置不能吞掉首项');
@@ -114,7 +115,7 @@ for (const kind of [undefined, 'source', 'git']) {
  assert(await h.travel(1,reopened,async()=>b));
  assert(await h.travel(-1,null,async target=>{assert.equal(target.view_id,3);return reopened;}),'空编辑区仍可返回');
 }
-// 同一资源的多个历史位置随原视图重绑定；独立分栏不能一起改变身份。
+// Multiple history locations of the same resource follow original view re-binding; independent split view cannot change identity together.
 for (const kind of [undefined,'source','git']) {
  const h=create_reading_history();
  const a={...location('same',10),kind,view_id:1},far={...a,scroll_top:800},pane={...far,view_id:2};
@@ -148,7 +149,7 @@ stale.clear();stale.record_jump(source(50,5),source(70,7));
 complete_stale(source(10,100));assert.equal(await stale_travel,false);
 assert(await stale.travel(-1,null,async target=>{assert.equal(target.view_id,5);return target;}),'迟到重开身份不能污染新工程');
 
-// 文件就绪时没有选区，首次真实选区应补全该项，而不是制造原地停顿。
+// When file is ready, no selection, the first real selection should complete this item, rather than creating local pause.
 for(const kind of [undefined,'source','git']){
  const h=create_reading_history();let current={...location('a',0),kind,view_id:1};h.record_selection(current);
  for(const [offset,name]of ['b','c','d'].entries()){

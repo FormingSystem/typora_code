@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {transform} from 'esbuild';
-const compiled=await transform(fs.readFileSync('src/workspace_context.ts','utf8'),{loader:'ts',format:'esm'});
+import {build} from 'esbuild';
+const bundle=await build({entryPoints:['src/workspace_context.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const compiled={code:bundle.outputFiles[0].text};
 globalThis.window=new EventTarget();
 const context=await import(`data:text/javascript;base64,${Buffer.from(compiled.code).toString('base64')}`);
 let notifications=0;window.addEventListener('linux-note-workspace-context-changed',()=>notifications++);

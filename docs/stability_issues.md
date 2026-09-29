@@ -1,3 +1,5 @@
+[English](stability_issues.en.md)
+
 # 稳定性问题索引
 
 2026-09-24 R027.1：GIT-history-tracking-range——原图仅投影真实提交，领先／落后计数缺少可展开的区间对象。共同图模型新增真实上游的虚拟区间，业务diff仍使用实际提交端点；无上游与分页边界不伪造节点。真实Git、原始宿主及共享选择／明暗布局验证见[证据](../enhancements/tests/evidence/git_history_ranges_20260924.json)。原生夹具曾错用未挂载的控制器，修正为公共来源定位入口和实际侧栏所有者，未把测试接线错误归为产品缺陷。
@@ -496,3 +498,10 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-terminal-paste-control（R079.1，2026-09-29）：Windows xterm Ctrl+V落入Shell控制字符0x16，Ctrl+Shift+V却有独立粘贴入口；按上游平台键位共用原终端paste，保持Ctrl+C中断。最终验证及已安装状态见R079.1证据；测试剪贴板替身与系统实机边界分开记录。
 
 - BUG-terminal-window-shortcut（R079.2，2026-09-29）：公共路由在Ctrl+P命令之前排除全部终端输入，快速打开落入Shell。修复共同分支并保留本地输入、IME和模态所有权；自有选择器的模态边界只对自身快捷键放行。原生测试须区分正常ESC[I/O焦点通知和键盘泄漏，不能禁止终端协议。当前证据见terminal_quick_open_20260929.json。
+
+
+2026-09-29 R082：BUG-monaco-theme-owner-001（生命周期/P2）。共享主题观察者在异步初始化完成后缺少编辑器所有者，重复挂载/销毁留下窗口监听。改为首个编辑器获取、最后一个编辑器释放，异步完成不复活已释放的订阅；设计见[双语发布回归](localization.md)。双语启动与原生启动证据见localization_20260929.json。
+
+2026-09-29 R082/R052：BUG-explorer-layout-event-001（状态刷新/P2）。关闭最后一个文档时没有新活动文档，旧Open Editors订阅了工作台上不存在的布局事件，产生未命名残行；与旧core.empty身份问题区分。改为观察布局根，文件服务仍是文档身份所有者。旧HEAD隔离复现和修复后用例分别记录，详见[资源管理器设计](explorer_history.md)与localization_20260929.json。
+
+2026-09-29 TEST-localization-baseline：本轮完整UI首次91/106通过。对起始HEAD的8项隔离失败对照，区分实际布局订阅缺陷与旧夹具：异步渲染未等待、设置齿轮旧入口、选中与展开混用、退役预览尺寸限制、终端设置重排未完成等。按当前职责更新夹具，保留全部失败运行，不降低生产行为断言；最终复跑结果见localization_20260929.json。

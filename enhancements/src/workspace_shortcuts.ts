@@ -29,7 +29,7 @@ function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dial
   });
 }
 
-/** 窗口缩放优先路由；其余工作区键位尊重编辑器/终端的输入所有权。 */
+/** Window scaling prioritizes routing; other workspace key positions respect the input ownership of the editor/terminal. */
 export function install_workspace_shortcuts(
   app: shortcut_app, runtime: workspace_zoom_runtime,
 ): workspace_shortcuts_binding {
@@ -46,11 +46,11 @@ export function install_workspace_shortcuts(
   };
   const keydown = (event: KeyboardEvent) => {
     if(is_composing_key(event)){reset_chord();return;}
-    // 先归还编辑焦点，再让既有快捷键执行，避免动作落到浮动菜单或后台文档。
+    // First return the editor focus, then let existing keyboard shortcuts execute, to avoid actions falling to floating menus or background documents.
     if(primary_modifier(event)&&document.querySelector(".workspace-titlebar-popup"))window.dispatchEvent(new Event("workspace-titlebar-dismiss"));
     const zoom_command = workspace_zoom_shortcut(event);
     if (zoom_command && workspace_zoom_available(runtime, zoom_command) && !visible_modal(".reading-media-viewer")) {
-      // 窗口比例是全局操作：普通对话框、代码编辑器与终端均不拦截；图表局部缩放优先。
+      // Window ratio is a global operation: ordinary dialog boxes, code editors, and terminals do not intercept; local chart scaling takes priority.
       run(event, () => app.commands.run(zoom_command));
       return;
     }
@@ -97,7 +97,7 @@ export function install_workspace_shortcuts(
       if(event.code === "KeyF" && event.shiftKey) { run(event,()=>app.commands.run("linux_note:search")); return; }
       if(!event.shiftKey && ["PageUp","PageDown"].includes(event.code)) {
         const parent=app.workspace.activeLeaf?.parent?.containerEl;
-        // 同一文件可在多个编辑组出现；标签身份必须由当前组与路径共同决定。
+        // The same file can appear in multiple editing groups; tag identity must be determined by the current group and path together.
         const tabs=parent ? [...parent.querySelectorAll<HTMLElement>(".typ-workspace-tab-header .typ-tab")].filter(tab=>!tab.dataset.id?.startsWith("typ://core.empty/")) : [];
         const index=tabs.findIndex(tab=>tab.dataset.id===app.workspace.activeLeaf?.state.path);
         if(index>=0) {

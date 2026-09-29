@@ -59,7 +59,7 @@ export class WorkspaceRoot extends WorkspaceSplit {
 
         const $anchorEl = $(e.target!).closest('a')
         if ($anchorEl.length) {
-          // 主Markdown分栏的普通点击用于进入编辑；独立浏览视图保留自己的链接语义。
+          // Main Markdown split view's ordinary click is used to enter edit; independent browse view retains its own link semantics.
           if ($anchorEl.closest('.typ-markdown-view').length && !(e.ctrlKey || e.metaKey)) {
             e.preventDefault()
             return

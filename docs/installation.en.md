@@ -1,168 +1,241 @@
-# Installing and restoring Typora Code
+[Chinese](installation.md)
 
-English | [Simplified Chinese](installation.md)
+<a id="section_92ea59e8469c"></a>
+# Typora Code Installation and Recovery Guide
 
-Typora Code runs inside Typora. Normal installation uses the prebuilt files in the complete download. Developers rebuild those same assets before delivery; see the [contributor guide](contributing.en.md).
 
-## Requirements
+Typora Code is a community workbench enhancement running in Typora. Regular users install using the pre-built files in the downloaded package; developers modify the source code and then generate the same set of files according to the [Build Instructions](../enhancements/README.en.md#section_3a010e92a2c3).
 
-| Environment | Requirements | Validation boundary |
+<a id="section_9de1e5d75b55"></a>
+## Environment Requirements
+
+| Environment | Necessary Conditions | Current Verification Scope |
 | --- | --- | --- |
-| Windows x64 | Windows 10 1903+ or Windows 11, Windows PowerShell 5.1, installed Typora | Primary environment; native Typora 1.14.10 and installation transactions have been tested |
-| Windows ARM64 | PowerShell 5.1 and an ARM64 system | Native terminal assets are included; ARM64 device acceptance remains outstanding |
-| MSYS2 UCRT64 on Windows | `MSYSTEM=UCRT64`, Bash, `cygpath`, and `powershell.exe` | Delegates to Windows transactions; full UCRT64 device acceptance remains outstanding |
-| Linux | Bash, Python 3.9+, writable Typora installation and user configuration directories | Python transactions have been tested; native UI and permissions remain unverified; no integrated terminal runtime is bundled |
+| Windows x64 | Windows 10 1903+ / Windows 11, Windows PowerShell 5.1, Typora installed | Main usage environment; native window and transaction installation of Typora 1.14.10 have been verified, previous results are seen in [Feedback Records](feedback_review.en.md) |
+| Windows ARM64 | PowerShell 5.1, ARM64 system; native files for the corresponding terminal are provided in the package | Runtime assets are prepared, ARM64 real devices have not been accepted yet |
+| Windows MSYS2 UCRT64 | `MSYSTEM=UCRT64`，Bash、`cygpath`、`powershell.exe` | Bash transfer to Windows transaction; complete UCRT64 real device process has not been accepted yet |
+| Linux | Bash, Python 3.9+, writable Typora installation directory and user configuration directory | Python installation transaction has been tested; native interface and permission process for Linux have not been accepted; no integrated terminal runtime package is available |
 
-macOS, Git Bash, MSYS2 MINGW64, and 32-bit Windows are outside the current installer scope. Path conversion for WSL-style paths does not mean the Windows installer is supported under WSL.
+macOS, Git Bash, MSYS2 MINGW64, and Windows 32-bit are not within the current installation support scope. Path conversion support for WSL-style paths does not imply support for running Windows installation procedures within WSL. Typora's own system requirements are subject to the [official download page](https://typora.io/); for Linux host installation methods, see the [official Linux guide](https://support.typora.io/Typora-on-Linux/).
 
-The core workbench uses bundled assets. The first Windows installation downloads a pinned private Node runtime from `nodejs.org`, verifies SHA-256, and leaves the system PATH unchanged. A system Node installation does not replace this runtime. Git features require Git; C/C++ analysis requires clangd. Install and configure optional tools before using their corresponding features.
+The core workbench uses bundled files. On Windows, the first installation will also download a fixed private Node runtime from `nodejs.org` and check its SHA-256, without modifying the system PATH; the installed system Node cannot replace this fixed runtime. Git functionality requires `git` to be found in the current environment; the C/C++ outline requires clangd, whose path can be specified in the workbench's 'Parsing Environment Settings'. When these optional tools are not available, install the required tools first and then use the corresponding features.
 
-## Get the complete package
+<a id="section_8b262e1c5e32"></a>
+## Download the full installation package
 
-Use the project's GitHub repository and **Code → Download ZIP**, then extract the whole package. The Help menu's repository entry works independently of update checks. If the target machine cannot reach GitHub, transfer the complete download from another device; a first offline Windows installation also needs the runtime cache described below.
+Existing users can open the [project repository](https://github.com/FormingSystem/typora_code) via the system browser from **Help → Typora Code GitHub Repository**, selecting **Code → Download ZIP**, and extracting the entire directory. This entry does not depend on the success of the update check. If the target machine cannot connect to GitHub, download the package on another connected device and transfer the full package; for a pure offline first installation, also prepare the runtime cache described in the following 'Offline Installation' section. Please confirm that the following are present:
 
-Keep the root install/check/uninstall/restore scripts, `scripts/`, themes, and the complete `enhancements/dist/` tree, including `SHA256SUMS` and `terminal_runtime/`. Do not copy only a script or only `workbench.js`.
-
-## Windows installation
-
-Save your documents, then run `install_windows.cmd`. For an explicit installation location:
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -typora_root '<Typora installation directory>'
-powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1 -typora_root '<Typora installation directory>'
+```text
+install_windows.cmd / install_windows.ps1 / install.sh
+check_windows.ps1 / check.sh
+uninstall_windows.cmd / uninstall_windows.ps1
+restore_windows.ps1 / restore.sh
+cpp_github-consolas.css / cpp_github-consolas_light.css / cpp_github-consolas_dark.css
+scripts/
+enhancements/dist/SHA256SUMS
+enhancements/dist/terminal_runtime/
+enhancements/node_runtime.json
 ```
 
-`-user_data` selects a portable or separate user configuration directory. Without it, the installer uses the default user directory. `-backup_root` must name a new directory; the default is `backups/typora_code_configuration/` under user data. `-non_interactive` fails instead of prompting when discovery is insufficient. Use `Get-Help .\install_windows.ps1 -Detailed` for parameters. Execution-policy bypass applies only to the invoked PowerShell process.
+A working tree obtained from Git is also applicable. Do not download only a single script or just copy theme files; the installer requires the same version of scripts, themes, manifests, and runtime files. This guide uses the source package from the repository and does not assume the presence of an independent Release installer.
 
-Start with ordinary permissions. The installer prepares and verifies the runtime, then checks actual write targets. Unchanged host entries and assets are not overwritten. Protected targets cause one Windows elevation request explaining the path and reason; cancellation keeps the old installation. The elevated continuation retains the original user's data, backup, and cache paths. Read-only mounts, file locks, and network errors are not solved by requesting elevation.
+<a id="section_416b242f0fb5"></a>
+## Windows Installation
 
-Non-interactive installation does not request elevation unless `-allow_elevation` is explicitly supplied. Built-in updates pass that switch after the user chooses to install. A backup under a protected installation directory is subject to that directory's permissions too. Custom backup locations must be passed explicitly to restore or uninstall.
+1. First, install and open Typora, confirming that the host can run normally. Save all unsaved documents; the installer will not forcibly close the window.
+2. Fully extract Typora Code. Double-click `install_windows.cmd` in the root directory; it invokes a PowerShell script in the same directory, displays the results, and keeps the window open for viewing.
+3. If automatic discovery of the installation location fails, enter the Typora installation directory as prompted. The installer also accepts paths for `Typora.exe`, `resources`, or `resources/window.html`.
+4. Record the complete backup directory after `Backup:`. The backup before the first installation serves as the basis for restoring the original environment in the future, and it should also be retained during updates.
+5. Perform a read-only check, restart Typora normally, and select 'Theme → cpp github consolas'.
 
-## Progress and logs
+When a specific path needs to be explicitly specified or for automation, execute the following in the root directory of the downloaded package:
 
-Installation reports the current stage, timestamps, and elapsed time. Stage numbers describe order, not download percentage. Runtime download is followed by digest verification and extraction. Only successful installation and verification produce `SUCCESS`.
+```powershell
+# Replace the quoted placeholder with the actual installation directory.
+powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
+powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
+```
 
-On failure, read the actual state: no target files written, rolled back, or automatic rollback incomplete. An incomplete rollback is not a successful restore. Keep the backup and log for recovery.
+The installation supports `-user_data '<实际Typora用户目录>'` to specify a portable/independent configuration directory; automatic updates will pass in the real location currently used by the host; omitting it will still use the default user data directory. Additional support for `-backup_root '<新的备份目录>'`, the specified directory must not already exist. By default, the `backups/typora_code_configuration/` under the user data directory is used. `-non_interactive` will directly fail when the path cannot be discovered, suitable for automation, and will not wait for input. PowerShell help can be viewed via `Get-Help .\install_windows.ps1 -Detailed`; `ExecutionPolicy Bypass` only affects the current PowerShell process.
 
-Each run saves an independent UTF-8 log and reports its path after `Log:`. The default location is `logs/installation/` under user data, with a fallback under the system temporary directory's `TyporaCode/install_logs/`. A log-storage failure is reported while console output continues. Logs are not uploaded automatically; redact personal paths before sharing when appropriate. Installer interaction and log translation are tracked separately from workbench UI translation.
+A regular installation does not require pre-launching with administrator privileges. The script first downloads and verifies the runtime, then checks the actual target that needs to be written to; the host launch page and runtime assets that have not changed are not overwritten. If the target is protected, the specific path and reason will be displayed, and then a Windows UAC authorization will be requested once; the original version is retained if canceled. When reauthorizing for an update, the original user directory, backup, and cache are explicitly reused, and the default configuration of the administrator account is not used. Read-only, occupied, and network failures will not erroneously trigger elevation; if authorization is granted but still denied, it indicates that the ACL or security software policy needs to be checked.
 
+`-non_interactive` does not pop up UAC by default; automated calls that require system authorization can add `-allow_elevation`. The built-in update has passed this switch after the user clicks install. Backups can be specified to a new subdirectory under the Typora installation directory using `-backup_root` `backup`, but this location is also subject to directory permissions and cannot bypass the host write permissions by moving backups; when customizing backup, recovery, or uninstallation, the complete path must be explicitly passed. The default user backup and writable user configuration continue to be retained.
+
+<a id="section_ac2c0ff8053d"></a>
+## View installation progress and logs
+
+The installation window displays timestamps, current operations, and actual duration by stage, for example:
+
+```text
+[14:32:10] [STEP 3/6] Prepare terminal runtime
+[14:32:10] [INFO] Reusing the cache verified by SHA-256; no download is needed.
+[14:32:11] [OK] Terminal runtime preparation completed in 1.2 seconds.
+[14:32:11] [STEP 4/6] Back up existing configuration
+```
+
+The stage number indicates the order of execution, not the download percentage. The first download will explain the reason for waiting, and after the download completes, it will continue to display the summary verification and extraction. Only when the installation and verification are both successful will `SUCCESS` be displayed; when an error occurs, the current stage, reason, and actual status such as 'target files have not been written yet,' 'rolled back,' or 'automatic rollback not completed' will be displayed. Do not consider the last status as a successful recovery; instead, retain the backup and logs and handle them accordingly.
+
+Each installation saves a UTF-8 log independently, and the full path is displayed after `Log:`. The default directory is under the user data's `logs/installation/` (Windows is `%APPDATA%\Typora\logs\installation`); when the directory is not writable, it will attempt to use the system temporary directory's `TyporaCode/install_logs/`. If log storage is unavailable, a prompt will be shown, but the console will continue to output; the installer will not automatically upload logs. Before feedback, you can optionally obscure personal paths in the logs.
+
+<a id="section_aa40555ad895"></a>
 ## Linux and UCRT64
 
-From the complete package root:
+Execute in the root directory of the complete download package:
 
 ```bash
-bash ./install.sh --typora-root '<Typora installation directory>' --non-interactive
-bash ./check.sh --typora-root '<Typora installation directory>' --non-interactive
+bash ./install.sh --typora-root '<Typora安装目录>' --non-interactive
+bash ./check.sh --typora-root '<Typora安装目录>' --non-interactive
 ```
 
-Omit the path and non-interactive flag to allow discovery and prompts. Bash entry points support `--help`. On Windows, use MSYS2 UCRT64; it delegates to the same PowerShell implementation. Linux uses the Python transaction.
+Omitting the path and `--non-interactive` allows automatic discovery and interactive input. All three Bash entries support `--help`. On Windows, **MSYS2 UCRT64** must be used, and Bash will hand over the installation, check, and recovery to the same PowerShell implementation. On Linux, the Python transaction manages the workbench and themes.
 
-Linux runs as the caller and requires write access to `resources/window.html` and that user's configuration directory. Use a writable Typora installation. The installer does not invoke sudo automatically. Running the entire command as root can put configuration in root's user directory. A read-only mounted AppImage requires a writable installation form. Package-manager upgrades can replace host files, requiring a new check and installation.
+On Linux, operations are performed as the caller, requiring the current user to be able to write to the host `resources/window.html` and their own configuration directory. Please use an independent Typora installation that is writable by the current user; the script will not automatically call sudo. Do not blindly use sudo for the entire installation command, as the configuration may end up in the root user's directory. AppImage with read-only mounting cannot be directly modified persistently; a writable installation form must be used first. Upgrading or reinstalling Typora via the package manager may replace the host files, and then follow the update steps below to check.
 
-## Paths and write scope
+<a id="section_e198eb51b951"></a>
+## Path and Write Scope
 
-Explicit arguments take priority, followed by `TYPORA_ROOT`, running-process information, and platform discovery. Windows also checks PATH and App Paths; Linux checks executable locations. If discovery fails, the script prompts or exits in non-interactive mode.
+The path should prefer explicit parameters. If not specified, it reads `TYPORA_ROOT`, then checks the running process and system discovery information; on Windows, it also checks PATH and App Paths registry information, and on Linux, it checks the executable file path. If the final location cannot be determined, it will interactively ask or exit in non-interactive mode.
 
-Default user data is `%APPDATA%\Typora` on Windows and `$XDG_CONFIG_HOME/Typora` on Linux, falling back to `$HOME/.config/Typora` when XDG is unset.
+The 'User Data Directory' on Windows is `%APPDATA%\Typora`, on Linux is `$XDG_CONFIG_HOME/Typora`, and when XDG is not set, it is `$HOME/.config/Typora`.
 
-| Location | Purpose |
+| Location | Installation purpose and retention rules |
 | --- | --- |
-| Host `resources/window.html` | Adds static CSS and resident scripts; leaves `app.asar` unchanged |
-| User data `typora_code/` | Workbench assets; retains existing `settings/workspace.json` settings |
-| User data `linux_note_enhancements/terminal_runtime/` | Existing directory name for Windows terminal runtime assets |
-| User data `themes/` | Project themes, with existing managed filenames backed up before replacement |
-| User data `profile.data` | Full backup; only the frameless-window preference is adjusted, preserving later unrelated preferences on restoration |
-| User data `backups/typora_code_configuration/` | Transaction manifests and original files |
+| Typora Installation Directory `resources/window.html` | Add static CSS and persistent script entry points; `app.asar` remains unchanged |
+| User Data `typora_code/` | Workbench runtime assets; `settings/workspace.json` retains existing settings |
+| User Data `linux_note_enhancements/terminal_runtime/` | Existing directory name for the current Windows terminal runtime assets |
+| User Data `themes/cpp_github-consolas.css` | Theme for this project; back up files with the same name before overwriting |
+| User Data `profile.data` | Full backup, only adjust the borderless window field; when restoring this field, retain later preferences |
+| User Data `backups/typora_code_configuration/` | List of backups and original files for each independent installation |
 
-Installation does not write project configuration or document contents. Reading positions, workbench settings, and unmanaged files remain. Known legacy assets from this project may be migrated. If an old loader still has other community plugins enabled, installation stops: disable dependencies on that old loader first and retain the original backup.
+Installation does not write configuration to open projects and does not modify document content. Reading positions, workbench settings, and unmanaged files are retained. Installation will migrate confirmed old plugin assets from previous deployments of this project; if old loaders are still enabled and other community plugins are detected, installation will stop. You should first disable plugins that depend on old loaders in the original plugin manager and retain the original backup.
 
-## Offline installation
+<a id="section_8ca823303fe0"></a>
+## Offline Installation
 
-Prepare the private Windows Node ZIP in advance. The authoritative version, architecture, filename, ZIP digest, and executable digest are in [`node_runtime.json`](../enhancements/node_runtime.json).
+Core assets do not require internet connectivity; the download cache for Windows private Node can be prepared in advance. Fixed versions, architectures, ZIP files, and executable file summaries are based on the current package's [`enhancements/node_runtime.json`](../enhancements/node_runtime.json).
 
-1. Download `https://nodejs.org/dist/v<version>/node-v<version>-win-<arch>.zip` for the manifest's version and the target's `x64` or `arm64` architecture.
-2. Copy the intact ZIP to a cache directory on the target, keeping its official filename. Do not extract it.
-3. Set the cache in the PowerShell environment used for installation or restoration:
+1. Get the corresponding ZIP from `https://nodejs.org/dist/v<version>/node-v<version>-win-<arch>.zip` on a connected machine; `arch` is `x64` or `arm64`, matching the target Windows architecture.
+2. Place the complete ZIP in a self-selected cache directory on the target machine, retaining the official file name, without unpacking.
+3. Set the cache and run in the same PowerShell where installation or recovery is executed:
 
 ```powershell
-$env:TYPORA_TERMINAL_CACHE = '<prepared ZIP cache directory>'
+$env:TYPORA_TERMINAL_CACHE = '<已准备ZIP的缓存目录>'
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1
 ```
 
-The default cache is `%LOCALAPPDATA%\Typora\terminal_downloads`. A matching verified ZIP is reused. Missing or invalid cache data triggers an official download and therefore fails when fully offline. Do not bypass verification or rename another version to impersonate the expected archive. Offline Windows restoration also requires the private runtime cache.
+The default cache is `%LOCALAPPDATA%\Typora\terminal_downloads`. If it matches and the summary is correct, it will be reused; if it is missing or the summary is incorrect, it will attempt an official download, and will fail in a completely offline environment. Do not skip the summary verification or use other version files renamed as cache. Windows recovery also uses this private runtime to handle native configurations, and the cache must be retained before offline recovery.
 
-## Check and update
+<a id="section_8257844c2dfc"></a>
+## Check and Update
 
-`check_windows.ps1` and `check.sh` perform read-only comparisons of this package against installed entries, themes, and asset digests. They report `status: OK` on success and a nonzero exit on failure. They do not repair files. Editing a managed theme can produce a mismatch without implying document damage.
+`check_windows.ps1` / `check.sh` only performs a read-only comparison of **this download package** with installed entry points, themes, and release summaries; it displays `status: OK` on success and returns a non-zero value on failure. It does not repair files. If you have modified the same-named theme for this project, it will also report a difference, which is not equivalent to Typora document corruption.
 
-The Typora Code update dialog displays the version actually loaded in the current window, even offline. If the installed version differs, it separately reports the pending installed version. Save documents and restart every Typora window to load it.
+**Check the current running version:** Open 'Help → Check Typora Code Update', the top of each stage will display the actual version loaded by the current window, independent of internet connectivity. If a different version or new commit is already installed on the disk, it will additionally display 'Installed Version (takes effect after restart)'; the running version will switch only after saving the file and normally restarting all Typora windows.
 
-Windows startup checks are coordinated across windows. A new commit with a release sequence at least as recent as the local sequence can prompt for updating. **Later** does not download or install. **Update Now** downloads the official repository ZIP for the fixed commit, verifies it, and installs immediately. Windows remain open; restart manually afterwards.
+**Update Typora Code:** After installing a version with the update module, Windows will check once in multiple windows at startup; if new commits are detected and the remote release number is not lower than the local one, the version number, commit hash, and fix announcement will be displayed. Choosing 'Later' will not download or install; choosing 'Update Now' will download the official repository ZIP, verify it, and immediately perform an in-place installation. After completion, save the document and manually restart all Typora windows for the changes to take effect. The windows will not automatically close. The 'Check Typora Code Update' option in the Help menu will immediately show 'Checking for updates...' and then display the latest version, new version announcement, or failure reason after completion. If a background check is already in progress, the same request is reused, and repeated clicks will not result in multiple network connections; you can cancel and retry, and canceled stale results will not reappear as popups. If there is an existing installation task, the progress of that task will be displayed. The check, verification of extraction, and installation will continuously show an activity bar; during download, the actual received size is displayed, and if the server provides a valid total size, the download percentage is shown. A download of 100% does not mean installation is complete; once installation begins, it cannot be canceled midway, closing the progress window will not interrupt the background task, and you can check again from the Help menu. After a successful update, a clear prompt will indicate that a manual restart is required.
 
-Manual checks show progress immediately, reuse an ongoing check, and allow cancellation and retry without reopening cancelled results. Download shows received bytes and a percentage only when a valid total exists. Download completion is not installation completion. Download and verification can be cancelled; once the installation transaction starts, let it finish. Closing the progress dialog does not stop the background task; reopen it from Help.
+2026.09.20.2 On first launch, it will briefly display 'Loading workbench...' and then show the workspace once ready; if an initialization error occurs or if it takes longer than 15 seconds, it will revert to native operations. If it continuously gets stuck on the old interface, first retain the error message and run check, using [Stability Design](startup_stability.en.md) to distinguish between startup failure and normal data loading.
 
-Manual failures report offline, rate-limit, timeout, or other actual errors; unattended startup-check failures only log. Protected writes use the standard Windows authorization flow. Failed writes use transaction rollback. Settings are preserved, and running windows are not hot-replaced. Avoid opening new windows during the multi-file installation.
 
-Update payloads live under user data at `temp/typora_code_updates/<task_id>`. Downloads do not require elevation. Updates use GitHub commit SHAs and fixed-commit ZIPs without requiring Git, `.git`, clones, or history. `typora_code_update_identity.json` records successful installed identity; manual ZIP installations establish equivalent asset-manifest identity. Same-sequence commits can still be detected; maintainers must nevertheless increment the sequence for public functional releases.
+Cancellation is possible during download and verification; wait for completion once the installation transaction begins. Closing the progress window does not terminate the background update. Manual checks encountering offline, throttling, or timeout will explain the error; failed startup checks without manual intervention are only logged; if actual write permissions are insufficient, the reason will be explained and a request for Windows system authorization will be made, without silent elevation, and canceling retains the original version. Errors and logs can be viewed; if installation writing fails, the backup rollback is used. User settings are retained, and the current window is not hot-swapped. During multi-file installation, do not actively open new windows; restart normally after completion.
 
-For old versions without the updater or unsupported automatic-update platforms, download the complete new package, install, and check.
+Download and extraction by default use the `temp/typora_code_updates/<任务ID>` in the Typora user data directory, creating it if it does not exist; it does not write cache to protected program installation directories. The updater only retrieves commit SHA from GitHub API and downloads a ZIP with a fixed SHA, without requiring Git, `.git`, clone, or history. The hash of a successfully installed version is recorded in `typora_code_update_identity.json` in the user data directory; the first manual ZIP installation establishes equivalent identity via the asset manifest. Download does not elevate privileges; only when modifying protected host entry points will the installation authorization process be used.
 
-Update Typora itself normally through its official channels. Its update may replace `window.html`, disabling the enhancement. Check compatibility, then reinstall the matching enhancement package with a new backup. There is no automatic reinjection after host updates or guarantee of compatibility with future host versions.
+When upgrading from an older version without the update module or using a platform that does not yet support automatic installation, the full new package must still be obtained, run install, and then run check. Each installation creates a new backup. New commits with the same number will also prompt and display the commit description; maintainers releasing feature fixes still require incrementing the version, writing an announcement, and pushing verified assets, see [Update Design and Release Contract](workspace_update.en.md).
 
-Restoration refuses changes to the startup page outside this project's own entry. Do not restore an old `window.html` across Typora versions or bypass a refusal by copying it manually. Repair the host through its official installer when necessary.
+**Update Typora:** Proceed with the official update as usual. The update may overwrite `window.html`, and enhanced features will no longer be loaded; use the current enhanced package to check, verify the compatibility of the new host, and reinstall to generate a new backup. The script will not block or rewrite the official update process. There is currently no automatic re-injection mechanism after an update, and it cannot be guaranteed that future Typora versions will not require adaptation.
 
-## Uninstall and restore
+The recovery script will reject changes to content other than the **project entry point** on the startup page, preventing old backups from overwriting upgraded or externally modified pages; this is not a complete host version check. Do not restore old `window.html` across Typora versions, nor manually bypass the rejection using old files. When a new host requires fixes, use its official installation package and then install a matching enhanced version.
 
-On Windows, save documents, exit Typora, and run `uninstall_windows.cmd`. It discovers valid pre-installation backups in the current user's default backup directory. A unique candidate is used directly; multiple candidates show their time, host location, and backup path. Select a number, or press Enter / Q to cancel.
+<a id="section_1b97e4a77bb2"></a>
+## Uninstall and recovery
 
-Update backups are not uninstall sources. If the target Typora is running, uninstall stops and asks you to exit; it does not terminate processes. Without a compatible pre-installation backup, it first backs up the current startup page and removes only the recognized Typora Code loading entry. It retains the current host, themes, preferences, plugin packages, and configuration. An entry whose integrity cannot be established is not modified.
+**Enhanced Windows Uninstallation:** Save your documents and exit Typora, then double-click the root directory `uninstall_windows.cmd`. It automatically detects valid pre-installation backups in the user's default backup directory; if there is only one candidate, it is used directly, and if there are multiple candidates, they are displayed with timestamps, installation locations, and backup paths. Enter a number to select, or press Enter or input Q to cancel. The result window is retained for viewing.
 
-These are separate explicit invocations:
+`uninstall` will exclude update backups and complete the uninstallation using the original recovery transaction. If the target Typora is still running, it will stop and prompt to exit, but will not close the process. If there are no compatible pre-installation backups (e.g., old schema backups, Typora has already been upgraded), it will first back up the current startup page, then only remove TyporaCode's own loading entry, preserving the current host version, theme, preferences, plugin packages, and configuration. It will not treat update backups as uninstallation sources, nor delete the entire user data directory; it will still refuse to make changes if the entry's integrity cannot be confirmed. To limit the installation location, use a custom backup location, or use it for automation, run the following in the package root directory:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -non_interactive
-powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -typora_root '<Typora installation directory>' -non_interactive
-powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -backup_root '<complete pre-installation backup>' -non_interactive
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
+powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -backup_root '<安装前完整备份目录>' -non_interactive
 ```
 
-Non-interactive mode fails on ambiguous paths or backup candidates; `-Verbose` reports why backups were skipped. CMD accepts the same parameters. Uninstall preserves the host, documents, user settings, reading records, and backups. Restoring a migration backup may restore the original legacy plugins too.
+The above are three independent usages. `-non_interactive` will fail immediately if it cannot determine the installation location or encounters multiple backup candidates, without waiting for input; adding `-Verbose` allows you to view the reason backups were skipped. CMD also accepts the same parameters. Uninstallation retains the Typora core, documents, user settings, reading history, and backups; the environment migrated from old plugins will restore the old plugins from this backup.
 
-For a version rollback or manual Linux/UCRT64 restoration, save documents, exit Typora, and select the correct backup:
+**Revert to an enhanced version or manually restore on Linux / UCRT64:** Continue using `restore`, explicitly specifying the selected backup.
 
-| Goal | Backup |
+First, save your documents and exit Typora, then select the correct backup directory:
+
+| Target | Selected Backup |
 | --- | --- |
-| Return to the pre-workbench environment | Complete backup from before the first installation |
-| Undo an enhancement update | Backup produced by that update |
-| Undo a legacy-plugin migration | Migration backup, which may include legacy plugins and their loader |
+| Uninstall the standalone workbench and return to the pre-installation environment | **Complete backup before the first installation** |
+| Revert a specific enhanced update | The backup generated by that update; restores to the enhanced version before the update |
+| Revert to the original environment after migration from old plugins | Backup from the time of migration; it may restore the original plugin and old loader, but does not represent a pure Typora |
 
-The backup must include `manifest.json` and its referenced directories. A lone `window.html` is insufficient. The manifest binds the backup to its host and user-data locations; another user's or machine's backup is not interchangeable. Current restoration accepts this project's schema 4 transaction backups.
+The backup directory must contain `manifest.json` and the corresponding subdirectories; it cannot only copy `window.html`. The manifest records the original user data and installation path, and cannot be replaced with backups from other users or machines; the current recovery supports transaction backups of this project's schema 4.
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\restore_windows.ps1 -backup_root '<selected backup>'
+powershell -NoProfile -ExecutionPolicy Bypass -File .\restore_windows.ps1 -backup_root '<所选备份目录>'
 ```
 
 ```bash
-bash ./restore.sh --backup-root '<selected backup>'
+bash ./restore.sh --backup-root '<所选备份目录>'
 ```
 
-Restoration validates digests and paths, saves a pre-restore snapshot, restores previously managed files, and removes managed files newly added by the original transaction. It restores the relevant native window preference while preserving later unrelated preferences, workbench settings, reading records, unmanaged files, and document contents. `restore_*` snapshots under the selected backup are diagnostic material, not standalone install backups that can be passed to restore again.
+Recovery will verify the checksum and path, first saving a snapshot before recovery, then restoring the original managed files according to the manifest and removing the newly installed managed files at that time. Native window fields are restored, while other later-modified preferences are retained; workbench settings, reading history, unmanaged files, and document content are retained. The snapshot before recovery is saved in the `restore_*` subdirectory of the selected backup for troubleshooting; it is not another complete installation backup that can be directly passed to restore.
 
-After restoration, reopen Typora. If the selected theme was removed, choose a retained or native theme. A missing-enhancement result from the installation checker is expected after uninstall; do not reinstall as an uninstall-validation step. Check native menus, editing, and your documents.
+After a successful recovery, reopen Typora; if the current theme was removed during uninstallation, select a native or previously saved theme from the 'Theme' menu. At this point, the missing enhanced installation check is an expected result, and you should not run install again as 'uninstallation verification'. Check if the native menus, editing, and your documents are functioning normally.
 
-If backups are lost, pre-installation themes, legacy plugins, and window preferences cannot be reconstructed reliably. The current uninstaller may still back up and detach a complete recognized entry. If that entry is damaged, use the matching official Typora installer to repair host startup. Neither method recreates missing original configuration. Preserve user data and documents.
+**Backup Lost:** It cannot guarantee the restoration of the same named theme, old plugins, or original window fields. The new version of uninstallation can first back up and revoke the current complete workbench entry; if the entry is damaged and cannot be safely identified, use the official Typora installation package of the same version to repair the host files and restore the native startup, then select a native theme. Neither of these methods can rebuild the lost original configuration. Retain user data and documents, and avoid deleting the entire directory.
 
-A read-only preview can run while Typora remains open:
+You can first run a read-only pre-check without exiting Typora:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\uninstall_windows.ps1 -check_only -non_interactive
 ```
 
-Its mode is `restore`, `detach`, or `absent`. Actual uninstall still requires saving and exiting. Logs go to `logs/installation/uninstall-*.log`; detach backups go to `backups/typora_code_uninstall/`. Retained themes do not mean the workbench is still loading.
+Pre-check shows `restore` (backup before valid installation), `detach` (remove current entry), or `absent` (no workbench entry). Actual uninstallation still requires saving and exiting first. Each actual run generates the user data directory `logs/installation/uninstall-*.log`; backups before removing the entry are in `backups/typora_code_uninstall/`, preserving the original launch page and transaction summary. When permissions are insufficient, the installation directory is indicated, and the reason for needing administrator rights is explained. Uninstalled themes can be switched in the Typora theme menu; this does not mean the enhancement is still loaded.
 
-## Troubleshooting and themes
+<a id="section_0c3480b6b599"></a>
+## Common Issues
 
-For discovery failures, supply the host installation directory, not the downloaded project directory. For asset or digest mismatches, obtain the complete matching package and verify the runtime cache. For access failures, inspect the reported target, permissions, locks, or security software. Keep logs and backups if rollback is incomplete. Native-platform acceptance gaps remain documented separately; an installation check is not full UI acceptance.
+| Prompt or Phenomenon | Handling |
+| --- | --- |
+| Typora not found / waiting for path | Specify `-typora_root` or `--typora-root`; confirm it is not the Typora Code download package directory |
+| Asset / digest / SHA-256 mismatch | Re-download the complete package of the same version; verify cache errors according to the offline section, without skipping verification |
+| Access denied / Permission denied | Windows interactive installation requests UAC once based on actual write permissions; for unattended installation, pass -allow_elevation. If authorized but still fails, check the specific target ACL or security software; read-only/occupied cases require separate handling |
+| Other enabled community plugins | First disable other plugins that depend on the old loader in the original environment, then install |
+| Interface remains old after installation | Save first, then fully exit and reopen Typora; check the results of this package's check and theme selection |
+| Enhancements are missing after upgrade | Reinstall the current host entry by checking for updates |
+| Rejection of host page changes | Stop using this old backup to overwrite the host; repair the current version through the official installer |
 
-Choose `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` or `VSCode2026_Light` / `VSCode2026_Dark` through the theme menu. Installation does not switch the current theme. Custom Colors, available from the theme menu and settings, edits the same shared color table with validation, automatic saving, reset, and JSON import/export. Light and dark configurations are separate; switch themes to inspect each. Fonts and typography remain theme-owned.
+Before each error, retain the complete console output, the used enhancement version, Typora version, and backup directory; when providing feedback, obscure personal directory information. Native installation baseline, user-specified, and unverifiable backups are retained; after a successful installation, only the latest verifiable product upgrade backup is retained. Old versions without marked upgrades are only reclaimed after verification of ownership and integrity, see [Backup Retention Rules](workspace_update.en.md#section_046e09bded20).
 
-Each successful standard installation creates an onboarding identity, including same-version reinstalls. The next ready window offers the tutorial once across all windows. Skipping or completing it suppresses repetition on ordinary restarts. Help can replay it. Failed installation rolls back the identity and does not close user windows.
+<a id="section_d6eed20ed143"></a>
+## Community plugins and host updates
+
+After workbench installation, open the manager from the left side 'Extensions' (Ctrl+Shift+X). Plugin configuration can be accessed from the 'Community Plugin Settings' on the unified settings page or the 'Settings' option on the plugin row. Plugins can be installed from the community directory or a local ZIP file; new plugins are disabled by default. After clicking 'Trust and Enable,' they run. Plugins have permissions of the Typora process and should only be enabled from trusted sources. Activation and deactivation are synchronized across already opened windows; after updating a running plugin, save the document and manually restart all windows for the new version to take effect. Uninstallation retains personal settings and possibly old package caches referenced by other windows.
+
+If official Typora updates overwrite the launch entry, re-run the standard installation and check of this project; it still uses the original Typora icon. Installation is based on the upgraded host page and does not restore the old kernel; community packages, enabled configurations, and personal settings are retained. Windows file transaction simulation has verified this behavior, which cannot replace the unexecuted real official upgrade compatibility acceptance. Complete API and platform boundaries are detailed in [Community Plugin Design](community_plugins.en.md).
+
+<a id="section_b29601d988db"></a>
+## Default text rendering value migration (R034.5)
+
+When 2026.09.24.3 first loads the unified text rendering service, missing contracts or soft line wrap configurations earlier than 2026092403 use the automatic line wrap default value. Valid selections from this version onward are retained; only word_wrap is migrated, other host, workbench, SSH, or terminal configurations are not reset. Settings and contracts are stored in the host user data's Local Storage, read by the unique runtime service; standard uninstallation retains user data, and reinstallation continues to use it. Disk installation completion and old window loading of new contracts are two stages, requiring a normal restart. When storage is unavailable, this window uses memory settings and records a warning without modifying the document content.
+
+<a id="section_7b46b5ce94b3"></a>
+## Light and dark themes with custom colors
+
+After installation, select **CppGithubConsoles_Light** or **CppGithubConsoles_Dark** from the theme menu. Both use the same Consolas font priority and document content formatting, with Dark using the Night style dark theme. The original theme remains available.
+
+**Theme → Customize Colors…** or **Settings → Customize Colors** opens the same color palette, allowing you to search for color items such as document content, links, titles, workbench, terminals, etc. Enter a valid hexadecimal color value or drag the color picker to see changes immediately and save automatically; individual items or the current theme can be restored to default, with support for JSON import/export. Light and dark configurations are saved separately; after modifying the configuration of one theme, switch to that theme to observe the changes.
+
+For manual color testing, find `cpp_github-consolas_dark.css` from **Theme → Open Theme Folder**, and the link selector is `a, a:hover, a:visited`; when the workbench is running, the default role for links is located in the source code `enhancements/src/workspace_colors.css` at `--workspace-markdown-link`, which takes precedence over theme CSS. For daily debugging, it is recommended to directly use the `markdown_link` in the color palette, without editing installation files or rebuilding. JSON saves color configurations, not the entire theme; fonts and formatting continue to be owned by the theme.
+
+<a id="section_e6f8ab21071e"></a>
+### R081 Post-Installation Operation Guide
+
+Each standard installation generates a new installation identifier. On the next startup, a ready window automatically displays the guide once. Reinstalling the same version also prompts; duplicates across multiple windows are removed, and skipping or completing the guide prevents repetition on regular restarts. The Help menu can always be revisited and opens the offline user_guide.md. On installation failure, the rollback identifier is retained, and user windows are not closed prematurely. The design is described in [Operation Guide](onboarding.en.md).
+
+2026-09-27 added themes `VSCode2026_Light` / `VSCode2026_Dark`, which use fixed VS Code 2026 Light / Dark color schemes, along with the Consolas font and existing formatting. Original `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` and `Night` are retained. Installation does not switch the current theme; after restarting, select the new theme from the theme menu.

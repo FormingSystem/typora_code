@@ -15,13 +15,13 @@ export type repository_state = {
   stashes: { hash: string; name: string; subject: string; date: string }[];
   changes: graph_change[]; remotes: { name: string; fetch: string; push: string }[]; operation: string;
 };
-/** 底栏和仓库行读取同一状态；精简模型也保留未出生分支和分离HEAD语义。 */
+/** The status bar and warehouse row read the same status; the simplified model also retains unborn branches and separated HEAD semantics. */
 export function repository_branch_status(state: repository_state): branch_status {
   return state.status || {branch: state.branch || "(detached)", head: state.head || "(initial)",
     upstream: state.tracking?.upstream?.replace(/^refs\/remotes\//u, "") || "", ahead: state.tracking?.ahead || 0,
     behind: state.tracking?.behind || 0, dirty: state.changes.length > 0};
 }
-/** VS Code repository.headLabel：工作树*、暂存+、合并/变基!各自独立。 */
+/** VS Code repository.headLabel: worktree*, staged+, merge/Rebase! Each is independent. */
 export function repository_head_label(state: repository_state): string {
   const status=repository_branch_status(state);
   const name=status.branch==="(detached)"?status.head.slice(0,8):status.branch||"Git";
@@ -54,7 +54,7 @@ export function parse_changes(source: string): graph_change[] {
 }
 const quiet_head = async (run: git_run, root: string) => run(root, ["rev-parse", "--verify", "--quiet", "HEAD"]).then(value => value.trim()).catch(error => { if (error.code === 1) return ""; throw error; });
 
-/** 只把 Git 明确报告的非仓库识别为空状态；权限、可执行文件和损坏仓库错误继续报告。 */
+/** Only report Git explicitly mentioned non-warehouse identities as empty states; permission, executable file, and damaged warehouse errors continue to be reported. */
 export function is_missing_repository(error: unknown): boolean {
   return (error as {code?: number})?.code === 128 && /not a git repository \(or any of the parent directories\): \.git/u.test(String((error as Error)?.message));
 }
@@ -106,7 +106,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
     const parent_text = await run(root, ["log", "--no-walk=unsorted", "--format=%P", ...stashes.map(stash => require_revision(stash.hash)), "--"]);
     const helpers = new Set(parent_text.trim().split(/\r?\n/u).flatMap(line => line.split(" ").slice(1)).filter(Boolean));
     for (const hash of helpers) {
-      // 只隐藏stash私有辅助对象；普通分支／标签仍可达的同一提交不能丢弃。
+      // Only hide stash private auxiliary objects; ordinary branches / tags still reachable same submission cannot be discarded.
       const outside = ordinary_starts.length ? await run(root, ["rev-list", "--max-count=1", require_revision(hash), "--not", ...ordinary_starts, "--"]) : hash;
       if (outside.trim()) hidden_stash_parents.add(hash);
     }
@@ -122,7 +122,7 @@ export async function read_repository(run: git_run, cwd: string, settings: graph
     if (stashes.some(item => item.hash === base.hash)) base.parents = base.parents.slice(0, 1);
     commits.push({ ...base, email: fields[i + 5], committer: fields[i + 6], commit_date: fields[i + 7], committer_email: fields[i + 8], stash: stashes.find(item => item.hash === base.hash)?.name });
   }
-  // Git 自身决定工作树状态，文件系统只用于识别进行中的多步操作。
+  // Git determines the state of the working tree, and the file system is only used to identify ongoing multi-step operations.
   const operation = git_path.trim();
   return { root, head, branch, refs, tracking, status, history_refs:[...selected_refs.map(ref=>ref.name),...((!branches.length||automatic||branches.includes('HEAD'))?['HEAD']:[])], commits: commits.slice(0, count), more: commits.length > count, stashes, changes, remotes, operation };
 }
@@ -135,7 +135,7 @@ function comparison_args(from: string, to: string, head: string): string[] {
   return ["diff", require_revision(from), require_revision(to)];
 }
 export async function compare_files(run: git_run, state: repository_state, from: string, to: string): Promise<graph_change[]> {
-  // 尚无首次提交时，暂存的新文件也属于工作区内容，普通 diff 只会返回未暂存差量。
+  // When there is no initial commit, newly staged files are also part of the workspace content, and ordinary diff will only return unstaged differences.
   if (from === EMPTY && to === WORKTREE) return state.changes.filter(file => file.work_status !== "D").map(file => ({ ...file, status: "A" }));
   const changes = await read_changes_snapshot(run,state.root,[...comparison_args(from, to, state.head), "--find-renames", "--name-status", "-z", "--no-ext-diff", "--no-textconv", "--"]);
   if (to === WORKTREE) {
@@ -145,11 +145,11 @@ export async function compare_files(run: git_run, state: repository_state, from:
   return changes;
 }
 export async function compare_patch(run: git_run, state: repository_state, from: string, to: string, file: graph_change): Promise<string> {
-  if (file.status === "??" || from === EMPTY && to === WORKTREE) return ""; // 无基准内容由宿主读取并显示为新增。
+  if (file.status === "??" || from === EMPTY && to === WORKTREE) return ""; // No base content is read by the host and is displayed as new.
   return run(state.root, [...comparison_args(from, to, state.head), "--find-renames", "-p", "--no-ext-diff", "--no-textconv", "--", file.path, ...(file.old_path ? [file.old_path] : [])]);
 }
 
-/** --follow 在重命名前继续追踪旧路径；每个提交携带当时的文件名，避免拿今天的路径读旧对象。 */
+/** --follow continues to track the old path before renaming; each commit carries the file name at the time, avoiding using today's path to read old objects. */
 export async function read_file_history(run: git_run, root: string, file: string, count = 200): Promise<{commit: graph_commit; file: graph_change}[]> {
   const source = await run(root, ["log", "--follow", `--max-count=${count}`, "--format=%H%x00%P%x00%an%x00%aI%x00%s", "-z", "--name-status", "--find-renames", "--", file]);
   const fields = source.split("\0"); const result: {commit: graph_commit; file: graph_change}[] = [];
@@ -202,7 +202,7 @@ export async function read_commit_hover_detail(run:git_run,state:repository_stat
     const match=/^(\d+|-)\t(\d+|-)\t([\s\S]*)$/u.exec(record);
     if(!match)throw new Error(text("history.stats_unavailable"));
     files++;if(match[1]!=="-")insertions+=Number(match[1]);if(match[2]!=="-")deletions+=Number(match[2]);
-    // -z重命名以空路径引出旧名、新名；文件名中的制表符不能作为下一条记录。
+    // -z renames with an empty path to derive the old and new names; tabs in the filename cannot be used as the next record.
     if(!match[3])index+=2;
   }
   return {message:message.trim(),files,insertions,deletions};

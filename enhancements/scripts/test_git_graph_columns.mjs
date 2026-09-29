@@ -1,4 +1,4 @@
-// 数学契约测试：检查边界约束和空间守恒，不复制产品裁剪公式。
+// Mathematical contract test: check boundary constraints and spatial conservation, without copying the product's clipping formula.
 import {build} from 'esbuild';
 import assert from 'node:assert/strict';
 import path from 'node:path';

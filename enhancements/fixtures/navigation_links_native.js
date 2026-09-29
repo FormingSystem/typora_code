@@ -1,4 +1,4 @@
-// 原生Markdown连续链接与Alt导航；隔离临时文档。
+// Native Markdown continuous link with Alt navigation; isolate temporary document.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[],latencies=[];
  let native_clicks=0;document.addEventListener('click',event=>{if(event.isTrusted&&event.target.closest?.('.workspace-titlebar-history, .workspace-activity-item, .workspace-titlebar-menu > button'))native_clicks++;},true);
@@ -49,7 +49,7 @@
    await click_button(buttons[0]);assert(files.current_file()===docs[2],'顶栏连续后退 '+i);
    await click_button(buttons[1]);assert(files.current_file()===docs[3],'顶栏连续前进 '+i);
   }
-  // 不在方向键之间睡眠：四文档完整逆序/正序，中途真实关闭目标标签。
+  // Do not sleep between direction keys: full reverse/forward order of four documents, real closing of target tab in the middle.
   const transitions=[];
   const stop_trace=core.app.workspace.on('file:open',()=>{const file=File.bundle.filePath;if(docs.includes(file)&&transitions.at(-1)!==file)transitions.push(file);samples.push({event:'file:open',file,cursor:File.editor.selection.buildUndo()});});
   const wait_path=async target=>{const start=Date.now();while(files.current_file()!==target&&Date.now()-start<10000)await pause(20);await pause(250);assert(files.current_file()===target,'连续指令最终资源 '+path.basename(target));};

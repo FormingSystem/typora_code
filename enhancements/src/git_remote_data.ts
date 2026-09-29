@@ -6,7 +6,7 @@ export type git_network_state = {
   upstream:string;upstream_remote:string;upstream_ref:string;
 };
 const optional = async(run:git_run,root:string,args:string[]) => run(root,args).catch(error=>{if(error.code===1)return "";throw error;});
-/** 配置与符号 HEAD 决定网络目标；提交对象可在正常 pull 后改变，不属于此保护值。 */
+/** Configuration and symbols HEAD determine the network target; submitted objects can change after normal pull, but are not part of this protection value. */
 export async function read_git_network_guard(run:git_run,root:string):Promise<string>{
   const [branch,config]=await Promise.all([
     optional(run,root,["symbolic-ref","--quiet","HEAD"]),
@@ -14,7 +14,7 @@ export async function read_git_network_guard(run:git_run,root:string):Promise<st
   ]);
   return JSON.stringify([branch,config]);
 }
-/** 远端、上游和推送覆盖均来自 Git；不拆分 origin/name，不联网猜上游，也不写配置。 */
+/** Remote, upstream, and push covers all come from Git; do not split origin/name, do not guess upstream over the network, and do not write configuration. */
 export async function read_git_network_state(run:git_run,root:string,selected_branch?:string):Promise<git_network_state>{
   const [guard,head,names]=await Promise.all([
     read_git_network_guard(run,root),optional(run,root,["rev-parse","--verify","--quiet","HEAD"]),run(root,["remote"]),
@@ -38,7 +38,7 @@ export async function read_git_network_state(run:git_run,root:string,selected_br
 }
 export const git_network_config=(state:git_network_state,key:string):string=>state.config.get(key)?.at(-1)||"";
 
-/** 远端名称可以包含斜杠；引用入口按最长已配置名称识别，并解引用 remote/HEAD。 */
+/** Remote names can include slashes; references to entry points are identified by the longest configured name, and resolve remote/HEAD. */
 export async function resolve_git_remote_ref(run:git_run,root:string,remotes:git_remote_target[],target:string):Promise<{remote:string;branch:string}|undefined>{
   const match=remotes.filter(remote=>target===remote.name||target.startsWith(remote.name+"/")).sort((a,b)=>b.name.length-a.name.length)[0];
   if(!match)return undefined;

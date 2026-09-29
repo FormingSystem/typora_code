@@ -3,7 +3,7 @@ import {acquire_workspace_style} from './workspace_styles';
 import css from './source_inactive_regions.css';
 
 const owners=new WeakMap<object,{ids:string[];style:{remove():void}}>();
-/** 范围来自编译服务；装饰跟随共享模型，历史快照不借用当前工程状态。 */
+/** The range comes from the compilation service; decorations follow the shared model, historical snapshots do not borrow the current project state. */
 export function set_source_inactive_regions(model:any,ranges:language_range[]=[]):void{
  const previous=owners.get(model);
  if(model.isDisposed()){previous?.style.remove();owners.delete(model);return;}

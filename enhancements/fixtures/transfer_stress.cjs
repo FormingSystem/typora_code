@@ -1,4 +1,4 @@
-// 两个真实 renderer/频道反复交接；文档端口替身，真实文档另由 document_transfer 用例覆盖。
+// Two real renderer/ channels repeatedly hand over; the document port is a placeholder, and the real document is covered by document_transfer use case.
 module.exports = async ({open, evaluate, evidence}) => {
   const assert = require('node:assert/strict'), fs = require('node:fs'), path = require('node:path');
   const pair = [await open(), await open()];

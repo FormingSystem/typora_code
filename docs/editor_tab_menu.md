@@ -1,3 +1,5 @@
+[English](editor_tab_menu.en.md)
+
 # 文档标签右键菜单
 
 ## R030：目标与参考

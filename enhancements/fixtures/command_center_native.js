@@ -1,4 +1,4 @@
-// 原始Typora的顶栏首页、既有命令和文件查询；仅操作隔离工程。
+// Original Typora top bar home page, existing commands and file queries; only operate on the isolated project.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],metrics=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

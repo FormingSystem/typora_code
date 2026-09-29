@@ -81,7 +81,7 @@ for (let attempt = 0; attempt < 40; attempt += 1) {
   await new Promise((resolve) => setTimeout(resolve, 250));
 }
 
-// 使用 Chromium 鼠标输入覆盖按下、焦点切换、松开的完整过程，不能用 button.click() 替代。
+// Use Chromium mouse input to cover the complete process of pressing, focus switching, and releasing, and cannot use button.click() as a substitute.
 const code_collapsed_before = await evaluate(`Boolean(document.querySelector('.linux-note-code-toggle')?.closest('.md-fences')?.classList.contains('is-code-collapsed'))`);
 await click_element('#write > p');
 await click_element('.linux-note-code-toggle span:last-child');

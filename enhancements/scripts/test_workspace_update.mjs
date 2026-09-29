@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import {randomUUID} from "node:crypto";
 import fs from 'node:fs';
 import path from 'node:path';
@@ -16,7 +17,7 @@ assert.equal(service.release_info(latest),latest);
 for(const value of [{}, {...latest,schema:2},make_release(-1),{schema:1,releases:[latest.releases[0],latest.releases[0]]},make_release(1.2),{schema:1,releases:[{...latest.releases[0],notes:['']}]}])assert.throws(()=>service.release_info(value));
 for(const url of ['http://github.com/a','https://github.com.evil.invalid/a','https://u:p@github.com/a','https://github.com:444/a','file:///tmp/x'])assert.throws(()=>service.allowed_url(url));
 checks.push('版本、递增顺序、公告和HTTPS来源严格校验');
-// 替换传输端口，执行真实下载流逻辑；不访问外网。
+// Replace transmission port, execute real download stream logic; do not access the outside network.
 const original_get=https.get;
 async function transfer(scenario,options={}){
  https.get=(_url,_options,callback)=>{const request=new EventEmitter();request.destroy=()=>{};queueMicrotask(()=>{const response=new PassThrough();response.statusCode=scenario.status||200;response.headers=scenario.headers||{};callback(response);queueMicrotask(()=>scenario.body?.(response));});return request;};
@@ -108,7 +109,7 @@ const paths=service.update_paths(bootstrap);assert.equal(paths.state_root,path.j
 checks.push('无Git首次ZIP按清单建立等价SHA，同序号新SHA可安装，失败回执不变，手工换装/坏回执失效，用户temp自动创建');
 console.log(JSON.stringify({status:'PASS',checks,iterations,evidence:root},null,2));
 
-// R047.9：生命周期测试使用真实小载荷；不触及任何用户安装或备份。
+// R047.9：Lifecycle testing uses real small payload; does not touch any user installation or backup.
 const lifecycle_root=path.join(root,'lifecycle');fs.mkdirSync(lifecycle_root);
 const make_owned=(pid=process.pid)=>{const job=randomUUID(),directory=path.join(lifecycle_root,job);fs.mkdirSync(path.join(directory,'payload'),{recursive:true});fs.writeFileSync(path.join(directory,'repository.zip'),Buffer.alloc(4096));fs.writeFileSync(path.join(directory,'payload','asset'),Buffer.alloc(4096));fs.writeFileSync(path.join(directory,'ownership.json'),JSON.stringify({schema:1,kind:'typora-code-update',job,pid,children:[],created_at:new Date(Date.now()-172800000).toISOString()}));return {job,directory};};
 for(let cycle=0;cycle<20;cycle++){const item=make_owned();assert(await service.cleanup_update_payload(lifecycle_root,item.job,{current:true}));const record=JSON.parse(fs.readFileSync(path.join(item.directory,'ownership.json'),'utf8'));assert.equal(record.reclaimed_bytes,8192);assert(!fs.existsSync(path.join(item.directory,'payload')));}

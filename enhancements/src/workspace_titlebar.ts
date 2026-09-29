@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {git_icon, type git_icon_name} from "./git_icons";
 import {current_remote_workspace} from './remote_workspace_context';
 import {acquire_workspace_style} from "./workspace_styles";
@@ -13,7 +14,7 @@ type titlebar_binding={dispose():void};
 let active_binding:titlebar_binding|undefined;
 let setting_request:Promise<unknown>|undefined;
 
-/** 单行窗口复用宿主窗控节点和阅读历史；设置只对下一次正常启动生效。 */
+/** Single-line window reuses the host window control node and reading history; settings take effect only for the next normal startup. */
 export function install_workspace_titlebar(files:workspace_file_host,open_files:()=>void,open_center:()=>void=open_files):titlebar_binding|undefined{
   if(active_binding)return active_binding;
   const runtime=window as unknown as titlebar_runtime;
@@ -61,28 +62,28 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
   const history_button=(name:git_icon_name,label:string,direction:number)=>{
     const button=document.createElement("button");button.type="button";button.dataset.workspaceInteraction="action";button.className="workspace-titlebar-history";
     button.title=label;button.setAttribute("aria-label",label);button.append(git_icon(name));
-    // 鼠标导航保留正文焦点与选区，键盘Tab仍可正常聚焦按钮。
+    // Mouse navigation retains the document focus and selection, keyboard Tab can still normally focus the button.
     button.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
     button.addEventListener("click",()=>window.dispatchEvent(new CustomEvent("linux-note-reading-history-travel",{detail:{direction}})),{signal:events.signal});
     center.append(button);return button;
   };
-  const back=history_button("arrow-left","后退 (Alt+←)",-1),forward=history_button("arrow-right","前进 (Alt+→)",1);
+  const back=history_button("arrow-left",workspace_text("titlebar_back_alt"),-1),forward=history_button("arrow-right",workspace_text("titlebar_forward_alt"),1);
   const history_state=(state:{back?:boolean;forward?:boolean})=>{back.disabled=!state.back;forward.disabled=!state.forward;};
   history_state({back:root.dataset.linuxNoteHistoryBack==="true",forward:root.dataset.linuxNoteHistoryForward==="true"});
   window.addEventListener("linux-note-reading-history-state",event=>history_state((event as CustomEvent).detail||{}),{signal:events.signal});
-  const search=document.createElement("button");search.type="button";search.dataset.workspaceInteraction="action";search.className="workspace-titlebar-search";search.title="搜索文件 (Ctrl+P)";search.setAttribute("aria-label","搜索文件 (Ctrl+P)");
+  const search=document.createElement("button");search.type="button";search.dataset.workspaceInteraction="action";search.className="workspace-titlebar-search";search.title=workspace_text("titlebar_search_file_ctrl_p");search.setAttribute("aria-label",workspace_text("titlebar_search_file_ctrl_p"));
   const search_label=document.createElement("span");search.append(git_icon("search"),search_label);center.append(search);
   const plain_title=document.createElement("span");plain_title.className="workspace-titlebar-window-title";plain_title.hidden=true;center.append(plain_title);
   search.addEventListener("mousedown",event=>event.preventDefault(),{signal:events.signal});
   search.addEventListener("click",open_center,{signal:events.signal});
   const title=document.querySelector("title");
-  const refresh_label=()=>{const folder=files.context_root(),remote=current_remote_workspace();search_label.textContent=remote?'SSH: '+(remote.username||remote.target.split('@')[0]):folder?(files.path_api.basename(folder)||folder):"搜索文件";search.title=remote?(remote.name||remote.target)+' · '+remote.target+(remote.port?':'+remote.port:'')+(remote.state==='connected'?'':' · 未连接'):'搜索文件 (Ctrl+P)';plain_title.textContent=remote?search_label.textContent:title?.textContent?.trim()||search_label.textContent;};
+  const refresh_label=()=>{const folder=files.context_root(),remote=current_remote_workspace();search_label.textContent=remote?'SSH: '+(remote.username||remote.target.split('@')[0]):folder?(files.path_api.basename(folder)||folder):workspace_text("titlebar_search_file");search.title=remote?(remote.name||remote.target)+' · '+remote.target+(remote.port?':'+remote.port:'')+(remote.state==='connected'?'':workspace_text("titlebar_not_connected")):workspace_text("titlebar_search_file_ctrl_p");plain_title.textContent=remote?search_label.textContent:title?.textContent?.trim()||search_label.textContent;};
   refresh_label();
   window.addEventListener("linux-note-workspace-context-changed",refresh_label,{signal:events.signal});
   window.addEventListener('typora-code-remote-state-changed',refresh_label,{signal:events.signal});
   const observer=new MutationObserver(refresh_label);if(title)observer.observe(title,{childList:true,characterData:true,subtree:true});cleanup.push(()=>observer.disconnect());
   const release=files.core.app.workspace.on("active-leaf:change",refresh_label);if(typeof release==="function")cleanup.push(release);
-  // 原生文件加载仍直接访问 #title-text 等节点，必须保持连接，仅隐藏原来的呈现。
+  // Native file loading still directly accesses #title-text and similar nodes, must maintain the connection, only hide the original presentation.
   const native_state=document.createElement("div");native_state.hidden=true;native_state.style.setProperty("display","none","important");
   right.append(traffic);native_state.append(...original_nodes.filter(node=>node!==traffic));
   bar.replaceChildren(left,center,right,native_state);bar.dataset.workspaceTitlebar="ready";root.dataset.linuxNoteTitlebar="ready";
@@ -102,14 +103,14 @@ export function install_workspace_titlebar(files:workspace_file_host,open_files:
     const toggle=(key:keyof titlebar_settings,label:string):workspace_menu_entry=>({id:key,title:label,checked:value[key],disabled:!settings,action:()=>{
       if(disposed)return;
       try{toggle_titlebar_setting(settings,key);apply_settings();}
-      catch(error){setting_error?.close(false);setting_error=workspace_dialog("顶栏设置保存失败");setting_error.content.textContent=String(error instanceof Error?error.message:error);}
+      catch(error){setting_error?.close(false);setting_error=workspace_dialog(workspace_text("titlebar_top_bar_settings_save_failed"));setting_error.content.textContent=String(error instanceof Error?error.message:error);}
     }});
-    const entries=[toggle("menu_bar","菜单栏"),toggle("command_center","命令中心")];
-    if(value.command_center)entries.push(toggle("navigation_controls","导航控件"));
+    const entries=[toggle("menu_bar",workspace_text("titlebar_menu_bar")),toggle("command_center",workspace_text("titlebar_command_center"))];
+    if(value.command_center)entries.push(toggle("navigation_controls",workspace_text("titlebar_navigation_controls")));
     close_context=workspace_menu(event,entries,"workspace-menu-compact workspace-titlebar-context",()=>{close_context=undefined;});
   };
   const owns_target=(target:EventTarget|null)=>target instanceof Node&&bar.contains(target)&&!traffic.contains(target)&&!native_state.contains(target);
-  // 先于宿主 root-menu 处理右键；窗控、正文和文件标签继续由各自所有者处理。
+  // Handle the right-click before the host root-menu; the window control, document, and file tabs continue to be handled by their respective owners.
   window.addEventListener("mousedown",event=>{if(event.button===2&&owns_target(event.target)){event.preventDefault();event.stopImmediatePropagation();}},{capture:true,signal:events.signal});
   window.addEventListener("contextmenu",event=>{if(owns_target(event.target))open_context(event);},{capture:true,signal:events.signal});
   window.addEventListener("keydown",event=>{

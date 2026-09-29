@@ -1,7 +1,7 @@
 import {create_workspace_lifetime} from "./workspace_lifetime";
 const MIME="application/x-typora-code-terminal-tab";
 
-/** 原生DnD只传递本列表当前持有的会话身份；外部拖放不具有移动权限。 */
+/** Native DnD only passes the session identity currently held in this list; external drag and drop does not have the right to move. */
 export function bind_terminal_tab_drag(tabs:HTMLElement,move:(source:string,target:string,after:boolean)=>void,settled:()=>void){
   const lifetime=create_workspace_lifetime();let source="",mark:HTMLElement|undefined,after=false;
   const clear_mark=()=>{mark?.removeAttribute("data-drop-edge");mark=undefined;tabs.classList.remove("is-drop-end");};

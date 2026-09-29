@@ -1,4 +1,4 @@
-// 原始宿主隔离文档；真实文件服务及树事件，不触碰用户文件。
+// Original host isolation documentation; real file services and tree events, do not touch user files.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[],counts=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms));

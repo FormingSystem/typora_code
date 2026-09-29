@@ -1,3 +1,5 @@
+[English](workspace_settings.en.md)
+
 # R072 三层设置与统一自有配置
 
 2026-09-22用户要求：Typora原生、社区插件、TyporaCode自有功能分为三层；自有功能统一一层管理，不能在多个配置入口维护互不一致的副本。

@@ -1,4 +1,4 @@
-// 隔离原始宿主：全文搜索范围、文件类型、忽略开关及内存模型。
+// Isolate the original host: full-text search scope, file types, ignore switch, and memory model.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

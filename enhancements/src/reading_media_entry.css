@@ -1,7 +1,7 @@
-/* 共享悬停覆盖层：保留32px控件和8px间隙，全部位于正文排版之外。 */
+/* Shared hover overlay: retain 32px control and 8px gap, all located outside of the document content layout. */
 .reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style}
 .reading-media-entry{position:absolute;display:flex;align-items:flex-start;justify-content:flex-end;box-sizing:border-box;height:40px;padding:0 8px 8px;margin:0;pointer-events:none}
-/* 悬停覆盖入口使用实体阅读底色，不能被通用工具栏的半透明hover替换。 */
+/* Hover overlay entry uses a solid reading background color, which cannot be replaced by the semi-transparent hover of the general tool bar. */
 .reading-media-open{--workspace-interaction-hover:var(--bg-color,#fff);--workspace-interaction-foreground:var(--text-color,#24292f);display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
 .reading-media-open>svg{width:16px;height:16px;fill:currentColor;stroke:none;flex:none}
 .reading-media-open[hidden],.reading-media-open.is-small span{display:none!important}
@@ -9,14 +9,14 @@
 body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 @media print{.reading-media-entries{display:none!important}}
 
-/* 常态隐藏，键盘仍可进入；整个图像及上方浮层共同保持悬停入口。 */
+/* Normal state hidden, keyboard still accessible; the entire image and the floating layer above remain hover entry. */
 .reading-media-entry .reading-media-open{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-open,.reading-media-entry:focus-within .reading-media-open{opacity:1;pointer-events:auto}
 
-/* 只在入口显示时提供跨过8px间隙的命中桥，普通阅读不拦截指针。 */
+/* Only provide a hit bridge across the 8px gap when the entry is displayed; normal reading does not intercept the pointer. */
 .reading-media-entry.is-revealed,.reading-media-entry:focus-within{pointer-events:auto}
 
-/* 代码复制采用共享紧凑动作尺寸，覆盖定位不占正文行盒。 */
+/* Code copy uses shared compact action size, overlay positioning does not occupy the document line box. */
 .reading-media-entry.is-compact{height:28px;padding:0 4px 4px}
 .reading-media-entry.is-compact .reading-media-open{min-width:24px;width:24px;height:24px;padding:3px;font-weight:normal}
 .reading-media-entry.is-compact .reading-copy-feedback{position:absolute;right:32px;top:0;width:max-content;max-width:min(240px,calc(100vw - 64px));padding:3px 6px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px/18px "Segoe UI","Microsoft YaHei UI",sans-serif;white-space:normal;pointer-events:none}

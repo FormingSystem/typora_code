@@ -1,5 +1,6 @@
+require('./fixture_locale.cjs');
 'use strict';
-// 显式指定SSH测试目标和临时目录，仅创建/清理本测试独占的随机目录。
+// Explicitly specify SSH test targets and temporary directories, only create/clean up this test's exclusive random directory.
 const assert=require('node:assert/strict'),path=require('node:path'),crypto=require('node:crypto');
 const {create_remote_ssh}=require('../src/remote_ssh_service.cjs');
 const target=process.env.TYPORA_TEST_SSH_TARGET,password=process.env.TYPORA_TEST_SSH_PASSWORD;

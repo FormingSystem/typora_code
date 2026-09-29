@@ -66,7 +66,7 @@ export class WorkspaceSplit extends WorkspaceParent {
   replaceChild(previous: WorkspaceNode, next: WorkspaceNode) {
     if (!this.children.includes(previous)) return
     super.replaceChild(previous, next)
-    // 嵌套分栏展开/收回后，新节点继续占用父分栏原来的份额。
+    // After expanding or collapsing nested split view, new nodes continue to occupy the original share of the parent split view.
     this.updatePaneSizes()
   }
 

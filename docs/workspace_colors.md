@@ -1,3 +1,5 @@
+[English](workspace_colors.en.md)
+
 # R074 工作台颜色与视觉层次
 
 ## R074.8 快速输入颜色角色补齐（2026-09-27）

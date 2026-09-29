@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_core, graph_leaf} from "./git_graph_host";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {file_key, source_file_path} from "./workspace_file_uri";
@@ -9,7 +10,7 @@ const locked_groups = new WeakSet<object>();
 type editor_group = graph_leaf["parent"] & {children?: graph_leaf[]; activeLeaf?: graph_leaf; containerEl?: HTMLElement};
 type routing_core = graph_core & {split_workspace_group?(leaf: graph_leaf, side: "right"): editor_group};
 
-/** 编辑器预览设置只从既有用户设置存储解析，关闭后也不改变当前文档的正文状态。 */
+/** Editor preview settings only parse from existing user settings, and closing them does not change the current document's content status. */
 export function read_workspace_editor_settings(): {enable_preview: boolean;wrap_tabs:boolean;link_preview_enabled:boolean} {
   const value = get_workspace_app()?.settings.get(KEY) as Record<string,unknown> | undefined;
   return Object.fromEntries(Object.entries(WORKSPACE_EDITOR_DEFAULTS).map(([key,fallback])=>[key,typeof value?.[key]==="boolean"?value[key]:fallback])) as ReturnType<typeof read_workspace_editor_settings>;
@@ -18,10 +19,10 @@ export function set_workspace_editor_preview(enabled: boolean | undefined): void
   set_workspace_editor_setting("enable_preview",enabled);
 }
 export function set_workspace_editor_setting(key:string,enabled:boolean|undefined):void {
-  if(!Object.hasOwn(WORKSPACE_EDITOR_DEFAULTS,key))throw new Error("未知编辑器设置。");
-  if (enabled !== undefined && typeof enabled !== "boolean") throw new Error("编辑器预览设置无效。");
+  if(!Object.hasOwn(WORKSPACE_EDITOR_DEFAULTS,key))throw new Error(workspace_text("editor_settings_unknown_editor_settings"));
+  if (enabled !== undefined && typeof enabled !== "boolean") throw new Error(workspace_text("editor_settings_invalid_editor_preview_settings"));
   const settings = get_workspace_app()?.settings;
-  if (!settings) throw new Error("工作台设置尚未就绪。");
+  if (!settings) throw new Error(workspace_text("language_service_settings_the_workbench_settings_are_not_ready"));
   const value={...(settings.get(KEY) as Record<string,unknown>||{})};
   if(enabled===undefined)delete value[key];else value[key]=enabled;
   settings.set_and_save(KEY,value);
@@ -35,7 +36,7 @@ export function set_workspace_editor_group_locked(group: graph_leaf["parent"], l
   if (container) {if (locked) container.dataset.workspaceEditorLocked = "true"; else delete container.dataset.workspaceEditorLocked;}
 }
 const editor_identity = (target: string) => target.startsWith("typ://") && !source_file_path(target) ? target : file_key(source_file_path(target) || target);
-/** 文件、差异与工具标签共用目标组选择；锁定组只接收已在该组存在的文档。返回值不主动切换焦点。 */
+/** File, differences, and tools tabs share the same target group selection; locked groups only accept documents already in the group. The return value does not actively switch focus. */
 export function select_workspace_editor_group(core: graph_core, target_path: string, preferred_group = core.app.workspace.activeLeaf?.parent): editor_group {
   const workspace = core.app.workspace as graph_core["app"]["workspace"] & {rootSplit?: {eachLeaves(callback: (leaf: graph_leaf) => void): void}};
   const groups = new Map<editor_group, graph_leaf[]>();
@@ -49,6 +50,6 @@ export function select_workspace_editor_group(core: graph_core, target_path: str
   const unlocked = [...groups.keys()].find(group => !workspace_editor_group_locked(group)); if (unlocked) return unlocked;
   const source = workspace.activeLeaf || [...groups.values()][0]?.[0];
   const split = (core as routing_core).split_workspace_group;
-  if (!source || typeof split !== "function") throw new Error("没有可用的未锁定编辑器组。");
+  if (!source || typeof split !== "function") throw new Error(workspace_text("editor_settings_no_available_unlocked_editor_group"));
   return split.call(core, source, "right");
 }

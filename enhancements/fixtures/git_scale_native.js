@@ -1,4 +1,4 @@
-// 独立Typora副本与真实十万文件仓库；不使用用户仓库或用户文档。
+// Independent Typora copy and real million-file repository; do not use user repository or user documents.
 (async () => {
   const fs = reqnode('fs'), path = reqnode('path'), base = __CASE_ROOT__, checks = [], refresh_ms = [], intervals = [], long_intervals = [];
   let phase = "idle";
@@ -25,7 +25,7 @@
       phase = "refresh_" + round;
       await fs.promises.rename(path.join(base,'workspace/large',round%2?'changed.md':'file-00000.md'),path.join(base,'workspace/large',round%2?'file-00000.md':'changed.md'));
       const start = performance.now(), operation = panel.refresh(false);
-      // 独立原生阅读叶子切换与终端输入表面，在Git读取尚未结束时操作。
+      // Independent native reading leaf switch and terminal input surface, operate while Git reading has not ended yet.
       if (round % 2 === 0) {
         app.workspace.activeLeaf = reading.parent.toggleTab(reading.state.path);
         assert(app.workspace.activeLeaf === reading, '刷新期间阅读切换 ' + round);

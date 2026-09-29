@@ -1,4 +1,4 @@
-// 原始Typora副本运行候选构建；查询、打开仅使用专属临时工作区。
+// Original Typora copy running candidate construction; queries and opening only use the dedicated temporary workspace.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

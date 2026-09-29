@@ -1,4 +1,5 @@
 import path from "./path"
+import {_options} from "typora"
 import { Logger } from "./io/logger/logger"
 import { App } from "./app"
 import { coreDir } from "./common/constants"
@@ -65,7 +66,12 @@ registerService('hotkey-manager', memorize(() => new HotkeyManager()))
 registerService('i18n', memorize(() => {
   const i18n = new I18n<typeof Locale>({
     localePath: path.join(coreDir(), 'locales'),
-    userLang: useService('settings').get('displayLang'),
+    userLang: (() => {
+      const preference = useService('settings').get('displayLang');
+      if(preference === 'en' || preference === 'zh-cn')return preference;
+      const requested=[_options.displayLang,_options.userLang,_options.appLocale,_options.locale].find(value=>typeof value==='string'&&value.trim()&&value!=='auto')??'en';
+      return /^zh(?:-|_|$)/i.test(String(requested).trim())?'zh-cn':'en';
+    })(),
   })
 
   DEFAULT_OPTIONS.userLang = i18n.locale

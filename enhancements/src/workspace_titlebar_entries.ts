@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {read_color_config,save_color_config,activate_color_profile} from './workspace_color_settings';
 import {get_workspace_recents} from "./workspace_recent";
 import {read_breadcrumb_settings,set_breadcrumb_enabled} from "./workspace_breadcrumbs_settings";
@@ -22,11 +23,7 @@ export type titlebar_runtime = {
 type entry = titlebar_menu_entry;
 const separator = (): entry => ({separator: true});
 
-/**
- * Typora 1.14.9 appsrc/window/frame.js：模块 5e ClientCommand、66 megaMenu，
- * editor.stylize 与 searchPanel；window.html 的 data-insert 定义块类型。
- * 仅重用核对过的调用事实，未取得原生 Menu 树，不声称完整复制其条目/状态。
- */
+/** Typora 1.14.9 appsrc/window/frame.js: modules 5e ClientCommand and 66 megaMenu, editor.stylize, and searchPanel; window.html data-insert defines block types. Reuse only verified call behavior. The native Menu tree was not obtained; this does not claim complete parity with its entries or state. */
 export function create_workspace_titlebar_definitions(
   files: workspace_file_host, runtime: titlebar_runtime, open_files: () => void,
 ): titlebar_menu_definition[] {
@@ -39,7 +36,7 @@ export function create_workspace_titlebar_definitions(
   const call_command = (name: string, args: unknown[] = []) => runtime.ClientCommand![name](...args);
   const command = (label: string, name: string, shortcut?: string): entry => ({label, shortcut,
     disabled: !has_command(name), action: () => {if (has_command(name)) return call_command(name);}});
-  // 菜单打开后的文档切换必须失效，不能把动作施加到新文档或后台 Markdown。
+  // Document switching after the menu is opened must be invalid, cannot apply actions to new documents or background Markdown.
   const native_entry = (label: string, target: () => any, method: string, args: unknown[] = [],
     shortcut?: string, writable = true, rich = false): entry => {
     const leaf = workspace.activeLeaf;
@@ -72,73 +69,73 @@ export function create_workspace_titlebar_definitions(
         const item = native_entry(value.name || key, () => runtime.ClientCommand, "export", [value], undefined, false);
         return item;
       });
-    } catch {return [{label: "无法读取导出配置", disabled: true}];}
+    } catch {return [{label: workspace_text("titlebar_entries_cannot_read_export_configuration"), disabled: true}];}
   };
   const file_entries = async (): Promise<entry[]> => {
-    const recent_entries=await get_workspace_recents(files)?.entries() || [{label:"最近打开服务不可用",disabled:true}];
+    const recent_entries=await get_workspace_recents(files)?.entries() || [{label:workspace_text("titlebar_entries_recent_open_service_unavailable"),disabled:true}];
     const exports = await export_entries();
     const leaf = workspace.activeLeaf;
-    return [command("新建", "newFile", "Ctrl+N"), command("新建窗口", "newWindow", "Ctrl+Shift+N"), separator(),
-      {label:"打开…",shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:"打开文件夹…",shortcut:"Alt+K Alt+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
-      {label:"打开最近",children:recent_entries},
-      {label: "快速打开…", shortcut: "Ctrl+P", action: open_files}, separator(),
-      {label: "保存", shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
-      {label: "保存全部",shortcut:"Alt+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
-      {label:"自动保存",checked:read_workspace_save_settings()["files.autoSave"]!=="off",action:()=>files.core.app.commands.run("linux_note:auto_save")},
-      {label:"自动保存与本地历史设置…",action:()=>files.core.app.commands.run("linux_note:save_settings")},
-      {label:"另存为…",shortcut:"Ctrl+Shift+S",disabled:!files.source_editor_active()&&!native_writable(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:save_as");}},
-      {label:"从磁盘重新加载",disabled:!files.source_editor_active()&&!native_active(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:reload_file");}},native_command("移动到…", "moveTo"),
-      native_command("打开文件位置", "openFileLocation", undefined, false), separator(),
-      command("导入…", "import"), {label: "导出", children: exports, disabled: !native_active()},
-      {...native_command("使用上一次设置导出", "exportLast", undefined, false), disabled: !native_active() || !has_command("exportLast") || !(runtime.File?.option?.lastExport || runtime.File?.option?._lastExport)},
-      native_command("打印…", "print", undefined, false), separator(),
-      {label: "关闭标签", shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");}},
-      {label:"关闭文件夹",shortcut:"Alt+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
-      command("偏好设置…", "showPreferencePanel", "Ctrl+,"), command("关闭窗口", "close", "Alt+F4")];
+    return [command(workspace_text("titlebar_entries_new"), "newFile", "Ctrl+N"), command(workspace_text("titlebar_entries_new_window"), "newWindow", "Ctrl+Shift+N"), separator(),
+      {label:workspace_text("titlebar_entries_open"),shortcut:"Ctrl+O",action:()=>files.core.app.commands.run("linux_note:open_file")}, {label:workspace_text("titlebar_entries_open_folder"),shortcut:"Alt+K Alt+O",action:()=>files.core.app.commands.run("linux_note:open_folder")},
+      {label:workspace_text("file_commands_open_recent"),children:recent_entries},
+      {label: workspace_text("titlebar_entries_quick_open"), shortcut: "Ctrl+P", action: open_files}, separator(),
+      {label: workspace_text("remote_ssh_directory_save"), shortcut: "Ctrl+S", disabled: !files.can_save_active(), action: () => {if (workspace.activeLeaf === leaf && files.can_save_active()) return files.core.app.commands.run("linux_note:save");}},
+      {label: workspace_text("file_commands_save_all"),shortcut:"Alt+K S",action:()=>files.core.app.commands.run("linux_note:save_all")},
+      {label:workspace_text("save_settings_auto_save"),checked:read_workspace_save_settings()["files.autoSave"]!=="off",action:()=>files.core.app.commands.run("linux_note:auto_save")},
+      {label:workspace_text("timeline_auto_save_and_local_history_settings"),action:()=>files.core.app.commands.run("linux_note:save_settings")},
+      {label:workspace_text("files_save_as"),shortcut:"Ctrl+Shift+S",disabled:!files.source_editor_active()&&!native_writable(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:save_as");}},
+      {label:workspace_text("file_commands_reload_from_disk"),disabled:!files.source_editor_active()&&!native_active(),action:()=>{if(workspace.activeLeaf===leaf)return files.core.app.commands.run("linux_note:reload_file");}},native_command(workspace_text("titlebar_entries_move_to"), "moveTo"),
+      native_command(workspace_text("titlebar_entries_open_file_location"), "openFileLocation", undefined, false), separator(),
+      command(workspace_text("titlebar_entries_import"), "import"), {label: workspace_text("titlebar_entries_export"), children: exports, disabled: !native_active()},
+      {...native_command(workspace_text("titlebar_entries_export_using_last_settings"), "exportLast", undefined, false), disabled: !native_active() || !has_command("exportLast") || !(runtime.File?.option?.lastExport || runtime.File?.option?._lastExport)},
+      native_command(workspace_text("titlebar_entries_print"), "print", undefined, false), separator(),
+      {label: workspace_text("titlebar_entries_close_tab"), shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");}},
+      {label:workspace_text("file_commands_close_folder"),shortcut:"Alt+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
+      command(workspace_text("titlebar_entries_preferences"), "showPreferencePanel", "Ctrl+,"), command(workspace_text("titlebar_entries_close_window"), "close", "Alt+F4")];
   };
   const search_entry = (replace: boolean): entry => {
     const leaf = workspace.activeLeaf;
     const available = () => workspace.activeLeaf === leaf && (files.source_editor_active() || (native_active() && typeof editor()?.searchPanel?.showPanel === "function"));
-    return {label: replace ? "查找和替换" : "查找", shortcut: replace ? "Ctrl+H" : "Ctrl+F", disabled: !available(), action: () => {
+    return {label: replace ? workspace_text("titlebar_entries_find_and_replace") : workspace_text("terminal_surface_find"), shortcut: replace ? "Ctrl+H" : "Ctrl+F", disabled: !available(), action: () => {
       if (!available()) return;
       if (files.source_editor_active()) files.run_editor_command(replace ? "editor.action.startFindReplaceAction" : "actions.find");
       else editor().searchPanel.showPanel(replace);
     }};
   };
   const edit_entries = async (): Promise<entry[]> => [
-    edit_command("撤销", "undo", "undo", "Ctrl+Z"), edit_command("重做", "redo", "redo", "Ctrl+Y"), separator(),
-    edit_command("剪切", "cut", "editor.action.clipboardCutAction", "Ctrl+X"),
-    edit_command("复制", "copy", "editor.action.clipboardCopyAction", "Ctrl+C", false),
-    edit_command("粘贴", "paste", "editor.action.clipboardPasteAction", "Ctrl+V"),
-    native_command("复制为 Markdown", "copyAsMarkdown", undefined, false),
-    native_command("复制为 HTML 代码", "copyAsHTMLSource", undefined, false),
-    native_command("复制为纯文本", "copyAsPlainText", undefined, false),
-    native_command("粘贴为纯文本", "pasteAsPlain", "Ctrl+Shift+V"), separator(),
-    edit_command("全选", "selectAll", "editor.action.selectAll", "Ctrl+A", false),
-    native_command("删除当前词", "deleteWord"), native_command("删除当前格式文本", "deleteScope"),
-    native_command("删除当前行／句", "deleteLine"), native_command("删除块", "deleteBlock"), separator(),
+    edit_command(workspace_text("monaco_text_input_undo"), "undo", "undo", "Ctrl+Z"), edit_command(workspace_text("monaco_text_input_redo"), "redo", "redo", "Ctrl+Y"), separator(),
+    edit_command(workspace_text("git_diff_editor_cut"), "cut", "editor.action.clipboardCutAction", "Ctrl+X"),
+    edit_command(workspace_text("monaco_text_input_copy"), "copy", "editor.action.clipboardCopyAction", "Ctrl+C", false),
+    edit_command(workspace_text("git_diff_editor_paste"), "paste", "editor.action.clipboardPasteAction", "Ctrl+V"),
+    native_command(workspace_text("titlebar_entries_copy_as_markdown"), "copyAsMarkdown", undefined, false),
+    native_command(workspace_text("titlebar_entries_copy_as_html_code"), "copyAsHTMLSource", undefined, false),
+    native_command(workspace_text("titlebar_entries_copy_as_plain_text"), "copyAsPlainText", undefined, false),
+    native_command(workspace_text("titlebar_entries_paste_as_plain_text"), "pasteAsPlain", "Ctrl+Shift+V"), separator(),
+    edit_command(workspace_text("monaco_text_input_select_all"), "selectAll", "editor.action.selectAll", "Ctrl+A", false),
+    native_command(workspace_text("titlebar_entries_delete_current_word"), "deleteWord"), native_command(workspace_text("titlebar_entries_delete_current_formatted_text"), "deleteScope"),
+    native_command(workspace_text("titlebar_entries_delete_current_line_sentence"), "deleteLine"), native_command(workspace_text("titlebar_entries_delete_block"), "deleteBlock"), separator(),
     search_entry(false), search_entry(true),
-    {label: "在文件中查找", shortcut: "Ctrl+Shift+F", action: () => files.core.app.commands.run("linux_note:search")},
+    {label: workspace_text("titlebar_entries_search_in_file"), shortcut: "Ctrl+Shift+F", action: () => files.core.app.commands.run("linux_note:search")},
   ];
   const paragraph_entries = async (): Promise<entry[]> => [
-    ...[1,2,3,4,5,6].map(level => style(`${["一","二","三","四","五","六"][level-1]}级标题`, "changeBlock", [`header${level}`], `Ctrl+${level}`)),
-    style("正文", "changeBlock", ["paragraph"], "Ctrl+0"),
-    style("提升标题级别", "increaseHeaderLevel", [], "Ctrl+="), style("降低标题级别", "decreaseHeaderLevel", [], "Ctrl+-"), separator(),
-    native_entry("表格…", () => editor()?.tableEdit, "insertTable", [], "Ctrl+T", true, true),
-    style("代码块", "toggleFences"), style("公式块", "toggleMathBlock"), style("引用", "toggleIndent", ["blockquote"]),
-    style("有序列表", "toggleIndent", ["ol"]), style("无序列表", "toggleIndent", ["ul"]), style("任务列表", "toggleIndent", ["tasklist"]),
-    style("切换任务状态", "toggleTaskStatus"),
-    native_entry("增加缩进", () => editor()?.UserOp, "moreIndent", [editor()], "Ctrl+]", true, true),
-    native_entry("减少缩进", () => editor()?.UserOp, "lessIndent", [editor()], "Ctrl+[", true, true), separator(),
-    style("链接引用", "insertBlock", ["def_link"]), style("脚注", "insertBlock", ["def_footnote"]),
-    style("水平分割线", "insertBlock", ["hr"]), style("内容目录", "insertBlock", ["toc"]), style("YAML Front Matter", "insertMetaBlock"),
+    ...[1,2,3,4,5,6].map(level => style(workspace_text("titlebar_entries_level_heading", {value_0: String([workspace_text("titlebar_entries_1"),workspace_text("titlebar_entries_two"),workspace_text("titlebar_entries_three"),workspace_text("titlebar_entries_four"),workspace_text("titlebar_entries_five"),workspace_text("titlebar_entries_six")][level-1])}), "changeBlock", [`header${level}`], `Ctrl+${level}`)),
+    style(workspace_text("titlebar_entries_document_content"), "changeBlock", ["paragraph"], "Ctrl+0"),
+    style(workspace_text("titlebar_entries_increase_heading_level"), "increaseHeaderLevel", [], "Ctrl+="), style(workspace_text("titlebar_entries_decrease_heading_level"), "decreaseHeaderLevel", [], "Ctrl+-"), separator(),
+    native_entry(workspace_text("titlebar_entries_table"), () => editor()?.tableEdit, "insertTable", [], "Ctrl+T", true, true),
+    style(workspace_text("titlebar_entries_code_block"), "toggleFences"), style(workspace_text("titlebar_entries_formula_block"), "toggleMathBlock"), style(workspace_text("titlebar_entries_citation"), "toggleIndent", ["blockquote"]),
+    style(workspace_text("titlebar_entries_ordered_list"), "toggleIndent", ["ol"]), style(workspace_text("titlebar_entries_unordered_list"), "toggleIndent", ["ul"]), style(workspace_text("titlebar_entries_task_list"), "toggleIndent", ["tasklist"]),
+    style(workspace_text("titlebar_entries_toggle_task_status"), "toggleTaskStatus"),
+    native_entry(workspace_text("titlebar_entries_increase_indentation"), () => editor()?.UserOp, "moreIndent", [editor()], "Ctrl+]", true, true),
+    native_entry(workspace_text("titlebar_entries_decrease_indentation"), () => editor()?.UserOp, "lessIndent", [editor()], "Ctrl+[", true, true), separator(),
+    style(workspace_text("titlebar_entries_link_reference"), "insertBlock", ["def_link"]), style(workspace_text("titlebar_entries_footnote"), "insertBlock", ["def_footnote"]),
+    style(workspace_text("titlebar_entries_horizontal_rule"), "insertBlock", ["hr"]), style(workspace_text("titlebar_entries_table_of_contents"), "insertBlock", ["toc"]), style("YAML Front Matter", "insertMetaBlock"),
   ];
   const format_entries = async (): Promise<entry[]> => {
     const bookmark = editor()?.styleBookmark?.style;
-    return [...([ ["加粗","strong"], ["斜体","em"], ["下划线","underline"], ["代码","code"], ["内联公式","inline_math"],
-      ["删除线","del"], ["高亮","highlight"], ["上标","superscript"], ["下标","subscript"], ["注释","comment"],
-      ["超链接","link"], ["图像","image"] ] as const).map(([label,name]) => ({...style(label,"toggleStyle",[name],({strong:"Ctrl+B",em:"Ctrl+I",underline:"Ctrl+U",code:"Ctrl+Shift+`",link:"Ctrl+K",image:"Ctrl+Shift+I"} as Record<string,string>)[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name))})),
-      separator(), style("清除样式", "clearStyle", [], "Ctrl+\\")];
+    return [...([ [workspace_text("titlebar_entries_bold"),"strong"], [workspace_text("titlebar_entries_italic"),"em"], [workspace_text("terminal_settings_view_underline"),"underline"], [workspace_text("titlebar_entries_code"),"code"], [workspace_text("titlebar_entries_inline_formula"),"inline_math"],
+      [workspace_text("titlebar_entries_strikethrough"),"del"], [workspace_text("titlebar_entries_highlight"),"highlight"], [workspace_text("titlebar_entries_superscript"),"superscript"], [workspace_text("titlebar_entries_subscript"),"subscript"], [workspace_text("color_catalog_comment"),"comment"],
+      [workspace_text("titlebar_entries_hyperlink"),"link"], [workspace_text("titlebar_entries_image"),"image"] ] as const).map(([label,name]) => ({...style(label,"toggleStyle",[name],({strong:"Ctrl+B",em:"Ctrl+I",underline:"Ctrl+U",code:"Ctrl+Shift+`",link:"Ctrl+K",image:"Ctrl+Shift+I"} as Record<string,string>)[name]), checked: Boolean(native_active() && bookmark?.inline?.includes(name))})),
+      separator(), style(workspace_text("titlebar_entries_clear_style"), "clearStyle", [], "Ctrl+\\")];
   };
   const terminal_entries=async():Promise<entry[]>=>{
     const state=read_terminal_state(files.core.app),session_id=state?.active_id;
@@ -146,12 +143,12 @@ export function create_workspace_titlebar_definitions(
       const current=read_terminal_state(files.core.app);
       if(current&&(!session||Boolean(current.active_id)&&current.active_id===session_id))files.core.app.commands.run("linux_note:"+id);
     }});
-    return [terminal_entry("新建终端","terminal",false,"Alt+Shift+`"),terminal_entry("拆分终端","terminal_split",true),
-      {...terminal_entry("显示／隐藏终端","terminal_toggle",false,"Ctrl+`"),checked:Boolean(state?.panel_visible)},separator(),
-      terminal_entry("查找…","terminal_find",true),terminal_entry("清屏","terminal_clear",true),terminal_entry("重命名…","terminal_rename",true),separator(),
-      {...terminal_entry("移动到编辑器","terminal_move_editor",true),disabled:!state?.active_id||state.location==="editor"},
-      {...terminal_entry("移动到面板","terminal_move_panel",true),disabled:!state?.active_id||state.location==="panel"},separator(),
-      terminal_entry("重启终端","terminal_restart",true),terminal_entry("终止终端","terminal_kill",true),separator(),terminal_entry("终端设置…","terminal_settings")];
+    return [terminal_entry(workspace_text("titlebar_entries_new_terminal"),"terminal",false,"Alt+Shift+`"),terminal_entry(workspace_text("terminal_workspace_split_terminal"),"terminal_split",true),
+      {...terminal_entry(workspace_text("titlebar_entries_show_hide_terminal"),"terminal_toggle",false,"Ctrl+`"),checked:Boolean(state?.panel_visible)},separator(),
+      terminal_entry(workspace_text("titlebar_entries_find"),"terminal_find",true),terminal_entry(workspace_text("terminal_workspace_clear_screen"),"terminal_clear",true),terminal_entry(workspace_text("terminal_workspace_rename"),"terminal_rename",true),separator(),
+      {...terminal_entry(workspace_text("titlebar_entries_move_to_editor"),"terminal_move_editor",true),disabled:!state?.active_id||state.location==="editor"},
+      {...terminal_entry(workspace_text("terminal_workspace_move_to_panel"),"terminal_move_panel",true),disabled:!state?.active_id||state.location==="panel"},separator(),
+      terminal_entry(workspace_text("terminal_workspace_restart_terminal"),"terminal_restart",true),terminal_entry(workspace_text("terminal_workspace_terminate_terminal"),"terminal_kill",true),separator(),terminal_entry(workspace_text("terminal_workspace_terminal_settings_e950837d"),"terminal_settings")];
   };
   const toggle_sidebar_view=(id:string,command_id:string)=>{
     const current=read_workspace_sidebar_state(workspace.sidebar);
@@ -162,19 +159,19 @@ export function create_workspace_titlebar_definitions(
     const sidebar=read_workspace_sidebar_state(workspace.sidebar),terminal=read_terminal_state(files.core.app);
     const toolbar=editor()?.toolbar?.dom;
     return [
-    {...native_entry("源代码模式", () => runtime.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor()?.sourceView?.inSourceMode)},
-    {...native_entry("只读模式", () => runtime.EditHelper, "toggleReadonlyMode", [], undefined, false), checked: Boolean(native_active() && runtime.File?.isReadonlyMode)},
-    {...native_entry("专注模式", editor, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime.File?.isFocusMode)},
-    {...native_entry("打字机模式", editor, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime.File?.isTypeWriterMode)}, separator(),
-    {label: "显示／隐藏侧栏", shortcut: "Alt+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
-    {label:"面包屑导航",checked:read_breadcrumb_settings(files.context_root()).enabled,action:()=>set_breadcrumb_enabled(files.context_root(),!read_breadcrumb_settings(files.context_root()).enabled)},
-    {label:"面包屑设置…",action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
-    {label: "大纲", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
-    {label: "文件树", checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
-    {label:"扩展",shortcut:"Ctrl+Shift+X",checked:sidebar.sidebar_visible&&sidebar.active_id==="typora_code:community_plugins",action:()=>toggle_sidebar_view("typora_code:community_plugins","typora_code:community_plugins")},
-    {...command("状态栏", "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},
-    {...native_command("工具栏", "toggleToolbar",undefined,false),checked:Boolean(native_active()&&toolbar?.getClientRects().length&&getComputedStyle(toolbar).display!=="none")},
-    {label:"终端",shortcut:"Ctrl+`",checked:Boolean(terminal?.panel_visible),disabled:!terminal,action:()=>files.core.app.commands.run("linux_note:terminal_toggle")},separator(),
+    {...native_entry(workspace_text("titlebar_entries_source_code_mode"), () => runtime.File, "toggleSourceMode", [], "Ctrl+/", false), checked: Boolean(native_active() && editor()?.sourceView?.inSourceMode)},
+    {...native_entry(workspace_text("titlebar_entries_read_only_mode"), () => runtime.EditHelper, "toggleReadonlyMode", [], undefined, false), checked: Boolean(native_active() && runtime.File?.isReadonlyMode)},
+    {...native_entry(workspace_text("titlebar_entries_focus_mode"), editor, "toggleFocusMode", [], "F8", false), checked: Boolean(runtime.File?.isFocusMode)},
+    {...native_entry(workspace_text("titlebar_entries_typewriter_mode"), editor, "toggleTypeWriterMode", [], "F9", false), checked: Boolean(runtime.File?.isTypeWriterMode)}, separator(),
+    {label: workspace_text("titlebar_entries_show_hide_sidebar"), shortcut: "Alt+B", checked:sidebar.sidebar_visible, action: () => workspace.sidebar.toggle()},
+    {label:workspace_text("titlebar_entries_breadcrumbs_navigation"),checked:read_breadcrumb_settings(files.context_root()).enabled,action:()=>set_breadcrumb_enabled(files.context_root(),!read_breadcrumb_settings(files.context_root()).enabled)},
+    {label:workspace_text("breadcrumbs_breadcrumbs_settings"),action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
+    {label: workspace_text("titlebar_entries_outline"), checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
+    {label: workspace_text("titlebar_entries_file_tree"), checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
+    {label:workspace_text("community_plugins_extension"),shortcut:"Ctrl+Shift+X",checked:sidebar.sidebar_visible&&sidebar.active_id==="typora_code:community_plugins",action:()=>toggle_sidebar_view("typora_code:community_plugins","typora_code:community_plugins")},
+    {...command(workspace_text("titlebar_entries_status_bar"), "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},
+    {...native_command(workspace_text("titlebar_entries_toolbar"), "toggleToolbar",undefined,false),checked:Boolean(native_active()&&toolbar?.getClientRects().length&&getComputedStyle(toolbar).display!=="none")},
+    {label:workspace_text("terminal_panel_terminal"),shortcut:"Ctrl+`",checked:Boolean(terminal?.panel_visible),disabled:!terminal,action:()=>files.core.app.commands.run("linux_note:terminal_toggle")},separator(),
     ...WORKSPACE_ZOOM_ACTIONS.map(({id, label, shortcut}) => ({label, shortcut,
       disabled: !workspace_zoom_available(runtime, id), action: () => {
         if (workspace_zoom_available(runtime, id)) files.core.app.commands.run(id);
@@ -182,7 +179,7 @@ export function create_workspace_titlebar_definitions(
   ];
   };
   const theme_entries = async (): Promise<entry[]> => {
-    const customize:entry={label:'自定义颜色…',action:()=>files.core.app.commands.run('typora_code:custom_colors')};
+    const customize:entry={label:workspace_text("titlebar_entries_custom_color"),action:()=>files.core.app.commands.run('typora_code:custom_colors')};
     try {
       const data = await runtime.JSBridge?.invoke("setting.getThemes");
       if (!Array.isArray(data?.all)) throw new Error("invalid themes");
@@ -192,7 +189,7 @@ export function create_workspace_titlebar_definitions(
         const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
         return {label: display, checked: name === data.current && !(name.startsWith("vscode2026_") && (name.includes("dark")?config.active?.dark:name.includes("light")?config.active?.light:false)), disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")){const config=read_color_config();config.active={};save_color_config(config);return call_command("setTheme", [name, display]);}}};
       })];
-    } catch {return [customize,separator(),{label: "无法读取主题列表", disabled: true}];}
+    } catch {return [customize,separator(),{label: workspace_text("titlebar_entries_cannot_read_theme_list"), disabled: true}];}
   };
   const help_document = (label: string, filename = label): entry => ({label,
     disabled: !runtime.dirname || !runtime.JSBridge?.invoke,
@@ -205,34 +202,34 @@ export function create_workspace_titlebar_definitions(
     disabled: !runtime.JSBridge?.invoke, action: () => runtime.JSBridge?.invoke(method),
   });
   const help_entries = async (): Promise<entry[]> => {
-    // Typora 1.14.10原生帮助：本地Docs、镜像选项及宿主IPC，不另建帮助/许可所有者。
+    // Typora 1.14.10 native help: local Docs, mirror options and host IPC, do not establish help/license owner separately.
     const domain = runtime.File?.option?.useMirrorInCN ? "typoraio.cn" : "typora.io";
     return [help_url("What's New...", `https://support.${domain}/What's-New/`), separator(),
       help_document("Quick Start"), help_document("Markdown Reference"), help_document("Install and Use Pandoc"),
       help_document("Custom Themes"), help_document("Use Images in Typora"),
       help_document("Data Recovery and Version Control", "Auto Save, Version Control and Recovery"),
       help_url("More Topics...", `https://support.${domain}/`), separator(),
-      help_document("鸣谢", "Credits"), help_document("更新日志", "Change Log"), help_document("隐私条款", "Privacy Policy"),
-      help_url("官方网站", `https://${domain}`), help_url("反馈", "mailto:hi@typora.io"), separator(),
-      help_invoke("检查更新...", "updater.checkForUpdates"), help_invoke("我的许可证...", "license.show"),
-      {label: "关于", disabled: !runtime.File?.megaMenu?.show || !runtime.$,
+      help_document(workspace_text("titlebar_entries_credits"), "Credits"), help_document(workspace_text("titlebar_entries_release_notes"), "Change Log"), help_document(workspace_text("titlebar_entries_privacy_policy"), "Privacy Policy"),
+      help_url(workspace_text("titlebar_entries_official_website"), `https://${domain}`), help_url(workspace_text("titlebar_entries_feedback"), "mailto:hi@typora.io"), separator(),
+      help_invoke(workspace_text("titlebar_entries_check_for_updates"), "updater.checkForUpdates"), help_invoke(workspace_text("titlebar_entries_my_license"), "license.show"),
+      {label: workspace_text("titlebar_entries_about"), disabled: !runtime.File?.megaMenu?.show || !runtime.$,
         action: () => {
           runtime.File?.megaMenu?.closePreferencePanel();
           if (document.body.classList.contains("native-window")) {
             runtime.$('.modal:not(.block-modal)').modal('hide'); runtime.$('#about-dialog').modal('show'); runtime.$('*:focus').blur();
           } else {runtime.File?.megaMenu?.show(); runtime.$('#m-about').trigger('click');}
         }}, separator(),
-      {label: "操作指导…", action: () => files.core.app.commands.run("typora_code:operation_guide")},
-      {label: "操作说明与快捷键…", action: () => files.core.app.commands.run("typora_code:operation_manual")},
-      {label: "检查 Typora Code 更新…", action: () => files.core.app.commands.run("typora_code:check_update")},
-      help_url("Typora Code GitHub 仓库", "https://github.com/FormingSystem/typora_code"),
+      {label: workspace_text("titlebar_entries_operation_guide"), action: () => files.core.app.commands.run("typora_code:operation_guide")},
+      {label: workspace_text("titlebar_entries_operation_instructions_and_keyboard_shortcuts"), action: () => files.core.app.commands.run("typora_code:operation_manual")},
+      {label: workspace_text("titlebar_entries_check_typora_code_update"), action: () => files.core.app.commands.run("typora_code:check_update")},
+      help_url(workspace_text("titlebar_entries_typora_code_github_repository"), "https://github.com/FormingSystem/typora_code"),
     ];
   };
   return [
-    {label: "文件", mnemonic: "F", entries: file_entries}, {label: "编辑", mnemonic: "E", entries: edit_entries},
-    {label: "段落", mnemonic: "P", entries: paragraph_entries}, {label: "格式", mnemonic: "O", entries: format_entries},
-    {label: "视图", mnemonic: "V", entries: view_entries}, {label: "主题", mnemonic: "T", entries: theme_entries},
-    {label: "终端", mnemonic: "R", entries: terminal_entries},
-    {label: "帮助", mnemonic: "H", entries: help_entries},
+    {label: workspace_text("recent_view_file"), mnemonic: "F", entries: file_entries}, {label: workspace_text("titlebar_entries_edit"), mnemonic: "E", entries: edit_entries},
+    {label: workspace_text("titlebar_entries_paragraph"), mnemonic: "P", entries: paragraph_entries}, {label: workspace_text("titlebar_entries_format"), mnemonic: "O", entries: format_entries},
+    {label: workspace_text("titlebar_entries_view"), mnemonic: "V", entries: view_entries}, {label: workspace_text("titlebar_entries_theme"), mnemonic: "T", entries: theme_entries},
+    {label: workspace_text("terminal_panel_terminal"), mnemonic: "R", entries: terminal_entries},
+    {label: workspace_text("titlebar_entries_help"), mnemonic: "H", entries: help_entries},
   ];
 }

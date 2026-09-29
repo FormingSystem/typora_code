@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -99,7 +100,7 @@ try {
   const replace = make_root('replace'); const first_file = write(replace, 'a.txt', 'needle needle\r\n'); const second_file = write(replace, 'b.txt', 'needle\n');
   result = await search(replace, 'needle'); let plan = await engine.prepare_replace(result, 'new', {match_ids: [result.files.find(file => file.relative_path === 'a.txt').matches[1].id]});
   assert.equal(plan.files[0].after_text, 'needle new\r\n'); assert.equal(fs.readFileSync(first_file, 'utf8'), 'needle needle\r\n');
-  // 外部修改公开预览对象不能改变私有执行计划。
+  // External modifications to public preview objects cannot change the private execution plan.
   plan.files[0].after_text = 'tampered'; plan.files[0].file_path = second_file;
   await engine.apply_replace(plan, {can_write: () => true}); assert.equal(fs.readFileSync(first_file, 'utf8'), 'needle new\r\n'); assert.equal(fs.readFileSync(second_file, 'utf8'), 'needle\n');
   await assert.rejects(engine.apply_replace(plan), /失效/);
@@ -132,7 +133,7 @@ try {
   const expansion = make_root('expansion');
   for (const name of ['a.txt', 'b.txt', 'c.txt']) write(expansion, name, 'needle');
   result = await search(expansion, 'needle');
-  // 替换预览总计66MiB，完整生成且预览本身不写磁盘。
+  // Replace preview total 66 MiB, full generation and the preview itself do not write to disk.
   const expanded=await engine.prepare_replace(result, 'x'.repeat(22*1024*1024));assert.equal(expanded.files.length,3);assert(expanded.files.every(file=>file.after_text.length===22*1024*1024));
   for (const name of fs.readdirSync(expansion)) assert.equal(fs.readFileSync(path.join(expansion, name), 'utf8'), 'needle');
   assert.equal(fs.readdirSync(expansion).length, 3);

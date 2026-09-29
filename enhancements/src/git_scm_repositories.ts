@@ -5,7 +5,7 @@ import {git_icon,git_icon_button} from "./git_icons";
 import {workspace_element as el,workspace_button as button,workspace_menu} from "./workspace_widgets";
 import {git_graph_text as text} from "./git_graph_i18n";
 
-/** 非当前仓库只读分支摘要；所有写入口绑定已经完成加载的当前控制器。 */
+/** Read-only branch summary for non-current repository; all write entries are bound to already loaded current controller. */
 type repository_row = {root:string;row:HTMLElement;select:HTMLButtonElement;branch:HTMLButtonElement;sync:HTMLButtonElement;update():void;paint(status:branch_status):void};
 export class git_scm_repositories {
   container=el("div","git-scm-repositories-list");epoch=0;reader:ReturnType<git_source_control["panel"]["host"]["runner"]>|undefined;
@@ -25,7 +25,7 @@ export class git_scm_repositories {
       if(this.container.children[index]!==item.row)this.container.insertBefore(item.row,this.container.children[index]||null);
     });
     this.paint_current();
-    // 首次从子目录加载会规范化仓库根；先完成根切换，再给本批摘要读取编号。
+    // The first load from a subdirectory normalizes the repository root; complete the root switch first, then assign numbering to this batch's summary.
     const epoch=++this.epoch;
     const rows=roots.filter(root=>root!==panel.root).map(root=>this.rows.get(root)!);
     if(!rows.length)return;

@@ -1,4 +1,4 @@
-"""实际文件和子进程验证测试载荷回收边界，不触碰历史无标记缓存。"""
+"Actual file and sub-process verification test the payload recovery boundary, do not touch historical unmarked cache."
 import json
 import os
 from pathlib import Path
@@ -119,7 +119,7 @@ class artifact_lifecycle(unittest.TestCase):
         finally:
             if link.exists():
                 if os.name == "nt":
-                    link.rmdir()  # 仅移除本测试建立的junction本身。
+                    link.rmdir()  # Only remove the junction itself established by this test.
                 else:
                     link.unlink()
             artifacts.finish(outside, "passed", os.getpid())

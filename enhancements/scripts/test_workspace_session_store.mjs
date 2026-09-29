@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -31,7 +32,7 @@ assert.equal(replacements,1,'相同会话连续1000次事件不反复替换文�
 counted.write(a,[],-1);assert.equal(replacements,2,'实际会话变化仍写入');
 assert.deepEqual(counted.read(a).files,[]);
 
-// 启动意图在异步恢复之前捕获；拖放附窗不读写目录会话，正常窗口和主动切目录继续恢复。
+// The launch intent is captured before asynchronous recovery; drag-and-drop attached windows do not read or write directory sessions, normal windows and active directory switching continue recovery.
 const session_bundle=await build({entryPoints:['src/workspace_sessions.ts'],bundle:true,platform:'node',format:'esm',write:false});
 const {bind_workspace_sessions:bind_sessions}=await import('data:text/javascript;base64,'+Buffer.from(session_bundle.outputFiles[0].text).toString('base64'));
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));

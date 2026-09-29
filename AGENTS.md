@@ -1,8 +1,10 @@
+[English](AGENTS.en.md)
+
 # TyporaCode 协作规则
 
 ## 工程边界
 
-TyporaCode 是独立维护的 Typora 工作台增强工程。所有实现、构建、测试、运行说明和开发交接均在本仓库维护。进入仓库先读本文件、[README](README.md)、[增强模块说明](enhancements/README.md) 和 [开发交接](docs/development_handoff.md)。
+TyporaCode 是独立维护的 Typora 工作台增强工程。所有实现、构建、测试、运行说明和开发交接均在本仓库维护。进入仓库先读本文件、[README](README.zh-CN.md)、[增强模块说明](enhancements/README.md) 和 [开发交接](docs/development_handoff.md)。
 
 本工程不依赖原知识库的目录结构、AGENTS、根脚本或本机绝对路径。不得回到原仓库开发、维护双份代码或增加跨仓库同步流程。上游研究缓存属于本仓库忽略的 `.cache/`，不构成运行依赖。
 

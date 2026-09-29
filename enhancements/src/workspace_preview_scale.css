@@ -1,4 +1,4 @@
-/* 沿用搜索预览既有尺寸；三种预览入口共用比例控制，不改变窗口缩放。 */
+/* Continue using the existing size of the search preview; three preview entries share the same ratio control, without changing the window zoom. */
 .workspace-preview-scale-controls{display:flex;align-items:center;gap:0;flex:0 1 auto;min-width:0;margin-left:auto}
 .workspace-preview-scale-controls>.git-icon-button{display:inline-flex;align-items:center;flex:none;width:var(--linux-note-shell-action-size,22px);min-width:22px;height:var(--linux-note-shell-action-size,22px);justify-content:center;padding:3px;border:0;background:transparent;color:inherit}
 .workspace-preview-scale-controls>.workspace-preview-scale-slider{box-sizing:border-box;flex:0 1 80px;width:80px;min-width:48px;max-width:80px;height:22px;margin:0;padding:0!important;border:0!important;box-shadow:none!important;background:transparent;accent-color:#0078d4}

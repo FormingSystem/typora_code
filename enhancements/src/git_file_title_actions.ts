@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_host} from "./git_graph_host";
 import type {git_graph_panel} from "./git_graph_panel";
 import type {workspace_menu_entry} from "./workspace_widgets";
@@ -10,7 +11,7 @@ import {git_graph_text as text} from "./git_graph_i18n";
 const FILE_TITLE_ACTIONS_EVENT="typora-code:file-title-git-actions";
 type file_title_request={file_path:string;current:()=>boolean;signal:AbortSignal;result?:Promise<workspace_menu_entry[]>};
 
-/** 普通文件只请求菜单贡献；Git 的读取、写事务和刷新仍归 Git 所有者。 */
+/** Regular files only request menu contributions; Git's read, write transactions, and refresh still belong to Git's owner. */
 export function request_git_file_title_actions(file_path:string,current:()=>boolean,signal:AbortSignal):Promise<workspace_menu_entry[]>{
   const detail:file_title_request={file_path,current,signal};
   document.dispatchEvent(new CustomEvent(FILE_TITLE_ACTIONS_EVENT,{detail}));
@@ -32,7 +33,7 @@ export function bind_git_file_title_actions(host:graph_host,controller_for:(root
       if(!valid())return [];
       const relative=host.path_api.relative(root,file_path).replace(/\\/gu,"/");
       if(!relative||relative===".."||relative.startsWith("../")||host.path_api.isAbsolute(relative))return [];
-      // Git 的 literal pathspec 保留带方括号、空格及非 ASCII 的实际文件身份。
+      // Git's literal pathspec retains the actual file identity with brackets, spaces, and non-ASCII.
       const change=parse_status(await reader.run(root,["status","--porcelain=v1","-z","--untracked-files=all","--",":(literal)"+relative])).find(item=>item.path===relative);
       if(!valid()||!change)return [];
       const panel=controller_for(root);
@@ -50,8 +51,8 @@ export function bind_git_file_title_actions(host:graph_host,controller_for:(root
         if(!available())return;
         void panel.prepare_and_execute_action(async()=>{
           const plan=await plan_git_action(writer.run,id,{root,target:paths[0],paths,hash:panel.state?.head||"",operation:panel.state?.operation||""},{});
-          // 计划期间用户仍可能换标签、关闭文件或修改正文，返回事务之前再次验收所有者。
-          if(disposed||!current()||!writable())throw new Error("文件状态已变化，请重新打开文件菜单后重试。");
+          // During the plan, users may still switch tabs, close files, or modify the content; all owners are accepted again before returning the transaction.
+          if(disposed||!current()||!writable())throw new Error(workspace_text("git_file_title_actions_the_file_status_has_changed_please_retry_after_reopening_the"));
           return plan;
         },writer,id).then(message=>{if(!disposed)panel.report(message);}).catch(error=>{if(!disposed)new host.core.Notice(String(error instanceof Error?error.message:error),5000);});
       }});

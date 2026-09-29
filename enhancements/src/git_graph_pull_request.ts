@@ -11,7 +11,7 @@ export const pull_request_defaults: pull_request_config = {
   destination_owner: "", destination_repository: "", destination_project: "", destination_branch: "main",
 };
 
-/** SSH/HTTPS remote 只用于推导网页位置；URL 不携带 Git 凭据。 */
+/** SSH/HTTPS remote is only used for deriving web locations; URL does not carry Git credentials. */
 export function pull_request_remote(remote: string) {
   const address = /^[^/@\s]+@[^/:\s]+:/u.test(remote) ? remote.replace(/^[^@]+@([^:]+):/u, "https://$1/") : remote;
   const url = parse_url(address);
@@ -33,7 +33,7 @@ export function validate_pull_request_providers(value: pull_request_provider[]):
   }
 }
 
-/** 同一配置表达跨fork、自建服务、目标非remote仓库及GitLab目标项目。 */
+/** The same configuration expression spans across fork, self-built services, target non-remote warehouses, and GitLab target projects. */
 export function create_pull_request_url(config: pull_request_config, branch: string, providers: pull_request_provider[]): string {
   if (!branch || !config.destination_branch) throw new Error(text("pr.error.branches_required"));
   const host = parse_url(config.host);

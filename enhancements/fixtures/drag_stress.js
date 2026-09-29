@@ -1,4 +1,4 @@
-// 在真实 core 模型和 Chromium DOM 上运行；宿主编辑 API 由拖动夹具提供。
+// Run on the real core model and Chromium DOM; host editing API is provided by the drag-and-drop fixture.
 (async () => {
   const report = {failures: [], idle: {}, tiers: [], layout: {}};
   const verify = (condition, message) => { if (!condition) report.failures.push(message); };
@@ -25,7 +25,7 @@
     document.dispatchEvent(new KeyboardEvent('keydown', {key: 'Escape', bubbles: true}));
   } finally { window.requestAnimationFrame = original_raf; }
 
-  // 不等宽三栏删除前两栏分别验证，DOM 比例必须对应仍存活的节点。
+  // Before deleting the three-column view with unequal widths, validate the first two columns separately; the DOM ratio must correspond to the still alive node.
   const Split = Object.getPrototypeOf(Object.getPrototypeOf(root)).constructor;
   for (const removed_index of [0, 1]) {
     const split = new Split('vertical');
@@ -76,7 +76,7 @@
       const times = [], start = performance.now(), open_before = open_count, close_before = close_count;
       for (let i = 0; i < rounds; i++) {
         const tick = performance.now();
-        // 四方向拆出再并回；保留一个稳定的原组，不制造 1000 个并发窗口。
+        // Split in four directions and merge back; keep one stable original group, do not create 1000 concurrent windows.
         const target = runtime.split_workspace_group(leaf, ['right', 'down', 'left', 'up'][i % 4]);
         runtime.move_workspace_leaf(leaf, target, 0, workspace);
         runtime.move_workspace_leaf(leaf, group, i % 2 ? 0 : group.children.length, workspace);
@@ -87,7 +87,7 @@
             group.children.some((node, index) => group.tabContentEl.children[index] !== node.containerEl))
           throw Error('Model/header/content order diverged');
         times.push(performance.now() - tick);
-        // 每次事务之后让事件循环处理观察器、绘制及取消，不把 1000 次挤入同一个长任务。
+        // After each transaction, let the event loop handle the observer, drawing, and cancellation; do not squeeze 1000 times into the same long task.
         await wait(0);
       }
       times.sort((a, b) => a - b);
@@ -96,7 +96,7 @@
       verify(root.containerEl.querySelectorAll('*').length === initial_nodes, 'split/merge leaks DOM at tier ' + rounds);
       verify(root.children.length === 2 && root.children.includes(group) && root.children.includes(other), 'split/merge leaks groups at tier ' + rounds);
     }
-    // 仅重排活动标签不应关闭/重开编辑器，更不能重载正文。
+    // Only rearrange active tabs should not close/open the editor, much less reload the document content.
     open_count = close_count = 0;
     for (let i = 0; i < 1000; i++) runtime.move_workspace_leaf(leaf, group, i % 2 ? 0 : group.children.length, workspace);
     report.reorder = {rounds: 1000, opens: open_count, closes: close_count};

@@ -1,4 +1,4 @@
-// 只操作由测试启动器创建的临时目录，验证原生 Typora 的面板、文件与搜索接线。
+// Only operate the temporary directory created by the test launcher; verify the panel, files, and search wiring of native Typora.
 (() => {
   const url=new URL(document.currentScript.src);const root=decodeURIComponent(url.pathname).replace(/^\/(\w:)/u,'$1').replace(/\/workspace_browser_native_test.js$/u,'');
   const result={checks:[]};const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -35,7 +35,7 @@
       expect(app.workspace.activeLeaf.view.editor.models[0].getLanguageId()==='typescript','native app open handles inserted segments and longest compound suffix');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>document.querySelector('.linux-note-workspace-search textarea'));
       const search=document.querySelector('.linux-note-workspace-search');
-      // 原生大纲过滤和全文件搜索共享一个旧输入框；自定义面板只保留自己的一组控件。
+      // Native outline filtering and full file search share one old input box; custom panels only retain their own set of controls.
       const native_search=document.querySelector('#file-library-search');
       expect(getComputedStyle(native_search).display==='none','native shared find input does not overlap custom search');
       expect(Math.abs(search.getBoundingClientRect().top-search.parentElement.getBoundingClientRect().top)<2,'custom search starts at sidebar top without native filter gap');
@@ -66,7 +66,7 @@
       expect(!document.querySelector('.typ-ribbon-item[data-id="linux_note:search"]'),'search reuses standard activity button without duplicate');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>!app.workspace.sidebar.isShown);expect(true,'same search activity button collapses sidebar');
       app.workspace.ribbon.clickButton('core.search');await wait(()=>app.workspace.sidebar.isShown);expect(true,'search activity button reopens retained results');
-      // 实际宿主 frame.js 的 ClientCommand.quickOpen -> editor.quickOpenPanel.show 路由。
+      // Actual host frame.js's ClientCommand.quickOpen -> editor.quickOpenPanel.show routing.
       ClientCommand.quickOpen();
       const quick_panel=document.querySelector('#typora-quick-open'),quick_input=document.querySelector('#typora-quick-open-input input');
       await wait(()=>quick_panel&&getComputedStyle(quick_panel).display!=='none'&&document.activeElement===quick_input);

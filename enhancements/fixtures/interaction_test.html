@@ -21,7 +21,7 @@
   <div style="height: 800px"></div>
 </article></content>
 <script>
-  // 模拟已核对的 Typora 接口，测试历史控制与宿主适配；不读写真实 Markdown。
+  // Stub verified Typora ports for navigation and host adaptation without reading or writing real Markdown files.
   let test_cursor = { type: 'cursor', id: 'outside', start: 0, end: 0 };
   window.File = {
     bundle: { filePath: 'chapter_a.md' },
@@ -32,7 +32,7 @@
           test_cursor = { type: 'cursor', id: url.slice(1), start: 0, end: 0 };
         } else if (url.includes('.md')) {
           File.editor.library.openFile(url.split('#')[0]);
-          // 社区工作区先打开文件，500ms 后才跳到其中的锚点。
+          // The community workspace opens the file before navigating to its anchor after 500ms.
           if (url.includes('#')) setTimeout(() => File.editor.tryOpenUrl('#' + url.split('#')[1]), 500);
         }
       },
@@ -55,7 +55,7 @@
     event.preventDefault();
     File.editor.tryOpenUrl(link.getAttribute('href'));
   }));
-  // 这里只模拟宿主的 CodeMirror 接口及选区事件；语法、颜色和按钮使用生产 bundle。
+  // Only the host CodeMirror interface and selection events are stubbed; syntax, colors, and controls use the production bundle.
   const mode_factories = new Map();
   window.CodeMirror = { defineMode(name, factory) { mode_factories.set(name, factory); } };
   const source_lines = [
@@ -73,6 +73,7 @@
   sizer.style.lineHeight = '24px';
   document.querySelector('.CodeMirror').CodeMirror = {
     state: {},
+    scrollTo(left, top) { const scroller=document.querySelector('.CodeMirror-scroll');if(left!==null)scroller.scrollLeft=left;if(top!==null)scroller.scrollTop=top; },
     getOption() { return current_mode; },
     setOption(name, value) {
       current_mode = value;
@@ -109,7 +110,7 @@
     document.querySelector('#write').addEventListener(event_name, (event) => {
       window.test_host_events += 1;
       const fence = event.target.closest('.md-fences');
-      // 覆盖宿主在首次聚焦时重建 DOM 的情况；重建会丢失节点上的直接监听器。
+      // Simulate host DOM reconstruction on initial focus, which removes listeners attached to the old nodes.
       if (event_name === 'mousedown' && fence && !fence.classList.contains('md-focus')) {
         fence.innerHTML = fence.innerHTML;
         fence.classList.add('md-focus');

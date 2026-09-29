@@ -106,7 +106,7 @@ export class Sidebar extends Component {
       return
     }
 
-    // 可见面板之间只移交内容，不能关闭宿主侧栏触发正文重排与原生动画。
+    // Only content is transferred between visible panels; the host sidebar cannot be closed to trigger reordering of the document content and native animations.
     const previous_panel = this.shown_panel ?? this.activePanel
     previous_panel?.hide()
     this.shown_panel = undefined

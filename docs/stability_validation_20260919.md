@@ -1,3 +1,5 @@
+[English](stability_validation_20260919.en.md)
+
 # 2026-09-19 稳定性修复与验收
 
 本轮从干净的`9164530f11f7a779ff11643618f7e94c969c231e`工作树开始，先登记R039—R045、影响分析和领域设计，再修改产品。需求与测试定义入库，原始运行日志和截图留在忽略的证据目录；开发skill同步加入现行流程并通过校验。机器可读结论及逐套件关联见[本轮证据索引](../enhancements/tests/evidence/stability_20260919.json)，后续维护入口见[测试架构](stability_testing.md)。

@@ -5,7 +5,7 @@ export function workspace_styles_preloaded(): boolean {
   const link=document.getElementById(WORKSPACE_STYLESHEET_ID);
   return link instanceof HTMLLinkElement && link.rel === "stylesheet" && !link.disabled;
 }
-/** 产品head拥有静态CSS；模块绑定只登记。独立模块测试可提供未被正式构建剥离的CSS。 */
+/** The product head owns static CSS; module binding only registers it. Isolated module tests may provide CSS that the production build removes. */
 export function acquire_workspace_style(id:string,css:string,attributes:Record<string,string>={},owner?:HTMLElement):workspace_style_handle {
   if(workspace_styles_preloaded()) {
     const link=document.getElementById(WORKSPACE_STYLESHEET_ID) as HTMLLinkElement;

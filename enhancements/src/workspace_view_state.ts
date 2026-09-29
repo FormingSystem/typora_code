@@ -1,6 +1,6 @@
 import type {workspace_file_host} from "./workspace_files";
 
-/** 菜单与活动栏读取同一侧栏所有者，原生启动阶段以实际侧栏面板补齐。 */
+/** Menu and activity bar read the same sidebar owner, native startup stage fills in the actual sidebar panel. */
 export function read_workspace_sidebar_state(sidebar:{isShown:boolean;activePanel?:{ribbonButton?:{id:string};containerEl?:HTMLElement}}) {
   let active_id=sidebar.activePanel?.ribbonButton?.id||null;
   if(active_id==="linux_note:file_explorer")active_id="core.file-explorer";

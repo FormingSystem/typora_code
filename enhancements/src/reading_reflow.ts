@@ -2,7 +2,7 @@ import {bind_reading_font_zoom} from './reading_font_zoom';
 import {bind_native_source_font_zoom} from './native_source_font_zoom';
 import {stop_native_reading_scroll} from "./reading_native_scroll";
 import {acquire_reading_blocks,reading_block_at} from "./reading_blocks";
-/** 活着的文档使用字符锚点；不写磁盘，不持有已关闭文档。 */
+/** Living documents use character anchors; they are not written to disk and do not hold closed documents. */
 type text_anchor={node:Text;offset:number;top:number};
 const active_bindings=new WeakMap<HTMLElement,ReturnType<typeof bind_reading_reflow>>();
 function character_rect(node:Text,offset:number){
@@ -11,7 +11,7 @@ function character_rect(node:Text,offset:number){
 export function capture_reflow_anchor(scroller:HTMLElement,root:HTMLElement):text_anchor|undefined {
   if(!root.isConnected||!scroller.clientHeight)return;
   const viewport=scroller.getBoundingClientRect(),target=viewport.top+viewport.height/3;
-  // 先剪掉离屏子树，避免大文档每次滚动遍历全部字符。
+  // First prune the off-screen subtrees to avoid large documents traversing all characters every time they scroll.
   const find=(element:Element):text_anchor|undefined=>{
     const rect=element.getBoundingClientRect();if(rect.bottom<=target||rect.top>=viewport.bottom||!rect.width||!rect.height)return;
     for(const child of element.childNodes){
@@ -25,7 +25,7 @@ export function capture_reflow_anchor(scroller:HTMLElement,root:HTMLElement):tex
     }
   };
   const block=reading_block_at(root,target);
-  // 常规Markdown只遍历目标块内文字；原始HTML/根文本仍按实际结构回退。
+  // GeneralMarkdown only traverses text within the target block; the originalHTML/ root text remains reverted according to its actual structure.
   if(!block)return find(root);
   for(let node:Element|null=block.node;node;node=node.nextElementSibling){
     if(node.getBoundingClientRect().top>=viewport.bottom)break;
@@ -35,8 +35,8 @@ export function capture_reflow_anchor(scroller:HTMLElement,root:HTMLElement):tex
 export function restore_reflow_anchor(scroller:HTMLElement,root:HTMLElement,anchor:text_anchor|undefined){
   if(!anchor||!root.contains(anchor.node)||!root.getClientRects().length)return;
   const rect=character_rect(anchor.node,anchor.offset),viewport=scroller.getBoundingClientRect();
-  // CSS zoom/DPI 影响视觉坐标，scrollTop 仍是容器的 CSS 坐标。
-  // offsetHeight 会舍入整数；长文档的大位移不能用它推导比例。
+  // CSS zoom/DPI affects visual coordinates, scrollTop remains the container's CSS coordinate.
+  // offsetHeight rounds integers; large displacements in long documents cannot be used to derive proportions.
   let ratio=1,node:HTMLElement|null=scroller;
   while(node){ratio*=Number.parseFloat(getComputedStyle(node).zoom)||1;node=node.parentElement;}
   scroller.scrollTop+=(rect.top-viewport.top-anchor.top)/ratio;
@@ -61,7 +61,7 @@ export function bind_reading_reflow(scroller:HTMLElement,root:HTMLElement){
   active_bindings.set(root,binding);return binding;
 }
 
-/** 原生正文和非活动组的 Markdown 均保留各自的滚动所有者。 */
+/** Native document content and non-active group's Markdown are both retained with their own scroll owners. */
 export function bind_workspace_reading_reflow(){
   const sources=new Map<HTMLElement,{dispose():void}>();
   const bindings=new Map<HTMLElement,{scroller:HTMLElement;binding:ReturnType<typeof bind_reading_reflow>;font:ReturnType<typeof bind_reading_font_zoom>}>();

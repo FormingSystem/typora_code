@@ -1,4 +1,4 @@
-// 原始Typora隔离副本：真实Git两端、实际比较页与当前正文主题。
+// Original Typora isolation copy: real Git ends, actual comparison page and current document topic.
 (async()=>{
   const fs=reqnode('fs'),path=reqnode('path'),cp=reqnode('child_process'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[];
   const pause=ms=>new Promise(r=>setTimeout(r,ms)),wait=async ready=>{for(let i=0;i<800;i++){if(ready())return;await pause(25);}throw Error('原生Markdown差异等待超时');},assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
@@ -41,11 +41,11 @@
     await diff.set_markdown_mode(false);const code=diff.editor.getModifiedEditor();code.setPosition({lineNumber:120,column:2});code.revealLineInCenter(120);code.focus();await settled();const code_top=code.getScrollTop();
     diff.toolbar.querySelector('[data-diff-open-file]').click();await wait(()=>app.workspace.activeLeaf!==leaf);await settled();alt('ArrowLeft');await wait(()=>app.workspace.activeLeaf===leaf);await settled();
     assert(!diff.rendered_markdown&&code.getPosition().lineNumber===120&&Math.abs(code.getScrollTop()-code_top)<2,'源码比较返回保留选区和滚动');
-    // 快捷键从Monaco的textarea发出时仍由同一个导航服务处理。
+    // Keyboard shortcuts still handled by the same navigation service when issued from Monaco's textarea.
     code.focus();code.getDomNode().querySelector('textarea').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',altKey:true,bubbles:true,cancelable:true}));await wait(()=>app.workspace.activeLeaf!==leaf);await settled();
     leaf.parent.removeTab(leaf.state.path);await pause(100);alt('ArrowLeft');await wait(()=>app.workspace.activeLeaf?.state.path===leaf.state.path);await settled();
     const restored=app.workspace.activeLeaf.view.editor;assert(restored!==diff&&!restored.rendered_markdown&&restored.editor.getModifiedEditor().getPosition().lineNumber===120,'关闭比较标签后导航重开只读快照 '+JSON.stringify({same:restored===diff,mode:restored.rendered_markdown,line:restored.editor.getModifiedEditor().getPosition(),scroll:restored.editor.getModifiedEditor().getScrollTop()}));
-    // 后续概览回归继续使用最初实例，重开验证单独结束，避免测试持有已销毁引用。
+    // Subsequent overview regression continues to use the initial instance, re-open verification of separate end, avoid test holding already destroyed references.
     app.workspace.activeLeaf.parent.removeTab(app.workspace.activeLeaf.state.path);await pause(100);
     await panel.workbench.open_file({path:filename,status:'M'},'INDEX','WORKTREE',[{path:filename,status:'M'}]);await wait(()=>app.workspace.activeLeaf?.view.editor?.markdown_preview?.container.dataset.ready==='true');
     return await finish_comparison(app.workspace.activeLeaf);

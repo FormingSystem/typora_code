@@ -1,4 +1,4 @@
-// 恢复旧底栏百分比入口；临时文档与隐藏窗口不使用真实 Typora 用户数据。
+// Restore the percentage entry of the old status bar; temporary documents and hidden windows do not use real Typora user data.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {build}=require('esbuild');

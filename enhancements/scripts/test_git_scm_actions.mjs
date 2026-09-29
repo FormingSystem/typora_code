@@ -1,4 +1,5 @@
-// 多远端、重命名与工作树全部使用隔离的本地 Git 仓库，不访问用户仓库或网络。
+import './fixture_locale.cjs';
+// Multiple remote, renaming and work tree all use isolated local Git repository, do not access user repository or network.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';

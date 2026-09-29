@@ -1,4 +1,4 @@
-// 真实Chromium与生产CSS；仅使用独立设置存储和临时导出文件。
+// Real Chromium and production CSS; only use independent settings to store and temporarily export files.
 const {app,BrowserWindow}=require('electron'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora-color-settings-'));app.setPath('userData',path.join(base,'profile'));app.disableHardwareAcceleration();let win;
 const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),ev=s=>win.webContents.executeJavaScript(s),check=async(s,label)=>{assert(await ev(s),label);checks.push(label);};

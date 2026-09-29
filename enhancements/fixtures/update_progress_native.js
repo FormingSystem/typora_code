@@ -1,4 +1,4 @@
-// 原始宿主独立副本；网络与安装用服务端口替身，不更新用户环境。
+// Original host independent copy; network and installation use service ports as placeholders, without updating the user's environment.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -16,7 +16,7 @@
   service.start_update=()=>{install_count++;return 'fixture-job';};
   service.status_of=()=>({phase,message:'原生进度验收：'+phase,bytes,total_bytes});
   service.cancel_update=()=>{phase='cancelled';};
-  // 等宿主首次文档切换完成；该切换本来会关闭打开期间的浮层。
+  // Wait until the host's first document switch is completed; this switch would normally close the floating layer during the opening period.
   for(let i=0;i<100&&(File.isFileLoading()||!File.bundle.filePath.endsWith('front.md'));i++)await pause(50);
   await pause(2400);
   const browser_open=JSBridge.showInBrowser,urls=[],prior_checks=check_count,prior_installs=install_count;

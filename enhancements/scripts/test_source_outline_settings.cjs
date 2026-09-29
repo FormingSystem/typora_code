@@ -77,7 +77,7 @@ app.whenReady().then(async()=>{
   assert.match(await evaluate(`(()=>{try{settings_qa.save_language_service_profiles(workspace_one,'user',{});return 'no error'}catch(error){return error.message}})()`),/rename denied/);
   assert.equal(fs.readFileSync(settings_file,'utf8'),config_before);assert.equal(await evaluate(`settings_qa.read_language_service_profile(workspace_one,'python').provider`),'lsp');
   await evaluate(`failure_mode='';void 0`);
-  // 探测使用专属目录与环境替身，保存/显示使用真实DOM和同一设置所有者。
+  // Detect the use of exclusive directory and environment proxy, save/display using real DOM and the same setting owner.
   const executable=process.platform==='win32'?'python.exe':'python';
   const venv_bin=path.join(root,'project-one','.venv',process.platform==='win32'?'Scripts':'bin');fs.mkdirSync(venv_bin,{recursive:true});fs.writeFileSync(path.join(venv_bin,executable),'fixture');
   if(process.platform!=='win32')fs.chmodSync(path.join(venv_bin,executable),0o755);

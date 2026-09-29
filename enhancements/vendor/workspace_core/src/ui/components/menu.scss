@@ -1,5 +1,5 @@
 .context-menu { width: unset; min-width: 224px; }
-// 菜单和活动栏分别拥有16px、24px图标，不继承宿主fa的负偏移。
+// Menus and the activity bar own 16px and 24px icons respectively; do not inherit the host fa negative offset.
 body .context-menu.dropdown-menu > .typ-menuitem > a { display: flex; align-items: center; gap: 8px; }
 .typ-menuitem > a > .typ-menu-icon { display: inline-flex; align-items: center; justify-content: center; flex: 0 0 16px; width: 16px; height: 16px; }
 .typ-menuitem > a > .typ-menu-icon > * { display: inline-flex; align-items: center; justify-content: center; position: static; margin: 0; padding: 0; width: 16px; height: 16px; font-size: 16px; line-height: 16px; }
@@ -7,7 +7,7 @@ body .context-menu.dropdown-menu > .typ-menuitem > a { display: flex; align-item
 .typ-menuitem > a > .typ-menu-label { flex: 1; min-width: 0; }
 .typ-menuitem > a > .fa-caret-right { position: static; margin-left: auto; }
 
-// 独立菜单不借用宿主的state-off占位；几何仅覆盖自有容器，原生菜单保持。
+// Independent menus do not use the host state-off placeholder; geometry applies only to owned containers.
 body .typ-workspace-menu.dropdown-menu { padding: 4px 0; font: 400 13px/24px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif); }
 body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a { position:relative;box-sizing: border-box; height: 24px; margin:0 4px;padding: 0 2em 0 var(--workspace-menu-leading-width,2em); font: inherit; }
 body .typ-workspace-menu.dropdown-menu > .typ-menuitem > a > .typ-menu-icon { position:absolute;left:0;top:0;height:100%;width:2em; }

@@ -1,4 +1,4 @@
-// 隐藏 Electron 检查菜单、键盘、主题与资源清理；原生事务另在 Typora 隔离副本中验证。
+// Hide Electron check menu, keyboard, theme and resource cleanup; native transaction is isolated in Typora copy for verification.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const {build}=require('esbuild');

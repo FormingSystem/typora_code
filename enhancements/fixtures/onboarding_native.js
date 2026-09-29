@@ -1,4 +1,4 @@
-// 专属原始宿主启动引导；只查看区域，不操作真实仓库或用户文档。
+// Exclusive native host startup guide; only view the area, do not operate the real repository or user documents.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms));

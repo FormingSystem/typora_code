@@ -1,4 +1,4 @@
-// 隐藏 Electron 和隔离的本地 bare 远端，验证快捷点击真实执行且不出现确认表单。
+// Hide Electron and isolated local bare remote, verify quick click real execution and no confirmation form appears.
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),child_process=require('node:child_process');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
 for(const stream of [process.stdout,process.stderr])stream.on('error',()=>app.exit(1));

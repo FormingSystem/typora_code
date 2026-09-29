@@ -10,7 +10,7 @@ export const reading_delay = (milliseconds: number, signal?: AbortSignal) => new
   signal?.addEventListener("abort", finish, { once: true });
 });
 
-/** 为每个栏维护位置；仅当原生编辑器确实装载该文件时，才允许读取它的滚动状态。 */
+/** Maintains position for each bar; allows reading its scroll state only when the native editor actually loads the file. */
 export function create_reading_workspace(native_path: () => string, is_busy: () => boolean) {
   const app = get_workspace_app();
   let disposed = false;
@@ -26,7 +26,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
   let next_id = 1;
   let save_timer = 0;
   let store: ReturnType<typeof create_position_store> | undefined;
-  try { store = create_position_store(window.localStorage); } catch { /* 存储不可用时保持窗口内状态。 */ }
+  try { store = create_position_store(window.localStorage); } catch { /* Maintain the window state when storage is unavailable. */ }
   const context_for = (leaf: workspace_leaf): reading_context => {
     let context = contexts.get(leaf.view);
     if (!context) { context = { view_id: next_id++, file_path: leaf.state.path, leaf }; contexts.set(leaf.view, context); }
@@ -108,14 +108,14 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       let previous_geometry = "";
       let stable_since = Date.now();
       const started = Date.now();
-      // 等待异步预览、代码限高与排版；用户开始滚动/编辑时立即停止，避免把新位置拉回去。
+      // Wait for asynchronous preview, code height limit, and layout; immediately stop when the user starts scrolling/editing to avoid pulling back new positions.
       while (!disposed && restoring.get(context.view_id) === token && Date.now() - started < 5000) {
         const nodes = elements(context);
         if (nodes) {
           const geometry = `${nodes.root.getBoundingClientRect().height}:${nodes.scroller.clientHeight}:${nodes.scroller.scrollHeight}`;
           const before_top = nodes.scroller.scrollTop; const before_left = nodes.scroller.scrollLeft;
-          // 宿主恢复选区可能在正文高度不变时重置滚动；每轮核对实际位置，而非只等正文高度稳定。
-          // 视口尺寸变化和宿主再次挪动滚动条都会重新开始稳定期；真实用户输入仍立即取消恢复。
+          // Host's restoration of selection may reset scrolling even if the document height remains unchanged; each round checks actual positions, not just waiting for stable document height.
+          // Changes in viewport size and host's repositioning of the scroll bar will restart the stabilization period; real user input still immediately cancels restoration.
           apply_position(nodes.scroller, nodes.root, position);
           if (!applied || geometry !== previous_geometry || Math.abs(before_top - nodes.scroller.scrollTop) > .5 || Math.abs(before_left - nodes.scroller.scrollLeft) > .5) {
             previous_geometry = geometry;
@@ -140,15 +140,15 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       }
     };
     const settled = settle();
-    // 首次定位即可接受下一次导航，晚到布局仍由同一个可取消的位置任务校正。
+    // The first positioning can accept the next navigation; late layouts are still corrected by the same cancelable position task.
     return options.background ? Promise.race([initial, settled]) : settled;
   };
   const stop_restoring = (context?: reading_context) => {
     if (context) restoring.delete(context.view_id);
     else restoring.clear();
   };
-  // pinned 2.10.15 的 MarkdownView.setState 会用旧字符偏移恢复全局选区。
-  // 此处接管阅读状态的两个接口；不修改发行包，也不把别的文件的光标写回来源栏。
+  // pinned 2.10.15's MarkdownView.setState will use old character offset to restore global selection.
+  // Adapt the two reading-state interfaces here; do not modify the distribution or write another file's cursor into the source group.
   const patched = new WeakSet<object>();
   const patch_view = (view: workspace_view): boolean => {
     if (disposed) return false;
@@ -163,8 +163,8 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
       const context = context_for(this.leaf);
       const position = saved.get(context.view_id) ?? this.leaf.state.linux_note_position as reading_position | undefined ?? store?.get(context.file_path);
       if (!position || held_paths.has(file_key(context.file_path))) return original_on_open.call(this);
-      // 核心先重建编辑器，再调用原生 openFile；中间产生的 0 滚动量不是新的阅读位置。
-      // 先保护旧状态，避免 file:will-open 的 checkpoint 覆盖它，再等待布局恢复。
+      // The core rebuilds the editor before calling native openFile; an intermediate zero scroll offset is not a new reading position.
+      // Protect the previous state from the file:will-open checkpoint, then wait for layout restoration.
       restoring.set(context.view_id, {});
       remember(context, position, false);
       try { original_on_open.call(this); }
@@ -200,7 +200,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     const position = store?.get(context.file_path);
     if (position) void restore(context, position);
   }
-  // 从空白欢迎页启动时尚无 MarkdownView，首个文档出现后再接入同一套状态接口。
+  // The blank welcome page has no MarkdownView; attach the same state interfaces when the first document appears.
   collect(app?.workspace.rootSplit.on("leaf:open", (leaf) => {
     if (typeof leaf.view?.isEditor !== "function" || !patch_view(leaf.view)) return;
     const context = context_for(leaf);
@@ -219,7 +219,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     window.addEventListener(name, (event) => {
       if (!event.isTrusted) return;
       if(!restoring.size)return;
-      // 只取消发生输入的栏；切换到另一栏不能取消来源预览的恢复。
+      // Cancel restoration only in the group receiving input; switching groups must not cancel restoration of the source preview.
       const target = event.target;
       for (const context of all()) {
         const nodes = elements(context);

@@ -1,5 +1,5 @@
 export type workspace_tree_row<T> = {item?: T; directory?: string; depth: number};
-/** 先组织路径树再按展开状态投影；名称/状态排序也不会拆散同一目录。 */
+/** First organize the path tree, then project according to the expansion state; name/status sorting will not disperse the same directory. */
 export function workspace_tree_rows<T>(items: readonly T[], path_of: (item: T) => string, collapsed: ReadonlySet<string>, compact = false): workspace_tree_row<T>[] {
   type node = {path: string; directories: Map<string, node>; files: T[]};
   const root: node = {path: "", directories: new Map(), files: []};

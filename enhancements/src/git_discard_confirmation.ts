@@ -4,7 +4,7 @@ import {git_graph_text as text} from "./git_graph_i18n";
 import {git_icon} from "./git_icons";
 import {workspace_dialog, workspace_element as el, workspace_button as button} from "./workspace_widgets";
 
-/** 确认仅展示已准备的精确范围；仓库写入和刷新仍归 panel / actions 所有。 */
+/** Confirm only display the precisely prepared range; repository writing and refresh still belong to panel / actions. */
 export class git_discard_confirmation {
   private dialog?: ReturnType<typeof workspace_dialog>;
   private choices: HTMLButtonElement[] = [];
@@ -93,7 +93,7 @@ export class git_discard_confirmation {
         paragraphs.replaceChildren(el("p", "", String(error instanceof Error ? error.message : error)));
       }
     };
-    // 共享对话框先将焦点交给唯一的取消按钮；晚到的计划只增加选项，不重置焦点。
+    // The shared dialog first focuses the unique cancel button; late plans only add options, do not reset focus.
     cancel.focus({preventScroll: true});
     timer = window.setTimeout(() => void prepare(), 0);
   }

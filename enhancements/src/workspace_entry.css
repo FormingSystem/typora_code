@@ -1,4 +1,4 @@
 .typora-code-startup-error { position:fixed;z-index:2147483647;inset:0 0 auto;padding:12px;color:var(--linux-note-shell-foreground,#202020);background:var(--linux-note-shell-input-background,#fff);border:1px solid var(--linux-note-shell-border,#F0F1F2);font:13px/1.4 "Segoe UI",sans-serif; }
-/* 只约束首次内容展示；保留原生窗口按钮、节点和布局，不制造额外等待。 */
+/* Only constrains the first content display; retains native window buttons, nodes, and layout, without creating additional delays. */
 html[data-typora-code-presentation=loading] :is(content,#typora-sidebar,.typ-ribbon,footer.ty-footer,.typ-workspace-root,.workspace-titlebar-menu,.workspace-titlebar-center) { visibility:hidden!important; }
 html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titlebar=ready]) :is(#w-menu-btn,#title-text) { visibility:visible; }

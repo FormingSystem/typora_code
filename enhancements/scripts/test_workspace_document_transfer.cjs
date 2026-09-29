@@ -1,4 +1,4 @@
-// 隐藏Electron与真实Monaco；跨窗快照只走内存，文件写入限临时夹具。
+// Hide Electron and real Monaco; cross-window snapshots only go through memory, file writing is limited to temporary fixtures.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -97,7 +97,7 @@ app.whenReady().then(async()=>{
  source=await create_window();await evaluate(source,`window.source_leaf=make_markdown(${JSON.stringify(markdown)},${JSON.stringify('# Title\n\nBaseline\n')},false);void 0`);snapshot=await capture(source);assert.equal(await evaluate(source,`files.release_transfer(source_leaf,${JSON.stringify(snapshot)})`),true);assert.equal(await evaluate(source,'native_saves'),0);checks.push('clean Markdown can release without invoking native Save');close(source);
  source=await create_window();await evaluate(source,`make_markdown(${JSON.stringify(markdown)},${JSON.stringify('# Draft\n')},true);File.bundle.savedContent='wrong baseline';void 0`);await assert.rejects(()=>capture(source),/加载基线不同/u);assert.equal(await evaluate(source,'native_text'),'# Draft\n');checks.push('native saved-content mismatch refuses a misleading Markdown baseline');close(source);
 
- // 原生前一次标签关闭的异步切换尚未结束时，等待就绪而非要求用户重拖。
+ // The asynchronous switch of the previous tag in the native is not yet completed; wait for readiness instead of requiring the user to drag again.
  source=await source_window();
  await evaluate(source,`File._onFileSwitching=true;window.prepared=false;window.preparing=files.capture_transfer(core.app.workspace.activeLeaf).then(value=>{prepared=true;return value});void 0`);
  await delay(60);assert.equal(await evaluate(source,'prepared'),false);
@@ -123,7 +123,7 @@ app.whenReady().then(async()=>{
  await evaluate(target,'window.original_target=core.app.workspace.activeLeaf;window.second_group=make_group();files.duplicate_leaf(original_target,second_group).then(leaf=>window.second_target=leaf);void 0');await wait(target,'second_target?.view?.loaded');
  await evaluate(target,`editor().executeEdits('second draft',[{range:editor().getModel().getFullModelRange(),text:'different in another group'}]);void 0`);
  await assert.rejects(()=>receive(target,snapshot),/内容或保存格式不同/u);assert.equal(await evaluate(target,'original_target.view.editor.models[0]===second_target.view.editor.models[0]'),true);assert.equal(await evaluate(target,'original_target.view.editor.models[0].getValue()'),'different in another group');assert.equal(await evaluate(target,'second_target.view.editor.models[0].getValue()'),'different in another group');checks.push('same-path target groups preserve their shared differing draft');close(source);close(target);
- // 同文件相同正文复用现有目标，不重建模型或撤销历史。
+ // For the same file and same document content, reuse the existing target without rebuilding the model or undo history.
  for(const dirty of [false,true]){
   source=await source_window(dirty?initial+'same draft\n':initial);snapshot=await capture(source);target=await source_window(snapshot.text);
   await evaluate(target,'window.existing_leaf=core.app.workspace.activeLeaf;window.existing_model=editor().getModel();window.previous_version=existing_model.getAlternativeVersionId();window.previous_count=leaves.length;void 0');

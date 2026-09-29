@@ -1,3 +1,5 @@
+[English](link_preview.en.md)
+
 # R069 Markdown链接只读预览
 
 当前网页承载以[R069.11](#r06911-网页浏览器承载与联网2026-09-24)为准：已核对Typora1.14.10使用独立Chromium guest正常加载网页；下面早期iframe限制仅适用于未提供guest接口的宿主回退，不再表示本机默认行为。

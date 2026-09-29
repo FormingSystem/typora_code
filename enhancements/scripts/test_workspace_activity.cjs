@@ -1,4 +1,4 @@
-// 独立 Chromium 指针/键盘验证活动栏，不启动 Typora、不访问用户仓库。
+// Independent Chromium pointer/keyboard verification of activity bar, do not start Typora, do not access user repository.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -68,7 +68,7 @@ app.whenReady().then(async()=>{
   await test_window.webContents.debugger.sendCommand('Emulation.setEmulatedMedia',{features:[{name:'prefers-reduced-motion',value:'reduce'}]});await wait('matchMedia("(prefers-reduced-motion: reduce)").matches');await evaluate('activity.move("core.search",-1)');
   const reduced_metrics=await evaluate('({animations:[...ribbon.querySelectorAll(".workspace-activity-item")].reduce((count,node)=>count+node.getAnimations().length,0),transition:getComputedStyle(ribbon.querySelector(".workspace-activity-item")).transitionDuration})');assert.equal(reduced_metrics.animations,0);assert.equal(reduced_metrics.transition,'0s');
   await click(item('core.settings'));assert.equal(await evaluate('fixed_clicks'),1);assert(!await evaluate('document.querySelector("[data-id=\\"core.settings\\"]").hasAttribute("data-activity-active")'));
-  // 原生核心把 ribbon 插在 header 内的 sidebar resizer 后面；不能用 body 直接子节点替代真实宿主树。
+  // Native core inserts ribbon into header's sidebar resizer after; cannot replace the real host tree with body direct child nodes.
   const core_ribbon_css=sass.compile(path.join(__dirname,'../vendor/workspace_core/src/ui/ribbon/workspace-ribbon.scss')).css;
   const geometry_css=await test_window.webContents.insertCSS(core_ribbon_css+fs.readFileSync(path.join(__dirname,'../src/workspace_sidebar_sash.css'),'utf8')+`
     body{--typ-workspace-top:0px;--window-border-color:transparent;overflow:hidden}

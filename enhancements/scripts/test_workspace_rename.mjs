@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -32,7 +33,7 @@ fs.symlinkSync(outside,link,process.platform==='win32'?'junction':'dir');
 await assert.rejects(prepare(link,'renamed_link'),/符号链接/u);await assert.rejects(prepare(path.join(link,'secret.txt'),'new.txt'),/工作区外|符号链接/u);assert.equal(fs.readFileSync(path.join(outside,'secret.txt'),'utf8'),'secret');
 fs.symlinkSync(path.join(workspace,'b'),internal_link,process.platform==='win32'?'junction':'dir');await assert.rejects(prepare(path.join(internal_link,'inside.c'),'next.c'),/符号链接/u);checks.push('external and internal symlink ancestors and link entries are rejected without touching targets');
 } finally {
-// 只撤销本用例创建的链接本身，不递归进入目标；外层运行器随后回收普通载荷。
+// Only revoke links created by this use case itself, not recursively into target; outer runner then recovers normal payload.
 for (const entry of [link,internal_link]) { if (fs.lstatSync(entry,{throwIfNoEntry:false})?.isSymbolicLink()) fs.unlinkSync(entry); }
 }
 const document_path=file('document.txt',Buffer.concat([Buffer.from([0xff,0xfe]),Buffer.from('原始\r\n','utf16le')]));const document=create_text_document({fs,path_api:path},document_path);await document.load();const document_plan=await prepare(document_path,'renamed_document.txt');const relocation=await document.prepare_relocation(document_plan.new_path);

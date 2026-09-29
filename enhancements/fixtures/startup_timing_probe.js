@@ -1,8 +1,8 @@
-// 在隔离宿主 head 内、候选脚本之前执行；不依赖尚未就绪的宿主 API。
+// Execute within the isolated host head; perform actions before the candidate script; do not depend on the host API that has not yet been ready.
 (()=>{
  const samples=[],long_tasks=[];
  const probe=window.startup_timing_probe={samples,long_tasks,started:performance.now(),running:true,head_runtime:{require:typeof window.require,reqnode:typeof window.reqnode,options:typeof window._options,user_data:!!window._options?.userDataPath}};
- // 可选 CPU 归因仅用于专属测试进程；不开调试端口，不修改生产宿主。
+ // Optional CPU attribution is only used for dedicated test processes; no debug port is opened, and no production host is modified.
  try{
   const node_require=window.reqnode||window.require;
   if(node_require&&node_require('process').env.TYPORA_STARTUP_CPU_PROFILE==='1'){

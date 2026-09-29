@@ -1,4 +1,4 @@
-/* 固定 VS Code hoverWidget.css：4×8px内容内距、500px最大宽度、自然1.5行高。 */
+/* Fixed VS Code hoverWidget.css: 4×8px internal margin, 500px maximum width, natural 1.5 line height. */
 .workspace-hover-surface {
   position:fixed;z-index:2147483000;pointer-events:auto;box-sizing:border-box;
   max-width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;
@@ -7,7 +7,7 @@
   box-shadow:0 2px 8px rgba(0,0,0,.16);font:400 13px/1.5 "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
   white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;
 }
-/* SCM选用VS Code workbench-hover.compact；普通链接提示保持自己的内容节奏。 */
+/* SCM selects VS Code workbench-hover.compact; ordinary links maintain their own content rhythm. */
 .workspace-hover-surface.workspace-hover-compact {font-size:12px;line-height:19px;padding:2px 8px;}
 .workspace-hover-pointer {
   position:fixed;z-index:2147483001;pointer-events:none;box-sizing:content-box;width:5px;height:5px;

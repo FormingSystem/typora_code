@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const bundle=await build({entryPoints:['src/markdown_text_color.ts'],bundle:true,platform:'node',format:'esm',write:false});

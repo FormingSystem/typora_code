@@ -1,4 +1,4 @@
-/** 临时界面共用焦点快照；原生编辑器只在本文档、编辑组仍有效时恢复选区。 */
+/** Temporary interface focus snapshot; native editor restores selection only when this document and editing group are still valid. */
 export type workspace_focus_snapshot={restore():void};
 export type workspace_dismiss_layer={dispose():void;is_top():boolean;owns_focus():boolean};
 const active_element=():Element|null=>{let node=document.activeElement;while(node?.shadowRoot?.activeElement)node=node.shadowRoot.activeElement;return node;};
@@ -17,7 +17,7 @@ export function capture_workspace_focus(fallback?:HTMLElement):workspace_focus_s
   const dom_selection=!input&&selection?.anchorNode&&selection.focusNode?{anchor:selection.anchorNode,anchor_offset:selection.anchorOffset,focus:selection.focusNode,focus_offset:selection.focusOffset,anchor_text:selection.anchorNode.textContent,focus_text:selection.focusNode.textContent}:undefined;
   const file=file_state(),bundle=file?.bundle,workspace=workspace_state(),leaf=workspace?.activeLeaf,active_file=workspace?.activeFile;
   let rangy:{select():void}|null|undefined;
-  if(native_owner&&!file?.isFileLoading?.()&&!file?.editor?.sourceView?.inSourceMode){try{rangy=file?.editor?.selection?.getRangy();}catch{/* 宿主暂未准备好时仅使用有效DOM选区。 */}}
+  if(native_owner&&!file?.isFileLoading?.()&&!file?.editor?.sourceView?.inSourceMode){try{rangy=file?.editor?.selection?.getRangy();}catch{/* Only use the valid DOM selection when the host is not yet ready. */}}
   const scroll:{node:Element;top:number;left:number}[]=[];
   for(let node:Element|null=previous;node;node=parent_element(node))if(node.scrollHeight>node.clientHeight||node.scrollWidth>node.clientWidth)scroll.push({node,top:node.scrollTop,left:node.scrollLeft});
   return {restore(){
@@ -26,9 +26,9 @@ export function capture_workspace_focus(fallback?:HTMLElement):workspace_focus_s
     if(native_owner&&(file_state()!==file||file_state()?.bundle!==bundle||file?.isFileLoading?.()||file?.editor?.sourceView?.inSourceMode))return;
     previous.focus({preventScroll:true});
     if(input&&input_selection&&input.value===input_selection.value)input.setSelectionRange(input_selection.start,input_selection.end,input_selection.direction);
-    else if(rangy){try{rangy.select();}catch{/* 不在失效的宿主选区上猜测新位置。 */}}
+    else if(rangy){try{rangy.select();}catch{/* Do not guess a new position on the invalid host selection. */}}
     else if(dom_selection&&dom_selection.anchor.isConnected&&dom_selection.focus.isConnected&&dom_selection.anchor.textContent===dom_selection.anchor_text&&dom_selection.focus.textContent===dom_selection.focus_text){
-      try{window.getSelection()?.setBaseAndExtent(dom_selection.anchor,dom_selection.anchor_offset,dom_selection.focus,dom_selection.focus_offset);}catch{/* 节点变化时保留当前光标。 */}
+      try{window.getSelection()?.setBaseAndExtent(dom_selection.anchor,dom_selection.anchor_offset,dom_selection.focus,dom_selection.focus_offset);}catch{/* Retain the current cursor when nodes change. */}
     }
     for(const item of scroll)if(item.node.isConnected){item.node.scrollTop=item.top;item.node.scrollLeft=item.left;}
   }};
@@ -40,7 +40,7 @@ type dismissal_options={inside?:()=>Element[];outside?:boolean;consume_outside?:
 type dismiss_record={roots:()=>Element[];cancel:(reason:workspace_dismiss_reason)=>void;options:dismissal_options;focused:boolean};
 type dismiss_service={add(record:dismiss_record):workspace_dismiss_layer};
 const service_key=Symbol.for('typora-code:workspace-dismissal');
-/** 核心与工作台共用退出栈。一次按键或指针手势只取消当时最上层，不抢外部目标焦点。 */
+/** Core and workbench share the same exit stack. A single button press or pointer gesture only cancels the most recent one at the time, without taking focus away from external targets. */
 export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:workspace_dismiss_reason)=>void,options:dismissal_options={}):workspace_dismiss_layer{
   const runtime=window as unknown as {[key:symbol]:dismiss_service|undefined};
   if(!runtime[service_key]){
@@ -53,8 +53,8 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
     const consume=(event:Event)=>{event.preventDefault();event.stopImmediatePropagation();};
     const cancel_record=(record:dismiss_record,reason:workspace_dismiss_reason)=>{if(dismissing)return;dismissing=true;try{record.cancel(reason);}finally{dismissing=false;}};
     const handlers:Record<string,EventListener>={keydown:event=>keydown(event as KeyboardEvent),keyup:event=>keyup(event as KeyboardEvent),pointerdown:event=>down(event as MouseEvent,true),mousedown:event=>down(event as MouseEvent,false),pointerup:event=>release(event as MouseEvent),mouseup:event=>release(event as MouseEvent),click:event=>complete(event as MouseEvent),auxclick:event=>complete(event as MouseEvent),contextmenu:event=>swallow(event as MouseEvent),pointercancel:event=>{swallow(event as MouseEvent);finish();},focusin:()=>focus_changed(),focusout:()=>focus_changed(),blur:()=>blur()};
-    // 原生拖动区吞掉DOM指针事件；临时层开放外点关闭时，由共享栈暂停顶栏拖动。
-    // 保持到整次手势释放，避免pointerdown关闭后把余下事件重新交给窗口拖动。
+    // Native drag area consumes DOM pointer events; when the temporary layer opens external points for closure, the shared stack pauses the top bar drag.
+    // Keep until the end of the gesture release, avoid pointerdown closing to reassign the remaining events to window dragging.
     const sync_pointer_boundary=()=>document.documentElement.toggleAttribute('data-workspace-dismissal-active',stack.some(record=>record.options.outside!==false)||!!gesture?.owner&&gesture.owner.options.outside!==false);
     const cleanup=()=>{sync_pointer_boundary();if(!stack.length&&!pending&&!gesture&&listening){listening=false;for(const [name,handler]of Object.entries(handlers))window.removeEventListener(name,handler,name!=='blur');}};
     const keydown=(event:KeyboardEvent)=>{
@@ -70,7 +70,7 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
       if(!event.isComposing&&top()===owner&&stack.includes(owner))cancel_record(owner,'escape');cleanup();
     };
     const down=(event:MouseEvent,pointer:boolean)=>{
-      // pointerdown 后紧随的兼容 mousedown 属于同一次手势，不能重新选择背景层。
+      // The compatibility mousedown following pointerdown belongs to the same gesture, cannot reselect the background layer.
       if(!pointer&&gesture?.pointer&&gesture.button===event.button){gesture.pointer=false;if(gesture.consumed)consume(event);return;}
       window.clearTimeout(gesture_timer);gesture_timer=undefined;
       const owner=top();gesture={owner,button:event.button,pointer,dismissed:false,consumed:false};
@@ -78,8 +78,8 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
       const hit=event.composedPath().some(node=>node instanceof Element&&inside(owner,node));
       if(!hit){gesture.dismissed=true;gesture.consumed=owner.options.consume_outside===true;if(gesture.consumed)consume(event);cancel_record(owner,'outside');}
     };
-    // 模态遮罩关闭后，同次释放和 click 仍属于遮罩；不能让新露出的正文收到半次手势。
-    // 使用任务尾清理，避免 mouseup 后的微任务早于浏览器紧随的 click。
+    // After the modal mask is closed, the same release and click still belong to the mask; do not allow the newly exposed document content to receive a half-gesture.
+    // Use task tail cleanup to avoid mouseup after the microtask being scheduled before the browser's next click.
     const swallow=(event:MouseEvent)=>{if(gesture?.consumed&&gesture.button===event.button)consume(event);};
     const finish=()=>{const current=gesture;window.clearTimeout(gesture_timer);gesture_timer=window.setTimeout(()=>{gesture_timer=undefined;if(gesture===current)gesture=undefined;cleanup();},0);};
     const release=(event:MouseEvent)=>{swallow(event);finish();};
@@ -90,7 +90,7 @@ export function register_workspace_dismissal(roots:()=>Element[],cancel:(reason:
       queueMicrotask(()=>{
         if(dismissing||top()!==owner||!stack.includes(owner)||!owner.focused||owner.options.focus_out===false)return;
         if(gesture&&(gesture.dismissed||gesture.owner!==owner))return;
-        // 窗口失焦由独立策略决定，系统颜色选择器不能取消所属设置对话框。
+        // Window blur is determined by an independent policy, and the system color picker cannot cancel the setting dialog it belongs to.
         if(active_element()===document.body||active_element()===document.documentElement||inside(owner,active_element()))return;
         cancel_record(owner,'focus-out');cleanup();
       });

@@ -1,6 +1,8 @@
 ﻿[CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+$previous_language=$env:TYPORA_CODE_LANGUAGE
+$env:TYPORA_CODE_LANGUAGE='zh-cn'
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $artifact_manager = Join-Path $PSScriptRoot 'manage_test_artifacts.py'
 $artifact_root = (& python -X utf8 $artifact_manager create --pid $PID | Select-Object -Last 1)
@@ -84,10 +86,10 @@ function run_cmd([string]$arguments, [string]$input_text='') {
 }
 
 try {
-    # 复制入口和事务到含空格、方括号的独立包；不读取或修改真实 APPDATA。
+    # Copy entries and transactions to independent packages containing spaces and square brackets; do not read or modify real APPDATA.
     foreach ($relative in @('uninstall_windows.cmd','uninstall_windows.ps1','restore_windows.ps1',
         'scripts/restore_workspace_windows.ps1','scripts/lib/typora_environment.ps1','scripts/lib/typora_workspace.ps1',
-        'scripts/lib/typora_uninstall.ps1','scripts/lib/typora_install_log.ps1','scripts/lib/typora_install_permissions.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
+        'scripts/lib/typora_locale.ps1','scripts/lib/typora_messages.json','scripts/lib/typora_uninstall.ps1','scripts/lib/typora_install_log.ps1','scripts/lib/typora_install_permissions.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
         $destination = Join-Path $package_root $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination
@@ -180,7 +182,7 @@ try {
     assert_equal ($cancelled.output.Contains('uninstall cancelled.')) $true 'CMD did not report cancellation'
     assert_equal (snapshot) $before 'Cancelled CMD changed files'
 
-    # 复用经过摘要校验的缓存副本，恢复事务仅在本测试的专属缓存中解压。
+    # Reuse cached copies that have passed digest verification; restore transactions are only decompressed in this test's dedicated cache.
     . (Join-Path $package_root 'scripts/lib/typora_terminal.ps1')
     $release = get_typora_node_release $package_root
     $archive_name = "node-v$($release.version)-win-$($release.arch).zip"
@@ -204,7 +206,7 @@ try {
     assert_equal (Test-Path -LiteralPath $manifest_path) $true 'Original backup was deleted'
     assert_equal ([IO.File]::ReadAllText((Join-Path $other_installation 'resources/window.html'))) $installed 'Another installation was changed'
 
-    # 历史schema 3备份来自旧宿主；只撤销当前入口，不恢复旧宿主、主题或插件。
+    # History schema 3 backup from old host; only undo current entry, not restore old host, theme or plugin.
     $upgraded = Join-Path $test_root 'upgraded Typora [current]'
     $old_backup = Join-Path $backups 'legacy schema 3'
     new_backup $old_backup $upgraded
@@ -273,6 +275,7 @@ try {
     Write-Host "Windows uninstall: $script:checks assertions passed (isolated CMD and PowerShell restore)."
 } finally {
     $env:APPDATA = $previous_appdata
+    $env:TYPORA_CODE_LANGUAGE = $previous_language
     $env:TYPORA_TERMINAL_CACHE = $previous_cache
     & python -X utf8 $artifact_manager finish $artifact_root --pid $PID --status $(if($passed){'passed'}else{'failed'})
     if ($LASTEXITCODE -ne 0) { Write-Warning 'Test payload cleanup failed; see artifact marker.' }

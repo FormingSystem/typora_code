@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {build_history_model,history_range_label,history_range_title,type git_history_range} from './git_history_ranges';
 import {bind_git_source_row,git_diff_source_key,type git_diff_source} from './git_diff_source';
 import {workspace_list_selection} from './workspace_list_selection';
@@ -15,11 +16,11 @@ import type { git_source_control } from "./git_source_control";
 import { git_icon_button as icon_button, git_disclosure, git_icon } from "./git_icons";
 import { git_graph_text as text, type git_graph_text_key } from "./git_graph_i18n";
 
-// 与 VS Code SCM 历史相同的 11px 轨道、22px 行高；只计算当前行仍存在的轨道。
+// With VS Code SCM history the same 11px track, 22px line height; only calculate the current line still existing track.
 const HISTORY_LANE_WIDTH = 11;
 const HISTORY_ROW_HEIGHT = 22;
 
-/** 复用仓库控制器的真实提交及拓扑；展开文件只读取所选提交，不切走当前文档。 */
+/** Reuse the real repository controller's complete submission and topology; expand files only read the selected submission, without switching the current document. */
 export class git_scm_history {
   container = el("section", "git-scm-history"); header = el("div", "git-scm-history-header workspace-section-header");
   list = el("div", "git-scm-history-list"); count = el("span", "git-scm-badge");
@@ -109,7 +110,7 @@ export class git_scm_history {
       row.dataset.workspaceInteraction="row";row.setAttribute("aria-label",`${commit.subject}, ${commit.author}, ${panel.date(commit)}`);
       const disclosure = el("span", "git-scm-history-disclosure"); disclosure.append(git_disclosure()); disclosure.setAttribute("aria-hidden", "true");
       const summary = el("span", "git-scm-history-summary"); const subject = el("span", "git-scm-history-subject", panel.emoji(commit.subject));
-      // 标题和作者作为一段行内文本，由共同区域从末端裁切；引用不替代作者。
+      // Title and author as a segment of inline text, cut from the common area from the end; citation does not replace author.
       const label = el("span", "git-scm-history-label");
       label.append(subject);
       if (commit.author) label.append(el("span", "git-scm-history-author", commit.author));
@@ -167,7 +168,7 @@ export class git_scm_history {
     }
     return entry;
   }
-  /** 文件展开区域延长每条离开当前提交的轨道，保持上下提交连线连续。 */
+  /** The expansion area of files extends each track that leaves the current submission, maintaining continuous connection between the upper and lower submissions. */
   continuation(row: graph_row, width: number): SVGSVGElement {
     const ns = "http://www.w3.org/2000/svg"; const svg = document.createElementNS(ns, "svg");
     svg.classList.add("git-scm-history-continuation"); svg.setAttribute("aria-hidden", "true"); svg.setAttribute("width", String((width + 1) * HISTORY_LANE_WIDTH));
@@ -195,7 +196,7 @@ export class git_scm_history {
       if (panel.disposed || root !== panel.root || epoch !== this.owner.load_epoch) return;
       this.files_cache.set(commit.hash, files); this.selected = commit.hash; this.render(state);
       if (!files.length) { panel.report(text("history.no_changed_files")); return; }
-      // 同一提交的完整文件表保留在侧栏，现有审阅器携带全部文件及前后导航。
+      // The complete file table of the same submission is preserved in the sidebar; the current reviewer carries all files and forward and backward navigation.
       await this.owner.open_file(files[0], commit.parents[0] || EMPTY, commit.hash, files);
     } catch (error) { if (!panel.disposed && root === panel.root && epoch === this.owner.load_epoch) panel.report(error); }
   }
@@ -251,9 +252,9 @@ export class git_scm_history {
     const active=()=>request===this.reveal_request&&valid()&&!panel.disposed&&panel.root===source.root;
     let state=panel.state;if(!state||!active())return;
     let commit=state.commits.find(item=>item.hash===source.to);
-    if(!commit){const reply=await panel.runner.run(source.root,['log','-1','--format=%H%x00%P%x00%an%x00%aI%x00%s','-z',require_revision(source.to),'--']);if(!active())return;commit=parse_git_log(reply)[0];if(!commit)throw Error('无法读取差异所属提交。');}
+    if(!commit){const reply=await panel.runner.run(source.root,['log','-1','--format=%H%x00%P%x00%an%x00%aI%x00%s','-z',require_revision(source.to),'--']);if(!active())return;commit=parse_git_log(reply)[0];if(!commit)throw Error(workspace_text("git_scm_history_cannot_read_the_diff_belonging_to_the_commit"));}
     const files=await compare_files(panel.runner.run,state,source.from,source.to);if(!active())return;
-    if(!files.some(file=>file.path===source.file))throw Error('该比较中已找不到目标文件。');
+    if(!files.some(file=>file.path===source.file))throw Error(workspace_text("git_scm_history_the_target_file_is_not_found_in_this_comparison"));
     if(!state.commits.some(item=>item.hash===commit!.hash))this.revealed_commit=commit;
     const range=build_history_model(state).items.find(item=>item.range?.from===source.from&&item.range.to===source.to)?.range,key=range?.id||commit.hash;
     this.files_cache.set(key,files);if(!range)this.comparison_from.set(commit.hash,source.from);
@@ -263,7 +264,7 @@ export class git_scm_history {
     const target=[...this.list.querySelectorAll<HTMLElement>('[data-commit]')].find(node=>node.dataset.commit===key);if(!target)return;
     const virtual=this.file_lists.get(target);const wrapper=virtual?.reveal(item=>item.item?.path===source.file);
     const row=wrapper?.querySelector<HTMLElement>('[data-history-file]')||[...target.querySelectorAll<HTMLElement>('[data-history-file]')].find(node=>node.dataset.historyFile===source.file);
-    if(!row)throw Error('目标文件尚未显示，请重试。');
+    if(!row)throw Error(workspace_text("git_scm_history_the_target_file_has_not_been_displayed_yet_please_retry"));
     for(let ancestor=row.parentElement;ancestor&&ancestor!==this.list;ancestor=ancestor.parentElement)if(ancestor instanceof HTMLDetailsElement)ancestor.open=true;
     row.scrollIntoView({block:'nearest'});row.focus({preventScroll:true});this.owner.sync_source_selection();
   }

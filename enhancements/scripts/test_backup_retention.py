@@ -1,4 +1,4 @@
-"""R047.9/R047.11：验证 Windows/Python 轮换及原生备份保护。"""
+"R047.9/R047.11: Verify Windows/Python rotation and native backup protection."
 import importlib.util
 import json
 import os
@@ -102,7 +102,7 @@ for platform in ['python'] + (['powershell'] if os.name == 'nt' else []):
         assert all(entry.exists() for entry in protected)
         assert snapshot() == before
     checks.append(platform + ': 20次轮换回收已核实schema3/4旧升级，仅保留最新升级；原生/基线/未知/异常备份逐文件摘要不变')
-    # 当前备份校验失败时不得删除仍可恢复的旧备份。
+    # Do not delete the old backup if the backup verification fails, but the old backup can still be recovered.
     latest = current
     invalid = make('invalid-current')
     (invalid / 'window.html').write_text('bad', encoding='utf-8')

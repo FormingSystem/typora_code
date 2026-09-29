@@ -17,7 +17,7 @@ app.whenReady().then(async()=>{
  await delay(100);
  const baseline=await evaluate(`(()=>{const p=document.querySelector('.typora-terminal-panel');binding.toggle();binding.toggle();return {reopen_height:second.surface.viewport.clientHeight,selected:document.querySelector('.terminal-tab[aria-selected=true]')?.dataset.session,expected:second.session.id}})()`);
  samples.push({baseline});
- // 旧版先完整记录两个独立缺陷，再以失败状态退出，避免只发现第一个问题。
+ // Old versions first fully record two independent defects, then exit with a failed status, avoiding only discovering the first issue.
  if(process.env.TC_TERMINAL_BASELINE==='1'){
   samples.push(await evaluate(`(()=>{const request=window.requestAnimationFrame,cancel=window.cancelAnimationFrame,queue=new Map();let serial=0;window.requestAnimationFrame=fn=>{queue.set(++serial,fn);return serial};window.cancelAnimationFrame=id=>queue.delete(id);try{const p=api.create_terminal_panel(()=>{});for(let i=0;i<1000;i++){p.layout();p.show();p.hide();}p.dispose();return {orphan_frames:queue.size};}finally{window.requestAnimationFrame=request;window.cancelAnimationFrame=cancel}})()`));
   console.log(JSON.stringify({status:'BASELINE',samples}));assert(baseline.reopen_height>100&&baseline.selected===baseline.expected,'old implementation loses geometry and active session');
@@ -29,7 +29,7 @@ app.whenReady().then(async()=>{
   samples.push(await evaluate(`(()=>{const rows=[...document.querySelectorAll('.terminal-tab')],start=performance.now();for(let i=0;i<${count};i++){binding.toggle();binding.toggle();}return {count:${count},duration_ms:performance.now()-start,rows_retained:rows.every((row,i)=>document.querySelectorAll('.terminal-tab')[i]===row),height:second.surface.viewport.clientHeight}})()`));
   assert(samples.at(-1).rows_retained&&samples.at(-1).height>100);checks.push(count+'次同栈显隐保留列表节点和几何');
  }
- // 真实Chromium鼠标：关闭按钮再快捷键打开，不仅直接调用toggle。
+ // Real Chromium mouse: Close button then shortcut open, not only directly call toggle.
  const point=await evaluate(`(()=>{const r=document.querySelector('button[title="隐藏面板（保留进程）"]').getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
  await evaluate('window.input_samples=[];document.addEventListener("click",e=>{if(e.target.closest("button[title=\\"隐藏面板（保留进程）\\"]"))input_samples.push({trusted:e.isTrusted,start:performance.now()})},true);void 0');
  win.webContents.sendInputEvent({type:'mouseDown',button:'left',clickCount:1,...point});win.webContents.sendInputEvent({type:'mouseUp',button:'left',clickCount:1,...point});await delay(50);
@@ -37,7 +37,7 @@ app.whenReady().then(async()=>{
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'`',modifiers:['control']});win.webContents.sendInputEvent({type:'keyUp',keyCode:'`',modifiers:['control']});await delay(100);
  await check('key_sample?.trusted&&key_sample.height>100','真实快捷键下一帧显示所属终端');samples.push(await evaluate('key_sample'));
  await evaluate('binding.dispose();void 0');await delay(60);
- // 可控帧队列核对同步布局消费、幂等显隐及销毁清理，不依赖墙钟阈值。
+ // Controllable frame queue checks synchronization layout consumption, idempotency visibility and destruction cleanup, without relying on wall clock thresholds.
  const scheduling=await evaluate(`(()=>{const request=window.requestAnimationFrame,cancel=window.cancelAnimationFrame,queue=new Map();let serial=0,calls=0;window.requestAnimationFrame=fn=>{queue.set(++serial,fn);return serial};window.cancelAnimationFrame=id=>queue.delete(id);try{const panel=api.create_terminal_panel(()=>calls++);panel.layout();panel.show();const pending_after_show=queue.size;for(let i=0;i<1000;i++){panel.layout();panel.hide();panel.layout();panel.show();}const pending_after_toggle=queue.size;const before=calls;panel.show();panel.show();const redundant=calls-before;panel.layout();panel.dispose();const pending_after_dispose=queue.size;const body=document.createElement('div'),tabs=document.createElement('div');body.append(tabs);document.body.append(body);const layout=api.create_terminal_layout(body,tabs,()=>{});layout.layout();layout.update(new Map());const split_pending=queue.size;layout.dispose();body.remove();return{pending_after_show,pending_after_toggle,pending_after_dispose,redundant,split_pending};}finally{window.requestAnimationFrame=request;window.cancelAnimationFrame=cancel}})()`);
  assert.deepEqual(scheduling,{pending_after_show:0,pending_after_toggle:0,pending_after_dispose:0,redundant:0,split_pending:0});checks.push('1000轮同步布局消费旧帧、重复show无更新、销毁无遗留帧');samples.push(scheduling);
  console.log(JSON.stringify({status:'PASS',checks,samples,limits:'真实Chromium输入；PTY/Shell探测被挂起，启动性能由原生ConPTY夹具另测'}));

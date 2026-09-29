@@ -1,3 +1,5 @@
+[English](reading_media_viewer.en.md)
+
 # 图片与图表放大查看
 
 ## R031 图片放大入口

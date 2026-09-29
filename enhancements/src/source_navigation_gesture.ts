@@ -1,2 +1,2 @@
-/** 活动编程编辑器的Ctrl单击由定义导航拥有，选文搜索不得同时消费。 */
+/** The single click of the active programming editor's Ctrl is owned by definition navigation, text selection search shall not consume it at the same time. */
 export const source_navigation_gestures=new WeakSet<object>();

@@ -1,13 +1,13 @@
 import {reading_viewport_bounds} from "./reading_viewport";
 
-/** 重排接管当前视口时取消宿主尚在运行的滚动动画，不能跳到动画旧终点。 */
+/** When reflow takes over the current viewport, the host's ongoing scroll animation is canceled, and it cannot jump to the old end point of the animation. */
 export function stop_native_reading_scroll(scroller:HTMLElement):void {
   if(scroller.tagName!=="CONTENT")return;
   const runtime=window as any;
   runtime.$?.(scroller).stop?.(true,false);
 }
 
-/** Typora 1.14.10 scrollAdjust 的显式距离以窗口顶边为原点，工作台须传入阅读区域偏移。 */
+/** The explicit distance of Typora 1.14.10 scrollAdjust is taken as the origin at the top edge of the window, and the workbench must pass in the offset of the reading area. */
 export function bind_reading_native_scroll(editor: any, runtime: any): () => void {
   const selection = editor?.selection, original = selection?.scrollAdjust;
   if (typeof original !== "function") return () => {};
@@ -17,7 +17,7 @@ export function bind_reading_native_scroll(editor: any, runtime: any): () => voi
     const file = runtime.File;
     if (content && typeof margin === "number" && Number.isFinite(margin) && !editor.sourceView?.inSourceMode
       && (!file?.isTypeWriterMode || force) && !file?.inBusyMode && !file?._onInitParse) {
-      // 与宿主同一chrome偏移；这里只增加工作台比宿主多出的可见区域。
+      // Same chrome offset with the host; here, only the visible area that the workbench has more than the host is added.
       const title = file?.isNodeHtml ? (runtime.$?.("#top-titlebar").height() || 0)
         : document.body.classList.contains("mac-seamless-mode") ? 30 : 0;
       const search = runtime.$?.(".on-search-panel-open #md-searchpanel").height() || 0;

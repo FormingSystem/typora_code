@@ -1,4 +1,4 @@
-// 原始宿主、真实SSH与独立临时目录；凭据仅从运行器环境取得。
+// Original host, real SSH, and independent temporary directory; credentials are only obtained from the runner environment.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),buffer=reqnode('buffer').Buffer,base=__CASE_ROOT__,checks=[];
  const env=reqnode('process').env,target=env.TYPORA_TEST_SSH_TARGET,password=env.TYPORA_TEST_SSH_PASSWORD;

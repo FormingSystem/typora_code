@@ -1,0 +1,286 @@
+{
+  "requirements": [
+    "R082"
+  ],
+  "date": "2026-09-29",
+  "version": "2026.09.29.5",
+  "baseline": "fd69468",
+  "status": "implemented and installed on validated Windows host",
+  "scope": {
+    "document_pairs": 69,
+    "renderer_messages": 1914,
+    "existing_git_messages": 851,
+    "service_messages": 121,
+    "installer_messages": 51,
+    "source_comments": "No Chinese comments remain in scanned owned JavaScript/TypeScript/CSS, Python, PowerShell, shell, batch and HTML fixtures; original third-party content and literal test data are excluded."
+  },
+  "changes": [
+    "Independent English and Chinese documentation with paired links and full internal/history translations",
+    "One loaded window language across core, workbench, Monaco, services, dates and offline help; persisted displayLang applies on normal restart",
+    "Named interpolation preserves paths and distinct file/match counts",
+    "Reference-counted Monaco theme observer lifetime",
+    "Open Editors observes layout roots when the final editor closes"
+  ],
+  "checks": {
+    "build": {
+      "status": "PASS",
+      "manifest_sha256": "3a3fd07a997822e828f9137800e570ea37d48f1cf6a2d9044c67d7d0e99de82b"
+    },
+    "full_core": {
+      "id": "46860c73b25d4d4e96b07523a5bd9d0d",
+      "status": "PASS",
+      "boundary": "Before final date-format follow-up; final build/deployment and affected UI rerun passed."
+    },
+    "localization": {
+      "status": "PASS",
+      "checks": 3433
+    },
+    "documents": {
+      "status": "PASS",
+      "pairs": 69,
+      "links": "See test_document_languages.py for current count; all local targets and anchors in both languages checked."
+    },
+    "installer_locale": {
+      "status": "PASS",
+      "engine": "Windows PowerShell 5.1",
+      "messages": 51
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 260
+    },
+    "full_ui": {
+      "status": "PASS",
+      "passed": 106,
+      "failed": 0,
+      "duration_ms": 926746,
+      "runs": [
+        "4d8fc9e4a9ac40588c5797e1a2037f6e",
+        "9dda4e9bb8da443990f6c04dd3e52649",
+        "1a15acff968b4cadb9409d53b856f595",
+        "d613e5b0cb29463b81a67507c76c6866",
+        "cac10c7e5b604793a3f5bc8a26bd6fe8",
+        "7ff84ef6639746749b0bdda0936d4b2a",
+        "4c65979c1bd24acc8ca2aa8a531ebf9c",
+        "3471c17a8e134915911cd28b1d965522",
+        "361bb31715034f1eb0ce69b6a49b73a0",
+        "a628d0406c744eebb7339a07481ef9ca",
+        "76d36779514543b5abc2ac6f785c0608",
+        "cff32ed762ac45f0b97bfc62616f1a88",
+        "5f9776b225f246bda0559c8441cbd0a9",
+        "57e130d1cb874e71beb6e7fdf706c0f3",
+        "86db254d0afa4a31852611dabf331d48",
+        "918545c6f5394299854b35bd674321d6",
+        "e72c093997b54a70aaf8054f378eb996",
+        "b82e5274e8fb4dea8d0c9fa794d7dd9d",
+        "8e67502d5cc94533aea0931d784d621f",
+        "aff237254ff248d2b20f0a970f2b87eb",
+        "2694ed12bc65438aa6cbef3a1e1daf4c",
+        "cc3b453630e04a2890837053cbff4241",
+        "667f10bafaaf4e3aa4b5979028f0e85f",
+        "7aa80358696549efa20b3c57ed1f6db4",
+        "1f9bfe6c78eb46e4a693ea5bc243b948",
+        "2341cfc194734379a2330c72cc1f15f0",
+        "9207ef6225594a9db6fdb8cb9b41b334",
+        "4abae7eece5f4d5a9edcc217389a2c75",
+        "4a6adee05dd04367a59f19a41e7e0842",
+        "89e3e04f7c8b418bb1da941885370675",
+        "a0c7bedb8f3d4b639c6d68adcc2990a8",
+        "1f31cc189b3e4ad6801bc41f46fb5245",
+        "f1f7e2cd5c68451fbcb6188b4243450d",
+        "bb7f3af1c5b44772853fcffa170bdecd",
+        "36cfd105e95944e28c0d2e529d6004a5",
+        "907b6f0fc7644b22aaf3c09522a33ed8",
+        "364c855717024075a4982dd18ccfbf39",
+        "5c1bbc0053e34922b063ca63f5d0feb9",
+        "9702865e7d8441629865f87d38815ba2",
+        "6c07671d399d4d1887ed2e584df3e223",
+        "1c5c1d969a3c49f1ab1fd319304dcab9",
+        "152e65604f4c487fa49a40a3b42ae1fe",
+        "995acdf0e41a49e09545ef3caacb3cfa",
+        "6a0fb8353fb54bd581b58e543f9b48e1",
+        "6401831d5f3a43e2819cda916149f31a",
+        "48fe287be85346deb6656423a5d9e2b1",
+        "d3763581f4954b94a2bed03f7e804e76",
+        "dc7510581cd04b89a833850b06662d55",
+        "bac5e7b1fc1a4e0498a4900ccfb52cd3",
+        "12f76ae77fbf4f0aabb2da6d0c991106",
+        "309fafff60d542da8c37ddfbcf7c804b",
+        "1884ac03110e4a0794bb5d61f4f4ee55",
+        "f18136641f804d61a0f46d9e8302d171",
+        "e7f593c16aab40c1805aff99b48f2e5c",
+        "c8824b52b6554c2e8bc5dd6848413e0a",
+        "49a2bf7653a849d4b3b96f3fb1ad8dd8",
+        "3f70381e8b924c1f93cf02b80f072b74",
+        "0005ddbf323d4612bfa2da6881c7201f",
+        "eff146de7c4148079b72fcf63cfe19e4",
+        "4b4e17fc2c1441468d5c6dcc024adee4",
+        "8b3ac6990302404a8fdea0ab1e476456",
+        "efa13b98229d456fa4e85754f2117d81",
+        "c7dbf4c65ade43a0a56478addbf52f0c",
+        "2e1918ee691b4e99a705391045176eed",
+        "cc881fa7ebf94b00a8febe94209e51e4",
+        "68148627b6e14df193085335c0e6a2c6",
+        "ad3e0e6701fd4a4fad4d65c4fae7afe4",
+        "ca575685ecbd47d099ef7d5d32bd4e30",
+        "758662da75e442418499831c3daa4650",
+        "c9ed684a34854ec8a65b692c4834c081",
+        "158599536eba42bbba51ab361152084d",
+        "9bad54968ebe4c06a87ab473ed8ec2f6",
+        "c73d57d1d7ed458eb37ba23690a3896e",
+        "7e0177963b934f1a95a907418ede8ff4",
+        "7d4a824bac09412e9bed4667044dc8bf",
+        "bc7e800d4c2d42c6915c957081827f29",
+        "e6bb8f3dcff94dfcaf8e9bd1c90380c5",
+        "193cb9f1f7bd4259865bd416b8e24821",
+        "541bff10d9bf429a8081b9934c7f968f",
+        "6b3590c6c0684c7eadb7c34f0a3870fb",
+        "715acc735ed340b29ec2b9c3b33b76cf",
+        "1d703708694a4a0ebb1782fd0ce56225",
+        "dcb7608930c645e494ab41dfda221da7",
+        "0ddd7f44a5fa4d35927c3bbc169f4ec1",
+        "6e17e178d43949ebac6f42cee7bd98a4",
+        "950752ca3bd04fbd82cd5f0cc3c20278",
+        "1d3d15eb84ed4967ae2fb5a5b11c4b6d",
+        "6030b83ba00349d18f3fc99544f8446a",
+        "426e82e089ec401a9e27317b544bf366",
+        "6a9aba88944d4fdc97647e6afc07e49f",
+        "e4415cb4dfb64b4b8e94871bec4abac1",
+        "184a5402b6234a079a6bf3ddefc46439",
+        "d12768200ba24548838879f8d9dba668",
+        "a779c950ae7b4ba38f96942807fb15c7",
+        "aba5516b18e34fa2b2d43bc02f0892c1",
+        "3797ff7fba3e49b5a035cd7e124a9abe",
+        "9ab4e01f5cfe4d438ec289fdbc0ab23a",
+        "013d0641825642159f6778136eb503d0",
+        "89ac7c8215294beb922fcdd0066949ad",
+        "8620935e069f4908828c37f2b4a22d7a",
+        "0c1b230c0e634b40a748beac4ec41820",
+        "c1c1337cc7104b7e99af59b1d4e4878f",
+        "26b7282e81f441adb8e7c888fad03eb5",
+        "1265f275f27b490ba271ac41a7e4db8e",
+        "b186021d53154e5ea7d94cfd8676f491",
+        "79c5b825d5a04417a7ccf45cf1cd437b"
+      ],
+      "boundary": "Full suite before final date-format follow-up; functional runtime unchanged during the full run."
+    },
+    "date_followup_ui": {
+      "status": "PASS",
+      "passed": 3,
+      "browser_locale": "en-US",
+      "runs": [
+        "f58bb4fdb094469b8bd8f4eec5d6ec3f",
+        "b4a183d59beb49a69f100652a8fde794",
+        "1f03c8eb409a4aac8f1f223f2e55d0c3"
+      ],
+      "scope": "Loaded Chinese locale independent of English browser, history/timeline, startup teardown and settings"
+    },
+    "native_bilingual": [
+      {
+        "id": "f1db4a9ea91549c69ed3fd26b899a306",
+        "locale": "en",
+        "checks": 14,
+        "status": "PASS",
+        "payload_state": "cleaned"
+      },
+      {
+        "id": "d7534f18f9fb4aa3b826349809fc573f",
+        "locale": "zh-cn",
+        "checks": 14,
+        "status": "PASS",
+        "payload_state": "cleaned"
+      }
+    ],
+    "native_startup": [
+      {
+        "id": "80f74898d5354b6fab81d212e4738894",
+        "locale": null,
+        "checks": 51,
+        "status": "PASS",
+        "payload_state": "cleaned"
+      }
+    ],
+    "install": {
+      "id": "12f617f26e16436890b01de4d69fd1be",
+      "status": "PASS",
+      "cycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "db0edf700a6744c490f680f705902944",
+      "status": "PASS",
+      "assertions": 65,
+      "payload_state": "cleaned"
+    }
+  },
+  "intermediate_failures": {
+    "full_ui_initial": {
+      "passed": 91,
+      "failed": 15
+    },
+    "baseline_comparison": {
+      "commit": "fd69468",
+      "failed": 8,
+      "log": "ui_baseline.log",
+      "worktree": "archived after comparison"
+    },
+    "fixture_corrections": [
+      "Locale flag shifted positional test arguments",
+      "Service fixture copy omitted the new locale assets",
+      "Legacy settings actions, palette assumptions, retired preview cutoff and asynchronous rendering waits were stale",
+      "Selection is owned by the shared model, not inferred from expansion or business detail state",
+      "Native capture stage names cannot contain hyphens; corrected fixture and reran both languages"
+    ],
+    "product_regressions": [
+      "Theme listener subscription survived final editor disposal",
+      "Final editor closure did not reach the Open Editors layout subscription"
+    ]
+  },
+  "delivery": {
+    "installed_before": "2026.09.29.5",
+    "installed_after": "2026.09.29.5",
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      56,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "3a3fd07a997822e828f9137800e570ea37d48f1cf6a2d9044c67d7d0e99de82b",
+    "window_restarted": false,
+    "initial_installed_version": "2026.09.29.4",
+    "repeat_install_verified": true,
+    "theme_comment_verification": [
+      {
+        "file": "cpp_github-consolas.css",
+        "backup_sha256": "0d70b827e70c945ed3fdaacd1c843da8e5a9527407397f9a31cdfbf59dc1b8dd",
+        "installed_sha256": "e9d2e373db65ca0f8f21756e496318083e55c8cfb0a724de4312ca5b32741c4a",
+        "css_without_comments_equal": true
+      },
+      {
+        "file": "cpp_github-consolas_light.css",
+        "backup_sha256": "04272efe6a8a4a32b1379b81dfa4faccd9a2a0c46bc9ca9a7d4a3d8b3b82751b",
+        "installed_sha256": "fa0da21c40159b27fba9134a12380b18ffc6a32f69a7614e01936d3fa30c2d6f",
+        "css_without_comments_equal": true
+      },
+      {
+        "file": "cpp_github-consolas_dark.css",
+        "backup_sha256": "9b3f0d7e56d0c1ad112cf83f593a64e363bda796cc8e3f10c76e438cf9620822",
+        "installed_sha256": "21ee690aeca4dfa1461df100d9ed374338c2ac9797a0be9c976c0d35f85c34e7",
+        "css_without_comments_equal": true
+      }
+    ],
+    "initial_guard_note": "The first byte-only protection check detected the intentional English comment changes in three packaged themes. Comparison with the installation backup proved CSS rules unchanged. Repeated installation then passed all eight persisted before/after guards."
+  },
+  "boundaries": [
+    "Native validation uses isolated Windows x64 Typora 1.14.10; no Linux, ARM64, macOS or physical keyboard acceptance is claimed.",
+    "Native Typora preferences and third-party plugin language settings retain their own owners. User text, Git content, external process output and original historical screenshots are not translated.",
+    "Current user windows were not restarted; save documents and restart all Typora windows normally to load the installed candidate.",
+    "No push or public release performed. Prior paused or unverified requirements outside R082 remain open."
+  ],
+  "commit_state": "Pending at evidence generation; the resulting commit receipt is recorded in Git and the local requirement ledger.",
+  "pushed": false
+}

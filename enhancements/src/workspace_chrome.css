@@ -1,6 +1,6 @@
 /* VS Code 88e44fa / Light 2026、Dark 2026：sideBar.border、statusBar.border、
-   editorGroupHeader.tabsBorder 共用主题分界色；sideBar.background 为侧区背景。
-   宿主 --window-border-color 在最大化时透明，不能作为工作区内部的分界色。 */
+   editorGroupHeader.tabsBorder shared theme divider color；sideBar.background as the side area background.
+   Host --window-border-color transparent when maximized, cannot be used as a divider color within the workspace. */
 :root {
   --workspace-chrome-border:var(--vscode-sideBar-border,#f0f1f2);
   --workspace-chrome-background:var(--vscode-sideBar-background,#fafafd);

@@ -1,4 +1,4 @@
-/* 恢复 71fcf1d 的正文框百分比和底栏滑块；主题的内边距、字体及渲染样式仍保留。 */
+/* Restore the percentage of the document content box and the status bar slider of 71fcf1d; the margin, font, and rendering style of the theme are still retained. */
 html[data-linux-note-document-margin="ready"] body:not(.typora-export) content > #write {
   box-sizing:border-box;
   width:var(--linux-note-document-width,100%);
@@ -12,7 +12,7 @@ html[data-linux-note-document-margin="ready"] body:not(.typora-export) content >
 }
 .linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
 .linux-note-document-margin output {width:30px;overflow:hidden;text-align:center;font-variant-numeric:tabular-nums;}
-/* 沿用原 900px 紧凑阈值，但以底栏可用宽度判断，侧栏变宽后也不挤出字数。 */
+/* Continue using the original 900px compact threshold, but judge based on the available width of the status bar; the sidebar widening does not squeeze out the number of words. */
 footer.ty-footer:has(> .linux-note-document-margin) {container-type:inline-size;container-name:typora-document-footer;}
 @container typora-document-footer (max-width:900px) {
   footer.ty-footer .linux-note-document-margin-label,footer.ty-footer .linux-note-document-margin output {display:none;}

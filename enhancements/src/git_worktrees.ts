@@ -3,7 +3,7 @@ import {read_worktrees} from "./git_scm_data";
 import {git_graph_text as text} from "./git_graph_i18n";
 
 const normalized=(path:string)=>/^[a-z]:/iu.test(path)?path.replace(/\\/gu,"/").replace(/\/$/u,"").toLowerCase():path.replace(/\/$/u,"");
-/** 删除只能指向 Git 登记的附加工作树；状态和登记在预览、执行前各核对一次。 */
+/** Deletion can only point to Git registered additional worktrees; status and registration are checked once before preview and execution. */
 export async function worktree_guard(run:git_run,root:string,target?:string):Promise<string>{
   const entries=await read_worktrees(run,root);
   if(target){

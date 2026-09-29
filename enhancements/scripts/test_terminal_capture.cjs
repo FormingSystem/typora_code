@@ -1,4 +1,4 @@
-// R006.7：真实全局捕获先于真实 xterm；只替换 PTY 与 Shell 发现，不运行用户命令。
+// R006.7: Real global capture precedes real xterm; only replace PTY and Shell discovered, without running user commands.
 const { app, BrowserWindow } = require('electron');
 const { build } = require('esbuild');
 const { editor_plugins } = require('./editor_bundle.cjs');
@@ -80,7 +80,7 @@ app.whenReady().then(async () => {
   await wait('first.session.state==="running"&&first.surface.term.textarea');
   await delay(80);
 
-  // 合成 renderer 事件能精确回放 Windows 的 229 与 isComposing 两条路径。
+  // Synthetic renderer events can precisely replay Windows's 229 and isComposing two paths.
   for (const [mode, flags] of [['composition', { isComposing: true }], ['legacy229', { keyCode: 229 }]]) {
     for (const [label, options] of [
       ['workspace search', { key: 'f', code: 'KeyF', ctrlKey: true, shiftKey: true }],
@@ -116,7 +116,7 @@ app.whenReady().then(async () => {
   await check(`send(first.surface.term.textarea,${JSON.stringify({ key: '`', code: 'Backquote', ctrlKey: true })})&&document.querySelector('.typora-terminal-panel').hidden`, 'normal terminal toggle still executes');
   await evaluate('terminal_binding.toggle();reset_terminal();void 0');
 
-  // Chromium 实际组合与字符输入：完整全局捕获链保持输入法上屏只写入一次。
+  // Actual Chromium combination and character input: complete global capture chain keeps input method on-screen to write once.
   test_window.webContents.debugger.attach('1.3');
   await evaluate('pty_starts[0].writes.length=0;first.surface.focus();void 0');
   await test_window.webContents.debugger.sendCommand('Input.imeSetComposition', { text: 'pin', selectionStart: 3, selectionEnd: 3 });
@@ -142,7 +142,7 @@ app.whenReady().then(async () => {
   await wait('!document.querySelector(".terminal-editor-host")');
   await check('first.surface===original_surface&&original_process.killed===0', 'returning terminal to panel preserves surface and PTY');
 
-  // 销毁全局捕获后保留一个普通输入目标，确认同组快捷键不再执行任何动作。
+  // After destroying global capture, retain one normal input target, confirm that the same group shortcut keys no longer execute any actions.
   await evaluate('menu_binding.dispose();shortcut_binding.dispose();breadcrumb_binding.dispose();search_binding.dispose();terminal_binding.dispose();calls.length=0;document.querySelector("#editor").focus();void 0');
   for (const options of [
     { key: 'f', code: 'KeyF', ctrlKey: true, shiftKey: true },

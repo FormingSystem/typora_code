@@ -1,4 +1,5 @@
-// 平台适配器以可控快照验证生命周期；这里不触碰用户系统剪贴板。
+import './fixture_locale.cjs';
+// Platform adapter verifies the lifecycle with a controllable snapshot; here, it does not touch the user system clipboard.
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
@@ -16,12 +17,12 @@ let release;read_gate=new Promise(resolve=>release=resolve);let valid=true;const
 validate_gate=new Promise(resolve=>release=resolve);valid=true;const before=structuredClone(snapshot),copying=service.copy('/root',['/root/b'],true,()=>valid);valid=false;release();await assert.rejects(copying,/上下文已改变/);assert.deepEqual(snapshot,before);validate_gate=undefined;
 transfer_gate=new Promise(resolve=>release=resolve);const moving=service.paste('/root','/target');await new Promise(resolve=>setTimeout(resolve,0));snapshot={paths:['/outside/new'],version:'newer',move_requested:false};release();await moving;assert.equal(snapshot.version,'newer','successful old cut cannot clear a newer copy');transfer_gate=undefined;
 await service.copy('/root',['/root/a'],true);let finish_refresh;read_gate=new Promise(resolve=>finish_refresh=resolve);const refreshing=service.refresh();await service.copy('/root',['/root/b'],true);finish_refresh();await refreshing;read_gate=undefined;assert(service.is_cut('/root/b'),'older focus refresh cannot invalidate newer cut intent');
-// 旧读取的失败与成功一样只能处理自身快照，不能把后来建立的剪切降级为复制。
+// Failed reads from the past are handled only by themselves, and cannot downgrade later established cuts to copies.
 await service.copy('/root',['/root/a'],true);let reject_refresh;read_gate=new Promise((_resolve,reject)=>reject_refresh=reject);const failed_refresh=service.refresh();
 await service.copy('/root',['/root/b'],true);const notify_after_new_cut=notifications;reject_refresh(Error('old clipboard read failed'));await failed_refresh;read_gate=undefined;
 assert(service.is_cut('/root/b'),'older failed focus refresh cannot invalidate newer cut intent');assert.equal(notifications,notify_after_new_cut,'stale failure must not publish a change to the newer cut');
 await service.paste('/root','/target');assert.deepEqual(transfers.at(-1).slice(1),[['/root/b'],'/target',true,false],'new cut still routes through the protected move after an older read fails');
-// 当前剪切自身的读取失败仍应清除标记，不能把异常全部吞掉而保留失效状态。
+// The read failure of the current cut itself should still clear the mark; it cannot swallow all exceptions while retaining the invalid state.
 await service.copy('/root',['/root/a'],true);read_gate=new Promise((_resolve,reject)=>reject_refresh=reject);const current_failed_refresh=service.refresh();reject_refresh(Error('current clipboard read failed'));await current_failed_refresh;read_gate=undefined;assert(!service.is_cut('/root/a'),'current failed focus refresh invalidates its own cut intent');
 snapshot={paths:[],version:'empty',move_requested:false};await assert.rejects(service.paste('/root','/target'),/没有文件/);
 snapshot={paths:['bad\0path'],version:'bad',move_requested:false};await assert.rejects(service.paste('/root','/target'),/不合法/);

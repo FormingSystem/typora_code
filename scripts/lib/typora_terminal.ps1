@@ -1,4 +1,5 @@
-﻿# 固定官方 Node 供终端与更新后台进程使用，不修改 PATH 或全局 Node 环境。
+﻿. (Join-Path $PSScriptRoot 'typora_locale.ps1')
+# Fixed official Node is provided for terminal and update background processes, without modifying PATH or global Node environment.
 function get_typora_node_release {
     param([string]$tools_root)
     $release = [IO.File]::ReadAllText((Join-Path $tools_root 'enhancements/node_runtime.json')) | ConvertFrom-Json
@@ -16,7 +17,7 @@ function prepare_typora_node {
     $cache_root = if ($env:TYPORA_TERMINAL_CACHE) { [IO.Path]::GetFullPath($env:TYPORA_TERMINAL_CACHE) } else { Join-Path ([Environment]::GetFolderPath('LocalApplicationData')) 'Typora/terminal_downloads' }
     New-Item -ItemType Directory -Force -Path $cache_root | Out-Null
     $name = "node-v$($release.version)-win-$($release.arch)"
-    # 不同用户配置仍共用下载缓存；串行准备且不覆写已验证、可能正在执行的Node。
+    # Different user configurations still share the download cache; serial preparation and no overwrite of verified, possibly executing Node.
     $provider=[Security.Cryptography.SHA256]::Create()
     try {$cache_key=[BitConverter]::ToString($provider.ComputeHash([Text.Encoding]::UTF8.GetBytes(($cache_root.ToLowerInvariant()+'|'+$name)))).Replace('-','')} finally {$provider.Dispose()}
     $cache_mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeNodeCache_'+$cache_key))
@@ -26,18 +27,18 @@ function prepare_typora_node {
     try {$owns_cache=$cache_mutex.WaitOne(120000)} catch [Threading.AbandonedMutexException] {$owns_cache=$true}
     if(!$owns_cache){throw 'Timed out waiting for the shared Node cache. Retry after the other installation finishes.'}
     $archive = Join-Path $cache_root ($name + '.zip')
-    & $report ("检查 Node $($release.version) / $($release.arch) 的本地缓存。")
+    & $report ((get_typora_text -key 'checking_the_local_cache_for_node' -values @{value_0=$($release.version);value_1=$($release.arch)}))
     if (!(Test-Path -LiteralPath $archive -PathType Leaf) -or (Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $release.sha256) {
         $partial = Join-Path $cache_root ($name + '.' + [Guid]::NewGuid().ToString('N') + '.part')
-        & $report '正在从 nodejs.org 下载运行时；首次安装可能需要几分钟，请保持此窗口打开。'
+        & $report (get_typora_text -key 'downloading_the_runtime_from_nodejs_org_the_first_installation_m')
         [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
         $ProgressPreference = 'SilentlyContinue'
         Invoke-WebRequest -UseBasicParsing -Uri "https://nodejs.org/dist/v$($release.version)/$name.zip" -OutFile $partial
-        & $report '下载完成，正在校验 SHA-256。'
+        & $report (get_typora_text -key 'download_complete_verifying_sha_256')
         if ((Get-FileHash -LiteralPath $partial -Algorithm SHA256).Hash -ne $release.sha256) { throw 'Terminal Node archive digest mismatch; installation stopped.' }
         Move-Item -LiteralPath $partial -Destination $archive -Force
-    } else { & $report '已复用通过 SHA-256 校验的缓存，无须重新下载。' }
-    & $report '正在解压并校验运行时文件。'
+    } else { & $report (get_typora_text -key 'reusing_the_cache_verified_by_sha_256_no_download_is_needed') }
+    & $report (get_typora_text -key 'extracting_and_verifying_runtime_files')
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $stage = Join-Path $cache_root ($name + '-verified')
     $target_directory = Join-Path $stage "node/$($release.version)"
@@ -59,7 +60,7 @@ function prepare_typora_node {
     if ((Get-FileHash -LiteralPath (Join-Path $target_directory 'LICENSE') -Algorithm SHA256).Hash -ne $release.license_sha256) { throw 'Terminal Node license digest mismatch.' }
     $assets = @()
     foreach ($filename in @('node.exe', 'LICENSE')) { $assets += [pscustomobject]@{ relative_path = "node/$($release.version)/$filename"; sha256 = (Get-FileHash -LiteralPath (Join-Path $target_directory $filename) -Algorithm SHA256).Hash } }
-    & $report '运行时已就绪。'
+    & $report (get_typora_text -key 'the_runtime_is_ready')
     return [pscustomobject]@{ root = $stage; assets = $assets }
     } finally {try {if($partial -and (Test-Path -LiteralPath $partial -PathType Leaf)){[IO.File]::Delete($partial)}} finally {if($owns_cache){$cache_mutex.ReleaseMutex()};$cache_mutex.Dispose()}}
 }

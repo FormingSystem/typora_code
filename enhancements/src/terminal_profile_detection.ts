@@ -1,9 +1,10 @@
+import {workspace_text} from "./workspace_i18n";
 import type { terminal_profile } from "./terminal_runtime";
 
 type detection_dependencies = { process_api: any; path_api: any; fs: any; child_process: any };
 type profile_candidate = terminal_profile & { priority: number; canonical_path?: string };
 
-// 仅查询安装信息：不加载用户 Profile，不运行候选 Shell，也不递归遍历磁盘。
+// Only query the installation information: do not load the user Profile, do not run the candidate Shell, and do not recursively traverse the disk.
 const WINDOWS_INSTALLATION_QUERY = String.raw`
 $ErrorActionPreference = 'SilentlyContinue'
 $ProgressPreference = 'SilentlyContinue'
@@ -63,9 +64,9 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
   const remaining_time = () => Math.max(0, scan_deadline - Date.now());
   function warn(message: string) { if (!disposed && !detection_warnings.includes(message)) detection_warnings.push(message); }
 
-  // 网络 PATH 或失效挂载不能无限阻塞菜单；所有等待归探测服务生命周期管理。
+  // Network PATH or failed mounting cannot block the menu indefinitely; all waits are managed by the lifecycle of the probe service.
   function bounded<T>(operation: Promise<T>, fallback: T, timeout_ms = 750): Promise<T> {
-    if (disposed || remaining_time() <= 0) { Promise.resolve(operation).catch(() => {}); warn("部分安装位置查询超时，可重新检测。"); return Promise.resolve(fallback); }
+    if (disposed || remaining_time() <= 0) { Promise.resolve(operation).catch(() => {}); warn(workspace_text("terminal_profile_detection_partial_installation_location_query_timeout_can_be_rechecked")); return Promise.resolve(fallback); }
     return new Promise(resolve => {
       let settled = false;
       const finish = (value: T) => { if (settled) return; settled = true; clearTimeout(timer); cancel_queries.delete(cancel); resolve(value); };
@@ -81,7 +82,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
     if (disposed || !file_path || file_path.includes("\0")) return null;
     const key = normalize(file_path);
     if (scan_stats.has(key)) return scan_stats.get(key);
-    if (remaining_time() <= 0) { warn("部分安装位置查询超时，可重新检测。"); return null; }
+    if (remaining_time() <= 0) { warn(workspace_text("terminal_profile_detection_partial_installation_location_query_timeout_can_be_rechecked")); return null; }
     try { const result = await bounded(fs.promises.stat(file_path), null); if (result) scan_stats.set(key, result); return result; } catch { return null; }
   }
   async function exists(file_path: string) { return !!(await stat(file_path))?.isFile(); }
@@ -90,7 +91,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
     if (disposed || remaining_time() <= 0 || !folder) return [];
     try { const entries = await bounded<string[]>(fs.promises.readdir(folder), []); return entries.filter(name => typeof name === "string").sort(); } catch { return []; }
   }
-  function query(executable: string, args: string[], encoding = "utf8", query_env = process_api.env, failure_message = "部分安装信息查询失败，可重新检测。"): Promise<string> {
+  function query(executable: string, args: string[], encoding = "utf8", query_env = process_api.env, failure_message = workspace_text("terminal_profile_detection_partial_installation_information_query_failed_can_be_recheck")): Promise<string> {
     if (disposed || remaining_time() <= 0 || !child_process?.execFile) { warn(failure_message); return Promise.resolve(""); }
     return new Promise(resolve => {
       let child: any, settled = false;
@@ -163,7 +164,7 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
       }
       for (const key of ["msys2_root", "msys_root"]) add_root(msys_roots, env[key]);
       add_root(cygwin_roots, env.cygwin_root);
-      // PATH 的 git.exe 可以位于 cmd、bin 或 mingw64/bin；逐层限定候选而非扫描父目录。
+      // The git.exe of PATH can be located in cmd, bin, or mingw64/bin; limit candidates layer by layer rather than scanning parent directories.
       const path_bash: string[] = [];
       await map_bounded([...path_entries], async prefix => {
         if (await exists(path_api.join(prefix, "git.exe"))) {
@@ -216,11 +217,11 @@ export function create_terminal_profile_service({ process_api, path_api, fs, chi
       }
       const wsl = system_folder ? path_api.join(system_folder, "wsl.exe") : "";
       if (!(Array.isArray(installations.wsl_distributions) && installations.wsl_distributions.length === 0) && await exists(wsl)) {
-        const wsl_failure = "WSL 发行版查询失败；本次未取得新的 WSL 配置。";
+        const wsl_failure = workspace_text("terminal_profile_detection_wsl_version_query_failed_this_time_no_new_wsl_configuration");
         const distro_output = await query(wsl, ["--list", "--quiet"], "utf16le", { ...process_api.env, WSL_UTF8: "0" }, wsl_failure);
         const distros = new Set(distro_output.replace(/^\uFEFF/u, "").replace(/\0/gu, "").split(/\r?\n/u).map(name => name.trim()).filter(name => name && !/^docker-desktop/iu.test(name)));
         for (const name of [...distros]) add("wsl_" + stable_suffix(name.toLowerCase()), name + " (WSL)", wsl, ["-d", name], 100, undefined, true);
-        // 枚举超时不等于发行版已删除：保留已知配置，并由状态提示说明此次未刷新。
+        // Enumerating timeout does not equal the version of the deleted release: retain known configurations, and by the status prompt explain that this time it was not refreshed.
         if (detection_warnings.includes(wsl_failure)) for (const profile of snapshot.filter(profile => profile.wsl)) candidates.push({ ...profile, priority: 100 });
       }
     } else {

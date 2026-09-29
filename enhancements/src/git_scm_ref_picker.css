@@ -1,4 +1,4 @@
-/* VS Code 1.137.0 QuickPick: 600px宽、22px行、6px边距；位置遵守工作台现有QuickOpen入口。 */
+/* VS Code 1.137.0 QuickPick: 600px wide, 22px high, 6px margin; position follows the existing QuickOpen entry of the workbench. */
 .git-scm-ref-picker{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(600px,calc(100vw - 12px));max-height:calc(100vh - 12px);display:flex;flex-direction:column;border:1px solid var(--item-hover-bg-color,rgba(127,127,127,.28));border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:22px}
 .git-scm-ref-header{display:flex;align-items:center;gap:6px;padding:6px 6px 4px;flex:none}
 .git-scm-ref-input{flex:1;display:flex;align-items:center;min-width:0;box-sizing:border-box;height:26px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px;background:var(--bg-color,#fff)}

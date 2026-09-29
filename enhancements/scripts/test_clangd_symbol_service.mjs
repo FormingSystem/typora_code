@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
@@ -100,7 +101,7 @@ try{
   await service.dispose();await assert.rejects(service.parse(request,signal()),error=>error.name==='AbortError');checks.push('shutdown and disposal reject later work');
 }finally{await service.dispose();}
 
-// 未打开实现文件：必须来自编译数据库的真实工程索引，而非当前AST。
+// If the implementation file is not open: it must come from the real engineering index of the compilation database, not from the current AST.
 const indexed_root=path.join(evidence,'indexed project'),caller=path.join(indexed_root,'caller.c'),implementation=path.join(indexed_root,'implementation.c'),header=path.join(indexed_root,'api.h');
 await fs.mkdir(indexed_root);await fs.writeFile(header,'int project_function(int value);\n');await fs.writeFile(implementation,'#include "api.h"\nint project_function(int value) { return value + 1; }\n');
 const caller_text='#include "api.h"\nint caller(void) { return project_function(7); }\n';await fs.writeFile(caller,caller_text);
@@ -135,7 +136,7 @@ try{
 }finally{await diagnostic_service.dispose();on_fake_write=undefined;}
 checks.push('diagnostics distinguish not-yet-received, current-version, stale and unversioned notifications');
 
-// 多语言协议验证：真实子进程仍由下面的clangd用例验证。
+// Multi-language protocol validation: the real child process is still validated by the following clangd use case.
 for(const language of ['python','java']){
  writes=[];
  on_fake_write=message=>{
@@ -157,7 +158,7 @@ for(const language of ['python','java']){
 }
 checks.push('Python/Java stdio LSP profiles preserve language, initialization, configuration, semantic legend and reject edits (protocol fixture)');
 
-// 严格区分无定义、协议失败与声明回退；不允许任意协议目标。
+// Strictly distinguish undefined, protocol failure, and declared fallback; do not allow arbitrary protocol targets.
 const target_uri=node('url').pathToFileURL(file).href,range={start:{line:0,character:4},end:{line:0,character:8}};
 let navigation_mode='fallback',navigation_diagnostics=[];
 on_fake_write=message=>{
@@ -180,7 +181,7 @@ checks.push('definition falls back only on empty results, LocationLink/dedup/URI
 const launch_fail=api.create_language_analysis_service(node);
 try{await assert.rejects(launch_fail.parse({file_path:file,workspace_root:project,language:'c',text:disk,executable:process.execPath},signal()),/clangd/);checks.push('non-LSP executable exit rejects without hanging');}finally{await launch_fail.dispose();}
 
-// 可选只读工程验证仅在显式传入时执行，不把个人工作区路径写入产品或夹具。
+// Optional read-only engineering validation is only executed when explicitly passed in, and does not write personal workspace paths into products or fixtures.
 if(process.env.TYPORA_CLANGD_TEST_FILE){
   const file_path=path.resolve(process.env.TYPORA_CLANGD_TEST_FILE),workspace_root=path.resolve(process.env.TYPORA_CLANGD_TEST_ROOT||path.dirname(file_path)),text=await fs.readFile(file_path,'utf8');
   const real_service=api.create_language_analysis_service(node);

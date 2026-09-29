@@ -1,4 +1,4 @@
-/** 以两条轨道和提交点表达图标签；灰色模式随工作台前景，彩色模式保留轨道区分。 */
+/** Express the tag of the graph with two tracks and a commit point; gray mode follows the working bench foreground, and color mode retains track differentiation. */
 export function git_graph_tab_icon(theme: string): SVGSVGElement {
   const ns="http://www.w3.org/2000/svg",svg=document.createElementNS(ns,"svg");
   svg.setAttribute("viewBox","0 0 16 16");svg.setAttribute("width","16");svg.setAttribute("height","16");

@@ -1,4 +1,4 @@
-// 隔离 Electron 验证阅读/路径模块卸载、重载与异步取消，无真实 Typora 文件写入。
+// Isolate Electron verify reading / path module uninstall, reload and async cancel, no real Typora file writing.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -42,7 +42,7 @@ app.whenReady().then(async () => {
   assert(await evaluate(`qa.navigate_reading_target('missing.md').then(()=>false,()=>true)`));
   assert.deepEqual(await evaluate('({html:document.querySelector("#write").innerHTML,path:File.bundle.filePath,leaf:leaf.state.path,scroll:document.querySelector("content").scrollTop,opens:opened_paths.length})'),missing_before,'missing target cannot clear or switch the current Markdown before failing');
 
-  // 单次取消在原生打开之前生效，不能等其他导航完成后再打开已经取消的移交目标。
+  // Single cancel takes effect before native open, cannot open already canceled transfer target after other navigation is completed.
   await evaluate(`window.cancelled_open=new AbortController();cancelled_open.abort();window.cancelled_result=qa.navigate_reading_target('/test/cancelled.md',{signal:cancelled_open.signal}).then(()=>false,error=>/取消/.test(error.message));void 0;`);
   assert(await evaluate('cancelled_result'));
   assert.equal(await evaluate('opened_paths.length'),missing_before.opens,'pre-aborted navigation never enters the native opener');
@@ -82,7 +82,7 @@ app.whenReady().then(async () => {
   assert(await evaluate('![...document.documentElement.attributes].some(a=>/data-linux-note-(reading|copy-path|history)/.test(a.name))'));
   await evaluate(`window.workspace=qa.create_reading_workspace(()=>File.bundle.filePath,()=>false);window.restore_pending=workspace.restore(workspace.active(),{scroll_top:600,scroll_left:0});workspace.dispose();workspace.dispose();document.querySelector('content').scrollTop=900;`);
   assert.equal(await evaluate('restore_pending'),false);await delay(100);assert.equal(await evaluate("document.querySelector('content').scrollTop"),900);
-  // 首次位置交付不等稳定期，迟到宿主滚动仍校正；新任务及取消不能被旧任务拉回。
+  // First location delivery is not equal to stable period, stale host scroll still correct; new task and cancel cannot be pulled back by old task.
   await evaluate(`window.workspace=qa.create_reading_workspace(()=>File.bundle.filePath,()=>false);window.position_abort=new AbortController();window.initial_started=performance.now();void 0`);
   assert(await evaluate(`workspace.restore(workspace.active(),{scroll_top:600,scroll_left:0},{background:true,signal:position_abort.signal})`));
   assert.equal(await evaluate("document.querySelector('content').scrollTop"),600);
@@ -98,7 +98,7 @@ app.whenReady().then(async () => {
   await evaluate('window.dispose_nav2=qa.bind_reading_navigation();window.dispose_paths2=qa.bind_file_path_actions();window.dispose_map2=qa.bind_reading_minimap();void 0;');
   assert.equal(await evaluate('commands.size'),2);assert.equal(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length'),1);
   await evaluate('dispose_nav2();dispose_paths2();dispose_map2();');
-  // 同时存在内外两个原生链接入口时，真实点击可能直接进入内部方法。
+  // When there are two native link entries inside and outside, real click may directly enter internal method.
   await evaluate(`File.editor.tryOpenUrl_=function(){document.querySelector('content').scrollTop=1200;};window.native_inner=File.editor.tryOpenUrl_;window.dispose_inner=qa.bind_reading_navigation();void 0;`);
   await delay(400);
   await evaluate(`document.querySelector('content').scrollTop=120;File.editor.tryOpenUrl_('#target');void 0;`);
@@ -113,7 +113,7 @@ app.whenReady().then(async () => {
   console.log('NAVIGATION_LATENCY '+JSON.stringify(await evaluate('navigation_sample')));
   assert((await evaluate('navigation_sample.first_frame_ms'))<120,'就绪同文历史不再固定等待140ms');
   assert((await evaluate('navigation_sample.ready_ms'))<220,'首次定位不等待250ms稳定期');
-  // Alt保持按下，多次方向键在同一历史上往返；真实Chromium键盘事件。
+  // Alt Hold down, multiple direction keys in the history back and forth; real Chromium keyboard events.
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Alt'});
   for(let round=0;round<5;round++){
     test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Right',modifiers:['alt']});
@@ -126,7 +126,7 @@ app.whenReady().then(async () => {
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Alt'});
   await evaluate('dispose_inner();void 0');
   assert(await evaluate('File.editor.tryOpenUrl_===native_inner'),'销毁恢复真实内部链接入口');
-  // 工具面板切换可能重复通知同一活动编辑器，并改变缓存的原生选区；不能污染文档历史。
+  // Tool panel switching may repeat notifications for the same active editor, and change the cached native selection; cannot pollute the document history.
   await evaluate(`window.toolbar_cursor={type:'cursor',id:'a',start:0};File.editor.selection.buildUndo=()=>toolbar_cursor;File.editor.undo={exeCommand(cursor){toolbar_cursor=cursor}};window.dispose_toolbar_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();toolbar_cursor={type:'cursor',id:'b',start:0};qa.notify_navigation_selection(true);toolbar_cursor={type:'cursor',id:'c',start:0};qa.notify_navigation_selection(true);void 0`);
   await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
   assert.equal(await evaluate('toolbar_cursor.id'),'b');
@@ -145,14 +145,14 @@ app.whenReady().then(async () => {
   await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
   assert.equal(await evaluate('toolbar_cursor.id'),'b','返回来源未被工具期间的宿主缓存选区覆盖');
   assert.equal(await evaluate("document.querySelector('content').scrollTop"),450,'离开前的正文阅读滚动仍能恢复，工具控件本身不产生历史');
-  // 起点在功能栏的明确定位仍记录；正文再次接受鼠标/键盘编辑后恢复普通选区采样。
+  // The starting point is clearly localized in the function bar and is still recorded; the document content resumes the ordinary selection sampling after accepting mouse/keyboard editing again.
   await evaluate(`toolbar_cursor={type:'cursor',id:'outline-target',start:0};qa.notify_navigation_selection(true);void 0`);
   assert.equal(await evaluate('document.documentElement.dataset.linuxNoteHistoryForward'),'false','明确定位正常截断旧前进');
   await evaluate(`const root=document.querySelector('#write');root.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));toolbar_cursor={type:'cursor',id:'text-edit',start:0};root.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,inputType:'insertText',data:'x'}));qa.notify_navigation_selection();void 0`);
   await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
   assert.equal(await evaluate('toolbar_cursor.id'),'outline-target','正文编辑位置正常进入共同历史');
   await evaluate(`dispose_toolbar_nav();document.querySelector('#activity-tool').remove();File.editor.selection.buildUndo=()=>null;void 0`);
-  // Monaco以textarea接收键盘，不能被普通表单的Alt保护误拦截。
+  // Monaco receives textarea keyboard, cannot be mistakenly intercepted by the ordinary form's Alt protection.
   await evaluate(`window.source_position={kind:'source',file_path:'/test/code.c',view_id:-1,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position=location;qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();window.dispatchEvent(new Event('blur'));qa.notify_navigation_selection();source_position={...source_position,line:11,cursor:{startLineNumber:11}};qa.notify_navigation_selection(true);const source_panel=document.createElement('section');source_panel.className='linux-note-source-file';source_panel.innerHTML='<textarea></textarea>';document.body.append(source_panel);source_panel.firstChild.focus();void 0;`);
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(50);
@@ -162,7 +162,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('source_position.line'),11,'恢复引起的选区事件不污染前进历史');
   await evaluate(`release_port();window.reopened_id=100;window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position={...location,view_id:++reopened_id};host.workspace.activeLeaf=leaf;setTimeout(()=>qa.notify_navigation_selection(),10);return true}});void 0;`);
   for(let round=0;round<20;round++){
-    // 没有活动文件也必须响应；恢复端返回新视图，其迟到选区不能切断前进。
+    // Must respond even without an active file; the recovery end returns a new view, and its stale selection cannot cut off the forward.
     await evaluate('source_position=null;host.workspace.activeLeaf={view:{}};void 0');
     test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});
     test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Left',modifiers:['alt']});await delay(50);
@@ -172,7 +172,7 @@ app.whenReady().then(async () => {
     test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Right',modifiers:['alt']});await delay(50);
     assert.equal(await evaluate('source_position.line'),11,'重开后连续前进 '+round);
   }
-  // 不给每次恢复预留等待：真实键盘连按必须逐项执行，包含反向与浏览器重复键。
+  // Do not reserve waiting for each recovery: real keyboard double presses must be executed one by one, including reverse and browser duplicate keys.
   await evaluate(`dispose_source_nav();release_port();source_position={kind:'source',file_path:'/test/burst.c',view_id:500,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.burst_trace=[];window.fail_burst=false;window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async(location,signal)=>{await new Promise(resolve=>setTimeout(resolve,30));if(signal.aborted||fail_burst)return false;source_position={...location};burst_trace.push(location.line);qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();for(const line of [30,50,70]){source_position={...source_position,line,cursor:{startLineNumber:line},scroll_top:line};qa.notify_navigation_selection(true);}void 0`);
   const burst_keys=keys=>{for(const keyCode of keys){test_window.webContents.sendInputEvent({type:'keyDown',keyCode,modifiers:['alt']});test_window.webContents.sendInputEvent({type:'keyUp',keyCode,modifiers:['alt']});}};
   burst_keys(['Left','Left','Left']);await delay(300);
@@ -199,7 +199,7 @@ app.whenReady().then(async () => {
     console.log('NAVIGATION_QUEUE '+rounds+' rounds / '+rounds*2+' ordered restores');
   }
   await evaluate(`dispose_source_nav();release_port();document.querySelector('.linux-note-source-file').remove();void 0;`);
-  // 原生定位跨帧等待期间取消：不得滚动新视口或恢复旧选区。
+  // Native positioning across frames during wait period: Do not scroll new viewport or restore old selection.
   await evaluate(`(() => {
     const wrapper=document.createElement('div');wrapper.className='CodeMirror';wrapper.tabIndex=0;document.querySelector('#write').append(wrapper);
     let cursor={line:0,ch:0};window.undo_count=0;

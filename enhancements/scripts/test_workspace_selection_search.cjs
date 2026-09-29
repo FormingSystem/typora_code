@@ -1,8 +1,8 @@
-// 真实 Chromium 输入、真实搜索与 Markdown/Monaco 预览；工作区、用户数据均隔离。
+// Real Chromium input, real search and Markdown/Monaco preview; workspace, user data are all isolated.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');const fs=require('node:fs');const path=require('node:path');const os=require('node:os');const {execFileSync}=require('node:child_process');
 const {build}=require('esbuild');const {editor_plugins}=require('./editor_bundle.cjs');
-// 可选真实 CodeMirror 5 素材目录；仅测试读取，不安装到 Typora 或加入运行依赖。
+// Optional real CodeMirror 5 material directory; only for testing reading, not installed to Typora or added to running dependencies.
 const codemirror_directory=process.env.TYPORA_LOOKUP_CODEMIRROR_DIR;
 const native_css_sources=process.env.TYPORA_RESOURCES_DIR?['base-control.css','window.css'].map(name=>path.join(process.env.TYPORA_RESOURCES_DIR,'style',name)):[];
 const native_css=native_css_sources.map(file=>fs.readFileSync(file,'utf8')).join('\n');
@@ -78,7 +78,7 @@ app.whenReady().then(async()=>{
   test_window.webContents.setZoomFactor(1);await evaluate("document.documentElement.removeAttribute('style');document.documentElement.dataset.workspaceFileIconTheme='light';document.querySelector('#sidebar-content').style.width='370px'");await delay(80);
   checks.push('light and dark 220/370px file groups toggle at 100/125% page zoom');
 
-  // 文件分组的名称、图标与空白都是同一开关；动作按钮仍有独立入口。
+  // The name, icon, and blank of file groups are all controlled by the same switch; action buttons still have independent entries.
   for(const target of [file_group+'>summary .workspace-search-file-name',file_group+'>summary>.workspace-file-theme-icon']){
     for(let index=0;index<2;index++){
       const before=await evaluate(`document.querySelector('${file_group}').open`);await click(target);
@@ -124,7 +124,7 @@ app.whenReady().then(async()=>{
   await click('[aria-label="收起预览"]');assert(await evaluate('document.querySelector(".workspace-search-preview-section").classList.contains("is-collapsed")'));
   await click('.workspace-search-match');assert(!await evaluate('document.querySelector(".workspace-search-preview-section").classList.contains("is-collapsed")'));assert.equal(await evaluate('open_calls.length'),0);
   checks.push('only one Search panel exists and selecting a result reopens its collapsed lower preview without opening a tab');
-  // 同一命中重复选择必须显式定位，不能为此重新读取或重建预览。
+  // Same hit repeated selection must be explicitly localized; it cannot be for this reason re-read or rebuild the preview.
   for(const extension of ['md','c']){
     const name='revisit.'+extension;
     documents[name]=Array.from({length:260},(_,i)=>i===184?'revisit_target exact location':extension==='md'?'Paragraph '+i+' ordinary text.\n':'int filler_'+i+' = 0;').join('\n');
@@ -225,7 +225,7 @@ app.whenReady().then(async()=>{
     await click_point(cm_point,['control']);await wait('search_panel.container.dataset.state==="ready" && document.querySelector(".workspace-search-query-box>textarea").value==="lookup_cm_token"');assert.equal(await evaluate('open_calls.length'),cm_calls);assert.equal(await evaluate('cm.getSelection()'),'lookup_cm_token');assert.equal(await evaluate('document.querySelectorAll(".workspace-search-match").length'),1);
     checks.push('real CodeMirror 5 selected Ctrl-click searches through its public selection API and preserves the native selection without opening a document');
   }
-  // 独立链接预览与搜索并存：搜索生命周期不关闭链接，关闭链接也不影响搜索。
+  // Independent link preview and search coexist: the search lifecycle does not close the link, and closing the link does not affect the search.
   await evaluate("window.link_dock=lookup_qa.bind_workspace_link_dock(core,files);void 0");
   await evaluate(`core.app.workspace.activeLeaf=native_leaf;document.querySelector('#write').hidden=false;if(File.editor.sourceView)File.editor.sourceView.inSourceMode=false;search_panel.show();document.querySelectorAll('.workspace-search-pattern-box input').forEach(input=>input.value='');document.querySelector('#native-link').setAttribute('href','target.md#target');void 0`);
   const link_visible=`!document.querySelector('.workspace-link-dock').hidden&&document.querySelector('.workspace-link-preview .workspace-lookup-preview-body')?.dataset.previewPath?.endsWith('target.md')`;

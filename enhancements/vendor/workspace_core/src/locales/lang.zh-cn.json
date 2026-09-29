@@ -165,6 +165,9 @@
     "rightSplit": {
       "toggleButton": "切换右侧面板",
       "empty": "此侧边栏为空。"
-    }
+    },
+    "not_regular_file": "目标不是普通文件。",
+    "open_file_failed": "无法打开文件：",
+    "move_to_window": "移到新窗口"
   }
 }

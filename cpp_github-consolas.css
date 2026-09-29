@@ -44,7 +44,7 @@ html {
 }
 
 body {
-    /* 英文字体优先使用 console 风格等宽字体，保留中文字体兼容 */
+    /* Prefer console style monospace font for English text, retain Chinese font compatibility */
     font-family: "Consolas", "Monaco", "Courier New", "Open Sans", "Clear Sans", "Helvetica Neue", Helvetica, Arial, 'Segoe UI Emoji', 'SF Pro', sans-serif;
     color: rgb(51, 51, 51);
     line-height: 1.6;
@@ -235,7 +235,7 @@ table td:last-child {
     border-top: 1px solid #eef2f2;
 }
 
-/* 代码块使用 console 风格等宽字体 */
+/* Code blocks use console style monospace font */
 .md-fences,
 code,
 tt {
@@ -398,34 +398,28 @@ header, .context-menu, .megamenu-content, footer{
 }
 
 h1, h2, h3, h4, h5, h6 {
-    color: #0066cc; /* 标题颜色保持蓝色 */
+    color: #0066cc; /* Title color remains blue */
 }
 
-/* 统一 Markdown 链接样式：蓝色、无下划线 */
+/* Uniform Markdown link style: blue, no underline */
 a {
-    color: #4183C4;         /* 链接蓝色 */
-    text-decoration: none;  /* 去掉下划线 */
+    color: #4183C4;         /* Link in blue */
+    text-decoration: none;  /* Remove underline */
 }
 
-/* 鼠标悬停时稍微加深颜色，但仍无下划线 */
+/* Slightly deepen the color when the mouse hovers, but still no underline */
 a:hover {
     color: #138601;
     text-decoration: none;
 }
 
-/* 已访问链接颜色（可选） */
+/* Visited link color (optional) */
 a:visited {
     color: #336699;
     text-decoration: none;
 }
 
-/*
- * 代码块语法高亮后备映射：为 Typora 原生 CodeMirror 模式提供基础配色。
- *
- * C/C++ 的主要识别不由这里按关键字猜测，而由 enhancements 扩展加载 VS Code
- * TextMate grammar 后生成 cm-tm-* 语法作用域；扩展使用 GitHub Light 颜色覆盖本后备层。
- * 这里仍保留 cm-* 映射，供 Typora 的其他内置语言模式使用。代码围栏需要写明语言。
- */
+/* Fallback syntax colors for Typora's native CodeMirror modes. C/C++ recognition primarily uses VS Code TextMate grammar loaded by the enhancements, producing cm-tm-* scopes with GitHub Light colors. Keep the cm-* fallback mappings for other built-in language modes. Code fences must specify a language. */
 :root {
     --code-keyword-color: #d73a49;
     --code-comment-color: #6a737d;
@@ -442,42 +436,42 @@ a:visited {
     --code-symbol-color: #e36209;
 }
 
-/* 控制流、存储类、类型限定符和其他语言关键字。 */
+/* Control flow, storage classes, type qualifiers, and other language keywords. */
 .cm-s-inner .cm-keyword {
     color: var(--code-keyword-color);
 }
 
-/* GitHub Light 使用低饱和灰色注释，不额外使用斜体。 */
+/* GitHub Light use low saturation gray comments, do not use italics additionally. */
 .cm-s-inner .cm-comment {
     color: var(--code-comment-color);
     font-style: normal;
 }
 
-/* 字符串、字符常量与正则表达式。 */
+/* Strings, character constants, and regular expressions. */
 .cm-s-inner .cm-string,
 .cm-s-inner .cm-string-2,
 .cm-s-inner .cm-regexp {
     color: var(--code-string-color);
 }
 
-/* 十进制、十六进制、浮点数和其他数字字面量。 */
+/* Decimal, hexadecimal, floating-point numbers, and other numeric literals. */
 .cm-s-inner .cm-number {
     color: var(--code-number-color);
 }
 
-/* 函数、宏或其他定义位置；具体分类取决于 CodeMirror 的语言模式。 */
+/* Functions, macros, or other definition locations; specific classification depends on CodeMirror's language mode. */
 .cm-s-inner .cm-def {
     color: var(--code-definition-color);
 }
 
-/* 普通变量、参数与成员属性。 */
+/* Ordinary variables, parameters, and member attributes. */
 .cm-s-inner .cm-variable,
 .cm-s-inner .cm-variable-2,
 .cm-s-inner .cm-property {
     color: var(--code-variable-color);
 }
 
-/* 类型名使用 GitHub 的 entity 色，和函数、类等命名实体保持一致。 */
+/* Type names use GitHub's entity color, and keep consistent with function, class, etc., naming entities. */
 .cm-s-inner .cm-variable-3,
 .cm-s-inner .cm-type {
     color: var(--code-type-color);
@@ -491,19 +485,19 @@ a:visited {
     color: var(--code-meta-color);
 }
 
-/* 布尔值、null、枚举值等常量令牌。 */
+/* Boolean values, null, enumeration values, and other constant tokens. */
 .cm-s-inner .cm-atom,
 .cm-s-inner .cm-constant {
     color: var(--code-literal-color);
 }
 
-/* C/C++ 预处理指令、注解以及语言模式给出的元信息。 */
+/* C/C++ preprocessor directives, annotations, and metadata provided by the language mode. */
 .cm-s-inner .cm-meta,
 .cm-s-inner .cm-meta-keyword {
     color: var(--code-meta-color);
 }
 
-/* HTML/XML 等语言也共用同一套清晰的标记色。 */
+/* HTML/XML and other languages also share the same clear mark color. */
 .cm-s-inner .cm-tag {
     color: var(--code-tag-color);
 }

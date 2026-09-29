@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -62,7 +63,7 @@ try {
   assert.equal(snapshot.commits.length, 4);
   assert(snapshot.refs.some(ref => ref.name === 'refs/tags/v1' && ref.hash === merge));
   assert(snapshot.refs.some(ref => ref.name === 'refs/remotes/origin/main'));
-  // 两个真实三父stash只显示两个节点，保留普通引用可达的辅助对象。
+  // Two real three-parent stash only display two nodes, preserving the auxiliary objects that are reachable through normal references.
   const stash_hashes=[];const helper_hashes=[];
   for(let index=0;index<2;index++) {
     write(unusual,'stash tracked '+index);write('untracked_'+index+'.txt','stash extra');git(['stash','push','-u','-m','fixture '+index]);
@@ -87,7 +88,7 @@ try {
   assert((await compare_patch(runner.run, snapshot, feature, merge, {status:'M',path:unusual})).includes('+新增一行'));
   assert((await runner.run(root, ['show', '-s', '--format=%B', first])).includes('<img src=x onerror=alert(1)>'));
   assert.deepEqual((await read_repository(runner.run, root, graph_defaults, 200, ['refs/heads/feature'])).commits.map(item => item.hash), [feature, first]);
-  // 以 Git 实际返回的顺序检查分页边界，不能只断言参数字符串。
+  // Check the pagination boundary in the order actually returned by Git; do not only assert the parameter string.
   const history_lines = [];
   for (let index = 0; index < 200; index++) {
     const message = `history ${index}`;
@@ -99,7 +100,7 @@ try {
   const next = await read_repository(runner.run, root, graph_defaults, 400);
   assert.equal(next.commits.length, 204); assert.equal(next.more, false);
   assert.deepEqual(next.commits.slice(0, 200), page.commits);
-  // 未提交正文和索引必须保持原字节；读取操作不得触发外部 diff。
+  // Uncommitted document and index must remain the original bytes; read operations must not trigger external diff.
   write(unusual, 'dirty\n'); write('untracked.md', 'not staged\n');
   git(['config', 'diff.external', 'must-never-execute-this']);
   const status = git(['status', '--porcelain=v1']); const index_before = fs.readFileSync(path.join(root, '.git/index'));

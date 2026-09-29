@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {git_diff_source} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
 import {install_missing_git} from './git_runtime_environment';
@@ -75,12 +76,12 @@ export function create_graph_host(core: graph_core) {
     readonly navigation_id=++view_serial;
     containerEl = workspace_element("section", "git-graph-document"); icon = "fa-code-fork";
     editor?: git_diff_editor; document?: typeof contents extends Map<string, infer value> ? value : never;
-    constructor(leaf: graph_leaf) { super(leaf); views.add(this); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* 无效 URI 由打开入口处理。 */ } }
-    // WorkspaceView.open/renameTab 共用此上游钩子；自定义文件图标不再启动基类延迟字体图标写入。
+    constructor(leaf: graph_leaf) { super(leaf); views.add(this); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* Invalid URI is handled by the opened entry. */ } }
+    // WorkspaceView.open/renameTab Use this upstream hook; custom file icons no longer start the base class delayed font icon writing.
     setIcon(_icon: string): void { this.sync_tab(); }
     sync_tab(): void {
       if (disposed) return;
-      // createTabs 先 open 视图再挂载整个新组；通过所属组 API 可访问尚未进入 document 的标签。
+      // createTabs View first open view then mount the entire new group; through the group API you can access tags that have not yet entered document.
       const tab = this.leaf.parent?.tabHeader?.getTabById(this.leaf.state.path); if (!tab) return;
       const payload = contents.get(this.leaf.state.path), icon = tab.querySelector('.typ-file-icon');
       if (icon) {
@@ -161,13 +162,13 @@ export function create_graph_host(core: graph_core) {
       const runner = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path, writable });
       runners.add(runner);
       const run: typeof runner.run = async (root, args, execution) => {
-        if(disposed)throw new Error("Typora Code 已停用。");resources.assert(root);
+        if(disposed)throw new Error(workspace_text("git_graph_host_typora_code_is_disabled"));resources.assert(root);
         const record = (text: string) => { const lines = output_lines.get(root) || []; lines.push(redact(text)); output_lines.set(root, lines.slice(-100)); };
-        const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.slice(0,40).map(arg => JSON.stringify(arg.slice(0,1000))).join(" ")+(args.length>40?` …（共${args.length}个参数）`:""));
+        const start = Date.now(); record(new Date().toLocaleTimeString(git_graph_language_tag()) + " > git " + args.slice(0,40).map(arg => JSON.stringify(arg.slice(0,1000))).join(" ")+(args.length>40?workspace_text("git_graph_host_total_of_parameters", {value_0: String(args.length)}):""));
         try { const result = await runner.run(root, args, execution); record(text("host.run_complete", {duration: Date.now() - start}) + (writable ? "\n" + result.slice(0, 12000) : "")); return result; }
         catch (error) { record(String(error)); throw error; }
       };
-      const run_bytes:typeof runner.run_bytes=(root,args,execution)=>{if(disposed)throw Error('Typora Code 已停用。');resources.assert(root);return runner.run_bytes(root,args,execution);};
+      const run_bytes:typeof runner.run_bytes=(root,args,execution)=>{if(disposed)throw Error(workspace_text("git_graph_host_typora_code_is_disabled"));resources.assert(root);return runner.run_bytes(root,args,execution);};
       return {...runner, run, run_bytes, dispose:()=>{runner.cancel();runners.delete(runner);}};
     },
     show_output(root: string) {
@@ -343,7 +344,7 @@ export function create_graph_host(core: graph_core) {
       target??=fallback;
       if(!target){
         if(state.data){
-          // 快照随50项导航栈回收；重开比较保留同一资源身份，不额外维护内容归档。
+          // Snapshot is recycled with 50 navigation stack; reopening comparison retains the same resource identity, without additional maintenance of content archives.
           contents.set(location.file_path,{data:state.data,options:state.options??{}});add_tab('linux_note.git_document',location.file_path,'active',state.parent);
         }else state.reopen?.(state.parent);
         const view=core.app.workspace.activeLeaf?.view;if(view instanceof graph_document_view)target=view;
@@ -355,18 +356,18 @@ export function create_graph_host(core: graph_core) {
       return false;
     }
   },'git');
-  const unregister_compare=core.app.commands.register({id:"linux_note:compare_files",title:"文件：比较所选文件",scope:"global",showInCommandPanel:false,callback:(left:string,right:string)=>{
+  const unregister_compare=core.app.commands.register({id:"linux_note:compare_files",title:workspace_text("git_graph_host_file_compare_selected_file"),scope:"global",showInCommandPanel:false,callback:(left:string,right:string)=>{
     void (async()=>{
       const files=get_workspace_files();
       const read=async(target:string)=>{
-        if(typeof target!=="string"||!path_api.isAbsolute(target))throw new Error("比较目标必须是文件。");
-        // 当前内存正文优先，比较不会自动保存或丢弃未保存内容。
+        if(typeof target!=="string"||!path_api.isAbsolute(target))throw new Error(workspace_text("git_graph_host_the_comparison_target_must_be_a_file"));
+        // Current document content takes precedence over memory; comparisons do not automatically save or discard unsaved content.
         if(files)return files.read_text(target);
         return (await create_text_document({fs,path_api},target).load()).text;
       };
       const [before,after]=await Promise.all([read(left),read(right)]);if(disposed)return;
-      host.open_document({title:path_api.basename(left)+" ↔ "+path_api.basename(right),file:right,left:before,right:after,left_label:path_api.basename(left),right_label:path_api.basename(right)},"active",{root:files?.context_root(),key:JSON.stringify(["compare",left,right]),menu:()=>[{id:"open_file",title:"打开右侧文件",action:()=>void files?.open_file(right)}]});
-    })().catch(error=>{if(!disposed){const dialog=graph_dialog("比较文件");dialog.content.textContent=String(error instanceof Error?error.message:error);}});
+      host.open_document({title:path_api.basename(left)+" ↔ "+path_api.basename(right),file:right,left:before,right:after,left_label:path_api.basename(left),right_label:path_api.basename(right)},"active",{root:files?.context_root(),key:JSON.stringify(["compare",left,right]),menu:()=>[{id:"open_file",title:workspace_text("git_graph_host_open_right_side_file"),action:()=>void files?.open_file(right)}]});
+    })().catch(error=>{if(!disposed){const dialog=graph_dialog(workspace_text("git_graph_host_compare_file"));dialog.content.textContent=String(error instanceof Error?error.message:error);}});
   }});
   terminal_workspace = bind_terminal_workspace(host);
   return host;

@@ -2,5 +2,5 @@
 .git-progress-owner .git-operation-progress{position:absolute;left:0;right:0;bottom:0;z-index:3}
 .git-operation-spinning .git-standard-icon{animation:git-operation-spin 1.5s steps(30) infinite;transform-origin:center center}
 @keyframes git-operation-spin{to{transform:rotate(360deg)}}
-/* 与上游ProgressBar一致，执行进度保留横向移动，不将未知总量画成满宽静止线。 */
+/* Consistent with upstream ProgressBar , execution progress is preserved as lateral movement, and unknown total quantities are not drawn as full-width static lines. */
 @media(prefers-reduced-motion:reduce){.git-operation-spinning .git-standard-icon{animation:none}}

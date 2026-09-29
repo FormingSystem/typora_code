@@ -1,3 +1,5 @@
+[English](git_markdown_diff.en.md)
+
 # R034.1 Markdown渲染差异
 
 ## R034.3 当前主题继承（2026-09-23）

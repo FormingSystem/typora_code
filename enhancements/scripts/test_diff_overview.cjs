@@ -1,4 +1,4 @@
-// 原生 Monaco 差异概览的颜色、标准布局和真实鼠标定位回归；不访问用户仓库。
+// Native Monaco difference overview's color, standard layout, and real mouse positioning regression; do not access user repositories.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

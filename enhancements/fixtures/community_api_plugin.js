@@ -1,4 +1,4 @@
-// 验证公开设置/命令/状态栏ABI；只在独立测试副本安装。
+// Verify public settings/command/status bar ABI; install only in an independent test copy.
 const {Plugin,PluginSettings,SettingTab}=window[Symbol.for('typora-plugin-core@v2')];
 class Settings extends SettingTab {
  constructor(plugin){super();this.plugin=plugin;}

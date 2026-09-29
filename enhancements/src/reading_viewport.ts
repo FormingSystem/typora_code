@@ -1,4 +1,4 @@
-/** 宿主的实际阅读区域：使用 client 边界，扣除覆盖正文的可见原生底栏。 */
+/** Host's actual reading area: uses client boundary, subtracts the visible native status bar covering the document content. */
 export function reading_viewport_bounds(owner: HTMLElement): { top: number; bottom: number; left: number; right: number } {
   const rect = owner.getBoundingClientRect();
   const view = owner.ownerDocument.defaultView;
@@ -8,7 +8,7 @@ export function reading_viewport_bounds(owner: HTMLElement): { top: number; bott
   let top = Math.max(0, client_top);
   const right = Math.min(rect.right, client_left + owner.clientWidth, view?.innerWidth ?? rect.right);
   let bottom = Math.min(rect.bottom, client_top + owner.clientHeight, view?.innerHeight ?? rect.bottom);
-  // 只计算与本阅读区域相交的顶部导航，邻组或已在区域外的流式栏不重复扣除。
+  // Only calculates top navigation that intersects with this reading area; adjacent groups or flowing bars already outside the area are not deducted repeatedly.
   for (const header of owner.ownerDocument.querySelectorAll<HTMLElement>(".workspace-tab-strip,.workspace-breadcrumbs")) {
     const box = header.getBoundingClientRect(), style = view?.getComputedStyle(header);
     if (!header.isConnected || header.hidden || box.width <= 0 || box.height <= 0 || style?.visibility === "hidden"

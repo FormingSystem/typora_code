@@ -1,4 +1,4 @@
-// 真实 Chromium 按键验证退出后的连续输入；输入法和长按边界使用显式事件夹具。
+// Real Chromium key validation of continuous input after exiting; input method and long press boundary use explicit event fixtures.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');

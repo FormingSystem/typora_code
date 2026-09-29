@@ -1,4 +1,4 @@
-// 真实Chromium布局：测量复杂度、失效与位置保真，不用耗时阈值代替功能断言。
+// Real Chromium layout: measure complexity, failure, and position fidelity, without using time threshold instead of functional assertions.
 const {app,BrowserWindow}=require('electron'),{build}=require('esbuild');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_reading_performance_')),checks=[];app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceleration();

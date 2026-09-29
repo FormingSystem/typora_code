@@ -1,4 +1,4 @@
-// 原始宿主与真实ConPTY：显隐首帧和进程初始化分别采样，不接触用户窗口。
+// Original host and real ConPTY: sample the visibility of the first frame and process initialization separately, without contacting the user's window.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),frame=()=>new Promise(requestAnimationFrame);
@@ -31,7 +31,7 @@
   for(let round=0;round<20;round++){
    const second_pid=second.dataset.pid,before_hide=document.querySelector('.terminal-tab[aria-selected=true]');
    command('terminal_toggle');await frame();
-   // Shell首次输出允许刷新状态行；只比较本次重开前后，不能将迟到启动刷新算成显隐重建。
+   // The first output of Shell allows refreshing the status line; only compare between this session's reopening before and after, and cannot count the stale startup refresh as visibility reconstruction.
    const selected=document.querySelector('.terminal-tab[aria-selected=true]');command('terminal_toggle');
    samples.push({kind:'second_session',cycle:round,row_updated_while_hidden:before_hide!==selected,selected:selected?.dataset.session,expected:second.dataset.session,height:second.clientHeight});
    assert(second.clientHeight>100&&selected===document.querySelector('.terminal-tab[aria-selected=true]')&&selected.dataset.session===second.dataset.session,'第二会话与列表身份保持 '+round);

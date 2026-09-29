@@ -1,4 +1,4 @@
-/** 阅读区、终端和颜色面板共用实际背景合成与主题事件，不依赖主题名称。 */
+/** Reading surfaces, terminals, and color panels share actual background compositing and theme events without relying on theme names. */
 export function workspace_surface_background(element:Element):number[]{
   const canvas=document.createElement("canvas");canvas.width=canvas.height=1;const context=canvas.getContext("2d");if(!context)return [255,255,255];
   const chain:Element[]=[];for(let node:Element|null=element;node;node=node.parentElement)chain.unshift(node);
@@ -7,7 +7,7 @@ export function workspace_surface_background(element:Element):number[]{
   return Array.from(context.getImageData(0,0,1,1).data).slice(0,3);
 }
 const listeners=new Set<()=>void>(),palette_listeners=new Set<()=>void>();let observer:MutationObserver|undefined,frame=0;
-/** 主题归属为宿主背景，终端和图标不能互相推导主题。 */
+/** The host background determines the theme; terminals and icons must not infer it from each other. */
 export function workspace_theme_mode():"light"|"dark" {
   const rgb=workspace_surface_background(document.body);
   return rgb[0]*.2126+rgb[1]*.7152+rgb[2]*.0722<128?"dark":"light";

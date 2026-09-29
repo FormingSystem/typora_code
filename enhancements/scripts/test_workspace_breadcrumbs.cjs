@@ -46,11 +46,11 @@ app.whenReady().then(async()=>{
  await ev(String.raw`qa.update_breadcrumb_settings(project,'user','enabled',false);void 0`);await pause(80);await check('disabled removes the entire navigation row',`[...document.querySelectorAll('.workspace-breadcrumbs')].every(n=>n.getBoundingClientRect().height===0)`);
  await ev(String.raw`editor.focus();window.dispatchEvent(new KeyboardEvent('keydown',{key:'.',code:'Period',ctrlKey:true,shiftKey:true,bubbles:true,cancelable:true}));void 0`);await wait(`document.querySelector('.workspace-breadcrumb-picker')`);await check('Ctrl Shift period enables focuses and opens the current symbol',`qa.read_breadcrumb_settings(project).enabled&&document.activeElement.matches('.workspace-breadcrumb-filter input')`);
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await pause(100);
- // 延迟目录不能在窗口和文件切换后重新打开。
+ // Delayed directory cannot be reopened after window and file switching.
  await ev(String.raw`window.real_readdir=files.fs.promises.readdir;window.resolve_directory=null;files.fs={promises:{readdir:()=>new Promise(r=>resolve_directory=r)}};document.querySelector('#left .workspace-breadcrumb-segment').click();void 0`);await pause(80);await ev(String.raw`first=set_file(left,editor,'fresh.md','markdown','# 新文档');workspace.activeLeaf=first;void 0`);await pause(100);await ev(String.raw`resolve_directory([{name:'stale.md',isFile:()=>true,isDirectory:()=>false,isSymbolicLink:()=>false}]);files.fs=require('fs');void 0`);await pause(150);
  await check('late directory result cannot revive stale file picker',`!document.querySelector('.workspace-breadcrumb-picker')&&!document.body.textContent.includes('stale.md')`);
 
- // 工作区开关优先级和同一位置边界，验证命令与配置不是两份私有状态。
+ // The priority of the workspace switch and the boundary at the same location, verify the command and configuration are not two private states.
  await check('next heading owns its exact first offset',String.raw`qa.document_symbol_chain(qa.markdown_document_symbols('# A\n## B\n## C\n'),9).at(-1)?.name==='C'`);
  await ev(String.raw`qa.update_breadcrumb_settings(project,'workspace','enabled',false);qa.set_breadcrumb_enabled(project,true);qa.open_breadcrumb_settings(project,'markdown');void 0`);await pause(100);
  await check('toggle updates workspace override and settings uses selected scope',`qa.read_breadcrumb_settings(project).enabled&&document.querySelector('[aria-label="设置作用域"]').value==='user'`);
@@ -69,7 +69,7 @@ app.whenReady().then(async()=>{
  await check('filter retains hierarchy while excluding unrelated headings',`document.querySelector('.workspace-breadcrumb-tree').textContent.includes('Root')&&document.querySelector('.workspace-breadcrumb-tree').textContent.includes('First')&&!document.querySelector('.workspace-breadcrumb-tree').textContent.includes('Last')`);
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await pause(80);
 
- // 原生正文身份不依赖另一编辑组的键盘焦点；选择后才切换活动组。
+ // The native document identity does not depend on the keyboard focus of another editing group; the group is switched only after selection.
  await ev(String.raw`window.original_File=window.File;window.native_content=document.createElement('content');native_content.innerHTML='<div id="write" contenteditable="true"><h1>Native root</h1><h2>Native child</h2></div>';document.body.append(native_content);window.native_path=files.path_api.join(project,'docs','native.md');window.File={bundle:{filePath:native_path},isFileLoading:()=>false};window.native_leaf={state:{path:native_path},parent:left,view:{isEditor:()=>true,containerEl:editor.getDomNode()},containerEl:editor.getDomNode()};left.activeLeaf=native_leaf;leaves=[native_leaf,other];workspace.activeLeaf=other;for(const f of listeners)f();void 0`);await pause(150);
  await check('inactive native group keeps headings by document identity',`document.querySelector('#left .workspace-breadcrumb-trail').textContent.includes('Native root')&&workspace.activeLeaf===other`);
  await ev(String.raw`document.querySelector('#left .workspace-breadcrumb-segment:last-child').click();void 0`);await wait(`document.querySelector('.workspace-breadcrumb-tree')?.textContent.includes('Native child')`);await ev(String.raw`[...document.querySelectorAll('.workspace-breadcrumb-item')].find(n=>n.textContent.includes('Native child')).click();void 0`);await pause(100);

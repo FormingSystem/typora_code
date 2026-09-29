@@ -1,8 +1,9 @@
+import {workspace_text} from "./workspace_i18n";
 import {open_reading_media} from "./reading_media_viewer";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 
 type image_entry={control:reading_media_entry};
-/** 只适配原图来源；悬停定位及输入由共享入口管理，原图及其父节点保持。 */
+/** Only adapt to the original image source; hover positioning and input are managed by the shared entry, and the original image and its parent nodes are preserved. */
 export function bind_reading_images(root:HTMLElement,selector="img"){
   const controls=bind_reading_media_entries(root),entries=new Map<HTMLImageElement,image_entry>();
   const controller=new AbortController(),{signal}=controller;let disposed=false,frame=0;
@@ -12,7 +13,7 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
   const open=(image:HTMLImageElement,entry:image_entry,from_image=false)=>{
     const url=source_url(image);if(!url)return;close_session();
     const copy=new Image();copy.alt=image.alt;copy.draggable=false;
-    const close=open_reading_media({content:copy,source:image,width:image.naturalWidth,height:image.naturalHeight,label:image.alt||"图片全屏查看",origin:from_image?undefined:entry.control.button,initial_fit:true});
+    const close=open_reading_media({content:copy,source:image,width:image.naturalWidth,height:image.naturalHeight,label:image.alt||workspace_text("reading_image_viewer_view_image_in_full_screen"),origin:from_image?undefined:entry.control.button,initial_fit:true});
     session={image,url,close};copy.src=url;
   };
   const schedule=()=>{if(!disposed&&!frame)frame=requestAnimationFrame(update);};
@@ -23,7 +24,7 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
     for(const image of images){
       let entry=entries.get(image);
       if(!entry){
-        const control=controls.add({source:image,host:image,label:image.alt?`全屏查看图片：${image.alt}`:"全屏查看图片",button_class:"reading-image-open",open:()=>open(image,entries.get(image)!)});
+        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",open:()=>open(image,entries.get(image)!)});
         entry={control};entries.set(image,entry);
       }
       entry.control.set_enabled(Boolean(source_url(image)));
@@ -35,7 +36,7 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
   });
   observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["src","srcset","class","style","hidden"]});
   root.addEventListener("load",schedule,{capture:true,signal});root.addEventListener("error",schedule,{capture:true,signal});
-  // 单击原图仍交给宿主选中，只接管无修饰键的左键双击。
+  // Clicking the original image still passes it to the host for selection; it only takes over the left-click double-click without the modifier key.
   root.addEventListener("dblclick",event=>{
     if(!(event instanceof MouseEvent)||event.button!==0||event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
     const image=event.composedPath().find(node=>node instanceof HTMLImageElement&&entries.has(node)) as HTMLImageElement|undefined;

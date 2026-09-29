@@ -1,4 +1,4 @@
-// 隔离 Electron 中使用真实键盘和鼠标；仅加载已校验的终端运行文件。
+// Isolate Electron using real keyboard and mouse; only load verified terminal execution files.
 const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs'); const path = require('node:path'); const os = require('node:os'); const assert = require('node:assert/strict');
 const { build } = require('esbuild');

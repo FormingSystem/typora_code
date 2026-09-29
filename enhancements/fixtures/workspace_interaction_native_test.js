@@ -1,4 +1,4 @@
-// 只操作启动器的临时样例；验证常驻工作台在原生 Typora 中的交互接线。
+// Only operate the temporary examples of the launcher; verify the persistent workbench interaction wiring in native Typora.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/workspace_interaction_native_test.js$/u, '');
@@ -43,14 +43,14 @@
     };
     const replace_text = async (view, text) => {
       const editor = view.editor.focused_editor(); editor.focus(); editor.setSelection(editor.getModel().getFullModelRange());
-      // 通过 Monaco 的输入命令验证可编辑状态，不能用 model.setValue 绕过只读限制。
+      // Verify the editable state through Monaco's input command, cannot use model.setValue to bypass the read-only limit.
       editor.trigger('keyboard', 'type', {text});
       await Promise.resolve();
       expect(editor.getModel().getValue().replace(/\r\n?/gu, '\n') === text.replace(/\r\n?/gu, '\n'), 'Monaco 输入命令可编辑普通文件');
     };
     const ctrl = (view, letter) => {
       const editor = view.editor.focused_editor(); editor.focus();
-      // Monaco 0.56 的 Chromium 路径使用 native-edit-context；旧路径才是 textarea.inputarea。
+      // The Chromium path of Monaco 0.56 uses native-edit-context; the old path is textarea.inputarea.
       const editor_dom = editor.getDomNode(), focused = editor_dom.ownerDocument.activeElement;
       const input = editor_dom.contains(focused) && focused.matches('.native-edit-context,textarea.inputarea,textarea.ime-text-area') ? focused : editor_dom.querySelector('.native-edit-context,textarea.inputarea');
       if (!input) throw new Error('未找到 Monaco 文本输入区');
@@ -107,9 +107,9 @@
       expect(app.workspace.sidebar.activePanel === active_panel && Number(sash.getAttribute('aria-valuenow')) === 170, 'Enter 恢复同一面板和上次有效宽度');
       app.workspace.ribbon.clickButton('core.outline'); await wait(() => !app.workspace.sidebar.isShown, '活动按钮未收起当前大纲');
       app.workspace.ribbon.clickButton('core.outline'); await wait(() => app.workspace.sidebar.isShown, '活动按钮未恢复当前大纲');
-      // 核心启动时原生大纲可能可见而 activePanel 未初始化；首次真实活动按钮会校正它。
+      // Native outline may be visible during core startup while activePanel has not yet initialized; the first real active button will correct it.
       expect(app.workspace.sidebar.activePanel?.ribbonButton?.id === 'core.outline' && document.querySelector('#outline-content') === outline_content && document.querySelector('#typora-sidebar').classList.contains('active-tab-outline'), '活动按钮往返恢复同一原生大纲内容与正确活动状态');
-      // 后续预览测试使用较舒适的侧栏；最终恢复用户原宽度设置。
+      // Subsequent preview tests use a more comfortable sidebar; finally restore the user's original width setting.
       for (let count = 0; count < 4; count++) key(sash, 'ArrowRight', 39, {shiftKey: true});
       await delay(350);
 
@@ -124,7 +124,7 @@
       expect(view.dirty() && view.containerEl.dataset.modified === 'true', '输入后标记普通文件未保存状态');
       const draft_model = editor.getModel(), draft_view = view, initial_group = leaf.parent;
       const show_native = async () => {
-        // 切换已有文档按用户的标签点击路径；app.openFile 在 open_code 中单独验收。
+        // Switch existing documents according to the user's tab click path; app.openFile is separately accepted in open_code.
         const target = leaves().find(node => norm(node.state.path) === norm(path.join(root, 'source.md')));
         const tab = target && [...target.parent.containerEl.querySelectorAll('.typ-tab[data-id]')].find(node => node.dataset.id === target.state.path);
         if (!tab) throw new Error('未找到原生 Markdown 标签');
@@ -144,14 +144,14 @@
       const split_leaf = leaves().find(node => !previous_leaves.has(node) && node.parent !== initial_group);
       const split_group = split_leaf.parent;
       expect(leaf.view.editor.models[0] === draft_model && !draft_model.isDisposed() && draft_view.dirty(), '创建分栏不替换原源码模型或草稿');
-      // 社区核心真实鼠标拖动使用 detach + insertChild，再激活原 leaf；不创建文件副本。
+      // Community core real mouse drag uses detach + insertChild, then activate original leaf; do not create file copies.
       leaf.detach(); split_group.insertChild(split_group.children.length, leaf); app.workspace.activeLeaf = leaf;
       await delay(100);
       expect(global_status.firstChild===draft_view.status_controls&&document.querySelectorAll('.linux-note-editor-status').length===1&&!document.querySelector('.linux-note-source-file .workspace-editor-status-controls'),'移动标签或创建分屏后仍只有一个全局源码状态栏');
       expect(!dialog('保存文件修改') && leaf.parent === split_group && !initial_group.children.includes(leaf) && split_group.children.filter(node => node === leaf).length === 1 && leaf.view === draft_view && leaf.view.editor.models[0] === draft_model && !draft_model.isDisposed() && draft_view.dirty(), '按真实拖动流程迁移未保存标签，保持同一模型且旧组无残留、不误弹关闭确认');
       await wait(() => leaf.view.editor.focused_editor().hasTextFocus(), '拖动后活跃源码未自动恢复键盘焦点');
       expect(true, '移动后的活跃源码自动获得键盘焦点');
-      // keyboard type 会逐字解释换行，并在 Enter 前另分撤销组；这里用单字验证一个步骤。
+      // keyboard type will explain each character and line by line, and will separate the undo group before Enter; here, a single character is used to verify one step.
       const moved_editor = leaf.view.editor.focused_editor(); moved_editor.focus(); moved_editor.pushUndoStop(); moved_editor.setPosition({lineNumber: 1, column: 1}); moved_editor.trigger('keyboard', 'type', {text: 'X'}); moved_editor.pushUndoStop();
       expect(draft_model.getValue().startsWith('Xconst changed'), '移动后的目标组保留正常源码输入能力');
       await draft_model.undo();
@@ -166,8 +166,8 @@
       await delay(100); close_tab(split_leaf); await wait(() => !present(split_leaf), '临时分栏未关闭');
       expect(leaf.parent === initial_group && draft_model.getValue().replace(/\r\n?/gu, '\n') === changed && draft_view.dirty(), '拖回原编辑组仍保留完整草稿');
 
-      // 必须先确认已安装生产 guard；不替换原生属性处理器，也不发起真正 window.close。
-      // 真实 close/原生回调顺序由独立 Electron lifecycle 套件验证；此处验证已安装接线。
+      // It must be confirmed that the production guard has been installed; the native property handler is not replaced, and no real window.close is initiated.
+      // The actual close/ native callback order is verified by the independent Electron lifecycle suite; here, the installation of the wiring is verified.
       expect(window.onbeforeunload?.linux_note_source_guard === true && draft_view.dirty(), '原生退出回调已包装源码草稿保护，当前存在可验证的草稿');
       const close_event = new Event('beforeunload', {cancelable: true}); window.dispatchEvent(close_event);
       expect(close_event.defaultPrevented && Boolean(document.querySelector('[data-workspace-save-close]')), '已安装源码保护拦截退出事件并展示草稿确认');
@@ -312,7 +312,7 @@
       result.preview_graphics={keyword_color:getComputedStyle(code_keyword).color,text_color:getComputedStyle(code_block).color,svg_count:preview_shadow().querySelectorAll('.lookup-diagram svg').length};
       expect(norm(File.bundle.filePath) === norm(path.join(root, 'source.md')), '源码编辑和跳转预览没有切换原生 Markdown 文件');
       expect(fs.readFileSync(path.join(root, 'source.md')).equals(original_source) && fs.readFileSync(path.join(root, 'target.md')).equals(original_target), '原始 source.md 和 target.md 的磁盘字节保持不变');
-      // 截图由主代理用已授权的原生窗口工具完成；夹具只发出就绪信号，不猜测宿主截图 IPC。
+      // The screenshot is completed by the main agent using an authorized native window tool; the fixture only emits a ready signal and does not guess the host's IPC screenshot.
       const capture_ack=path.join(root,'capture_ack');
       fs.writeFileSync(path.join(root,'capture_request.json'),JSON.stringify({title:document.title,displayed_title:document.querySelector('#title-text')?.textContent,native_path:File.bundle.filePath,active_path:app.workspace.activeLeaf.state.path,request_time:new Date().toISOString(),width:innerWidth,height:innerHeight,expected:'单行标题栏、搜索结果与下方图表预览、中央源码和唯一全局底栏'},null,2),'utf8');
       const capture_started=Date.now();while(!fs.existsSync(capture_ack)&&Date.now()-capture_started<45000)await delay(100);
@@ -331,7 +331,7 @@
       if (active_model && !active_model.isDisposed()) result.active.model_text = active_model.getValue().slice(0, 1000);
     } finally {
       document.removeEventListener('focusin',record_focus,true);
-      // 失败时也仅丢弃临时样例草稿，防止测试窗口被自己的关闭保护留在桌面。
+      // When failing, only temporary draft samples are discarded to prevent the test window from being left on the desktop by its own close protection.
       try {
         for (const node of document.querySelectorAll('.git-graph-dialog-shade')) dialog_button(node, '关闭')?.click();
         if (app && sample_root) for (const leaf of leaves()) {

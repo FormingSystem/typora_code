@@ -92,7 +92,7 @@ async function valid_ref(run: git_run, root: string, value: unknown, tag = false
   const name = text_value(value, text(tag ? "action.label.tag_name" : "action.label.branch_name"));
   await run(root, ["check-ref-format", ...(tag ? [`refs/tags/${name}`] : ["--branch", name])]); return name;
 }
-/** 直接读取当前分支的上游配置；远端名可以含斜杠，不能通过拆分 origin/main 猜测。 */
+/** Directly read the upstream configuration of the current branch; remote names can include slashes, and cannot be guessed by splitting origin/main. */
 async function read_sync_target(run: git_run, root: string): Promise<sync_target> {
   const local_branch = (await run(root, ["symbolic-ref", "--quiet", "--short", "HEAD"]).catch(() => "")).trim();
   if (!local_branch) throw new Error(text("action.error.detached_sync"));
@@ -105,7 +105,7 @@ async function read_sync_target(run: git_run, root: string): Promise<sync_target
   ]));
   return {local_branch, upstream_ref: parts[1], remote: parts[2], remote_ref: parts[3], remote_urls};
 }
-/** 分组传入精确文件名单，目录和 Git pathspec 不能扩大范围；恢复来源始终是 index。 */
+/** Pass in precise file lists; directories and Git pathspec cannot expand the scope; the source of recovery is always index. */
 async function plan_discard_changes(run: git_run, root: string, paths: string[] | undefined, include_untracked: boolean): Promise<discard_plan> {
   if (!paths?.length || paths.some(file => !file || file.includes("\0") || /^(?:[a-z]:|[\\/])/iu.test(file) || file.split(/[\\/]/u).some(part => !part || part === "." || part === ".." || part.toLowerCase() === ".git"))) throw new Error(text("action.error.discard_paths"));
   const selected = [...new Set(paths)];
@@ -119,7 +119,7 @@ async function plan_discard_changes(run: git_run, root: string, paths: string[] 
     const tab = record.indexOf("\t"); const file = record.slice(tab + 1);
     entries.set(file, [...entries.get(file) || [], record.slice(0, tab)]);
   }
-  // --no-renames 使每条记录固定为状态、原始路径两个 NUL 分隔字段，路径中的空格或制表符不会误分列。
+  // --no-renames makes each record fixed as state and original path two NUL separated fields, and spaces or tabs in the path will not misdivide the columns.
   const changed = new Map<string, string>(); const records = working.split("\0");
   for (let index = 0; index + 1 < records.length; index += 2) changed.set(records[index + 1], records[index]);
   const others = new Set(untracked.split("\0"));
@@ -148,7 +148,7 @@ function discard_preview(discard: discard_plan, args: string[]): string {
     command: args.length ? "\n\ngit " + args.map(arg => /\s/u.test(arg) ? JSON.stringify(arg) : arg).join(" ") : "",
   });
 }
-/** 从已确认的同一快照缩小范围；不能重新读取 Git，否则按钮选择可能认领后来出现的更改。 */
+/** Shrink the scope from a confirmed same snapshot; cannot re-read Git, otherwise the button selection may claim later changes. */
 export function select_discard_scope(plan: action_plan, scope: "tracked" | "all"): action_plan {
   if (plan.action.id !== "discard_changes" || !plan.discard || scope !== "tracked" && scope !== "all") throw new Error(text("action.error.unknown_action"));
   const discard: discard_plan = {
@@ -280,7 +280,7 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     case "discard_file": args = ["restore", "--worktree", "--", target]; break;
     case "discard_changes": {
       discard = await plan_discard_changes(run, root, context.paths, flag("include_untracked"));
-      // checkout-index 不带 -u 时只写工作区，不刷新索引的 stat 缓存或暂存内容。
+      // When checkout-index is not used with -u, it only writes to the workspace, and does not refresh the stat cache or staged content of the index.
       args = discard.restore_paths.length ? ["checkout-index", "--force", "--", ...discard.restore_paths] : []; break;
     }
     case "delete_untracked": args = ["clean", "-f", "--", target]; break;
@@ -326,12 +326,12 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
       if (untracked_paths.length && !services.trash_files) throw new Error(text("action.error.recycle_unavailable"));
       const current_guards = await Promise.all(untracked_paths.map(file => run(root, ["hash-object", "--no-filters", "--", file])));
       if (current_guards.some((guard, index) => guard !== untracked_guards[index])) throw new Error(text("action.error.untracked_changed"));
-      // 文件校验包含异步读取；用户可能在等待期间开始编辑，必须在第一笔写入前再次核对。
+      // File verification includes asynchronous reading; users may start editing during the waiting period, and must verify again before the first write.
       if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
       if (restore_paths.length) await run(root, plan.args);
       try {
         if (untracked_paths.length) {
-          // 已跟踪文件恢复也会等待 Git，继续回收前仍需保护此时新出现的编辑器草稿。
+          // Recovery of tracked files also waits for Git, and continue to protect the newly appearing editor drafts before recycling.
           if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
           await services.trash_files!(root, untracked_paths);
         }
@@ -342,9 +342,9 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
     if (plan.sync) {
       const guard = JSON.stringify(plan.sync.target);
       if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(text("action.error.sync_target_changed"));
-      // 上游校验经过异步读取，必须在开始拉取前再次保护此时新出现的草稿。
+      // Upstream verification has been asynchronously read, and must be protected again at this time before starting to pull, for the newly appearing drafts.
       if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
-      // 一个仓库操作锁覆盖两步；pull 抛错时不会进入 push，也不自动解决冲突或提交未暂存内容。
+      // A repository operation lock covers two steps; when pull throws an error, it will not enter push, and it also does not automatically resolve conflicts or commit unstaged content.
       const pulled = await run(root, plan.args);
       if (JSON.stringify(await read_sync_target(run, root)) !== guard) throw new Error(text("action.error.sync_target_changed_after_pull"));
       if (plan.network_guard !== undefined && await read_git_network_guard(run, root) !== plan.network_guard) throw new Error(text("quick.target_changed"));
@@ -361,8 +361,8 @@ export async function execute_git_action(run: git_run, plan: action_plan, can_ch
       try {
         if (plan.followup.if_staged) {
           if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));
-          // 重检squash之后的index，发现两步之间的外部暂存改动。
-          // 插件仓库锁不是外部Git事务锁，最后检查与commit之间仍非跨进程原子操作。
+          // Recheck squash after index, and find external staged changes between the two steps.
+          // Plugin repository lock is not an external Git transaction lock, and the last check between commit is still not a cross-process atomic operation.
           const index_snapshot = await run(root, ["ls-files", "--stage", "-z"]);
           const staged = await run(root, ["diff", "--cached", "--name-only", "-z"]);
           if (!can_change_files()) throw new Error(text("action.error.unsaved_document"));

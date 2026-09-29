@@ -1,4 +1,5 @@
-/** Git发现只验证可执行程序，不触碰仓库；成功结果由运行环境共享。 */
+import {workspace_text} from "./workspace_i18n";
+/** .Git discovery only verifies executable programs, does not touch the repository; successful results are shared by the runtime environment. */
 const discoveries = new WeakMap<object, Map<string, Promise<string>>>();
 export function clear_git_discovery(child_process: object): void { discoveries.delete(child_process); }
 export function discover_git(modules: {child_process: any; process: {env: Record<string,string|undefined>; platform?: string}}, configured = "git"): Promise<string> {
@@ -6,16 +7,16 @@ export function discover_git(modules: {child_process: any; process: {env: Record
   if(cache.has(configured))return cache.get(configured)!;
   let unavailable:Error|undefined;
   const probe=(file:string)=>new Promise<string>((resolve,reject)=>modules.child_process.execFile(file,['--version'],{windowsHide:true,shell:false,timeout:10000,maxBuffer:Infinity},(error:any,output:string)=>{
-    if(error){if(!['ENOENT','ENOTDIR'].includes(error.code))unavailable=error;reject(error);}else if(/^git version /u.test(String(output)))resolve(file);else{unavailable=Error('程序未返回Git版本。');reject(unavailable);}
+    if(error){if(!['ENOENT','ENOTDIR'].includes(error.code))unavailable=error;reject(error);}else if(/^git version /u.test(String(output)))resolve(file);else{unavailable=Error(workspace_text("git_runtime_environment_the_program_did_not_return_git_version"));reject(unavailable);}
   }));
   const task=(async()=>{
     const candidates:string[]=[], env=modules.process.env;
-    // Windows使用绝对PATH候选，防止命令运行时从工作区拾取同名git.exe。
+    // .Windows uses absolute PATH candidates, preventing commands from picking up same-named git.exe from the workspace during execution.
     if(configured==='git'&&modules.process.platform==='win32'){
       const path_value=Object.entries(env).find(([key])=>key.toLowerCase()==='path')?.[1]||'';
       for(const directory of path_value.split(';')){const base=directory.replace(/^"|"$/gu,'');if(/^(?:[a-z]:[\\/]|\\\\)/iu.test(base))candidates.push(base+'\\git.exe');}
-      for(const candidate of candidates){try{return await probe(candidate);}catch{/* 继续下一个绝对目录。 */}}
-    }else{try{return await probe(configured);}catch{/* 配置路径缺失时由下方报告。 */}}
+      for(const candidate of candidates){try{return await probe(candidate);}catch{/* Proceed to the next absolute directory. */}}
+    }else{try{return await probe(configured);}catch{/* When the configuration path is missing, report it below. */}}
 
     if(configured==='git'&&modules.process.platform==='win32'){
       for(const base of [env.ProgramW6432,env.ProgramFiles,env['ProgramFiles(x86)'],env.LOCALAPPDATA&&env.LOCALAPPDATA+'\\Programs'])if(base)candidates.push(base+'\\Git\\cmd\\git.exe');
@@ -24,20 +25,20 @@ export function discover_git(modules: {child_process: any; process: {env: Record
     }
     let last:unknown;
     for(const candidate of new Set(candidates)){try{return await probe(candidate);}catch(error){last=error;}}
-    if(unavailable)throw Object.assign(Error('已有Git无法运行，请检查权限或程序路径：'+unavailable.message),{code:'GIT_UNAVAILABLE'});
-    throw Object.assign(Error('未找到可用Git。请安装Git，或在设置中修正Git程序路径。'+(configured!=='git'?' 配置：'+configured:'')),{code:'GIT_NOT_FOUND',cause:last});
+    if(unavailable)throw Object.assign(Error(workspace_text("git_runtime_environment_there_is_already_git_that_cannot_run_please_check_the_permis")+unavailable.message),{code:'GIT_UNAVAILABLE'});
+    throw Object.assign(Error(workspace_text("git_runtime_environment_no_available_git_found_please_install_git_or_correct_the_git")+(configured!=='git'?workspace_text("git_runtime_environment_configuration")+configured:'')),{code:'GIT_NOT_FOUND',cause:last});
   })();cache.set(configured,task);void task.catch(()=>{if(cache!.get(configured)===task)cache!.delete(configured);});return task;
 }
-/** 只在二次发现仍缺失时安装；winget拥有下载、签名验证和系统授权。 */
+/** Installation is only done when secondary discovery is still missing; winget has download, signature verification, and system authorization. */
 export async function install_missing_git(modules: {child_process:any;process:{env:Record<string,string|undefined>;platform?:string}}, report:(message:string)=>void):Promise<string>{
   clear_git_discovery(modules.child_process);
   try{return await discover_git(modules);}catch(error){if((error as any).code!=='GIT_NOT_FOUND')throw error;}
-  if(modules.process.platform!=='win32')throw Error('请使用系统软件管理器安装Git，然后点击重试。官方安装说明：https://git-scm.com/install/');
-  report('正在通过Windows软件管理器安装Git；如出现系统授权或安装窗口，请完成操作…');
+  if(modules.process.platform!=='win32')throw Error(workspace_text("git_runtime_environment_please_use_the_system_software_manager_to_install_git_then_c"));
+  report(workspace_text("git_runtime_environment_installing_git_via_windows_software_manager_if_system_author"));
   await new Promise<void>((resolve,reject)=>{
     const child=modules.child_process.spawn('winget',['install','--id','Git.Git','--exact','--source','winget','--interactive','--disable-interactivity'],{windowsHide:true,shell:false,stdio:['ignore','pipe','pipe']});
     let tail='';const collect=(data:any)=>{tail=(tail+String(data)).slice(-4096);};child.stdout.on('data',collect);child.stderr.on('data',collect);
-    child.once('error',(error:Error)=>reject(Error('无法启动winget，请通过Git官网安装后重试。'+error.message)));
-    child.once('close',(code:number)=>code===0?resolve():reject(Error('Git安装未完成（退出码'+code+'）。'+tail)));
+    child.once('error',(error:Error)=>reject(Error(workspace_text("git_runtime_environment_cannot_start_winget_please_install_it_via_git_official_websi")+error.message)));
+    child.once('close',(code:number)=>code===0?resolve():reject(Error(workspace_text("git_runtime_environment_git_installation_not_completed_exit_code")+code+'). '+tail)));
   });clear_git_discovery(modules.child_process);return discover_git(modules);
 }

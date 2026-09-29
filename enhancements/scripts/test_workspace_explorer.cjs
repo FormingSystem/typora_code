@@ -1,4 +1,4 @@
-// 独立资源管理器测试：临时文件树、真实鼠标和按需读取；不访问用户工作目录。
+// Independent Explorer test: temporary file tree, real mouse and on-demand reading; do not access the user's work directory.
 const {app, BrowserWindow} = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -24,7 +24,7 @@ const evaluate = source=>test_window.webContents.executeJavaScript(source);
 const wait = async source=>{for(let index=0;index<160;index++){if(await evaluate(source))return;await delay(25);}throw new Error('Timed out: '+source);};
 app.whenReady().then(async()=>{
   test_window=new BrowserWindow({show:false,width:950,height:700,webPreferences:{contextIsolation:false,nodeIntegration:true,backgroundThrottling:false,offscreen:true}});
-  // Typora 1.14.9 window.css 的原生规则：自建工具条不能被裸 header 固定到整个窗口顶部。
+  // Native rules of Typora 1.14.9 window.css: self-built toolbars cannot be fixed to the entire window top by bare header.
   const native_header_css='header{height:28px;position:fixed;top:0;left:0;right:0;z-index:900;display:-webkit-flex;display:flex;transition:.2s;background-color:inherit;font-size:14px;line-height:initial}.native-window header{height:0}.paint-border header{border:1px solid rgba(115,115,115,.86);border-bottom:0}';
   const page=path.join(root,'test.html');fs.writeFileSync(page,'<!doctype html><meta charset="utf-8"><style>'+native_header_css+'html,body{margin:0;height:100%;font-family:Arial}#ribbon{width:44px;position:absolute;left:0;top:0}.typ-ribbon-item{height:36px;cursor:pointer}#typora-sidebar{position:absolute;left:44px;width:320px;top:32px;bottom:0}#sidebar-content{position:absolute;inset:0}#editor{margin-left:380px}</style><div id="ribbon"><div class="typ-ribbon-item" data-id="core.file-explorer">文件</div><div class="typ-ribbon-item" data-id="core.outline">大纲</div></div><div id="typora-sidebar"><div id="sidebar-content"></div></div><textarea id="editor">原始文档内容</textarea>');await test_window.loadFile(page);
   const bundle=await build({stdin:{contents:'export {bind_workspace_explorer} from "./src/workspace_explorer";export {prepare_workspace_rename} from "./src/workspace_rename";export * from "./src/workspace_file_operations";export {create_workspace_file_clipboard} from "./src/workspace_file_clipboard";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'explorer_qa',write:false});await evaluate(bundle.outputFiles[0].text);
@@ -51,7 +51,7 @@ app.whenReady().then(async()=>{
   await click('[data-id="core.file-explorer"]');await wait('document.querySelectorAll(".workspace-explorer-row").length===9');
   assert(await evaluate('document.querySelector(".workspace-explorer-status").hidden&&document.querySelector(".workspace-explorer-status").getBoundingClientRect().height===0'),'default Explorer status has no reserved space');
   const assert_row_visible=async selector=>assert(await evaluate(`(()=>{const row=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect(),tree=document.querySelector('.workspace-explorer-tree').getBoundingClientRect();return row.top>=tree.top-1&&row.bottom<=tree.bottom+1})()`),'operation messages keep the selected or edited row fully visible');
-  // 真实 window.css 和 core ribbon.scss 都为已隐藏的原生 tabs 遗留顶部占位。
+  // Real window.css and core ribbon.scss are both for the legacy top placeholder of native tabs that is hidden.
   const inset_css=await test_window.webContents.insertCSS('.sidebar-content{top:64px}.native-window .sidebar-content{top:54px}.typ-ribbon--enable.typora-node .sidebar-content{top:18px}body{--typ-workspace-top:0}body.unibody-window{--typ-workspace-top:35px}.fixture-editor-root{position:absolute;top:var(--typ-workspace-top);left:400px}.fixture-editor-tab{height:35px}');
   const activity_css=await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/workspace_activity.css'),'utf8'));
   await evaluate(`document.querySelector('#sidebar-content').classList.add('sidebar-content');document.body.classList.add('typ-ribbon--enable','typora-node');window.fixture_editor=document.createElement('div');fixture_editor.className='fixture-editor-root';fixture_editor.innerHTML='<div class="fixture-editor-tab"></div>';document.body.append(fixture_editor);void 0`);
@@ -148,7 +148,7 @@ app.whenReady().then(async()=>{
   const before_editor_clipboard=await evaluate('clipboard_snapshot.version');await evaluate(`document.querySelector('#editor').focus();document.querySelector('#editor').dispatchEvent(new KeyboardEvent('keydown',{key:'c',ctrlKey:true,bubbles:true}))`);assert.equal(await evaluate('clipboard_snapshot.version'),before_editor_clipboard,'editor text shortcut is not captured by Explorer');
   assert(await evaluate('!document.querySelector(".workspace-explorer-outline")&&!Object.hasOwn(instance,"outline_container")'), 'Explorer exposes no duplicate Outline section or obsolete slot');
   fs.writeFileSync(path.join(root,'explorer_rename.png'),(await test_window.webContents.capturePage()).toPNG());
-  // 人为延迟真实 readdir，检查用户等待时也能操作；恢复后继续读取真实文件系统。
+  // Manually delay real readdir; check that users can operate even when waiting; after recovery, continue reading the real file system.
   const slow_folder=path.join(workspace,'slow_folder');fs.mkdirSync(slow_folder);fs.writeFileSync(path.join(slow_folder,'child.md'),'# Slow child');
   await evaluate('instance.refresh()');await evaluate(`instance.reveal(${JSON.stringify(slow_folder)})`);await wait(`!!document.querySelector(${JSON.stringify(row('slow_folder'))})`);
   await evaluate(`window.slow_directory=${JSON.stringify(slow_folder)};window.slow_release=undefined;window.stable_row=document.querySelector(${JSON.stringify(row('slow_folder'))});window.stable_name=stable_row.querySelector('.workspace-explorer-name')`);
@@ -162,7 +162,7 @@ app.whenReady().then(async()=>{
   assert(await evaluate(`stable_row===document.querySelector(${JSON.stringify(row('slow_folder'))})&&stable_name===stable_row.querySelector('.workspace-explorer-name')&&!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`),'late data keeps the collapsed state and original hit target');
   const reads_cached=await evaluate('reads.length');
   await click(row('slow_folder'));await wait(`!!document.querySelector(${JSON.stringify(row('slow_folder/child.md'))})`);assert.equal(await evaluate('reads.length'),reads_cached,'cached expansion does not read again');
-  // 连续点击使用真实 Chromium clickCount，旧的 count=1 夹具不能发现第二击被吞掉。
+  // Continuous clicks use real Chromium clickCount; the old count=1 fixture cannot detect the second click being swallowed.
   const rapid_clicks=async(selector,counts)=>{
     await evaluate(`window.click_feedback=[];(()=>{const row=document.querySelector(${JSON.stringify(selector)}),signal=(window.click_audit=new AbortController()).signal;let before,started;
       row.addEventListener('click',()=>{before=row.getAttribute('aria-expanded');started=performance.now()},{capture:true,signal});
@@ -204,8 +204,8 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate('stable_row.getAttribute("aria-expanded")'),'false','right-side empty area toggles the folder');
   for(const type of ['mouseDown','mouseUp'])test_window.webContents.sendInputEvent({type,...point_blank,button:'left',clickCount:1,modifiers:['control']});await delay(60);
   assert.equal(await evaluate('stable_row.getAttribute("aria-expanded")'),'false','multi-select never toggles');
-  // 通过宿主实际颜色触发生产主题观察链，不注入选中色或直接改主题判定属性。
-  // 隐藏离屏窗口仍执行浏览器真实焦点伪类，和其他交互目标使用相同的焦点模拟。
+  // Trigger the production theme observation chain through the host's actual color; do not inject the selected color or directly modify the theme determination attribute.
+  // Hidden off-screen windows still execute the browser's real focus pseudo-class, and other interactive targets use the same focus simulation.
   test_window.webContents.debugger.attach();await test_window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
   const body_theme_before=await evaluate('document.body.getAttribute("style")');
   const apply_theme=async theme=>{
@@ -245,7 +245,7 @@ app.whenReady().then(async()=>{
     await wait('document.activeElement===theme_tree');await delay(60);await sample_selection(theme,'keyboard',cycle);
     assert(fs.readFileSync(path.join(workspace,'README.zh-CN.md')).equals(original),'theme switch does not write the source Markdown');
   }
-  // 完整采样后断言，失败时也保留日夜与各交互状态截图。
+  // After complete sampling, assert; also retain day and night and various interaction state screenshots when failure.
   const expected_selection=await evaluate('theme_selection');
   const night_idle=theme_selection_metrics.find(sample=>sample.theme==='dark'&&sample.state==='idle');
   assert(night_idle&&night_idle.text_contrast>=4.5,'Night selected row without hover must retain readable text; actual '+night_idle?.text_contrast.toFixed(2));
@@ -267,7 +267,7 @@ app.whenReady().then(async()=>{
     assert.deepEqual(sample.text,sample.theme==='dark'?[237,237,237]:[32,32,32],description+' uses the fixed selected foreground');
     if(sample.theme==='dark')assert(Math.max(...sample.background)<80,description+' never paints a bright selection over Night');
   }
-  // 窄栏和真实页面缩放仍使用同一生产主题链，行尾仍是同一个展开目标。
+  // Narrow panel and real page zoom still use the same production theme chain, and the end is still the same expanded target.
   for(const [theme,zoom,width]of [['light',1,320],['dark',1.25,220]]){
     test_window.webContents.setZoomFactor(zoom);
     await apply_theme(theme);await evaluate(`document.querySelector('#typora-sidebar').style.width='${width}px';instance.reveal(${JSON.stringify(slow_folder)})`);await delay(100);

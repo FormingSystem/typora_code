@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_directories} from './workspace_directory_service';
 import type {graph_leaf} from "./git_graph_host";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
@@ -20,7 +21,7 @@ type quick_open_binding = {root:HTMLElement;input:HTMLInputElement;open():void;o
 let current_picker: quick_open_binding | undefined;
 export function get_workspace_quick_open() { return current_picker; }
 
-/** VS Code 式 Ctrl+P 文件快速打开；按需读取目录，不读取文件正文。 */
+/** VS Code style Ctrl+P file quick open; read on demand directory, do not read file content. */
 export function create_workspace_quick_open(files: workspace_file_host) {
   const directories=acquire_workspace_directories(files.fs,files.path_api);
   let stop_progress:(()=>void)|undefined;
@@ -34,23 +35,23 @@ export function create_workspace_quick_open(files: workspace_file_host) {
   root.hidden = true;
   root.setAttribute("role", "dialog");
   root.setAttribute("aria-modal", "false");
-  root.setAttribute("aria-label", "快速打开文件");
+  root.setAttribute("aria-label", workspace_text("quick_open_quick_open_file"));
   const input_row = document.createElement("div");
   input_row.className = "workspace-quick-open-input-row";
   const input = document.createElement("input");
   input.type = "text";
-  input.placeholder = "键入文件名或路径进行搜索";
-  input.setAttribute("aria-label", "按文件名或路径搜索");
+  input.placeholder = workspace_text("quick_open_type_the_file_name_or_path_to_search");
+  input.setAttribute("aria-label", workspace_text("quick_open_search_by_file_name_or_path"));
   input.setAttribute("role","combobox");input.setAttribute("aria-autocomplete","list");input.setAttribute("aria-controls","workspace-quick-open-list");
   input.autocomplete = "off";
   input.spellcheck = false;
   let match_mode:'regex'|'glob'|'fuzzy'='fuzzy',match_controller:AbortController|undefined;
   const set_mode=(mode:'regex'|'glob')=>{match_mode=match_mode===mode?'fuzzy':mode;sync_mode();pending_open_query=undefined;rendered_query='\0';match_controller?.abort();render_generation++;ranking=false;input.focus();void render();};
-  const regex_button=git_icon_button('regex','使用正则表达式',()=>set_mode('regex'));
-  const glob_button=git_icon_button('filter','使用通配符',()=>set_mode('glob'));
+  const regex_button=git_icon_button('regex',workspace_text("quick_open_use_regular_expressions"),()=>set_mode('regex'));
+  const glob_button=git_icon_button('filter',workspace_text("quick_open_use_wildcards"),()=>set_mode('glob'));
   const sync_mode=()=>{regex_button.setAttribute('aria-pressed',String(match_mode==='regex'));glob_button.setAttribute('aria-pressed',String(match_mode==='glob'));};
-  regex_button.title='使用正则表达式；关闭两个模式按钮时使用 VS Code 文件名/路径模糊搜索';
-  glob_button.title='使用通配符筛选文件类型：*.c、**/*.h、file?.md；与正则互斥';
+  regex_button.title=workspace_text("quick_open_use_regular_expressions_when_both_pattern_buttons_are_disabl");
+  glob_button.title=workspace_text("quick_open_use_wildcards_to_filter_file_types_c_h_file_md_mutually_excl");
   sync_mode();input_row.append(input,regex_button,glob_button);
   const results = document.createElement("div");
   results.className = "workspace-quick-open-results";
@@ -76,7 +77,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       const tab=workspace_leaf_tab(leaf),name=tab?.querySelector('.typ-file-basename')?.textContent;
       const relative=file?files.path_api.relative(files.context_root(),file):"";
       const identity=all?'editor:'+entries.length:leaf.state.path;
-      editor_targets.set(identity,leaf);entries.push({file_path:identity,relative_path:relative,name:file?files.path_api.basename(file):(name||decodeURIComponent(leaf.state.path.split('/').at(-1)||'未命名')),directory:file?files.path_api.dirname(relative).replace(/^\.$/u,""):""});
+      editor_targets.set(identity,leaf);entries.push({file_path:identity,relative_path:relative,name:file?files.path_api.basename(file):(name||decodeURIComponent(leaf.state.path.split('/').at(-1)||workspace_text("quick_open_unnamed"))),directory:file?files.path_api.dirname(relative).replace(/^\.$/u,""):""});
     });
     entries.sort((a,b)=>(recent.get(editor_targets.get(b.file_path)!)||0)-(recent.get(editor_targets.get(a.file_path)!)||0));
     return entries;
@@ -129,7 +130,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
         if(home_action?.shortcut){const shortcut=document.createElement('span');shortcut.className='workspace-quick-open-shortcut';shortcut.textContent=home_action.shortcut;row.append(shortcut);}
         row.classList.toggle('is-command',file.file_path.startsWith('command:'));
         if(editor_group){
-          const close_action=document.createElement("span");close_action.className="workspace-quick-open-close";close_action.setAttribute("role","button");close_action.tabIndex=0;close_action.setAttribute("aria-label","关闭 "+file.name);close_action.append(git_icon("close"));
+          const close_action=document.createElement("span");close_action.className="workspace-quick-open-close";close_action.setAttribute("role","button");close_action.tabIndex=0;close_action.setAttribute("aria-label",workspace_text("quick_open_close")+file.name);close_action.append(git_icon("close"));
           const close_editor=async(event:Event)=>{event.preventDefault();event.stopPropagation();const leaf=editor_targets.get(file.file_path);if(!leaf||opening)return;opening=true;try{await files.close_leaf(leaf);if(!root.hidden)await render();}catch(error){status.textContent=String(error);status.classList.add("is-visible");}finally{opening=false;input.focus();}};
           close_action.onclick=event=>void close_editor(event);close_action.onkeydown=event=>{if(event.key==="Enter"||event.key===" ")void close_editor(event);};row.append(close_action);
         }
@@ -162,24 +163,24 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       if(editor_group){const leaf=editor_targets.get(target.file_path);let exists=false;files.core.app.workspace.eachLeaves(item=>{if(item===leaf&&item.parent===editor_group)exists=true;});if(!leaf||!exists){await render();return;}files.core.app.workspace.activeLeaf=editor_group.toggleTab(leaf.state.path);close(false);}
       else {await files.open_file(target.file_path);if(opening_generation===scan_generation)close();}
     }
-    catch(error){if(!root.hidden&&opening_generation===scan_generation){status.textContent=`无法打开文件：${String((error as Error)?.message||error)}`;status.classList.add("is-visible");}}
+    catch(error){if(!root.hidden&&opening_generation===scan_generation){status.textContent=workspace_text("quick_open_cannot_open_file", {value_0: String(String((error as Error)?.message||error))});status.classList.add("is-visible");}}
     finally{if(opening_generation===scan_generation)opening=false;}
   };
   const render = async () => {
     if(is_home()){render_home();return;}
     const query=query_text();
-    // 扫描增量不取消同查询的分片计算；新输入仍立即使旧计算过期。
+    // Scan incremental does not cancel the shard calculation of the same query; new input will immediately make old calculations obsolete.
     if(ranking&&ranking_query===query){rank_again=true;return;}
     const generation=++render_generation;ranking=true;ranking_query=query;rank_again=false;
     try {
     const previous_path=query===rendered_query?shown[selected_index]?.file_path:undefined;
-    if(query!==rendered_query){shown=[];results.replaceChildren();status.textContent="正在筛选文件…";status.classList.add("is-visible");}
+    if(query!==rendered_query){shown=[];results.replaceChildren();status.textContent=workspace_text("quick_open_filtering_files");status.classList.add("is-visible");}
     if(editor_group)catalogue=read_editors();
     let pattern_mode=match_mode!=='fuzzy'&&!!query;
     const path_glob=match_mode==='glob',pattern=path_glob?query.replaceAll('\\','/'):query;
     const ranked:quick_match[]=[];const matcher=create_quick_matcher(pattern_mode?'':query,scan_root);
     const order=editor_group&&!query?()=>0:pattern_mode?(left:quick_match,right:quick_match)=>left.file.relative_path.localeCompare(right.file.relative_path):matcher.compare;
-    // 已枚举候选先筛选；显式路径探测独立补充，不能因磁盘等待清空整个搜索。
+    // Candidates have already been enumerated and filtered; explicit path detection is an independent supplement, cannot clear the entire search because of disk delay.
     if(!editor_group&&direct_query!==query){
       direct_query=query;direct_file=undefined;direct_pending=false;direct_error="";
       const request=++direct_generation,requested_root=scan_root;
@@ -195,7 +196,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
               direct_file={file_path:requested,relative_path,name:files.path_api.basename(requested),directory:files.path_api.dirname(relative_path).replace(/^\.$/u,"")};
             }
           }catch(error){
-            if(request===direct_generation&&!['ENOENT','ENOTDIR'].includes(String((error as {code?:string})?.code)))direct_error=`路径核对失败：${String((error as Error)?.message||error)}`;
+            if(request===direct_generation&&!['ENOENT','ENOTDIR'].includes(String((error as {code?:string})?.code)))direct_error=workspace_text("quick_open_path_verification_failed", {value_0: String(String((error as Error)?.message||error))});
           }finally{
             if(request===direct_generation&&!disposed&&!root.hidden&&query_text()===query&&files.context_root()===requested_root&&workspace_context_epoch()===context_epoch&&!workspace_context_switching()){
               direct_pending=false;void render();
@@ -221,7 +222,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       }finally{worker.dispose();if(match_controller===controller)match_controller=undefined;}
     }
     let deadline=performance.now()+8;let total=0;
-    // 完整保留候选；筛选在小时间片之间让出UI线程，DOM仅挂载可见行。
+    // Fully retain candidates; filtering gives back UI thread in small time slices, DOM only mounts visible lines.
     for(let index=0;index<candidates.length;index++){
       if(index%256===0&&performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(disposed||root.hidden||generation!==render_generation)return;deadline=performance.now()+8;}
       const file=candidates[index];
@@ -237,16 +238,16 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     shown_matches=ranked;visible_start=-1;visible_end=-1;
     if(!previous_path)results.scrollTop=0;
     paint_rows(true);
-    status.textContent = (shown.length ? `${total} 个文件` : query ? `没有匹配的文件 · ${scan_root||"未打开文件夹"}` : `工作区中没有可打开的文件 · ${scan_root||"未打开文件夹"}`)+(scanning?` · 正在查找（已发现 ${catalogue.length} 个文件）`:"");
-    if(direct_pending)status.textContent+=" · 正在核对文件路径…";
+    status.textContent = (shown.length ? workspace_text("quick_open_files", {value_0: String(total)}) : query ? workspace_text("quick_open_no_matching_files", {value_0: String(scan_root||workspace_text("file_tree_folder_not_opened"))}) : workspace_text("quick_open_no_openable_files_in_the_workspace", {value_0: String(scan_root||workspace_text("file_tree_folder_not_opened"))}))+(scanning?workspace_text("quick_open_searching_files_found", {value_0: String(catalogue.length)}):"");
+    if(direct_pending)status.textContent+=workspace_text("quick_open_verifying_file_paths");
     if(direct_error)status.textContent+=` · ${direct_error}`;
-    if(unreadable)status.textContent+=` · ${unreadable} 个目录无法读取，结果不完整`;
+    if(unreadable)status.textContent+=workspace_text("remote_workspace_picker_directories_cannot_be_read_results_are_incomplete", {value_0: String(unreadable)});
     status.classList.toggle("is-visible",!shown.length||scanning||direct_pending||!!direct_error||unreadable>0);
     if(!shown.length)input.removeAttribute("aria-activedescendant");
     select(selected_index);
     if(pending_open_query===query&&(shown.length||(!scanning&&!direct_pending))){pending_open_query=undefined;void open_selected();}
     }catch(error){
-      if(!disposed&&!root.hidden&&generation===render_generation){shown=[];shown_matches=[];results.replaceChildren();input.removeAttribute('aria-activedescendant');pending_open_query=undefined;status.textContent=`搜索失败：${String((error as Error)?.message||error)}`+(match_mode==='regex'?'；*.c 等文件模式请切换“使用通配符”。':'');status.classList.add("is-visible");}
+      if(!disposed&&!root.hidden&&generation===render_generation){shown=[];shown_matches=[];results.replaceChildren();input.removeAttribute('aria-activedescendant');pending_open_query=undefined;status.textContent=workspace_text("quick_open_search_failed", {value_0: String(String((error as Error)?.message||error))})+(match_mode==='regex'?workspace_text("quick_open_c_etc_file_patterns_please_switch_to_use_wildcards"):'');status.classList.add("is-visible");}
     }finally{
       if(generation===render_generation){ranking=false;if(rank_again&&!root.hidden&&!disposed){rank_again=false;schedule_render();}}
     }
@@ -257,31 +258,31 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     const cached=scan_root?directories.service.cached_catalogue(scan_root):undefined;
     if(cached){catalogue=cached.files;unreadable=cached.unreadable;scanning=false;void render();return;}
     catalogue = [];scanning=true;unreadable=0;
-    status.textContent = "正在查找工作区文件…";
+    status.textContent = workspace_text("quick_open_searching_workspace_files");
     const workspace_root = scan_root;
     const current=()=>generation===scan_generation&&!root.hidden&&!disposed&&workspace_context_epoch()===context_epoch&&files.context_root()===workspace_root&&!workspace_context_switching();
     try{const snapshot=workspace_root?await directories.service.catalogue(workspace_root):{files:[],unreadable:0};if(!current())return;catalogue=snapshot.files;unreadable=snapshot.unreadable;}
-    catch(error){if(!current())return;status.textContent="无法读取工作区目录："+String(error);unreadable++;}
+    catch(error){if(!current())return;status.textContent=workspace_text("quick_open_cannot_read_workspace_directory")+String(error);unreadable++;}
     if(current()){scanning=false;clearTimeout(render_timer);render_timer=0;void render();}
   };
-  // 首页只投影已有状态；不能为画几个入口先遍历/排序整份工程目录。
+  // The home page only projects existing states; it cannot traverse/sort the entire project directory first before drawing several entry points.
   const render_home=()=>{
     const request=++home_generation;home_actions.clear();
     const current=()=>!disposed&&!root.hidden&&is_home()&&request===home_generation&&files.context_root()===scan_root&&workspace_context_epoch()===context_epoch;
     const entries:quick_file[]=[];
     const add=(id:string,name:string,run:()=>unknown,shortcut?:string,directory='')=>{entries.push({file_path:id,relative_path:id,name,directory});home_actions.set(id,{run,shortcut});};
     const command=(id:string)=>()=>{close();files.core.app.commands.run(id);};
-    add('command:files','转到文件',()=>open(), 'Ctrl+P');
-    add('command:commands','显示和运行命令',command('command:open'),'Ctrl+Shift+P','>');
-    add('command:search','搜索文本',command('linux_note:search'),'Ctrl+Shift+F');
-    add('command:outline','转到编辑器大纲',command('linux_note:outline'));
-    add('command:recent','最近打开…',command('linux_note:open_recent'),'Ctrl+R');
+    add('command:files',workspace_text("quick_open_go_to_file"),()=>open(), 'Ctrl+P');
+    add('command:commands',workspace_text("quick_open_show_and_run_commands"),command('command:open'),'Ctrl+Shift+P','>');
+    add('command:search',workspace_text("quick_open_search_text"),command('linux_note:search'),'Ctrl+Shift+F');
+    add('command:outline',workspace_text("quick_open_go_to_editor_outline"),command('linux_note:outline'));
+    add('command:recent',workspace_text("quick_open_recently_opened"),command('linux_note:open_recent'),'Ctrl+R');
     const seen=new Set<string>(),key=(path:string)=>{const normalized=files.path_api.normalize(path);return files.path_api.sep==='\\'?normalized.toLowerCase():normalized;};
     for(const item of read_editors(true)){
       const leaf=editor_targets.get(item.file_path)!;
       const path=files.editor_state(leaf).file_path;
       seen.add(key(path||item.file_path));
-      add(item.file_path,item.name,()=>{let exists=false;files.core.app.workspace.eachLeaves(other=>{if(other===leaf)exists=true;});if(!exists){render_home();return;}close(false);files.core.app.workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);},undefined,item.directory||'最近打开');
+      add(item.file_path,item.name,()=>{let exists=false;files.core.app.workspace.eachLeaves(other=>{if(other===leaf)exists=true;});if(!exists){render_home();return;}close(false);files.core.app.workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);},undefined,item.directory||workspace_text("quick_open_recently_opened_b6d7cbc9"));
     }
     const paint=()=>{const selected=shown[selected_index]?.file_path;shown=entries.slice();shown_matches=shown.map(file=>({file,score:{score:0}}));rendered_query='';selected_index=Math.max(0,shown.findIndex(file=>file.file_path===selected));paint_rows(true);};
     status.textContent='';status.classList.remove('is-visible');regex_button.hidden=glob_button.hidden=true;results.scrollTop=0;paint();
@@ -292,10 +293,10 @@ export function create_workspace_quick_open(files: workspace_file_host) {
       for(const item of items){
         const relative=files.path_api.relative(scan_root,item.path);
         if(item.kind!=='file'||!scan_root||relative==='..'||relative.startsWith('..'+files.path_api.sep)||files.path_api.isAbsolute(relative)||seen.has(key(item.path)))continue;
-        seen.add(key(item.path));add(item.path,files.path_api.basename(item.path),async()=>{const opened=await recents.open_item(item,current);if(current()){if(opened)close();else render_home();}},undefined,files.path_api.dirname(relative).replace(/^\.$/u,'')||'最近打开');
+        seen.add(key(item.path));add(item.path,files.path_api.basename(item.path),async()=>{const opened=await recents.open_item(item,current);if(current()){if(opened)close();else render_home();}},undefined,files.path_api.dirname(relative).replace(/^\.$/u,'')||workspace_text("quick_open_recently_opened_b6d7cbc9"));
       }
       paint();
-    }).catch(error=>{if(current()){status.textContent='最近记录读取失败：'+String(error);status.classList.add('is-visible');}});
+    }).catch(error=>{if(current()){status.textContent=workspace_text("quick_open_failed_to_read_recent_records")+String(error);status.classList.add('is-visible');}});
   };
   const start_catalogue=()=>{
     if(stop_directory_updates)return;
@@ -308,18 +309,18 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     const inherited_focus=!root.hidden?previous_focus:undefined;
     if (!root.hidden)close(false);
     editor_group=group;center_mode=center;
-    scan_root=files.context_root();context_epoch=workspace_context_epoch();input.title=scan_root||"未打开文件夹";
+    scan_root=files.context_root();context_epoch=workspace_context_epoch();input.title=scan_root||workspace_text("file_tree_folder_not_opened");
     previous_focus=inherited_focus||capture_workspace_focus();
     escape_layer=register_workspace_dismissal(()=>[root],reason=>{
-      // 关闭活动文件会临时激活相邻编辑器，属于本次列表操作，不能因此关闭列表。
+      // Closing an active file will temporarily activate adjacent editors, which belongs to this list operation, and cannot therefore close the list.
       if(reason==="focus-out"&&opening&&editor_group)return;
       close(reason==="escape");
     },{window_blur:true});
     root.hidden = false;input.setAttribute("aria-expanded","true");
     root.setAttribute("aria-modal", "true");
     input.value = group?"edt active ":"";
-    input.placeholder=center?'搜索文件，或选择下方功能':'键入文件名或路径进行搜索';regex_button.hidden=glob_button.hidden=center;
-    input.setAttribute("aria-label",group?"当前组已打开的编辑器":center?"搜索文件和功能":"按文件名或路径搜索");
+    input.placeholder=center?workspace_text("quick_open_search_files_or_select_a_function_below"):workspace_text("quick_open_type_the_file_name_or_path_to_search");regex_button.hidden=glob_button.hidden=center;
+    input.setAttribute("aria-label",group?workspace_text("quick_open_currently_open_editors_in_the_group"):center?workspace_text("quick_open_search_files_and_functions"):workspace_text("quick_open_search_by_file_name_or_path"));
     const cached=!group&&!center&&scan_root?directories.service.cached_catalogue(scan_root):undefined;
     catalogue = cached?.files||[];unreadable=cached?.unreadable||0;
     results.replaceChildren();

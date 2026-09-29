@@ -40,8 +40,8 @@ export class WorkspaceTabs extends WorkspaceParent {
     super.insertChild(index, child)
     this.toggleTab(child.state.path)
 
-    // 新窗合并到第一个插入点时，空占位叶可能位于真实标签之后。
-    // 仅移除 core.empty，占位位置不应影响结果，也不关闭用户的 Untitled 草稿。
+    // When new window is merged to the first insertion point, empty placeholder leaf may be located after real tag.
+    // Only remove core.empty, placeholder position should not affect result, and should not close user's Untitled draft.
     if (!child.state.path?.startsWith(`typ://${EmptyView.type}`)) {
       const empty_leaf = this.children.find(node => node !== child && (node as WorkspaceLeaf).state.path?.startsWith(`typ://${EmptyView.type}`))
       if (empty_leaf) this.removeChild(empty_leaf)
@@ -58,7 +58,7 @@ export class WorkspaceTabs extends WorkspaceParent {
     this.removeTab((child as WorkspaceLeaf).state.path)
   }
 
-  /** 恢复标签身份不打开视图，后台文档由首次激活按需读取。 */
+  /** Restoring tab identity does not open view, background document is read on demand by first activation. */
   append_inactive(leaves: WorkspaceLeaf[]) {
     for (const leaf of leaves) {
       const fixed_count = (this.children as WorkspaceLeaf[]).filter(item => item.state.workspace_pinned).length

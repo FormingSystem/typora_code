@@ -1,4 +1,4 @@
-// 真实Monaco差异及Chromium排版；不依赖用户文档。
+// Real Monaco differences and Chromium layout; does not depend on user documentation.
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_git_presentation_'));app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();
 let win;const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),run=async s=>{try{return await win.webContents.executeJavaScript(s)}catch(e){console.error(s);throw e}},wait=async s=>{for(let i=0;i<400;i++){if(await run(s))return;await pause(25);}throw Error('Timeout: '+s);},check=async(s,label)=>{try{assert(await run(s),label);checks.push(label);}catch(error){console.error('FAILED CHECK',label,await run('({before:window.before,anchor:window.preview?.capture_content_anchor(),rendered:window.preview?.rendered_markdown,ready:window.preview?.markdown_preview?.container.dataset.ready,visible:window.preview?.focused_editor().getVisibleRanges(),size:window.preview?.body.getBoundingClientRect().toJSON()})'));throw error;}};

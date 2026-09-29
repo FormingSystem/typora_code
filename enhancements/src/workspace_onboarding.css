@@ -1,4 +1,4 @@
-/* VS Code 6807068 spotlight.css：320px卡片、16px间距、1.4行高；焦点仍由公共对话框管理。 */
+/* VS Code 6807068 spotlight.css: 320px card, 16px spacing, 1.4 line height; focus is still managed by the public dialog. */
 .workspace-onboarding.git-graph-dialog-shade { background: #0005; padding: 16px; }
 .workspace-onboarding > .git-graph-dialog { position: fixed; width: 320px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); margin: 0; z-index: 1; background: var(--workspace-ui-elevated, var(--bg-color)); color: var(--workspace-ui-foreground, var(--text-color)); }
 .workspace-onboarding .git-graph-dialog-content { padding: 16px; white-space: normal; line-height: 1.4; }

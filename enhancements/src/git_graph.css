@@ -1,4 +1,4 @@
-/* 中央Graph几何来自固定v1.30.0：工具栏32+8+1、表头18+12+1、提交行24；与SCM宿主22分离。 */
+/* The central Graph geometry comes from fixed v1.30.0: toolbar 32+8+1, header 18+12+1, submit row 24; separated from SCM host 22. */
 :is(.linux-note-git-graph, .linux-note-git-source-control) {
   container-type: inline-size;
   box-sizing: border-box;
@@ -129,7 +129,7 @@
 .git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }
 @media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }
 
-/* 分隔条覆盖面板交界；命中范围与悬停反馈均不参与内容布局。 */
+/* The separator covers the panel junction; the hit range and hover feedback do not participate in content layout. */
 .linux-note-workspace-sash { position: absolute; background: transparent; touch-action: none; user-select: none; outline: none; z-index: 3; }
 .linux-note-workspace-sash[data-axis=x] { top: 0; width: 4px; height: 100%; transform: translateX(-50%); cursor: ew-resize; }
 .linux-note-workspace-sash[data-axis=y] { left: 0; width: 100%; height: 4px; transform: translateY(-50%); cursor: ns-resize; }
@@ -140,7 +140,7 @@
 .git-graph-menu button:disabled { opacity: .4; cursor: default; }
 hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 
-/* 复用社区核心的主侧栏、活动栏和编辑标签。 */
+/* Reuse the main sidebar, activity bar, and edit tab from the community core. */
 .linux-note-git-source-control { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; }
 .git-scm-sidebar {
   --git-scm-pane-padding: var(--linux-note-shell-inset, 10px);
@@ -191,7 +191,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-group > summary { position: relative; display: flex; align-items: center; height: var(--git-scm-section-height); padding: 0 12px 0 20px; font-weight: 600; cursor: pointer; white-space: nowrap; border-top: 1px solid #8882; list-style: none; }
 .git-scm-group-label, .git-scm-file-label { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
 .git-scm-group-name { overflow: hidden; text-overflow: ellipsis; }
-/* VS Code Light 2026 badge.background / badge.foreground；零计数也使用同一语义。 */
+/* VS Code Light 2026 badge.background / badge.foreground; zero count also uses the same semantics. */
 .git-scm-badge { display: inline-block; box-sizing: border-box; min-width: 18px; min-height: 18px; padding: 3px 5px; margin-left: 6px; border-radius: 11px; background: var(--vscode-badge-background,#0069cc); color: var(--vscode-badge-foreground,#fff); font-size: .846em; font-weight: 400; line-height: 11px; text-align: center; }
 /* VS Code 1.136.2 SCM resource-group: name, hover/focus actions, trailing count. */
 .git-scm-group-label { flex: 1; }
@@ -206,7 +206,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-file:focus-visible { --git-scm-row-background: var(--linux-note-shell-selection-background, #0060c0); color: var(--linux-note-shell-selection-foreground, #fff); outline: 1px solid var(--linux-note-shell-focus-border, #0078d4); outline-offset: -1px; }
 .git-scm-file > .git-scm-file-label { grid-row: 1; grid-column: 1; }
 .git-scm-file > .git-scm-file-status { grid-row: 1; grid-column: -2 / -1; }
-/* VS Code iconlabel：行内名称优先，目录跟在其后；只裁切共同文本区。 */
+/* VS Code iconlabel: inline name priority, directory follows; only truncate the common text area. */
 .git-scm-file-text { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .git-scm-file-name, .git-scm-history-file-name { white-space: pre; }
 .git-scm-file-directory { margin-left: .5em; opacity: .55; font-size: .846em; line-height: normal; white-space: pre; }
@@ -216,13 +216,13 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-row-actions button.git-scm-inline-action { flex: 0 0 var(--git-scm-action-size); width: var(--git-scm-action-size); height: var(--git-scm-action-size); min-width: 0; margin: 0; padding: 0; border: 0; }
 .git-scm-file .git-scm-inline-action { opacity: 0; }
 .git-scm-file > .git-scm-row-actions { position: absolute; z-index: 1; top: 0; right: calc(var(--git-scm-row-right) + var(--git-scm-status-width) + var(--git-scm-column-gap)); height: var(--git-scm-row-height); pointer-events: none; background: transparent; }
-/* 操作在行尾占位，名称/目录在共同区域裁切，不分别按flex比例压缩。 */
+/* Operations are placed at the end of the line; names/directories are truncated in the common area, not separately compressed according to flex ratio. */
 .git-scm-file:is(:hover, :focus-within, .selected) { grid-template-columns: minmax(0, 1fr) max-content var(--git-scm-status-width); }
 .git-scm-file:is(:hover, :focus-within, .selected) > .git-scm-row-actions { position: static; grid-row: 1; grid-column: 2; max-width: none; pointer-events: auto; background:transparent; }
 .git-scm-file:is(:hover, :focus-within, .selected) .git-scm-inline-action { opacity: 1; }
 .git-scm-file .git-scm-inline-action > .git-standard-icon { flex: 0 0 16px; width: 16px; height: 16px; }
 .git-scm-empty { padding: 6px 12px; opacity: .6; }
-/* VS Code views.css welcome-view-content：状态由视图所有者控制，不能复用无更改文本的透明度。 */
+/* VS Code views.css welcome-view-content: the status is controlled by the view owner, cannot reuse the transparency of text without changes. */
 .git-scm-welcome { display: flex; flex-direction: column; align-items: center; padding: 0 20px 1em; box-sizing: border-box; overflow: auto; min-height: 0; }
 .git-scm-welcome[hidden], .git-scm-sections[hidden] { display: none; }
 .git-scm-welcome > * { margin: 1em 0 0; }
@@ -275,7 +275,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; padding-right: 4px; overflow: hidden; }
-/* VS Code IconLabel：名称和作者共享裁切区，不能将作者另做一列。 */
+/* VS Code IconLabel: names and authors share the truncation area, cannot make the author a separate column. */
 .git-scm-history-label { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
 .git-scm-history-subject { white-space: pre; font-size: inherit; }
 .git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: calc(100% - 4px); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
@@ -326,7 +326,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 :is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-inline-action { border: 0; padding: 0 4px; font-size: 1.308em; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools button { border: 0; padding: 0 5px; }
 
-/* 标准图标统一 16px 画布和命中区，不受正文字体或 details 默认标记影响。 */
+/* Standard icons use unified 16px canvas and hit area, unaffected by the main text font or details default markup. */
 .git-standard-icon { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: middle; fill: currentColor; pointer-events: none; }
 .git-icon-button, .git-labeled-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button,
@@ -339,7 +339,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-sidebar details[open] > summary > .git-disclosure-icon,
 .git-scm-history-toggle[aria-expanded=true] > .git-disclosure-icon,
 .git-scm-history-commit[aria-expanded=true] .git-disclosure-icon { transform: rotate(90deg); }
-/* 普通态让出动作空位；悬停/焦点或既有常显配置才分配操作列。 */
+/* The normal state lets out action space; hover/focus or existing always-on configuration only allocates the action column. */
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history .git-scm-history-file-row:is(:hover,:focus-within) > button.git-scm-history-file,
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history[data-history-always-show-actions=true] button.git-scm-history-file { grid-template-columns: minmax(0, 1fr) 22px var(--git-scm-status-width); }
 .git-scm-history-file .git-scm-file-status { grid-column: -2 / -1; }
@@ -358,7 +358,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }
 .git-menu-label { min-width: 0; }
 
-/* 原生文件 footer 悬浮在侧栏底部；自有面板挂载期间由各自工具栏承担文件操作。 */
+/* Native files footer float at the bottom of the sidebar; during their own panel mounting, file operations are handled by their respective toolbars. */
 #typora-sidebar:has(#sidebar-content > :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) > .sidebar-footer {
   display: none !important;
 }
@@ -375,7 +375,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-history { min-height: 22px; }
 .git-scm-history-header { flex: 0 0 22px; min-height: 22px; }
 
-/* 窄编辑组中详情纵向排列，文件区单独滚动；工具栏自然换行。 */
+/* In narrow edit group, details are vertically arranged, the file area scrolls separately; the toolbar naturally wraps. */
 @container (max-width: 520px) {
   .git-graph-detail-content { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .git-graph-detail-summary { border-bottom: 1px solid #8883; }
@@ -413,7 +413,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-graph-find-match{background:var(--linux-note-find-match-background,#f6cf65);color:var(--text-color,#222);border-radius:2px}
 .git-graph-row.git-graph-find-current{box-shadow:inset 0 0 0 1px var(--linux-note-shell-selection-background,#007acc)}
 
-/* Graph文件树保留18px内容与4px行间距；SCM文件行仍由自身22px规则控制。 */
+/* Graph file tree retains 18px content and 4px line spacing; SCM file lines are still controlled by their own 22px rules. */
 .linux-note-git-source-control { --git-graph-row-height:22px; }
 .linux-note-git-graph .git-file-directory>summary,.linux-note-git-graph button.git-graph-file { height:18px;min-height:18px;margin-top:4px;line-height:18px;padding-left:10px;padding-right:0; }
 .linux-note-git-graph .git-file-directory { margin-left:25px; }
@@ -455,7 +455,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
   color:inherit!important;fill:currentColor;
 }
 
-/* Git Graph 1.30.0 inline 详情：首列保留连续图轨，信息从 Description 列起。 */
+/* Git Graph 1.30.0 inline details: the first column retains continuous tracks, information starts from the Description column. */
 .git-graph-detail-rail {position:absolute;top:0;left:0;width:var(--git-graph-width);height:300px;pointer-events:none;overflow:visible;}
 .git-graph-detail-field {overflow-wrap:anywhere;line-height:18px;}
 .git-graph-detail-divider {position:absolute;left:var(--git-detail-summary-width,50%);top:0;bottom:6px;width:6px;cursor:col-resize;touch-action:none;}
@@ -467,10 +467,10 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-graph-files .git-graph-unreviewed-icon {display:none!important;}
 .git-graph-files .git-file-unreviewed .git-graph-unreviewed-icon {display:inline-block!important;}
 
-/* 文件类型字形复用 Explorer Seti 槽，不套用旧单色文件 SVG 的透明度。 */
+/* File type glyphs reuse Explorer Seti slot, do not apply the transparency of old single-color files SVG. */
 .git-graph-details .git-graph-file-icon.workspace-file-theme-icon {height:16px;flex-basis:16px;opacity:1;}
 
-/* 提交卡片沿用共同浮层外观，Git只组织领域字段。 */
+/* Submit card retains the common floating layer appearance, Git only organizes domain fields. */
 .workspace-hover-surface.git-commit-hover {width:max-content;max-width:min(700px,calc(100vw - 16px));white-space:normal;--commit-hover-border:var(--vscode-editorHoverWidget-border,#e4e5e6);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover {--commit-hover-border:var(--vscode-editorHoverWidget-border,#2a2b2c);--vscode-textLink-foreground:#4daafc;}
 .git-commit-hover .git-standard-icon {width:12px;height:12px;flex-basis:12px;}
@@ -491,14 +491,14 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-commit-web-picker .git-graph-dialog-content>button{display:block;max-width:100%;text-align:left;overflow-wrap:anywhere;}
 
 
-/* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */
+/* R027: upstream SCM reference tag 100px upper limit, 22px action; actions with insufficient width are absorbed by the toolbar. */
 .git-scm-history-toolbar > button[hidden] { display: none !important; }
 :is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history-toolbar > .git-scm-history-branches { flex: 0 0 auto; width: auto; display: flex; align-items: center; }
 .git-scm-history-scope { max-width: 100px; padding-right: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 16px; }
  .git-scm-history-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .git-scm-history-toggle > .git-scm-badge[hidden] { display:none!important; }
 
-/* 仓库摘要复用 SCM 22px 行及官方动作尺寸。 */
+/* Repository summary reuses SCM 22px line and official action size. */
 .git-scm-repositories-list { min-width: 0; max-height: 30vh; overflow: auto; }
 .git-scm-repository-row { display: flex; align-items: center; min-width: 0; height: var(--git-scm-row-height,22px); }
 .git-scm-repository-row[data-active=true] { background: var(--workspace-interaction-selected-background,#8882); }
@@ -509,7 +509,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-repository-row > :is(.git-scm-repository-sync,.git-scm-repository-more) { flex: none; min-width: var(--git-scm-action-size,22px); }
 .git-scm-worktree-entry { margin-bottom: 8px; overflow-wrap: anywhere; }
 
-/* 放弃更改的对象和选项使用共享对话框颜色、控件与关闭路径。 */
+/* Abandoned changes objects and options use shared dialog colors, controls, and close paths. */
 .git-discard-confirmation .git-graph-dialog { width: min(580px, 100%); }
 .git-discard-confirmation .git-graph-dialog-content { white-space: normal; }
 .git-discard-confirmation .git-discard-message { display: flex; align-items: flex-start; gap: 12px; }
@@ -523,7 +523,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-discard-confirmation .git-discard-files ul { margin: 4px 0 12px; padding-inline-start: 20px; }
 .git-discard-confirmation .git-discard-files p { margin: 12px 0 0; }
 
-/* 大列表沿用SCM行高和主题，窗口化容器不引入新的滚动所有者。 */
+/* The large list continues to use SCM line height and theme, and the windowed container does not introduce a new scroll owner. */
 .git-scm-virtual-directory { display: flex; align-items: center; gap: 4px; border: 0; background: transparent; color: inherit; text-align: left; }
 .git-scm-virtual-directory .git-icon { flex: 0 0 16px; }
 
@@ -538,13 +538,13 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-markdown-overview:focus-visible{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}
 
-/* 拓扑与目录只缩进内容，所有历史行的状态背景保持相同边界。 */
+/* Topology and directory only indent content, and the state background of all historical lines remains the same boundary. */
 .git-scm-history-continuation {z-index:1;}
 :is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history .git-scm-virtual-directory {padding-left:calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px));width:100%;box-sizing:border-box;}
 
 .git-graph-row:focus-visible {outline:1px solid var(--linux-note-shell-focus-border,#0078d4);outline-offset:-1px;}
 
-/* scmHistory.ts/scm.css：节点是公共选择/悬停状态的领域投影，不能由展开推断。 */
+/* scmHistory.ts/scm.css: Nodes are public selection/hover states' domain projections, which cannot be inferred from expansion. */
 .git-history-node circle {stroke:var(--workspace-list-surface,var(--workspace-list-background,var(--vscode-editor-background,#fff)));}
 .git-history-node:is([data-node-kind=head],[data-node-kind=range]) circle:last-of-type {fill:var(--workspace-list-surface,var(--workspace-list-background,#fafafd));}
 [data-workspace-row-key]:hover>.git-history-node circle:first-of-type,

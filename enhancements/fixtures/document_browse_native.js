@@ -1,4 +1,4 @@
-// 原始宿主只读浏览：LF/CRLF/BOM/末尾换行、光标及关闭，不改用户文档。
+// Original host read-only browsing: LF/CRLF/BOM/ line break at the end, cursor and close, without changing the user document.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],states=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

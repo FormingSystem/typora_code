@@ -1,4 +1,4 @@
-// 原始宿主的实际C围栏；不以手写cm类替代真实TextMate路径。
+// Original host's actual C fence; do not replace the real TextMate path with a handwritten cm class.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_core} from './git_graph_host';
 import type {workspace_file_host} from './workspace_files';
 import {create_link_preview} from './workspace_link_preview';
@@ -6,10 +7,10 @@ import {read_workspace_editor_settings,observe_workspace_editor_settings} from '
 import {bind_preview_resize} from './workspace_preview_resize';
 import {SIDEBAR_MIN_WIDTH,EDITOR_MIN_WIDTH} from './workspace_sidebar_sash';
 
-/** 预览拥有自己的可见性；只读侧栏状态，不展开或切换任何功能面板。 */
+/** Preview has its own visibility; read-only sidebar status, does not expand or switch any functional panel. */
 export function bind_workspace_link_dock(core:graph_core,files:workspace_file_host){
   const root=document.documentElement,body=document.body;
-  const dock=document.createElement('section');dock.className='workspace-link-dock';dock.setAttribute('aria-label','链接预览');dock.hidden=true;
+  const dock=document.createElement('section');dock.className='workspace-link-dock';dock.setAttribute('aria-label',workspace_text("link_dock_link_preview"));dock.hidden=true;
   let pinned=false;
   const preview=create_link_preview(files,{close:()=>{close();selection.dismiss();},pin:()=>{pinned=!pinned;preview.set_pinned(pinned);}});dock.append(preview.container);body.append(dock);
   let width=Number.parseFloat(getComputedStyle(root).getPropertyValue('--sidebar-width'))||300,height=0,disposed=false,frame=0;

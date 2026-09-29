@@ -16,7 +16,7 @@ auto.changed(target);auto.dispose();await wait(40);assert.equal(calls,5);
 let entered,finish,second_calls=0,current={dirty:true,busy:false,eligible:true};
 const second=create_auto_save({policy:()=>({mode:'afterDelay',delay:5}),state:item=>item,save:async item=>{second_calls++;if(second_calls===1){entered=true;await new Promise(resolve=>finish=resolve);}else item.dirty=false;return true;},report:()=>{}});
 second.changed(current);while(!entered)await wait(2);second.changed(current);await wait(12);assert.equal(second_calls,1);finish();await wait(30);assert.equal(second_calls,2);second.dispose();
-// 同一失败版本不能因反复切换焦点/窗口继续尝试；新的编辑才能重新排队。
+// The same failed version cannot continue to attempt after repeatedly switching focus/window; new editing can only requeue.
 for(const mode of ['onFocusChange','onWindowChange']){
   let failed_calls=0;const draft={dirty:true,busy:false,eligible:true};
   const guarded=create_auto_save({policy:()=>({mode,delay:5}),state:item=>item,save:async()=>{failed_calls++;return false;},report:()=>{}});

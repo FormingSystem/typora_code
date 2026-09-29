@@ -312,7 +312,7 @@
 .workspace-community-message:empty{display:none;}
 .workspace-community-row strong{font:600 13px/1.5 var(--linux-note-ui-font-family,"Segoe UI",sans-serif);}
 
-/* 官方社区2.10.23 SettingsModal几何；设置内容不属于工作台通用表单。 */
+/* Official community 2.10.23 SettingsModal geometry; the content setting does not belong to the workbench common form. */
 .workspace-community-settings-root {position:fixed;inset:0;z-index:var(--typ-layer-modal,10000);display:flex;align-items:center;justify-content:center;background:rgba(var(--typ-light-bg-color,255,255,255),.4);}
 .workspace-community-settings-root>.typ-settings-modal {box-sizing:border-box;display:flex;flex-direction:column;width:90vw;height:85vh;padding:1rem;border:1px solid rgb(var(--typ-border-color,200,200,200));background:var(--bg-color,#fff);color:var(--text-color,#333);font-size:.875rem;box-shadow:0 1rem 2rem rgba(var(--typ-shadow-color,0,0,0),.5);}
 .workspace-community-settings-root .typ-modal__header {display:flex;align-items:center;justify-content:space-between;flex:none;padding-bottom:1.25rem;font-size:1.25rem;}
@@ -325,14 +325,14 @@
 .workspace-community-settings-root .typ-nav__item.active {background:var(--control-text-color,#888);color:var(--side-bar-bg-color,#fff);opacity:.8;}
 .workspace-community-settings-close {display:flex;align-items:center;justify-content:center;padding:4px;border:0;background:transparent;color:inherit;}
 
-/* 统一设置仅改变外壳承载范围，SettingTab内部继续使用社区原样式。 */
+/* Unified settings only change the shell's bearing range; the SettingTab internal continues to use the community original style. */
 .workspace-community-settings-root.is-embedded{position:relative;inset:auto;z-index:auto;width:100%;height:100%;background:var(--bg-color,#fff);align-items:stretch;justify-content:stretch}
 .workspace-community-settings-root.is-embedded>.typ-settings-modal{width:100%;height:100%;min-width:0;max-width:none;border:0;box-shadow:none;padding:0}
 .workspace-community-settings-root.is-embedded .typ-sidebar{flex:0 1 10rem;min-width:72px}
 .workspace-community-settings-root.is-embedded .typ-nav__item{width:100%;margin-right:0;overflow-wrap:anywhere}
 
 /* git_branch_picker.css */
-/* 固定QuickInput契约：普通22px、带detail44px、宽600px；引用和动作共用输入焦点。 */
+/* Fix the QuickInput contract: regular 22px, with detail44px, wide 600px; references and actions share the same input focus. */
 .git-scm-ref-picker.git-branch-picker .git-branch-item{display:flex;flex-direction:column;align-items:stretch;gap:0;flex:none}
 .git-branch-picker .git-branch-item.has-detail{height:44px;min-height:44px}
 .git-branch-line{display:flex;align-items:center;gap:6px;min-height:22px;min-width:0;width:100%;overflow:hidden}
@@ -350,7 +350,7 @@
 .git-branch-picker .git-scm-ref-filter{border:0!important;outline:0!important}
 
 /* git_graph.css */
-/* 中央Graph几何来自固定v1.30.0：工具栏32+8+1、表头18+12+1、提交行24；与SCM宿主22分离。 */
+/* The central Graph geometry comes from fixed v1.30.0: toolbar 32+8+1, header 18+12+1, submit row 24; separated from SCM host 22. */
 :is(.linux-note-git-graph, .linux-note-git-source-control) {
   container-type: inline-size;
   box-sizing: border-box;
@@ -481,7 +481,7 @@
 .git-graph-document { display: flex; flex: 1; flex-direction: column; min-height: 0; min-width: 0; height: 100%; color: var(--text-color, #24292f); background: var(--bg-color, #fff); }
 @media (max-width: 550px) { .git-graph-form label, .git-graph-settings-form label { grid-template-columns: 1fr; gap: 4px; } }
 
-/* 分隔条覆盖面板交界；命中范围与悬停反馈均不参与内容布局。 */
+/* The separator covers the panel junction; the hit range and hover feedback do not participate in content layout. */
 .linux-note-workspace-sash { position: absolute; background: transparent; touch-action: none; user-select: none; outline: none; z-index: 3; }
 .linux-note-workspace-sash[data-axis=x] { top: 0; width: 4px; height: 100%; transform: translateX(-50%); cursor: ew-resize; }
 .linux-note-workspace-sash[data-axis=y] { left: 0; width: 100%; height: 4px; transform: translateY(-50%); cursor: ns-resize; }
@@ -492,7 +492,7 @@
 .git-graph-menu button:disabled { opacity: .4; cursor: default; }
 hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 
-/* 复用社区核心的主侧栏、活动栏和编辑标签。 */
+/* Reuse the main sidebar, activity bar, and edit tab from the community core. */
 .linux-note-git-source-control { display: flex; flex-direction: column; height: 100%; min-height: 0; overflow: hidden; color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; }
 .git-scm-sidebar {
   --git-scm-pane-padding: var(--linux-note-shell-inset, 10px);
@@ -543,7 +543,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-group > summary { position: relative; display: flex; align-items: center; height: var(--git-scm-section-height); padding: 0 12px 0 20px; font-weight: 600; cursor: pointer; white-space: nowrap; border-top: 1px solid #8882; list-style: none; }
 .git-scm-group-label, .git-scm-file-label { display: flex; align-items: center; gap: 6px; min-width: 0; overflow: hidden; }
 .git-scm-group-name { overflow: hidden; text-overflow: ellipsis; }
-/* VS Code Light 2026 badge.background / badge.foreground；零计数也使用同一语义。 */
+/* VS Code Light 2026 badge.background / badge.foreground; zero count also uses the same semantics. */
 .git-scm-badge { display: inline-block; box-sizing: border-box; min-width: 18px; min-height: 18px; padding: 3px 5px; margin-left: 6px; border-radius: 11px; background: var(--vscode-badge-background,#0069cc); color: var(--vscode-badge-foreground,#fff); font-size: .846em; font-weight: 400; line-height: 11px; text-align: center; }
 /* VS Code 1.136.2 SCM resource-group: name, hover/focus actions, trailing count. */
 .git-scm-group-label { flex: 1; }
@@ -558,7 +558,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-file:focus-visible { --git-scm-row-background: var(--linux-note-shell-selection-background, #0060c0); color: var(--linux-note-shell-selection-foreground, #fff); outline: 1px solid var(--linux-note-shell-focus-border, #0078d4); outline-offset: -1px; }
 .git-scm-file > .git-scm-file-label { grid-row: 1; grid-column: 1; }
 .git-scm-file > .git-scm-file-status { grid-row: 1; grid-column: -2 / -1; }
-/* VS Code iconlabel：行内名称优先，目录跟在其后；只裁切共同文本区。 */
+/* VS Code iconlabel: inline name priority, directory follows; only truncate the common text area. */
 .git-scm-file-text { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .git-scm-file-name, .git-scm-history-file-name { white-space: pre; }
 .git-scm-file-directory { margin-left: .5em; opacity: .55; font-size: .846em; line-height: normal; white-space: pre; }
@@ -568,13 +568,13 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-row-actions button.git-scm-inline-action { flex: 0 0 var(--git-scm-action-size); width: var(--git-scm-action-size); height: var(--git-scm-action-size); min-width: 0; margin: 0; padding: 0; border: 0; }
 .git-scm-file .git-scm-inline-action { opacity: 0; }
 .git-scm-file > .git-scm-row-actions { position: absolute; z-index: 1; top: 0; right: calc(var(--git-scm-row-right) + var(--git-scm-status-width) + var(--git-scm-column-gap)); height: var(--git-scm-row-height); pointer-events: none; background: transparent; }
-/* 操作在行尾占位，名称/目录在共同区域裁切，不分别按flex比例压缩。 */
+/* Operations are placed at the end of the line; names/directories are truncated in the common area, not separately compressed according to flex ratio. */
 .git-scm-file:is(:hover, :focus-within, .selected) { grid-template-columns: minmax(0, 1fr) max-content var(--git-scm-status-width); }
 .git-scm-file:is(:hover, :focus-within, .selected) > .git-scm-row-actions { position: static; grid-row: 1; grid-column: 2; max-width: none; pointer-events: auto; background:transparent; }
 .git-scm-file:is(:hover, :focus-within, .selected) .git-scm-inline-action { opacity: 1; }
 .git-scm-file .git-scm-inline-action > .git-standard-icon { flex: 0 0 16px; width: 16px; height: 16px; }
 .git-scm-empty { padding: 6px 12px; opacity: .6; }
-/* VS Code views.css welcome-view-content：状态由视图所有者控制，不能复用无更改文本的透明度。 */
+/* VS Code views.css welcome-view-content: the status is controlled by the view owner, cannot reuse the transparency of text without changes. */
 .git-scm-welcome { display: flex; flex-direction: column; align-items: center; padding: 0 20px 1em; box-sizing: border-box; overflow: auto; min-height: 0; }
 .git-scm-welcome[hidden], .git-scm-sections[hidden] { display: none; }
 .git-scm-welcome > * { margin: 1em 0 0; }
@@ -627,7 +627,7 @@ hr.typ-workspace-leaf-resize-handle:hover { background: #007fd4 !important; }
 .git-scm-history-disclosure { display: none; }
 .git-scm-history-topology { flex: none; overflow: visible; }
 .git-scm-history-summary { display: flex; align-items: center; gap: 4px; flex: 1; min-width: 0; padding-right: 4px; overflow: hidden; }
-/* VS Code IconLabel：名称和作者共享裁切区，不能将作者另做一列。 */
+/* VS Code IconLabel: names and authors share the truncation area, cannot make the author a separate column. */
 .git-scm-history-label { display: block; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; line-height: 22px; }
 .git-scm-history-subject { white-space: pre; font-size: inherit; }
 .git-scm-history-refs { display: flex; align-items: center; gap: 4px; flex: 0 1 auto; max-width: calc(100% - 4px); min-width: 0; overflow: hidden; white-space: nowrap; font-size: 12px; }
@@ -678,7 +678,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 :is(.linux-note-git-graph, .linux-note-git-source-control) button.git-scm-inline-action { border: 0; padding: 0 4px; font-size: 1.308em; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools button { border: 0; padding: 0 5px; }
 
-/* 标准图标统一 16px 画布和命中区，不受正文字体或 details 默认标记影响。 */
+/* Standard icons use unified 16px canvas and hit area, unaffected by the main text font or details default markup. */
 .git-standard-icon { display: inline-block; flex: none; width: 16px; height: 16px; vertical-align: middle; fill: currentColor; pointer-events: none; }
 .git-icon-button, .git-labeled-button { display: inline-flex; align-items: center; justify-content: center; gap: 4px; }
 :is(.linux-note-git-graph, .linux-note-git-source-control) .git-scm-tools > button.git-icon-button,
@@ -691,7 +691,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-sidebar details[open] > summary > .git-disclosure-icon,
 .git-scm-history-toggle[aria-expanded=true] > .git-disclosure-icon,
 .git-scm-history-commit[aria-expanded=true] .git-disclosure-icon { transform: rotate(90deg); }
-/* 普通态让出动作空位；悬停/焦点或既有常显配置才分配操作列。 */
+/* The normal state lets out action space; hover/focus or existing always-on configuration only allocates the action column. */
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history .git-scm-history-file-row:is(:hover,:focus-within) > button.git-scm-history-file,
 :is(.linux-note-git-source-control, .linux-note-git-graph) .git-scm-history[data-history-always-show-actions=true] button.git-scm-history-file { grid-template-columns: minmax(0, 1fr) 22px var(--git-scm-status-width); }
 .git-scm-history-file .git-scm-file-status { grid-column: -2 / -1; }
@@ -710,7 +710,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-menu-check, .git-menu-arrow { display: flex; align-items: center; justify-content: center; width: 16px; }
 .git-menu-label { min-width: 0; }
 
-/* 原生文件 footer 悬浮在侧栏底部；自有面板挂载期间由各自工具栏承担文件操作。 */
+/* Native files footer float at the bottom of the sidebar; during their own panel mounting, file operations are handled by their respective toolbars. */
 #typora-sidebar:has(#sidebar-content > :is(.linux-note-git-source-control, .linux-note-workspace-search, .linux-note-workspace-explorer)) > .sidebar-footer {
   display: none !important;
 }
@@ -727,7 +727,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-history { min-height: 22px; }
 .git-scm-history-header { flex: 0 0 22px; min-height: 22px; }
 
-/* 窄编辑组中详情纵向排列，文件区单独滚动；工具栏自然换行。 */
+/* In narrow edit group, details are vertically arranged, the file area scrolls separately; the toolbar naturally wraps. */
 @container (max-width: 520px) {
   .git-graph-detail-content { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) minmax(0, 1fr); }
   .git-graph-detail-summary { border-bottom: 1px solid #8883; }
@@ -765,7 +765,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-graph-find-match{background:var(--linux-note-find-match-background,#f6cf65);color:var(--text-color,#222);border-radius:2px}
 .git-graph-row.git-graph-find-current{box-shadow:inset 0 0 0 1px var(--linux-note-shell-selection-background,#007acc)}
 
-/* Graph文件树保留18px内容与4px行间距；SCM文件行仍由自身22px规则控制。 */
+/* Graph file tree retains 18px content and 4px line spacing; SCM file lines are still controlled by their own 22px rules. */
 .linux-note-git-source-control { --git-graph-row-height:22px; }
 .linux-note-git-graph .git-file-directory>summary,.linux-note-git-graph button.git-graph-file { height:18px;min-height:18px;margin-top:4px;line-height:18px;padding-left:10px;padding-right:0; }
 .linux-note-git-graph .git-file-directory { margin-left:25px; }
@@ -807,7 +807,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
   color:inherit!important;fill:currentColor;
 }
 
-/* Git Graph 1.30.0 inline 详情：首列保留连续图轨，信息从 Description 列起。 */
+/* Git Graph 1.30.0 inline details: the first column retains continuous tracks, information starts from the Description column. */
 .git-graph-detail-rail {position:absolute;top:0;left:0;width:var(--git-graph-width);height:300px;pointer-events:none;overflow:visible;}
 .git-graph-detail-field {overflow-wrap:anywhere;line-height:18px;}
 .git-graph-detail-divider {position:absolute;left:var(--git-detail-summary-width,50%);top:0;bottom:6px;width:6px;cursor:col-resize;touch-action:none;}
@@ -819,10 +819,10 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-graph-files .git-graph-unreviewed-icon {display:none!important;}
 .git-graph-files .git-file-unreviewed .git-graph-unreviewed-icon {display:inline-block!important;}
 
-/* 文件类型字形复用 Explorer Seti 槽，不套用旧单色文件 SVG 的透明度。 */
+/* File type glyphs reuse Explorer Seti slot, do not apply the transparency of old single-color files SVG. */
 .git-graph-details .git-graph-file-icon.workspace-file-theme-icon {height:16px;flex-basis:16px;opacity:1;}
 
-/* 提交卡片沿用共同浮层外观，Git只组织领域字段。 */
+/* Submit card retains the common floating layer appearance, Git only organizes domain fields. */
 .workspace-hover-surface.git-commit-hover {width:max-content;max-width:min(700px,calc(100vw - 16px));white-space:normal;--commit-hover-border:var(--vscode-editorHoverWidget-border,#e4e5e6);}
 :root[data-workspace-file-icon-theme="dark"] .git-commit-hover {--commit-hover-border:var(--vscode-editorHoverWidget-border,#2a2b2c);--vscode-textLink-foreground:#4daafc;}
 .git-commit-hover .git-standard-icon {width:12px;height:12px;flex-basis:12px;}
@@ -843,14 +843,14 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-commit-web-picker .git-graph-dialog-content>button{display:block;max-width:100%;text-align:left;overflow-wrap:anywhere;}
 
 
-/* R027: 上游 SCM 引用标签 100px 上限，22px动作；宽度不足的动作由工具栏收入更多。 */
+/* R027: upstream SCM reference tag 100px upper limit, 22px action; actions with insufficient width are absorbed by the toolbar. */
 .git-scm-history-toolbar > button[hidden] { display: none !important; }
 :is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history-toolbar > .git-scm-history-branches { flex: 0 0 auto; width: auto; display: flex; align-items: center; }
 .git-scm-history-scope { max-width: 100px; padding-right: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 16px; }
  .git-scm-history-title { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .git-scm-history-toggle > .git-scm-badge[hidden] { display:none!important; }
 
-/* 仓库摘要复用 SCM 22px 行及官方动作尺寸。 */
+/* Repository summary reuses SCM 22px line and official action size. */
 .git-scm-repositories-list { min-width: 0; max-height: 30vh; overflow: auto; }
 .git-scm-repository-row { display: flex; align-items: center; min-width: 0; height: var(--git-scm-row-height,22px); }
 .git-scm-repository-row[data-active=true] { background: var(--workspace-interaction-selected-background,#8882); }
@@ -861,7 +861,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-scm-repository-row > :is(.git-scm-repository-sync,.git-scm-repository-more) { flex: none; min-width: var(--git-scm-action-size,22px); }
 .git-scm-worktree-entry { margin-bottom: 8px; overflow-wrap: anywhere; }
 
-/* 放弃更改的对象和选项使用共享对话框颜色、控件与关闭路径。 */
+/* Abandoned changes objects and options use shared dialog colors, controls, and close paths. */
 .git-discard-confirmation .git-graph-dialog { width: min(580px, 100%); }
 .git-discard-confirmation .git-graph-dialog-content { white-space: normal; }
 .git-discard-confirmation .git-discard-message { display: flex; align-items: flex-start; gap: 12px; }
@@ -875,7 +875,7 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-discard-confirmation .git-discard-files ul { margin: 4px 0 12px; padding-inline-start: 20px; }
 .git-discard-confirmation .git-discard-files p { margin: 12px 0 0; }
 
-/* 大列表沿用SCM行高和主题，窗口化容器不引入新的滚动所有者。 */
+/* The large list continues to use SCM line height and theme, and the windowed container does not introduce a new scroll owner. */
 .git-scm-virtual-directory { display: flex; align-items: center; gap: 4px; border: 0; background: transparent; color: inherit; text-align: left; }
 .git-scm-virtual-directory .git-icon { flex: 0 0 16px; }
 
@@ -890,13 +890,13 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-markdown-overview:focus-visible{outline:1px solid var(--focus-border-color,#007acc);outline-offset:-1px}
 .git-markdown-diff[hidden],.git-monaco-body[hidden]{display:none!important}
 
-/* 拓扑与目录只缩进内容，所有历史行的状态背景保持相同边界。 */
+/* Topology and directory only indent content, and the state background of all historical lines remains the same boundary. */
 .git-scm-history-continuation {z-index:1;}
 :is(.linux-note-git-source-control,.linux-note-git-graph) .git-scm-history .git-scm-virtual-directory {padding-left:calc(var(--git-history-lanes,0px) + var(--git-history-indent,0px));width:100%;box-sizing:border-box;}
 
 .git-graph-row:focus-visible {outline:1px solid var(--linux-note-shell-focus-border,#0078d4);outline-offset:-1px;}
 
-/* scmHistory.ts/scm.css：节点是公共选择/悬停状态的领域投影，不能由展开推断。 */
+/* scmHistory.ts/scm.css: Nodes are public selection/hover states' domain projections, which cannot be inferred from expansion. */
 .git-history-node circle {stroke:var(--workspace-list-surface,var(--workspace-list-background,var(--vscode-editor-background,#fff)));}
 .git-history-node:is([data-node-kind=head],[data-node-kind=range]) circle:last-of-type {fill:var(--workspace-list-surface,var(--workspace-list-background,#fafafd));}
 [data-workspace-row-key]:hover>.git-history-node circle:first-of-type,
@@ -911,11 +911,11 @@ html[data-workspace-file-icon-theme=light] .git-scm-history-author { opacity: .9
 .git-progress-owner .git-operation-progress{position:absolute;left:0;right:0;bottom:0;z-index:3}
 .git-operation-spinning .git-standard-icon{animation:git-operation-spin 1.5s steps(30) infinite;transform-origin:center center}
 @keyframes git-operation-spin{to{transform:rotate(360deg)}}
-/* 与上游ProgressBar一致，执行进度保留横向移动，不将未知总量画成满宽静止线。 */
+/* Consistent with upstream ProgressBar , execution progress is preserved as lateral movement, and unknown total quantities are not drawn as full-width static lines. */
 @media(prefers-reduced-motion:reduce){.git-operation-spinning .git-standard-icon{animation:none}}
 
 /* git_scm_ref_picker.css */
-/* VS Code 1.137.0 QuickPick: 600px宽、22px行、6px边距；位置遵守工作台现有QuickOpen入口。 */
+/* VS Code 1.137.0 QuickPick: 600px wide, 22px high, 6px margin; position follows the existing QuickOpen entry of the workbench. */
 .git-scm-ref-picker{position:fixed;z-index:2550;top:6px;left:50%;transform:translateX(-50%);box-sizing:border-box;width:min(600px,calc(100vw - 12px));max-height:calc(100vh - 12px);display:flex;flex-direction:column;border:1px solid var(--item-hover-bg-color,rgba(127,127,127,.28));border-radius:6px;background:var(--side-bar-bg-color,var(--bg-color,#fff));color:var(--text-color,#333);box-shadow:0 8px 28px rgba(0,0,0,.28);font-family:var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);font-size:var(--linux-note-ui-font-size,13px);line-height:22px}
 .git-scm-ref-header{display:flex;align-items:center;gap:6px;padding:6px 6px 4px;flex:none}
 .git-scm-ref-input{flex:1;display:flex;align-items:center;min-width:0;box-sizing:border-box;height:26px;border:1px solid var(--active-file-border-color,#007acc);border-radius:4px;background:var(--bg-color,#fff)}
@@ -966,7 +966,7 @@ footer.ty-footer .linux-note-git-status {
 @media print { .linux-note-git-status { display: none !important; } }
 
 /* markdown_color_menu.css */
-/* 新的用户格式操作复用公共对话框、4px 控件圆角和键盘焦点；不修改原生菜单的其他条目。 */
+/* New user format operations reuse common dialog boxes, 4px control rounding and keyboard focus; do not modify other entries in the native menu. */
 .workspace-color-dialog .git-graph-dialog{width:360px;max-width:calc(100vw - 24px)}
 .workspace-color-note{margin:0 0 12px}
 .workspace-color-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
@@ -985,10 +985,10 @@ footer.ty-footer .linux-note-git-status {
 .workspace-link-hover .workspace-link-copy:hover,.workspace-link-hover .workspace-link-copy:focus-visible {background:var(--vscode-toolbar-hoverBackground,rgba(90,93,94,.1));}
 
 /* reading_media_entry.css */
-/* 共享悬停覆盖层：保留32px控件和8px间隙，全部位于正文排版之外。 */
+/* Shared hover overlay: retain 32px control and 8px gap, all located outside of the document content layout. */
 .reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style}
 .reading-media-entry{position:absolute;display:flex;align-items:flex-start;justify-content:flex-end;box-sizing:border-box;height:40px;padding:0 8px 8px;margin:0;pointer-events:none}
-/* 悬停覆盖入口使用实体阅读底色，不能被通用工具栏的半透明hover替换。 */
+/* Hover overlay entry uses a solid reading background color, which cannot be replaced by the semi-transparent hover of the general tool bar. */
 .reading-media-open{--workspace-interaction-hover:var(--bg-color,#fff);--workspace-interaction-foreground:var(--text-color,#24292f);display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
 .reading-media-open>svg{width:16px;height:16px;fill:currentColor;stroke:none;flex:none}
 .reading-media-open[hidden],.reading-media-open.is-small span{display:none!important}
@@ -996,14 +996,14 @@ footer.ty-footer .linux-note-git-status {
 body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 @media print{.reading-media-entries{display:none!important}}
 
-/* 常态隐藏，键盘仍可进入；整个图像及上方浮层共同保持悬停入口。 */
+/* Normal state hidden, keyboard still accessible; the entire image and the floating layer above remain hover entry. */
 .reading-media-entry .reading-media-open{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-open,.reading-media-entry:focus-within .reading-media-open{opacity:1;pointer-events:auto}
 
-/* 只在入口显示时提供跨过8px间隙的命中桥，普通阅读不拦截指针。 */
+/* Only provide a hit bridge across the 8px gap when the entry is displayed; normal reading does not intercept the pointer. */
 .reading-media-entry.is-revealed,.reading-media-entry:focus-within{pointer-events:auto}
 
-/* 代码复制采用共享紧凑动作尺寸，覆盖定位不占正文行盒。 */
+/* Code copy uses shared compact action size, overlay positioning does not occupy the document line box. */
 .reading-media-entry.is-compact{height:28px;padding:0 4px 4px}
 .reading-media-entry.is-compact .reading-media-open{min-width:24px;width:24px;height:24px;padding:3px;font-weight:normal}
 .reading-media-entry.is-compact .reading-copy-feedback{position:absolute;right:32px;top:0;width:max-content;max-width:min(240px,calc(100vw - 64px));padding:3px 6px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px/18px "Segoe UI","Microsoft YaHei UI",sans-serif;white-space:normal;pointer-events:none}
@@ -1061,7 +1061,7 @@ content[data-linux-note-minimap-owner],
 .typ-workspace-leaf[data-linux-note-minimap-owner] > .typ-markdown-preview { flex: 1; min-width: 0; }
 @media print { .linux-note-reading-minimap { display: none !important; } }
 
-/* 核心切到非 Markdown 时同步隐藏固定缩略图，不等待100ms扫描或ResizeObserver。 */
+/* When the core switches to non Markdown, synchronize the hiding of the fixed thumbnail, without waiting for 100ms scan or ResizeObserver. */
 content.typ-deactive .linux-note-reading-minimap,
 .linux-note-reading-minimap[hidden] { display:none!important; }
 
@@ -1072,7 +1072,7 @@ content.typ-deactive .linux-note-reading-minimap,
 .workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
 .workspace-resource-picker-address>[hidden] {display:none!important;}
 
-/* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
+/* Reuse the editor's 22px breadcrumb content box; address input replaces the same track, path does not increase line count. */
 .workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}
 .workspace-resource-picker-content .workspace-resource-picker-modes {display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:0;}
 .workspace-resource-picker-modes button {font:inherit;white-space:nowrap;}
@@ -1088,11 +1088,11 @@ content.typ-deactive .linux-note-reading-minimap,
 .workspace-resource-picker-content>p {margin:4px 0;overflow-wrap:anywhere;}
 
 /* source_inactive_regions.css */
-/* vscode-clangd inactiveRegions.opacity默认0.55；保留原语法色，不淡化行号和背景。 */
+/* vscode-clangd inactiveRegions.opacity default 0.55; retain original syntax color, do not fade line numbers and background. */
 .monaco-editor .source-inactive-region {opacity:0.55;}
 
 /* source_outline_settings.css */
-/* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
+/* Continue using the existing workspace_dialog flat form, theme color, and 13px workbench ratio. */
 .source-outline-settings>.git-graph-dialog{width:min(600px,95vw)}
 .source-outline-settings .git-graph-dialog-content{white-space:normal}
 .source-outline-settings .source-outline-settings-context{margin:0 0 12px;font-size:12px;opacity:.8}
@@ -1141,7 +1141,7 @@ content.typ-deactive .linux-note-reading-minimap,
 .terminal-editor-host,.linux-note-terminal{height:100%;min-height:0;min-width:0;display:flex;flex:1;overflow:hidden}
 .linux-note-terminal{position:relative;flex-direction:column;background:var(--bg-color,transparent);color:var(--text-color,inherit);font:12px/1.4 system-ui,sans-serif}
 .linux-note-terminal-viewport{box-sizing:border-box;flex:1;min-height:0;min-width:0;overflow:hidden;padding:0}
-/* FitAddon扣除xterm本身的内边距；不能把留白放在其父层。 */
+/* FitAddon subtracts the margin of xterm itself; do not place the white space in its parent layer. */
 .linux-note-terminal-viewport .xterm{box-sizing:border-box;height:100%;padding:4px 8px 4px 16px}
 .linux-note-terminal .xterm-viewport{background-color:transparent}
 .linux-note-terminal .xterm textarea{resize:none}
@@ -1242,11 +1242,11 @@ content.typ-deactive .linux-note-reading-minimap,
   display: none !important;
 }
 
-/* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
+/* When switching to source code or tool tab, retain the native canvas size but immediately hide it, without playing the Typora shrinking transition. */
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }
 
-/* Mermaid画布属于图表，不继承普通源码围栏的底色。 */
+/* Mermaid canvas belongs to charts, does not inherit the normal source code fence's background color. */
 #write .md-fences.md-diagram[lang="mermaid"] {background-color:transparent!important;}
 
 /* workspace_activity.css */
@@ -1331,20 +1331,18 @@ body:not(.typora-export) content.typ-deactive { visibility:hidden!important;poin
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
-/* 终端是48px活动栏入口，不能继承普通工具按钮的16px SVG尺寸。 */
+/* The terminal is the entry of the 48px activity bar; it cannot inherit the 16px SVG size of ordinary tool buttons. */
 .typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon {
   display:block;flex:none;width:24px;height:24px;min-width:24px;min-height:24px;margin:0;padding:0;fill:currentColor;stroke:none;
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon * {fill:currentColor;stroke:none;}
 
-/* 核心把活动栏挂在原生 header 内的侧栏分界线后，而不是 body 直接子节点。
-   与编辑区共用起点，保留底部设置／终端原有 16px 内边距；每个 48px 槽紧接上一槽。 */
+/* The core hangs the activity bar on the native header inside the side divider line, not as a direct child node of body. It shares the starting point with the editing area, retains the bottom setting/terminal original 16px padding; each 48px slot is tightly followed by the previous slot. */
 body.typora-node.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
   position:fixed;top:var(--typ-workspace-top,0px);bottom:0;left:0;height:auto;box-sizing:border-box;
 }
 
-/* 核心已隐藏原生 sidebar tabs；其 window.css 的 54/64px 与 core 的 18px 顶距不能继续占位。
-   顶层偏移只采用与 editor root 相同的变量：native 0，单行 titlebar 由宿主设定。 */
+/* The core has hidden the native sidebar tabs; its window.css 54/64px and core 18px top distance cannot continue to occupy space. The top offset only uses the same variable as editor root: native 0, single line titlebar is set by the host. */
 body.typ-ribbon--enable #typora-sidebar {
   top:var(--typ-workspace-top,0px);height:auto;bottom:0;padding-top:0;
 }
@@ -1354,7 +1352,7 @@ body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
 /* VS Code 1.137.0 breadcrumbsControl / breadcrumbsWidget / breadcrumbsPicker。 */
 .workspace-breadcrumbs {display:flex;align-items:center;flex:0 0 22px;box-sizing:border-box;height:22px;min-height:22px;min-width:0;width:100%;padding:0 4px 0 8px;background:var(--bg-color,#fff);color:var(--text-color,#333);font:13px/22px var(--linux-note-shell-font-family,"Segoe UI",sans-serif);border:0;user-select:none;}
 .workspace-breadcrumbs[hidden] {display:none;}
-/* VS Code breadcrumbscontrol.css 的1px底边；绘制层保持既有22px行盒与正文起点。 */
+/* VS Code breadcrumbscontrol.css's 1px bottom edge; the drawing layer maintains the existing 22px line box and the starting point of the main content. */
 .workspace-breadcrumbs {position:relative;--workspace-breadcrumb-border:var(--vscode-editorWidget-border,#E4E5E6);}
 :root[data-workspace-file-icon-theme="dark"] .workspace-breadcrumbs {--workspace-breadcrumb-border:var(--vscode-editorWidget-border,#2A2B2C);}
 .workspace-breadcrumbs::after {content:"";position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--workspace-breadcrumb-border);pointer-events:none;}
@@ -1394,8 +1392,8 @@ body.typ-ribbon--enable #typora-sidebar > #sidebar-content {top:0;}
 
 /* workspace_chrome.css */
 /* VS Code 88e44fa / Light 2026、Dark 2026：sideBar.border、statusBar.border、
-   editorGroupHeader.tabsBorder 共用主题分界色；sideBar.background 为侧区背景。
-   宿主 --window-border-color 在最大化时透明，不能作为工作区内部的分界色。 */
+   editorGroupHeader.tabsBorder shared theme divider color；sideBar.background as the side area background.
+   Host --window-border-color transparent when maximized, cannot be used as a divider color within the workspace. */
 :root {
   --workspace-chrome-border:var(--vscode-sideBar-border,#f0f1f2);
   --workspace-chrome-background:var(--vscode-sideBar-background,#fafafd);
@@ -1433,7 +1431,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 }
 
 /* workspace_color_view.css */
-/* 沿统一设置的26px输入、13px文字和共享交互；颜色表是本产品的设置呈现。 */
+/* Along the unified settings, input 26px, 13px text and shared interactions；the color table is the setting presentation of this product. */
 .workspace-color-toolbar{position:sticky;top:0;z-index:1;background:var(--workspace-ui-background,var(--bg-color));display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0}
 .workspace-color-settings{min-width:0}
 .workspace-color-settings>p{margin:8px 0;overflow-wrap:anywhere}
@@ -1455,7 +1453,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 @media(max-width:760px){.workspace-color-previews{flex-direction:column}}
 
 /* workspace_colors.css */
-/* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
+/* R074：VS Code 6807068 Light/Dark 2026 functional color；source and role see docs/workspace_colors.md. */
 :root[data-workspace-colors=light] {
   --vscode-titleBar-activeForeground:#606060;
   --vscode-statusBar-foreground:#606060;
@@ -1657,7 +1655,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --workspace-activity-active-background:var(--vscode-modernActivityBarItem-activeBackground);
   --workspace-activity-active-border:var(--vscode-activityBar-activeBorder);
 }
-/* 同层共用背景，正文与第三方的主题变量保持原归属。 */
+/* Shared background at the same level, document content maintains its original ownership with third-party theme variables. */
 :root[data-workspace-colors] :is(#typora-sidebar,.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.workspace-ssh-sidebar,.workspace-community-manager,.typora-terminal-panel,.terminal-tabs,.terminal-panel-header,.workspace-breadcrumbs,.workspace-settings-categories) {
   background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);border-color:var(--workspace-ui-border);
 }
@@ -1671,17 +1669,17 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 :root[data-workspace-colors] :is(.workspace-setting-row,.workspace-settings-categories,.workspace-search-split,.workspace-ssh-directory,.terminal-tabs,.terminal-split-group>.linux-note-terminal,.linux-note-terminal-status) {border-color:var(--workspace-ui-border);}
 :root[data-workspace-colors] .workspace-setting-row:focus-within {background:var(--workspace-ui-hover);}
 :root[data-workspace-colors] .workspace-settings button[aria-pressed=true] {background:var(--workspace-ui-selection);color:var(--workspace-ui-foreground);}
-/* 浮层颜色统一；原组件继续拥有阴影、位置、尺寸及展开状态。 */
+/* Overlay colors are unified；original components continue to have shadows, positions, sizes, and expanded states. */
 :root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,.workspace-quick-open,.git-scm-ref-picker,.git-branch-picker,.workspace-breadcrumb-picker,[data-workspace-footer-popup=ready],.terminal-find) {
   background-color:var(--workspace-ui-elevated);color:var(--workspace-ui-foreground);border-color:var(--workspace-ui-control-border);
 }
 :root[data-workspace-colors] footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {background-color:var(--workspace-ui-elevated);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--workspace-ui-border);}
-/* 表单只限自有根，不穿透社区设置、正文或第三方编辑器。 */
+/* Forms are limited to their own root, and do not penetrate community settings, document content, or third-party editors. */
 :root[data-workspace-colors] .workspace-quick-open {
   background-color:var(--vscode-quickInput-background);color:var(--vscode-quickInput-foreground);border-color:var(--vscode-widget-border);
 }
-/* 输入与模式按钮属于同一输入底板，透明input不再直接透出浮层颜色。 */
+/* Input and mode buttons belong to the same input board, transparent input no longer directly permeates the floating layer color. */
 :root[data-workspace-colors] .workspace-quick-open-input-row {
   background-color:var(--workspace-ui-input);color:var(--vscode-input-foreground);border-color:var(--vscode-input-border);
 }
@@ -1697,27 +1695,27 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 :root[data-workspace-colors] .linux-note-terminal {background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] .terminal-panel-title {border-color:var(--workspace-ui-focus);}
 :root[data-workspace-colors] .workspace-link-dock {border-color:var(--workspace-ui-control-border);}
-/* 原生底栏菜单中的主题变量限定到该菜单，不传播回原生文档。 */
+/* Native status bar menu theme variables are limited to this menu and do not propagate back to the native document. */
 :root[data-workspace-colors] [data-workspace-footer-popup=ready] {--bg-color:var(--workspace-ui-elevated);--text-color:var(--workspace-ui-foreground);--item-hover-bg-color:var(--workspace-ui-selection);--control-text-color:var(--workspace-ui-muted);}
 
-/* R020.1：同一列表底板承载alpha选中色；不在行或祖先叠加opacity。 */
+/* R020.1: The same list board supports alpha selected color; it is not overlaid on rows or ancestors opacity. */
 :root[data-workspace-colors] :is(.linux-note-workspace-explorer,.linux-note-git-source-control,.linux-note-workspace-search) {background-color:var(--workspace-list-background);}
 
-/* R074.1：角色按实际区域接线，不能把菜单外框、输入边界与状态文字混用。 */
+/* R074.1: Roles are connected according to actual areas, and it is not allowed to mix menu outer frames, input boundaries, and status text. */
 :root[data-workspace-colors] #top-titlebar[data-workspace-titlebar=ready] {--tc-title-fg:var(--vscode-titleBar-activeForeground);}
 :root[data-workspace-colors] footer.ty-footer {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-border);color:var(--vscode-statusBar-foreground);--workspace-action-hover:var(--vscode-statusBarItem-hoverBackground);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,[data-workspace-footer-popup=ready]) {background-color:var(--vscode-menu-background);color:var(--vscode-menu-foreground);border-color:var(--vscode-menu-border);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--vscode-menu-separatorBackground);}
 :root[data-workspace-colors] :is(.git-graph-dialog,.workspace-settings,.linux-note-git-source-control,.linux-note-workspace-search,.workspace-quick-open,.terminal-find) :is(input,textarea):not(:where([data-workspace-interaction=none] *,#write *,.monaco-editor *))::placeholder {color:var(--vscode-input-placeholderForeground);opacity:1;}
 
-/* Git默认支线角色也供颜色表读取，图谱与设置不维护两份有效颜色。 */
+/* The default branch role of Git also provides color tables for reading, and the diagram and settings do not maintain two valid color sets. */
 :root[data-workspace-colors]{--workspace-graph-base:#EA5C00;--workspace-graph-other-1:#FFB000;--workspace-graph-other-2:#DC267F;--workspace-graph-other-3:#994F00;--workspace-graph-other-4:#40B0A6;--workspace-graph-other-5:#B66DFF}
 
 /* workspace_control_icons.css */
 .workspace-official-icon-slot::before,.workspace-official-icon-slot::after{content:none!important;display:none!important}.workspace-official-icon-slot>svg{width:16px!important;height:16px!important;flex:none;vertical-align:middle;stroke:none;fill:currentColor}
 
 /* workspace_document_margin.css */
-/* 恢复 71fcf1d 的正文框百分比和底栏滑块；主题的内边距、字体及渲染样式仍保留。 */
+/* Restore the percentage of the document content box and the status bar slider of 71fcf1d; the margin, font, and rendering style of the theme are still retained. */
 html[data-linux-note-document-margin="ready"] body:not(.typora-export) content > #write {
   box-sizing:border-box;
   width:var(--linux-note-document-width,100%);
@@ -1731,7 +1729,7 @@ html[data-linux-note-document-margin="ready"] body:not(.typora-export) content >
 }
 .linux-note-document-margin input[type="range"] {width:76px;flex:0 1 76px;}
 .linux-note-document-margin output {width:30px;overflow:hidden;text-align:center;font-variant-numeric:tabular-nums;}
-/* 沿用原 900px 紧凑阈值，但以底栏可用宽度判断，侧栏变宽后也不挤出字数。 */
+/* Continue using the original 900px compact threshold, but judge based on the available width of the status bar; the sidebar widening does not squeeze out the number of words. */
 footer.ty-footer:has(> .linux-note-document-margin) {container-type:inline-size;container-name:typora-document-footer;}
 @container typora-document-footer (max-width:900px) {
   footer.ty-footer .linux-note-document-margin-label,footer.ty-footer .linux-note-document-margin output {display:none;}
@@ -1752,13 +1750,13 @@ footer.ty-footer[data-editor-status] > .linux-note-git-status { flex:0 2 auto; m
 
 /* workspace_entry.css */
 .typora-code-startup-error { position:fixed;z-index:2147483647;inset:0 0 auto;padding:12px;color:var(--linux-note-shell-foreground,#202020);background:var(--linux-note-shell-input-background,#fff);border:1px solid var(--linux-note-shell-border,#F0F1F2);font:13px/1.4 "Segoe UI",sans-serif; }
-/* 只约束首次内容展示；保留原生窗口按钮、节点和布局，不制造额外等待。 */
+/* Only constrains the first content display; retains native window buttons, nodes, and layout, without creating additional delays. */
 html[data-typora-code-presentation=loading] :is(content,#typora-sidebar,.typ-ribbon,footer.ty-footer,.typ-workspace-root,.workspace-titlebar-menu,.workspace-titlebar-center) { visibility:hidden!important; }
 html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titlebar=ready]) :is(#w-menu-btn,#title-text) { visibility:visible; }
 
 /* workspace_explorer.css */
 .linux-note-workspace-explorer { position:absolute; inset:0; display:flex; flex-direction:column; min-width:0; min-height:0; font:400 13px/normal var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif); color:var(--linux-note-shell-foreground,var(--text-color,#333)); background:var(--side-bar-bg-color,#f8f8f8); }
-/* 内容使用工作台字体；Codicons 字形与按钮命中区域分别约束，避免正文主题改变层级。 */
+/* Content uses the workbench font; Codicons glyph and button hit area are separately constrained, avoiding changes in the content theme hierarchy. */
 .linux-note-workspace-explorer .git-standard-icon { display:block; flex:none; width:16px; height:16px; }
 .workspace-explorer-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:38px; box-sizing:border-box; padding:4px 10px 4px 14px; gap:6px; }
 .workspace-explorer-toolbar strong { white-space:nowrap; font-family:inherit; font-size:12px; font-weight:600; }
@@ -1789,22 +1787,22 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 
 .workspace-explorer-status[hidden]{display:none}
 
-/* VS Code tree.indent=8；Seti无文件夹图标时，叶子折叠槽归零（views.css）。 */
+/* VS Code tree.indent=8; when Seti has no folder icon, the leaf fold slot is set to zero ( views.css ). */
 .workspace-explorer-row[data-directory="false"]>.workspace-explorer-chevron{display:none}
 .workspace-explorer-row>.workspace-file-theme-icon{margin-right:6px}
 
-/* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
+/* The file has no empty twistie; the glyph and the arrow of the same-level directory share the same visual starting point. */
 .workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
 .workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}
 
-/* 选择器复用同一虚拟树，不继承侧栏绝对定位；高度由弹窗可用空间约束。 */
+/* The selector reuses the same virtual tree, does not inherit the sidebar's absolute positioning; the height is constrained by the available space of the pop-up window. */
 .workspace-file-tree-selection {position:relative;inset:auto;height:320px;max-height:40vh;min-height:104px;flex:none;background:var(--workspace-ui-surface,var(--bg-color,#fff));}
 
 /* workspace_explorer_sections.css */
 .linux-note-workspace-explorer [hidden]{display:none!important}
 .workspace-explorer-folders{display:flex;flex-direction:column;flex:1 1 0;min-height:50px;overflow:hidden}
 .workspace-explorer-folders.is-collapsed{flex:0 0 auto;min-height:0}
-/* R061横向槽位与SCM共享interaction token；保留Modern 28px高度和原有字体。 */
+/* The horizontal slot of R061 shares interaction token with SCM; retains Modern 28px height and original font. */
 .linux-note-workspace-explorer .workspace-explorer-section-heading{position:relative;display:flex;align-items:center;justify-content:flex-start;flex:0 0 28px;box-sizing:border-box;height:28px;min-height:28px;min-width:0;margin:0;padding:0 var(--workspace-disclosure-inset);gap:0;border:0;font:600 12px/28px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif);color:inherit;overflow:hidden}
 .workspace-explorer-section-heading::before{content:"";position:absolute;top:0;left:4px;right:4px;height:1px;background:var(--linux-note-shell-border,rgba(128,128,128,.2));pointer-events:none}
 .workspace-explorer-opened>.workspace-explorer-section-heading::before,.workspace-explorer-opened[hidden]+.workspace-explorer-folders>.workspace-explorer-section-heading::before{display:none}
@@ -1850,7 +1848,7 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-save-setting textarea{height:90px;resize:vertical}
 
 /* workspace_file_header.css */
-/* VS Code 645f29c editor/title：拆分与更多在所属组标签行内；16px Codicon + 两侧2px命中内边距。 */
+/* VS Code 645f29c editor/title: Splitting and more are within the group tab row; 16px Codicon + 2 sides 2px hit the inner padding. */
 .workspace-tab-strip > .workspace-file-header {
   display:flex;align-items:center;flex:0 0 auto;gap:4px;height:100%;padding:0 4px;
   color:var(--workspace-tab-active-fg);background:var(--workspace-tab-strip-bg);
@@ -1869,7 +1867,7 @@ html[data-workspace-file-icon-theme="dark"] .workspace-file-theme-icon{color:var
 .workspace-file-theme-slot::before,.workspace-file-theme-slot::after{display:none!important;content:none!important}
 .workspace-file-theme-slot{display:inline-flex;align-items:center;font-style:normal;flex:none;width:16px}
 
-/* 核心延迟 setIcon 可重新添加 FA 类；仅隔离我们拥有的 Graph/diff SVG 槽。 */
+/* Core delay setIcon can be re-added FA class; only isolate the Graph/diff SVG slot we own. */
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-graph-tab-theme])::before,
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-graph-tab-theme])::after,
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-git-icon="compare-changes"])::before,
@@ -1886,12 +1884,12 @@ html[data-workspace-file-icon-theme="dark"] .workspace-file-theme-icon{color:var
 
 .typ-tab.is-workspace-preview .typ-file-basename{font-style:italic}
 
-/* 系统空叶子不是未保存文档；只移除其占位标签，保留原生空画布。 */
+/* System empty leaves are not unsaved documents; only their placeholder tags are removed, and the native empty canvas is retained. */
 .typ-workspace-tab-header .typ-tab[data-id^="typ://core.empty/"] { display:none!important; }
 .typ-workspace-tab-header:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) { display:none!important; }
 
 /* workspace_footer.css */
-/* 原生底栏不再占用侧栏的最后 30px；预览和目录可使用完整高度。 */
+/* The native status bar no longer occupies the last 30px of the sidebar; preview and directory can use full height. */
 #typora-sidebar[data-workspace-footer=moved] > #sidebar-content { bottom:0!important; }
 body.show-footer footer.ty-footer[data-workspace-footer=ready] {
   display:flex; align-items:center; gap:0; min-width:0; --workspace-footer-action-size:var(--linux-note-shell-action-size,22px);
@@ -1923,12 +1921,12 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
-/* 原生侧栏模式只限制直接操作行，不能隐藏文件菜单中的同名 file-action-item。 */
+/* The native sidebar mode only restricts direct operation rows and cannot hide the same file-action-item in the file menu. */
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer[data-workspace-sidebar-tab=outline] > div > .file-action-item {display:none!important;}
-/* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
+/* The active bar already has an independent outline entry, and the status bar no longer retains duplicate pins or expand buttons. */
 footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
 
-/* 原生代码仍更新该标签；仅从视觉布局移除，避免目录名撑成长条。 */
+/* Native code still updates this tag; it is only removed from the visual layout to avoid the directory name stretching into a long strip. */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label {
   position:absolute!important; width:1px; height:1px; padding:0!important; margin:-1px!important;
   overflow:hidden!important; clip:rect(0,0,0,0); clip-path:inset(50%); white-space:nowrap!important; border:0;
@@ -1943,10 +1941,10 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {
   background:var(--bg-color,#fff); color:var(--text-color,inherit);
 }
 
-/* 宿主维护 li.show 的业务显隐；仅恢复该状态的展示，不显示被宿主移除 show 的条目。 */
+/* Host manages the visibility of business elements li.show; only restore the display of this state, do not display entries that have been removed by the host show. */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu li.show {display:block;}
 
-/* 原生浮层仍归属原节点；footer 的层叠上下文仅在自身弹层打开时升到终端之上。 */
+/* Native floating layers still belong to the original node; the stacking context of footer is only raised above the terminal when its own pop-up is opened. */
 body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-index:101;overflow:visible;}
 [data-workspace-footer-popup=ready] {
   position:fixed!important;left:var(--workspace-popup-left,0px)!important;top:var(--workspace-popup-top,0px)!important;
@@ -1954,29 +1952,29 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
   max-width:calc(100vw - 8px)!important;max-height:var(--workspace-popup-max-height,65vh)!important;
   overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
 }
-/* 字数与语言共用盒模型；取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
+/* The number of characters and language share the same box model; cancel the bottom 8px padding / negative margin of the native floating status bar; text and arrows are centered according to the compact status bar content box. */
 body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
   gap:2px;padding-left:6px;padding-right:6px;
 }
-/* 文档语言是持续状态；原生菜单及源码/diff显隐继续归宿主管理。 */
+/* The document language is a continuous state; native menus and source code/diff visibility continues to be managed by the host. */
 footer.ty-footer[data-workspace-footer=ready] > #footer-spell-check {opacity:1;transition:none;}
 
 /* workspace_footer_layout.css */
-/* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
+/* The status bar uses a unified box model. Components only declare roles; width, horizontal spacing, and business visibility are maintained by the owning module. */
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
   height:100%;min-height:0;font:inherit;
   margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:normal!important;white-space:nowrap;
 }
-/* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
+/* The spacing between operations is responsible by the group's gap; clear the negative horizontal margin left by the host floating control. */
 footer.ty-footer .workspace-footer-control {justify-content:center;text-align:center;margin-left:0!important;margin-right:0!important;}
-/* 宿主会内联设置display:block；单图标仍按共同内容盒居中，不改宿主显隐。 */
+/* The host sets display:block inline; single icon still centers according to the common content box, without changing the host visibility. */
 footer.ty-footer .workspace-footer-control > svg:only-child {display:block;margin-inline:auto;}
 footer.ty-footer .workspace-footer-text {
   justify-content:center;
   margin:0!important;padding:0!important;font:inherit;line-height:normal!important;color:inherit;white-space:nowrap;
 }
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}
-/* 原生 footer-btn 的隐藏和内边距由共享图标角色接管；业务 hide 和内联隐藏仍有效。 */
+/* The hiding and padding of native footer-btn are taken over by the shared icon role; business hide and inline hiding remain valid. */
 footer.ty-footer #ty-sidebar-footer .workspace-footer-control.workspace-footer-icon-control,
 footer.ty-footer .workspace-footer-control.workspace-footer-icon-control {
   display:flex;align-items:center;justify-content:center;padding-left:0;padding-right:0;
@@ -1989,11 +1987,11 @@ footer.ty-footer .workspace-footer-icon-control .workspace-official-icon-slot {
 footer.ty-footer .workspace-footer-icon-control > span,
 footer.ty-footer .workspace-footer-icon-control .footer-btn {line-height:0;vertical-align:middle;}
 
-/* 宿主 .show 强制 block；保留其可见语义，只纠正内容布局。 */
+/* The host .show forces block; retain its visible semantics, only correct the content layout. */
 footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {display:flex!important;}
 
 /* workspace_hover_surface.css */
-/* 固定 VS Code hoverWidget.css：4×8px内容内距、500px最大宽度、自然1.5行高。 */
+/* Fixed VS Code hoverWidget.css: 4×8px internal margin, 500px maximum width, natural 1.5 line height. */
 .workspace-hover-surface {
   position:fixed;z-index:2147483000;pointer-events:auto;box-sizing:border-box;
   max-width:min(500px,calc(100vw - 16px));max-height:calc(100vh - 16px);overflow:auto;
@@ -2002,7 +2000,7 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
   box-shadow:0 2px 8px rgba(0,0,0,.16);font:400 13px/1.5 "Segoe WPC","Segoe UI","Microsoft YaHei",sans-serif;
   white-space:pre-wrap;overflow-wrap:anywhere;user-select:text;
 }
-/* SCM选用VS Code workbench-hover.compact；普通链接提示保持自己的内容节奏。 */
+/* SCM selects VS Code workbench-hover.compact; ordinary links maintain their own content rhythm. */
 .workspace-hover-surface.workspace-hover-compact {font-size:12px;line-height:19px;padding:2px 8px;}
 .workspace-hover-pointer {
   position:fixed;z-index:2147483001;pointer-events:none;box-sizing:content-box;width:5px;height:5px;
@@ -2021,7 +2019,7 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 }
 
 /* workspace_inline_layout.css */
-/* 共同内容行：自然字体行盒，不以正文行高、top 或单边 padding 补偿。 */
+/* Common content line: natural font line box, not based on the content line height, top or single-side padding compensation. */
 :is(footer.ty-footer .workspace-footer-group,footer.ty-footer .workspace-footer-control,.workspace-tab-strip .typ-tab) {
   display:flex;align-items:center;align-content:center;box-sizing:border-box;line-height:normal!important;
 }
@@ -2030,10 +2028,10 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 }
 
 /* workspace_interaction.css */
-/* VS Code 6807068语义颜色、4px控件圆角：仅在声明的UI范围绘制。
-   内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
+/* VS Code 6807068 semantic colors, 4px control rounding: only draw within the declared UI range.
+   Internal variables are used for default/selected priority; public variables are for domain override, avoiding competition for hover selector. */
 :root {
-  /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
+  /* R061: partition uses existing SCM compact slots; tree slots use 645f29c tree.css, depth defaults to 8px. */
   --workspace-disclosure-inset:4px;
   --workspace-disclosure-size:16px;
   --workspace-disclosure-gap:4px;
@@ -2049,7 +2047,7 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
-  /* 6807068 Light/Dark 2026：选中背景和前景必须成对切换。 */
+  /* 6807068 Light/Dark 2026: selected background and foreground must be toggled in pairs. */
   --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
   --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
@@ -2069,21 +2067,21 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
 :where([role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]) { --workspace-default-hover:var(--workspace-menu-item-hover); }
 :where([data-workspace-interaction="menu"],[role="menubar"]>[role="menuitem"]) { --workspace-default-hover:var(--workspace-menu-hover); }
-/* VS Code button.css 主题角色：主操作共用颜色，领域仅保留尺寸与分裂形状。 */
+/* VS Code button.css theme roles: main operations share colors, domains only retain size and split shape. */
 body [data-workspace-interaction="primary"]:not(:where([data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) {
   background-color:var(--vscode-button-background,#0078d4)!important;
   color:var(--vscode-button-foreground,#fff)!important;
   --workspace-interaction-hover:var(--vscode-button-hoverBackground,#006cbe);
   --workspace-interaction-foreground:var(--vscode-button-foreground,#fff);
 }
-/* 局部形状不继承到子操作；跨控件默认通过control-radius管理。
-   稳定圆角覆盖默认/悬停/选中/禁用，不改命中盒大小或裁剪内容。 */
+/* Local shapes are not inherited to sub-operations; cross-control defaults are managed by control-radius.
+   Stable rounding overrides default/hover/selected/disabled, without changing the hit box size or content clipping. */
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
-/* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
+/* The real selected state is maintained by the domain, hover does not clear selected; ordinary menus checked only indicate toggle. */
 :where([role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
-/* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
+/* :where zero state selector weight, avoid :disabled/selected priority being changed by :not quantity. */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
   background-color:var(--workspace-interaction-hover,var(--workspace-default-hover))!important;
   color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;
@@ -2094,7 +2092,7 @@ body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(butto
   color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;
 }
 
-/* 一级侧栏分区的外留白和整行底色统一；各视图继续拥有高度、折叠和工具显隐。 */
+/* The outer margin and full-line background of the first sidebar partition are unified; each view continues to have height, folding, and tool visibility. */
 body .workspace-section-header.workspace-section-header {
   box-sizing:border-box; margin-left:var(--workspace-disclosure-inset);margin-right:var(--workspace-disclosure-inset);
   padding-left:0;padding-right:0;min-width:0;width:calc(100% - 2 * var(--workspace-disclosure-inset));
@@ -2105,7 +2103,7 @@ body .workspace-section-header.workspace-section-header:hover {background-color:
 body .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}
 body .workspace-section-header > .workspace-section-actions {margin-right:0;}
 
-/* R020.1：列表/树共同的整行状态。业务模块只投影键，不复制选中背景。 */
+/* R020.1: common full-line state for list/tree. Business modules only project keys, not copy selected background. */
 [data-workspace-list] {--workspace-list-surface:var(--workspace-list-background,var(--vscode-sideBar-background,#fafafd));}
 body [data-workspace-list] [data-workspace-selected] {
   --workspace-row-background:transparent;
@@ -2143,7 +2141,7 @@ body [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:
 .workspace-link-preview [role=toolbar]>.workspace-link-preview-pin[aria-pressed=true]{background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);--workspace-interaction-hover:var(--linux-note-shell-inactive-selection-background);--workspace-interaction-foreground:var(--linux-note-shell-inactive-selection-foreground)}
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
-/* 独立预览仅覆盖自己的矩形；主编辑区不为预览预留整列。 */
+/* Independent preview only covers its own rectangle; main editing area does not reserve an entire column for preview. */
 .workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:101}
 .workspace-link-dock[hidden]{display:none}
 body.has-workspace-link-preview #typora-sidebar{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important;height:auto!important}
@@ -2160,7 +2158,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 @container workspace-link-toolbar (max-width:210px){.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{display:none}}
 @container workspace-link-toolbar (max-width:240px){.workspace-link-preview.has-pin>[role=toolbar]{gap:0;padding:0}}
 
-/* 目录预览复用资源管理器26px行，不接管主资源树或正文排版。 */
+/* Directory preview reuses the 26px row of the Resource Manager, does not take over the main resource tree or document formatting. */
 .workspace-preview-directory{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}
 .workspace-preview-directory-path,.workspace-preview-directory-return{flex:none;box-sizing:border-box;min-width:0;max-width:100%;height:26px;line-height:26px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:13px/26px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:inherit;border:0;border-bottom:1px solid var(--workspace-border-color,#ddd);background:transparent;text-align:left}
 .workspace-preview-directory-return[hidden]{display:none}
@@ -2170,9 +2168,9 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-preview-directory-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 
 /* workspace_markdown_appearance.css */
-/* R074.2：保留用户确认的 Night 标题颜色；R074.3 单独调整正文链接。
-   正文字体、排版、背景、表格、引用和代码样式由当前 Typora 主题拥有。
-   预览及 Git 渲染比较通过共享主题适配继承，不另建正文皮肤。 */
+/* R074.2: Keep the Night title color confirmed by the user; R074.3 adjust the document links separately.
+   The font, formatting, background, tables, citations, and code styles of the document are owned by the current Typora theme.
+   The preview and Git rendering comparison is done through shared theme adaptation inheritance, without establishing a separate document skin. */
 :root[data-workspace-colors=dark] #write :is(h1,h2,h3,h4,h5,h6) {
   color:var(--workspace-markdown-heading)!important;
 }
@@ -2183,7 +2181,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 }
 
 /* workspace_native_toolbar.css */
-/* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */
+/* The space used by the status bar is already managed by core variables; when hidden, it releases the editing area; the terminal uses the actual bottom bar boundary. */
 body.hide-footer {--typ-footer-height:0px;}
 .ty-editor-toolbar[data-workspace-native-toolbar=ready] {
   left:var(--workspace-toolbar-left)!important;top:var(--workspace-toolbar-top)!important;bottom:auto!important;
@@ -2192,7 +2190,7 @@ body.hide-footer {--typ-footer-height:0px;}
 .ty-editor-toolbar[data-workspace-toolbar-suspended=true] {display:none!important;}
 
 /* workspace_onboarding.css */
-/* VS Code 6807068 spotlight.css：320px卡片、16px间距、1.4行高；焦点仍由公共对话框管理。 */
+/* VS Code 6807068 spotlight.css: 320px card, 16px spacing, 1.4 line height; focus is still managed by the public dialog. */
 .workspace-onboarding.git-graph-dialog-shade { background: #0005; padding: 16px; }
 .workspace-onboarding > .git-graph-dialog { position: fixed; width: 320px; max-width: calc(100vw - 32px); max-height: calc(100vh - 32px); margin: 0; z-index: 1; background: var(--workspace-ui-elevated, var(--bg-color)); color: var(--workspace-ui-foreground, var(--text-color)); }
 .workspace-onboarding .git-graph-dialog-content { padding: 16px; white-space: normal; line-height: 1.4; }
@@ -2214,13 +2212,13 @@ body.hide-footer {--typ-footer-height:0px;}
 @media (prefers-reduced-motion: reduce) { .workspace-onboarding-phase { animation: none; } }
 
 /* workspace_open_vscode.css */
-/* 原生菜单贡献沿用共同 2em 图标列与 16px 产品标识，不重排其他原生项。 */
+/* Native menu contributions continue to use the common 2em icon column and 16px product identifier, without reordering other native items. */
 #context-menu [data-key="typora-code-open-vscode"]>a{position:relative;padding-left:2em}
 #context-menu [data-key="typora-code-open-vscode"] .workspace-native-menu-icon{position:absolute;left:0;top:0;width:2em;height:100%;display:flex;align-items:center;justify-content:center}
 #context-menu [data-key="typora-code-open-vscode"].hide{display:none!important}
 
 /* workspace_outline.css */
-/* 原生外围有 18px padding，标题行还有按级缩进；仅移除重复的外围留白。 */
+/* Native has 18px padding, and the title row also has nested indentation; only remove redundant outer white space. */
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content {
   padding-left: 0;
   padding-right: 0;
@@ -2230,7 +2228,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item {
   padding-right: 4px;
 }
-/* 原生 hover 用负边距扩大热区；去外围空白后直接使用行本身，避免横向越界。 */
+/* Native hover uses negative margins to expand the hot zone; after removing the outer white space, it directly uses the line itself, avoiding horizontal overflow. */
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item:hover {
   margin-left: 0;
   margin-right: 0;
@@ -2252,7 +2250,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 
 #outline-content .outline-item-open>.outline-item>.outline-expander>svg{transform:rotate(90deg)}
 
-/* 原生末级只隐藏伪元素；替换后的 SVG 依据真实直接子树隐藏，保留缩进槽。 */
+/* Native lowest level only hides pseudo-elements; the replaced SVG is hidden based on the real direct subtree, while retaining the indentation slot. */
 #outline-content .outline-item-wrapper:not(:has(> .outline-children > .outline-item-wrapper)) > .outline-item > .outline-expander > svg {
   visibility: hidden;
   pointer-events: none;
@@ -2273,7 +2271,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-source-outline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 8px;height:28px;box-sizing:border-box;border-bottom:1px solid var(--linux-note-shell-sidebar-border,#e4e5e6);}
 .workspace-source-outline-toolbar>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .workspace-source-outline-toolbar>.git-icon-button{width:22px;height:22px;flex:none;}
-/* VS Code 88e44fa symbolIcons.ts：函数紫、类型/枚举橙、变量/字段蓝，名称保留正常前景。 */
+/* VS Code 88e44fa symbolIcons.ts: Function purple, type/enum orange, variable/field blue, name retains normal foreground. */
 .workspace-source-outline{--outline-method:#652d90;--outline-class:#d67e00;--outline-variable:#007acc;}
 .workspace-source-outline[data-theme=dark]{--outline-method:#b180d7;--outline-class:#ee9d28;--outline-variable:#75beff;}
 .workspace-source-symbol:is([data-symbol-kind=function],[data-symbol-kind=method])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-functionForeground,var(--outline-method));}
@@ -2281,7 +2279,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-source-symbol:is([data-symbol-kind=variable],[data-symbol-kind=field],[data-symbol-kind=interface],[data-symbol-kind=enum-member])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-variableForeground,var(--outline-variable));}
 
 /* workspace_preferences.css */
-/* 固定VS Code Codicons settings-gear；48px活动栏槽位与24px字形。 */
+/* Fixed VS Code Codicons settings-gear; 48px activity bar slot and 24px character shape. */
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger {
   appearance:none;box-sizing:border-box;display:flex;align-items:center;justify-content:center;
   flex:none;width:48px;height:48px;margin:0;padding:0;border:0;border-radius:0;
@@ -2290,7 +2288,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger svg {width:24px;height:24px;flex:none;}
 
 /* workspace_preview_resize.css */
-/* VS Code 1.137.0 sash.css：4px 边界，正交角落为两倍大小。 */
+/* VS Code 1.137.0 sash.css: 4px boundary, orthogonal corners are twice as large. */
 .workspace-preview-sash{position:absolute;z-index:35;touch-action:none;background:transparent}
 .workspace-preview-sash[data-edge=north]{top:0;left:0;right:0;height:4px;cursor:ns-resize}
 .workspace-preview-sash[data-edge=east]{top:0;bottom:0;right:0;width:4px;cursor:ew-resize}
@@ -2299,7 +2297,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-search-preview-section{position:relative;max-width:100%}
 
 /* workspace_preview_scale.css */
-/* 沿用搜索预览既有尺寸；三种预览入口共用比例控制，不改变窗口缩放。 */
+/* Continue using the existing size of the search preview; three preview entries share the same ratio control, without changing the window zoom. */
 .workspace-preview-scale-controls{display:flex;align-items:center;gap:0;flex:0 1 auto;min-width:0;margin-left:auto}
 .workspace-preview-scale-controls>.git-icon-button{display:inline-flex;align-items:center;flex:none;width:var(--linux-note-shell-action-size,22px);min-width:22px;height:var(--linux-note-shell-action-size,22px);justify-content:center;padding:3px;border:0;background:transparent;color:inherit}
 .workspace-preview-scale-controls>.workspace-preview-scale-slider{box-sizing:border-box;flex:0 1 80px;width:80px;min-width:48px;max-width:80px;height:22px;margin:0;padding:0!important;border:0!important;box-shadow:none!important;background:transparent;accent-color:#0078d4}
@@ -2391,8 +2389,8 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-ssh-sidebar>.workspace-ssh-toolbar button{display:flex;align-items:center;justify-content:center;width:24px;height:24px;min-height:24px;padding:4px;border:0;background:transparent}
 
 /* workspace_scrollbars.css */
-/* VS Code 645f29c：Modern UI 8px滑块、small 4px圆角、Light/Dark 2026三态颜色。
-   仅统一滚动条绘制；overflow、滚动位置和输入始终由原容器拥有。 */
+/* VS Code 645f29c: Modern UI 8px slider, small 4px corner radius, Light/Dark 2026 three-state colors.
+   Only unify the drawing of scroll bars; overflow, scroll position, and input are always owned by the original container. */
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) {
   --workspace-scrollbar-size:8px;
   --workspace-scrollbar-radius:var(--vscode-cornerRadius-small,4px);
@@ -2405,7 +2403,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
   --workspace-scrollbar-hover:var(--vscode-scrollbarSlider-hoverBackground,#a8a9aa90);
   --workspace-scrollbar-active:var(--vscode-scrollbarSlider-activeBackground,#a8a9aa9c);
 }
-/* 标准颜色非auto会跳过WebKit滑块绘制；不覆盖scrollbar-width:none隐藏契约。 */
+/* Standard colors that are not auto skip the WebKit slider drawing; do not override the scrollbar-width:none hidden contract. */
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]),html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) * { scrollbar-color:auto; }
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar {
   width:var(--workspace-scrollbar-size);height:var(--workspace-scrollbar-size);background:transparent;
@@ -2418,7 +2416,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 }
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { background:var(--workspace-scrollbar-hover); }
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { background:var(--workspace-scrollbar-active); }
-/* 注册在容器上的数值可动画，伪元素显式继承；不改变容器自身透明度。 */
+/* Numerical values registered on the container can be animated, pseudo-elements inherit explicitly; do not change the container's own transparency. */
 @property --workspace-scrollbar-opacity { syntax:"<number>";inherits:false;initial-value:0; }
 html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :where(:not(.monaco-editor *,.monaco-scrollable-element *,.xterm *,.CodeMirror *,.CodeMirror,#write,#write *,[data-workspace-scrollbar-visibility="native"],[data-workspace-scrollbar-visibility="native"] *))::-webkit-scrollbar-thumb {
   --workspace-scrollbar-opacity:inherit;
@@ -2427,7 +2425,7 @@ html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="
 }
 html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:hover { --workspace-scrollbar-paint:var(--workspace-scrollbar-hover); }
 html[data-workspace-scrollbars="auto"]:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) ::-webkit-scrollbar-thumb:active { --workspace-scrollbar-paint:var(--workspace-scrollbar-active); }
-/* Monaco与xterm拥有颜色/拖动/显隐；这里仅适配真实DOM形状。 */
+/* Monaco and xterm have color/drag/visibility; here only adapt the real DOM shape. */
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) :is(.monaco-scrollable-element,.xterm-scrollable-element) > .scrollbar > .slider,
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .monaco-editor .minimap-slider .minimap-slider-horizontal,
 html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-enhancements="ready"]) .linux-note-reading-minimap-viewport { border-radius:var(--workspace-scrollbar-radius); }
@@ -2436,7 +2434,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 }
 
 /* workspace_search.css */
-﻿/* 原生文件搜索与大纲过滤共用此容器；自定义搜索卸载后选择器失效，原生显示规则自动恢复。 */
+﻿/* Native file search and outline filtering share this container; after custom search is uninstalled, the selector becomes invalid, and the native display rules automatically recover. */
 #sidebar-content:has(> .linux-note-workspace-search) > #file-library-search { display:none!important; }
 .linux-note-workspace-search { position:absolute; inset:0; display:flex; flex-direction:column; min-height:0; min-width:0; overflow:hidden; color:var(--text-color,#333); background:var(--side-bar-bg-color,#f8f8f8); font:13px/1.5 system-ui,sans-serif; }
 .workspace-search-heading { box-sizing:border-box; position:relative; display:flex; align-items:center; gap:2px; height:35px; padding:0 var(--linux-note-shell-inset,10px); flex:none; }
@@ -2448,7 +2446,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-search-input-row>.workspace-search-replace-toggle { margin-left:-6px; width:18px; min-width:18px; height:26px; }
 .workspace-search-query-box { box-sizing:border-box; display:flex; align-items:flex-start; flex:1; min-width:0; min-height:26px; padding:1px; border:1px solid var(--search-select-bg-color,#8886); border-radius:2px; background:var(--bg-color,#fff); }
 .workspace-search-query-box:focus-within { border-color:#007fd4; outline:0; box-shadow:none; }
-/* 只让外层输入框画一条焦点边框，隔离 Typora 主题给 input/textarea 的橙色轮廓和阴影。 */
+/* Only allow the outer input box to draw one focus border, isolate Typora theme for input/textarea's orange outline and shadow. */
 .linux-note-workspace-search .workspace-search-query-box input,
 .linux-note-workspace-search .workspace-search-query-box textarea { box-sizing:border-box; flex:1; width:100%; min-width:0; height:22px; resize:none; border:0!important; outline:0!important; box-shadow:none!important; padding:1px 4px!important; margin:0!important; background:transparent!important; color:inherit; font:inherit; line-height:20px; border-radius:0!important; }
 .linux-note-workspace-search .workspace-search-query-box textarea { max-height:100px; overflow-y:auto; }
@@ -2528,7 +2526,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 .workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
 .workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}
 
-/* VS Code modalEditorPart.ts：1400×900 上限、16px 最大化边距、33px 标题栏。 */
+/* VS Code modalEditorPart.ts: Upper limit of 1400×900, maximum margin of 16px, and title bar of 33px. */
 .git-graph-dialog-shade.workspace-settings-modal{background:rgba(0,0,0,.45);padding:16px;box-sizing:border-box}
 .workspace-settings-modal>.git-graph-dialog{width:min(1400px,80vw);height:min(900px,80vh);max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);min-width:min(400px,calc(100vw - 32px));min-height:min(300px,calc(100vh - 32px));background:var(--bg-color,#fff)}
 .workspace-settings-modal.is-maximized>.git-graph-dialog{width:calc(100vw - 32px);height:calc(100vh - 32px)}
@@ -2550,7 +2548,7 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
 #uni-preference-panel[data-workspace-settings-surface]>webview{width:100%;height:100%}
 
 /* workspace_sidebar_sash.css */
-/* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
+/* The separator line remains permanently between the active bar and the document content, allowing it to be dragged back to the right from the collapsed state; the active bar itself does not participate in the collapse. */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
   display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
   top:var(--typ-workspace-top,0px);bottom:0;
@@ -2564,12 +2562,11 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .linux-note-sidebar-dragging :is(#typora-sidebar,#top-titlebar,#typora-sidebar-resizer,content,footer.ty-footer,.typ-workspace-root) { transition:none!important; }
 .linux-note-sidebar-dragging #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] { background:#0078d4; }
 
-/* 功能侧栏在预览上方结束，分隔条同步限定到所属区域。 */
+/* The functional side bar ends above the preview, and the separator line synchronizes to the corresponding area. */
 body.has-workspace-link-preview #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important}
 
 /* workspace_tab_controls.css */
-/* VS Code 1.137.0 / 645f29c：modernUI/tabs.css、theme.ts、baseSizes.ts。
-   32px连续命中区包住24px圆角背景；动作覆盖，不参与标题测量。 */
+/* VS Code 1.137.0 / 645f29c: modernUI/tabs.css, theme.ts, and baseSizes.ts. A continuous 32px hit area surrounds a rounded 24px background; actions overlay the title without affecting its measurement. */
 :root {
   --workspace-tab-height:32px;
   --workspace-tab-strip-bg:var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-editor-background,#fff));
@@ -2634,7 +2631,7 @@ body.has-workspace-link-preview #typora-sidebar-resizer[data-workspace-sidebar-s
 .workspace-tab-strip:has(.typ-tab[data-id^="typ://core.empty/"]):not(:has(.typ-tab:not([data-id^="typ://core.empty/"]))) {display:none;}
 
 /* workspace_titlebar.css */
-/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七类菜单并补充终端入口。 */
+/* Size reference VS Code 1.136.2 titlebarPart.css/menu.ts, retain Typora seven types of menu and supplement terminal entry. */
 body.typora-node.unibody-window { --typ-workspace-top:35px; }
 body.typora-node.unibody-window #top-titlebar { height:35px;left:0!important;right:0;top:0;transition:none!important; }
 body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #title-text { visibility:hidden; }
@@ -2642,7 +2639,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-left { display:flex;align-items:center;flex:2 1 20%;min-width:64px;height:100%;overflow:hidden; }
 .workspace-titlebar-center { display:flex;align-items:center;justify-content:center;flex:0 1 60%;max-width:fit-content;min-width:90px;margin:0 10px;height:100%; }
 .workspace-titlebar-right { display:flex;justify-content:flex-end;flex:2 0 20%;min-width:138px;height:100%; }
-/* 原 64px Typora 位图含透明边距，24px 图像框让标识可辨；含 margin 的占位仍为 32px。 */
+/* Original 64px Typora bitmaps contain transparent margins, 24px image frame makes the identifier distinguishable; the placeholder with margin is still 32px. */
 .workspace-titlebar-logo { width:24px;height:24px;margin:0 4px;padding:0;border:0;flex:none;object-fit:contain; }
 .workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
 .workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
@@ -2654,11 +2651,11 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-logo { -webkit-app-region:no-drag; }
 .workspace-titlebar-center>.workspace-titlebar-history { display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:3px; }
 .workspace-titlebar-history:disabled { opacity:.4; }
-/* 搜索入口独立于普通工具栏底色；保留公共角色、焦点与既有形状（R029）。 */
+/* Search entry is independent of the ordinary toolbar background; retain common roles, focus and existing shapes (R029). */
 .workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--tc-title-fg);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
 .workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
-/* 原生顶栏为所有后代铺背景；搜索内容不能遮住边框或继承正文前景。 */
+/* Native top bar is for all descendants to lay the background; search content cannot block the border or inherit the document foreground. */
 #top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search { box-sizing:border-box;line-height:normal;background:transparent;color:var(--tc-title-fg); }
 #top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search :is(span,svg,path) { background:transparent;color:inherit; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }
@@ -2682,11 +2679,11 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
 .workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }
 
-/* R033：临时浮层打开时，顶栏空白交给共享外点退出；手势结束后恢复拖窗。 */
+/* R033: When the temporary floating layer is opened, the top bar is left blank to be shared by external points to exit; after the gesture is completed, the drag window is restored. */
 :root[data-workspace-dismissal-active] #top-titlebar[data-workspace-titlebar=ready] { -webkit-app-region:no-drag; }
 
 /* workspace_widgets.css */
-/* 共享模态外壳：标题关闭、滚动正文及右对齐操作区由同一所有者管理。 */
+/* Shared modal shell: the title close, scrollable document content, and right-aligned operation area are managed by the same owner. */
 .git-graph-dialog-shade { position: fixed; inset: 0; z-index: 110000; background: #0005; display: flex; align-items: center; justify-content: center; padding: 24px; }
 .git-graph-dialog { color: var(--text-color, #24292f); background: var(--bg-color, #fff); font-family: var(--linux-note-ui-font-family, "Segoe WPC", "Segoe UI", sans-serif); font-size: var(--linux-note-ui-font-size, 13px); line-height: 1.5; border: 1px solid #8885; border-radius: 7px; box-shadow: 0 8px 32px #0004; }
 .git-graph-dialog { box-sizing: border-box; max-width: 100%; display: flex; flex-direction: column; width: min(760px, 95vw); max-height: 90vh; overflow: hidden; }
@@ -2704,15 +2701,15 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .git-graph-dialog .workspace-dialog-close > svg { display: block; flex: none; width: 16px; height: 16px; }
 .git-graph-dialog-footer > button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
 
-/* 整张菜单共用列；标记独立定位，不因逐行能力改变文字和快捷键起点。 */
+/* The entire menu shares a column; marked independent positioning, not changing the text and shortcut start points due to row-by-row capability. */
 .git-graph-menu[role=menu]{box-sizing:border-box;width:max-content;min-width:0;max-width:calc(100vw - 8px);overflow-x:hidden;overflow-y:auto}
 .git-graph-menu[role=menu]>button{position:relative;display:flex;white-space:normal;padding-left:var(--workspace-menu-leading-width,2em)}
 .git-graph-menu[role=menu]>button>.git-menu-check{position:absolute;left:0;top:0;width:2em;height:100%}
 .git-graph-menu[role=menu] .git-menu-label{flex:1 1 auto;min-width:0;overflow-wrap:anywhere;white-space:normal}
 .git-graph-menu[role=menu] .git-menu-shortcut{white-space:nowrap}
-/* 菜单分隔线由共享控件拥有，隔离正文主题的全局 hr 高度和强制边距。 */
+/* The menu separator is owned by a shared control, isolating the global hr height and enforced margin of the document content. */
 .git-graph-menu hr{height:1px;min-height:0;padding:0;border:0;border-top:1px solid #8884;box-sizing:border-box;margin:5px 2px!important}
-/* 历史compact类仅标识调用方，几何与普通菜单一致。 */
+/* The historical compact type only identifies the caller, geometry and regular menus are consistent. */
 .git-graph-menu[role=menu]{padding:4px 0;font:13px/24px var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI",sans-serif)}
 .git-graph-menu[role=menu]>button{margin:0 4px;width:calc(100% - 8px);min-height:24px;height:auto;padding:0 2em;gap:0;line-height:24px}
 .git-graph-menu[role=menu] .git-menu-shortcut{font:inherit;opacity:.7;text-align:right}
@@ -2724,7 +2721,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .git-graph-menu[role=menu] .git-menu-arrow:empty{display:none}
 
 /* workspace_zoom_status.css */
-/* 645f29c window.css/actionbar.css：16px图形、3px操作内距、右组10px间距。 */
+/* 645f29c window.css/actionbar.css: 16px graphics, 3px operation inner margin, right group 10px spacing. */
 .workspace-zoom-status{display:flex;flex:none;align-items:center;gap:0}
 .workspace-zoom-status>button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:0;padding:0 5px;min-width:26px;background:transparent;color:inherit;cursor:pointer}
 .workspace-zoom-status svg,.workspace-zoom-controls svg{width:16px;height:16px;flex:none;fill:currentColor}
@@ -2734,8 +2731,8 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-zoom-controls .workspace-zoom-level{display:inline-block;min-width:18px;margin:0;padding:0;text-align:center;line-height:22px;font:inherit;color:inherit}
 .workspace-zoom-controls-right{display:flex;align-items:center;margin-left:10px}
 .workspace-zoom-controls [data-zoom-action="reset"]{padding-inline:4px}
-/* 只在自有控制浮层打开时避开宿主顶部提示，保留其节点、更新与自动关闭。 */
+/* Avoid host top prompts only when the own control floating layer is open, retain its nodes, updates, and automatic closing. */
 body[data-workspace-zoom-controls-open] #zoom-hint{visibility:hidden!important}
-/* 固定Light/Dark 2026状态栏prominent语义，hover仍交给公共交互层。 */
+/* Fix the semantic of Light/Dark 2026 status bar prominent, hover is still handed over to the public interaction layer. */
 .workspace-zoom-status>button{background:var(--vscode-statusBarItem-prominentBackground,#0069ccdd);color:var(--vscode-statusBarItem-prominentForeground,#fff);--workspace-interaction-hover:var(--vscode-statusBarItem-prominentHoverBackground,#0069cc);--workspace-interaction-foreground:var(--vscode-statusBarItem-prominentHoverForeground,#fff)}
 :root[data-workspace-file-icon-theme="dark"] .workspace-zoom-status>button{background:var(--vscode-statusBarItem-prominentBackground,#3994bc);--workspace-interaction-hover:var(--vscode-statusBarItem-prominentHoverBackground,#3994bc)}

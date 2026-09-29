@@ -1,6 +1,8 @@
 ﻿[CmdletBinding()]
 param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$include_theme, [string]$user_data='', [switch]$allow_elevation, [switch]$elevation_attempted, [switch]$managed_backup)
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'lib/typora_locale.ps1')
+
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $tools_root = Split-Path -Parent $PSScriptRoot
 . (Join-Path $tools_root 'scripts/lib/typora_environment.ps1')
@@ -15,15 +17,15 @@ $install_mutex=$null
 $owns_mutex=$false
 $rollback_state = 'not_required'
 try {
-start_typora_install_step $install_log 1 '检查安装环境'
+start_typora_install_step $install_log 1 (get_typora_text -key 'checking_the_installation_environment')
 $typora_root = resolve_typora_windows_root -typora_root $typora_root -non_interactive:$non_interactive
-# 手工安装与后台更新共享互斥，避免备份和回滚交错；进程退出自动释放。
+# Manual installation and background update share mutual exclusion to avoid backup and rollback overlap; process exit automatically releases.
 $install_mutex=new_typora_install_mutex $user_data
 try {$owns_mutex=$install_mutex.WaitOne(0)} catch [Threading.AbandonedMutexException] {$owns_mutex=$true}
 if(!$owns_mutex){throw 'Another Typora Code installation is running. Retry after it finishes.'}
-write_typora_install_log $install_log INFO ('安装位置：' + $typora_root)
-write_typora_install_log $install_log INFO ('用户数据：' + $user_data)
-start_typora_install_step $install_log 2 '校验安装包'
+write_typora_install_log $install_log INFO ((get_typora_text -key 'installation_directory') + $typora_root)
+write_typora_install_log $install_log INFO ((get_typora_text -key 'user_data') + $user_data)
+start_typora_install_step $install_log 2 (get_typora_text -key 'validating_the_package')
 $source = Join-Path $tools_root 'enhancements/dist'
 $assets = @(assert_typora_release $tools_root)
 assert_typora_migration_available $user_data
@@ -44,8 +46,8 @@ if (-not $backup_root) { $managed_backup = $true; $backup_root = Join-Path $user
 $backup_root = [IO.Path]::GetFullPath($backup_root)
 $manifest_path = resolve_typora_asset_path $backup_root 'manifest.json'
 if (Test-Path -LiteralPath $backup_root) { throw 'Use a new, empty backup destination for each transaction.' }
-write_typora_install_log $install_log INFO ('已校验 {0} 项工作台资源、{1} 项终端资源。' -f $assets.Count, $terminal_assets.Count)
-start_typora_install_step $install_log 3 '准备终端运行时'
+write_typora_install_log $install_log INFO ((get_typora_text -key 'validated_workbench_assets_and_terminal_assets') -f $assets.Count, $terminal_assets.Count)
+start_typora_install_step $install_log 3 (get_typora_text -key 'preparing_the_terminal_runtime')
 $node_stage = prepare_typora_node $tools_root -report { param($message) write_typora_install_log $install_log INFO $message }
 $profile_node = Join-Path $node_stage.root ($node_stage.assets | Where-Object { $_.relative_path.EndsWith('/node.exe') } | Select-Object -First 1).relative_path
 $profile_path = resolve_typora_asset_path $user_data 'profile.data'
@@ -67,7 +69,7 @@ foreach ($group in $groups) {
         if (Test-Path -LiteralPath $target -PathType Container) { throw "Managed file target is a directory: $target" }
     }
 }
-# 下载及摘要校验仍在当前账户完成；备份和所有托管写入之前决定是否需要系统授权。
+# Download and digest verification are still completed under the current account; decide whether system authorization is needed before backup and all hosting writes.
 $write_targets = @($manifest_path)
 if ($window_changed) { $write_targets += $window }
 if ($null -ne $migrated_settings) { $write_targets += Join-Path $user_data 'typora_code/settings/workspace.json' }
@@ -75,7 +77,7 @@ foreach ($group in $groups) {
     foreach ($asset in $group.assets) {
         $target = resolve_typora_asset_path $group.root $asset.relative_path
         $exists = Test-Path -LiteralPath $target -PathType Leaf
-        # 与install_typora_workspace相同的摘要规则；已加载且不变的Node/native模块不需要写打开。
+        # Same digest rules as install_typora_workspace; loaded and unchanged Node/native modules do not need to be opened for writing.
         if ($group.name -in @('product','terminal') -and $null -ne $asset.PSObject.Properties['sha256']) {
             if ($exists -and (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash -eq $asset.sha256) { continue }
         } elseif ($group.name -in @('product','migration') -and -not $exists) { continue }
@@ -85,23 +87,23 @@ foreach ($group in $groups) {
 $denied_paths = @(get_typora_write_denials $write_targets)
 $permission_action = get_typora_permission_action $denied_paths (test_typora_administrator) ([bool]$elevation_attempted) (-not $non_interactive) ([bool]$allow_elevation)
 if ($permission_action -ne 'continue') {
-    write_typora_install_log $install_log WARN ('当前账户不能写入以下安装目标：' + ($denied_paths -join '; '))
-    if ($window_changed) { write_typora_install_log $install_log INFO '工作台需要修改Typora安装目录的resources/window.html；受保护的安装目录需要Windows管理员授权。移动备份不能免除该权限。' }
-    else { write_typora_install_log $install_log INFO '宿主入口未变化，本次无须写入安装目录；受限的是上述配置/资源或备份位置，请核对所选用户目录。下载本身不要求管理员权限。' }
-    write_typora_install_log $install_log INFO ('仍使用原用户目录：' + $user_data + '；备份：' + $backup_root)
-    if ($permission_action -eq 'blocked') { throw '管理员或已授权进程仍无写权限；请检查上述路径的ACL和安全软件策略。安装器不会重复请求授权或修改目录权限。' }
-    if ($permission_action -eq 'unattended') { throw '无人值守安装未授权显示UAC。请用普通交互入口重试，或显式传入-allow_elevation以允许Windows系统授权；安装目标未修改。' }
-    write_typora_install_log $install_log INFO '即将请求Windows管理员授权；取消则停止安装，保留原版本。授权子进程沿用同一安装事务，完成后自动返回。'
+    write_typora_install_log $install_log WARN ((get_typora_text -key 'the_current_account_cannot_write_to_these_installation_targets') + ($denied_paths -join '; '))
+    if ($window_changed) { write_typora_install_log $install_log INFO (get_typora_text -key 'the_workbench_must_update_resources_window_html_in_the_typora_in') }
+    else { write_typora_install_log $install_log INFO (get_typora_text -key 'the_host_entry_is_unchanged_so_this_update_does_not_need_to_writ') }
+    write_typora_install_log $install_log INFO ((get_typora_text -key 'keeping_the_original_user_directory') + $user_data + (get_typora_text -key 'backup') + $backup_root)
+    if ($permission_action -eq 'blocked') { throw (get_typora_text -key 'the_administrator_or_already_authorized_process_still_cannot_wri') }
+    if ($permission_action -eq 'unattended') { throw (get_typora_text -key 'unattended_installation_has_not_been_authorized_to_display_uac_r') }
+    write_typora_install_log $install_log INFO (get_typora_text -key 'windows_administrator_authorization_will_be_requested_canceling')
     $install_mutex.ReleaseMutex(); $owns_mutex = $false
     $install_mutex.Dispose(); $install_mutex = $null
     $cache_root = Split-Path -Parent $node_stage.root
     $rollback_state = 'delegated'
     invoke_typora_elevated_install ([pscustomobject]@{installer=(Join-Path $tools_root 'scripts/install_workspace_windows.ps1');typora_root=$typora_root;user_data=$user_data;backup_root=$backup_root;cache_root=$cache_root;include_theme=[bool]$include_theme;managed_backup=[bool]$managed_backup})
-    write_typora_install_log $install_log SUCCESS ('已授权安装完成。Backup: ' + $backup_root)
-    write_typora_install_log $install_log INFO '保存文档后正常重启Typora加载新版；安装子进程日志位于原用户数据目录的logs/installation。'
+    write_typora_install_log $install_log SUCCESS ((get_typora_text -key 'authorized_installation_completed_backup') + $backup_root)
+    write_typora_install_log $install_log INFO (get_typora_text -key 'save_your_documents_and_restart_typora_normally_to_load_the_new')
     return
 }
-start_typora_install_step $install_log 4 '备份现有配置'
+start_typora_install_step $install_log 4 (get_typora_text -key 'backing_up_existing_configuration')
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 New-Item -ItemType Directory -Path $backup_root | Out-Null
 Copy-Item -LiteralPath $window -Destination (Join-Path $backup_root 'window.html')
@@ -115,7 +117,7 @@ foreach ($group in $groups) {
 $settings_target = Join-Path $user_data 'typora_code/settings/workspace.json'
 $created_settings = $false
 try {
-    start_typora_install_step $install_log 5 '安装工作台'
+    start_typora_install_step $install_log 5 (get_typora_text -key 'installing_the_workbench')
     install_typora_workspace $node_stage.root $groups[2].root $node_stage.assets
     install_typora_workspace $terminal_source $groups[2].root $terminal_assets
     install_typora_workspace $source $groups[0].root $assets
@@ -135,11 +137,11 @@ try {
     }
     if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; foreach ($name in $theme_names) { Copy-Item -LiteralPath (Join-Path $tools_root $name) -Destination (resolve_typora_asset_path $groups[4].root $name) -Force } }
     if ($window_changed) {
-        # 写入开始即登记，部分写入失败也必须走原备份回滚。
+        # Registration begins upon writing; partial writing failure also must follow the original backup rollback.
         $window_written = $true
         [IO.File]::WriteAllText($window, $window_source, [Text.UTF8Encoding]::new($false))
     }
-    start_typora_install_step $install_log 6 '验证安装结果'
+    start_typora_install_step $install_log 6 (get_typora_text -key 'verifying_the_installation')
     assert_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) $head
     assert_typora_workspace_assets $groups[0].root $assets
     $profile_result = invoke_typora_native_profile $profile_node $tools_root install $profile_path $profile_before.sha256
@@ -151,34 +153,34 @@ try {
 } catch {
     $failure = $_
     $rollback_state = 'running'
-    write_typora_install_log $install_log WARN ('安装未完成，正在恢复安装前状态。原因：' + $failure.Exception.Message)
+    write_typora_install_log $install_log WARN ((get_typora_text -key 'installation_did_not_complete_restoring_the_previous_state_reaso') + $failure.Exception.Message)
     try {
     foreach ($group in $groups) { if ($group.name -ne 'native_profile') { restore_typora_workspace $group.root (Join-Path $backup_root $group.name) $group.records '' } }
     if ($profile_changed) { $current_profile = invoke_typora_native_profile $profile_node $tools_root snapshot $profile_path; $null = invoke_typora_native_profile $profile_node $tools_root restore $profile_path $current_profile.sha256 (Join-Path $backup_root 'native_profile/profile.data') }
     if ($created_settings -and (Test-Path -LiteralPath $settings_target -PathType Leaf)) { Move-Item -LiteralPath $settings_target -Destination ($settings_target + '.disabled.' + [guid]::NewGuid().ToString('N')) }
     if ($window_written) { Copy-Item -LiteralPath (Join-Path $backup_root 'window.html') -Destination $window -Force }
     $rollback_state = 'completed'
-    write_typora_install_log $install_log OK '已回滚本次安装，备份已保留。'
+    write_typora_install_log $install_log OK (get_typora_text -key 'this_installation_was_rolled_back_the_backup_has_been_preserved')
     } catch {
         $rollback_state = 'failed'
-        write_typora_install_log $install_log ERROR ('自动回滚未完成：' + $_.Exception.Message)
-        write_typora_install_log $install_log INFO ('请保留备份和日志用于恢复。Backup: ' + $backup_root)
+        write_typora_install_log $install_log ERROR ((get_typora_text -key 'automatic_rollback_did_not_complete') + $_.Exception.Message)
+        write_typora_install_log $install_log INFO ((get_typora_text -key 'keep_the_backup_and_logs_for_recovery_backup') + $backup_root)
     }
     throw $failure
 }
 if ($managed_backup) {
     try { prune_typora_automatic_backups $backup_root $user_data $typora_root {param($message) write_typora_install_log $install_log INFO $message} }
-    catch { write_typora_install_log $install_log WARN ('升级备份回收未完成，安装结果保留：' + $_.Exception.Message) }
+    catch { write_typora_install_log $install_log WARN ((get_typora_text -key 'old_upgrade_backup_cleanup_did_not_complete_the_installation_res') + $_.Exception.Message) }
 }
 complete_typora_install_step $install_log
-write_typora_install_log $install_log SUCCESS ('安装完成，总用时 {0:N1} 秒。' -f $install_log.clock.Elapsed.TotalSeconds)
+write_typora_install_log $install_log SUCCESS ((get_typora_text -key 'installation_completed_in_seconds') -f $install_log.clock.Elapsed.TotalSeconds)
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
-write_typora_install_log $install_log INFO '保存文档后正常重启 Typora，即可加载本次安装。'
-if ($include_theme) { write_typora_install_log $install_log INFO '在“主题”菜单选择 VSCode2026_Light 或 VSCode2026_Dark；原 CppGithubConsoles_Light/Dark、Night 和已有偏好设置保留。' }
+write_typora_install_log $install_log INFO (get_typora_text -key 'save_your_documents_and_restart_typora_normally_to_load_this_ins')
+if ($include_theme) { write_typora_install_log $install_log INFO (get_typora_text -key 'select_vscode2026_light_or_vscode2026_dark_in_the_theme_menu_exi') }
 } catch {
-    write_typora_install_log $install_log ERROR ('{0}失败：{1}' -f $install_log.step, $_.Exception.Message)
-    if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO '安装尚未写入目标文件，无须回滚。' }
+    write_typora_install_log $install_log ERROR ((get_typora_text -key 'failed') -f $install_log.step, $_.Exception.Message)
+    if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO (get_typora_text -key 'installation_has_not_written_any_target_files_rollback_is_unnece') }
     if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
     throw
 } finally {

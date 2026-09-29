@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {build_history_model,history_range_label,history_range_title} from './git_history_ranges';
 import {workspace_list_selection} from "./workspace_list_selection";
 import {bind_git_source_row,git_diff_source_key} from './git_diff_source';
@@ -25,7 +26,7 @@ import emoji_data from "../vendor/gemoji/emoji.json";
 import { build_git_graph, type graph_row, type git_ref } from "./git_graph_data";
 import { is_missing_repository, initialize_repository, read_repository, compare_files, commit_containment, pull_request_url, WORKTREE, INDEX, EMPTY,
   type repository_state, type graph_commit, type graph_change } from "./git_graph_repository";
-import { graph_defaults, settings_choices, settings_labels_for, settings_choice_label, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
+import { graph_defaults, settings_choice_labels_for,settings_choices, settings_labels_for, settings_choice_label, GRAPH_SETTINGS_KEY, load_graph_settings, validate_settings, load_reviews, save_reviews, type graph_settings } from "./git_graph_settings";
 import { graph_actions, plan_git_action, execute_git_action, type graph_action, type action_plan } from "./git_graph_actions";
 import { workspace_element as el, workspace_button as button, workspace_option as option, workspace_dialog, workspace_menu, inline_message, shortcut_matches } from "./workspace_widgets";
 import { is_composing_key, is_terminal_input } from "./workspace_keyboard";
@@ -128,16 +129,16 @@ export class git_graph_panel {
       if (this.settings.auto_load && !this.pending && this.state?.more && this.list.scrollTop + this.list.clientHeight >= this.list.scrollHeight - 60) { this.count += this.settings.page_count; void this.refresh(false); }
     });
     this.key_handler = event => this.keydown(event);
-    this.release_settings=register_workspace_settings({id:'git_'+(++settings_serial),title:'Git',scope:()=>`仓库：${this.root}`,defaults:graph_defaults,fields:Object.keys(graph_defaults).map(key=>({key,title:settings_labels_for()[key as keyof graph_settings],choices:settings_choices[key]})),read:()=>({...this.settings}),write:(key,value)=>this.apply_settings(validate_settings({...this.settings,[key]:value}),this.root)});
+    this.release_settings=register_workspace_settings({id:'git_'+(++settings_serial),title:'Git',scope:()=>workspace_text("git_graph_panel_repository", {value_0: String(this.root)}),defaults:graph_defaults,fields:Object.keys(graph_defaults).map(key=>({key,title:settings_labels_for()[key as keyof graph_settings],choices:settings_choices[key],choice_labels:settings_choice_labels_for()[key]})),read:()=>({...this.settings}),write:(key,value)=>this.apply_settings(validate_settings({...this.settings,[key]:value}),this.root)});
   }
   open(): void {
     if (this.disposed) return;
     this.active = true; window.addEventListener("keydown", this.key_handler, true);
-    // 标签切换只改变可见性；在途读取继续填充同一视图，已有详情和滚动状态保留。
+    // Tab switching only changes visibility; in-progress reads continue to populate the same view, with existing details and scroll state preserved.
     if (!this.pending && (!this.loaded || !this.settings.retain_context)) void this.refresh(false);
   }
   close(): void { this.column_binding?.cancel();this.active = false; window.removeEventListener("keydown", this.key_handler, true); }
-  /** 选择远端期间尚未执行网络命令，可以取消；已开始的写操作保持原有关闭保护。 */
+  /** During selection of a remote host, no network commands have been executed yet, allowing cancellation; ongoing write operations maintain the original close protection. */
   private cancel_remote_picker(): void {
     const picker = this.remote_picker; if (!picker) return;
     this.action_epoch++; this.remote_picker = undefined;
@@ -180,7 +181,7 @@ export class git_graph_panel {
   update_scm_actions():void{this.progress.configure(this.settings.show_progress);this.workbench.history.toolbar.update();this.workbench.repositories.update_disabled();this.workbench.update_actions();this.discard_confirmation.update_state();this.ref_picker.update_state();this.branch_picker.update_state();}
   subscribe_state(listener: () => void): () => void { this.state_listeners.add(listener); listener(); return () => this.state_listeners.delete(listener); }
   private publish_state(): void { for (const listener of this.state_listeners) listener(); }
-  /** 等待现有刷新任务，多个入口共享完成通知，不为每次点击建立轮询定时器。 */
+  /** Wait for existing refresh tasks, multiple entry points share completion notifications, and do not establish a polling timer for each click. */
   async when_refreshed(): Promise<void> {
     while (!this.disposed && this.pending && this.refresh_task) {
       const task = this.refresh_task; await task;
@@ -190,7 +191,7 @@ export class git_graph_panel {
   refresh(reset = true): Promise<void> {
     if (this.disposed) return Promise.resolve();
     const request = JSON.stringify([this.repository_epoch, this.root, this.settings, reset ? this.settings.initial_count : this.count, this.branches]);
-    // 同一目标的并发入口共享读取；筛选、配置或切库变化仍使旧请求失效。
+    // Concurrent entry points for the same target share reading; changes in filtering, configuration, or database switching still make old requests invalid.
     if (this.pending && this.refresh_task && this.refresh_request === request && this.refresh_runner === this.runner) return this.refresh_task;
     if (this.refresh_runner && this.refresh_runner !== this.runner) this.detail_refresh_needed = true;
     this.refresh_runner = this.runner;
@@ -203,7 +204,7 @@ export class git_graph_panel {
     if (this.disposed) return;
     this.refresh_started_at = Date.now();
     const epoch = ++this.epoch;
-    // 正常刷新不取消仍在读取的历史详情；替换在途查询时才使旧详情失效。
+    // Normal refresh does not cancel historical details still in reading; old details become invalid only when replacing in-progress queries.
     if (this.pending) { this.detail_epoch++; this.detail_refresh_needed = true; this.runner.cancel(); }
     this.pending = true;
     if (!this.state) { this.workbench.notice.textContent = ""; this.workbench.set_repository_state("loading"); }
@@ -212,7 +213,7 @@ export class git_graph_panel {
     this.refresh_button.disabled = true; this.more_button.disabled = true; this.container.dataset.state = "loading"; this.status.textContent = text("graph.loading_repository");this.update_scm_actions();
     const waiting=setInterval(()=>{
       if(epoch!==this.epoch||!this.pending||this.disposed)return;
-      const message='正在读取Git状态，已等待'+Math.floor((Date.now()-this.refresh_started_at)/1000)+'秒；大仓库可能需要更久。';
+      const message=workspace_text("git_status_waiting",{seconds:Math.floor((Date.now()-this.refresh_started_at)/1000)});
       this.status.textContent=message;this.workbench.notice.textContent=message;activity.phase(message);
     },1000);
     this.workbench.update_read_controls();
@@ -230,7 +231,7 @@ export class git_graph_panel {
           if (info && info.size < 100000) {
             const imported = validate_settings(JSON.parse(await this.host.fs.promises.readFile(config_path, "utf8")));
             if (epoch !== this.epoch) return;
-            // 仓库共享配置只影响显示；不从项目文件取得可执行程序，也不自动启用联网头像。
+            // Shared configuration for the repository only affects display; the executable is not obtained from project files, and online avatar is not automatically enabled.
             Object.assign(stored, imported, { git_path: stored.git_path, terminal_shell: stored.terminal_shell, fetch_avatars: stored.fetch_avatars });
           }
         }
@@ -277,20 +278,20 @@ export class git_graph_panel {
       this.container.dataset.state = "ready";this.workbench.set_git_missing(false);this.workbench.notice.textContent="";
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
       if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || build_history_model(state).items.some(item=>item.id===this.selected))) {
-        // 文件仍为M不代表内容未变；可变版本继续取内容，历史版本保留阅读位置。
+        // The file still being M does not mean the content has not changed; variable versions continue to take content, while historical versions retain reading positions.
         if (changed || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
       }
       else this.close_details();
       this.detail_refresh_needed = false;
     } catch (error) { if (epoch === this.epoch) {
-      if((error as any).code==='ABORT_ERR'&&this.state){this.container.dataset.state='ready';this.report('Git读取已取消，显示上次状态；请刷新获取最新结果。');return;}
+      if((error as any).code==='ABORT_ERR'&&this.state){this.container.dataset.state='ready';this.report(workspace_text("git_graph_panel_git_read_canceled_displaying_the_last_status_please_refresh"));return;}
       this.workbench.set_git_missing((error as any).code==='GIT_NOT_FOUND');
       this.state = undefined; this.loaded = false; this.close_details(); this.list.replaceChildren();
       this.workbench.clear_changes(); this.workbench.history.reset();
       const missing = is_missing_repository(error);
       this.workbench.set_repository_state(missing ? "empty" : "error");
       this.report(missing ? "" : error);
-      if (missing) this.status.textContent = "当前文件夹尚未初始化 Git 仓库。";
+      if (missing) this.status.textContent = workspace_text("git_graph_panel_the_current_folder_has_not_been_initialized_for_git_reposito");
       this.container.dataset.state = missing ? "empty" : "error";
     } }
     finally { clearInterval(waiting);if (epoch === this.epoch) { this.pending = false;this.workbench.update_read_controls(); this.last_refreshed_at = Date.now(); this.refresh_button.disabled = false; this.more_button.disabled = false; this.update_scm_actions(); if(this.workbench.show_repositories)this.workbench.repositories.refresh(); this.publish_state(); }activity.finish();if(this.read_progress===activity)this.read_progress=undefined; }
@@ -300,7 +301,7 @@ export class git_graph_panel {
   async install_git():Promise<void>{
     if(this.pending||this.writing||this.disposed)return;
     this.pending=true;this.installing_git=true;this.workbench.update_read_controls();
-    const activity=this.progress.begin('install_git','正在检查Git安装环境…');
+    const activity=this.progress.begin('install_git',workspace_text("git_graph_panel_checking_git_installation_environment"));
     try{const executable=await this.host.install_git(message=>{if(!this.disposed){this.report(message);activity.phase(message);}});
       if(this.disposed)return;
       this.settings.git_path=executable;this.persist_settings();this.runner.dispose();this.writer.dispose();this.runner=this.host.runner(this.settings);this.writer=this.host.runner(this.settings,true);
@@ -316,7 +317,7 @@ export class git_graph_panel {
     if (this.disposed || this.writing || this.pending || this.state) return;
     const writer = this.writer, root = this.context_directory;
     let release: () => void; try { release = this.acquire_operation(root); } catch (error) { this.report(error); return; }
-    this.writing = true; const activity = this.progress.begin("init", "正在初始化 Git 仓库…"); this.update_scm_actions();
+    this.writing = true; const activity = this.progress.begin("init", workspace_text("git_graph_panel_initializing_git_repository")); this.update_scm_actions();
     try { await initialize_repository(writer.run, root); }
     catch (error) { this.report(error); return; }
     finally { release(); this.writing = false; activity.finish(); this.update_scm_actions(); }
@@ -348,7 +349,7 @@ export class git_graph_panel {
       path.setAttribute("d", this.settings.graph_style === "straight" ? `M${x(edge.from)},${top} L${x(edge.to)},${bottom}` : `M${x(edge.from)},${top} C${x(edge.from)},${top + half_height / 2} ${x(edge.to)},${bottom - half_height / 2} ${x(edge.to)},${bottom}`);
       path.setAttribute("fill", "none"); path.setAttribute("stroke", git_graph_panel.prototype.graph_color.call(this,edge.color)); path.setAttribute("stroke-width", "2"); svg.append(path);
     }
-    // VS Code scmHistory.ts：实际半径保持稳定，由公共状态对应的描边显露放大效果。
+    // VS Code scmHistory.ts: The actual radius remains stable, and the stroke is revealed with magnification effects through the public state.
     svg.classList.add('git-history-node');svg.dataset.nodeKind=node_kind;
     const circle=(radius:number,stroke_width:number,fill?:string)=>{
       const dot=document.createElementNS(ns,'circle');dot.setAttribute('cx',String(x(row.lane)));dot.setAttribute('cy',String(half_height));
@@ -712,12 +713,12 @@ export class git_graph_panel {
     const submitted_message=this.workbench.message.value;
     try {
       const message=await this.prepare_and_execute_action(writer=>plan_git_action(writer.run, id, {root: this.root, target: paths[0] || "", paths: paths.length ? paths : undefined, hash: this.state!.head, operation: this.state!.operation, sign_commits: this.settings.sign_commits, sign_tags: this.settings.sign_tags, reference_space: this.settings.reference_space}, values),this.writer,id);
-      // 刷新期间可以继续填写下次提交，不能用上一笔提交的收尾清掉新输入。
+      // During refresh, you can continue to enter data for the next submission, but you cannot clear new input using the previous submission's end.
       if (id === "commit"&&this.workbench.message.value===submitted_message) { this.workbench.message.value = ""; localStorage.removeItem(this.workbench.storage_key("message")); }
       this.report(message);
     } catch (error) { this.report(error); }
   }
-  /** 所有写入口共用业务锁、真实活动、失败与后续刷新生命周期。 */
+  /** All write ports share the business lock, real activity, failure, and subsequent refresh lifecycle. */
   async run_operation<T>(id:string,operation:(writer:typeof this.writer)=>Promise<T>,expected_writer=this.writer):Promise<T>{
     if (this.disposed || !this.state || this.pending || this.writing || this.writer !== expected_writer) throw new Error(text("graph.wait_for_repository"));
     const root = this.root, writer = expected_writer, action_epoch = ++this.action_epoch;
@@ -726,7 +727,7 @@ export class git_graph_panel {
     try {
       return await operation(writer);
     } finally {
-      // 切库或关闭取消了选择后，旧准备任务不再释放新事务，也不刷新其他仓库。
+      // After switching databases or closing, the old preparation tasks are no longer released for new transactions, and they do not refresh other warehouses.
       try{if (action_epoch === this.action_epoch) {
         this.writing = false;activity.phase(text("graph.loading_repository"));
         if (!this.disposed && this.root === root && this.writer === writer) await this.refresh(false);
@@ -825,7 +826,7 @@ export class git_graph_panel {
         }
         const plan=await plan_git_action(runner.run,id,{root,target,paths,hash:hash===WORKTREE?state.head:hash,operation:state.operation,sign_commits:this.settings.sign_commits,sign_tags:this.settings.sign_tags,reference_space:this.settings.reference_space},values);
         if(!available()||this.writer!==writer)return;
-        // 参数与破坏性确认已完成；执行阶段只占用本仓库，立即释放全局输入与焦点。
+        // Parameters and destructive confirmation have been completed; the execution phase only occupies this warehouse and immediately releases global input and focus.
         completed=true;dialog.close();
         const output=await this.execute_prepared_action(plan,writer);
         if(!this.disposed&&this.root===root&&this.writer===writer)this.report(output||text("graph.action_complete"));
@@ -871,8 +872,8 @@ export class git_graph_panel {
     const valid=()=>!this.disposed&&!scan.signal.aborted&&epoch===this.repository_epoch&&this.resources.current();
     try{
       const target=await this.resources.choose(this.root);if(!target||!valid())return;
-      this.report(discover?'正在查找所选目录中的Git仓库…':'正在检查Git仓库…');
-      // 主动“查找子文件夹”至少检查直接子目录；自动发现深度为0不能让该动作成为空操作。
+      this.report(discover?workspace_text("git_graph_panel_looking_for_git_repository_in_the_selected_directory"):workspace_text("git_graph_panel_checking_git_repository"));
+      // Active 'find subfolders' at least checks direct subdirectories; automatic discovery of depth 0 cannot make this action a no-op.
       const result=discover?await this.host.discover(target,Math.max(1,this.settings.search_depth),scan.signal):{roots:[(await this.runner.run(target,['rev-parse','--show-toplevel'])).trim()],errors:[]};
       if(!valid())return;this.save_repos([...this.known_repos(),...result.roots]);this.workbench.repositories.refresh();
       this.report(text('graph.discovered_repositories',{count:result.roots.length})+(result.errors.length?'；'+result.errors.map(value=>value.replaceAll(target,this.resources.label(target))).join('；'):''));
@@ -969,7 +970,7 @@ export class git_graph_panel {
   }
 }
 
-// 常用 gitmoji 短代码；用户可在设置中覆盖或扩充映射。
+// Common gitmoji short codes; users can override or expand mappings in settings.
 const builtin_emoji: Record<string, string> = { ":art:": "🎨", ":zap:": "⚡️", ":fire:": "🔥", ":bug:": "🐛", ":ambulance:": "🚑️", ":sparkles:": "✨", ":memo:": "📝", ":rocket:": "🚀", ":lipstick:": "💄", ":tada:": "🎉", ":white_check_mark:": "✅", ":lock:": "🔒️", ":closed_lock_with_key:": "🔐", ":bookmark:": "🔖", ":rotating_light:": "🚨", ":construction:": "🚧", ":green_heart:": "💚", ":arrow_down:": "⬇️", ":arrow_up:": "⬆️", ":pushpin:": "📌", ":construction_worker:": "👷", ":chart_with_upwards_trend:": "📈", ":recycle:": "♻️", ":heavy_plus_sign:": "➕", ":heavy_minus_sign:": "➖", ":wrench:": "🔧", ":hammer:": "🔨", ":globe_with_meridians:": "🌐", ":pencil2:": "✏️", ":poop:": "💩", ":rewind:": "⏪️", ":twisted_rightwards_arrows:": "🔀", ":package:": "📦️", ":alien:": "👽️", ":truck:": "🚚", ":page_facing_up:": "📄", ":boom:": "💥", ":bento:": "🍱", ":wheelchair:": "♿️", ":bulb:": "💡", ":beers:": "🍻", ":speech_balloon:": "💬", ":card_file_box:": "🗃️", ":loud_sound:": "🔊", ":mute:": "🔇", ":busts_in_silhouette:": "👥", ":children_crossing:": "🚸", ":building_construction:": "🏗️", ":iphone:": "📱", ":clown_face:": "🤡", ":egg:": "🥚", ":see_no_evil:": "🙈", ":camera_flash:": "📸", ":alembic:": "⚗️", ":mag:": "🔍️", ":label:": "🏷️", ":seedling:": "🌱", ":triangular_flag_on_post:": "🚩", ":goal_net:": "🥅", ":dizzy:": "💫", ":wastebasket:": "🗑️", ":passport_control:": "🛂", ":adhesive_bandage:": "🩹", ":monocle_face:": "🧐", ":coffin:": "⚰️", ":test_tube:": "🧪", ":necktie:": "👔", ":stethoscope:": "🩺", ":bricks:": "🧱", ":technologist:": "🧑‍💻", ":money_with_wings:": "💸", ":thread:": "🧵", ":safety_vest:": "🦺", ":smile:": "😄", ":thumbsup:": "👍", ":heart:": "❤️" };
 
 for (const item of emoji_data) for (const alias of item.aliases) builtin_emoji[":" + alias + ":"] ??= item.emoji;

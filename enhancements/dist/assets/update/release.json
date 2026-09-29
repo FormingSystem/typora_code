@@ -2,11 +2,27 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026092905,
+      "version": "2026.09.29.5",
+      "date": "2026-09-29",
+      "notes": [
+        "新增统一显示语言设置，工作台支持中文和英文，默认跟随Typora；保存语言后正常重启生效。菜单、设置、提示、后台服务及离线帮助采用同一已加载语言，文档和源码注释按双语发布规则整理。",
+        "修复关闭最后一个编辑器后“打开的编辑器”列表残留，以及编辑器销毁后主题监听器未释放的问题。"
+      ],
+      "notes_en": [
+        "Added a shared display-language setting with Chinese and English support. The workbench follows Typora by default; save the preference and restart normally to apply it. Menus, settings, messages, background services, and offline help use the loaded window language. Documentation and source comments follow the bilingual release policy.",
+        "Fixed stale Open Editors entries after closing the last editor and released theme listeners when their last editor is disposed."
+      ]
+    },
+    {
       "sequence": 2026092904,
       "version": "2026.09.29.4",
       "date": "2026-09-29",
       "notes": [
         "修复终端获焦后Ctrl+P无法快速打开文件：与正文共用工作台快捷键路由，Ctrl+Shift+P同样可打开命令面板，Esc返回原终端且不向Shell发送控制字符。"
+      ],
+      "notes_en": [
+        "Fix the issue where Ctrl+P cannot quickly open a file after the terminal gains focus: shares the workbench shortcut routing with the document content. Ctrl+Shift+P can also open the command panel, and pressing Esc returns to the original terminal without sending control characters to the shell."
       ]
     },
     {
@@ -16,6 +32,10 @@
       "notes": [
         "修复源码编辑器Ctrl+V被接收却没有粘贴的问题，源码复制、剪切、粘贴快捷键与菜单共用宿主命令，保留撤销、多光标及只读保护。",
         "修复Windows终端Ctrl+V误发控制字符，粘贴与终端菜单共用入口，保留多行确认和Ctrl+C中断。"
+      ],
+      "notes_en": [
+        "Fix the issue where Ctrl+V is received by the source code editor but does not paste. The source code copy, cut, and paste shortcuts share the host commands with the menu, preserving undo, multi-cursor, and read-only protection.",
+        "Fix the issue where Ctrl+V in the Windows terminal mistakenly sends control characters. Paste and the terminal menu share the same entry, preserving multi-line confirmation and Ctrl+C interruption."
       ]
     },
     {
@@ -24,6 +44,9 @@
       "date": "2026-09-29",
       "notes": [
         "修复顶部文件搜索对工作区内绝对目录、半截路径和 ./ 前缀的漏匹配，目录候选可直接选择打开。"
+      ],
+      "notes_en": [
+        "Fix the missed matches for absolute directories, partial paths, and ./ prefixes in the top file search within the workspace. Directory candidates can be directly selected and opened."
       ]
     },
     {
@@ -33,6 +56,10 @@
       "notes": [
         "修复功能栏点击及同编辑器焦点通知污染文档导航历史：保留原前进分支和文档位置。",
         "前进、后退共用同一文档历史；正文编辑、文件切换和明确定位正常记录，纯工具控件焦点不再参与位置采样。"
+      ],
+      "notes_en": [
+        "Fix the issue where clicking the function bar and focus notifications from the same editor pollute the document navigation history: preserve the original forward branch and document position.",
+        "Forward and backward navigation share the same document history. Normal editing of the document content, file switching, and explicit positioning are recorded. Pure tool control focus no longer participates in position sampling."
       ]
     },
     {
@@ -43,6 +70,11 @@
         "修复连续按Alt左右或快速点击顶栏时丢失后续导航：前进、后退按接收顺序恢复文件和位置。",
         "修复文件打开后的首次选区生成重复历史，避免多次后退仍停在同一文件；失焦时保留有效位置。",
         "恢复期间按逻辑历史启用左右按钮；失败、切工程或退出取消剩余操作，关闭文件后仍可重开并连续往返。"
+      ],
+      "notes_en": [
+        "Fix the issue where subsequent navigation is lost when continuously pressing Alt left/right or quickly clicking the top bar: forward and backward navigation restores the file and position in the order received.",
+        "Fix the issue where the first selection after opening a file generates duplicate history, preventing multiple backward navigations from stopping at the same file. The valid position is retained when the file loses focus.",
+        "During recovery, enable the left and right buttons based on logical history. Failed, switching projects, or exiting cancels remaining operations. After closing a file, it can be reopened and continuous back-and-forth navigation is still possible."
       ]
     },
     {
@@ -52,6 +84,10 @@
       "notes": [
         "修复关闭文件后后退能重开、前进却断开的历史问题；重开后保留连续往返和原阅读位置。",
         "关闭全部编辑器后仍可使用左右历史恢复文件；共享导航继续限制历史容量，关闭时释放编辑视图。"
+      ],
+      "notes_en": [
+        "Fix the issue where backward navigation can reopen a file after closing, but forward navigation breaks the history. After reopening, continuous back-and-forth navigation and the original reading position are preserved.",
+        "After closing all editors, the left and right history can still be used to restore files. Shared navigation continues to limit history capacity, and the editing view is released upon closing."
       ]
     },
     {
@@ -61,6 +97,10 @@
       "notes": [
         "成功安装后自动回收已核实的旧版TyporaCode升级备份，保留最新恢复备份，避免历次安装持续占用磁盘。",
         "原生Typora备份、安装前基线和无法验证的资料保持不动；更新与测试临时载荷继续按所属任务安全回收。"
+      ],
+      "notes_en": [
+        "After a successful installation, automatically reclaim verified old TyporaCode upgrade backups, preserving the latest recovery backup to avoid continuous disk usage from previous installations.",
+        "Native Typora backups, pre-installation baselines, and unverified data remain untouched. Updates and test temporary payloads continue to be safely reclaimed according to their respective tasks."
       ]
     },
     {
@@ -70,6 +110,10 @@
       "notes": [
         "加快Alt左右及顶栏历史导航：就绪的Markdown立即恢复位置，不再等待固定停顿和排版稳定期。",
         "位置后续校正保留，新导航与用户输入取消旧恢复，继续共用所有文件的窗口历史。"
+      ],
+      "notes_en": [
+        "Speed up Alt left/right and top bar history navigation: ready Markdown immediately restores the position, without waiting for fixed pauses or layout stabilization periods.",
+        "Subsequent position corrections are retained. New navigation cancels old recovery and continues to share the window history for all files."
       ]
     },
     {
@@ -79,6 +123,10 @@
       "notes": [
         "修复链接后退后顶栏前进失效：工具栏点击和正文选区丢失不再截断导航历史。",
         "外部浏览器往返保留文档前后历史；Markdown、源码和只读版本共用窗口导航，历史不因闲置而过期。"
+      ],
+      "notes_en": [
+        "Fix the issue where the top bar forward button becomes ineffective after back navigation: tool bar clicks and document selections that are lost no longer truncate the navigation history.",
+        "External browser back-and-forth navigation preserves the document's forward and backward history. Markdown, source code, and read-only versions share the window navigation, and history does not expire due to inactivity."
       ]
     },
     {
@@ -88,6 +136,10 @@
       "notes": [
         "收起代码块和展开按钮完整可见后才滚动内部内容；未完整可见或内部到达边界时，滚轮继续滚动正文。",
         "展开和收起时同步原生代码编辑器的滚动位置，消除滚到底后展开残留内部偏移造成的首行裁切。"
+      ],
+      "notes_en": [
+        "Scroll the internal content only after the expand/collapse button and code block are fully visible. If not fully visible or the internal content reaches the boundary, the scroll wheel continues to scroll the document content.",
+        "Synchronize the scroll position with the native code editor when expanding or collapsing, eliminating the first-line clipping caused by residual internal offset after scrolling to the bottom."
       ]
     },
     {
@@ -98,6 +150,11 @@
         "SSH终端加载远端交互Shell配置并声明256色/真彩能力，恢复由远端配置提供的提示符与目录颜色。",
         "浮动链接预览显示在终端面板上方，重叠区域的阅读与操作不再被终端遮挡。",
         "本地与SSH终端共同跟随明暗主题，补齐2026终端专用文字和失焦选区颜色，保留已输出内容。"
+      ],
+      "notes_en": [
+        "SSH terminal loads the remote interactive shell configuration and declares 256-color/true color capabilities, restoring the prompt and directory colors provided by the remote configuration.",
+        "Floating link previews are displayed above the terminal panel, and reading and operations in overlapping areas are no longer obstructed by the terminal.",
+        "Local and SSH terminals follow the light/dark theme, completing the 2026 terminal-specific text and unfocused selection colors, while preserving the already output content."
       ]
     },
     {
@@ -107,6 +164,10 @@
       "notes": [
         "源码查找/替换输入框独立处理复制、粘贴、撤销和右键菜单；源码菜单补齐剪切粘贴并按能力分组，不影响Markdown。",
         "C/C++按clangd与工程宏配置淡化未激活代码，编辑和切换后清理旧范围，保留原语法颜色。"
+      ],
+      "notes_en": [
+        "The source code find/replace input box independently handles copy, paste, undo, and right-click menus. The source code menu adds cut and paste and groups them by capability, without affecting Markdown.",
+        "C/C++ uses clangd and project macro configurations to fade out inactive code; after editing and switching, old ranges are cleaned up while retaining original syntax colors."
       ]
     },
     {
@@ -116,6 +177,10 @@
       "notes": [
         "源码支持Ctrl+左键/F12转到定义，无定义时查声明；右键可转到声明、实现及查找引用，多目标可选择。",
         "复用按语言LSP与当前内存版本显示诊断；C/C++工程后台索引可配置，支持未打开实现文件的定位。"
+      ],
+      "notes_en": [
+        "Source code supports Ctrl+left click/F12 to go to definition; if no definition exists, it looks up the declaration. Right-click allows going to declaration, implementation, and finding references, with multiple targets available for selection.",
+        "Reuse language-specific LSP and current memory version to display diagnostics; C/C++ project background indexing is configurable, supporting location of unopened implementation files."
       ]
     },
     {
@@ -125,6 +190,10 @@
       "notes": [
         "源码、搜索预览和历史代码采用统一官方主题，C/C++接入TextMate语法及clangd语义颜色，修复默认Monaco颜色偏差。",
         "新增Python、Java、Bash、PowerShell、C#及Rust等按语言配置LSP；支持系统程序下拉、手填路径和Python venv，不修改系统PATH。"
+      ],
+      "notes_en": [
+        "Source code, search preview, and historical code use a unified official theme; C/C++ integrates TextMate syntax and clangd semantic colors, fixing the default Monaco color deviation.",
+        "Newly added Python, Java, Bash, PowerShell, C#, and Rust language-specific LSP configurations; supports system program dropdown, manual path entry, and Python venv without modifying the system PATH."
       ]
     },
     {
@@ -134,6 +203,10 @@
       "notes": [
         "修复已打开的Git忽略目录内文件无法参与正文搜索：当前编辑器内容优先匹配，保留文件类型及范围筛选。",
         "补充忽略范围说明，避免零结果误解；内存内容与磁盘不同时，替换需先保存并重新搜索。"
+      ],
+      "notes_en": [
+        "Fixed issue where files in open Git ignored directories cannot participate in document content search: current editor content is prioritized for matching, preserving file type and range filters.",
+        "Added ignored range explanations to avoid zero-result misunderstandings; when memory content differs from disk, replacement requires saving and re-searching."
       ]
     },
     {
@@ -143,6 +216,10 @@
       "notes": [
         "文件快速打开默认采用VS Code文件名和路径模糊搜索，正则和通配符按钮初始均关闭。",
         "需要正则或按文件类型筛选时手动开启对应按钮；两种模式互斥，关闭后恢复模糊搜索，当前窗口保留选择。"
+      ],
+      "notes_en": [
+        "File quick open defaults to VS Code filename and path fuzzy search; regular expression and wildcard buttons are initially closed.",
+        "Manually enable corresponding buttons for regular expression or file type filtering; the two modes are mutually exclusive. When closed, fuzzy search is restored, with the current window retaining the selection."
       ]
     },
     {
@@ -152,6 +229,10 @@
       "notes": [
         "修复快速打开及最近列表的主题色差：输入框独立底色、浮层边框和焦点颜色采用VS Code 2026对应角色。",
         "新增快速输入浮层背景、文字及边框的自定义颜色项；保留默认正则和手动通配符模式、正文主题与排版。"
+      ],
+      "notes_en": [
+        "Fixed theme color differences in quick open and recent lists: input box has an independent background color, floating layer borders and focus colors use the corresponding roles from VS Code 2026.",
+        "Added custom color options for quick input floating layer background, text, and borders; default regular expression and manual wildcard modes, document themes, and formatting are retained."
       ]
     },
     {
@@ -161,6 +242,10 @@
       "notes": [
         "文件快速打开新增通配符模式，支持*.c、递归路径、单字符和后缀备选；默认正则保持，模式按钮互斥。",
         "顶栏、Ctrl+P及当前组编辑器共用模式和可取消Worker；错误提示明确语法，正文搜索范围规则保持。"
+      ],
+      "notes_en": [
+        "File quick open added wildcard mode, supporting *.c, recursive paths, single-character, and suffix alternatives; default regular expression remains, with mode buttons being mutually exclusive.",
+        "Top bar, Ctrl+P, and current group editor share mode and cancellable Worker; error prompts clearly specify syntax, and document search range rules remain unchanged."
       ]
     },
     {
@@ -170,6 +255,10 @@
       "notes": [
         "顶栏搜索先显示功能入口和当前工程最近文件；直接输入查找文件，Ctrl+P仍直接检索。",
         "打开功能首页不再扫描或排序整个工程，最近记录异步补充，关闭及切库后旧结果不再覆盖界面。"
+      ],
+      "notes_en": [
+        "Top bar search first displays functional entry points and recently opened files in the current project; directly input to find files, Ctrl+P still directly searches.",
+        "Opening the functional homepage no longer scans or sorts the entire project; recent records are asynchronously supplemented, and old results are no longer overwritten when the window is closed or switched."
       ]
     },
     {
@@ -179,6 +268,10 @@
       "notes": [
         "新增VSCode2026_Light/Dark，分别采用官方2026 Light/Dark配色；正文、代码块及光标/选区/行号和预览使用对应配置。",
         "保留CppGithubConsoles_Light/Dark与Night供切换对比；新主题沿用原字体和排版，Dark保留土色标题。"
+      ],
+      "notes_en": [
+        "Added VSCode2026_Light/Dark, using the official 2026 Light/Dark color schemes; document content, code blocks, and cursor/selection/line numbers and previews use the corresponding configurations.",
+        "Retained CppGithubConsoles_Light/Dark and Night for switching and comparison; new themes retain original fonts and formatting, with Dark retaining the earthy title."
       ]
     },
     {
@@ -187,6 +280,9 @@
       "date": "2026-09-27",
       "notes": [
         "修复快速打开、菜单等临时浮层点击顶栏空白不关闭：浮层打开期间接收外部点击，关闭并释放鼠标后恢复窗口拖动。"
+      ],
+      "notes_en": [
+        "Fixed issue where temporary floating layers in quick open and menus do not close when clicking the top bar blank area: floating layers receive external clicks during open, and after closing and releasing the mouse, window dragging is restored."
       ]
     },
     {
@@ -196,6 +292,10 @@
       "notes": [
         "CppGithubConsoles_Dark采用VS Code 2026 Dark深色背景与正文配色，保留土色标题、原字体和排版；原生Night不变。",
         "菜单按真实名称和可选快捷键确定宽度，去掉无效箭头/快捷键空列，顶栏、Git右键与齿轮菜单共用布局。"
+      ],
+      "notes_en": [
+        "CppGithubConsoles_Dark uses the deep dark background and document color scheme from VS Code 2026, retaining the earthy title, original fonts, and formatting; native Night remains unchanged.",
+        "Menus determine width based on real names and available shortcuts, removing invalid arrows/shortcut empty columns; top bar, Git right-click, and gear menus share the same layout."
       ]
     },
     {
@@ -204,6 +304,9 @@
       "date": "2026-09-27",
       "notes": [
         "修复菜单初始宽度影响文字测量的问题：设置、扩展等名称按完整单行文字确定菜单宽度，视口足够时不再错误换行。"
+      ],
+      "notes_en": [
+        "Fixed issue where initial menu width affects text measurement: 'Settings', 'Extensions', etc., names determine menu width based on complete single-line text, and no erroneous line breaks occur when the viewport is sufficient."
       ]
     },
     {
@@ -213,6 +316,10 @@
       "notes": [
         "修正顶栏搜索文字附近边框断线：文字与图标透明绘制，明暗主题与缩放时保留完整行盒。",
         "资源管理器、快速打开、正文搜索与Git子仓库发现复用共同目录接口；重复打开搜索不重新遍历和统计，文件变更局部失效，Git状态订阅共同变更通知。"
+      ],
+      "notes_en": [
+        "Fixed broken border lines near search text in the top bar: text and icons are transparently drawn, with complete row boxes retained for light/dark themes and scaling.",
+        "Explorer, quick open, document search, and Git sub-repository discovery reuse a common directory interface; repeated opens of search do not re-traverse or re-statistics, file changes partially invalidate, and Git status subscribes to common change notifications."
       ]
     },
     {
@@ -222,6 +329,10 @@
       "notes": [
         "终端快速隐藏后重开立即恢复有效布局，取消遗留的重复布局回调，保留进程和输出历史。",
         "多终端重开恢复刚才的活动会话，不再跳回第一个终端；未变化的会话列表保持原节点。"
+      ],
+      "notes_en": [
+        "Terminal quickly hides and reopens to immediately restore valid layouts, canceling legacy duplicate layout callbacks, and retaining process and output history.",
+        "Reopen the previous active session across multiple terminals without returning to the first terminal; unchanged session lists retain their original nodes."
       ]
     },
     {
@@ -231,6 +342,10 @@
       "notes": [
         "每次安装后的下一次启动提供可跳过的逐步操作指导，帮助菜单可随时重看。",
         "内置离线操作说明与快捷键表，介绍预览/常驻标签、独立内容缩放、Git、终端和主题设置，并提供可暂停的动态示意。"
+      ],
+      "notes_en": [
+        "The first startup after each installation provides a step-by-step guide that can be skipped, and the help menu can be revisited at any time.",
+        "Built-in offline operation instructions and shortcut key table introduce preview/pinned tabs, independent content scaling, Git, terminal, and theme settings, and provide a pauseable dynamic demonstration."
       ]
     },
     {
@@ -240,6 +355,10 @@
       "notes": [
         "预览切换在文件就绪时同步替换旧标签并保留原位置，消除短暂双标签与跳位。",
         "源码预览读取期间保留当前文档，失败或迟到请求不抢占标签；常驻及未保存文件继续保护。"
+      ],
+      "notes_en": [
+        "Preview switching synchronously replaces the old tab with the file ready, retaining the original position, eliminating brief dual tabs and jumping positions.",
+        "During source code preview reading, the current document is retained; failed or stale requests do not preempt the tab; persistent and unsaved files continue to be protected."
       ]
     },
     {
@@ -249,6 +368,10 @@
       "notes": [
         "编辑区Ctrl+滚轮仅调内容字号；Ctrl+=/-缩放界面，当前正文、源码及终端保持视觉字号。",
         "当前窗口新开的文档与终端继承各自字号，重启恢复保存的基础配置；缩放保留阅读字符、源码行与终端历史位置。"
+      ],
+      "notes_en": [
+        "In the editing area, Ctrl+scroll wheel only adjusts the content font size; Ctrl+=/- scales the interface, keeping the current document content, source code, and terminal at their visual font sizes.",
+        "New documents and terminals opened in the current window inherit their respective font sizes; on restart, the saved base configuration is restored; scaling retains reading characters, source code lines, and terminal history positions."
       ]
     },
     {
@@ -258,6 +381,10 @@
       "notes": [
         "资源管理器单击文件使用可替换预览标签；Alt+左键直接常驻，保留Markdown即时显示和多文档分屏。",
         "编辑后的预览自动保持打开，已有常驻标签不降级；替换时释放旧视图，尊重关闭预览的设置。"
+      ],
+      "notes_en": [
+        "Clicking a file in the Explorer uses a replaceable preview tab; Alt+left click directly pins it, retaining Markdown instant display and multi-document split view.",
+        "Preview after editing automatically remains open; existing pinned tabs do not demote; when replacing, the old view is released, respecting the setting to close previews."
       ]
     },
     {
@@ -268,6 +395,11 @@
         "侧栏显隐改为Alt+B，Ctrl+B恢复Typora原生加粗。",
         "工作台冲突键迁到Alt：组合键前缀Alt+K、向右拆分Alt+反斜杠、窗口缩放Alt+=/-、新终端Alt+Shift+反引号；原生链接、清除格式、标题升降和行内代码保留。",
         "菜单与工具提示同步键位，移除Git重复Ctrl+B，保留终端和输入法的输入边界。"
+      ],
+      "notes_en": [
+        "Sidebar visibility is changed to Alt+B; Ctrl+B restores native bold in Typora.",
+        "Conflict keys on the workbench are moved to Alt: combination key prefix Alt+K, split to the right Alt+\", window scaling Alt+=/-, new terminal Alt+Shift+`, native links, clear format, title promotion/demotion, and inline code are retained.",
+        "Menu and tooltip key positions are synchronized; remove duplicate Ctrl+B for Git, retain terminal and input method input boundaries."
       ]
     },
     {
@@ -278,6 +410,11 @@
         "代码块补齐明暗光标、聚焦/失焦选区、行号、括号与查找状态，使用内置VS Code主题颜色。",
         "修复代码行和默认语法token背景遮住选区的问题；主题切换保留原生编辑行为、字体及正文。",
         "“VS Code 打开工程”始终携带当前工程根；文件直接打开，子目录优先用README定位，不再作为独立小工程。"
+      ],
+      "notes_en": [
+        "Code blocks complete light/dark cursors, focus/blur selection, line numbers, brackets, and find status, using built-in VS Code theme colors.",
+        "Fix the issue where code lines and default syntax token backgrounds cover the selection; theme switching retains native editing behavior, font, and document content.",
+        "\"Open project in VS Code\" always carries the current project root; files are opened directly, subdirectories prioritize using README for location, and are no longer treated as independent small projects."
       ]
     },
     {
@@ -288,6 +425,11 @@
         "文件、文件夹及正文右键新增带官方图标的“在 VS Code 中打开”，从当前系统环境识别安装位置，直接打开目标文件。",
         "升级结束自动回收下载包和解压目录；保留原始恢复基线与最近自动升级备份，归属不明或包含额外文件的备份不删除。",
         "测试运行器在成功、失败及超时后回收隔离载荷，保留检查结果、日志和截图，避免重复验证堆积磁盘空间。"
+      ],
+      "notes_en": [
+        "Right-click on files, folders, and document content adds \"Open in VS Code\" with official icons; identifies the installation location from the current system environment and directly opens the target file.",
+        "After upgrading, automatically reclaim the downloaded package and extracted directory; retain the original recovery baseline and recent automatic upgrade backups; backups with unknown ownership or containing additional files are not deleted.",
+        "The test runner recycles isolated payloads after success, failure, and timeout; retains check results, logs, and screenshots to avoid repeated verification from occupying disk space."
       ]
     },
     {
@@ -299,6 +441,12 @@
         "正文和独立预览同步原生图表主题，全屏采用当前原生SVG颜色，保留作者指定样式。",
         "卸载检测到运行中的Typora时用中文提示保存并退出，显示进程编号，保持中止时不关闭进程、不修改文件。",
         "帮助菜单补齐原生教程、鸣谢、隐私、反馈、更新、许可证和关于，保留原生分组及实际入口。"
+      ],
+      "notes_en": [
+        "Dark completes the Mermaid theme entry from the original Typora Night version; charts use the host's built-in rendering and color scheme, no longer mistakenly applying the default code block background color.",
+        "Document content and independent previews synchronize with the native chart theme; full-screen uses the current native SVG color, retaining the author-specified style.",
+        "When uninstalling detects running Typora, prompt in Chinese to save and exit, display the process number, keep the process from closing and files from being modified when aborted.",
+        "The help menu completes native tutorials, acknowledgments, privacy, feedback, updates, licenses, and about, retaining native groupings and actual entries."
       ]
     },
     {
@@ -309,6 +457,11 @@
         "代码围栏使用内置VS Code Light/Dark Modern主题配置，修复暗色中默认文字与标点不可见；C/C++正文与预览共用TextMate着色，保留原字体。",
         "颜色设置显示实际色值，支持复制、直接输入和另存为命名主题；主题菜单可切换，JSON包含所有方案。",
         "新增独立配色模板与双方案对照，点击模板内容定位对应颜色项；改动自动保存，恢复默认保留主题继承。"
+      ],
+      "notes_en": [
+        "Code fences use built-in VS Code Light/Dark Modern theme configurations, fixing the issue where default text and punctuation are invisible in dark mode; C/C++ document content and previews share TextMate coloring, retaining the original font.",
+        "Color settings display the actual color value, supporting copy, direct input, and saving as a named theme; the theme menu can switch, and JSON includes all schemes.",
+        "Add independent color template and dual-scheme comparison, click on template content to locate the corresponding color item; changes are automatically saved, restoring the default retains theme inheritance."
       ]
     },
     {
@@ -319,6 +472,11 @@
         "主题菜单新增“自定义颜色”，与统一设置共用明暗工作台及正文颜色表；即时生效并自动保存、恢复默认，支持含透明度色值及JSON导入导出。",
         "Night默认链接保留用户试选的#5CA4DF；自定义颜色随主题生效，正文、预览与渲染比较共享，不改变原主题排版。",
         "新增CppGithubConsoles_Light/Dark：两者共用CppGithubConsoles字体与排版，Dark采用Night暗色配色；修复主题等菜单文字下沿裁切。"
+      ],
+      "notes_en": [
+        "The theme menu adds 'Custom Color', sharing the light and dark workbench and document content color palettes with unified settings; takes effect immediately and is automatically saved and restored to default, supporting color values with transparency and JSON import/export.",
+        "Night's default link retains the user-selected #5CA4DF; custom colors take effect with the theme, document content, preview, and rendering comparison share the same settings, without altering the original theme layout.",
+        "Add CppGithubConsoles_Light/Dark: both share the CppGithubConsoles font and layout, with Dark using the Night dark color scheme; fix the bottom cropping of text in the theme and other menus."
       ]
     },
     {
@@ -327,6 +485,9 @@
       "date": "2026-09-25",
       "notes": [
         "修正面包屑右侧编辑器类型、下拉箭头和Git来源定位图标的垂直对齐，统一行内高度；窄编辑组保留图标与文字省略。"
+      ],
+      "notes_en": [
+        "Fix the vertical alignment of the editor type, dropdown arrow, and Git source location icon on the right side of the breadcrumbs, unify the inline height; narrow editor groups retain icon and text ellipsis."
       ]
     },
     {
@@ -335,6 +496,9 @@
       "date": "2026-09-25",
       "notes": [
         "提交图按当前分支、上游及其他分支区分节点和连线颜色，其他分支独有历史经过HEAD时正确切换；侧栏、完整提交图及展开文件续线共用着色。"
+      ],
+      "notes_en": [
+        "The commit graph distinguishes node and line colors based on the current branch, upstream, and other branches; other branches correctly switch when passing through HEAD; the sidebar, full commit graph, and expanded file continuation lines share coloring."
       ]
     },
     {
@@ -343,6 +507,9 @@
       "date": "2026-09-25",
       "notes": [
         "Night暗主题的Markdown链接改为蓝色，与正文区分；普通、悬停及聚焦保持一致，预览与渲染比较同步。标题保留已选颜色，其他正文样式及主题保持。"
+      ],
+      "notes_en": [
+        "Markdown links in the Night dark theme are changed to blue, distinguishing them from the document content; normal, hover, and focus states remain consistent, preview and rendering comparison are synchronized. The title retains the selected color, while other document content styles and themes remain unchanged."
       ]
     },
     {
@@ -352,6 +519,10 @@
       "notes": [
         "网络设置支持HTTP和HTTPS请求分别指定代理，按目标协议选择；旧单代理自动迁移到两项，之后独立保存，单项留空时该协议直连。",
         "更新与社区下载共用代理和可选企业CA，保留环境代理、直连、TLS校验及取消行为。"
+      ],
+      "notes_en": [
+        "Network settings support specifying a proxy separately for HTTP and HTTPS requests, based on the target protocol; old single proxy automatically migrates to two items, after which they are saved independently, and if a single item is left empty, the protocol connects directly.",
+        "Updates and community downloads share the proxy and optional enterprise CA, retaining environment proxy, direct connection, TLS verification, and cancellation behavior."
       ]
     },
     {
@@ -361,6 +532,10 @@
       "notes": [
         "取消文件、Markdown渲染比较、Git、搜索、预览、大纲、SSH及下载的预设大小和数量拦截，完整内容按实际运行结果处理，保留取消、冲突和实际错误反馈。",
         "恢复当前Typora主题的正文、表格边线、字体、段落、引用和代码样式；工作台外观保持，Night标题保留用户选定的#CE9178，预览与渲染比较共用正文主题。"
+      ],
+      "notes_en": [
+        "Cancel the preset size and quantity limits for files, Markdown rendering comparison, Git, search, preview, outline, SSH, and download; process the full content based on the actual runtime results, retaining cancellation, conflict, and actual error feedback.",
+        "Restore the document content, table borders, font, paragraph, quote, and code styles of the current Typora theme; maintain the workbench appearance, retain the user-selected #CE9178 title in Night, and share the document content theme between preview and rendering comparison."
       ]
     },
     {
@@ -369,6 +544,9 @@
       "date": "2026-09-25",
       "notes": [
         "Night的Markdown标题改用柔和浅蓝色，与灰白正文区分，便于阅读聚焦；正文、预览及Git渲染比较共用。其他暗色样式、CppGithubConsoles和其他主题保持。"
+      ],
+      "notes_en": [
+        "Markdown titles in Night use a soft light blue, distinguishing them from the gray-white document content for easier reading and focus; document content, preview, and Git rendering comparison share the same settings. Other dark styles, CppGithubConsoles, and other themes remain unchanged."
       ]
     },
     {
@@ -378,6 +556,10 @@
       "notes": [
         "Night按固定VS Code暗主题呈现：标题沿用正文中性前景，以字号、字重和留白建立层级，表头边线采用上游规则；正文、预览和Git渲染比较共用。",
         "CppGithubConsoles浅色标题及其他主题保持原样。"
+      ],
+      "notes_en": [
+        "Night presents as a fixed VS Code dark theme: the title uses the neutral foreground from the document content, establishing hierarchy through font size, weight, and spacing; table headers use upstream rules; document content, preview, and Git rendering comparison share the same settings.",
+        "CppGithubConsoles light titles and other themes remain unchanged."
       ]
     },
     {
@@ -388,6 +570,11 @@
         "Night暗色Markdown标题改为低饱和雾蓝灰，与灰白正文区分，结合字号、字重与留白建立层级；表格边线降低亮度，CppGithubConsoles明主题保持深蓝标题。",
         "正文、预览与Git渲染比较使用同一套明暗规则，保留阅读位置与编辑设置。",
         "主题优化仅作用于CppGithubConsoles和Night；修复此前全局覆盖其他主题的问题，切换到其他主题恢复原有呈现。"
+      ],
+      "notes_en": [
+        "Night's dark Markdown titles are changed to low-saturation misty blue-gray, distinguishing them from the gray-white document content, establishing hierarchy through font size, weight, and spacing; table borders are reduced in brightness, and CppGithubConsoles light theme retains dark blue titles.",
+        "Document content, preview, and Git rendering comparison use the same set of light and dark rules, retaining reading position and editing settings.",
+        "Theme optimization only affects CppGithubConsoles and Night; fix the previous issue of globally overriding other themes, and switching to other themes restores the original appearance."
       ]
     },
     {
@@ -397,6 +584,10 @@
       "notes": [
         "工作台和Markdown正文统一采用VS Code风格的明暗配色；标题保持蓝色并区分层级，表格、引用、代码及预览共享呈现。",
         "补齐菜单边框、标题与状态栏、输入提示和终端颜色角色，主题切换保持编辑器与用户字号、边距设置。"
+      ],
+      "notes_en": [
+        "The workbench and Markdown document content uniformly use VS Code-style light and dark color schemes; titles remain blue and distinguish hierarchy, with tables, quotes, code, and preview sharing the same presentation.",
+        "Complete the menu borders, titles, status bar, input prompts, and terminal color roles; theme switching maintains the editor and user font size and margin settings."
       ]
     },
     {
@@ -405,6 +596,9 @@
       "date": "2026-09-24",
       "notes": [
         "Git提交图新增传出/传入更改节点，显示当前分支与实际远端上游的差距，展开查看整批文件差异；获取、合并和推送后同步更新。"
+      ],
+      "notes_en": [
+        "The Git commit graph adds outgoing/incoming change nodes, displaying the difference between the current branch and the actual remote upstream, expand to view the full file differences; updates are synchronized after fetching, merging, and pushing."
       ]
     },
     {
@@ -413,6 +607,9 @@
       "date": "2026-09-24",
       "notes": [
         "网页预览使用宿主独立Chromium页面，支持正常网页脚本、表单和站内浏览，不再受普通iframe禁止内嵌影响；保留网页隔离、错误提示和默认浏览器入口。"
+      ],
+      "notes_en": [
+        "Web preview uses the host's independent Chromium page, supporting normal web scripts, forms, and internal browsing, no longer affected by the usual iframe restrictions on embedding; retain web isolation, error prompts, and default browser entry."
       ]
     },
     {
@@ -421,6 +618,9 @@
       "date": "2026-09-24",
       "notes": [
         "统一设置新增网络代理与企业CA证书：更新检查、ZIP及社区插件下载共用HTTP/HTTPS代理和附加信任证书，保留TLS校验。"
+      ],
+      "notes_en": [
+        "Unified settings add network proxy and enterprise CA certificate: update checks, ZIP, and community plugin downloads share HTTP/HTTPS proxy and additional trusted certificates, retaining TLS verification."
       ]
     },
     {
@@ -429,6 +629,9 @@
       "date": "2026-09-24",
       "notes": [
         "可编辑Markdown正文的普通左键点击恢复为编辑链接，不再被工作台误接管跳转；保留原生Ctrl点击、右键打开及独立预览内单击浏览。"
+      ],
+      "notes_en": [
+        "A normal left-click on editable Markdown document content restores to edit link, no longer being mistakenly taken over by the workbench to navigate; retain native Ctrl-click, right-click open, and independent preview single-click browsing."
       ]
     },
     {
@@ -437,6 +640,9 @@
       "date": "2026-09-24",
       "notes": [
         "修复格式等下拉菜单的文字、图标和快捷键错位；所有自有菜单统一采用VS Code列对齐，取消普通项紧凑例外，开关状态不再改变文字起点。"
+      ],
+      "notes_en": [
+        "Fix misalignment of text, icons, and shortcuts in the format dropdown menu; all self-owned menus uniformly adopt VS Code column alignment, cancel the compact exception for normal items, and the switch state no longer changes the text starting point."
       ]
     },
     {
@@ -447,6 +653,11 @@
         "资源树、Git提交与文件共用选中/焦点/悬停规则；选中提交与文件相互移交，HEAD和普通节点按VS Code区分形状与状态。",
         "工作台明暗配色统一采用已核对的最新VS Code 2026主题，保留透明选中色与背景层次；Markdown继续沿用当前正文主题。",
         "Markdown渲染差异改为浅色内容背景并强调实际改词，修改显示侧边标记；保留标题、表格细化与模式切换定位。"
+      ],
+      "notes_en": [
+        "The resource tree, Git commits, and files share the selection/focus/hover rules; selection of commits and files transfer to each other, with HEAD and normal nodes distinguished in shape and status according to VS Code.",
+        "The workbench's light and dark color schemes uniformly adopt the verified latest VS Code 2026 theme, retaining transparent selection color and background layers; Markdown continues to use the current document content theme.",
+        "Markdown rendering differences now use a light content background and emphasize actual word changes, modifying the display of side markers; retain title, table refinement, and mode switching positioning."
       ]
     },
     {
@@ -455,6 +666,9 @@
       "date": "2026-09-24",
       "notes": [
         "普通菜单命令不再预留勾选空白，顶栏、右键与子菜单统一按条目能力排版；可勾选项保留稳定状态位置，快捷键、实际图标和键盘操作保持。"
+      ],
+      "notes_en": [
+        "Normal menu commands no longer reserve blank checkboxes; the top bar, right-click, and submenus uniformly arrange items based on their capabilities; selectable options retain stable state positions, and shortcuts, actual icons, and keyboard operations remain unchanged."
       ]
     },
     {
@@ -465,6 +679,11 @@
         "源码、历史文本与Git差异共用自动换行配置，默认按窗口宽度软折行；本版起保留用户选择，不改变正文或逻辑行号。",
         "换行和Markdown源码/渲染切换跟随当前内容位置，修复滚动后切换回旧位置；未改标题不再误染色，表格和列表进一步定位到变更单元格与项目。",
         "Git提交展开与文件选中分离，只保留当前比较文件的选中条；历史文件、目录和虚拟列表统一整行背景、字号与缩进。"
+      ],
+      "notes_en": [
+        "Line wrapping configuration is shared among source code, historical text, and Git differences, defaulting to soft line breaks based on window width; starting from this version, user choices are preserved, without altering document content or logical line numbers.",
+        "Line breaks and Markdown source code/rendering switches follow the current content position, fixing the issue of switching back to the old position after scrolling; unmodified titles no longer mistakenly get colored, and tables and lists further locate to changed cells and items.",
+        "Git commit expansion and file selection are separated, retaining only the selected bar for the current comparison file; historical files, directories, and virtual lists uniformly use full-row background, font size, and indentation."
       ]
     },
     {
@@ -474,6 +693,10 @@
       "notes": [
         "Git差异页与提交图、变更列表共用来源身份；切换标签和刷新后准确标记当前比较文件，焦点移开仍保留选中。",
         "差异页面包屑右侧新增定位来源图标，展开对应提交和目录并定位文件；大列表保持虚拟化，不重开当前正文。"
+      ],
+      "notes_en": [
+        "The differences page, commit graph, and change list share the source identity; switching tabs and refreshing accurately mark the current comparison file, and selection remains even when focus moves away.",
+        "A new locate source icon is added to the right side of the breadcrumbs on the differences page, expanding the corresponding commit and directory and locating the file; large lists maintain virtualization, without reopening the current document content."
       ]
     },
     {
@@ -484,6 +707,11 @@
         "远端地址栏单击当前路径或空白即可编辑，点击外部或Esc恢复目录层级；Enter与搜索图标共用路径跳转和文件/目录搜索。",
         "文件快速打开与正文搜索默认支持正则模式，保留普通匹配开关；真实路径优先，正则在独立Worker中执行，取消和迟到结果不覆盖当前操作。",
         "修复远端选择器鼠标按下就进入目录的问题，单击只选中和展开，双击或Enter进入。"
+      ],
+      "notes_en": [
+        "Clicking on the current path or blank in the remote address bar allows editing; clicking outside or pressing Esc restores the directory hierarchy; Enter and search icon share path navigation and file/directory search.",
+        "File quick open and document content search default to support regular expression mode, retaining the normal match switch; real path priority, regular expressions execute in an independent Worker, and canceled or stale results do not overwrite current operations.",
+        "Fix the issue where the remote selector enters the directory upon mouse press; single-click only selects and expands, double-click or Enter enters."
       ]
     },
     {
@@ -492,6 +720,9 @@
       "date": "2026-09-23",
       "notes": [
         "修复重启后未激活的源码标签显示整串编码路径；标签立即显示真实文件名，保留后台按需加载，不必点击后才恢复。"
+      ],
+      "notes_en": [
+        "Fix the issue where unactivated source code tabs display the full encoding path after restart; tabs immediately display the real file name, retaining background on-demand loading, without needing to click to restore."
       ]
     },
     {
@@ -502,6 +733,11 @@
         "工作区恢复只登记后台标签，首次选中时才加载正文；启动等待期间的用户操作优先，迟到恢复不再逐页切换或覆盖当前操作。",
         "修复快速切换Markdown标签时后一次选择被宿主加载丢掉的问题，取消旧视图定位回调，重复选择当前标签不再重新打开正文。",
         "保留真实未保存内容的保存与取消保护；后台恢复不再为每个历史Markdown触发保存检查。"
+      ],
+      "notes_en": [
+        "The workbench only registers background tabs, loading the document content only when first selected; user operations during startup wait are prioritized, and delayed recovery no longer switches pages or overwrites current operations.",
+        "Fix the issue where the later selection of Markdown tabs is lost when the host loads; cancel the old view positioning callback, and repeated selection of the current tab no longer reopens the document content.",
+        "Retain save and cancel protection for real unsaved content; background recovery no longer triggers save checks for each historical Markdown."
       ]
     },
     {
@@ -512,6 +748,11 @@
         "链接预览未固定时，在正文非链接、空白或其他功能上操作会自动收起；工具栏新增固定图标，固定后保持显示。",
         "预览内部选文、导航、缩放及拖动保持独立；外部关闭取消待处理选区，避免旧链接让窗口重新弹出。",
         "修复根主题条件变量未进入预览的问题，暗色主题切换时标题颜色同步更新。"
+      ],
+      "notes_en": [
+        "When the link preview is not pinned, operations on non-link, blank, or other functions in the document content automatically collapse it; the toolbar adds a pin icon, which remains displayed when pinned.",
+        "Selection, navigation, zooming, and dragging within the preview remain independent; closing from the outside cancels pending selections, avoiding old links from making the window reappear.",
+        "Fix the issue where root theme condition variables do not enter the preview; title color synchronizes with the dark theme switch."
       ]
     },
     {
@@ -521,6 +762,10 @@
       "notes": [
         "搜索/链接预览、Git历史与Markdown渲染比较共用当前主题，修复功能区字体覆盖正文及历史页固定标题、表格样式的问题。",
         "Git比较和只读历史接入统一编辑器导航；打开原文件后可用Alt左右键或主顶栏返回，保留比较模式、位置和源码选区，关闭标签后可重开只读快照。"
+      ],
+      "notes_en": [
+        "Search/link preview, Git history, and Markdown rendering comparison share the current theme; fix the issue where the function area font overrides the document content and fixed titles, table styles on the history page.",
+        "Git comparison and read-only history access the unified editor navigation; after opening the original file, use Alt left/right keys or the main top bar to return, retaining comparison mode, position, and source code selection; after closing the tab, read-only snapshots can be reopened."
       ]
     },
     {
@@ -531,6 +776,11 @@
         "远程资源选择与资源管理器共用文件树，单击展开/折叠，方向键选择；保留双击进入与确认打开，按需读取和虚拟行避免大目录堆积。",
         "远程选择器明确当前SSH身份与选中状态，路径输入和面包屑合并为单行地址栏，长路径横向浏览；上一级和刷新改为图标。",
         "预览顶部增加独立前进/后退图标，恢复本预览的链接和阅读位置，不改变正文或其他预览历史。"
+      ],
+      "notes_en": [
+        "Remote resource selection and Explorer share the file tree; single-click expands/collapses, arrow keys select; retain double-click to enter and confirm open, on-demand reading and virtual lines avoid large directory accumulation.",
+        "The remote selector explicitly shows the current SSH identity and selection status. The path input and breadcrumbs are merged into a single-line address bar for long paths, allowing horizontal browsing. The 'Up' and 'Refresh' actions are changed to icons.",
+        "The preview area adds independent forward/backward icons at the top. It restores the link and reading position of this preview without affecting the document content or other previews' history."
       ]
     },
     {
@@ -540,6 +790,10 @@
       "notes": [
         "SSH仓库记录与操作按当前连接隔离，查找仓库直接选择远端目录，不再展示本地缓存路径或混入本地仓库。",
         "远程文件选择支持路径输入、祖先跳转、单击选中后确认；增加打开本地文件夹入口，成功切换时资源管理器、Git、搜索和终端统一切换服务对象。"
+      ],
+      "notes_en": [
+        "SSH repository records and operations are isolated by the current connection. Searching for repositories directly selects the remote directory, no longer displaying local cached paths or mixing in local repositories.",
+        "Remote file selection supports path input, ancestor navigation, and confirmation after clicking to select. An entry to open a local folder is added. When switching successfully, the Explorer, Git, search, and terminal all switch to the same service object."
       ]
     },
     {
@@ -548,6 +802,9 @@
       "date": "2026-09-23",
       "notes": [
         "更新页在检查中、失败、最新版本、新版公告和安装进度中明确显示当前运行版本；已安装但尚未重启时另行标明安装版本和重启后生效。"
+      ],
+      "notes_en": [
+        "The update page clearly displays the currently running version during checks, failures, latest version, new version announcements, and installation progress. If installed but not yet restarted, the installed version and the fact that it will take effect after restart are separately indicated."
       ]
     },
     {
@@ -557,6 +814,10 @@
       "notes": [
         "修复长Markdown滚动时反复扫描全部段落和标题，位置记录、大纲及重排共用按布局失效的块几何；预览滚动不再触发正文导航刷新。",
         "多个预览共用主题样式缓存，减少无变化刷新；修复连续链接跳转在异步预检期间并发进入宿主的问题，保留阅读位置与取消行为。"
+      ],
+      "notes_en": [
+        "Fixes repeated scanning of all paragraphs and headings during long Markdown scrolling. Position records, outline, and reordering share block geometry that becomes invalid by layout; preview scrolling no longer triggers document navigation refresh.",
+        "Multiple previews share theme style caching to reduce unnecessary refreshes. Fixes the issue of concurrent entry into the host during asynchronous pre-checks for continuous link jumps, preserving reading position and cancellation behavior."
       ]
     },
     {
@@ -566,6 +827,10 @@
       "notes": [
         "修复预览正文Ctrl+滚轮误触发主窗口缩放，浮动、搜索和分屏预览按各自实例调整比例并保持阅读位置。",
         "预览链接兼容普通单击、Ctrl+左键和右键跳转，拖选文字不误跳转；网页等待、失败及退出清理限定在当前预览。"
+      ],
+      "notes_en": [
+        "Fixes Ctrl+scroll wheel mistakenly triggering main window zooming in previews. Floating, search, and split view previews adjust proportions individually per instance and maintain reading position.",
+        "Preview links are compatible with normal single-click, Ctrl+left-click, and right-click navigation. Selecting text with drag does not trigger navigation; web waiting, failure, and exit cleanup are limited to the current preview."
       ]
     },
     {
@@ -575,6 +840,10 @@
       "notes": [
         "恢复Markdown渲染比较右侧的红绿差异概览，支持点击变更跳转、拖动视口和键盘定位。",
         "概览随正文滚动、缩放和刷新同步，源码模式保留原有概览；取消与关闭释放拖动和布局任务。"
+      ],
+      "notes_en": [
+        "Restores the red/green difference overview on the right side of Markdown rendering. Supports clicking to jump to changes, dragging the viewport, and keyboard positioning.",
+        "The overview synchronizes with scrolling, zooming, and refreshing of the main content. In source code mode, the original overview is preserved. Canceling and closing releases dragging and layout tasks."
       ]
     },
     {
@@ -584,6 +853,10 @@
       "notes": [
         "Markdown的Git比较默认并排渲染标题、段落、列表和表格，左右增删内容使用红绿背景和文字标识，对应块对齐滚动。",
         "工具栏可切回源码，保留打开原文件、查找及源码选区操作；支持渲染变更定位、刷新和统一设置，历史内容保持只读。"
+      ],
+      "notes_en": [
+        "Markdown's Git comparison defaults to side-by-side rendering of headings, paragraphs, lists, and tables. Left/right additions and deletions use red/green backgrounds and text indicators, with corresponding blocks aligned in scrolling.",
+        "The toolbar can switch back to source code, preserving the operations to open the original file, search, and source code selection. Supports rendering change positioning, refresh, and unified settings. Historical content remains read-only."
       ]
     },
     {
@@ -593,6 +866,10 @@
       "notes": [
         "大量文件的Git状态和差异清单改为流式读取、分批整理及有界可见行，暂存/未暂存共用同一状态快照，避免重复扫描与整份JSON拷贝。",
         "慢读取显示等待时间并可取消，区分超时、取消及Git实际错误；大量文件暂存/取消暂存通过标准输入传递路径，已有Git直接复用，缺失时提供Windows安装入口。"
+      ],
+      "notes_en": [
+        "Git status and difference lists for large numbers of files are changed to stream reading, batch organization, and bounded visible lines. Staged/unstaged share the same state snapshot to avoid repeated scanning and full JSON copying.",
+        "Slow reads display the waiting time and can be canceled, distinguishing timeouts, cancellations, and actual Git errors. Staging/unstaging large numbers of files passes paths via standard input. Existing Git is reused directly, and if missing, a Windows installation entry is provided."
       ]
     },
     {
@@ -602,6 +879,10 @@
       "notes": [
         "目录链接在预览中显示当前目录子项，文件和子目录可继续预览；进入文件后保留返回目录入口，恢复列表位置并支持独立Alt前后历史。",
         "打开源文件跟随当前预览文件；大目录按可见行绘制，读取失败保留现有内容，关闭及新选择隔离迟到结果。"
+      ],
+      "notes_en": [
+        "Directory links in the preview show the current directory's subitems. Files and subdirectories can be previewed further. After entering a file, the return to the directory entry is preserved, restoring the list position and supporting independent Alt forward/backward history.",
+        "Opening the source file follows the current preview file. Large directories are drawn by visible lines. If reading fails, existing content is retained. Closing and new selections isolate stale results."
       ]
     },
     {
@@ -611,6 +892,10 @@
       "notes": [
         "Markdown链接可在当前只读预览继续跳转，Alt+左右键恢复该预览会话的目标和阅读位置；新选择重置历史，与正文及其他预览隔离。",
         "预览缩放滑条和百分比并入顶栏、位于打开源文件左侧，取消额外缩放行；目标读取失败保留当前内容并支持重试。"
+      ],
+      "notes_en": [
+        "Markdown links can continue to jump in the current read-only preview. Alt+left/right keys restore the target and reading position of this preview session. New selections reset the history, isolating it from the main content and other previews.",
+        "The preview zoom slider and percentage are merged into the top bar, located to the left of the 'Open Source File' button. The extra zoom row is removed. If target reading fails, the current content is retained and retry is supported."
       ]
     },
     {
@@ -620,6 +905,10 @@
       "notes": [
         "统一功能区、正文外围、设置、Git和终端的明暗背景与分界颜色，活动、选择和键盘焦点使用共同语义。",
         "菜单及浮层共用独立边界；保留Markdown正文、预览正文及原生/社区设置的主题归属，切换主题不重建工作区。"
+      ],
+      "notes_en": [
+        "Unifies the light/dark backgrounds and boundary colors of the functional area, surrounding the main content, settings, Git, and terminal. Active, selected, and keyboard focus use common semantics.",
+        "Menus and popups share independent boundaries. Markdown main content, preview content, and native/community settings retain their theme affiliations. Switching themes does not rebuild the workspace."
       ]
     },
     {
@@ -629,6 +918,10 @@
       "notes": [
         "修复底栏文件操作、字数和语言菜单展开后的反复定位刷新，小数像素和窗口缩放下保持稳定。",
         "原生浮层、共享悬停和阅读工具栏统一合并布局刷新；内容更新保留节点、焦点和滚动，关闭后停止调度。"
+      ],
+      "notes_en": [
+        "Fixes repeated positioning and refreshes after expanding the file operations, word count, and language menus in the status bar. Maintains stability with decimal pixels and window resizing.",
+        "Unifies the layout refresh of native popups, shared hover, and reading toolbars. Content updates retain nodes, focus, and scrolling. Scheduling stops after closing."
       ]
     },
     {
@@ -639,6 +932,11 @@
         "终端支持Ctrl+滚轮调整字符大小，历史日志按逻辑行保持查看位置，字号与终端设置同步。",
         "Markdown正文和标题支持Ctrl+滚轮缩放并保留阅读位置；代码块、媒体、Mermaid与预览保持各自操作。",
         "右下窗口缩放入口在100%实际大小时常驻，重置后仍可直接继续调整。"
+      ],
+      "notes_en": [
+        "The terminal supports Ctrl+scroll wheel to adjust character size. Historical logs maintain viewing position by logical lines. Font size synchronizes with terminal settings.",
+        "Markdown document content and headings support Ctrl+scroll wheel zooming while preserving reading position; code blocks, media, Mermaid, and preview maintain their own operations.",
+        "The window scaling entry in the bottom-right corner remains persistent at 100% actual size; after resetting, it can still be directly adjusted."
       ]
     },
     {
@@ -649,6 +947,11 @@
         "SSH连接目录支持多电脑、多账号、自定义电脑与账号别名、搜索及增删改；选择记录一键连接。",
         "SSH终端复用系统保存的登录密码；默认终端跟随当前远端，其他账号可从终端菜单独立选择。顶部显示SSH用户名及真实连接信息。",
         "Windows使用系统凭据管理器；新增独立密码查看保险箱，重置仅清除可查看密码，保留自动登录凭据。"
+      ],
+      "notes_en": [
+        "The SSH connection directory supports multiple computers, multiple accounts, custom computer and account aliases, search, and add/edit/delete; selected records can be connected with one click.",
+        "The SSH terminal reuses the system-saved login password; the default terminal follows the current remote, while other accounts can be independently selected from the terminal menu. The SSH username and actual connection information are displayed at the top.",
+        "Windows uses the system credential manager; a new independent password vault has been added. Resetting only clears the viewable password, retaining the automatic login credentials."
       ]
     },
     {
@@ -658,6 +961,10 @@
       "notes": [
         "Typora偏好与社区插件设置直接显示在统一设置右侧，切换时不再在窗口后方打开另一层弹窗。",
         "保留原生偏好页面和社区原始设置控件及保存机制；最大化、还原、关闭统一管理，反复切换不重建原生页面。"
+      ],
+      "notes_en": [
+        "Typora preferences and community plugin settings are directly displayed on the right side of the unified settings; switching no longer opens another layer of popup windows behind the window.",
+        "The original native preference page and community original settings controls and save mechanisms are preserved; maximize, restore, and close are uniformly managed, and repeatedly switching does not rebuild the native page."
       ]
     },
     {
@@ -669,6 +976,12 @@
         "滑条、键盘及Ctrl滚轮同步50%—150%比例，沿用原有记忆；窄面板保留滑条和百分比，不挤占关闭及打开源文件按钮。",
         "修复主侧栏分界线穿过加宽预览的问题；拖动范围限定在所属功能区域。",
         "链接预览仅覆盖左下角自身区域，主文档保持正常宽度，收起侧栏后不再留下整列空白。"
+      ],
+      "notes_en": [
+        "Restore the independent link and split preview's scaling slider, current percentage, and plus/minus buttons; share the same set of ratio controls with search preview.",
+        "The slider, keyboard, and Ctrl scroll wheel synchronize 50%–150% ratio, retaining the original memory; narrow panels retain the slider and percentage, not occupying the close and open source file buttons.",
+        "Fix the issue where the main sidebar divider line crosses the widened preview; dragging is limited to the corresponding functional area.",
+        "Link preview only covers its own area in the bottom-left corner; the main document maintains normal width, and after collapsing the sidebar, it no longer leaves an entire column blank."
       ]
     },
     {
@@ -679,6 +992,11 @@
         "链接预览可独立关闭，收起功能侧栏后仍可单独阅读；关闭后释放占位，不再强制展开功能栏。",
         "拖动预览顶部、右边或右上角可调整高度、宽度或同时调整宽高；窗口缩放时保持可用边界。",
         "搜索命中预览补充宽度及角落调整，保留Ctrl选择文字、单击预览和双击打开的原有流程。"
+      ],
+      "notes_en": [
+        "Link preview can be independently closed; after collapsing the functional sidebar, it can still be read separately; closing it releases the placeholder and no longer forces the functional bar to expand.",
+        "Dragging the top, right, or top-right corner of the preview adjusts height, width, or both; maintains usable boundaries when the window is scaled.",
+        "Search hit preview adds width and corner adjustment, retaining the original process of Ctrl selecting text, clicking preview, and double-clicking to open."
       ]
     },
     {
@@ -690,6 +1008,12 @@
         "远端Markdown使用Typora原生编辑器即时渲染；相对链接与标题导航保留远端身份，保存先确认远端写入，断线和冲突保留草稿。",
         "远程另存为、重新加载和文件改名沿用共同文件生命周期；新建终端进入远程项目目录。",
         "Windows文件连接可选择记住密码，使用当前系统账户加密保存并支持忘记；终端独立使用OpenSSH认证。"
+      ],
+      "notes_en": [
+        "SSH folders are integrated into the main Explorer; the file menu selects directories and files on the remote, and resource operations, content search, and Git share the remote project.",
+        "Remote Markdown uses the native Typora editor for instant rendering; relative links and heading navigation retain remote identity, and saving first confirms remote writing; disconnection and conflicts retain drafts.",
+        "Remote save as, reload, and file rename follow the common file lifecycle; new terminal enters the remote project directory.",
+        "Windows file connections can choose to remember passwords, using the current system account for encrypted storage and supporting forgetting; the terminal independently uses OpenSSH authentication."
       ]
     },
     {
@@ -699,6 +1023,10 @@
       "notes": [
         "Markdown代码和纯文本围栏增加一键复制；悬停右上角或键盘进入可复制完整当前内容，折叠长块和未保存修改同样适用。",
         "复制提供成功及失败重试反馈，正文和只读Markdown预览共用入口，不改变光标、折叠状态或正文排版。"
+      ],
+      "notes_en": [
+        "Markdown code and plain text fences add one-click copy; hovering over the top-right corner or entering via keyboard copies the full current content, applicable to folded long blocks and unsaved modifications.",
+        "Copy provides success and retry feedback; the main document and read-only Markdown preview share the entry, without changing the cursor, folding state, or document formatting."
       ]
     },
     {
@@ -709,6 +1037,11 @@
         "连接SSH后，终端图标、菜单、新建及快捷键默认打开远程Shell并进入当前远端目录，不再误复用已有本地终端。",
         "拆分、重启和移动保留原会话身份；断线默认新建明确报错，不回落本地。选择菜单提供明确的本地Shell入口。",
         "远程终端不再等待本机Shell探测；资源管理、搜索、SCM和原生Markdown的完整远程接入继续开发。"
+      ],
+      "notes_en": [
+        "After connecting to SSH, the terminal icon, menu, new, and shortcuts default to opening the remote Shell and entering the current remote directory, no longer mistakenly reusing existing local terminals.",
+        "Splitting, restarting, and moving retain the original session identity; disconnection defaults to creating a clear error message, not falling back to local. The menu provides a clear local Shell entry.",
+        "Remote terminals no longer wait for local Shell detection; full remote access for resource management, search, SCM, and native Markdown continues development."
       ]
     },
     {
@@ -721,6 +1054,13 @@
         "左右和上下分屏预览复用正文主题，使用简短文件标签及打开源文件、刷新图标；网页由隔离的Chromium页面加载。",
         "缩放、调整边距和分栏宽度时保留当前可见文字，不再返回最初搜索命中或仅固定段落顶部。",
         "标签支持单行滚动和可配置的多行换行；显示已打开的编辑器改为可筛选的edt active列表，支持键盘选择及关闭。"
+      ],
+      "notes_en": [
+        "Settings are changed to an independent floating window, supporting maximize, restore, and close in the top-right corner; gear, shortcuts, and editor configuration share an entry, keeping native and community settings independent.",
+        "Select a Markdown link to preview it in read-only mode at the bottom left, without needing to open search; automatic preview can be turned off individually, and search hit previews are unaffected.",
+        "Left-right and top-bottom split view previews reuse the document content theme, using short file tabs and icons for opening source files and refreshing; web pages are loaded via isolated Chromium pages.",
+        "When zooming, adjusting margins, or changing split view width, the currently visible text is preserved, and it no longer returns to the initial search hit or only fixes the top of the paragraph.",
+        "Tabs support single-line scrolling and configurable multi-line wrapping; the list of open editors is now a searchable edt active list, supporting keyboard selection and closing."
       ]
     },
     {
@@ -733,6 +1073,13 @@
         "SSH远程Git状态使用独立只读标签，慢查询不阻塞同连接文件操作；重复打开复用标签，关闭不影响远程文件和终端。",
         "SSH连接参数集中配置，保留OpenSSH主机验证；可见远程目录定时刷新并保留未变化列表。",
         "合并Win10端已发布的PowerShell历史滚动修复，保留连续回车产生的输出历史。"
+      ],
+      "notes_en": [
+        "The settings menu is unified into a single entry, allowing search and modification of custom settings by category; native preferences and community plugin settings are opened separately, removing the redundant three-page navigation.",
+        "Community settings retain the original SettingTab and field styles, fixing issues with generic dialog boxes stretching plugin input fields and overriding button appearances.",
+        "SSH remote Git status uses an independent read-only tab; slow queries do not block file operations on the same connection; reopening reuses the tab, and closing does not affect remote files or terminals.",
+        "SSH connection parameters are centrally configured, retaining OpenSSH host verification; visible remote directories are periodically refreshed and retain unchanged lists.",
+        "Merge the PowerShell history scroll fix published on the Win10 end, retaining the output history generated by consecutive Enter key presses."
       ]
     },
     {
@@ -742,6 +1089,10 @@
       "notes": [
         "修复Windows PowerShell连续回车后提示符历史丢失、右侧输出滚动条不出现的问题。",
         "保留ConPTY普通终端的向上滚动历史，可用滚轮和滑块回看；全屏应用、局部滚动区与清屏继续沿用原有行为。"
+      ],
+      "notes_en": [
+        "Fix the issue where the Windows PowerShell prompt history is lost after consecutive Enter key presses and the right-side output scrollbar does not appear.",
+        "Retain the upward scroll history for the ConPTY regular terminal, which can be reviewed using the mouse wheel and slider; full-screen applications, local scroll areas, and clearing the screen continue to use the original behavior."
       ]
     },
     {
@@ -752,6 +1103,11 @@
         "Git空目录按欢迎页显示初始化入口，隐藏无效提交控件；读取失败提供原始错误和重试。",
         "初始化进度固定在可见侧栏标题，失败信息留在当前页面，可直接再次操作，不阻塞其他模块。",
         "欢迎页按钮统一使用主题与上游几何，窄侧栏可换行，切换分区设置不破坏空仓状态。"
+      ],
+      "notes_en": [
+        "Empty directories display the initialization entry on the welcome page, hiding invalid commit controls; failed reads provide the original error and retry option.",
+        "The initialization progress is fixed in the visible sidebar title; failure messages remain on the current page, allowing direct reoperation without blocking other modules.",
+        "Welcome page buttons use the theme and upstream geometry uniformly; narrow sidebars can wrap text, and switching partition settings do not disrupt the empty warehouse state."
       ]
     },
     {
@@ -762,6 +1118,11 @@
         "Git操作确认后在仓库面板内显示进度，执行期间可继续使用阅读、搜索和终端。",
         "大量变更、提交详情和历史文件列表按可见范围绘制，修复未跟踪文件合并的重复扫描。",
         "空文件夹提供初始化仓库入口；仓库识别以Git实际根目录为准，支持嵌套仓库与worktree并区分权限等错误。"
+      ],
+      "notes_en": [
+        "After confirming Git operations, progress is displayed in the repository panel; during execution, reading, searching, and terminals can continue to be used.",
+        "Large changes, commit details, and historical file lists are rendered based on the visible range, fixing repeated scans for untracked files.",
+        "Empty folders provide an entry to initialize a repository; repository identification is based on the actual Git root directory, supporting nested repositories and worktree, and distinguishing permission and other errors."
       ]
     },
     {
@@ -771,6 +1132,10 @@
       "notes": [
         "SSH远程目录新增项目终端，立即展示连接进度并在终端内认证；拆分、重启保持远程主机与初始项目目录。",
         "远程Git状态直接读取所选远程目录，提供刷新和错误提示；Git写操作可在项目终端执行，本地仓库身份保持独立。"
+      ],
+      "notes_en": [
+        "The remote SSH directory adds a project terminal, immediately displaying the connection progress and authenticating within the terminal; splitting and restarting maintain the remote host and initial project directory.",
+        "Remote Git status is directly read from the selected remote directory, providing refresh and error prompts; Git write operations can be executed in the project terminal, with local repository identity remaining independent."
       ]
     },
     {
@@ -781,6 +1146,11 @@
         "新增左侧SSH远程资源管理器，使用OpenSSH配置、密钥或密码连接Linux主机，浏览目录并新建文件和文件夹。",
         "远程UTF-8文件使用文本编辑器读写，Markdown可切换只读阅读预览；保存检查外部修改，断线保留草稿，关闭统一提示保存。",
         "此版本为远程文件读写首期，不包含VS Code扩展宿主和远程Git面板。"
+      ],
+      "notes_en": [
+        "A new left-side SSH remote Explorer is added, using OpenSSH configuration, keys, or passwords to connect to Linux hosts, browse directories, and create new files and folders.",
+        "Remote UTF-8 files are read and written using the text editor; Markdown can switch to read-only preview; saving checks for external modifications, drafts are retained on disconnection, and closing uniformly prompts for saving.",
+        "This version is the first phase for remote file read/write and does not include the VS Code extension host or remote Git panel."
       ]
     },
     {
@@ -790,6 +1160,10 @@
       "notes": [
         "搜索侧栏打开时，选中Markdown链接可直接只读预览目标内容；右键支持左右及上下分屏预览。",
         "本地预览提供打开源文件编辑入口；网页联网读取后隔离展示只读快照，并提供重新加载与浏览器入口。"
+      ],
+      "notes_en": [
+        "When the search sidebar is open, selecting a Markdown link allows direct read-only preview of the target content; right-clicking supports left-right and top-bottom split view previews.",
+        "Local previews provide an entry to open the source file for editing; web pages are isolated and displayed as read-only snapshots after being fetched online, with reload and browser entry options provided."
       ]
     },
     {
@@ -798,6 +1172,9 @@
       "date": "2026-09-22",
       "notes": [
         "帮助菜单新增“Typora Code GitHub 仓库”，可通过系统浏览器访问项目并下载完整ZIP安装包，不依赖更新检查成功。"
+      ],
+      "notes_en": [
+        "The Help menu now includes a \"Typora Code GitHub Repository\" entry, which allows you to access the project and download the complete ZIP installation package via the system browser, without relying on a successful update check."
       ]
     },
     {
@@ -807,6 +1184,10 @@
       "notes": [
         "检查更新失败或超时后可直接点击“重试”，立即显示检查进度，无须退出弹窗重新打开帮助菜单。",
         "重复点击及已关闭弹窗不会重复发起检查，保留取消、键盘操作和旧请求隔离。"
+      ],
+      "notes_en": [
+        "After a failed or timed-out update check, you can directly click \"Retry\" to immediately show the check progress, without needing to exit the popup and reopen the Help menu.",
+        "Repeated clicks and closed popups will not trigger duplicate checks, preserving the ability to cancel, keyboard operations, and isolation of old requests."
       ]
     },
     {
@@ -816,6 +1197,10 @@
       "notes": [
         "终端改用配套ConPTY运行文件并传递Windows兼容信息，对齐VS Code后端接入方式；Windows 10现场效果仍需复核。",
         "终端只在行列变化时通知Shell调整尺寸，启动期间的最终尺寸不丢失；保留输入、历史容量和Shell提示符配置。"
+      ],
+      "notes_en": [
+        "The terminal now uses the accompanying ConPTY runtime file and passes the Windows compatibility information, aligning with the VS Code backend integration method; the Windows 10 on-site effect still needs to be re-verified.",
+        "The terminal notifies the Shell to adjust its size only when the number of rows and columns changes, retaining the final size during startup; input, history capacity, and Shell prompt configuration are preserved."
       ]
     },
     {
@@ -825,6 +1210,10 @@
       "notes": [
         "修复展开长代码或改变布局后其他代码框残留过大高度的问题，可见代码块按自己的原生编辑器重新测量。",
         "代码块宽度和可见性变化合并刷新，离屏延后处理，不改变各块展开状态、正文和光标。"
+      ],
+      "notes_en": [
+        "Fixed the issue where other code boxes retained excessively large heights after expanding long code or changing the layout; visible code blocks are remeasured by their native editor.",
+        "Code block width and visibility changes are merged and refreshed, off-screen deferred processing, without changing the expanded state of each block, document content, and cursor."
       ]
     },
     {
@@ -834,6 +1223,10 @@
       "notes": [
         "修复完整路径搜索等待磁盘核对时清空结果的问题，已枚举文件继续显示并可打开。",
         "扫描、路径核对和失败提供明确状态；连续输入与关闭后拒绝迟到结果，目录增量不再反复中断同一查询。"
+      ],
+      "notes_en": [
+        "Fixed the issue where full path search would clear results while waiting for disk verification, already enumerated files continue to be displayed and can be opened.",
+        "Scan, path verification, and failure provide clear status; consecutive input and closing reject stale results, directory increments no longer repeatedly interrupt the same query."
       ]
     },
     {
@@ -843,6 +1236,10 @@
       "notes": [
         "修复终端在缩放或调整面板高度时末行贴底和裁切，底部留白统一计入行列计算。",
         "面板、分屏和编辑器中的终端共用尺寸规则，保留运行中的Shell与输出历史。"
+      ],
+      "notes_en": [
+        "Fixed the issue where the terminal's last line would stick to the bottom and be clipped when scaling or adjusting panel height, bottom whitespace is uniformly counted in row and column calculations.",
+        "Terminal in panels, split views, and editors share sizing rules, preserving running Shell and output history."
       ]
     },
     {
@@ -852,6 +1249,10 @@
       "notes": [
         "Alt＋左右键与顶栏前后按钮共用跨编辑器导航历史，补齐源码光标、明确定位与Markdown之间的位置恢复。",
         "文内和跨文件标题链接统一记录来源及目标；普通源码近邻移动合并，返回后新跳转清除旧前进分支，保留失败取消保护。"
+      ],
+      "notes_en": [
+        "Alt + left/right keys and top bar forward/back buttons share cross-editor navigation history, complementing source code cursor, clearly defining location, and restoring position between Markdown.",
+        "In-document and cross-file title links uniformly record sources and targets; normal source code nearby movement merging returns to the new jump, clearing the old forward branch upon return, retaining failed or canceled protection."
       ]
     },
     {
@@ -861,6 +1262,10 @@
       "notes": [
         "共享弹窗增加右上角关闭按钮，沿用取消或关闭语义；设置、Git和更新等弹窗底部操作统一右对齐。",
         "窄窗口操作按钮自动换行并保持右对齐；保留内容初始焦点、Tab循环和关闭后焦点恢复。"
+      ],
+      "notes_en": [
+        "Shared popups add a close button in the top-right corner, continuing to use the cancel or close semantics; operation buttons at the bottom of popups for settings, Git, and updates are uniformly right-aligned.",
+        "Operation buttons in narrow windows automatically wrap and remain right-aligned; retain initial content focus, Tab cycling, and focus restoration after closing."
       ]
     },
     {
@@ -870,6 +1275,10 @@
       "notes": [
         "点击终端立即显示面板，工作目录准备、Shell检测和进程启动期间持续显示状态及活动进度，避免误以为界面卡住。",
         "进程启动后等待首次输出时明确提示；隐藏、重开和关闭启动中的终端不会重复创建或重新弹出，失败保留在会话内。"
+      ],
+      "notes_en": [
+        "Clicking the terminal immediately displays the panel, continuously showing status and activity progress during working directory preparation, Shell detection, and process startup, avoiding the mistaken belief that the interface is frozen.",
+        "After process startup, a clear prompt is provided while waiting for the first output; hiding, reopening, or closing a terminal during startup does not result in duplicate creation or re-popping, and failures are retained within the session."
       ]
     },
     {
@@ -879,6 +1288,10 @@
       "notes": [
         "检查、下载、校验和安装更新持续显示进度；下载显示实际大小，服务器提供总量时显示百分比，避免等待时误以为卡住。",
         "取消下载立即提示处理状态，关闭后可重新查看正在进行的更新；安装完成明确提示手动重启。"
+      ],
+      "notes_en": [
+        "Checking, downloading, verifying, and installing updates continuously display progress; downloading shows the actual size, and when the server provides the total size, it displays a percentage, avoiding the mistaken belief that it is frozen during waiting.",
+        "Cancel the immediate prompt for download status, and after closing, you can view the ongoing updates again; clearly prompt to manually restart after installation is complete."
       ]
     },
     {
@@ -888,6 +1301,10 @@
       "notes": [
         "修复两个窗口打开同一文件就拒绝合并的问题；正文和保存格式相同直接复用目标标签，保留目标撤销历史，不再提示重复文件。",
         "同一文件确有不同正文或保存格式时保留两边并提示；比较期间的新修改、取消和目标变化不会被覆盖。"
+      ],
+      "notes_en": [
+        "Fixed the issue where opening the same file in two windows would reject merging; if the document content and save format are the same, directly reuse the target tab, retain the target undo history, and no longer prompt for duplicate files.",
+        "When the same file indeed has different document content or save formats, keep both and prompt; new modifications, cancellations, and target changes during comparison will not be overwritten."
       ]
     },
     {
@@ -898,6 +1315,11 @@
         "修复开启恢复上次文件时，拖出标签的新窗口恢复整组文件并与标签交接冲突的问题；附窗只接收指定文件，保留主窗口会话。",
         "连续移出后立即移回时，等待宿主上一轮文档切换就绪；等待期间取消或目标变化仍保留原文档。",
         "拖动和合并直接执行；失败保留文档并使用不抢焦点的轻提示，不再出现“移动标签”模态关闭框。"
+      ],
+      "notes_en": [
+        "Fixed the issue where, when restoring the last file with recovery enabled, dragging out a new window would restore the entire group of files and conflict with the tab; the attached window only receives the specified file, and the main window session is retained.",
+        "When moving out and then immediately moving back, wait for the host's previous document switch to be ready; during the wait, if canceled or the target changes, the original document is still retained.",
+        "Drag and merge are executed directly; if failed, retain the document and use a non-focus-stealing light prompt, and no longer show the 'Move Tab' modal close box."
       ]
     },
     {
@@ -907,6 +1329,10 @@
       "notes": [
         "修复分栏删除、嵌套收回和分隔线调整造成的宽度错位，拖动仅调整相邻两栏。",
         "标签拖动停止滚动后释放动画循环，活动标签排序不再反复关闭重开编辑器；补充分屏合并与跨窗口交接压力验证。"
+      ],
+      "notes_en": [
+        "Fix width misalignment caused by split view deletion, nested collapse, and divider adjustment; dragging only adjusts the adjacent two panes.",
+        "After stopping the scroll, release the animation loop when dragging tabs; active tab sorting no longer repeatedly closes and reopens the editor; supplement split view merge and cross-window handover pressure testing."
       ]
     },
     {
@@ -916,6 +1342,10 @@
       "notes": [
         "手动检查更新立即显示正在检查，后台检查可转为可见，明确反馈最新版本或网络失败。",
         "支持取消检查后重试，重复点击不重复请求，旧请求返回不覆盖新的提示。"
+      ],
+      "notes_en": [
+        "Manually check for updates and immediately show that it is checking; background checks can be made visible, clearly providing feedback on the latest version or network failure.",
+        "Support canceling checks and retrying; repeated clicks do not make duplicate requests; old requests returning do not overwrite new prompts."
       ]
     },
     {
@@ -924,6 +1354,9 @@
       "date": "2026-09-20",
       "notes": [
         "修复旧安装备份或Typora升级后卸载失败：安全移除当前加载入口，保留宿主版本和个人配置；增加只读预检、备份及错误日志。"
+      ],
+      "notes_en": [
+        "Fix failed uninstallation after old installation backup or Typora upgrade: safely remove the current loaded entry, retain the host version and personal configuration; add read-only pre-check, backup, and error logs."
       ]
     },
     {
@@ -934,6 +1367,11 @@
         "共享菜单统一计算名称和快捷键列宽，完整展示功能名称；极窄窗口自动换行。",
         "统一资源管理器、时间线与Git分区标题的外留白、整行悬停背景和工具区。",
         "扩展支持直接浏览真实社区插件市场、安装启用及独立设置；修复部分社区插件修改对象配置后未保存的问题，保留现有工作台布局。"
+      ],
+      "notes_en": [
+        "Uniformly calculate the name and shortcut key column widths for the shared menu, fully display the function names; automatically wrap in extremely narrow windows.",
+        "Uniformly adjust the outer margin, full-row hover background, and tool area for the Explorer, timeline, and Git partition titles.",
+        "Extend support for directly browsing the real community plugin market, installing and enabling, and independent settings; fix the issue where some community plugins fail to save after modifying object configurations, retaining the existing workbench layout."
       ]
     },
     {
@@ -943,6 +1381,10 @@
       "notes": [
         "修复设置等共享菜单的快捷键列错位和横向滚动，完整显示名称与快捷键；窄窗口保持可用。",
         "复查资源管理器左侧边界与根层缩进，覆盖实际主题及缩放；已打开窗口需手动重启加载新版。"
+      ],
+      "notes_en": [
+        "Fix the misalignment and horizontal scrolling of the shortcut key column in shared menus like settings; fully display the name and shortcut key; keep it usable in narrow windows.",
+        "Recheck the left boundary and root layer indentation of the Explorer; cover actual themes and scaling; already opened windows need to be manually restarted to load the new version."
       ]
     },
     {
@@ -952,6 +1394,10 @@
       "notes": [
         "更新按GitHub提交hash识别并下载固定提交ZIP；仅从压缩包安装、没有Git或历史的电脑也可更新。",
         "下载和解压自动使用Typora用户数据temp；同版本新提交可更新，失败保留原提交记录，安装后手动重启。"
+      ],
+      "notes_en": [
+        "Update by identifying and downloading fixed commit ZIPs via GitHub commit hash; only install from the compressed package, computers without Git or history can also update.",
+        "Download and extract automatically using Typora user data temp; new commits of the same version can be updated, failed updates retain the original commit records, and manual restart is required after installation."
       ]
     },
     {
@@ -961,6 +1407,10 @@
       "notes": [
         "Windows安装写入前检查权限；可写目录不提权，受保护目录解释原因并按需申请系统授权。",
         "提权续装保持原用户配置和备份位置；拒绝授权保留原安装，内置更新能区分取消与安装失败。"
+      ],
+      "notes_en": [
+        "Before writing to Windows installation, check permissions; if the directory is writable, do not escalate privileges; explain the reason for protected directories and apply system authorization as needed.",
+        "Privilege escalation reinstallation retains the original user configuration and backup location; if authorization is denied, retain the original installation; built-in updates can distinguish between cancellation and installation failure."
       ]
     },
     {
@@ -970,6 +1420,10 @@
       "notes": [
         "提交浮层增加托管网页入口，根据远端识别GitHub、Gitee、GitLab和Bitbucket，SSH地址自动转换为提交网页。",
         "浮层与提交菜单共用远端识别，多目标一次选择；打开前复核远端，切库或地址改变不会打开旧目标。"
+      ],
+      "notes_en": [
+        "Add a hosted web page entry to the commit overlay; identify GitHub, Gitee, GitLab, and Bitbucket based on the remote; automatically convert SSH addresses to commit web pages.",
+        "The overlay and commit menu share remote identification; multiple targets can be selected once; before opening, recheck the remote; switching repositories or changing the address will not open old targets."
       ]
     },
     {
@@ -979,6 +1433,10 @@
       "notes": [
         "统一资源管理器、时间线与Git分区折叠按钮的左侧槽位，移除额外留白。",
         "文件树根层箭头与Git树行对齐，子目录保留每级8px缩进，明暗与缩放共用同一几何规则。"
+      ],
+      "notes_en": [
+        "Uniformly align the left slot of the collapse buttons for the Explorer, timeline, and Git partition; remove extra margins.",
+        "Align the arrow at the root level of the file tree with the Git tree row; retain 8px indentation for each level of subdirectories; use the same geometric rules for light and dark themes and scaling."
       ]
     },
     {
@@ -988,6 +1446,10 @@
       "notes": [
         "新增左侧“扩展”入口和Ctrl+Shift+X，在侧栏管理社区插件；面板切换保留筛选，帮助菜单不再放置插件管理。",
         "左下齿轮同时提供Typora偏好设置和插件设置；插件行进入同一配置页，停用或卸载时关闭失效设置。"
+      ],
+      "notes_en": [
+        "Add a new 'Extensions' entry on the left with Ctrl+Shift+X to manage community plugins in the sidebar; retain filters when switching panels; the help menu no longer places plugin management.",
+        "The gear in the lower left simultaneously provides Typora preferences and plugin settings; plugin rows enter the same configuration page; disabled or uninstalled plugins close invalid settings."
       ]
     },
     {
@@ -997,6 +1459,10 @@
       "notes": [
         "文件菜单统一“打开最近”，按最近顺序分组显示目录和文件完整路径；Ctrl+R支持筛选、高亮与单项移除，并可确认清空历史。",
         "确认失效的最近文件或目录会移除历史，避免反复打开报错；权限、离线和超时保留记录，清理不删除文件或工作区会话。"
+      ],
+      "notes_en": [
+        "Uniformly display 'Open Recent' in the file menu, grouping directories and files by most recent order and showing full paths; Ctrl+R supports filtering, highlighting, and individual removal, and can confirm clearing history.",
+        "Confirming invalid recent files or directories will remove the history, avoiding repeated opening errors; retain records for permissions, offline, and timeouts; cleaning does not delete files or workspace sessions."
       ]
     },
     {
@@ -1006,6 +1472,10 @@
       "notes": [
         "文件快速打开采用固定VS Code路径匹配、评分、排序与命中高亮，支持正反斜线和多词查询，修复长路径漏匹配。",
         "取消5万文件扫描截断，512条候选按可见行绘制；补齐空结果、范围和读取失败提示，防止切换工作区后打开旧结果。"
+      ],
+      "notes_en": [
+        "Quick file opening uses fixed VS Code path matching, scoring, sorting, and hit highlighting; supports forward and backward slashes and multi-word queries; fix long path matching omissions.",
+        "Cancel the 50,000 file scan truncation; draw 512 candidate entries by visible lines; complete empty results, range, and read failure prompts to prevent opening old results after switching workspaces."
       ]
     },
     {
@@ -1015,6 +1485,10 @@
       "notes": [
         "移除启动加载提示层，首次显示时一次呈现完整工作台，避免核心标签在增强UI就绪前提前闪现。",
         "原生Typora图标、窗口控制与编辑内核保持；社区插件在工作台显示后加载，官方更新后重新运行标准增强安装。"
+      ],
+      "notes_en": [
+        "Remove the startup loading overlay, display the complete workbench in one go on first show, avoiding the core tabs from flashing before the enhanced UI is ready.",
+        "Keep the native Typora icon, window controls, and editing kernel; community plugins load after the workbench is displayed, and the standard enhanced installation runs again after official updates."
       ]
     },
     {
@@ -1024,6 +1498,10 @@
       "notes": [
         "新增“帮助→社区插件”，支持typora-community-plugin v2社区目录、本地ZIP安装、启用/停用、插件设置、检查更新和卸载。",
         "社区插件在现有工作台显示后加载，复用同一个核心；新安装默认停用，失败与停用清理登记资源，程序更新等待手动正常重启。"
+      ],
+      "notes_en": [
+        "Add \"Help → Community Plugins\", supporting typora-community-plugin v2 community directory, local ZIP installation, enable/disable, plugin settings, check for updates, and uninstall.",
+        "Community plugins load after the existing workbench is displayed, reusing the same core; newly installed plugins are disabled by default, failed and disabled plugins clean up registered resources, and program updates wait for a manual normal restart."
       ]
     },
     {
@@ -1033,6 +1511,10 @@
       "notes": [
         "工作台根布局、侧栏和常驻组件改为统一单次挂载，避免分散定时初始化造成半就绪状态；原生启动图标与现有布局保持。",
         "Typora官方升级后重新运行标准增强安装器，保留新版宿主与用户设置。"
+      ],
+      "notes_en": [
+        "The root layout of the workbench, sidebar, and persistent components are unified into a single mount, avoiding partial readiness states caused by scattered timed initializations; the native startup icon and existing layout are preserved.",
+        "After an official Typora upgrade, the standard enhanced installer runs again, preserving the new host and user settings."
       ]
     },
     {
@@ -1042,6 +1524,10 @@
       "notes": [
         "修复底栏新建文件、列表切换和更多图标的偏移与非悬停隐藏，统一共享图标内容盒。",
         "修复系统减少动画时滚动条突然消失，工作台滚动条停止操作后保持800毫秒渐隐。"
+      ],
+      "notes_en": [
+        "Fix the offset and non-hover hiding of the new file, list switch, and more icons in the status bar, unifying the icon content box.",
+        "Fix the sudden disappearance of the scrollbar when system animations are reduced; the workbench scrollbar fades out after 800 milliseconds of inactivity."
       ]
     },
     {
@@ -1051,6 +1537,10 @@
       "notes": [
         "统一工作台原生滚动条显隐：悬停、滚动或拖动时显示，离开并停止操作后逐渐淡出，保持原有布局与滚动操作。",
         "覆盖资源管理器、打开的编辑器、搜索、Git列表和菜单等滚动区域；保留编辑器与终端自有机制，支持减少动画偏好。"
+      ],
+      "notes_en": [
+        "Unify the visibility of the native workbench scrollbar: show when hovering, scrolling, or dragging, and gradually fade out after leaving and stopping operations, preserving the original layout and scrolling operations.",
+        "Cover the scroll areas of the Explorer, open editors, search, Git list, and menus; retain the editor and terminal's own mechanisms, supporting reduced animation preferences."
       ]
     },
     {
@@ -1060,6 +1550,10 @@
       "notes": [
         "启动就绪前显示明确加载状态，修复原生布局闪现；失败或超时恢复原生操作，代码高亮不再阻塞工作台挂载。",
         "功能区切换保持侧栏展开，避免重复挂载和正文重排；补齐单元、功能及原生系统时序测试和分层压力证据。"
+      ],
+      "notes_en": [
+        "Display a clear loading state before startup is ready, fixing the native layout flash; recover native operations on failure or timeout, and code highlighting no longer blocks workbench mounting.",
+        "Keep the sidebar expanded when switching between functional areas, avoiding repeated mounting and document reflow; complete unit, functional, and native system timing tests and layered pressure evidence."
       ]
     },
     {
@@ -1069,6 +1563,10 @@
       "notes": [
         "提交详情浮层按Markdown显示列表、强调、代码和链接，修复原始减号及多余空行。",
         "按VS Code统一提交卡片的列表缩进、分区边线和宽度，隔离正文主题，保留明暗、缩放和复制操作。"
+      ],
+      "notes_en": [
+        "The commit details popup displays lists, emphasis, code, and links in Markdown format, fixing the original minus sign and extra blank lines.",
+        "Align the list indentation, section borders, and width of the commit card with VS Code, isolating the document theme, and retaining light/dark, zoom, and copy operations."
       ]
     },
     {
@@ -1078,6 +1576,10 @@
       "notes": [
         "启用恢复上次文件后，切换或重开目录会恢复该工作区自己的文件顺序和活动文件，空会话保持为空。",
         "会话按目录独立保存，文件丢失时提示并继续恢复可用文件；保留未保存保护与Git、搜索的切换隔离。"
+      ],
+      "notes_en": [
+        "When enabling recovery of the last file, switching or reopening a directory will restore the file order and active file of that workspace; an empty session remains empty.",
+        "Sessions are saved independently per directory; when files are lost, prompt and continue to recover available files; retain unsaved protection and isolation of Git and search switching."
       ]
     },
     {
@@ -1087,6 +1589,10 @@
       "notes": [
         "空编辑区不再显示New tab假文件，关闭最后文档同步清理未固定时间线和旧字数。",
         "修复最后Markdown回收后隐藏草稿阻止继续打开文件，以及关闭后立即重开仍显示旧正文；保留未保存及并发修改保护。"
+      ],
+      "notes_en": [
+        "The empty editor area no longer displays the New tab fake file; closing the last document synchronously cleans up the unfixed timeline and old word count.",
+        "Fix the issue where hiding the draft after the last Markdown recovery prevents continuing to open files, and where reopening immediately after closing still displays the old content; retain unsaved and concurrent modification protection."
       ]
     },
     {
@@ -1096,6 +1602,10 @@
       "notes": [
         "打开或切换最近目录时切换整个工作区，关闭旧标签并刷新文件树、搜索、时间线和Git状态，避免误操作上一工程。",
         "未保存文档支持全部保存后切换或取消；保存失败与进行中的写操作保留原工作区，旧异步任务和终端不会沿用到新目录。"
+      ],
+      "notes_en": [
+        "When opening or switching to a recent directory, switch the entire workspace, close old tabs, and refresh the file tree, search, timeline, and Git status, avoiding accidental operations on the previous project.",
+        "Unsaved documents support saving all before switching or canceling; failed and ongoing write operations retain the original workspace; old asynchronous tasks and terminals do not carry over to new directories."
       ]
     },
     {
@@ -1104,6 +1614,9 @@
       "date": "2026-09-19",
       "notes": [
         "恢复面包屑与正文之间的横向分界线，统一Markdown、源码和分栏编辑器的明暗主题边界。"
+      ],
+      "notes_en": [
+        "Restore the horizontal boundary line between breadcrumbs and the document content, unifying the light/dark theme boundaries for Markdown, source code, and split view editors."
       ]
     },
     {
@@ -1113,6 +1626,10 @@
       "notes": [
         "修复Git Graph列分隔线拖动方向反转，日期、作者、提交编号通过相邻列分配宽度。",
         "补齐哈希列调宽/调窄、键盘调节和取消拖动；刷新、切库及关闭不会保存未完成的调整。"
+      ],
+      "notes_en": [
+        "Fix the reversed drag direction of the Git Graph column separator; date, author, and commit number columns allocate width through adjacent columns.",
+        "Complete the hash column width adjustment, keyboard adjustment, and cancel drag; refresh, switch repository, and close actions do not save unfinished adjustments."
       ]
     },
     {
@@ -1122,6 +1639,10 @@
       "notes": [
         "统一工作台滚动条的8px宽度、4px圆角与明暗主题状态，动态面板自动采用共同样式。",
         "补齐Monaco、终端及阅读缩略图滑块圆角，保留隐藏滚动条与既有滚动交互。"
+      ],
+      "notes_en": [
+        "Unify the workbench scrollbar with 8px width, 4px corner radius, and light/dark theme states; dynamic panels automatically adopt the common style.",
+        "Round out the corners of the Monaco editor, terminal, and thumbnail slider for reading, while retaining hidden scrollbars and existing scrolling interactions."
       ]
     },
     {
@@ -1131,6 +1652,10 @@
       "notes": [
         "底栏与源代码管理分支入口改为顶部可搜索选择器，展示本地、远端、标签及提交详情。",
         "支持创建并检出、从引用创建和分离检出；远端自动复用跟踪分支，保留取消、草稿与冲突保护。"
+      ],
+      "notes_en": [
+        "Change the bottom bar and source code management branch entry to a searchable selector at the top, displaying local, remote, tags, and commit details.",
+        "Support creating and checking out, creating from references, and detached checkouts; remote automatically reuses tracking branches, retaining cancel, draft, and conflict protection."
       ]
     },
     {
@@ -1140,6 +1665,10 @@
       "notes": [
         "修复活动栏右键菜单缺少勾选及左侧过大空白；勾选准确反映入口是否显示。",
         "支持使用方向键定位活动栏菜单项，并用Enter或空格切换显示状态。"
+      ],
+      "notes_en": [
+        "Fix the missing checkboxes in the activity bar right-click menu and the excessive blank space on the left; checkboxes accurately reflect whether the entry is displayed.",
+        "Support using arrow keys to navigate activity bar menu items and using Enter or space to toggle display status."
       ]
     },
     {
@@ -1151,6 +1680,12 @@
         "修复最近目录刷新、文件改后缀识别和章节跳转被顶部导航遮挡的问题。",
         "优化资源管理器内容与辅助图标层级，统一侧栏菜单图标对齐。",
         "统一原生回收操作及错误反馈，移除普通Git快捷操作的多余确认。"
+      ],
+      "notes_en": [
+        "Add an optional in-place update: at startup, remind once across multiple windows, display a fix announcement, download the official repository ZIP and install, and manually restart to take effect.",
+        "Fix issues with recent directories refreshing, file suffix changes being recognized, and section jumps being obstructed by the top navigation.",
+        "Optimize the hierarchy of content and auxiliary icons in the Explorer, and align icons in the sidebar menus uniformly.",
+        "Standardize native recycling operations and error feedback, and remove redundant confirmations from regular Git shortcut operations."
       ]
     }
   ]

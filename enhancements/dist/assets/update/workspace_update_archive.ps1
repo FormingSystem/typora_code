@@ -10,7 +10,7 @@ try {
  $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
  $roots=[Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
  $total=[long]0
- # 先检查全部条目，再写入任何文件；禁止Windows路径别名和Unix符号链接。
+ # Check all entries first, then write to any file; prohibit Windows path aliases and Unix symbolic links.
  foreach($entry in $zip.Entries){
   $name=$entry.FullName
   if(!$name -or $name.Contains('\') -or $name.StartsWith('/')){throw 'Non-canonical ZIP entry.'}

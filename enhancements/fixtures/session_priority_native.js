@@ -63,7 +63,7 @@
   await core.app.commands.commandMap['linux_note:open_folder_path'].callback(root);await wait(stable,'return');
   await files.open_file(front);await wait(stable,'front final');await pause(250);
   assert(!File.changeCounter.isDocumentEdited(),'恢复和切换全过程保持原生正文未修改');
-  // 确認真实草稿仍由共同切换保护；只在专属文档中造草稿。
+  // Confirm that the real draft is still protected by common switching; only create drafts in a dedicated document.
   File.reloadContent(File.editor.getMarkdown()+'\n真实草稿\n',{delayRefresh:false,skipChangeCount:false,skipStore:true});
   if(!File.changeCounter.isDocumentEdited())File.updateChangeCount(File.ChangeType.NSChangeDone);
   const guarded=core.app.commands.commandMap['linux_note:open_folder_path'].callback(second);

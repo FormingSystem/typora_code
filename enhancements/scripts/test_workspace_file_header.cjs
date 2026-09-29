@@ -47,7 +47,7 @@ app.whenReady().then(async()=>{
   await evaluate('first.view.editor.focused_editor().focus();first.view.editor.focused_editor().setSelection({startLineNumber:1,startColumn:5,endLineNumber:1,endColumn:13});void 0');
   await more('first');
   await check('[...document.querySelectorAll(".workspace-file-title-menu>button")].map(node=>node.dataset.action).join(",")==="stage,show_opened_editors,close_all,close_saved,enable_preview_editors,lock_group,configure_editors"','actual ordinary-file overflow has applicable Git and shared editor-group actions');
-  await check('document.querySelector("[data-action=close_saved] .git-menu-shortcut").textContent==="Ctrl+K U"','close shortcuts are shown');
+  await check('document.querySelector("[data-action=close_saved] .git-menu-shortcut").textContent==="Alt+K U"','close shortcuts are shown');
   await key('Escape');await check('first.view.editor.focused_editor().hasTextFocus()&&first.view.editor.focused_editor().getSelection().startColumn===5','Escape restores source focus and selection');
   await evaluate('header_for(first).querySelector("[data-file-header-action=split]").focus();void 0');await key('Right');await check('document.activeElement===header_for(first).querySelector("[data-file-header-action=more]")','keyboard moves between toolbar buttons');await key('Down');await wait('!!document.querySelector(".workspace-file-title-menu")');await key('Escape');await check('document.activeElement===header_for(first).querySelector("[data-file-header-action=more]")','keyboard menu returns to its toolbar trigger');
   await more('first');await click('[data-action=stage]');await wait('[...panels.values()].every(panel=>!panel.pending&&!panel.writing)');

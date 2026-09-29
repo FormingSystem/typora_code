@@ -1,4 +1,4 @@
-// 原始Typora独立副本；验证正式颜色资产，不修改用户桌面/偏好。
+// Original Typora independent copy; verify formal color assets, do not modify the user's desktop/prefers.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

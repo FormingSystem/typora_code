@@ -1,4 +1,4 @@
-/** 中立的语义快照桥接：不持有进程或模型寿命，历史模型不会冒用工作区结果。 */
+/** Neutral semantic snapshot bridge: does not hold process or model life, historical models do not impersonate workspace results. */
 export const SEMANTIC_TYPES=['namespace','type','class','enum','interface','struct','typeParameter','parameter','variable','property','enumMember','event','function','method','macro','keyword','modifier','comment','string','number','regexp','operator','decorator','label'];
 export const SEMANTIC_MODIFIERS=['declaration','definition','readonly','static','deprecated','abstract','async','modification','documentation','defaultLibrary'];
 export type semantic_tokens={data:number[];token_types:string[];token_modifiers:string[]};

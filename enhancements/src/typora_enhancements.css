@@ -69,9 +69,9 @@
   display: none !important;
 }
 
-/* 切换到源码或工具标签时，保留原生画布尺寸但立即隐藏，不播放 Typora 的缩小过渡。 */
+/* When switching to source code or tool tab, retain the native canvas size but immediately hide it, without playing the Typora shrinking transition. */
 body:not(.typora-export) content:is(.typ-workspace-binding,.typ-deactive) { transition:none!important; }
 body:not(.typora-export) content.typ-deactive { visibility:hidden!important;pointer-events:none!important; }
 
-/* Mermaid画布属于图表，不继承普通源码围栏的底色。 */
+/* Mermaid canvas belongs to charts, does not inherit the normal source code fence's background color. */
 #write .md-fences.md-diagram[lang="mermaid"] {background-color:transparent!important;}

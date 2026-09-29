@@ -1,4 +1,4 @@
-// Monaco 的样式、图标和浏览器 Worker 全部装入同一离线脚本，不依赖 CDN 或安装目录。
+// Monaco's style, icons, and browser Worker are all loaded into the same offline script, without relying on CDN or installation directory.
 const fs = require('node:fs');
 const path = require('node:path');
 const { buildSync } = require('esbuild');

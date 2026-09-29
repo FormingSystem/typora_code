@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {create_workspace_menu_check,align_workspace_menu_columns} from "./workspace_menu_item";
 import {is_composing_key} from "./workspace_keyboard";
 import {capture_workspace_focus,register_workspace_dismissal,type workspace_focus_snapshot,type workspace_dismiss_layer} from "./workspace_focus";
@@ -7,9 +8,9 @@ import {git_icon} from "./git_icons";
 export type titlebar_menu_entry={label?:string;shortcut?:string;title?:string;separator?:boolean;checked?:boolean;disabled?:boolean;children?:titlebar_menu_entry[];action?:()=>unknown};
 export type titlebar_menu_definition={label:string;mnemonic:string;entries():Promise<titlebar_menu_entry[]>};
 
-/** 菜单从标题栏下方展开，超长内容只滚动自身，原生编辑选择保持到命令执行。 */
+/** Menu expands from below the title bar, long content only scrolls itself, native editing selection remains until the command is executed. */
 export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:titlebar_menu_definition[]){
-  const element=document.createElement("nav");element.className="workspace-titlebar-menu";element.setAttribute("role","menubar");element.setAttribute("aria-label","主菜单");
+  const element=document.createElement("nav");element.className="workspace-titlebar-menu";element.setAttribute("role","menubar");element.setAttribute("aria-label",workspace_text("titlebar_menu_main_menu"));
   const events=new AbortController(),signal=events.signal;
   const panels:HTMLElement[]=[];
   const panel_events=new Map<HTMLElement,AbortController>();
@@ -24,7 +25,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   const focus_item=(panel:HTMLElement,index:number)=>{const items=actionable(panel);if(!items.length)return;const item=items[(index+items.length)%items.length];item.focus({preventScroll:true});item.scrollIntoView({block:"nearest"});};
   const show_panel=(entries:titlebar_menu_entry[],anchor:HTMLElement,depth:number,focus=false)=>{
     close_after(depth);
-    const panel=document.createElement("div");panel.className="workspace-titlebar-popup";panel.setAttribute("data-workspace-surface","");panel.setAttribute("role","menu");panel.setAttribute("aria-label",anchor.getAttribute("aria-label")||anchor.textContent||"菜单");
+    const panel=document.createElement("div");panel.className="workspace-titlebar-popup";panel.setAttribute("data-workspace-surface","");panel.setAttribute("role","menu");panel.setAttribute("aria-label",anchor.getAttribute("aria-label")||anchor.textContent||workspace_text("titlebar_menu_menu"));
     const panel_controller=new AbortController(),signal=panel_controller.signal;panel_events.set(panel,panel_controller);
     const top_limit=bar.getBoundingClientRect().bottom;
     const rect=anchor.getBoundingClientRect();
@@ -56,7 +57,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     const top=depth===0?top_limit:Math.max(top_limit,Math.min(rect.top,innerHeight-size.height-4));
     panel.style.left=Math.max(4,Math.min(left,innerWidth-size.width-4))+"px";panel.style.top=top+"px";panel.style.visibility="";
     panel.addEventListener("wheel",event=>{
-      // Shift+滚轮在部分平台变成 deltaX；这里仍沿长菜单纵向移动。
+      // Shift+ scroll wheel becomes deltaX on some platforms; here it still moves vertically along the menu.
       event.preventDefault();event.stopPropagation();const delta=event.shiftKey?(event.deltaY||event.deltaX):event.deltaY;
       panel.scrollTop+=delta*(event.deltaMode===1?24:event.deltaMode===2?panel.clientHeight:1);close_after(depth+1);
     },{passive:false,signal});
@@ -78,7 +79,7 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     close();active_index=index;const request=generation;
     const button=buttons[index];button.setAttribute("aria-expanded","true");
     let entries:titlebar_menu_entry[];
-    try{entries=await definitions[index].entries();}catch(error){console.error("Typora Code menu:",error);entries=[{label:"菜单暂不可用",disabled:true}];}
+    try{entries=await definitions[index].entries();}catch(error){console.error("Typora Code menu:",error);entries=[{label:workspace_text("titlebar_menu_menu_is_not_available"),disabled:true}];}
     if(disposed||generation!==request)return;
     const anchor=button.hidden?more:button;anchor.setAttribute("aria-expanded","true");show_panel(entries,anchor,0,focus);
   };
@@ -90,14 +91,14 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
     button.addEventListener("keydown",event=>{if(["ArrowDown","Enter"," "].includes(event.key)){event.preventDefault();event.stopPropagation();void open_menu(index,true);}},{signal});
     element.append(button);return button;
   });
-  const more=document.createElement("button");more.type="button";more.dataset.workspaceInteraction="menu";more.hidden=true;more.append(git_icon("more"));more.setAttribute("aria-label","更多菜单");more.setAttribute("aria-haspopup","menu");more.setAttribute("aria-expanded","false");element.append(more);
+  const more=document.createElement("button");more.type="button";more.dataset.workspaceInteraction="menu";more.hidden=true;more.append(git_icon("more"));more.setAttribute("aria-label",workspace_text("titlebar_menu_more_menu_items"));more.setAttribute("aria-haspopup","menu");more.setAttribute("aria-expanded","false");element.append(more);
   more.addEventListener("mousedown",event=>event.preventDefault(),{signal});
   more.addEventListener("click",async()=>{
     if(more.getAttribute("aria-expanded")==="true"){close(true);return;}
     if(active_index===-1)save_focus();close();active_index=definitions.length;const request=generation;more.setAttribute("aria-expanded","true");
     const entries=await Promise.all(definitions.map(async(definition,index)=>{
       if(!buttons[index].hidden)return undefined;
-      try{return{label:definition.label,children:await definition.entries()};}catch(error){console.error("Typora Code menu:",error);return{label:definition.label,children:[{label:"菜单暂不可用",disabled:true}]};}
+      try{return{label:definition.label,children:await definition.entries()};}catch(error){console.error("Typora Code menu:",error);return{label:definition.label,children:[{label:workspace_text("titlebar_menu_menu_is_not_available"),disabled:true}]};}
     }));
     if(!disposed&&request===generation)show_panel(entries.filter(Boolean) as titlebar_menu_entry[],more,0,true);
   },{signal});
@@ -123,6 +124,6 @@ export function create_workspace_titlebar_menu(bar:HTMLElement,definitions:title
   window.addEventListener("resize",refresh,{signal});
   return {element,refresh,close,set_compact(value:boolean){
     if(disposed||compact===value)return;compact=value;last_width=-1;
-    element.classList.toggle("workspace-titlebar-menu-compact",value);more.setAttribute("aria-label",value?"主菜单":"更多菜单");refresh();
+    element.classList.toggle("workspace-titlebar-menu-compact",value);more.setAttribute("aria-label",value?workspace_text("titlebar_menu_main_menu"):workspace_text("titlebar_menu_more_menu_items"));refresh();
   },dispose(){if(disposed)return;disposed=true;close();observer.disconnect();events.abort();interaction.remove();element.remove();}};
 }

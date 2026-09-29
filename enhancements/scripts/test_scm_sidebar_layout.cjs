@@ -1,4 +1,4 @@
-// 使用原生侧栏的 absolute 内容区和悬浮文件 footer，验证 SCM 折叠标题不被覆盖。
+// Use the native sidebar's absolute content area and floating file footer, verify that the SCM fold title is not covered.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -28,7 +28,7 @@ app.whenReady().then(async()=>{
     scm.message.value=Array.from({length:30},(_,index)=>'提交说明第'+index+'行').join('\n');scm.message.dispatchEvent(new Event('input'));
     scm.notice.textContent=Array.from({length:12},(_,index)=>'操作输出 '+index).join('\n');scm.show_repositories=true;const repository=document.createElement('div');repository.className='git-scm-repository-row';repository.textContent='测试仓库';scm.repositories.container.append(repository);scm.apply_history_layout();
   })()`);await delay(200);
-  // 分隔条必须覆盖真实边界；显隐、鼠标和键盘均不能额外占用内容高度。
+  // The separator must cover the real boundary; visibility, mouse, and keyboard cannot additionally occupy content height.
   const read_sash=()=>evaluate(`(()=>{const top=scm.changes_pane.getBoundingClientRect(),bottom=scm.history.container.getBoundingClientRect(),sash=scm.history_sash.getBoundingClientRect();return{gap:bottom.top-top.bottom,center:sash.top+sash.height/2,boundary:bottom.top,height:sash.height,x:sash.left+sash.width/2,y:sash.top+sash.height/2,color:getComputedStyle(scm.history_sash,'::before').backgroundColor,position:getComputedStyle(scm.history_sash).position,dragging:scm.history_sash.classList.contains('dragging'),ratio:scm.history_ratio,rows:getComputedStyle(scm.sections).gridTemplateRows};})()`);
   const pointer=(type,x,y,extra={})=>{const zoom=test_window.webContents.getZoomFactor();test_window.webContents.sendInputEvent({type,x:Math.round(x*zoom),y:Math.round(y*zoom),...extra});};
   const assert_overlay=async()=>{const m=await read_sash();assert(Math.abs(m.gap)<.1,'分隔条预留了额外高度：'+JSON.stringify(m));assert.equal(m.position,'absolute');assert(Math.abs(m.height-4)<.1);assert(Math.abs(m.center-m.boundary)<.1,'命中区没有对准实际轨道边界：'+JSON.stringify(m));return m;};

@@ -1,10 +1,8 @@
-/* 字体和排版完整继承 CppGithubConsoles，不能导入 Night 的字体/几何规则。
- * 颜色参考固定 VS Code 6807068 的 2026 Dark；只覆盖颜色。
- * 标题保留用户选定的土色；设置中的用户覆盖优先。 */
+/* Inherit fonts and typography from CppGithubConsoles; do not import Night's font or geometry rules. Use the 2026 Dark colors from pinned VS Code 6807068, changing colors only. Preserve the user's earth-toned headings; user color overrides take precedence. */
 @import url("./cpp_github-consolas.css");
 
 :root {
-    /* 原始Typora Night的Mermaid入口，交给宿主转换/渲染。 */
+    /* Original Typora Night's Mermaid entry, hand over to host for conversion/rendering. */
     --mermaid-theme: night;
     --bg-color: #121314;
     --text-color: #BBBEBF;

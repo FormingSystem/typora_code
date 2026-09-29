@@ -1,6 +1,6 @@
 export type git_operation_state = Readonly<{busy:boolean;running:boolean;enabled:boolean;kind:string;label:string;revision:number}>;
 
-/** 仓库控制器的真实活动；令牌保证被替代的异步任务不能结束新操作。 */
+/** Real activities of the repository controller; tokens ensure that asynchronous tasks replaced by the token cannot end new operations. */
 export class git_operation_progress {
   private activities = new Map<symbol,{kind:string;label:string;waiting:boolean}>();
   private listeners = new Set<(state:git_operation_state)=>void>();
@@ -9,7 +9,7 @@ export class git_operation_progress {
   private disposed = false;
   get state():git_operation_state {
     const values=[...this.activities.values()],running=values.filter(value=>!value.waiting);
-    // 命令引起的刷新仍属于该命令，底栏旋转一直持续到刷新收尾。
+    // Refreshes caused by commands still belong to the command, and the status bar rotation continues until the refresh is complete.
     const active=running.filter(value=>value.kind!=="refresh").at(-1)||running.at(-1)||values.at(-1);
     return {busy:values.length>0,running:values.some(value=>!value.waiting),enabled:this.enabled,kind:active?.kind||"",label:active?.label||"",revision:this.revision};
   }

@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import crypto from 'node:crypto';import {build} from 'esbuild';import editor_bundle from './editor_bundle.cjs';
 const compiled=await build({stdin:{contents:'export * from "./src/workspace_native_save";export * from "./src/workspace_save_service";export * from "./src/workspace_text_document";export * from "./src/workspace_file_events";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false,loader:{'.css':'text'},plugins:editor_bundle.editor_plugins()});
 const api=await import('data:text/javascript;base64,'+Buffer.from(compiled.outputFiles[0].text).toString('base64'));
@@ -20,7 +21,7 @@ assert.throws(()=>binding.save(()=>{throw Error('save failure');}),/save failure
 const first_options=file.option;file.option={enableAutoSave:true,noUnsavedDraftsBackup:true};binding.sync_options();assert.equal(file.option.enableAutoSave,false);assert.equal(file.option.noUnsavedDraftsBackup,true);
 binding.dispose();assert.equal(file.option.enableAutoSave,true);assert.equal(first_options.enableAutoSave,true);assert.equal(file.updateChangeCount,originals.change);assert.equal(file.isActiveWindow,originals.active);assert.equal(bridge.invoke,originals.invoke);
 const other=bind_native_save({File:file,JSBridge:bridge},{changed(){},saved(){},auto_save_changed(){}}),replacement=()=>7;bridge.invoke=replacement;other.dispose();assert.equal(bridge.invoke,replacement);
-// 使用实际保存服务连接源码事务和宿主 didSave；事件发出时磁盘已完成写入。
+// Use real save service connection for source code transactions and host didSave; disk has completed writing when events are emitted.
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_save_events_')),native_path=path.join(root,'native.md'),source_path=path.join(root,'source.ts');
 const previous_window=globalThis.window,previous_document=globalThis.document;
 globalThis.window=new EventTarget();globalThis.document=new EventTarget();

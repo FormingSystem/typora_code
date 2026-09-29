@@ -2,7 +2,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {workspace_element as el} from "./workspace_widgets";
 import css from "./workspace_progress.css";
 
-/** 共享进度绘制；业务决定进度与结束时机，未知总量永远不生成百分比。 */
+/** Share progress drawing; business decides the progress and end time, unknown total amount will never generate a percentage. */
 export function create_workspace_progress_view(){
  const style=acquire_workspace_style("typora-code-workspace-progress",css);
  const root=el("div","workspace-progress"),bit=el("span","workspace-progress-bit");

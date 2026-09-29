@@ -1,3 +1,4 @@
+require('./fixture_locale.cjs');
 'use strict';
 const assert=require('node:assert/strict'),path=require('node:path');
 const {validate_target,create_remote_ssh,remote_terminal_profile,connection_arguments}=require('../src/remote_ssh_service.cjs');
@@ -26,7 +27,7 @@ const {validate_target,create_remote_ssh,remote_terminal_profile,connection_argu
  }
  const missing=create_remote_ssh({...options,asset_root:path.join(__dirname,'missing-assets')});await assert.rejects(missing.connect('host'),/ENOENT/);assert.equal(missing.state(),'disconnected');missing.dispose();
  const cancel=create_remote_ssh(options);const pending=cancel.connect('host');cancel.disconnect();await assert.rejects(pending,/已取消连接|无法启动SSH/);cancel.dispose();
- // 仅替换SSH进程，产品请求队列/编码/接收缓冲和关闭处理仍实际运行。
+ // Only replace SSH processes, product request queue/encoding/receiving buffer and close handling still run in reality.
  const child_process=require('node:child_process'),{EventEmitter}=require('node:events'),original_spawn=child_process.spawn;
  const child=new EventEmitter();child.stdout=new EventEmitter();child.stderr=new EventEmitter();const held=[];
  const reply=(id,result)=>{const wire=JSON.stringify({id,result})+'\n';for(let offset=0;offset<wire.length;offset+=1024*1024)child.stdout.emit('data',Buffer.from(wire.slice(offset,offset+1024*1024)));};

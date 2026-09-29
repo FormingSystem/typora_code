@@ -1,4 +1,4 @@
-// 仅在隔离宿主回放renderer键盘；不关闭用户窗口。
+// Only replay renderer keyboard in isolated host; do not close user window.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],observed=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),assert=(v,label)=>{if(!v)throw Error(label);checks.push(label);};
@@ -9,7 +9,7 @@
   const send=(code,key,mod={})=>{let prevented=false;for(const type of ['keydown','keyup']){const e=new KeyboardEvent(type,{bubbles:true,cancelable:true,code,key,keyCode:code.startsWith('Key')?key.toUpperCase().charCodeAt(0):0,which:code.startsWith('Key')?key.toUpperCase().charCodeAt(0):0,...mod});write.dispatchEvent(e);if(type==='keydown')prevented=e.defaultPrevented;}return prevented;};
   const toggle=side.toggle;let toggles=0;side.toggle=function(...args){toggles++;return toggle.apply(this,args);};
   const action=stylize.toggleStyle;stylize.toggleStyle=function(...args){observed.push(args);return action.apply(this,args);};
-  // 选中原生正文，让宿主自己的按键处理器执行实际加粗。
+  // Select native document content, let the host's own key handler execute actual bolding.
   const p=write.querySelector('p'),range=document.createRange();range.selectNodeContents(p);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);write.focus();
   send('KeyB','b',{ctrlKey:true});await pause(180);
   assert(toggles===0,'Ctrl+B不折叠侧栏');

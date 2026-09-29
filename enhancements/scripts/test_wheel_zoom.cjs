@@ -1,4 +1,4 @@
-// 隐藏Electron真实xterm和滚轮输入；临时配置，不启动Shell。
+// Hidden Electron real xterm and wheel input; temporary configuration, do not start Shell.
 const {app,BrowserWindow}=require('electron'),{build}=require('esbuild');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_wheel_zoom_')),checks=[];
@@ -33,7 +33,7 @@ app.whenReady().then(async()=>{
   await read(`wheel(view.viewport,{deltaY:${i%2?-120:120}})`);await pause(40);
  }
  await check('top_text()===line_before&&view.term.options.fontSize===15&&store.get().font_size===14&&errors.length===0','20 reciprocal wheel changes keep history content');
- await read('store.update({...store.get(),smooth_scrolling:true});view.container.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));view.term.scrollToBottom()');await until('view.term.buffer.active.viewportY===view.term.buffer.active.baseY');await pause(50);await read('wheel(view.viewport)');await pause(160);
+ await read('(async()=>{store.update({...store.get(),smooth_scrolling:true});await new Promise(resolve=>requestAnimationFrame(()=>requestAnimationFrame(()=>requestAnimationFrame(resolve))));view.container.dispatchEvent(new PointerEvent("pointerdown",{bubbles:true}));view.term.scrollToBottom();})()');await until('view.term.buffer.active.viewportY===view.term.buffer.active.baseY');await pause(50);await read('wheel(view.viewport)');await pause(160);
  await check('view.term.buffer.active.viewportY===view.term.buffer.active.baseY','bottom remains following prompt');
  await read('view.term.scrollToLine(35)');await pause(160);await read('window.hidden_line=top_text();view.container.hidden=true;store.update({...store.get(),font_size:18})');await pause(50);
  await read('view.container.hidden=false;view.mount()');await pause(120);
@@ -44,7 +44,7 @@ app.whenReady().then(async()=>{
  await read('store.update({...store.get(),font_size:14});window.font_before=view.term.options.fontSize;window.config_count=configs.length;for(let i=0;i<1000;i++)wheel(view.viewport)');await pause(120);
  await check('configs.length===config_count&&view.term.options.fontSize===font_before+1','1000 queued wheel events coalesce without writing settings');
  for(const options of [{ctrlKey:false},{shiftKey:true},{altKey:true},{metaKey:true},{deltaY:0}])await check(`!wheel(view.viewport,${JSON.stringify(options)})`,'terminal preserves non-zoom modifiers '+JSON.stringify(options));
- // 真实Chromium命中路由：鼠标在终端而焦点仍在正文。
+ // Real Chromium hit routing: Mouse at the terminal while focus remains in the document content.
  await read('root.tabIndex=0;root.focus();view.term.scrollToLine(50)');await pause(160);await read('window.real_line=top_text();window.font_before=view.term.options.fontSize');
  const point=await read('(()=>{const r=view.viewport.getBoundingClientRect();return{x:Math.round(r.left+40),y:Math.round(r.top+40)}})()');
  await read('measure_wheel("terminal")');
@@ -58,7 +58,7 @@ app.whenReady().then(async()=>{
  win.webContents.sendInputEvent({type:'mouseWheel',...body_point,deltaY:120,modifiers:['control'],canScroll:true});await pause(150);
  await check('parseFloat(getComputedStyle(root).fontSize)===trusted_body_size+1&&latency.length===2&&latency.every(x=>x.trusted&&x.next_frame_ms<1000)','trusted Chromium wheel changes content and records next-frame latency for both domains');
  await read('frame.setZoomLevel(0)');await pause(100);
- // Shadow正文的事件会穿过document捕获监听，必须先识别外层预览所有者。
+ // Events of Shadow document content pass through document capture listener, must first identify the outer preview owner.
  for(const kind of ['workspace-link-preview','workspace-lookup-preview']){
   await read(`window.before_preview_calls=zoom_calls;window.preview_root=document.createElement('section');preview_root.className='${kind}';document.body.append(preview_root);window.preview_shadow=preview_root.attachShadow({mode:'open'});preview_shadow.innerHTML='<article id="write"><p>Preview text</p></article>';window.preview_wheels=0;preview_root.addEventListener('wheel',e=>{preview_wheels++;e.preventDefault();e.stopImmediatePropagation();},{capture:true,passive:false});preview_shadow.querySelector('p').dispatchEvent(new WheelEvent('wheel',{ctrlKey:true,deltaY:-120,bubbles:true,composed:true,cancelable:true}));`);await pause(100);
   await check('zoom_calls===before_preview_calls&&preview_wheels===1',kind+' composed Shadow wheel stays with preview, not host');await read('preview_root.remove()');
@@ -69,7 +69,7 @@ app.whenReady().then(async()=>{
  await check('zoom_calls===before_calls&&parseFloat(getComputedStyle(root).fontSize)===body_font+1','1000 body wheel events coalesce into one content font change');
  await read('window.padding=document.createElement("content");padding.innerHTML="<article id=write style=height:20px>padding probe</article>";document.body.append(padding);window.padding_font=parseFloat(getComputedStyle(root).fontSize);wheel(padding)');await pause(80);
  await check('parseFloat(getComputedStyle(root).fontSize)===padding_font+1&&zoom_calls===before_calls','native editing area padding changes content font, not window');await read('padding.remove()');
- // 界面缩放补偿、新实例继承及重启式重绑。
+ // Interface scaling compensation, new instance inheritance and restart-style re-binding.
  await read('window.body_size=parseFloat(getComputedStyle(root).fontSize);window.term_size=view.term.options.fontSize;window.line_before=top_text();commands.get("linux_note:zoom_in").callback()');await pause(180);
  await check('Math.abs(parseFloat(getComputedStyle(root).fontSize)*frame.getZoomFactor()-body_size)<.01&&Math.abs(view.term.options.fontSize*frame.getZoomFactor()-term_size)<.01','window zoom preserves both visual font sizes');
  await check('top_text()===line_before','window zoom keeps terminal history anchor');

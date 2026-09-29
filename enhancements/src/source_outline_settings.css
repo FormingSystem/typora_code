@@ -1,4 +1,4 @@
-/* 延用现有 workspace_dialog 的平直表单、主题色及 13px 工作台比例。 */
+/* Continue using the existing workspace_dialog flat form, theme color, and 13px workbench ratio. */
 .source-outline-settings>.git-graph-dialog{width:min(600px,95vw)}
 .source-outline-settings .git-graph-dialog-content{white-space:normal}
 .source-outline-settings .source-outline-settings-context{margin:0 0 12px;font-size:12px;opacity:.8}

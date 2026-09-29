@@ -1,4 +1,4 @@
-/* 独立Shadow样式；构建保留为字符串，禁止合并到全局workspace.css。 */
+/* Independent Shadow styles; the build is retained as a string, and it is prohibited to merge into the global workspace.css. */
 :host {display:block;min-width:0;font:inherit;color:inherit;white-space:normal;overflow-wrap:anywhere;}
 div {display:flow-root;}
 p {margin:4px 0;}

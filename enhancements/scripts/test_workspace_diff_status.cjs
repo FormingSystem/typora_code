@@ -1,4 +1,4 @@
-// 实际 Monaco 差异与源码视图共同使用唯一底栏；文件只放在临时目录。
+// Actual Monaco differences and source code view share a unique status bar; files are only placed in temporary directories.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const {build}=require('esbuild');const {editor_plugins}=require('./editor_bundle.cjs');

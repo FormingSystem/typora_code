@@ -1,4 +1,4 @@
-// 使用原生工具栏节点与生产面板验证实际布局，隐藏窗口不启动用户 Typora。
+// Use native toolbars and production panels to verify actual layout, hidden windows do not start user Typora.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const {build}=require('esbuild');

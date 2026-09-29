@@ -188,7 +188,7 @@ function run_test(electron_executable, name, position, total) {
     for (const key of ["TEMP", "TMP", "TMPDIR"]) child_environment[key] = join(artifact_root, "work");
     child_environment.GIT_CEILING_DIRECTORIES = [child_environment.GIT_CEILING_DIRECTORIES, artifact_root].filter(Boolean).join(delimiter);
     console.log(`\n[UI ${position}/${total}] ${name}`);
-    const child = spawn(electron_executable, [join(script_directory, name)], {
+    const child = spawn(electron_executable, ["--lang="+(process.env.TYPORA_UI_TEST_LOCALE || "zh-CN"), join(script_directory, name)], {
       cwd: package_directory,
       env: child_environment,
       stdio: ["ignore", "pipe", "pipe"],

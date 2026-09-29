@@ -1,7 +1,8 @@
+import {workspace_text} from "./workspace_i18n";
 import {workspace_menu} from './workspace_widgets';
 
 type text_input=HTMLInputElement|HTMLTextAreaElement;
-/** 查找/替换等辅助文本框；Monaco代码输入代理仍由编辑器拥有。 */
+/** Find/replace and other auxiliary text boxes; Monaco code input proxy is still owned by the editor. */
 export function monaco_text_input(target:EventTarget|null):text_input|undefined{
  if((target instanceof HTMLInputElement||target instanceof HTMLTextAreaElement)&&target.closest('.monaco-editor')&&!target.classList.contains('inputarea'))return target;
 }
@@ -26,12 +27,12 @@ export function run_text_input_command(input:text_input,command:string):void{
 }
 export function monaco_text_input_menu(event:MouseEvent,input:text_input):()=>void{
  const start=input.selectionStart,end=input.selectionEnd;
- const entries=[['undo','撤销','Ctrl+Z'],['redo','重做','Ctrl+Y'],['cut','剪切','Ctrl+X'],['copy','复制','Ctrl+C'],['paste','粘贴','Ctrl+V'],['selectAll','全选','Ctrl+A']];
+ const entries=[['undo',workspace_text("monaco_text_input_undo"),'Ctrl+Z'],['redo',workspace_text("monaco_text_input_redo"),'Ctrl+Y'],['cut',workspace_text("git_diff_editor_cut"),'Ctrl+X'],['copy',workspace_text("monaco_text_input_copy"),'Ctrl+C'],['paste',workspace_text("git_diff_editor_paste"),'Ctrl+V'],['selectAll',workspace_text("monaco_text_input_select_all"),'Ctrl+A']];
  return workspace_menu(event,entries.map(([command,title,shortcut])=>({id:'input_'+command,title,shortcut,separator:command==='cut'||command==='selectAll',disabled:input.disabled||input.readOnly&&!['copy','selectAll'].includes(command)||['copy','cut'].includes(command)&&start===end,action:()=>{
   if(!input.isConnected)return;input.focus({preventScroll:true});input.setSelectionRange(start,end);run_text_input_command(input,command);
  }})),'workspace-text-input-menu');
 }
-/** 宿主编辑快捷键不能越过此边界执行Markdown命令；浏览器管理本框撤销栈。 */
+/** Host edit shortcut keys cannot execute Markdown commands beyond this boundary; the browser manages this box's undo stack. */
 export function monaco_text_input_key(event:KeyboardEvent):boolean{
  const input=monaco_text_input(event.target);if(!input||event.isComposing||event.altKey||!(event.ctrlKey||event.metaKey))return false;
  const key=event.key.toLowerCase(),command=key==='z'?(event.shiftKey?'redo':'undo'):!event.shiftKey?({y:'redo',x:'cut',c:'copy',v:'paste',a:'selectAll'} as Record<string,string>)[key]:undefined;

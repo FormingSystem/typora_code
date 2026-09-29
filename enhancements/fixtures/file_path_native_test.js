@@ -1,4 +1,4 @@
-// 只在安装测试生成的临时窗口中运行；用桥接替身核对复制文本，保留系统剪贴板原内容。
+// Run only in the temporary window generated during installation testing; use bridging stand-in to verify copied text, retain the original system clipboard content.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const probe_root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/file_path_native_test.js$/u, '');
@@ -29,7 +29,7 @@
         if (command === 'clipboard.write') { copied = JSON.parse(args[0]).text; copy_count++; return Promise.resolve(); }
         return original_invoke.call(this, command, ...args);
       };
-      // 只替换此测试窗口的根目录查询，不改变实际挂载目录及用户设置。
+      // Only replace the root directory query of this test window, do not change the actual mounted directory and user settings.
       File.getMountFolder = () => probe_root;
       const app = window[Symbol.for('typora-code:workspace')].app;
       const source_path = File.bundle.filePath;

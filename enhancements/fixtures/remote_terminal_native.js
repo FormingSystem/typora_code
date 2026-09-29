@@ -1,4 +1,4 @@
-// 正式构建、原生Typora和真实SSH；认证在内存读取，不进入证据。
+// Officially build, native Typora, and real SSH; authentication is done in memory reading, not entering evidence.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const env=reqnode('process').env,target=env.TYPORA_TEST_SSH_TARGET;let password=env.TYPORA_TEST_SSH_PASSWORD;

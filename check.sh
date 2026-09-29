@@ -19,7 +19,7 @@ done
 
 typora_environment_init "$typora_tools_root"
 typora_root="$(typora_resolve_root "$requested_root" "$non_interactive")"
-# Windows 的安装、下载、校验与回滚统一交给同一实现。
+# The installation, download, verification, and rollback of Windows are all handed over to the same implementation.
 if [[ "$TYPORA_PLATFORM_ID" == 'windows-ucrt64' ]]; then
     powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$(cygpath -w "$typora_tools_root/check_windows.ps1")" -typora_root "$(cygpath -w "$typora_root")" -non_interactive
     exit $?

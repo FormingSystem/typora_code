@@ -1,12 +1,14 @@
+import {load_workspace_service} from "./workspace_service_loader";
+import {workspace_text} from "./workspace_i18n";
 import {workspace_element as el,workspace_button as button,workspace_dialog} from './workspace_widgets';
 import {register_ssh_auth_owner} from './remote_ssh_auth_context';
 import {read_remote_ssh_settings} from './remote_ssh_settings';
 
-/** 一个窗口共享认证协调器；每次连接拥有独立的重试、取消和凭据身份。 */
+/** One window shares an authentication coordinator; each connection owns its retries, cancellation, and credential identity. */
 export function create_ssh_authentication(runtime:any,asset_root:string,node_path:string){
  const path=runtime.reqnode('path'),root=path.join(runtime._options.userDataPath,'typora_code','ssh_credentials');
- const api=runtime.reqnode(path.join(asset_root,'remote_ssh_service.cjs'));
- const directory_api=runtime.reqnode(path.join(asset_root,'remote_ssh_connections.cjs'));
+ const api=load_workspace_service(runtime.reqnode, path.join(asset_root,'remote_ssh_service.cjs'));
+ const directory_api=load_workspace_service(runtime.reqnode, path.join(asset_root,'remote_ssh_connections.cjs'));
  const credential_api=runtime.reqnode(path.join(asset_root,'remote_ssh_credentials.cjs'));
  const directory=directory_api.create_connection_store(root),credentials=credential_api.create_credential_store(root);
  const vault=credential_api.create_password_vault(credentials,(operation:()=>Promise<any>)=>directory_api.with_store_lock(root,operation));
@@ -18,22 +20,22 @@ export function create_ssh_authentication(runtime:any,asset_root:string,node_pat
    if(disposed||!current()){resolve({remember:false});return;}
    let answer:string|undefined,remember_value=false;
    const confirm=/yes\/no|fingerprint|authenticity/iu.test(message);
-   const input=el('input');input.type='password';input.autocomplete='off';input.setAttribute('aria-label','SSH认证信息');
-   const remember=el('input');remember.type='checkbox';const label=el('label');label.append(remember,document.createTextNode('保存到系统凭据管理器'));
-   const dialog=workspace_dialog(confirm?'确认SSH主机身份':'SSH身份验证','取消',()=>{clearInterval(timer);input.value='';active_dialog=undefined;resolve({answer,remember:remember_value});});active_dialog=dialog;
+   const input=el('input');input.type='password';input.autocomplete='off';input.setAttribute('aria-label',workspace_text("remote_ssh_authentication_ssh_authentication_information"));
+   const remember=el('input');remember.type='checkbox';const label=el('label');label.append(remember,document.createTextNode(workspace_text("remote_ssh_authentication_save_to_system_credential_manager")));
+   const dialog=workspace_dialog(confirm?workspace_text("remote_ssh_authentication_confirm_ssh_host_identity"):workspace_text("remote_ssh_authentication_ssh_authentication"),workspace_text("language_service_settings_view_cancel"),()=>{clearInterval(timer);input.value='';active_dialog=undefined;resolve({answer,remember:remember_value});});active_dialog=dialog;
    const timer=setInterval(()=>{if(disposed||!current())dialog.close();},100);
    dialog.content.append(el('p','workspace-ssh-auth-prompt',message));
-   if(confirm)dialog.content.append(el('p','','请先核对主机指纹，确认后由OpenSSH保存信任。'));else dialog.content.append(input);
+   if(confirm)dialog.content.append(el('p','',workspace_text("remote_ssh_authentication_please_verify_the_host_fingerprint_first_then_confirm_and_sa")));else dialog.content.append(input);
    if(remember_allowed&&credentials.supported)dialog.content.append(label);
    const accept=()=>{if(!current()){dialog.close();return;}answer=confirm?'yes':input.value;remember_value=remember.checked;dialog.close();};
-   dialog.footer.prepend(button(confirm?'信任并连接':'连接',accept));input.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();accept();}};
+   dialog.footer.prepend(button(confirm?workspace_text("remote_ssh_authentication_trust_and_connect"):workspace_text("remote_ssh_authentication_connect"),accept));input.onkeydown=e=>{if(e.key==='Enter'&&!e.isComposing){e.preventDefault();accept();}};
   }));queue=result.then(()=>undefined,()=>undefined);return result;
  };
  const attempt=async(target:string,port:number,current:()=>boolean,persist_immediately=false)=>{
   const owner=await identity(target,port);let used=false,pending:string|undefined,remember=false,legacy=false,entered=false;
   return {owner,async authenticate(message:string,stale:()=>boolean){
    const valid=()=>!disposed&&current()&&!stale();if(!valid())return;
-   // ProxyJump、密钥口令和验证码不可误用目标账号的保存密码。
+   // Do not use the target account's saved password for ProxyJump, key passphrases, or verification codes.
    const password_prompt=/password/iu.test(message)&&!/passphrase|verification|one.time/iu.test(message);
    const expected=owner.user+'@'+owner.hostname;
    const matches=password_prompt&&(message.includes(expected+"'s password")||message.includes('('+expected+') Password'));
@@ -45,9 +47,9 @@ export function create_ssh_authentication(runtime:any,asset_root:string,node_pat
  };
  const bridges=new Set<{dispose:()=>void}>();
  const release=register_ssh_auth_owner({list:()=>directory.list(),prepare:async(target,port,current)=>{
-  const auth=await attempt(target,port,current,true);if(disposed||!current())throw Error('SSH终端启动已取消');
+  const auth=await attempt(target,port,current,true);if(disposed||!current())throw Error(workspace_text("remote_ssh_authentication_ssh_terminal_start_has_been_canceled"));
   const bridge=await runtime.reqnode(path.join(asset_root,'remote_ssh_auth.cjs')).create_ssh_auth({asset_root,node_path,authenticate:auth.authenticate,is_current:current});
-  if(disposed||!current()){bridge.dispose();throw Error('SSH终端启动已取消');}bridges.add(bridge);
+  if(disposed||!current()){bridge.dispose();throw Error(workspace_text("remote_ssh_authentication_ssh_terminal_start_has_been_canceled"));}bridges.add(bridge);
   return{env:bridge.env,dispose(){bridges.delete(bridge);bridge.dispose();}};
  }});
  return{directory,credentials,vault,identity,save,attempt,async forget(target:string,port:number){const owner=await identity(target,port);sessions.delete(owner.key);await credentials.remove(owner.key);if(!port&&!read_remote_ssh_settings().config_file)await credentials.remove(target);},dispose(){disposed=true;active_dialog?.close();for(const bridge of bridges)bridge.dispose();bridges.clear();sessions.clear();release();}};

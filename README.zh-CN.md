@@ -43,7 +43,7 @@ Windows 卸载时，保存文档并退出 Typora，运行 `uninstall_windows.cmd
 
 ## 使用工作台
 
-从[操作说明与快捷键](docs/user_guide.md)开始。帮助菜单也可打开已安装的离线说明和操作指导。离线说明的语言选择及工作台完整双语仍在准备中，本入口不表示当前全部界面文字已经翻译。
+从[操作说明与快捷键](docs/user_guide.md)开始。帮助菜单也可打开已安装的离线说明和操作指导。工作台支持中文和英文，默认跟随 Typora；可在统一设置的“显示语言”中选择，保存后正常重启生效，离线帮助使用同一语言。
 
 从“文件 → 打开文件夹”选择工程。左下齿轮或 `Ctrl+,` 打开设置；`Ctrl+P` 查找文件，`Ctrl+Shift+F` 搜索正文，`Alt+B` 切换侧栏，`Alt+左右方向键` 导航编辑器历史。Typora 原生 Markdown 快捷键保留，例如 `Ctrl+B` 加粗。
 
@@ -61,7 +61,7 @@ npm run check:ui
 
 以本仓库为工程根目录。实现位于 `enhancements/src/`，配套预构建文件位于 `enhancements/dist/`。构建保留来源和许可信息。目标界面测试复用现有运行器，例如 `npm run check:ui -- test_workspace_titlebar.cjs`。
 
-修改行为前阅读[贡献指南](docs/contributing.zh-CN.md)。设计记录与历史验收证据目前仍为中文，英文迁移单独跟踪。隐藏窗口测试通过不能替代 Typora 原生验收或其他平台验证。
+修改行为前阅读[贡献指南](docs/contributing.zh-CN.md)。设计记录、开发交接和历史验收均提供独立中英文页及互切入口。隐藏窗口测试通过不能替代 Typora 原生验收或其他平台验证。
 
 ## 许可与署名
 

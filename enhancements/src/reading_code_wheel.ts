@@ -1,6 +1,6 @@
 import {reading_viewport_bounds} from './reading_viewport';
 
-/** 收起代码先完整进入正文视口，再允许原生CodeMirror消费垂直滚轮。 */
+/** Collapse code first fully enters the document viewport, then allows native CodeMirror to consume the vertical scroll wheel. */
 export function bind_reading_code_wheel(owner_document:Document=document):()=>void {
   const on_wheel=(event:WheelEvent)=>{
     if(event.defaultPrevented||event.ctrlKey||event.metaKey||event.shiftKey||!event.deltaY||Math.abs(event.deltaX)>Math.abs(event.deltaY))return;
@@ -16,7 +16,7 @@ export function bind_reading_code_wheel(owner_document:Document=document):()=>vo
       &&button_box.top>=bounds.top&&button_box.bottom<=bounds.bottom;
     const can_scroll=event.deltaY<0?scroller.scrollTop>0:scroller.scrollTop+scroller.clientHeight<scroller.scrollHeight-1;
     if(fully_visible&&can_scroll)return;
-    // preventDefault同时取消浏览器的嵌套滚动，捕获阶段阻止CodeMirror自行消费同一增量。
+    // preventDefault Disable nested scrolling in the browser, the capture phase prevents CodeMirror from consuming the same increment itself.
     event.preventDefault();event.stopPropagation();
     let amount=event.deltaY;
     if(event.deltaMode===WheelEvent.DOM_DELTA_LINE){

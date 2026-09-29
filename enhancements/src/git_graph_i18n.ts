@@ -1,3 +1,4 @@
+import {resolve_workspace_locale} from "./workspace_locale";
 export type git_graph_locale = "zh-cn" | "en";
 
 const zh_cn = {
@@ -1716,34 +1717,7 @@ const en: Record<git_graph_text_key, string> = {
 
 const dictionaries: Record<git_graph_locale, Record<git_graph_text_key, string>> = {"zh-cn": zh_cn, en};
 
-function language_candidates(): string[] {
-  const runtime = globalThis as typeof globalThis & {
-    _options?: {displayLang?: string; appLocale?: string; locale?: string; userLang?: string};
-    File?: {option?: {displayLang?: string; locale?: string; userLang?: string}};
-    navigator?: Navigator;
-    document?: Document;
-  };
-  const plugin_env = (runtime as unknown as Record<PropertyKey, unknown>)[Symbol.for("typora-code:workspace:env")] as {userLang?: string} | undefined;
-  return [
-    plugin_env?.userLang,
-    runtime._options?.displayLang,
-    runtime._options?.userLang,
-    runtime._options?.appLocale,
-    runtime._options?.locale,
-    runtime.File?.option?.displayLang,
-    runtime.File?.option?.userLang,
-    runtime.File?.option?.locale,
-    runtime.document?.documentElement?.lang,
-    runtime.document?.body?.lang,
-    ...(runtime.navigator?.languages || []),
-    runtime.navigator?.language,
-  ].filter((value): value is string => typeof value === "string" && Boolean(value.trim()));
-}
-
-export function resolve_git_graph_locale(language?: string): git_graph_locale {
-  const selected = language || language_candidates()[0] || "zh-cn";
-  return /^zh(?:-|_|$)/iu.test(selected.trim()) ? "zh-cn" : "en";
-}
+export const resolve_git_graph_locale = resolve_workspace_locale;
 
 export type git_graph_text_values = Record<string, string | number>;
 

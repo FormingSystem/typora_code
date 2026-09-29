@@ -1,3 +1,5 @@
+[English](source_outline.en.md)
+
 # 代码大纲与解析环境
 
 C、C++ 和头文件的大纲由本机 **clangd** 提供。工作台通过标准 LSP 发送当前编辑器内存中的正文，接收符号名称、类别、父子关系及选择范围，点击后在当前 Monaco 编辑器定位。这里使用 clangd 的 Clang 编译器前端；GCC 是编译工具链，不能直接当作 LSP 服务器。Markdown 继续显示原生标题目录。
@@ -43,7 +45,7 @@ Markdown 大纲保留原生目录树。自动高亮优先选择完整进入可�
 
 可读视口扣除底栏覆盖区域，大纲与文档缩略图共用这一边界，避免把字数栏后的标题当作可见内容。底栏单侧 0%～24% 的 Markdown 边距调整会保留当前阅读段落；它只恢复原有宽度控件，不重新引入整套外观设置。
 
-安装器仅备份并移除已退休的 C/C++ Tree-sitter grammar 与许可证，恢复或失败时按原字节回滚，不扫描删除用户文件。当前发布资产与 schema 4 部署方式见[安装与备份](../enhancements/README.md#1.3_PowerShell单独安装扩展与备份)。
+安装器仅备份并移除已退休的 C/C++ Tree-sitter grammar 与许可证，恢复或失败时按原字节回滚，不扫描删除用户文件。当前发布资产与 schema 4 部署方式见[安装与备份](../enhancements/README.md#13_powershell单独安装扩展与备份)。
 
 当前结果、历史基线和后续修复的验证计数统一记录在[反馈复查记录](feedback_review.md)。真实 clangd、隐藏 Electron、私有桌面的原生 Typora 及物理键盘是不同证据层；合成按键不证明原生 accelerator 冲突已排除，Windows 上的 Python 部署测试也不代表原生 Linux 验收。
 

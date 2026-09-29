@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { workspace_button as button, workspace_dialog, workspace_element as el } from "./workspace_widgets";
 
@@ -11,7 +12,7 @@ type source_group = graph_leaf["parent"] & {
   removeTab(path: string, tab?: HTMLElement): unknown;
 };
 
-/** 核心 2.10.15 的关闭、切换和 detach 是不同生命周期：仅真正移除叶子才释放源码模型。 */
+/** The core 2.10.15's close, switch, and detach are different lifecycles: only the true removal of the leaf node releases the source code model. */
 export function bind_source_lifecycle(core: graph_core, all_views: () => Iterable<source_lifecycle_view>) {
   const guarded_groups = new WeakSet<object>();
   const guarded_leaves = new WeakSet<object>();
@@ -29,11 +30,11 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
   const release_removed = (view: source_lifecycle_view) => {
     if (disposed || view.disposed || present(view.leaf)) return;
     pending.get(view)?.dialog.close(); pending.delete(view);
-    // 真正关闭即释放补丁闭包，不能把已经回收的视图保留到整个工作台退出。
+    // True closure releases the patch closure, and cannot retain the already recycled view until the entire workbench exits.
     leaf_patches.get(view)?.();leaf_patches.delete(view);view.release_source();
   };
   const schedule_release = (view: source_lifecycle_view) => {
-    // detach 后原生拖动立即 insertChild；微任务检查时才能区分移动和真正关闭。
+    // After detach, the native drag immediately insertChild; only during microtask checks can the distinction between movement and true closure be made.
     queueMicrotask(() => release_removed(view));
   };
   const confirm_close = (view: source_lifecycle_view, close: () => void): Promise<boolean> => {
@@ -41,14 +42,14 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     const previous = pending.get(view); if (previous) return previous.result;
     let resolve_result!: (value: boolean) => void, completed = false;
     const result = new Promise<boolean>(resolve => { resolve_result = resolve; });
-    const dialog = workspace_dialog("保存文件修改", "取消", () => { pending.delete(view); resolve_result(completed); });
+    const dialog = workspace_dialog(workspace_text("files_save_file_changes"), workspace_text("language_service_settings_view_cancel"), () => { pending.delete(view); resolve_result(completed); });
     pending.set(view, {dialog, result});
     dialog.root.setAttribute("data-workspace-tab-close", view.leaf.state.path);
-    dialog.content.append(el("p", "", `${view.file_path.split(/[\\/]/u).at(-1)} 有未保存的修改。`));
+    dialog.content.append(el("p", "", workspace_text("files_has_unsaved_changes", {value_0: String(view.file_path.split(/[\\/]/u).at(-1))})));
     let saving = false;
     const finish = () => { if (!dialog.root.isConnected || view.disposed) return; close(); completed = !present(view.leaf); dialog.close(); };
-    const discard_button = button("不保存并关闭", finish);
-    const save_button = button("保存并关闭", () => {
+    const discard_button = button(workspace_text("files_do_not_save_and_close"), finish);
+    const save_button = button(workspace_text("files_save_and_close"), () => {
       if (saving) return; saving = true; save_button.disabled = true; discard_button.disabled = true;
       void view.save().then(saved => { if (saved && !view.dirty()) finish(); })
         .catch(error => { if(dialog.root.isConnected)new core.Notice(String(error),5000); })
@@ -73,7 +74,7 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     const guarded_remove = group.removeTab = (path, tab) => {
       const target = [...all_views()].find(item => item.leaf.state.path === path && item.leaf.parent === group);
       const close = () => {
-        // 对话框打开后标签可能已被其他动作移动；不能用旧组再移除新组的 DOM。
+        // After a dialog is opened, the tag may have been moved by other actions; it is not possible to remove the new group's DOM using the old group.
         if (target && (target.disposed || target.leaf.parent !== group || !present(target.leaf))) return;
         const result = remove.call(group, path, tab);
         if (target) schedule_release(target);
@@ -84,20 +85,20 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     };
     restore_patches.push(() => { if (group.removeTab === guarded_remove) group.removeTab = remove; });
   };
-  // Electron 的 close 请求可以异步派发 beforeunload；由下一次事件消费许可，不能在 close 返回时清除。
+  // The Electron's close request can be asynchronously dispatched beforeunload; it is consumed by the next event permission, and cannot be cleared when close returns.
   const request_window_close = () => { allow_close_once = true; window.close(); };
   const before_unload = (event: BeforeUnloadEvent): boolean => {
     if (allow_close_once) { allow_close_once = false; return false; }
     const dirty = [...all_views()].filter(view => !view.disposed && view.dirty());
     if (!dirty.length) return false;
-    // Typora 的 onbeforeunload 自己调用 silentQuit；在原生函数执行前检查源码草稿。
+    // Typora calls silentQuit from onbeforeunload; check source drafts before the native function runs.
     event.preventDefault(); event.stopImmediatePropagation(); event.returnValue = "";
     if (window_dialog?.root.isConnected) return true;
-    const dialog = window_dialog = workspace_dialog("保存文件修改"); dialog.root.setAttribute("data-workspace-save-close", "true");
-    dialog.content.append(el("p", "", `${dirty.length} 个文档有未保存修改。`));
+    const dialog = window_dialog = workspace_dialog(workspace_text("files_save_file_changes")); dialog.root.setAttribute("data-workspace-save-close", "true");
+    dialog.content.append(el("p", "", workspace_text("source_lifecycle_documents_have_unsaved_changes", {value_0: String(dirty.length)})));
     let saving = false;
-    const discard_button = button("不保存并关闭", () => { dialog.close(); request_window_close(); });
-    const save_button = button("全部保存并关闭", () => {
+    const discard_button = button(workspace_text("files_do_not_save_and_close"), () => { dialog.close(); request_window_close(); });
+    const save_button = button(workspace_text("source_lifecycle_save_all_and_close"), () => {
       if (saving) return; saving = true; save_button.disabled = true; discard_button.disabled = true;
       void (async () => {
         for (const view of dirty) {
@@ -111,8 +112,8 @@ export function bind_source_lifecycle(core: graph_core, all_views: () => Iterabl
     dialog.footer.prepend(save_button, discard_button);
     return true;
   };
-  // Electron 对 window 目标的 beforeunload 不保证后注册的 capture 先于既有属性处理器。
-  // 保留原生关闭函数及返回值，只在用户处理完源码草稿后交还给它。
+  // For beforeunload on window, Electron does not guarantee that a later capture listener runs before an existing property handler.
+  // Preserve the native close function and its return value; return control only after the user handles source drafts.
   const guarded_before_unload = window.onbeforeunload = function (event) {
     if (before_unload(event)) return false;
     return native_before_unload?.call(this, event);

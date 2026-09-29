@@ -1,12 +1,13 @@
-/** 标准行内样式保留静态回退色；变量名本身携带颜色身份，无需 class/data 属性。 */
+import {workspace_text} from "./workspace_i18n";
+/** Standard inline styles retain static fallback colors; variable names themselves carry color identity, so class/data attributes are not needed. */
 export const text_color_presets = [
-  ["红色", "b42318"], ["橙色", "b54708"], ["黄色", "946800"], ["绿色", "18794e"],
-  ["青色", "087e8b"], ["蓝色", "175cd3"], ["紫色", "7f3fbf"], ["粉色", "b4236c"],
+  [workspace_text("markdown_text_color_red"), "b42318"], [workspace_text("markdown_text_color_orange"), "b54708"], [workspace_text("markdown_text_color_yellow"), "946800"], [workspace_text("markdown_text_color_green"), "18794e"],
+  [workspace_text("markdown_text_color_cyan"), "087e8b"], [workspace_text("markdown_text_color_blue"), "175cd3"], [workspace_text("markdown_text_color_purple"), "7f3fbf"], [workspace_text("markdown_text_color_pink"), "b4236c"],
 ] as const;
 export const text_color_prefix = "--typora-code-color-";
 export function normalize_text_color(value: string): string {
   const color=value.replace(/^#/u, "").toLowerCase();
-  if (!/^[0-9a-f]{6}$/u.test(color)) throw new Error("请输入六位十六进制颜色，例如 #B42318。");
+  if (!/^[0-9a-f]{6}$/u.test(color)) throw new Error(workspace_text("markdown_text_color_please_enter_a_six_digit_hexadecimal_color_for_example_b4231"));
   return color;
 }
 export function text_color_open(color: string): string {
@@ -22,7 +23,7 @@ export function color_luminance(rgb: readonly number[]): number {
 export function color_contrast(left: readonly number[],right: readonly number[]): number {
   const a=color_luminance(left), b=color_luminance(right);return (Math.max(a,b)+.05)/(Math.min(a,b)+.05);
 }
-/** 在同一色系内向黑/白调整，以当前实际背景为准，普通文字目标对比度 4.5:1。 */
+/** Adjust within the same color palette toward black/white, based on the current actual background, and ordinary text target contrast is 4.5:1. */
 export function adaptive_text_color(color: string,background: readonly number[]): string {
   color=normalize_text_color(color);const rgb=[0,2,4].map(offset=>parseInt(color.slice(offset,offset+2),16));
   if(color_contrast(rgb,background)>=4.5)return "#"+color;
@@ -33,11 +34,11 @@ export function adaptive_text_color(color: string,background: readonly number[])
 }
 export type text_color_run={start:number;end:number;color?:string};
 export type text_color_cut={start:number;end:number};
-/** 原生渲染器提供可见文字区间。这里只编辑那些区间及本功能自己的标签，其他 Markdown 字节不变。 */
+/** The native renderer provides visible text intervals. Here, only edit those intervals and this function's own tags; other Markdown bytes remain unchanged. */
 export function rewrite_text_colors(source:string,runs:text_color_run[],cuts:text_color_cut[],selection?:text_color_cut){
   const sorted=runs.filter(run=>run.end>run.start).sort((a,b)=>a.start-b.start);
   cuts=[...cuts].sort((a,b)=>a.start-b.start);
-  for(const list of [sorted,cuts])for(let i=0;i<list.length;i++){const item=list[i];if(!Number.isInteger(item.start)||!Number.isInteger(item.end)||item.start<0||item.end>source.length||item.end<item.start||(i>0&&item.start<list[i-1].end))throw new Error("文字颜色区间已失效。");}
+  for(const list of [sorted,cuts])for(let i=0;i<list.length;i++){const item=list[i];if(!Number.isInteger(item.start)||!Number.isInteger(item.end)||item.start<0||item.end>source.length||item.end<item.start||(i>0&&item.start<list[i-1].end))throw new Error(workspace_text("markdown_text_color_the_text_color_range_has_expired"));}
   let text="",cursor=0;const copies:{start:number;end:number;output:number}[]=[];
   const copy=(start:number,end:number)=>{
     let offset=start;
@@ -45,6 +46,6 @@ export function rewrite_text_colors(source:string,runs:text_color_run[],cuts:tex
     if(offset<end){copies.push({start:offset,end,output:text.length});text+=source.slice(offset,end);}
   };
   for(const run of sorted){copy(cursor,run.start);if(run.color)text+=text_color_open(run.color);copy(run.start,run.end);if(run.color)text+="</span>";cursor=run.end;}copy(cursor,source.length);
-  const map=(offset:number,end:boolean)=>{const matches=copies.filter(part=>part.start<=offset&&part.end>=offset);const part=end?matches[0]:matches.at(-1);if(!part)throw new Error("文字颜色选区无法恢复。");return part.output+offset-part.start;};
+  const map=(offset:number,end:boolean)=>{const matches=copies.filter(part=>part.start<=offset&&part.end>=offset);const part=end?matches[0]:matches.at(-1);if(!part)throw new Error(workspace_text("markdown_text_color_the_text_color_selection_cannot_be_restored"));return part.output+offset-part.start;};
   return {text,selection:selection?{start:map(selection.start,false),end:map(selection.end,true)}:undefined};
 }

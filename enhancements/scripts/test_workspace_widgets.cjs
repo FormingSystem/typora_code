@@ -76,7 +76,7 @@ app.whenReady().then(async () => {
   assert.deepEqual(await evaluate('close_counts'), {dialog:1,menu:1});
   assert.equal(await evaluate("document.querySelectorAll('.git-graph-dialog-shade,.git-graph-menu').length"),0);
   checks.push('dialog and menu notify their owner exactly once across close, blur and repeated disposal');
-  // 真实 Chromium 指针手势：遮罩消失不能把剩余 mouseup/click 交给刚露出的正文。
+  // Real Chromium pointer gestures: mask disappearance cannot pass remaining mouseup/click to just revealed document content.
   await evaluate(`window.pointer_events=[];document.querySelector('#outside').style.cssText='position:fixed;left:610px;top:460px;width:130px;height:35px';window.write=document.createElement('article');write.id='write';write.contentEditable='true';write.textContent='unchanged Markdown';write.style.cssText='position:fixed;left:510px;top:350px;width:240px;height:55px';document.body.append(write);for(const node of [write,document.querySelector('#outside')])for(const type of ['pointerdown','mousedown','pointerup','mouseup','click','auxclick','contextmenu','beforeinput','input'])node.addEventListener(type,event=>pointer_events.push({target:node.id,type:event.type}));`);
   const gesture = async (button='left',end={x:660,y:475}) => {
     test_window.webContents.sendInputEvent({type:'mouseMove',x:660,y:475});
@@ -112,7 +112,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate(`document.querySelectorAll('.git-graph-menu').length`),0);
   for(const type of ['mousedown','mouseup','click'])assert.equal(await evaluate(`pointer_events.filter(event=>event.target==='outside'&&event.type==='${type}').length`),1);
   checks.push('nonmodal menu outside click still dismisses the menu and activates the target in the same gesture');
-  // 复现原生 Night 的正文 hr 规则，即使主题迟到加载也不能撑大共享菜单分组间距。
+  // Reproduce native Night document hr rules, even if theme is stale loading, cannot expand shared menu group spacing.
   await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
   await evaluate(`window.document_rule=document.createElement('hr');document.body.append(document_rule);window.theme_pollution=document.createElement('style');theme_pollution.textContent='hr{height:2px;margin:24px 0 !important}';document.head.append(theme_pollution);void 0;`);
   for(const dark of [false,true])for(const compact of [false,true]){
@@ -126,7 +126,7 @@ app.whenReady().then(async () => {
     await evaluate('separator_close();void 0;');
   }
   await evaluate('theme_pollution.remove();document_rule.remove();void 0;');
-  // R065: 不能仅隐藏滚动条；实际文字、快捷键与箭头必须分列且保持同一行。
+  // R065: cannot just hide scroll bar; actual text, shortcuts and arrows must be listed separately and remain in the same line.
   for(const zoom of [1,1.25])for(const width of [800,320])for(const kind of ['', 'workspace-preferences-menu','workspace-menu-compact']) {
     test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
     await evaluate(`window.width_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:550}),[{title:'Typora 偏好设置…',shortcut:'Ctrl+,',action(){}},{title:'插件设置…',action(){}},{title:'扩展…',shortcut:'Ctrl+Shift+X',action(){}},{title:'Long menu label '.repeat(12),children:[{title:'Child',action(){}}],action(){}}],${JSON.stringify(kind)});void 0`);await delay(30);
@@ -145,8 +145,8 @@ app.whenReady().then(async () => {
     assert.equal(rows[2].inset,rows[3].inset,'checked state never shifts label');
     await evaluate('mixed_close();void 0');checks.push(`R065.1 mixed menu ${kind}/${dark}/${width}/${zoom}: common 26px label start, stable checkbox and aligned shortcut`);
   }
-  // 当前真实菜单只有两项；长名称会撑宽初始布局，掩盖对已换行文字的错误测量。
-  // Git组菜单无快捷键；菜单宽度只含真实文字与两侧2em，不保留空快捷键/箭头列。
+  // Current real menu has only two items; long names will widen initial layout, covering errors in already wrapped text measurement.
+  // Git group menu has no shortcuts; menu width only includes real text and both sides 2 em, no empty shortcut/arrows column is retained.
   for(const zoom of [1,.9,1.25]){
     test_window.setContentSize(800,600);test_window.webContents.setZoomFactor(zoom);
     await evaluate(`window.group_close=widgets_qa.workspace_menu(new MouseEvent('contextmenu',{clientX:4,clientY:20}),['取消暂存此组中的所有更改','折叠所有分组','展开所有分组','以树形显示','配置此右键菜单…'].map(title=>({title,action(){}})));void 0`);
@@ -154,7 +154,7 @@ app.whenReady().then(async () => {
     assert.equal(result.lines,1);assert(result.empty);assert(Math.abs(result.width-result.text-62)<2,JSON.stringify(result));
     await evaluate('group_close();void 0');checks.push('Git无快捷键菜单无空尾列，按最长文字宽度 '+zoom);
   }
-  // 同时覆盖宿主/调用方给予初始宽度的情况，最终宽度仍由公共测量决定。
+  // Simultaneously cover initial width given by host/caller, final width still determined by public measurement.
   await test_window.webContents.insertCSS('.git-graph-menu[role=menu].workspace-preferences-menu {width:190px}');
   for(const font of ['Segoe UI','Consolas'])for(const zoom of [1,.9,1.25])for(const width of [800,320])for(const dark of [false,true]){
     test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);
@@ -165,7 +165,7 @@ app.whenReady().then(async () => {
     await evaluate('actual_close();void 0');
     checks.push(`actual two-item preferences menu single-line labels and shortcuts at ${font}/${width}/${zoom}/${dark}`);
   }
-  // R066：真实共享样式在普通/大纲领域、明暗与窄视口下都有可访问的关闭和右侧操作。
+  // R066：Real shared styles are accessible for close and right-side operations in normal/outline domains, light/dark and narrow viewport.
   await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/source_outline_settings.css'),'utf8'));
   for(const zoom of [1,1.25])for(const width of [800,320])for(const dark of [false,true])for(const outline of [false,true]){
     test_window.setContentSize(width,600);test_window.webContents.setZoomFactor(zoom);

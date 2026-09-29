@@ -1,3 +1,5 @@
+[English](workspace_responsiveness.en.md)
+
 # R071 模块刷新隔离与仓库生命周期
 
 ## R071.4 正文输入响应与VS Code调度基线

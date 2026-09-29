@@ -1,4 +1,4 @@
-﻿# 所有清单路径均相对于专属资产目录；恢复清单不能逃逸到外部文件。
+﻿# All list paths are relative to the dedicated asset directory; recovery lists cannot escape to external files.
 function resolve_typora_asset_path {
     param([string]$asset_root, [string]$relative_path)
     if ($relative_path -notmatch '^[a-zA-Z0-9_-][a-zA-Z0-9_./-]*$' -or $relative_path.Contains('..') -or $relative_path.EndsWith('/')) { throw 'Invalid asset path.' }
@@ -35,7 +35,7 @@ function get_typora_workspace_assets {
 }
 
 function get_typora_migration_assets {
-    # 仅清理由旧安装器部署的十个入口和运行文件，其他用户文件不属于迁移目标。
+    # Only clear the ten entries and running files deployed by the old installer; other user files are not part of the migration target.
     return @('loader.js','loader.json','2.10.15/core.js','2.10.15/core.css',
         '2.10.15/locales/lang.de.json','2.10.15/locales/lang.en.json','2.10.15/locales/lang.zh-cn.json',
         'plugins/forming_system.linux_note_enhancements/main.js','plugins/forming_system.linux_note_enhancements/manifest.json','plugins/forming_system.linux_note_enhancements/style.css') |
@@ -43,7 +43,7 @@ function get_typora_migration_assets {
 }
 
 function get_typora_retired_product_assets {
-    # 仅退休已发布的确定文件；由安装事务统一备份、移除和恢复，不扫描资产目录。
+    # Only retire published definite files; by the installation transaction, unified backup, removal, and recovery, without scanning the asset directory.
     return @('appearance_bootstrap.js',
         'assets/source_symbols/tree-sitter-c.wasm','assets/source_symbols/tree-sitter-cpp.wasm',
         'assets/source_symbols/LICENSE_c','assets/source_symbols/LICENSE_cpp') |
@@ -115,7 +115,7 @@ function install_typora_workspace {
     foreach ($asset in $assets) {
         $target_path = resolve_typora_asset_path $asset_root $asset.relative_path
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target_path) | Out-Null
-        # 相同版本的原生模块可能已被运行窗口加载，摘要一致时无需覆盖。
+        # Native modules of the same version may have been loaded by the running window; when the summary is consistent, no overwrite is needed.
         if (-not (Test-Path -LiteralPath $target_path -PathType Leaf) -or (Get-FileHash -LiteralPath $target_path -Algorithm SHA256).Hash -ne $asset.sha256) {
             Copy-Item -LiteralPath (Join-Path $vendor_root $asset.relative_path) -Destination $target_path -Force
         }
@@ -152,7 +152,7 @@ function restore_typora_workspace {
     }
 }
 
-# 终端与工作区共用逐文件校验、备份、复制和回滚，清单限定在版本目录内。
+# Terminal and workspace share file-by-file verification, backup, copy, and rollback; the list is limited to the version directory.
 function get_typora_terminal_assets {
     param([string]$vendor_root)
     $assets = @()
@@ -164,7 +164,7 @@ function get_typora_terminal_assets {
     return $assets
 }
 
-# 迁移只撤销旧注册；恢复只还原该键，不影响用户之后修改的其他设置。
+# Migration only revokes old registration; recovery only restores this key, without affecting other settings modified by the user afterward.
 function update_typora_plugin_settings {
     param([string]$settings_path, [string]$backup_path, [ValidateSet('remove', 'restore')][string]$operation)
     $plugin_id = 'forming_system.linux_note_enhancements'
@@ -253,7 +253,7 @@ function get_typora_restore_context {
     $window = resolve_typora_asset_path $root 'resources/window.html'
     $saved = resolve_typora_asset_path $backup_root 'window.html'
     if ($manifest.window_sha256 -notmatch '^[a-f0-9]{64}$' -or (Get-FileHash -LiteralPath $saved -Algorithm SHA256).Hash -ne $manifest.window_sha256) { throw 'Window backup integrity check failed.' }
-    # 只忽略本工程拥有的入口；宿主页面其他变化必须先停止恢复。
+    # Only ignore entries owned by this project; other changes in the host page must be stopped before recovery.
     $current_host = get_typora_window_source ([IO.File]::ReadAllText($window, [Text.Encoding]::UTF8)) ''
     $saved_host = get_typora_window_source ([IO.File]::ReadAllText($saved, [Text.Encoding]::UTF8)) ''
     $current_host = [regex]::Replace($current_host.Replace("`r`n", "`n"), '\s*</head>', '</head>').Trim()

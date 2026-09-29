@@ -4,7 +4,7 @@
 .workspace-resource-picker-actions .git-standard-icon {width:16px;height:16px;flex:none;}
 .workspace-resource-picker-address>[hidden] {display:none!important;}
 
-/* 复用编辑器22px breadcrumb内容盒；地址输入替换同一轨道，路径不增加行数。 */
+/* Reuse the editor's 22px breadcrumb content box; address input replaces the same track, path does not increase line count. */
 .workspace-resource-picker-content {min-width:0;font:13px/normal var(--linux-note-shell-font-family,"Segoe UI",sans-serif);}
 .workspace-resource-picker-content .workspace-resource-picker-modes {display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:0;}
 .workspace-resource-picker-modes button {font:inherit;white-space:nowrap;}

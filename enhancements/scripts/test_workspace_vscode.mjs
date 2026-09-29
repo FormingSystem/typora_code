@@ -1,8 +1,10 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
-import {transform} from 'esbuild';
-const compiled=await transform(fs.readFileSync('src/workspace_vscode_service.ts','utf8'),{loader:'ts',format:'esm'});
+import {build} from 'esbuild';
+const bundle=await build({entryPoints:['src/workspace_vscode_service.ts'],bundle:true,platform:'node',format:'esm',write:false});
+const compiled={code:bundle.outputFiles[0].text};
 const {discover_vscode,open_resource_in_vscode}=await import(`data:text/javascript;base64,${Buffer.from(compiled.code).toString('base64')}`);
 let count=0;
 const check=async(name,run)=>{await run();console.log('PASS '+name);count++;};

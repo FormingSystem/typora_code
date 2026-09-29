@@ -1,4 +1,4 @@
-# 专属宿主副本 + 私有桌面；无需关闭或重启用户窗口。
+# Exclusive host copy + private desktop; no need to close or restart user window.
 [CmdletBinding()]
 param([string]$typora_root=$env:TYPORA_NATIVE_TEST_ROOT,
  [ValidateSet('stability_native.js','drag_windows_native.js')][string]$fixture='stability_native.js')

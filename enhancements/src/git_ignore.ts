@@ -6,14 +6,14 @@ import {create_text_document,save_text_document_as} from './workspace_text_docum
 type ignore_modules = { fs: any; path_api: any };
 export type ignore_result = { rule: string; changed: boolean };
 
-/** 根目录锚定并转义 Git 通配字符；一条规则只匹配当前相对文件路径。 */
+/** The root directory anchors and escapes Git wildcard characters; one rule only matches the current relative file path. */
 export function exact_ignore_rule(file: string): string {
   if (!file || /[\0\r\n]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file)
       || file.split("/").some(part => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) throw new Error(text("ignore.invalid_rule"));
   return "/" + file.replace(/[\\*?\[\]#! ]/gu, character => "\\" + character);
 }
 
-/** 只追加根 .gitignore，不修改索引；已有文件不截断，不经符号链接写入。 */
+/** Only append the root .gitignore, without modifying the index; existing files are not truncated, and no symbolic links are written without permission. */
 export async function append_git_ignore(modules: ignore_modules, run: git_run, root: string, file: string): Promise<ignore_result> {
   const { fs, path_api } = modules;
   const rule = exact_ignore_rule(file);
@@ -27,7 +27,7 @@ export async function append_git_ignore(modules: ignore_modules, run: git_run, r
     if(value)await document.save(next);else await save_text_document_as(modules,ignore_path,next,{text:'',encoding:'utf-8',bom:false,eol:'LF'} as any);
     return{rule,changed:true};
   }
-  // Windows 的反斜线和冒号具有路径语义，不能按 Linux 文件名解释。
+  // The backslash and colon in Windows have path semantics, which cannot be interpreted as Linux file names.
   if (path_api.sep === "\\" && /[\\:]/u.test(file)) throw new Error(text("ignore.invalid_path"));
   const real_root = fs.realpathSync(root);
   const file_path = path_api.resolve(real_root, file);
@@ -47,7 +47,7 @@ export async function append_git_ignore(modules: ignore_modules, run: git_run, r
   try {
     let exists = true;
     try { ordinary_file(fs.lstatSync(ignore_path)); } catch (error) { if ((error as { code?: string }).code === "ENOENT") exists = false; else throw error; }
-    // 排他创建避免覆盖新文件；既有文件以追加方式打开，O_NOFOLLOW 在支持的平台阻止链接跟随。
+    // Exclusive creation prevents overwriting new files; existing files are opened in append mode, and O_NOFOLLOW blocks symbolic link following on supported platforms.
     try { descriptor = fs.openSync(ignore_path, exists ? fs.constants.O_RDWR | fs.constants.O_APPEND | (fs.constants.O_NOFOLLOW || 0) : "ax+"); }
     catch (error) { if ((error as { code?: string }).code === "EEXIST") throw new Error(text("ignore.created_concurrently")); throw error; }
     const opened_stat = fs.fstatSync(descriptor); ordinary_file(opened_stat);

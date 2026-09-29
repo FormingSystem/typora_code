@@ -1,4 +1,5 @@
-// 只能由独立窗口站启动器运行；核验继承关系后才允许写测试剪贴板。
+import './fixture_locale.cjs';
+// Only run by independent window launcher; only allow writing test clipboard after verifying inheritance relationships.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -35,7 +36,7 @@ try{
  const independent=await shell('Add-Type -AssemblyName System.Windows.Forms; @{files=@([Windows.Forms.Clipboard]::GetFileDropList());contains=[Windows.Forms.Clipboard]::ContainsFileDropList()}|ConvertTo-Json -Compress');assert.equal(independent.contains,true);assert.deepEqual(independent.files,[unicode,folder]);checks.push('CF_HDROP Unicode multi-file and folder list is readable by independent Shell consumer; copy effect and version stable');
  assert.equal(await adapter.clear('invalid'),false);assert.deepEqual((await adapter.read()).paths,[unicode,folder]);checks.push('conditional clear retains a newer clipboard');
  const external=path.join(outside,'external 中文.bin');fs.writeFileSync(external,Buffer.from([255,0,127]));
- // 输入由JSON编码为UTF-16数据读取，文件路径不插入可执行脚本。
+ // Input is encoded as JSON and read as UTF-16 data, and file paths are not inserted into executable scripts.
  const payload=Buffer.from(JSON.stringify([external]),'utf16le').toString('base64');
  await shell(`Add-Type -AssemblyName System.Windows.Forms
  $paths=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('${payload}'))|ConvertFrom-Json

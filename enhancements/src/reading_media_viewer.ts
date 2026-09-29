@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_focus";
 import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -12,20 +13,20 @@ let active_close:((restore?:boolean)=>void)|undefined;
 
 export function close_reading_media():void {active_close?.(false);}
 
-/** 只持有阅读副本，图片与图表共用缩放、焦点和生命周期。 */
+/** Only hold reading copies, images and charts share zoom, focus, and lifecycle. */
 export function open_reading_media(media:reading_media):(restore?:boolean)=>void {
   active_close?.(false);
   const previous=capture_workspace_focus(media.origin);
   const viewer=el("section","reading-media-viewer"),header=el("div","reading-media-header"),toolbar=el("div","reading-media-toolbar");
   viewer.setAttribute("role","dialog");viewer.setAttribute("aria-modal","true");viewer.setAttribute("aria-label",media.label);
-  toolbar.setAttribute("aria-label","缩放控制");
+  toolbar.setAttribute("aria-label",workspace_text("reading_media_viewer_zoom_control"));
   const output=el("output"),canvas=el("div","reading-media-canvas"),positioner=el("div","reading-media-positioner"),content=el("div","reading-media-content");
-  const hint=el("div","reading-media-hint","Ctrl + 滚轮缩放 · 按住左键拖动 · Esc 退出");
+  const hint=el("div","reading-media-hint",workspace_text("reading_media_viewer_ctrl_wheel_zoom_left_click_and_drag_esc_exit"));
   const button=(action:string,label:string,icon?:Parameters<typeof git_icon>[0])=>{
     const node=el("button","",icon?"":label);node.type="button";node.dataset.action=action;node.title=label;node.setAttribute("aria-label",label);if(icon)node.append(git_icon(icon));return node;
   };
-  const close_button=button("close","退出全屏");close_button.prepend(git_icon("close"));
-  toolbar.append(button("zoom-out","缩小","remove"),output,button("zoom-in","放大","add"),button("fit-width","适应宽度"),button("fit","适应屏幕"),button("reset","100%"));
+  const close_button=button("close",workspace_text("reading_media_viewer_exit_full_screen"));close_button.prepend(git_icon("close"));
+  toolbar.append(button("zoom-out",workspace_text("reading_media_viewer_zoom_in"),"remove"),output,button("zoom-in",workspace_text("reading_media_viewer_zoom_out"),"add"),button("fit-width",workspace_text("reading_media_viewer_fit_width")),button("fit",workspace_text("reading_media_viewer_fit_screen")),button("reset","100%"));
   header.append(toolbar,close_button);content.append(media.content);positioner.append(content);canvas.append(positioner);viewer.append(header,canvas,hint);
   const style=acquire_workspace_style("typora-code-style:reading_media_viewer",css),interaction=acquire_workspace_interaction(viewer);
   document.body.append(viewer);document.body.classList.add("reading-media-viewer-open");
@@ -66,7 +67,7 @@ export function open_reading_media(media:reading_media):(restore?:boolean)=>void
   if(media.source){source_observer.observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","style"]});const root=media.source.getRootNode();if(root instanceof ShadowRoot)source_observer.observe(root,{subtree:true,childList:true,attributes:true,attributeFilter:["hidden","class","style"]});}
   active_close=close;
   const error=()=>{
-    if(closed)return;failed=true;content.replaceChildren(el("p","reading-media-error","图片无法加载，请关闭后重新打开。"));content.style.transform="none";
+    if(closed)return;failed=true;content.replaceChildren(el("p","reading-media-error",workspace_text("reading_media_viewer_image_cannot_be_loaded_please_close_and_reopen")));content.style.transform="none";
     for(const node of toolbar.querySelectorAll("button"))node.disabled=true;output.value="";output.textContent="";drag=undefined;viewer.classList.remove("is-dragging");
   };
   if(media.content instanceof HTMLImageElement)media.content.addEventListener("error",error,{signal});
@@ -86,7 +87,7 @@ export function open_reading_media(media:reading_media):(restore?:boolean)=>void
     if(primary&&["+","=","-","0"].includes(event.key)){
       event.preventDefault();event.stopImmediatePropagation();if(event.key==="0")reset();else zoom(view.scale*(event.key==="-"?1/ZOOM_FACTOR:ZOOM_FACTOR));return;
     }
-    // 查看时不把保存、打印、编辑等快捷键交给背景正文。
+    // When viewing, do not hand over save, print, edit, and other shortcut keys to the background document.
     if(primary){event.preventDefault();event.stopImmediatePropagation();}
   },{capture:true,signal});
   canvas.addEventListener("wheel",event=>{

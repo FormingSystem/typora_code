@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {is_composing_key} from "./workspace_keyboard";
 import {bind_content_zoom,change_content_font,prepare_content_zoom} from "./workspace_content_zoom";
 import { create_workspace_lifetime } from "./workspace_lifetime";
@@ -5,11 +6,11 @@ import {reading_wheel_root,wheel_zoom_direction} from "./workspace_wheel_zoom";
 
 export type workspace_zoom_runtime = { ClientCommand?: Record<string, (...args: any[]) => unknown>; reqnode?:(name:string)=>any };
 
-// 菜单、命令面板和快捷键共享身份；比例及持久化只归宿主管理。
+// Menus, command panels, and shortcuts share identity; the ratio and persistence only belong to the host.
 export const WORKSPACE_ZOOM_ACTIONS = [
-  {id: "linux_note:zoom_in", label: "放大", native_command: "zoomIn", shortcut: "Ctrl+="},
-  {id: "linux_note:zoom_out", label: "缩小", native_command: "zoomOut", shortcut: "Ctrl+-"},
-  {id: "linux_note:zoom_reset", label: "实际大小", native_command: "resetZoom", shortcut: undefined},
+  {id: "linux_note:zoom_in", label: workspace_text("reading_media_viewer_zoom_out"), native_command: "zoomIn", shortcut: "Ctrl+="},
+  {id: "linux_note:zoom_out", label: workspace_text("reading_media_viewer_zoom_in"), native_command: "zoomOut", shortcut: "Ctrl+-"},
+  {id: "linux_note:zoom_reset", label: workspace_text("zoom_actual_size"), native_command: "resetZoom", shortcut: undefined},
 ] as const;
 
 export function workspace_zoom_available(runtime: workspace_zoom_runtime, id: string): boolean {
@@ -19,7 +20,7 @@ export function workspace_zoom_available(runtime: workspace_zoom_runtime, id: st
 
 export function workspace_zoom_shortcut(event: KeyboardEvent): string | undefined {
   if (!event.ctrlKey || event.altKey || event.metaKey || event.getModifierState("AltGraph") || is_composing_key(event)) return;
-  // Equal/Minus 包含 Shift 组合；小键盘不占用额外的 Shift 组合。
+  // Equal/Minus contains Shift combination; the small keyboard does not occupy additional Shift combination.
   if (event.code === "Equal" || ["+", "="].includes(event.key) && event.code !== "NumpadAdd"
       || event.code === "NumpadAdd" && !event.shiftKey) return "linux_note:zoom_in";
   if (event.code === "Minus" || event.key === "-" && event.code !== "NumpadSubtract"
@@ -50,7 +51,7 @@ export function bind_workspace_zoom_commands(
   try {
     for (const action of WORKSPACE_ZOOM_ACTIONS) {
       if (!workspace_zoom_available(runtime, action.id)) continue;
-      lifetime.add(app.commands.register({id: action.id, title: "视图：" + action.label, scope: "global", callback() {
+      lifetime.add(app.commands.register({id: action.id, title: workspace_text("zoom_view") + action.label, scope: "global", callback() {
         if (!lifetime.disposed && workspace_zoom_available(runtime, action.id)) {prepare_content_zoom();runtime.ClientCommand![action.native_command]();content.sync();}
       }}));
     }

@@ -1,4 +1,4 @@
-// 隐藏 Electron 验证真正的 window.close / beforeunload；不启动 Typora，不读取用户文件。
+// Hide Electron by verifying the real window.close / beforeunload; do not start Typora, do not read user files.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild');
 const assert=require('node:assert/strict');

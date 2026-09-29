@@ -1,4 +1,4 @@
-// 隐藏 Electron 使用真实 webFrame 和 xterm；不启动 Shell，不访问用户文档或配置。
+// Hide Electron using real webFrame and xterm; do not start Shell, do not access user documents or configuration.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
@@ -51,7 +51,7 @@ app.whenReady().then(async()=>{
  await check(`reset();!send('Digit0','0')&&calls.length===0`,'Ctrl+0 remains owned by native paragraph formatting');
  await check(`reset();document.querySelector('.reading-media-viewer').hidden=false;!send('Equal','=')&&calls.length===0`,'visible diagram viewer retains local zoom priority');
  await check(`document.querySelector('.reading-media-viewer').hidden=true;reset();send('Equal','=')&&calls.length===1`,'hidden diagram viewer does not suppress window zoom');
- // 真实 Electron 输入进入实际编辑控件及 xterm，验证字符不会被写入草稿或发给 PTY。
+ // Real Electron input enters the actual editing control and xterm, verification characters will not be written to the draft or sent to PTY.
  for(const [selector,terminal]of [['#editor',false],['.xterm-helper-textarea',true]]){
   await evaluate(`reset();document.querySelector(${JSON.stringify(selector)}).focus();terminal_input.length=0;`);
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'=',modifiers:['control']});
@@ -67,7 +67,7 @@ app.whenReady().then(async()=>{
  await check(`(()=>{let active=0;try{zoom_qa.bind_workspace_zoom_commands({commands:{register(){if(active)throw Error('fixture');active++;return()=>active--}}},runtime)}catch{}return active===0})()`,'partial registration failure removes earlier commands');
  await check(`(()=>{reset();const stale=commands.get('linux_note:zoom_in').callback;binding.dispose();zoom_binding.dispose();stale();const released=!send('Equal','=');return released&&calls.length===0&&commands.size===0})()`,'dispose removes keys and commands and invalidates stale callbacks');
  await check(`reset();zoom_binding=zoom_qa.bind_workspace_zoom_commands(host,runtime);binding=zoom_qa.install_workspace_shortcuts(host,runtime);send('Equal','=')&&calls.length===1&&commands.size===3`,'reinstallation has one command and keyboard owner');
- // 底栏仅展示宿主真实窗口比例；不以测试变量替代webFrame或公共交互主题。
+ // The status bar only displays the real window ratio of the host; it does not use test variables to replace webFrame or the common interaction theme.
  await evaluate(`reset();window.preferences_calls=[];runtime.ClientCommand.showPreferencePanel=(...args)=>preferences_calls.push(args);window.source_before={html:document.querySelector('#write').innerHTML,draft:document.querySelector('#editor').value,query:document.querySelector('#search').value};window.native_zoom_hint=document.createElement('div');native_zoom_hint.id='zoom-hint';native_zoom_hint.innerHTML='<span id="zoom-hint-current">100%</span>';document.body.append(native_zoom_hint);window.theme_binding=zoom_qa.acquire_workspace_file_icons();window.status_binding=zoom_qa.bind_workspace_zoom_status(host,runtime);void 0`);
  const toggle='.workspace-zoom-status button[data-zoom-action="toggle"]';
  const panel_visible=`(()=>{const panel=document.querySelector('.workspace-zoom-controls');return !!panel&&!panel.hidden&&panel.getClientRects().length>0&&getComputedStyle(panel).visibility==='visible'})()`;
@@ -116,7 +116,7 @@ app.whenReady().then(async()=>{
  await key('End');await check(`document.activeElement.dataset.zoomAction==='settings'`,'keyboard activation opens the controls and End reaches the last available action');
  await key('Home');await key('Tab');await check(`document.activeElement.dataset.zoomAction==='in'`,'Home and Tab navigate the real popup buttons');
  await key('Escape');await until(`!${panel_visible}`);await check(`document.activeElement===document.querySelector(${JSON.stringify(toggle)})`,'keyboard-open Escape restores its status trigger');
- // 等过公共500ms显示延迟，防止Esc恢复焦点或未完成的悬停计时再次弹出。
+ // Wait for the public 500ms delay to prevent Esc from restoring focus or the hover timer that is not completed from popping up again.
  const escape_timing=[];
  const record_escape=async(name,before_escape_closed)=>{
   const sample=await evaluate(`({panel_visible:${panel_visible},trigger_focused:document.activeElement===document.querySelector(${JSON.stringify(toggle)}),trigger_hovered:document.querySelector(${JSON.stringify(toggle)}).matches(':hover'),expanded:document.querySelector(${JSON.stringify(toggle)}).getAttribute('aria-expanded')})`);
@@ -133,7 +133,7 @@ app.whenReady().then(async()=>{
  for(const sample of escape_timing){if(sample.name.startsWith('pending_'))assert(sample.before_escape_closed,sample.name+' exercises the pending stage before a popup exists');assert(!sample.panel_visible&&sample.expanded==='false',sample.name+' remains closed after 650ms, beyond the hover display delay');checks.push('Escape cancels delayed zoom popup '+sample.name);}
  await move('#search');await evaluate(`document.querySelector('#write').focus();const text=document.querySelector('#write p').firstChild;getSelection().setBaseAndExtent(text,2,text,12);window.markdown_selection=getSelection().toString();void 0`);await open_panel();await key('Escape');await until(`!${panel_visible}`);
  await check(`document.activeElement.id==='write'&&getSelection().toString()===markdown_selection`,'Escape also restores native Markdown focus and DOM selection');
- // 明暗和不同底栏高度下测真实内容矩形；窗口缩放只由Electron负责。
+ // Measure the real content rectangle under different brightness and different status bar heights; window scaling is only responsible by Electron.
  const geometry_metrics=[];
  const luminance=rgb=>rgb.map(value=>{const srgb=value/255;return srgb<=.04045?srgb/12.92:((srgb+.055)/1.055)**2.4;}).reduce((sum,value,index)=>sum+value*[.2126,.7152,.0722][index],0);
  const contrast=(foreground,background)=>{const levels=[luminance(foreground),luminance(background)].sort((left,right)=>right-left);return(levels[0]+.05)/(levels[1]+.05);};

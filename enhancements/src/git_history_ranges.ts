@@ -7,7 +7,7 @@ export type git_history_item={id:string;commit?:graph_commit;range?:git_history_
 export const history_range_label=(range:git_history_range)=>text(range.kind==='outgoing'?'history.outgoing':'history.incoming');
 export const history_range_title=(range:git_history_range)=>`${history_range_label(range)} ${range.branch} (${range.count})\n${range.from.slice(0,8)} ↔ ${range.to.slice(0,8)}`;
 
-/** 区间只存在于图投影；传给Git的端点始终是仓库快照中的真实对象。 */
+/** Intervals only exist in the graph projection; endpoints passed to Git are always real objects in the repository snapshot. */
 export function build_history_model(state:repository_state,prefix:git_commit[]=[]){
   const items:git_history_item[]=state.commits.map(commit=>({id:commit.hash,commit}));
   const topology=state.commits.map(commit=>({...commit,parents:[...commit.parents]}));
@@ -31,7 +31,7 @@ export function build_history_model(state:repository_state,prefix:git_commit[]=[
     const head_index=topology.findIndex(commit=>commit.hash===state.head);
     if(tracking!.ahead>0&&(included('refs/heads/'+state.branch)||included('HEAD'))&&head_index>=0)add('outgoing',head_index,state.head,state.branch,tracking!.ahead,[state.head]);
   }
-  // 引用身份来自仓库快照；同点引用由HEAD优先，普通分支不冒用当前分支色。
+  // Reference identities come from the repository snapshot; same-point references are prioritized by HEAD, ordinary branches do not impersonate the current branch color.
   const ref_colors=new Map<string,number>();
   if(tracking?.base_hash)ref_colors.set(tracking.base_hash,graph_ref_colors.base);
   if(tracking?.upstream_hash)ref_colors.set(tracking.upstream_hash,graph_ref_colors.upstream);

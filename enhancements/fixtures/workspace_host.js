@@ -1,4 +1,4 @@
-// 宿主核心测试替身仅提供第三方契约；生产插件、Monaco、TextMate 与生命周期编排不替换。
+// Host core test placeholder only provides third-party contracts; production plugins, Monaco, TextMate and lifecycle orchestration do not replace.
 window.fixture_errors=[];
 const original_console_error=console.error;console.error=(...args)=>{fixture_errors.push(args.map(arg=>arg?.stack||String(arg)).join(" "));original_console_error(...args);};
 window.addEventListener('error',event=>fixture_errors.push(String(event.error||event.message)));

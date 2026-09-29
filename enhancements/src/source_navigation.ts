@@ -4,8 +4,9 @@ import type {language_navigation_kind,language_position,language_location} from 
 import {pick_history_item} from "./workspace_history_picker";
 import {notify_navigation_selection} from "./reading_navigation_ports";
 import {source_navigation_gestures} from "./source_navigation_gesture";
+import {workspace_text, workspace_text as localize} from "./workspace_i18n";
 
-/** 活动源码的导航入口；请求、目标选择和打开共用一条可取消事务。 */
+/** Navigation entry for active source code; requests, target selection, and opening share one cancelable transaction. */
 export function bind_source_navigation(editor:monaco.editor.ICodeEditor,options:{
  valid():boolean;query(kind:language_navigation_kind,position:language_position,signal:AbortSignal):Promise<language_location[]>;
  open(target:language_location,signal:AbortSignal):Promise<void>;notice(message:string):void;
@@ -13,7 +14,7 @@ export function bind_source_navigation(editor:monaco.editor.ICodeEditor,options:
  const model=editor.getModel()!,root=editor.getDomNode()!;
  source_navigation_gestures.add(editor);
  let disposed=false,request:AbortController|undefined,down:{line:number;column:number;x:number;y:number}|undefined;
- const labels:Record<language_navigation_kind,string>={definition:"转到定义",declaration:"转到声明",implementation:"转到实现",references:"查找引用"};
+ const labels:Record<language_navigation_kind,string>={definition:workspace_text("source_navigation_go_to_definition"),declaration:workspace_text("source_navigation_go_to_declaration"),implementation:workspace_text("source_navigation_go_to_implementation"),references:workspace_text("source_navigation_find_references")};
  const cancel=()=>{request?.abort();down=undefined;};
  const run=async(kind:language_navigation_kind,position=editor.getPosition())=>{
   if(disposed||!position||!options.valid())return;cancel();const controller=request=new AbortController(),version=model.getVersionId();
@@ -22,10 +23,10 @@ export function bind_source_navigation(editor:monaco.editor.ICodeEditor,options:
    notify_navigation_selection(true);
    const locations=await options.query(kind,{line:position.lineNumber-1,character:position.column-1},controller.signal);
    if(!valid())return;
-   if(!locations.length){options.notice(kind==="definition"?"未找到定义或声明。":"未找到"+labels[kind].replace(/转到|查找/gu,"")+"。");return;}
-   const target=locations.length===1?locations[0]:await pick_history_item(labels[kind]+"：选择目标",locations.map(value=>({label:value.file_path.split(/[\\/]/u).at(-1)!+":"+(value.range.start.line+1),description:value.file_path+":"+(value.range.start.character+1),file_path:value.file_path,value})),controller.signal);
+   if(!locations.length){const missing={definition:'navigation_no_definition',declaration:'navigation_no_declaration',implementation:'navigation_no_implementation',references:'navigation_no_references'} as const;options.notice(localize(missing[kind]));return;}
+   const target=locations.length===1?locations[0]:await pick_history_item(localize('navigation_select_target',{action:labels[kind]}),locations.map(value=>({label:value.file_path.split(/[\\/]/u).at(-1)!+":"+(value.range.start.line+1),description:value.file_path+":"+(value.range.start.character+1),file_path:value.file_path,value})),controller.signal);
    if(!target||!valid())return;
-   // 打开会切换活动叶子并销毁本绑定；事务只在交给文件层之前接受取消。
+   // Opening switches the active leaf and destroys this binding; transactions are only accepted before being passed to the file layer.
    await options.open(target,controller.signal);
   }catch(error){if(valid()&&(error as Error).name!=="AbortError")options.notice(String((error as Error).message||error));}
  };

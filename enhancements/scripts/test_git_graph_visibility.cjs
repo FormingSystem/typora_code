@@ -13,7 +13,7 @@ app.whenReady().then(async()=>{
  assert(await run('saved_row===panel.list.querySelector(".git-graph-row")&&saved_detail===panel.details.firstChild'),'loaded tab switch preserves row and detail DOM identity');assert(await run('saved_scroll>0&&saved_scroll===panel.list.scrollTop'),'loaded tab switch preserves a nonzero scroll offset');assert.deepEqual(await run('panel.branches'),['refs/heads/main']);assert.equal(await run('panel.branch_select.value'),'refs/heads/main');assert(await run('commands.length===saved_count&&cancels===saved_cancel'),'loaded tab switch does not query Git');
  await run('block="log";window.refresh_task=panel.refresh(false);void 0');await wait('!!release');const refresh_counts=await run('({count:commands.length,cancels})');await run('panel.close();panel.open()');assert.deepEqual(await run('({count:commands.length,cancels})'),refresh_counts);await run('release()');await run('refresh_task');assert.equal(await run('panel.container.dataset.state'),'ready','explicit refresh completes across a tab switch');
 
- // 无变化刷新必须保留真实文件行和焦点；并发调用复用同一笔读取。
+ // Refresh with no changes must retain real file lines and focus; concurrent calls reuse the same read.
  fs.writeFileSync(path.join(repo,'note.md'),'changed alpha');
  await run('document.body.append(panel.workbench.sidebar);panel.refresh(false)');await wait('!panel.pending');
  await run('window.unchanged_graph=panel.list.querySelector(".git-graph-row");window.unchanged_history=panel.workbench.history.list.firstElementChild;window.unchanged_groups=panel.workbench.groups.firstElementChild;window.focused_file=panel.workbench.groups.querySelector(".git-scm-file");focused_file.focus();window.unchanged_snapshot=JSON.stringify(panel.state);window.command_start=commands.length;block="log";window.shared_read=panel.refresh(false);window.shared_read_again=panel.refresh(false);void 0');
@@ -23,7 +23,7 @@ app.whenReady().then(async()=>{
  assert(await run('focused_file.isConnected&&document.activeElement===focused_file'),'unchanged refresh keeps actual file keyboard focus');
  assert.equal(await run('commands.slice(command_start).filter(args=>args[0]==="status").length'),1,'one shared branch snapshot per read');
 
- // 相同结果不能取消仍在读取的历史详情，也不能复用已被替换的runner。
+ // The same result cannot cancel a history detail still being read, nor can it reuse a runner that has been replaced.
  await run('block="show";window.loading_comparison=panel.show_comparison(panel.state.commits[0].parents[0],panel.state.commits[0].hash);void 0');await wait('!!release');await run('loading_comparison');
  await run('window.pending_detail=panel.details.firstChild;window.detail_cancel_count=cancels;panel.refresh(false)');
  assert(await run('pending_detail===panel.details.firstChild&&cancels===detail_cancel_count'),'unchanged refresh leaves in-flight immutable detail alive');
@@ -32,7 +32,7 @@ app.whenReady().then(async()=>{
  await run('window.obsolete_release=release;panel.runner.cancel();panel.runner=test_host.runner(panel.settings);window.replacement_read=panel.refresh(false);void 0');
  assert(await run('replacement_read!==obsolete_read'),'replaced runner starts a new request even with identical configuration');await run('replacement_read');await run('obsolete_release()');await run('obsolete_read');
  assert(await run('!panel.pending&&panel.container.dataset.state==="ready"&&panel.state.head'),'obsolete completion cannot replace the new snapshot');
- // 同样的M状态仍需更新可变版本比较，不能将文件内容误判成未变化。
+ // The same M state still needs to update variable version comparisons; cannot misjudge file content as unchanged.
  await run('panel.selected="WORKTREE";panel.show_comparison("INDEX","WORKTREE")');await wait('panel.files.length>0');
  await run('window.mutable_snapshot=JSON.stringify(panel.state);window.mutable_reads=0;window.original_comparison=panel.show_comparison.bind(panel);panel.show_comparison=(...args)=>{mutable_reads++;return original_comparison(...args)};void 0');
  fs.writeFileSync(path.join(repo,'note.md'),'changed beta');await run('panel.refresh(false)');await wait('!panel.pending&&panel.files.length>0');
@@ -40,7 +40,7 @@ app.whenReady().then(async()=>{
  assert((await run('qa.compare_patch(panel.runner.run,panel.state,"INDEX","WORKTREE",panel.files[0])')).includes('+changed beta'),'mutable comparison reads current file content');
  await run('panel.show_comparison=original_comparison;window.before_settings_row=panel.list.querySelector(".git-graph-row");panel.settings.show_author=!panel.settings.show_author;panel.refresh(false)');await wait('!panel.pending');
  assert(await run('before_settings_row!==panel.list.querySelector(".git-graph-row")'),'display settings are not suppressed by repository equality');
- // 相同HEAD和文件组也必须应用另一仓库自己的树形及折叠布局。
+ // The same HEAD and file group must also apply another repository's own tree and folding layout.
  fs.mkdirSync(path.join(repo,'folder'));fs.writeFileSync(path.join(repo,'folder/change.md'),'untracked');await run('panel.refresh(false)');
  const clone=path.join(temp,'clone').replace(/\\/g,'/');cp.execFileSync('git',['clone','--quiet',repo,clone],{windowsHide:true});fs.writeFileSync(path.join(clone,'note.md'),'changed beta');fs.mkdirSync(path.join(clone,'folder'));fs.writeFileSync(path.join(clone,'folder/change.md'),'untracked');
  await run(`localStorage.setItem('linux-note-source-control:v1:layout:'+${JSON.stringify(clone)},JSON.stringify({tree:true,sort_order:'name'}));localStorage.setItem('linux-note-source-control:v1:collapsed:changes:'+${JSON.stringify(clone)},'true');window.previous_groups=panel.workbench.groups.firstElementChild;window.previous_group_state=JSON.stringify(panel.workbench.groups_state);panel.switch_repo(${JSON.stringify(clone)})`);

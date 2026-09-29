@@ -15,8 +15,12 @@ app.whenReady().then(async()=>{
   const group={containerEl:document.querySelector('#group'),appendChild(leaf){leaves.push(leaf);this.containerEl.replaceChildren(leaf.view.containerEl);leaf.view.onOpen();},toggleTab(uri){const leaf=leaves.find(v=>v.state.path===uri);this.containerEl.replaceChildren(leaf.view.containerEl);leaf.view.onOpen();return leaf;}};
   const core={WorkspaceView:class{constructor(leaf){this.leaf=leaf}},app:{settings,commands:{register(c){commands.set(c.id,c.callback);return()=>commands.delete(c.id)},run(id){commands.get(id)?.()}},viewManager:{registerView(id,factory){factories.set(id,factory);return()=>factories.delete(id)}},workspace:{activeLeaf:{parent:group,state:{path:'local.md'}},eachLeaves(fn){leaves.forEach(fn)},createLeaf(data){const leaf={...data,parent:group};leaf.view=factories.get(data.type)(leaf);return leaf;}}}};
   window[Symbol.for('typora-code:workspace')]=core;
+  core.app.i18n={locale:'zh-cn'};
   const sections=qa.bind_workspace_settings_sections({context_root:()=>current_root}),binding=qa.bind_workspace_settings_view(core);binding.show();
   const setting=(key)=>document.querySelector('[data-setting="'+key+'"]'),change=(key,value)=>{const input=setting(key);assert(input,'存在设置 '+key);if(input.type==='checkbox')input.checked=value;else input.value=value;input.dispatchEvent(new Event('change'));};
+  change('language.display_language','en');assert(values.get('displayLang')==='en'&&core.app.i18n.locale==='zh-cn'&&leaves.length===0,'language saves to the existing owner without rebuilding editors or changing the loaded locale');
+  window.fail_save=true;change('language.display_language','zh-cn');assert(values.get('displayLang')==='en','failed language save preserves the prior preference');window.fail_save=false;
+  change('language.display_language','auto');assert(values.get('displayLang')===undefined,'following Typora removes the explicit preference');
   assert(document.querySelector('.workspace-settings-modal[role=dialog]'),'设置为独立浮动窗口');binding.show();assert(document.querySelectorAll('.workspace-settings-modal').length===1&&leaves.length===0,'重复打开复用窗口，不改动原编辑组');
   change('editor.enable_preview',false);assert(!qa.read_workspace_editor_settings().enable_preview,'修改保存至原所有者');
   setting('editor.enable_preview').closest('.workspace-setting-row').querySelector('button').click();assert(qa.read_workspace_editor_settings().enable_preview,'单项恢复默认');

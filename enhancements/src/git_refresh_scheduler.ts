@@ -20,7 +20,7 @@ const SAVE_DELAY = 1000;
 const REFRESH_COOLDOWN = 5000;
 const BLOCKED_RETRY = 1000;
 
-/** 每个仓库控制器只持有一个调度器；保存合并，停留时半小时兜底，隐藏后停止定时。 */
+/** Each repository controller holds only one scheduler; save merges, if idle for half an hour, fallback, and hide to stop the timer. */
 export class git_refresh_scheduler {
   private visible = false;
   private opened = false;
@@ -39,7 +39,7 @@ export class git_refresh_scheduler {
     this.visible = visible;
     if (visible && !this.opened) {
       this.opened = true;
-      // 首次展示复用已经开始的读取，不在它完成后再排一笔相同请求。
+      // On first display, reuse already started reads; do not schedule another identical request once it is completed.
       this.initial_due = !this.options.busy() && !this.running;
     }
     this.schedule();
@@ -51,10 +51,10 @@ export class git_refresh_scheduler {
     this.schedule();
   }
 
-  /** 聚焦或弹层关闭只唤醒已经到期/有改动的读取，不把窗口事件当作刷新命令。 */
+  /** Focus or layer close only awaken already expired/modified reads, do not treat window events as refresh commands. */
   resume(): void { if (!this.disposed) this.schedule(); }
 
-  /** 控制器每次读取的 finally 调用，包括用户命令和失败；读取中到达的保存继续保留。 */
+  /** The finally call of the controller for each read, including user commands and failures; reads in progress continue to retain saves. */
   settled(): void {
     if (this.disposed) return;
     this.last_attempt = this.clock.now();
@@ -89,10 +89,10 @@ export class git_refresh_scheduler {
     this.initial_due = false;
     this.own_started = now;
     this.dirty = undefined;
-    // 错误由仓库控制器报告；调度器仍记录失败尝试，避免立刻重试形成刷新循环。
+    // Errors are reported by the repository controller; the scheduler still records failed attempts to avoid immediate retries forming a refresh loop.
     void (async () => {
       try { await this.options.refresh(); }
-      catch { /* 失败不改变自动刷新间隔，也不产生未处理的 Promise。 */ }
+      catch { /* Failure does not change the automatic refresh interval, nor does it generate unhandled Promise. */ }
       finally {
         this.running = false;
         this.settled();

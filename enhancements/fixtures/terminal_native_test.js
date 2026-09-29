@@ -1,4 +1,4 @@
-// 只控制本脚本创建的临时窗口；真实 ConPTY 操作仅作用于临时仓库。
+// Only control the temporary windows created by this script; real ConPTY operations only affect the temporary repository.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/terminal_native_test.js$/u, '');

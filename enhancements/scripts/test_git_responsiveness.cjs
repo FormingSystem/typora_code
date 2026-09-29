@@ -1,4 +1,4 @@
-// 独立 Electron 窗口验证 Chromium 的真实输入；Git 数据与用户数据均位于临时目录。
+// Independent Electron window verification of Chromium real input; Git data and user data are both located in the temporary directory.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,13 +7,13 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 const { build } = require('esbuild');
 const { editor_plugins } = require('./editor_bundle.cjs');
-// 几何核对固定Git Graph v1.30.0提交881a9e6的main.css/findWidget.css；含边框总高度。
-// 本测试没有复制扩展源码、样式或资源。详情高度是本项目的固定展示高度，窄组宽度用于验证响应性。
+// Geometric verification fixes Git Graph v1.30.0 submission 881a9e6's main.css/findWidget.css; includes total height of the border.
+// This test did not copy the source code, styles, or resources. The height is fixed for this project's display, and the narrow group width is used to verify responsiveness.
 const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
   toolbar_height: 41,
   header_height: 31,
   row_height: 24,
-  ref_height: 20, // 上游18px内容盒另加上下各1px边框。
+  ref_height: 20, // Add the upstream 18px content box with a top and bottom border of 1px.
   ref_radius: 5,
   toolbar_action_size: 20,
   toolbar_icon_size: 18,
@@ -26,7 +26,7 @@ const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
 const INLINE_DETAIL_HEIGHT = 300;
 const RESPONSIVE_EDITOR_WIDTHS = Object.freeze([640, 360]);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_git_responsive_'));
-const evidence = process.argv[2] || path.join(root, 'evidence'); fs.mkdirSync(evidence, { recursive: true });
+const evidence = process.argv.slice(1).filter(value=>!value.startsWith('--'))[1] || path.join(root, 'evidence'); fs.mkdirSync(evidence, { recursive: true });
 app.setPath('userData', path.join(root, 'user_data')); app.disableHardwareAcceleration();
 const git = args => child_process.execFileSync('git', ['-c', 'user.name=UI Test', '-c', 'user.email=ui@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', '-c', 'core.hooksPath=.git/unused_hooks', ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
 git(['init', '-b', 'main']); fs.writeFileSync(path.join(root, '.git/info/exclude'), 'user_data/\ntest.html\nevidence/\n');
@@ -43,7 +43,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); let test_wi
 const evaluate = async source => { try { return await test_window.webContents.executeJavaScript(source); } catch (error) { console.error('Evaluation failed:', source); throw error; } };
 const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluate(source)) return; await delay(50); } throw new Error('Timed out: ' + source); };
 const click = async (selector, button = 'left') => {
-  // 弹窗的自动获焦在下一任务执行，先让焦点和布局稳定，再读取鼠标位置。
+  // The automatic focus of the popup is deferred until the next task is executed; first, the focus and layout stabilize, then the mouse position is read.
   await delay(120);
   await evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); const box = element.getBoundingClientRect(), menu=element.closest('.git-graph-menu')?.getBoundingClientRect(); if (box.top < 0 || box.bottom > innerHeight || menu && (box.top<menu.top || box.bottom>menu.bottom)) element.scrollIntoView({block:'nearest'}); })()`);
   await delay(80);
@@ -65,7 +65,7 @@ const check_disclosure = async (selector, expanded, visible = true) => {
 };
 const key = async (key_code, modifiers = []) => {
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:key_code,modifiers});
-  // Electron 低层输入不自动生成 WM_CHAR；普通回车需包含真实字符输入阶段。
+  // Electron Low-level input does not auto-generate WM_CHAR; normal Enter must include a real character input phase.
   if (key_code === 'Enter' && !modifiers.length) test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:key_code,modifiers}); await delay(100);
 };
@@ -169,7 +169,7 @@ app.whenReady().then(async () => {
     test_window.webContents.setZoomFactor(1);
     await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='light';document.querySelector('#sidebar-content').style.width='260px';`);
     await evaluate('void (panel.writer.run=init_run)');
-    // 已连接到真实Chromium焦点，Enter必须走按钮默认click而非直接调用初始化方法。
+    // Already connected to real Chromium focus, Enter must go through button default click rather than directly calling initialization method.
     await evaluate(`panel.workbench.sidebar.querySelector('.git-scm-welcome button').focus()`);await key('Enter');await wait('panel.loaded&&!panel.pending&&!panel.writing');
     record('UI initialize creates empty real repository',fs.existsSync(path.join(empty,'.git'))&&await evaluate('!panel.state.head&&panel.container.dataset.state==="ready"'));
     record('ready restores original notice owner and sections',await evaluate(`panel.workbench.notice.parentElement===panel.workbench.changes_body&&!panel.workbench.sections.hidden&&panel.workbench.sidebar.querySelector('.git-scm-welcome').hidden`));

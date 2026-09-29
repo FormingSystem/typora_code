@@ -1,4 +1,4 @@
-// 功能/系统边界：真实Chromium几何、原生滚动算法端口；不操作用户窗口。
+// Function/system boundary: real Chromium geometry, native scrolling algorithm port; do not operate user windows.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild');

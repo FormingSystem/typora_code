@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 import {subscribe_workspace_resource_change} from './workspace_resource_events';
 
@@ -8,7 +9,7 @@ const services=new WeakMap<object,workspace_directory_service>();
 const change_listeners=new Set<(change:directory_change)=>void>();
 export function subscribe_workspace_directory_changes(listener:(change:directory_change)=>void){change_listeners.add(listener);return()=>{change_listeners.delete(listener);};}
 
-/** 名称元数据的唯一所有者；正文、Git状态与视图选择不进入此缓存。 */
+/** Unique owner of the name metadata; the document content, Git status, and view selection do not enter this cache. */
 export class workspace_directory_service {
   private scopes=new Map<string,directory_scope>();
   private references=0;
@@ -24,7 +25,7 @@ export class workspace_directory_service {
   retain(){this.references++;let released=false;return()=>{if(released)return;released=true;if(--this.references===0){this.disposed=true;this.clear();this.release_changes();this.listeners.clear();this.progress.clear();globalThis.removeEventListener?.('linux-note-workspace-context-changed',this.context_changed);services.delete(this.fs);}};}
   private clear(){for(const scope of this.scopes.values()){scope.disposed=true;for(const watcher of scope.watchers.values())watcher.close();scope.watchers.clear();scope.entries.clear();scope.catalogue=undefined;scope.snapshot=undefined;}this.scopes.clear();}
   private scope(root:string){
-    if(this.disposed)throw new Error('目录服务已关闭');
+    if(this.disposed)throw new Error(workspace_text("directory_service_directory_service_has_been_closed"));
     const key=this.path_api.normalize(root),provider=remote_files_for(root);let scope=this.scopes.get(key);
     if(scope&&scope.provider!==provider){scope.disposed=true;for(const watcher of scope.watchers.values())watcher.close();this.scopes.delete(key);scope=undefined;}
     if(!scope){scope={root:key,provider,revision:0,disposed:false,recursive:false,unwatched:false,watchers:new Map(),entries:new Map()};this.scopes.set(key,scope);if(!provider)scope.recursive=this.watch(scope,key,true);else scope.unwatched=true;}
@@ -36,7 +37,7 @@ export class workspace_directory_service {
       const watcher=this.fs.watch(directory,{persistent:false,recursive},(kind?:string,name?:string)=>{
         if(scope.disposed)return;
         const target=name?this.path_api.join(directory,String(name)):undefined;
-        // change只影响内容消费者；rename或无明细通知使名称快照失效。
+        // change affects only content consumers; rename or no detailed notification makes the name snapshot invalid.
         this.changed(scope,{root:scope.root,directory:recursive?(target?this.path_api.dirname(target):undefined):directory,path:target},kind!=='change');
       });scope.watchers.set(directory,watcher);
       watcher.on?.('error',()=>{watcher.close();scope.watchers.delete(directory);scope.unwatched=true;scope.recursive=false;this.changed(scope,{root:scope.root},true);});return true;
@@ -68,11 +69,11 @@ export class workspace_directory_service {
   }
   async read(root:string,directory:string):Promise<any[]>{
     const scope=this.scope(root);directory=this.path_api.normalize(directory);
-    // SSH没有递归事件能力；未展示目录不创建长期轮询，按需读取以保证新鲜度。
+    // SSH has no recursive event capability; directories that are not displayed do not create long-polling, and are read on demand to ensure freshness.
     if(scope.provider){
       if([...this.listeners].some(listener=>listener.root===scope.root&&listener.directory===directory))this.watch(scope,directory);
       let pending=scope.entries.get(directory);if(!pending){pending=Promise.resolve().then(()=>this.fs.promises.readdir(directory,{withFileTypes:true}));scope.entries.set(directory,pending);}
-      try{const entries=await pending;if(scope.disposed)throw new DOMException('工作区目录已切换','AbortError');return entries.slice();}
+      try{const entries=await pending;if(scope.disposed)throw new DOMException(workspace_text("directory_service_workspace_directory_has_been_switched"),'AbortError');return entries.slice();}
       finally{if(scope.entries.get(directory)===pending)scope.entries.delete(directory);}
     }
     if(!scope.recursive)this.watch(scope,directory);
@@ -82,8 +83,8 @@ export class workspace_directory_service {
       pending.catch(()=>{if(scope.entries.get(directory)===pending)scope.entries.delete(directory);});
     }
     const entries=await pending;
-    if(scope.disposed)throw new DOMException('工作区目录已切换','AbortError');
-    // 读取中发生变更时不发布过期快照；同目录等待者共享下一次读取。
+    if(scope.disposed)throw new DOMException(workspace_text("directory_service_workspace_directory_has_been_switched"),'AbortError');
+    // When changes occur during reading, no expired snapshot is published; waiting parties in the same directory share the next read.
     if(scope.entries.get(directory)!==pending)return this.read(root,directory);
     if(scope.unwatched)scope.entries.delete(directory);
     return entries.slice();
@@ -95,7 +96,7 @@ export class workspace_directory_service {
     const revision=scope.revision;
     const pending=(async()=>{
       const files:directory_file[]=[],stack=[root];let unreadable=0;
-      const current=()=>{if(scope.disposed)throw new DOMException('工作区目录已切换','AbortError');};
+      const current=()=>{if(scope.disposed)throw new DOMException(workspace_text("directory_service_workspace_directory_has_been_switched"),'AbortError');};
       const read_directory=async(directory:string)=>{
           current();let entries:any[];
           try{entries=await this.read(root,directory);}catch(error){current();unreadable++;return;}

@@ -1,4 +1,5 @@
-/** 文件名规则只决定展示语言，不决定文件是否出现在资源管理器中。 */
+import {workspace_text} from "./workspace_i18n";
+/** The file name rules only decide the displayed language, not whether the file appears in the Explorer. */
 export type file_language_rule = {
   language: string;
   label: string;
@@ -9,7 +10,7 @@ export type file_language_rule = {
   category?: "text" | "archive" | "binary";
 };
 
-/** 特殊文件名 → 最长复合后缀 → 最后一个后缀；未知名称再尝试首行解释器。 */
+/** Special file names → longest composite suffix → last suffix; for unknown names, try to interpret the first line. */
 export const FILE_LANGUAGE_RULES: readonly file_language_rule[] = [
   { language: "markdown", label: "Markdown", suffixes: [".md", ".markdown", ".mdown", ".mkdn", ".mkd"] },
   { language: "mdx", label: "MDX", suffixes: [".mdx"] },
@@ -31,15 +32,15 @@ export const FILE_LANGUAGE_RULES: readonly file_language_rule[] = [
   { language: "python", label: "Python", filenames: ["SConstruct", "SConscript"], suffixes: [".py", ".pyi", ".pyw", ".pyx", ".pxd"] },
   { language: "shell", label: "Shell", filenames: [".bashrc", ".bash_profile", ".bash_login", ".profile", ".zshrc", ".zprofile", ".zshenv", ".kshrc"], suffixes: [".sh", ".bash", ".zsh", ".ksh", ".fish"] },
   { language: "powershell", label: "PowerShell", suffixes: [".ps1", ".psm1", ".psd1"] },
-  { language: "bat", label: "Windows 批处理", suffixes: [".bat", ".cmd"] },
+  { language: "bat", label: workspace_text("file_language_windows_batch"), suffixes: [".bat", ".cmd"] },
   { language: "makefile", label: "Makefile", filenames: ["Makefile", "GNUmakefile", "Kbuild"], filename_prefixes: ["Makefile.", "GNUmakefile.", "Kbuild."], suffixes: [".mk", ".mak"] },
   { language: "cmake", label: "CMake", filenames: ["CMakeLists.txt"], suffixes: [".cmake"] },
   { language: "kconfig", label: "Kconfig", filenames: ["Kconfig"], filename_prefixes: ["Kconfig."] },
-  { language: "dts", label: "设备树", suffixes: [".dts", ".dtsi", ".dtso"] },
-  { language: "asm", label: "汇编", suffixes: [".s", ".asm", ".inc"] },
+  { language: "dts", label: workspace_text("file_language_device_tree"), suffixes: [".dts", ".dtsi", ".dtso"] },
+  { language: "asm", label: workspace_text("file_language_assembly"), suffixes: [".s", ".asm", ".inc"] },
   { language: "dockerfile", label: "Dockerfile", filenames: ["Dockerfile", "Containerfile"], filename_prefixes: ["Dockerfile.", "Containerfile."], suffixes: [".dockerfile", ".containerfile"] },
-  { language: "ini", label: "INI / 环境变量", filenames: [".env", ".gitconfig", ".gitmodules", ".editorconfig", ".npmrc", ".yarnrc"], filename_prefixes: [".env."], suffixes: [".ini", ".cfg", ".conf", ".properties", ".service", ".socket", ".timer", ".desktop"] },
-  { language: "ignore", label: "忽略规则", filenames: [".gitignore", ".gitattributes", ".dockerignore", ".ignore", ".npmignore", ".eslintignore", ".prettierignore"], suffixes: [".gitignore"] },
+  { language: "ini", label: workspace_text("file_language_ini_environment_variables"), filenames: [".env", ".gitconfig", ".gitmodules", ".editorconfig", ".npmrc", ".yarnrc"], filename_prefixes: [".env."], suffixes: [".ini", ".cfg", ".conf", ".properties", ".service", ".socket", ".timer", ".desktop"] },
+  { language: "ignore", label: workspace_text("file_language_ignore_rules"), filenames: [".gitignore", ".gitattributes", ".dockerignore", ".ignore", ".npmignore", ".eslintignore", ".prettierignore"], suffixes: [".gitignore"] },
   { language: "toml", label: "TOML", filenames: ["Cargo.lock", "poetry.lock", "uv.lock"], suffixes: [".toml"] },
   { language: "yaml", label: "YAML", suffixes: [".yaml", ".yml"] },
   { language: "xml", label: "XML", suffixes: [".xml", ".xsd", ".xsl", ".xslt", ".svg", ".plist", ".csproj", ".props", ".targets", ".ui"] },
@@ -64,9 +65,9 @@ export const FILE_LANGUAGE_RULES: readonly file_language_rule[] = [
   { language: "fsharp", label: "F#", suffixes: [".fs", ".fsi", ".fsx"] },
   { language: "systemverilog", label: "Verilog / SystemVerilog", suffixes: [".v", ".vh", ".sv", ".svh"] },
   { language: "restructuredtext", label: "reStructuredText", suffixes: [".rst"] },
-  { language: "plaintext", label: "纯文本", filenames: ["LICENSE", "COPYING", "AUTHORS", "NOTICE", "README", "CHANGELOG", "COMMIT_EDITMSG", "MERGE_MSG"], suffixes: [".txt", ".text", ".log", ".csv", ".tsv", ".patch", ".diff"] },
-  { language: "plaintext", label: "归档文件", category: "archive", suffixes: [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lz4", ".tgz", ".tbz2", ".txz", ".zip", ".7z", ".rar", ".gz", ".bz2", ".xz", ".zst", ".tar", ".jar", ".war", ".deb", ".rpm"] },
-  { language: "plaintext", label: "二进制文件", category: "binary", suffixes: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".bmp", ".pdf", ".exe", ".dll", ".so", ".a", ".o", ".class", ".pyc", ".wasm", ".woff", ".woff2", ".ttf", ".mp3", ".mp4", ".wav", ".bin", ".dtb"] },
+  { language: "plaintext", label: workspace_text("file_language_plain_text"), filenames: ["LICENSE", "COPYING", "AUTHORS", "NOTICE", "README", "CHANGELOG", "COMMIT_EDITMSG", "MERGE_MSG"], suffixes: [".txt", ".text", ".log", ".csv", ".tsv", ".patch", ".diff"] },
+  { language: "plaintext", label: workspace_text("file_language_archive_file"), category: "archive", suffixes: [".tar.gz", ".tar.bz2", ".tar.xz", ".tar.zst", ".tar.lz4", ".tgz", ".tbz2", ".txz", ".zip", ".7z", ".rar", ".gz", ".bz2", ".xz", ".zst", ".tar", ".jar", ".war", ".deb", ".rpm"] },
+  { language: "plaintext", label: workspace_text("file_language_binary_file"), category: "binary", suffixes: [".png", ".jpg", ".jpeg", ".gif", ".webp", ".ico", ".bmp", ".pdf", ".exe", ".dll", ".so", ".a", ".o", ".class", ".pyc", ".wasm", ".woff", ".woff2", ".ttf", ".mp3", ".mp4", ".wav", ".bin", ".dtb"] },
 ];
 
 export type file_language_match = { language: string; label: string; category: "text" | "archive" | "binary"; matched_by: "filename" | "suffix" | "shebang" | "fallback"; pattern: string };
@@ -83,7 +84,7 @@ function from_rule(rule: file_language_rule, matched_by: file_language_match["ma
 function shebang_language(first_line: string): string | undefined {
   const line = first_line.replace(/^\uFEFF/, "").split(/[\r\n]/, 1)[0];
   if (!line.startsWith("#!")) return;
-  // 只识别解释器名称，不执行命令；支持 env -S、环境变量赋值及版本号。
+  // Only identify the interpreter name, not execute commands; support env -S, environment variable assignment, and version numbers.
   const tokens = line.slice(2).trim().match(/"[^"\r\n]*"|'[^'\r\n]*'|\S+/g) || [];
   let executable = tokens.shift()?.replace(/^['"]|['"]$/g, "") || "";
   if (basename(executable) === "env") {
@@ -123,7 +124,7 @@ export function match_file_language(file_path: string, first_line = ""): file_la
   const language = shebang_language(first_line);
   const rule = language && FILE_LANGUAGE_RULES.find(candidate => candidate.language === language);
   if (rule) return from_rule(rule, "shebang", "#!");
-  return {language: "plaintext", label: "纯文本", category: "text", matched_by: "fallback", pattern: ""};
+  return {language: "plaintext", label: workspace_text("file_language_plain_text"), category: "text", matched_by: "fallback", pattern: ""};
 }
 
 export function detect_file_language(file_path: string, first_line = ""): string { return match_file_language(file_path, first_line).language; }
@@ -137,16 +138,16 @@ function byte_prefix(bytes: Uint8Array, signature: readonly number[]): boolean {
 
 function bom_encoding(bytes: Uint8Array): { encoding: string; offset: number } | undefined {
   if (byte_prefix(bytes, [0xef, 0xbb, 0xbf])) return {encoding: "utf-8", offset: 3};
-  // UTF-32 不能冒充 UTF-16；TextDecoder 没有 UTF-32 解码器，明确交给二进制预览。
+  // The UTF-32 cannot impersonate UTF-16; TextDecoder has no UTF-32 decoder, and it is explicitly given to the binary preview.
   if (byte_prefix(bytes, [0xff, 0xfe, 0x00, 0x00]) || byte_prefix(bytes, [0x00, 0x00, 0xfe, 0xff])) return;
   if (byte_prefix(bytes, [0xff, 0xfe])) return {encoding: "utf-16le", offset: 2};
   if (byte_prefix(bytes, [0xfe, 0xff])) return {encoding: "utf-16be", offset: 2};
 }
 
-/** BOM 优先于用户编码；不使用替换字符悄悄掩盖非法字节。 */
+/** The BOM takes precedence over user coding; it does not use replacement characters to secretly hide illegal bytes. */
 export function decode_file_bytes(bytes: Uint8Array, fallback_encoding = "utf-8"): decoded_file {
   const bom = bom_encoding(bytes);
-  // BOM 已在此处分离，后续 U+FEFF 属于正文，不能再被 TextDecoder 当作第二个 BOM 丢掉。
+  // The BOM has already been separated here; the subsequent U+FEFF belongs to the document content, and cannot be lost by TextDecoder as the second BOM.
   const decoder = new TextDecoder(bom?.encoding || fallback_encoding, {fatal: true, ignoreBOM: true});
   return {text: decoder.decode(bom ? bytes.subarray(bom.offset) : bytes), encoding: decoder.encoding, bom: Boolean(bom)};
 }
@@ -166,7 +167,7 @@ function contains_binary_controls(text: string): boolean {
   return controls > 0 && controls / Math.max(1, text.length) > 0.1;
 }
 
-/** 对已读字节判定；最多检查 8 KiB，不因扩展名或非 UTF-8 编码直接隐藏文件。 */
+/** Judgment of already read bytes; check at most 8 KiB, do not hide files directly because of the file extension or non UTF-8 encoding. */
 export function detect_binary_bytes(bytes: Uint8Array): boolean {
   if (BINARY_SIGNATURES.some(signature => byte_prefix(bytes, signature))) return true;
   if (bytes.length >= 262 && String.fromCharCode(...bytes.subarray(257, 262)) === "ustar") return true;
@@ -175,7 +176,7 @@ export function detect_binary_bytes(bytes: Uint8Array): boolean {
     const limit = Math.min(bytes.length, 8192);
     const end = bom.encoding.startsWith("utf-16") ? limit - ((limit - bom.offset) % 2) : limit;
     try {
-      // 样本末端可能截断 UTF-8 字符或 UTF-16 代理对；stream 允许该末端片段。
+      // The sample end may truncate UTF-8 characters or UTF-16 agents; stream allows this end fragment.
       return contains_binary_controls(new TextDecoder(bom.encoding, {fatal: true}).decode(bytes.subarray(bom.offset, end), {stream: end < bytes.length}));
     } catch { return true; }
   }

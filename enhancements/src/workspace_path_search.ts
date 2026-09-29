@@ -1,14 +1,15 @@
+import {workspace_text} from "./workspace_i18n";
 import {read_workspace_directory} from './workspace_directory_service';
 import {DEFAULT_SEARCH_REGEX,query_expression} from './workspace_search_matcher';
 import {create_search_matcher} from './workspace_search_worker_client';
 
 export type workspace_path_result={path:string;name:string;directory:boolean;link:boolean};
-/** 路径搜索只读目录名，取消属于本次查询，不持有工作区全局状态。 */
+/** Path search only reads directory names, cancels belonging to this query, does not hold workspace global state. */
 export async function search_workspace_paths(options:{fs:any;path_api:any;root:string;query:string;signal:AbortSignal}){
   const {fs,path_api,root,query,signal}=options,matcher=create_search_matcher();
   const query_options={query,regex:DEFAULT_SEARCH_REGEX};query_expression(query_options);
   const results:workspace_path_result[]=[],pending=[root];let unreadable=0,visited=0;
-  const current=()=>{if(signal.aborted)throw new DOMException('搜索已取消','AbortError');};
+  const current=()=>{if(signal.aborted)throw new DOMException(workspace_text("path_search_search_has_been_canceled"),'AbortError');};
   try{
     while(pending.length){
       current();const directory=pending.pop()!;let entries:any[];

@@ -1,3 +1,5 @@
+[English](workspace_view_menu.en.md)
+
 # 视图菜单状态与原生开关设计
 
 2026-09-27 R079覆盖旧键位：侧栏使用Alt+B；窗口放大/缩小使用Alt+=、Alt+-及对应Shift/小键盘变体。Ctrl+B、Ctrl+=、Ctrl+-归还Typora原生加粗和标题升降；后文旧日期键位仅记录来源，当前规则见[原生快捷键优先](workspace_shortcuts.md)。

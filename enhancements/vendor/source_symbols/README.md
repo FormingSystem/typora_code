@@ -1,3 +1,5 @@
+[English](README.en.md)
+
 # 离线语法大纲资产
 
 运行时固定 `web-tree-sitter@0.25.10`；五种 grammar 二进制来自 `tree-sitter-wasm@1.1.8` 的 npm 发布归档，只有 JavaScript、TypeScript、Python、CMake、YAML 随产品分发。C/C++ 大纲已改用本机 clangd，不分发或调用这两种 grammar。`source_manifest.json` 固定归档及逐文件 SHA256，并记录原 grammar 仓库和许可文本来源。该预构建包含 semver 源依赖，因此不把许可标签冒充二进制的精确 grammar Git 提交。各原作者的 MIT 许可与运行时许可随资产分发。

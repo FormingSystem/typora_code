@@ -1,3 +1,5 @@
+[English](community_plugins.en.md)
+
 # R057 社区插件接入
 
 2026-09-20，用户要求接入社区插件模块，便于使用其他插件。本次以已继承的 typora-community-plugin 2.10.15/v2 公共接口为兼容基线；不把另一套 obgnail 插件协议混称为通用兼容。最新授权覆盖此前停用社区扩展管理的约定。

@@ -23,7 +23,7 @@ export class MdPreviewerMode implements ModeController {
       try {
         let markdown = native_matches() ? editor.getMarkdown() : filePath ? await fs.readText(filePath) : ''
         if (sequence !== this.render_sequence || this._containerEl !== containerEl) return
-        // 异步磁盘读取期间可能已经打开该文档，优先使用最新的原生内存正文。
+        // During asynchronous disk reading, the document may already be open; prioritize using the latest native memory document content.
         if (native_matches()) markdown = editor.getMarkdown()
         const scroll_top = containerEl.parentElement?.scrollTop || 0
         this.mdRenderer.renderTo(markdown, containerEl)

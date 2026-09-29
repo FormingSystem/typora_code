@@ -1,4 +1,4 @@
-// 隔离复制端口，避免测试替换用户系统剪贴板。
+// Isolate copy port, avoid test replacing user system clipboard.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild'),assert=require('node:assert/strict'),fs=require('fs'),os=require('os'),path=require('path');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_code_copy_'));app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();let win;

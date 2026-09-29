@@ -92,7 +92,7 @@ app.whenReady().then(async()=>{
   assert(await evaluate('inputs.some(data=>data.startsWith("\\x1b[<64;"))'),'TUI鼠标协议仍交给应用');
   samples.push({windows_build:19045,resize_cycles:20,key_events:200,history_lines:200,wheel:'trusted Chromium ticks',limits:'Electron参数与协议测试；真实Shell另由原生夹具验证'});
   await evaluate('surface.dispose()');
-  // 首次输出不能依赖预先按键/反复mount；覆盖输出先于挂载及隐藏后重新显示。
+  // The first output cannot rely on pre-pressed / repeated mount; override the output before mounting and hiding, then re-display.
   await evaluate(`{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_scrollbars.css'),'utf8'))};document.head.append(style);document.documentElement.dataset.linuxNoteTyporaEnhancements='ready';document.documentElement.dataset.workspaceScrollbars='auto';}`);
   const snapshot=()=>evaluate(`(()=>{const buffer=surface.term.buffer.active,slider=surface.term.element.querySelector('.scrollbar.vertical .slider'),rect=slider?.getBoundingClientRect();return {base:buffer.baseY,position:buffer.viewportY,length:buffer.length,type:buffer.type,first:buffer.getLine(0)?.translateToString(true),slider_width:rect?.width||0,slider_height:rect?.height||0,rows:surface.term.rows,viewport_height:surface.viewport.clientHeight,inputs:inputs.length}})()`);
   for(let cycle=0;cycle<20;cycle++){

@@ -63,7 +63,7 @@ await check('!detached.querySelector(".workspace-tab-strip")&&other.tabHeader.co
 await evaluate(`root_el.append(detached);void 0`);await pause();
 await check('detached.querySelectorAll(".workspace-tab-strip").length===1','reinserting a real group creates one wrapper');
 
-// 仅替代宿主正文模式；真实叶子、分组、标签和共享 Seti 绑定一起验证标签呈现。
+// Only replace the host document mode; real leaves, groups, tabs, and shared Seti are bound together for verification of tab presentation.
 win.setSize(1100,720);await pause();
 await evaluate(`
 window.markdown_factory=runtime.app.viewManager.getViewCreatorByType('core.markdown');
@@ -102,7 +102,7 @@ fs.writeFileSync(path.join(root,'tab_controls_markdown_light.png'),(await win.we
 await evaluate(`markdown_left.view.native_editor=false;markdown_right.view.native_editor=true;markdown_left.view.setIcon('fa-file-text');markdown_right.view.setIcon('fa-file-text-o');runtime.app.workspace.activeLeaf=markdown_left;void 0`);
 await new Promise(resolve=>setTimeout(resolve,180));
 await check('!markdown_left.view.isEditor()&&markdown_right.view.isEditor()&&markdown_tab_matches(markdown_left_tab)&&markdown_tab_matches(markdown_right_tab)&&markdown_left_tab.querySelector(".typ-file-basename")===markdown_left_label&&markdown_right_tab.querySelector(".typ-file-basename")===markdown_right_label','swapping Markdown modes and delayed native icons preserves both file labels and visible Seti icons');
-// 核心 onToggle 只处理组内未选中标签；先通过真实标签切换建立此前置状态。
+// Core onToggle only processes unselected tabs within the group; first establish the prerequisite state by switching real tabs.
 await evaluate(`other.tabHeader.getTabById(other_leaf.state.path).querySelector('.typ-file-basename').click();runtime.app.workspace.activeLeaf=markdown_left;void 0`);await pause();
 await check('other.activeLeaf===other_leaf&&!markdown_right_tab.classList.contains("active")&&runtime.app.workspace.activeLeaf===markdown_left','right-group Markdown target is inactive before testing its delegated tab switch');
 await evaluate(`markdown_right_tab.querySelector('.typ-file-basename').click();void 0`);await pause();

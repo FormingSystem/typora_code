@@ -1,4 +1,4 @@
-// 隔离验证真实 Markdown / Monaco 预览，不启动 Typora，不访问工作区或用户配置。
+// Isolate verification of real Markdown / Monaco preview, do not start Typora, do not access workspace or user configuration.
 const {app, BrowserWindow} = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -47,7 +47,7 @@ app.whenReady().then(async () => {
     :root{--text-color:#24292f;--bg-color:#fff;--preview-heading:#175f91;--select-text-bg-color:#67a8e9}html,body{height:100%;margin:0;overflow:hidden}body{color:var(--text-color);background:var(--bg-color);font:16px/1.5 system-ui}html.dark{--text-color:#ddd;--bg-color:#202124;--preview-heading:#c7a0ff}#preview_mount{position:absolute;left:0;top:0;bottom:0;width:340px;border-right:1px solid #777}#central{position:absolute;left:380px;right:20px;top:20px;bottom:20px;overflow:auto}#write{font-size:20px;min-height:1500px;padding-top:12px}#write h1,#write h2{color:var(--preview-heading)}#write strong{font-weight:800}#write blockquote{border-left:4px solid #888;padding-left:10px}html.dark #write{font-size:22px}#central:focus-within{outline:1px solid #888}.workspace-lookup-preview-body{scrollbar-width:thin}
   </style><section id="preview_mount"></section><section id="central"><article id="write" contenteditable="true"><p>Central reader selection remains here.</p></article></section>`);
   await test_window.loadFile(html);
-  const bundle = await build({plugins:editor_plugins(),stdin:{contents:'export {create_lookup_preview} from "./src/workspace_lookup_preview";export * from "./src/reading_reflow";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});
+  const bundle = await build({plugins:editor_plugins(),stdin:{contents:'export {bind_code_theme} from "./src/reading_code_theme";export {create_lookup_preview} from "./src/workspace_lookup_preview";export * from "./src/reading_reflow";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},bundle:true,loader:{'.css':'text'},format:'iife',globalName:'lookup_qa',write:false});
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`(()=>{
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'))};document.head.append(style);
@@ -63,6 +63,7 @@ app.whenReady().then(async () => {
     window.keep_reader=()=>{const reader=document.querySelector('#write');reader.focus({preventScroll:true});const text=reader.querySelector('p').firstChild,range=document.createRange();range.setStart(text,8);range.setEnd(text,14);const selection=window.getSelection();selection.removeAllRanges();selection.addRange(range);document.querySelector('#central').scrollTop=100;return reader_state();};
     localStorage.clear();window.preview=lookup_qa.create_lookup_preview(files);document.querySelector('#preview_mount').append(preview.container);
   })()`);
+  await evaluate('lookup_qa.bind_code_theme().then(release=>{window.release_code_theme=release;})');
   const central_before = await evaluate('keep_reader()');
   await evaluate('show_file("notes.md","needle_target")');await delay(100);
   await verify('Markdown GFM preserves headings tables lists quotes and fenced code', async () => {
@@ -194,8 +195,8 @@ app.whenReady().then(async () => {
     await evaluate('delay_files.set(path_api.join(workspace_path,"slow.md"),180);window.old_request=show_file("slow.md","slow_target")');await delay(15);await evaluate('show_file("fast.md","fast_target")');await evaluate('old_request');
     assert.equal(await evaluate('markdown_root().querySelector("h1")?.textContent'),'Latest request');assert.equal(await evaluate('preview.container.querySelector(".workspace-lookup-preview-body").dataset.previewPath'),path.join(workspace,'fast.md'));
   });
-  await verify('Large or binary content shows an explicit preview limit without executing or opening it', async () => {
-    const reads_before=await evaluate('reads.length');await evaluate('show_file("large.md","large_target")');assert(await evaluate('preview.container.textContent.includes("2 MiB")'));assert.equal(await evaluate('reads.length'),reads_before);
+  await verify('File-size metadata does not impose the retired cutoff and binary content is rejected', async () => {
+    const reads_before=await evaluate('reads.length');await evaluate('show_file("large.md","large_target")');assert(await evaluate('markdown_root().textContent.includes("large_target")'));assert.equal(await evaluate('reads.length'),reads_before+1);
     await evaluate('show_file("binary.bin","binary_target")');assert(await evaluate('preview.container.textContent.includes("二进制")'));assert.equal(await evaluate('preview_attack'),0);assert.equal(network_requests.length,0);
   });
   await verify('Current text survives 20 width and percentage reflows without returning to the original hit',async()=>{

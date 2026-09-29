@@ -87,7 +87,7 @@ export class Modal extends View implements Closeable {
     this.escape_layer?.dispose()
     this.escape_layer=undefined
     this.containerEl.style.display = "none"
-    // 本层 Escape 或遮罩取消消费完整手势，再恢复仍有效的原焦点和选区。
+    // This layer Escape or mask consumes complete gestures, and resumes effective original focus and selection after recovery.
     $('input', this.containerEl).each((i, el) => el.blur())
     if(restore&&owned)this.previous_focus?.restore()
     this.previous_focus=undefined

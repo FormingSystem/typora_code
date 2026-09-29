@@ -43,7 +43,7 @@ See the [installation guide](docs/installation.en.md) for offline preparation, w
 
 ## Using the workbench
 
-Start with the [user guide and shortcuts](docs/user_guide.en.md). The Help menu also provides the installed offline guide and the onboarding tutorial. The installed guide's language and full workbench localization are being prepared; this documentation entry does not claim that all current UI text is already translated.
+Start with the [user guide and shortcuts](docs/user_guide.en.md). The Help menu provides the installed offline guide and onboarding tutorial. The workbench supports English and Chinese and follows Typora by default. Choose a display language in Settings and restart normally to apply it; offline help uses the same language.
 
 Use **File → Open Folder** to select a project. Use the lower-left gear or `Ctrl+,` for settings. `Ctrl+P` finds files, `Ctrl+Shift+F` searches content, `Alt+B` toggles the sidebar, and `Alt+Left/Right` navigates editor history. Typora's Markdown shortcuts remain available, including `Ctrl+B` for bold.
 
@@ -61,7 +61,7 @@ npm run check:ui
 
 Use this repository as the project root. Implementation lives in `enhancements/src/`; matching prebuilt assets live in `enhancements/dist/`. Build outputs include source and license provenance. Targeted UI tests use the existing runner, for example `npm run check:ui -- test_workspace_titlebar.cjs`.
 
-Read the [contributor guide](docs/contributing.en.md) before changing behavior. Design records and historical acceptance evidence currently remain in Chinese; their English migration is tracked separately. A passing hidden-window test is not a substitute for native Typora acceptance or another platform's validation.
+Read the [contributor guide](docs/contributing.en.md) before changing behavior. Design records, developer handoffs, and historical verification records have separate English and Chinese pages with language links. A passing hidden-window test is not a substitute for native Typora acceptance or another platform's validation.
 
 ## License and attribution
 

@@ -1,9 +1,10 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {createRequire} from 'node:module';
 import {build} from 'esbuild';
-// 由测试运行器提供已安装服务和专属工作区；不下载组件或读取用户工程配置。
+// Provided by test runner installed services and dedicated workspace; do not download components or read user project configuration.
 const manifest_path=process.env.TYPORA_LANGUAGE_TEST_MANIFEST;
 if(!manifest_path)throw Error('请设置TYPORA_LANGUAGE_TEST_MANIFEST，提供专属测试目录与真实语言服务配置。');
 const manifest=JSON.parse(await fs.readFile(manifest_path,'utf8')),node=createRequire(import.meta.url);

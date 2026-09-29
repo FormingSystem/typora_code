@@ -1,4 +1,4 @@
-/* 新的用户格式操作复用公共对话框、4px 控件圆角和键盘焦点；不修改原生菜单的其他条目。 */
+/* New user format operations reuse common dialog boxes, 4px control rounding and keyboard focus; do not modify other entries in the native menu. */
 .workspace-color-dialog .git-graph-dialog{width:360px;max-width:calc(100vw - 24px)}
 .workspace-color-note{margin:0 0 12px}
 .workspace-color-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}

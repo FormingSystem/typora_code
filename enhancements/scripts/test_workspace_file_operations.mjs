@@ -1,4 +1,5 @@
-// 只操作本次创建的临时目录，回收站回调也重定向到同一临时树。
+import './fixture_locale.cjs';
+// Only operate on the temporary directory created this time; the recycle bin callback is also redirected to the same temporary tree.
 import assert from "node:assert/strict";
 import fs from "node:fs";
 import path from "node:path";

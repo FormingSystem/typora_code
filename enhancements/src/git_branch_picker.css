@@ -1,4 +1,4 @@
-/* 固定QuickInput契约：普通22px、带detail44px、宽600px；引用和动作共用输入焦点。 */
+/* Fix the QuickInput contract: regular 22px, with detail44px, wide 600px; references and actions share the same input focus. */
 .git-scm-ref-picker.git-branch-picker .git-branch-item{display:flex;flex-direction:column;align-items:stretch;gap:0;flex:none}
 .git-branch-picker .git-branch-item.has-detail{height:44px;min-height:44px}
 .git-branch-line{display:flex;align-items:center;gap:6px;min-height:22px;min-width:0;width:100%;overflow:hidden}

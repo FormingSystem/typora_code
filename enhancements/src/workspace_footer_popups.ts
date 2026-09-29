@@ -1,7 +1,7 @@
 import {create_workspace_lifetime} from "./workspace_lifetime";
 import {create_workspace_popup_refresh} from "./workspace_popup_refresh";
 
-/** 原生事件与菜单节点不迁移；只把底栏浮层统一锚定到当前入口与窗口视口。 */
+/** Native events and menu nodes are not migrated; only anchor the status bar floating layer uniformly to the current entry and window viewport. */
 export function bind_workspace_footer_popups(footer:HTMLElement, actions:HTMLElement, sidebar:HTMLElement) {
   const lifetime=create_workspace_lifetime();
   const definitions=[
@@ -41,9 +41,9 @@ export function bind_workspace_footer_popups(footer:HTMLElement, actions:HTMLEle
       const bounds=menu.getBoundingClientRect();
       const left=Math.max(4,Math.min(anchor_bounds.right-bounds.width,innerWidth-bounds.width-4));
       const top=Math.max(viewport_top,bottom-bounds.height);
-      // 忽略小于布局子像素的舍入；无几何变化的宿主通知不重新写坐标。
+      // Ignore the rounding of layout sub-pixel less than 1; host notifications without geometric changes do not rewrite coordinates again.
       if(Math.abs(bounds.left-left)>1/32||Math.abs(bounds.top-top)>1/32){
-        // 从零坐标直接测包含块原点；不把CSS序列化/子像素舍入误差反馈到下一帧。
+        // Measure the containing block origin directly from the zero coordinate; do not feed the CSS sequence/ sub-pixel rounding errors into the next frame.
         set_property(menu,"--workspace-popup-left","0px");set_property(menu,"--workspace-popup-top","0px");
         const origin=menu.getBoundingClientRect();
         set_property(menu,"--workspace-popup-left",left-origin.left+"px");

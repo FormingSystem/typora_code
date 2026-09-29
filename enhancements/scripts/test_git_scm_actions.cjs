@@ -1,4 +1,4 @@
-// 真实 Chromium 指针／键盘与隔离 Git 数据验证 R027，不操作用户窗口、远端或文件。
+// Real Chromium pointer / keyboard and isolated Git data verification R027, no operation on user window, remote or file.
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path'),child_process=require('node:child_process');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
 const temp=fs.mkdtempSync(path.join(os.tmpdir(),'typora_scm_ui_')),root=path.join(temp,'repo'),other=path.join(temp,'other'),remote=path.join(temp,'remote.git');fs.mkdirSync(root);fs.mkdirSync(other);
@@ -48,7 +48,7 @@ app.whenReady().then(async()=>{
   await click('.git-scm-operation-menu');await click('[data-action=worktrees]');await click('[data-action=worktree_manage]');await wait('document.querySelector(".git-scm-worktree-entry")');assert(await evaluate('[...document.querySelectorAll(".git-scm-worktree-entry button")].find(node=>node.textContent.includes("删除")).disabled'));await key('Escape');checks.push('repository Worktrees entry reads Git and protects the main worktree');
   await evaluate('window.stale_fetch=panel.workbench.history.toolbar.entry("fetch");void 0');await click('[data-history-action=fetch]');await wait('!panel.writing&&!panel.pending');assert.equal(await evaluate('document.querySelectorAll(".git-graph-dialog-shade,[data-git-preview=fetch]").length'),0);await evaluate(`void panel.switch_repo(${JSON.stringify(other)})`);await wait(`!panel.pending&&panel.root===${JSON.stringify(other.replace(/\\/g,"/"))}`);await evaluate('stale_fetch.action()');await delay(100);assert(!await evaluate('panel.writing'));assert(await evaluate('document.querySelector("[data-history-action=fetch]").disabled'));checks.push('Fetch immediately completes and a retained toolbar command cannot execute after repository switch');
   const late_menu=await evaluate(`(()=>{window.stale=panel.workbench.file_entries({path:'before.md',status:'M'},'INDEX','WORKTREE',[],panel.root).find(entry=>entry.id==='open_head');return true})()`);assert(late_menu);await evaluate(`void panel.switch_repo(${JSON.stringify(root)})`);await wait(`!panel.pending&&panel.root===${JSON.stringify(root.replace(/\\/g,"/"))}`);await evaluate('stale.action()');assert.equal(await evaluate('revisions.length'),1);checks.push('stale file menu cannot open an object in the new repository');
-  // 标题操作复用生产事务；所有读写均限制在本脚本创建的临时仓库。
+  // Title operation reuses production transaction; all read/write are limited to temporary repository created by this script.
   const title_selector=id=>`[data-scm-title-action=${id}]`;
   const title_buttons=await evaluate(`(()=>{const heading=document.querySelector('summary.git-scm-input-heading'),actions=heading.querySelector('.git-scm-input-actions');return {branch:!!heading.querySelector('.git-scm-branch'),order:actions&&[...actions.querySelectorAll('button')].filter(node=>!node.hidden).map(node=>node.dataset.scmTitleAction||'more'),accessible:actions&&[...actions.querySelectorAll('button')].every(node=>node.tabIndex>=0&&(node.getAttribute('aria-label')||node.title))};})()`);
   assert.equal(title_buttons.branch,false,'Changes heading no longer contains the old branch control');
@@ -103,7 +103,7 @@ app.whenReady().then(async()=>{
   await click(title_selector('graph'));assert.deepEqual(await evaluate('title_calls.graph'),[root.replace(/\\/g,'/')]);assert(await evaluate('panel.workbench.input_section.open'));
   checks.push('title refresh performs one real read without resetting history, blocks duplicate actions while pending and Graph receives the active root');
 
-  // 同一仍有效仓库的读取错误必须禁用写入，但保留刷新恢复入口。
+  // Read error from the same still valid repository must disable writing, but retain refresh recovery entry.
   await evaluate('panel.runner.run=async()=>{throw new Error("SCM title controlled read failure")};void panel.refresh(false)');await wait('!panel.pending&&panel.container.dataset.state==="error"');
   await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});await evaluate('void (panel.runner.run=title_run_original)');await click('.git-scm-welcome button:not([hidden])');await wait('!panel.pending&&panel.container.dataset.state==="ready"');await assert_title_disabled(ready_buttons);
   await evaluate('window.title_saved_state=panel.state;window.title_saved_root=panel.root;panel.state=undefined;panel.update_scm_actions()');await assert_title_disabled({commit:true,refresh:false,graph:true,main:true});
@@ -112,7 +112,7 @@ app.whenReady().then(async()=>{
   await evaluate('panel.state=title_saved_state;panel.root=title_saved_root;panel.update_scm_actions()');await assert_title_disabled(ready_buttons);
   checks.push('read errors and invalid state disable both commit entries and Graph; an idle root keeps Refresh available for recovery, while no root disables it');
 
-  // 原生 summary 的点击与键盘折叠不得由内部标题动作触发。
+  // Native summary click and keyboard fold cannot be triggered by internal title action.
   await click('summary.git-scm-input-heading');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
   await click(title_selector('refresh'));await wait('!panel.pending');assert.equal(await evaluate('panel.workbench.input_section.open'),false);
   await click(title_selector('graph'));assert.equal(await evaluate('panel.workbench.input_section.open'),false);

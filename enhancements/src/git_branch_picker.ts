@@ -11,7 +11,7 @@ import css from "./git_branch_picker.css";
 type choice={id:string;label:string;icon:git_icon_name;ref?:checkout_ref;group?:string};
 let active_picker:git_branch_picker|undefined,sequence=0;
 const age=(date:number)=>{const seconds=Math.max(0,(Date.now()/1000)-date),units:[Intl.RelativeTimeFormatUnit,number][]=[["year",31536000],["month",2592000],["day",86400],["hour",3600],["minute",60]];const [unit,size]=units.find(([,size])=>seconds>=size)||["second",1];return new Intl.RelativeTimeFormat(git_graph_language_tag(),{numeric:"auto"}).format(-Math.floor(seconds/size),unit);};
-/** 检出单选独立于历史引用多选；写入继续由panel管理。 */
+/** Check out single selection is independent of multi-selection historical references; writing continues to be managed by panel. */
 export class git_branch_picker {
   private dismiss?:(restore:boolean)=>void;
   private available?:()=>boolean;

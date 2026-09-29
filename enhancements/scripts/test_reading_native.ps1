@@ -10,7 +10,7 @@ $fixture_name = switch ($suite) { 'rename' { 'workspace_rename_native_test.js' }
 $workspace_index = $null
 $workspace_index_bytes = $null
 if ($suite -eq 'workspace') {
-    # 当前隔离工作树的索引只读快照；测试样例始终位于临时目录，不能暂存仓库文件。
+    # The current isolated work tree index is a read-only snapshot; test examples are always in temporary directories and cannot stage repository files.
     $workspace_index = & git -C $PSScriptRoot rev-parse --path-format=absolute --git-path index
     if ($LASTEXITCODE -ne 0) { throw 'Cannot locate workspace Git index for native test audit.' }
     $workspace_index = $workspace_index.Trim()

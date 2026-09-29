@@ -1,5 +1,6 @@
+import {workspace_text} from "./workspace_i18n";
 export type auto_save_policy={mode:string;delay:number};
-/** 每份文档一个定时器和写入任务；失败不循环重试，保存期间的新编辑保留下一轮。 */
+/** Each document has one timer and write task; failure does not loop retry, and new edits during saving are preserved for the next round. */
 export function create_auto_save<T extends object>(options:{policy():auto_save_policy;state(target:T):{dirty:boolean;busy:boolean;eligible:boolean};save(target:T):Promise<boolean>;report(target:T,error:unknown):void}){
   const revisions=new Map<T,number>(),timers=new Map<T,ReturnType<typeof setTimeout>>(),pending=new Set<T>(),failed=new Map<T,number>(),forgotten=new WeakSet<T>();let disposed=false;
   function clear(target:T){const timer=timers.get(target);if(timer!==undefined)clearTimeout(timer);timers.delete(target);}
@@ -9,7 +10,7 @@ export function create_auto_save<T extends object>(options:{policy():auto_save_p
     const state=options.state(target);if(!state.eligible||!state.dirty)return;
     if(state.busy){schedule(target,100);return;}
     const revision=revisions.get(target)||0;if(failed.get(target)===revision)return;pending.add(target);
-    try{const saved=await options.save(target);if(!saved&&!disposed&&!forgotten.has(target)&&options.state(target).dirty){failed.set(target,revision);options.report(target,new Error("自动保存未完成，编辑内容已保留。"));}else if(saved)failed.delete(target);}
+    try{const saved=await options.save(target);if(!saved&&!disposed&&!forgotten.has(target)&&options.state(target).dirty){failed.set(target,revision);options.report(target,new Error(workspace_text("auto_save_automatic_saving_is_not_complete_edited_content_is_retained")));}else if(saved)failed.delete(target);}
     catch(error){if(!disposed&&!forgotten.has(target)){failed.set(target,revision);options.report(target,error);}}
     finally{pending.delete(target);if(!disposed&&!forgotten.has(target)&&(revisions.get(target)||0)!==revision&&options.policy().mode==="afterDelay"&&options.state(target).dirty)schedule(target);}
   }

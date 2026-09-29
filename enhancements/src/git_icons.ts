@@ -5,7 +5,7 @@ import { git_graph_text as text } from "./git_graph_i18n";
 export type git_icon_name = keyof typeof codicons;
 const templates = new Map<git_icon_name, SVGSVGElement>();
 
-/** 使用随 bundle 分发的官方 Codicons SVG，避免正文及系统字体改变图标形状。 */
+/** Use the official Codicons SVG distributed with bundle, avoid changing the document content and system fonts to alter the icon shape. */
 export function git_icon(name: git_icon_name, class_name = ""): SVGSVGElement {
   let template = templates.get(name);
   if (!template) {
@@ -15,7 +15,7 @@ export function git_icon(name: git_icon_name, class_name = ""): SVGSVGElement {
     template.setAttribute("width", "16"); template.setAttribute("height", "16");
     template.setAttribute("aria-hidden", "true"); template.setAttribute("focusable", "false");
     template.setAttribute("fill", "currentColor"); template.setAttribute("data-git-icon", name);
-    // 原始 SVG 保存在 vendor；显示时跟随界面前景色，保留 fill=none 的空白形状。
+    // Original SVG is saved in vendor; during display, it follows the interface foreground color, retaining fill=none blank shape.
     for (const node of template.querySelectorAll("[fill]")) if (node.getAttribute("fill") !== "none") node.setAttribute("fill", "currentColor");
     templates.set(name, template);
   }

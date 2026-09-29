@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {mermaid_theme_options,observe_mermaid_theme} from './reading_mermaid_theme';
 import {load_code_themes,initial_code_stack} from './reading_code_theme';
 import * as monaco from "monaco-editor/editor/editor.api";
@@ -8,7 +9,7 @@ import { detect_file_language } from "./file_language";
 type diagram_api = { initialize(options: Record<string,unknown>): void; render(id: string, source: string, container?: HTMLElement): Promise<{svg: string}> };
 let diagram_serial = 0;
 
-/** 复用源码编辑器的语言注册和 tokenizer，保留原文字节对应的字符及换行。 */
+/** Reuse the language registration of the source code editor and tokenizer, preserving the original text bytes corresponding to the characters and line breaks. */
 export async function highlight_preview_code(code: HTMLElement): Promise<void> {
   initialize_editor();
   const hint = (code.className.match(/language-([^\s]+)/u)?.[1] || "plaintext").toLowerCase();
@@ -20,7 +21,7 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
     text.split('\n').forEach((line,index)=>{if(index)fragment.append(document.createTextNode('\n'));const result=grammar.tokenizeLine(line,stack);stack=result.ruleStack;for(const token of result.tokens){const span=document.createElement('span');span.className=token.style;span.textContent=line.slice(token.startIndex,token.endIndex);fragment.append(span);}});
     code.replaceChildren(fragment);return;
   }
-  // colorize 等待语言的按需载入；实际 DOM 使用原文与 tokenizer 的字符偏移构造。
+  // The colorize waits for the language to be loaded on demand; the actual DOM uses the original text and tokenizer character offsets to construct.
   await monaco.editor.colorize(text, language, {tabSize:4});
   const tokens = monaco.editor.tokenize(text, language), lines = text.split("\n"), fragment = document.createDocumentFragment();
   lines.forEach((line, index) => {
@@ -37,7 +38,7 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
   code.replaceChildren(fragment);
 }
 
-/** 每个预览拥有隔离的 Mermaid 实例，避免图表指令污染正在渲染的中央正文配置。 */
+/** Each preview has an isolated Mermaid instance to avoid chart instructions polluting the currently rendering central document configuration. */
 export function create_preview_diagrams() {
   let frame:HTMLIFrameElement|undefined, loading:Promise<diagram_api>|undefined;
   const entries=new Set<{element:HTMLElement;source:string;width:number;current:()=>boolean;revision:number}>();
@@ -49,18 +50,18 @@ export function create_preview_diagrams() {
     frame.style.cssText="position:fixed;left:-100000px;top:0;width:600px;height:600px;border:0;pointer-events:none;visibility:hidden";
     document.body.append(frame);
     const doc=frame.contentDocument!;doc.open();doc.write("<!doctype html><html><head><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src file:; style-src 'unsafe-inline'; img-src data:; font-src data:; connect-src 'none'\"></head><body></body></html>");doc.close();
-    const script=doc.createElement("script"), timeout=setTimeout(()=>finish(new Error("内置图表渲染器加载超时。")),10000);
+    const script=doc.createElement("script"), timeout=setTimeout(()=>finish(new Error(workspace_text("markdown_preview_render_built_in_chart_renderer_timeout"))),10000);
     const finish=(error?:Error)=>{
       clearTimeout(timeout);cancel_load=undefined;script.onload=script.onerror=null;
       const api=(frame?.contentWindow as unknown as {mermaid?:diagram_api})?.mermaid;
-      if(error||disposed||!api?.render)reject(error||new Error("内置图表渲染器不可用。"));else resolve(api);
+      if(error||disposed||!api?.render)reject(error||new Error(workspace_text("markdown_preview_render_built_in_chart_renderer_unavailable")));else resolve(api);
     };
-    cancel_load=()=>finish(new Error("预览已关闭。"));
-    // Typora 1.14.9 diagrams.lazyload 使用此随应用分发的本地资源；按当前 window.html 解析，不固定安装目录。
+    cancel_load=()=>finish(new Error(workspace_text("markdown_preview_render_preview_is_closed")));
+    // The Typora 1.14.9 diagrams.lazyload uses this locally distributed resource with the application; parse it according to the current window.html, without fixing the installation directory.
     script.src=new URL("./lib.asar/diagram/mermaid.min.js",document.baseURI).href;
-    script.onload=()=>finish();script.onerror=()=>finish(new Error("无法载入内置图表渲染器。"));doc.head.append(script);
+    script.onload=()=>finish();script.onerror=()=>finish(new Error(workspace_text("markdown_preview_render_cannot_load_built_in_chart_renderer")));doc.head.append(script);
   });
-  // 初次渲染期间也可能切换主题；只提交与当前原生配置一致的结果。
+  // Theme switching may also occur during the initial rendering; only submit results that are consistent with the current native configuration.
   const render_current=async(api:diagram_api,source:string,current:()=>boolean)=>{
     while(!disposed&&current()){
       const options=mermaid_theme_options(),fingerprint=JSON.stringify(options);
@@ -82,7 +83,7 @@ export function create_preview_diagrams() {
       if(!diagram.querySelector("svg"))return false;
       entries.add({element:diagram,source:code.textContent||"",width,current,revision:0});
       const pre=code.closest("pre");
-      if(show_source){pre?.before(diagram);const label=document.createElement("div");label.className="lookup-diagram-source-label";label.textContent="命中源码";pre?.before(label);}
+      if(show_source){pre?.before(diagram);const label=document.createElement("div");label.className="lookup-diagram-source-label";label.textContent=workspace_text("markdown_preview_render_matching_source");pre?.before(label);}
       else pre?.replaceWith(diagram);
       return true;
     }).catch(()=>false);
@@ -99,7 +100,7 @@ export function create_preview_diagrams() {
         const result=await render_current(api,entry.source,()=>revision===entry.revision&&entry.element.isConnected&&entry.current());
         if(!result||disposed||revision!==entry.revision||!entry.element.isConnected||!entry.current())return;
         entry.element.innerHTML=DOMPurify.sanitize(result.svg,{ADD_TAGS:["foreignObject"],HTML_INTEGRATION_POINTS:{foreignobject:true},FORBID_TAGS:["script","img","image","iframe","object","embed","audio","video","source","form"],FORBID_ATTR:["href","xlink:href"]});
-      }).catch(()=>{ /* 失败保留此前可读SVG；后续主题事件可重试。 */ });
+      }).catch(()=>{ /* Failure retains the previously readable SVG; subsequent theme events can be retried. */ });
     }
   });
   return {render,dispose(){disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};

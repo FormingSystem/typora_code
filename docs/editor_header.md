@@ -1,3 +1,5 @@
+[English](editor_header.en.md)
+
 # 文件标签与编辑器顶部
 
 ## R034 普通文件顶端功能栏

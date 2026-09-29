@@ -1,4 +1,4 @@
-// 专属原始宿主副本：从真实菜单/关闭按钮和文件服务验证最后一个文档。
+// Exclusive original host copy: verify the last document from the real menu/close button and file services.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

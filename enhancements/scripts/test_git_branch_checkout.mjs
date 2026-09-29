@@ -1,4 +1,5 @@
-// 真实Git验收只操作新建临时仓库和本地bare远端。
+import './fixture_locale.cjs';
+// Real Git acceptance only operates on newly created temporary repositories and local bare remote.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import cp from 'node:child_process';import {build} from 'esbuild';
 const compiled=await build({stdin:{contents:['git_branch_checkout','git_graph_actions','git_graph_runtime'].map(name=>`export * from './src/${name}.ts'`).join(';'),resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});

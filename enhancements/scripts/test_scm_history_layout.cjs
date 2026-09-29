@@ -1,4 +1,4 @@
-// 用后段多分支的历史重现前段单轨提交被全局宽度撑开的排版问题。
+// Use backend multi-branch history to replay frontend single-track commit issues that were widened by global width.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -64,7 +64,7 @@ app.whenReady().then(async()=>{
   await evaluate(`owner.panel.root='another-repository';document.querySelector('[data-hash=tip]').nextElementSibling.querySelector('[data-history-file-action]').click();document.querySelector('[data-hash=tip]').parentElement.querySelector('[data-history-commit-action]').click()`);await delay(30);
   assert.deepEqual(await evaluate('[opened.length,revisions.length]'),[2,1],'stale history buttons cannot act on a newly selected repository');
 
-  // 提交标签按自然文字顺序裁切；用真实指针验证操作出现前后没有作者列或字形挤压。
+  // Commit tags cut according to natural text order; use real pointer to verify operations appear without author column or glyph compression.
   await evaluate(`(()=>{
     const make=(hash,subject,author)=>({hash,subject,author,parents:[],date:'2026-09-13'});
     window.label_state={...state,head:'reference',refs:[{name:'refs/heads/main',hash:'reference'},{name:'refs/heads/feature/'+ 'very-long-branch-'.repeat(8),hash:'multiple'},{name:'refs/remotes/origin/feature/'+ 'remote-branch-'.repeat(8),hash:'multiple'}],commits:[
@@ -111,7 +111,7 @@ app.whenReady().then(async()=>{
   }
   fs.writeFileSync(path.join(evidence,'commit_labels.json'),JSON.stringify(commit_labels,null,2));
 
-  // 新增区间沿用真实共享选择与颜色，覆盖窄侧栏、缩放及Chromium指针悬停。
+  // New interval continues to use real shared selection and color, covers narrow sidebar, zooming and Chromium pointer hover.
   await evaluate(`(()=>{const local='a'.repeat(40),remote='b'.repeat(40),base='c'.repeat(40);window.range_state={...state,head:local,branch:'main',refs:[],tracking:{merge_base:base,upstream:'refs/remotes/team/main',upstream_hash:remote,ahead:1,behind:1},commits:[{hash:local,parents:[base],subject:'local',author:'author',date:''},{hash:remote,parents:[base],subject:'remote',author:'author',date:''},{hash:base,parents:[],subject:'base',author:'author',date:''}]};owner.panel.state=range_state;history_view.selected='';})()`);
   const range_states=[];
   for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [220,420]){

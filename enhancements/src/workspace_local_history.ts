@@ -1,10 +1,11 @@
+import {workspace_text} from "./workspace_i18n";
 import {detect_binary_bytes} from "./file_language";
 
 export type local_history_entry={id:string;timestamp:number;source:string;hash:string;size:number;file_path:string};
 export type local_history_options={enabled:boolean;max_entries:number;merge_window:number;exclude:Record<string,boolean>;workspace_root?:string};
 type history_modules={fs:any;path_api:any;crypto:any};
 const identifier=/^[a-f0-9]{32}$/u;
-/** 支持VS Code常用glob：*、**、?、字符组和花括号备选。路径始终使用斜杠。 */
+/** Supports VS Code common glob: *, **, ?, character groups and flower brackets as alternatives. Paths always use slashes. */
 export function history_glob_matches(pattern:string,path:string):boolean{
   let source="";
   for(let i=0;i<pattern.length;i++){
@@ -17,7 +18,7 @@ export function history_glob_matches(pattern:string,path:string):boolean{
   }
   try{return new RegExp("^"+source+"$","u").test(path.replaceAll("\\","/"));}catch{return false;}
 }
-/** 每条记录独立原子发布；多窗口不共写全局索引或同一快照文件。 */
+/** Each record is independently atomic published; multiple windows do not share global index or the same snapshot file. */
 export function create_local_history_store(modules:history_modules,directory:string,read_options:()=>local_history_options){
   const {path_api,crypto}=modules,fs=modules.fs.promises;
   const queues=new Map<string,Promise<unknown>>();
@@ -27,10 +28,10 @@ export function create_local_history_store(modules:history_modules,directory:str
   const id=()=>crypto.randomBytes(16).toString("hex");
   async function read_snapshot(path:string){
     const handle=await fs.open(path,"r");try{
-      const before=await handle.stat();if(!before.isFile())throw new Error("历史目标不是普通文件。");
+      const before=await handle.stat();if(!before.isFile())throw new Error(workspace_text("local_history_history_target_is_not_a_regular_file"));
       const buffer=new Uint8Array(before.size+1);let length=0;
       while(length<buffer.length){const read=await handle.read(buffer,length,buffer.length-length,length);if(!read.bytesRead)break;length+=read.bytesRead;}
-      const after=await handle.stat();if(length!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw new Error("读取时文件发生变化。");
+      const after=await handle.stat();if(length!==before.size||after.size!==before.size||after.mtimeMs!==before.mtimeMs)throw new Error(workspace_text("local_history_file_changes_while_reading"));
       return buffer.slice(0,length);
     }finally{await handle.close();}
   }
@@ -45,7 +46,7 @@ export function create_local_history_store(modules:history_modules,directory:str
     try{names=await fs.readdir(dir);}catch(error){if((error as any).code==="ENOENT")return [];throw error;}
     const result:local_history_entry[]=[];
     for(const name of names){if(!/^[a-f0-9]{32}\.json$/u.test(name))continue;
-      try{const item=await json(path_api.join(dir,name));if(item.id+".json"!==name||!Number.isFinite(item.timestamp)||typeof item.source!=="string"||!Number.isSafeInteger(item.size)||item.size<0||!/^[a-f0-9]{64}$/u.test(item.hash))throw new Error("本地历史索引无效。");result.push({...item,file_path});}
+      try{const item=await json(path_api.join(dir,name));if(item.id+".json"!==name||!Number.isFinite(item.timestamp)||typeof item.source!=="string"||!Number.isSafeInteger(item.size)||item.size<0||!/^[a-f0-9]{64}$/u.test(item.hash))throw new Error(workspace_text("local_history_local_history_index_is_invalid"));result.push({...item,file_path});}
       catch(error){if((error as any).code!=="ENOENT")throw error;}
     }
     return result.sort((a,b)=>b.timestamp-a.timestamp||b.id.localeCompare(a.id));
@@ -58,7 +59,7 @@ export function create_local_history_store(modules:history_modules,directory:str
   const excluded=(file_path:string,options:local_history_options)=>Object.entries(options.exclude).some(([pattern,enabled])=>enabled&&[
     file_path.replaceAll("\\","/"),options.workspace_root?path_api.relative(options.workspace_root,file_path).replaceAll("\\","/"):path_api.basename(file_path),
   ].some(path=>history_glob_matches(pattern,path)));
-  async function remove(entry:local_history_entry){if(!identifier.test(entry.id))throw new Error("历史条目无效。");const dir=bucket(entry.file_path);await fs.unlink(path_api.join(dir,entry.id+".json")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});await fs.unlink(path_api.join(dir,entry.id+".data")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});}
+  async function remove(entry:local_history_entry){if(!identifier.test(entry.id))throw new Error(workspace_text("local_history_history_entry_is_invalid"));const dir=bucket(entry.file_path);await fs.unlink(path_api.join(dir,entry.id+".json")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});await fs.unlink(path_api.join(dir,entry.id+".data")).catch((error:any)=>{if(error.code!=="ENOENT")throw error;});}
   const record=(file_path:string,input:Uint8Array,source="File Saved",force=false)=>{
     if(!path_api.isAbsolute(file_path))return Promise.resolve(undefined);
     const options=read_options();if(!options.enabled||excluded(file_path,options)||detect_binary_bytes(input))return Promise.resolve(undefined);
@@ -77,16 +78,16 @@ export function create_local_history_store(modules:history_modules,directory:str
     });
   };
   async function read(entry:local_history_entry){
-    if(!identifier.test(entry.id))throw new Error("历史条目无效。");
-    const current=(await list(entry.file_path)).find(item=>item.id===entry.id);if(!current)throw new Error("历史条目已被删除或合并，请刷新后重试。");
+    if(!identifier.test(entry.id))throw new Error(workspace_text("local_history_history_entry_is_invalid"));
+    const current=(await list(entry.file_path)).find(item=>item.id===entry.id);if(!current)throw new Error(workspace_text("local_history_history_entry_has_been_deleted_or_merged_please_refresh_and"));
     const bytes=await read_snapshot(path_api.join(bucket(entry.file_path),entry.id+".data"));
-    if(bytes.length!==current.size||hash(bytes)!==current.hash)throw new Error("历史内容校验失败。");return bytes;
+    if(bytes.length!==current.size||hash(bytes)!==current.hash)throw new Error(workspace_text("local_history_history_content_verification_failed"));return bytes;
   }
   async function resources(){
     let names:string[];try{names=await fs.readdir(directory);}catch(error){if((error as any).code==="ENOENT")return [];throw error;}
     const result:{file_path:string;timestamp:number}[]=[];
     for(const name of names){if(!/^[a-f0-9]{64}$/u.test(name))continue;try{
-      const resource=await json(path_api.join(directory,name,"resource.json"));if(typeof resource.file_path!=="string"||!path_api.isAbsolute(resource.file_path)||hash(key(resource.file_path))!==name)throw new Error("本地历史文件身份无效。");
+      const resource=await json(path_api.join(directory,name,"resource.json"));if(typeof resource.file_path!=="string"||!path_api.isAbsolute(resource.file_path)||hash(key(resource.file_path))!==name)throw new Error(workspace_text("local_history_local_history_file_identity_is_invalid"));
       const entries=await list(resource.file_path);if(entries.length)result.push({file_path:resource.file_path,timestamp:entries[0].timestamp});
     }catch(error){if((error as any).code!=="ENOENT")throw error;}}
     return result.sort((a,b)=>b.timestamp-a.timestamp);
@@ -97,7 +98,7 @@ export function create_local_history_store(modules:history_modules,directory:str
     return record(file_path,await read_snapshot(file_path),source,force);
   }
   async function move(old_path:string,new_path:string,directory_move=false){
-    if(!path_api.isAbsolute(old_path)||!path_api.isAbsolute(new_path))throw new Error("历史迁移路径无效。");
+    if(!path_api.isAbsolute(old_path)||!path_api.isAbsolute(new_path))throw new Error(workspace_text("local_history_history_migration_path_is_invalid"));
     await Promise.all([...queues.values()]);
     const candidates=directory_move?(await resources()).map(item=>item.file_path):[old_path];
     for(const source of candidates){

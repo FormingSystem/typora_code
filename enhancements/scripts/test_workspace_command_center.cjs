@@ -1,4 +1,4 @@
-// Chromium真实点击/输入与受控大目录；旧入口和候选使用同一夹具，不读取用户工程。
+// Real Chromium click/input and controlled large directory; old entry and candidate use the same fixture, do not read user engineering.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild');

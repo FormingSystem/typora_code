@@ -1,11 +1,12 @@
 import {File, editor, reqnode} from "typora"
 
 import {Notice} from "src/ui/components/notice"
+import {useService} from "src/common/service"
 
 let pending_path: string | undefined
 let revision = 0
 
-/** 原生编辑器只有一个加载槽；迟到的旧加载事件不能抢回用户最新选择。 */
+/** The native editor has only one loading slot; late-old loading events cannot reclaim the user's latest selection. */
 export function pending_markdown_open() { return pending_path }
 export function request_markdown_open(path: string, valid: () => boolean) {
   const token = ++revision
@@ -20,19 +21,19 @@ export function request_markdown_open(path: string, valid: () => boolean) {
       timer = setTimeout(open, 16)
       return
     }
-    // 此处仍使用原生保存/取消流程，绝不清除脏状态或替换正文。
+    // The native save/cancel process is still used here; dirty status is never cleared or the document content is never replaced.
     if (file.bundle?.filePath !== path) {
       ;(editor.library as any)[Symbol.for('openFile$original')](path)
     }
     finish()
   }
-  // 历史后台标签可能已被移走；读取元数据失败不能交给宿主清空正文。
+  // Historical background tabs may have been removed; reading metadata failure cannot be handed over to the host to clear the document content.
   if (path && reqnode) {
     void (reqnode('fs') as typeof import('fs')).promises.stat(path).then(stat => {
       if (!current()) return
-      if (!stat.isFile()) throw new Error('目标不是普通文件。')
+      if (!stat.isFile()) throw new Error(useService('i18n').t.workspace.not_regular_file)
       open()
-    }).catch(error => { if (current()) { finish(); new Notice('无法打开文件：' + String(error), 6000) } })
+    }).catch(error => { if (current()) { finish(); new Notice(useService('i18n').t.workspace.open_file_failed + String(error), 6000) } })
   } else open()
   return () => { clearTimeout(timer); if (token === revision) { revision++; pending_path = undefined } }
 }

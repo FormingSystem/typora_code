@@ -1,16 +1,17 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_hover_surface} from "./workspace_hover_surface";
 import {create_workspace_popup_refresh} from "./workspace_popup_refresh";
 
 export type workspace_hover_target = {
   anchor:HTMLElement; label:string;
-  /** 触发目标与需要避开的完整操作区域独立；未声明时避开目标自身。 */
+  /** The trigger area for the target is independent of the complete operation area that needs to be avoided; the target itself is avoided when not declared. */
   layout_anchor?:HTMLElement; compact?:boolean; show_pointer?:boolean; preferred_side?:"above";
   render(content:HTMLElement,signal:AbortSignal):void;
 };
 export type workspace_hover_options = {delay_ms?:number;hide_delay_ms?:number;grouped?:boolean;interactive?:boolean};
 let hover_sequence=0;
 
-/** 展示层拥有延迟、焦点、屏幕边界与取消信号；内容和异步数据由调用方拥有。 */
+/** The presentation layer has delays, focus, screen boundaries, and cancellation signals; content and asynchronous data are owned by the caller. */
 export function bind_workspace_hover(container:HTMLElement,resolve:(target:Element)=>workspace_hover_target|undefined,options:workspace_hover_options={}){
   const delay=(value:number|undefined,fallback:number)=>value!==undefined&&Number.isFinite(value)&&value>=0?value:fallback;
   const delay_ms=delay(options.delay_ms,500),hide_delay_ms=delay(options.hide_delay_ms,250);
@@ -23,7 +24,7 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
     if(current&&tip){if(description===null)current.anchor.removeAttribute("aria-describedby");else current.anchor.setAttribute("aria-describedby",description);}
     tip?.remove();pointer?.remove();tip=undefined;pointer=undefined;current=undefined;
   };
-  // 恢复入口焦点时禁止focusin再启动悬停，覆盖Esc与调用方取消。
+  // When restoring the entry focus, prohibit focusin from restarting hover, overriding Esc and the caller's cancellation.
   const hide_with_focus=(restore?:()=>void)=>{hide();if(!restore)return;restoring_focus=true;try{restore();}finally{restoring_focus=false;}};
   const place=()=>{
     if(!tip||!current)return;
@@ -33,7 +34,7 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
     const edge=8,gap=6,right=innerWidth-edge,bottom=innerHeight-edge;
     if(anchor.bottom<=edge||anchor.top>=bottom||anchor.right<=edge||anchor.left>=right)return hide();
     const avoid={left:Math.min(layout.left,anchor.left),right:Math.max(layout.right,anchor.right),top:Math.min(layout.top,anchor.top),bottom:Math.max(layout.bottom,anchor.bottom)};
-    // 每次从CSS自然尺寸重新测量，异步长内容或侧栏变宽后不保留旧约束。
+    // Measure the natural size of CSS again each time; do not retain the old constraints if asynchronous long content or sidebars widen.
     const scroll_top=tip.scrollTop,scroll_left=tip.scrollLeft;
     tip.style.maxWidth="";tip.style.maxHeight="";
     const natural=tip.getBoundingClientRect(),style=getComputedStyle(tip);
@@ -69,7 +70,7 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
   const leave=()=>{if(!tip)return hide();if(options.interactive&&tip.contains(document.activeElement))return;keep();close_timer=window.setTimeout(hide,hide_delay_ms);};
   const show_target=(target:workspace_hover_target,immediate=false)=>{
     if(current?.anchor===target.anchor&&(!immediate||tip)){keep();return tip;}
-    // 同一绑定可声明为一个悬停组；点击入口则立即显示同一浮层。
+    // The same binding can declare as a hover group; clicking the entry immediately displays the same floating layer.
     immediate=immediate||Boolean(options.grouped&&tip);
     hide();current=target;
     const show=()=>{
@@ -81,7 +82,7 @@ export function bind_workspace_hover(container:HTMLElement,resolve:(target:Eleme
       document.body.append(tip);
       if(target.show_pointer){pointer=document.createElement("div");pointer.className="workspace-hover-pointer";pointer.setAttribute("aria-hidden","true");document.body.append(pointer);}
       try { target.render(tip,session.signal); }
-      catch(error) { hide();console.error("[workspace-hover] 内容呈现失败",error);return; }
+      catch(error) { hide();console.error(workspace_text("hover_workspace_hover_content_rendering_failed"),error);return; }
       refresh.refresh();if(!tip||!session)return;
       refresh.observe_size(tip);refresh.observe_size(target.anchor);
       refresh.observe_mutations(tip,{childList:true,characterData:true,subtree:true});

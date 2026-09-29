@@ -1,0 +1,120 @@
+[Chinese](quick_open.md)
+
+<a id="section_6f75356a333f"></a>
+# R058 Quick Open File
+
+2026-09-20：Fix the path mismatch, incorrect sorting, and missing highlighting when the top bar and Ctrl+P share an entry. The acceptance must fix the same directory and query for different workspaces; files cannot be concatenated across workspaces. The directory query returns the matching files at `samples/bringup`, and the directory itself is not considered an editable document.
+
+<a id="section_86d7b4f91060"></a>
+## Design and Responsibilities
+
+Query preparation, filename/path scoring, highlight range, and same-score comparison use VS Code 1.136.2 fixed commit `88e44fa0e00b08f7758b4f6d05632e4fd5e4df6f`'s `fuzzyScorer.ts` (MIT, upstream source code and license retained), connected by a local adaptation layer to file entries; UI does not separately calculate match positions. Based on `anythingQuickAccess.ts`: path separators are equivalent, all multi-word matches, quotes require continuous matching, filename priority rules are adjusted during path queries, same-score comparison matches tightness, length, and name. Upstream third-party names are limited to vendor boundaries.
+
+Directory enumeration belongs to a selector session, with a maximum of 4 concurrent; remove the hard scan cutoff of 50,000 items, only virtual drawing visible lines. Scoring is divided into time slices, fully preserving ordered results; closing, switching, or destroying makes scanning and scoring invalid, and stale results cannot recover old workspaces or open old files. File opening continues to use the unique file service; failure shows the reason, and cannot clear the current document. Scan failure clearly indicates incompleteness; empty results show the current search directory, avoiding pop-up windows with no content.
+
+Names and parent directories are rendered with upstream returned ranges for text highlighting, using text nodes to prevent file name injection; selected line highlighting is still distinguishable, and the path is not fully transparent. Using 22px lines and 600px width with borders, narrow windows do not overflow, retain public focus/closing mechanisms. Add new keyboard semantics without changing the entire workbench layout.
+
+<a id="section_d121a2f10300"></a>
+## Acceptance
+
+Unit: Fixed upstream comparison for file names, paths, backslashes, multi-word, quotes, Unicode, long paths, tie order, and highlighting; Function: Real Chromium input/keyboard, selected/unsselected highlighting, errors, cancel, switch database; System: Temporary real file directory opening target; Pressure: Backend hit for more than 50,000 candidates, fast input and event loop interval, 20/100/1000 queries. Evidence registration test directory and associate this design.
+
+Upstream search backend is an independent file search service; this project retains local enumeration and host file services, does not claim to transplant VS Code extension host. Currently retain `.git` / `node_modules` default enumeration exclusion; explicit relative or absolute file paths will additionally detect existence, and can directly open known files in excluded directories. Symbolic links in directories are not recursive. The MRU history group, complete search.exclude/files.exclude configuration system, and remote search service are not migrated from VS Code; this requirement's three defects in matching, sorting, and highlighting are accepted according to fixed algorithms, and cannot be called equivalent to all Quick Open functions.
+
+<a id="section_3fb3209b96f8"></a>
+## Performance and Error Handling
+
+Remove the 50,000 scan cutoff and custom negative score filtering; 2026-09-25 according to R075 cancel the 512 candidate upper limit. Candidates are sorted according to fixed comparator; virtual list uses 22px fixed line height, only mounts viewport and a few preceding and following lines, scrolling and keyboard can access all items. ResizeObserver, listeners, and timers are released according to the selector owner. Read failure clearly indicates incompleteness; hover input box shows current root, empty results directly show range. Duplicate during opening in progress, switch database transactions and epoch changes reject old actions; file service failure retains results and existing documents.
+
+For the first time, 100 candidates were increased to 512, but when building the full DOM, the 50,000 candidate benchmark showed a 64ms event loop interval. After changing to visible line drawing, the same machine target measured 19ms, and input synchronization processing 10ms; this was an isolated Chromium measurement, not all hardware performance guarantees.
+
+<a id="section_c1e638e1094c"></a>
+## This verification
+
+Unit passed 20/100/1000 rounds, temporary real files/Chromium features, 51001 file backend hits, original Typora 1.14.10 private desktop Ctrl+P/real open/20 rounds exit all passed. The old commit same function fixture failed at path highlight assertion; this candidate passed. Formal evidence see [Quick Open Verification](../enhancements/tests/evidence/quick_open_20260920.json), installation and restart status see feedback records.
+
+2026-09-20 R059 separately provides Ctrl+R recent project management, see [Recent Open Design](recent_open.en.md). It shares matching/highlighting and appearance with Ctrl+P disk search, does not mix historical groups into this search result, complete VS Code MRU fusion is still not equivalent.
+
+<a id="section_686643a41ce6"></a>
+## R058 2026-09-21 Search empty window and asynchronous path detection
+
+Feedback: After entering complete relative path of opened source code file, only the input box remains. This small workspace and original host direct query can pass, on-site trigger conditions have not been fully reproduced; cannot conclude user operation error based on this.
+
+Discovered gaps: The stat of explicit path is located before the entire filter, results are cleared during waiting period and the 'filtering' is not visible; when disk detection is delayed, the matched files in the directory cannot be displayed. Scan refresh will repeatedly cancel the same query's shard calculation. The goal is to make known candidates immediately filter, path detection independently supplement, and scan increment does not starve current sorting.
+
+Selector holds the lifecycle of query, scan, and path detection; after asynchronous path detection completes, it only supplements the current root and current query's candidates, does not block known results. If the file does not exist, perform ordinary search; clearly display permission or device errors, show actual status during waiting period. Closing, switching database, new query reject old detection results; Enter waits for new query's valid results, cannot open the previous query's file. Same query scan increment waits for current shard end to merge; entering new query immediately cancels old scoring. Retain original matches, sorting, highlighting and file service, do not add new panels or change user exclusion configuration.
+
+Acceptance supplement: When delay stat, already enumerated files still display and can be opened, explicit path after enumeration appears, late paths do not cover new queries, status is visible during scan, close/reopen clean up and continuous input; retain original host complete path/source code already opened scenarios. Associated use cases continue to use TC-quick-open-ui, TC-quick-open-stress and TC-quick-open-native, on-site restart recheck boundary separately record.
+
+Fixed upstream anythingQuickAccess.ts quick candidate/asynchronous additionalPicks and cancellation token has been verified; this project will present already enumerated files as available candidates early, belongs to local scan implementation adaptation, does not claim to add upstream MRU group.
+
+This build, complete check, 3 UI groups and original Typora 30 checks passed, installation/two uninstalls/reinstall and native delivery passed; see [2026-09-21 Asynchronous Search Evidence](../enhancements/tests/evidence/quick_open_async_20260921.json). User window not restarted, needs normal restart recheck on-site; no push.
+
+<a id="section_723a5fa49517"></a>
+## R073.1 Editor provider already opened
+
+The 'Show Opened Editors' menu in the upper right corner of the tag directly opens `edt active ` quick selection. Current group displays in order of most recent activation, supports name/directory fuzzy screening, match highlighting, up/down keys and Enter switch, closing at the end of the line; no longer uses secondary menu. When closing active items, file service may activate adjacent items first; selector retains focus and list during this operation, and continues to use original close protection if the file is not saved. Details and acceptance see [Link and Tag Design](link_preview.en.md#section_8e7256784dd4).
+
+
+<a id="section_0dfd2a64f49a"></a>
+## R070.9 Regular path query
+
+2026-09-24 User requested unified search regex capability. Ctrl+P and open editor query default enable regex, input box right official regex button can disable and return to the original fuzzy scoring rules on this page; the pattern is retained within the current control lifecycle. Real path and exact directory relative filename priority, name containing square brackets and other characters can still be directly located. Regex syntax / error / cancel reuse workspace_search_matcher and isolate Worker, batch match paths and provide name/directory highlighting, not run RegExp.exec on UI thread. Complete enumeration, virtual lines, and old request invalidation constraints are maintained. This segment records the agreement of 2026-09-24; 2026-09-27 R058.3 has already restored fuzzy search as default for file quick open, regex is manually enabled, and the default rule for document content search is maintained.
+
+2026-09-25 Capacity agreement is covered by [R075](resource_capacity.en.md), overriding the previous fixed size / result number threshold: complete processing content, retain user-initiated cancellation and actual failure, historical retained quantity and search scope still configured by user.
+
+<a id="section_cf18e8c46eef"></a>
+## R058.1 Common directory service and quick open reuse (2026-09-27)
+
+Problem: Resource tree, quick open, document content search and Git sub-repository discovery although using the same file access adapter, each readdir; when quick open is closed, the directory is discarded, and upon reopening, a complete traversal is performed. User further explicitly requested unified architecture interface.
+
+Common responsibilities: workspace_directory_service manages directory snapshots of the same file system identity, concurrent read merging, directory change notifications, quick open name directory, and cleanup. Original IO is still handled by workspace_resource_fs for local/SSH routing; resource tree has expansion and selection, search has query and document reading and ignore rules, Git has repository discovery strategy and Git command results, cannot treat Git history as file name index. Fixed VS Code 6807068's fileService.ts provides file change events, ExplorerService consumes file service, file quick open cache is managed by file search owner; adopt common file service / domain projection division of labor, do not copy the host expansion.
+
+Lifecycle: Reuse within window, isolate by file system object, workspace root, and connection generation. Scan filenames on first need; repeated opening only subscribes to the same result, closing cancels its own result presentation, does not restart the same IO. Modification only invalidates relevant directories and name projections; manual refresh, workspace switch, known file operation notifications all enter the same entrance. Local available when one recursive watch monitors the root, other local platforms use shared watch for already read directories; remote lacks recursive event ports, only expand directories using shared polling, name scanning does not create long polling for un-displayed directories and does not retain unverified complete cache; do not let each UI hold its own set. When monitoring fails, retry on next read, do not consider failed directories as valid cache permanently. Close the watch and cancel stale publication and release the directory when the last holder is released or the database is switched, do not write disk cache or configuration.
+
+Failure: Read errors are not cached as successful; closing / switching root does not publish old results; document content and Git status do not infer from name cache. Directory filtering, symbolic link boundaries, Git ignore, and read concurrency still follow domain strategies. Environments without available watch cannot guarantee external change instant notification, re-open for re-validation; retain manual refresh.
+
+Acceptance: Initial / repeated 20 and 100 times open readdir counts, resource tree first expand then search share the same read, document content search / Git discovery common entrance, create / rename / delete / content modification, concurrent read, scan modification, failure retry, cancellation / switch database / destruction and listener recycling; real host revalidate search close re-open no re-count, statistics and interface response are separately recorded. SSH is verified by independent adapter fixture, does not claim this session real connect enterprise remote.
+
+This remote boundary: Common interfaces and identity wiring apply SSH, but the full name directory of the remote is not yet cross-search session reusable; to securely achieve the same long-term caching as local, remote recursive port changes are required. This boundary retains correctness and original on-demand behavior, without requiring thousands of polling rounds to obtain caching.
+
+
+<a id="section_f9edb89a195d"></a>
+## R058.2 Top bar command center home and response (2026-09-27)
+
+User screenshots indicate that the top bar content and response are different when opened. Fix 6807068 in commandCenterControl.ts calls workbench.action.quickOpenWithModes, quickAccessActions.ts passes includeHelp; anythingQuickAccess.ts first provides help entry/editor history, then asynchronously supplements files. The existing top bar directly calls Ctrl+P file directory path, empty query also fully scores and sorts, and the content on the first screen is inconsistent with the call responsibility. The goal is to immediately display functional entries and recent files, then according to the input query shared directory.
+
+The top bar home page only provides the real supported functions of this tool: jump to file, display and run commands, search text, outline, and recent open entries, without adding empty functions such as chat, debug, and task runner. Ctrl+P continues to directly search for files; when entering a name in the top bar, it transfers to the same search, clears and returns to the home page, and the regular button appears only when file search is in progress. The function row displays existing real keyboard shortcuts, without occupying the native Typora editing key positions. Up/down keys/Enter, outer point/Esc/blur and title drag area reuse existing selectors and exit stack.
+
+The home page synchronizes the already opened editor, displaying them in the order of most recent activation; the main process's recent files are still managed by workspace_recent_service, loaded read-only through existing bindings and filtered by current root to deduplicate. Remote does not mix with local history. History reading does not scan the disk, does not block function entries, and displays failed parts locally while maintaining operability; after closing, input query, switching databases, and destruction, stale records shall not overwrite the current list. Opening existing editors activates them as leaves/groups identity, and other records follow the existing recent service verification, without bypassing drafts and error protection.
+
+Quick open has home page/file/current group mode and one-time presentation, directory service continues to have name caching and change, without building a second persistent index. The home page does not request directory, does not read the document content. After input, it subscribes on demand to existing directories, cache and scan; empty home page does not create scan tasks or re-sort the entire project. Shared viewport still has 22px line height and 600px upper limit, source is fixed quickinput.css/quickInput.ts, only adds function row keyboard shortcuts and recent status display, retains theme, zoom and keyboard contract.
+
+The font size of keyboard shortcuts adopts fixed upstream base/browser/ui/keybindingLabel/keybindingLabel.css's 11px, inherits line text color; does not add any transparency. When transferring to file search from the home page, it continues to use the focus snapshot before opening the home page, Esc still returns to the original editing position, and does not consider the hidden selector input box as the target for recovery.
+
+Acceptance distinguishes between failed old entries and candidates: real Chromium clicks to visible first frame, input to file results, 20/100 switch times and large directories, records directory reading times, DOM line numbers, event loop intervals; history delay/failure, new input, closing, switching roots, background callbacks and multi-editor group localization. Original Typora revalidates real entries, file/command actions and exit, finally same candidate installation/uninstallation/reinstallation and local installation. Controlled fixture time is not equivalent to user physical devices or VS Code real test, boundary single list is not tested.
+
+<a id="section_7b4fbc1be204"></a>
+## R058.3 Regular and wildcard patterns (2026-09-27)
+
+Issue: `*.c` directly enters default regex, throws quantifier without object error. The user originally requested to retain default regex and add wildcards; on 2026-09-27, it was explicitly changed to default VS Code filename/path fuzzy search, with regex and file type wildcards only enabled by the user manually, replacing the previous default regex convention. File quick open, top bar input, and current group editor share the same mode state; the semantic of the regex/include exclude fields in document content remains unchanged. Fixed 6807068 in fuzzyScorer.ts normalizeQuery to remove asterisks from fuzzy scoring, therefore the `*.c` in the screenshot of VS Code will also match.codecov.yml; this tool provides strict file wildcards separately, and does not consider this screenshot as evidence that VS Code's regex supports it.
+
+The input box retains the `.*` regex button, and adds an official filter icon's 'use wildcards' button, which are mutually exclusive; if both are disabled, it uses the original fuzzy matching. Initially, both buttons are disabled, using fixed upstream fuzzy scoring; it does not automatically recognize syntax or fallback to zero results. The mode selector in the current window retains the mode, without writing persistent configuration. Mode switching retains input and focus, cancels old matches and immediately rescreens; when the top bar is empty homepage, both buttons are hidden, and they are displayed when input is entered. Errors remain in the original panel, and do not implicitly switch syntax; regular expression errors are supplemented with a prompt 'wildcards please switch mode'.
+
+Wildcard reuses the pure parser of document content include/exclude: `*` single path segment arbitrary character, `?` single character, `**` cross directory, `{c,h}` alternative, `[ab]` character class, comma-separated multiple patterns. No anchored mode implies implicit recursion prefix, `./` limits root; quick open only matches complete file paths, does not inherit the descendant matching of include directories, so `*.c` does not include `foo.cpp`, `.codecov.yml`, or `folder.c/note.md`. Windows backslash is normalized to `/` in this mode; matching is case-insensitive, consistent with the current quick open. The real complete file name/path continues to be prioritized, file open, draft protection, and ignore range remain unchanged.
+
+The parser is owned by shared workspace_glob, the search engine continues to own the range, quick open owns the mode and list; actual regular expression/wildcard batch matching is still executed by the cancelable Worker, retaining cancellation, failure, stale isolation, batch processing, and virtual line, without adding directory scanning or quantity threshold. Acceptance covers the screenshot `*.c`, recursion, single character, alternative/character class, path and literal special filenames, mode mutual exclusion/reopen/error recovery, document content range regression, top bar homepage, current group, multiple mode switches cancellation and native host, delivered according to the same candidate installation/uninstallation delivery.
+
+The button uses the official Codicons filter original SVG, reuses the existing QuickPick's 22px mode button and common interaction state; this button is explicitly a syntax choice of this tool, and does not claim that the upstream Quick Open has built-in regular expression/wildcard switches.
+
+<a id="section_757b067508d6"></a>
+## R058.5 Directory and partial path (2026-09-29)
+
+Objective: When the top bar and Ctrl+P input directory, partial directory, or path, list the matching paths under the directory that can be opened, retain the highlight of file name and parent directory, allow clicking and keyboard selection. Directory is not a document, no requirement for input complete file name, and cannot wait for the directory stat to succeed before screening the existing index.
+
+Reproduced ordinary relative directory matching, but `./knowledge/lin` and absolute half-path in workspace are empty: the description is relative to the parent directory, while the query retains the root prefix; explicit stat only supplements the complete file. Fix 6807068's `anythingQuickAccess.ts` in getFileSearchResults/getRelativePathFileResults/getAbsolutePathFileResult separates the file candidate query, path parsing, and precise file detection. `fuzzyScorer.ts` scores description+label. This product continues to use this scoring/sorting/highlighting, but only in the shared matching adapter layer converts the absolute prefix in workspace and `./` into the same relative query. Root matching is judged by complete path segments; Windows disk path is case-insensitive; POSIX root retains case sensitivity. Path separator follows the original upstream preparation logic. Complete directory, trailing slash, and half-end segment are handed over to path scoring, with the result still being a file. This adaptation is not claiming that VS Code has the same directory browsing interface.
+
+Quick open passes current workspace root; current group editor uses the same root with matcher. Recent list continues to score based on its complete path description, without workspace trimming. Manual regular expression/wildcard semantics, default exclusion, and scan range remain unchanged; no addition of directory scanning or persistent cache, no modification of user files. Query/cut library/close follows existing generation to cancel stale detection, errors remain visible, and opening still proceeds through file service. Acceptance covers multi-level relative directory, single-segment directory, forward slash, backward slash, `./`, root directory, absolute directory, half-path, highlighting sorting, click/Enter, asynchronous cancellation, cache reuse, and large candidate fragmentation; native verification with other platforms is separately recorded.
+
+
+2026-09-29 R058.5 delivered 2026.09.29.2, workspace limited directory/half path sharing matching fix, complete check/3 sets of UI/native 44 items and installation/uninstallation checks passed; user window was not restarted, saved and normal restart loading. Exact scope and failure records see [this evidence](../enhancements/tests/evidence/quick_paths_20260929.json), R082 and other historical unresolved items remained.

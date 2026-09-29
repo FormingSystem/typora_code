@@ -1,4 +1,4 @@
-// 临时真实文件系统 + Chromium，验证完整查询/选择/打开链路，不读写用户工程。
+// Temporary real file system + Chromium, verify complete query/selection/open chain, do not read/write user projects.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild');
@@ -61,14 +61,14 @@ app.whenReady().then(async()=>{
   await evaluate(`picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));void 0`);
   await wait('picker.root.hidden');assert.equal(await evaluate('opened.length'),1);assert.equal(await evaluate('opened[0].text'),'fixture samples/bringup/src/main.c');
   await evaluate('picker.open();void 0');await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);
-  // stat变慢不能阻塞已经枚举的文件；旧路径完成不能覆盖新查询。
+  // Slower stat cannot block already enumerated files; old path completion cannot overwrite new query.
   await evaluate(`window.native_fs=host.fs;window.release_stat=null;host.fs={promises:{...native_fs.promises,stat:async target=>{await new Promise(resolve=>release_stat=resolve);return native_fs.promises.stat(target);}}};picker.input.value='samples/bringup/prj.conf';picker.input.dispatchEvent(new Event('input'));void 0`);
   await wait(`!!release_stat&&picker.root.querySelector('.workspace-quick-open-name')?.textContent==='prj.conf'`);
   await query('readModel');await evaluate(`release_stat();host.fs=native_fs;void 0`);await pause(120);
   assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'readModel.ts');
   await query('node_modules/known.js');assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'known.js');
   await evaluate(`window.release_stat=null;host.fs={promises:{...native_fs.promises,stat:async target=>{await new Promise(resolve=>release_stat=resolve);return native_fs.promises.stat(target);}}};picker.input.value='node_modules/known.js';picker.input.dispatchEvent(new Event('input'));void 0`);
-  // 新查询使显式探测重新开始，排除目录中的文件不在普通枚举中。
+  // New query restarts explicit detection, excludes files not in normal enumeration in directory.
   await query('readModel');await evaluate(`picker.input.value='node_modules/known.js';picker.input.dispatchEvent(new Event('input'));void 0`);
   await wait(`!!release_stat&&picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在核对')`);
   assert(await evaluate(`picker.root.querySelector('.workspace-quick-open-status').classList.contains('is-visible')`),'pending path status is visible');
@@ -78,11 +78,11 @@ app.whenReady().then(async()=>{
   await query('no such file xyz');assert(await evaluate(`picker.root.querySelector('.workspace-quick-open-status').classList.contains('is-visible')&&picker.root.querySelector('.workspace-quick-open-status').textContent.includes(current_root)`));
   await query('README');await evaluate(`window.fail_open=true;picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));void 0`);await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.includes('权限不足')`);assert.equal(await evaluate('picker.root.hidden'),false);
   await evaluate(`window.fail_open=false;quick_test.begin_workspace_context_switch();picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));quick_test.finish_workspace_context_switch();void 0`);assert.equal(await evaluate('opened.length'),1);assert(await evaluate('picker.root.hidden'));
-  // 在非选中行、暗色与缩放下，高亮保持可见，文件名仍是原文文本。
+  // In non-selected rows, dark mode, and zoomed down, highlight remains visible, file name is still original text.
   await evaluate('picker.open();void 0');await wait(`picker.root.querySelectorAll('.workspace-quick-open-result').length===8`);await query('samples/bringup');
   for(const theme of ['light','dark']){await evaluate(`document.documentElement.dataset.workspaceFileIconTheme='${theme}';void 0`);for(const scale of [1,1.25]){win.webContents.setZoomFactor(scale);assert.equal(await evaluate(`getComputedStyle(picker.root.querySelectorAll('.workspace-quick-open-result')[1].querySelector('.workspace-quick-open-highlight')).color`),theme==='dark'?'rgb(42, 170, 255)':'rgb(0, 102, 191)');}}
   win.webContents.setZoomFactor(1);await win.webContents.capturePage().then(image=>fs.writeFileSync(path.join(root,'quick_open.png'),image.toPNG()));
-  // 超过旧扫描上限的文件仍能找到；完整候选通过虚拟行显示。
+  // Files exceeding old scan limit can still be found; complete candidates are displayed through virtual lines.
   await evaluate(`picker.dispose();host.fs={promises:{readdir:async()=>[{name:'last-target.md',isFile:()=>true,isDirectory:()=>false},...Array.from({length:51000},(_,i)=>({name:'item-'+i+'.md',isFile:()=>true,isDirectory:()=>false}))]}};picker=quick_test.create_workspace_quick_open(host);picker.open();void 0`);
   await wait(`picker.root.querySelector('.workspace-quick-open-status').textContent.startsWith('51001')&&!picker.root.querySelector('.workspace-quick-open-status').textContent.includes('正在')`);
   assert(await evaluate(`picker.root.querySelectorAll('.workspace-quick-open-result').length<50`),'large results only mount visible rows');

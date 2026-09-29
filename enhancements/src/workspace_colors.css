@@ -1,4 +1,4 @@
-/* R074：VS Code 6807068 Light/Dark 2026 的功能颜色；来源及角色见 docs/workspace_colors.md。 */
+/* R074：VS Code 6807068 Light/Dark 2026 functional color；source and role see docs/workspace_colors.md. */
 :root[data-workspace-colors=light] {
   --vscode-titleBar-activeForeground:#606060;
   --vscode-statusBar-foreground:#606060;
@@ -200,7 +200,7 @@
   --workspace-activity-active-background:var(--vscode-modernActivityBarItem-activeBackground);
   --workspace-activity-active-border:var(--vscode-activityBar-activeBorder);
 }
-/* 同层共用背景，正文与第三方的主题变量保持原归属。 */
+/* Shared background at the same level, document content maintains its original ownership with third-party theme variables. */
 :root[data-workspace-colors] :is(#typora-sidebar,.linux-note-workspace-explorer,.linux-note-workspace-search,.linux-note-git-source-control,.workspace-ssh-sidebar,.workspace-community-manager,.typora-terminal-panel,.terminal-tabs,.terminal-panel-header,.workspace-breadcrumbs,.workspace-settings-categories) {
   background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);border-color:var(--workspace-ui-border);
 }
@@ -214,17 +214,17 @@
 :root[data-workspace-colors] :is(.workspace-setting-row,.workspace-settings-categories,.workspace-search-split,.workspace-ssh-directory,.terminal-tabs,.terminal-split-group>.linux-note-terminal,.linux-note-terminal-status) {border-color:var(--workspace-ui-border);}
 :root[data-workspace-colors] .workspace-setting-row:focus-within {background:var(--workspace-ui-hover);}
 :root[data-workspace-colors] .workspace-settings button[aria-pressed=true] {background:var(--workspace-ui-selection);color:var(--workspace-ui-foreground);}
-/* 浮层颜色统一；原组件继续拥有阴影、位置、尺寸及展开状态。 */
+/* Overlay colors are unified；original components continue to have shadows, positions, sizes, and expanded states. */
 :root[data-workspace-colors] :is(.git-graph-dialog,.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,.workspace-quick-open,.git-scm-ref-picker,.git-branch-picker,.workspace-breadcrumb-picker,[data-workspace-footer-popup=ready],.terminal-find) {
   background-color:var(--workspace-ui-elevated);color:var(--workspace-ui-foreground);border-color:var(--workspace-ui-control-border);
 }
 :root[data-workspace-colors] footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {background-color:var(--workspace-ui-elevated);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--workspace-ui-border);}
-/* 表单只限自有根，不穿透社区设置、正文或第三方编辑器。 */
+/* Forms are limited to their own root, and do not penetrate community settings, document content, or third-party editors. */
 :root[data-workspace-colors] .workspace-quick-open {
   background-color:var(--vscode-quickInput-background);color:var(--vscode-quickInput-foreground);border-color:var(--vscode-widget-border);
 }
-/* 输入与模式按钮属于同一输入底板，透明input不再直接透出浮层颜色。 */
+/* Input and mode buttons belong to the same input board, transparent input no longer directly permeates the floating layer color. */
 :root[data-workspace-colors] .workspace-quick-open-input-row {
   background-color:var(--workspace-ui-input);color:var(--vscode-input-foreground);border-color:var(--vscode-input-border);
 }
@@ -240,18 +240,18 @@
 :root[data-workspace-colors] .linux-note-terminal {background-color:var(--workspace-ui-chrome);color:var(--workspace-ui-foreground);}
 :root[data-workspace-colors] .terminal-panel-title {border-color:var(--workspace-ui-focus);}
 :root[data-workspace-colors] .workspace-link-dock {border-color:var(--workspace-ui-control-border);}
-/* 原生底栏菜单中的主题变量限定到该菜单，不传播回原生文档。 */
+/* Native status bar menu theme variables are limited to this menu and do not propagate back to the native document. */
 :root[data-workspace-colors] [data-workspace-footer-popup=ready] {--bg-color:var(--workspace-ui-elevated);--text-color:var(--workspace-ui-foreground);--item-hover-bg-color:var(--workspace-ui-selection);--control-text-color:var(--workspace-ui-muted);}
 
-/* R020.1：同一列表底板承载alpha选中色；不在行或祖先叠加opacity。 */
+/* R020.1: The same list board supports alpha selected color; it is not overlaid on rows or ancestors opacity. */
 :root[data-workspace-colors] :is(.linux-note-workspace-explorer,.linux-note-git-source-control,.linux-note-workspace-search) {background-color:var(--workspace-list-background);}
 
-/* R074.1：角色按实际区域接线，不能把菜单外框、输入边界与状态文字混用。 */
+/* R074.1: Roles are connected according to actual areas, and it is not allowed to mix menu outer frames, input boundaries, and status text. */
 :root[data-workspace-colors] #top-titlebar[data-workspace-titlebar=ready] {--tc-title-fg:var(--vscode-titleBar-activeForeground);}
 :root[data-workspace-colors] footer.ty-footer {background-color:var(--workspace-ui-chrome);border-color:var(--workspace-ui-border);color:var(--vscode-statusBar-foreground);--workspace-action-hover:var(--vscode-statusBarItem-hoverBackground);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,.workspace-activity-menu,[data-workspace-footer-popup=ready]) {background-color:var(--vscode-menu-background);color:var(--vscode-menu-foreground);border-color:var(--vscode-menu-border);}
 :root[data-workspace-colors] :is(.git-graph-menu,.workspace-titlebar-popup,[data-workspace-footer-popup=ready]) hr {border-color:var(--vscode-menu-separatorBackground);}
 :root[data-workspace-colors] :is(.git-graph-dialog,.workspace-settings,.linux-note-git-source-control,.linux-note-workspace-search,.workspace-quick-open,.terminal-find) :is(input,textarea):not(:where([data-workspace-interaction=none] *,#write *,.monaco-editor *))::placeholder {color:var(--vscode-input-placeholderForeground);opacity:1;}
 
-/* Git默认支线角色也供颜色表读取，图谱与设置不维护两份有效颜色。 */
+/* The default branch role of Git also provides color tables for reading, and the diagram and settings do not maintain two valid color sets. */
 :root[data-workspace-colors]{--workspace-graph-base:#EA5C00;--workspace-graph-other-1:#FFB000;--workspace-graph-other-2:#DC267F;--workspace-graph-other-3:#994F00;--workspace-graph-other-4:#40B0A6;--workspace-graph-other-5:#B66DFF}

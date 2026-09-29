@@ -10,7 +10,7 @@ export type workspace_explorer_core = {
 };
 export type workspace_explorer_options=workspace_file_tree_options;
 const EXPLORER_ID="linux_note:file_explorer";
-/** 原生侧栏适配只管理展示和宿主事件，文件树交互由共享组件拥有。 */
+/** Native sidebar adaptation only manages display and host events; file tree interaction is owned by shared components. */
 export function bind_workspace_explorer(core:workspace_explorer_core,options:workspace_explorer_options){
   const view=create_workspace_file_tree(options),{container,refresh,reveal}=view,sidebar=core.app.workspace.sidebar;
   let visible=false,disposed=false,refresh_frame=0;const detachers:(()=>void)[]=[];

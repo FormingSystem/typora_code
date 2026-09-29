@@ -1,20 +1,18 @@
-﻿<#
-.SYNOPSIS
-安装 Typora Code 工作台和主题，并输出恢复备份目录。
+﻿<# .SYNOPSIS
+Install Typora Code workbench and theme, and output the restore backup directory.
 .DESCRIPTION
-支持 Windows PowerShell 5.1。先保存文档，安装后正常重启 Typora。
-完整环境、离线缓存、更新和恢复说明见 docs/installation.md。
+Support Windows PowerShell 5.1. Save the document first, then restart Typora normally after installation.
+Complete environment, offline cache, update and restore instructions see docs/installation.md.
 .PARAMETER typora_root
-Typora 安装目录、可执行文件或 resources/window.html；省略时自动发现。
+Typora installation directory, executable files or resources/window.html; omitting automatically discovers.
 .PARAMETER backup_root
-可选的新备份目录，不能使用已存在的目录；省略时保存到用户数据目录。
+Optional new backup directory, cannot use existing directories; omitting saves to user data directory.
 .PARAMETER user_data
-实际Typora用户数据目录；省略时使用当前账户默认目录，自动更新传入宿主真实位置。
+Actual Typora user data directory; omitting uses the default directory for the current account, automatically updates to the real location of the passed host.
 .PARAMETER non_interactive
-自动发现失败时立即报错，不等待输入。
+Immediately report an error if automatic discovery fails, without waiting for input.
 .PARAMETER allow_elevation
-允许无人值守入口在确认写权限不足后申请一次Windows系统授权；交互安装默认按需申请。
-#>
+Allow unattended entry to apply once Windows system authorization after confirming write permission is insufficient; interactive installation defaults to applying as needed. #>
 [CmdletBinding()]
 param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='', [switch]$allow_elevation)
 $ErrorActionPreference = 'Stop'

@@ -1,4 +1,4 @@
-/* 尺寸参照 VS Code 1.136.2 titlebarPart.css/menu.ts，保留 Typora 七类菜单并补充终端入口。 */
+/* Size reference VS Code 1.136.2 titlebarPart.css/menu.ts, retain Typora seven types of menu and supplement terminal entry. */
 body.typora-node.unibody-window { --typ-workspace-top:35px; }
 body.typora-node.unibody-window #top-titlebar { height:35px;left:0!important;right:0;top:0;transition:none!important; }
 body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #title-text { visibility:hidden; }
@@ -6,7 +6,7 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-left { display:flex;align-items:center;flex:2 1 20%;min-width:64px;height:100%;overflow:hidden; }
 .workspace-titlebar-center { display:flex;align-items:center;justify-content:center;flex:0 1 60%;max-width:fit-content;min-width:90px;margin:0 10px;height:100%; }
 .workspace-titlebar-right { display:flex;justify-content:flex-end;flex:2 0 20%;min-width:138px;height:100%; }
-/* 原 64px Typora 位图含透明边距，24px 图像框让标识可辨；含 margin 的占位仍为 32px。 */
+/* Original 64px Typora bitmaps contain transparent margins, 24px image frame makes the identifier distinguishable; the placeholder with margin is still 32px. */
 .workspace-titlebar-logo { width:24px;height:24px;margin:0 4px;padding:0;border:0;flex:none;object-fit:contain; }
 .workspace-titlebar-menu { display:flex;align-items:center;flex:1 1 auto;min-width:32px;overflow:hidden; }
 .workspace-titlebar-menu>button,.workspace-titlebar-center>button { appearance:none;background:none;color:inherit;border:0;box-shadow:none;margin:0;cursor:default;font:inherit;flex:none;-webkit-app-region:no-drag; }
@@ -18,11 +18,11 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-logo { -webkit-app-region:no-drag; }
 .workspace-titlebar-center>.workspace-titlebar-history { display:flex;align-items:center;justify-content:center;width:22px;height:22px;padding:3px; }
 .workspace-titlebar-history:disabled { opacity:.4; }
-/* 搜索入口独立于普通工具栏底色；保留公共角色、焦点与既有形状（R029）。 */
+/* Search entry is independent of the ordinary toolbar background; retain common roles, focus and existing shapes (R029). */
 .workspace-titlebar-center>.workspace-titlebar-search { display:flex;align-items:center;justify-content:center;gap:7px;border:1px solid var(--tc-menu-border);--workspace-interaction-hover:transparent;--workspace-interaction-foreground:var(--tc-title-fg);--workspace-interaction-radius:5px;height:22px;width:38vw;max-width:600px;min-width:32px;flex:0 1 auto;margin:0 6px;padding:0 8px; }
 .workspace-titlebar-search>span { overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .workspace-titlebar-search>svg { width:14px;height:14px;flex:none; }
-/* 原生顶栏为所有后代铺背景；搜索内容不能遮住边框或继承正文前景。 */
+/* Native top bar is for all descendants to lay the background; search content cannot block the border or inherit the document foreground. */
 #top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search { box-sizing:border-box;line-height:normal;background:transparent;color:var(--tc-title-fg); }
 #top-titlebar[data-workspace-titlebar=ready] .workspace-titlebar-search :is(span,svg,path) { background:transparent;color:inherit; }
 #top-titlebar[data-workspace-titlebar=ready] #w-traffic-lights { position:static;display:flex;align-items:center;width:138px;height:35px;flex:none;margin:0;padding:0;-webkit-app-region:no-drag; }
@@ -46,5 +46,5 @@ body.typora-node.unibody-window #w-menu-btn,body.typora-node.unibody-window #tit
 .workspace-titlebar-entry:is(:hover,:focus) .workspace-titlebar-shortcut {opacity:1;}
 .workspace-titlebar-separator { height:1px;margin:5px 0;background:rgba(127,127,127,.25); }
 
-/* R033：临时浮层打开时，顶栏空白交给共享外点退出；手势结束后恢复拖窗。 */
+/* R033: When the temporary floating layer is opened, the top bar is left blank to be shared by external points to exit; after the gesture is completed, the drag window is restored. */
 :root[data-workspace-dismissal-active] #top-titlebar[data-workspace-titlebar=ready] { -webkit-app-region:no-drag; }

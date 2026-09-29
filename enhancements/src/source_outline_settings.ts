@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {notify_language_services} from "./language_service_settings";
 import css from "./source_outline_settings.css";
 import {get_workspace_app} from "./workspace_bootstrap";
@@ -28,13 +29,13 @@ function read_stored_settings():stored_settings {
 }
 function validate_settings(value:source_outline_settings):source_outline_settings {
   for(const field of ["clangd_path","compile_commands_dir"] as const) {
-    if(typeof value[field]!=="string"||/[\r\n\0]/u.test(value[field]))throw new Error("路径必须是单行文本。");
+    if(typeof value[field]!=="string"||/[\r\n\0]/u.test(value[field]))throw new Error(workspace_text("source_outline_settings_the_path_must_be_single_line_text"));
   }
-  if(!Array.isArray(value.fallback_flags)||value.fallback_flags.some(flag=>typeof flag!=="string"||/[\r\n\0]/u.test(flag)))throw new Error("编译参数必须每行一项。");
-  if(value.background_index!==undefined&&typeof value.background_index!=="boolean")throw new Error("工程索引必须为开关值。");
+  if(!Array.isArray(value.fallback_flags)||value.fallback_flags.some(flag=>typeof flag!=="string"||/[\r\n\0]/u.test(flag)))throw new Error(workspace_text("source_outline_settings_compilation_parameters_must_be_one_per_line"));
+  if(value.background_index!==undefined&&typeof value.background_index!=="boolean")throw new Error(workspace_text("source_outline_settings_the_project_index_must_be_a_boolean_value"));
   return {background_index:value.background_index!==false,clangd_path:value.clangd_path.trim(),compile_commands_dir:value.compile_commands_dir.trim(),fallback_flags:value.fallback_flags.map(flag=>flag.trim()).filter(Boolean)};
 }
-/** clangd 路径全局共用，构建目录和参数只覆盖指定工作区，不在工程中写文件。 */
+/** clangd path is globally shared, build directory and parameters only override the specified workspace, and no files are written in the project. */
 export function read_source_outline_settings(root:string):source_outline_settings {
   const stored=read_stored_settings(),key=workspace_key(root);
   const projects=stored.workspaces&&typeof stored.workspaces==="object"&&!Array.isArray(stored.workspaces)?stored.workspaces:{};
@@ -43,22 +44,22 @@ export function read_source_outline_settings(root:string):source_outline_setting
 }
 export function save_source_outline_settings(root:string,value:source_outline_settings):void {
   const settings=get_workspace_app()?.settings;
-  if(!settings)throw new Error("工作区设置尚未就绪。");
+  if(!settings)throw new Error(workspace_text("source_outline_settings_the_workspace_settings_are_not_yet_ready"));
   const next=validate_settings(value),stored=read_stored_settings(),key=workspace_key(root);
   next.compile_commands_dir=relative_database(root,next.compile_commands_dir);
   const projects=stored.workspaces&&typeof stored.workspaces==="object"&&!Array.isArray(stored.workspaces)?stored.workspaces:{};
-  // 保存前重读并合并，只替换当前工作区；set_and_save 在持久化成功后才发布更新。
+  // Read and merge before saving, only replace the current workspace; set_and_save is only published after persistent success.
   settings.set_and_save(SETTINGS_KEY,{...stored,clangd_path:next.clangd_path,workspaces:{...projects,[key]:{compile_commands_dir:next.compile_commands_dir,fallback_flags:next.fallback_flags,background_index:next.background_index}}});notify_language_services();
 }
 
-/** 复用现有模态框与键盘行为；路径检测不会启动 shell 或修改工作区。 */
+/** Reuse existing modal dialogs and keyboard behavior; path detection will not start shell or modify the workspace. */
 export function open_source_outline_settings(root:string,on_saved?:()=>void) {
   current_dialog?.close();
-  const dialog=workspace_dialog("C/C++ 语言服务配置","取消");current_dialog=dialog;
+  const dialog=workspace_dialog(workspace_text("source_outline_settings_c_c_language_service_configuration"),workspace_text("language_service_settings_view_cancel"));current_dialog=dialog;
   dialog.root.classList.add("source-outline-settings");
   const style=acquire_workspace_style("typora-code-source-outline-settings",css,{},dialog.root);
   const initial=read_source_outline_settings(root);
-  const context=workspace_element("p","source-outline-settings-context",root?`当前文件夹：${(window as unknown as {reqnode(name:string):any}).reqnode("path").basename(root)}`:"当前没有打开文件夹，配置用于独立文件。");
+  const context=workspace_element("p","source-outline-settings-context",root?workspace_text("source_outline_settings_current_folder", {value_0: String((window as unknown as {reqnode(name:string):any}).reqnode("path").basename(root))}):workspace_text("source_outline_settings_no_folder_is_open_currently_the_configuration_is_for_individ"));
   dialog.content.append(context);
   const add_field=(name:keyof source_outline_settings,title:string,hint:string,multiline=false)=>{
     const label=workspace_element("label","source-outline-settings-field");
@@ -69,31 +70,31 @@ export function open_source_outline_settings(root:string,on_saved?:()=>void) {
     label.append(workspace_element("span","",title),input,workspace_element("small","",hint));dialog.content.append(label);
     return input;
   };
-  const executable=add_field("clangd_path","clangd 可执行文件（所有工作区）","留空自动查找本机 clangd；可填写完整可执行文件路径。");executable.value=initial.clangd_path;
-  const database=add_field("compile_commands_dir","编译数据库文件夹（当前文件夹）","填写包含 compile_commands.json 的目录，如 build/bringup；留空自动查找。");database.value=initial.compile_commands_dir;
-  const flags=add_field("fallback_flags","后备编译参数（当前文件夹）","仅在没有编译命令时使用。每行一个参数，含空格也不加额外引号。",true);flags.value=initial.fallback_flags.join("\n");
+  const executable=add_field("clangd_path",workspace_text("source_outline_settings_clangd_executable_all_workspaces"),workspace_text("source_outline_settings_leave_blank_to_automatically_find_the_native_clangd_you_can"));executable.value=initial.clangd_path;
+  const database=add_field("compile_commands_dir",workspace_text("source_outline_settings_compilation_database_folder_current_folder"),workspace_text("source_outline_settings_enter_the_directory_containing_compile_commands_json_such_as"));database.value=initial.compile_commands_dir;
+  const flags=add_field("fallback_flags",workspace_text("source_outline_settings_back_end_compilation_parameters_current_folder"),workspace_text("source_outline_settings_use_only_when_there_is_no_compilation_command_each_line_is_o"),true);flags.value=initial.fallback_flags.join("\n");
   const index_label=workspace_element("label","source-outline-settings-field"),index=workspace_element("input");index.type="checkbox";index.dataset.field="background_index";index.checked=initial.background_index!==false;
-  index_label.append(index,workspace_element("span","","工程后台索引（当前文件夹）"),workspace_element("small","","用于未打开文件的定义和引用；clangd在编译数据库旁增量复用.cache/clangd/index，系统头文件使用用户缓存。可关闭以减少磁盘与后台开销。"));dialog.content.append(index_label);
+  index_label.append(index,workspace_element("span","",workspace_text("source_outline_settings_back_end_index_for_project_current_folder")),workspace_element("small","",workspace_text("source_outline_settings_used_for_definitions_and_references_of_unopened_files_clangd")));dialog.content.append(index_label);
   const status=workspace_element("p","source-outline-settings-status");status.setAttribute("role","status");status.setAttribute("aria-live","polite");dialog.content.append(status);
   const read_form=()=>validate_settings({background_index:index.checked,clangd_path:executable.value,compile_commands_dir:database.value,fallback_flags:flags.value.split(/\r?\n/u)});
   let generation=0;
   const report=(message:string,error=false)=>{status.textContent=message;status.classList.toggle("is-error",error);};
-  const detect=workspace_button("检测路径",()=>{
+  const detect=workspace_button(workspace_text("source_outline_settings_detection_path"),()=>{
     let value:source_outline_settings;try{value=read_form();}catch(error){report(String((error as Error).message||error),true);return;}
-    const request=++generation;detect.disabled=true;report("正在查找 clangd 和编译数据库…");
+    const request=++generation;detect.disabled=true;report(workspace_text("source_outline_settings_looking_for_clangd_and_compilation_database"));
     void discover_clangd_environment({executable:value.clangd_path,workspace_root:root,compile_commands_dir:value.compile_commands_dir}).then(environment=>{
       if(!dialog.root.isConnected||request!==generation)return;
-      const database_text=environment.compile_commands_dir?`编译数据库：${relative_database(root,environment.compile_commands_dir)}`:"未找到编译数据库，将使用后备参数。";
-      report(`clangd：${environment.executable}\n${database_text}`);
+      const database_text=environment.compile_commands_dir?workspace_text("source_outline_settings_compilation_database", {value_0: String(relative_database(root,environment.compile_commands_dir))}):workspace_text("source_outline_settings_compilation_database_not_found_using_back_end_parameters");
+      report(`clangd: ${environment.executable}\n${database_text}`);
     }).catch(error=>{if(dialog.root.isConnected&&request===generation)report(String(error?.message||error),true);}).finally(()=>{if(dialog.root.isConnected&&request===generation)detect.disabled=false;});
   });detect.dataset.action="detect";
-  const save=workspace_button("保存",()=>{
+  const save=workspace_button(workspace_text("remote_ssh_directory_save"),()=>{
     try {
       const value=read_form();
-      // 未修改的全局路径不覆盖其他设置入口在弹窗期间保存的新值。
+      // Unmodified global paths do not override other settings entries in the popup period saved new values.
       if(value.clangd_path===initial.clangd_path)value.clangd_path=read_source_outline_settings(root).clangd_path;
       save_source_outline_settings(root,value);
-    } catch(error){report(`保存失败：${String((error as Error).message||error)}`,true);return;}
+    } catch(error){report(workspace_text("source_outline_settings_save_failed", {value_0: String(String((error as Error).message||error))}),true);return;}
     generation++;dialog.close();style.remove();if(current_dialog===dialog)current_dialog=undefined;
     on_saved?.();
   },"source-outline-settings-save");save.dataset.action="save";

@@ -39,7 +39,8 @@ export class I18n<T> {
       resources,
     } = Object.assign({}, DEFAULT_OPTIONS, options) as Required<I18nBaseOptions> & Partial<I18nFileOptions & I18nJsonOptions<T>>
 
-    const locale = (userLang ?? _options.appLocale ?? _options.locale).toLowerCase();
+    const requested = [userLang, _options.appLocale, _options.locale].find(value => typeof value === 'string' && value.trim() && value !== 'auto') ?? defaultLang;
+    const locale = String(requested).trim().toLowerCase().replace(/_/g, '-');
     const localeList = [locale, locale.split('-').at(0)!, defaultLang]
 
     if (resources) {

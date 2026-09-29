@@ -1,4 +1,4 @@
-// 隐藏 Electron 中以真实 pointer capture 验证原生侧栏分界线，无需安装 Typora。
+// Hide Electron by verifying real pointer capture validation of the native sidebar divider, no installation of Typora is required.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');const path=require('node:path');const os=require('node:os');const {build}=require('esbuild');

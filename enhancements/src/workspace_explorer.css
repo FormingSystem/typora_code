@@ -1,5 +1,5 @@
 .linux-note-workspace-explorer { position:absolute; inset:0; display:flex; flex-direction:column; min-width:0; min-height:0; font:400 13px/normal var(--linux-note-ui-font-family,"Segoe WPC","Segoe UI","Microsoft YaHei UI",sans-serif); color:var(--linux-note-shell-foreground,var(--text-color,#333)); background:var(--side-bar-bg-color,#f8f8f8); }
-/* 内容使用工作台字体；Codicons 字形与按钮命中区域分别约束，避免正文主题改变层级。 */
+/* Content uses the workbench font; Codicons glyph and button hit area are separately constrained, avoiding changes in the content theme hierarchy. */
 .linux-note-workspace-explorer .git-standard-icon { display:block; flex:none; width:16px; height:16px; }
 .workspace-explorer-toolbar { display:flex; align-items:center; justify-content:space-between; min-height:38px; box-sizing:border-box; padding:4px 10px 4px 14px; gap:6px; }
 .workspace-explorer-toolbar strong { white-space:nowrap; font-family:inherit; font-size:12px; font-weight:600; }
@@ -30,13 +30,13 @@
 
 .workspace-explorer-status[hidden]{display:none}
 
-/* VS Code tree.indent=8；Seti无文件夹图标时，叶子折叠槽归零（views.css）。 */
+/* VS Code tree.indent=8; when Seti has no folder icon, the leaf fold slot is set to zero ( views.css ). */
 .workspace-explorer-row[data-directory="false"]>.workspace-explorer-chevron{display:none}
 .workspace-explorer-row>.workspace-file-theme-icon{margin-right:6px}
 
-/* 文件没有空twistie；字形与同层目录箭头共用视觉起点。 */
+/* The file has no empty twistie; the glyph and the arrow of the same-level directory share the same visual starting point. */
 .workspace-explorer-chevron>svg{translate:var(--workspace-tree-twistie-offset) 0}
 .workspace-explorer-row[data-directory="false"]{padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent) + var(--workspace-tree-twistie-offset))}
 
-/* 选择器复用同一虚拟树，不继承侧栏绝对定位；高度由弹窗可用空间约束。 */
+/* The selector reuses the same virtual tree, does not inherit the sidebar's absolute positioning; the height is constrained by the available space of the pop-up window. */
 .workspace-file-tree-selection {position:relative;inset:auto;height:320px;max-height:40vh;min-height:104px;flex:none;background:var(--workspace-ui-surface,var(--bg-color,#fff));}

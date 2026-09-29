@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -22,7 +23,7 @@ const pair = name => {
   const local = path.join(root, 'local'); fs.mkdirSync(local); git(local, ['init', '-b', 'main']); configure(local);
   commit(local, 'shared.md', 'base\n'); commit(local, 'draft.md', 'draft\n'); commit(local, 'working.md', 'working\n');
   const remote = path.join(root, 'remote.git'); git(root, ['init', '--bare', remote]);
-  // 含斜杠的远端名、与本地不同的上游分支名，覆盖不能拆分 origin/main 的情况。
+  // Remote names with slash, and upstream branch names different from local, override cannot split origin/main case.
   git(local, ['remote', 'add', 'team/origin', remote]); git(local, ['push', '-u', 'team/origin', 'main:published']);
   const other = path.join(root, 'other'); git(root, ['clone', '-b', 'published', remote, other]); configure(other);
   return {local, remote, other};
@@ -101,7 +102,7 @@ try {
 
   const rejected = pair('push_rejected'); commit(rejected.local, 'local.md', 'local\n'); commit(rejected.other, 'remote.md', 'remote\n'); git(rejected.other, ['push']);
   const rejected_remote = git(rejected.remote, ['rev-parse', 'published']);
-  // 使用隔离裸仓库的真实接收钩子拒绝推送，验证拉取已完成的状态说明。
+  // Use isolated bare repository real receive hook reject push, verify pull completion status explanation.
   const reject_hook = path.join(rejected.remote, 'hooks', 'pre-receive'); fs.writeFileSync(reject_hook, '#!/bin/sh\nexit 1\n'); fs.chmodSync(reject_hook, 0o755);
   calls = []; await assert.rejects(api.execute_git_action(record_run(calls), await plan(rejected.local), () => true), /已完成拉取，但推送失败/);
   assert.deepEqual(writes(calls).map(args => args[0]), ['pull', 'push']); assert.equal(git(rejected.remote, ['rev-parse', 'published']), rejected_remote);

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import { start_typora_code } from "./workspace_startup";
 import { acquire_workspace_style } from "./workspace_styles";
 import entry_css from "./workspace_entry.css";
@@ -14,7 +15,7 @@ if (!runtime[entry_key]) {
     const message = document.createElement("div");
     message.setAttribute("role", "alert");
     message.className = "typora-code-startup-error";
-    message.textContent = "Typora Code 启动失败：" + String(error instanceof Error ? error.message : error);
+    message.textContent = workspace_text("entry_typora_code_startup_failed") + String(error instanceof Error ? error.message : error);
     document.body.append(message);
   });
 }

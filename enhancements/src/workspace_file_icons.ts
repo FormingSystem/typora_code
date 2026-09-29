@@ -20,14 +20,14 @@ function definition(file_path:string,light:boolean):string{
   const suffixes=name.split(".");for(let index=1;index<suffixes.length;index++){const suffix=suffixes.slice(index).join(".");if(parent&&extensions[parent+"/"+suffix])return extensions[parent+"/"+suffix];if(extensions[suffix])return extensions[suffix];}
   const language=detect_file_language(file_path);return languages[language]||(language==="jsonc"?languages.json:undefined)||variant.file||theme.file!;
 }
-/** 使用固定 Seti 原始字形与文件关联；与产品控件图标分开。 */
+/** Use fixed Seti original glyph associated with the file; separate from product control icons. */
 export function workspace_file_icon(file_path:string):HTMLElement{
   const node=document.createElement("span"),dark_id=definition(file_path,false),light_id=definition(file_path,true);const dark=theme.iconDefinitions[dark_id],light=theme.iconDefinitions[light_id];
   node.className="workspace-file-theme-icon";node.dataset.vscodeFileIcon=dark_id;node.dataset.vscodeFileIconLight=light_id;node.dataset.fileIconPath=file_path;node.setAttribute("aria-hidden","true");
   node.textContent=String.fromCodePoint(Number.parseInt(dark.fontCharacter.replace(/\\/g,""),16));node.style.setProperty("--workspace-file-icon-light",light.fontColor||"currentColor");node.style.setProperty("--workspace-file-icon-dark",dark.fontColor||"currentColor");return node;
 }
 
-/** 仅文件标签适配；虚拟 Graph、终端及第三方视图保持原图标；Git 文件差异由 host 以真实 data.file 调用同一字形接口。 */
+/** Only file tabs adapt; virtual Graph, terminal, and third-party views keep original icons; Git file differences are called by host with real data.file glyph interface. */
 export function bind_workspace_file_tab_icons(core:import("./git_graph_host").graph_core){
   const style=acquire_workspace_file_icons();
   const originals=new Map<HTMLElement,{class_name:string;nodes:Node[]}>();let disposed=false;

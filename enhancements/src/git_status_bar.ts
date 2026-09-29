@@ -9,7 +9,7 @@ import { git_graph_text as text } from "./git_graph_i18n";
 
 import type {branch_status} from "./git_scm_data";
 import {repository_branch_status,repository_head_label} from "./git_graph_repository";
-/** 使用控制器发布的同一仓库快照；底栏不另行轮询或因面板状态变化重复读取 Git。 */
+/** Use controller published same repository snapshot; status bar does not re-poll or repeat read Git due to panel status change. */
 export function bind_git_status_bar(core: graph_core, host: graph_host, current_panel: () => git_graph_panel, launch_graph: () => void): {refresh(): void; set_graph_visible(visible: boolean): void; dispose():void} {
   const footer = document.querySelector<HTMLElement>("footer.ty-footer,footer");
   if (!footer) throw new Error("Typora Code status bar is unavailable.");

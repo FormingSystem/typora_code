@@ -1,4 +1,4 @@
-// 根据 Typora 1.14.9 的原生选择器与盒模型验证大纲；不读取或修改安装目录。
+// Based on Typora 1.14.9 native selector and box model validation outline; do not read or modify installation directory.
 const {app, BrowserWindow} = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

@@ -2,7 +2,7 @@ import { useService } from "src/common/service"
 import type { WorkspaceLeaf } from "./workspace-leaf"
 import type { WorkspaceTabs } from "./tabs"
 
-/** 移动保留原叶子、编辑器及撤销栈；同组排序同时更新状态与两处 DOM。 */
+/** Moving preserves original leaf, editor, and undo stack; same-group sorting updates status and two DOM at the same time. */
 export function move_workspace_leaf(leaf: WorkspaceLeaf, target: WorkspaceTabs, index: number, workspace = useService('workspace')): void {
   const source = leaf.parent as WorkspaceTabs
   const fixed_count = target.children.filter(child => child !== leaf && child.state.workspace_pinned).length
@@ -30,7 +30,7 @@ export function move_workspace_leaf(leaf: WorkspaceLeaf, target: WorkspaceTabs, 
       target.containerEl.classList.add('mod-active')
     }
   }
-  // insertChild 已激活目标；活动标签排序也不应重新开关编辑器。
+  // insertChild The target is activated; the sorting of active tabs should not re-enable the editor.
   workspace.activeLeaf = target.activeLeaf === leaf ? leaf : target.toggleTab(leaf.state.path)
 }
 

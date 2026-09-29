@@ -9,7 +9,7 @@
   else if(root.dataset.linuxNoteWorkspaceBrowser==='ready')finish('ready');
  });
  observer.observe(root,{attributes:true,attributeFilter:['data-typora-code-startup','data-linux-note-typora-enhancements','data-linux-note-workspace-browser']});
- // 与核心宿主初始化上限一致；超时恢复可操作的原生界面，不把窗口锁在加载态。
+ // Match the core initialization deadline; on timeout, restore the usable native interface.
  const deadline=setTimeout(()=>finish('error'),15000);
 })();
 </script>

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {register_workspace_dismissal,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -13,7 +14,7 @@ export type workspace_activity_options = {
   storage_key?: string;
 };
 
-/** 活动栏只负责呈现和排序；当前面板身份由工作区统一提供。 */
+/** The activity bar is only responsible for presentation and sorting; the current panel identity is uniformly provided by the workspace. */
 export function install_workspace_activity(options: workspace_activity_options): {
   refresh(): void; move(id: string, direction: -1 | 1): void; dispose(): void;
 } {
@@ -21,7 +22,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   const interaction=acquire_workspace_interaction(ribbon);
   const interaction_nodes=new Map<HTMLElement,string|null>();
   const allowed = new Set(options.item_ids);
-  // 核心按注册时序可能先插入搜索；仅没有用户排序的项采用定稿的文件／搜索／大纲／Git 顺序。
+  // The core may insert search first according to the registration sequence; only items without user sorting use the finalized order of files/search/outline/Git.
   const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control", "typora_code:community_plugins"].filter(id => allowed.has(id));
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
   const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
@@ -30,7 +31,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   const originals = new Map<HTMLElement, {draggable: string | null; role: string | null; tabindex: string | null; label: string | null; nodes: Node[]}>();
   const animations = new Map<HTMLElement, Animation>();
   let stored_order: string[] = [];
-  try { const value: unknown = JSON.parse(localStorage.getItem(storage_key) || "[]"); if (Array.isArray(value)) stored_order = [...new Set(value.filter((id): id is string => typeof id === "string" && allowed.has(id)))]; } catch { /* 损坏的本地排序不影响活动栏。 */ }
+  try { const value: unknown = JSON.parse(localStorage.getItem(storage_key) || "[]"); if (Array.isArray(value)) stored_order = [...new Set(value.filter((id): id is string => typeof id === "string" && allowed.has(id)))]; } catch { /* Damaged local sorting does not affect the active bar. */ }
   let disposed = false; let scheduled = 0; let suppress_click_until = 0;
   let drag: {item: HTMLElement; order: string[]; session?: pointer_drag_session} | undefined;
   const marker=create_drop_marker(document);
@@ -48,7 +49,7 @@ export function install_workspace_activity(options: workspace_activity_options):
     const ids = [...new Set([...wanted, ...existing.map(item => item.dataset.id!)])].filter(id => by_id.has(id));
     if (existing.every((item, index) => item.dataset.id === ids[index])) return;
     const before = new Map(existing.map(item => [item, item.getBoundingClientRect().top])); cancel_animations();
-    // 用原位置占位，只交换功能项所在的槽位，其他按钮保持在原来的位置。
+    // Use the original position as a placeholder, only swap the slots of the functional items, and keep other buttons in their original positions.
     const slots = existing.map(item => { const slot = document.createComment("activity-slot"); item.before(slot); return slot; });
     slots.forEach((slot, index) => { slot.before(by_id.get(ids[index])!); slot.remove(); });
     if (animate && !reduced_motion.matches) for (const item of existing) {
@@ -58,7 +59,7 @@ export function install_workspace_activity(options: workspace_activity_options):
       animations.set(item, animation); animation.onfinish = () => { if (animations.get(item) === animation) animations.delete(item); };
     }
   };
-  const persist = () => { stored_order = order(); try { localStorage.setItem(storage_key, JSON.stringify(stored_order)); } catch { /* 当前窗口的排序仍然有效。 */ } };
+  const persist = () => { stored_order = order(); try { localStorage.setItem(storage_key, JSON.stringify(stored_order)); } catch { /* The sorting for the current window remains valid. */ } };
   const refresh = () => {
     if (disposed) return;
     const state = options.read_state();
@@ -69,7 +70,7 @@ export function install_workspace_activity(options: workspace_activity_options):
     for (const item of items()) {
       if (!originals.has(item)) {
         originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes]});
-        // 大纲保留原生 fa-list 目录图标和原节点，按用户定稿不再替换。
+        // The outline retains the native fa-list directory icon and original nodes, and follows the user's finalized order without replacement.
         const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control", "typora_code:community_plugins":"extensions"} as const;
         const icon_name = icon_names[item.dataset.id as keyof typeof icon_names];
         if (icon_name) item.replaceChildren(git_icon(icon_name));
@@ -96,9 +97,9 @@ export function install_workspace_activity(options: workspace_activity_options):
     [ids[index], ids[target]] = [ids[target], ids[index]]; reorder(ids, true); persist();
   };
   const show_menu = (item: HTMLElement, x: number, y: number) => {
-    close_menu(); menu_owner = item; menu = document.createElement("div"); menu.className = "workspace-activity-menu";menu.setAttribute("data-workspace-surface",""); menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", "活动栏顺序");
+    close_menu(); menu_owner = item; menu = document.createElement("div"); menu.className = "workspace-activity-menu";menu.setAttribute("data-workspace-surface",""); menu.setAttribute("role", "menu"); menu.setAttribute("aria-label", workspace_text("activity_activity_bar_order"));
     const ids = order(); const index = ids.indexOf(item.dataset.id!);
-    for (const [direction, title] of [[-1, "向上移动"], [1, "向下移动"]] as const) {
+    for (const [direction, title] of [[-1, workspace_text("activity_move_up")], [1, workspace_text("activity_move_down")]] as const) {
       const button = document.createElement("button"); button.type = "button"; button.setAttribute("role", "menuitem"); button.dataset.activityMove = direction < 0 ? "up" : "down";
       button.disabled = index + direction < 0 || index + direction >= ids.length; button.append(git_icon("chevron-right"), document.createTextNode(title));
       button.onclick = () => { move(item.dataset.id!, direction); close_menu(true); }; menu.append(button);
@@ -112,7 +113,7 @@ export function install_workspace_activity(options: workspace_activity_options):
     document.body.append(menu); const bounds = menu.getBoundingClientRect(); menu.style.left = Math.max(4, Math.min(x, innerWidth - bounds.width - 4)) + "px"; menu.style.top = Math.max(4, Math.min(y, innerHeight - bounds.height - 4)) + "px";
     menu_layer=register_workspace_dismissal(()=>menu?[menu]:[],reason=>close_menu(reason==="escape"),{window_blur:true});
     const opened_menu = menu;
-    // 右键的宿主获焦发生在同一鼠标事件尾部，下一帧再把焦点交给菜单。
+    // The host gains focus after the right-click event, and the next frame passes the focus to the menu.
     requestAnimationFrame(() => { if (menu === opened_menu) opened_menu.querySelector<HTMLButtonElement>("button:not(:disabled)")?.focus(); });
   };
   const on_context_menu = (event: MouseEvent) => {
@@ -134,7 +135,7 @@ export function install_workspace_activity(options: workspace_activity_options):
         const target=other.find(node=>state.client_y<node.getBoundingClientRect().bottom)||other[other.length-1];
         if(!target){marker.hide();return;}
         const box=target.getBoundingClientRect(),position=(state.client_y-box.top)/box.height;
-        // 固定 VS Code compositeBarActions.ts: 40%/60% 保留中央滞回带，避免落点线抖动。
+        // Fixed VS Code compositeBarActions.ts: 40%/60% retains the central hysteresis band, avoiding jitter in the landing line.
         const before=position<=.4?true:position>=.6?false:last_target===target?last_before:position<=.5;
         last_target=target;last_before=before;
         const index=other.indexOf(target)+(before?0:1);pending_order=other.map(node=>node.dataset.id!);pending_order.splice(index,0,item.dataset.id!);
@@ -156,7 +157,7 @@ export function install_workspace_activity(options: workspace_activity_options):
       }
     });
   };
-  // 核心的 mousedown 不能再启动第二次排序；click 仍由核心切换面板。
+  // The core's mousedown cannot start the second sorting; click is still switched by the core.
   const on_mouse_down = (event: MouseEvent) => { const item = item_at(event.target); if (item && event.button === 0) { event.preventDefault(); event.stopImmediatePropagation(); item.focus({preventScroll: true}); } };
   const on_cancel = () => { drag?.session?.cancel(); close_menu(); };
   const on_click = (event: MouseEvent) => {

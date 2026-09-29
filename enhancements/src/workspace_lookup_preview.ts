@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
@@ -14,14 +15,14 @@ import { highlight_preview_code, create_preview_diagrams } from "./workspace_mar
 
 const SCALE_KEY = "linux-note:lookup:preview-scale:v1";
 const clamp_scale = (value: number) => Number.isFinite(value) ? Math.min(150, Math.max(50, Math.round(value))) : 80;
-// Marked 14 的 Lexer.blockTokens 会把行首制表符展开为四个空格；块偏移和命中偏移必须使用同一坐标。
+// The Lexer.blockTokens of Marked 14 will expand the leading tab character into four spaces; block offset and hit offset must use the same coordinate.
 const markdown_source = (text: string) => text.replace(/\r\n?/gu,"\n").replace(/^( *)(\t+)/gmu,(_,leading:string,tabs:string)=>leading+"    ".repeat(tabs.length));
 
-/** 侧栏预览独立于中央编辑器，不切换文档、不创建工作区标签，也不改变正文选区。 */
+/** Sidebar preview is independent of the central editor, does not switch documents, does not create workspace tabs, and does not change the selection of the document content. */
 export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>, options:{navigate?:(href:string)=>void}={}) {
   const container = el("section", "workspace-lookup-preview");
   const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", preview_css, {});
-  const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", "命中内容预览");
+  const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", workspace_text("lookup_preview_hit_content_preview"));
   const markdown_host = el("div", "workspace-lookup-markdown");
   const shadow = markdown_host.attachShadow({mode: "open"});
   const reader = el("article"); reader.id = "write";
@@ -29,7 +30,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const reflow=bind_reading_reflow(body,reader);
   const code_copy=bind_reading_code_copy(reader,text=>files.copy(text));
   container.append(body); container.setAttribute("data-linux-note-lookup-preview", "ready");
-  let scale = 80; try { scale = clamp_scale(Number(localStorage.getItem(SCALE_KEY) || 80)); } catch { /* 禁止存储时仍可调整本次字号。 */ }
+  let scale = 80; try { scale = clamp_scale(Number(localStorage.getItem(SCALE_KEY) || 80)); } catch { /* Adjustment of the font size is allowed even if it is not stored. */ }
   let editor: git_diff_editor | undefined; let generation = 0; let disposed = false;
   const diagrams=create_preview_diagrams();
   let selected: {file: workspace_search_file; match: workspace_search_match} | undefined;
@@ -54,7 +55,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     if(container.dataset.previewScale!==String(scale))container.dataset.previewScale = String(scale);
     const font=base_font();
     if(reader.style.fontSize!==`${font}px`)reader.style.setProperty("font-size", `${font}px`, "important");
-    // zoom 保留主题中的 rem/em、表格和代码尺寸关系，容器据缩放后的宽度重新排版。
+    // CSS zoom preserves relative theme sizes; the container reflows at the scaled width.
     if(reader.style.zoom!==String(scale/100))reader.style.zoom = String(scale / 100);
     editor?.focused_editor().updateOptions({fontSize: font * scale / 100, lineHeight: Math.round(font * 1.5 * scale / 100), minimap: {enabled: false}});
     editor?.sync_theme();
@@ -62,12 +63,12 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   };
   const update_theme = () => {
     const rules: string[]=[];
-    // Shadow DOM 中复用已有主题规则，既不影响正文，也不让预览内容被正文增强器再次接管。
+    // Shadow DOM reuses theme rules while isolating the preview from document enhancers.
     rules.push(markdown_theme_rules());
     const local = el("style"); local.textContent = `:host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark{background:#ffe799;color:#242424}#write a{cursor:${options.navigate?"pointer":"default"}}#write input{pointer-events:none}`;
     local.textContent += `#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}`;
     rules.push(local.textContent||"");const text=rules.join("\n");
-    // 原生侧栏反复修改 body.class。只更新样式，不能移走 reader 令预览滚动位置归零。
+    // Native sidebar repeatedly modifies body.class. Only update styles, cannot remove reader to make the preview scroll position return to zero.
     if(theme_style.textContent!==text)theme_style.textContent=text;
     const color=getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number)||[0,0,0];
     const mode=color[0]+color[1]+color[2]>450?"dark":"light";if(reader.dataset.previewTheme!==mode)reader.dataset.previewTheme=mode;
@@ -78,7 +79,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     const block_rect = selected_block.getBoundingClientRect(), body_rect = body.getBoundingClientRect();
     body.scrollTop += block_rect.top - body_rect.top - Math.max(8, (body.clientHeight - Math.min(block_rect.height, body.clientHeight)) / 2);
   };
-  /** 重选命中是定位命令；复用当前内容，并恢复原搜索范围而非预览中后来改动的选区。 */
+  /** Re-selection hit is a positioning command; reuse current content, and restore original search range rather than the later modified selection in the preview. */
   const reveal_match = () => {
     if(disposed||!selected||!body.isConnected||!body.getClientRects().length)return;
     const view=editor?.focused_editor();
@@ -94,11 +95,11 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     const offset=view&&line?view.getScrollTop()-view.getTopForLineNumber(line):0;
     reflow.change(()=>{scale = clamp_scale(value);apply_scale();});
     if(view&&state){view.restoreViewState(state);if(line)view.setScrollTop(view.getTopForLineNumber(line)+offset);retain_visible_code_selection();}
-    try {localStorage.setItem(SCALE_KEY, String(scale));} catch { /* 本次设置仍生效。 */ }
+    try {localStorage.setItem(SCALE_KEY, String(scale));} catch { /* The current setting is still effective. */ }
   };
   const wheel = (event: WheelEvent) => {
     if (disposed || !(event.ctrlKey || event.metaKey) || !event.deltaY) return;
-    // 捕获阶段先于 Monaco 和浏览器处理；到达缩放边界时也不能穿透为页面缩放。
+    // Capture phase is prior to Monaco and browser processing; when reaching the zoom boundary, it cannot penetrate as page zoom.
     event.preventDefault(); event.stopImmediatePropagation();
     set_scale(scale + (event.deltaY < 0 ? 5 : -5));
   };
@@ -106,10 +107,10 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const render_markdown = async (text: string, match: workspace_search_match, request: number) => {
     update_theme();
     const content=document.createDocumentFragment();let target_block:HTMLElement|undefined;
-    // 按 lexer 的完整块建立源码偏移映射，列表、表格和代码围栏不会被逐行拆坏。
+    // Establish source code offset mapping based on the complete block of lexer; lists, tables, and code fences will not be line-by-line broken down.
     const normalized = markdown_source(text);
     const start = markdown_source(text.slice(0, match.start)).length;
-    // Front Matter 不应被解释成分隔线和巨大标题；只在命中其内容时显示 YAML 源码。
+    // The Front Matter should not be interpreted as a separator and a large heading; it will only display the YAML source code when its content is hit.
     const front_matter=normalized.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0]||"";
     const tokens = marked.lexer(normalized.slice(front_matter.length), {gfm: true}); let offset = front_matter.length;
     if(front_matter&&start<front_matter.length)tokens.unshift({type:"code",raw:front_matter,text:front_matter,lang:"yaml"});
@@ -119,7 +120,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       const block = el("div"); block.dataset.sourceStart = String(safe_start);
       const single = Object.assign([token], {links: tokens.links}) as TokensList;
       block.innerHTML = DOMPurify.sanitize(marked.parser(single, {gfm: true}), {FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false});
-      // 仅由预览所有者处理；不把默认浏览器导航交给宿主正文。
+      // Only preview owners handle it; do not pass default browser navigation to the host document.
       for (const link of block.querySelectorAll("a")) {
         const href=link.getAttribute("href");link.removeAttribute("href");link.removeAttribute("target");
         if(options.navigate&&href){link.dataset.previewHref=href;link.tabIndex=0;link.setAttribute("role","link");}
@@ -141,7 +142,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     if (selected_block && match.text) {
       const needle = match.text.replace(/\r\n?/gu, "\n");
       const raw_start = Number(selected_block.dataset.sourceStart);
-      // 链接目标地址等源码文字并不显示，先渲染命中前的块内容再计数，避免把 URL 中同名词算进正文。
+      // The target address of links and other source code text do not display; first render the content of the block before it is hit, and avoid counting the URL same-named words into the document.
       const prefix_tokens=marked.lexer(normalized.slice(raw_start,start),{gfm:true});prefix_tokens.links=tokens.links;
       const prefix=el("div");prefix.innerHTML=DOMPurify.sanitize(marked.parser(prefix_tokens),{FORBID_TAGS:["img","style","iframe","object","embed","audio","video","source"]});
       const occurrence = (prefix.textContent||"").split(needle).length - 1;
@@ -158,23 +159,23 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   };
   const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
     close_menu?.();
-    const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",`命中内容预览：${file.relative_path}，行 ${match.line}，列 ${match.column}`);
+    const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",workspace_text("lookup_preview_hit_content_preview_line_column", {value_0: String(file.relative_path), value_1: String(match.line), value_2: String(match.column)}));
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
     code_copy.reconcile([]);
-    editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", "正在读取预览…"));
+    editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", workspace_text("lookup_preview_reading_preview")));
     try {
       let text:string;
       if(read_content)text=await read_content(file.file_path);
       else {
       const stat = await files.fs.promises.stat(file.file_path);
-      if (!stat.isFile()) throw new Error("预览目标不是普通文本文件。");
+      if (!stat.isFile()) throw new Error(workspace_text("lookup_preview_the_preview_target_is_not_a_regular_text_file"));
       const bytes = await files.fs.promises.readFile(file.file_path); if (disposed || request !== generation) return;
-      if (detect_binary_bytes(bytes)) throw new Error("该文件已变为二进制，无法预览文本。");
+      if (detect_binary_bytes(bytes)) throw new Error(workspace_text("lookup_preview_the_file_has_become_binary_and_text_preview_is_not_possible"));
       text = live&&files.read_text ? await files.read_text(file.file_path) : decode_file_bytes(bytes).text;
       }
       if(disposed||request!==generation)return;
       if(hash&&is_markdown_file(file.file_path)){
-        let name=hash.slice(1);try{name=decodeURIComponent(name);}catch{/* 非法编码按原文字匹配。 */}
+        let name=hash.slice(1);try{name=decodeURIComponent(name);}catch{/* Illegal encoding is matched against the original text. */}
         const slug=(value:string)=>value.toLowerCase().trim().replace(/<[^>]*>/gu,"").replace(/[\\`*_~]/gu,"").replace(/[^\p{L}\p{N}\s_-]/gu,"").replace(/\s/gu,"-");
         let offset=0;const used=new Map<string,number>(),normalized=text.replace(/\r\n?/gu,"\n");
         for(const token of marked.lexer(normalized)){
@@ -216,7 +217,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const context_link=(event:MouseEvent)=>{
     const link=link_at(event);if(!link||!reader.contains(link)||!options.navigate||disposed)return;
     event.preventDefault();event.stopImmediatePropagation();const href=link.dataset.previewHref!,version=generation;
-    close_menu=workspace_menu(event,[{title:'跳转链接',action:()=>{if(!disposed&&version===generation)options.navigate!(href);}}],'workspace-menu-compact workspace-link-preview-menu',()=>{close_menu=undefined;});
+    close_menu=workspace_menu(event,[{title:workspace_text("lookup_preview_jump_link"),action:()=>{if(!disposed&&version===generation)options.navigate!(href);}}],'workspace-menu-compact workspace-link-preview-menu',()=>{close_menu=undefined;});
   };
   reader.addEventListener('click',follow_link);reader.addEventListener('keydown',follow_link);reader.addEventListener('contextmenu',context_link);
   const capture_position=()=>{

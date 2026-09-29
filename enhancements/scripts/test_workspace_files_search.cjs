@@ -1,4 +1,4 @@
-// 临时仓库中验证全文件源码预览与文件搜索：真实 Monaco、真实鼠标、不安装 Typora。
+// Verify full file source code preview and file search in the temporary repository: real Monaco, real mouse, no installation of Typora.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');
@@ -27,7 +27,7 @@ const documents={
   'long.c':Array.from({length:700},(_,index)=>'int value_'+index+' = '+index+';').join('\n'),
 };
 for(const [name,text]of Object.entries(documents))fs.writeFileSync(path.join(workspace,name),text);
-// 真实区分干净文件、工作区更改与未跟踪文件，验证搜索范围不会把状态标签当装饰。
+// Distinguish clean files, workspace changes, and untracked files; verify that the search scope does not treat status tags as decorations.
 fs.writeFileSync(path.join(workspace,'alpha.md'),'# Original\nneedle Alpha\n');
 execFileSync('git',['-C',workspace,'add','--','.gitignore','src/sample.test.ts','alpha.md']);
 execFileSync('git',['-C',workspace,'-c','user.name=Typora_Test','-c','user.email=typora@example.invalid','-c','commit.gpgsign=false','-c','core.hooksPath=.git/unused_hooks','commit','--quiet','-m','Search fixture baseline']);
@@ -197,7 +197,7 @@ app.whenReady().then(async()=>{
   await click('[aria-label="区分大小写"]');await wait('document.querySelectorAll(".workspace-search-match").length===4');await click('[aria-label="全字匹配"]');await wait('document.querySelectorAll(".workspace-search-match").length===3');
   await click('[aria-label="使用正则表达式"]');await search_for('needle\\s+(Alpha|beta)',1);assert.equal(await evaluate('document.querySelector(".workspace-search-preview mark").textContent'),'needle Alpha');
   assert((await evaluate('worker_queries')).includes('needle\\s+(Alpha|beta)'), 'regular expression matching executes in a real browser Worker');
-  // 新查询还在防抖等待期内时立即点替换，不能使用刚才完整但已过期的搜索结果。
+  // Immediately replace when a new query is still in the debounce waiting period; cannot use the just-complete but expired search results.
   await click('.workspace-search-replace-toggle');await set_input('替换','SHOULD_NOT_APPLY');await set_input('搜索内容','[');await click('[aria-label="全部替换（先预览）"]');
   assert.equal(await evaluate('document.querySelector(".git-graph-dialog-shade")'),null,'new query invalidates the prior replacement snapshot immediately');
   await wait('document.querySelector(".workspace-search-status").textContent.includes("正则表达式无效")');await click('[aria-label="全部替换（先预览）"]');
@@ -212,7 +212,7 @@ app.whenReady().then(async()=>{
   fs.writeFileSync(path.join(root,'search_replace_preview.png'),(await test_window.webContents.capturePage()).toPNG());
   await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].find(button=>button.textContent==="确认替换").click()');await wait('!document.querySelector(".git-graph-dialog-shade")');await wait('document.querySelectorAll(".workspace-search-match").length===0');assert.equal(fs.readFileSync(path.join(workspace,'alpha.md'),'utf8'),'# Original\nfound Alpha\nfound beta\nfounds plural\n');
   for(const [name,text]of Object.entries(documents))if(name!=='alpha.md')assert.equal(fs.readFileSync(path.join(workspace,name),'utf8'),text,name);
-  // 重建同一临时样本，验证从界面移除文件后，替换范围与可见结果一致。
+  // Rebuild the same temporary sample; verify that after removing files from the interface, the replacement range and visible results are consistent.
   fs.writeFileSync(path.join(workspace,'alpha.md'),documents['alpha.md']);await set_input('包含的文件','');await search_for('needle',5);
   const removed_path=path.join(workspace,'src','sample.test.ts');
   await click('.workspace-search-file[data-path='+JSON.stringify(removed_path)+'] > summary','right');await wait('!!document.querySelector(".git-graph-menu")');
@@ -230,7 +230,7 @@ app.whenReady().then(async()=>{
   assert.equal(fs.readFileSync(path.join(workspace,'alpha.md'),'utf8'),'# Original\nvisible Alpha\nvisible beta\nvisibles plural\n');
   for(const [name,text]of Object.entries(documents))if(!['alpha.md','.hidden/hidden.py'].includes(name))assert.equal(fs.readFileSync(path.join(workspace,name),'utf8'),text,name);
   const guarded_contents=Object.fromEntries(Object.keys(documents).map(name=>[name,fs.readFileSync(path.join(workspace,name))]));
-  // 使用真实引擎的小结果上限，不生成 5000 个无关 DOM 节点来触发相同边界。
+  // Use a real engine's small result limit; do not generate 5000 irrelevant DOM nodes to trigger the same boundary.
   await evaluate('(()=>{const input=document.querySelector("[aria-label=搜索内容]");input.value="needle";input.dispatchEvent(new Event("input",{bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Enter",bubbles:true}));input.dispatchEvent(new KeyboardEvent("keydown",{key:"Escape",bubbles:true}));})()');
   await wait('document.querySelector(".workspace-search-status").textContent.includes("已停止")');await click('[aria-label="全部替换（先预览）"]');await wait('!!document.querySelector(".git-graph-dialog-shade")');
   assert.equal(await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].some(button=>button.textContent==="确认替换")'),false,'cancelled search must refuse bulk replacement');
@@ -238,7 +238,7 @@ app.whenReady().then(async()=>{
   await evaluate('[...document.querySelectorAll(".git-graph-dialog-footer button")].find(button=>button.textContent==="关闭").click()');
   for(const [name,bytes]of Object.entries(guarded_contents))assert(fs.readFileSync(path.join(workspace,name)).equals(bytes),name+' stays byte-identical after cancelled replacement attempts');
   assert.equal(await evaluate('shell_calls.length'),0);
-  // 后半扫描阻塞时，前半匹配已可预览；新查询不等待旧磁盘请求，也不接收其迟到结果。
+  // When the second half of the scan is blocked, the first half match is already previewable; new queries do not wait for old disk requests, and do not receive their late results.
   for(let index=0;index<12;index++)fs.writeFileSync(path.join(workspace,`perf_${String(index).padStart(4,'0')}.txt`),index%2?'progress_new\n':'progress_old\n');
   fs.writeFileSync(path.join(workspace,'dense_perf.txt'),'dense_marker\n'.repeat(5000));
   await evaluate(`(()=>{window.original_search_read=files.fs.promises.readFile;window.release_search_read=null;let held=false;files.fs.promises.readFile=async(...args)=>{if(!held&&String(args[0]).endsWith('perf_0006.txt')){held=true;await new Promise(resolve=>release_search_read=resolve);}return original_search_read(...args)};const panel=sidebar.activePanel;panel.options.regex=false;panel.options.use_ignore=false;panel.options.case_sensitive=false;panel.options.whole_word=false;panel.includes.value='./perf_*.txt';panel.excludes.value='';window.progress_open_count=open_calls.length;void 0})()`);
@@ -286,7 +286,7 @@ app.whenReady().then(async()=>{
   await evaluate('rebound.dispose();rebound.dispose();void 0');
   assert.deepEqual(await evaluate('({core:core.app.openFile===native_core_open,library:File.editor.library.openFile===native_library_open})'),{core:true,library:true},'rebound host restores the exact original functions');
   assert.deepEqual(await evaluate('native_library_calls.at(-1)'),{file:complex_markdown,args:['after-dispose'],context:true},'restored native route still receives the exact complex path');
-  // 真正的阅读导航处理 hash；文件适配器只向原生 openFile 传已 stat 的绝对文件。
+  // Real reading navigation handles hash; file adapter only passes the already stat absolute file to native openFile.
   await evaluate(`window.hash_content=document.createElement('content');hash_content.style.cssText='display:block;position:fixed;inset:0;height:300px;overflow:auto';hash_content.className='mod-active';hash_content.innerHTML='<div id="write"><h1>Heading</h1><p>Retained text</p></div>';document.body.append(hash_content);window.hash_leaf=leaves[0];hash_leaf.state.path=${JSON.stringify(complex_markdown)};hash_leaf.containerEl=hash_content;hash_leaf.view.containerEl=hash_content.firstElementChild;hash_leaf.view.isEditor=()=>true;hash_leaf.parent.activeLeaf=hash_leaf;core.app.workspace.activeLeaf=hash_leaf;hash_content.append(hash_leaf.view.containerEl);core.app.workspace.activeEditor={openFile(){}};core.app.workspace.rootSplit={on:()=>()=>{}};window[Symbol.for('typora-code:workspace')]=core;File.bundle.filePath=${JSON.stringify(complex_markdown)};window.hash_opens=[];File.editor.tryOpenUrl=hash=>hash_opens.push(hash);File.editor.selection={buildUndo:()=>null};File.editor.sourceView={inSourceMode:false};window.dispose_hash_navigation=files_qa.bind_reading_navigation();window.hash_files=files_qa.bind_workspace_files(core);void 0`);
   await evaluate(`File.editor.library.openFile(${JSON.stringify(complex_markdown+'#Heading')},saved_callback,true);void 0`);
   assert.equal(await evaluate('native_library_calls.at(-1).file'),complex_markdown);

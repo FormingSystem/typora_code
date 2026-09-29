@@ -1,4 +1,4 @@
-// 原始宿主独立副本；实际Shell输出、工作台命令与缩放，保留用户运行环境。
+// Original host independent copy; actual Shell output, workbench commands, and zooming, preserving the user's running environment.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
@@ -20,7 +20,7 @@
   command('terminal_toggle');
   for(let i=0;i<400&&document.querySelector('.linux-note-terminal')?.getAttribute('aria-busy')==='true';i++)await pause(25);
   const first=document.querySelector('.linux-note-terminal');assert(first?.dataset.state==='running','真实Shell运行');const pid=first.dataset.pid;
-  // 终端公开粘贴入口执行一条临时输出命令；不接触用户文件。
+  // Execute a temporary output command through the public paste entry of the terminal; do not touch user files.
   const clipboard=new DataTransfer();clipboard.setData('text/plain',"1..80 | ForEach-Object { 'GEOMETRY_ROW' }\r");
   first.querySelector('.linux-note-terminal-viewport').dispatchEvent(new ClipboardEvent('paste',{bubbles:true,cancelable:true,clipboardData:clipboard}));await pause(100);
   [...document.querySelectorAll('.git-graph-dialog-footer button')].find(button=>button.textContent==='粘贴到终端')?.click();await pause(1800);

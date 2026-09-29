@@ -1,4 +1,4 @@
-// 仅在独立宿主副本/私有桌面执行；真实开窗、文件服务和移交频道，输入是 renderer 事件。
+// Only execute in an independent host copy/private desktop; real window opening, file services and handover channel, input is renderer event.
 (async () => {
   const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__;
   const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
@@ -11,7 +11,7 @@
   const signal=(name,detail)=>document.dispatchEvent(new CustomEvent(name,{detail,cancelable:true}));
   const start=leaf=>{const transfer_token=crypto.randomUUID();signal('typora-code:tab-drag-start',{leaf,transfer_token});return transfer_token;};
   const end=(leaf,transfer_token,drop_effect)=>signal('typora-code:tab-drag-end',{leaf,transfer_token,drop_effect,screen_x:screenX+outerWidth+80,screen_y:screenY+100});
-  // 此夹具不测试联网更新，不向真实远端发起检查。
+  // This fixture does not test network updates, does not initiate checks with the real remote end.
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>null;
   let leader=false;
   try{fs.writeFileSync(path.join(base,'drag_leader'),id,{flag:'wx'});leader=true;}catch(error){if(error.code!=='EEXIST')throw error;}
@@ -38,7 +38,7 @@
       const real_leaves=[];workspace.eachLeaves(item=>{if(files.editor_state(item).file_path)real_leaves.push(files.editor_state(item).file_path);});
       if(real_leaves.length!==1)throw Error('Auxiliary restored unrelated editors: '+JSON.stringify(real_leaves));
       if(actual_text()!==expected_text())throw Error('child document mismatch');
-      // 等待来源收到 accepted 并释放原标签，然后才开始反向移交。
+      // Wait for the source to receive accepted and release the original tab, then start the reverse handover.
       const child_pid=reqnode('process').pid;
       fs.writeFileSync(path.join(base,'child_'+id+'.json'),JSON.stringify({pid:child_pid,options:{initFilePath:_options.initFilePath,initAnchor:_options.initAnchor},file:File.bundle.filePath}));
       coordinator.postMessage({kind:'received',id,pid:child_pid});
@@ -72,10 +72,10 @@
       await wait(()=>!files.editor_state(leaf).busy,'source idle');
       const token=start(leaf);end(leaf,token,'none');
       await wait(()=>child_id&&!find(),'native detached window and source ACK');
-      // 每类10轮在返回前先打开同一文件，验证真实重复路径合并不创建第二份标签。
+      // For each class 10, before returning, first open the same file; verify that the real repeated path merge does not create a second tab.
       let duplicate_leaf,duplicate_model,duplicate_version,duplicate_count;
       if(i%2===1){
-        // 移出导致原生切到另一标签；独立的测试准备打开必须等该切换完成。
+        // Moving out causes the native to switch to another tab; the independent test preparation opening must wait for this switch to complete.
         await wait(()=>{const active=files.editor_state(workspace.activeLeaf);return !File.isFileLoading()&&!File._onFileSwitching&&!File._onInitParse&&(active.kind!=='markdown'||File.bundle.filePath===active.file_path);},'main settled before duplicate setup');
         await files.open_file(file);
         await wait(()=>find()&&(scenario.kind==='source'?find().view?.loaded:File.bundle.filePath===file&&!File.isFileLoading()),'duplicate target loaded');
@@ -98,7 +98,7 @@
       rounds.push(performance.now()-started);
       fs.writeFileSync(path.join(base,'progress.json'),JSON.stringify({checks,rounds},null,2));
     }
-      // 仅还原夹具自己的文档，以便进入下一种格式；不保存磁盘。
+      // Only restore the fixture's own document, so as to enter the next format; do not save to disk.
       if(scenario.kind==='source')find().view.editor.models[0].setValue(original_text());
       if(!scenario.dirty||scenario.kind==='source')await files.open_file(path.join(root,'front.md'));
     }

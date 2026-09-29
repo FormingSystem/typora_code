@@ -1,3 +1,5 @@
+[English](workspace_shortcuts.en.md)
+
 # R079 原生 Markdown 快捷键优先
 
 2026-09-27用户明确：保留Typora编辑习惯；与原生Markdown编辑冲突的工作台Ctrl键改Alt。同日后续R014.2明确例外：Ctrl+=/-恢复窗口缩放，编辑区Ctrl+滚轮只调内容字号；此最新约定替代此前Alt缩放键，其他已迁移键保持。

@@ -1,2 +1,2 @@
-/* 明暗主题共享字体、字号和排版；此入口只选择明色。 */
+/* Light/dark themes share fonts, font sizes, and typography; this entry only selects light colors. */
 @import url("./cpp_github-consolas.css");

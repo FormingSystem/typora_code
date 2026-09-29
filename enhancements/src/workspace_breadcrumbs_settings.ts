@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {workspace_dialog,workspace_element as el,workspace_button} from "./workspace_widgets";
 
@@ -22,7 +23,7 @@ function clean(value:unknown):overrides{
   const kinds=object(source.symbol_kinds);if(Object.keys(kinds).length)result.symbol_kinds=Object.fromEntries(BREADCRUMB_KINDS.filter(k=>typeof kinds[k]==="boolean").map(k=>[k,kinds[k]]));
   return result;
 }
-/** 默认、用户、工作区及语言覆盖只在此处解析，界面不保留第二份有效值。 */
+/** Default, user, workspace, and language coverage are only parsed here; the interface does not retain a second valid value. */
 export function read_breadcrumb_settings(root="",language=""):breadcrumb_settings{
   const value=stored_settings(),user=object(value.user),workspace=object(object(value.workspaces)[root_key(root)]);
   const result={...BREADCRUMB_DEFAULTS,symbol_kinds:{}} as breadcrumb_settings;
@@ -30,42 +31,42 @@ export function read_breadcrumb_settings(root="",language=""):breadcrumb_setting
   merge(user.values);merge(workspace.values);if(language){merge(object(user.languages)[language],true);merge(object(workspace.languages)[language],true);}return result;
 }
 export function update_breadcrumb_settings(root:string,scope:"user"|"workspace",key:keyof breadcrumb_settings,value:unknown,language=""){
-  const settings=get_workspace_app()?.settings;if(!settings)throw new Error("工作台设置尚未就绪。");
-  if(scope==="workspace"&&!root)throw new Error("请先打开文件夹再配置工作区。");
-  if(language&&!["symbol_sort_order","symbol_path_separator","symbol_kinds"].includes(key))throw new Error("此选项不支持语言覆盖。");
+  const settings=get_workspace_app()?.settings;if(!settings)throw new Error(workspace_text("language_service_settings_the_workbench_settings_are_not_ready"));
+  if(scope==="workspace"&&!root)throw new Error(workspace_text("breadcrumbs_settings_please_open_a_folder_before_configuring_the_workspace"));
+  if(language&&!["symbol_sort_order","symbol_path_separator","symbol_kinds"].includes(key))throw new Error(workspace_text("breadcrumbs_settings_this_option_does_not_support_language_overrides"));
   const next:stored=JSON.parse(JSON.stringify(stored_settings()));
   const owner=scope==="user"?(next.user??={}):((next.workspaces??={})[root_key(root)]??={});
   const target=language?((owner.languages??={})[language]??={}):(owner.values??={});
-  if(value===undefined)delete target[key];else {const valid=clean({[key]:value});if(!(key in valid))throw new Error("配置值无效。");Object.assign(target,valid);}
+  if(value===undefined)delete target[key];else {const valid=clean({[key]:value});if(!(key in valid))throw new Error(workspace_text("breadcrumbs_settings_invalid_configuration_value"));Object.assign(target,valid);}
   settings.set_and_save(KEY,next);for(const listener of changed)listener();
 }
-/** 切换命令更新实际生效的作用域，避免工作区覆盖使菜单开关看似无效。 */
+/** Switching commands update the actual effective scope; avoid the workspace coverage making the menu switch seem ineffective. */
 export function set_breadcrumb_enabled(root:string,enabled:boolean){
   const workspace=clean(object(object(stored_settings().workspaces)[root_key(root)]).values);
   update_breadcrumb_settings(root,typeof workspace.enabled==="boolean"?"workspace":"user","enabled",enabled);
 }
 export function observe_breadcrumb_settings(listener:()=>void){changed.add(listener);return()=>{changed.delete(listener);};}
 export function open_breadcrumb_settings(root:string,language=""){
-  dialog?.close(false);const view=dialog=workspace_dialog("面包屑导航设置","关闭设置",()=>{if(dialog===view)dialog=undefined;});view.root.classList.add("workspace-breadcrumb-settings");
+  dialog?.close(false);const view=dialog=workspace_dialog(workspace_text("breadcrumbs_settings_breadcrumbs_navigation_settings"),workspace_text("breadcrumbs_settings_close_settings"),()=>{if(dialog===view)dialog=undefined;});view.root.classList.add("workspace-breadcrumb-settings");
   const selectors=el("div","workspace-breadcrumb-setting-scopes"),scope=el("select"),language_scope=el("select");
-  scope.setAttribute("aria-label","设置作用域");for(const [value,label] of [["user","用户"],["workspace","工作区"]]){const option=el("option","",label);option.value=value;option.disabled=value==="workspace"&&!root;scope.append(option);}
-  language_scope.setAttribute("aria-label","语言覆盖");const all=el("option","","所有语言");all.value="";language_scope.append(all);if(language){const option=el("option","",language);option.value=language;language_scope.append(option);}
+  scope.setAttribute("aria-label",workspace_text("breadcrumbs_settings_setting_scope"));for(const [value,label] of [["user",workspace_text("breadcrumbs_settings_user")],["workspace",workspace_text("breadcrumbs_settings_workspace")]]){const option=el("option","",label);option.value=value;option.disabled=value==="workspace"&&!root;scope.append(option);}
+  language_scope.setAttribute("aria-label",workspace_text("breadcrumbs_settings_language_overrides"));const all=el("option","",workspace_text("breadcrumbs_settings_all_languages"));all.value="";language_scope.append(all);if(language){const option=el("option","",language);option.value=language;language_scope.append(option);}
   selectors.append(scope,language_scope);const rows=el("div"),status=el("p");status.setAttribute("role","status");view.content.append(selectors,rows,status);
   const render=()=>{
     rows.replaceChildren();const current=read_breadcrumb_settings(scope.value==="user"?"":root,language_scope.value);
     const data=stored_settings(),owner=scope.value==="user"?object(data.user):object(object(data.workspaces)[root_key(root)]),values=clean(language_scope.value?object(owner.languages)[language_scope.value]:owner.values);
-    const change=(key:keyof breadcrumb_settings,value:unknown)=>{try{update_breadcrumb_settings(root,scope.value as "user"|"workspace",key,value,language_scope.value);status.textContent="设置已保存并生效。";}catch(error){status.textContent=String(error instanceof Error?error.message:error);}render();};
-    const definitions:[keyof breadcrumb_settings,string,string[]?][]=[["enabled","显示面包屑"],["file_path","文件路径",["on","off","last"]],["symbol_path","符号路径",["on","off","last"]],["icons","显示图标"],["show_editor_type","显示编辑器类型"],["symbol_sort_order","符号排序",["position","name","type"]],["symbol_path_separator","复制符号路径分隔符"]];
-    const labels:Record<string,string>={on:"完整路径",off:"关闭",last:"仅末级",position:"文档位置",name:"名称",type:"类型"};
+    const change=(key:keyof breadcrumb_settings,value:unknown)=>{try{update_breadcrumb_settings(root,scope.value as "user"|"workspace",key,value,language_scope.value);status.textContent=workspace_text("breadcrumbs_settings_settings_saved_and_applied");}catch(error){status.textContent=String(error instanceof Error?error.message:error);}render();};
+    const definitions:[keyof breadcrumb_settings,string,string[]?][]=[["enabled",workspace_text("breadcrumbs_show_breadcrumbs")],["file_path",workspace_text("breadcrumbs_settings_file_path"),["on","off","last"]],["symbol_path",workspace_text("breadcrumbs_settings_symbol_path"),["on","off","last"]],["icons",workspace_text("breadcrumbs_settings_show_icon")],["show_editor_type",workspace_text("breadcrumbs_settings_show_editor_type")],["symbol_sort_order",workspace_text("breadcrumbs_settings_symbol_sort"),["position","name","type"]],["symbol_path_separator",workspace_text("breadcrumbs_settings_copy_symbol_path_separator")]];
+    const labels:Record<string,string>={on:workspace_text("breadcrumbs_settings_full_path"),off:workspace_text("community_plugin_settings_close"),last:workspace_text("breadcrumbs_settings_only_top_level"),position:workspace_text("breadcrumbs_settings_document_location"),name:workspace_text("breadcrumbs_settings_name"),type:workspace_text("breadcrumbs_settings_type")};
     for(const [key,label,options] of definitions){
       if(language_scope.value&&!["symbol_sort_order","symbol_path_separator"].includes(key))continue;
       const row=el("label","workspace-breadcrumb-setting"),name=el("span","",label);let control:HTMLInputElement|HTMLSelectElement;
       if(options){const select=el("select");for(const value of options){const option=el("option","",labels[value]);option.value=value;select.append(option);}select.value=String(current[key]);control=select;}
       else {const input=el("input");input.type=typeof current[key]==="boolean"?"checkbox":"text";input.checked=current[key]===true;input.value=String(current[key]);control=input;}
       control.setAttribute("aria-label",label);control.onchange=()=>change(key,control instanceof HTMLInputElement&&control.type==="checkbox"?control.checked:control.value);
-      row.append(name,control,workspace_button("重置",()=>change(key,undefined)));rows.append(row);
+      row.append(name,control,workspace_button(workspace_text("breadcrumbs_settings_reset"),()=>change(key,undefined)));rows.append(row);
     }
-    const kinds=el("details"),summary=el("summary","","显示的符号类型");kinds.append(summary);
-    for(const kind of BREADCRUMB_KINDS){const label=el("label","workspace-breadcrumb-kind"),input=el("input");input.type="checkbox";input.checked=current.symbol_kinds[kind]!==false;input.onchange=()=>change("symbol_kinds",{...values.symbol_kinds,[kind]:input.checked});label.append(input,el("span","",kind));kinds.append(label);}kinds.append(workspace_button("重置符号类型",()=>change("symbol_kinds",undefined)));rows.append(kinds);
+    const kinds=el("details"),summary=el("summary","",workspace_text("breadcrumbs_settings_displayed_symbol_type"));kinds.append(summary);
+    for(const kind of BREADCRUMB_KINDS){const label=el("label","workspace-breadcrumb-kind"),input=el("input");input.type="checkbox";input.checked=current.symbol_kinds[kind]!==false;input.onchange=()=>change("symbol_kinds",{...values.symbol_kinds,[kind]:input.checked});label.append(input,el("span","",kind));kinds.append(label);}kinds.append(workspace_button(workspace_text("breadcrumbs_settings_reset_symbol_type"),()=>change("symbol_kinds",undefined)));rows.append(kinds);
   };scope.onchange=render;language_scope.onchange=render;render();
 }

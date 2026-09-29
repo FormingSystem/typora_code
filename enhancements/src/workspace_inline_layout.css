@@ -1,4 +1,4 @@
-/* 共同内容行：自然字体行盒，不以正文行高、top 或单边 padding 补偿。 */
+/* Common content line: natural font line box, not based on the content line height, top or single-side padding compensation. */
 :is(footer.ty-footer .workspace-footer-group,footer.ty-footer .workspace-footer-control,.workspace-tab-strip .typ-tab) {
   display:flex;align-items:center;align-content:center;box-sizing:border-box;line-height:normal!important;
 }

@@ -4,7 +4,7 @@ import {git_graph_text as text} from "./git_graph_i18n";
 
 export type checkout_ref = {name:string; label:string; hash:string; kind:"local"|"remote"|"tag"; upstream:string; author:string; date:number; subject:string; track:string};
 export type checkout_request = {ref?:checkout_ref; detached?:boolean; branch?:string; head:string};
-/** 一次读取全部引用与提交详情，不依赖Graph分页/过滤。附注标签使用剥离后的commit。 */
+/** Read all references and commit details in one go, without relying on Graph pagination/filtering. Annotation tabs use stripped commit. */
 export async function read_checkout_refs(run:git_run,root:string):Promise<checkout_ref[]> {
   const format="%(refname)%00%(objectname)%00%(*objectname)%00%(objecttype)%00%(*objecttype)%00%(symref)%00%(upstream)%00%(authorname)%00%(*authorname)%00%(committerdate:unix)%00%(*committerdate:unix)%00%(subject)%00%(*subject)%00%(upstream:track)";
   const output=await run(root,["for-each-ref","--sort=-committerdate","--format="+format,"refs/heads","refs/remotes","refs/tags"]);
@@ -15,7 +15,7 @@ export async function read_checkout_refs(run:git_run,root:string):Promise<checko
     return [{name,label:name.replace(/^refs\/(heads|remotes|tags)\//u,""),hash:peeled||oid,kind,upstream,author:peeled?peeled_author:author,date:Number(peeled?peeled_date:date)||0,subject:peeled?peeled_subject:subject,track}];
   });
 }
-/** UI选择不是写授权缓存；在panel写锁内重新解析引用，再交给公共指纹/草稿保护事务。 */
+/** The UI selection is not writing to the authorization cache; re-parse references within the panel write lock, then pass it to the public fingerprint/draft protection task. */
 export async function prepare_checkout(run:git_run,root:string,request:checkout_request):Promise<action_plan> {
   const refs=await read_checkout_refs(run,root),ref=request.ref&&refs.find(item=>item.name===request.ref!.name);
   if(request.ref&&(!ref||ref.hash!==request.ref.hash))throw Error(text("quick.target_changed"));
@@ -39,7 +39,7 @@ export async function prepare_checkout(run:git_run,root:string,request:checkout_
     }
   }
   const plan=await plan_git_action(run,id,{root,target,hash,operation:""},values);
-  // '--' 防止同名路径成为checkout文件操作；强制本地检出，不猜测远端。
+  // '--' prevents a path with the same name from becoming a checkout file operation; enforce local checkout, do not guess remote.
   if(id==="branch_checkout")plan.args=["checkout","--no-guess",target,"--"];
   if(JSON.stringify(await read_checkout_refs(run,root))!==JSON.stringify(refs))throw Error(text("quick.target_changed"));
   return plan;

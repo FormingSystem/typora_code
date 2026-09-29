@@ -1,6 +1,6 @@
 'use strict';
 const net=require('node:net'),crypto=require('node:crypto'),path=require('node:path');
-/** 每个SSH进程拥有独立随机认证令牌；密码仅在ASKPASS短连接中返回。 */
+/** Each SSH process owns a random authentication token; passwords are returned only over the short-lived ASKPASS connection. */
 async function create_ssh_auth({asset_root,node_path,authenticate,is_current=()=>true}){
  const token=crypto.randomBytes(32).toString('hex'),sockets=new Set();let disposed=false;
  const server=net.createServer(socket=>{

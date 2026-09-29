@@ -1,4 +1,4 @@
-// 真实Monaco/TextMate/clangd组合；不以协议替身替代最终绘制。
+// Real Monaco/TextMate/clangd combination; do not use protocol stand-ins to replace the final drawing.
 const {app,BrowserWindow}=require('electron'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const base=path.resolve(__dirname,'..'),root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_code_analysis_')),checks=[],samples=[];let win;
 app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();
@@ -21,7 +21,7 @@ app.whenReady().then(async()=>{
   const values=await ev(`(()=>{model.tokenization.forceTokenization(model.getLineCount());const line=model.tokenization.getLineTokens(5);return {background:getComputedStyle(source.container.querySelector('.monaco-editor-background')).backgroundColor,preview:getComputedStyle(preview.container.querySelector('.monaco-editor-background')).backgroundColor,font:source.focused_editor().getOption(qa.monaco.editor.EditorOption.fontInfo).fontFamily,selection:source.focused_editor().getSelection(),tokens:Array.from({length:line.getCount()},(_,i)=>({text:line.getLineContent().slice(line.getStartOffset(i),line.getEndOffset(i)),fg:line.getForeground(i)}))}})()`);
   const hex=themes[mode].colors['editor.background'],rgb='rgb('+[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)).join(', ')+')';assert.equal(values.background,rgb);assert.equal(values.preview,rgb);assert.equal(values.selection.startColumn,5);assert(new Set(values.tokens.map(t=>t.fg)).size>=3,'real TextMate categories');samples.push({mode,...values});
  }
- // 查找/替换文本框的真实剪贴板、撤销及菜单边界。
+ // Real clipboard, undo, and menu boundaries of the find/replace text box.
  const old_clipboard=require('electron').clipboard.readText();
  const key=async(name,modifiers=['control'])=>{win.webContents.sendInputEvent({type:'keyDown',keyCode:name,modifiers});win.webContents.sendInputEvent({type:'keyUp',keyCode:name,modifiers});await delay(70);};
  try{

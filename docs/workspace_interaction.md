@@ -1,3 +1,5 @@
+[English](workspace_interaction.en.md)
+
 # 工作台交互状态与行内布局
 
 ## R049 共享滚动条基础样式

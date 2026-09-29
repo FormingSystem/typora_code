@@ -1,4 +1,4 @@
-// 真实 Electron 运行常驻工作台入口与全部编排模块；宿主核心仅提供可核查的注册表和原生文件容器。
+// Real Electron running persistent workbench entry and all orchestration modules; host core only provides verifiable registry and native file container.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
@@ -10,10 +10,15 @@ const source_path = path.join(repository, 'source.ts');fs.writeFileSync(source_p
 const git=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:repository,windowsHide:true,stdio:'pipe'});fs.writeFileSync(path.join(repository,'second.ts'),'const second = 2;\n');git('init','-b','main');git('add','source.ts','second.ts');git('-c','user.name=Fixture','-c','user.email=fixture@example.invalid','commit','-m','fixture');
 app.setPath('userData', path.join(evidence, 'profile'));app.disableHardwareAcceleration();
 let test_window;const checks=[];
+const english=process.env.TYPORA_UI_TEST_LOCALE?.startsWith('en')===true;
+const expected_labels={'打开文件夹…':'Open Folder…','打开文件夹':'Open Folder','所有文件':'All Files','打开的编辑器':'Open Editors','文件夹':'Folders','时间线':'Timeline','资源管理器与保存设置…':'Explorer and Save Settings…','新建文件…':'New File…','新建文件夹…':'New Folder…','在系统文件资源管理器中显示':'Reveal in File Explorer','在集成终端中打开':'Open in Integrated Terminal','在文件夹中查找…':'Find in Folder…','粘贴':'Paste','不保存并关闭':"Don't Save and Close"};
+const localized_fixture=source=>english?source.replace(/打开文件夹…|打开文件夹|所有文件|打开的编辑器|资源管理器与保存设置…|新建文件夹…|新建文件…|在系统文件资源管理器中显示|在集成终端中打开|在文件夹中查找…|文件夹|时间线|粘贴|不保存并关闭/gu,value=>expected_labels[value].replace(/'/gu,"\\'")):source;
 const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const evaluate=async source=>{try{return await test_window.webContents.executeJavaScript(source)}catch(error){console.error("Failed renderer expression: "+source.slice(0,600));throw error}};
+const evaluate_labels=source=>evaluate(localized_fixture(source));
 const capture=async name=>{await delay(100);fs.writeFileSync(path.join(evidence,name+'.png'),(await test_window.webContents.capturePage()).toPNG());};
 const wait=async source=>{for(let i=0;i<200;i++){if(await evaluate(source))return;await delay(30);}throw new Error('Timeout: '+source+'; '+await evaluate('JSON.stringify({errors:fixture_errors,state:document.documentElement.dataset.linuxNoteTyporaEnhancements})'));};
+const wait_labels=source=>wait(localized_fixture(source));
 app.whenReady().then(async()=>{
  await (await import("./build_source_symbol_assets.mjs")).build_source_symbol_assets(path.join(evidence,"typora_code"));
  for(const directory of ['plugins','update','remote'])fs.cpSync(path.join(__dirname,'../dist/assets',directory),path.join(evidence,'typora_code/assets',directory),{recursive:true});
@@ -27,7 +32,7 @@ app.whenReady().then(async()=>{
  await evaluate('fixture_core.app.vault={on:fixture_core.app.workspace.on};fixture_core.ready=new Promise(resolve=>window.resolve_core_ready=resolve);void 0');
  const bundle=await build({preserveSymlinks:true,stdin:{contents:'export {start_typora_code,shutdown_typora_code} from "./src/workspace_startup";export {get_workspace_files} from "./src/workspace_files";export * as monaco from "monaco-editor/editor/editor.api";',resolveDir:path.join(__dirname,'..')},plugins:[static_workspace_css_plugin(),...editor_plugins()],bundle:true,format:'iife',globalName:'qa',write:false,loader:{'.css':'text','.svg':'text','.png':'dataurl','.wasm':'binary'},define:{'process.env.NODE_ENV':'"production"'}});
  await evaluate(bundle.outputFiles[0].text);
- // Monaco 的 ContextKey/Clipboard 单例是宿主窗口级；先显式预热并销毁临时 editor，避免把首次惰性初始化误算为插件泄漏。
+ // Monaco's ContextKey/Clipboard singleton is host window level; first explicitly preheat and destroy temporary editor, avoid mistakenly calculating the first lazy initialization as plugin leakage.
  await evaluate('(()=>{const node=document.createElement("div");document.body.append(node);const editor=qa.monaco.editor.create(node,{value:"warmup",language:"plaintext"});const model=editor.getModel();editor.dispose();model.dispose();node.remove();})()');await delay(50);
  await evaluate('window.baseline_listeners=fixture_listener_count();void qa.start_typora_code().catch(error=>{fixture_errors.push(String(error));console.error(error)});void 0');
  await delay(80);
@@ -63,7 +68,7 @@ app.whenReady().then(async()=>{
  assert(await evaluate('!document.querySelector(".workspace-explorer-outline-content")'),'Explorer contains no duplicate bottom Outline section');
  const alternate_root=path.join(evidence,'alternate_workspace');fs.mkdirSync(alternate_root);fs.writeFileSync(path.join(alternate_root,'alternate.ts'),'const original_alternate = 3;\n');fs.mkdirSync(path.join(repository,'nested_project'));
 
- await evaluate(`window.alternate_root=${JSON.stringify(alternate_root)};window.saved_dirty_check=File.changeCounter.isDocumentEdited;File.changeCounter.isDocumentEdited=()=>true;window.folder_leaf=fixture_core.app.workspace.activeLeaf;window.folder_bundle=File.bundle.filePath;window.folder_html=document.querySelector('#write').innerHTML;window.folder_key=(code,key)=>document.querySelector('#write').dispatchEvent(new KeyboardEvent('keydown',{key,code,ctrlKey:true,bubbles:true,cancelable:true}));window.saved_bridge=JSBridge.invoke;window.picker_calls=[];window.picker_resolve=null;JSBridge.invoke=(name,...args)=>name==='dialog.showOpenDialog'?new Promise(resolve=>{picker_calls.push(args[0]);picker_resolve=resolve;}):saved_bridge(name,...args);folder_key('KeyK','k');folder_key('KeyO','o');void 0`);
+ await evaluate(`window.alternate_root=${JSON.stringify(alternate_root)};window.saved_dirty_check=File.changeCounter.isDocumentEdited;File.changeCounter.isDocumentEdited=()=>true;window.folder_leaf=fixture_core.app.workspace.activeLeaf;window.folder_bundle=File.bundle.filePath;window.folder_html=document.querySelector('#write').innerHTML;window.folder_key=(code,key,modifier='alt')=>document.querySelector('#write').dispatchEvent(new KeyboardEvent('keydown',{key,code,altKey:modifier==='alt',ctrlKey:modifier==='ctrl',bubbles:true,cancelable:true}));window.saved_bridge=JSBridge.invoke;window.picker_calls=[];window.picker_resolve=null;JSBridge.invoke=(name,...args)=>name==='dialog.showOpenDialog'?new Promise(resolve=>{picker_calls.push(args[0]);picker_resolve=resolve;}):saved_bridge(name,...args);folder_key('KeyK','k');folder_key('KeyO','o');void 0`);
  await wait('picker_calls.length===1');
  assert.deepEqual(await evaluate('picker_calls[0].properties'),['openDirectory']);
  assert.equal(await evaluate('picker_calls[0].defaultPath'),repository);
@@ -71,8 +76,8 @@ app.whenReady().then(async()=>{
  assert.equal(await evaluate('picker_calls.length'),1,'only one system dialog can be pending');
  await evaluate(`picker_resolve({canceled:true,filePaths:[]});void 0`);await delay(50);
  assert(await evaluate('!document.querySelector(".git-graph-dialog-shade")&&qa.get_workspace_files().context_root()===fixture_root&&File.getMountFolder()===fixture_root&&fixture_core.app.workspace.activeLeaf===folder_leaf&&File.bundle.filePath===folder_bundle&&document.querySelector("#write").innerHTML===folder_html&&File.changeCounter.isDocumentEdited()'),'cancelled native folder choice preserves the root and dirty document');
- await evaluate(`document.querySelector('.workspace-titlebar-menu>button').click();void 0`);await wait(`Boolean([...document.querySelectorAll('.workspace-titlebar-entry')].find(button=>button.textContent.includes('打开文件夹…')))`);
- await evaluate(`[...document.querySelectorAll('.workspace-titlebar-entry')].find(button=>button.textContent.includes('打开文件夹…')).click();void 0`);await wait('picker_calls.length===2');
+ await evaluate_labels(`document.querySelector('.workspace-titlebar-menu>button').click();void 0`);await wait_labels(`Boolean([...document.querySelectorAll('.workspace-titlebar-entry')].find(button=>button.textContent.includes('打开文件夹…')))`);
+ await evaluate_labels(`[...document.querySelectorAll('.workspace-titlebar-entry')].find(button=>button.textContent.includes('打开文件夹…')).click();void 0`);await wait_labels('picker_calls.length===2');
  await evaluate(`picker_resolve({canceled:false,filePaths:[alternate_root]});void 0`);
  await wait('Boolean(document.querySelector("[data-workspace-switch]"))');
  await evaluate('document.querySelector("[data-workspace-switch] .git-graph-dialog-footer").lastElementChild.click();void 0');await delay(30);
@@ -80,15 +85,15 @@ app.whenReady().then(async()=>{
  await evaluate('File.changeCounter.isDocumentEdited=saved_dirty_check;fixture_commands.get("linux_note:open_folder_path").callback(alternate_root)');
  await wait('qa.get_workspace_files().context_root()===alternate_root&&Boolean(document.querySelector(\'.workspace-explorer-row[data-path$="alternate.ts"]\'))');
  assert(await evaluate('File.getMountFolder()===alternate_root&&!fixture_leaves.includes(folder_leaf)'),'choosing a different workspace closes old editors after dirty protection');
- await evaluate(`document.querySelector('.workspace-titlebar-search').click();void 0`);await wait('Boolean(document.querySelector(".workspace-quick-open-result"))');
+ await evaluate(`{document.querySelector('.workspace-titlebar-search').click();const input=document.querySelector('.workspace-quick-open input');input.value='alternate';input.dispatchEvent(new Event('input',{bubbles:true}));}void 0`);await wait(`Boolean(document.querySelector('.workspace-quick-open-result[title$="alternate.ts"]'))`);
  assert(await evaluate('document.querySelectorAll(".workspace-quick-open-result").length===1&&document.querySelector(".workspace-quick-open-result").title===require("path").join(alternate_root,"alternate.ts")'),'quick-open scans the chosen root');
- await evaluate(`document.querySelector('.workspace-quick-open input').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));window.dispatchEvent(new KeyboardEvent('keyup',{key:'Escape',bubbles:true,cancelable:true}));document.querySelector('.linux-note-workspace-explorer [aria-label="打开文件夹"]').click();void 0`);await wait('picker_calls.length===3');
+ await evaluate_labels(`document.querySelector('.workspace-quick-open input').dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));window.dispatchEvent(new KeyboardEvent('keyup',{key:'Escape',bubbles:true,cancelable:true}));document.querySelector('.linux-note-workspace-explorer [aria-label="打开文件夹"]').click();void 0`);await wait_labels('picker_calls.length===3');
  await evaluate(`picker_resolve({canceled:false,filePaths:[fixture_root]});File.changeCounter.isDocumentEdited=saved_dirty_check;void 0`);
  await wait('qa.get_workspace_files().context_root()===fixture_root&&Boolean(document.querySelector(\'.workspace-explorer-row[data-path$="source.ts"]\'))');
  await evaluate('folder_leaf.parent.appendChild(folder_leaf);fixture_core.app.workspace.activeLeaf=folder_leaf;void 0');
- await evaluate(`folder_key('KeyO','o');void 0`);await wait('picker_calls.length===4');
+ await evaluate(`folder_key('KeyO','o','ctrl');void 0`);await wait('picker_calls.length===4');
  assert.deepEqual(await evaluate('picker_calls[3].properties'),['openFile']);
- assert.deepEqual(await evaluate('picker_calls[3].filters'),[{name:'所有文件',extensions:['*']}]);
+ assert.deepEqual(await evaluate('picker_calls[3].filters'),[{name:english?'All Files':'所有文件',extensions:['*']}]);
  await evaluate(`picker_resolve({canceled:false,filePaths:[fixture_source]});void 0`);await wait('Boolean(fixture_core.app.workspace.activeLeaf.view.editor?.models?.[0])');
  assert(await evaluate('fixture_core.app.workspace.activeLeaf.view.editor.models[0].getValue().includes("original")'),'native chooser opens code through the real file service');
  await evaluate(`fixture_core.app.workspace.activeLeaf.parent.removeTab(fixture_core.app.workspace.activeLeaf.state.path);fixture_core.app.workspace.activeLeaf=folder_leaf;JSBridge.invoke=saved_bridge;void 0`);await delay(50);
@@ -100,10 +105,10 @@ app.whenReady().then(async()=>{
  checks.push('Close Folder clears the root and previous editor after protection; recent-folder command opens a clean workspace');
 
  await evaluate(`window.explorer_menu=label=>{const menu=document.querySelector('.workspace-explorer-menu');const action=[...menu.querySelectorAll('button')].find(button=>button.querySelector('.git-menu-label')?.textContent===label);if(!action)throw Error('Missing production action '+label);action.click();};document.querySelector('.workspace-explorer-root-name').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));void 0`);
- assert(await evaluate(`['打开的编辑器','文件夹','时间线','资源管理器与保存设置…'].every(label=>[...document.querySelectorAll('.workspace-menu-compact .git-menu-label')].some(item=>item.textContent===label))`));
+ assert(await evaluate_labels(`['打开的编辑器','文件夹','时间线','资源管理器与保存设置…'].every(label=>[...document.querySelectorAll('.workspace-menu-compact .git-menu-label')].some(item=>item.textContent===label))`));
  await evaluate(`document.querySelector('.workspace-explorer-tree').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,cancelable:true}));void 0`);
- assert(await evaluate(`['新建文件…','新建文件夹…','在系统文件资源管理器中显示','在集成终端中打开','在文件夹中查找…','粘贴'].every(label=>[...document.querySelectorAll('.workspace-explorer-menu .git-menu-label')].some(item=>item.textContent===label))`));
- await evaluate(`explorer_menu('新建文件…');void 0`);await wait('Boolean(document.querySelector(".workspace-explorer-rename"))');
+ assert(await evaluate_labels(`['新建文件…','新建文件夹…','在系统文件资源管理器中显示','在集成终端中打开','在文件夹中查找…','粘贴'].every(label=>[...document.querySelectorAll('.workspace-explorer-menu .git-menu-label')].some(item=>item.textContent===label))`));
+ await evaluate_labels(`explorer_menu('新建文件…');void 0`);await wait_labels('Boolean(document.querySelector(".workspace-explorer-rename"))');
  await evaluate(`{const input=document.querySelector('.workspace-explorer-rename');input.value='created_via_menu.txt';input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));}void 0`);
  await wait('require("fs").existsSync(require("path").join(fixture_root,"created_via_menu.txt"))');
  await wait('!document.querySelector(".workspace-explorer-rename")');
@@ -118,10 +123,10 @@ app.whenReady().then(async()=>{
  await open_outline_menu();await open_outline_menu();
  assert(await evaluate('fixture_core.app.workspace.sidebar.isShown&&fixture_core.app.workspace.activeLeaf===outline_leaf&&document.querySelector("content").scrollTop===outline_scroll'), 'repeated Outline command keeps the same document and reading position');
  await evaluate('fixture_commands.get("linux_note:file_explorer").callback();void 0');
- await wait('document.querySelectorAll(".workspace-explorer-row").length>=2');await evaluate('[...document.querySelectorAll(".workspace-explorer-row")].find(row=>row.dataset.path===fixture_source).click();void 0');await wait('Boolean(fixture_core.app.workspace.activeLeaf.view.editor?.models?.[0])');
- await evaluate('window.first_source=fixture_core.app.workspace.activeLeaf;void 0');assert(await evaluate('!first_source.state.workspace_preview'),'frozen Explorer single click keeps its editor open');
- await evaluate('[...document.querySelectorAll(".workspace-explorer-row")].find(row=>row.dataset.path.endsWith("second.ts")).click();void 0');await wait('Boolean(fixture_core.app.workspace.activeLeaf.view.editor?.models?.[0])');
- assert(await evaluate('fixture_leaves.includes(first_source)&&!fixture_core.app.workspace.activeLeaf.state.workspace_preview'),'opening another source preserves the first editor');
+ await wait('document.querySelectorAll(".workspace-explorer-row").length>=2');await evaluate('[...document.querySelectorAll(".workspace-explorer-row")].find(row=>row.dataset.path===fixture_source).dispatchEvent(new MouseEvent("click",{bubbles:true,altKey:true}));void 0');await wait('Boolean(fixture_core.app.workspace.activeLeaf.view.editor?.models?.[0])');
+ await evaluate('window.first_source=fixture_core.app.workspace.activeLeaf;void 0');assert(await evaluate('!first_source.state.workspace_preview'),'Explorer Alt+click opens a persistent editor');
+ await evaluate('[...document.querySelectorAll(".workspace-explorer-row")].find(row=>row.dataset.path.endsWith("second.ts")).click();void 0');await wait('fixture_core.app.workspace.activeLeaf.state.path.includes("second.ts")&&Boolean(fixture_core.app.workspace.activeLeaf.view.editor?.models?.[0])');
+ assert(await evaluate('fixture_leaves.includes(first_source)&&fixture_core.app.workspace.activeLeaf.state.workspace_preview'),'ordinary click previews another source without replacing the persistent editor');
  await evaluate('qa.get_workspace_files().open_file(fixture_source);void 0');await wait('fixture_core.app.workspace.activeLeaf===first_source');
  await evaluate('window.edit_preview=first_source;edit_preview.view.editor.models[0].setValue("const preview_edit = 3;\\n");void 0');
  await evaluate(`fixture_commands.get('linux_note:compare_files').callback(fixture_source,require('path').join(fixture_root,'second.ts'));void 0`);
@@ -132,12 +137,14 @@ app.whenReady().then(async()=>{
 
  await open_outline_menu();await wait('Boolean(document.querySelector(\'[data-symbol-name="preview_edit"]\'))');assert(await evaluate('document.querySelector("#typora-sidebar").dataset.documentOutline==="false"&&document.querySelector(".workspace-outline-empty").hidden'),'source editors display syntax symbols without stale Markdown headings');
  await evaluate('edit_preview.parent.removeTab(edit_preview.state.path);void 0');await wait('Boolean(document.querySelector("[data-workspace-tab-close]"))');assert(await evaluate('fixture_leaves.includes(edit_preview)&&edit_preview.view.dirty()'),'closing the native source tab uses its dirty guard');
- await evaluate('[...document.querySelectorAll("[data-workspace-tab-close] button")].find(button=>button.textContent==="不保存并关闭").click();void 0');await wait('!fixture_leaves.includes(edit_preview)');
+ await evaluate_labels('[...document.querySelectorAll("[data-workspace-tab-close] button")].find(button=>button.textContent==="不保存并关闭").click();void 0');await wait_labels('!fixture_leaves.includes(edit_preview)');
  await evaluate('qa.get_workspace_files().open_file(require("path").join(fixture_root,"second.ts"),{},"right");void 0');await wait('fixture_leaves.filter(leaf=>leaf.state.path.includes("second.ts")).length===2');
  await evaluate('window.active_second=fixture_core.app.workspace.activeLeaf;const inactive=fixture_leaves.find(leaf=>leaf.state.path.includes("second.ts")&&leaf.parent!==fixture_second_group);inactive.parent.removeTab(inactive.state.path);void 0');assert(await evaluate('fixture_core.app.workspace.activeLeaf===active_second'),'closing an inactive group preserves the active leaf');
- assert(await evaluate('!document.querySelector(".workspace-open-editor-row")'),'retired Open Editors UI stays absent');
+ await evaluate('fixture_commands.get("linux_note:file_explorer").callback();void 0');
+ await wait('Boolean(document.querySelector(".workspace-explorer-opened"))');
+ assert(await evaluate('Boolean(document.querySelector(".workspace-explorer-open-file"))'),'startup retains the current Open Editors section');
  await evaluate('for(const leaf of [...fixture_leaves])if(leaf!==fixture_native_leaf)leaf.parent.removeTab(leaf.state.path);fixture_core.app.workspace.activeLeaf=fixture_native_leaf;void 0');await delay(50);
- checks.push('frozen Explorer keeps source tabs open; native tab close retains dirty guards; independent groups and native Outline preserve document state');
+ checks.push('Explorer persistent and preview tabs retain their owners; native tab close retains dirty guards; independent groups and native Outline preserve document state');
  await capture('plugin_markdown');
  await evaluate('fixture_commands.get("linux_note:file_explorer").callback();void 0');await wait('document.querySelectorAll(".workspace-explorer-row").length>0');await capture('plugin_explorer');
  await evaluate('fixture_commands.get("linux_note:search").callback();const input=document.querySelector(".workspace-search-query-box textarea");input.value="original";input.dispatchEvent(new Event("input",{bubbles:true}));void 0');await wait('document.querySelectorAll(".workspace-search-match").length>0');await capture('plugin_search');
@@ -146,7 +153,7 @@ app.whenReady().then(async()=>{
  await evaluate('File.setMountFolder(fixture_root);void 0');await wait('document.querySelector(".linux-note-workspace-search").dataset.state==="ready"&&Boolean(document.querySelector(\'.workspace-search-file[data-path$="source.ts"]\'))');
  await evaluate('fixture_commands.get("linux_note:source_control").callback();void 0');await wait('Boolean(document.querySelector(".git-scm-title"))');await capture('plugin_scm');
  await evaluate('fixture_commands.get("linux_note:git_graph").callback();void 0');await wait('document.querySelectorAll(".git-graph-row").length>0');await capture('plugin_graph');
- // 等待中的全局命令和底栏动作属于发起时的仓库；实际切库不能把命令转给新目标。
+ // Pending global commands and status bar actions belong to the repository at the time of initiation; actual switching of repositories cannot pass commands to a new target.
  const wait_remote=path.join(evidence,'wait_remote.git'),wait_other=path.join(evidence,'wait_other');
  git('init','--bare',wait_remote);git('remote','add','wait-origin',wait_remote);git('push','-u','wait-origin','main');git('clone','-b','main',wait_remote,wait_other);
  await evaluate(`window.wait_other=${JSON.stringify(wait_other)};window.wait_panel=fixture_core.app.workspace.activeLeaf.view.panel;window.wait_network_calls=[];window.wait_network_original=wait_panel.network_action.bind(wait_panel);wait_panel.network_action=(...args)=>{wait_network_calls.push({root:wait_panel.root,action:args[0]});return wait_network_original(...args);};window.arm_wait_lookup=()=>{const runner=wait_panel.runner,native=runner.run;let paused=false;runner.run=async(...args)=>{const result=await native(...args);if(!paused&&args[1][0]==='rev-parse'&&args[1].includes('--show-toplevel')){paused=true;await new Promise(resolve=>window.release_wait_lookup=()=>{runner.run=native;delete window.release_wait_lookup;resolve();});}return result;};};void 0`);
@@ -159,7 +166,7 @@ app.whenReady().then(async()=>{
  await evaluate('fixture_commands.get("linux_note:git_graph_fetch").callback();release_wait_lookup();void 0');await wait('wait_network_calls.length===1&&!wait_panel.pending&&!wait_panel.writing');
  assert.equal(await evaluate('wait_network_calls[0].root'),repository.replace(/\\/g,'/'));assert.equal(await evaluate('wait_network_calls[0].action'),'fetch');
  await wait('!document.querySelector(".git-status-sync").disabled');
- // 底栏已使用共享快照，不再为点击主动刷新。先暂停真正的面板刷新，再回放其开始前已排队的点击。
+ // The status bar has already used shared snapshots, and no longer performs active refresh upon clicking. First pause the real panel refresh, then replay the clicks queued before it began.
  await evaluate('arm_wait_lookup();void wait_panel.refresh(false);void 0');await wait('typeof release_wait_lookup==="function"');
  await evaluate('document.querySelector(".git-status-sync").dispatchEvent(new MouseEvent("click",{bubbles:true,cancelable:true}));void 0');
  await evaluate('wait_panel.switch_repo(wait_other)');await evaluate('release_wait_lookup();void 0');await delay(160);

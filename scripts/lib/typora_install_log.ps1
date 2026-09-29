@@ -1,4 +1,5 @@
-﻿# 安装日志只使用信息流，不混入安装函数返回值；每次安装持有独立上下文。
+﻿. (Join-Path $PSScriptRoot 'typora_locale.ps1')
+# Installation logs only use information flow, not mixed with return values of installation functions; each installation holds an independent context.
 function new_typora_install_log {
     param([string]$user_data, [ValidateSet('install','uninstall')][string]$operation='install')
     $log = [pscustomobject]@{path='';clock=[Diagnostics.Stopwatch]::StartNew();step_clock=$null;step='';total=6}
@@ -12,9 +13,9 @@ function new_typora_install_log {
             break
         } catch { $log.path = '' }
     }
-    write_typora_install_log $log INFO $(if ($operation -eq 'install') { 'Typora Code | 安装程序' } else { 'Typora Code | uninstall' })
+    write_typora_install_log $log INFO $(if ($operation -eq 'install') { (get_typora_text -key 'typora_code_installer') } else { 'Typora Code | uninstall' })
     if ($log.path) { write_typora_install_log $log INFO ('Log: ' + $log.path) }
-    else { write_typora_install_log $log WARN '无法保存日志文件，本次过程仍会在此窗口显示。' }
+    else { write_typora_install_log $log WARN (get_typora_text -key 'the_log_file_cannot_be_saved_progress_will_still_be_displayed_in') }
     return $log
 }
 
@@ -27,7 +28,7 @@ function write_typora_install_log {
         try { [IO.File]::AppendAllText($log.path, $line + [Environment]::NewLine, [Text.UTF8Encoding]::new($false)) }
         catch {
             $log.path = ''
-            write_typora_install_log $log WARN '日志文件无法继续写入，安装过程仍会在此窗口显示。'
+            write_typora_install_log $log WARN (get_typora_text -key 'the_log_file_is_no_longer_writable_installation_progress_will_st')
         }
     }
 }
@@ -35,7 +36,7 @@ function write_typora_install_log {
 function complete_typora_install_step {
     param([object]$log)
     if ($log.step) {
-        write_typora_install_log $log OK ('{0}完成，用时 {1:N1} 秒。' -f $log.step, $log.step_clock.Elapsed.TotalSeconds)
+        write_typora_install_log $log OK ((get_typora_text -key 'completed_in_seconds') -f $log.step, $log.step_clock.Elapsed.TotalSeconds)
         $log.step = ''
     }
 }

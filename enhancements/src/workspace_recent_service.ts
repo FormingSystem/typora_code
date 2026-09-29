@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 export type recent_item={path:string;kind:"file"|"folder";date:number};
 export type recent_ports={
   invoke(name:string,...args:unknown[]):Promise<any>;fs:any;path_api:any;
@@ -6,11 +7,11 @@ export type recent_ports={
   timeout_ms?:number;
 };
 
-/** 主进程拥有历史；这里仅持有一次操作，不复制/回写整份历史配置。 */
+/** The main process owns the history; here only holds one operation, does not copy/write the entire history configuration. */
 export function create_recent_service(ports:recent_ports){
   let disposed=false,pending=false;
   const bounded=<T>(operation:Promise<T>):Promise<T>=>new Promise((resolve,reject)=>{
-    const timer=setTimeout(()=>reject(new Error("读取最近项目超时，请检查磁盘连接后重试。")),ports.timeout_ms??2500);
+    const timer=setTimeout(()=>reject(new Error(workspace_text("recent_service_reading_recent_projects_has_timed_out_please_check_the_disk"))),ports.timeout_ms??2500);
     operation.then(resolve,reject).finally(()=>clearTimeout(timer));
   });
   const key=(item:recent_item)=>item.kind+":"+(ports.path_api.sep==="\\"?item.path.toLowerCase():item.path);
@@ -37,20 +38,20 @@ export function create_recent_service(ports:recent_ports){
     try{const stat:any=await bounded(ports.fs.promises.stat(item.path));return item.kind==="folder"?stat.isDirectory():stat.isFile();}
     catch(error){
       if(!missing(error))throw error;
-      // 离线盘/网络共享的ENOENT不能作为删除历史的证据。
+      // Offline disk/network shared ENOENT cannot be evidence of deleting history.
       const root=ports.path_api.parse(item.path).root;
       try{const stat:any=await bounded(ports.fs.promises.stat(root));if(!stat.isDirectory())throw error;}
-      catch{throw new Error("磁盘或共享位置暂时不可用，已保留最近记录："+item.path);}
+      catch{throw new Error(workspace_text("recent_service_the_disk_or_shared_location_is_temporarily_unavailable_the_r")+item.path);}
       return false;
     }
   };
   const forget_missing=async(item:recent_item)=>{
     await remove(item);
-    ports.notice("项目已不存在或类型已改变，已从最近打开中移除："+item.path);
+    ports.notice(workspace_text("recent_service_the_project_no_longer_exists_or_the_type_has_changed_and_has")+item.path);
   };
   const open=async(item:recent_item,valid:()=>boolean=()=>true):Promise<boolean>=>{
     if(disposed||pending||ports.context_switching()||!valid())return false;
-    if(!ports.path_api.isAbsolute(item.path)||!["file","folder"].includes(item.kind))throw new Error("最近项目路径无效。");
+    if(!ports.path_api.isAbsolute(item.path)||!["file","folder"].includes(item.kind))throw new Error(workspace_text("recent_service_invalid_path_for_recent_projects"));
     pending=true;const epoch=ports.context_epoch();
     const active=()=>!disposed&&valid()&&!ports.context_switching()&&ports.context_epoch()===epoch;
     try{
@@ -63,7 +64,7 @@ export function create_recent_service(ports:recent_ports){
   };
   const clear=async(items:recent_item[])=>{
     let removed=0;
-    for(const item of items){if(disposed)return;try{await remove(item);removed++;}catch(error){throw new Error(`已移除${removed}项，剩余记录清理失败：${String(error)}`);}}
+    for(const item of items){if(disposed)return;try{await remove(item);removed++;}catch(error){throw new Error(workspace_text("recent_service_removed_items_remaining_records_cleanup_failed", {value_0: String(removed), value_1: String(String(error))}));}}
   };
   return {read,remove,clear,open,dispose(){disposed=true;}};
 }

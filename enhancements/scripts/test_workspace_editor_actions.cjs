@@ -38,7 +38,7 @@ await evaluate('files.open_file(first_path)');await wait('ws.activeLeaf.view.loa
 await evaluate('files.open_file(second_path)');await wait('ws.activeLeaf.view.loaded&&!ws.activeLeaf.view.loading');await evaluate('window.second=ws.activeLeaf;void 0');
 await evaluate('files.open_file(third_path)');await wait('ws.activeLeaf.view.loaded&&!ws.activeLeaf.view.loading');await evaluate('window.third=ws.activeLeaf;window.group=first.parent;group.removeTab("");void 0');
 await delay(150);
-// 标题菜单通过真实同步贡献协议取得当前组动作，用指针验证其调用入口。
+// The title menu obtains the current group action through real synchronous contribution protocol, and uses a pointer to validate its call entry.
 await evaluate(`window.title_leaf=first;window.title_button=document.createElement('button');title_button.dataset.editorTitleTest='true';title_button.textContent='编辑器组';title_button.style.cssText='position:fixed;right:12px;top:46px;z-index:10000';title_button.onclick=event=>editor_qa.workspace_menu(event,editor_qa.request_workspace_editor_title_entries(title_leaf),'workspace-menu-compact workspace-editor-title-test');document.body.append(title_button);void 0`);
 const open_title=async owner=>{await evaluate('title_leaf='+owner+';void 0');await click('[data-editor-title-test]');await wait('!!document.querySelector(".workspace-editor-title-test")');};
 await open_title('first');
@@ -67,7 +67,7 @@ await evaluate('window.real_set_and_save=runtime.app.settings.set_and_save;runti
 await open_title('preview_d');await click('[data-action=enable_preview_editors]');await wait('notices.some(text=>text.includes("fixture save failed"))');
 await check('editor_qa.read_workspace_editor_settings().enable_preview&&preview_d.state.workspace_preview','failed preference persistence keeps the old effective setting and tab state');
 await evaluate('runtime.app.settings.set_and_save=real_set_and_save;notices.length=0;void 0');
-// 连续阅读真正释放关闭视图和最后一个Monaco模型，不只隐藏标签。
+// Continuous reading truly releases closed views and the last Monaco model, not just hiding tags.
 for(let index=0;index<20;index++){
  await evaluate(`window.old_preview=ws.activeLeaf;window.old_model=old_preview.view.editor.models[0];files.open_file(preview_paths[${index%2?2:3}],{preview:true})`);
  await check('ws.activeLeaf.state.workspace_preview&&leaves().filter(leaf=>leaf.state.workspace_preview).length===1','one replaceable preview '+index);
@@ -140,9 +140,9 @@ assert.equal(await evaluate('files.close_leaf(duplicate)'),true);await delay(100
 await check('!original_model.isDisposed()&&first.view.dirty()&&!document.querySelector("[data-workspace-tab-close]")','closing one split preserves the shared dirty model without a redundant prompt');
 await evaluate('select(first);window.batch_done=false;void actions.close_batch(first,"all").then(()=>batch_done=true)');await wait('!!document.querySelector("[data-workspace-tab-close]")');
 await check('leaves().includes(third)&&leaves().includes(second)','batch close waits for the current unsaved document and preserves fixed tabs');
-await evaluate('close_dialog("取消")');await wait('batch_done');await check('leaves().includes(first)&&leaves().includes(third)&&first.view.dirty()','Cancel stops the remaining close batch');
-await evaluate('window.saved_method=first.view.save;first.view.save=async()=>false;void actions.close_batch(first,"all")');await wait('!!document.querySelector("[data-workspace-tab-close]")');await evaluate('close_dialog("保存并关闭")');await delay(80);
-await check('leaves().includes(first)&&leaves().includes(third)&&!!document.querySelector("[data-workspace-tab-close]")','failed save keeps the target and later tabs');await evaluate('close_dialog("取消");first.view.save=saved_method;void 0');await delay(50);
+await evaluate('close_dialog("Cancel")');await wait('batch_done');await check('leaves().includes(first)&&leaves().includes(third)&&first.view.dirty()','Cancel stops the remaining close batch');
+await evaluate('window.saved_method=first.view.save;first.view.save=async()=>false;void actions.close_batch(first,"all")');await wait('!!document.querySelector("[data-workspace-tab-close]")');await evaluate('close_dialog("Save and close")');await delay(80);
+await check('leaves().includes(first)&&leaves().includes(third)&&!!document.querySelector("[data-workspace-tab-close]")','failed save keeps the target and later tabs');await evaluate('close_dialog("Cancel");first.view.save=saved_method;void 0');await delay(50);
 await evaluate('actions.close_batch(first,"saved")');await check('leaves().includes(first)&&leaves().includes(second)&&!leaves().includes(third)','Close Saved skips dirty and fixed tabs');
 await evaluate('actions.split(first,"down")');await wait('ws.activeLeaf!==first&&!!ws.activeLeaf.view.editor');await evaluate('window.bottom=ws.activeLeaf;void 0');
 await check('bottom.parent!==first.parent&&bottom.view.editor.models[0]===original_model','split down creates a group while retaining shared model identity');
@@ -151,7 +151,7 @@ await check('second.parent===bottom.parent&&second.parent.children[0]===second&&
 await evaluate('entry(first,"copy_window").action();void 0');await wait('window_requests.length===1');await check('window_requests[0].leaf===first&&window_requests[0].copy&&leaves().includes(first)','Copy into New Window binds the original target and requests copy semantics');
 await evaluate('select(bottom);void 0');await key('k',['alt']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===true');checks.push('Alt+K Shift+Enter uses the same pin action');
 await key('k',['alt']);await key('Enter',['shift']);await wait('bottom.state.workspace_pinned===false');
-// 各主题／缩放／小窗口里用真实右键打开，菜单在视口内滚动，Esc 恢复焦点。
+// In each theme / zoom / small window, use real right-click to open, the menu scrolls within the viewport, and Esc recovers focus.
 for(const [width,height,zoom,dark] of [[1100,780,1,false],[420,430,1.25,false],[1100,780,1,true],[420,430,1.25,true]]){
  win.setSize(width,height);win.webContents.setZoomFactor(zoom);
  await evaluate(`document.documentElement.style.setProperty('--bg-color',${JSON.stringify(dark?'#191a1b':'#fff')});document.documentElement.style.setProperty('--text-color',${JSON.stringify(dark?'#ddd':'#24292f')});document.body.style.background=${JSON.stringify(dark?'#191a1b':'#fff')};document.body.style.color=${JSON.stringify(dark?'#ddd':'#24292f')};group.tabHeader.getTabById(first.state.path).dataset.testTab='first';void 0`);await delay(120);
@@ -165,13 +165,13 @@ for(const [width,height,zoom,dark] of [[1100,780,1,false],[420,430,1.25,false],[
  fs.writeFileSync(path.join(root,`editor_settings_${width}_${zoom}_${dark?'dark':'light'}.png`),(await win.webContents.capturePage()).toPNG());await key('Escape');await wait('!document.querySelector(".workspace-settings-modal")');
 }
 win.webContents.setZoomFactor(1);win.setSize(1100,780);
-await evaluate('window.cancelled=false;void files.close_leaf(first).then(()=>cancelled=true)');await delay(100); // 另一个分屏仍持有草稿，直接关闭。
+await evaluate('window.cancelled=false;void files.close_leaf(first).then(()=>cancelled=true)');await delay(100); // Another split view still holds a draft, and it is directly closed.
 await check('!leaves().includes(first)&&bottom.view.dirty()&&!original_model.isDisposed()','closing the original leaves the split draft alive');
-await evaluate('window.final_close=false;void files.close_leaf(bottom).then(value=>final_close=value)');await wait('!!document.querySelector("[data-workspace-tab-close]")');await evaluate('close_dialog("保存并关闭")');await wait('final_close');
+await evaluate('window.final_close=false;void files.close_leaf(bottom).then(value=>final_close=value)');await wait('!!document.querySelector("[data-workspace-tab-close]")');await evaluate('close_dialog("Save and close")');await wait('final_close');
 await check('original_model.isDisposed()','the final document close releases the shared model exactly once');
 assert.equal(fs.readFileSync(first,'utf8'),'unsaved after save\n');
 await check('leaves().includes(second)','explicit final close does not remove another fixed document');
-// 同一文档的另存为必须更新每个分屏身份，并保留共享撤销栈。
+// The 'Save As' for the same document must update each split view identity and retain the shared undo stack.
 await evaluate('select(second);actions.split(second,"right")');await wait('ws.activeLeaf!==second&&!!ws.activeLeaf.view.editor');
 await evaluate('window.save_as_split=ws.activeLeaf;window.second_model=second.view.editor.models[0];window.saved_as_path=second_path.replace("second.c","renamed.c");JSBridge.invoke=async command=>command==="dialog.showSaveDialog"?{filePath:saved_as_path}:null;edit(save_as_split,"shared save as text");void 0');
 await evaluate('files.save_as_active()');

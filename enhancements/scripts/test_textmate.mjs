@@ -44,7 +44,7 @@ if (!function_token?.scopes.some((scope) => scope.startsWith("entity.name.functi
 }
 console.log(`recognized rcu_dereference as ${function_token.scopes.at(-1)}`);
 
-// 按真实多行宏保留 ruleStack，验证解析结果经过生产颜色映射后仍保留各语法角色。
+// Preserve real multi-line macro ruleStack, verify that parsing results after production color mapping still retain each syntax role.
 const macro_lines = [
   ["#define raw_local_irq_save(flags) \\", { define: "tm-preprocessor", raw_local_irq_save: "tm-preprocessor", flags: "tm-parameter" }],
   ["    do { \\", { do: "tm-control", "{": "tm-punctuation" }],
@@ -76,7 +76,7 @@ for (const language of ["source.c", "source.cpp"]) {
   console.log(`${language}: multiline macro colors and following code passed`);
 }
 
-// 生产配色器使用官方tokenColors；前述断言只验证grammar识别作用域。
+// Production color picker uses official tokenColors; the aforementioned assertion only verifies grammar's scope recognition.
 const {build}=await import('esbuild');
 const bundle=await build({entryPoints:['src/reading_code_theme.ts'],bundle:true,write:false,platform:'node',format:'esm',loader:{'.wasm':'binary'}});
 const production=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].text).toString('base64'));

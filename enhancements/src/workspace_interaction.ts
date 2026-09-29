@@ -2,11 +2,11 @@ import css from "./workspace_interaction.css";
 import {acquire_workspace_style} from "./workspace_styles";
 
 export type workspace_interaction_role = "action"|"menu"|"row"|"tab"|"activity"|"primary"|"none";
-/** 工厂默认接入，特殊控件仅声明语义；几何与业务状态留在调用方。 */
+/** Factory default connection, special controls only declare semantics; geometry and business states remain with the caller. */
 export function workspace_interaction<T extends HTMLElement>(node:T,role:workspace_interaction_role="action"):T {
   node.setAttribute("data-workspace-interaction",role);return node;
 }
-/** 根范围内动态插入的语义控件自动采用默认规则，销毁时恢复原范围。 */
+/** Semantic controls dynamically inserted at the root level automatically adopt default rules, and are restored to the original scope when destroyed. */
 export function acquire_workspace_interaction(root?:HTMLElement){
   const previous=root?.getAttribute("data-workspace-surface")??null;
   root?.setAttribute("data-workspace-surface","");

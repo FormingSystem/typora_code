@@ -1,4 +1,4 @@
-// 原始宿主生产预览：真实回环网页与用户提供的公开GitHub页面。
+// Original host production preview: real loop web pages and public GitHub pages provided by the user.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),http=reqnode('http'),base=__CASE_ROOT__,checks=[],live={};
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

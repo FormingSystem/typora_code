@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {vscode_resource_entry} from "./workspace_open_vscode";
 import {get_workspace_quick_open} from "./workspace_quick_open";
 import type {graph_core,graph_leaf} from "./git_graph_host";
@@ -19,13 +20,13 @@ type layout_core=graph_core&{
 };
 type close_mode="others"|"right"|"saved"|"all";
 const TITLE_ENTRIES_EVENT = "typora-code:editor-title-entries";
-/** 只向当前窗口已绑定的文档动作所有者请求同步贡献，不保留过期叶子的菜单缓存。 */
+/** Only request synchronization contributions from the document action owner that is already bound to the current window; do not retain the expired leaf's menu cache. */
 export function request_workspace_editor_title_entries(leaf:graph_leaf):workspace_menu_entry[]{
   const detail:{leaf:graph_leaf;entries:workspace_menu_entry[]|undefined}={leaf,entries:undefined};
   document.dispatchEvent(new CustomEvent(TITLE_ENTRIES_EVENT,{detail}));return detail.entries||[];
 }
 
-/** 菜单、快捷键和标签关闭按钮共用文档服务，操作始终绑定实际叶子。 */
+/** Menus, keyboard shortcuts, and tab close buttons share the document service; operations are always bound to the actual leaf. */
 export function bind_workspace_editor_actions(files:workspace_file_host,windows:detached_window_binding){
   const core=files.core as layout_core,workspace=core.app.workspace;
   const runtime=window as unknown as {reqnode(name:string):any;File?:any};
@@ -43,7 +44,7 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
       const pinned=Boolean(leaf.state.workspace_pinned);tab.classList.toggle("is-workspace-pinned",pinned);
       if(pinned&&!close.querySelector(".workspace-tab-pin"))close.append(git_icon("pinned","workspace-tab-pin"));
       if(!pinned)close.querySelector(".workspace-tab-pin")?.remove();
-      close.title="";close.setAttribute("aria-label",pinned?"取消固定":"关闭（Ctrl+F4）");
+      close.title="";close.setAttribute("aria-label",pinned?workspace_text("editor_actions_unpin"):workspace_text("editor_actions_close_ctrl_f4"));
       tab.classList.toggle("is-workspace-preview",Boolean(leaf.state.workspace_preview));
     });
   };
@@ -120,32 +121,32 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
     const state=files.editor_state(leaf),file=Boolean(state.file_path),markdown=is_markdown_file(state.file_path),ordinary=state.kind!=="other";
     const entry=(id:string,title:string,action:()=>unknown,options:Partial<workspace_menu_entry>={}):workspace_menu_entry=>({id,title,action:()=>run(()=>present(leaf)&&action()),...options});
     const split_items:workspace_menu_entry[]=[];
-    for(const [side,title] of [["up","上方"],["down","下方"],["left","左侧"],["right","右侧"]] as const)
-      split_items.push(entry("split_"+side,"向"+title+"拆分",()=>split(leaf,side),{disabled:!ordinary||state.busy}));
-    for(const [side,title] of [["up","上方"],["down","下方"],["left","左侧"],["right","右侧"]] as const)
-      split_items.push(entry("move_"+side,"移动到"+title+"组",()=>move(leaf,side),{separator:side==="up",disabled:state.busy||!neighbor(leaf,side)}));
+    for(const [side,title] of [["up",workspace_text("editor_actions_above")],["down",workspace_text("editor_actions_below")],["left",workspace_text("terminal_settings_view_left")],["right",workspace_text("terminal_settings_view_right")]] as const)
+      split_items.push(entry("split_"+side,workspace_text("editor_split_direction",{direction:title}),()=>split(leaf,side),{disabled:!ordinary||state.busy}));
+    for(const [side,title] of [["up",workspace_text("editor_actions_above")],["down",workspace_text("editor_actions_below")],["left",workspace_text("terminal_settings_view_left")],["right",workspace_text("terminal_settings_view_right")]] as const)
+      split_items.push(entry("move_"+side,workspace_text("editor_move_direction",{direction:title}),()=>move(leaf,side),{separator:side==="up",disabled:state.busy||!neighbor(leaf,side)}));
     return [
-      entry("close","关闭",()=>files.close_leaf(leaf),{shortcut:"Ctrl+F4",disabled:state.busy}),
-      ...([["others","关闭其他",""],["right","关闭右侧",""],["saved","关闭已保存","Alt+K U"],["all","关闭全部","Alt+K W"]] as const)
+      entry("close",workspace_text("community_plugin_settings_close"),()=>files.close_leaf(leaf),{shortcut:"Ctrl+F4",disabled:state.busy}),
+      ...([["others",workspace_text("editor_actions_close_others"),""],["right",workspace_text("editor_actions_close_right"),""],["saved",workspace_text("editor_actions_close_saved"),"Alt+K U"],["all",workspace_text("editor_actions_close_all"),"Alt+K W"]] as const)
         .map(([mode,title,shortcut])=>entry("close_"+mode,title,()=>close_batch(leaf,mode),{shortcut,disabled:!candidates(leaf,mode).length||batches.has(leaf.parent)})),
-      entry("copy_path","复制路径",()=>copy_path(leaf,"absolute"),{shortcut:"Shift+Alt+C",separator:true,disabled:!file}),
-      entry("copy_relative_path","复制相对路径",()=>copy_path(leaf,"relative"),{shortcut:"Alt+K Alt+Shift+C",disabled:!file}),
-      entry("copy_breadcrumbs_path","复制面包屑路径",()=>copy_path(leaf,"breadcrumbs"),{disabled:!file}),
+      entry("copy_path",workspace_text("editor_actions_copy_path"),()=>copy_path(leaf,"absolute"),{shortcut:"Shift+Alt+C",separator:true,disabled:!file}),
+      entry("copy_relative_path",workspace_text("file_path_actions_copy_relative_path"),()=>copy_path(leaf,"relative"),{shortcut:"Alt+K Alt+Shift+C",disabled:!file}),
+      entry("copy_breadcrumbs_path",workspace_text("breadcrumbs_copy_breadcrumb_path"),()=>copy_path(leaf,"breadcrumbs"),{disabled:!file}),
       ...(markdown?[
-        entry("preview","打开预览",()=>preview(leaf),{separator:true,disabled:state.busy}),
-        entry("reopen","重新打开方式…",()=>{}, {children:[
-          entry("reopen_markdown","Markdown 编辑器",()=>preview(leaf),{checked:state.kind==="markdown",disabled:state.busy}),
-          entry("reopen_source","文本编辑器",async()=>{await files.reopen_leaf(leaf,true);refresh();},{checked:state.kind==="source",disabled:state.busy})
+        entry("preview",workspace_text("editor_actions_open_preview"),()=>preview(leaf),{separator:true,disabled:state.busy}),
+        entry("reopen",workspace_text("editor_actions_reopen_window"),()=>{}, {children:[
+          entry("reopen_markdown",workspace_text("breadcrumbs_markdown_editor"),()=>preview(leaf),{checked:state.kind==="markdown",disabled:state.busy}),
+          entry("reopen_source",workspace_text("breadcrumbs_text_editor"),async()=>{await files.reopen_leaf(leaf,true);refresh();},{checked:state.kind==="source",disabled:state.busy})
         ]})]:[]),
-      entry("reveal_system","在系统文件管理器中显示",()=>reveal(leaf,true),{shortcut:"Shift+Alt+R",separator:true,disabled:!file}),
-      entry("reveal_explorer","在资源管理器视图中显示",()=>reveal(leaf,false),{disabled:!file}),
+      entry("reveal_system",workspace_text("editor_actions_show_in_system_file_manager"),()=>reveal(leaf,true),{shortcut:"Shift+Alt+R",separator:true,disabled:!file}),
+      entry("reveal_explorer",workspace_text("editor_actions_show_in_explorer_view"),()=>reveal(leaf,false),{disabled:!file}),
       {...vscode_resource_entry(ordinary?state.file_path:""),action:()=>{if(present(leaf)&&ordinary)return vscode_resource_entry(state.file_path).action();}},
-      entry("keep_open","保持打开",()=>{files.keep_open(leaf);refresh();},{separator:true,shortcut:"Alt+K Enter",disabled:!leaf.state.workspace_preview}),
-      entry("pin",leaf.state.workspace_pinned?"取消固定":"固定",()=>pin(leaf),{shortcut:"Alt+K Shift+Enter"}),
-      entry("split_right","向右拆分",()=>split(leaf,"right"),{separator:true,shortcut:"Alt+\\",disabled:!ordinary||state.busy}),
-      entry("split_move","拆分与移动",()=>{},{children:split_items}),
-      entry("move_window","移动到新窗口",()=>windows.open(leaf),{separator:true,disabled:!file||!ordinary||state.busy}),
-      entry("copy_window","复制到新窗口",()=>windows.open(leaf,true),{shortcut:"Alt+K O",disabled:!file||!ordinary||state.busy})
+      entry("keep_open",workspace_text("editor_actions_keep_open"),()=>{files.keep_open(leaf);refresh();},{separator:true,shortcut:"Alt+K Enter",disabled:!leaf.state.workspace_preview}),
+      entry("pin",leaf.state.workspace_pinned?workspace_text("editor_actions_unpin"):workspace_text("editor_actions_pin"),()=>pin(leaf),{shortcut:"Alt+K Shift+Enter"}),
+      entry("split_right",workspace_text("editor_actions_split_to_the_right"),()=>split(leaf,"right"),{separator:true,shortcut:"Alt+\\",disabled:!ordinary||state.busy}),
+      entry("split_move",workspace_text("editor_actions_split_and_move"),()=>{},{children:split_items}),
+      entry("move_window",workspace_text("editor_actions_move_to_new_window"),()=>windows.open(leaf),{separator:true,disabled:!file||!ordinary||state.busy}),
+      entry("copy_window",workspace_text("editor_actions_copy_to_new_window"),()=>windows.open(leaf,true),{shortcut:"Alt+K O",disabled:!file||!ordinary||state.busy})
     ];
   };
   const title_entries=(leaf:graph_leaf):workspace_menu_entry[]=>{
@@ -153,12 +154,12 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
     const group=leaf.parent;
     const entry=(id:string,title:string,action:()=>unknown,options:Partial<workspace_menu_entry>={}):workspace_menu_entry=>({id,title,action:()=>run(()=>present(leaf)&&leaf.parent===group&&action()),...options});
     return [
-      entry("show_opened_editors","显示已打开的编辑器",()=>get_workspace_quick_open()?.open_editors(group)),
-      entry("close_all","关闭全部",()=>close_batch(leaf,"all"),{separator:true,disabled:!candidates(leaf,"all").length||batches.has(group)}),
-      entry("close_saved","关闭已保存",()=>close_batch(leaf,"saved"),{disabled:!candidates(leaf,"saved").length||batches.has(group)}),
-      entry("enable_preview_editors","启用预览编辑器",()=>set_workspace_editor_preview(!read_workspace_editor_settings().enable_preview),{separator:true,checked:read_workspace_editor_settings().enable_preview}),
-      entry("lock_group","锁定编辑组",()=>{const locked=!workspace_editor_group_locked(group);set_workspace_editor_group_locked(group,locked);if(locked)owned_locks.add(group);else owned_locks.delete(group);},{separator:true,checked:workspace_editor_group_locked(group)}),
-      entry("configure_editors","配置编辑器…",()=>core.app.commands.run("typora_code:settings"),{separator:true}),
+      entry("show_opened_editors",workspace_text("editor_actions_show_open_editor"),()=>get_workspace_quick_open()?.open_editors(group)),
+      entry("close_all",workspace_text("editor_actions_close_all"),()=>close_batch(leaf,"all"),{separator:true,disabled:!candidates(leaf,"all").length||batches.has(group)}),
+      entry("close_saved",workspace_text("editor_actions_close_saved"),()=>close_batch(leaf,"saved"),{disabled:!candidates(leaf,"saved").length||batches.has(group)}),
+      entry("enable_preview_editors",workspace_text("editor_actions_enable_preview_editor"),()=>set_workspace_editor_preview(!read_workspace_editor_settings().enable_preview),{separator:true,checked:read_workspace_editor_settings().enable_preview}),
+      entry("lock_group",workspace_text("editor_actions_lock_editor_group"),()=>{const locked=!workspace_editor_group_locked(group);set_workspace_editor_group_locked(group,locked);if(locked)owned_locks.add(group);else owned_locks.delete(group);},{separator:true,checked:workspace_editor_group_locked(group)}),
+      entry("configure_editors",workspace_text("editor_actions_configure_editor"),()=>core.app.commands.run("typora_code:settings"),{separator:true}),
     ];
   };
   const contribute_title=(event:Event)=>{const detail=(event as CustomEvent<{leaf:graph_leaf;entries?:workspace_menu_entry[]}>).detail;if(detail&&!detail.entries&&present(detail.leaf))detail.entries=title_entries(detail.leaf);};
@@ -180,12 +181,12 @@ export function bind_workspace_editor_actions(files:workspace_file_host,windows:
   const middle=(event:MouseEvent)=>{if(event.button!==1)return;const leaf=find_tab(event);if(!leaf)return;event.preventDefault();event.stopImmediatePropagation();run(()=>files.close_leaf(leaf));};
   document.addEventListener("typora-code:tab-context-menu",context);
   document.addEventListener("click",click,true);document.addEventListener("mousedown",middle,true);
-  const command=(id:string,title:string,action:(leaf:graph_leaf)=>unknown)=>cleanups.push(core.app.commands.register({id:"linux_note:editor_"+id,title:"编辑器："+title,scope:"global",callback:()=>{const leaf=workspace.activeLeaf;if(leaf)run(()=>action(leaf));}}));
-  command("close_saved","关闭已保存",leaf=>close_batch(leaf,"saved"));command("close_all","关闭全部",leaf=>close_batch(leaf,"all"));
-  command("keep_open","保持打开",leaf=>{files.keep_open(leaf);refresh();});command("pin","切换固定",leaf=>pin(leaf));
-  command("copy_window","复制到新窗口",leaf=>windows.open(leaf,true));command("move_window","移动到新窗口",leaf=>windows.open(leaf));
-  command("reveal_system","在系统文件管理器中显示",leaf=>reveal(leaf,true));
-  command("split_right","向右拆分",leaf=>split(leaf,"right"));command("split_down","向下拆分",leaf=>split(leaf,"down"));
+  const command=(id:string,title:string,action:(leaf:graph_leaf)=>unknown)=>cleanups.push(core.app.commands.register({id:"linux_note:editor_"+id,title:workspace_text("editor_actions_editor")+title,scope:"global",callback:()=>{const leaf=workspace.activeLeaf;if(leaf)run(()=>action(leaf));}}));
+  command("close_saved",workspace_text("editor_actions_close_saved"),leaf=>close_batch(leaf,"saved"));command("close_all",workspace_text("editor_actions_close_all"),leaf=>close_batch(leaf,"all"));
+  command("keep_open",workspace_text("editor_actions_keep_open"),leaf=>{files.keep_open(leaf);refresh();});command("pin",workspace_text("editor_actions_toggle_fixed"),leaf=>pin(leaf));
+  command("copy_window",workspace_text("editor_actions_copy_to_new_window"),leaf=>windows.open(leaf,true));command("move_window",workspace_text("editor_actions_move_to_new_window"),leaf=>windows.open(leaf));
+  command("reveal_system",workspace_text("editor_actions_show_in_system_file_manager"),leaf=>reveal(leaf,true));
+  command("split_right",workspace_text("editor_actions_split_to_the_right"),leaf=>split(leaf,"right"));command("split_down",workspace_text("editor_actions_split_down"),leaf=>split(leaf,"down"));
   cleanups.push(workspace.on("layout-changed",()=>queueMicrotask(refresh)),workspace.on("active-leaf:change",()=>queueMicrotask(refresh)));refresh();
   return {entries,title_entries,close_batch,pin,split,move,refresh,dispose(){
     if(disposed)return;disposed=true;close_menu?.();for(const cleanup of cleanups.reverse())cleanup();

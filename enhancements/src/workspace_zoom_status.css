@@ -1,4 +1,4 @@
-/* 645f29c window.css/actionbar.css：16px图形、3px操作内距、右组10px间距。 */
+/* 645f29c window.css/actionbar.css: 16px graphics, 3px operation inner margin, right group 10px spacing. */
 .workspace-zoom-status{display:flex;flex:none;align-items:center;gap:0}
 .workspace-zoom-status>button{display:flex;align-items:center;justify-content:center;box-sizing:border-box;border:0;padding:0 5px;min-width:26px;background:transparent;color:inherit;cursor:pointer}
 .workspace-zoom-status svg,.workspace-zoom-controls svg{width:16px;height:16px;flex:none;fill:currentColor}
@@ -8,8 +8,8 @@
 .workspace-zoom-controls .workspace-zoom-level{display:inline-block;min-width:18px;margin:0;padding:0;text-align:center;line-height:22px;font:inherit;color:inherit}
 .workspace-zoom-controls-right{display:flex;align-items:center;margin-left:10px}
 .workspace-zoom-controls [data-zoom-action="reset"]{padding-inline:4px}
-/* 只在自有控制浮层打开时避开宿主顶部提示，保留其节点、更新与自动关闭。 */
+/* Avoid host top prompts only when the own control floating layer is open, retain its nodes, updates, and automatic closing. */
 body[data-workspace-zoom-controls-open] #zoom-hint{visibility:hidden!important}
-/* 固定Light/Dark 2026状态栏prominent语义，hover仍交给公共交互层。 */
+/* Fix the semantic of Light/Dark 2026 status bar prominent, hover is still handed over to the public interaction layer. */
 .workspace-zoom-status>button{background:var(--vscode-statusBarItem-prominentBackground,#0069ccdd);color:var(--vscode-statusBarItem-prominentForeground,#fff);--workspace-interaction-hover:var(--vscode-statusBarItem-prominentHoverBackground,#0069cc);--workspace-interaction-foreground:var(--vscode-statusBarItem-prominentHoverForeground,#fff)}
 :root[data-workspace-file-icon-theme="dark"] .workspace-zoom-status>button{background:var(--vscode-statusBarItem-prominentBackground,#3994bc);--workspace-interaction-hover:var(--vscode-statusBarItem-prominentHoverBackground,#3994bc)}

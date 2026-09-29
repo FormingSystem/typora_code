@@ -1,9 +1,10 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {change_reading_geometry} from "./reading_reflow";
 import {acquire_workspace_style} from "./workspace_styles";
 import margin_css from "./workspace_document_margin.css";
 
-// 复用 71fcf1d 底栏滑块的存储字段；其余外观字段仅保留，不重新应用。
+// Reuse the storage field of the status bar slider of 71fcf1d; other appearance fields are only retained, not reapplied.
 const SETTINGS_KEY = "linux-note:workspace-ui-appearance:v1";
 const MINIMUM_MARGIN = 0;
 const MAXIMUM_MARGIN = 24;
@@ -21,7 +22,7 @@ function stored_appearance():Record<string,unknown> {
   const raw = localStorage.getItem(SETTINGS_KEY);
   if (!raw) return {};
   const value:unknown = JSON.parse(raw);
-  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("原有外观设置无法读取。");
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error(workspace_text("document_margin_original_appearance_settings_cannot_be_read"));
   return value as Record<string,unknown>;
 }
 
@@ -30,7 +31,7 @@ function read_margin():number {
   catch { return 0; }
 }
 
-/** 宽度重排后仍显示同一正文段落，不修改正文、选区、文件或阅读历史。 */
+/** After width rearrangement, the same document content paragraph is still displayed; the document content, selection, file, and reading history are not modified. */
 function preserve_reading_position(change:()=>void):void {
   const content = document.querySelector<HTMLElement>("content");
   const write = content?.querySelector<HTMLElement>(":scope > #write");
@@ -38,7 +39,7 @@ function preserve_reading_position(change:()=>void):void {
   else change();
 }
 
-/** 恢复原有底栏百分比入口，只控制活动 Markdown 正文框的左右边距。 */
+/** Restore the original status bar percentage entry; it only controls the left and right margins of the active Markdown document content box. */
 export function install_workspace_document_margin(footer:HTMLElement):margin_binding {
   const existing = bindings.get(footer);
   if (existing) return existing;
@@ -49,14 +50,14 @@ export function install_workspace_document_margin(footer:HTMLElement):margin_bin
   const layout=acquire_workspace_footer_layout();
   const container = document.createElement("label");
   container.className = "linux-note-document-margin workspace-footer-group";
-  const description = "Markdown 正文单侧边距";
+  const description = workspace_text("document_margin_markdown_single_margin_of_the_document_content");
   container.title = description;
   const label = document.createElement("span");
   label.className = "linux-note-document-margin-label workspace-footer-text";
-  label.textContent = "边距";
+  label.textContent = workspace_text("document_margin_margin");
   const input = document.createElement("input");
   input.type = "range";input.min = String(MINIMUM_MARGIN);input.max = String(MAXIMUM_MARGIN);input.step = "1";
-  input.setAttribute("aria-label", "Markdown 正文单侧边距百分比");
+  input.setAttribute("aria-label", workspace_text("document_margin_markdown_single_margin_percentage_of_the_document_content"));
   const output = document.createElement("output");output.className="workspace-footer-text";output.setAttribute("aria-live", "polite");
   container.append(label,input,output);
   footer.insertBefore(container,footer.querySelector(":scope > .footer-item-right"));
@@ -79,12 +80,12 @@ export function install_workspace_document_margin(footer:HTMLElement):margin_bin
   const on_input = () => {
     const value = normalize_margin(input.value);
     try {
-      // 先保存再发布；重读合并，不能覆盖别的窗口保存的字体等设置。
+      // Save first, then publish; re-read merge, cannot overwrite other window saved font settings.
       localStorage.setItem(SETTINGS_KEY,JSON.stringify({...stored_appearance(),document_margin_percent:value}));
     } catch (error) {
       sync_control();input.setAttribute("aria-invalid","true");
-      container.title = `边距保存失败：${String((error as Error)?.message || error)}`;
-      console.warn("[Typora Code document margin] 保存失败",error);
+      container.title = workspace_text("document_margin_margin_save_failure", {value_0: String(String((error as Error)?.message || error))});
+      console.warn(workspace_text("document_margin_typora_code_document_margin_save_failure"),error);
       return;
     }
     input.removeAttribute("aria-invalid");container.title = description;

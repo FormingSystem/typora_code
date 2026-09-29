@@ -1,4 +1,4 @@
-// 原始宿主的真实终端链路；隔离文档与 Shell，会话外不写用户数据。
+// Real terminal link of the original host; isolated documents and Shell, no user data is written outside the session.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),core=window[Symbol.for('typora-code:workspace')];
@@ -16,10 +16,10 @@
    const {surface,session}=entry,term=surface.term;await wait(()=>session.state==='running'&&!session.launch_pending);
    const text=()=>Array.from({length:term.buffer.active.length},(_,i)=>term.buffer.active.getLine(i)?.translateToString()).join('\n');
    const events=[],outputs=[];term.onData(data=>events.push({t:performance.now(),data}));const write=term.write.bind(term);term.write=(data,done)=>{outputs.push({t:performance.now(),n:data.length});write(data,done)};
-   // 隔离目录也是 Git 仓库，覆盖 Git Bash 分支提示符的真实成本。
+   // Isolated directory is also Git repository, covering the real cost of Git Bash branch prompt.
    reqnode('child_process').execFileSync('git',['init',path.join(base,'workspace')],{windowsHide:true,stdio:'ignore'});
    const ps=title.includes('PowerShell');
-   // 首次输出可能只是启动横幅，等真实提示符再提交测试命令。
+   // The first output may simply be the startup banner, and the test command should be submitted after the real prompt appears.
    await wait(()=>ps?/>[\t ]*(?:\n|$)/.test(text()):/(?:^|\n)\$\s*(?:\n|$)/.test(text()));
    surface.focus();await pause(500);
    term.paste(ps?"1..200 | % { 'NATIVE_HISTORY_' + $_ }; 'NATIVE_DONE'":"for i in {1..200}; do echo NATIVE_HISTORY_$i; done; echo NATIVE_DONE");term.textarea.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',code:'Enter',keyCode:13,which:13,bubbles:true,cancelable:true}));

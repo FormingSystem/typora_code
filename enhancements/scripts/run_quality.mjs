@@ -22,7 +22,7 @@ const git=(...arguments_)=>execFileSync('git',['-c','core.safecrlf=false','-C',r
 const hash=value=>crypto.createHash('sha256').update(value).digest('hex');
 const tracked=git('ls-files','--cached','--others','--exclude-standard','enhancements/src','enhancements/vendor/workspace_core','enhancements/scripts','enhancements/fixtures','enhancements/tests','enhancements/package.json','docs','AGENTS.md').split('\n');
 const source_hashes=Object.fromEntries(tracked.filter(Boolean).filter(file=>fs.existsSync(path.join(repository_root,file))).map(file=>[file,hash(fs.readFileSync(path.join(repository_root,file)))]));
-// 新增用例/实现也必须进入身份记录，不能只依赖git已跟踪文件。
+// New test cases/implementations must also enter the identity record, and cannot rely solely on git tracking files.
 for(const entry of selected)for(const file of [entry.script,...entry.implementation])source_hashes[file]=hash(fs.readFileSync(path.join(repository_root,file)));
 const report={schema:1,run_id,started_at:new Date().toISOString(),status:'running',revision:git('rev-parse','HEAD'),diff_sha256:hash(git('diff','HEAD','--')),source_hashes,
   catalog_sha256:hash(fs.readFileSync(path.join(package_root,'tests/test_catalog.json'))),asset_manifest_sha256:hash(fs.readFileSync(path.join(package_root,'dist/SHA256SUMS'))),
@@ -40,8 +40,8 @@ const execute=entry=>new Promise(resolve=>{
   if(extension==='.sh'){executable='bash';command_args=[file];}
   if(entry.runner){executable=process.execPath;command_args=[path.join(repository_root,entry.runner)];}
   const environment={...process.env,TYPORA_STRESS_ITERATIONS:String(tier),TYPORA_TEST_PURPOSE:entry.purpose};delete environment.ELECTRON_RUN_AS_NODE;
-  // 从PowerShell 7经Node启动5.1时，继承的模块路径会优先加载不兼容的Utility模块。
-  // 仅清理子进程环境，让目标引擎建立自己的标准模块路径。
+  // When starting 5.1 through PowerShell 7 via Node, the inherited module path will prioritize loading incompatible Utility modules.
+  // Only clean the child process environment, allowing the target engine to establish its own standard module path.
   if(extension==='.ps1')for(const key of Object.keys(environment))if(key.toLowerCase()==='psmodulepath')delete environment[key];
   const child=spawn(executable,command_args,{cwd:package_root,env:environment,windowsHide:true,stdio:['ignore',log,log]});
   let timed_out=false,done=false;

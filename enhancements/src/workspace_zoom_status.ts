@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 import {workspace_zoom_available,type workspace_zoom_runtime} from "./workspace_zoom";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
@@ -12,7 +13,7 @@ import css from "./workspace_zoom_status.css";
 type zoom_app={commands:{run(id:string):void}};
 type zoom_runtime=workspace_zoom_runtime&{reqnode?:(name:string)=>any};
 const bindings=new WeakMap<HTMLElement,{dispose():void}>();
-/** UI只读实际窗口比例；所有写操作仍交给唯一原生命令和设置所有者。 */
+/** UI is read-only actual window ratio; all write operations are still handed over to the unique native command and set owner. */
 export function bind_workspace_zoom_status(app:zoom_app,runtime:zoom_runtime=window as any){
   const footer=document.querySelector<HTMLElement>("footer.ty-footer");if(!footer)return;
   const existing=bindings.get(footer);if(existing)return existing;
@@ -21,7 +22,7 @@ export function bind_workspace_zoom_status(app:zoom_app,runtime:zoom_runtime=win
   const lifetime=create_workspace_lifetime(),layout=acquire_workspace_footer_layout(),style=acquire_workspace_style("typora-code-style:workspace_zoom_status",css);
   lifetime.add(()=>layout.remove());lifetime.add(()=>style.remove());
   const group=el("div","workspace-zoom-status workspace-footer-group"),trigger=workspace_button("",()=>open(),"workspace-footer-control");
-  trigger.dataset.zoomAction="toggle";trigger.setAttribute("aria-label","窗口缩放");trigger.setAttribute("aria-haspopup","dialog");trigger.setAttribute("aria-expanded","false");
+  trigger.dataset.zoomAction="toggle";trigger.setAttribute("aria-label",workspace_text("zoom_status_window_zoom"));trigger.setAttribute("aria-haspopup","dialog");trigger.setAttribute("aria-expanded","false");
   group.append(trigger);footer.append(group);
   let popup:HTMLElement|undefined,previous:workspace_focus_snapshot|undefined,update_popup:(()=>void)|undefined,update_frame=0;
   const read=()=>{try{const level=frame.getZoomLevel(),factor=frame.getZoomFactor();return Number.isFinite(level)&&Number.isFinite(factor)&&factor>0?{level,factor}:undefined;}catch{return;}};
@@ -34,15 +35,15 @@ export function bind_workspace_zoom_status(app:zoom_app,runtime:zoom_runtime=win
     if(!state)return;
     const name:git_icon_name=state.level<0?"zoom-out":"zoom-in";
     if(trigger.firstElementChild?.getAttribute("data-git-icon")!==name)trigger.replaceChildren(git_icon(name));
-    trigger.setAttribute("aria-label",`窗口缩放：${Math.round(state.factor*100)}%`);
+    trigger.setAttribute("aria-label",workspace_text("zoom_status_window_zoom_47abfbae", {value_0: String(Math.round(state.factor*100))}));
     update_popup?.();hover.reposition();
   };
   const schedule=()=>{if(!lifetime.disposed&&!update_frame)update_frame=requestAnimationFrame(sync);};
   const run=(id:string)=>{
     if(!workspace_zoom_available(runtime,id))return;
-    try{app.commands.run(id);sync();}catch(error){if(popup){popup.setAttribute("aria-label","窗口缩放失败");popup.title=String(error);}schedule();}
+    try{app.commands.run(id);sync();}catch(error){if(popup){popup.setAttribute("aria-label",workspace_text("zoom_status_window_zoom_failed"));popup.title=String(error);}schedule();}
   };
-  const target:workspace_hover_target={anchor:trigger,label:"窗口缩放",preferred_side:"above",show_pointer:true,render(content,signal){
+  const target:workspace_hover_target={anchor:trigger,label:workspace_text("zoom_status_window_zoom"),preferred_side:"above",show_pointer:true,render(content,signal){
     popup=content;content.classList.add("workspace-zoom-controls");content.tabIndex=-1;
     previous??=capture_workspace_focus(trigger);
     trigger.setAttribute("aria-expanded","true");document.body.setAttribute("data-workspace-zoom-controls-open","");
@@ -50,17 +51,17 @@ export function bind_workspace_zoom_status(app:zoom_app,runtime:zoom_runtime=win
     const layer=register_workspace_dismissal(()=>[content],reason=>close(reason==="escape"),{inside:()=>[content,trigger],window_blur:true});
     signal.addEventListener("abort",()=>{layer.dispose();interaction.remove();trigger.setAttribute("aria-expanded","false");document.body.removeAttribute("data-workspace-zoom-controls-open");popup=undefined;update_popup=undefined;previous=undefined;},{once:true});
     const button=(name:git_icon_name,label:string,action:string,callback:()=>void)=>{const node=workspace_button("",callback);node.dataset.zoomAction=action;node.title=label;node.setAttribute("aria-label",label);node.append(git_icon(name));return node;};
-    const out=button("remove","缩小（Ctrl+-）","out",()=>run("linux_note:zoom_out"));
+    const out=button("remove",workspace_text("zoom_status_zoom_in_ctrl"),"out",()=>run("linux_note:zoom_out"));
     const value=el("span","workspace-zoom-level");value.setAttribute("aria-live","polite");
-    const into=button("add","放大（Ctrl+=）","in",()=>run("linux_note:zoom_in"));
+    const into=button("add",workspace_text("zoom_status_zoom_out_ctrl"),"in",()=>run("linux_note:zoom_in"));
     const right=el("div","workspace-zoom-controls-right");
-    const reset=workspace_button("重置",()=>run("linux_note:zoom_reset"));reset.dataset.zoomAction="reset";reset.title="恢复实际大小（100%）";
-    const settings=button("settings-gear","缩放设置（偏好设置 → 外观）","settings",()=>{
+    const reset=workspace_button(workspace_text("breadcrumbs_settings_reset"),()=>run("linux_note:zoom_reset"));reset.dataset.zoomAction="reset";reset.title=workspace_text("zoom_status_restore_actual_size_100");
+    const settings=button("settings-gear",workspace_text("zoom_status_zoom_settings_preferences_appearance"),"settings",()=>{
       if(typeof runtime.ClientCommand?.showPreferencePanel!=="function")return;
       close(true);runtime.ClientCommand.showPreferencePanel();
     });
     right.append(reset,settings);content.append(out,value,into,right);
-    update_popup=()=>{const state=read();value.textContent=state?String(Math.round(state.level*100)/100):"";value.title=state?`缩放比例：${Math.round(state.factor*100)}%`:"无法读取窗口比例";out.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_out");into.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_in");reset.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_reset");settings.disabled=typeof runtime.ClientCommand?.showPreferencePanel!=="function";};
+    update_popup=()=>{const state=read();value.textContent=state?String(Math.round(state.level*100)/100):"";value.title=state?workspace_text("zoom_status_zoom_level", {value_0: String(Math.round(state.factor*100))}):workspace_text("zoom_status_cannot_read_window_ratio");out.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_out");into.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_in");reset.disabled=!workspace_zoom_available(runtime,"linux_note:zoom_reset");settings.disabled=typeof runtime.ClientCommand?.showPreferencePanel!=="function";};
     update_popup();
     content.addEventListener("keydown",event=>{
       if(!["ArrowLeft","ArrowRight","Home","End"].includes(event.key))return;

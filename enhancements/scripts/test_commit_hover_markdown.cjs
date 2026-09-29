@@ -1,4 +1,4 @@
-// R053：真实Chromium指针打开生产浮层；正文主题污染、Markdown安全与几何均检查实际DOM。
+// R053: Real Chromium pointer opens the production floating layer; the main content theme pollutes, Markdown security and geometry are checked against actual DOM.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),assert=require('node:assert/strict');
 const evidence=path.resolve(__dirname,'../../.cache/commit_hover_ui_'+Date.now());fs.mkdirSync(evidence,{recursive:true});
@@ -23,7 +23,7 @@ app.whenReady().then(async()=>{
  }
  await ev(`document.querySelector('.git-commit-hover-message>div').shadowRoot.querySelector('a').click();document.querySelector('.git-commit-hover-copy').click();void 0`);await pause(40);assert.deepEqual(await ev('links'),['https://example.com/doc']);assert.deepEqual(await ev('copies'),['a'.repeat(40)]);
  await ev(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));void 0`);assert.equal(await ev(`!!document.querySelector('.git-commit-hover')`),false);
- // R062：托管入口、同排布局、唯一/多目标、取消与切库迟到。
+ // R062: Host entry, same-row layout, unique/multiple targets, cancellation and library delay.
  for(const [remote,provider,route]of [['git@gitee.com:owner/repo.git','Gitee','https://gitee.com/owner/repo/commit/'],['https://gitlab.com/group/sub/repo.git','GitLab','https://gitlab.com/group/sub/repo/-/commit/']]){
   await move(false);await ev(`panel.state.remotes=[{name:'origin',fetch:${JSON.stringify(remote)},push:''}];void 0`);await move();
   assert.equal(await ev(`document.querySelector('.git-commit-hover-web').textContent`),'在 '+provider+' 上打开');
@@ -39,7 +39,7 @@ app.whenReady().then(async()=>{
  await move(false);await ev(`panel.state.remotes=[{name:'origin',fetch:'git@gitee.com:owner/repo.git',push:''}];void 0`);await move();
  await ev(`panel.state.remotes[0].fetch='git@gitee.com:owner/changed.git';document.querySelector('.git-commit-hover-web').click();void 0`);await pause(80);assert.equal(await ev('links.length'),before_choice+1);assert((await ev('problem')).includes('远端地址已改变'));
  await move(false);await move();await ev(`failure=true;document.querySelector('.git-commit-hover-web').click();void 0`);await pause(80);assert.equal(await ev('links.length'),before_choice+1);assert((await ev('problem')).includes('无法打开提交网页'));await ev(`failure=false;panel.state.remotes=[];void 0`);
- // 不为压力测试触发1000次Git进程；以实际1000条正文测DOM布局，生命周期独立重复20次。
+ // Do not trigger 1000 times Git processes for pressure testing; use actual 1000 lines of main content DOM layout, with independent and repeatable 20 times.
  for(const count of [20,100,1000]){
   await move(false);await ev(`binding.dispose();source='压力提交\\n\\n'+Array.from({length:${count}},(_,i)=>'- 项目 '+i).join('\\n');binding=qa.bind_git_commit_hover(document.querySelector('#list'),panel);void 0`);const start=Date.now();await move();
   assert.equal(await ev(`document.querySelector('.git-commit-hover-message>div').shadowRoot.querySelectorAll('li').length`),count);assert(await ev(`(()=>{const tip=document.querySelector('.git-commit-hover');return tip.clientHeight<innerHeight&&tip.scrollHeight>=tip.clientHeight})()`));samples.push({stress_items:count,elapsed_ms:Date.now()-start});

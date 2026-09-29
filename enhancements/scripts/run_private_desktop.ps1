@@ -1,4 +1,4 @@
-﻿# 在未切换的独立桌面运行专用宿主副本，只终止该副本的进程。
+﻿# Run a dedicated host copy on an independent desktop that has not switched; only terminate the process of that copy.
 param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
@@ -79,7 +79,7 @@ try {
    if($owner -eq $info.pid){$title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024);if($title.ToString().EndsWith(' - Typora')){[void][isolated_desktop]::MoveWindow($hwnd,0,0,$window_width,$window_height,$true)}}
    return $true
  };[void][isolated_desktop]::EnumDesktopWindows($desktop,$resize,[IntPtr]::Zero)
- # 几何夹具先等外部布局阶段结束，不能把运行器改窗口尺寸误判为产品回归。
+ # Geometric fixtures wait for the external layout phase to end before they can not misinterpret the runner's window size change as a product regression.
  @{completed=$true}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'window_bounds_ready.json') -Encoding utf8
  $review_deadline=$watch.ElapsedMilliseconds+$wait_ms
  $all_windows_seen=[Collections.Generic.Dictionary[string,object]]::new()
@@ -91,7 +91,7 @@ try {
  }
  $captured_stages=[Collections.Generic.HashSet[string]]::new()
  do {
-  # 输入只投递到本次独立宿主窗口；不移动真实桌面鼠标或激活用户窗口。
+  # Input is only delivered to the current independent host window; does not move the real desktop mouse or activate the user window.
   $input_path=Join-Path $case_root 'native_input_request.json'
   if(Test-Path -LiteralPath $input_path) {
    try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
@@ -142,7 +142,7 @@ try {
      }
      return $true
     };[void][isolated_desktop]::EnumDesktopWindows($desktop,$capture_stage,[IntPtr]::Zero)
-    # renderer正读取回执时Windows可能拒绝写入；只有确认写入成功才标记阶段完成。
+    # renderer is being read back when Windows may reject writing; only mark the stage as complete after confirming the write is successful.
     try {
      @{stage=$stage}|ConvertTo-Json|Set-Content -LiteralPath (Join-Path $case_root 'capture_done.json') -Encoding utf8 -ErrorAction Stop
      [void]$captured_stages.Add($stage)

@@ -1,4 +1,4 @@
-// 原始宿主生产Graph；全部Git写入限定脚本生成的工作区与bare远端。
+// Original host production Graph; all Git writes are limited to the script-generated workspace and bare remote.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),cp=reqnode('child_process'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms)),wait=async(predicate,label)=>{for(let i=0;i<500;i++){if(predicate())return;await pause(30);}throw Error(label);},assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
@@ -27,7 +27,7 @@
   const rows=[...history.list.querySelectorAll('.git-scm-history-commit')];range_row('incoming').focus();range_row('incoming').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true,cancelable:true}));assert(document.activeElement===rows[rows.indexOf(range_row('incoming'))-1],'区间参与统一方向键导航 '+JSON.stringify({connected:history.list.isConnected,index:rows.indexOf(range_row('incoming')),active:document.activeElement?.outerHTML.slice(0,180)}));
   range_row('incoming').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',bubbles:true,cancelable:true}));assert(!history.list.querySelector('[data-history-file]'),'键盘收起区间');
   const central=panel.list.querySelector('[data-history-range=outgoing]');central.click();await wait(()=>panel.details.querySelector('[data-file]'),'central details');assert(panel.from===outgoing&&panel.to===head,'完整Graph显示相同汇总比较');
-  // 迟到文件读取只能更新仍属于同一展开代次的容器。
+  // Stale file reading can only update containers that still belong to the same expansion generation.
   panel=history.owner.panel;const run=panel.runner.run;let release;panel.runner.run=(cwd,args,...rest)=>args[0]==='diff'?new Promise(resolve=>{release=()=>resolve('A\0late.md\0');}):run(cwd,args,...rest);
   history.files_cache.clear();range_row('outgoing').click();await wait(()=>!!release,'late request');range_row('outgoing').click();release();await pause(80);assert(!history.list.querySelector('[data-history-file="late.md"]'),'收起后迟到结果不重开文件列表');panel.runner.run=run;
   panel.branches=['HEAD'];await panel.refresh();assert(!!range_row('outgoing')&&!range_row('incoming'),'HEAD筛选不显示远端组');panel.branches=[];await panel.refresh();

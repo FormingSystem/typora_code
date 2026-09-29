@@ -1,4 +1,4 @@
-/** 树/列表共享选择模型。业务身份、打开与展开留在领域，选择不由展开状态推断。 */
+/** Tree/list share the same selection model. Business identity, open and expand remain in the domain, selection is not inferred from the expanded state. */
 const owners = new WeakMap<HTMLElement, workspace_list_selection>();
 
 export function apply_workspace_row_selection(row: HTMLElement, selected: boolean, focused = false): void {
@@ -39,7 +39,7 @@ export class workspace_list_selection {
     this.focused_key = focus ?? next[0] ?? '';
     this.refresh();
   }
-  /** 活动内容变化可投影选择；同一内容的后台刷新不能覆盖用户的新选择。 */
+  /** Changes in active content can project selection; background refresh of the same content cannot override user new selections. */
   project_external(key: string, force = false): void {
     if (!force && key === this.external_key) return;
     this.external_key = key; this.select(key ? [key] : []);

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import { COPY_ABSOLUTE_PATH, COPY_RELATIVE_PATH, format_file_path, type path_operations } from "./file_paths";
 import { get_workspace_app } from "./workspace_bootstrap";
 import { get_workspace_files } from "./workspace_files";
@@ -32,19 +33,19 @@ export function bind_file_path_actions(): () => void {
   const copy_path = (target: string, relative: boolean) => {
     if (disposed) return;
     const text = get_path(target, relative);
-    if (text === null) { new core.Notice("请先保存文档，再复制路径。", 2000); return; }
-    // 调用宿主剪贴板桥接，不创建 textarea、不切换文件，也不触碰正文选区。
+    if (text === null) { new core.Notice(workspace_text("file_path_actions_please_save_the_document_first_before_copying_the_path"), 2000); return; }
+    // Call the host clipboard bridge, without creating textarea, without switching files, and without touching the document selection.
     void Promise.resolve().then(() => !disposed && runtime.JSBridge.invoke("clipboard.write", JSON.stringify({ text })))
-      .then(() => { if (disposed) return; new core.Notice(relative ? "已复制相对路径" : "已复制绝对路径", 1500); })
+      .then(() => { if (disposed) return; new core.Notice(relative ? workspace_text("file_path_actions_relative_path_copied") : workspace_text("file_path_actions_absolute_path_copied"), 1500); })
       .catch((error: unknown) => {
         if (disposed) return;
         console.error("[linux-note copy path]", error);
-        new core.Notice("复制路径失败，请重试。", 2500);
+        new core.Notice(workspace_text("file_path_actions_copy_path_failed_please_retry"), 2500);
       });
   };
   for (const [id, relative, title] of [
-    [COPY_ABSOLUTE_PATH, false, "复制绝对路径"],
-    [COPY_RELATIVE_PATH, true, "复制相对路径"],
+    [COPY_ABSOLUTE_PATH, false, workspace_text("file_path_actions_copy_absolute_path")],
+    [COPY_RELATIVE_PATH, true, workspace_text("file_path_actions_copy_relative_path")],
   ] as const) {
     collect(app.commands.register({ id, title, scope: "global", callback: () => copy_path(app.workspace.activeLeaf?.state.path ?? "", relative) }));
   }
@@ -58,7 +59,7 @@ export function bind_file_path_actions(): () => void {
     separator.setAttribute("for-file", "");
     separator.setAttribute("for-folder", "");
     menu.append(separator); owned_items.add(separator);
-    for (const [relative, label, key] of [[false, "复制绝对路径", "absolute"], [true, "复制相对路径", "relative"]] as const) {
+    for (const [relative, label, key] of [[false, workspace_text("file_path_actions_copy_absolute_path"), "absolute"], [true, workspace_text("file_path_actions_copy_relative_path"), "relative"]] as const) {
       const item = document.createElement("li");
       item.className = "typ-menuitem linux-note-path-item";
       item.setAttribute("data-linux-note-copy-path", key);
@@ -70,12 +71,12 @@ export function bind_file_path_actions(): () => void {
       anchor.textContent = label;
       const enabled = get_path(target, relative) !== null;
       anchor.setAttribute("aria-disabled", String(!enabled));
-      if (!enabled) { item.classList.add("disabled"); anchor.title = "文档尚未保存，没有文件路径"; }
+      if (!enabled) { item.classList.add("disabled"); anchor.title = workspace_text("file_path_actions_document_is_not_saved_no_file_path"); }
       item.append(anchor);
       actions.set(item, () => {
         if (!enabled) return;
         copy_path(target, relative);
-        // 复用社区菜单的关闭事件，清理它注册的正文点击监听。
+        // Reuse the community menu's close event, clean up what it registered for document click listening.
         menu.dispatchEvent(new MouseEvent("click", { bubbles: true }));
         menu.style.display = "none";
       });
@@ -83,7 +84,7 @@ export function bind_file_path_actions(): () => void {
     }
   };
   collect(app.workspace.on("file-menu", ({ menu, path }) => add_items(menu.containerEl, path)));
-  // 原生文件菜单在 mousedown 时执行动作。接管整个按钮手势，防止宿主提前关闭菜单或移动正文光标。
+  // Native file menu executes actions when mousedown.
   for (const name of ["pointerdown", "mousedown", "mouseup", "click", "keydown"]) {
     document.addEventListener(name, (event) => {
       const item = event.target instanceof Element ? event.target.closest("[data-linux-note-copy-path]") : null;

@@ -7,7 +7,7 @@ export function valid_language_range(range:any):range is language_range{
  const valid=(p:any)=>Number.isSafeInteger(p?.line)&&p.line>=0&&Number.isSafeInteger(p?.character)&&p.character>=0;
  return valid(range?.start)&&valid(range?.end)&&(range.end.line>range.start.line||range.end.line===range.start.line&&range.end.character>=range.start.character);
 }
-/** 只接受真实文件位置；协议结果不作为外部URL或命令执行。 */
+/** Only accept real file paths; protocol results are not considered as external URL or command execution. */
 export function language_locations(value:any,node:(name:string)=>any):language_location[]{
  const url=node("url"),path=node("path"),windows=node("process").platform==="win32",seen=new Set<string>();
  return (Array.isArray(value)?value:value?[value]:[]).flatMap((item:any)=>{

@@ -1,7 +1,7 @@
 import {workspace_element as el} from "./workspace_widgets";
 import {workspace_file_icon} from "./workspace_file_icons";
 
-/** 名称和目录共用末端裁切区；操作出现时不分别压缩两段文字。 */
+/** Names and directories share the trailing truncation area; when operations appear, they do not separately truncate the two segments of text. */
 export function git_file_label(file_path: string, show_directory: boolean, name_class = "git-scm-file-name"): HTMLElement {
   const parts = file_path.split("/");
   const label = el("span", "git-scm-file-label");

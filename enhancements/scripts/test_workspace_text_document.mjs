@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import {build} from 'esbuild';
 const compiled=await build({entryPoints:['src/workspace_text_document.ts'],bundle:true,platform:'node',format:'esm',write:false});
@@ -24,7 +25,7 @@ const identity_path=file('identity.txt','same\n');const identity_doc=document(id
 const first_dir=path.join(root,'first'),second_dir=path.join(root,'second'),alias=path.join(root,'alias');fs.mkdirSync(first_dir);fs.mkdirSync(second_dir);fs.writeFileSync(path.join(first_dir,'code.txt'),'first\n');fs.writeFileSync(path.join(second_dir,'code.txt'),'second\n');try { fs.symlinkSync(first_dir,alias,process.platform==='win32'?'junction':'dir');
 const alias_doc=document(path.join(alias,'code.txt'));await alias_doc.load();await alias_doc.save('saved target\n');assert.equal(fs.readFileSync(path.join(first_dir,'code.txt'),'utf8'),'saved target\n');assert(fs.lstatSync(alias).isSymbolicLink());fs.unlinkSync(alias);fs.symlinkSync(second_dir,alias,process.platform==='win32'?'junction':'dir');await assert.rejects(alias_doc.save('draft\n'),/修改|移动/u);assert.equal(fs.readFileSync(path.join(second_dir,'code.txt'),'utf8'),'second\n');record('junction targets save without replacing the link and retargeted real paths reject stale saves');
 } finally { if(fs.lstatSync(alias,{throwIfNoEntry:false})?.isSymbolicLink())fs.unlinkSync(alias); }
-// 让真实临时文件写入、sync 后，再由另一个写入者改原文件，验证第二次检查。
+// Let real temporary files write to sync after, then have another writer modify the original file, verifying the second check.
 const stage_path=file('stage.txt','before\n');let stage_hook=true;
 const wrap_handle=(handle,overrides)=>new Proxy(handle,{get(target,key){if(key in overrides)return overrides[key];const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value}});
 const stage_doc=document(stage_path,{open:async(filename,flags,...args)=>{const handle=await fs.promises.open(filename,flags,...args);return flags==='wx'?wrap_handle(handle,{sync:async()=>{await handle.sync();if(stage_hook){stage_hook=false;fs.writeFileSync(stage_path,'external during staging\n')}}}):handle}});await stage_doc.load();await assert.rejects(stage_doc.save('draft\n'),/其他进程/u);assert.equal(fs.readFileSync(stage_path,'utf8'),'external during staging\n');assert_no_temporary();record('second conflict check catches external writes during temp-file staging');

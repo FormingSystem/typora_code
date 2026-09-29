@@ -22,11 +22,11 @@ app.whenReady().then(async()=>{
  await run('binding.dispose();window.binding=qa.install_workspace_titlebar(files,()=>{});void 0');assert.equal(await run('setting_calls.length'),2);
  await run('binding.dispose();document.documentElement.dataset.linuxNoteTitlebar="external";replies[1].resolve();File.option.framelessWindow=true;files.core.app.settings=settings_store;window.binding=qa.install_workspace_titlebar(files,()=>calls.push(["search"]));void 0');await tick();
  assert(await run('binding===qa.install_workspace_titlebar(files,()=>{})&&document.querySelector("#w-close")===original_close'));
- // Typora 原生切文档回调会直接查询并更新标题节点；隐藏后仍须连接，不能中断加载。
+ // Typora native document callback will directly query and update the title node; hidden still requires connection, cannot interrupt loading.
  await run(`document.querySelector('#title-text').classList.add('title-modified');document.querySelector('#title-text').textContent='target.md';document.querySelector('#title-text').classList.remove('title-modified');void 0`);
  assert(await run(`document.querySelector('#title-text').isConnected&&document.querySelector('#w-menu-btn').isConnected&&document.querySelector('#title-text').textContent==='target.md'&&document.querySelector('#title-text').getBoundingClientRect().height===0`));
  const geometry=await run(`(()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};return{bar:rect('#top-titlebar'),logo:rect('.workspace-titlebar-logo'),search:rect('.workspace-titlebar-search'),controls:rect('#w-traffic-lights'),editor:rect('#write'),menus:[...document.querySelectorAll('.workspace-titlebar-menu>button')].filter(b=>!b.hidden).map(b=>b.textContent)}})()`);
- // 菜单按实际文字宽度收纳；不能把受系统DPI/字体影响的可见数量固定为七个。
+ // Menus are arranged according to actual text width; cannot fix the visible number affected by the system DPI/ font as seven.
  assert.equal(geometry.bar.height,35);assert.equal(geometry.editor.y,35);assert(geometry.menus.length>1&&geometry.menus.length<=8);assert.deepEqual(geometry.menus,[...['文件','编辑','段落','格式','视图','主题','终端'].slice(0,geometry.menus.length-1),'']);assert.equal(geometry.search.height,22);assert.equal(geometry.controls.width,138);assert(geometry.search.x>300&&geometry.search.right<geometry.controls.x);
  assert.deepEqual(await run('[...document.querySelectorAll(".workspace-titlebar-menu>button")].slice(0,-1).map(b=>b.textContent)'),['文件','编辑','段落','格式','视图','主题','终端','帮助']);
  await run('document.querySelector(".workspace-titlebar-menu>button:last-child").click();void 0');await tick();assert(await run('document.querySelector(".workspace-titlebar-popup").textContent.includes("帮助")'),'overflow retains Help when the new terminal menu consumes its slot');await run('window.dispatchEvent(new Event("workspace-titlebar-dismiss"))');
@@ -54,12 +54,12 @@ app.whenReady().then(async()=>{
  assert.deepEqual(await run('travel'),[-1]);assert.equal(await run('calls.at(-1)[0]'),'search');
  await run(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-state',{detail:{back:true,forward:true}}));document.querySelectorAll('.workspace-titlebar-history')[1].click();void 0`);assert.deepEqual(await run('travel'),[-1,1]);
 
- // R029：搜索入口保留中性外观；用真实指针和键盘验证，不能只检查角色或CSS文本。
+ // R029：Search entry retains a neutral appearance; verify with real pointer and keyboard, not just check roles or CSS text.
  win.webContents.debugger.attach();await win.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const move_pointer=async selector=>{const point=await run(`(()=>{const r=document.querySelector(${JSON.stringify(selector)}).getBoundingClientRect();return{x:r.x+r.width/2,y:r.y+r.height/2}})()`),zoom=win.webContents.getZoomFactor();const position={x:Math.round(point.x*zoom),y:Math.round(point.y*zoom)};win.webContents.sendInputEvent({type:'mouseMove',...position});await pause(45);return position;};
  const appearance=selector=>run(`(()=>{const n=document.querySelector(${JSON.stringify(selector)}),s=getComputedStyle(n),r=n.getBoundingClientRect();return{background:s.backgroundColor,foreground:s.color,border:s.borderColor,radius:s.borderRadius,rect:[r.x,r.y,r.width,r.height]}})()`);
- // 原始Typora 1.14.10顶栏后代规则；旧夹具遗漏这层，无法发现文字底板遮边。
+ // Original Typora 1.14.10 top bar descendant rules; old fixtures miss this layer, making it impossible to detect text background obstruction.
  await win.webContents.insertCSS('#top-titlebar,#top-titlebar *{background-color:inherit;color:var(--text-color)}');
  const hover_evidence=[];
  for(const theme of ['light','dark'])for(const zoom of [1,1.25])for(const width of [1280,500]){
@@ -81,14 +81,14 @@ app.whenReady().then(async()=>{
   hover_evidence.push({theme,zoom,width,...before});
  }
  win.setSize(1280,800);win.webContents.setZoomFactor(1);await run(`document.documentElement.dataset.workspaceFileIconTheme='light';document.body.style.removeProperty('--text-color');document.body.style.removeProperty('--side-bar-bg-color');void 0`);await pause(70);await move_pointer('#write');
- // 导航末项后按Tab进入搜索，检查焦点线及标准按钮键盘激活。
+ // Navigate to the last item and press Tab to enter search, check focus line and standard button keyboard activation.
  await run(`document.querySelectorAll('.workspace-titlebar-history')[1].focus();void 0`);
  for(const type of ['keyDown','keyUp'])win.webContents.sendInputEvent({type,keyCode:'Tab'});await pause(35);
  assert(await run(`document.activeElement===document.querySelector('.workspace-titlebar-search')&&document.activeElement.matches(':focus-visible')&&getComputedStyle(document.activeElement).outlineWidth==='1px'`),'keyboard search focus stays visible');
  for(const key_code of ['Return','Space']){const before=await run('calls.length');win.webContents.sendInputEvent({type:'keyDown',keyCode:key_code});win.webContents.sendInputEvent({type:'char',keyCode:key_code==='Return'?'\r':' '});win.webContents.sendInputEvent({type:'keyUp',keyCode:key_code});await pause(35);assert.equal(await run('calls.length'),before+1,key_code+' opens search once');assert.equal(await run('calls.at(-1)[0]'),'search');}
  fs.writeFileSync(path.join(evidence,'search_hover.json'),JSON.stringify(hover_evidence,null,2));
 
- // H001.1：真实右键进入显示配置，复用生产设置持久化与公共菜单。
+ // H001.1：Real right-click enters display configuration, reuses production settings persistence and public menu.
  const context_selector='.workspace-titlebar-context';
  const right_click=async(selector)=>{const position=await move_pointer(selector);for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,button:'right',clickCount:1,...position});await pause(50);assert(await run(`!!document.querySelector('${context_selector}')`),'right click opens titlebar configuration');};
  const choose=async key=>{await run(`document.querySelector('${context_selector} [data-action="${key}"]').click();void 0`);await tick();};
@@ -128,13 +128,13 @@ app.whenReady().then(async()=>{
  fs.writeFileSync(path.join(evidence,'titlebar_context.json'),JSON.stringify(context_evidence,null,2));
  win.setSize(1280,800);win.webContents.setZoomFactor(1);await run(`document.documentElement.dataset.workspaceFileIconTheme='light';document.body.style.removeProperty('--text-color');document.body.style.removeProperty('--bg-color');void 0`);await pause(70);await move_pointer('#write');
 
- // 真实命令定义直接打开自己的条目，不先弹完整根菜单。
+ // Real command definitions directly open their own entry, without first expanding the full root menu.
  await run(`window.editor=document.querySelector('#write');editor.focus();window.range=document.createRange();range.setStart(editor.firstChild,9);range.setEnd(editor.firstChild,17);getSelection().removeAllRanges();getSelection().addRange(range);document.querySelectorAll('.workspace-titlebar-menu>button')[2].click();void 0`);await tick();
  assert(await run(`document.querySelector('.workspace-titlebar-popup').textContent.includes('一级标题')&&!document.querySelector('.workspace-titlebar-popup').textContent.includes('新建窗口')`));
  await run(`window.stale_item=document.querySelector('.workspace-titlebar-entry:not(:disabled)');for(const type of ['keydown','keyup'])editor.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));window.before_stale=calls.length;stale_item.click();void 0`);assert(await run('calls.length===before_stale&&!document.querySelector(".workspace-titlebar-popup")'));
  await run(`document.querySelectorAll('.workspace-titlebar-menu>button')[2].click();void 0`);await tick();
  await run(`document.querySelector('.workspace-titlebar-entry:not(:disabled)').click();void 0`);assert.deepEqual(await run('calls.at(-1)'),['block','header1']);assert.equal(await run('getSelection().toString()'),'my draft');assert(await run('document.activeElement===editor'));
- // 用真实菜单组件跑超长/嵌套/迟到结果和窄窗，而非仅检查CSS文本。
+ // Use real menu components to run ultra-long/nested/stale results and narrow windows, not just check CSS text.
  await run(`window.owned_menu=document.querySelector('.workspace-titlebar-menu');owned_menu.style.display='none';window.long_defs=Array.from({length:7},(_,index)=>({label:['文件','编辑','段落','格式','视图','主题','帮助'][index],mnemonic:String(index),entries:async()=>Array.from({length:65},(_,n)=>({label:'item '+index+' '+n,action:()=>calls.push(['item',index,n]),children:n===3?[{label:'nested',action:()=>calls.push(['nested'])}]:undefined}))}));window.menu=qa.create_workspace_titlebar_menu(document.querySelector('#top-titlebar'),long_defs);document.querySelector('.workspace-titlebar-left').append(menu.element);menu.refresh();menu.element.children[2].click();void 0`);await tick();
  assert(await run(`(()=>{const p=document.querySelector('.workspace-titlebar-popup'),r=p.getBoundingClientRect();return r.top>=35&&r.bottom<=innerHeight-34&&p.scrollHeight>p.clientHeight&&p.clientHeight<innerHeight})()`));
  await run(`document.querySelector('.workspace-titlebar-popup').dispatchEvent(new WheelEvent('wheel',{deltaX:160,shiftKey:true,bubbles:true,cancelable:true}));void 0`);assert(await run('document.querySelector(".workspace-titlebar-popup").scrollTop>100'));

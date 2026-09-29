@@ -30,7 +30,7 @@ import "monaco-editor/languages/definitions/systemverilog/register";
 import "monaco-editor/languages/definitions/restructuredtext/register";
 import "monaco-editor/languages/definitions/mdx/register";
 
-/** 上游未内置的系统工程文件使用独立语法，不能误标成 C 或 Shell。 */
+/** Upstream system engineering files not built-in use independent syntax, cannot mistakenly label as C or Shell. */
 export function register_file_languages(): void {
   const grammars: Record<string, monaco.languages.IMonarchLanguage> = {
     cmake: {ignoreCase:true,tokenizer:{root:[[/#.*/,"comment"],[/\$\{[^}]+\}/,"variable"],[/\b\w+(?=\s*\()/,"keyword"],[/"([^"\\]|\\.)*"/,"string"],[/\b\d+\b/,"number"]]}},

@@ -1,4 +1,4 @@
-// 共享滚动条：真实Chromium输入、正式静态样式、实际Monaco/xterm；只操作临时页面。
+// Shared scroll bar: real Chromium input, formal static style, actual Monaco/xterm; only operate temporary pages.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');

@@ -1,4 +1,4 @@
-/** 所有对象拖动共用一次指针会话；跨 core / workbench bundle 仍只允许一个活动会话。 */
+/** All object drag sessions share one pointer session; across core / workbench bundle still only allow one active session. */
 export type pointer_drag_state = {
   event: PointerEvent; client_x: number; client_y: number; screen_x: number; screen_y: number;
   delta_x: number; delta_y: number; target: Element | null;
@@ -19,7 +19,7 @@ export function cancel_pointer_drag(view: Window, reason = 'cancelled'): void {
   (view as drag_window)[session_key]?.cancel(reason);
 }
 
-/** 克隆的是当前控件的真实图标和文字，不制造文件类型图标或改写源节点。 */
+/** The clone is the real icon and text of the current control, not creating file type icons or rewriting source nodes. */
 function create_preview(source: HTMLElement): HTMLElement {
   const doc = source.ownerDocument, view = doc.defaultView!;
   const clone = source.cloneNode(true) as HTMLElement;
@@ -59,7 +59,7 @@ export function start_pointer_drag(event: PointerEvent, options: pointer_drag_op
     options.on_end?.(started);
   };
   const suppress_click = (released: boolean) => {
-    // Esc 可发生在按住左键期间，必须等这次释放后的 click，不能在一个定时器回合后放行。
+    // Esc can occur during the press of the left mouse button, must wait for this release before click, and cannot be released after one timer round.
     const suppression = new AbortController();
     const clear = () => suppression.abort();
     doc.addEventListener('click',input=>{input.preventDefault();input.stopImmediatePropagation();clear();},{capture:true,signal:suppression.signal});
@@ -74,7 +74,7 @@ export function start_pointer_drag(event: PointerEvent, options: pointer_drag_op
     doc.documentElement.style.cursor=effect==='none'?'not-allowed':options.cursor||'grabbing';
     if(preview){
       preview.dataset.workspaceDropEffect=effect;
-      if(effect==='detach'&&!drop_hint){drop_hint=doc.createElement('span');drop_hint.textContent='移到新窗口';Object.assign(drop_hint.style,{position:'absolute',top:'100%',left:'0',padding:'3px 6px',font:'12px system-ui',whiteSpace:'nowrap',background:'var(--bg-color, white)',color:'var(--text-color, #333)',border:'1px solid var(--vscode-focusBorder, #0078d4)',borderRadius:'3px'});preview.append(drop_hint);preview.style.overflow='visible';}
+      if(effect==='detach'&&!drop_hint){drop_hint=doc.createElement('span');drop_hint.textContent=(globalThis as any)[Symbol.for('typora-code:workspace')]?.app?.i18n?.t?.workspace?.move_to_window??'Move to New Window';Object.assign(drop_hint.style,{position:'absolute',top:'100%',left:'0',padding:'3px 6px',font:'12px system-ui',whiteSpace:'nowrap',background:'var(--bg-color, white)',color:'var(--text-color, #333)',border:'1px solid var(--vscode-focusBorder, #0078d4)',borderRadius:'3px'});preview.append(drop_hint);preview.style.overflow='visible';}
       if(drop_hint)drop_hint.hidden=effect!=='detach';
     }
   }};
@@ -90,7 +90,7 @@ export function start_pointer_drag(event: PointerEvent, options: pointer_drag_op
       try {
         if(options.preview!==false)preview=create_preview(source);
         source.dataset.workspaceDragSource='true';source.style.opacity='.45';
-        try {source.setPointerCapture(pointer_id);} catch { /* document 监听仍保证同窗清理，宿主可能不支持捕获。 */ }
+        try {source.setPointerCapture(pointer_id);} catch { /* document The listener still ensures same-window cleaning, the host may not support capture. */ }
         observer.observe(doc.documentElement,{childList:true,subtree:true});
         options.on_start?.(state);
       } catch(error){cancel('error');throw error;}
@@ -117,7 +117,7 @@ export function start_pointer_drag(event: PointerEvent, options: pointer_drag_op
   return session;
 }
 
-/** 落点线不接收指针，真实命中始终来自下方控件。 */
+/** The drop line does not receive the pointer, real hit testing always comes from the lower control. */
 type marker_rect = {left:number;top:number;width:number;height:number};
 export function create_drop_marker(doc: Document): {show(rect: marker_rect): void; highlight(rect: marker_rect): void; hide(): void; dispose(): void} {
   const marker=doc.createElement('div');marker.dataset.workspaceDropMarker='true';

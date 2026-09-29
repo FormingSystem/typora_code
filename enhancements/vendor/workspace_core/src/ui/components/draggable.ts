@@ -1,7 +1,7 @@
 import './draggable.scss'
 import {create_drop_marker, start_pointer_drag, type pointer_drag_session, type pointer_drag_state} from './pointer-drag'
 
-/** 通用工具项也复用对象拖动会话；不再在按下时立即重排。 */
+/** General tool items also reuse object drag session; no immediate reordering when pressed. */
 export function draggable(container_el: HTMLElement, direction: 'x' | 'y', on_change?: () => void) {
   const doc=container_el.ownerDocument, marker=create_drop_marker(doc);
   let session:pointer_drag_session|undefined;

@@ -5,8 +5,8 @@ import path from 'node:path';
 import {builtinModules} from 'node:module';
 import {fileURLToPath} from 'node:url';
 const base=path.resolve(import.meta.dirname,'../vendor/workspace_core');
-// 固定已验收发布的层叠顺序；notice/modal 内部仍按上游导入 global。
-// 新增组件样式必须显式登记，禁止依赖 esbuild 并行加载完成的顺序。
+// Fix the stacking order of the accepted released layers; notice/modal internally still follows the upstream imported global.
+// New component styles must be explicitly registered; prohibit relying on the order of esbuild parallel loading completion.
 const core_style_entries = [
   "src/ui/layout/split/index.scss",
   "src/ui/editor/markdown-renderer.scss",

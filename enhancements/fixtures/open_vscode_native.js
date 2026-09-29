@@ -1,4 +1,4 @@
-// 原始 Typora 隔离副本；外部应用启动仅记录参数，不打开用户 VS Code。
+// Original Typora isolated copy; external application startup only records parameters, does not open the user VS Code.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),process=reqnode('process'),cp=reqnode('child_process'),base=__CASE_ROOT__,checks=[],calls=[],samples=[];
  const source=path.join(base,'workspace/front.md');if(File.bundle.filePath!==source)return;

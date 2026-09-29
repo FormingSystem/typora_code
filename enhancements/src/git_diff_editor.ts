@@ -1,8 +1,9 @@
+import {workspace_text} from "./workspace_i18n";
 import {monaco_text_input,monaco_text_input_menu,monaco_text_input_key} from "./monaco_text_input";
 import {run_monaco_source_command,bind_monaco_source_clipboard} from './monaco_source_command';
 import {source_navigation_gestures} from "./source_navigation_gesture";
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
-import {initialize_monaco_code_theme,sync_monaco_code_theme} from './monaco_code_theme';
+import {initialize_monaco_code_theme,sync_monaco_code_theme,acquire_monaco_code_theme} from './monaco_code_theme';
 import {read_text_presentation,update_text_presentation,observe_text_presentation} from './workspace_text_presentation';
 import type {markdown_view_anchor} from './git_markdown_diff';
 import {StandaloneServices} from "monaco-editor/editor/standalone/browser/standaloneServices.js";
@@ -100,7 +101,7 @@ export class git_diff_editor {
     initialize_editor(); this.container.setAttribute("data-linux-note-monaco-diff", "ready");
     this.container.append(this.toolbar);
     this.refresh_labels();this.container.append(this.labels, this.body);
-    // 每个历史版本拥有独立模型；文件名只用于语言识别，不执行仓库中的任何代码。
+    // Each historical version has an independent model; the filename is only used for language identification, and does not execute any code in the repository.
     const model = (source: string, side: string) => {
       if (source.includes("\0")) throw new Error(text("diff.binary_file"));
       const uri = monaco.Uri.from({scheme: "linux-note-git", path: `/${++serial}/${side}/${data.file || data.title}`});
@@ -109,16 +110,16 @@ export class git_diff_editor {
     };
     const original = shared_model && data.right == null ? shared_model : model(data.left, "original");
     if (original === shared_model) { this.models.push(original); model_users.set(original, (model_users.get(original) || 0) + 1); }
-    // 普通单文件保留全文缩略图；Git 差异只显示原生红绿改动概览。
+    // Regular single-file retains full-text thumbnail; Git differences only display native red/green changes overview.
     const minimap: monaco.editor.IEditorMinimapOptions = {enabled: data.right == null, side: "right", size: "fit", showSlider: "mouseover", renderCharacters: true, maxColumn: 80, scale: 1};
     const options = {wordWrap:this.wrapped?"on" as const:"off" as const,automaticLayout: true, readOnly: true, fontSize: content_font_size(design_baseline.editor_font_size), lineHeight: content_font_size(design_baseline.editor_font_size)*design_baseline.editor_line_height/design_baseline.editor_font_size, fontFamily: design_baseline.editor_font_family, minimap, scrollbar: {verticalScrollbarSize: 8, horizontalScrollbarSize: 8}, scrollBeyondLastLine: false, contextmenu: false, "semanticHighlighting.enabled":true, padding: {top: 8}, links: false, unicodeHighlight: {ambiguousCharacters: false}, ariaLabel: data.title};
     if (data.right != null) {
       const modified = model(data.right, "modified");
-      // 历史比较两侧只读，不实例化需要可写模型的hunk操作菜单及其延迟context订阅。
+      // The two sides of the history comparison are read-only, and do not instantiate the hunk operation menu that requires a writable model and its delayed context subscription.
       const editor = monaco.editor.createDiffEditor(this.body, {...options, diffWordWrap:this.wrapped?"on":"off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu:false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions:{enabled:this.collapsed}, experimental:{showMoves:this.show_moves}, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 0, maxFileSize: 0});
-      // 双栏保留各自的窄滚动条，由 Monaco 同步纵向位置；中间仍可拖动分界线。
-      // 最右侧使用 Monaco 原生差异概览：左半红色标记删除，右半绿色标记新增。
-      // 概览的宽度、点击定位和视口框由上游管理，不额外显示全文缩略图。
+      // The two-column view retains its own narrow scroll bars, synchronized vertically by Monaco; the middle can still be dragged to adjust the divider line.
+      // The rightmost uses Monaco native difference overview: the left half is marked red for deletions, and the right half is marked green for additions.
+      // The width of the overview, the click positioning, and the viewport box are managed by the upstream, without additional display of full-text thumbnails.
       this.editor = editor; editor.setModel({original, modified});
       let revealed = false;
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
@@ -130,14 +131,14 @@ export class git_diff_editor {
       this.toolbar.append(git_icon_button("arrow-up", text("diff.previous_change_button"), () => this.navigate("previous")), git_icon_button("arrow-down", text("diff.next_change_button"), () => this.navigate("next")));
       for (const view of [editor.getOriginalEditor(), editor.getModifiedEditor()]) this.bind_editor(view);
     } else { this.editor = monaco.editor.create(this.body, {...options, model: original}); this.status.textContent = text("diff.readonly_revision"); this.bind_editor(this.editor); }
-    // Monaco 0.56 的全局 hover factory 会被最新编辑器的子容器覆盖。
-    // 绑定到窗口级服务，关闭某个比较页后其余页的 F7/动作提示仍有有效的服务所有者。
+    // The global hover factory of Monaco 0.56 will be overridden by the latest editor's sub-container.
+    // Bound to window-level services, after closing a comparison page, the F7/ action prompts of the remaining pages still have valid service owners.
     const hover_owner=StandaloneServices.get(IInstantiationService);
     setHoverDelegateFactory((placement,instant)=>hover_owner.createInstance(WorkbenchHoverDelegate,placement,{instantHover:instant},{}));
     this.toolbar.setAttribute("role","toolbar");this.toolbar.setAttribute("aria-label",text("diff.editor_actions"));
     if(data.right!=null&&is_markdown_file(data.file||data.title)){
       this.markdown_preview=create_git_markdown_diff();this.markdown_preview.container.hidden=true;this.container.append(this.markdown_preview.container);
-      const preview=git_icon_button('preview','Markdown渲染对比 / 源码对比',()=>this.set_preferences({render_markdown:!this.rendered_markdown}));preview.dataset.diffAction='markdown_preview';this.toolbar.append(preview);
+      const preview=git_icon_button('preview',workspace_text("git_diff_editor_markdown_render_comparison_source_code_comparison"),()=>this.set_preferences({render_markdown:!this.rendered_markdown}));preview.dataset.diffAction='markdown_preview';this.toolbar.append(preview);
       this.markdown_preview.set_wrap(this.wrapped);this.set_markdown_mode(preferences.render_markdown);
     }
     const find=git_icon_button("search",text("diff.find"),()=>{this.set_markdown_mode(false);this.focused_editor().getAction("actions.find")?.run();});find.dataset.diffAction="find";
@@ -146,6 +147,7 @@ export class git_diff_editor {
     this.toolbar.append(find,more,this.status);
     this.release_presentation=observe_text_presentation(value=>this.apply_wrap(value.word_wrap));
     for(const name of ['wheel','pointerdown','keydown'])this.container.addEventListener(name,()=>{this.input_epoch++;this.pending_anchor=undefined;},{capture:true,passive:true});
+    this.subscriptions.push({dispose:acquire_monaco_code_theme()});
     this.release_settings=watch_git_diff_preferences(value=>this.apply_preferences(value));
     let font_anchor:markdown_view_anchor|undefined,font_size=content_font_size(design_baseline.editor_font_size);
     this.subscriptions.push({dispose:observe_content_zoom(()=>{
@@ -159,7 +161,7 @@ export class git_diff_editor {
     if(diff_root){this.mode_observer=new MutationObserver(()=>this.refresh_labels());this.mode_observer.observe(diff_root,{attributes:true,attributeFilter:["class"]});this.refresh_labels();}
     this.container.oncontextmenu = event => this.context_menu(event);
     for(const name of ['copy','cut','paste'])this.container.addEventListener(name,event=>{
-      // 保留Chromium输入框默认编辑，阻止事件冒泡到Typora正文剪贴板处理器。
+      // Preserve the default editing of Chromium input box, prevent event bubbling to Typora document content clipboard handler.
       if(monaco_text_input(event.target))event.stopPropagation();
     });
     this.container.addEventListener("keydown",event=>{
@@ -174,11 +176,11 @@ export class git_diff_editor {
       if(event.key==="F7"&&"accessibleDiffViewerNext" in this.editor){event.preventDefault();event.stopImmediatePropagation();if(this.rendered_markdown)this.navigate(event.shiftKey?"previous":"next");else this.accessible_diff(event.shiftKey);}
     },true);
     this.container.addEventListener("keydown", event => {
-      // 源码编辑器自行处理查找、选择与复制，不能被提交图或 Markdown 快捷键拦截。
+      // The source code editor handles its own search, selection, and copy, and cannot be intercepted by submit diagram or Markdown shortcut keys.
       event.stopPropagation();
     });
   }
-  /** 右侧动作属于此编辑组，与标签共享一行；不使用跨组定位或负偏移。 */
+  /** The actions on the right belong to this editing group, and share a line with the tab; do not use cross-group positioning or negative offset. */
   attach_toolbar(header:HTMLElement):void {
     this.detach_toolbar();this.toolbar.hidden=true;
     const mount=()=>{const strip=header.closest<HTMLElement>(".workspace-tab-strip");if(!strip||!header.isConnected)return;strip.append(this.toolbar);this.toolbar.hidden=false;this.toolbar_observer?.disconnect();this.toolbar_observer=undefined;};
@@ -198,7 +200,7 @@ export class git_diff_editor {
     path.title=this.data.right!=null?`${file} — ${left} ↔ ${right}`:`${file} — ${left}`;
     path.setAttribute("aria-label",path.title);this.labels.replaceChildren(path);
     if(this.data.right!=null){
-      const mode=el("button","git-diff-mode",this.rendered_markdown?"Markdown渲染对比":text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
+      const mode=el("button","git-diff-mode",this.rendered_markdown?workspace_text("git_diff_editor_markdown_render_comparison"):text(inline?"diff.inline_view":"diff.side_by_side"));mode.type="button";mode.append(git_icon("chevron-down"));mode.title=text("diff.editor_mode");mode.setAttribute("aria-label",text("diff.editor_mode"));mode.setAttribute("aria-haspopup","menu");
       mode.onclick=()=>{const rect=mode.getBoundingClientRect();workspace_menu(new MouseEvent("contextmenu",{clientX:rect.left,clientY:rect.bottom}),this.view_entries());};this.labels.append(mode);
     }
   }
@@ -232,7 +234,7 @@ export class git_diff_editor {
     this.refresh_labels();
     if(value)await this.render_markdown();else{this.invalidate_markdown();this.editor.layout();if(anchor)this.restore_content_anchor(anchor);this.pending_anchor=undefined;}
   }
-  /** 呈现方式及两侧编辑器位置归比较视图所有，导航服务只保存和交还快照。 */
+  /** The presentation style and the positions of the two editors on either side belong to the comparative view; the navigation service only saves and returns a snapshot. */
   capture_navigation_state(){
     const view=this.focused_editor(),scroll=this.rendered_markdown?this.markdown_preview?.scroll:undefined;
     return {word_wrap:this.wrapped,content_anchor:this.capture_content_anchor(),rendered_markdown:this.rendered_markdown,view_state:this.editor.saveViewState(),
@@ -252,7 +254,7 @@ export class git_diff_editor {
     }
     if(signal.aborted||this.disposed)return false;
     this.editor.layout();
-    // Monaco的单编辑器与差异编辑器分别接受自己保存的状态。
+    // The single editor and the diff editor of Monaco each accept their own saved state.
     this.editor.restoreViewState(state.view_state as never);
     const scroll=this.rendered_markdown?this.markdown_preview?.scroll:undefined;
     if(scroll){scroll.scrollTop=state.scroll_top;scroll.scrollLeft=state.scroll_left;scroll.tabIndex=-1;scroll.focus({preventScroll:true});}
@@ -268,7 +270,7 @@ export class git_diff_editor {
     if(!this.markdown_preview||!this.rendered_markdown||!('getLineChanges' in this.editor))return;
     const changes=this.editor.getLineChanges();if(changes===null){this.status.textContent=text('diff.calculating');return;}
     const key=JSON.stringify([this.models.map(model=>[model.id,model.getVersionId()]),this.data.left_label,this.data.right_label,changes.map(change=>[change.originalStartLineNumber,change.originalEndLineNumber,change.modifiedStartLineNumber,change.modifiedEndLineNumber])]);
-    // Monaco延迟重算相同结果不应重建已显示的排版或暂时撤销位置映射。
+    // The delayed recalculation of Monaco producing the same result should not rebuild the already displayed formatting or temporarily revoked position mapping.
     if(key===this.markdown_render_key){if(this.markdown_render_task)return this.markdown_render_task;if(this.markdown_preview.container.dataset.ready==='true')return;}
     this.markdown_render_key=key;
     const epoch=++this.markdown_epoch,input_epoch=this.input_epoch,anchor=this.pending_anchor||this.markdown_preview.capture();
@@ -292,7 +294,7 @@ export class git_diff_editor {
   view_entries():workspace_menu_entry[] {
     const inline=this.body.querySelector(".monaco-diff-editor")?.classList.contains("side-by-side")===false;
     return [
-      ...(this.markdown_preview?[{id:'diff_mode_markdown',title:'Markdown渲染对比',checked:this.rendered_markdown,action:()=>this.set_preferences({render_markdown:true})},{id:'diff_mode_source',title:'源码对比',checked:!this.rendered_markdown,action:()=>this.set_preferences({render_markdown:false})}]:[]),
+      ...(this.markdown_preview?[{id:'diff_mode_markdown',title:workspace_text("git_diff_editor_markdown_render_comparison"),checked:this.rendered_markdown,action:()=>this.set_preferences({render_markdown:true})},{id:'diff_mode_source',title:workspace_text("git_diff_editor_source_code_comparison"),checked:!this.rendered_markdown,action:()=>this.set_preferences({render_markdown:false})}]:[]),
       {id:"diff_mode_inline",title:text("diff.inline_view"),checked:!this.side_by_side,action:()=>this.set_preferences({render_side_by_side:false,render_markdown:false})},
       {id:"diff_mode_split",title:text("diff.side_by_side"),checked:this.side_by_side&&!this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:false,render_markdown:false})},
       {id:"diff_mode_auto",title:text(inline?"diff.automatic_inline":"diff.automatic_split"),checked:this.side_by_side&&this.inline_when_narrow,action:()=>this.set_preferences({render_side_by_side:true,inline_when_narrow:true,render_markdown:false})}
@@ -332,11 +334,11 @@ export class git_diff_editor {
   }
   focused_editor(): monaco.editor.IStandaloneCodeEditor {
     if (!("getModifiedEditor" in this.editor)) return this.editor;
-    // 模式切换和无障碍查看器退出后，以真实焦点归属修正Monaco尚未刷新的焦点缓存。
+    // After mode switching and the exit of the accessibility viewer, the real focus ownership is corrected for Monaco that has not yet refreshed the focus cache.
     for(const view of [this.editor.getOriginalEditor(),this.editor.getModifiedEditor()])if(view.getDomNode()?.contains(document.activeElement)){this.last_focused_editor=view;return view;}
     return this.last_focused_editor || (this.editor.getOriginalEditor().hasTextFocus() ? this.editor.getOriginalEditor() : this.editor.getModifiedEditor());
   }
-  /** 历史文本只提供可核实的模型状态；Git 输出字符串不携带原文件编码。 */
+  /** Historical text only provides verifiable model states; the Git output string does not carry the original file encoding. */
   create_readonly_status(): HTMLElement {
     if(this.readonly_status)return this.readonly_status;
     const controls=el("div","workspace-editor-status-controls workspace-footer-group");this.readonly_status=controls;
@@ -362,7 +364,7 @@ export class git_diff_editor {
   bind_editor(view: monaco.editor.IStandaloneCodeEditor): void {
     this.subscriptions.push(bind_monaco_source_clipboard(view));
     this.subscriptions.push(view.onDidFocusEditorText(()=>{this.last_focused_editor=view;}));
-    // 右键不受正文是否先获焦影响；菜单作用于刚刚右击的这一侧。
+    // Right-click is not affected by whether the document content has already focused; the menu action applies to the side just right-clicked.
     this.subscriptions.push(view.onContextMenu(event => { view.focus(); this.context_menu(event.event.browserEvent as MouseEvent); }));
     const root = view.getDomNode();
     let pending: {query: string; selection: monaco.Selection; x: number; y: number} | undefined;
@@ -373,7 +375,7 @@ export class git_diff_editor {
       const target = view.getTargetAtClientPoint(event.clientX, event.clientY)?.position;
       if (!selection || selection.isEmpty() || !model || !target || !selection.containsPosition(target)) return;
       const query = model.getValueInRange(selection); if (!query.trim()) return;
-      // 在 Monaco 折叠选区之前捕获；只接管点在现有选区内的 Ctrl+左键。
+      // Capture before folding the Monaco selected area; only take over the left-click point within the existing selected area of Ctrl+.
       event.preventDefault(); event.stopImmediatePropagation();
       pending = {query, selection, x: event.clientX, y: event.clientY};
     };
@@ -405,9 +407,9 @@ export class git_diff_editor {
     const view = this.focused_editor(),readonly=view.getOption(monaco.editor.EditorOption.readOnly);
     const command=(id:string)=>run_monaco_source_command(view,id);
     const entries: workspace_menu_entry[] = [
-      {id:"cut",title:"剪切",shortcut:"Ctrl+X",disabled:readonly,action:()=>command("editor.action.clipboardCutAction")},
+      {id:"cut",title:workspace_text("git_diff_editor_cut"),shortcut:"Ctrl+X",disabled:readonly,action:()=>command("editor.action.clipboardCutAction")},
       {id:"copy",title:text("diff.copy"),shortcut:"Ctrl+C",action:()=>command("editor.action.clipboardCopyAction")},
-      {id:"paste",title:"粘贴",shortcut:"Ctrl+V",disabled:readonly,action:()=>command("editor.action.clipboardPasteAction")},
+      {id:"paste",title:workspace_text("git_diff_editor_paste"),shortcut:"Ctrl+V",disabled:readonly,action:()=>command("editor.action.clipboardPasteAction")},
       {id: "select_all", title: text("diff.select_all"), action: () => view.trigger("menu", "editor.action.selectAll", null)},
       {id: "find", title: text("diff.find_shortcut"), action: () => void view.getAction("actions.find")?.run()},
       {id: "word_wrap", title: text("diff.word_wrap"), checked: this.wrapped, separator: true, action: () => update_text_presentation(!this.wrapped)},

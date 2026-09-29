@@ -7,7 +7,7 @@ import type {git_graph_panel} from "./git_graph_panel";
 import {git_graph_text as text} from "./git_graph_i18n";
 import {create_workspace_hover_markdown} from "./workspace_hover_markdown";
 
-/** SCM自己的只读提交卡片；共享浮层不理解仓库、分支或Git命令。 */
+/** The SCM's own read-only commit card; shared floating layers do not understand the repository, branch, or Git command. */
 export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
   const cache=new Map<string,commit_hover_detail>();
   const hover=bind_workspace_hover(list,target=>{
@@ -20,7 +20,7 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
       heading.append(git_icon("account"),author,date);
       const message=el("div","git-commit-hover-message");
       const render_message=(source:string)=>message.replaceChildren(create_workspace_hover_markdown(
-        // VS Code Git hover逐换行分段，同时禁用正文图片；原始提交文本不改写。
+        // The VS Code Git hover is split line by line, while disabling document images; original commit text is not rewritten.
         panel.emoji(source).replace(/\r\n|\r|\n/gu,"\n\n"),
         url=>{if(!signal.aborted&&panel.root===state.root)void Promise.resolve().then(()=>panel.host.open_url(url)).catch(error=>{if(!signal.aborted)panel.report(error);});}
       ));
@@ -45,7 +45,7 @@ export function bind_git_commit_hover(list:HTMLElement,panel:git_graph_panel){
         stats.replaceChildren(el("span","",text("history.stats_files",{count:detail.files})),el("span","git-commit-hover-added","+"+detail.insertions),el("span","git-commit-hover-deleted","−"+detail.deletions));
       };
       const cached=cache.get(key);if(cached){apply(cached);return;}
-      // 复用读取器，取消浮层只放弃本次结果，不取消共用的列表/差异读取。
+      // Reuse the reader, cancel the floating layer only discards the current result, without canceling the shared list/difference reader.
       void read_commit_hover_detail(panel.runner.run,state,commit).then(detail=>{
         if(signal.aborted||panel.root!==state.root)return;
         if(cache.size>=128)cache.delete(cache.keys().next().value!);cache.set(key,detail);apply(detail);

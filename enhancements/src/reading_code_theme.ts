@@ -12,7 +12,7 @@ import {observe_workspace_theme,workspace_theme_mode} from './workspace_theme';
 const modes=['light','dark','dark_2026','light_2026'] as const;
 export type code_stack=[StateStack,StateStack,StateStack,StateStack];
 export const initial_code_stack=():code_stack=>[INITIAL,INITIAL,INITIAL,INITIAL];
-/** 基础主题显式选择配置；其他主题继续沿其原来的明暗代码配置。 */
+/** Base theme explicit selection configuration; other themes continue to use the original light/dark code configuration. */
 export function workspace_code_theme(doc:Document=document):typeof modes[number]{
  const declared=doc.defaultView?.getComputedStyle(doc.documentElement).getPropertyValue('--workspace-code-theme').trim();
  if(declared==='dark_2026'||declared==='light_2026')return declared;
@@ -24,10 +24,10 @@ export type themed_grammar={tokenizeLine(line:string,stack:code_stack):{tokens:c
 type code_profile={c:IGrammar;cpp:IGrammar;colors:string[];rules:{token:string;foreground:string;fontStyle:string}[]};
 let loading:Promise<{c:themed_grammar;cpp:themed_grammar;css:string;profiles:Record<string,code_profile>}>|undefined;
 const fallback_scopes:Record<string,string>={comment:'comment',string:'string',number:'constant.numeric',keyword:'keyword',def:'entity.name.function',type:'entity.name.type',variable:'variable',property:'variable.other.property',operator:'keyword.operator',atom:'constant.language',meta:'meta.preprocessor',builtin:'support.function',tag:'entity.name.tag',attribute:'entity.other.attribute-name',regexp:'string.regexp'};
-// 固定VS Code tokenClassificationRegistry的语义类别后备作用域。
+// Fix the semantic category of VS Code tokenClassificationRegistry in the fallback scope.
 export const semantic_scopes:Record<string,string>={namespace:'entity.name.namespace',type:'entity.name.type',class:'entity.name.type.class',enum:'entity.name.type.enum',interface:'entity.name.type.interface',struct:'entity.name.type.struct',typeParameter:'entity.name.type.parameter',parameter:'variable.parameter',variable:'variable.other.readwrite',property:'variable.other.property',enumMember:'variable.other.enummember',function:'entity.name.function',method:'entity.name.function.member',macro:'entity.name.function.preprocessor',event:'variable.other.event',decorator:'entity.name.decorator','variable.readonly':'variable.other.constant','property.readonly':'variable.other.constant.property','type.defaultLibrary':'support.type','class.defaultLibrary':'support.class','function.defaultLibrary':'support.function','variable.defaultLibrary':'support.variable',keyword:'keyword.control'};
 function metadata_class(mode:string,metadata:number){return `vsc-${mode}-fg-${(metadata>>>15)&511} vsc-${mode}-bg-${(metadata>>>24)&255} vsc-${mode}-style-${(metadata>>>11)&15}`;}
-/** 各配置独立token元数据；切换只切CSS，不复用其他配置的ruleStack/colorMap。 */
+/** Each configuration has independent token metadata; switching only affects CSS, and does not reuse other configurations' ruleStack/colorMap. */
 export function load_code_themes(){return loading ||= (async()=>{
  await loadWASM(wasm.buffer);
  const sources=new Map([['source.c',c],['source.cpp',cpp],['source.cpp.embedded.macro',macro],['source.c.platform',platform]].map(([scope,value])=>[scope as string,parseRawGrammar(JSON.stringify(value),'grammar.json')]));
@@ -42,7 +42,7 @@ export function load_code_themes(){return loading ||= (async()=>{
   const prefix=`:root[data-workspace-code-theme=${mode}] #write`,colors=themes[mode].colors;
   css.push(`${prefix} :is(.md-fences:not(.md-diagram),.CodeMirror,pre:not(.md-diagram),pre code){color:${colors['editor.foreground']}!important;background-color:${colors['editor.background']}!important}`,`${prefix} .CodeMirror-linenumber{color:${colors['editorLineNumber.foreground']}!important}`);
   css.push(`${prefix} :where(.CodeMirror-line span,pre code span){color:${colors['editor.foreground']}!important}`);
-  // 先映射宿主后备token；真实TextMate的精确metadata规则排列在其后。
+  // Map the host fallback token first; the precise metadata rules of real TextMate are arranged after that.
   for(const key of Object.keys(fallback_scopes)){
    const aliases:Record<string,string[]>={variable:['variable-2'],type:['variable-3','qualifier'],string:['string-2'],meta:['metatag'],def:['function']};
    const metadata=grammars[index].fallback.tokenizeLine2(key,INITIAL).tokens[1],color=registries[index].getColorMap()[(metadata>>>15)&511];

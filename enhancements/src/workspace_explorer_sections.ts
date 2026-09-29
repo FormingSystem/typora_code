@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {vscode_resource_entry} from "./workspace_open_vscode";
 import {is_empty_editor_path} from "./workspace_file_uri";
 import type {graph_leaf} from "./git_graph_host";
@@ -16,7 +17,7 @@ import {acquire_workspace_style} from "./workspace_styles";
 import {is_markdown_file} from "./file_language";
 import css from "./workspace_explorer_sections.css";
 
-/** 分区只消费现有文档叶子与文件命令，关闭和保存不维护第二套状态。 */
+/** Partition only consumes existing document leaves and file commands; close and save do not maintain a second state. */
 export function bind_workspace_explorer_sections(files:workspace_file_host,explorer:{container:HTMLElement;show():void},saves:workspace_save_service,editor_entries:(leaf:graph_leaf)=>workspace_menu_entry[]){
   const lifetime=create_workspace_lifetime(),workspace=files.core.app.workspace,container=explorer.container;
   lifetime.add(acquire_workspace_style("typora-code-explorer-sections",css).remove);
@@ -27,19 +28,19 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   const root=container.querySelector<HTMLElement>(".workspace-explorer-root")!,tree=container.querySelector<HTMLElement>(".workspace-explorer-tree")!,status=container.querySelector<HTMLElement>(".workspace-explorer-status")!;
   const folders=el("section","workspace-explorer-folders");root.before(folders);folders.append(root,tree,status);
   const opened=el("section","workspace-explorer-opened"),heading=el("div","workspace-explorer-section-heading workspace-section-header"),toggle=el("button","workspace-explorer-section-title workspace-section-title"),actions=el("div","workspace-explorer-section-actions workspace-section-actions"),body=el("div","workspace-explorer-opened-list");
-  toggle.type="button";toggle.setAttribute("aria-label","打开的编辑器");body.setAttribute("role","list");body.setAttribute("aria-label","打开的编辑器");heading.append(toggle,actions);opened.append(heading,body);folders.before(opened);
+  toggle.type="button";toggle.setAttribute("aria-label",workspace_text("explorer_sections_open_editor"));body.setAttribute("role","list");body.setAttribute("aria-label",workspace_text("explorer_sections_open_editor"));heading.append(toggle,actions);opened.append(heading,body);folders.before(opened);
   const run=(operation:()=>unknown)=>{try{Promise.resolve(operation()).catch(saves.report);}catch(error){saves.report(error);}};
   const leaves=()=>{const result:graph_leaf[]=[];workspace.eachLeaves(leaf=>{if(!is_empty_editor_path(leaf.state.path))result.push(leaf);});return result;};
-  actions.append(git_icon_button("save-all","全部保存",()=>run(files.save_all)),git_icon_button("close-all","关闭全部编辑器",()=>run(async()=>{for(const leaf of leaves())if(!await files.close_leaf(leaf))break;})));
+  actions.append(git_icon_button("save-all",workspace_text("explorer_sections_save_all"),()=>run(files.save_all)),git_icon_button("close-all",workspace_text("explorer_sections_close_all_editors"),()=>run(async()=>{for(const leaf of leaves())if(!await files.close_leaf(leaf))break;})));
   const timeline=lifetime.own(bind_workspace_timeline(files,saves,viewer,explorer));container.append(timeline.container);
   const visibility=():workspace_menu_entry[]=>{const value=read_workspace_save_settings();return[
-    {title:"打开的编辑器",checked:value["explorer.openEditors.enabled"],action:()=>set_workspace_save_settings({"explorer.openEditors.enabled":!value["explorer.openEditors.enabled"]})},
-    {title:"文件夹",checked:true,disabled:true,action:()=>{}},
-    {title:"时间线",checked:value["timeline.enabled"],action:()=>set_workspace_save_settings({"timeline.enabled":!value["timeline.enabled"]})},
-    {title:"资源管理器与保存设置…",separator:true,action:open_workspace_save_settings},
+    {title:workspace_text("explorer_sections_open_editor"),checked:value["explorer.openEditors.enabled"],action:()=>set_workspace_save_settings({"explorer.openEditors.enabled":!value["explorer.openEditors.enabled"]})},
+    {title:workspace_text("explorer_sections_folder"),checked:true,disabled:true,action:()=>{}},
+    {title:workspace_text("explorer_sections_timeline"),checked:value["timeline.enabled"],action:()=>set_workspace_save_settings({"timeline.enabled":!value["timeline.enabled"]})},
+    {title:workspace_text("explorer_sections_explorer_with_save_settings"),separator:true,action:open_workspace_save_settings},
   ];};
   const toolbar=container.querySelector(".workspace-explorer-toolbar .workspace-explorer-actions")!;
-  const menu=git_icon_button("more","资源管理器视图",()=>{});menu.onclick=event=>workspace_menu(event,visibility(),"workspace-menu-compact");toolbar.append(menu);
+  const menu=git_icon_button("more",workspace_text("explorer_sections_explorer_view"),()=>{});menu.onclick=event=>workspace_menu(event,visibility(),"workspace-menu-compact");toolbar.append(menu);
   const root_title=root.querySelector<HTMLElement>(".workspace-explorer-root-name")!,old_context=root.oncontextmenu,old_title_context=root_title.oncontextmenu;
   const folder_toggle=el("button","workspace-explorer-section-title workspace-section-title"),folder_caret=el("span","workspace-explorer-folder-caret"),folder_actions=root.querySelector<HTMLElement>(".workspace-explorer-actions")!;
   folder_toggle.type="button";folder_caret.setAttribute("aria-hidden","true");root_title.before(folder_toggle);folder_toggle.append(folder_caret,root_title);
@@ -50,7 +51,7 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   toggle.onclick=()=>{collapsed.open=!collapsed.open;remember();render_layout();};heading.oncontextmenu=event=>{event.preventDefault();workspace_menu(event,visibility(),"workspace-menu-compact");};
   function render_layout(){
     const value=read_workspace_save_settings();opened.hidden=!value["explorer.openEditors.enabled"];body.hidden=collapsed.open;
-    opened.classList.toggle("is-collapsed",collapsed.open);toggle.replaceChildren(git_icon(collapsed.open?"chevron-right":"chevron-down"),el("span","workspace-explorer-section-label","打开的编辑器"));toggle.setAttribute("aria-expanded",String(!collapsed.open));
+    opened.classList.toggle("is-collapsed",collapsed.open);toggle.replaceChildren(git_icon(collapsed.open?"chevron-right":"chevron-down"),el("span","workspace-explorer-section-label",workspace_text("explorer_sections_open_editor")));toggle.setAttribute("aria-expanded",String(!collapsed.open));
     folder_caret.replaceChildren(git_icon(collapsed.folders?"chevron-right":"chevron-down"));
     folder_toggle.setAttribute("aria-expanded",String(!collapsed.folders));tree.hidden=collapsed.folders;status.hidden=collapsed.folders;folders.classList.toggle("is-collapsed",collapsed.folders);
     body.style.maxHeight=value["explorer.openEditors.visible"]*22+"px";body.style.minHeight=Math.min(value["explorer.openEditors.minVisible"],value["explorer.openEditors.visible"])*22+"px";
@@ -65,15 +66,15 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
     const groups=new Map<object,graph_leaf[]>();for(const leaf of items){const group=groups.get(leaf.parent)||[];group.push(leaf);groups.set(leaf.parent,group);}
     let group_number=0;
     for(const [owner,group] of groups){
-      if(groups.size>1)body.append(el("div","workspace-explorer-editor-group","组 "+(++group_number)));
+      if(groups.size>1)body.append(el("div","workspace-explorer-editor-group",workspace_text("explorer_sections_group")+(++group_number)));
       if(sort==="editorOrder"){const children=(owner as {children?:graph_leaf[]}).children;if(children)group.sort((left,right)=>children.indexOf(left)-children.indexOf(right));}
       if(sort!=="editorOrder")group.sort((a,b)=>{const left=files.editor_state(a).file_path||a.state.path,right=files.editor_state(b).file_path||b.state.path;return(sort==="alphabetical"?files.path_api.basename(left):left).localeCompare(sort==="alphabetical"?files.path_api.basename(right):right);});
       for(const leaf of group){
-        const state=files.editor_state(leaf),row=el("div","workspace-explorer-open-row"),close=git_icon_button("close","关闭",()=>run(()=>files.close_leaf(leaf))),button=el("button","workspace-explorer-open-file");
+        const state=files.editor_state(leaf),row=el("div","workspace-explorer-open-row"),close=git_icon_button("close",workspace_text("community_plugin_settings_close"),()=>run(()=>files.close_leaf(leaf))),button=el("button","workspace-explorer-open-file");
         row.dataset.openLeaf=String(identity(leaf));row.setAttribute("role","listitem");row.classList.toggle("is-active",leaf===workspace.activeLeaf);row.classList.toggle("is-dirty",state.dirty);row.classList.toggle("is-preview",leaf.state.workspace_preview===true);
-        const tab=workspace_leaf_tab(leaf),label=state.file_path?files.path_api.basename(state.file_path):tab?.querySelector(".typ-file-basename")?.textContent||tab?.title||"编辑器";
+        const tab=workspace_leaf_tab(leaf),label=state.file_path?files.path_api.basename(state.file_path):tab?.querySelector(".typ-file-basename")?.textContent||tab?.title||workspace_text("explorer_sections_editor");
         const description=state.file_path?files.path_api.dirname(files.path_api.relative(files.context_root()||files.path_api.dirname(state.file_path),state.file_path)):"";
-        button.type="button";button.title=state.file_path||label;button.dataset.editorPath=state.file_path;button.setAttribute("aria-label",label+(state.dirty?"，未保存":""));button.setAttribute("aria-current",String(leaf===workspace.activeLeaf));
+        button.type="button";button.title=state.file_path||label;button.dataset.editorPath=state.file_path;button.setAttribute("aria-label",label+(state.dirty?workspace_text("explorer_sections_unsaved"):""));button.setAttribute("aria-current",String(leaf===workspace.activeLeaf));
         button.append(state.file_path?workspace_file_icon(state.file_path):git_icon("files"),el("span","workspace-explorer-open-name",label),el("span","workspace-explorer-open-description",description==="."?"":description));
         button.onclick=()=>{if(leaves().includes(leaf)){workspace.activeLeaf=leaf.parent.toggleTab(leaf.state.path);render_opened();}};button.ondblclick=()=>files.keep_open(leaf);
         row.oncontextmenu=event=>{event.preventDefault();const order=["reopen","open_vscode","close","close_others","close_saved","close_all"],entries=editor_entries(leaf).filter(entry=>order.includes(entry.id||"")).sort((a,b)=>order.indexOf(a.id!)-order.indexOf(b.id!)).map(entry=>({...entry,separator:entry.id==="close"}));workspace_menu(event,entries,"workspace-menu-compact");};
@@ -84,13 +85,15 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   }
   body.onkeydown=event=>{if(event.isComposing)return;const buttons=[...body.querySelectorAll<HTMLButtonElement>(".workspace-explorer-open-file")],index=buttons.indexOf(event.target as HTMLButtonElement);if(index<0)return;if(event.key==="ArrowDown"||event.key==="ArrowUp"){event.preventDefault();buttons[Math.max(0,Math.min(buttons.length-1,index+(event.key==="ArrowDown"?1:-1)))]?.focus();}};
   const schedule=()=>{if(!frame)frame=requestAnimationFrame(()=>{frame=0;render_opened();});};
-  lifetime.add(workspace.on("active-leaf:change",schedule));lifetime.add(workspace.on("layout-changed",schedule));lifetime.add(workspace.on("file:open",schedule));lifetime.add(saves.subscribe(schedule));lifetime.add(observe_workspace_save_settings(render_layout));
+  lifetime.add(workspace.on("active-leaf:change",schedule));
+  for(const root of [workspace.rootSplit,workspace.floatingSplit,workspace.rightSplit])if(root?.on)lifetime.add(root.on("layout-changed",schedule));
+  lifetime.add(workspace.on("file:open",schedule));lifetime.add(saves.subscribe(schedule));lifetime.add(observe_workspace_save_settings(render_layout));
   lifetime.listen(container,"typora-code:explorer-file-menu",((event:CustomEvent<{path:string;directory:boolean;entries:workspace_menu_entry[]}>)=>{
     const {path,directory,entries}=event.detail;if(directory)return;
-    const children:workspace_menu_entry[]=[{title:"文本编辑器",action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,true);})}];
-    if(is_markdown_file(path))children.unshift({title:"Markdown 编辑器",action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,false);})});
-    entries.splice(2,0,{title:"打开方式…",children,action:()=>{}},{title:"与剪贴板比较",action:()=>run(async()=>{const right=await files.read_text(path),left=(window as any).reqnode("electron").clipboard.readText();viewer.open({title:files.path_api.basename(path)+"（剪贴板比较）",file:path,left,right,left_label:"剪贴板",right_label:path});})});
-    entries.push({title:"打开时间线",separator:true,action:()=>timeline.open(path)});
+    const children:workspace_menu_entry[]=[{title:workspace_text("breadcrumbs_text_editor"),action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,true);})}];
+    if(is_markdown_file(path))children.unshift({title:workspace_text("breadcrumbs_markdown_editor"),action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,false);})});
+    entries.splice(2,0,{title:workspace_text("explorer_sections_open_with"),children,action:()=>{}},{title:workspace_text("explorer_sections_compare_with_clipboard"),action:()=>run(async()=>{const right=await files.read_text(path),left=(window as any).reqnode("electron").clipboard.readText();viewer.open({title:files.path_api.basename(path)+workspace_text("explorer_sections_compare_with_clipboard_3ecac969"),file:path,left,right,left_label:workspace_text("explorer_sections_clipboard"),right_label:path});})});
+    entries.push({title:workspace_text("explorer_sections_open_timeline"),separator:true,action:()=>timeline.open(path)});
   }) as EventListener);
   render_layout();lifetime.add(()=>{if(frame)cancelAnimationFrame(frame);menu.remove();folder_toggle.before(root_title);folder_toggle.remove();root.classList.remove("workspace-explorer-section-heading","workspace-section-header");root_title.classList.remove("workspace-explorer-section-label");folder_actions.classList.remove("workspace-explorer-section-actions","workspace-section-actions");root.oncontextmenu=old_context;root_title.oncontextmenu=old_title_context;tree.hidden=false;status.hidden=false;folders.before(root,tree,status);folders.remove();opened.remove();});
   return{dispose:()=>lifetime.dispose()};

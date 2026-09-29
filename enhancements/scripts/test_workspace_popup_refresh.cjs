@@ -1,4 +1,4 @@
-// 真实Chromium布局：重复通知不能把小数像素误差变成持续定位循环。
+// Real Chromium layout: repeated notifications cannot turn small decimal pixel errors into continuous positioning loops.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild'),assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_popup_refresh_'));app.setPath('userData',path.join(evidence,'profile'));app.disableHardwareAcceleration();

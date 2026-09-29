@@ -1,4 +1,4 @@
-// 默认范围、动态控件与独立覆写：真实鼠标/键盘输入，不复制生产CSS。
+// Default range, dynamic controls, and independent overwrite: real mouse/keyboard input, not copy from production CSS.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const evidence=path.join(__dirname,'../../.cache/interaction_defaults_20260913');fs.mkdirSync(evidence,{recursive:true});

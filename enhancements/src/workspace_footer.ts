@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {workspace_interaction} from "./workspace_interaction";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -9,7 +10,7 @@ import workspace_footer_css from "./workspace_footer.css";
 type footer_binding = { dispose(): void };
 const footer_bindings = new WeakMap<HTMLElement, footer_binding>();
 
-/** 移动原生节点，保留 Typora 绑定在容器和菜单上的委托事件。 */
+/** When moving native nodes, retain the Typora binding on the container and menu. */
 export function install_workspace_footer(): footer_binding | undefined {
   const actions = document.querySelector<HTMLElement>("#ty-sidebar-footer");
   const footer = document.querySelector<HTMLElement>("footer.ty-footer");
@@ -32,17 +33,17 @@ export function install_workspace_footer(): footer_binding | undefined {
     ["#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item","icon-control"],
     ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand","text"],
   ])for(const node of document.querySelectorAll<HTMLElement>(selector)){
-    // 无button语义的原生div也从同一角色登记处接入；已有独立策略保持。
+    // Native div without button semantics also connect to the same role registration; existing independent strategies are maintained.
     if(role==="control"&&!node.hasAttribute("data-workspace-interaction")){
       workspace_interaction(node);interaction_nodes.add(node);
     }
     const name="workspace-footer-"+role;
     if(!node.classList.contains(name)){node.classList.add(name);roles.set(node,[...(roles.get(node)||[]),name]);}
   }
-  actions.setAttribute("role", "group"); actions.setAttribute("aria-label", "文件操作");
+  actions.setAttribute("role", "group"); actions.setAttribute("aria-label", workspace_text("footer_file_operations"));
   footer.removeAttribute("aria-hidden"); footer.dataset.workspaceFooter = "ready";
   sidebar.dataset.workspaceFooter = "moved";
-  // 字数和拼写检查仍在最右侧；整个文件操作组插在它们前面。
+  // The number of characters and spelling check are still on the rightmost; the entire file operation group is inserted in front of them.
   footer.insertBefore(actions, footer.querySelector(":scope > .footer-item-right"));
   const document_margin=install_workspace_document_margin(footer);
   const popups=bind_workspace_footer_popups(footer,actions,sidebar);
@@ -59,16 +60,16 @@ export function install_workspace_footer(): footer_binding | undefined {
     ["#ty-sort-by-date-btn","history"],
     ["#ty-sort-by-create-btn","new-file"]
   ]);
-  // 侧栏模式仅影响直接操作行；不把宿主 active-tab-outline 的后代隐藏规则带进独立文件菜单。
+  // The sidebar mode only affects direct operation rows; it does not bring the host active-tab-outline's descendant hiding rules into the independent file menu.
   const update_context = () => {
     actions.dataset.workspaceSidebarTab=sidebar.classList.contains("active-tab-outline")?"outline":"files";
-    // 增强侧栏可能移除原生展示类，真实列表配置仍由宿主 library 持有。
+    // Enhanced sidebar may remove native display classes; the real list configuration is still held by the host library.
     const native_tree = (window as unknown as {editor?: {library?: {useTreeStyle?: boolean}}}).editor?.library?.useTreeStyle;
     const has_mode = mirrored_classes.some(name => sidebar.classList.contains(name));
     for (const name of mirrored_classes) actions.classList.toggle(name, has_mode ? sidebar.classList.contains(name) : typeof native_tree === "boolean" && (name === "use-file-tree-style") === native_tree);
   };
   update_context();
-  // 只观察侧栏状态；不观察移入的节点，避免 class 镜像产生自触发循环。
+  // Only observe the sidebar status; do not observe the moved nodes, to avoid class mirror generation of self-triggering loops.
   const observer = new MutationObserver(update_context);
   observer.observe(sidebar, { attributes: true, attributeFilter: ["class"] });
   let disposed = false;

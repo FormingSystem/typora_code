@@ -1,4 +1,4 @@
-"""为整套非UI检查提供专属临时目录、输出留存和最终回收。"""
+"Provide exclusive temporary directories, output retention, and final recovery for the entire non-UI check."
 from pathlib import Path
 import os
 import subprocess

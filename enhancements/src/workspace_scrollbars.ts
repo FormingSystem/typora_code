@@ -4,11 +4,11 @@ import {create_scrollbar_visibility} from "./scrollbar_visibility";
 const OPACITY_PROPERTY = "--workspace-scrollbar-opacity";
 const EXCLUDED = ".monaco-editor,.monaco-scrollable-element,.xterm,.CodeMirror,#write,[data-workspace-scrollbar-visibility='native']";
 
-/** 原生滚动区域按需登记，动态插入不需要扫描或观察DOM。 */
+/** Native scroll area registers on demand, dynamically inserts without scanning or observing DOM. */
 export function bind_workspace_scrollbars() {
   const lifetime = create_workspace_lifetime();
   const root = document.documentElement;
-  // 自定义属性动画不可用时保留原来的可见滚动条。
+  // Retain the original visible scroll bar when custom property animations are unavailable.
   if (!CSS.supports("background", "color-mix(in srgb, black 50%, transparent)") || !CSS.registerProperty || !Element.prototype.animate) return lifetime;
   const previous_mode = root.getAttribute("data-workspace-scrollbars");
   root.setAttribute("data-workspace-scrollbars", "auto");
@@ -42,17 +42,17 @@ export function bind_workspace_scrollbars() {
     const controller = create_scrollbar_visibility({
       schedule(callback, delay) { const timer = setTimeout(callback, delay); return () => clearTimeout(timer); },
       animate(visible, duration, finished) {
-        // 中断时从实际透明度继续，不跳回1；不覆盖元素自身的opacity或动画。
+        // Resume from actual transparency when interrupted, without jumping back to 1; do not override the element's own opacity or animation.
         const from = getComputedStyle(node).getPropertyValue(OPACITY_PROPERTY).trim() || "0";
         animation?.cancel();
         node.style.setProperty(OPACITY_PROPERTY, visible ? "1" : "0");
         animation = node.animate([{[OPACITY_PROPERTY]: from}, {[OPACITY_PROPERTY]: visible ? "1" : "0"}], {
-          // 用户明确指定渐隐；等效上游 reduceMotion=off，仅限本滚动条绘制层。
+          // User explicitly specified fade; equivalent upstream reduceMotion=off, limited to this scrollbar drawing layer.
           duration,
           easing: "linear",
         });
         animation.onfinish = finished;
-        // 数值由当前动画采样；新动画创建前不能先取消它。
+        // Value is sampled by current animation; it cannot be canceled before creating a new animation.
         return () => { if (animation) animation.onfinish = null; };
       },
       hidden: release,
@@ -80,10 +80,10 @@ export function bind_workspace_scrollbars() {
   const end_drag = () => { for (const node of dragged) entries.get(node)?.drag(false); dragged.clear(); };
   lifetime.listen(window, "pointerup", end_drag, true);
   lifetime.listen(window, "pointercancel", end_drag, true);
-  // Chromium原生滚动条可能只在释放时报告mouse事件。
+  // The native scrollbar Chromium may only report mouse events when released.
   lifetime.listen(window, "mouseup", end_drag, true);
   lifetime.listen(window, "blur", () => { move_hover(null); end_drag(); });
-  // 激活时鼠标可能已在区域内；只采样一次悬停路径，不扫描全部滚动节点。
+  // The mouse may already be in the area when activated; only sample one hover path, do not scan all scroll nodes.
   const initial_hover = document.querySelectorAll(":hover");
   move_hover(initial_hover.item(initial_hover.length - 1));
   lifetime.add(() => {

@@ -1,4 +1,4 @@
-// 正式构建原始宿主的组合场景；程序滚动与真实硬件验收分别记录。
+// Officially build the composite scenario of the original host; record program rolling and real hardware acceptance separately.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),cp=reqnode('child_process'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),assert=(v,label)=>{if(!v)throw Error(label);checks.push(label);};
@@ -7,7 +7,7 @@
  const report=(status,error)=>fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status,error,checks,samples},null,2));
  try{
   await pause(2400);
-  // 与反馈一致保留后台渲染/源码比较；这些是实际Git结果，不是空占位节点。
+  // Retain the background rendering/source code comparison consistent with feedback; these are actual Git results, not empty placeholder nodes.
   const cwd=path.join(base,'workspace'),names=['review-a.md','review-b.md','review.js'];
   const before='# Review\n\n'+Array.from({length:180},(_,i)=>'paragraph '+i+'\n\n').join('');
   for(const name of names)fs.writeFileSync(path.join(cwd,name),name.endsWith('.js')?'// source\n'+Array.from({length:1000},(_,i)=>'const value_'+i+' = '+i+';\n').join(''):before);

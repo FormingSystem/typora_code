@@ -1,4 +1,4 @@
-/* VS Code 645f29c editor/title：拆分与更多在所属组标签行内；16px Codicon + 两侧2px命中内边距。 */
+/* VS Code 645f29c editor/title: Splitting and more are within the group tab row; 16px Codicon + 2 sides 2px hit the inner padding. */
 .workspace-tab-strip > .workspace-file-header {
   display:flex;align-items:center;flex:0 0 auto;gap:4px;height:100%;padding:0 4px;
   color:var(--workspace-tab-active-fg);background:var(--workspace-tab-strip-bg);

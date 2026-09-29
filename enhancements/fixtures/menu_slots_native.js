@@ -1,4 +1,4 @@
-// 原始 Typora 隔离副本：实际顶栏/公共菜单及核心 Menu 的语义和文字几何。
+// Original Typora isolated copy: semantic and textual geometry of actual top bar / public menu and core Menu.
 (async()=>{
   const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
   const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

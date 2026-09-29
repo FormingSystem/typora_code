@@ -1,20 +1,21 @@
+import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 type trash_runtime = {JSBridge?: {invoke(command: string, ...args: unknown[]): Promise<unknown>}; reqnode(name: string): any};
 
-/** Typora 的回收站在主进程执行；拒绝回收不能退化为永久删除。 */
+/** The recycling station of Typora is executed in the main process; the rejection of recycling cannot be degenerated into permanent deletion. */
 export async function trash_native_path(runtime: trash_runtime, target: string): Promise<void> {
   const remote=remote_files_for(target);if(remote){await remote.trash(target);return;}
   const fs = runtime.reqnode("fs").promises;
   if (runtime.JSBridge?.invoke) {
     if (await runtime.JSBridge.invoke("shell.trashItem", target) !== true) {
-      throw new Error("未能移到回收站：" + target + "。请检查文件占用、目录权限及回收站支持；未执行永久删除。");
+      throw new Error(workspace_text("native_trash_failed_to_move_to_the_recycle_bin") + target + workspace_text("native_trash_please_check_file_locking_directory_permissions_and_recycle"));
     }
   } else {
     const shell = runtime.reqnode("electron")?.shell;
-    if (typeof shell?.trashItem !== "function") throw new Error("当前宿主未提供回收站接口，文件已保留。");
+    if (typeof shell?.trashItem !== "function") throw new Error(workspace_text("native_trash_the_current_host_does_not_provide_a_recycle_bin_interface_th"));
     await shell.trashItem(target);
   }
   try { await fs.lstat(target); }
   catch (error) { if ((error as {code?: string}).code === "ENOENT") return; throw error; }
-  throw new Error("回收操作返回后项目仍然存在：" + target + "。请刷新并核对，未执行永久删除。");
+  throw new Error(workspace_text("native_trash_the_recycle_bin_operation_returned_but_the_project_still_exi") + target + workspace_text("native_trash_please_refresh_and_verify_permanent_deletion_was_not_execute"));
 }

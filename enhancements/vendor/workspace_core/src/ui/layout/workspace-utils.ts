@@ -105,7 +105,7 @@ function split(direction: Direction, path?: string) {
   workspace.activeLeaf = leaf
 }
 
-/** 创建紧邻目标组的新组，不关闭或重新读取原文档。 */
+/** Create new group adjacent to target group, without closing or re-reading original document. */
 export function split_workspace_group(leaf: WorkspaceLeaf, side: 'left' | 'right' | 'up' | 'down'): WorkspaceTabs {
   const direction: Direction = side === 'left' || side === 'right' ? 'vertical' : 'horizontal'
   const previous_group = leaf.parent as WorkspaceTabs

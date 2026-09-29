@@ -1,4 +1,4 @@
-// 正式共享绘制+实际DOM绑定；真实Chromium输入和像素采样，不触碰用户文件。
+// Official shared drawing + actual DOM binding; real Chromium input and pixel sampling, without touching user files.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict'),{build}=require('esbuild');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora_scrollbar_fade_'));

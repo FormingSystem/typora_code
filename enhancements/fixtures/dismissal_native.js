@@ -1,4 +1,4 @@
-// 生产快速打开与原始宿主外部区域；事件由隔离DOM派发，非物理鼠标验收。
+// Production quick open with the original host's external area; events are dispatched by the isolated DOM, not physical mouse acceptance.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

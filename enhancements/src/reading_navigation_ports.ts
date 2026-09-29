@@ -1,6 +1,6 @@
 import type {reading_location} from "./reading_history";
 
-/** 编辑器只提供自身位置；历史与快捷键仍由阅读导航统一管理。 */
+/** Editor only provides its own position; history and keyboard shortcuts are still managed uniformly by the reading navigator. */
 export type navigation_editor_port = {
   capture(): reading_location | null;
   restore(location: reading_location, signal: AbortSignal): Promise<boolean>;

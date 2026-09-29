@@ -1,4 +1,4 @@
-"""检查本仓库提交的中文标题和逐行明细；只读，不修改消息或引用。"""
+"Check Chinese titles and line-by-line details of commits in this repository; read-only, do not modify messages or references."
 
 import argparse
 from pathlib import Path

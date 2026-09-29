@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_directories} from './workspace_directory_service';
 import {workspace_list_selection} from "./workspace_list_selection";
 import {register_workspace_context_guard} from "./workspace_context";
@@ -40,21 +41,21 @@ type explorer_node = {
   error?: string; loading?: Promise<void>; watcher?: {close(): void}; refresh_timer?: number;
 };
 const ROW_HEIGHT = 26;
-/** 资源管理器与选择器共用的虚拟文件树；宿主侧栏和确认事务由调用方持有。 */
+/** Explorer and selector share the same virtual file tree; host sidebar and confirmation transactions are held by the caller. */
 export function create_workspace_file_tree(options: workspace_file_tree_options) {
   const runtime = window as unknown as {reqnode(name: string): any};
   const fs = options.fs || runtime.reqnode("fs"), path_api = options.path_api || runtime.reqnode("path");
   const directories=acquire_workspace_directories(fs,path_api);
   const style = acquire_workspace_style("typora-code-style:workspace_explorer", explorer_css, {});
   const container = el("section", "linux-note-workspace-explorer");
-  if(options.selection)container.classList.add("workspace-file-tree-selection"); container.setAttribute("aria-label", "资源管理器");
+  if(options.selection)container.classList.add("workspace-file-tree-selection"); container.setAttribute("aria-label", workspace_text("file_tree_explorer"));
   const interaction=acquire_workspace_interaction(container);
   const toolbar = el("div", "workspace-explorer-toolbar");
-  const title = el("strong", "", "资源管理器");
+  const title = el("strong", "", workspace_text("file_tree_explorer"));
   const actions = el("div", "workspace-explorer-actions");
   const root_label = el("div", "workspace-explorer-root");
   const root_name = el("span", "workspace-explorer-root-name"), root_actions = el("div", "workspace-explorer-actions"); root_label.append(root_name, root_actions);
-  const tree = el("div", "workspace-explorer-tree"); tree.tabIndex = 0; tree.setAttribute("role", "tree"); tree.setAttribute("aria-label", "文件和文件夹");
+  const tree = el("div", "workspace-explorer-tree"); tree.tabIndex = 0; tree.setAttribute("role", "tree"); tree.setAttribute("aria-label", workspace_text("file_tree_files_and_folders"));
   const spacer = el("div", "workspace-explorer-spacer"); tree.append(spacer);
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
@@ -83,7 +84,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const set_status = (message: string) => {
     if (disposed) return;
     status.textContent = message; status.hidden = !message;
-    // 提示改变可用树高时，先滚动再渲染，保证错误输入及取消后的选中行仍完整可见。
+    // When the available tree height changes, first scroll then render, ensuring that the selected line remains fully visible even after errors or cancellation.
     keep_row_visible();
   };
   const run = (operation: () => unknown) => { void Promise.resolve().then(operation).catch(error => set_status(String(error))); };
@@ -93,8 +94,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     const button = el("button"); button.type = "button"; button.title = label; button.setAttribute("aria-label", label); button.append(icon(name)); button.onclick = () => run(action); return button;
   };
   const open_folder = async () => { await options.open_folder(); await sync_root(true); };
-  actions.append(icon_button("folder-opened", "打开文件夹", open_folder), icon_button("target", "定位当前文件", () => reveal()));
-  root_actions.append(icon_button("new-file", "新建文件", () => begin_create(false)), icon_button("new-folder", "新建文件夹", () => begin_create(true)), icon_button("refresh", "刷新资源管理器", () => refresh()), icon_button("collapse-all", "全部折叠", () => {
+  actions.append(icon_button("folder-opened", workspace_text("file_commands_open_folder"), open_folder), icon_button("target", workspace_text("file_tree_locate_current_file"), () => reveal()));
+  root_actions.append(icon_button("new-file", workspace_text("file_tree_new_file"), () => begin_create(false)), icon_button("new-folder", workspace_text("file_tree_new_folder"), () => begin_create(true)), icon_button("refresh", workspace_text("file_tree_refresh_explorer"), () => refresh()), icon_button("collapse-all", workspace_text("file_tree_all_collapse"), () => {
     if (!root) return;
     for (const child of root.children || []) collapse(child);
     rebuild();
@@ -144,7 +145,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       const shown = new Set(flat_nodes.slice(start, end));
       const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : undefined;
       const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : undefined;
-      // 保留鼠标下的行和名称节点；只回收离屏行，避免刷新切断浏览器双击序列。
+      // Keep the line and name node under the mouse; only recycle lines that are off-screen, avoiding refresh cutting off browser double-click sequences.
       for (const [node, view] of row_views) if (!shown.has(node)) { view.row.remove(); row_views.delete(node); }
       for (let index = start; index < end; index++) {
         const node = flat_nodes[index];
@@ -166,7 +167,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
               const start = flat_nodes.findIndex(candidate => candidate.path === selected_path), end = flat_nodes.indexOf(node);
               selection_paths.clear(); for (const candidate of flat_nodes.slice(Math.min(Math.max(start, 0), end), Math.max(start, end) + 1)) selection_paths.add(candidate.path); render(); return;
             }
-            // 目录逐次响应 click；只有文件区分双击，避免吞掉快速连点的第二击。
+            // Directories respond sequentially to click; only files distinguish double-click, avoiding swallowing rapid consecutive double-clicks.
             if (event.button !== 0 || event.altKey && (node.directory || options.selection || event.shiftKey || event.ctrlKey || event.metaKey) || !node.directory && event.detail >= 2) return;
             select(node, false, true); run(() => activate(node, !event.altKey));
           };
@@ -191,7 +192,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         const state = node.directory ? String(node.expanded) : "file";
         if (chevron.dataset.state !== state) { chevron.dataset.state = state; chevron.replaceChildren(...(node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : [])); }
         const name = node.display_name || node.name; if (label.textContent !== name) label.textContent = name;
-        const message = [node.link ? "链接" : "", node.loading ? "读取中…" : node.error ? "无法读取" : ""].filter(Boolean).join(" ");
+        const message = [node.link ? workspace_text("file_tree_link") : "", node.loading ? workspace_text("file_tree_reading") : node.error ? workspace_text("file_tree_cannot_read") : ""].filter(Boolean).join(" ");
         if (note.textContent !== message) note.textContent = message; note.classList.toggle("is-error", Boolean(node.error) && !node.loading);
         const children = [chevron, ...(node.directory ? [] : [file_icon]), rename_state?.node === node ? rename_state.input : label, ...(message ? [note] : [])];
         for (const child of [...row.children]) if (!children.includes(child as HTMLElement)) child.remove();
@@ -248,7 +249,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         for (const child of old_children.values()) close_branch(child, true);
         children.sort((left, right) => Number(right.directory) - Number(left.directory) || collator.compare(left.name, right.name) || left.name.localeCompare(right.name));
         node.children = children; watch(node); rebuild();
-        // 紧凑文件夹只探测可见目录的单子目录链；遇到分叉即停，不遍历分叉以下正文。
+        // Compact folder only detects the single subdirectory chain of visible directories; stop when encountering a fork, do not traverse below the fork.
         if (compact_folders && !probing) for (const child of children) {
           let current = child;
           for (let depth = 0; current.directory && !current.link && depth < 32; depth++) {
@@ -257,9 +258,9 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
             current = current.children[0];
           }
         }
-        if (node === root && !children.length) set_status("此文件夹为空。");
+        if (node === root && !children.length) set_status(workspace_text("file_tree_this_folder_is_empty"));
       } catch (error) {
-        if (!disposed && current_generation === generation) { node.error = String(error); set_status("无法读取文件夹：" + (options.selection?.label(node.path) || node.path) + "\n" + node.error); }
+        if (!disposed && current_generation === generation) { node.error = String(error); set_status(workspace_text("file_tree_cannot_read_the_folder") + (options.selection?.label(node.path) || node.path) + "\n" + node.error); }
       } finally {
         node.loading = undefined;
         if (!disposed && generation === current_generation) rebuild();
@@ -271,7 +272,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (rename_state || disposed || nodes.get(node.path) !== node) return;
     const current_generation = generation;
     if (node.link && !node.directory) {
-      // 仅在用户点击链接时查询目标；不递归跟随符号链接遍历仓库。
+      // Query the target only when the user clicks a link; do not recursively follow symbolic links to traverse the repository.
       const stat = await fs.promises.stat(node.path); if (disposed || generation !== current_generation || nodes.get(node.path) !== node) return; node.directory = stat.isDirectory();
     }
     if (node.directory) {
@@ -287,59 +288,59 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if(options.selection){event.preventDefault();return;}
     const current_generation=generation;
     const selected_files=[...selection_paths].filter(path=>!nodes.get(path)?.directory);
-    const entries: workspace_menu_entry[] = node === root ? [{title: "全部折叠", action: () => { for (const child of node.children || []) collapse(child); rebuild(); }}]
-      : node.directory ? [{title: node.expanded ? "折叠文件夹" : "展开文件夹", action: () => run(() => activate(node))}]
-      : [{title: "打开文件", action: () => run(() => options.open_file(node.path))}, {title: "在右侧打开", action: () => run(() => options.open_file(node.path, {}, "right"))}];
-    if (node.directory && options.create) entries.push({title: "新建文件…", separator: true, action: () => run(() => begin_create(false, node))}, {title: "新建文件夹…", action: () => run(() => begin_create(true, node))});
-    if(options.reveal_system&&!remote_files_for(node.path))entries.push({title:"在系统文件资源管理器中显示",shortcut:"Shift+Alt+R",action:()=>run(()=>options.reveal_system!(node.path))});
-    if(options.terminal)entries.push({title:"在集成终端中打开",action:()=>run(()=>options.terminal!(node.directory?node.path:node.parent!.path))});
-    if(node.directory&&options.find_in_folder)entries.push({title:"在文件夹中查找…",shortcut:"Shift+Alt+F",separator:true,action:()=>run(()=>options.find_in_folder!(node.path))});
+    const entries: workspace_menu_entry[] = node === root ? [{title: workspace_text("file_tree_all_collapse"), action: () => { for (const child of node.children || []) collapse(child); rebuild(); }}]
+      : node.directory ? [{title: node.expanded ? workspace_text("file_tree_collapse_folder") : workspace_text("file_tree_expand_folder"), action: () => run(() => activate(node))}]
+      : [{title: workspace_text("file_commands_open_file"), action: () => run(() => options.open_file(node.path))}, {title: workspace_text("file_tree_open_on_the_right"), action: () => run(() => options.open_file(node.path, {}, "right"))}];
+    if (node.directory && options.create) entries.push({title: workspace_text("file_tree_new_file_817fb4ed"), separator: true, action: () => run(() => begin_create(false, node))}, {title: workspace_text("file_tree_new_folder_fe33cf22"), action: () => run(() => begin_create(true, node))});
+    if(options.reveal_system&&!remote_files_for(node.path))entries.push({title:workspace_text("file_tree_display_in_system_file_explorer"),shortcut:"Shift+Alt+R",action:()=>run(()=>options.reveal_system!(node.path))});
+    if(options.terminal)entries.push({title:workspace_text("file_tree_open_in_integrated_terminal"),action:()=>run(()=>options.terminal!(node.directory?node.path:node.parent!.path))});
+    if(node.directory&&options.find_in_folder)entries.push({title:workspace_text("file_tree_search_in_folder"),shortcut:"Shift+Alt+F",separator:true,action:()=>run(()=>options.find_in_folder!(node.path))});
     if(!node.directory&&options.compare){
-      entries.push({title:"选择以进行比较",separator:true,action:()=>{compare_path=node.path;set_status("已选择比较文件："+node.name);}});
-      if(compare_path&&compare_path!==node.path)entries.push({title:"与已选项目比较",action:()=>run(()=>options.compare!(compare_path,node.path))});
-      if(selected_files.length===2)entries.push({title:"比较所选文件",action:()=>run(()=>options.compare!(selected_files[0],selected_files[1]))});
+      entries.push({title:workspace_text("file_tree_select_for_comparison"),separator:true,action:()=>{compare_path=node.path;set_status(workspace_text("file_tree_selected_comparison_file")+node.name);}});
+      if(compare_path&&compare_path!==node.path)entries.push({title:workspace_text("file_tree_compare_with_selected_item"),action:()=>run(()=>options.compare!(compare_path,node.path))});
+      if(selected_files.length===2)entries.push({title:workspace_text("file_tree_compare_selected_file"),action:()=>run(()=>options.compare!(selected_files[0],selected_files[1]))});
     }
-    if (node !== root && options.file_clipboard) entries.push({title: "剪切",shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => run(() => set_clipboard(true))}, {title: "复制",shortcut:"Ctrl+C", disabled:operation_busy, action: () => run(() => set_clipboard(false))});
-    if (node.directory && options.file_clipboard) entries.push({title: "粘贴",shortcut:"Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node))});
-    entries.push({title: "复制路径",shortcut:"Shift+Alt+C",separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
-      {title: "复制相对路径",shortcut:"Alt+K Alt+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
-    if (node !== root) entries.push({title: "重命名",shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
-    if (node !== root && options.trash) entries.push({title: "删除",shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
-    if (node.directory) entries.push({title: "刷新文件夹",separator:true, action: () => run(() => load_children(node, true))});
+    if (node !== root && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_cut"),shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => run(() => set_clipboard(true))}, {title: workspace_text("monaco_text_input_copy"),shortcut:"Ctrl+C", disabled:operation_busy, action: () => run(() => set_clipboard(false))});
+    if (node.directory && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_paste"),shortcut:"Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node))});
+    entries.push({title: workspace_text("editor_actions_copy_path"),shortcut:"Shift+Alt+C",separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
+      {title: workspace_text("file_path_actions_copy_relative_path"),shortcut:"Alt+K Alt+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
+    if (node !== root) entries.push({title: workspace_text("file_tree_rename"),shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
+    if (node !== root && options.trash) entries.push({title: workspace_text("file_tree_delete"),shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
+    if (node.directory) entries.push({title: workspace_text("file_tree_refresh_folder"),separator:true, action: () => run(() => load_children(node, true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
     container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu",{detail:{path:node.path,directory:node.directory,entries}}));
-    // 根目录已切换或目标节点消失时，关闭旧菜单不能再操作旧选择。
+    // When the root directory has switched or the target node has disappeared, the old menu cannot be operated again on the old selection.
     const guard=(items:workspace_menu_entry[])=>{for(const entry of items){const action=entry.action;entry.action=()=>{if(!disposed&&generation===current_generation&&nodes.get(node.path)===node)action();};if(entry.children)guard(entry.children);}};guard(entries);
     workspace_menu(event, entries, "workspace-explorer-menu workspace-menu-compact");
   }
   function begin_rename(node: explorer_node) {
     if (!root || node === root || disposed || rename_state?.busy) return;
     select(node, true);
-    const input = el("input", "workspace-explorer-rename"); input.value = node.name; input.setAttribute("aria-label", "新名称"); input.spellcheck = false;
-    rename_state = {node, input, busy: false, focus_requested: true}; set_status("输入新名称，按 Enter 确认，Esc 取消。");
+    const input = el("input", "workspace-explorer-rename"); input.value = node.name; input.setAttribute("aria-label", workspace_text("file_tree_new_name")); input.spellcheck = false;
+    rename_state = {node, input, busy: false, focus_requested: true}; set_status(workspace_text("file_tree_enter_new_name_press_enter_to_confirm_esc_to_cancel"));
     input.onkeydown = event => {
       event.stopPropagation();
       if (event.isComposing) return;
-      if (event.key === "Escape") { event.preventDefault(); if (!rename_state?.busy) { cancel_edit(); set_status("已取消操作。"); tree.focus({preventScroll: true}); render(); } }
+      if (event.key === "Escape") { event.preventDefault(); if (!rename_state?.busy) { cancel_edit(); set_status(workspace_text("file_tree_operation_canceled")); tree.focus({preventScroll: true}); render(); } }
       else if (event.key === "Enter") { event.preventDefault(); run(finish_rename); }
     };
-    // 聚焦由真正挂载输入框的 render 执行；滚动事件取消旧 RAF 时也不会漏掉聚焦。
+    // Focus is executed by the true mounted input box's render; when scroll events cancel the old RAF, it will not miss the focus.
     render();
   }
   async function finish_rename() {
     const edit = rename_state, current_root = root;
     if (!edit || !current_root || edit.busy) return;
     if (!edit.creating && edit.input.value === edit.node.name) { rename_state = undefined; tree.focus({preventScroll: true}); render(); return; }
-    edit.busy = true; edit.input.disabled = true; set_status("正在重命名…");
+    edit.busy = true; edit.input.disabled = true; set_status(workspace_text("file_tree_renaming"));
     try {
       const expanded = edit.node.expanded;
       const target = edit.creating ? await options.create!(current_root.path, edit.node.parent!.path, edit.input.value, edit.node.directory) : await options.rename!(current_root.path, edit.node.path, edit.input.value);
       rename_state = undefined;
       if (disposed || root !== current_root) return;
-      // 丢弃旧路径监视句柄，随后重新展开到新名称，避免目录改名后继续读取旧路径。
+      // Discard old path monitoring handles, then re-expand to the new name, avoiding reading the old path after directory renaming.
       close_branch(edit.node, true); await load_children(edit.node.parent || current_root, true); await reveal(target);
       const replacement = nodes.get(target); if (expanded && replacement?.directory) { replacement.expanded = true; await load_children(replacement); }
-      set_status((edit.creating ? "已创建 " : "已重命名为 ") + path_api.basename(target)); tree.focus({preventScroll: true});
+      set_status((edit.creating ? workspace_text("file_tree_created") : workspace_text("file_tree_renamed_to")) + path_api.basename(target)); tree.focus({preventScroll: true});
     } catch (error) {
       if (disposed) return;
       const renamed_path = (error as {renamed_path?: string}).renamed_path;
@@ -363,15 +364,15 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   async function set_clipboard(move: boolean) {
     if (!root || !options.file_clipboard || operation_busy) return;
     const current_root=root, paths=selection_paths.size?[...selection_paths]:selected_path?[selected_path]:[];
-    if(!paths.length)return;operation_busy=true;set_status("正在写入系统剪贴板…");
+    if(!paths.length)return;operation_busy=true;set_status(workspace_text("file_tree_writing_to_system_clipboard"));
     try { await options.file_clipboard.copy(current_root.path,paths,move,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path);
-      if(!disposed&&root===current_root)set_status(move?"已剪切，选择目标文件夹后粘贴。":"已复制到系统剪贴板。");
+      if(!disposed&&root===current_root)set_status(move?workspace_text("file_tree_cut_select_target_folder_to_paste"):workspace_text("file_tree_copied_to_system_clipboard"));
     } finally { operation_busy=false;if(!disposed)render(); }
   }
   async function paste(target = nodes.get(selected_path) || root) {
     if (!root || !target || !options.file_clipboard || operation_busy) return;
     const current_root=root;if(!target.directory)target=target.parent||root;
-    const destination=target;operation_busy=true;set_status("正在粘贴文件…");
+    const destination=target;operation_busy=true;set_status(workspace_text("file_tree_pasting_file"));
     try { const result=await options.file_clipboard.paste(current_root.path,destination.path,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path&&nodes.get(destination.path)===destination);
       if(!disposed&&root===current_root){await refresh();if(result.paths[0])await reveal(result.paths[0]);set_status(result.message);}
     } finally { operation_busy=false;if(!disposed)await refresh(); }
@@ -384,13 +385,13 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     const execute=()=>{
       if(accepted||operation_busy||disposed||root!==current_root)return;
       accepted=true;operation_busy=true;
-      run(async()=>{try{if(disposed||root!==current_root)return;await options.trash!(current_root.path,paths);selection_paths.clear();selected_path="";set_status("已移到回收站。");}finally{operation_busy=false;if(!disposed)await refresh();}});
+      run(async()=>{try{if(disposed||root!==current_root)return;await options.trash!(current_root.path,paths);selection_paths.clear();selected_path="";set_status(workspace_text("file_tree_moved_to_recycle_bin"));}finally{operation_busy=false;if(!disposed)await refresh();}});
     };
     if(options.confirm_delete?.()===false){execute();return;}
-    const dialog=workspace_dialog("删除","取消",()=>{trash_confirmation=undefined;dialogs.delete(dialog);});
+    const dialog=workspace_dialog(workspace_text("file_tree_delete"),workspace_text("language_service_settings_view_cancel"),()=>{trash_confirmation=undefined;dialogs.delete(dialog);});
     dialogs.add(dialog);trash_confirmation=dialog;
-    dialog.content.append(el("p","",paths.length===1?`确定要将“${path_api.basename(paths[0])}”移到回收站吗？`:`确定要将 ${paths.length} 个项目移到回收站吗？`));
-    const cancel=el("button","","取消"),accept=el("button","","移到回收站");
+    dialog.content.append(el("p","",paths.length===1?workspace_text("file_tree_are_you_sure_you_want_to_move_to_the_recycle_bin", {value_0: String(path_api.basename(paths[0]))}):workspace_text("file_tree_are_you_sure_you_want_to_move_items_to_the_recycle_bin", {value_0: String(paths.length)})));
+    const cancel=el("button","",workspace_text("language_service_settings_view_cancel")),accept=el("button","",workspace_text("file_tree_move_to_recycle_bin"));
     cancel.onclick=()=>dialog.close();accept.onclick=()=>{dialog.close();execute();};
     dialog.footer.replaceChildren(cancel,accept);cancel.focus();
   }
@@ -399,8 +400,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if(search_projection){search_projection=false;generation++;if(root)close_branch(root,true);root=undefined;}
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
-      if (root) { generation++; close_branch(root, true); root = undefined; rename_state=undefined;selection_paths.clear();compare_path="";root_name.textContent = "未打开文件夹"; selected_path = ""; rebuild(); }
-      set_status("打开一个文件夹以浏览全部文件。"); return;
+      if (root) { generation++; close_branch(root, true); root = undefined; rename_state=undefined;selection_paths.clear();compare_path="";root_name.textContent = workspace_text("file_tree_folder_not_opened"); selected_path = ""; rebuild(); }
+      set_status(workspace_text("file_tree_open_a_folder_to_browse_all_files")); return;
     }
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) {set_status("");await load_children(root, true);} return; }
@@ -409,13 +410,13 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
     selected_path = "";const remote=remote_files_for(root.path);root_name.textContent = root.name+(remote?` [SSH: ${remote.connection.target}]`:''); root_label.title = remote?remote.remote_path(root.path):root.path; tree.scrollTop = 0;
-    set_status("正在读取文件夹…"); rebuild(); await load_children(root);
+    set_status(workspace_text("file_tree_reading_folder")); rebuild(); await load_children(root);
     if (root && !root.error && root.children?.length) set_status("");
   }
   async function refresh() {
     await sync_root(); if (!root) return;
     const expanded = [...nodes.values()].filter(node => node.directory && (node.expanded || node.compact_parent));
-    // 顺序刷新已展开目录，避免同时对网络盘或大目录发起大量请求。
+    // Refresh expanded directories in sequence to avoid issuing a large number of requests simultaneously to network drives or large directories.
     for (const node of expanded) if (!disposed && nodes.get(node.path) === node) await load_children(node, true);
   }
   async function reveal(file_path = options.active_file?.() || "") {
@@ -479,7 +480,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       event.preventDefault(); const bounds = tree.getBoundingClientRect(); context_menu(new MouseEvent("contextmenu", {clientX: bounds.left + 24, clientY: bounds.top + 30}), node);
     }
   });
-  detachers.push(register_workspace_context_guard(()=>operation_busy||rename_state?.busy?"文件操作正在执行，请完成后再切换工作区。":undefined));
+  detachers.push(register_workspace_context_guard(()=>operation_busy||rename_state?.busy?workspace_text("file_tree_file_operations_are_in_progress_please_complete_them_before"):undefined));
   root_label.oncontextmenu=event=>{if(root)context_menu(event,root);};
   tree.oncontextmenu = event => { if (event.target instanceof Element && event.target.closest(".workspace-explorer-row")) return; if (root) context_menu(event, root); };
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);

@@ -1,4 +1,5 @@
-﻿# 权限只由安装入口管理；探针不截断文件，系统授权仅在明确拒绝后申请一次。
+﻿. (Join-Path $PSScriptRoot 'typora_locale.ps1')
+# Permissions are only managed by the installation entry; probes do not truncate files, and system authorization is only requested once after explicit rejection.
 function test_typora_administrator {
     $identity = [Security.Principal.WindowsIdentity]::GetCurrent()
     try { return ([Security.Principal.WindowsPrincipal]::new($identity)).IsInRole([Security.Principal.WindowsBuiltInRole]::Administrator) }
@@ -15,16 +16,16 @@ function get_typora_write_denials {
         try {
             if ([IO.File]::Exists($target)) {
                 if (([IO.File]::GetAttributes($target) -band [IO.FileAttributes]::ReadOnly) -ne 0) {
-                    throw [IO.IOException]::new("文件为只读，请核对并取消只读属性后重试；不会通过提权绕过：$target")
+                    throw [IO.IOException]::new((get_typora_text -key 'the_file_is_read_only_check_and_clear_the_read_only_attribute_be' -values @{value_0=$target}))
                 }
                 $stream = [IO.File]::Open($target, [IO.FileMode]::Open, [IO.FileAccess]::Write, [IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete)
                 $stream.Dispose(); $stream = $null
             } elseif ([IO.Directory]::Exists($target)) {
-                throw [IO.IOException]::new("应为文件的安装目标是目录：$target")
+                throw [IO.IOException]::new((get_typora_text -key 'an_installation_target_expected_to_be_a_file_is_a_directory' -values @{value_0=$target}))
             }
             $directory = [IO.Path]::GetDirectoryName($target)
             while ($directory -and -not [IO.Directory]::Exists($directory)) { $directory = [IO.Path]::GetDirectoryName($directory) }
-            if (-not $directory) { throw [IO.DirectoryNotFoundException]::new("找不到安装目标的父目录：$target") }
+            if (-not $directory) { throw [IO.DirectoryNotFoundException]::new((get_typora_text -key 'cannot_find_the_installation_target_s_parent_directory' -values @{value_0=$target})) }
             if (-not $checked_directories.ContainsKey($directory)) {
                 $probe = Join-Path $directory ('.typora-code-write-probe-' + [guid]::NewGuid().ToString('N'))
                 $stream = [IO.FileStream]::new($probe, [IO.FileMode]::CreateNew, [IO.FileAccess]::Write, [IO.FileShare]::None, 1, [IO.FileOptions]::DeleteOnClose)
@@ -36,7 +37,7 @@ function get_typora_write_denials {
             $reason = $_.Exception
             while ($reason.InnerException) { $reason = $reason.InnerException }
             if ($reason -is [UnauthorizedAccessException] -or $reason -is [Security.SecurityException]) { $target }
-            else { throw [IO.IOException]::new(('安装写入预检失败（占用、只读或磁盘错误不会触发管理员授权）：{0}；{1}' -f $target, $reason.Message), $reason) }
+            else { throw [IO.IOException]::new(((get_typora_text -key 'installation_write_preflight_failed_file_locks_read_only_attribu') -f $target, $reason.Message), $reason) }
         } finally {
             if ($null -ne $stream) { $stream.Dispose() }
             if ($probe -and [IO.File]::Exists($probe)) { [IO.File]::Delete($probe) }
@@ -55,15 +56,15 @@ function get_typora_permission_action {
 function new_typora_elevation_command {
     param([object]$request)
     $payload = [Convert]::ToBase64String([Text.Encoding]::UTF8.GetBytes(($request | ConvertTo-Json -Depth 8 -Compress)))
-    # 用户路径只作为JSON数据；编码中的字母数字不会变为PowerShell语法。
+    # User paths are only used as JSON data; numeric and alphabetic characters in encoding will not become PowerShell syntax.
     $command = @'
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 $request=[Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('__PAYLOAD__'))|ConvertFrom-Json
 $env:TYPORA_TERMINAL_CACHE=$request.cache_root
 $arguments=@{typora_root=$request.typora_root;user_data=$request.user_data;backup_root=$request.backup_root;include_theme=[bool]$request.include_theme;non_interactive=$true;elevation_attempted=$true;managed_backup=[bool]$request.managed_backup}
-$result=@{status='failed';message='安装子进程未完成';exit_code=1}
-try { & $request.installer @arguments; $result=@{status='success';message='已授权的安装事务完成';exit_code=0} }
+$result=@{status='failed';message='Installation child process did not complete';exit_code=1}
+try { & $request.installer @arguments; $result=@{status='success';message='Authorized installation transaction completed';exit_code=0} }
 catch { $result.message=$_.Exception.Message }
 try { [IO.File]::WriteAllText($request.receipt,($result|ConvertTo-Json -Compress),[Text.UTF8Encoding]::new($false)) }
 catch { exit 1 }
@@ -90,15 +91,15 @@ function invoke_typora_elevated_install {
             $reason = $_.Exception
             while ($reason.InnerException) { $reason = $reason.InnerException }
             if ($reason -is [ComponentModel.Win32Exception] -and $reason.NativeErrorCode -eq 1223) {
-                throw [OperationCanceledException]::new('[TYPORA_INSTALL_CANCELLED] 已取消Windows管理员授权，安装目标未修改。')
+                throw [OperationCanceledException]::new((get_typora_text -key 'typora_install_cancelled_windows_administrator_authorization_was'))
             }
-            throw [InvalidOperationException]::new(('无法启动Windows管理员授权：' + $reason.Message), $reason)
+            throw [InvalidOperationException]::new(((get_typora_text -key 'cannot_start_windows_administrator_authorization') + $reason.Message), $reason)
         }
         try {
             $result = [IO.File]::ReadAllText($receipt, [Text.Encoding]::UTF8) | ConvertFrom-Json
             if ($process.ExitCode -ne 0 -or $null -eq $result -or $result.status -ne 'success') {
-                $detail = if ($null -ne $result) { $result.message } else { '未收到完成记录，请检查用户数据目录下的安装日志。' }
-                throw "管理员安装未完成（退出码 $($process.ExitCode)）：$detail"
+                $detail = if ($null -ne $result) { $result.message } else { (get_typora_text -key 'no_completion_receipt_was_received_check_the_installation_logs_i') }
+                throw (get_typora_text -key 'administrator_installation_did_not_complete_exit_code' -values @{value_0=$($process.ExitCode);value_1=$detail})
             }
         } finally { if ($process -is [Diagnostics.Process]) { $process.Dispose() } }
     } finally { [IO.File]::Delete($receipt) }

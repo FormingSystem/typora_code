@@ -1,11 +1,11 @@
 import {create_workspace_lifetime} from "./workspace_lifetime";
 
-/** 保留浏览器输入法默认行为，适配xterm 6输入边界；已提交文本仍只由xterm发送。 */
+/** Retain the browser input method's default behavior, adapt xterm 6 input boundary; submitted text is still only sent by xterm. */
 export function bind_terminal_composition(textarea:HTMLTextAreaElement){
   const lifetime=create_workspace_lifetime();
   let prefix="",composing=false,timer=0;
-  // xterm在自定义键处理之前把纯Shift记为已见输入，误丢无compositionend的搜狗insertText。
-  // 在父级只隔离纯Shift按下，保留浏览器默认行为和xterm的input/keyup清理，不补发文字。
+  // xterm marks pure Shift as seen input before custom key handling, mistakenly discard without compositionend of the Sogou insertText.
+  // Isolate pure Shift presses only at the parent level, retain browser default behavior and xterm's input/keyup cleaning, do not resend text.
   const input_parent=textarea.parentElement;
   if(input_parent)lifetime.listen(input_parent,"keydown",event=>{
     const key=event as KeyboardEvent;
@@ -24,7 +24,7 @@ export function bind_terminal_composition(textarea:HTMLTextAreaElement){
     normalize(record);
   };
   const invalidate=()=>{clearTimeout(timer);timer=0;pending=undefined;prefix="";composing=false;};
-  // 下一次组合可能早于延迟提交；先归一化旧结果，再让xterm记录新的起点。
+  // The next combination may be earlier than the delayed submission; first normalize the old results, then let xterm record the new starting point.
   lifetime.listen(textarea,"compositionstart",()=>{flush();prefix=textarea.value;composing=true;},true);
   lifetime.listen(textarea,"compositionend",event=>{
     if(!composing)return;
@@ -32,9 +32,9 @@ export function bind_terminal_composition(textarea:HTMLTextAreaElement){
     const committed=(event as CompositionEvent).data,previous=prefix;
     prefix="";
     if(!previous||!committed)return;
-    // 浏览器可在监听器之后更新DOM。捕获阶段先登记，与xterm相同的0ms队列先归一化再截取。
+    // The browser can update DOM after the listener. The capture phase first registers, and the same 0ms queue as xterm is normalized first and then truncated.
     const record={previous,committed};pending=record;
-    // DOM已更新时立即处理，连续组合不会等到上一轮xterm截取之后才恢复前缀。
+    // Process immediately when DOM is updated. Continuous combinations do not wait for the previous xterm truncation before resuming the prefix.
     normalize(record);
     timer=window.setTimeout(()=>flush(record),0);
   },true);

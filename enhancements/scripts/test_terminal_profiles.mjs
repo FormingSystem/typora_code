@@ -114,7 +114,7 @@ for (const complete of canceled.deferred) complete();
 assert.deepEqual(canceled.service.profiles(), []);
 assert.deepEqual(await canceled.service.refresh(), []);
 
-// 使用可控时钟跨过整次扫描截止点，证明返回已检查的系统Shell，而非清空所有候选。
+// Using a controllable clock crosses the entire scan deadline, proving that the returned system Shell has been checked, not emptying all candidates.
 const real_now = Date.now;
 const base_time = real_now();
 let elapsed_time = 0;

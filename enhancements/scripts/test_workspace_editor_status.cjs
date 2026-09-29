@@ -1,4 +1,4 @@
-// 全局底栏的活动编辑器归属、窄布局及退订；只创建隔离隐藏窗口。
+// The activity editor ownership, narrow layout, and unsubscribe of the global status bar; only create isolated hidden windows.
 const {app,BrowserWindow}=require('electron');const assert=require('node:assert/strict'),fs=require('node:fs'),os=require('node:os'),path=require('node:path');const {build}=require('esbuild');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_editor_status_'));app.setPath('userData',path.join(evidence,'user_data'));app.disableHardwareAcceleration();let test_window;const checks=[];
 const evaluate=source=>test_window.webContents.executeJavaScript(source);const delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));const check=(condition,label)=>{assert(condition,label);checks.push(label)};

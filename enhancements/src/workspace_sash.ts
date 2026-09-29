@@ -1,4 +1,4 @@
-// 同一分界线同时支持鼠标、触控和键盘；比例由调用方按仓库保存。
+// The same split view supports mouse, touch, and keyboard; the ratio is determined by the caller based on the repository.
 export function create_workspace_sash(options: {
   label: string; area: HTMLElement; vertical(): boolean; ratio(): number;
   change(value: number): void; save(): void; reset?: number;

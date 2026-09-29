@@ -1,8 +1,9 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_style} from './workspace_styles';
 import css from './workspace_preview_resize.css';
 
 type preview_size={width:number;height:number};
-/** 两种预览共用指针捕获、缩放换算、键盘及销毁；尺寸边界留给布局所有者。 */
+/** Two previews share the pointer capture, zoom conversion, keyboard, and destruction; the size boundary is left to the layout owner. */
 export function bind_preview_resize(root:HTMLElement,read:()=>preview_size,change:(size:preview_size)=>void,edges=['north','east','north-east']){
   const style=acquire_workspace_style('typora-code-style:workspace_preview_resize',css,{});
   const handles:HTMLElement[]=[];
@@ -10,7 +11,7 @@ export function bind_preview_resize(root:HTMLElement,read:()=>preview_size,chang
   const finish=()=>{const previous=active;active=undefined;if(previous){previous.handle.classList.remove('is-dragging');if(previous.handle.hasPointerCapture(previous.id))previous.handle.releasePointerCapture(previous.id);}};
   for(const edge of edges){
     const handle=document.createElement('div');handle.className='workspace-preview-sash';handle.dataset.edge=edge;handle.tabIndex=0;handle.setAttribute('role','separator');
-    handle.setAttribute('aria-label',edge==='north'?'调整预览高度':edge==='east'?'调整预览宽度':'同时调整预览宽高');
+    handle.setAttribute('aria-label',edge==='north'?workspace_text("preview_resize_adjust_preview_height"):edge==='east'?workspace_text("preview_resize_adjust_preview_width"):workspace_text("preview_resize_adjust_preview_width_and_height_simultaneously"));
     handle.setAttribute('aria-orientation',edge==='north'?'horizontal':'vertical');
     const resize=(size:preview_size,x:number,y:number)=>change({width:size.width+(edge.includes('east')?x:0),height:size.height-(edge.includes('north')?y:0)});
     handle.onpointerdown=event=>{if(event.button!==0)return;event.preventDefault();event.stopPropagation();finish();handle.focus({preventScroll:true});active={handle,id:event.pointerId,x:event.clientX,y:event.clientY,size:read(),scale:root.offsetWidth?root.getBoundingClientRect().width/root.offsetWidth:1};handle.setPointerCapture(event.pointerId);handle.classList.add('is-dragging');};

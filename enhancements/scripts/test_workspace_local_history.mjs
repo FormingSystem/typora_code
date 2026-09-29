@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import crypto from 'node:crypto';import {build} from 'esbuild';
 const compiled=await build({stdin:{contents:'export * from "./src/workspace_local_history";export * from "./src/workspace_history_restore";export * from "./src/workspace_text_document";export * from "./src/workspace_file_events";',resolveDir:process.cwd()},bundle:true,platform:'node',format:'esm',write:false});

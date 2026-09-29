@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_core,graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import {create_workspace_lifetime} from "./workspace_lifetime";
@@ -7,7 +8,7 @@ import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {git_icon} from "./git_icons";
 
-/** 选区向阅读侧栏发送；分屏持有自己的固定目标和资源。 */
+/** Selection sends to the reading sidebar; split view holds its own fixed target and resources. */
 export function bind_workspace_link_selection(core:graph_core,files:workspace_file_host,visible:()=>boolean,preview:(request:workspace_link_request)=>void,interaction?:{root:HTMLElement;outside:()=>void}){
   const lifetime=create_workspace_lifetime(),runtime=window as any,type="linux_note.link_preview";
   const payloads=new Map<string,workspace_link_request>(),views=new Set<link_view>();
@@ -25,7 +26,7 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   const selected=()=>{const selection=window.getSelection();if(!selection?.rangeCount)return;const first=request_for(selection.anchorNode),last=request_for(selection.focusNode);if(first&&last&&first.source===last.source&&first.href===last.href)return first;};
   const preview_scope='.workspace-link-dock,.workspace-link-preview,.workspace-lookup-preview,.workspace-link-preview-menu';
   const in_preview=(event:Event)=>event.composedPath().some(node=>node instanceof Element&&(interaction?node===interaction.root||!!node.closest('.workspace-link-preview-menu'):!!node.closest(preview_scope)));
-  // 交互意图与选区分开：工具按钮可保留正文旧选区，不能借pointerup再次打开它。
+  // Interaction intent is separate from the selection: tool buttons can retain the old selection of the document, but cannot borrow pointerup to open it again.
   const intent=(event:Event)=>{
     if(event instanceof KeyboardEvent&&['Control','Shift','Alt','Meta'].includes(event.key))return;
     if(event.type==='focusin'&&event.target instanceof Element&&event.target.closest('#write,.typ-markdown-preview'))return;
@@ -41,26 +42,26 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
     reader=create_link_preview(files);loaded=false;
     constructor(leaf:graph_leaf){super(leaf);views.add(this);this.containerEl.append(this.reader.container);}
     setIcon(){const slot=workspace_leaf_tab(this.leaf)?.querySelector(".typ-file-icon");if(slot){slot.className="typ-file-icon workspace-file-theme-slot";slot.replaceChildren(git_icon("preview"));}}
-    onOpen(){const request=payloads.get(this.leaf.state.path);if(request&&!this.loaded){this.loaded=true;void this.reader.show(request);}else if(!request)this.containerEl.textContent="请从原文链接重新打开预览。";}
+    onOpen(){const request=payloads.get(this.leaf.state.path);if(request&&!this.loaded){this.loaded=true;void this.reader.show(request);}else if(!request)this.containerEl.textContent=workspace_text("link_selection_please_reopen_the_preview_from_the_original_link");}
     onClose(){queueMicrotask(()=>{if(disposed)return;let exists=false,retained=false;core.app.workspace.eachLeaves(leaf=>{if(leaf===this.leaf)exists=true;if(leaf.state.path===this.leaf.state.path)retained=true;});if(!exists){this.reader.dispose();views.delete(this);if(!retained)payloads.delete(this.leaf.state.path);}});}
   }
   lifetime.add(core.app.viewManager.registerView(type,leaf=>new link_view(leaf)));
   const split=(request:workspace_link_request,direction:"right"|"down")=>{
     if(disposed||!core.app.workspace.activeLeaf)return;
-    const name=request.href.split("#")[0].split(/[\\/]/u).filter(Boolean).at(-1)||"文内链接";
+    const name=request.href.split("#")[0].split(/[\\/]/u).filter(Boolean).at(-1)||workspace_text("link_selection_internal_link");
     const uri=`typ://${type}/${crypto.randomUUID()}/${encodeURIComponent(name)}`;
     payloads.set(uri,{...request});
     try{core.app.commands.run(`core.workspace:split-${direction}`,[uri]);}catch(error){payloads.delete(uri);new core.Notice(String(error),4000);}
   };
   const entries=(request:workspace_link_request)=>[
-    {title:"左右分屏预览链接",action:()=>split(request,"right")},
-    {title:"上下分屏预览链接",action:()=>split(request,"down")},
+    {title:workspace_text("link_selection_side_by_side_preview_link"),action:()=>split(request,"right")},
+    {title:workspace_text("link_selection_stacked_preview_link"),action:()=>split(request,"down")},
   ];
-  // 原生正文菜单保留其原有操作，只插入两个链接动作。
+  // Native document menu retains its original operations, only insert two link actions.
   const menu=document.querySelector("#context-menu"),context=runtime.File?.editor?.contextMenu;
   let menu_request:workspace_link_request|undefined;
   if(menu&&context?.show){
-    const items=["左右分屏预览链接","上下分屏预览链接"].map((label,index)=>{const item=el("li","hide"),anchor=el("a","",label);item.dataset.key=`typora-code-link-preview-${index}`;anchor.tabIndex=0;anchor.setAttribute("role","menuitem");item.append(anchor);menu.append(item);return item;});
+    const items=[workspace_text("link_selection_side_by_side_preview_link"),workspace_text("link_selection_stacked_preview_link")].map((label,index)=>{const item=el("li","hide"),anchor=el("a","",label);item.dataset.key=`typora-code-link-preview-${index}`;anchor.tabIndex=0;anchor.setAttribute("role","menuitem");item.append(anchor);menu.append(item);return item;});
     const interaction=acquire_workspace_interaction(menu);lifetime.add(()=>interaction.remove());
     const original=context.show;
     const show=context.show=function(event:MouseEvent,node?:Element){menu_request=request_for(node||event.target as Node)||selected();items.forEach(item=>item.classList.toggle("hide",!menu_request));return original.call(this,event,node);};

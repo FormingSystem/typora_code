@@ -1,4 +1,4 @@
-/* 原生菜单贡献沿用共同 2em 图标列与 16px 产品标识，不重排其他原生项。 */
+/* Native menu contributions continue to use the common 2em icon column and 16px product identifier, without reordering other native items. */
 #context-menu [data-key="typora-code-open-vscode"]>a{position:relative;padding-left:2em}
 #context-menu [data-key="typora-code-open-vscode"] .workspace-native-menu-icon{position:absolute;left:0;top:0;width:2em;height:100%;display:flex;align-items:center;justify-content:center}
 #context-menu [data-key="typora-code-open-vscode"].hide{display:none!important}

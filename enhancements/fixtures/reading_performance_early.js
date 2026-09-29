@@ -1,4 +1,4 @@
-// 仅隔离验收：按注册位置聚合回调耗时，不改变产品调度。
+// Isolate acceptance: aggregate callback duration by registration location, without changing product scheduling.
 (()=>{
  const audit=window.__reading_audit={enabled:false,stats:{},bounds:0,ranges:0,styles:0};
  const ids=new WeakMap();let next=0;

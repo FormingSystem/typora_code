@@ -1,4 +1,5 @@
-﻿# 卸载只负责确定安装前备份；恢复校验、资产写入和回滚仍由现有事务负责。
+﻿. (Join-Path $PSScriptRoot 'typora_locale.ps1')
+# Uninstallation is only responsible for determining the backup before installation; recovery verification, asset writing, and rollback are still handled by existing transactions.
 function get_typora_uninstall_context {
     param([string]$backup_root, [string]$typora_root='')
     $backup_root = (Resolve-Path -LiteralPath (convert_typora_input_path $backup_root)).Path
@@ -10,7 +11,7 @@ function get_typora_uninstall_context {
     if ($typora_root -and [IO.Path]::GetFullPath($manifest.typora_root) -ne [IO.Path]::GetFullPath($typora_root)) {
         throw 'Backup belongs to another Typora installation.'
     }
-    # 更新前备份带有常驻资产，不能把回退增强版本误当作卸载。
+    # Backup before update contains persistent assets, and cannot mistakenly consider the enhanced version as uninstallation.
     foreach ($filename in @('workspace_core.js','workspace_core.css','workspace.css','workbench.js')) {
         $records = @($manifest.product | Where-Object { $_.relative_path -eq $filename })
         if ($records.Count -ne 1 -or $records[0].existed -isnot [bool] -or $records[0].existed) {
@@ -73,12 +74,12 @@ function assert_typora_uninstall_closed {
         $process_path = $null
         try { $process_path = $process.Path } catch { }
         if (-not $process_path -or $process_path -eq $executable) {
-            throw ('请先保存文档并完全退出 Typora 后重试（检测到进程编号：{0}）。本次未关闭进程，也未修改任何文件。' -f $process.Id)
+            throw ((get_typora_text -key 'save_your_documents_and_fully_exit_typora_before_retrying_detect') -f $process.Id)
         }
     }
 }
 
-# 旧备份或宿主升级不妨碍撤销当前接入；绝不把旧window.html回灌新宿主。
+# Old backups or host upgrades do not hinder the current access rollback; never re-inject old window.html into new host.
 function get_typora_current_uninstall_context {
     param([string]$typora_root)
     $window = resolve_typora_asset_path $typora_root 'resources/window.html'

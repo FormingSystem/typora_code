@@ -2,7 +2,7 @@ import {marked} from "marked";
 import DOMPurify from "dompurify";
 import css from "./workspace_hover_markdown_shadow.css";
 
-/** 信息浮层的只读块级正文；不继承文档主题，不允许正文创建可执行内容或远端图片。 */
+/** The read-only block content of the information floating layer; it does not inherit the document theme, and the content is not allowed to create executable content or remote images. */
 export function create_workspace_hover_markdown(source:string,open_link:(url:string)=>void):HTMLElement {
   const host=document.createElement("div"),shadow=host.attachShadow({mode:"open"});
   const style=document.createElement("style"),body=document.createElement("div");style.textContent=css;

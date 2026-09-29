@@ -1,5 +1,5 @@
 ﻿$ErrorActionPreference = 'Stop'
-# 秘密只通过标准输入/输出传递；调用方不记录协议正文。
+# Secrets are only passed through standard input/output; the caller does not record the body of the protocol.
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;

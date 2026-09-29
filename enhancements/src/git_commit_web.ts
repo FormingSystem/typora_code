@@ -8,13 +8,13 @@ const providers:Record<string,{name:string;route:string;nested?:boolean;web_host
   "bitbucket.org":{name:"Bitbucket",route:"commits"},
   "ssh.bitbucket.org":{name:"Bitbucket",route:"commits",web_host:"bitbucket.org"},
 };
-/** 纯本地识别；未知主机不猜平台，SSH端口、凭据和查询参数不传给浏览器。 */
+/** Pure local identification; unknown hosts do not guess the platform, SSH port, credentials, and query parameters are not passed to the browser. */
 export function commit_web_url(remote:string,hash:string):Omit<commit_web_target,"remote"|"push">|undefined{
   if(!/^[a-f\d]{40}(?:[a-f\d]{24})?$/iu.test(hash)||!remote||/[\x00-\x20\x7f\\?#]/u.test(remote))return;
   const scp=/^(?:[^@/:]+@)?([^/:]+):(.+)$/u.exec(remote);
   const input=!remote.includes("://")&&scp?"ssh://"+scp[1]+"/"+scp[2]:remote;
   if(!/^(?:https?|ssh):\/\//iu.test(input))return;
-  // URL会消除点段，必须在解析前拒绝，不能将恶意仓库路径规整成另一仓库。
+  // The URL will eliminate the point segment, which must be rejected before parsing, and cannot turn malicious repository paths into another repository.
   const raw_path=input.replace(/^[^:]+:\/\/[^/]+\/?/u,"");
   let segments:string[];
   try{segments=raw_path.replace(/\/$/u,"").split("/").map(part=>decodeURIComponent(part));}catch{return;}

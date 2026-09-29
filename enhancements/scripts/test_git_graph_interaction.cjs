@@ -1,4 +1,4 @@
-// 独立 Electron 窗口验证 Chromium 的真实输入；Git 数据与用户数据均位于临时目录。
+// Independent Electron window verification of Chromium real input; Git data and user data are both located in the temporary directory.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -7,13 +7,13 @@ const path = require('node:path');
 const child_process = require('node:child_process');
 const { build } = require('esbuild');
 const { editor_plugins } = require('./editor_bundle.cjs');
-// 几何核对固定Git Graph v1.30.0提交881a9e6的main.css/findWidget.css；含边框总高度。
-// 本测试没有复制扩展源码、样式或资源。详情高度是本项目的固定展示高度，窄组宽度用于验证响应性。
+// Geometric verification fixes Git Graph v1.30.0 submission 881a9e6's main.css/findWidget.css; includes total height of the border.
+// This test did not copy the source code, styles, or resources. The height is fixed for this project's display, and the narrow group width is used to verify responsiveness.
 const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
   toolbar_height: 41,
   header_height: 31,
   row_height: 24,
-  ref_height: 20, // 上游18px内容盒另加上下各1px边框。
+  ref_height: 20, // Add the upstream 18px content box with a top and bottom border of 1px.
   ref_radius: 5,
   toolbar_action_size: 20,
   toolbar_icon_size: 18,
@@ -26,7 +26,7 @@ const CLASSIC_GIT_GRAPH_METRICS = Object.freeze({
 const INLINE_DETAIL_HEIGHT = 300;
 const RESPONSIVE_EDITOR_WIDTHS = Object.freeze([640, 360]);
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_graph_ui_'));
-const evidence = process.argv[2] || path.join(root, 'evidence'); fs.mkdirSync(evidence, { recursive: true });
+const evidence = process.argv.slice(1).filter(value=>!value.startsWith('--'))[1] || path.join(root, 'evidence'); fs.mkdirSync(evidence, { recursive: true });
 app.setPath('userData', path.join(root, 'user_data')); app.disableHardwareAcceleration();
 const git = args => child_process.execFileSync('git', ['-c', 'user.name=UI Test', '-c', 'user.email=ui@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.autocrlf=false', '-c', 'core.hooksPath=.git/unused_hooks', ...args], { cwd: root, encoding: 'utf8', windowsHide: true });
 git(['init', '-b', 'main']); fs.writeFileSync(path.join(root, '.git/info/exclude'), 'user_data/\ntest.html\nevidence/\n');
@@ -43,7 +43,7 @@ const delay = ms => new Promise(resolve => setTimeout(resolve, ms)); let test_wi
 const evaluate = async source => { try { return await test_window.webContents.executeJavaScript(source); } catch (error) { console.error('Evaluation failed:', source); throw error; } };
 const wait = async source => { for (let i = 0; i < 150; i++) { if (await evaluate(source)) return; await delay(50); } throw new Error('Timed out: ' + source); };
 const click = async (selector, button = 'left') => {
-  // 弹窗的自动获焦在下一任务执行，先让焦点和布局稳定，再读取鼠标位置。
+  // The automatic focus of the popup is deferred until the next task is executed; first, the focus and layout stabilize, then the mouse position is read.
   await delay(120);
   await evaluate(`(() => { const element = document.querySelector(${JSON.stringify(selector)}); const box = element.getBoundingClientRect(), menu=element.closest('.git-graph-menu')?.getBoundingClientRect(); if (box.top < 0 || box.bottom > innerHeight || menu && (box.top<menu.top || box.bottom>menu.bottom)) element.scrollIntoView({block:'nearest'}); })()`);
   await delay(80);
@@ -65,7 +65,7 @@ const check_disclosure = async (selector, expanded, visible = true) => {
 };
 const key = async (key_code, modifiers = []) => {
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:key_code,modifiers});
-  // Electron 低层输入不自动生成 WM_CHAR；普通回车需包含真实字符输入阶段。
+  // Electron Low-level input does not auto-generate WM_CHAR; normal Enter must include a real character input phase.
   if (key_code === 'Enter' && !modifiers.length) test_window.webContents.sendInputEvent({type:'char',keyCode:'\r'});
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:key_code,modifiers}); await delay(100);
 };
@@ -90,7 +90,7 @@ app.whenReady().then(async () => {
     editor_body.append(panel.container); const sidebar=document.querySelector('#sidebar-content');sidebar.className='linux-note-git-source-control'; sidebar.append(panel.workbench.sidebar);panel.open();
   })()`);
   await wait('panel.container.dataset.state === "ready"');
-  // 底部终端保留中央 Graph 的活动叶子；真实窗口捕获必须按事件目标归还输入。
+  // The bottom terminal retains the active leaf of the central Graph; real window capture must return the input according to the event target.
   const keyboard_ownership = await evaluate(`(() => {
     const results=[],record=(name,passed,detail={})=>results.push({name,passed,...detail});
     const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname, '../node_modules/@xterm/xterm/css/xterm.css'), 'utf8'))};document.head.append(style);
@@ -123,7 +123,7 @@ app.whenReady().then(async () => {
   fs.writeFileSync(path.join(evidence,'keyboard_ownership.json'),JSON.stringify(keyboard_ownership,null,2),'utf8');
   assert(keyboard_ownership.every(item=>item.passed),'Graph/终端捕获输入归属失败：'+JSON.stringify(keyboard_ownership.filter(item=>!item.passed)));
   await wait('!panel.pending');
-  // 仓库选择器只在存在多个仓库时出现；刷新不得恢复关闭的详情。
+  // The repository selector appears only when there are multiple repositories; refresh should not restore closed details.
   assert(await evaluate('panel.repo_select.closest("label").hidden'));
   await evaluate('panel.save_repos([panel.root,panel.root+"/second"]);panel.refresh(false)');
   assert(await evaluate('!panel.repo_select.closest("label").hidden && panel.repo_select.options.length === 3'));
@@ -139,13 +139,13 @@ app.whenReady().then(async () => {
       await activate(); await assert_closed();
     }
   }
-  // 使用可控延迟的真实 Git 响应验证关闭后旧比较不会写回文件状态。
+  // Use a controllable delay real Git response to verify that old comparisons do not write back file states after closing.
   await evaluate(`window.real_graph_run=panel.runner.run;window.delayed_graph_release=null;window.delayed_graph_done=false;
     panel.runner.run=async (...args)=>{const output=await window.real_graph_run(...args);if(args[1][0]==='diff'){await new Promise(resolve=>window.delayed_graph_release=resolve);}return output;};
     panel.selected=panel.state.commits[0].hash;void panel.show_comparison(panel.state.commits[0].parents[0],panel.selected).finally(()=>window.delayed_graph_done=true);`);
   await wait('!!window.delayed_graph_release'); await evaluate('panel.close_details();window.delayed_graph_release()');
   await wait('window.delayed_graph_done'); await assert_closed(); await evaluate('void (panel.runner.run=window.real_graph_run)');
-  // Ctrl/Meta 比较不得收起，键盘激活与鼠标采用相同状态转换。
+  // Ctrl/Meta Comparisons must not be collapsed; keyboard activation and mouse use the same state transition.
   for (const modifier of ['ctrlKey','metaKey']) {
     await evaluate(`panel.select_commit(panel.state.commits[0]);document.querySelectorAll('.git-graph-row:not(.git-graph-worktree)')[1].dispatchEvent(new MouseEvent('click',{bubbles:true,${modifier}:true}))`);
     await wait('panel.files.length > 0');
@@ -175,7 +175,7 @@ app.whenReady().then(async () => {
   for (const [selector,name] of [['.git-scm-view-menu','more'],['.git-scm-operation-menu','more'],['.git-scm-commit-options','chevron-down'],['.git-scm-history-branches','git-branch'],['.git-scm-history-head','target'],['.git-scm-history-refresh','refresh'],['[data-history-action=fetch]','git-fetch'],['[data-history-action=pull]','repo-pull'],['[data-history-action=push]','cloud-upload'],['[data-scm-group=changes] > summary .git-scm-inline-action','diff-multiple']]) {
     assert.equal(await evaluate('document.querySelector('+JSON.stringify(selector)+').querySelector("[data-git-icon]").dataset.gitIcon'),name);
   }
-  // 顶部菜单控制三个真实视图；隐藏后的布局必须能从持久化状态恢复。
+  // The top menu controls three real views; the layout hidden must be able to recover from the persistent state.
   const saved_layout = () => evaluate('JSON.parse(localStorage.getItem(panel.workbench.storage_key("layout")))');
   const toggle_view = async name => { await click('.git-scm-view-menu'); await click('[data-action="'+name+'"]'); };
   assert(await evaluate('panel.workbench.repositories_view.hidden && !panel.workbench.changes_pane.hidden && !panel.workbench.history.container.hidden'));
@@ -191,7 +191,7 @@ app.whenReady().then(async () => {
   assert(await evaluate('panel.workbench.show_repositories && !panel.workbench.show_changes && !panel.workbench.show_history && panel.workbench.sections.hidden'));
   await toggle_view('show_changes'); await toggle_view('show_history'); await toggle_view('show_repositories');
   assert.deepEqual(Object.fromEntries(Object.entries(await saved_layout()).filter(([name])=>name.startsWith('show_'))), {show_repositories:false,show_changes:true,show_history:true});
-  // 输入区折叠不隐藏 Git 操作入口；提交下拉传递草稿和 amend 状态，不提前执行 Git。
+  // Input area folding does not hide the Git operation entry; submit dropdown passes drafts and amend status, without executing Git in advance.
   assert.equal(await evaluate('panel.workbench.message.getBoundingClientRect().height'),30);
   await check_disclosure('.git-scm-input-heading',true);
   await click('.git-scm-input-title'); await wait('!panel.workbench.input_section.open');
@@ -275,7 +275,7 @@ app.whenReady().then(async () => {
   assert.equal(responsive_metrics[0].content_scroll_width,responsive_metrics[0].content_client_width);
   assert.equal(responsive_metrics[1].content_scroll_width,responsive_metrics[1].content_client_width);
   await evaluate(`(() => {const editors=document.querySelector('#editors');editors.style.removeProperty('flex');editors.style.removeProperty('width');})()`); await delay(80);
-  // 设置须改变实际列布局、标签排序和详情落点，而不只是保存字段。
+  // Settings must change the actual column layout, tag sorting, and detail location, not just save fields.
   for (const column of ['date','author','hash']) {
     await click('.git-graph-columns','right'); await click('[data-action=show_'+column+']');
     assert(await evaluate('getComputedStyle(document.querySelector(".git-graph-'+column+'")).display === "none"'));
@@ -335,7 +335,7 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('document.querySelector('+JSON.stringify('[data-history-file="'+nested_history_path+'"] .git-scm-file-directory')+').textContent'),'z_docs/nested');
   await click('.git-scm-history-commit','right'); assert(await evaluate('!!document.querySelector("[data-action=branch_create]")')); await key('Escape');
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"))');
-  // 源代码管理的提交图仍可独立调节，不再复用主 Git Graph 的详情分界线。
+  // The commit graph of source code management is still independently adjustable, and no longer reuses the main Git Graph detail divider.
   await drag('.git-scm-history-sash',0,70);
   await click('.git-graph-columns', 'right'); assert.deepEqual(await evaluate('[...document.querySelectorAll(".git-graph-menu .git-menu-label")].map(label=>label.textContent)'),['日期','作者','提交编号','重置列宽','全部设置']); assert(await evaluate('document.querySelectorAll("[role=menuitemcheckbox]").length === 3')); await key('Escape');
   await click('.git-graph-row:not(.git-graph-worktree)', 'right'); await click('[data-action="configure_menu"]');
@@ -351,7 +351,7 @@ app.whenReady().then(async () => {
   await evaluate('document.querySelector("#editors").style.cssText="flex:0 0 360px;width:360px"');await delay(80);
   assert(await evaluate('(()=>{const root=panel.container.getBoundingClientRect(),widget=panel.find_widget.getBoundingClientRect();return widget.left>=root.left&&widget.right<=root.right&&widget.height===34&&panel.find_widget.scrollWidth===panel.find_widget.clientWidth})()'),'360px editor keeps Find inside the pane without a second toolbar row');await capture('graph_find_360');
   await evaluate('document.querySelector("#editors").style.removeProperty("flex");document.querySelector("#editors").style.removeProperty("width")');await delay(80);
-  // 真正缩小 Electron 视口覆盖媒体规则；隐藏侧栏模拟窄窗口的编辑布局。
+  // True shrinking of Electron viewport covers media rules; hiding the sidebar simulates the editing layout of a narrow window.
   const find_window_size = test_window.getSize();
   await evaluate('document.querySelector("#sidebar-content").style.display="none"');
   test_window.setSize(500, 700);
@@ -377,7 +377,7 @@ app.whenReady().then(async () => {
   await click('[aria-label="为当前匹配打开提交详情"]'); await wait('panel.selected===panel.finder.current&&panel.files.length>0');
   await key('Enter'); await wait('panel.selected===panel.finder.current');
   await click('[aria-label="为当前匹配打开提交详情"]'); const unchanged_details=await evaluate('panel.selected'); await key('Enter'); assert.equal(await evaluate('panel.selected'),unchanged_details);
-  // 真正Git diff完成后暂扣旧响应，输入另一hash让最新详情先完成。
+  // True Git diff completion temporarily holds old responses; input another hash allows the latest details to complete first.
   await evaluate('window.find_run=panel.runner.run;window.find_release=null;window.find_gate_once=true;panel.runner.run=async(...args)=>{const output=await find_run(...args);if(args[1][0]==="diff"&&find_gate_once){find_gate_once=false;await new Promise(resolve=>find_release=resolve);}return output;};void 0');
   await click('[aria-label="为当前匹配打开提交详情"]'); await wait('!!find_release');
   const latest_find_hash=await evaluate('panel.state.commits.find(commit=>commit.hash!==panel.selected).hash');
@@ -453,7 +453,7 @@ app.whenReady().then(async () => {
   await click('[data-scm-group=changes] [data-file="sample.c"]','right'); await click('[data-action=copy_relative]'); assert.equal(await evaluate('copied'),'sample.c');
   await click('[data-scm-group=changes] [data-file="sample.c"]','right'); await click('[data-action=stage]'); await wait('!panel.writing && !!document.querySelector("[data-scm-group=staged] .git-scm-file")'); assert(git(['diff','--cached','--name-only']).includes('sample.c')); assert(!await evaluate('!!document.querySelector(".git-graph-dialog-shade")'));
   await click('[data-scm-group=staged] [data-file="sample.c"]','right'); await click('[data-action=unstage]'); await wait('!panel.writing && !!document.querySelector("[data-scm-group=changes] .git-scm-file")'); assert(!git(['diff','--cached','--name-only']).trim());
-  // Tab 按打开文件、放弃更改、暂存的次序前进；Enter/Space 不被父行当作打开差异。
+  // Tab progresses in the order of opening files, abandoning changes, and staging; Enter/Space is not considered as an open difference by the parent row.
   await evaluate('void (core.app.workspace.activeLeaf=graph_leaf.parent.toggleTab("graph"));document.querySelector("[data-scm-group=changes] [data-file=\\"sample.c\\"]").focus()'); await key('Tab');
   assert(await evaluate('document.activeElement.matches(".git-scm-inline-action")'));
   assert.equal(await evaluate('document.activeElement.dataset.scmFileAction'),'open');
@@ -494,7 +494,7 @@ app.whenReady().then(async () => {
   await click('[data-scm-group=staged] [data-file="new-track.txt"]','right'); await click('[data-action=unstage]'); await wait('!panel.writing && !panel.pending');
   await click('[data-scm-group=changes] [data-file="scratch.tmp"]','right'); await click('[data-action=ignore_file]'); await wait('!panel.writing && !document.querySelector("[data-file=\\"scratch.tmp\\"]")');
   assert.equal(git(['check-ignore','scratch.tmp']).trim(),'scratch.tmp'); assert(fs.existsSync(path.join(root,'scratch.tmp'))); assert(!git(['diff','--cached','--name-only']).trim());
-  // Enter 保留多行消息；Ctrl+Enter 提交暂存快照，不带入工作区的另一份修改。
+  // Enter retains multi-line messages; Ctrl+Enter submits a snapshot of staging, without bringing in another modification from the workspace.
   git(['add','--','sample.c']); const staged_code = fs.readFileSync(path.join(root,'sample.c'),'utf8'); fs.appendFileSync(path.join(root,'sample.c'),'// keep unstaged\n');
   await evaluate('panel.refresh(false)'); const before_manual = git(['rev-parse','HEAD']);
   const file_columns = () => evaluate(`(() => {
@@ -554,7 +554,7 @@ app.whenReady().then(async () => {
   await click('[data-field=message]'); await test_window.webContents.insertText('dialog first'); await key('Enter'); await test_window.webContents.insertText('dialog second');
   assert(!await evaluate('document.querySelector("[data-git-preview]")'));
   assert.equal(git(['rev-parse','HEAD']),after_manual); await click('[data-git-execute]'); await wait('!panel.writing && !document.querySelector(".git-graph-dialog-shade")'); assert.notEqual(git(['rev-parse','HEAD']),after_manual); await key('Escape');
-  // 保留 A 仓库的真实 Monaco 比较，再切换 B；旧按钮和已生成菜单不得使用 B 的同名路径。
+  // Retain the real A repository's Monaco comparison, then switch to B; old buttons and generated menus must not use the B named path.
   const other_repository=fs.mkdtempSync(path.join(os.tmpdir(),'typora_graph_other_'));
   const other_git=args=>child_process.execFileSync('git',['-c','user.name=UI Test','-c','user.email=ui@example.invalid','-c','commit.gpgsign=false','-c','core.autocrlf=false','-c','core.hooksPath=.git/unused_hooks',...args],{cwd:other_repository,encoding:'utf8',windowsHide:true});
   other_git(['init','-b','main']);fs.writeFileSync(path.join(other_repository,'sample.c'),'int other_repository = 17;\n');other_git(['add','sample.c']);other_git(['commit','-m','其他仓库']);

@@ -1,4 +1,4 @@
-/** 在渲染文本中强调实际改词；有界匹配避免长段落占用UI。原DOM语义和源位置不变。 */
+/** Emphasize actual word changes in rendered text; bounded matching avoids long paragraphs occupying UI . The original DOM semantic and source position remain unchanged. */
 export function highlight_markdown_inline(left: HTMLElement, right: HTMLElement): void {
   if (left.querySelector('pre,svg') || right.querySelector('pre,svg')) return;
   const a = left.textContent || '', b = right.textContent || '';

@@ -1,11 +1,11 @@
-// 使用安装器校验的独立 Node 运行时。ConPTY 的排空线程不能在 Renderer 中创建。
+// Use the installer verified independent Node runtime. ConPTY's emptying thread cannot be created in Renderer.
 const pty_module = require('./node-pty/lib');
 let terminal; let closing = false; let pending_bytes = 0;
 const send = message => { if (process.connected) process.send(message); };
 const close = () => {
   if (closing) return;
   closing = true;
-  if (terminal) try { terminal.kill(); } catch { /* 子进程可能已经退出。 */ }
+  if (terminal) try { terminal.kill(); } catch { /* The child process may have already exited. */ }
   setTimeout(() => process.exit(0), 1200).unref();
 };
 process.on('disconnect', close);

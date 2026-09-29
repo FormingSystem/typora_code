@@ -1,5 +1,8 @@
-﻿# 使用临时文件和授权端口替身；不弹出系统授权，不修改真实安装或全局权限。
+﻿# Use temporary files and authorized port placeholders; do not prompt for system authorization, and do not modify the real installation or global permissions.
 $ErrorActionPreference = 'Stop'
+$previous_language=$env:TYPORA_CODE_LANGUAGE
+$env:TYPORA_CODE_LANGUAGE='zh-cn'
+try {
 $tools_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $tools_root 'scripts/lib/typora_install_permissions.ps1')
 $fixture = Join-Path ([IO.Path]::GetTempPath()) ('typora-permissions-' + [guid]::NewGuid().ToString('N'))
@@ -47,7 +50,7 @@ foreach ($rounds in @(20,100,1000)) {
     $checks.Add("$rounds permission decisions and argument round trips")
 }
 
-# 实际执行编码重入内容，只有启动系统UAC的端口被替换。
+# Actualize the reentrant code content, only the port of the started system UAC is replaced.
 $child_script=Join-Path $fixture 'installer 中文 [child].ps1'
 $identity_file=Join-Path $fixture 'identity.json'
 $child_source=@'
@@ -76,3 +79,4 @@ assert_true ((Get-FileHash -LiteralPath $file).Hash -eq $before) 'failure and ca
 function start_typora_elevated_install { param($encoded_command); return [pscustomobject]@{ExitCode=0} }
 assert_failure { invoke_typora_elevated_install (new_request) } '未收到完成记录'
 @{status='PASS';checks=$checks;fixture=$fixture;actual_uac=$false;engine=$PSVersionTable.PSVersion.ToString()}|ConvertTo-Json -Depth 8
+} finally { $env:TYPORA_CODE_LANGUAGE=$previous_language }

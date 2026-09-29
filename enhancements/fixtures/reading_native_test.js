@@ -1,4 +1,4 @@
-// 由 test_reading_native.ps1 注入专用测试窗口；仅访问该次测试的临时文件。
+// Injected by test_reading_native.ps1 into a dedicated test window; only access the temporary files of this test.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const probe_root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/reading_native_test.js$/u, '');
@@ -32,14 +32,14 @@
       const content = document.querySelector('content');
       const write = document.querySelector('#write');
       if (phase === '2') {
-        // 模拟宿主延迟恢复选区：正文高度未变，但滚动再次回到 0；不能把它覆盖为新的阅读位置。
+        // Simulate host delay recovery selection: the height of the document content remains unchanged, but the scroll again returns to 0; it cannot be covered as a new reading position.
         await delay(80); const height = write.getBoundingClientRect().height;
         content.scrollTop = 0;
         expect(write.getBoundingClientRect().height === height, 'host scroll reset leaves document height unchanged');
       }
       await delay(700);
       if (phase === '1') {
-        // 大纲通过正式命令打开独立原生视图，不依赖测试窗口遗留的侧栏状态。
+        // The outline is opened through an official command to open an independent native view, not dependent on the side bar state left by the test window.
         app.commands.run('linux_note:outline');
         await wait(() => { const pane=document.querySelector('#outline-content');return app.workspace.sidebar.isShown&&app.workspace.sidebar.activePanel?.ribbonButton?.id==='core.outline'&&pane&&pane.getBoundingClientRect().height>0&&pane.querySelector('.outline-label'); });
         const source = app.workspace.activeLeaf;
@@ -99,13 +99,13 @@
         result.resumed_position = visible(content, write);
       } else {
         const prior = JSON.parse(fs.readFileSync(path.join(probe_root, 'result_1.json'), 'utf8'));
-        // ready 表示事件已接入；排版及异步位置恢复可能仍在进行，等待可观察的阅读位置。
+        // ready indicates that the event has been integrated; the layout and asynchronous position recovery may still be in progress, waiting for observable reading positions.
         await wait(() => same_position(prior.resumed_position, visible(content, write)));
         await delay(350);
         result.resume = { expected: prior.resumed_position, actual: visible(content, write), scroll_top: content.scrollTop,
           stored: localStorage.getItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(File.bundle.filePath))) };
         expect(same_position(prior.resumed_position, visible(content, write)), 'new window resumes persisted reading position');
-        // 仅移除本次测试两个临时文件的键，保留用户所有实际文档的阅读记录。
+        // Only remove the two temporary files' keys of this test, and keep the reading records of all user's actual documents.
         for (const name of ['source.md', 'target.md']) localStorage.removeItem('linux-note-reading-position:v1:' + encodeURIComponent(normalized(path.join(probe_root, name))));
       }
       expect(hashes[0] === digest('source.md') && hashes[1] === digest('target.md'), 'Markdown sources remain unchanged');

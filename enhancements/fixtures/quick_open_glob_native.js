@@ -1,4 +1,4 @@
-// 原始宿主的文件模式切换；文件与窗口均由隔离运行器持有。
+// Original host's file mode switch; files and windows are both held by the isolated runner.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

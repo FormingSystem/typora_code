@@ -1,4 +1,4 @@
-// 真实生产设置页 + Chromium 输入；Git、存储与导出全部隔离在临时目录。
+// Real production settings page + Chromium input; Git, storage, and export are all isolated in a temporary directory.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');

@@ -44,7 +44,7 @@ function simplifyFilePath(root: string, filePath: string) {
     .replace(/(\.textbundle)[\\/]text\.(?:md|markdown)$/, '$1')
 }
 
-/** 文件名作为文本写入；完整名称由标签布局按可用空间裁剪。 */
+/** File name is written as text; full name is clipped by tag layout according to available space. */
 function tab_label(name: string, extension = '') {
   return $('<i class="typ-file-icon fa fa-file-o"></i>')
     .add($('<span class="typ-file-basename"></span>').text(name))

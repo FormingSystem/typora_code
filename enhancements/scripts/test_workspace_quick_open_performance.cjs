@@ -1,4 +1,4 @@
-// 大目录仅生成文件名，不读正文；使用真实 Chromium 事件循环测量输入阻塞与过期查询。
+// Large directories only generate file names, do not read document content; use real Chromium event loop to measure input blocking and expired queries.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');

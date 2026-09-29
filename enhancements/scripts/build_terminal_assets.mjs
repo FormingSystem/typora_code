@@ -2,7 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 
-// 正常安装直接使用这些锁定并校验的运行文件，不要求用户安装 Node 或编译器。
+// Normal installation directly uses these locked and verified runtime files; no user is required to install Node or compiler.
 const source = 'node_modules/node-pty';
 const version = JSON.parse(fs.readFileSync(source + '/package.json', 'utf8')).version;
 if (version !== '1.1.0') throw new Error('Update the terminal runtime version and deployment contract together.');
@@ -17,7 +17,7 @@ const walk = directory => {
 };
 walk('lib');
 for (const arch of ['x64', 'arm64']) for (const name of ['conpty.node', 'conpty_console_list.node']) files.push(`prebuilds/win32-${arch}/${name}`);
-// 与 node-pty 锁定包配套；不能在 Windows 10 静默退回系统旧 ConPTY。
+// Complement with the node-pty locked package; cannot silently return the old ConPTY of the system in the Windows 10.
 for (const arch of ['x64', 'arm64']) for (const name of ['conpty.dll', 'OpenConsole.exe']) files.push(`prebuilds/win32-${arch}/conpty/${name}`);
 const records = [];
 for (const relative of files.sort()) {

@@ -61,7 +61,7 @@ export class Settings<T extends Record<string, any>>
     Object.assign(this._defaultSettings, settings)
   }
 
-  /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
+  /** Explicitly set form to write to disk first, then publish memory update; failure does not override current settings. */
   set_and_save(key: keyof T, value: T[keyof T]) {
     if (typeof key !== 'string') throw new TypeError('Setting key must be a string.')
     const settings = { ...this._data, [key]: value }

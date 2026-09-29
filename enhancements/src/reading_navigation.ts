@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {remote_files_for,assert_remote_owner} from './remote_workspace_files';
 import {bind_reading_native_scroll} from "./reading_native_scroll";
 import { create_reading_history, type reading_location } from "./reading_history";
@@ -8,7 +9,7 @@ import { capture_markdown_location, reveal_markdown_location } from "./workspace
 import type { file_location } from "./workspace_files";
 import {navigation_editor, observe_navigation_selection} from "./reading_navigation_ports";
 
-// Typora 1.14.9 appsrc/window/frame.js 与社区核心 2.10.15 已核对的宿主接口。
+// Typora 1.14.9 appsrc/window/frame.js: modules 5e ClientCommand and 66 megaMenu, editor.stylize, and searchPanel; window.html data-insert defines block types. Reuse only verified call behavior. The native Menu tree was not obtained; this does not claim complete parity with its entries or state.
 type typora_editor = {
   tryOpenUrl(url: string, ...args: unknown[]): unknown;
   tryOpenUrl_?(url: string, ...args: unknown[]): unknown;
@@ -32,10 +33,10 @@ let navigate_target: ((path: string, options: reading_target_options) => Promise
 let remap_paths: ((map: (path: string) => string | undefined) => void) | undefined;
 export function rename_reading_paths(map: (path: string) => string | undefined): void { remap_paths?.(map); }
 
-/** 定位必须包含在打开、位置保护和阅读历史的同一事务中。 */
+/** The positioning must be included in the same transaction as opening, position protection, and reading history. */
 export async function navigate_reading_target(path: string, options: reading_target_options = {}): Promise<void> {
-  if (options.signal?.aborted) throw new Error("文件跳转已取消。");
-  if (!navigate_target || !await navigate_target(path, options)) throw new Error(options.signal?.aborted ? "文件跳转已取消。" : "无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。");
+  if (options.signal?.aborted) throw new Error(workspace_text("reading_navigation_file_jump_has_been_canceled"));
+  if (!navigate_target || !await navigate_target(path, options)) throw new Error(options.signal?.aborted ? workspace_text("reading_navigation_file_jump_has_been_canceled") : workspace_text("reading_navigation_cannot_switch_to_target_markdown_please_process_file_open_or"));
 }
 
 export function bind_reading_navigation(): () => void {
@@ -72,7 +73,7 @@ export function bind_reading_navigation(): () => void {
     document.documentElement.dataset.linuxNoteHistoryForward = String(detail.forward);
     window.dispatchEvent(new CustomEvent("linux-note-reading-history-state", { detail }));
   };
-  // 沿用核心已核对的入口选择；存在内部方法时，点击可能绕过外层。
+  // Continue to use the entry selection already verified by the core; when there are internal methods, clicking may bypass the outer layer.
   const url_method = typeof editor.tryOpenUrl_ === "function" ? "tryOpenUrl_" : "tryOpenUrl";
   const original_open_url = editor[url_method]!;
   const original_open_file = editor.library.openFile;
@@ -108,11 +109,11 @@ export function bind_reading_navigation(): () => void {
           const source_location = capture_markdown_location();
           if (source_location) cursor.linux_note_source_location = source_location;
         }
-      } catch { /* 没有正文选区时仍保存阅读位置。 */ }
+      } catch { /* Even when there is no selected text in the document, the reading position is still saved. */ }
     }
     return { file_path: context.file_path, ...position, position, cursor, view_id: context.view_id };
   };
-  // 功能栏可以改变宿主缓存选区；离开文档后只使用最后由文档事件确认的位置。
+  // The function bar can change the host's cache selection area; when leaving the document, it only uses the last confirmed position by the document event.
   const capture_departure = () => {
     const current = capture();
     return !document_interaction && current && last_location && current.file_path === last_location.file_path
@@ -143,7 +144,7 @@ export function bind_reading_navigation(): () => void {
       if (!await wait_for(() => Boolean(workspace.elements(context)), signal)) return false;
       if (disposed || signal.aborted) return false;
       if (!leaf.view.isEditor()) {
-        // 复用社区核心的编辑器交换及原生未保存确认；目标接管后目录也属于目标文件。
+        // Reuse the community core's editor swap and native unsaved confirmation; after the target takes over, the directory also belongs to the target file.
         leaf.view.containerEl.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
       }
     }
@@ -157,13 +158,13 @@ export function bind_reading_navigation(): () => void {
     if (existing) return await activate(existing, signal) ? existing : undefined;
     const current = workspace.active();
     if (current && file_key(current.file_path) === file_key(path)) return await activate(current, signal) ? current : undefined;
-    // 保留宿主打开失败与未保存确认；绝不通过读正文、reloadContent 或自动保存来切换。
+    // Keep the host's failed opening and unsaved confirmation; never switch through reading the document content, reloadContent, or automatic saving.
     if (disposed || signal.aborted) return;
-    // 已关闭的最后文档仍可能被宿主缓存；同路径openFile会跳过磁盘读取。
-    // 只刷新无叶子且无草稿的缓存，不能覆盖仍在其他编辑组打开的文档。
+    // The last closed document may still be cached by the host; the same openFile path will skip disk reading.
+    // Only refresh the cache without leaves and without drafts, and cannot overwrite documents still open in other editing groups.
     if (app && file_key(native_path()) === file_key(path)) {
-      if (file.changeCounter?.isDocumentEdited()) throw new Error("宿主仍有未保存修改，请先处理草稿后重新打开。");
-      if (typeof file.reloadFromDisk !== "function") throw new Error("宿主未提供文档重载接口，无法安全重新打开此文件。");
+      if (file.changeCounter?.isDocumentEdited()) throw new Error(workspace_text("reading_navigation_the_host_has_unsaved_modifications_please_process_the_draft"));
+      if (typeof file.reloadFromDisk !== "function") throw new Error(workspace_text("reading_navigation_the_host_does_not_provide_a_document_reload_interface_so_it"));
       await file.reloadFromDisk();
       if (disposed || signal.aborted || file_key(native_path()) !== file_key(path)) return;
     }
@@ -179,7 +180,7 @@ export function bind_reading_navigation(): () => void {
   const navigate = async (path: string, hash?: string, location?: reading_location, options: reading_target_options = {}): Promise<boolean> => {
     const signal = options.signal ?? controller.signal;
     if (disposed || navigating || signal.aborted) return false;
-    // 预检远程物化含await，必须在第一个等待前占有导航事务，避免连续点击同时进入宿主。
+    // Pre-check remote materialized await, must occupy the navigation transaction before the first wait, to avoid continuous clicks entering the host at the same time.
     finish_pending();navigating=true;
     let held_path:string|undefined;
     try {
@@ -187,13 +188,13 @@ export function bind_reading_navigation(): () => void {
     if (path_api) {
       const target = resolve_host_open_file_target(path_api, source, path);
       const resolved = resolve_workspace_file(path_api, source ? path_api.dirname(source) : "", target);
-      if (!resolved) throw new Error("无法解析目标 Markdown 路径。");
+      if (!resolved) throw new Error(workspace_text("reading_navigation_cannot_parse_the_target_markdown_path"));
       path = resolved;
-      // 远程目标先物化；网络失败不能先清空原生编辑面。
+      // Remote target is materialized first; network failure cannot clear the native editing area first.
       assert_remote_owner(path);await remote_files_for(path)?.prepare(path,false,()=>!disposed&&!signal.aborted);
-      // 宿主收到不存在的文件会先清空编辑面，因此必须在任何状态切换前拒绝。
+      // When the host receives a non-existent file, it will first clear the editing area, so it must reject before any state switch.
       const fs = (runtime as unknown as {reqnode(name: string): {statSync(path: string): {isFile(): boolean}}}).reqnode("fs");
-      if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");
+      if (!fs.statSync(path).isFile()) throw new Error(workspace_text("reading_navigation_the_target_is_not_a_regular_file"));
     }
     if (disposed || signal.aborted) return false;
     const from = capture_departure() ?? last_location;
@@ -212,7 +213,7 @@ export function bind_reading_navigation(): () => void {
         if (!opened || !target || !await activate(target, signal)) target = undefined;
       } else target = await open_target(path, location?.view_id, signal);
       if (disposed || signal.aborted || !target) return false;
-      // 历史目标已就绪，立即定位；晚到布局由位置服务继续校正。普通打开保留原完成契约。
+      // The historical target is ready, immediately position; the late layout is continued to be corrected by the position service. Normal opening retains the original completion contract.
       if (!location) await reading_delay(100, signal);
       if (disposed || signal.aborted) return false;
       workspace.stop_restoring(target);
@@ -232,7 +233,7 @@ export function bind_reading_navigation(): () => void {
         if (disposed || signal.aborted) return false;
         const heading = window.getSelection()?.focusNode?.parentElement?.closest("h1,h2,h3,h4,h5,h6");
         const cid = heading?.getAttribute("cid");
-        // 原生目录已按目标文件更新；仅滚动目录自己的容器，不滚动来源文档。
+        // The native directory has been updated according to the target file; only scroll the container of the directory itself, not the source document.
         if (cid) {
           const item = Array.from(document.querySelectorAll<HTMLElement>("#outline-content .outline-label"))
             .find((node) => node.getAttribute("data-ref") === cid);
@@ -244,11 +245,11 @@ export function bind_reading_navigation(): () => void {
           }
         }
       } else if (location) {
-        // cid 只用于当前窗口的原生历史，持久化位置不保存它；最后恢复滚动，避免选区拉动视口。
+        // The cid is only used for the native history of the current window; persistent position does not save it; the last recovery of scrolling avoids pulling the viewport.
         try {
           if (location.cursor?.linux_note_source_location) await reveal_markdown_location(location.cursor.linux_note_source_location as file_location, signal);
           else if (location.cursor) editor.undo?.exeCommand(location.cursor);
-        } catch { /* 正文发生变化或失效光标不阻止阅读位置恢复。 */ }
+        } catch { /* Changes or failure of the document do not prevent the recovery of the reading position. */ }
         if (disposed || signal.aborted) return false;
         await restore_position(location.position ?? location);
       } else await restore_position();
@@ -266,14 +267,14 @@ export function bind_reading_navigation(): () => void {
     }
   };
   const owned_navigate_target = navigate_target = async (path, options) => {
-    // 同时接受单次移交取消和阅读模块卸载；取消排队项不能在前次导航结束后再打开文件。
+    // Accept both single-time transfer cancellation and reading module unloading at the same time; queue items cannot be opened again after the previous navigation ends.
     const operation = new AbortController();
     const abort = () => operation.abort();
     const signals = [controller.signal, context_controller.signal, options.signal].filter((signal): signal is AbortSignal => Boolean(signal));
     for (const signal of signals) { if (signal.aborted) abort(); else signal.addEventListener("abort", abort, {once: true}); }
     try {
       if (disposed || operation.signal.aborted) return false;
-      // 光标先到位而历史滚动仍在稳定时，下一次明确打开应等待事务结束，不能丢掉用户的双击。
+      // The cursor is first in position while the historical scrolling is still stable; the next explicit opening should wait for the transaction to end, and cannot lose the user's double-click.
       const started = Date.now();
       while (navigating || history.is_navigating() || travel_queue.length) {
         if (disposed || operation.signal.aborted || Date.now() - started > 15000) return false;
@@ -305,7 +306,7 @@ export function bind_reading_navigation(): () => void {
       }
     } catch (error) { report(error); }
     finally {
-      // 失败/切库后不重放剩余方向，旧事务也不能清空新工程的队列。
+      // After failure or switching database, do not replay the remaining directions, and the old transaction cannot clear the new project's queue.
       if (queue === travel_queue) cancel_travel_queue();
       publish_history_state();
     }
@@ -327,7 +328,7 @@ export function bind_reading_navigation(): () => void {
     const local_url = url.trim().replace(/^<|>$/gu, "");
     if (navigating) return;
     if (editor.sourceView?.inSourceMode || (!/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url))) {
-      // 外部程序往返可能清空再重建原生选区；它不是正文内的新定位。
+      // External program round trips may clear and rebuild the native selection area; it is not a new positioning within the document content.
       restoring_focus = true; document_interaction = false; clearTimeout(selection_timer);
       return original_open_url.call(this, url, ...args);
     }
@@ -339,8 +340,8 @@ export function bind_reading_navigation(): () => void {
     const markdown_target = parse_markdown_file_target(local_url);
     if (!app && markdown_target) {
       let path = markdown_target.file_path;
-      // DOM链接编码只在URL边界解一次；file:继续由共同URI解析器解码。
-      if (!/^file:/iu.test(path)) { try { path = decodeURIComponent(path); } catch { /* 保留本机合法的字面百分号。 */ } }
+      // DOM link encoding is decoded only once at URL boundary; file: continues to be decoded by the common URI parser.
+      if (!/^file:/iu.test(path)) { try { path = decodeURIComponent(path); } catch { /* Retain the native valid literal percent signs. */ } }
       void owned_navigate_target(path, {hash: markdown_target.hash}).catch(report);
       return;
     }
@@ -356,7 +357,7 @@ export function bind_reading_navigation(): () => void {
     void owned_navigate_target(target ?? parsed.file_path, {hash: parsed.hash}).catch(report);
   };
   if (app) {
-    // 替换核心 openFile 的固定 500ms 全局锚点定时器：文件、栏、标题作为一次操作兑现。
+    // Replace the fixed openFile ms global anchor timer for the core 500: file, panel, title as a single operation is fulfilled.
     const original_workspace_open_file = app.workspace.activeEditor.openFile;
     const owned_workspace_open_file = app.workspace.activeEditor.openFile = (target) => {
       if (disposed) return original_workspace_open_file.call(app.workspace.activeEditor, target);
@@ -374,7 +375,7 @@ export function bind_reading_navigation(): () => void {
       if (app.openFile === owned_app_open_file) app.openFile = original_app_open_file;
       if (app.workspace.activeEditor.openFile === owned_workspace_open_file) app.workspace.activeEditor.openFile = original_workspace_open_file;
     });
-    // 标签切换通过核心保存的 openFile$original，事件用于补齐这条路径。
+    // Tag switching through the core saved openFile$original, events are used to complete this path.
     collect(app.workspace.on("file:will-open", () => {
       if (disposed) return;
       workspace.checkpoint();
@@ -392,7 +393,7 @@ export function bind_reading_navigation(): () => void {
     if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
     const current = capture();
     if (!current) return;
-    // 同一编辑器的焦点/布局通知不等于新的文档选区；明确定位仍由领域入口提交。
+    // Focus/layout notifications for the same editor are not equal to the new document selection; explicit localization is still submitted by the domain entry.
     if ((editor_change_only || (!explicit && !document_interaction)) && history.is_current_editor(current)) return;
     if (!(restoring_focus && !explicit && history.checkpoint(current))) history.record_selection(current, explicit);
     last_location = current; publish_history_state();
@@ -408,14 +409,14 @@ export function bind_reading_navigation(): () => void {
       && path.some(node => node.matches('#write, .linux-note-source-file, .git-graph-document'));
   };
   const leave_document = (capture_before_blur = false) => {
-    // 只缓存失焦前真实文档位置，不提交历史；后续实际离开时可保留刚滚到的阅读位置。
+    // Only cache the real document position before losing focus, do not submit history; when leaving actually later, you can keep the reading position just rolled to.
     if (capture_before_blur && document_interaction && !navigating && !history.is_navigating() && !is_busy() && !pending_from) {
       const current = capture();
       if (current && history.is_current_editor(current)) last_location = current;
     }
     document_interaction = false; clearTimeout(selection_timer);
   };
-  // 点击前更新来源的滚动位置；定位由对应入口提交，滚轮本身不新增记录。
+  // Update the source's scroll position before clicking; localization is submitted by the corresponding entry, the wheel itself does not add new records.
   document.addEventListener("pointerdown", event => {
     if (!is_document_event(event)) { leave_document(true); return; }
     document_interaction = true;

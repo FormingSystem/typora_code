@@ -1,3 +1,5 @@
+import {workspace_text} from "./workspace_i18n";
+import {resolve_workspace_locale} from "./workspace_locale";
 import {workspace_context_switching} from './workspace_context';
 import {create_workspace_lifetime} from './workspace_lifetime';
 import {show_workspace_onboarding} from './workspace_onboarding_view';
@@ -10,18 +12,18 @@ export function bind_workspace_onboarding(files:workspace_file_host) {
  const waiting=create_workspace_lifetime();lifetime.own(waiting);
  let store:ReturnType<typeof create_onboarding_store>|undefined;
  let tour:ReturnType<typeof show_workspace_onboarding>|undefined;
- const notice=(error:unknown)=>new files.core.Notice('操作指导：'+String(error instanceof Error?error.message:error),5000);
+ const notice=(error:unknown)=>new files.core.Notice(workspace_text("onboarding_operation_instructions")+String(error instanceof Error?error.message:error),5000);
  const open_guide=()=>{void(async()=>{try{
-  const path=files.path_api.join(runtime._options.userDataPath,'typora_code/assets/help/user_guide.md');
+  const path=files.path_api.join(runtime._options.userDataPath,'typora_code/assets/help/'+(resolve_workspace_locale()==='en'?'user_guide.en.md':'user_guide.md'));
   await files.fs.promises.access(path);if(lifetime.disposed)return;
-  if(!runtime.JSBridge?.invoke)throw Error('原生文件打开接口不可用。');
+  if(!runtime.JSBridge?.invoke)throw Error(workspace_text("onboarding_the_native_file_open_interface_is_unavailable"));
   await runtime.JSBridge.invoke('app.openFile',path,{forceCreateWindow:true});
  }catch(error){if(!lifetime.disposed)notice(error);}})();};
  const show=()=>{if(lifetime.disposed)return;tour?.close();tour=show_workspace_onboarding(open_guide,()=>{tour=undefined;});};
- lifetime.add(files.core.app.commands.register({id:'typora_code:operation_guide',title:'操作指导',scope:'global',callback:()=>{waiting.dispose();try{if(store?.claim(show))return;}catch(error){notice(error);}show();}}));
- lifetime.add(files.core.app.commands.register({id:'typora_code:operation_manual',title:'操作说明与快捷键',scope:'global',callback:open_guide}));
+ lifetime.add(files.core.app.commands.register({id:'typora_code:operation_guide',title:workspace_text("onboarding_operation_instructions_b658709a"),scope:'global',callback:()=>{waiting.dispose();try{if(store?.claim(show))return;}catch(error){notice(error);}show();}}));
+ lifetime.add(files.core.app.commands.register({id:'typora_code:operation_manual',title:workspace_text("onboarding_operation_instructions_and_keyboard_shortcuts"),scope:'global',callback:open_guide}));
  lifetime.add(()=>tour?.close());
- // 自动引导只读取启动时的安装标识；已运行的旧窗口不消费随后安装的新版本。
+ // Automatic guidance only reads the installation identifier at startup; existing old windows do not consume the new version installed later.
  if(!runtime.reqnode||!runtime._options?.userDataPath)return lifetime;
  let timer=0;
  try{

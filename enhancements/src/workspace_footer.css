@@ -1,4 +1,4 @@
-/* 原生底栏不再占用侧栏的最后 30px；预览和目录可使用完整高度。 */
+/* The native status bar no longer occupies the last 30px of the sidebar; preview and directory can use full height. */
 #typora-sidebar[data-workspace-footer=moved] > #sidebar-content { bottom:0!important; }
 body.show-footer footer.ty-footer[data-workspace-footer=ready] {
   display:flex; align-items:center; gap:0; min-width:0; --workspace-footer-action-size:var(--linux-note-shell-action-size,22px);
@@ -30,12 +30,12 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn {
 footer.ty-footer[data-workspace-footer=ready] #sidebar-menu-btn > .sidebar-footer-item {
   justify-content:center; min-width:var(--workspace-footer-action-size); width:var(--workspace-footer-action-size); overflow:hidden;
 }
-/* 原生侧栏模式只限制直接操作行，不能隐藏文件菜单中的同名 file-action-item。 */
+/* The native sidebar mode only restricts direct operation rows and cannot hide the same file-action-item in the file menu. */
 footer.ty-footer[data-workspace-footer=ready] #ty-sidebar-footer[data-workspace-sidebar-tab=outline] > div > .file-action-item {display:none!important;}
-/* 活动栏已有独立大纲入口，底栏不再保留重复图钉或展开按钮。 */
+/* The active bar already has an independent outline entry, and the status bar no longer retains duplicate pins or expand buttons. */
 footer.ty-footer[data-workspace-footer=ready] :is(#unpin-outline-btn,#outline-btn-wrapper,#outline-btn) {display:none!important;}
 
-/* 原生代码仍更新该标签；仅从视觉布局移除，避免目录名撑成长条。 */
+/* Native code still updates this tag; it is only removed from the visual layout to avoid the directory name stretching into a long strip. */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-footer-main-item-label {
   position:absolute!important; width:1px; height:1px; padding:0!important; margin:-1px!important;
   overflow:hidden!important; clip:rect(0,0,0,0); clip-path:inset(50%); white-space:nowrap!important; border:0;
@@ -50,10 +50,10 @@ footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu {
   background:var(--bg-color,#fff); color:var(--text-color,inherit);
 }
 
-/* 宿主维护 li.show 的业务显隐；仅恢复该状态的展示，不显示被宿主移除 show 的条目。 */
+/* Host manages the visibility of business elements li.show; only restore the display of this state, do not display entries that have been removed by the host show. */
 footer.ty-footer[data-workspace-footer=ready] #sidebar-files-menu li.show {display:block;}
 
-/* 原生浮层仍归属原节点；footer 的层叠上下文仅在自身弹层打开时升到终端之上。 */
+/* Native floating layers still belong to the original node; the stacking context of footer is only raised above the terminal when its own pop-up is opened. */
 body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-index:101;overflow:visible;}
 [data-workspace-footer-popup=ready] {
   position:fixed!important;left:var(--workspace-popup-left,0px)!important;top:var(--workspace-popup-top,0px)!important;
@@ -61,9 +61,9 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
   max-width:calc(100vw - 8px)!important;max-height:var(--workspace-popup-max-height,65vh)!important;
   overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
 }
-/* 字数与语言共用盒模型；取消原生悬浮底栏的底部 8px padding／负 margin，文字与箭头按紧凑底栏内容盒居中。 */
+/* The number of characters and language share the same box model; cancel the bottom 8px padding / negative margin of the native floating status bar; text and arrows are centered according to the compact status bar content box. */
 body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
   gap:2px;padding-left:6px;padding-right:6px;
 }
-/* 文档语言是持续状态；原生菜单及源码/diff显隐继续归宿主管理。 */
+/* The document language is a continuous state; native menus and source code/diff visibility continues to be managed by the host. */
 footer.ty-footer[data-workspace-footer=ready] > #footer-spell-check {opacity:1;transition:none;}

@@ -1,4 +1,4 @@
-// 验证活动差异来源、焦点选择及虚拟历史列表中的精确定位。
+// Verify the source of activity differences, focus selection, and precise localization in the virtual history list.
 const {app,BrowserWindow}=require('electron');
 const assert=require('node:assert/strict');
 const fs=require('node:fs');

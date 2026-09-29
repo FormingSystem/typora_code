@@ -1,4 +1,4 @@
-/* 沿统一设置的26px输入、13px文字和共享交互；颜色表是本产品的设置呈现。 */
+/* Along the unified settings, input 26px, 13px text and shared interactions；the color table is the setting presentation of this product. */
 .workspace-color-toolbar{position:sticky;top:0;z-index:1;background:var(--workspace-ui-background,var(--bg-color));display:flex;align-items:center;flex-wrap:wrap;gap:6px;margin:12px 0}
 .workspace-color-settings{min-width:0}
 .workspace-color-settings>p{margin:8px 0;overflow-wrap:anywhere}

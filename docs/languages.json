@@ -1,0 +1,281 @@
+{
+  "schema": 1,
+  "documents": [
+    {
+      "zh_cn": "AGENTS.md",
+      "en": "AGENTS.en.md"
+    },
+    {
+      "zh_cn": "COPYRIGHT.md",
+      "en": "COPYRIGHT.en.md"
+    },
+    {
+      "zh_cn": "docs/code_analysis_colors.md",
+      "en": "docs/code_analysis_colors.en.md"
+    },
+    {
+      "zh_cn": "docs/community_plugins.md",
+      "en": "docs/community_plugins.en.md"
+    },
+    {
+      "zh_cn": "docs/contributing.zh-CN.md",
+      "en": "docs/contributing.en.md"
+    },
+    {
+      "zh_cn": "docs/copyright_notice.md",
+      "en": "docs/copyright_notice.en.md"
+    },
+    {
+      "zh_cn": "docs/development_handoff.md",
+      "en": "docs/development_handoff.en.md"
+    },
+    {
+      "zh_cn": "docs/drag_and_windows.md",
+      "en": "docs/drag_and_windows.en.md"
+    },
+    {
+      "zh_cn": "docs/editor_header.md",
+      "en": "docs/editor_header.en.md"
+    },
+    {
+      "zh_cn": "docs/editor_tab_menu.md",
+      "en": "docs/editor_tab_menu.en.md"
+    },
+    {
+      "zh_cn": "docs/explorer_history.md",
+      "en": "docs/explorer_history.en.md"
+    },
+    {
+      "zh_cn": "docs/feedback_review.md",
+      "en": "docs/feedback_review.en.md"
+    },
+    {
+      "zh_cn": "docs/file_operations.md",
+      "en": "docs/file_operations.en.md"
+    },
+    {
+      "zh_cn": "docs/git_branch_checkout.md",
+      "en": "docs/git_branch_checkout.en.md"
+    },
+    {
+      "zh_cn": "docs/git_commit_messages.md",
+      "en": "docs/git_commit_messages.en.md"
+    },
+    {
+      "zh_cn": "docs/git_commit_web.md",
+      "en": "docs/git_commit_web.en.md"
+    },
+    {
+      "zh_cn": "docs/git_graph_configuration.md",
+      "en": "docs/git_graph_configuration.en.md"
+    },
+    {
+      "zh_cn": "docs/git_markdown_diff.md",
+      "en": "docs/git_markdown_diff.en.md"
+    },
+    {
+      "zh_cn": "docs/git_scm_actions.md",
+      "en": "docs/git_scm_actions.en.md"
+    },
+    {
+      "zh_cn": "docs/icon_mapping.md",
+      "en": "docs/icon_mapping.en.md"
+    },
+    {
+      "zh_cn": "docs/installation.md",
+      "en": "docs/installation.en.md"
+    },
+    {
+      "zh_cn": "docs/installation_design.md",
+      "en": "docs/installation_design.en.md"
+    },
+    {
+      "zh_cn": "docs/link_preview.md",
+      "en": "docs/link_preview.en.md"
+    },
+    {
+      "zh_cn": "docs/localization.md",
+      "en": "docs/localization.en.md"
+    },
+    {
+      "zh_cn": "docs/markdown_text_color.md",
+      "en": "docs/markdown_text_color.en.md"
+    },
+    {
+      "zh_cn": "docs/native_startup_design.md",
+      "en": "docs/native_startup_design.en.md"
+    },
+    {
+      "zh_cn": "docs/navigation_history.md",
+      "en": "docs/navigation_history.en.md"
+    },
+    {
+      "zh_cn": "docs/onboarding.md",
+      "en": "docs/onboarding.en.md"
+    },
+    {
+      "zh_cn": "docs/open_in_vscode.md",
+      "en": "docs/open_in_vscode.en.md"
+    },
+    {
+      "zh_cn": "docs/quick_open.md",
+      "en": "docs/quick_open.en.md"
+    },
+    {
+      "zh_cn": "docs/reading_code_blocks.md",
+      "en": "docs/reading_code_blocks.en.md"
+    },
+    {
+      "zh_cn": "docs/reading_media_viewer.md",
+      "en": "docs/reading_media_viewer.en.md"
+    },
+    {
+      "zh_cn": "docs/recent_open.md",
+      "en": "docs/recent_open.en.md"
+    },
+    {
+      "zh_cn": "docs/remote_ssh.md",
+      "en": "docs/remote_ssh.en.md"
+    },
+    {
+      "zh_cn": "docs/requirements_design.md",
+      "en": "docs/requirements_design.en.md"
+    },
+    {
+      "zh_cn": "docs/resource_capacity.md",
+      "en": "docs/resource_capacity.en.md"
+    },
+    {
+      "zh_cn": "docs/search_performance.md",
+      "en": "docs/search_performance.en.md"
+    },
+    {
+      "zh_cn": "docs/source_outline.md",
+      "en": "docs/source_outline.en.md"
+    },
+    {
+      "zh_cn": "docs/stability_issues.md",
+      "en": "docs/stability_issues.en.md"
+    },
+    {
+      "zh_cn": "docs/stability_testing.md",
+      "en": "docs/stability_testing.en.md"
+    },
+    {
+      "zh_cn": "docs/stability_validation_20260919.md",
+      "en": "docs/stability_validation_20260919.en.md"
+    },
+    {
+      "zh_cn": "docs/startup_stability.md",
+      "en": "docs/startup_stability.en.md"
+    },
+    {
+      "zh_cn": "docs/statusbar_layout.md",
+      "en": "docs/statusbar_layout.en.md"
+    },
+    {
+      "zh_cn": "docs/terminal_operations.md",
+      "en": "docs/terminal_operations.en.md"
+    },
+    {
+      "zh_cn": "docs/test_artifacts.md",
+      "en": "docs/test_artifacts.en.md"
+    },
+    {
+      "zh_cn": "docs/user_guide.md",
+      "en": "docs/user_guide.en.md"
+    },
+    {
+      "zh_cn": "docs/vscode_design_baseline.md",
+      "en": "docs/vscode_design_baseline.en.md"
+    },
+    {
+      "zh_cn": "docs/workbench_parity.md",
+      "en": "docs/workbench_parity.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_architecture.md",
+      "en": "docs/workspace_architecture.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_colors.md",
+      "en": "docs/workspace_colors.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_interaction.md",
+      "en": "docs/workspace_interaction.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_responsiveness.md",
+      "en": "docs/workspace_responsiveness.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_settings.md",
+      "en": "docs/workspace_settings.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_shortcuts.md",
+      "en": "docs/workspace_shortcuts.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_switch.md",
+      "en": "docs/workspace_switch.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_update.md",
+      "en": "docs/workspace_update.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_view_menu.md",
+      "en": "docs/workspace_view_menu.en.md"
+    },
+    {
+      "zh_cn": "docs/workspace_zoom.md",
+      "en": "docs/workspace_zoom.en.md"
+    },
+    {
+      "zh_cn": "enhancements/README.md",
+      "en": "enhancements/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/fixtures/network_tls/README.md",
+      "en": "enhancements/fixtures/network_tls/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/git_graph_features.md",
+      "en": "enhancements/git_graph_features.en.md"
+    },
+    {
+      "zh_cn": "enhancements/vendor/codicons/README.md",
+      "en": "enhancements/vendor/codicons/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/vendor/gemoji/README.md",
+      "en": "enhancements/vendor/gemoji/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/vendor/source_symbols/README.md",
+      "en": "enhancements/vendor/source_symbols/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/vendor/vscode_quick_open/README.md",
+      "en": "enhancements/vendor/vscode_quick_open/README.en.md"
+    },
+    {
+      "zh_cn": "enhancements/vendor/workspace_core/README.md",
+      "en": "enhancements/vendor/workspace_core/README.en.md"
+    },
+    {
+      "zh_cn": "typora配置修改.md",
+      "en": "typora_configuration_changes.en.md"
+    },
+    {
+      "zh_cn": "typora配置展示.md",
+      "en": "typora_configuration_preview.en.md"
+    },
+    {
+      "zh_cn": "README.zh-CN.md",
+      "en": "README.md"
+    }
+  ]
+}

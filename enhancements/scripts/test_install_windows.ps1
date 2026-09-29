@@ -1,6 +1,8 @@
 ﻿[CmdletBinding()]
 param()
 $ErrorActionPreference = 'Stop'
+$previous_language=$env:TYPORA_CODE_LANGUAGE
+$env:TYPORA_CODE_LANGUAGE='zh-cn'
 function assert_equal($actual, $expected, [string]$message) { if ($actual -cne $expected) { throw "$message (actual: $actual; expected: $expected)" } }
 function assert_rejected([scriptblock]$operation, [string]$message) { $rejected=$false; try { & $operation | Out-Null } catch { $rejected=$true }; if (-not $rejected) { throw $message } }
 function write_fixture([string]$path, [string]$value) { New-Item -ItemType Directory -Force -Path (Split-Path -Parent $path) | Out-Null; [IO.File]::WriteAllText($path,$value,[Text.UTF8Encoding]::new($false)) }
@@ -96,7 +98,7 @@ try {
     [IO.File]::AppendAllText($product,'corrupted')
     assert_rejected { & $checker -typora_root $fake_root -non_interactive } 'Corrupted asset accepted'
     Copy-Item -LiteralPath (Join-Path $tools_copy 'enhancements/dist/workbench.js') -Destination $product -Force
-    # 恢复源摘要错误和越界路径必须在任何目标写入之前拒绝。
+    # The recovery of source summary errors and boundary paths must be rejected before any target write.
     $saved_window=Join-Path $backup 'window.html'
     [IO.File]::AppendAllText($saved_window,'corrupted')
     assert_rejected { & $restore -backup_root $backup } 'Corrupted backup accepted'
@@ -142,7 +144,7 @@ try {
     assert_equal $settings.'forming_system.linux_note_enhancements' $true 'Old key not restored'
     $settings.'later.plugin'=$false
     write_fixture $plugin_settings ($settings|ConvertTo-Json -Depth 100)
-    # 仅拦截一次实际 Copy-Item，故障发生在若干发布文件已复制后。
+    # Only intercept once actual Copy-Item, the failure occurs after several release files have been copied.
     $global:typora_test_copy_failed=$false
     $global:typora_test_copy_target=$product
     function global:Copy-Item {
@@ -157,14 +159,14 @@ try {
     assert_equal (Test-Path -LiteralPath $product) $false 'Failed install left product entry'
     assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'plugins/loader.js'))) 'old:loader.js' 'Rollback lost old loader'
     foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Install rollback lost retired asset: '+$name) }
-    # 未知配置编码必须在创建备份前拒绝，且不改原字节。
+    # Unknown configuration encoding must be rejected before creating a backup, and not alter the original bytes.
     $profile_before=[IO.File]::ReadAllText($profile)
     write_fixture $profile 'unknown-encoding'
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid profile') -non_interactive } 'Malformed profile accepted'
     assert_equal ([IO.File]::ReadAllText($profile)) 'unknown-encoding' 'Malformed profile changed'
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid profile')) $false 'Malformed profile created backup'
     write_fixture $profile $profile_before
-    # 配置字段已改写后再失败，必须回滚到原来的 false。
+    # Configuration fields have been rewritten and then failed, must roll back to the original false.
     $receipt_before=Join-Path $user_data 'typora_code/installation.json'
     write_fixture $receipt_before '{"schema":1,"install_id":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","sequence":1}'
     $receipt_hash=(Get-FileHash -LiteralPath $receipt_before).Hash
@@ -188,7 +190,7 @@ try {
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Late rollback changed window'
     foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Late rollback lost already removed retired asset: '+$name) }
     assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Rollback changed unrelated asset'
-    # 缺省 profile 必须创建最小窗口偏好；恢复只移除本字段，保留后续用户数据。
+    # Default profile must create the minimum window preference; recovery only removes this field, preserving subsequent user data.
     Remove-Item -LiteralPath $profile
     $absent_backup=Join-Path $test_root 'absent profile'
     & $installer -typora_root $fake_root -backup_root $absent_backup -non_interactive
@@ -207,7 +209,7 @@ try {
     assert_equal $restored_profile.created_later.text '保留' 'Restore removed later preferences'
     foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Final restore lost retired asset: '+$name) }
     assert_equal ([IO.File]::ReadAllText($unmanaged)) 'unmanaged content' 'Final restore changed unrelated asset'
-    # 模拟官方升级把启动页还原：标准安装必须以新宿主为基底，保留新版内核和扩展数据。
+    # Simulate official upgrade to restore the welcome page: Standard installation must be based on a new host, preserving the new kernel and extension data.
     $upgrade_root=Join-Path $test_root 'upgraded installation'
     $upgrade_window=Join-Path $upgrade_root 'resources/window.html'
     $upgrade_kernel=Join-Path $upgrade_root 'resources/app.asar'
@@ -235,7 +237,7 @@ try {
     & $restore -backup_root $upgrade_backup
     assert_equal ([IO.File]::ReadAllText($upgrade_window)) $new_host 'Upgrade restore must retain new host'
     Write-Host 'PASS: official-page replacement simulation, standard reinstall, new kernel/scripts and community data preserved; restore returns to new host.'
-    # 重复更新不写未变化的宿主入口；受保护/只读入口不应迫使资源更新提权。
+    # Repeated updates do not write unchanged host entries; protected/read-only entries should not force resource updates to escalate.
     & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'prepare protected host') -non_interactive
     $unchanged_host=(Get-FileHash -LiteralPath $window).Hash
     [IO.File]::SetAttributes($window,[IO.FileAttributes]::ReadOnly)
@@ -243,7 +245,7 @@ try {
     finally { [IO.File]::SetAttributes($window,[IO.FileAttributes]::Normal) }
     assert_equal (Get-FileHash -LiteralPath $window).Hash $unchanged_host 'Identical protected startup page changed'
     Write-Host 'PASS: unchanged readonly host entry permits ordinary resource update without elevation.'
-    # 源发布损坏在创建备份或覆盖用户文件前拒绝。
+    # Source release damage is rejected before creating a backup or overriding user files.
     [IO.File]::AppendAllText((Join-Path $tools_copy 'enhancements/dist/workspace.css'),'corrupted')
     assert_rejected { & $installer -typora_root $fake_root -backup_root (Join-Path $test_root 'invalid release') -non_interactive } 'Corrupt release accepted'
     assert_equal (Test-Path -LiteralPath (Join-Path $test_root 'invalid release')) $false 'Corrupt release mutated backup'
@@ -271,7 +273,7 @@ try {
     }
     if ($success_logs -lt 3 -or $rollback_logs -lt 2 -or $preflight_logs -lt 1) { throw 'Missing success, rollback or preflight log coverage' }
     Write-Host 'PASS: ordered stages, UTF-8 per-run logs, clean output streams and truthful rollback/preflight outcomes'
-    # 仅独立包中替换权限/UAC端口；子进程仍执行真实安装事务，检验互斥交接及原用户路径。
+    # Replace permissions/UAC in independent packages only; child processes still execute real installation transactions, checking for mutual exclusion handover and original user paths.
     Copy-Item -LiteralPath (Join-Path $source_root 'enhancements/dist/workspace.css') -Destination (Join-Path $tools_copy 'enhancements/dist/workspace.css') -Force
     $permission_file=Join-Path $tools_copy 'scripts/lib/typora_install_permissions.ps1'
     $permission_source=[IO.File]::ReadAllText($permission_file,[Text.Encoding]::UTF8)
@@ -304,7 +306,7 @@ function start_typora_elevated_install {
     assert_equal (Test-Path -LiteralPath $cancel_backup) $false 'Cancelled authorization created backup'
     assert_equal (Get-FileHash -LiteralPath $window).Hash $before_cancel 'Cancelled authorization changed host'
     Write-Host 'PASS: ordinary-privilege UAC port simulation, real child transaction, lock handoff, explicit identity, host backup, unattended refusal and cancellation without target writes; real UAC not exercised.'
-    # 同一正式候选通过公开入口完成安装、两种卸载和重装，独立于上面的故障注入。
+    # The same formal candidate completes installation, two uninstallations, and reinstallation through public entries, independent of the above fault injection.
     Copy-Item -LiteralPath (Join-Path $source_root 'scripts/lib/typora_install_permissions.ps1') -Destination $permission_file -Force
     $env:APPDATA=Join-Path $test_root 'lifecycle user'
     $cycle_root=Join-Path $test_root 'lifecycle host'
@@ -334,7 +336,7 @@ function start_typora_elevated_install {
     assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $false 'Restore uninstall left managed bundle'
     & $installer -typora_root $cycle_root -backup_root (Join-Path $test_root 'lifecycle reinstall backup') -non_interactive
     & $checker -typora_root $cycle_root -non_interactive
-    # 安装前备份均在自定义位置，默认扫描没有兼容备份，必须走detach。
+    # Backup before installation is always in a custom location; default scan has no compatible backup, must go through detach.
     & $uninstaller -typora_root $cycle_root -non_interactive
     assert_equal (([IO.File]::ReadAllText($cycle_window)).Contains('typora-code:begin')) $false 'Detach left startup entry'
     assert_equal (Test-Path -LiteralPath (Join-Path $env:APPDATA 'Typora/typora_code/workbench.js')) $true 'Detach removed reusable assets'
@@ -353,6 +355,7 @@ function start_typora_elevated_install {
 
 $artifact_success = $true
 } finally {
+    $env:TYPORA_CODE_LANGUAGE=$previous_language
     & python -X utf8 $artifact_manager finish $artifact_root --pid $PID --status $(if($artifact_success){'passed'}else{'failed'})
     if ($LASTEXITCODE -ne 0) { Write-Warning 'Test payload cleanup failed; see artifact marker.' }
 }

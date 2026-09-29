@@ -1,4 +1,4 @@
-// 原始宿主真实底栏节点与当前候选；不修改用户的运行窗口或文档。
+// Original host real status bar nodes and current candidate; do not modify the user's running window or documents.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms)),assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
@@ -14,7 +14,7 @@
   editor.library.refreshMenuVisibility();
   const footer=document.querySelector('footer.ty-footer'),menu=document.getElementById('sidebar-files-menu');
   const trigger=document.querySelector('#sidebar-menu-btn>.sidebar-footer-item');
-  // 沿宿主真实委托事件打开；后续主题/缩放仍保留原菜单与监听器。
+  // Open along the host's real delegation events; subsequent themes/zooming still retain the original menu and listeners.
   trigger.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));trigger.click();await pause(150);
   assert(menu.getBoundingClientRect().height>20,'实际文件操作入口打开原生菜单');
   const first=menu.firstElementChild;let writes=0;
@@ -24,7 +24,7 @@
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(700);
    for(const level of [0,1,2,-1]){
     frame.setZoomLevel(level);window.dispatchEvent(new Event('resize'));await pause(750);
-    // 宿主自身主题/焦点处理可关闭菜单，重新通过入口打开。
+    // Host's own theme/focus handling can close the menu, and re-open through the entry.
     if(menu.getBoundingClientRect().height<20){trigger.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));trigger.click();await pause(120);}
     assert(menu.getBoundingClientRect().height>20,'菜单保持可见 '+name+' '+level);
     const initial=menu.getBoundingClientRect();writes=0;let drift=0;const timeline=[];

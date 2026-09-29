@@ -1,8 +1,9 @@
+import {workspace_text} from "./workspace_i18n";
 import {workspace_button as button,workspace_element as el} from './workspace_widgets';
 import {capture_workspace_focus,register_workspace_dismissal} from './workspace_focus';
 import {git_icon} from './git_icons';
 
-/** 只托管上游SettingTab的挂载与生命周期；原始控件及持久化归插件所有。 */
+/** Only host the mounting and lifecycle of the upstream SettingTab; the original control and persistent plugins belong to the plugin. */
 export function create_community_plugin_settings(list:()=>any[],on_change:()=>void,navigate:(mode:string)=>void=()=>{}){
   const tabs=new Map<string,Set<any>>();
   let surface:{root:HTMLElement;sidebar:HTMLElement;main:HTMLElement;close:(restore?:boolean)=>void}|undefined;
@@ -16,26 +17,26 @@ export function create_community_plugin_settings(list:()=>any[],on_change:()=>vo
     try{tab.show();}catch(error){detach();surface.main.textContent=String(error);}
   };
   const render=()=>{
-    if(!surface)return;const records=list();surface.sidebar.replaceChildren(el('div','typ-nav__group-title','社区插件设置'));
+    if(!surface)return;const records=list();surface.sidebar.replaceChildren(el('div','typ-nav__group-title',workspace_text("community_plugin_settings_community_plugin_settings")));
     for(const [id,registered]of tabs){let index=0;for(const tab of registered){
       const item=button(tab.name||records.find(info=>info.id===id)?.name||id,()=>activate(id,tab));item.className='typ-nav__item';item.dataset.pluginId=id;item.dataset.tabIndex=String(index++);item.classList.toggle('active',active?.tab===tab);surface.sidebar.append(item);
     }}
     if(active)return;surface.main.replaceChildren();surface.main.classList.add('workspace-community-setting-list');
-    for(const info of records)if(!tabs.get(info.id)?.size)surface.main.append(el('p','',`${info.name}：${info.running?'此插件未提供设置页。':info.error||'尚未启用，请在已安装中启用后配置。'}`));
-    if(!records.length&&!tabs.size)surface.main.append(el('p','','当前没有可配置的插件。请先到社区插件市场选择并安装插件。'));
+    for(const info of records)if(!tabs.get(info.id)?.size)surface.main.append(el('p','',`${info.name}: ${info.running?workspace_text("community_plugin_settings_this_plugin_does_not_provide_a_settings_page"):info.error||workspace_text("community_plugin_settings_it_is_not_yet_enabled_please_enable_it_after_installing_it")}`));
+    if(!records.length&&!tabs.size)surface.main.append(el('p','',workspace_text("community_plugin_settings_there_are_no_configurable_plugins_currently_please_first_sel")));
     const actions=el('div','workspace-community-settings-navigation');
-    for(const [title,mode]of [['管理已安装插件','installed'],['浏览社区插件市场','catalog']])actions.append(button(title,()=>{surface?.close();mount?.on_navigate();navigate(mode);}));
+    for(const [title,mode]of [[workspace_text("community_plugin_settings_manage_installed_plugins"),'installed'],[workspace_text("community_plugin_settings_browse_the_community_plugin_market"),'catalog']])actions.append(button(title,()=>{surface?.close();mount?.on_navigate();navigate(mode);}));
     surface.main.append(actions);
   };
   const open=()=>{
     if(surface)return;
     const embedded=mount;
     const focus=capture_workspace_focus(),root=el('div','typ-modal__wrapper middle workspace-community-settings-root'),panel=el('section','typ-modal typ-settings-modal');
-    root.dataset.workspaceInteraction='none';root.setAttribute('role',embedded?'region':'dialog');if(!embedded)root.setAttribute('aria-modal','true');root.setAttribute('aria-label','社区插件设置');
+    root.dataset.workspaceInteraction='none';root.setAttribute('role',embedded?'region':'dialog');if(!embedded)root.setAttribute('aria-modal','true');root.setAttribute('aria-label',workspace_text("community_plugin_settings_community_plugin_settings"));
     const header=el('div','typ-modal__header'),body=el('div','typ-modal__body'),sidebar=el('nav','typ-sidebar'),main=el('div','typ-main workspace-community-settings');
     const close=(restore=true)=>{if(surface?.root!==root)return;const owned=layer?.owns_focus();try{detach();}finally{layer?.dispose();root.remove();surface=undefined;if(restore&&owned)focus.restore();}};
-    const close_button=button('',()=>close());close_button.className='workspace-community-settings-close';close_button.append(git_icon('close'));close_button.setAttribute('aria-label','关闭');
-    header.append(el('span','','社区插件设置'),close_button);body.append(sidebar,main);if(!embedded)panel.append(header);panel.append(body);root.append(panel);if(embedded)root.classList.add('is-embedded');
+    const close_button=button('',()=>close());close_button.className='workspace-community-settings-close';close_button.append(git_icon('close'));close_button.setAttribute('aria-label',workspace_text("community_plugin_settings_close"));
+    header.append(el('span','',workspace_text("community_plugin_settings_community_plugin_settings")),close_button);body.append(sidebar,main);if(!embedded)panel.append(header);panel.append(body);root.append(panel);if(embedded)root.classList.add('is-embedded');
     const layer=embedded?undefined:register_workspace_dismissal(()=>[root],()=>close(),{inside:()=>[panel],consume_outside:true,focus_out:false});
     surface={root,sidebar,main,close};(embedded?.host||document.body).append(root);render();
     const first=tabs.entries().next().value;if(first)activate(first[0],[...first[1]][0]);

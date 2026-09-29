@@ -5,7 +5,7 @@ import {workspace_element as el} from "./workspace_widgets";
 import {highlight_preview_code, create_preview_diagrams} from "./workspace_markdown_preview_render";
 import {markdown_theme_rules, observe_markdown_theme} from './workspace_markdown_theme';
 
-/** 历史正文在隔离阅读容器中渲染，不载入 Typora 可编辑文档，也不写工作区或临时正文。 */
+/** Historical document content is rendered in an isolated reading container, does not load Typora editable documents, and does not write to the workspace or temporary document content. */
 export function create_git_revision_reader(source: string, label: string, on_link: (href: string) => Promise<void>, on_image: (href: string) => Promise<string>, on_location?:(explicit:boolean)=>void) {
   const container = el("section", "git-revision-reader"), heading = el("div", "git-revision-reader-heading", label);
   heading.title = label;
@@ -30,7 +30,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
     FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "audio", "video", "source"],
     FORBID_ATTR: ["style", "id", "name", "srcset"], ALLOW_DATA_ATTR: false, RETURN_DOM_FRAGMENT: true
   });
-  // 清除图片原 URL 后才挂载，历史图片只允许异步 Git blob 转换后的 data URL。
+  // After clearing the original URL of images, they are mounted; historical images are only allowed to be asynchronously Git blob converted data URL.
   const images = [...fragment.querySelectorAll<HTMLImageElement>('img')].map(image => {const href=image.getAttribute('src')||'';image.removeAttribute('src');return {image,href};});
   article.append(fragment);
   const anchors = new Map<string, HTMLElement>();
@@ -40,7 +40,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
     node.id = id; anchors.set(id, node);
   }
   for (const input of article.querySelectorAll<HTMLInputElement>('input')) input.disabled = true;
-  const reveal_fragment = (fragment: string) => {try { const target = anchors.get(decodeURIComponent(fragment.replace(/^#/u,''))); if (target) body.scrollTop += target.getBoundingClientRect().top - body.getBoundingClientRect().top; else if (!fragment || fragment === '#') body.scrollTop = 0; } catch { /* 无效片段不交给宿主导航。 */ }};
+  const reveal_fragment = (fragment: string) => {try { const target = anchors.get(decodeURIComponent(fragment.replace(/^#/u,''))); if (target) body.scrollTop += target.getBoundingClientRect().top - body.getBoundingClientRect().top; else if (!fragment || fragment === '#') body.scrollTop = 0; } catch { /* Invalid fragment is not passed to the host navigation. */ }};
   article.addEventListener('click', event => {
     const link = (event.target as Element | null)?.closest<HTMLAnchorElement>('a[href]'); if (!link) return;
     event.preventDefault(); event.stopPropagation(); const href = link.getAttribute('href') || '';

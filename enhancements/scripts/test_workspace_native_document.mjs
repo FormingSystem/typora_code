@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import {build} from 'esbuild';
 const compiled=await build({entryPoints:['src/workspace_native_document.ts'],bundle:true,platform:'node',format:'esm',write:false});

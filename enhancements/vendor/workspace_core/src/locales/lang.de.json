@@ -165,6 +165,9 @@
     "rightSplit": {
       "toggleButton": "Seitenleiste rechts umschalten",
       "empty": "Diese Seitenleiste ist leer."
-    }
+    },
+    "not_regular_file": "The target is not a regular file.",
+    "open_file_failed": "Cannot open file: ",
+    "move_to_window": "Move to New Window"
   }
 }

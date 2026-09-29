@@ -1,10 +1,8 @@
-﻿<#
-.SYNOPSIS
-只读核验当前安装与本下载包的启动入口、主题和运行资产是否一致。
+﻿<# .SYNOPSIS
+Only verify the current installation and this download package's startup entry, theme, and runtime assets for consistency.
 .DESCRIPTION
-失败会返回非零退出码。不会安装、修复或重启 Typora。
-完整说明见 docs/installation.md。
-#>
+Failure returns a non-zero exit code. No installation, repair, or restart of Typora occurs.
+Full details see docs/installation.md. #>
 [CmdletBinding()]
 param([string]$typora_root='', [switch]$non_interactive)
 $ErrorActionPreference = 'Stop'

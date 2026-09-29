@@ -8955,6 +8955,139 @@
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-workspace-localization-001",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R082"
+      ],
+      "design": "docs/localization.md",
+      "implementation": [
+        "enhancements/src/workspace_locale.ts",
+        "enhancements/src/workspace_i18n.ts",
+        "enhancements/src/workspace_messages.json"
+      ],
+      "related_modules": [
+        "startup",
+        "settings",
+        "git",
+        "monaco",
+        "onboarding"
+      ],
+      "script": "enhancements/scripts/test_workspace_localization.mjs",
+      "environment": "Node and esbuild; no native host",
+      "preconditions": "Dependencies installed; dictionary files available",
+      "steps": [
+        "Resolve host and selected languages",
+        "Save and reject language preferences",
+        "Keep the running core language until restart",
+        "Compare dictionary keys and placeholders; repeat reads 1000 times"
+      ],
+      "expected": [
+        "Git and workbench resolve one language",
+        "Failed writes preserve the saved selection",
+        "No live editor or terminal reconstruction",
+        "English messages contain no Han text; interpolation contracts match"
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-installer-localization-001",
+      "domain": "deployment",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R082"
+      ],
+      "design": "docs/localization.md",
+      "implementation": [
+        "scripts/lib/typora_locale.ps1",
+        "scripts/lib/typora_messages.json"
+      ],
+      "related_modules": [
+        "installation",
+        "update"
+      ],
+      "script": "enhancements/scripts/test_installer_localization.mjs",
+      "environment": "Windows PowerShell 5.1 and Node",
+      "preconditions": "Windows; no user installation is modified",
+      "steps": [
+        "Load both languages in the real PowerShell 5.1 engine",
+        "Interpolate literal paths and preserve numeric format placeholders",
+        "Parse installer scripts with their actual encoding"
+      ],
+      "expected": [
+        "Both dictionaries preserve substitution contracts",
+        "Special characters are literal",
+        "No syntax or encoding errors"
+      ],
+      "platform": "win32",
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-document-languages-001",
+      "domain": "localization",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R082"
+      ],
+      "design": "docs/localization.md",
+      "implementation": [
+        "docs/languages.json"
+      ],
+      "related_modules": [
+        "documentation",
+        "settings",
+        "startup"
+      ],
+      "script": "enhancements/scripts/test_document_languages.py",
+      "environment": "Python 3",
+      "preconditions": "Repository checkout",
+      "steps": [
+        "Check paired pages, English prose and relative link targets"
+      ],
+      "expected": [
+        "Complete language pairs and valid English links"
+      ],
+      "platform": "all",
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-localization-native-001",
+      "domain": "localization",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R082"
+      ],
+      "design": "docs/localization.md",
+      "implementation": [
+        "enhancements/fixtures/localization_native.js",
+        "enhancements/src/workspace_locale.ts"
+      ],
+      "related_modules": [
+        "documentation",
+        "settings",
+        "startup"
+      ],
+      "script": "enhancements/scripts/test_localization_native.ps1",
+      "environment": "Windows PowerShell 5.1; verified Typora 1.14.10",
+      "preconditions": "Native suite requires TYPORA_NATIVE_TEST_ROOT; uses isolated data only",
+      "steps": [
+        "Run private desktop with English and Chinese preferences",
+        "Save and restore language; inspect loaded locale, settings, service and offline help",
+        "Verify document content and unsaved state are preserved"
+      ],
+      "expected": [
+        "Correct language across the real core and workbench",
+        "Saving does not change current window language or document identity"
+      ],
+      "platform": "win32",
+      "timeout_ms": 300000
     }
   ]
 }

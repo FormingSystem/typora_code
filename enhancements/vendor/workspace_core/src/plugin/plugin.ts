@@ -61,7 +61,7 @@ export abstract class Plugin<T extends Record<string, any> = {}>
     try { if (was_loaded) await this.onunload() } catch (error) { errors.push(error) }
     for (const dispose of this._disposables.splice(0).reverse()) try { await dispose() } catch (error) { errors.push(error) }
     for (const child of this._children.splice(0).reverse()) try { await child.unload() } catch (error) { errors.push(error) }
-    if (errors.length) console.error('社区插件清理异常', this.manifest.id, errors)
+    if (errors.length) console.error('Community plugin cleanup failed', this.manifest.id, errors)
   }
 
   get dataPath() {

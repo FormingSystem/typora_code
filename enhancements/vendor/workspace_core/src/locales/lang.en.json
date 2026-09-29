@@ -165,6 +165,9 @@
     "rightSplit": {
       "toggleButton": "Toggle right sidebar",
       "empty": "This sidebar is empty."
-    }
+    },
+    "not_regular_file": "The target is not a regular file.",
+    "open_file_failed": "Cannot open file: ",
+    "move_to_window": "Move to New Window"
   }
 }

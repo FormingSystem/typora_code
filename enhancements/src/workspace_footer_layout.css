@@ -1,18 +1,18 @@
-/* 底栏统一盒模型。组件只声明角色，宽度、横向间距和业务显隐由所属模块维护。 */
+/* The status bar uses a unified box model. Components only declare roles; width, horizontal spacing, and business visibility are maintained by the owning module. */
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control) {
   height:100%;min-height:0;font:inherit;
   margin-top:0!important;margin-bottom:0!important;padding-top:0!important;padding-bottom:0!important;line-height:normal!important;white-space:nowrap;
 }
-/* 操作之间的间距由组的gap负责，清除宿主悬浮控件遗留的负横向margin。 */
+/* The spacing between operations is responsible by the group's gap; clear the negative horizontal margin left by the host floating control. */
 footer.ty-footer .workspace-footer-control {justify-content:center;text-align:center;margin-left:0!important;margin-right:0!important;}
-/* 宿主会内联设置display:block；单图标仍按共同内容盒居中，不改宿主显隐。 */
+/* The host sets display:block inline; single icon still centers according to the common content box, without changing the host visibility. */
 footer.ty-footer .workspace-footer-control > svg:only-child {display:block;margin-inline:auto;}
 footer.ty-footer .workspace-footer-text {
   justify-content:center;
   margin:0!important;padding:0!important;font:inherit;line-height:normal!important;color:inherit;white-space:nowrap;
 }
 footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspace-footer-text)[hidden] {display:none!important;}
-/* 原生 footer-btn 的隐藏和内边距由共享图标角色接管；业务 hide 和内联隐藏仍有效。 */
+/* The hiding and padding of native footer-btn are taken over by the shared icon role; business hide and inline hiding remain valid. */
 footer.ty-footer #ty-sidebar-footer .workspace-footer-control.workspace-footer-icon-control,
 footer.ty-footer .workspace-footer-control.workspace-footer-icon-control {
   display:flex;align-items:center;justify-content:center;padding-left:0;padding-right:0;
@@ -25,5 +25,5 @@ footer.ty-footer .workspace-footer-icon-control .workspace-official-icon-slot {
 footer.ty-footer .workspace-footer-icon-control > span,
 footer.ty-footer .workspace-footer-icon-control .footer-btn {line-height:0;vertical-align:middle;}
 
-/* 宿主 .show 强制 block；保留其可见语义，只纠正内容布局。 */
+/* The host .show forces block; retain its visible semantics, only correct the content layout. */
 footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {display:flex!important;}

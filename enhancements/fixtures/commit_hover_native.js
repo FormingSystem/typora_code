@@ -1,4 +1,4 @@
-// 原始宿主隔离副本：真实SCM/Git读取，renderer事件，非物理输入。
+// Original host isolated copy: real SCM/Git reads, renderer event, non-physical input.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),cp=reqnode('child_process'),base=__CASE_ROOT__,root=path.join(base,'workspace'),checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

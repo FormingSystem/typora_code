@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -43,7 +44,7 @@ for(let index=0;index<iterations;index++)await picker.set_folder(root);
 assert.deepEqual(history,[root]);assert.equal(changed,iterations-1);
 await assert.rejects(picker.set_folder(keep),/不是文件夹/);assert.deepEqual(history,[root]);
 picker.dispose();await picker.set_folder(root);assert.equal(changed,iterations-1);
-// 先发请求迟到时不能覆盖后来选择或记入历史。
+// When the first request is stale, it cannot cover later choices or be recorded in history.
 let release;const delayed=new Promise(resolve=>release=resolve);let first=true;
 const second=api.bind_workspace_open_dialog({...files,fs:{promises:{stat:async target=>{if(first){first=false;await delayed;}return fs.promises.stat(target);}}}},()=>changed++,sessions);
 const stale=second.set_folder(root);await second.set_folder(recycled);release();await stale;assert.equal(folder,recycled);assert.equal(history[0],recycled);

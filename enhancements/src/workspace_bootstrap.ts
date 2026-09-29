@@ -42,7 +42,7 @@ export function get_workspace_app(): workspace_app | undefined {
   return (window as unknown as Record<symbol, { app?: workspace_app }>)[Symbol.for(WORKSPACE_NAMESPACE)]?.app;
 }
 
-/** 静态 head 入口创建唯一常驻核心，增强层仅等待该实例就绪。 */
+/** Static head entry creates a single persistent core, and the enhancement layer only waits for this instance to be ready. */
 export async function initialize_workspace(signal?: AbortSignal) {
   const lifetime = create_workspace_lifetime();
   const runtime = window as unknown as { reqnode?: unknown; _options?: { userDataPath?: string }; ClientCommand?: Record<string, (...args: unknown[]) => unknown> };
@@ -60,14 +60,14 @@ export async function initialize_workspace(signal?: AbortSignal) {
   }
 
 
-  // 核心启动时尚未设置 activePanel，原生侧栏却可能已显示文件或大纲。
-  // 点击前按实际面板校正状态，再由核心 switch 执行同项收起、异项切换。
+  // The core has not yet set activePanel when it starts, but the native sidebar may have already displayed files or outlines.
+  // Before clicking, correct the status according to the actual panel; then the core switch executes the same item collapse and different item switching.
   const reconcile_sidebar = (event: MouseEvent) => {
     const item = event.target instanceof Element ? event.target.closest<HTMLElement>(".typ-ribbon-item[data-id]") : null;
     if (!item || !["core.file-explorer", "core.outline", "linux_note:source_control"].includes(item.dataset.id || "")) return;
     const sidebar = app.workspace.sidebar; if (!sidebar.isShown) return;
     const active_id = sidebar.activePanel?.ribbonButton?.id;
-    // 原生延迟大纲刷新仍可能补回 class；已挂载的插件面板才是此时真正的当前面板。
+    // Native delayed outline refresh may still recover class; the mounted plugin panel is the real current panel at this time.
     if (active_id && !["core.file-explorer", "core.outline"].includes(active_id) && sidebar.activePanel?.containerEl?.isConnected) return;
     const host_sidebar = document.querySelector("#typora-sidebar");
     const current_id = host_sidebar?.classList.contains("active-tab-files") ? "core.file-explorer"

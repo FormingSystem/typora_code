@@ -1,4 +1,4 @@
-// 原始宿主独立副本及真实ConPTY；不修改用户文档、配置或运行窗口。
+// Original host independent copy and real ConPTY; do not modify the user's documents, configurations, or running windows.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

@@ -2,7 +2,7 @@ import control_css from "./workspace_control_icons.css";
 import {acquire_workspace_style} from "./workspace_styles";
 import {git_icon,type git_icon_name} from "./git_icons";
 
-/** 仅适配调用方明确拥有的宿主控件槽，保留事件目标和卸载前原节点。 */
+/** Only adapts to the host control slot clearly owned by the caller, retains event targets and the original node before unloading. */
 export function bind_workspace_control_icons(root:HTMLElement, slots:ReadonlyArray<readonly [string,git_icon_name]>) {
   const originals=new Map<HTMLElement,{nodes:Node[];marked:boolean}>();let disposed=false;
   const style=acquire_workspace_style("typora-code-style:workspace_control_icons",control_css,{"data-workspace-control-icons":"ready"});

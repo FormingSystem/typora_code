@@ -1,9 +1,9 @@
-// 隔离的隐藏 Electron 使用真实 xterm，仅注入已有输出，不创建 PTY 或执行 Shell。
+// Isolated hidden Electron uses real xterm, only injects existing outputs, does not create PTY or execute Shell.
 const {app, BrowserWindow} = require('electron');
 const fs = require('node:fs'); const path = require('node:path'); const os = require('node:os'); const assert = require('node:assert/strict');
 const {build} = require('esbuild');
 const root = fs.mkdtempSync(path.join(os.tmpdir(), 'typora_terminal_theme_'));
-const evidence = process.argv[2] || root; fs.mkdirSync(evidence, {recursive: true});
+const evidence = process.argv.slice(1).filter(value=>!value.startsWith('--'))[1] || root; fs.mkdirSync(evidence, {recursive: true});
 app.setPath('userData', path.join(root, 'isolated_data')); app.disableHardwareAcceleration();
 let test_window; const checks = []; const delay = ms => new Promise(resolve => setTimeout(resolve, ms));
 const evaluate = async source => {const result=await test_window.webContents.executeJavaScript('(async()=>{try{return {value:await (0,eval)('+JSON.stringify(source)+')}}catch(error){return {error:error.stack}}})()');if(result.error)throw new Error(result.error);return result.value;};
@@ -25,7 +25,7 @@ app.whenReady().then(async () => {
   test_window = new BrowserWindow({show: false, width: 1100, height: 700, webPreferences: {nodeIntegration: true, contextIsolation: false, offscreen: true, backgroundThrottling: false}});
   test_window.webContents.on('console-message', event => {if(event.level >= 2) console.error(event.message);});
   const html = path.join(root, 'fixture.html'); fs.writeFileSync(html, '<!doctype html><meta charset="utf-8"><style>html,body{height:100%;margin:0;overflow:hidden}#host{position:absolute;left:0;right:0;top:0;bottom:22px}footer{position:absolute;bottom:0;height:22px}</style><style id="fixture-theme">'+light+'</style><main id="host" class="typ-workspace-root"></main><footer>状态栏</footer>'); await test_window.loadFile(html);
-  // 主题回归只控制已发现的配置目录；不得调用本机探测或启动真实 Shell。
+  // Theme regression only controls discovered configuration directories; it cannot call native detection or start real Shell.
   const profile_fixture = `export function create_terminal_profile_service(){const values=[{id:'cmd',title:'Command Prompt',executable:'cmd.exe',args:[]}];return {warnings:()=>[],profiles:()=>structuredClone(values),ready:async()=>structuredClone(values),refresh:async()=>structuredClone(values),dispose(){}};}`;
   const bundle = (await build({plugins:[...require('./editor_bundle.cjs').editor_plugins(),{name:'theme-profile-fixture',setup(build){build.onLoad({filter:/terminal_profile_detection\.ts$/},()=>({contents:profile_fixture,loader:'js'}));}}],stdin: {contents: 'export { bind_terminal_workspace } from "./src/terminal_workspace"; export { terminal_theme, observe_terminal_theme } from "./src/terminal_theme";', resolveDir: path.join(__dirname, '..')}, bundle: true, loader: {'.css':'text'}, format: 'iife', globalName: 'terminal_qa', write: false})).outputFiles[0].text;
   await evaluate(bundle);

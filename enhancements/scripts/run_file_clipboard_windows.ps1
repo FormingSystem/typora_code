@@ -1,6 +1,6 @@
 ﻿param([string]$NodePath=(Get-Command node -ErrorAction Stop).Source)
 $ErrorActionPreference='Stop'
-# 独立窗口站拥有独立剪贴板；只新建桌面不能隔离用户剪贴板。
+# Independent window stations have independent clipboard; only new desktops can be created, and user clipboard is not isolated.
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;
@@ -32,7 +32,7 @@ $test_script=Join-Path $PSScriptRoot 'test_file_clipboard_windows.mjs'
 $original_station=[clipboard_test_station]::GetProcessWindowStation()
 $private_station=[clipboard_test_station]::CreateWindowStation($test_station_name,1,0x37f,[IntPtr]::Zero)
 if($private_station -eq [IntPtr]::Zero){throw ('Cannot create isolated window station; run this test in an elevated PowerShell. Win32: '+[Runtime.InteropServices.Marshal]::GetLastWin32Error())}
-# 命名窗口站需要管理员权限；CWF_CREATE_ONLY 禁止接管已有窗口站。
+# Named window stations require administrator permissions; CWF_CREATE_ONLY prohibits taking over existing window stations.
 $test_station_name=[clipboard_test_station]::name($private_station)
 if($test_station_name -eq [clipboard_test_station]::name($original_station) -or $test_station_name -eq 'WinSta0'){[void][clipboard_test_station]::CloseWindowStation($private_station);throw 'Clipboard isolation failed.'}
 $private_desktop=[IntPtr]::Zero

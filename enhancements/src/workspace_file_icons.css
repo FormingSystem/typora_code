@@ -5,7 +5,7 @@ html[data-workspace-file-icon-theme="dark"] .workspace-file-theme-icon{color:var
 .workspace-file-theme-slot::before,.workspace-file-theme-slot::after{display:none!important;content:none!important}
 .workspace-file-theme-slot{display:inline-flex;align-items:center;font-style:normal;flex:none;width:16px}
 
-/* 核心延迟 setIcon 可重新添加 FA 类；仅隔离我们拥有的 Graph/diff SVG 槽。 */
+/* Core delay setIcon can be re-added FA class; only isolate the Graph/diff SVG slot we own. */
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-graph-tab-theme])::before,
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-graph-tab-theme])::after,
 .typ-tab .typ-file-icon.git-tab-icon:has(> svg[data-git-icon="compare-changes"])::before,

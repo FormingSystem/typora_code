@@ -1,6 +1,6 @@
 import {create_workspace_lifetime} from "./workspace_lifetime";
 
-/** 拖动只有正常松开才提交；取消和所有者释放还原开始值。尺寸边界归布局所有者。 */
+/** Dragging only submits when normally released; canceling and owner release restore the starting value. The size boundary belongs to the layout owner. */
 export function bind_terminal_sash(node:HTMLElement,options:{read:()=>number;write:(value:number)=>void;commit?:()=>void;reset:()=>void}){
   const lifetime=create_workspace_lifetime();let drag:{id:number;x:number;value:number}|undefined;
   node.tabIndex=0;node.setAttribute("role","separator");node.setAttribute("aria-orientation","vertical");

@@ -6,7 +6,7 @@ type source_position = {line: number; ch: number};
 type source_editor = {getWrapperElement(): HTMLElement; listSelections(): {anchor: source_position; head: source_position}[]; getRange(from: source_position, to: source_position): string; coordsChar(point: {left: number; top: number}, mode: "window"): source_position};
 const position_compare = (left: source_position, right: source_position) => left.line - right.line || left.ch - right.ch;
 
-/** 正文、原生源码和 Monaco 的选区统一进入搜索，不注册第二个侧栏或快捷键。 */
+/** Document, native source code, and Monaco selections are unified into search; no registration of a second sidebar or shortcut. */
 export function bind_workspace_selection_search(core: graph_core, files: workspace_file_host, search: (request: workspace_selection_request) => void | Promise<void>) {
   const runtime = window as unknown as {File?: {editor?: {sourceView?: {inSourceMode: boolean; cm?: source_editor}}; bundle?: {filePath?: string}}};
   const source_path = (target: Element) => { let path = ""; core.app.workspace.eachLeaves(leaf => { if (leaf.view.containerEl.contains(target) && files.path_api.isAbsolute(leaf.state.path)) path = leaf.state.path; }); return path || files.current_file() || runtime.File?.bundle?.filePath || ""; };
@@ -22,7 +22,7 @@ export function bind_workspace_selection_search(core: graph_core, files: workspa
       const point = cm.coordsChar({left: event.clientX, top: event.clientY}, "window");
       for (const selection of cm.listSelections()) {
         const [from, to] = position_compare(selection.anchor, selection.head) <= 0 ? [selection.anchor, selection.head] : [selection.head, selection.anchor];
-        // coordsChar 会四舍五入到相邻插入点；实际选区矩形已排除尾部之外的点击。
+        // coordsChar rounds up to the nearest insertion point; the actual selection rectangle has already excluded the click beyond the end.
         if (position_compare(from, to) === 0 || position_compare(point, from) < 0 || position_compare(point, to) > 0) continue;
         const query = cm.getRange(from, to); if (!query.trim()) return;
         return {query, source_path: source_path(target), line: from.line + 1, column: from.ch + 1, end_line: to.line + 1, end_column: to.ch + 1};
@@ -39,7 +39,7 @@ export function bind_workspace_selection_search(core: graph_core, files: workspa
   const pointer = (event: PointerEvent) => {
     pending = undefined; if (!event.isTrusted || event.button !== 0 || !(event.ctrlKey || event.metaKey) || event.altKey || event.shiftKey) return;
     const request = selected_at(event); if (!request) return;
-    // 在原生 mousedown 折叠选区前拦截，直到同一次真实 click 才调度搜索。
+    // Intercept before folding the mousedown selection in native; until the same real click occurs, schedule the search.
     event.preventDefault(); event.stopImmediatePropagation(); pending = {request, x: event.clientX, y: event.clientY};
   };
   const click = (event: MouseEvent) => {

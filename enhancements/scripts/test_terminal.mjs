@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import { EventEmitter } from 'node:events';
 import fs from 'node:fs';
@@ -17,7 +18,7 @@ const script = Buffer.from(launch.args.at(-1), 'base64').toString('utf16le');
 assert(script.includes('-Verb RunAs')); assert(script.includes(root.replaceAll("'", "''")));
 const inner = /'-EncodedCommand','([A-Za-z0-9+/=]+)'/u.exec(script)[1];
 assert.equal(Buffer.from(inner, 'base64').toString('utf16le'), "Set-Location -LiteralPath '" + root.replaceAll("'", "''") + "'");
-// 启动未就绪时撤销，必须关闭 broker，晚到消息不能继续写入 UI。
+// When starting unready, undo, must close broker, late messages cannot continue to write into UI.
 const cancelled_broker = new EventEmitter(); cancelled_broker.connected = true;
 const broker_messages = []; let disconnected = false; let cancelled_data = false;
 cancelled_broker.send = message => broker_messages.push(message);
@@ -36,7 +37,7 @@ try {
     executable: process.env.ComSpec, args: [], options: { cwd: root, cols: 90, rows: 25, env: terminal_environment(process.env), useConpty: true },
   }, { data(value) { text += value; terminal?.acknowledge(value.length); }, exit() { exited = true; }, error(message) { throw new Error(message); } });
   await wait(() => text.includes('Microsoft Windows'));
-  // 长路径提示符可能让输入回显折行；断言独立输出行，不依赖命令再次原样回显。
+  // Long path prompt may cause input echo to fold; assert independent output lines, not dependent on command to echo again.
   terminal.write('echo BROKER_' + 'ROUNDTRIP\r'); await wait(() => text.replace(/\x1b\[\d+;1H/gu,'\n').replace(/\x1b\[[0-?]*[ -/]*[@-~]/gu,'').split(/\r?\n/u).some(line=>line.trim()==='BROKER_ROUNDTRIP'));
   terminal.resize(50, 15); terminal.write('echo %CD%\r'); await wait(() => text.includes("typora_terminal_'中文 & $()_"));
   terminal.write('exit\r'); await wait(() => exited);

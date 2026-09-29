@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import type {graph_core} from './git_graph_host';
 import {workspace_element as el,workspace_button as button,workspace_dialog} from './workspace_widgets';
 import {workspace_settings_sections,observe_workspace_settings,notify_workspace_settings} from './workspace_settings_registry';
@@ -17,7 +18,7 @@ export function bind_workspace_settings_view(core:graph_core){
     release_port:()=>void;release_registry:()=>void;
     custom_sections=new Map<string,{host:HTMLElement;update(fields:import('./workspace_settings_registry').workspace_setting_field[]):void;dispose():void}>();
     constructor(){
-      views.add(this);this.search.placeholder='搜索设置';this.search.setAttribute('aria-label','搜索设置');this.status.setAttribute('role','status');
+      views.add(this);this.search.placeholder=workspace_text("settings_view_search_settings");this.search.setAttribute('aria-label',workspace_text("settings_view_search_settings"));this.status.setAttribute('role','status');
       const content=el('div','workspace-settings-content');this.owner_host.hidden=true;content.append(this.categories,this.body,this.owner_host);this.containerEl.append(this.search,content,this.status);
       const interaction=acquire_workspace_interaction(this.containerEl);this.release_port=()=>interaction.remove();this.release_registry=observe_workspace_settings(()=>{if(!this.containerEl.contains(document.activeElement))this.render();});
       this.search.oninput=()=>{this.select_owner('');this.render();};this.render();
@@ -32,10 +33,10 @@ export function bind_workspace_settings_view(core:graph_core){
     render(){
       if(this.disposed)return;for(const [id,section] of this.custom_sections)if(this.owner||(this.category&&this.category!==id)){section.dispose();this.custom_sections.delete(id);}this.categories.replaceChildren();this.body.replaceChildren();
       const query=this.search.value.trim().toLocaleLowerCase(),sections=workspace_settings_sections();
-      const all=button('全部设置',()=>{this.category='';this.select_owner('');this.render();});all.setAttribute('aria-pressed',String(!this.category&&!this.owner));this.categories.append(all);
+      const all=button(workspace_text("settings_view_all_settings"),()=>{this.category='';this.select_owner('');this.render();});all.setAttribute('aria-pressed',String(!this.category&&!this.owner));this.categories.append(all);
       for(const section of sections){const item=button(section.title,()=>{this.category=section.id;this.select_owner('');this.render();});item.setAttribute('aria-pressed',String(!this.owner&&this.category===section.id));this.categories.append(item);}
-      const native=button('Typora 偏好设置',()=>this.select_owner('native'));native.dataset.settingsOwner='native';native.setAttribute('aria-pressed',String(this.owner==='native'));
-      const community=button('社区插件设置',()=>this.select_owner('community'));community.dataset.settingsOwner='community';community.setAttribute('aria-pressed',String(this.owner==='community'));
+      const native=button(workspace_text("settings_view_typora_preference_settings"),()=>this.select_owner('native'));native.dataset.settingsOwner='native';native.setAttribute('aria-pressed',String(this.owner==='native'));
+      const community=button(workspace_text("community_plugin_settings_community_plugin_settings"),()=>this.select_owner('community'));community.dataset.settingsOwner='community';community.setAttribute('aria-pressed',String(this.owner==='community'));
       this.categories.append(el('hr'),native,community);
       if(this.owner)return;
       let count=0;
@@ -49,16 +50,16 @@ export function bind_workspace_settings_view(core:graph_core){
           const row=el('div','workspace-setting-row'),label=el('label','workspace-setting-label',field.title),key=el('small','',field.key);
           if(field.action){const action=button(field.title,field.action);action.dataset.setting=section.id+'.'+field.key;row.append(action);if(field.description)row.append(el('p','',field.description));this.body.append(row);continue;}
           const control=field.choices?el('select'):typeof baseline==='object'?el('textarea'):el('input');control.dataset.setting=section.id+'.'+field.key;control.setAttribute('aria-label',field.title);
-          if(control instanceof HTMLSelectElement)for(const choice of field.choices!)control.append(new Option(choice,choice));
+          if(control instanceof HTMLSelectElement)for(const choice of field.choices!)control.append(new Option(field.choice_labels?.[choice]??choice,choice));
           const fill=()=>{const current=section.read()[field.key];if(control instanceof HTMLInputElement&&typeof baseline==='boolean'){control.type='checkbox';control.checked=current===true;}else{if(control instanceof HTMLInputElement)control.type=typeof baseline==='number'?'number':'text';control.value=typeof baseline==='object'?JSON.stringify(current,null,2):String(current??'');}};fill();
-          const save=(next:unknown)=>{try{if(section.scope()!==scope)throw Error('配置目标已切换，请刷新设置页后重试。');section.write(field.key,next);fill();this.status.textContent='设置已保存。';notify_workspace_settings();}catch(error){this.status.textContent=String(error instanceof Error?error.message:error);}};
-          control.onchange=()=>{try{const next=control instanceof HTMLInputElement&&control.type==='checkbox'?control.checked:typeof baseline==='number'?Number(control.value):typeof baseline==='object'?JSON.parse(control.value):control.value;if(typeof baseline==='number'&&(!control.value.trim()||!Number.isFinite(next)))throw Error('请输入有效数值。');save(next);}catch(error){this.status.textContent=String(error);}};
-          label.append(key,control);row.append(label,button('恢复默认',()=>save(structuredClone(baseline))));
-          if(field.file_extensions){const picker=el('input');picker.type='file';picker.accept=field.file_extensions.map(ext=>'.'+ext).join(',');picker.hidden=true;picker.onchange=()=>{if(this.disposed||!row.isConnected)return;const file=picker.files?.[0] as any;picker.value='';if(!file)return;try{const runtime=window as any;const path=file.path||runtime.reqnode('electron').webUtils?.getPathForFile(file);if(!path)throw Error('无法取得所选证书文件路径。');save(path);}catch(error){this.status.textContent=String(error);}};row.append(button('选择文件…',()=>picker.click()),picker);}
+          const save=(next:unknown)=>{try{if(section.scope()!==scope)throw Error(workspace_text("settings_view_the_target_has_been_switched_please_refresh_the_settings_pag"));section.write(field.key,next);fill();this.status.textContent=workspace_text("settings_view_settings_have_been_saved");notify_workspace_settings();}catch(error){this.status.textContent=String(error instanceof Error?error.message:error);}};
+          control.onchange=()=>{try{const next=control instanceof HTMLInputElement&&control.type==='checkbox'?control.checked:typeof baseline==='number'?Number(control.value):typeof baseline==='object'?JSON.parse(control.value):control.value;if(typeof baseline==='number'&&(!control.value.trim()||!Number.isFinite(next)))throw Error(workspace_text("save_settings_please_enter_a_valid_number"));save(next);}catch(error){this.status.textContent=String(error);}};
+          label.append(key,control);row.append(label,button(workspace_text("color_view_reset_to_default"),()=>save(structuredClone(baseline))));
+          if(field.file_extensions){const picker=el('input');picker.type='file';picker.accept=field.file_extensions.map(ext=>'.'+ext).join(',');picker.hidden=true;picker.onchange=()=>{if(this.disposed||!row.isConnected)return;const file=picker.files?.[0] as any;picker.value='';if(!file)return;try{const runtime=window as any;const path=file.path||runtime.reqnode('electron').webUtils?.getPathForFile(file);if(!path)throw Error(workspace_text("settings_view_unable_to_obtain_the_path_of_the_selected_certificate_file"));save(path);}catch(error){this.status.textContent=String(error);}};row.append(button(workspace_text("settings_view_select_file"),()=>picker.click()),picker);}
 if(field.description)row.append(el('p','',field.description));this.body.append(row);
         }
       }
-      if(!count)this.body.append(el('p','','没有匹配的设置。'));
+      if(!count)this.body.append(el('p','',workspace_text("settings_view_no_matching_settings_found")));
     }
     dispose(){if(this.disposed)return;this.disposed=true;for(const section of this.custom_sections.values())section.dispose();this.custom_sections.clear();this.owner_binding?.dispose();this.owner_binding=undefined;this.release_port();this.release_registry();views.delete(this);}
   }
@@ -66,17 +67,17 @@ if(field.description)row.append(el('p','',field.description));this.body.append(r
     if(dialog){if(category){const view=[...views][0];view.category=category;view.search.value='';view.select_owner('');view.render();}dialog.root.querySelector<HTMLInputElement>('.workspace-settings>input')?.focus();return;}
     const view=new settings_view();
     if(category){view.category=category;view.render();}
-    const panel=dialog=workspace_dialog('设置','关闭设置',()=>{view.dispose();if(dialog===panel)dialog=undefined;},{focus_out:false,regions:()=>view.owner_binding?[view.owner_binding.surface]:[]});
+    const panel=dialog=workspace_dialog(workspace_text("community_plugins_settings"),workspace_text("breadcrumbs_settings_close_settings"),()=>{view.dispose();if(dialog===panel)dialog=undefined;},{focus_out:false,regions:()=>view.owner_binding?[view.owner_binding.surface]:[]});
     panel.root.classList.add('workspace-settings-modal');panel.footer.hidden=true;panel.content.append(view.containerEl);
     const header=panel.root.querySelector('.workspace-dialog-header')!;
-    const maximize=git_icon_button('screen-full','最大化设置',()=>{
-      const enabled=panel.root.classList.toggle('is-maximized');maximize.title=enabled?'还原设置窗口':'最大化设置';maximize.setAttribute('aria-label',maximize.title);maximize.setAttribute('aria-pressed',String(enabled));maximize.replaceChildren(git_icon(enabled?'screen-normal':'screen-full'));
+    const maximize=git_icon_button('screen-full',workspace_text("settings_view_maximize_settings"),()=>{
+      const enabled=panel.root.classList.toggle('is-maximized');maximize.title=enabled?workspace_text("settings_view_restore_settings_window"):workspace_text("settings_view_maximize_settings");maximize.setAttribute('aria-label',maximize.title);maximize.setAttribute('aria-pressed',String(enabled));maximize.replaceChildren(git_icon(enabled?'screen-normal':'screen-full'));
     });
     maximize.dataset.settingsMaximize='true';header.insertBefore(maximize,header.lastElementChild);
     header.querySelector('.workspace-dialog-title')?.prepend(git_icon('settings-gear'));
   };
-  const unregister=core.app.commands.register({id:'typora_code:settings',title:'打开设置',scope:'global',callback:()=>show()});
-  const unregister_colors=core.app.commands.register({id:'typora_code:custom_colors',title:'自定义颜色',scope:'global',callback:()=>show('colors')});
+  const unregister=core.app.commands.register({id:'typora_code:settings',title:workspace_text("settings_view_open_settings"),scope:'global',callback:()=>show()});
+  const unregister_colors=core.app.commands.register({id:'typora_code:custom_colors',title:workspace_text("markdown_color_menu_custom_color"),scope:'global',callback:()=>show('colors')});
   const keydown=(event:KeyboardEvent)=>{if(event.isComposing||event.repeat||event.altKey||event.shiftKey||!(event.ctrlKey||event.metaKey)||event.key!==',')return;event.preventDefault();event.stopImmediatePropagation();show();};
   window.addEventListener('keydown',keydown,true);
   return{show,dispose(){window.removeEventListener('keydown',keydown,true);dialog?.close(false);for(const view of [...views])view.dispose();unregister_colors();unregister();style.remove();}};

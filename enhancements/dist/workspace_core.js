@@ -1204,7 +1204,8 @@ var workspace_core_module = (() => {
         localePath,
         resources
       } = Object.assign({}, DEFAULT_OPTIONS, options);
-      const locale = (userLang ?? _options.appLocale ?? _options.locale).toLowerCase();
+      const requested = [userLang, _options.appLocale, _options.locale].find((value) => typeof value === "string" && value.trim() && value !== "auto") ?? defaultLang;
+      const locale = String(requested).trim().toLowerCase().replace(/_/g, "-");
       const localeList = [locale, locale.split("-").at(0), defaultLang];
       if (resources) {
         this.loadFormJson(localeList, resources);
@@ -1271,7 +1272,7 @@ var workspace_core_module = (() => {
     setDefault(settings) {
       Object.assign(this._defaultSettings, settings);
     }
-    /** 显式设置表单先落盘，再发布内存更新；失败不覆盖当前设置。 */
+    /** Explicitly set form to write to disk first, then publish memory update; failure does not override current settings. */
     set_and_save(key, value) {
       if (typeof key !== "string") throw new TypeError("Setting key must be a string.");
       const settings = { ...this._data, [key]: value };
@@ -1381,7 +1382,7 @@ var workspace_core_module = (() => {
       } catch (error) {
         errors.push(error);
       }
-      if (errors.length) console.error("\u793E\u533A\u63D2\u4EF6\u6E05\u7406\u5F02\u5E38", this.manifest.id, errors);
+      if (errors.length) console.error("Community plugin cleanup failed", this.manifest.id, errors);
     }
     get dataPath() {
       return path_default.join(this.config.dataDir, `${this.manifest.id}.json`);
@@ -2877,7 +2878,7 @@ ${doc.documentElement.outerHTML}`;
         preview.dataset.workspaceDropEffect = effect;
         if (effect === "detach" && !drop_hint) {
           drop_hint = doc.createElement("span");
-          drop_hint.textContent = "\u79FB\u5230\u65B0\u7A97\u53E3";
+          drop_hint.textContent = globalThis[Symbol.for("typora-code:workspace")]?.app?.i18n?.t?.workspace?.move_to_window ?? "Move to New Window";
           Object.assign(drop_hint.style, { position: "absolute", top: "100%", left: "0", padding: "3px 6px", font: "12px system-ui", whiteSpace: "nowrap", background: "var(--bg-color, white)", color: "var(--text-color, #333)", border: "1px solid var(--vscode-focusBorder, #0078d4)", borderRadius: "3px" });
           preview.append(drop_hint);
           preview.style.overflow = "visible";
@@ -4222,12 +4223,12 @@ ${doc.documentElement.outerHTML}`;
     if (path2 && reqnode) {
       void reqnode("fs").promises.stat(path2).then((stat) => {
         if (!current()) return;
-        if (!stat.isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
+        if (!stat.isFile()) throw new Error(useService("i18n").t.workspace.not_regular_file);
         open();
       }).catch((error) => {
         if (current()) {
           finish();
-          new Notice("\u65E0\u6CD5\u6253\u5F00\u6587\u4EF6\uFF1A" + String(error), 6e3);
+          new Notice(useService("i18n").t.workspace.open_file_failed + String(error), 6e3);
         }
       });
     } else open();
@@ -8412,7 +8413,7 @@ ${doc.documentElement.outerHTML}`;
     removeChild(child) {
       this.removeTab(child.state.path);
     }
-    /** 恢复标签身份不打开视图，后台文档由首次激活按需读取。 */
+    /** Restoring tab identity does not open view, background document is read on demand by first activation. */
     append_inactive(leaves) {
       for (const leaf of leaves) {
         const fixed_count = this.children.filter((item) => item.state.workspace_pinned).length;
@@ -8714,7 +8715,12 @@ ${doc.documentElement.outerHTML}`;
   registerService("i18n", memorize(() => {
     const i18n = new I18n({
       localePath: path_default.join(coreDir(), "locales"),
-      userLang: useService("settings").get("displayLang")
+      userLang: (() => {
+        const preference = useService("settings").get("displayLang");
+        if (preference === "en" || preference === "zh-cn") return preference;
+        const requested = [_options.displayLang, _options.userLang, _options.appLocale, _options.locale].find((value) => typeof value === "string" && value.trim() && value !== "auto") ?? "en";
+        return /^zh(?:-|_|$)/i.test(String(requested).trim()) ? "zh-cn" : "en";
+      })()
     });
     DEFAULT_OPTIONS.userLang = i18n.locale;
     return i18n;

@@ -35,7 +35,7 @@ export function create_quick_matcher(value:string,root='') {
   };
 }
 
-/** 上游偏移为UTF-16索引。文本节点保留文件名原文，避免HTML与样式注入。 */
+/** Upstream offset is UTF-16 index. Text nodes retain the original filename, avoid HTML and style injection. */
 export function append_quick_highlights(node:HTMLElement,value:string,ranges:{start:number;end:number}[]=[]){
   let offset=0;
   for(const range of ranges){

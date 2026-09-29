@@ -1,11 +1,11 @@
 import {check as check_icon} from "../vendor/codicons/icons.json";
 
-/** 标记能力属于条目，列宽属于整张菜单；所有菜单采用VS Code的2em标记列。 */
+/** The marking capability belongs to the item; the column width belongs to the entire menu; all menus use the VS Code's 2em marking column. */
 export function align_workspace_menu_columns(menu: HTMLElement, row_selector: string, label_selector: string, shortcut_selector?: string): void {
   const rows = [...menu.querySelectorAll<HTMLElement>(row_selector)];
   const text_width = (node: HTMLElement | null) => {
     if (!node) return 0;
-    // 初始菜单可能已经压窄；测完整单行宽度，不能把折行后的Range当作固有宽度。
+    // The initial menu may have already narrowed; measure the complete line width, and cannot treat the folded Range as the inherent width.
     const value=node.style.getPropertyValue('white-space'),priority=node.style.getPropertyPriority('white-space');
     try{
       node.style.setProperty('white-space','nowrap','important');
@@ -14,7 +14,7 @@ export function align_workspace_menu_columns(menu: HTMLElement, row_selector: st
   };
   menu.style.setProperty('--workspace-menu-leading-width', '2em');
   const horizontal = (style: CSSStyleDeclaration, keys: string[]) => keys.reduce((sum,key)=>sum+(parseFloat(style.getPropertyValue(key))||0),0);
-  // 按真实行的组合求最大值，无快捷键行不会被其他行的快捷键挤占。
+  // Take the maximum value of the real line combination; the shortcut line without a shortcut will not be squeezed by other lines' shortcuts.
   const width = Math.max(0,...rows.map(row=>{
     const label=row.querySelector<HTMLElement>(label_selector),shortcut=shortcut_selector?row.querySelector<HTMLElement>(shortcut_selector):null;
     const has_shortcut=Boolean(shortcut?.textContent?.trim());
@@ -23,12 +23,12 @@ export function align_workspace_menu_columns(menu: HTMLElement, row_selector: st
     return text_width(label)+(has_shortcut?text_width(shortcut)+4*parseFloat(style.fontSize):0)+horizontal(style,['padding-left','padding-right','border-left-width','border-right-width','margin-left','margin-right']);
   }));
   menu.style.width=Math.ceil(width+horizontal(getComputedStyle(menu),['padding-left','padding-right','border-left-width','border-right-width']))+'px';
-  // 长菜单的非覆盖式滚动条会占据内容宽度；按实际占用补足，仍受视口max-width约束。
+  // The non-overlapping scroll bar of long menus will occupy the content width; make up for it according to the actual occupation, but still be constrained by the viewport max-width.
   const gutter=Math.max(0,menu.offsetWidth-menu.clientWidth-horizontal(getComputedStyle(menu),['border-left-width','border-right-width']));
   if(gutter)menu.style.width=(parseFloat(menu.style.width)+Math.ceil(gutter))+'px';
 }
 
-/** 普通命令无状态槽；false 表示可勾选但未选中，不能与 undefined 混同。 */
+/** Normal commands have no state slot; false indicates that it is checkable but not selected, and cannot be confused with undefined. */
 export function create_workspace_menu_check(item: HTMLElement, checked: boolean | undefined, class_name: string): HTMLElement | undefined {
   const checkable = typeof checked === "boolean";
   item.setAttribute("role", checkable ? "menuitemcheckbox" : "menuitem");

@@ -12,7 +12,7 @@ function require_hash(hash: string): string {
   return hash;
 }
 
-/** NUL 分隔避免中文、空格和提交标题中的换行影响字段边界。 */
+/** NUL separators avoid the impact of line breaks in Chinese, spaces, and commit titles on field boundaries. */
 export function parse_git_log(source: string): git_commit[] {
   const fields = source.split("\0");
   if (fields.at(-1) === "") fields.pop();
@@ -31,7 +31,7 @@ type graph_lane = { hash: string; color: number };
 export type graph_edge = { from: number; to: number; color: number; upper: boolean };
 export type graph_row = { lane: number; color: number; edges: graph_edge[] };
 export const graph_ref_colors = { head: 0, upstream: 1, base: -1 } as const;
-/** 按拓扑顺序跟踪尚未出现的父提交；汇合在父节点完成，分叉新增轨道。 */
+/** Track the topology order for unappeared parent commits; merge at the completion of the parent node, and new tracks are added when branching. */
 export function build_git_graph(commits: git_commit[], ref_colors?: ReadonlyMap<string, number>): { rows: graph_row[]; width: number } {
   let lanes: graph_lane[] = [];
   let next_color = 0;
@@ -42,9 +42,9 @@ export function build_git_graph(commits: git_commit[], ref_colors?: ReadonlyMap<
     const incoming = [...lanes];
     let lane = lanes.findIndex((item) => item.hash === commit.hash);
     if (lane < 0) { lane = lanes.length; lanes.push({ hash: commit.hash, color: ref_colors?.get(commit.hash) ?? allocate_color() }); }
-    // 引用边界只改变节点和出线，不能改写来自上一行的入线颜色。
+    // Reference boundaries only change nodes and outgoing lines, and cannot rewrite the incoming line color from the previous line.
     const current = { ...lanes[lane], color: ref_colors?.get(commit.hash) ?? lanes[lane].color };
-    // 不同支线即使等待同一个父提交，也保留各自颜色，直到父节点所在行才汇入。
+    // Different branches retain their own colors even if they wait for the same parent commit, until the parent node's line is merged.
     const edges: graph_edge[] = incoming.map((item, index) => ({ from: index, to: item.hash === commit.hash ? lane : index, color: item.color, upper: true }));
     const before = [...lanes];
     lanes = lanes.filter(item => item.hash !== commit.hash);

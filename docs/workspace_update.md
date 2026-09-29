@@ -1,3 +1,5 @@
+[English](workspace_update.en.md)
+
 # R047 工作台原地更新
 
 ## 需求与交互

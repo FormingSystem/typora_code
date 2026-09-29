@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {is_empty_editor_path} from "./workspace_file_uri";
 import {acquire_workspace_footer_layout} from "./workspace_footer_layout";
 import {acquire_workspace_style} from "./workspace_styles";
@@ -7,13 +8,13 @@ import editor_status_css from "./workspace_editor_status.css";
 type workspace_editor_status = {container:HTMLElement;register(leaf:graph_leaf,controls:HTMLElement):void;release(leaf:graph_leaf):void;refresh():void;schedule():void;dispose():void};
 const status_bindings=new WeakMap<graph_core,workspace_editor_status>();
 
-/** 唯一状态栏只挂载活动 leaf 的原控件；后台编辑器仍更新自己的离屏节点。 */
+/** The only status bar only mounts the original control of the active leaf; the background editor still updates its offscreen node. */
 export function bind_workspace_editor_status(core: graph_core):workspace_editor_status {
   const existing=status_bindings.get(core);if(existing)return existing;
   const footer=document.querySelector<HTMLElement>("footer.ty-footer");
   const native_actions=document.querySelector<HTMLElement>("#ty-sidebar-footer");
   const container=document.createElement("div");container.className="linux-note-editor-status workspace-footer-group";container.hidden=true;
-  container.setAttribute("role","group");container.setAttribute("aria-label","当前编辑器状态");
+  container.setAttribute("role","group");container.setAttribute("aria-label",workspace_text("editor_status_current_editor_status"));
   const style = acquire_workspace_style("typora-code-style:workspace_editor_status", editor_status_css, {});
   const layout_style=acquire_workspace_footer_layout();
   const owners=new Map<graph_leaf,HTMLElement>();let disposed=false,frame=0,observed_controls:HTMLElement|undefined;
@@ -32,7 +33,7 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   const refresh=()=>{
     if(disposed)return;const active=core.app.workspace.activeLeaf;
     const controls=active?owners.get(active):undefined;
-    // 宿主仍缓存最后一次Markdown，空布局不能展示该文档的字数/拼写状态。
+    // The host still caches the last Markdown; an empty layout cannot display the document's word count/spelling status.
     footer?.toggleAttribute("data-empty-editor",!active||is_empty_editor_path(active.state.path));
     if(observed_controls!==controls){contents.disconnect();observed_controls=controls;if(controls)contents.observe(controls,{childList:true,characterData:true,subtree:true});}
     if(controls){if(container.firstChild!==controls)container.replaceChildren(controls);container.hidden=false;container.setAttribute("data-editor-path",active!.state.path);}
@@ -41,7 +42,7 @@ export function bind_workspace_editor_status(core: graph_core):workspace_editor_
   };
   const schedule=()=>{if(frame||disposed)return;frame=requestAnimationFrame(()=>{frame=0;refresh();});};
   const contents=new MutationObserver(schedule);
-  // 社区 core EventEmitter.on 返回退订函数；active-leaf:change 已在真实核心核对。
+  // Community core EventEmitter.on returns unsubscribe function; active-leaf:change has already been verified by the real core.
   const unsubscribe=(core.app.workspace as unknown as {on(name:string,callback:()=>void):void|(()=>void)}).on("active-leaf:change",refresh);
   const unsubscribe_layout=core.app.workspace.on("layout-changed",schedule);
   const resize=new ResizeObserver(schedule);if(footer)resize.observe(footer);if(native_actions)resize.observe(native_actions);

@@ -1,4 +1,4 @@
-/** 展开表面的布局事务：事件按帧合并，自身布局通知不再成为下一轮输入。 */
+/** Expand the layout transaction of the surface: events are merged by frame, and self-layout notifications are no longer part of the next input. */
 export function create_workspace_popup_refresh(layout:()=>void){
   let frame=0,disposed=false,running=false;
   const sizes=new Map<Element,{width:number;height:number}>();
@@ -9,7 +9,7 @@ export function create_workspace_popup_refresh(layout:()=>void){
     running=true;
     try{layout();}
     finally{
-      // 本事务已读到此前所有DOM状态；只消费本观察器的布局写入，不影响宿主观察器。
+      // This transaction has read all DOM states previously; only consumes layout writes from this observer, does not affect the host observer.
       mutation.takeRecords();
       for(const node of sizes.keys())sizes.set(node,measure(node));
       running=false;
@@ -17,7 +17,7 @@ export function create_workspace_popup_refresh(layout:()=>void){
   };
   const schedule=()=>{if(!disposed&&!running&&!frame)frame=requestAnimationFrame(refresh);};
   const mutation=new MutationObserver(records=>{
-    // 宿主可能反复设置相同class/style；按本批次前后值比较，忽略无变化通知。
+    // Host may repeatedly set the same class/style; compare with the previous and next values in this batch, ignore notifications of no change.
     const seen=new Map<Node,Set<string>>();
     for(const record of records){
       if(record.type!=="attributes"){schedule();return;}

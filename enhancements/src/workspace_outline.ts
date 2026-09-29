@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {install_workspace_source_outline} from "./workspace_source_outline";
 import {acquire_workspace_style} from "./workspace_styles";
 import {bind_workspace_control_icons} from "./workspace_control_icons";
@@ -17,14 +18,14 @@ export type workspace_outline_host = {
   };
 };
 
-/** 大纲只负责标题导航；原生共用过滤框不能残留到其他工作区面板。 */
+/** Outline is only responsible for title navigation; native shared filter box cannot remain in other workspace panels. */
 export function install_workspace_outline(host: workspace_outline_host) {
   const sidebar = host.sidebar || document.querySelector<HTMLElement>("#typora-sidebar");
   if (!sidebar) return;
   const style = acquire_workspace_style("typora-code-style:workspace_outline", outline_css, {"data-workspace-outline-style":"ready"});
   document.documentElement.setAttribute("data-linux-note-workspace-outline", "ready");
   const previous_document_outline=sidebar.getAttribute("data-document-outline");
-  const empty=document.createElement("p");empty.className="workspace-outline-empty";empty.textContent="当前编辑器不提供文档大纲。";
+  const empty=document.createElement("p");empty.className="workspace-outline-empty";empty.textContent=workspace_text("outline_the_current_editor_does_not_provide_document_outline");
   (sidebar.querySelector("#sidebar-content")||sidebar).append(empty);
   const control_icons=bind_workspace_control_icons(sidebar,[["#outline-content .outline-expander","chevron-right"]]);
   const source_outline=install_workspace_source_outline(sidebar,host.context_root);
@@ -43,7 +44,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
   let outline_open = false;
   let selected_heading:HTMLElement|undefined;
   let selected_label:HTMLElement|null|undefined;
-  // 标题完整进入视口后才接管；离开时保留 12 CSS px 余量，避免边缘微动反复改选。
+  // Title is only taken over once it is fully in the viewport; when leaving, retain 12 CSS px margin, avoiding edge micro-motion re-selection.
   const heading_boundary_slack = 12;
   const native_outline = host.outline;
   const native_highlight = native_outline?.highlightVisibleHeader;
@@ -57,7 +58,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const snapshot=reading_block_snapshot(write),heading_blocks=snapshot.items.filter(item=>item.node.matches("h1,h2,h3,h4,h5,h6"));
     const headings=heading_blocks.map(item=>item.node);
     if (!headings.length) return;
-    // offsetTop 的参照物会随正文容器定位变化；与滚动视口在同一坐标系比较。
+    // The reference of offsetTop changes with the main content container's positioning; compared within the same coordinate system as the scrolling viewport.
     const {top, bottom} = reading_viewport_bounds(content);
     const selected_index = selected_heading ? headings.indexOf(selected_heading) : -1;
     if (explicit_position === content.scrollTop && selected_index >= 0) return selected_heading;
@@ -68,18 +69,18 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const readable_height = Math.max(0, readable_bottom - readable_top);
     const visible_index = bounds.findIndex(rect => rect.height > 0 && (
       rect.top >= readable_top && rect.bottom <= readable_bottom
-      // 窄窗中多行标题可能高于整个视口，覆盖可读区时同样视为当前标题。
+      // In narrow windows, multiple line titles may be higher than the entire viewport, and when they cover the readable area, they are still considered the current title.
       || readable_height > 0 && rect.height > readable_height && rect.top <= readable_top && rect.bottom >= readable_bottom
     ));
     if (selected_index >= 0) {
       const selected_bounds = bounds[selected_index];
       const still_visible = selected_bounds.height > 0 && selected_bounds.top >= top - heading_boundary_slack
         && selected_bounds.top < bottom + heading_boundary_slack;
-      // 同屏保留正在阅读的标题；向上滚动时，更早的完整标题可以重新接管。
+      // Keep the currently reading title on screen; when scrolling up, earlier fully visible titles can re-take over.
       if (still_visible && (visible_index < 0 || visible_index >= selected_index)) return selected_heading;
     }
     if (visible_index >= 0) return headings[visible_index];
-    // 长段落／表格中没有可读标题时，才按正文所在章节回退，不能要求下个标题先滚出屏幕。
+    // In long paragraphs/table, when there is no readable title, only revert to the chapter where the text is located, and cannot require the next title to be out of the viewport.
     let previous = headings[0];
     for (let index = 0; index < headings.length; index++) {
       if (bounds[index].top <= top) previous = headings[index];
@@ -95,7 +96,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
     if (!outline || !row) return;
     for (let wrapper = row.closest<HTMLElement>(".outline-item-wrapper"); wrapper && outline.contains(wrapper);
       wrapper = wrapper.parentElement?.closest<HTMLElement>(".outline-item-wrapper") ?? null) wrapper.classList.add("outline-item-open");
-    // 仅滚动大纲自己的容器，不能让 scrollIntoView 顺带移动宿主页面或夺走正文位置。
+    // Only scroll the container of the outline; do not allow scrollIntoView to move the host page or take away the text position.
     const bounds = outline.getBoundingClientRect();
     const rect = row.getBoundingClientRect();
     const top = bounds.top + outline.clientTop;
@@ -123,8 +124,8 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const expected=cid?label_for(outline,cid):undefined;
     if(selected_heading===heading&&selected_label===expected&&expected?.classList.contains("outline-active"))return;
     selected_heading=heading;selected_label=expected;
-    // 原生默认判定与延迟回调统一采用这里的唯一标题，避免两套视口规则竞争。
-    try { native_highlight?.call(native_outline, [heading], 0, true, false); } catch { /* 不稳定的宿主私有接口退回同一 DOM 语义。 */ }
+    // Native default judgment and delayed callback uniformly use this unique title, avoiding competition between two viewport rules.
+    try { native_highlight?.call(native_outline, [heading], 0, true, false); } catch { /* Unstable host private interface returns to the same DOM semantic. */ }
     const active = outline.querySelector<HTMLElement>(".outline-label.outline-active");
     if (!active || (cid && active.getAttribute("data-ref") !== cid)) fallback_sync(outline, heading);
     else reveal(active);
@@ -156,11 +157,11 @@ export function install_workspace_outline(host: workspace_outline_host) {
       .some(node => {
         if (!(node instanceof HTMLElement) || node.parentElement !== write || !node.matches("h1,h2,h3,h4,h5,h6") || !viewport) return false;
         const rect = node.getBoundingClientRect();
-        // 原生点击后的延迟回调可能晚于用户继续滚动；屏外旧目标不能锁住新的阅读位置。
+        // Native delayed callback after click may be later than user continued scrolling; out-of-viewport old targets cannot lock new reading positions.
         return rect.height > 0 && rect.top >= viewport.top - heading_boundary_slack && rect.top < viewport.bottom + heading_boundary_slack;
       });
     if (explicit_target || blink === true) {
-      // 显式标题跳转和手动“高亮当前标题”仍走原生语义，且取消尚未执行的旧滚动同步。
+      // Explicit title jumps and manual 'highlight current title' still follow native semantics, and cancel any unexecuted old scroll synchronization.
       cancel_sync();
       native_highlight?.call(this, headings, index, expand, blink);
       const active = sidebar.querySelector<HTMLElement>("#outline-content .outline-label.outline-active");
@@ -170,7 +171,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
       explicit_position = document.querySelector<HTMLElement>("content")?.scrollTop;
       return;
     }
-    // scrollAdjust 的非标题目标会传空数组；它和无参延迟高亮统一判定，不能锁住旧章节或改选邻居。
+    // Non-title targets of scrollAdjust pass empty array; it and parameterless delayed highlight are unified judgment, cannot lock old chapters or change neighbors.
     schedule_sync();
   };
   if (native_outline && native_highlight) native_outline.highlightVisibleHeader = coordinated_highlight;
@@ -186,7 +187,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
     if (!filtering) return;
     clearing = true;
     try {
-      // hideSearch 归还原生状态；clearSearch 同时清空旧高亮和被筛掉的标题。
+      // hideSearch returns to native state; clearSearch simultaneously clears old highlights and filtered titles.
       host.outline?.hideSearch?.();
       host.outline?.clearSearch?.();
       sidebar.classList.remove("ty-show-outline-filter", "ty-on-outline-filter");

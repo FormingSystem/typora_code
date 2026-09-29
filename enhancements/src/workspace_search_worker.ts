@@ -1,6 +1,6 @@
 import {collect_search_matches, collect_path_matches, type search_query_options} from "./workspace_search_matcher";
 
-// 仅处理单文件纯文本；磁盘、忽略规则与替换权限始终留在宿主。
+// Only process single-file pure text; disk, ignore rules, and replacement permissions remain in the host.
 const scope = globalThis as unknown as {onmessage: (event: MessageEvent<{request_id: number; text: string; paths?:string[]; options: search_query_options}>) => void; postMessage(value: unknown): void};
 scope.onmessage = event => {
   const {request_id, text, paths, options} = event.data;

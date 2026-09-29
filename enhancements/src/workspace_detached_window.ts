@@ -1,9 +1,10 @@
+import {workspace_text} from "./workspace_i18n";
 import {open_workspace_window} from "./workspace_open_dialog";
 import type {graph_leaf} from "./git_graph_host";
 import type {workspace_file_host} from "./workspace_files";
 import {TRANSFER_WINDOW_ANCHOR_PREFIX as WINDOW_ANCHOR_PREFIX, TRANSFER_TOKEN_PATTERN as TOKEN_PATTERN, window_transfer_token} from "./workspace_window_intent";
 
-// anchor 会被 Typora 的延迟文件加载流程再次消费，只能使用无副作用的文内片段。
+// anchor will be consumed again by the Typora delayed file loading process, and can only use intra-text fragments without side effects.
 const CHANNEL_PREFIX = "typora-code:tab-transfer:";
 const TRANSFER_TIMEOUT_MS = 25000;
 export type detached_window_binding = {open(leaf:graph_leaf,copy?:boolean):void;dispose():void};
@@ -26,15 +27,15 @@ type detached_window_options = {
 };
 type drag_detail = {leaf?: graph_leaf; transfer_token?: string; local_drop?: boolean; cancelled?: boolean; drop_effect?: string; screen_x?: number; screen_y?: number};
 
-/** 原生标签拖放只携带随机令牌；目标完成恢复并确认后，来源才释放同一个标签。 */
+/** Native tab drag and drop only carries random tokens; once the target is completed, restored and confirmed, the source will release the same tab. */
 export function bind_workspace_detached_window(files: workspace_file_host, options: detached_window_options = {}) {
   const existing = bindings.get(files); if (existing) return existing;
   const runtime = window as unknown as window_runtime;
   const make_channel = options.channel || ((name: string) => new BroadcastChannel(name));
   const timeout_ms = options.timeout_ms ?? TRANSFER_TIMEOUT_MS;
   const notify = options.notify || ((message: string) => {
-    // Notice 接口接收 HTML；先按文本转义，路径和错误不能注入标记。
-    const text = document.createElement("span"); text.textContent = "移动标签：" + message;
+    // Notice interface receives HTML; first escape text, paths and errors cannot inject markers.
+    const text = document.createElement("span"); text.textContent = workspace_text("detached_window_move_tab") + message;
     new files.core.Notice(text.innerHTML, 6000);
   });
   const open_window = options.open_window || ((anchor: string, root: string) => open_workspace_window(root,anchor));
@@ -56,8 +57,8 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
       return !occupied && !disposed && !runtime.File?.isFileLoading?.() && !runtime.File?.inSavingProcess && !runtime.File?._onFileSwitching && !runtime.File?._onInitParse;
     };
     if (!auxiliary || !empty() || !runtime.JSBridge) return;
-    // 原生 Markdown 的最后一个标签移走后，隐藏编辑缓冲仍可能是 dirty。
-    // 只在宿主确认同文档仍由另一窗口持有时走原生关闭入口，不伪装已保存。
+    // After the last tab of native Markdown is removed, the hidden edit buffer may still be dirty.
+    // Only when the host confirms that the document is still held by another window does the native close entry proceed; it does not disguise as saved.
     if (runtime.File?.changeCounter?.isDocumentEdited()) {
       const file = runtime.File, bundle = file.bundle, counter = file.changeCounter;
       const same_draft = () => runtime.File === file && file.bundle === bundle && file.changeCounter === counter
@@ -91,11 +92,11 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
     const cancel = () => { post("cancel"); finish(); };
     const arm_timeout = () => {
       if (timer) return;
-      timer = setTimeout(() => { post("cancel"); finish(new Error("窗口未及时完成移交，原标签仍保留。")); }, timeout_ms);
+      timer = setTimeout(() => { post("cancel"); finish(new Error(workspace_text("detached_window_window_not_timely_delivered_original_tab_remains"))); }, timeout_ms);
     };
     const capture = () => {
       arm_timeout();
-      // 同窗排序不需要读取文件；在实际跨窗落下或新窗请求后才捕获草稿。
+      // Window sorting does not require reading files; drafts are captured only after actual cross-window drop or new window request.
       return snapshot_promise ||= Promise.resolve().then(() => files.capture_transfer(leaf, controller.signal));
     };
     const deliver = async () => {
@@ -103,7 +104,7 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
       try { const snapshot = await capture(); if (!finished) post("payload", {snapshot}); }
       catch (error) { post("error", {error: String(error instanceof Error ? error.message : error)}); finish(error); }
     };
-    channel.onmessageerror = () => { post("cancel"); finish(new Error("窗口通信失败，原标签仍保留。")); };
+    channel.onmessageerror = () => { post("cancel"); finish(new Error(workspace_text("detached_window_window_communication_failure_original_tab_remains"))); };
     channel.onmessage = event => {
       const message = event.data as transfer_message;
       if (finished || !message || !TOKEN_PATTERN.test(message.peer_id || "")) return;
@@ -118,9 +119,9 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
           if (finished) return;
           post(released ? "committed" : "retained"); finish();
           if (released) void close_empty_auxiliary(snapshot).catch(report);
-          else report("目标窗口已接收文档；原内容或状态发生变化，原标签已保留。");
+          else report(workspace_text("detached_window_target_window_has_received_the_document_original_content_or"));
         })().catch(error => { if (!finished) { post("retained"); finish(error); } });
-      } else if (message.peer_id === peer_id && message.kind === "error") finish(new Error(message.error || "目标窗口读取失败，原标签仍保留。"));
+      } else if (message.peer_id === peer_id && message.kind === "error") finish(new Error(message.error || workspace_text("detached_window_target_window_read_failure_original_tab_remains")));
     };
     const detach = () => {
       if (finished || peer_id || opening) return; opening = true;
@@ -147,14 +148,14 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
       cancellations.delete(cancel); receivers.delete(token); channel.onmessage = null; channel.onmessageerror = null;
       try { channel.close(); } catch (error) { report(error); }
     };
-    const cancel = () => { post("error", {error: "目标窗口已取消接收。"}); finish(); };
+    const cancel = () => { post("error", {error: workspace_text("detached_window_target_window_has_canceled_the_receipt")}); finish(); };
     const timer = setTimeout(() => {
-      post("error", {error: "目标窗口等待移交超时，原标签仍保留。"}); finish();
-      report(accepted ? "原窗口未确认移除标签，此窗口中的文档已保留。" : "原窗口未完成移交，原标签仍保留。");
+      post("error", {error: workspace_text("detached_window_target_window_waiting_for_delivery_timeout_original_tab_rema")}); finish();
+      report(accepted ? workspace_text("detached_window_original_window_did_not_confirm_removal_of_the_tab_document") : workspace_text("detached_window_original_window_not_completed_delivery_original_tab_remains"));
     }, timeout_ms);
     const ready_timer = setInterval(() => { if (!importing) post("ready"); }, 150);
     cancellations.add(cancel);
-    channel.onmessageerror = () => { finish(); report("窗口通信失败，已保留现有文档。"); };
+    channel.onmessageerror = () => { finish(); report(workspace_text("detached_window_window_communication_failure_current_document_is_retained")); };
     channel.onmessage = event => {
       const message = event.data as transfer_message;
       if (finished || !message || (message.peer_id && message.peer_id !== peer_id)) return;
@@ -166,9 +167,9 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
           if (!finished) { post("error", {error: String(error instanceof Error ? error.message : error)}); finish(); report(error); }
         });
       } else if (message.kind === "committed" && accepted) finish();
-      else if (message.kind === "retained" && accepted) { finish(); report("原窗口仍保留文档副本，此窗口中的内容也已保留。"); }
-      else if (message.kind === "error") { finish(); report(message.error || "文档移交失败，原标签仍保留。"); }
-      else if (message.kind === "cancel") { finish(); if (importing) report("原窗口已取消移交，已有内容仍保留。"); }
+      else if (message.kind === "retained" && accepted) { finish(); report(workspace_text("detached_window_original_window_still_retains_a_copy_of_the_document_content")); }
+      else if (message.kind === "error") { finish(); report(message.error || workspace_text("detached_window_document_delivery_failure_original_tab_remains")); }
+      else if (message.kind === "cancel") { finish(); if (importing) report(workspace_text("detached_window_original_window_has_canceled_the_delivery_existing_content_i")); }
     };
     post("ready");
   };
@@ -186,13 +187,13 @@ export function bind_workspace_detached_window(files: workspace_file_host, optio
   const drag_end = (event: Event) => {
     const detail = (event as CustomEvent<drag_detail>).detail;
     const sender = detail && senders.get(detail.transfer_token || ""); if (!sender || sender.leaf !== detail.leaf) return;
-    // 目标已确认后的正常释放会移除源 tab；核心观察器随即报告 source-invalid。
-    // 此时手势已经落下，不能把自身提交过程误认成用户取消。pagehide/dispose 仍会中止协议。
+    // After the target is confirmed, normal release removes the source tab; the core observer then reports source-invalid.
+    // At this point, the gesture has already fallen; it cannot be mistaken for the user canceling the own submission process. pagehide/dispose will still abort the protocol.
     if (detail.cancelled && sender.releasing()) return;
     if (detail.cancelled || detail.local_drop) { sender.cancel(); return; }
     if (detail.drop_effect === "move" || detail.drop_effect === "copy" || sender.claimed()) { sender.wait(); return; }
     const x = detail.screen_x, y = detail.screen_y;
-    // 编辑区、侧栏、缩放和最大化共用实际外窗边界；不再拿编辑组的30px外沿判定。
+    // The editing area, sidebar, zooming, and maximization share the actual outer window boundary; the editing group's 30px outer edge is no longer used for judgment.
     if (!Number.isFinite(x) || !Number.isFinite(y) || (x === 0 && y === 0)
         || (x! >= window.screenX && x! <= window.screenX + window.outerWidth && y! >= window.screenY && y! <= window.screenY + window.outerHeight)) {
       sender.cancel(); return;

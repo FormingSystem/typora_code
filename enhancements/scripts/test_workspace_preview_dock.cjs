@@ -1,4 +1,4 @@
-// 真实 Chromium 指针拖动及生产预览；临时文件，不改用户窗口。
+// Real Chromium pointer dragging and production preview; temporary files, do not change user window.
 const {app,BrowserWindow}=require('electron'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
 const evidence=fs.mkdtempSync(path.join(os.tmpdir(),'typora_preview_dock_')),checks=[];let win;
@@ -30,7 +30,7 @@ app.whenReady().then(async()=>{
   check('加宽预览不挤动正文 '+zoom,await evaluate(`document.querySelector('.typ-workspace-root').getBoundingClientRect().left===348`));
   check('主侧栏分界线不穿过预览 '+zoom,await evaluate(`(()=>{const sash=document.querySelector('#typora-sidebar-resizer'),b=sash.getBoundingClientRect(),d=dock.getBoundingClientRect(),hit=document.elementFromPoint(b.left+3,d.top+60);return b.bottom<=d.top+1&&dock.contains(hit)&&hit!==sash})()`));}
  win.webContents.setZoomFactor(1);await delay(100);
- // 真实生产面板与独立dock同时存在，按坐标核对绘制和命中而非只比较z-index。
+ // Real production panel and independent dock exist simultaneously, verify drawing and hit by coordinate rather than just comparing z-index.
  await evaluate(`{const style=document.createElement('style');style.textContent=qa.terminal_css;document.head.append(style);window.terminal_panel=qa.create_terminal_panel(()=>{});terminal_panel.show();dock.querySelector('[aria-label="固定链接预览"]').click();}`);await delay(100);
  for(const dark of [false,true])for(const zoom of [1,1.5])for(const maximized of [false,true]){
   win.webContents.setZoomFactor(zoom);await evaluate(`document.body.style.setProperty('--side-bar-bg-color','${dark?'#181818':'#fafafa'}');if(terminal_panel.maximized!==${maximized})terminal_panel.maximize();`);await delay(120);

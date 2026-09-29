@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_directories,subscribe_workspace_directory_changes} from './workspace_directory_service';
 import {register_workspace_context_guard,workspace_context_switching} from "./workspace_context";
 import {is_composing_key} from "./workspace_keyboard";
@@ -33,13 +34,13 @@ export function bind_git_graph() {
   const controllers = new Set<git_graph_panel>();
   const refresh_schedulers = new Map<git_graph_panel, git_refresh_scheduler>();
   lifetime.add(subscribe_workspace_directory_changes(change=>{
-    // Git读状态创建的短暂锁文件不代表新的仓库状态，避免自触发刷新循环。
+    // The temporary lock files created by Git reading the status do not represent a new repository state, avoiding self-triggering refresh loops.
     if(change.path&&/[\\/]\.git[\\/].*\.lock$/u.test(change.path))return;
     for(const [panel,scheduler] of refresh_schedulers){const relative=host.path_api.relative(panel.root,change.path||change.directory||change.root);if(relative!==".."&&!relative.startsWith(".."+host.path_api.sep)&&!host.path_api.isAbsolute(relative))scheduler.invalidate();}
   }));
   const panel_subscriptions=new Map<git_graph_panel,()=>void>();
   lifetime.add(()=>{for(const stop of panel_subscriptions.values())stop();panel_subscriptions.clear();});
-  lifetime.add(register_workspace_context_guard(()=>[...controllers].some(panel=>panel.writing)?"Git写操作正在执行，请完成后再切换工作区。":undefined));
+  lifetime.add(register_workspace_context_guard(()=>[...controllers].some(panel=>panel.writing)?workspace_text("git_graph_view_git_write_operation_is_in_progress_please_switch_workspaces"):undefined));
   let sync_refresh_visibility = () => {};
   const track_panel = (panel: git_graph_panel) => {
     controllers.add(panel);directories.service.observe(panel.root);
@@ -53,7 +54,7 @@ export function bind_git_graph() {
   lifetime.add(()=>{for(const panel of controllers)panel.dispose();for(const leaf of panels.keys()){leaf.parent.removeTab?.(leaf.state.path);leaf.view.containerEl.remove();}panels.clear();controllers.clear();style.remove();});
   const controller_for = (cwd: string): git_graph_panel => {
     for (const panel of controllers) {
-      // 文件夹包含关系不等于仓库身份：子目录可能新建了独立仓库或 worktree。
+      // The folder containment relationship is not equal to the repository identity: a subdirectory may have created an independent repository or worktree.
       if (!panel.disposed && host.path_api.relative(panel.context_directory, cwd) === "") return panel;
     }
     const panel = track_panel(new git_graph_panel(host, cwd)); void panel.refresh(false); return panel;
@@ -73,7 +74,7 @@ export function bind_git_graph() {
     onshow() {
       this.visible = true; this.clear_native_tabs();
       const native_sidebar = document.querySelector("#typora-sidebar");
-      // showSidebar 与延迟大纲刷新会恢复原生标签 class；Git 面板显示期间由本面板持有显示状态。
+      // showSidebar with delayed outline refresh will restore native tabs class; Git panel displays during this panel's display state.
       if (native_sidebar) this.native_observer.observe(native_sidebar, {attributes: true, attributeFilter: ["class"]});
       this.mount(controller_for(host.context_path()));
     }
@@ -109,7 +110,7 @@ export function bind_git_graph() {
         const relative = host.path_api.relative(candidate, cwd);
         if (!host.path_api.isAbsolute(relative) && relative !== ".." && !relative.startsWith(".." + host.path_api.sep)) { root = candidate; break; }
       }
-    } catch { /* 损坏记录不影响打开图入口。 */ }
+    } catch { /* Damaged records do not affect the opened graph entry. */ }
     return load_graph_settings(localStorage, root);
   };
   class git_graph_view extends core.WorkspaceView {
@@ -117,13 +118,13 @@ export function bind_git_graph() {
     constructor(leaf: graph_leaf) {
       super(leaf); let cwd = leaf.state.git_cwd || "";
       if (!cwd) for (const [existing, panel] of panels) if (existing.state.path === leaf.state.path) { cwd = panel.root; break; }
-      if (!cwd) try { cwd = decodeURIComponent(leaf.state.path.split("/")[3] || ""); } catch { /* 显示仓库选择入口。 */ }
+      if (!cwd) try { cwd = decodeURIComponent(leaf.state.path.split("/")[3] || ""); } catch { /* Display the repository selection entry. */ }
       const available = [...controllers].find(panel => panel.root === cwd && ![...panels.values()].includes(panel));
       this.panel = available || track_panel(new git_graph_panel(host, cwd || host.context_path()));
       this.containerEl = this.panel.container; panels.set(leaf, this.panel);
     }
     onOpen() {
-      // 标签保留核心容器，用标准 SVG 替换默认字体图标。
+      // Tabs retain the core container, using standard SVG to replace the default font icon.
       for (const tab of document.querySelectorAll<HTMLElement>(".typ-tab[data-id]")) if (tab.getAttribute("data-id") === this.leaf.state.path) {
         const icon = tab.querySelector(".typ-file-icon"); if (icon) { icon.className = "typ-file-icon git-tab-icon"; icon.replaceChildren(git_graph_tab_icon(this.panel.settings.tab_icon_theme)); }
         const label = tab.querySelector(".typ-file-basename"); if (label) label.textContent = "Git Graph";
@@ -220,7 +221,7 @@ export function bind_git_graph() {
   document.documentElement.setAttribute("data-linux-note-monaco-diff", "ready");
   document.documentElement.setAttribute("data-linux-note-git-graph", "ready");
   document.documentElement.setAttribute("data-linux-note-git-graph-actions", "ready");
-  const assert_can_dispose=()=>{if([...controllers].some(panel=>panel.writing))throw new Error("Git 操作正在执行，请完成后再停用 Typora Code。");};
+  const assert_can_dispose=()=>{if([...controllers].some(panel=>panel.writing))throw new Error(workspace_text("git_graph_view_git_operation_is_in_progress_please_complete_it_before_disab"));};
   return {assert_can_dispose, dispose(){
     assert_can_dispose();if(lifetime.disposed)return;
     status_bar.dispose();source_sidebar.onhide();

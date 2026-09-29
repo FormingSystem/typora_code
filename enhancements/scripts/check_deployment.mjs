@@ -23,7 +23,7 @@ for(const marker of ['data-git-icon','bind_workspace_browser','data-linux-note-w
   if(!bundle_markers.includes(marker))throw new Error(`required workspace deployment capability is missing: ${marker}`);
 }
 const codicon_root = 'vendor/codicons';
-// 这些元数据按Git的eol=lf检出，摘要必须从同一规范字节计算。
+// These metadata are checked out according to Git's eol=lf; the digest must be calculated from the same normative byte.
 for (const name of ['icons.json', 'source_manifest.json']) if (fs.readFileSync(`${codicon_root}/${name}`, 'utf8').includes('\r')) throw new Error(`Codicons metadata must use LF before calculating checksums: ${name}`);
 const codicon_checksums = new Map();
 for(const line of fs.readFileSync(`${codicon_root}/SHA256SUMS`,'utf8').trim().split(/\r?\n/u)) {

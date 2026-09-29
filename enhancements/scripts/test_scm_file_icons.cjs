@@ -10,7 +10,7 @@ app.whenReady().then(async()=>{
  test_window=new BrowserWindow({show:false,width:720,height:850,webPreferences:{offscreen:true,nodeIntegration:true,contextIsolation:false,backgroundThrottling:false}});
  const html=path.join(evidence,'fixture.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>body{font:13px/22px "Segoe UI";margin:0}#host{width:320px;height:820px}.git-scm-sidebar{height:100%}</style><aside id="typora-sidebar"><main id="host" class="linux-note-git-source-control"></main></aside>');await test_window.loadFile(html);
  const bundle=await build({stdin:{contents:'export {git_source_control} from "./src/git_source_control";export {git_operation_progress} from "./src/git_operation_progress";export {git_graph_panel} from "./src/git_graph_panel";export {git_icon} from "./src/git_icons";export {compare_files,parse_status,INDEX,WORKTREE} from "./src/git_graph_repository";',resolveDir:path.join(__dirname,'..')},plugins:require('./editor_bundle.cjs').editor_plugins(),bundle:true,write:false,loader:{'.css':'text'},format:'iife',globalName:'scm_qa'});
- const evaluate=source=>test_window.webContents.executeJavaScript(source);
+ const evaluate=source=>test_window.webContents.executeJavaScript(source).catch(error=>{console.error(source);throw error;});
  await evaluate(bundle.outputFiles[0].text);
  await test_window.webContents.insertCSS(fs.readFileSync(path.join(__dirname,'../src/git_graph.css'),'utf8'));
  await evaluate(`(()=>{
@@ -54,11 +54,11 @@ app.whenReady().then(async()=>{
  await new Promise(resolve=>setTimeout(resolve,30));
  assert.deepEqual(await evaluate('opened'),[{path:'docs/guide.md',from:'index',to:'worktree'},{path:'docs/guide.md',from:'b'.repeat(40),to:'a'.repeat(40)}]);
  assert(await evaluate(`graph_icon.tagName.toLowerCase()==='svg'&&graph_icon.dataset.gitIcon==='file'&&!graph_icon.classList.contains('workspace-file-theme-icon')`));
- await evaluate(`(()=>{
+ await evaluate(`(async()=>{
    window.writes=0;panel.quick_action=()=>writes++;
    scm.message.value='kept draft';scm.message.dispatchEvent(new Event('input'));
    document.querySelector('#host').style.height='310px';
-   scm.groups_state[1].files=Array.from({length:80},(_,i)=>({path:'long/path/file_'+i+'.md',status:'M'}));scm.render_groups();
+   scm.groups_state[1].files=Array.from({length:80},(_,i)=>({path:'long/path/file_'+i+'.md',status:'M'}));await scm.render_groups();
    scm.groups.querySelector('[data-scm-group=staged]').open=false;
  })()`);await new Promise(resolve=>setTimeout(resolve,80));
  await evaluate('scm.groups.scrollTop=150');await new Promise(resolve=>setTimeout(resolve,60));
@@ -68,23 +68,23 @@ app.whenReady().then(async()=>{
  assert(await evaluate(`!scm.input_section.open&&scm.changes_body.inert&&scm.changes_body.getBoundingClientRect().height===0&&[...scm.changes_body.querySelectorAll('input,textarea,button,summary')].every(node=>node.getClientRects().length===0)`));
  assert(await evaluate(`(()=>{scm.message.focus();return document.activeElement!==scm.message})()`));
  assert.equal(await evaluate('scm.history.container.getBoundingClientRect().y'),graph_before);
- await evaluate(`window.release_refresh=null;const gate=new Promise(resolve=>release_refresh=resolve);panel.runner={run:async()=>{await gate;return Array.from({length:80},(_,i)=>'M\0long/path/file_'+i+'.md\0').join('')}};window.refresh_done=scm.refresh();true`);
- await evaluate('release_refresh();true');await evaluate('refresh_done.then(()=>true)');
+ await evaluate(`panel.state={...panel.state,changes:Array.from({length:80},(_,i)=>({path:'long/path/file_'+i+'.md',status:'M',index_status:' ',work_status:'M'}))};window.refresh_done=scm.refresh();true`);
+ await evaluate('refresh_done.then(()=>true)');
  assert(await evaluate('!scm.input_section.open&&scm.changes_body.inert&&scm.message.value==="kept draft"'));
  await evaluate(`scm.input_section.querySelector('summary').click()`);await new Promise(resolve=>setTimeout(resolve,80));
  assert(await evaluate('scm.input_section.open&&!scm.changes_body.inert&&scm.message.value==="kept draft"&&!scm.groups.querySelector("[data-scm-group=staged]").open&&scm.groups.querySelector("[data-scm-group=changes]").open'));
  assert.equal(await evaluate('scm.groups.scrollTop'),scroll_before);assert.equal(await evaluate('writes'),0);
  assert(await evaluate('scm.groups.scrollHeight>scm.groups.clientHeight&&scm.changes_pane.scrollHeight<=scm.changes_pane.clientHeight+1'));
  fs.writeFileSync(path.join(evidence,'scm_file_icons.png'),(await test_window.webContents.capturePage()).toPNG());
- await evaluate('scm.dispose()');assert(!await evaluate(`Boolean(document.getElementById('typora-code-style:workspace_file_icons'))`));
- // 真实临时 Git 生成组内状态；验证默认打开只对无当前比较基线的新增文件生效。
+
+ // Real temporary Git generation group internal state; verify default open only effective for new files without current comparison baseline.
  const repository=path.join(evidence,'repository');fs.mkdirSync(repository);
  const git=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:repository,encoding:'utf8',windowsHide:true});
  git('init','-b','main');git('config','core.autocrlf','false');for(const name of ['tracked.md','removed.txt','before.txt'])fs.writeFileSync(path.join(repository,name),name+' original\n');git('add','.');git('-c','user.name=Fixture','-c','user.email=f@example.invalid','commit','-m','fixture');
  fs.writeFileSync(path.join(repository,'new.md'),'# New Markdown\n');fs.writeFileSync(path.join(repository,'new.txt'),'new text\n');fs.writeFileSync(path.join(repository,'staged.md'),'# staged version\n');git('add','staged.md');fs.appendFileSync(path.join(repository,'staged.md'),'working edit\n');fs.appendFileSync(path.join(repository,'tracked.md'),'changed\n');fs.unlinkSync(path.join(repository,'removed.txt'));git('mv','before.txt','after.txt');
  const head=git('rev-parse','HEAD').trim(),before_index=git('ls-files','--stage');
  await evaluate(`window.direct_opens=[];window.quick_actions=[];panel.root=${JSON.stringify(repository)};panel.host.open_file=async(root,file)=>direct_opens.push({root,file});panel.quick_action=(action,files)=>quick_actions.push({action,files});window.git_run=async(root,args)=>require('node:child_process').execFileSync('git',args,{cwd:root,encoding:'utf8',windowsHide:true});panel.state={...panel.state,root:panel.root,head:${JSON.stringify(head)},changes:scm_qa.parse_status(${JSON.stringify(git('status','--porcelain','-z'))})};void 0`);
- await evaluate(`(async()=>{scm.groups_state=[{id:'staged',title:'Staged Changes',from:panel.state.head,to:scm_qa.INDEX,files:await scm_qa.compare_files(git_run,panel.state,panel.state.head,scm_qa.INDEX)},{id:'changes',title:'Changes',from:scm_qa.INDEX,to:scm_qa.WORKTREE,files:await scm_qa.compare_files(git_run,panel.state,scm_qa.INDEX,scm_qa.WORKTREE)}];opened.length=0;scm.tree=false;scm.render_groups();})()`);
+ await evaluate(`(async()=>{scm.groups_state=[{id:'staged',title:'Staged Changes',from:panel.state.head,to:scm_qa.INDEX,files:await scm_qa.compare_files(git_run,panel.state,panel.state.head,scm_qa.INDEX)},{id:'changes',title:'Changes',from:scm_qa.INDEX,to:scm_qa.WORKTREE,files:await scm_qa.compare_files(git_run,panel.state,scm_qa.INDEX,scm_qa.WORKTREE)}];opened.length=0;scm.tree=false;await scm.render_groups();})()`);
  for(const [group,file,enter]of [['changes','new.md',false],['changes','new.txt',true],['staged','staged.md',false]]){
   await evaluate(`(()=>{const row=scm.groups.querySelector('[data-scm-group="${group}"] [data-file="${file}"]');${enter?"row.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));":"row.click();"}})()`);
  }
@@ -97,14 +97,14 @@ app.whenReady().then(async()=>{
  assert.equal(await evaluate('direct_opens.at(-1).file'),'new.md');assert.equal(await evaluate('opened.length'),5,'inline open and discard do not bubble into diff opening');
  assert.deepEqual(await evaluate('discard_plans[0]'),['discard_changes','file','new.md',head,{include_untracked:true},['new.md']],'discard opens existing confirmed action plan rather than writing directly');
  assert(await evaluate('scm.groups.querySelector(`[data-file="removed.txt"] [data-scm-file-action="open"]`).disabled'));
- await evaluate(`scm.tree=true;scm.groups_state[1].files.push({path:'folder/nested.md',status:'??'});scm.render_groups();window.before_directory_opens=direct_opens.length;window.before_directory_diffs=opened.length;scm.groups.querySelector('.git-scm-directory>summary').click()`);
+ await evaluate(`(async()=>{scm.tree=true;scm.groups_state[1].files.push({path:'folder/nested.md',status:'??'});await scm.render_groups();window.before_directory_opens=direct_opens.length;window.before_directory_diffs=opened.length;scm.groups.querySelector('.git-scm-directory>summary').click();})()`);
  assert(await evaluate('!scm.groups.querySelector(".git-scm-directory").open&&direct_opens.length===before_directory_opens&&opened.length===before_directory_diffs'),'directory click only toggles its children');
  await evaluate(`window.late_diffs=0;window.pending_reads=[];panel.status=document.createElement('div');panel.host.revision_text=()=>new Promise(resolve=>pending_reads.push(resolve));panel.host.open_document=()=>late_diffs++;window.pending_diff=scm_qa.git_source_control.prototype.open_file.call(scm,{path:'tracked.md',status:'M'},scm_qa.INDEX,scm_qa.WORKTREE);void 0`);
  await evaluate(`scm.open_default_file({path:'new.md',status:'??'},scm_qa.INDEX,scm_qa.WORKTREE,[])`);
  await evaluate(`pending_reads.forEach(resolve=>resolve('old pending comparison'));pending_diff`);
  assert.equal(await evaluate('late_diffs'),0,'new-file navigation cancels an older in-flight diff before it can steal the active tab');
- // 中央 Graph 的实际文件行必须复用 SCM 默认路由；历史快照和显式比较仍有各自语义。
- await evaluate(`window.graph_files=document.createElement('div');document.querySelector('#host').append(graph_files);window.graph_panel={workbench:scm,settings:{file_view:'list'},review_active:()=>false,file_menu(){},open_diff:scm_qa.git_graph_panel.prototype.open_diff};direct_opens.length=0;opened.length=0;void 0`);
+ // Actual file lines of central Graph must reuse SCM default routing; historical snapshots and explicit comparisons still have their own semantics.
+ await evaluate(`window.graph_files=document.createElement('div');document.querySelector('#host').append(graph_files);window.graph_panel={host:panel.host,root:panel.root,workbench:scm,settings:{file_view:'list'},review_active:()=>false,file_menu(){},open_diff:scm_qa.git_graph_panel.prototype.open_diff};direct_opens.length=0;opened.length=0;void 0`);
  for(const [from,to]of [[head,'WORKTREE'],['INDEX','WORKTREE'],[head,'INDEX']]){
   await evaluate(`(async()=>{graph_panel.from=${JSON.stringify(from)};graph_panel.to=${JSON.stringify(to)};graph_panel.files=await scm_qa.compare_files(git_run,panel.state,graph_panel.from,graph_panel.to);graph_files.replaceChildren();scm_qa.git_graph_panel.prototype.render_files.call(graph_panel,graph_files);for(const row of graph_files.querySelectorAll('.git-graph-file'))row.click();})()`);
  }
@@ -120,5 +120,6 @@ app.whenReady().then(async()=>{
  await evaluate(`direct_opens.length=0;adjacent_options.adjacent(1);adjacent_options.adjacent(-1);void 0`);
  assert.deepEqual((await evaluate('direct_opens')).map(item=>item.file),['new.md','new.txt'],'previous/next file use the same default routing for new files');
  assert.equal(git('ls-files','--stage'),before_index,'opening files and mocked staging do not write index');assert.equal(fs.readFileSync(path.join(repository,'new.md'),'utf8'),'# New Markdown\n');
+ await evaluate('scm.dispose()');assert(!await evaluate(`Boolean(document.getElementById('typora-code-style:workspace_file_icons'))`));
  console.log(JSON.stringify({status:'PASS',geometry,checks:['parent fold hides commit and both child groups from layout and focus','controlled asynchronous refresh retains parent fold and draft','reopen restores child state and scroll; Graph position unchanged','short window long list scrolls inside groups; fold issues no Git write','empty and populated groups toggle with 16px icons','22px regular group rows and aligned headers','white button glyphs and no filter','Explorer Seti file associations in SCM tree/list modes, including rename destination and unknown extension','native click comparison revisions','real Git U and A open current MD and TXT; M D R retain exact comparison revisions','inline open discard and stage do not bubble; discard retains confirmation plan and index bytes','directory expansion does not open a file; late comparisons cannot steal newer navigation'],evidence}));test_window.destroy();app.exit(0);
 }).catch(error=>{console.error(error);console.error(evidence);test_window?.destroy();app.exit(1)});

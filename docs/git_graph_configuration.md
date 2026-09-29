@@ -1,3 +1,5 @@
+[English](git_graph_configuration.en.md)
+
 # Git Graph配置与VS Code核对
 
 ## R024

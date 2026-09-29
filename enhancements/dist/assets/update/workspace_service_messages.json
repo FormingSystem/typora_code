@@ -1,0 +1,486 @@
+{
+  "service_4e250292edfe": {
+    "en": "Invalid plugin identifier.",
+    "zh_cn": "插件标识无效。"
+  },
+  "service_b56a48eddb67": {
+    "en": "Invalid plugin version.",
+    "zh_cn": "插件版本无效。"
+  },
+  "service_a8d33a1cc444": {
+    "en": "The plugin manifest is missing a valid ",
+    "zh_cn": "插件清单缺少有效的"
+  },
+  "service_cd09bf9042e1": {
+    "en": "Invalid plugin repository identifier.",
+    "zh_cn": "插件仓库标识无效。"
+  },
+  "service_bc7d4d6a0fd8": {
+    "en": "Plugin is not supported for the current system.",
+    "zh_cn": "插件不支持当前系统。"
+  },
+  "service_b15a0b482377": {
+    "en": "Plugin requires a higher version of the community core API.",
+    "zh_cn": "插件需要更高版本的社区核心API。"
+  },
+  "service_042b2df8ff09": {
+    "en": "Plugin requires a higher version of Typora.",
+    "zh_cn": "插件需要更高版本的Typora。"
+  },
+  "service_92c4733ea00e": {
+    "en": "The plugin root directory cannot be a link.",
+    "zh_cn": "插件根目录不能是链接。"
+  },
+  "service_5ff7db6efcc1": {
+    "en": "The plugin directory contains links or special files.",
+    "zh_cn": "插件目录包含链接或特殊文件。"
+  },
+  "service_52fb1b34797a": {
+    "en": "Plugin is missing main.js.",
+    "zh_cn": "插件缺少main.js。"
+  },
+  "service_1633a3fc2004": {
+    "en": "The plugin package directory cannot be a link.",
+    "zh_cn": "插件包目录不能是链接。"
+  },
+  "service_b2d59d700e54": {
+    "en": "Failed to update the community plugin view",
+    "zh_cn": "社区插件视图更新失败"
+  },
+  "service_c8cc048180e5": {
+    "en": "Invalid plugin configuration format.",
+    "zh_cn": "插件配置格式无效。"
+  },
+  "service_2d679d6737a8": {
+    "en": "Plugin service is already closed.",
+    "zh_cn": "插件服务已经关闭。"
+  },
+  "service_88f76d9ffc2c": {
+    "en": "Another window is modifying the plugin. Please try again later.",
+    "zh_cn": "另一个窗口正在修改插件，请稍后重试。"
+  },
+  "service_0c8571337fa2": {
+    "en": "Invalid plugin version path.",
+    "zh_cn": "插件版本路径无效。"
+  },
+  "service_d8da7b92150c": {
+    "en": "Plugin path is out of bounds.",
+    "zh_cn": "插件路径越界。"
+  },
+  "service_b2600e3c8836": {
+    "en": "Plugin identity does not match.",
+    "zh_cn": "插件身份不匹配。"
+  },
+  "service_152ed4002c6f": {
+    "en": "Plugin file verification failed. Please reinstall the plugin.",
+    "zh_cn": "插件文件校验失败，请重新安装。"
+  },
+  "service_0a41e89f29a8": {
+    "en": "Plugin is not yet installed.",
+    "zh_cn": "插件尚未安装。"
+  },
+  "service_b8a7595280af": {
+    "en": "Downloaded package is inconsistent with the selected plugin or release version.",
+    "zh_cn": "下载包与所选插件或发行版本不一致。"
+  },
+  "service_345e7bbed20a": {
+    "en": "The plugin directory cannot be a link.",
+    "zh_cn": "插件目录不能是链接。"
+  },
+  "service_5143f4ad6e1f": {
+    "en": "Existing plugin package verification failed.",
+    "zh_cn": "现有插件包校验失败。"
+  },
+  "service_801ef6504834": {
+    "en": "Community catalog version identity is invalid.",
+    "zh_cn": "社区目录版本身份无效。"
+  },
+  "service_7777eb0100e8": {
+    "en": "The community catalog format is invalid.",
+    "zh_cn": "社区目录格式无效。"
+  },
+  "service_c23d874d3b80": {
+    "en": "The plugin repository is invalid.",
+    "zh_cn": "插件仓库无效。"
+  },
+  "service_2481a214c33a": {
+    "en": "The plugin distribution package is invalid.",
+    "zh_cn": "插件发行包无效。"
+  },
+  "service_13939e8c2d1c": {
+    "en": "Another window is saving SSH configuration, please try again later.",
+    "zh_cn": "其他窗口正在保存SSH配置，请稍后重试。"
+  },
+  "service_15cbb1fe5a7d": {
+    "en": "The port must be 1–65535, leave it blank to use the SSH configuration.",
+    "zh_cn": "端口须为1–65535，留空沿用SSH配置。"
+  },
+  "service_550602aa589f": {
+    "en": "The initial directory must be an absolute path on the remote side.",
+    "zh_cn": "初始目录须为远端绝对路径。"
+  },
+  "service_9e17d09b4712": {
+    "en": "The connection name is invalid.",
+    "zh_cn": "连接名称无效。"
+  },
+  "service_7681e444b94e": {
+    "en": "The computer alias is invalid.",
+    "zh_cn": "电脑别名无效。"
+  },
+  "service_9503347061f5": {
+    "en": "SSH connection directory format is invalid",
+    "zh_cn": "SSH连接目录格式无效"
+  },
+  "service_537f77c9981a": {
+    "en": "System credential encryption is unavailable on this platform. Use OpenSSH key authentication.",
+    "zh_cn": "当前平台未接入系统凭据加密，请使用OpenSSH密钥认证。"
+  },
+  "service_d445a19b5f6d": {
+    "en": "System credential encryption is unavailable, password is not saved.",
+    "zh_cn": "系统凭据加密不可用，未保存密码。"
+  },
+  "service_0dd7bfe2bc1d": {
+    "en": "System credential response is invalid.",
+    "zh_cn": "系统凭据响应无效。"
+  },
+  "service_7b2c448d36f1": {
+    "en": "SSH credential record is invalid",
+    "zh_cn": "SSH凭据记录无效"
+  },
+  "service_759c3cf57f8f": {
+    "en": "The system credential manager is unavailable on this platform. Use a key or enter the password for this session.",
+    "zh_cn": "当前平台未接入系统凭据管理器，请使用密钥或当次密码认证。"
+  },
+  "service_b0ec1874a150": {
+    "en": "Windows credential manager operation failed, did not switch to local password file.",
+    "zh_cn": "Windows凭据管理器操作失败，未改用本地密码文件。"
+  },
+  "service_b46b3035ab61": {
+    "en": "Password record exceeds the system credential size limit, not saved.",
+    "zh_cn": "密码记录超过系统凭据大小限制，未保存。"
+  },
+  "service_5a5fed67c591": {
+    "en": "System credential migration verification failed, the old record is retained.",
+    "zh_cn": "系统凭据迁移校验失败，已保留旧记录。"
+  },
+  "service_668fafe3bdb6": {
+    "en": "The SSH password is empty or exceeds the secure storage limit (1600 bytes).",
+    "zh_cn": "SSH密码为空或超过安全存储上限（1600字节）"
+  },
+  "service_d07ffdf4bb10": {
+    "en": "The vault password must contain 12 to 1024 characters.",
+    "zh_cn": "保险密码须为12至1024个字符。"
+  },
+  "service_0928abb83c4c": {
+    "en": "The vault password is incorrect, no password is displayed.",
+    "zh_cn": "保险密码不正确，未显示任何密码。"
+  },
+  "service_5ef47b55bbeb": {
+    "en": "The vault password has been set, please unlock or reset it first.",
+    "zh_cn": "保险密码已设置，请先解锁或重置。"
+  },
+  "service_b152dadedc15": {
+    "en": "Set a vault password before viewing saved passwords.",
+    "zh_cn": "请先设置查看保险密码。"
+  },
+  "service_174ff4a07720": {
+    "en": "This account has no viewable records; automatic login is still usable. Add to vault after re-entering and saving account password.",
+    "zh_cn": "该账号没有可查看记录；自动登录仍可使用，重新输入并保存账号密码后可加入保险箱。"
+  },
+  "service_be39ae514bf9": {
+    "en": "The vault has been reset in another window, please try again.",
+    "zh_cn": "保险箱已在其他窗口重置，请重试。"
+  },
+  "service_76cfddf52a39": {
+    "en": "vault password not set",
+    "zh_cn": "尚未设置保险密码"
+  },
+  "service_554164b395c1": {
+    "en": "SSH host should be a configured alias or user@hostname, and must not contain command arguments.",
+    "zh_cn": "SSH主机应为配置别名或 user@hostname，不能包含命令参数。"
+  },
+  "service_cc4c4b56c848": {
+    "en": "SSH configuration is invalid: ",
+    "zh_cn": "SSH配置无效："
+  },
+  "service_96c8820ce1b9": {
+    "en": "SSH configuration file path is invalid",
+    "zh_cn": "SSH配置文件路径无效"
+  },
+  "service_d437ef0f577a": {
+    "en": "SSH port is invalid",
+    "zh_cn": "SSH端口无效"
+  },
+  "service_f4e3aa876830": {
+    "en": "SSH connection is disconnected",
+    "zh_cn": "SSH连接已断开"
+  },
+  "service_3cf7c9ccf421": {
+    "en": "SSH has not connected yet; please connect to the host first.",
+    "zh_cn": "SSH尚未连接，请先连接主机。"
+  },
+  "service_28e73833fa8b": {
+    "en": "Remote operation timed out; if you were saving, please re-read and confirm the remote results. The current draft has been preserved.",
+    "zh_cn": "远程操作超时；若正在保存，请重新读取确认远程结果，当前草稿已保留。"
+  },
+  "service_3a2b8a96449c": {
+    "en": "SSH write failure; the draft has been preserved.",
+    "zh_cn": "SSH写入失败；当前草稿已保留。"
+  },
+  "service_17ce39f3f50b": {
+    "en": "SSH service has been closed",
+    "zh_cn": "SSH服务已关闭"
+  },
+  "service_ec7cb96dcf61": {
+    "en": "Connecting to SSH, please wait or cancel.",
+    "zh_cn": "正在连接SSH，请等待或取消。"
+  },
+  "service_a9d6f2478a95": {
+    "en": "Connecting to SSH...",
+    "zh_cn": "正在连接SSH…"
+  },
+  "service_11bb2e12a64d": {
+    "en": "Connection canceled",
+    "zh_cn": "已取消连接"
+  },
+  "service_cf54e297f1f8": {
+    "en": "Cannot start SSH: ",
+    "zh_cn": "无法启动SSH："
+  },
+  "service_82c6eb33e121": {
+    "en": "SSH connection ended, please check the remote Python3 and authentication configuration.",
+    "zh_cn": "SSH连接结束，请检查远程Python3及认证配置。"
+  },
+  "service_9957057eaa03": {
+    "en": "SSH receive failure: ",
+    "zh_cn": "SSH接收失败："
+  },
+  "service_753074167007": {
+    "en": "SSH remote protocol anomaly, please check if the login script prints content to standard output.",
+    "zh_cn": "SSH远程协议异常，请检查登录脚本是否向标准输出打印内容。"
+  },
+  "service_3c91eadb7c47": {
+    "en": "Remote protocol version mismatch",
+    "zh_cn": "远程协议版本不匹配"
+  },
+  "service_1d929e400c33": {
+    "en": "Remote working directory must be an absolute path.",
+    "zh_cn": "远程工作目录必须是绝对路径。"
+  },
+  "service_dc80bdbd0405": {
+    "en": "Cannot read SSH connection configuration, please check the host and SSH program.",
+    "zh_cn": "无法读取SSH连接配置，请检查主机和SSH程序。"
+  },
+  "service_2a5fe7343701": {
+    "en": "SSH did not return complete connection identity",
+    "zh_cn": "SSH未返回完整连接身份"
+  },
+  "service_560f0ea999a2": {
+    "en": "Cannot read CA certificate, please select a readable certificate file.",
+    "zh_cn": "无法读取CA证书，请选择可读的证书文件。"
+  },
+  "service_574086c2ed1d": {
+    "en": "Invalid CA certificate format. Please use a PEM certificate bundle or DER certificate (without private key).",
+    "zh_cn": "CA证书格式无效，请使用PEM证书包或DER证书（不含私钥）。"
+  },
+  "service_e2087b5b24ff": {
+    "en": "Please fill in the HTTP or HTTPS proxy address first, then select the specified proxy mode.",
+    "zh_cn": "请先填写HTTP或HTTPS请求代理地址，再选择指定代理模式。"
+  },
+  "service_bd37acc0e16d": {
+    "en": "Network requests only support HTTP or HTTPS targets.",
+    "zh_cn": "网络请求只支持HTTP或HTTPS目标。"
+  },
+  "service_d0b51287ac28": {
+    "en": "Please select a valid proxy mode.",
+    "zh_cn": "请选择有效的代理模式。"
+  },
+  "service_447286ee03c3": {
+    "en": "Network configuration is invalid.",
+    "zh_cn": "网络配置内容无效。"
+  },
+  "service_c2dc4167ea3f": {
+    "en": "The proxy address format is invalid. Please use http://host:port or https://host:port.",
+    "zh_cn": "代理地址格式无效，请使用 http://主机:端口 或 https://主机:端口。"
+  },
+  "service_6a929c77fe98": {
+    "en": "Only HTTP/HTTPS proxy addresses are supported; paths, queries, or fragments are not accepted.",
+    "zh_cn": "仅支持HTTP/HTTPS代理地址，不接受路径、查询或片段。"
+  },
+  "service_dace023253b3": {
+    "en": "The proxy address cannot include account passwords; the current settings support HTTP/HTTPS proxies that do not require independent authentication.",
+    "zh_cn": "代理地址不能包含账户密码；当前设置支持无需独立身份认证的HTTP/HTTPS代理。"
+  },
+  "service_eb97d4d23031": {
+    "en": "The update announcement format is invalid.",
+    "zh_cn": "更新公告格式无效。"
+  },
+  "service_bdd922eb0b41": {
+    "en": "The update version or announcement content is invalid.",
+    "zh_cn": "更新版本或公告内容无效。"
+  },
+  "service_86c7aea302ad": {
+    "en": "The update address does not belong to the allowed GitHub HTTPS sources.",
+    "zh_cn": "更新地址不属于允许的GitHub HTTPS来源。"
+  },
+  "service_34b458f0042c": {
+    "en": "The update has been canceled.",
+    "zh_cn": "已取消更新。"
+  },
+  "service_f09e28003ff4": {
+    "en": "The update server response times out.",
+    "zh_cn": "更新服务器响应超时。"
+  },
+  "service_2b4755c89b5c": {
+    "en": "An exception occurs during update download redirection.",
+    "zh_cn": "更新下载重定向异常。"
+  },
+  "service_5b9df0dd9a0a": {
+    "en": "The update server returns HTTP ",
+    "zh_cn": "更新服务器返回HTTP "
+  },
+  "service_3ae5530c0a8e": {
+    "en": ". Please try again later.",
+    "zh_cn": "，请稍后重试。"
+  },
+  "service_ac460300cc6e": {
+    "en": "The update download was interrupted unexpectedly.",
+    "zh_cn": "更新下载意外中断。"
+  },
+  "service_a9b1838de1b9": {
+    "en": "The asset list after installation is inconsistent with the target commit.",
+    "zh_cn": "安装后的资产清单与目标提交不一致。"
+  },
+  "service_e00eeacd56d7": {
+    "en": "The update commit identity is invalid.",
+    "zh_cn": "更新提交身份无效。"
+  },
+  "service_82c62e026689": {
+    "en": "Automatic installation is not supported on the current platform.",
+    "zh_cn": "当前平台暂未支持自动安装。"
+  },
+  "service_df8ab3baf56e": {
+    "en": "Cannot read the host process identity.",
+    "zh_cn": "无法读取宿主进程身份。"
+  },
+  "service_16704ed6abd3": {
+    "en": "The host main process identity does not match.",
+    "zh_cn": "宿主主进程身份不匹配。"
+  },
+  "service_1003f9c8f6db": {
+    "en": "Invalid update session.",
+    "zh_cn": "无效更新会话。"
+  },
+  "service_1cf36b676f33": {
+    "en": "Invalid update task.",
+    "zh_cn": "无效更新任务。"
+  },
+  "service_32deb78247fe": {
+    "en": "The update directory cannot be a link.",
+    "zh_cn": "更新目录不能是链接。"
+  },
+  "service_4dfc94e43937": {
+    "en": "Update cleanup refused a symbolic link:  ",
+    "zh_cn": "更新回收拒绝链接："
+  },
+  "service_4befbe0b4148": {
+    "en": "Update path contains link",
+    "zh_cn": "更新路径含链接"
+  },
+  "service_b4d1c35da1ba": {
+    "en": "Update cleanup ownership does not match",
+    "zh_cn": "更新回收归属不匹配"
+  },
+  "service_02f71dd1c3e0": {
+    "en": "The update directory was preserved and not cleaned automatically:  ",
+    "zh_cn": "更新目录保留，未自动回收："
+  },
+  "service_81d72aa52d69": {
+    "en": "The update process failed to start; please retry.",
+    "zh_cn": "更新进程未能启动，请重试。"
+  },
+  "service_a11e70d4335d": {
+    "en": "Starting update...",
+    "zh_cn": "正在启动更新…"
+  },
+  "service_fb234b0b4876": {
+    "en": "The update process has ended but installation is not confirmed; please check the logs and retry.",
+    "zh_cn": "更新进程已结束但未确认安装完成，请查看日志并重试。"
+  },
+  "service_ed9ffc92285a": {
+    "en": "Invalid update commit.",
+    "zh_cn": "无效更新提交。"
+  },
+  "service_2aacadb877b2": {
+    "en": "Downloaded package is inconsistent with this announcement / asset list.",
+    "zh_cn": "下载包与本次公告／资产清单不一致。"
+  },
+  "service_ee2dd89de271": {
+    "en": "Downloaded version is inconsistent.",
+    "zh_cn": "下载版本不一致。"
+  },
+  "service_696463d78c16": {
+    "en": "Announcement is inconsistent with build version.",
+    "zh_cn": "发布公告与构建版本不一致。"
+  },
+  "service_e0189ce23045": {
+    "en": "Invalid or duplicate distribution asset.",
+    "zh_cn": "无效或重复的发行资产。"
+  },
+  "service_08dad3d93807": {
+    "en": "Distribution asset digest does not match: ",
+    "zh_cn": "发行资产摘要不匹配："
+  },
+  "service_b674e4fc1dd8": {
+    "en": "Distribution package is missing necessary assets.",
+    "zh_cn": "发行包缺少必要资产。"
+  },
+  "service_fa417a9f3cb1": {
+    "en": "Update task directory does not match",
+    "zh_cn": "更新任务目录不匹配"
+  },
+  "service_68f98b2ffeaf": {
+    "en": "Download address is inconsistent with fixed commit.",
+    "zh_cn": "下载地址与固定提交不匹配。"
+  },
+  "service_5806ac1cd3aa": {
+    "en": "Local is already the same commit or update version; no overwrite is needed.",
+    "zh_cn": "本地已经是相同提交或更新版本，无需覆盖。"
+  },
+  "service_91042c5a1d2b": {
+    "en": "Local installation commit has changed; please recheck the update.",
+    "zh_cn": "本地安装提交已变化，请重新检查更新。"
+  },
+  "service_b1eb0911b036": {
+    "en": "Downloading ",
+    "zh_cn": "正在下载 "
+  },
+  "service_369ca5e19c59": {
+    "en": "Downloading...",
+    "zh_cn": "正在下载…"
+  },
+  "service_8c473d1786da": {
+    "en": "Validating and unpacking update package...",
+    "zh_cn": "正在校验并解压更新包…"
+  },
+  "service_99f7d7f66527": {
+    "en": "Backing up and installing; if the Typora installation directory is protected, Windows will request administrator authorization to update the launch entry. Canceling will retain the original version. Document windows can continue to be used.",
+    "zh_cn": "正在备份并安装；若Typora安装目录受保护，Windows会请求管理员授权以更新启动入口，取消则保留原版本。文档窗口可以继续使用。"
+  },
+  "service_1dfbb5eb0739": {
+    "en": "Version verification failed after the installer returned. Check the installation backup.",
+    "zh_cn": "安装器返回后版本校验未通过，请查看安装备份。"
+  },
+  "service_cfb57a5f223f": {
+    "en": "Update has been installed. Please save your documents and manually restart all Typora windows to load the new version.",
+    "zh_cn": "更新已安装。请保存文档后手动重启所有 Typora 窗口以加载新版。"
+  },
+  "service_1428b1501699": {
+    "en": "Installation or unpacking sub-process has not yet ended",
+    "zh_cn": "安装或解压子进程尚未结束"
+  },
+  "service_e734ff9096ca": {
+    "en": " Temporary files have not been cleaned up and will be retried in the next update.",
+    "zh_cn": " 临时文件暂未清理，将在后续更新中重试。"
+  }
+}

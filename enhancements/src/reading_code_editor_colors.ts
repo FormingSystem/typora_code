@@ -1,6 +1,6 @@
 import themes from '../vendor/vscode_themes/resolved.json';
 
-/** 固定VS Code 6807068 editorColorRegistry/editorColors默认值，主题显式颜色优先。 */
+/** Fix the default values of VS Code 6807068 editorColorRegistry/editorColors; explicit color preferences take precedence. */
 export function code_editor_state_css(mode:'light'|'dark'|'dark_2026'|'light_2026'){
  const dark=mode==='dark'||mode==='dark_2026',colors=themes[mode].colors as Record<string,string>;
  const color=(key:string,light:string,night=light)=>colors[key]||(dark?night:light);

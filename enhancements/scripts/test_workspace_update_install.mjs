@@ -1,5 +1,6 @@
+import './fixture_locale.cjs';
 import {randomUUID} from "node:crypto";
-// 真ZIP + 真PowerShell事务安装器，目标全部位于新临时目录；网络下载用本地ZIP字节替身。
+// True ZIP + true PowerShell installer, target is entirely within new temporary directory; network download uses local ZIP byte stand-in.
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';import {createRequire} from 'node:module';import {execFileSync,spawnSync,spawn} from 'node:child_process';import {fileURLToPath} from 'node:url';
 const require=createRequire(import.meta.url),service=require('../src/workspace_update_service.cjs'),repository=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 if(process.platform!=='win32')throw Error('Windows integration fixture required');
@@ -46,7 +47,7 @@ assert.equal(fs.readFileSync(settings,'utf8'),'{"fixture":"keep 设置"}');asser
 for(const line of fs.readFileSync(path.join(checkout,'enhancements/dist/SHA256SUMS'),'utf8').trim().split(/\r?\n/)){const [digest,file]=line.split('  ');assert.equal(service.digest(fs.readFileSync(path.join(user_data,'typora_code',file))),digest,file);}
 assert.equal(service.installed_identity(user_data).commit,commit);
 checks.push('PATH无Git、安装包无.git，用户temp中的真实ZIP解压、固定公告／资产校验、真实安装事务成功；非默认中文用户目录正确，设置和文档字节保留');
-// 另一进程持有同一安装互斥时，真实入口应在任何安装写入前失败。
+// When another process holds the same installation mutex, real entry should fail before any installation writing.
 const holder_script=path.join(root,'hold.ps1'),ready=path.join(root,'mutex-ready');
 fs.writeFileSync(holder_script,'\uFEFF'+String.raw`param([string]$user_data,[string]$ready)
 $provider=[Security.Cryptography.SHA256]::Create()
@@ -66,7 +67,7 @@ try{
  assert.equal(fs.readFileSync(settings,'utf8'),'{"fixture":"keep 设置"}');
 }finally{holder.stdin.end('\n');await holder_done;}
 checks.push('真实跨进程安装互斥拒绝并发入口，旧资产和设置保持');
-// 使用随安装交付的私有Node真正启动独立worker；相同提交在联网之前拒绝。
+// Use the private Node delivered with installation to truly start independent worker; same submission is rejected before network connection.
 const network_configuration={proxy_mode:'manual',http_proxy_url:'http://localhost:31080',https_proxy_url:'http://localhost:31443',ca_file:path.join(repository,'enhancements/fixtures/network_tls/test_ca.pem')};
 const actual_job=service.start_update({state_root,installed_root:path.join(user_data,'typora_code'),user_data,host_root:host,node_path:private_node,plan,network:network_configuration});
 assert.deepEqual(JSON.parse(fs.readFileSync(path.join(state_root,actual_job,'request.json'),'utf8')).network,network_configuration);

@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {bind_native_mermaid_theme} from './reading_mermaid_theme';
 import {bind_reading_code_geometry} from "./reading_code_geometry";
 import {bind_reading_code_wheel} from "./reading_code_wheel";
@@ -193,17 +194,17 @@ function remove_code_collapse(fence: HTMLElement): void {
 }
 
 function render_code_toggle(button: HTMLButtonElement, expanded: boolean): void {
-  // 无状态变化时保留原节点，避免观察器反复扫描以及按下、松开之间点击目标被替换。
+  // Retain the original node when there is no state change, avoid the observer repeatedly scanning and the click target being replaced between press and release.
   if (button.getAttribute("aria-expanded") === String(expanded)) return;
   button.setAttribute("aria-expanded", String(expanded));
   button.innerHTML = expanded
-    ? '<span aria-hidden="true">↥</span><span>收起代码</span>'
-    : '<span aria-hidden="true">↧</span><span>展开全部代码</span>';
-  button.title = expanded ? "恢复长代码块的限高显示" : "展示这个代码块的全部内容";
+    ? workspace_text("typora_enhancements_span_aria_hidden_true_span_span_collapse_code_span")
+    : workspace_text("typora_enhancements_span_aria_hidden_true_span_span_expand_all_code_span");
+  button.title = expanded ? workspace_text("typora_enhancements_restore_tall_code_block_display") : workspace_text("typora_enhancements_display_the_entire_code_block");
 }
 
 function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expanded: boolean): void {
-  // 先同步原生模型与DOM偏移，再撤销限高；否则浏览器只夹紧旧偏移，首行仍可能被裁剪。
+  // First synchronize the native model with DOM offset, then revoke the height limit; otherwise, the browser only tightens the old offset, and the first line may still be cut off.
   const editor = code_mirror_for_fence(fence);
   if (editor) editor.scrollTo(null, 0);
   else {
@@ -217,7 +218,7 @@ function set_code_expanded(fence: HTMLElement, button: HTMLButtonElement, expand
 }
 
 function bind_reading_action_events(): () => void {
-  // 在正文处理选区前接管按钮事件。委托到 document，代码块重建后也无需重新绑定。
+  // Take over the button event before processing the selection in the document content. Delegate to document, and after the code block is rebuilt, there is no need to rebind.
   const handle_event = (event: Event) => {
     const target = event.target;
     const button = target instanceof Element ? target.closest<HTMLButtonElement>(".linux-note-code-toggle") : null;
@@ -233,7 +234,7 @@ function bind_reading_action_events(): () => void {
       return;
     }
     event.stopPropagation();
-    // 保持正文光标位置；鼠标仍由 click 切换，按下后移出按钮则不会切换。
+    // Keep the document content cursor position; the mouse is still switched by click, and if the button is pressed and then moved out, it will not switch.
     if (event.type === "mousedown" || event.type === "click") event.preventDefault();
     if (event.type === "click") {
       set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
@@ -292,7 +293,7 @@ function ensure_code_collapse(fence_element: Element): void {
 
 function schedule_scan(): void {
   if (!runtime_active) return;
-  // 分栏布局持续更新时也必须推进扫描，不能被新的 mutation 一直推迟。
+  // Split view layout must also proceed with scanning when continuously updating; it cannot be postponed by new mutation.
   if (scan_timer) return;
   scan_timer = window.setTimeout(() => {
     scan_timer = 0;
@@ -308,7 +309,7 @@ function scan_document(): void {
   const fences=[...document.querySelectorAll<HTMLElement>(".md-fences")];
   code_geometry?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)));
   code_copy?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)&&Boolean(code_mirror_for_fence(fence))).map(element=>({element,read_text:()=>{
-    const editor=code_mirror_for_fence(element);if(!editor)throw new Error("代码块正在重新加载");return editor.getValue();
+    const editor=code_mirror_for_fence(element);if(!editor)throw new Error(workspace_text("typora_enhancements_the_code_block_is_reloading"));return editor.getValue();
   }})));
   fences.forEach(ensure_code_collapse);
   const diagram_containers = new Set<Element>();
@@ -388,7 +389,7 @@ function clamp(value: number, minimum: number, maximum: number): number {
 
 function open_mermaid_viewer(preview: Element): void {
   const svg=clone_mermaid_svg(preview);if(!svg)return;
-  open_reading_media({content:svg,source:preview,width:Number(svg.getAttribute("width")),height:Number(svg.getAttribute("height")),label:"Mermaid 图表全屏查看"});
+  open_reading_media({content:svg,source:preview,width:Number(svg.getAttribute("width")),height:Number(svg.getAttribute("height")),label:workspace_text("typora_enhancements_mermaid_view_chart_in_full_screen")});
 }
 
 function mermaid_container_for_preview(preview: Element): Element {
@@ -423,7 +424,7 @@ function ensure_mermaid_button(container: Element): void {
   if(existing?.source===preview&&existing.button.isConnected)return;
   existing?.dispose();
   mermaid_entries??=bind_reading_media_entries();
-  const entry=mermaid_entries.add({source:preview as HTMLElement,host:preview,label:"全屏查看 Mermaid 图表",button_class:"linux-note-mermaid-open",open:()=>open_mermaid_viewer(preview)});
+  const entry=mermaid_entries.add({source:preview as HTMLElement,host:preview,label:workspace_text("typora_enhancements_view_mermaid_chart_in_full_screen"),button_class:"linux-note-mermaid-open",open:()=>open_mermaid_viewer(preview)});
   mermaid_buttons.set(container,entry);
 }
 
@@ -443,20 +444,20 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   performance.mark("typora-code:git-bind:start");
   graph_binding=lifetime.own(bind_git_graph());
   performance.measure("typora-code:git-bind","typora-code:git-bind:start");
-  // 两个独立注册阶段不连成一个长任务；交还事件循环后必须再次核对生命周期。
+  // Two independent registration phases are not connected as a long task; after returning the event loop, the lifecycle must be checked again.
   await new Promise<void>(resolve=>setTimeout(resolve,0));
   if(!current())return;
   performance.mark("typora-code:browser-bind:start");
   lifetime.own(bind_workspace_browser());
   performance.measure("typora-code:browser-bind","typora-code:browser-bind:start");
   lifetime.own(bind_workspace_update());
-  try { lifetime.own(bind_community_plugins()); } catch(error) { console.error("社区插件接入失败，基础工作台继续运行",error); }
+  try { lifetime.own(bind_community_plugins()); } catch(error) { console.error(workspace_text("typora_enhancements_community_plugin_connection_failed_the_base_workbench_contin"),error); }
   lifetime.own(bind_reading_minimap());
   lifetime.own(bind_reading_link_hover());
   lifetime.add(()=>{close_reading_media();});
   const images=bind_reading_images(document.body,"content > #write img");
   lifetime.add(()=>images.dispose());
-  // 高亮不是工作台布局的前置条件；先完成 chrome 挂载再初始化语法。
+  // Highlight is not a prerequisite for the workbench layout; complete chrome mounting first before initializing syntax.
   performance.mark("typora-code:grammar:start");
   grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});
   await grammar_loading;
@@ -473,7 +474,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
   code_geometry=bind_reading_code_geometry();
   runtime_lifetime.add(bind_reading_code_wheel());
-  code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error("剪贴板尚未就绪");files.copy(text);});
+  code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error(workspace_text("typora_enhancements_clipboard_is_not_ready"));files.copy(text);});
   dispose_reading_action_events = bind_reading_action_events();
   scan_document();
   runtime_observer = new MutationObserver(schedule_scan);

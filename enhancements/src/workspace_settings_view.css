@@ -17,7 +17,7 @@
 .workspace-settings :is(input:not([type=checkbox]),select){min-height:26px;box-sizing:border-box;padding:2px 6px}
 .workspace-settings :is(input,select,textarea){background:var(--bg-color);border:1px solid var(--workspace-border-color,#8885)}
 
-/* VS Code modalEditorPart.ts：1400×900 上限、16px 最大化边距、33px 标题栏。 */
+/* VS Code modalEditorPart.ts: Upper limit of 1400×900, maximum margin of 16px, and title bar of 33px. */
 .git-graph-dialog-shade.workspace-settings-modal{background:rgba(0,0,0,.45);padding:16px;box-sizing:border-box}
 .workspace-settings-modal>.git-graph-dialog{width:min(1400px,80vw);height:min(900px,80vh);max-width:calc(100vw - 32px);max-height:calc(100vh - 32px);min-width:min(400px,calc(100vw - 32px));min-height:min(300px,calc(100vh - 32px));background:var(--bg-color,#fff)}
 .workspace-settings-modal.is-maximized>.git-graph-dialog{width:calc(100vw - 32px);height:calc(100vh - 32px)}

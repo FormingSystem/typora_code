@@ -1,6 +1,6 @@
 import icons from "../vendor/fontawesome/icons.json";
 
-/** Font Awesome Free 6.7.2 官方实心图形；仅改变显示尺寸和继承色。 */
+/** Font Awesome Free 6.7.2 official solid graphics; only change display size and inherited color. */
 export function graph_file_icon(name: keyof typeof icons, class_name: string): SVGSVGElement {
   const parsed = new DOMParser().parseFromString(icons[name], "image/svg+xml");
   const icon = document.importNode(parsed.documentElement, true) as unknown as SVGSVGElement;

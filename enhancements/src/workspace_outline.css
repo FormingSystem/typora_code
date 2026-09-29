@@ -1,4 +1,4 @@
-/* 原生外围有 18px padding，标题行还有按级缩进；仅移除重复的外围留白。 */
+/* Native has 18px padding, and the title row also has nested indentation; only remove redundant outer white space. */
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content {
   padding-left: 0;
   padding-right: 0;
@@ -8,7 +8,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item {
   padding-right: 4px;
 }
-/* 原生 hover 用负边距扩大热区；去外围空白后直接使用行本身，避免横向越界。 */
+/* Native hover uses negative margins to expand the hot zone; after removing the outer white space, it directly uses the line itself, avoiding horizontal overflow. */
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar #outline-content .outline-item:hover {
   margin-left: 0;
   margin-right: 0;
@@ -30,7 +30,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 
 #outline-content .outline-item-open>.outline-item>.outline-expander>svg{transform:rotate(90deg)}
 
-/* 原生末级只隐藏伪元素；替换后的 SVG 依据真实直接子树隐藏，保留缩进槽。 */
+/* Native lowest level only hides pseudo-elements; the replaced SVG is hidden based on the real direct subtree, while retaining the indentation slot. */
 #outline-content .outline-item-wrapper:not(:has(> .outline-children > .outline-item-wrapper)) > .outline-item > .outline-expander > svg {
   visibility: hidden;
   pointer-events: none;
@@ -51,7 +51,7 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
 .workspace-source-outline-toolbar{display:flex;align-items:center;justify-content:space-between;gap:4px;padding:0 8px;height:28px;box-sizing:border-box;border-bottom:1px solid var(--linux-note-shell-sidebar-border,#e4e5e6);}
 .workspace-source-outline-toolbar>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 .workspace-source-outline-toolbar>.git-icon-button{width:22px;height:22px;flex:none;}
-/* VS Code 88e44fa symbolIcons.ts：函数紫、类型/枚举橙、变量/字段蓝，名称保留正常前景。 */
+/* VS Code 88e44fa symbolIcons.ts: Function purple, type/enum orange, variable/field blue, name retains normal foreground. */
 .workspace-source-outline{--outline-method:#652d90;--outline-class:#d67e00;--outline-variable:#007acc;}
 .workspace-source-outline[data-theme=dark]{--outline-method:#b180d7;--outline-class:#ee9d28;--outline-variable:#75beff;}
 .workspace-source-symbol:is([data-symbol-kind=function],[data-symbol-kind=method])>.workspace-source-symbol-label>svg{color:var(--vscode-symbolIcon-functionForeground,var(--outline-method));}

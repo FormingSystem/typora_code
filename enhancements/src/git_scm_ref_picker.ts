@@ -12,7 +12,7 @@ const ALL = "__all__";
 let active_picker: git_scm_ref_picker | undefined;
 let picker_sequence = 0;
 
-/** 引用选择是只读范围草稿；确认后一次更新控制器，不执行分支检出或Git写入。 */
+/** Reference selection is a read-only range draft; after confirmation, update the controller once, without executing branch checkout or Git writing. */
 export class git_scm_ref_picker {
   private dismiss?: (restore: boolean) => void;
   private available?: () => boolean;
@@ -45,7 +45,7 @@ export class git_scm_ref_picker {
         group: text(local ? "ref_picker.local" : remote ? "ref_picker.remote" : tag ? "ref_picker.tags" : "ref_picker.other"), icon: tag ? "tag" : remote ? "cloud" : "git-branch"});
     }
     for (const entry of panel.settings.branch_globs) items.push({id: "glob:" + entry.glob, label: entry.name, description: entry.glob, group: text("ref_picker.globs"), icon: "git-branch"});
-    // 已选的具体引用提升一次，搜索和勾选时不在鼠标下重排。
+    // Selected specific references are promoted once; search and check when not under the mouse cursor do not rearrange.
     const by_id = new Map(items.map(item => [item.id, item]));
     for (const id of selected) if (!by_id.has(id)) selected.delete(id);
     const current = items.filter(item => item.id !== ALL && item.id !== "AUTO" && original_selected.has(item.id));
@@ -66,7 +66,7 @@ export class git_scm_ref_picker {
     const accept = () => {
       if (!valid()) { close(false); return; }
       const next = [...selected]; close(true);
-      // 上游空选择等同取消，不把清空草稿隐式解释成全部。
+      // Empty upstream selection is equivalent to cancellation, and does not implicitly interpret clearing the draft as all.
       if (!next.length) return;
       panel.branches = next.includes(ALL) ? [] : next; void panel.refresh();
     };

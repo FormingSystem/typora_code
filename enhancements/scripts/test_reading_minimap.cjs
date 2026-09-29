@@ -1,4 +1,4 @@
-// 使用隔离的 Chromium 窗口验证实际文本缩略图、真实鼠标定位和多编辑组清理。
+// Use isolated Chromium window to verify actual text thumbnail, real mouse positioning, and multi-edit group cleanup.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
@@ -58,7 +58,7 @@ app.whenReady().then(async () => {
   await wait(`(() => {const rail=document.querySelector('content .linux-note-reading-minimap');return rail.dataset.updating==='false'&&Number(rail.dataset.commitCount)===${resize_before.commits + 1};})()`);
   await delay(300); assert.equal(await evaluate('Number(document.querySelector("content .linux-note-reading-minimap").dataset.commitCount)'), resize_before.commits + 1);
   assert(await evaluate('document.querySelector("#write").innerHTML===expected_after_update && document.querySelector(".typ-markdown-preview").innerHTML===original_preview'));
-  // 原生底栏的 z-index 低于 fixed 缩略图，正文容器仍伸入底栏；字数按钮必须保持可点。
+  // The native status bar's z-index is below fixed thumbnail, document container still extends into the status bar; the word count button must remain clickable.
   await evaluate(`(() => {
     window.footer_clicks=0;
     window.mount_overlap_footer=owner=>{
@@ -96,7 +96,7 @@ app.whenReady().then(async () => {
   await wait(`document.querySelector('content .linux-note-reading-minimap').dataset.updating==='false'`);
   await evaluate('document.querySelector(".typ-workspace-leaf").remove();window.leaves=[];');
   await wait('document.querySelectorAll(".linux-note-reading-minimap").length===1');
-  // .md 与 .txt/.ts 的真实 Monaco 单文件切换；原生 content 按核心行为归零，不借Graph替代。
+  // .md with .txt/.ts real Monaco single-file switching; native content zeroed by core behavior, no Graph substitution.
   await evaluate(`(()=>{
     const style=document.createElement('style');style.textContent='content{transition:width .2s,height .2s,left .2s,top .2s}content.typ-deactive{width:0!important;height:0!important;left:0!important;top:0!important}#non_markdown{position:absolute;left:0;top:32px;width:46%;bottom:25px;display:none}#non_markdown>.git-graph-document{height:100%;width:100%;display:flex;flex-direction:column}#non_markdown .git-monaco-body{flex:1;min-height:0;width:100%;position:relative}';document.head.append(style);window.switch_style=style;
     const host=document.createElement('section');host.id='non_markdown';document.body.append(host);window.source_doc=new minimap_qa.git_diff_editor({title:'reading.txt',file:'reading.txt',left:Array.from({length:900},(_,index)=>'Line '+index+' actual Monaco source preview').join('\\n')});host.append(source_doc.container);

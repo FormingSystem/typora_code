@@ -1,4 +1,4 @@
-// 真实临时文件/HTTP、Chromium沙箱及生产链接服务；编辑组端口由夹具记录。
+// Real temporary files/HTTP, Chromium sandbox, and production link services; edit group ports are recorded by fixtures.
 const {app,BrowserWindow}=require('electron');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),http=require('node:http'),assert=require('node:assert/strict');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
@@ -176,7 +176,7 @@ app.whenReady().then(async()=>{
   await evaluate(`dock.querySelector('[aria-label="固定链接预览"]').click();dock.querySelector('[aria-label="关闭链接预览"]').click();pick();`);await settle();check('手动关闭后重新开启不继承固定',await evaluate(`!dock.hidden&&dock.querySelector('[aria-label="固定链接预览"]').getAttribute('aria-pressed')==='false'`));
   await evaluate(`dock.style.width='170px';`);await settle();check('170px固定图标与比例单行不裁切',await evaluate(`(()=>{const t=dock.querySelector('[role=toolbar]'),b=t.getBoundingClientRect();return [...t.querySelectorAll('input,output,.git-icon-button')].filter(n=>n.getClientRects().length&&getComputedStyle(n).display!=='none').every(n=>{const r=n.getBoundingClientRect();return r.left>=b.left-1&&r.right<=b.right+1&&r.bottom<=b.bottom+1})})()`));
   await evaluate(`dock.style.width='';window.inner_link=dock.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('[role=link]');`);
-  // 目标文档无链接时补用已有中文目标，菜单仍走真实只读阅读器。
+  // Target document without links use existing Chinese target, menu still uses real read-only reader.
   await evaluate(`document.querySelector('#write a').setAttribute('href','web_entry.md');pick();`);await settle();
   await evaluate(`window.inner_link=dock.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('[role=link]');pointer(inner_link);inner_link.dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,composed:true,cancelable:true}));pointer(document.querySelector('.workspace-link-preview-menu [role=menuitem]'));`);
   check('预览自己的右键菜单不被外部关闭',await evaluate(`!dock.hidden&&!!document.querySelector('.workspace-link-preview-menu')`));

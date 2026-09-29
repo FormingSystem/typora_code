@@ -1,3 +1,5 @@
+[English](onboarding.en.md)
+
 # 操作指导设计
 
 ## R081 安装后引导（2026-09-27）

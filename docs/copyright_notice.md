@@ -1,3 +1,5 @@
+[English](copyright_notice.en.md)
+
 # R036 版权与来源声明
 
 ## 需求与目标

@@ -1,4 +1,4 @@
-/* 分界线一直留在活动栏和正文之间，允许从收起状态向右拖回；活动栏本身不参与收起。 */
+/* The separator line remains permanently between the active bar and the document content, allowing it to be dragged back to the right from the collapsed state; the active bar itself does not participate in the collapse. */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
   display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
   top:var(--typ-workspace-top,0px);bottom:0;
@@ -12,5 +12,5 @@ body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.t
 .linux-note-sidebar-dragging :is(#typora-sidebar,#top-titlebar,#typora-sidebar-resizer,content,footer.ty-footer,.typ-workspace-root) { transition:none!important; }
 .linux-note-sidebar-dragging #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] { background:#0078d4; }
 
-/* 功能侧栏在预览上方结束，分隔条同步限定到所属区域。 */
+/* The functional side bar ends above the preview, and the separator line synchronizes to the corresponding area. */
 body.has-workspace-link-preview #typora-sidebar-resizer[data-workspace-sidebar-sash=ready]{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important}

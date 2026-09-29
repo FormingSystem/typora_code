@@ -30,8 +30,8 @@ app.whenReady().then(async()=>{
   await evaluate('make_surface();void 0');
   const compose=(text,extra={})=>win.webContents.debugger.sendCommand('Input.imeSetComposition',{text,selectionStart:text.length,selectionEnd:text.length,...extra});
   const commit=text=>win.webContents.debugger.sendCommand('Input.insertText',{text});
-  // 搜狗可在纯Shift按下后直接产生insertText，未必经过compositionend。
-  // 与普通文本控件使用同一组真实Chromium事件；不能用完整组合提交替代这条路径。
+  // Sogou can directly generate Shift upon pressing pure insertText, without necessarily going through compositionend.
+  // Uses the same set of real Chromium events as ordinary text controls; cannot use a complete combination submission to replace this path.
   const direct_results=[],direct_failures=[];
   await evaluate(`window.direct_trace=[];window.direct_target=undefined;window.direct_lifetime=new AbortController();
     for(const type of ['keydown','keyup','compositionstart','compositionend','beforeinput','input']){
@@ -69,7 +69,7 @@ app.whenReady().then(async()=>{
     const result=await evaluate('({events:[...boundary_events],focused:document.activeElement===surface.term.textarea,writes:[...writes]})');boundary_results.push({label,...result});
     assert.equal(result.events.length,1,label+' reaches the real xterm textarea target');assert(result.events[0].trusted);assert.equal(result.events[0].key_code,key_code);assert.equal(result.events[0].ctrl,Boolean(modifiers&2));assert.equal(result.events[0].alt,Boolean(modifiers&1));assert.equal(result.events[0].meta,Boolean(modifiers&4));assert(result.focused);assert.deepEqual(result.writes,[]);
   }
-  // AltGraph和显式isComposing的精确标志用renderer事件回放，和上方trusted输入分开记证。
+  // The precise markers for AltGraph and explicit isComposing are replayed using renderer events, and are separately recorded from the above trusted input.
   for(const flags of [{modifierAltGraph:true},{isComposing:true}]){
     const result=await evaluate(`(()=>{make_surface();const input=surface.term.textarea;let reached=false;input.addEventListener('keydown',()=>reached=true,{once:true,capture:true});const event=new KeyboardEvent('keydown',{key:'Shift',code:'ShiftLeft',keyCode:16,shiftKey:true,bubbles:true,cancelable:true,...${JSON.stringify(flags)}});input.dispatchEvent(event);return{reached,prevented:event.defaultPrevented,alt_graph:event.getModifierState('AltGraph'),is_composing:event.isComposing,trusted:event.isTrusted};})()`);
     boundary_results.push({label:'renderer composition modifier flags',flags,...result});assert(result.reached&&!result.prevented);assert.equal(result.alt_graph,Boolean(flags.modifierAltGraph));assert.equal(result.is_composing,Boolean(flags.isComposing));
@@ -94,7 +94,7 @@ app.whenReady().then(async()=>{
   win.webContents.sendInputEvent({type:'keyDown',keyCode:'Shift',modifiers:['shift']});
   await commit('pin');win.webContents.sendInputEvent({type:'keyUp',keyCode:'Shift'});await pause(35);
   assert.equal(await evaluate('writes.join("")'),'中文pin');checks.push('Chromium appending composition keeps Shift-committed pinyin');
-  // CDP不重现Windows TSF整值替换：明确回放上游6049的DOM事件顺序。
+  // CDP does not reappear Windows TSF integer replacement: explicitly replay the sequence of DOM events from upstream 6049.
   await evaluate(`window.replay=async({text='pin',pending='pin',whole=true,after=false,shift='ShiftLeft',wait=true}={})=>{
     const ta=surface.term.textarea,previous=ta.value;
     ta.dispatchEvent(new CompositionEvent('compositionstart',{bubbles:true,data:''}));
@@ -128,7 +128,7 @@ app.whenReady().then(async()=>{
   await evaluate('make_surface();void 0');await commit('prefix');await pause(25);
   for(let i=0;i<4;i++)await evaluate('replay({shift:"ShiftRight"})');
   assert.equal(await evaluate('writes.join("")'),'prefix'+('pin'.repeat(4)));checks.push('Consecutive right Shift commits send exactly once');
-  // 一轮任务中结束后立刻开始下一次组合，覆盖xterm尚未发送前一次结果的窗口。
+  // Start the next combination immediately after a round of tasks ends, overriding the window that xterm has not yet sent the result of the previous one.
   await evaluate('make_surface();void 0');await commit('prefix');await pause(25);
   await evaluate('(async()=>{await replay({text:"a",wait:false});await replay({text:"b",wait:false});})()');await pause(35);
   assert.equal(await evaluate('writes.join("")'),'prefixab');checks.push('Back-to-back committed compositions before xterm timer retain both results');

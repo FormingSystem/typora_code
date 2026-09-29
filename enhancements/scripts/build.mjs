@@ -11,7 +11,7 @@ import {check_xterm_patch} from "./check_xterm_patch.mjs";
 
 check_xterm_patch();
 
-// 已退休的首帧脚本不能残留在发布目录。
+// The retired first frame script cannot remain in the release directory.
 fs.rmSync('dist/appearance_bootstrap.js',{force:true});
 fs.mkdirSync('dist',{recursive:true});
 fs.rmSync('dist/workspace_main.cjs',{force:true});
@@ -26,9 +26,9 @@ fs.copyFileSync("vendor/vscode_brand/SOURCE.json","dist/licenses/vscode_brand_so
 fs.writeFileSync("dist/licenses/vscode_quick_open.txt",fs.readFileSync("vendor/vscode_quick_open/LICENSE.txt","utf8").replace(/\r\n?/gu,"\n"));
 fs.copyFileSync("vendor/xterm/LICENSE","dist/licenses/xterm.txt");
 fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
-// 公告与后台辅助程序随同一资产清单安装，普通用户不依赖源码仓库或全局Node。
+// Announcements and background auxiliary programs are installed along with an asset list; ordinary users do not depend on the source code repository or global Node.
 fs.mkdirSync("dist/assets/help",{recursive:true});
-fs.writeFileSync("dist/assets/help/user_guide.md",fs.readFileSync("../docs/user_guide.md","utf8").replace(/\r\n?/gu,"\n"));
+for(const name of ["user_guide.md","user_guide.en.md"])fs.writeFileSync("dist/assets/help/"+name,fs.readFileSync("../docs/"+name,"utf8").replace(/\r\n?/gu,"\n"));
 const update_root="dist/assets/update";
 fs.mkdirSync(update_root,{recursive:true});
 const {release_info}=await import("../src/workspace_update_service.cjs");
@@ -37,12 +37,13 @@ release_info(JSON.parse(release_source));
 fs.writeFileSync(`${update_root}/release.json`,release_source);
 fs.writeFileSync(`${update_root}/runtime.json`,JSON.stringify({node_version:JSON.parse(fs.readFileSync("node_runtime.json","utf8")).version})+"\n");
 for(const name of ["workspace_update_service.cjs","workspace_update_archive.ps1"])fs.writeFileSync(`${update_root}/${name}`,fs.readFileSync(`src/${name}`,"utf8").replace(/\r\n?/gu,"\n"));
-await build({entryPoints:['src/workspace_network.cjs'],outfile:`${update_root}/workspace_network.cjs`,bundle:true,platform:'node',format:'cjs',target:'node18'});
+await build({entryPoints:['src/workspace_network.cjs'],outfile:`${update_root}/workspace_network.cjs`,bundle:true,external:['./workspace_service_i18n.cjs'],platform:'node',format:'cjs',target:'node18'});
 for(const name of ['http-proxy-agent','https-proxy-agent','agent-base','debug','ms','proxy-from-env']){const directory=`node_modules/${name}`;const license=fs.readdirSync(directory).find(file=>/^licen[cs]e/i.test(file));if(!license)throw Error('Missing network dependency license: '+name);fs.copyFileSync(`${directory}/${license}`,`dist/licenses/${name}.txt`);}
 fs.mkdirSync('dist/assets/plugins',{recursive:true});
 fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
 fs.mkdirSync('dist/assets/remote',{recursive:true});
 for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py','remote_ssh_credentials.cjs','remote_ssh_wincred.ps1','remote_ssh_auth.cjs','remote_ssh_connections.cjs'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
+for(const directory of ['update','plugins','remote'])for(const name of ['workspace_service_i18n.cjs','workspace_service_messages.json'])fs.writeFileSync(`dist/assets/${directory}/${name}`,fs.readFileSync(`src/${name}`,'utf8').replace(/\r\n?/gu,'\n'));
 
 const bundle_result=await build({
   entryPoints: ["src/workspace_entry.ts"],
@@ -51,7 +52,7 @@ const bundle_result=await build({
   format: "iife",
   platform: "browser",
   target: ["chrome120"],
-  // 保留上游字符串中的空白值，同时避免生成文件出现行尾空格。
+  // Retain the blank values in the upstream strings, while avoiding the generation of files with trailing spaces.
   supported: { "template-literal": false },
   outfile: "dist/workbench.js",
   write: false,
@@ -64,17 +65,18 @@ const bundle_result=await build({
   logLevel: "info"
 });
 
-// 上游许可证可能来自 CRLF 工作树；与仓库的 eol=lf 保持一致，确保提交前后安装摘要相同。
+// The upstream license may come from the CRLF working tree; keep consistent with the eol=lf of the repository, ensuring that the installation summary is the same before and after submission.
 const bundle_path = "dist/workbench.js";
-// 在内存中统一换行后一次发布，避免刚生成的文件被映射时再次原地截断。
+// Unify the line breaks in memory and release them all at once to avoid newly generated files being truncated again when mapped.
 const bundle_output=bundle_result.outputFiles.find(file=>file.path===path.resolve(bundle_path));
 if(!bundle_output)throw Error('Missing workbench bundle');
 const bundle_temporary=`${bundle_path}.${process.pid}.tmp`;
 try{
-  fs.writeFileSync(bundle_temporary,bundle_output.text.replace(/\r\n?/gu,"\n"),{flag:'wx'});
+  const deferred_bundle = "(()=>{const load=()=>{\n" + bundle_output.text + "\n};const ready=globalThis[Symbol.for('typora-code:workspace')]?.ready;if(ready)void ready.then(load).catch(error=>console.error('[Typora Code initialization]',error));else load();})();\n";
+  fs.writeFileSync(bundle_temporary,deferred_bundle.replace(/\r\n?/gu,"\n"),{flag:'wx'});
   fs.renameSync(bundle_temporary,bundle_path);
 }finally{fs.rmSync(bundle_temporary,{force:true});}
-// 部署仅使用清单中的常驻资产；终端有独立的原生包与摘要。
+// Deployment only uses the persistent assets in the list; the terminal has independent native packages and digests.
 const { createHash } = await import("node:crypto");
 const workspace_assets = ["workspace_core.js", "workspace_core.css", "workspace.css", "workbench.js"];
 function collect_assets(directory) {

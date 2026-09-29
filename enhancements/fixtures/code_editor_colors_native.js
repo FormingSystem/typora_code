@@ -1,4 +1,4 @@
-// 使用真实宿主CodeMirror创建光标和选区；不修改用户文档。
+// Use the real host CodeMirror to create a cursor and selection; do not modify the user document.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

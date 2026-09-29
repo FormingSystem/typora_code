@@ -1,4 +1,4 @@
-// 真实 Electron 运行常驻工作台入口与全部编排模块；宿主核心仅提供可核查的注册表和原生文件容器。
+// Real Electron running persistent workbench entry and all orchestration modules; host core only provides verifiable registry and native file container.
 const { app, BrowserWindow } = require('electron');
 const assert = require('node:assert/strict');
 const fs = require('node:fs'), os = require('node:os'), path = require('node:path');
@@ -30,7 +30,7 @@ app.whenReady().then(async()=>{
  await evaluate(bundle.outputFiles[0].text);
  await evaluate('fixture_core.app.settings=fixture_settings;document.body.append(fixture_root_element);void 0');
  await evaluate('qa.start_typora_code()');await wait('document.documentElement.dataset.linuxNoteTyporaEnhancements==="ready"');
- // 空组补齐已核对的核心契约；仅夹具缺少自动空叶子，不代替被测切换服务。
+ // Empty group padding has been verified against the core contract; only the fixture is missing automatic empty leaves, and it does not replace the tested switching service.
  await evaluate(`fixture_factories.set('core.empty',leaf=>new fixture_core.WorkspaceView(leaf));window.switch_group=fixture_native_leaf.parent;window.remove_original=switch_group.removeTab;switch_group.removeTab=function(...args){const value=remove_original.apply(this,args);if(!fixture_leaves.length){const leaf=fixture_core.app.workspace.createLeaf({type:'core.empty',state:{path:'typ://core.empty/switch'}});this.appendChild(leaf);}return value;};window.notices=[];fixture_core.Notice=class{constructor(value){notices.push(value)}};void 0`);
  const second=path.join(evidence,'second');fs.mkdirSync(second);fs.writeFileSync(path.join(second,'target.ts'),'const target = 2;\n');
  const run_second=(...args)=>require('node:child_process').execFileSync('git',args,{cwd:second,windowsHide:true,stdio:'pipe'});
@@ -97,7 +97,7 @@ app.whenReady().then(async()=>{
  await wait('!document.querySelector(".linux-note-terminal[data-session]")');
  checks.push('terminal sessions are disclosed before switch and removed only after acceptance');
  await evaluate('run_folder(fixture_root)');await wait('document.querySelector(".git-status-branch")?.textContent.includes("main")');await delay(250);
- // R040.2：原生配置开启后，各根会话独立恢复，保留顺序和活动项。
+ // R040.2: After native configuration is enabled, each root session independently recovers, preserving the order and active items.
  await evaluate('File.option.restoreWhenLaunch=2;run_folder(second_root)');
  await evaluate('qa.get_workspace_files().open_file(require("path").join(second_root,"target.ts"))');await wait('Boolean(fixture_core.app.workspace.activeLeaf?.view.editor?.models?.[0])');
  await evaluate('run_folder(fixture_root)');

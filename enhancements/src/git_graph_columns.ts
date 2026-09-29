@@ -5,7 +5,7 @@ type column_widths = graph_settings["column_widths"];
 type column_entry = {key:column_key;node:HTMLElement;title:string};
 const MIN_WIDTH=40,MAX_WIDTH=1500;
 
-/** 边界由两侧共同约束；说明列保持弹性，不能用剩余空间覆盖其最小宽度。 */
+/** The boundary is constrained by both sides; the explanation column remains elastic, and cannot use the remaining space to cover its minimum width. */
 export function resize_graph_column_pair(left:column_key,left_width:number,right_width:number,delta:number,widths:column_widths) {
   const minimum=Math.max(MIN_WIDTH-left_width,right_width-MAX_WIDTH);
   const maximum=Math.min(left==='subject'?Infinity:MAX_WIDTH-left_width,right_width-MIN_WIDTH);
@@ -13,7 +13,7 @@ export function resize_graph_column_pair(left:column_key,left_width:number,right
   return {left:left==='subject'?Math.min(widths.subject,left_width+movement):left_width+movement,right:right_width-movement,movement,minimum,maximum};
 }
 
-/** 只拥有本表头的调整事务；设置、失败反馈与表格数据仍由panel管理。 */
+/** Only own the adjustment transaction of this table header; settings, failure feedback, and table data are still managed by panel. */
 export function bind_git_graph_columns(options:{container:HTMLElement;columns:column_entry[];widths:column_widths;save():void;report(error:unknown):void;label(left:string,right:string):string}) {
   const handles:HTMLElement[]=[];
   let active:{handle:HTMLElement;pointer:number;start:number;left:column_entry;right:column_entry;left_width:number;right_width:number;before:column_widths}|undefined;
@@ -68,7 +68,7 @@ export function bind_git_graph_columns(options:{container:HTMLElement;columns:co
     handle.onfocus=paint;left.node.append(handle);handles.push(handle);
   }
   const resize=()=>{cancel();paint();};
-  // 隐藏标签恢复、侧栏调整也会改变表头；不把脱离布局的零值发布为列宽。
+  // Hidden tab recovery and sidebar adjustments also change the table header; do not publish zero values that are out of layout as column widths.
   const header=options.columns[0]?.node.parentElement;
   let header_width=header?.getBoundingClientRect().width;
   const observer=new ResizeObserver(()=>{const width=header?.getBoundingClientRect().width;if(width!==header_width){header_width=width;cancel();}paint();});

@@ -1,4 +1,4 @@
-// 实际Graph组件与Chromium输入；仓库读写端口替身，列宽持久化用独立profile。
+// Actual Graph components and Chromium input; repository read/write ports are substitutes, column width is persisted using an independent profile.
 const {app,BrowserWindow}=require('electron'),assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
 const root=fs.mkdtempSync(path.join(os.tmpdir(),'typora_graph_columns_'));app.setPath('userData',path.join(root,'profile'));app.disableHardwareAcceleration();let win;

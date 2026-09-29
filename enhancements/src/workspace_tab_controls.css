@@ -1,5 +1,4 @@
-/* VS Code 1.137.0 / 645f29c：modernUI/tabs.css、theme.ts、baseSizes.ts。
-   32px连续命中区包住24px圆角背景；动作覆盖，不参与标题测量。 */
+/* VS Code 1.137.0 / 645f29c: modernUI/tabs.css, theme.ts, and baseSizes.ts. A continuous 32px hit area surrounds a rounded 24px background; actions overlay the title without affecting its measurement. */
 :root {
   --workspace-tab-height:32px;
   --workspace-tab-strip-bg:var(--vscode-editorGroupHeader-tabsBackground,var(--vscode-editor-background,#fff));

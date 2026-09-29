@@ -1,4 +1,4 @@
-// 原始宿主隔离副本；采集 head 起的状态以及真实侧栏调用，不触碰用户工作区。
+// Isolated copy of the original host; collect the status of head at the start and real side bar calls, without touching the user workspace.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],switches=[];
  const probe=window.startup_timing_probe,core=window[Symbol.for('typora-code:workspace')];
@@ -22,7 +22,7 @@
   }
   const sidebar=core.app.workspace.sidebar;
   const panels=['core.file-explorer','core.outline','linux_note:search','linux_note:source_control'].map(id=>sidebar.panels.find(panel=>panel.ribbonButton?.id===id));
-  // Explorer 用增强实现，避免同名原生面板取错。
+  // Explorer is implemented with enhancement, avoiding misassignment of native panels with the same name.
   panels[0]=sidebar.panels.find(panel=>panel.containerEl?.classList.contains('linux-note-workspace-explorer'));
   assert(panels.every(Boolean),'四个真实功能区已登记');
   sidebar.switch(panels[0].constructor);sidebar.show();await pause(100);

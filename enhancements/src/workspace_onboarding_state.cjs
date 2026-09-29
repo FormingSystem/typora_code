@@ -1,4 +1,4 @@
-/** 固定两个小文件记录最近安装；锁只覆盖同步展示/写入，不覆盖用户阅读时间。 */
+/** Fix two small files to record the recent installation; the lock only covers the synchronization display/write, not the user reading time. */
 function create_onboarding_store({fs,path,process,root,sequence}) {
  const receipt_path=path.join(root,'installation.json'),state_root=path.join(root,'settings');
  const state_path=path.join(state_root,'onboarding_state.json'),lock_path=path.join(state_root,'onboarding.lock');
@@ -14,7 +14,7 @@ function create_onboarding_store({fs,path,process,root,sequence}) {
   catch(error){
    if(error.code!=='EEXIST')throw error;
    const owner=read_json(lock_path);
-   // 写入所有者前崩溃的空锁，等待30秒后再回收；新建中的锁不能抢走。
+   // If the lock is empty and the program crashes before writing the owner, wait for 30 seconds before recycling; new locks cannot take over.
    if(!Number.isSafeInteger(owner?.pid)||owner.pid<=0){
     const stamp=fs.statSync(lock_path).mtimeMs;
     if(Date.now()-stamp<30000)return false;
@@ -22,7 +22,7 @@ function create_onboarding_store({fs,path,process,root,sequence}) {
     fs.unlinkSync(lock_path);return claim(show);
    }
    try{process.kill(owner.pid,0);return false;}catch(probe){if(probe.code!=='ESRCH')return false;}
-   // 只删除仍为刚才读取的锁，避免删除已经替换的所有者。
+   // Only delete the lock that is still read just now, to avoid deleting the owner who has already been replaced.
    if(read_json(lock_path)?.token!==owner.token)return false;
    fs.unlinkSync(lock_path);return claim(show);
   }

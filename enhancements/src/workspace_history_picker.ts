@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {workspace_element as el} from "./workspace_widgets";
 import {capture_workspace_focus,register_workspace_dismissal} from "./workspace_focus";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -7,7 +8,7 @@ import {git_icon} from "./git_icons";
 import css from "./workspace_quick_open.css";
 
 export type history_picker_item<T>={label:string;description:string;file_path?:string;value:T};
-/** 两阶段历史选择共用同一键盘和取消路径；选择只返回条目，不执行文件写入。 */
+/** Two-stage history selection shares the same keyboard and cancel path; selection only returns entries, not perform file writing. */
 export function pick_history_item<T>(title:string,items:history_picker_item<T>[],signal?:AbortSignal):Promise<T|undefined>{
   if(signal?.aborted)return Promise.resolve(undefined);
   return new Promise(resolve=>{
@@ -26,7 +27,7 @@ export function pick_history_item<T>(title:string,items:history_picker_item<T>[]
         row.append(item.file_path?workspace_file_icon(item.file_path):git_icon("history"),el("span","workspace-quick-open-name",item.label),el("span","workspace-quick-open-path",item.description));
         row.onmousedown=event=>event.preventDefault();row.onclick=()=>close(item.value);list.append(row);
       });
-      if(!shown.length)list.append(el("p","","没有匹配的历史记录。"));
+      if(!shown.length)list.append(el("p","",workspace_text("history_picker_no_matching_history_records")));
       input.setAttribute("aria-activedescendant",shown.length?list_id+"-"+selected:"");list.children[selected]?.scrollIntoView({block:"nearest"});
     };
     input.oninput=()=>{selected=0;update();};input.onkeydown=event=>{

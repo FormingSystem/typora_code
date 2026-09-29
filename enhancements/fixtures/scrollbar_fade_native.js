@@ -1,4 +1,4 @@
-// 原始Typora副本的正式入口；合成renderer指针事件，不冒充物理鼠标验收。
+// Official entry of the original Typora copy; synthesize renderer pointer events, without impersonating physical mouse acceptance.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

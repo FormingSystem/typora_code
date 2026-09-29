@@ -1,4 +1,5 @@
-// 快捷网络动作只使用本脚本创建的本地 bare 远端，不连接用户远端。
+import './fixture_locale.cjs';
+// Quick network actions only use the local bare remote created by this script, not connect to user remote.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';

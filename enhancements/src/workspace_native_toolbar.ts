@@ -6,7 +6,7 @@ import {reading_viewport_bounds} from "./reading_viewport";
 import type {workspace_file_host} from "./workspace_files";
 import css from "./workspace_native_toolbar.css";
 
-/** 原生工具栏仍由宿主开关；只将其浮动位置限制在活动Markdown的阅读区域。 */
+/** The native toolbar is still controlled by the host switch; limit its floating position to the reading area of the active Markdown. */
 export function bind_workspace_native_toolbar(files:workspace_file_host,runtime:{File?:any}){
   const lifetime=create_workspace_lifetime();
   const style=acquire_workspace_style("typora-code-style:workspace_native_toolbar",css);lifetime.add(style.remove);
@@ -27,7 +27,7 @@ export function bind_workspace_native_toolbar(files:workspace_file_host,runtime:
     const owner=leaf?.containerEl;
     const bounds=owner?.isConnected?reading_viewport_bounds(owner):undefined;
     const root=document.querySelector<HTMLElement>(".typ-workspace-root")?.getBoundingClientRect();
-    // 终端面板占用根节点下方空间，原生content的过渡矩形可能迟一帧跟进。
+    // The terminal panel occupies space below the root node; the transition rectangle of the native content may follow one frame later.
     const bottom=bounds?Math.min(bounds.bottom,root?.bottom??bounds.bottom):0;
     const suspended=String(!active||!bounds||bottom-bounds.top<toolbar_height+16);
     if(toolbar.dataset.workspaceToolbarSuspended!==suspended)toolbar.dataset.workspaceToolbarSuspended=suspended;

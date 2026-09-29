@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';import tls from 'node:tls';import {X509Certificate} from 'node:crypto';
 import fs from 'node:fs';import os from 'node:os';import path from 'node:path';import https from 'node:https';import http from 'node:http';import net from 'node:net';import {createRequire} from 'node:module';
 const require=createRequire(import.meta.url),service=require('../src/workspace_update_service.cjs'),network=require('../src/workspace_network.cjs');

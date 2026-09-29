@@ -3,7 +3,7 @@ import type {git_run, git_ref} from "./git_graph_data";
 import {git_graph_text as text} from "./git_graph_i18n";
 
 export type branch_status = {branch:string; head:string; upstream:string; ahead:number; behind:number; dirty:boolean};
-/** porcelain v2 的分支头与路径记录以 NUL 分隔；重命名第二个路径不是状态。 */
+/** The branch head and path records of porcelain v2 are separated by NUL; renaming the second path is not a state. */
 export function parse_branch_status(source:string):branch_status {
   const status:branch_status={branch:"",head:"",upstream:"",ahead:0,behind:0,dirty:false};
   const records=source.split("\0");
@@ -26,7 +26,7 @@ export async function read_branch_status(run:git_run,root:string):Promise<branch
 }
 export type scm_tracking={upstream:string; upstream_hash:string; remote:string; remote_ref:string; base:string; base_hash:string; ahead:number; behind:number; merge_base?:string};
 const optional=async(run:git_run,root:string,args:string[])=>run(root,args).then(value=>value.trim()).catch(error=>{if(error.code===1)return "";throw error;});
-/** 读取真实上游和 VS Code 分支基线；只读本地引用，不因显示菜单写 Git 配置或联网。 */
+/** Read real upstream and VS Code branch baseline; read-only local references, do not write Git configuration or network due to displayed menu. */
 export async function read_scm_tracking(run:git_run,root:string,branch:string,head:string,refs:git_ref[]):Promise<scm_tracking> {
   const result:scm_tracking={upstream:"",upstream_hash:"",remote:"",remote_ref:"",base:"",base_hash:"",ahead:0,behind:0};
   if(!branch||!head)return result;
@@ -70,7 +70,7 @@ export function parse_worktrees(source:string):git_worktree[]{
   return result;
 }
 export const read_worktrees=async(run:git_run,root:string):Promise<git_worktree[]>=>parse_worktrees(await run(root,["worktree","list","--porcelain","-z"]));
-/** 菜单只提供可验证的 GitHub 链接，剥离远端凭据；其他托管平台不冒充 GitHub。 */
+/** Menus only provide verifiable GitHub links, stripping remote credentials; other hosting platforms do not impersonate GitHub. */
 export const HISTORY_ACTION_IDS=["branches","head","fetch","pull","push","refresh"] as const;
 export type history_action_id=typeof HISTORY_ACTION_IDS[number];
 export function validate_history_shortcuts(value:unknown):Record<string,string>{

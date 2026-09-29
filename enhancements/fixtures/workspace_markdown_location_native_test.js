@@ -1,4 +1,4 @@
-// 在启动器临时目录中验证真正的 Typora Markdown 行列映射、选区和阅读历史。
+// Verify the actual Typora Markdown row and column mapping, selection, and reading history in the temporary directory of the launcher.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/workspace_markdown_location_native_test.js$/u, '');

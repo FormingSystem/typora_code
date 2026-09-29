@@ -4,10 +4,10 @@ import type {text_document_eol} from "./workspace_text_document";
 import type {graph_leaf} from "./git_graph_host";
 
 export type workspace_transfer_format = {encoding:string; bom:boolean; eol:text_document_eol};
-/** 接收窗口内的真实编辑组；协议不得序列化或接受来自其他窗口的组对象。 */
+/** Receive the real editing group within the window; the protocol must not serialize or accept group objects from other windows. */
 export type workspace_transfer_target = {group:graph_leaf["parent"]; index:number};
 
-/** 仅在两个已握手窗口之间传递的内存快照；不保存到临时文件或工作区。 */
+/** Only pass memory snapshots between two already handshaken windows; do not save to temporary files or workspaces. */
 export type workspace_document_snapshot = {
   schema:1;
   capture_id:string;

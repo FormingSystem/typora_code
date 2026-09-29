@@ -79,20 +79,18 @@
   .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item { transition: none; }
 }
 
-/* 终端是48px活动栏入口，不能继承普通工具按钮的16px SVG尺寸。 */
+/* The terminal is the entry of the 48px activity bar; it cannot inherit the 16px SVG size of ordinary tool buttons. */
 .typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon {
   display:block;flex:none;width:24px;height:24px;min-width:24px;min-height:24px;margin:0;padding:0;fill:currentColor;stroke:none;
 }
 .typ-ribbon[data-workspace-activity=ready] > .group.bottom > [data-id="linux_note:terminal"] > svg.git-standard-icon * {fill:currentColor;stroke:none;}
 
-/* 核心把活动栏挂在原生 header 内的侧栏分界线后，而不是 body 直接子节点。
-   与编辑区共用起点，保留底部设置／终端原有 16px 内边距；每个 48px 槽紧接上一槽。 */
+/* The core hangs the activity bar on the native header inside the side divider line, not as a direct child node of body. It shares the starting point with the editing area, retains the bottom setting/terminal original 16px padding; each 48px slot is tightly followed by the previous slot. */
 body.typora-node.typ-ribbon--enable .typ-ribbon[data-workspace-activity=ready] {
   position:fixed;top:var(--typ-workspace-top,0px);bottom:0;left:0;height:auto;box-sizing:border-box;
 }
 
-/* 核心已隐藏原生 sidebar tabs；其 window.css 的 54/64px 与 core 的 18px 顶距不能继续占位。
-   顶层偏移只采用与 editor root 相同的变量：native 0，单行 titlebar 由宿主设定。 */
+/* The core has hidden the native sidebar tabs; its window.css 54/64px and core 18px top distance cannot continue to occupy space. The top offset only uses the same variable as editor root: native 0, single line titlebar is set by the host. */
 body.typ-ribbon--enable #typora-sidebar {
   top:var(--typ-workspace-top,0px);height:auto;bottom:0;padding-top:0;
 }

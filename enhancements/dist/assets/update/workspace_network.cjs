@@ -1328,13 +1328,14 @@ var require_proxy_from_env = __commonJS({
 var require_workspace_network_configuration = __commonJS({
   "src/workspace_network_configuration.cjs"(exports2, module2) {
     "use strict";
+    var { workspace_service_text: workspace_service_text2, set_workspace_service_locale: set_workspace_service_locale2 } = require("./workspace_service_i18n.cjs");
     var defaults2 = Object.freeze({ proxy_mode: "environment", http_proxy_url: "", https_proxy_url: "", ca_file: "" });
     function normalize2(value = {}) {
       const legacy = value.proxy_url ?? "";
       const result = { ...defaults2, ...value, http_proxy_url: Object.hasOwn(value, "http_proxy_url") ? value.http_proxy_url : legacy, https_proxy_url: Object.hasOwn(value, "https_proxy_url") ? value.https_proxy_url : legacy };
-      if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error("\u8BF7\u9009\u62E9\u6709\u6548\u7684\u4EE3\u7406\u6A21\u5F0F\u3002");
+      if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error(workspace_service_text2("service_d0b51287ac28"));
       for (const key of ["http_proxy_url", "https_proxy_url", "ca_file"]) {
-        if (typeof result[key] !== "string" || /[\r\n\0]/.test(result[key])) throw Error("\u7F51\u7EDC\u914D\u7F6E\u5185\u5BB9\u65E0\u6548\u3002");
+        if (typeof result[key] !== "string" || /[\r\n\0]/.test(result[key])) throw Error(workspace_service_text2("service_447286ee03c3"));
         result[key] = result[key].trim();
       }
       for (const key of ["http_proxy_url", "https_proxy_url"]) if (result[key]) parse_proxy2(result[key], false);
@@ -1345,17 +1346,18 @@ var require_workspace_network_configuration = __commonJS({
       try {
         url = new URL(value);
       } catch {
-        throw Error("\u4EE3\u7406\u5730\u5740\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528 http://\u4E3B\u673A:\u7AEF\u53E3 \u6216 https://\u4E3B\u673A:\u7AEF\u53E3\u3002");
+        throw Error(workspace_service_text2("service_c2dc4167ea3f"));
       }
-      if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.pathname !== "/" || url.search || url.hash) throw Error("\u4EC5\u652F\u6301HTTP/HTTPS\u4EE3\u7406\u5730\u5740\uFF0C\u4E0D\u63A5\u53D7\u8DEF\u5F84\u3001\u67E5\u8BE2\u6216\u7247\u6BB5\u3002");
-      if (!allow_auth && (url.username || url.password)) throw Error("\u4EE3\u7406\u5730\u5740\u4E0D\u80FD\u5305\u542B\u8D26\u6237\u5BC6\u7801\uFF1B\u5F53\u524D\u8BBE\u7F6E\u652F\u6301\u65E0\u9700\u72EC\u7ACB\u8EAB\u4EFD\u8BA4\u8BC1\u7684HTTP/HTTPS\u4EE3\u7406\u3002");
+      if (!["http:", "https:"].includes(url.protocol) || !url.hostname || url.pathname !== "/" || url.search || url.hash) throw Error(workspace_service_text2("service_6a929c77fe98"));
+      if (!allow_auth && (url.username || url.password)) throw Error(workspace_service_text2("service_dace023253b3"));
       return url;
     }
-    module2.exports = { defaults: defaults2, normalize: normalize2, parse_proxy: parse_proxy2 };
+    module2.exports = { set_workspace_service_locale: set_workspace_service_locale2, defaults: defaults2, normalize: normalize2, parse_proxy: parse_proxy2 };
   }
 });
 
 // src/workspace_network.cjs
+var { workspace_service_text, set_workspace_service_locale } = require("./workspace_service_i18n.cjs");
 var fs = require("node:fs");
 var tls = require("node:tls");
 var http = require("node:http");
@@ -1373,7 +1375,7 @@ function certificates(file) {
     if (!stat.isFile()) throw Error();
     bytes = fs.readFileSync(file);
   } catch {
-    throw Error("\u65E0\u6CD5\u8BFB\u53D6CA\u8BC1\u4E66\uFF0C\u8BF7\u9009\u62E9\u53EF\u8BFB\u7684\u8BC1\u4E66\u6587\u4EF6\u3002");
+    throw Error(workspace_service_text("service_560f0ea999a2"));
   }
   try {
     const text = bytes.toString("utf8");
@@ -1385,12 +1387,12 @@ function certificates(file) {
     }
     return [new crypto.X509Certificate(bytes).toString()];
   } catch {
-    throw Error("CA\u8BC1\u4E66\u683C\u5F0F\u65E0\u6548\uFF0C\u8BF7\u4F7F\u7528PEM\u8BC1\u4E66\u5305\u6216DER\u8BC1\u4E66\uFF08\u4E0D\u542B\u79C1\u94A5\uFF09\u3002");
+    throw Error(workspace_service_text("service_574086c2ed1d"));
   }
 }
 function validate_selection(value) {
   const configuration = normalize(value);
-  if (configuration.proxy_mode === "manual" && !configuration.http_proxy_url && !configuration.https_proxy_url) throw Error("\u8BF7\u5148\u586B\u5199HTTP\u6216HTTPS\u8BF7\u6C42\u4EE3\u7406\u5730\u5740\uFF0C\u518D\u9009\u62E9\u6307\u5B9A\u4EE3\u7406\u6A21\u5F0F\u3002");
+  if (configuration.proxy_mode === "manual" && !configuration.http_proxy_url && !configuration.https_proxy_url) throw Error(workspace_service_text("service_e2087b5b24ff"));
   return configuration;
 }
 function validate(value) {
@@ -1403,7 +1405,7 @@ function create_agent(address, value, signal) {
   const roots = typeof tls.getCACertificates === "function" ? tls.getCACertificates("default") : tls.rootCertificates;
   const ca = extra.length ? [...roots, ...extra] : void 0;
   const protocol = new URL(address).protocol;
-  if (!["http:", "https:"].includes(protocol)) throw Error("\u7F51\u7EDC\u8BF7\u6C42\u53EA\u652F\u6301HTTP\u6216HTTPS\u76EE\u6807\u3002");
+  if (!["http:", "https:"].includes(protocol)) throw Error(workspace_service_text("service_bd37acc0e16d"));
   const is_https = protocol === "https:";
   const proxy = configuration.proxy_mode === "manual" ? configuration[is_https ? "https_proxy_url" : "http_proxy_url"] : configuration.proxy_mode === "environment" ? getProxyForUrl(address) : "";
   const proxy_agent = is_https ? HttpsProxyAgent : HttpProxyAgent;
@@ -1411,4 +1413,4 @@ function create_agent(address, value, signal) {
   const agent = proxy ? new proxy_agent(parse_proxy(proxy, true), { ca, rejectUnauthorized: true, signal }) : new direct_agent({ ca, rejectUnauthorized: true });
   return { agent, ca, rejectUnauthorized: true };
 }
-module.exports = { defaults, normalize, validate, create_agent };
+module.exports = { set_workspace_service_locale, defaults, normalize, validate, create_agent };

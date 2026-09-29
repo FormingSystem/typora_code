@@ -1,4 +1,4 @@
-// 原始Typora：源码编辑器的官方颜色、真实语义分析和环境选择入口。
+// Original Typora: official colors of the source code editor, real semantic analysis and environment selection entry.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));

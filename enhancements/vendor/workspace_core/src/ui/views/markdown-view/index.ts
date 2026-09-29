@@ -65,7 +65,7 @@ export class MarkdownView extends WorkspaceView {
     // This is critical because in the click handler the selection is no longer in #write.
     this.registerDomEvent(this.containerEl, 'mousedown', e => {
       if (this.isEditor()) return
-      // 明确的修饰键跳转留给根链接代理；普通左键包括链接都进入本分栏编辑。
+      // Explicit key modifiers for jumping are left to the root link proxy; regular left-click includes links and enters this split view for editing.
       if (e.button !== 0 || (e.target as HTMLElement).closest('a') && (e.ctrlKey || e.metaKey)) return
 
       const { editingTabs } = useEditingTabs()

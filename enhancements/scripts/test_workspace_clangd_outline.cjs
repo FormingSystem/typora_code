@@ -1,4 +1,4 @@
-// 独立目标需要本机 clangd；Electron、源码与 compile_commands 均为隐藏临时夹具。
+// Independent target needs the native clangd; Electron, source code and compile_commands are all hidden temporary fixtures.
 const {app,BrowserWindow}=require('electron');
 const {build}=require('esbuild'),{editor_plugins}=require('./editor_bundle.cjs');
 const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');

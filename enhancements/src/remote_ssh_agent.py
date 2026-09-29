@@ -1,4 +1,4 @@
-"""SSH标准输入上的有限文件协议；所有路径是JSON数据，不经过Shell解析。"""
+"SSH uses limited file protocol on standard input; all paths are JSON data, not parsed through Shell."
 import base64
 import hashlib
 import json
@@ -29,7 +29,7 @@ def file_stat(value):
 
 
 def filesystem(request):
-    """参数化文件系统端口；没有远程eval或任意方法调用。描述符仅由本连接持有。"""
+    "Parameterize file system ports; no remote eval or any method calls. Descriptors are held only by this connection."
     global handle_serial
     action = request.get("action")
     if action in {"read", "write", "fstat", "sync", "chmod", "close"}:
@@ -125,7 +125,7 @@ def run_git(request):
     data = request.get("input")
     if data is not None and not isinstance(data, str):
         raise ValueError("Git输入必须是文本")
-    # 临时输出避免管道死锁和无限内存增长；轮询只在独立Git线程运行。
+    # Temporary output avoids pipe deadlock and infinite memory growth; polling runs only in independent Git thread.
     with tempfile.TemporaryFile() as output, tempfile.TemporaryFile() as error, tempfile.TemporaryFile() as input_file:
         if data:
             input_file.write(data.encode("utf-8"))
@@ -209,7 +209,7 @@ def perform(request):
         data, version, _ = snapshot(path)
         return {"data": base64.b64encode(data).decode("ascii"), "version": version}
     if operation == "git_status":
-        # 显式固定参数，不运行本机Git，也不拼接Shell；状态查询不获取可选写锁。
+        # Explicitly fix parameters, do not run native Git, nor concatenate Shell; status queries do not acquire optional write locks.
         environment = {key: value for key, value in os.environ.items() if key not in {"GIT_DIR", "GIT_WORK_TREE", "GIT_INDEX_FILE", "GIT_COMMON_DIR", "GIT_NAMESPACE"}}
         result = subprocess.run(["git", "--no-optional-locks", "-C", path, "status", "--short", "--branch", "--untracked-files=normal"],
                                 stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.PIPE, timeout=15, encoding="utf-8", errors="replace", env=environment)
@@ -282,8 +282,8 @@ def main():
             if git:
                 git_slot.release()
 
-    # Git只读查询最多一个，不排无限队列；文件读写仍由主循环串行执行。
-    # EOF取消尚未完成的Git进程，再等待工作线程退出。
+    # Git read-only queries limit to one, do not queue indefinitely; file read/write still executed serially by the main loop.
+    # EOF cancels pending Git processes that have not completed, then waits for work thread exit.
     with ThreadPoolExecutor(max_workers=1) as executor:
         while True:
             line = sys.stdin.buffer.readline()

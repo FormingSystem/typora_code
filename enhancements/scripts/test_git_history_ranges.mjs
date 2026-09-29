@@ -1,4 +1,5 @@
-// 真实双克隆与bare远端；显示读取不访问用户仓库或公共网络。
+import './fixture_locale.cjs';
+// Real dual cloning and bare remote; display reading does not access user repositories or public networks.
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -42,7 +43,7 @@ try{
  git(root,['merge','--no-edit','team/origin/renamed']);state=await read();assert.deepEqual(ranges(state).map(range=>range.kind),['outgoing']);git(root,['push','team/origin','master:renamed']);assert.equal(ranges(await read()).length,0);checks.push('合并后不保留传入，推送后清除传出');
  save(peer,'remote2.md','remote2');git(peer,['fetch','origin']);git(peer,['merge','--no-edit','origin/renamed']);git(peer,['push','origin','work:renamed']);git(root,['fetch','team/origin']);state=await read();assert.deepEqual(ranges(state).map(range=>range.kind),['incoming']);checks.push('仅落后时只有传入');
  git(root,['branch','--unset-upstream']);assert.equal(ranges(await read()).length,0);git(root,['branch','--set-upstream-to=team/origin/renamed']);git(root,['update-ref','-d','refs/remotes/team/origin/renamed']);assert.equal(ranges(await read()).length,0);git(root,['checkout','--detach',head]);assert.equal(ranges(await read()).length,0);checks.push('无上游、已删除上游、分离HEAD不伪造差异');
- // 大量其他分支不改变区间身份；投影仅遍历已加载图，不执行额外Git查询。
+ // A large number of other branches do not change the identity of the interval; projection only traverses already loaded graphs, not additional Git queries.
  for(const count of [20,100,1000]){const commits=Array.from({length:count},(_,i)=>({hash:(i+1000).toString(16).padStart(40,'0'),parents:i<count-1?[(i+1001).toString(16).padStart(40,'0')]:[],author:'',date:'',subject:''}));const sample={...state,branch:'master',head:commits[0].hash,commits,history_refs:undefined,tracking:{...state.tracking,ahead:count-1,behind:0,upstream_hash:commits.at(-1).hash,merge_base:commits.at(-1).hash}};assert.equal(ranges(sample)[0].count,count-1);assert.equal(api.build_history_model(sample).items.length,count+1);}
  checks.push('20/100/1000提交投影保持计数和拓扑规模');
  console.log(JSON.stringify({status:'PASS',checks,evidence:temp,scope:'真实本地Git与bare远端；图规模为内存模型'}));

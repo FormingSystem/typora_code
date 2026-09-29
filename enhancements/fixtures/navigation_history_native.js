@@ -1,4 +1,4 @@
-// 原始宿主、正式构建、临时正文；不操作用户窗口或用户文件。
+// Original host, formal build, temporary document content; do not operate user window or user files.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
@@ -52,7 +52,7 @@
   assert(core.app.workspace.activeLeaf.view.editor.focused_editor().getPosition().lineNumber===31,'重开保留源码行列');
   await travel(1);assert(files.current_file()===a,'关闭重开源码后仍可前进Markdown');
   await travel(-1);assert(files.current_file()===code,'关闭重开后连续返回源码');
-  // 真正释放标签，再等待重开后的选区通知；覆盖Markdown与Monaco，不能只断言文件路径曾切换。
+  // Truly release tab, then wait for notification after re-opening; override Markdown and Monaco, cannot just assert that file path has switched.
   const leaves=()=>{const result=[];core.app.workspace.eachLeaves(leaf=>{result.push(leaf);});return result;};
   await travel(1);assert(files.current_file()===a,'关闭压力从Markdown开始');
   for(let round=0;round<20;round++){
@@ -67,7 +67,7 @@
    await pause(150);await travel(1);assert(files.current_file()===a,'关闭Markdown后前进 '+round);
    assert(core.app.workspace.activeLeaf!==old_md,'Markdown重开创建新视图 '+round);
   }
-  // 先关非活动来源，最后关活动目标，避免自动激活其他文件成为新的导航。
+  // First close non-active source, finally close active target, avoid automatic activation of other files as new navigation.
   const final_leaf=core.app.workspace.activeLeaf;
   for(const leaf of leaves())if(leaf!==final_leaf){assert(await files.close_leaf(leaf),'关闭其余文件');await pause(150);}
   assert(await files.close_leaf(final_leaf),'关闭最后活动文件');

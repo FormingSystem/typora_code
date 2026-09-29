@@ -20,7 +20,7 @@ const posix_file={file_path:'/Work/src/a.c',relative_path:'src/a.c',directory:'s
 assert(create_quick_matcher('/Work/sr','/Work').match(posix_file));
 assert(!create_quick_matcher('/work/sr','/Work').match(posix_file),'POSIX roots retain case sensitivity');
 for(let round=0;round<rounds;round++){
-  // 固定上游基准：目录连续命中优先，再按路径长度、名称比较；不是词典顺序。
+  // Fixed upstream benchmark: directory continuous hit priority, then by path length, name comparison; not dictionary order.
   assert.deepEqual(rank('samples/bringup').slice(0,5).map(item=>item.file.name),['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt']);
   assert.deepEqual(rank('samples\\bringup'),rank('samples/bringup'));
   assert.deepEqual(rank('samples/bringup')[0].score,{score:474,labelMatch:[],descriptionMatch:[{start:0,end:15}]});
@@ -36,7 +36,7 @@ for(let round=0;round<rounds;round++){
   assert(create_quick_matcher('sbm').match(long),'late valid subsequence is not discarded by negative position score');
   assert(create_quick_matcher('教程 文件').match(file('学习/教程/文件.md')));
   const exact=create_quick_matcher(paths[0].file_path).match(paths[0]);assert.equal(exact.score.score,1<<18);
-  // 不依赖目录读取顺序，比较器满足反对称性。
+  // Not dependent on directory reading order, comparator satisfies antisymmetry.
   const matcher=create_quick_matcher('read');const hits=paths.map(matcher.match).filter(Boolean);
   for(const left of hits)for(const right of hits)assert.equal(Math.sign(matcher.compare(left,right))+Math.sign(matcher.compare(right,left)),0);
 }

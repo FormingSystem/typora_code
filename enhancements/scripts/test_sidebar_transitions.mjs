@@ -1,8 +1,9 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import vm from 'node:vm';
 import {transform} from 'esbuild';
-// 直接执行生产 Sidebar 类，仅替换依赖的宿主端口；不复制切换算法。
+// Directly execute production Sidebar class, only replace the host port dependency; do not copy the switch algorithm.
 const source=fs.readFileSync('vendor/workspace_core/src/ui/sidebar/sidebar.ts','utf8').replace(/^import .*\r?\n/gm,'');
 const compiled=await transform(source,{loader:'ts',format:'cjs'});
 const calls=[];let visible=true;const mounted=new Set();

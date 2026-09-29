@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import fs from 'node:fs';import path from 'node:path';import os from 'node:os';import assert from 'node:assert/strict';import {createRequire} from 'node:module';import {build} from 'esbuild';
 const require=createRequire(import.meta.url),source=path.resolve('src');
 const result=await build({stdin:{contents:`export * from './remote_workspace_files';export * from './workspace_text_document';export * from './workspace_rename';export * from './workspace_file_operations';export * from './git_graph_runtime';export * from './workspace_native_save';export * from './workspace_search_engine';export * from './git_ignore';`,resolveDir:source},bundle:true,platform:'node',format:'esm',write:false,plugins:[{name:'search-worker-placeholder',setup(build){build.onResolve({filter:/^linux_note_search_worker$/},()=>({path:'worker',namespace:'fixture'}));build.onLoad({filter:/.*/,namespace:'fixture'},()=>({contents:'export default "";',loader:'js'}));}}]});

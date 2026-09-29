@@ -1,4 +1,4 @@
-/** 正文块几何只在排版失效时测量；普通滚动复用文档坐标，不重扫离屏块。 */
+/** Document content geometry is measured only when layout is invalid; normal scrolling reuses document coordinates, and does not rescan off-screen blocks. */
 type block_geometry={node:HTMLElement;bottom:number;top:number};
 type block_index=ReturnType<typeof create_block_index>;
 const indexes=new WeakMap<HTMLElement,{index:block_index;users:number}>();
@@ -7,16 +7,16 @@ function create_block_index(root:HTMLElement){
   const invalidate=()=>{dirty=true;};
   const mutation=new MutationObserver(invalidate);mutation.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden']});
   const resize=new ResizeObserver(invalidate);resize.observe(root);
-  // 样式表替换/字体加载不会必然修改正文节点。
+  // StyleSheet replacement/font loading does not necessarily modify document nodes.
   const styles=new MutationObserver(invalidate);styles.observe(document.head,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['href','media','disabled']});
-  // 主题可由祖先class/style改变，即使两块高度互换后总高度未变也需重新测量。
+  // Themes can be changed by an ancestor class/style; even if the height of two blocks is swapped and the total height remains unchanged, re-measurement is required.
   styles.observe(document.body,{attributes:true,attributeFilter:['class','style']});styles.observe(document.documentElement,{attributes:true,attributeFilter:['class','style']});
   document.fonts?.addEventListener('loadingdone',invalidate);
   document.head.addEventListener('load',invalidate,true);
   return {
     read(){
       if(mutation.takeRecords().length||styles.takeRecords().length)dirty=true;
-      // 位置移动不使内部几何失效；宽/高变化及时处理，不等异步观察器。
+      // Moving positions does not make internal geometry invalid; changes in width/height are handled in a timely manner, and are not asynchronous observers.
       const box=root.getBoundingClientRect();
       if(dirty||width!==box.width||height!==box.height){
         dirty=false;width=box.width;height=box.height;items=[];ordered=true;let previous=-Infinity;

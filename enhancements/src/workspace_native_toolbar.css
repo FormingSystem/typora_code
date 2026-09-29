@@ -1,4 +1,4 @@
-/* 状态栏的空间使用核心已有变量，隐藏时释放编辑区；终端使用实际底栏边界。 */
+/* The space used by the status bar is already managed by core variables; when hidden, it releases the editing area; the terminal uses the actual bottom bar boundary. */
 body.hide-footer {--typ-footer-height:0px;}
 .ty-editor-toolbar[data-workspace-native-toolbar=ready] {
   left:var(--workspace-toolbar-left)!important;top:var(--workspace-toolbar-top)!important;bottom:auto!important;

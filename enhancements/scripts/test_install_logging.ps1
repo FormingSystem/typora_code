@@ -1,5 +1,7 @@
-﻿# 日志与运行时消息回归只写临时目录，下载由本地 ZIP 替身提供，不启动 Typora。
+﻿# Log and runtime messages for regression are written only to the temporary directory, and downloads are provided by the local ZIP. Typora is not started.
 $ErrorActionPreference='Stop'
+$previous_language=$env:TYPORA_CODE_LANGUAGE
+$env:TYPORA_CODE_LANGUAGE='zh-cn'
 $tools_root=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 . (Join-Path $tools_root 'scripts/lib/typora_install_log.ps1')
 . (Join-Path $tools_root 'scripts/lib/typora_terminal.ps1')
@@ -24,7 +26,7 @@ try {
     $fallback_directory=Join-Path ([IO.Path]::GetTempPath()) 'TyporaCode/install_logs'
     if ((Split-Path -Parent $fallback.path) -ne $fallback_directory) { throw 'Missing temporary log fallback' }
 
-    # 微型测试归档只验证下载、摘要与消息链；不执行其中的替身 node.exe。
+    # Micro-test archives only validate downloads, checksums, and message chains; they do not execute the node.exe placeholder.
     $fixture_tools=Join-Path $fixture 'tools'
     $archive_root=Join-Path $fixture 'archive'
     $archive_arch=(get_typora_node_release $tools_root).arch
@@ -74,5 +76,6 @@ try {
     Write-Host 'PASS: per-run UTF-8 logs, output isolation, file lock fallback, download/cache progress and digest failure'
     Write-Host "Fixtures: $fixture"
 } finally {
+    $env:TYPORA_CODE_LANGUAGE=$previous_language
     $env:TYPORA_TERMINAL_CACHE=$previous_cache
 }

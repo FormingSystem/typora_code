@@ -1,4 +1,4 @@
-"""准备独立宿主、配置和文档；不修改原安装，不依赖历史缓存。"""
+"Prepare independent host, configuration, and documentation; do not modify the original installation, do not rely on historical cache."
 from pathlib import Path
 import hashlib
 import json
@@ -14,7 +14,7 @@ repository_root = Path(__file__).resolve().parents[2]
 fixture_directory = repository_root / 'enhancements/fixtures'
 fixture_path = (fixture_directory / (sys.argv[2] if len(sys.argv) > 2 else 'stability_native.js')).resolve(strict=True)
 assert fixture_path.parent == fixture_directory and fixture_path.suffix == '.js', 'Use a checked-in native fixture'
-# 原生注入前先验证语法，避免静默不执行后等待整轮超时。
+# Before native injection, validate the syntax to avoid silent non-execution followed by waiting for the full timeout.
 subprocess.run(['node', '--check', str(fixture_path)], check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
 host_root = Path(sys.argv[1]).resolve(strict=True)
 release = repository_root / 'enhancements/dist'
@@ -23,7 +23,7 @@ try:
     host = case / 'host'
     digest = lambda file: hashlib.sha256(file.read_bytes()).hexdigest()
     asar = host_root / 'resources/app.asar'
-    # 已核对的原始宿主；其他版本必须重新核对端口，不能静默复用结论。
+    # The verified original host; other versions must re-verify the port, cannot silently reuse the conclusion.
     expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
     assert digest(asar) == expected_asar, 'Native fixture requires verified original Typora 1.14.10'
     assert (host_root / 'Typora.exe').is_file()
@@ -51,7 +51,7 @@ try:
         for index, source in enumerate(sources):
             shutil.copyfile(source, corpus / f'{index}.md')
         (case / 'corpus.json').write_text(json.dumps([{'source': source.relative_to(repository_root).as_posix(), 'sha256': digest(source), 'bytes': source.stat().st_size} for source in sources], ensure_ascii=False, indent=2), encoding='utf-8')
-    # 避免宿主向上发现开发仓库；所有Git状态只来自这一专属仓库。
+    # Avoid the host discovering the development repository; all Git states only come from this exclusive repository.
     git = ['git', '-C', str(workspace), '-c', 'user.name=Native QA', '-c', 'user.email=native@example.invalid', '-c', 'commit.gpgsign=false', '-c', 'core.hooksPath=.git/unused_hooks', '-c', 'core.autocrlf=false']
     for arguments in [['init', '-b', 'main'], ['add', '--', 'front.md'], ['commit', '-m', 'test: isolated native fixture'], ['branch', 'topic/native'], ['tag', '-a', 'release/native', '-m', 'Native annotated tag']]:
         subprocess.run(git + arguments, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -86,11 +86,11 @@ try:
         import uuid
         info = json.loads((release / 'assets/update/release.json').read_text(encoding='utf-8'))
         (user_data / 'typora_code/installation.json').write_text(json.dumps({'schema': 1, 'install_id': uuid.uuid4().hex, 'sequence': info['releases'][0]['sequence']}), encoding='utf-8')
-    # 运行时只复制；安装器负责的私有Node不借用系统PATH。
+    # Only copy during runtime; the installer is responsible for private Node which do not borrow system PATH.
     runtime = Path(os.environ['APPDATA']) / 'Typora/linux_note_enhancements/terminal_runtime'
     if runtime.is_dir():
         shutil.copytree(runtime, user_data / 'linux_note_enhancements/terminal_runtime')
-    # Shell 后端必须来自本次候选，不能让新脚本配上本机旧 ConPTY。
+    # The backend of Shell must come from this candidate, cannot allow new scripts to pair with this machine's old ConPTY.
     terminal_release = release / 'terminal_runtime'
     for line in (terminal_release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
         if not line.strip():

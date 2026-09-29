@@ -1,19 +1,17 @@
-﻿<#
-.SYNOPSIS
-卸载 Typora Code 增强，安全恢复备份或移除当前加载入口。
+﻿<# .SYNOPSIS
+Uninstall Typora Code enhancement, safely recover backup or remove the current loaded entry.
 .DESCRIPTION
-先保存文档并退出 Typora。默认发现当前用户的有效安装前备份；
-唯一候选直接使用，多个候选时选择，空输入取消。保留文档和用户设置。
-更新备份仅用于 restore，不用于 uninstall。详见 docs/installation.md。
+First save the document and exit Typora. Default discovery of valid backup before installation;
+Unique candidate directly uses, multiple candidates choose, empty input cancels. Keep the document and user settings.
+Update backup is only for restore, not for uninstall. See docs/installation.md.
 .PARAMETER typora_root
-可选的 Typora 安装目录，用于限定卸载对象。
+Optional Typora installation directory, used to limit the uninstallation object.
 .PARAMETER backup_root
-可选的安装前完整备份目录，可位于默认备份目录之外。
+Optional complete backup directory before installation, which can be outside the default backup directory.
 .PARAMETER non_interactive
-有多个有效备份时失败，不等待输入。
+Fail when there are multiple valid backups, do not wait for input.
 .PARAMETER check_only
-仅预检卸载方式，不修改文件或要求退出Typora。
-#>
+Only pre-check the uninstallation method, do not modify files or require exiting Typora. #>
 [CmdletBinding()]
 param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [switch]$check_only)
 $ErrorActionPreference = 'Stop'

@@ -1,4 +1,4 @@
-/** 仅在文件成功写盘后通知；原生宿主只提供路径，源码事务可附已验证字节，订阅者失败不改变保存结果。 */
+/** Notification occurs only after the file is successfully written to disk; the native host only provides paths, source code transactions can attach already verified bytes, and subscribers' failures do not change the save result. */
 export type workspace_saved_file = {file_path:string; bytes?:Uint8Array; source?:string};
 const saved_listeners=new Set<(file:workspace_saved_file)=>void>();
 const change_listeners=new Set<(file_path:string)=>void>();

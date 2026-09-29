@@ -12,7 +12,7 @@
 .workspace-link-preview [role=toolbar]>.workspace-link-preview-pin[aria-pressed=true]{background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);--workspace-interaction-hover:var(--linux-note-shell-inactive-selection-background);--workspace-interaction-foreground:var(--linux-note-shell-inactive-selection-foreground)}
 .workspace-link-preview-mode{flex:none;white-space:nowrap;font-size:12px}
 .workspace-link-web-status{flex:none;font-size:11px;line-height:16px;padding:2px 6px;color:var(--description-color,inherit)}
-/* 独立预览仅覆盖自己的矩形；主编辑区不为预览预留整列。 */
+/* Independent preview only covers its own rectangle; main editing area does not reserve an entire column for preview. */
 .workspace-link-dock{position:absolute;bottom:var(--typ-footer-height,30px);left:var(--typ-ribbon-width,48px);width:var(--workspace-preview-width);height:var(--workspace-preview-height);display:flex;flex-direction:column;box-sizing:border-box;overflow:hidden;border:1px solid var(--workspace-border-color,#ddd);background:var(--side-bar-bg-color,var(--bg-color));z-index:101}
 .workspace-link-dock[hidden]{display:none}
 body.has-workspace-link-preview #typora-sidebar{bottom:calc(var(--typ-footer-height,30px) + var(--workspace-preview-height))!important;height:auto!important}
@@ -29,7 +29,7 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 @container workspace-link-toolbar (max-width:210px){.workspace-link-preview .workspace-preview-scale-controls>.workspace-preview-scale-slider{display:none}}
 @container workspace-link-toolbar (max-width:240px){.workspace-link-preview.has-pin>[role=toolbar]{gap:0;padding:0}}
 
-/* 目录预览复用资源管理器26px行，不接管主资源树或正文排版。 */
+/* Directory preview reuses the 26px row of the Resource Manager, does not take over the main resource tree or document formatting. */
 .workspace-preview-directory{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;overflow:hidden}
 .workspace-preview-directory-path,.workspace-preview-directory-return{flex:none;box-sizing:border-box;min-width:0;max-width:100%;height:26px;line-height:26px;padding:0 8px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font:13px/26px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:inherit;border:0;border-bottom:1px solid var(--workspace-border-color,#ddd);background:transparent;text-align:left}
 .workspace-preview-directory-return[hidden]{display:none}

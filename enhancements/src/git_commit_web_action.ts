@@ -3,7 +3,7 @@ import {commit_web_targets,commit_web_url,type commit_web_target} from "./git_co
 import {workspace_button,workspace_dialog,type workspace_menu_entry} from "./workspace_widgets";
 import {git_graph_text as text} from "./git_graph_i18n";
 
-/** 浮层与菜单只读打开同一目标；不查网络、不改远端、不替用户推送。 */
+/** Floating layers and menus open the same target as read-only; do not check the network, do not modify the remote, do not replace the user's push. */
 export function commit_web_entry(panel:git_graph_panel,hash:string):workspace_menu_entry{
   const state=panel.state,root=panel.root,runner=panel.runner;
   const targets=commit_web_targets(state?.remotes||[],hash,state?.tracking?.remote);

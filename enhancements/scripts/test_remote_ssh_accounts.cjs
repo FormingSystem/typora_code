@@ -1,3 +1,4 @@
+require('./fixture_locale.cjs');
 'use strict';
 const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),net=require('node:net');
 const {create_connection_store,with_store_lock}=require('../src/remote_ssh_connections.cjs');

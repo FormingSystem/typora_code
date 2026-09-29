@@ -1,8 +1,9 @@
-/** 渲染差异的局部概览；仅映射已有排版，不读取Git或重新计算diff。 */
+import {workspace_text} from "./workspace_i18n";
+/** Local overview of rendered differences; only map existing formatting, do not read Git or recalculate diff . */
 export function create_markdown_overview(scroll:HTMLElement,reader:HTMLElement){
   const container=document.createElement('div'),canvas=document.createElement('canvas'),viewport=document.createElement('div');
   container.className='git-markdown-overview';canvas.className='git-markdown-overview-marks';viewport.className='git-markdown-overview-viewport';
-  container.tabIndex=0;container.setAttribute('role','scrollbar');container.setAttribute('aria-label','Markdown差异概览');container.setAttribute('aria-orientation','vertical');container.setAttribute('aria-valuemin','0');
+  container.tabIndex=0;container.setAttribute('role','scrollbar');container.setAttribute('aria-label',workspace_text("git_markdown_overview_markdown_diff_overview"));container.setAttribute('aria-orientation','vertical');container.setAttribute('aria-valuemin','0');
   container.append(canvas,viewport);
   const events=new AbortController(),signal=events.signal;
   let disposed=false,frame=0,layout_dirty=true,rows:HTMLElement[]=[],marks:{top:number;height:number;left:boolean;right:boolean}[]=[];
@@ -38,7 +39,7 @@ export function create_markdown_overview(scroll:HTMLElement,reader:HTMLElement){
   container.addEventListener('pointerdown',event=>{
     if(event.button!==0||!height)return;event.preventDefault();container.focus({preventScroll:true});
     const box=container.getBoundingClientRect(),y=(event.clientY-box.top)*height/box.height;
-    if(event.target===viewport){drag={id:event.pointerId,y:event.clientY,top:scroll.scrollTop};container.dataset.dragging='true';try{container.setPointerCapture(event.pointerId);}catch{/* 合成测试事件没有原生指针捕获。 */}return;}
+    if(event.target===viewport){drag={id:event.pointerId,y:event.clientY,top:scroll.scrollTop};container.dataset.dragging='true';try{container.setPointerCapture(event.pointerId);}catch{/* Synthetic test events do not have native pointer capture. */}return;}
     const left=event.clientX-box.left<box.width/2;
     const match=marks.find(mark=>(left?mark.left:mark.right)&&y>=mark.top/total*height&&y<=mark.top/total*height+Math.max(2,mark.height/total*height));
     const header=reader.querySelector('.markdown-diff-head')?.getBoundingClientRect().height||0;

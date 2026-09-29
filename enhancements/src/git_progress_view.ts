@@ -3,7 +3,7 @@ import {create_workspace_progress_view} from "./workspace_progress_view";
 import type {git_operation_progress,git_operation_state} from "./git_operation_progress";
 import css from "./git_progress.css";
 
-/** 只呈现业务活动，不发起Git读取；标题始终维持原有布局高度。 */
+/** Only present business activities, do not initiate Git reads; the title always maintains the original layout height. */
 export function bind_git_progress_view(owner:HTMLElement,progress:git_operation_progress){
   const style=acquire_workspace_style("typora-code-git-progress",css),view=create_workspace_progress_view(),bar=view.root;
   bar.classList.add("git-operation-progress");view.bit.classList.add("git-operation-progress-bit");owner.classList.add("git-progress-owner");owner.append(bar);

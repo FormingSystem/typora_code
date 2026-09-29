@@ -1,4 +1,4 @@
-// 仅在独立原始宿主和临时文档中观察代码围栏几何。
+// Only observe code fences geometry in independent original host and temporary documents.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const pause=ms=>new Promise(r=>setTimeout(r,ms));const wait=async(fn,label)=>{for(let i=0;i<300;i++){if(await fn())return;await pause(30);}throw Error('timeout '+label);};
@@ -14,7 +14,7 @@
   const custom=fs.existsSync(path.join(base,'workspace/repro.md'));
   for(const zoom of custom?[1.8]:[1,1.8]){
    reqnode('electron').webFrame.setZoomFactor(zoom);await pause(400);
-   // 宿主按可见区域创建围栏编辑器，先滚动建立实际实例，再取长短块集合。
+   // Host creates a fence editor in the visible area, first scroll to create the actual instance, then collect the short and long block sets.
    for(const f of fences()){f.scrollIntoView({block:'center'});await pause(100);}
    await pause(100);
    const long_indices=fences().map((f,i)=>f.querySelector('.linux-note-code-toggle')?i:-1).filter(i=>i>=0);

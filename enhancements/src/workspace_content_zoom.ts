@@ -1,4 +1,4 @@
-/** 当前窗口的内容字号，独立于宿主窗口比例和持久化字体设置。 */
+/** The font size of the current window's content is independent of the host window's ratio and persistent font settings. */
 export type content_zoom_role = "editor" | "terminal";
 const listeners = new Map<() => void, (()=>void)|undefined>();
 let startup_factor=1,window_factor=1,owners=0;

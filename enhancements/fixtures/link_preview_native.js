@@ -1,4 +1,4 @@
-// 正式构建、原始Typora独立副本；只操作运行器创建的临时文档。
+// Official build, original Typora independent copy; only operate on temporary documents created by the runner.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),crypto=reqnode('crypto'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
@@ -63,7 +63,7 @@
   await follow('文内');assert(nav_panel.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('目标标题'),'原生文内标题导航');await travel(-1);
   await follow('失败');assert(nav_panel.dataset.state==='error'&&preview_body().dataset.previewPath===target,'原生失败保留正文');
   fs.writeFileSync(path.join(base,'workspace/missing.md'),'# 重试成功');nav_panel.querySelector('[aria-label="重新加载"]').click();await wait(()=>nav_panel.dataset.state==='ready','重试失败');assert(preview_body().dataset.previewPath.endsWith('missing.md'),'失败目标修复后重试成功');await travel(-1);assert(preview_body().dataset.previewPath===target,'重试成功仍可返回');
-  // 本地真实网页/拒绝内嵌，在原宿主中确认错误不会打开主文档。
+  // Local real web page/reject embedded, confirm error in original host will not open main document.
   const server=reqnode('http').createServer((request,response)=>{if(request.url==='/denied')response.setHeader('Content-Security-Policy',"frame-ancestors 'none'");response.setHeader('Content-Type','text/html');response.end('<h1>Web preview</h1><script>parent.postMessage({preview_native:true,node:typeof require},"*")<'+ '/script>');});
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));
   let web_message;const web_event=event=>{if(event.data?.preview_native)web_message={origin:event.origin,node:event.data.node};};window.addEventListener('message',web_event);

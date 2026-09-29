@@ -1,3 +1,4 @@
+import './fixture_locale.cjs';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -51,7 +52,7 @@ try {
   assert(!prepared.preview.includes('folder/unselected.md') && !prepared.preview.includes('clean ')); assert(index_bytes(mixed).equals(before_index));
   assert.equal(read(mixed, 'tracked.md'), 'working\n'); checks.push('preview lists exact restore and recycle targets without changing the index or files');
   const recycled = []; const recycle_root = path.join(temp, 'recycle_adapter');
-  // 真实 Git 验证恢复语义；可恢复目录适配器替代系统回收站，保留测试文件以便逐字节核对。
+  // Real Git verification of recovery semantics; the recovery directory adapter replaces the system recycle bin, preserving the test files for byte-by-byte verification.
   await api.execute_git_action(writer.run, all_scope, () => true, {trash_files: async (root, files) => {
     assert.equal(root, mixed);
     for (const file of files) { const target = path.join(recycle_root, file); fs.mkdirSync(path.dirname(target), {recursive: true}); fs.renameSync(path.join(root, file), target); recycled.push(file); }
@@ -68,7 +69,7 @@ try {
   const tracked_prepared = await plan(tracked_only);
   const selected_tracked = api.select_discard_scope(tracked_prepared, 'tracked');
   assert.deepEqual((await plan(tracked_only, selected, false)).discard, selected_tracked.discard);
-  // 仅改未跟踪文件字节不会改变 porcelain 名单；tracked 选择不再校验或回收它们。
+  // Changes to untracked file bytes will not change the porcelain list; tracked selection no longer checks or recovers them.
   write(tracked_only, 'new[1].md', 'new user draft after preview\n');
   await api.execute_git_action(writer.run, selected_tracked, () => true);
   assert.equal(read(tracked_only, 'tracked.md'), 'staged\n'); assert.equal(read(tracked_only, 'new[1].md'), 'new user draft after preview\n'); assert(index_bytes(tracked_only).equals(tracked_index));
@@ -131,7 +132,7 @@ try {
       }
       return result;
     };
-    // 先让真实 Git 完成读取，再挂起返回，精确模拟校验等待期间编辑器出现未保存草稿。
+    // First let the real Git complete the read, then suspend and return, precisely simulating the editor's appearance of unsaved drafts during the check wait period.
     const execution = api.execute_git_action(delayed_run, delayed_plan, () => editable, {trash_files: async () => { recycling++; }});
     const rejected = assert.rejects(execution, /未保存/);
     await entered.promise; editable = false; release.resolve(); await rejected;

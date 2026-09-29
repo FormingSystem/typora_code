@@ -1,4 +1,4 @@
-// 仅在启动器的临时目录中检查重命名、真实核心标签与未保存源码模型。
+// Only check the renaming, real core tab, and unsaved source code model in the temporary directory of the launcher.
 (() => {
   const script_url = new URL(document.currentScript.src);
   const root = decodeURIComponent(script_url.pathname).replace(/^\/(\w:)/u, '$1').replace(/\/workspace_rename_native_test.js$/u, '');
@@ -87,7 +87,7 @@
       result.status = 'PASS';
     } catch (error) { result.status = 'FAIL'; result.error = String(error.stack); result.active = app?.workspace.activeLeaf?.state.path; result.native = File.bundle.filePath; result.explorer = document.querySelector('.linux-note-workspace-explorer')?.outerHTML; }
     finally {
-      // 测试窗口直接释放临时源码模型；逐组 removeTab 会并发触发多个关闭确认并使夹具自身互锁。
+      // The test window directly releases the temporary source code model; each removeTab group will concurrently trigger multiple close confirmations and lock the fixture itself.
       if (app) {
         for (const leaf of leaf_list()) {
           if (leaf.view.file_path && norm(leaf.view.file_path).startsWith(norm(root) + '/') && typeof leaf.view.release_source === 'function') {

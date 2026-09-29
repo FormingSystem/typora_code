@@ -1,9 +1,10 @@
+import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_style} from "./workspace_styles";
 import minimap_css from "./reading_minimap.css";
 import { get_workspace_app } from "./workspace_bootstrap";
 import { reading_viewport_bounds } from "./reading_viewport";
 
-// 仅使用宿主已有的 CodeMirror 5 公开方法；读取源码不会移动光标或激活其他编辑组。
+// Only use the host's existing CodeMirror 5 public method; reading source code does not move the cursor or activate other editing groups.
 type source_editor = {
   getWrapperElement(): HTMLElement;
   getScrollerElement(): HTMLElement;
@@ -31,31 +32,31 @@ function current_targets(): minimap_target[] {
   const targets: minimap_target[] = [];
   if (source?.inSourceMode && source.cm) {
     const owner = source.cm.getWrapperElement();
-    if (owner.isConnected) targets.push({ owner, root: owner, scroller: source.cm.getScrollerElement(), source: source.cm, path: "源码" });
+    if (owner.isConnected) targets.push({ owner, root: owner, scroller: source.cm.getScrollerElement(), source: source.cm, path: workspace_text("reading_minimap_source_code") });
   }
   const content = document.querySelector<HTMLElement>("content");
   const write = document.querySelector<HTMLElement>("#write");
-  if (!source?.inSourceMode && content?.isConnected && write?.isConnected) targets.push({ owner: content, root: write, scroller: content, path: "当前文档" });
+  if (!source?.inSourceMode && content?.isConnected && write?.isConnected) targets.push({ owner: content, root: write, scroller: content, path: workspace_text("reading_minimap_current_document") });
   get_workspace_app()?.workspace.eachLeaves(leaf => {
     const root = leaf.view?.containerEl;
     if (root?.classList.contains("typ-markdown-preview") && leaf.containerEl.isConnected && leaf.containerEl.classList.contains("mod-active")) {
-      targets.push({ owner: leaf.containerEl, root, scroller: leaf.containerEl, path: leaf.state.path.split(/[\\/]/u).pop() || "预览" });
+      targets.push({ owner: leaf.containerEl, root, scroller: leaf.containerEl, path: leaf.state.path.split(/[\\/]/u).pop() || workspace_text("reading_minimap_preview") });
     }
   });
   return targets;
 }
 
-/** 把实际渲染文本按原文档坐标缩小；不克隆正文节点，避免影响保存、选区与标题 ID。 */
+/** Shrink the actual rendered text according to the original document's coordinates; do not clone document nodes, avoid affecting save, selection, and title ID. */
 function create_minimap(target: minimap_target) {
   const rail = document.createElement("div");
   rail.className = "linux-note-reading-minimap";
   rail.contentEditable = "false";
   rail.tabIndex = 0;
   rail.setAttribute("role", "scrollbar");
-  rail.setAttribute("aria-label", `${target.path}缩略图：点击或拖动定位`);
+  rail.setAttribute("aria-label", workspace_text("reading_minimap_thumbnail_click_or_drag_to_position", {value_0: String(target.path)}));
   rail.setAttribute("aria-orientation", "vertical");
   rail.setAttribute("aria-valuemin", "0"); rail.setAttribute("aria-valuemax", "100");
-  rail.title = "文档缩略图：点击跳转，拖动阅读位置；方向键、PageUp / PageDown、Home / End 定位";
+  rail.title = workspace_text("reading_minimap_document_thumbnail_click_to_jump_drag_to_read_position_arrow");
   const canvas = document.createElement("canvas"); canvas.setAttribute("aria-hidden", "true");
   const viewport = document.createElement("div"); viewport.className = "linux-note-reading-minimap-viewport";
   rail.append(canvas, viewport);
@@ -88,7 +89,7 @@ function create_minimap(target: minimap_target) {
     viewport.style.transform = `translateY(${ratio * (height - thumb_height)}px)`;
     rail.setAttribute("aria-valuenow", String(Math.round(ratio * 100)));
   };
-  // 固定定位的缩略图会逃离归零中的 content；先判断宿主身份和稳定尺寸，再写入任何几何。
+  // Fixed-positioned thumbnails will escape the zero in content; first determine the host's identity and stable size, then write any geometry.
   const geometry_ready = () => !target.owner.closest(".typ-deactive") && visible(target.owner) && visible(target.root)
     && target.owner.clientWidth > MINIMAP_WIDTH && target.owner.clientHeight > 0
     && !target.owner.getAnimations().some(animation => animation instanceof CSSTransition
@@ -99,7 +100,7 @@ function create_minimap(target: minimap_target) {
     const bounds = reading_viewport_bounds(target.owner);
     rail_height = bounds.bottom - bounds.top;
     if (rail_height <= 0 || bounds.right - bounds.left <= MINIMAP_WIDTH) { rail.hidden = true; return false; }
-    // 使用 clientWidth 留出宿主自身的细滚动条，不覆盖正文或相邻编辑组。
+    // Use clientWidth to leave the host's own fine scroll bar, do not cover the document or adjacent editing groups.
     rail.style.left = `${bounds.right - MINIMAP_WIDTH - 4}px`;
     rail.style.top = `${bounds.top}px`;
     rail.style.height = `${rail_height}px`;
@@ -133,7 +134,7 @@ function create_minimap(target: minimap_target) {
     const width = Math.max(1, target.root.clientWidth - 96);
     context.scale(scale_x, scale_y);
     for (let line = 0; line < source.lineCount(); line += 1) {
-      // heightAtLine 会包含真实折行高度，长行不会让下方定位逐渐偏离。
+      // heightAtLine will include the actual line height of the real text, long lines will not cause the lower positioning to gradually deviate.
       draw_text(context, source.getLine(line), 0, source.heightAtLine(line, "local") + text_height * .8, width);
       yield;
     }
@@ -149,15 +150,15 @@ function create_minimap(target: minimap_target) {
         range.selectNodeContents(node);
         const boxes = Array.from(range.getClientRects()).filter(box => box.width > 0 && box.height > 0);
         if (!boxes.length) continue;
-        // 所有分帧结果先写入离屏画布，可见画布在完成前保持上一帧。
+        // All frame results are first written to an offscreen canvas, and the visible canvas remains the previous frame until completion.
         const root_bounds = target.root.getBoundingClientRect();
         const scroller_top = target.scroller.getBoundingClientRect().top;
         const scroll_top = target.scroller.scrollTop;
         const style = getComputedStyle(parent);
         if (style.visibility === "hidden" || style.display === "none") continue;
         context.save();
-        // Range 仍会返回滚动框缓冲行的矩形；按正文内部祖先的裁剪区域限制绘制。
-        // 外层文档视口不参与裁剪，整篇尚未滚动到的段落仍须出现在缩略图上。
+        // Range still returns the rectangular area of the scroll box buffer line; limit drawing according to the clipping area of the ancestor inside the document.
+        // The outer document viewport does not participate in clipping, and the entire paragraph that has not yet been scrolled to still needs to appear in the thumbnail.
         for (let ancestor: HTMLElement | null = parent; ancestor && ancestor !== target.root; ancestor = ancestor.parentElement) {
           const ancestor_style = ancestor === parent ? style : getComputedStyle(ancestor);
           const clips_x = /^(?:auto|scroll|hidden|clip)$/u.test(ancestor_style.overflowX);
@@ -211,7 +212,7 @@ function create_minimap(target: minimap_target) {
     const scale_y = Math.min(scale_x, rail_height / Math.max(1, state.height));
     const rows = target.source ? source_rows(context, scale_x, scale_y) : rendered_rows(context, scale_x, scale_y);
     active_rows = rows;
-    // 长文按帧写入离屏缓冲；完成后在同一任务内原子提交，界面不会露出空白或半张缩略图。
+    // Long text is written frame by frame into an off-screen buffer; after completion, it is atomically submitted within the same task, and the interface will not show blank or half a thumbnail.
     const advance = () => {
       if (disposed || token !== generation || !geometry_ready()) {
         if (!disposed && token === generation) { rail.hidden = true; rail.dataset.updating = "false"; requested_signature = ""; frame = 0; }
@@ -224,7 +225,7 @@ function create_minimap(target: minimap_target) {
           frame = 0; if (active_rows === rows) active_rows = undefined;
           layout();
           if (signature !== render_signature()) { requested_signature = ""; schedule_render(false); return; }
-          // 前台节点始终不换；清空与复制处于同一任务，浏览器只会合成完整的新帧。
+          // Front-end nodes are always unchanged; clearing and copying are in the same task, and the browser will only synthesize a complete new frame.
           if (canvas.width !== back.width) canvas.width = back.width;
           if (canvas.height !== back.height) canvas.height = back.height;
           const front = canvas.getContext("2d");
@@ -266,7 +267,7 @@ function create_minimap(target: minimap_target) {
   const observer = new MutationObserver(records => {
     if (records.some(record => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) refresh();
   });
-  // CodeMirror 的 changes 事件是源码内容的权威信号；不观察其虚拟行 DOM，避免滚动时误判为正文变化。
+  // The CodeMirror changes event is the authoritative signal for source code content; do not observe its virtual line DOM, to avoid misjudging the document content change during scrolling.
   if (!target.source) observer.observe(target.root, { subtree: true, childList: true, characterData: true });
   const inner_scroll = (event: Event) => { if (event.target !== target.scroller) refresh(); };
   target.root.addEventListener("scroll", inner_scroll, true);

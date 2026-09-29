@@ -1,5 +1,6 @@
-/** 配置定义统一登记；数据和保存事务继续归各领域唯一所有者。 */
-export type workspace_setting_field={key:string;title:string;choices?:string[];description?:string;file_extensions?:string[];action?:()=>void};
+import {workspace_text} from "./workspace_i18n";
+/** Configuration definitions are uniformly registered; data and save transactions continue to be owned by each domain uniquely. */
+export type workspace_setting_field={key:string;title:string;choices?:string[];choice_labels?:Record<string,string>;description?:string;file_extensions?:string[];action?:()=>void};
 export type workspace_settings_section={
   id:string;title:string;scope:()=>string;defaults:Record<string,unknown>;fields:workspace_setting_field[];
   read:()=>Record<string,unknown>;write:(key:string,value:unknown)=>void;
@@ -8,7 +9,7 @@ export type workspace_settings_section={
 const sections=new Map<string,workspace_settings_section>(),listeners=new Set<()=>void>();
 export function notify_workspace_settings(){for(const listener of listeners)listener();}
 export function register_workspace_settings(section:workspace_settings_section){
-  if(sections.has(section.id))throw Error('设置分类已登记：'+section.id);
+  if(sections.has(section.id))throw Error(workspace_text("settings_registry_setting_category_has_been_registered")+section.id);
   sections.set(section.id,section);notify_workspace_settings();
   return()=>{if(sections.get(section.id)===section){sections.delete(section.id);notify_workspace_settings();}};
 }

@@ -1,13 +1,14 @@
+import {workspace_text} from "./workspace_i18n";
 import {workspace_element as el} from "./workspace_widgets";
 import {create_workspace_lifetime} from "./workspace_lifetime";
 import {bind_terminal_sash} from "./terminal_sash";
 
 const LIST_WIDTH_KEY="typora-code:terminal-list-width";
 type split_layout={node:HTMLElement;panes:HTMLElement[];weights:Map<string,number>;signature:string;clear:()=>void};
-/** 几何状态只引用已存在的会话表面，不拥有进程、正文或xterm实例。 */
+/** The geometry state only references existing session surfaces, and does not own processes, document content, or xterm instances. */
 export function create_terminal_layout(body:HTMLElement,tabs:HTMLElement,changed:()=>void){
   const lifetime=create_workspace_lifetime(),groups=new Map<string,split_layout>(),sash=el("div","terminal-tabs-sash");
-  sash.setAttribute("aria-label","调整终端列表宽度");body.append(sash);
+  sash.setAttribute("aria-label",workspace_text("terminal_layout_adjust_terminal_list_width"));body.append(sash);
   let width=120,frame=0,direction=1;
   try{const saved=Number(localStorage.getItem(LIST_WIDTH_KEY));if(Number.isFinite(saved)&&saved>=46&&saved<=500)width=saved;}catch{}
   const save=()=>{try{localStorage.setItem(LIST_WIDTH_KEY,String(width));}catch{}};
@@ -24,7 +25,7 @@ export function create_terminal_layout(body:HTMLElement,tabs:HTMLElement,changed
     for(const group of groups.values()){
       if(group.node.hidden)continue;const total=group.node.clientWidth,count=group.panes.length;if(!count||!total)continue;
       const minimum=Math.min(80,total/count),remaining=new Set(group.panes),sizes=new Map<HTMLElement,number>();let space=total;
-      // 小窗先满足每个可见分屏的最小份额，其余空间按身份权重分配。
+      // Small windows first meet the minimum share for each visible split view, and the remaining space is allocated according to identity weights.
       while(remaining.size){const weight=[...remaining].reduce((sum,node)=>sum+(group.weights.get(node.dataset.session!)||1),0);
         const limited=[...remaining].filter(node=>space*(group.weights.get(node.dataset.session!)||1)/weight<minimum);
         if(!limited.length){for(const node of remaining)sizes.set(node,space*(group.weights.get(node.dataset.session!)||1)/weight);break;}
@@ -48,7 +49,7 @@ export function create_terminal_layout(body:HTMLElement,tabs:HTMLElement,changed
       const sum=[...weights.values()].reduce((a,b)=>a+b,0)||1;for(const [key,value]of weights)weights.set(key,value/sum);
       const bindings=create_workspace_lifetime();group={node,panes,signature,weights,clear:bindings.dispose};groups.set(id,group);
       for(let index=0;index<panes.length-1;index++){
-        const left=panes[index],right=panes[index+1],divider=el("div","terminal-split-sash");divider.dataset.splitIndex=String(index);divider.setAttribute("aria-label",`调整终端分屏 ${index+1}`);node.append(divider);
+        const left=panes[index],right=panes[index+1],divider=el("div","terminal-split-sash");divider.dataset.splitIndex=String(index);divider.setAttribute("aria-label",workspace_text("terminal_layout_adjust_terminal_split_view", {value_0: String(index+1)}));node.append(divider);
         let pair_width=0;const current=group;
         bindings.own(bind_terminal_sash(divider,{read:()=>{pair_width=left.getBoundingClientRect().width+right.getBoundingClientRect().width;return left.getBoundingClientRect().width;},write:value=>{
           const minimum=Math.min(80,pair_width/2),size=Math.max(minimum,Math.min(pair_width-minimum,value)),pair_weight=(weights.get(left.dataset.session!)||0)+(weights.get(right.dataset.session!)||0);

@@ -7,6 +7,8 @@ domains:
   - tools
 ---
 
+[English](README.en.md)
+
 # 第1章\_Codicons图标来源与使用
 
 本目录保存 Microsoft 与 Codicons 贡献者提供的 官方 SVG，供 Typora 的源代码管理、提交历史、差异查看、状态栏、工作区搜索和文件浏览共用。图形来自 [microsoft/vscode-codicons](https://github.com/microsoft/vscode-codicons)，固定到提交 [`1c47ab36a4bb845c437866405c2fa67b8ca0fe36`](https://github.com/microsoft/vscode-codicons/tree/1c47ab36a4bb845c437866405c2fa67b8ca0fe36)。安装与运行使用本目录的固定资源，不查询本机 VS Code，不需要联网下载图标或安装图标字体。

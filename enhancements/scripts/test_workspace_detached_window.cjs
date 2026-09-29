@@ -1,4 +1,4 @@
-// 两个真实隐藏 renderer 的 BroadcastChannel 移交；不启动或改写用户 Typora。
+// Two real hidden renderer's BroadcastChannel are transferred; do not start or rewrite user Typora.
 const {app,BrowserWindow,ipcMain,screen}=require('electron');
 const fs=require('node:fs'),os=require('node:os'),path=require('node:path'),assert=require('node:assert/strict');
 const {build}=require('esbuild');
@@ -44,7 +44,7 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate(last_child,'received[0].text'),'int dirty_value = 7;');
   assert.deepEqual(await evaluate(source,'notices'),[]);
   assert.deepEqual(await evaluate(last_child,'[_options.initAnchor,File.option.initAnchor]'),['',''],'both native anchor owners consume the safe fragment');
-  // 同窗、取消、侧栏、标题栏落下均不创建窗口。实际窗口尺寸决定边界。
+  // Same time, cancel, sidebar, title bar drop down do not create windows. Actual window size determines boundary.
   for(const detail of [{local_drop:true},{cancelled:true},{screen_x:0,screen_y:0},await evaluate(source,'({screen_x:screenX+20,screen_y:screenY+30})')]){
     await evaluate(source,`start_drag();end_drag(${JSON.stringify(detail)});void 0`);
   }
@@ -56,7 +56,7 @@ app.whenReady().then(async()=>{
   await wait(source,'releases===2');assert.equal(launches,1,'merging into an existing window creates no extra window');
   assert.equal(await evaluate(merge_target,'last_index'),3,'existing window receives the actual insertion point');
   assert.equal(await evaluate(merge_target,'received.length'),1);
-  // 无有效令牌的既有空窗不能接收另一个窗口的正文。
+  // Existing empty windows without valid tokens cannot receive another window's document content.
   const unrelated=await open();
   assert.equal(await evaluate(unrelated,'received.length'),0);
   await evaluate(source,'changed=true;detach();void 0');await wait(source,'notices.length===1');
@@ -69,18 +69,18 @@ app.whenReady().then(async()=>{
   mode='timeout';await evaluate(source,'notices=[];detach();detach();void 0');await wait(source,'notices.length===1');
   assert.equal(launches,4,'repeated drag while transfer pending creates one window');
   assert.equal(await evaluate(source,'releases'),2,'missing receiver timeout retains original');
-  // 捕获还未创建窗口时，慢盘也必须能取消并允许重试。
+  // When capturing a window that has not yet been created, the slow disk must also be able to cancel and allow retry.
   await evaluate(source,`notices=[];window.capture_original=files.capture_transfer;files.capture_transfer=async(target,signal)=>{window.capture_signal=signal;await new Promise(resolve=>window.finish_capture=resolve);return capture_original();};detach();void 0`);
   await wait(source,'notices.length===1');assert.equal(await evaluate(source,'capture_signal.aborted'),true);
   await evaluate(source,'finish_capture();files.capture_transfer=capture_original;void 0');await delay(100);
   assert.equal(launches,4,'late capture result does not create a window after cancellation');
-  // ACK不能撤销总超时；磁盘复查悬挂时仍可取消，迟到结果不能删来源。
+  // ACK cannot undo total timeout; disk check hang still allows cancellation, stale results cannot delete source.
   mode='normal';await evaluate(source,`notices=[];files.release_transfer=async(target,snapshot,signal)=>{window.release_started=true;await new Promise(resolve=>window.finish_release=resolve);if(signal.aborted)return false;releases++;return true;};detach();void 0`);
   await wait(source,'window.release_started===true');await wait(source,'notices.length===1');
   await evaluate(source,'finish_release();void 0');await delay(100);
   assert.equal(await evaluate(source,'releases'),2,'ACK retains a bounded release deadline');
   await evaluate(source,'window.release_started=false;void 0');
-  // 释放期间卸载应使 AbortSignal 失效，迟到结果不能再删来源。
+  // During release, unload should make AbortSignal invalid, stale results cannot delete source.
   mode='normal';await evaluate(source,`notices=[];files.release_transfer=async(target,snapshot,signal)=>{window.release_started=true;await new Promise(resolve=>window.finish_release=resolve);if(signal.aborted)return false;releases++;return true;};detach();void 0`);
   await wait(source,'window.release_started===true');await evaluate(source,'binding.dispose();finish_release();void 0');await delay(150);
   assert.equal(await evaluate(source,'releases'),2);
@@ -189,7 +189,7 @@ app.whenReady().then(async()=>{
   await evaluate(direct,'binding.open(leaf);void 0');await wait(direct,'releases===1');
   assert.equal(await evaluate(last_child,'received.length'),1,'move menu receives exactly one payload before releasing the source');
   await evaluate(direct,'binding.dispose();void 0');
-  // 实际默认通知路径不能创建模态框或改变输入焦点；错误内容作为文本处理。
+  // Actual default notification path cannot create modal boxes or change input focus; error content is treated as text.
   const feedback=await open();
   await evaluate(feedback,`binding.dispose();window.notice_calls=[];files.core.Notice=class{constructor(text,duration){notice_calls.push({text,duration});const node=document.createElement('div');node.className='fixture-notice';node.innerHTML=text;document.body.append(node);}};window.focus_input=document.createElement('input');document.body.append(focus_input);focus_input.focus();files.capture_transfer=async()=>{throw Error('failed <img src=x onerror="window.injected=true">')};install('',1800,{notify:undefined});detach();void 0`);
   await wait(feedback,'notice_calls.length===1');

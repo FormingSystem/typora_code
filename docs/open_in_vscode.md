@@ -1,3 +1,5 @@
+[English](open_in_vscode.en.md)
+
 # 在 VS Code 中打开（R078）
 
 ## 目标与入口

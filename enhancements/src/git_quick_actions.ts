@@ -19,7 +19,7 @@ function rebase_setting(state:git_network_state):string{
 }
 function pull_mode(state:git_network_state,settings:graph_settings,id:"pull"|"sync"):string{
   const configured=rebase_setting(state);
-  // 显式 --rebase 会覆盖 Git 的 pull.ff=only，因此先保留只允许快进的约束。
+  // Explicitly --rebase will override Git's pull.ff=only, so preserve the constraint of only allowing fast-forward first.
   if(git_network_config(state,"pull.ff")==="only")return "ff-only";
   if(["true","1","yes","on","merges","m"].includes(configured.toLowerCase()))return "rebase";
   if(["interactive","i"].includes(configured.toLowerCase()))throw new Error(text("quick.interactive_pull"));
@@ -40,7 +40,7 @@ async function push_remote(state:git_network_state,choose:choose_git_remote|unde
   const selected=await choose(state.remotes,state.branch);
   return selected===undefined?undefined:known_remote(state,selected);
 }
-/** 快捷按钮自动准备准确目标，复用已有执行计划；只有真正多目标时才要求选择。 */
+/** Quick buttons automatically prepare accurate targets, reuse existing execution plans; only when there are truly multiple targets does selection become required. */
 export async function prepare_quick_git_action(run:git_run,id:quick_git_action,context:action_context,settings:graph_settings,choose_remote?:choose_git_remote,options:quick_git_options={}):Promise<action_plan|undefined>{
   const state=await read_git_network_state(run,context.root,id==="push"?options.branch:undefined);
   if(id==="push"&&options.branch&&(!state.branch_hash||options.target_hash&&state.branch_hash!==options.target_hash))throw new Error(text("quick.target_changed"));
@@ -77,7 +77,7 @@ export async function prepare_quick_git_action(run:git_run,id:quick_git_action,c
   if(operation==="fetch"&&selected_remote?.branch){
     plan.args.push(selected_remote.branch);plan.preview="git "+plan.args.map(arg=>JSON.stringify(arg)).join(" ");
   }
-  // 不把读取本地配置当作联网；批准的点击只在控制器接收完整计划后开始写操作。
+  // Do not treat reading local configuration as being online; approved clicks only start write operations after the controller receives a complete plan.
   plan.network_guard=state.guard;
   if(operation==="pull"||operation==="sync"){
     const rebase=rebase_setting(state);

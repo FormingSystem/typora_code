@@ -1,4 +1,4 @@
-// 原始Typora独立副本；当前候选、实际Shell及原生Markdown，不修改用户环境。
+// Original Typora independent copy; current candidate, actual Shell and native Markdown, do not modify the user's environment.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;

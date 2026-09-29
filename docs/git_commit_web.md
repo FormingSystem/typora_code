@@ -1,3 +1,5 @@
+[English](git_commit_web.en.md)
+
 # R062 提交托管网页入口
 
 2026-09-20 用户要求提交浮层像VS Code一样提供网页入口，并按实际Git远端识别GitHub、Gitee等平台。现状是提交菜单的`commit_github_url`只支持GitHub，浮层只提供复制；两处必须消费同一服务，不能各自拼URL。

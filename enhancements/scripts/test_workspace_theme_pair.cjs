@@ -1,4 +1,4 @@
-// 正式主题文件、共享预览与真实Chromium排版；不以颜色相同代替字体验收。
+// Official theme files, shared preview, and real Chromium layout; do not substitute color similarity for text acceptance.
 const {app,BrowserWindow}=require('electron'),fs=require('node:fs'),path=require('node:path'),os=require('node:os'),assert=require('node:assert/strict');
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora-theme-pair-')),root=path.join(__dirname,'../..');app.setPath('userData',path.join(base,'profile'));app.disableHardwareAcceleration();let win;
 const checks=[],samples=[],pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -14,7 +14,7 @@ app.whenReady().then(async()=>{
   const actual=await ev('geometry()');if(!reference)reference=actual;assert.deepEqual(actual,reference,theme+' fonts/geometry');checks.push(theme+' 正文/六级标题/代码/表格等14类排版相同');
   await ev(`shadow.innerHTML='<style>'+qa.markdown_theme_rules()+'</style><div id=write>'+original+'</div>';void 0`);
   const preview=await ev('geometry(shadow)');
-  // Shadow使用实际正文继承；容器宽度由各视图拥有，这里只比较文字与块几何属性。
+  // Shadow uses actual document inheritance; container width is owned by each view, here only compare text and block geometry attributes.
   assert.deepEqual(preview,actual,theme+' shadow');checks.push(theme+' CSS导入后Shadow字体/边线/间距一致');
   const colors=await ev(`Object.fromEntries(['p','h1','a','th','td','pre'].map(q=>{const c=getComputedStyle(document.querySelector('#write '+q));return[q,{color:c.color,bg:c.backgroundColor}]}))`);samples.push({theme,geometry:actual,colors});
   if(theme.endsWith('_light.css')){assert.equal(colors.p.color,'rgb(32, 32, 32)');assert.equal(colors.a.color,'rgb(0, 105, 204)');assert.equal(colors.pre.bg,'rgb(234, 234, 234)');assert.equal(await ev('getComputedStyle(document.body).backgroundColor'),'rgb(255, 255, 255)');checks.push('Light实际2026 Light正文/链接/围栏色值');}

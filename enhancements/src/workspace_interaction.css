@@ -1,7 +1,7 @@
-/* VS Code 6807068语义颜色、4px控件圆角：仅在声明的UI范围绘制。
-   内部变量用于默认/选中优先级；公开变量供领域覆写，避免争夺hover选择器。 */
+/* VS Code 6807068 semantic colors, 4px control rounding: only draw within the declared UI range.
+   Internal variables are used for default/selected priority; public variables are for domain override, avoiding competition for hover selector. */
 :root {
-  /* R061：分区使用既有SCM紧凑槽位；树槽采用645f29c tree.css，深度默认8px。 */
+  /* R061: partition uses existing SCM compact slots; tree slots use 645f29c tree.css, depth defaults to 8px. */
   --workspace-disclosure-inset:4px;
   --workspace-disclosure-size:16px;
   --workspace-disclosure-gap:4px;
@@ -17,7 +17,7 @@
   --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);
   --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);
   --workspace-focus-border:var(--vscode-focusBorder,#0069cc);
-  /* 6807068 Light/Dark 2026：选中背景和前景必须成对切换。 */
+  /* 6807068 Light/Dark 2026: selected background and foreground must be toggled in pairs. */
   --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);
   --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);
 }
@@ -37,21 +37,21 @@
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
 :where([role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]) { --workspace-default-hover:var(--workspace-menu-item-hover); }
 :where([data-workspace-interaction="menu"],[role="menubar"]>[role="menuitem"]) { --workspace-default-hover:var(--workspace-menu-hover); }
-/* VS Code button.css 主题角色：主操作共用颜色，领域仅保留尺寸与分裂形状。 */
+/* VS Code button.css theme roles: main operations share colors, domains only retain size and split shape. */
 body [data-workspace-interaction="primary"]:not(:where([data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) {
   background-color:var(--vscode-button-background,#0078d4)!important;
   color:var(--vscode-button-foreground,#fff)!important;
   --workspace-interaction-hover:var(--vscode-button-hoverBackground,#006cbe);
   --workspace-interaction-foreground:var(--vscode-button-foreground,#fff);
 }
-/* 局部形状不继承到子操作；跨控件默认通过control-radius管理。
-   稳定圆角覆盖默认/悬停/选中/禁用，不改命中盒大小或裁剪内容。 */
+/* Local shapes are not inherited to sub-operations; cross-control defaults are managed by control-radius.
+   Stable rounding overrides default/hover/selected/disabled, without changing the hit box size or content clipping. */
 :where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { --workspace-interaction-radius:initial; }
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }
-/* 真实选中状态由领域维护，悬停不清除选中；普通菜单checked仅表示开关。 */
+/* The real selected state is maintained by the domain, hover does not clear selected; ordinary menus checked only indicate toggle. */
 :where([role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }
 :where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }
-/* :where归零状态选择器权重，避免disabled/selected优先级被:not数量改变。 */
+/* :where zero state selector weight, avoid :disabled/selected priority being changed by :not quantity. */
 body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {
   background-color:var(--workspace-interaction-hover,var(--workspace-default-hover))!important;
   color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;
@@ -62,7 +62,7 @@ body :is([data-workspace-interaction],:where([data-workspace-surface]) :is(butto
   color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;
 }
 
-/* 一级侧栏分区的外留白和整行底色统一；各视图继续拥有高度、折叠和工具显隐。 */
+/* The outer margin and full-line background of the first sidebar partition are unified; each view continues to have height, folding, and tool visibility. */
 body .workspace-section-header.workspace-section-header {
   box-sizing:border-box; margin-left:var(--workspace-disclosure-inset);margin-right:var(--workspace-disclosure-inset);
   padding-left:0;padding-right:0;min-width:0;width:calc(100% - 2 * var(--workspace-disclosure-inset));
@@ -73,7 +73,7 @@ body .workspace-section-header.workspace-section-header:hover {background-color:
 body .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}
 body .workspace-section-header > .workspace-section-actions {margin-right:0;}
 
-/* R020.1：列表/树共同的整行状态。业务模块只投影键，不复制选中背景。 */
+/* R020.1: common full-line state for list/tree. Business modules only project keys, not copy selected background. */
 [data-workspace-list] {--workspace-list-surface:var(--workspace-list-background,var(--vscode-sideBar-background,#fafafd));}
 body [data-workspace-list] [data-workspace-selected] {
   --workspace-row-background:transparent;

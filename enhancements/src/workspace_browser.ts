@@ -1,3 +1,4 @@
+import {workspace_text} from "./workspace_i18n";
 import {bind_workspace_onboarding} from './workspace_onboarding';
 import {bind_native_vscode_menu,vscode_resource_entry} from "./workspace_open_vscode";
 import {workspace_context_switching} from "./workspace_context";
@@ -61,14 +62,14 @@ export function bind_workspace_browser() {
     compare:async(left,right)=>core.app.commands.run("linux_note:compare_files",[left,right]),
     extra_menu:(path,is_directory)=>[
       vscode_resource_entry(path),
-      {title:"Git：查看仓库提交图",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-git",{detail:{path}}))},
-      {title:"在仓库根目录打开终端",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path}}))},
-      {title:"以管理员身份打开仓库终端（UAC）",disabled:(window as unknown as {reqnode(name:string):any}).reqnode("process").platform!=="win32",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path,admin:true}}))}
+      {title:workspace_text("browser_git_view_repository_commit_graph"),action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-git",{detail:{path}}))},
+      {title:workspace_text("browser_open_terminal_in_repository_root_directory"),action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path}}))},
+      {title:workspace_text("terminal_workspace_open_repository_terminal_as_administrator_uac"),disabled:(window as unknown as {reqnode(name:string):any}).reqnode("process").platform!=="win32",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path,admin:true}}))}
     ]});
   lifetime.own(explorer);
   const outline_binding=lifetime.own(install_workspace_outline({context_root:files.context_root,document_active:()=>Boolean(core.app.workspace.activeLeaf)&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
   lifetime.own(bind_workspace_breadcrumbs(core,files,outline_binding));
-  lifetime.add(core.app.commands.register({id:"linux_note:source_outline_settings",title:"代码大纲：解析环境设置",scope:"global",callback:()=>outline_binding?.configure()}));
+  lifetime.add(core.app.commands.register({id:"linux_note:source_outline_settings",title:workspace_text("browser_code_outline_parse_environment_settings"),scope:"global",callback:()=>outline_binding?.configure()}));
   lifetime.add(core.app.workspace.on("active-leaf:change",()=>outline_binding?.refresh()));
   const reveal_outline=()=>{
     const sidebar=core.app.workspace.sidebar as unknown as {panels:{ribbonButton?:{id:string};constructor:Function}[];activePanel?:unknown;switch(type:Function):void;show():void};
@@ -77,7 +78,7 @@ export function bind_workspace_browser() {
     if(sidebar.activePanel!==panel)sidebar.switch(panel.constructor);
     sidebar.show();outline_binding?.refresh();
   };
-  lifetime.add(core.app.commands.register({id:"linux_note:outline",title:"视图：聚焦大纲",scope:"global",callback:reveal_outline}));
+  lifetime.add(core.app.commands.register({id:"linux_note:outline",title:workspace_text("browser_view_focus_outline"),scope:"global",callback:reveal_outline}));
 
   const search=lifetime.own(bind_workspace_search(core,files));
   lifetime.own(bind_workspace_remote_ssh(core,files,file_commands.set_folder));
@@ -92,13 +93,13 @@ export function bind_workspace_browser() {
   lifetime.add(core.app.vault?.on("mounted",()=>context_changed()));
   lifetime.listen(window,"linux-note-workspace-context-changed",()=>context_changed(true));
   const focus_explorer=()=>{explorer.show();requestAnimationFrame(()=>explorer.container.querySelector<HTMLElement>(".workspace-explorer-tree")?.focus({preventScroll:true}));};
-  lifetime.add(core.app.commands.register({id:"linux_note:file_explorer",title:"视图：资源管理器",scope:"global",callback:focus_explorer}));
+  lifetime.add(core.app.commands.register({id:"linux_note:file_explorer",title:workspace_text("browser_view_explorer"),scope:"global",callback:focus_explorer}));
   let reveal_epoch=0;
-  lifetime.add(core.app.commands.register({id:"linux_note:reveal_in_explorer",title:"视图：在资源管理器中定位",scope:"global",showInCommandPanel:false,callback:(path:string,root:string)=>{
+  lifetime.add(core.app.commands.register({id:"linux_note:reveal_in_explorer",title:workspace_text("browser_view_locate_in_explorer"),scope:"global",showInCommandPanel:false,callback:(path:string,root:string)=>{
     const epoch=++reveal_epoch;
     void(async()=>{try{
-      if(!files.path_api.isAbsolute(path)||!files.path_api.isAbsolute(root))throw new Error("定位路径无效。");
-      const relative=files.path_api.relative(root,path);if(files.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+files.path_api.sep))throw new Error("定位路径不在仓库内。");
+      if(!files.path_api.isAbsolute(path)||!files.path_api.isAbsolute(root))throw new Error(workspace_text("browser_invalid_location_path"));
+      const relative=files.path_api.relative(root,path);if(files.path_api.isAbsolute(relative)||relative===".."||relative.startsWith(".."+files.path_api.sep))throw new Error(workspace_text("browser_location_path_is_not_in_the_repository"));
       await files.fs.promises.stat(path);if(lifetime.disposed||epoch!==reveal_epoch)return;
       const mounted=files.context_root(),inside=mounted?files.path_api.relative(mounted,path):"..";
       if(!mounted||files.path_api.isAbsolute(inside)||inside===".."||inside.startsWith(".."+files.path_api.sep))await file_commands.set_folder(root);

@@ -1,7 +1,8 @@
+import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 import { is_markdown_file } from "./file_language";
 
-/** 空布局不是文档；空路径则属于真实的未命名Markdown草稿。 */
+/** Empty layout is not a document; empty path belongs to the real unnamed Markdown draft. */
 export function is_empty_editor_path(target: string): boolean {
   return target.startsWith("typ://core.empty/");
 }
@@ -31,9 +32,9 @@ export function is_source_file_uri(target: string): boolean {
   return target.startsWith(SOURCE_FILE_URI_PREFIX);
 }
 
-/** 源码标签只把绝对文件路径放进 URI 的一个编码段，文件名中的空格、#、% 和方括号不会改变 URI 结构。 */
+/** Source code tags only put absolute file paths into URI's one encoding segment; spaces, #, %, and brackets in the filename do not change URI structure. */
 export function source_file_uri(file_path: string): string {
-  if (!is_absolute_file(file_path)) throw new Error("源码 URI 需要绝对文件路径。");
+  if (!is_absolute_file(file_path)) throw new Error(workspace_text("file_uri_source_code_uri_requires_an_absolute_file_path"));
   return SOURCE_FILE_URI_PREFIX + encodeURIComponent(file_path);
 }
 
@@ -47,18 +48,18 @@ export function source_file_path(target: string, path_api?: path_identity_api): 
   }
 }
 
-/** Windows 驱动器和 UNC 路径按不区分大小写的文件身份比较；POSIX 路径仍区分大小写。 */
+/** Windows driver and UNC path are compared case-insensitively based on file identity; POSIX path still distinguishes case. */
 export function file_key(file_path: string): string {
   const normalized = file_path.replace(/\\/gu, "/");
   return /^(?:[a-z]:\/|\/\/)/iu.test(normalized) ? normalized.toLowerCase() : normalized;
 }
 
-/** file URL 只在协议边界解码一次，不能把 file:/ 当作工作区子目录。 */
+/** file URL is decoded only once at the protocol boundary; cannot treat file:/ as a subdirectory of the workspace. */
 function file_url_path(path_api: path_identity_api, target: string): string | undefined {
   try {
     const url = new URL(target);
     if (url.protocol !== "file:" || url.username || url.password || url.port || url.search) return;
-    // 编码的目录分隔符不属于合法文件 URL，防止解码改变路径层级。
+    // Encoded directory separators are not considered valid file URL; prevent decoding from changing the path hierarchy.
     if (/%2f|%5c/iu.test(url.pathname)) return;
     const pathname = decodeURIComponent(url.pathname);
     if (path_api.sep === "\\") {
@@ -69,7 +70,7 @@ function file_url_path(path_api: path_identity_api, target: string): string | un
   } catch { return; }
 }
 
-/** 所有工作区命令都以显式 context_root 解析相对路径，避免落到 Electron 进程工作目录。 */
+/** All workspace commands parse relative paths explicitly as context_root; avoid falling into Electron process working directory. */
 export function resolve_workspace_file(path_api: workspace_path_api, context_root: string, target: string): string | undefined {
   const decoded = source_file_path(target, path_api);
   if (is_source_file_uri(target) && !decoded) return;
@@ -82,22 +83,19 @@ export function resolve_workspace_file(path_api: workspace_path_api, context_roo
   return path_api.resolve(context_root, candidate);
 }
 
-/** 宿主工具 URI 已由工作区注册表解释，绝不能按当前 Markdown 的目录再次解析。 */
+/** Host tool URI has already been interpreted by the workspace registry; absolutely cannot parse it again based on the current Markdown directory. */
 export function resolve_host_open_file_target(path_api: workspace_path_api, source_file: string, target: string): string {
   const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
   const remote=remote_files_for(source_file);
   if(remote&&candidate.startsWith('file:')){try{const url=new URL(candidate);if((!url.hostname||url.hostname==='localhost')&&!url.username&&!url.password&&!url.search&&!/%2f|%5c/iu.test(url.pathname)&&!/^\/[a-z]:\//iu.test(url.pathname))return remote.local_path(decodeURIComponent(url.pathname))+url.hash;}catch{return candidate;}}
   if(remote&&candidate.startsWith('/')&&!candidate.startsWith('//'))return remote.local_path(candidate);
-  // 协议保留到统一解析边界；不能先把 https: 等拼成可打开的本地文件名。
+  // Protocol is retained until the unified parsing boundary; cannot first combine https: and others into a readable local filename.
   if (!is_windows_absolute_file(candidate) && /^[a-z][a-z0-9+.-]*:/iu.test(candidate)) return candidate;
   if(remote&&!path_api.isAbsolute(candidate))return remote.local_path(remote.path_api.posix.resolve(remote.path_api.posix.dirname(remote.remote_path(source_file)),candidate.replace(/\\/gu,'/')));
   return source_file && !path_api.isAbsolute(candidate) ? path_api.resolve(path_api.dirname(source_file), candidate) : candidate;
 }
 
-/**
- * 普通文件路径中的 % 不做 URL 解码；只有位于 Markdown 后缀之后的 # 才是锚点。
- * 因而 `notes/a #1 100%.md#标题` 会保留文件名中的 #、% 和空格。
- */
+/** Do not URL-decode percent signs in ordinary file paths; only a hash after the Markdown extension denotes an anchor. Thus notes/a #1 100%.md#heading preserves the filename's hash, percent sign, and spaces. */
 export function parse_markdown_file_target(target: string): markdown_file_target | undefined {
   const candidate = target.startsWith("<") && target.endsWith(">") ? target.slice(1, -1) : target;
   if (!candidate || is_source_file_uri(candidate)) return;
