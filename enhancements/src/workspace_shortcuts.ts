@@ -17,13 +17,13 @@ export type workspace_shortcuts_binding = { dispose(): void };
 let active_binding: workspace_shortcuts_binding | undefined;
 
 function primary_modifier(event: KeyboardEvent): boolean {
-  return (event.ctrlKey || event.metaKey) && !event.altKey;
+  return (event.ctrlKey || event.metaKey) && !event.altKey && !event.getModifierState("AltGraph");
 }
 
-function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]'): boolean {
+function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]', owned_dialog?:HTMLElement): boolean {
   const candidates = document.querySelectorAll<HTMLElement>(selector);
   return Array.from(candidates).some((candidate) => {
-    if (candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
+    if (candidate===owned_dialog || candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
     const style = getComputedStyle(candidate);
     return style.display !== "none" && style.visibility !== "hidden";
   });
@@ -54,11 +54,17 @@ export function install_workspace_shortcuts(
       run(event, () => app.commands.run(zoom_command));
       return;
     }
-    const active_picker=get_workspace_quick_open();
-    if(active_picker && !active_picker.root.hidden && primary_modifier(event) && event.code === "KeyP") {
-      run(event,()=>{if(event.shiftKey){active_picker.close();app.commands.run("command:open");}else active_picker.open();});return;
+    const picker=get_workspace_quick_open();
+    const picker_shortcut=primary_modifier(event) && event.code === "KeyP";
+    if (visible_modal(undefined,picker_shortcut?picker?.root:undefined)) { reset_chord(); return; }
+    // These window commands skip the shell, regardless of the terminal's placement.
+    if (picker_shortcut) {
+      if(event.repeat && (!picker || picker.root.hidden))return;
+      if(event.shiftKey)run(event,()=>{picker?.close();app.commands.run("command:open");});
+      else if(picker)run(event,()=>picker.open());
+      return;
     }
-    if (visible_modal() || is_terminal_input(event)) { reset_chord(); return; }
+    if (is_terminal_input(event)) { reset_chord(); return; }
     if (event.repeat || ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
 
     const in_chord = chord_started > 0 && Date.now() - chord_started < 2000;
@@ -85,11 +91,6 @@ export function install_workspace_shortcuts(
     if (primary_modifier(event)) {
       if(event.code==="KeyX"&&event.shiftKey){run(event,()=>app.commands.run("typora_code:community_plugins"));return;}
       if(event.code==="KeyR"&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:open_recent"));return;}
-      if (event.code === "KeyP") {
-        if (event.shiftKey) run(event, () => app.commands.run("command:open"));
-        else { const picker=get_workspace_quick_open(); if(picker)run(event,()=>picker.open()); }
-        return;
-      }
       if(event.code === "KeyO" && !event.shiftKey && !(chord_started>0 && Date.now()-chord_started<2000)) { run(event,()=>app.commands.run("linux_note:open_file")); return; }
       if(event.code === "KeyS"&&event.shiftKey){run(event,()=>app.commands.run("linux_note:save_as"));return;}
       if(["KeyW","F4"].includes(event.code)&&!event.shiftKey&&!(chord_started>0&&Date.now()-chord_started<2000)){run(event,()=>app.commands.run("linux_note:close_editor"));return;}

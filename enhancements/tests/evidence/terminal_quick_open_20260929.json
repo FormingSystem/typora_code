@@ -1,0 +1,107 @@
+{
+  "requirements": [
+    "R079.2"
+  ],
+  "date": "2026-09-29",
+  "version": "2026.09.29.4",
+  "baseline": "03c5934",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/contrib/terminal/common/terminal.ts",
+      "src/vs/workbench/contrib/terminal/browser/terminalInstance.ts"
+    ],
+    "adoption": "quickOpen and showCommands skip shell; keep other terminal-local input with its existing owner"
+  },
+  "reproduction": {
+    "id": "da36a48945b24f8f822c63521afa4894",
+    "result": "FAIL before fix: terminal Ctrl+P cannot open shared picker because terminal early return precedes command dispatch"
+  },
+  "changes": [
+    "One shared Ctrl+P/Ctrl+Shift+P branch before terminal exclusion",
+    "Only the owned picker is excluded from modal guard for its own shortcut; other modals still block",
+    "AltGraph does not enter primary-modifier commands; handled keyup remains shared"
+  ],
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "59eddc3c4677440b86ed08194182884b",
+      "status": "PASS",
+      "payload_state": "cleaned"
+    },
+    "ui": [
+      {
+        "id": "f25900d3492042f184e761917bd4f044",
+        "status": "PASS",
+        "payload_state": "cleaned"
+      },
+      {
+        "id": "6485be6dc63d4fcfbf983f1514799527",
+        "status": "PASS",
+        "payload_state": "cleaned"
+      },
+      {
+        "id": "0b660d2e10944ffdbdfb0f37f3493d9c",
+        "status": "PASS",
+        "payload_state": "cleaned"
+      }
+    ],
+    "native": {
+      "id": "f9607abdebb54c4e9bf7f40860c3d954",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "assertions": 67,
+      "workbench_sha256": "b24e2b065e0c14ba5e850b3389655350f721bab4b684a9b572a0b8ebc731c606"
+    },
+    "stress": {
+      "trusted_xterm_picker_escape_cycles": 20,
+      "native_editor_terminal_cycles": 10,
+      "native_panel_terminal_cycles": 10
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 256
+    },
+    "install": {
+      "id": "79689c01df2b47d9b1d91c895e470de5",
+      "status": "PASS",
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "dbec984b7b0b41f4b3c45b7f14bfb417",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "assertions": 65
+    }
+  },
+  "intermediate_failures": [
+    "Initial npm invocation from repository root rejected before tests; rerun from enhancements.",
+    "339963dcae234a9e985b6b3045c4614a exposed own picker aria-modal guard blocking repeated Ctrl+P; final code exempts only owned picker for this command.",
+    "2124249a6ca942699b35698ad69b5ba4 and 1427308a2aac4a3bbb4977cee0699106 native fixture treated legitimate focus-report ESC[O as leaked keyboard data; final assertion allows only ESC[I/O and rejects other unexpected bytes.",
+    "4fe3134788eb4fbcad6aa3d10e572be0 synthetic keyboard fixture omitted legacy keyCode required by xterm Ctrl+C; final fixture supplies keyCode and passes."
+  ],
+  "delivery": {
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      49,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "c3feacf5e8f0c471f12b2a7949325f894681baf2c56f82f86630599c7fcb8258",
+    "window_restarted": false
+  },
+  "boundaries": [
+    "Trusted Electron keyboard events, native Typora renderer events; not physical OS keyboard.",
+    "Native terminal PTY input port captured for control-key assertions, not execution of test commands in a user shell.",
+    "Windows Typora 1.14.10 checked; no non-Windows native host or live SSH run.",
+    "Full core checks and three targeted UI suites; not full UI suite.",
+    "Current user windows not restarted; save and restart normally to load candidate.",
+    "R082 localization and prior paused or unverified issues retained, not closed by R079.2."
+  ],
+  "commit_state": "pending at evidence generation; receipt in Git and local ledger",
+  "pushed": false
+}

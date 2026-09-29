@@ -494,3 +494,5 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 
 - BUG-source-clipboard-host（R079.1，2026-09-29补充）：R068.7已接通菜单，但Monaco键盘仍走缺失的native triggerPaste，可信Ctrl+V被消费而模型不变；本次把上游Copy/Cut/Paste命令统一接入现有适配，随编辑器销毁注销。
 - BUG-terminal-paste-control（R079.1，2026-09-29）：Windows xterm Ctrl+V落入Shell控制字符0x16，Ctrl+Shift+V却有独立粘贴入口；按上游平台键位共用原终端paste，保持Ctrl+C中断。最终验证及已安装状态见R079.1证据；测试剪贴板替身与系统实机边界分开记录。
+
+- BUG-terminal-window-shortcut（R079.2，2026-09-29）：公共路由在Ctrl+P命令之前排除全部终端输入，快速打开落入Shell。修复共同分支并保留本地输入、IME和模态所有权；自有选择器的模态边界只对自身快捷键放行。原生测试须区分正常ESC[I/O焦点通知和键盘泄漏，不能禁止终端协议。当前证据见terminal_quick_open_20260929.json。

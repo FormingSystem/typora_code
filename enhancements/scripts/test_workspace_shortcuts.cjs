@@ -25,7 +25,7 @@ app.whenReady().then(async () => {
   await test_window.loadFile(fixture);
   const bundle = await build({
     plugins:require("./editor_bundle.cjs").editor_plugins(),
-    stdin: { contents: 'export * from "./src/workspace_shortcuts";export * from "./src/workspace_quick_open";', resolveDir: path.join(__dirname, '..') },
+    stdin: { contents: 'export * from "./src/workspace_shortcuts";export * from "./src/workspace_quick_open";export {terminal_surface} from "./src/terminal_surface";export {terminal_defaults} from "./src/terminal_settings";', resolveDir: path.join(__dirname, '..') },
     bundle: true,
     loader: {'.css':'text'},
     format: 'iife',
@@ -92,6 +92,8 @@ app.whenReady().then(async () => {
   const tree=path.join(evidence,'workspace');fs.mkdirSync(path.join(tree,'nested'),{recursive:true});fs.mkdirSync(path.join(tree,'.git'));fs.writeFileSync(path.join(tree,'alpha.md'),'# Alpha');fs.writeFileSync(path.join(tree,'nested','beta.txt'),'Beta');fs.writeFileSync(path.join(tree,'.git','secret'),'Excluded');
   await evaluate(`(()=>{window.current_root=${JSON.stringify(tree)};window.opened_files=[];window.quick=shortcut_qa.create_workspace_quick_open({fs:require('fs'),path_api:require('path'),context_root:()=>current_root,open_file:async file=>opened_files.push(file)});})()`);
   const wait=async expression=>{const start=Date.now();while(!await evaluate(expression)){if(Date.now()-start>5000)throw Error('Timed out '+expression);await new Promise(r=>setTimeout(r,20));}};
+  check(await evaluate(`document.querySelector('#terminal').focus();send('KeyP',{key:'p',ctrlKey:true},'#terminal')&&!quick.root.hidden&&document.activeElement===quick.input`), 'terminal Ctrl+P opens the shared picker');
+  await evaluate('quick.close();void 0');
   check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true})&&!quick.root.hidden&&document.activeElement===quick.input`), 'Ctrl+P opens and focuses the restored file picker');
   await wait(`document.querySelectorAll('.workspace-quick-open-result').length===2`);
   check(await evaluate(`(()=>{const before=quick.input.value;const selected=quick.root.querySelector('.is-selected');const ignored=['Enter','ArrowDown','ArrowUp','Escape'].every(key=>!send(key,{key,isComposing:true},'.workspace-quick-open input'));return ignored&&!quick.root.hidden&&opened_files.length===0&&quick.input.value===before&&quick.root.querySelector('.is-selected')===selected;})()`), 'Chinese IME composition keeps Enter, arrows and Escape without opening a result or closing the picker');
@@ -104,6 +106,23 @@ app.whenReady().then(async () => {
   await evaluate(`quick.open()`);await wait(`document.querySelectorAll('.workspace-quick-open-result').length===2`);
   check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true},'.workspace-quick-open input')&&!quick.root.hidden`), 'repeated Ctrl+P remains in the same picker');
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await wait('quick.root.hidden');
+  await evaluate(`window.pty_writes=[];window.surface=new shortcut_qa.terminal_surface(shortcut_qa.terminal_defaults,{input:data=>pty_writes.push(data),resize(){},copy:async()=>{},error:error=>{throw error},active(){}});surface.container.style.cssText='height:260px;width:700px';document.body.append(surface.container);surface.mount();surface.focus();`);
+  test_window.webContents.debugger.attach();await test_window.webContents.debugger.sendCommand('Emulation.setFocusEmulationEnabled',{enabled:true});
+  const press=async(key,modifiers=[])=>{for(const type of ['keyDown','keyUp'])test_window.webContents.sendInputEvent({type,keyCode:key,modifiers});await new Promise(resolve=>setTimeout(resolve,20));};
+  for(let i=0;i<20;i++){
+    await evaluate('surface.focus();pty_writes=[];');await press('p',['control']);
+    check(await evaluate('!quick.root.hidden&&document.activeElement===quick.input&&pty_writes.length===0'),'trusted terminal Ctrl+P skips PTY '+i);
+    await press('Escape');
+    check(await evaluate('quick.root.hidden&&document.activeElement===surface.term.textarea&&pty_writes.length===0'),'Escape restores terminal focus '+i);
+  }
+  await press('x');check(await evaluate(`pty_writes.join('')==='x'`),'terminal typing resumes after picker cancellation');
+  await evaluate('pty_writes=[];calls=[];surface.focus();');await press('p',['control','shift']);
+  check(await evaluate(`calls.length===1&&calls[0][1]==='command:open'&&pty_writes.length===0`),'trusted terminal Ctrl+Shift+P dispatches once');
+  for(const flags of [{isComposing:true},{keyCode:229},{altKey:true},{modifierAltGraph:true}])check(await evaluate(`!send('KeyP',{key:'p',ctrlKey:true,...${JSON.stringify(flags)}},'#terminal')&&quick.root.hidden`),'terminal picker excludes IME or AltGraph '+JSON.stringify(flags));
+  check(await evaluate(`document.querySelector('#dialog').hidden=false;const modal_blocked=!send('KeyP',{key:'p',ctrlKey:true},'#terminal')&&quick.root.hidden;document.querySelector('#dialog').hidden=true;modal_blocked`),'modal keeps Ctrl+P ownership');
+  await evaluate('surface.focus();pty_writes=[];');await press('p',['control']);
+  check(await evaluate(`send('KeyP',{key:'p',ctrlKey:true,repeat:true},'.workspace-quick-open input')&&!quick.root.hidden&&document.querySelectorAll('.workspace-quick-open').length===1`),'repeat Ctrl+P keeps one picker');
+  await press('Escape');await evaluate('surface.dispose();void 0');
   await evaluate(`(()=>{quick.dispose();let release;window.pending_scan=new Promise(resolve=>release=resolve);window.release_scan=release;quick=shortcut_qa.create_workspace_quick_open({fs:{promises:{readdir:()=>pending_scan}},path_api:require('path'),context_root:()=>current_root,open_file:async()=>{}});quick.open();quick.close();release_scan([{name:'stale.md',isFile:()=>true,isDirectory:()=>false}]);})()`);
   await new Promise(r=>setTimeout(r,30));
   check(await evaluate(`quick.root.hidden&&quick.root.querySelectorAll('.workspace-quick-open-result').length===0`), 'closed picker ignores a late directory scan');

@@ -38,3 +38,13 @@ workspace_shortcuts唯一拥有工作台侧栏和组合键，移除Git局部重�
 
 
 同轮扩查终端：可信Ctrl+V实际向xterm发送了控制字符`0x16`，没有执行粘贴。固定上游 `terminalContrib/clipboard/browser/terminal.clipboard.contribution.ts` 的Paste命令在Windows为Ctrl+V/ Ctrl+Shift+V，Linux保留Ctrl+V给Shell。本地终端按同样平台边界在自己的按键处理器接到既有paste入口；Electron读取与原菜单共用该入口，浏览器环境保留navigator回退，仍走原多行确认与销毁保护。Ctrl+C无选区仍中断进程，AltGr与输入法不触发粘贴；不把终端命令转交正文服务。
+
+## R079.2 终端焦点下的工作台入口（2026-09-29）
+
+问题：共同快捷键在判断Ctrl+P之前直接排除了全部终端输入，导致快速打开不可达。固定VS Code `6807068` 的 `terminal/common/terminal.ts` 将 `workbench.action.quickOpen` 和 `workbench.action.showCommands` 列入默认跳过Shell的命令；`terminal/browser/terminalInstance.ts` 在xterm处理之前按实际命令决定路由，而非禁用整个工作台。
+
+本次范围：共同窗口路由先处理Ctrl+P/Ctrl+Shift+P这组全局入口，再把其他终端输入交还原所有者；正文、侧栏、底部终端和编辑组终端共用同一分支及同一选择器，不在terminal_surface复制快捷键。保留已有窗口缩放优先级，输入法/229、AltGr及模态保护；不顺带改变其他终端键位或新增设置页。取代原“终端输入全部不参与工作台入口”的对应部分。
+
+快速打开自身持有查询、取消及原焦点快照：重复Ctrl+P使用原实例；Esc恢复触发终端焦点，打开文件交给文件服务，失败沿已有反馈并保留当前内容。已处理的抬键由共同consumed集合阻止重复调用，销毁清空。选择器尚未初始化时不吞键；命令面板仍走command:open。
+
+验收覆盖终端可见但正文获焦、真实xterm获焦、底部/编辑组搬移、Ctrl+P及Ctrl+Shift+P单次调用、重复/抬键不泄漏PTY、Esc后继续输入、文件选择以及输入法/模态保护。可信Electron输入与原始Typora合成事件分别记录，20轮开关及既有剪贴板/IME回归；构建、隔离安装/卸载、本机安装各自留证。
