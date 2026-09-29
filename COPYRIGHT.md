@@ -10,6 +10,8 @@ domains:
 
 # 第1章\_Typora\_Code\_版权、开源与贡献声明
 
+简体中文 | [英文](COPYRIGHT.en.md)
+
 ## 1.1\_产品与原创署名
 
 产品名称：**Typora Code**

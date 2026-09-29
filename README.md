@@ -1,134 +1,72 @@
----
-id: tools.typora.readme
-title: "Typora Code 阅读工作台"
-kind: reference
-status: evolving
-domains:
-  - tools
----
+# Typora Code
 
-# 第1章\_Typora\_Code阅读工作台
+English | [Simplified Chinese](README.zh-CN.md)
 
-Typora Code 为 Typora 增加多文档标签、源码编辑、文件搜索、Git 审阅和集成终端，把 Markdown 阅读与日常项目操作放在同一个窗口内。打开普通文件或文件夹即可使用，无需特定知识库目录或元数据。
+Typora Code adds a project workbench to Typora: document tabs, split views, source editing, workspace search, Git review, and integrated terminals in the same window as the native Markdown editor.
 
-资源管理器单击文件立即显示，并复用当前组的未编辑预览标签；Alt+左键或编辑正文后保持常驻。可从编辑器菜单关闭“启用预览编辑器”，继续让所有打开的文件常驻。详见[预览与常驻](docs/editor_tab_menu.md#r080资源管理器预览与常驻打开2026-09-27)。
+This is an independently maintained community project. It is not an official Typora or Visual Studio Code product. Install and license Typora separately. The workbench takes design inspiration from Visual Studio Code; it does not provide a VS Code extension host.
 
-工作台布局、交互方式和部分功能设计参考并模仿 [Visual Studio Code（VS Code）](https://code.visualstudio.com/)，设计来源见 [界面基线](docs/vscode_design_baseline.md)。
+## Features
 
-这是独立维护的社区增强项目，并非 Typora 或 VS Code 官方产品，需要先安装 Typora。Typora 的下载、许可与更新由其官方提供；本项目维护增强代码、主题、安装脚本及说明文档。
-
-| 能力 | 使用方式 |
+| Area | Available behavior |
 | --- | --- |
-| 界面层次 | 功能栏、终端、设置和浮层共用独立明暗配色与分隔，自动跟随当前主题明暗；Markdown正文保留原主题，见[颜色设计](docs/workspace_colors.md) |
-| 多文档阅读 | 标签切换、左右/上下分栏、阅读前后退、恢复上次位置；按原生恢复配置记住各目录打开的文件 |
-| 文件与源码 | 文件树、重命名与管理操作、Monaco 源码编辑、编码和换行设置 |
-| 代码分析 | 设置 → 语言服务 → 选择语言服务与环境；支持系统程序下拉、手填路径和Python venv，按语言接入LSP，见[配置与实测范围](docs/code_analysis_colors.md) |
-| 源码导航 | 编程源码中 Ctrl+左键或 F12 转到定义，无定义时查声明；右键可转到声明、实现或查找引用，见[导航范围](docs/code_analysis_colors.md#r0686-工程函数分析与导航) |
-| SSH远程 | 连接Linux主机并打开远端文件夹，当前窗口的主资源树、文件操作、搜索、Git和终端共同操作一个远端；Markdown原生即时编辑，支持链接导航、多电脑/多账号别名管理、系统凭据和独立查看保险箱；[使用与边界](docs/remote_ssh.md#当前状态) |
-| 搜索 | 工作区内容搜索；单击侧栏预览，双击或 Enter 打开；重复单击返回命中位置 |
-| 链接预览 | 选中Markdown链接在左下独立预览，未固定时在外部正文或其他功能操作会自动收起，图钉可固定，右上可手动关闭；顶部、右边和右上角可调整高宽，收起功能栏仍保留预览，正文不预留整列空白；本地预览顶栏提供50%—150%缩放滑条和百分比；预览内链接支持单击、Ctrl+左键或右键“跳转链接”，拖选文字不误跳转；Ctrl+滚轮只调整命中的预览，Alt+左右恢复独立历史与阅读位置，新选中链接重新开始；目录链接列出当前子项，进入文件后可返回目录并恢复位置；右键左右/上下分屏只读预览，本地目标可打开源文件编辑。网页在隔离页面加载，见[使用边界](docs/link_preview.md) |
-| Git | [仓库列表、提交图与操作菜单](docs/git_scm_actions.md)、文件历史、[Markdown双栏渲染差异](docs/git_markdown_diff.md)、源码只读差异、右侧红绿概览点击/拖动定位、提交和远端操作 |
-| 终端 | Windows 本机 Shell、多会话、分屏、查找及终端配置 |
-| 统一设置 | 左下齿轮 → 设置；Typora原生、社区插件、TyporaCode分层，自有配置搜索、分类、恢复默认；[配置归属](docs/workspace_settings.md) |
-| 社区插件 | 左侧扩展（Ctrl+Shift+X）；左下齿轮 → 设置 → 社区插件设置；真实社区市场或本地ZIP安装，空安装直接浏览市场；默认停用，启用后进入插件自身设置，支持独立启停及更新；[兼容边界](docs/community_plugins.md) |
-| 更新 | 按GitHub提交hash下载ZIP，无需Git或历史；Windows多窗口启动仅提醒一次，全阶段进度反馈，检查失败可直接重试；帮助菜单可打开项目GitHub仓库下载ZIP；立即安装、手动重启 |
-| Markdown | 原生编辑、标题大纲、缩略图、代码高亮、代码块一键复制、长代码展开及[图片／Mermaid放大查看](docs/reading_media_viewer.md) |
+| Documents | Tabs, split views, reading positions, shared back/forward navigation, and per-workspace session restoration |
+| Explorer | Files, open editors, and a timeline; single-click previews a file, Alt+click keeps it open, and editing promotes a preview to a persistent tab |
+| Source editing | Monaco editing, encoding and line endings, language services, symbol outlines, and source navigation; external language servers are configured separately |
+| Search | Filename/path search and workspace content search; click a result to preview it, double-click or press Enter to open it |
+| Markdown | Native Typora editing, heading outlines, a minimap, code copying and folding, and image/Mermaid viewers |
+| Link previews | Independent reading history, pinning, resizing, zoom, and read-only split previews; local content follows the active theme |
+| Git | Changes, staging, commits, branch history, a commit graph, file history, and source/rendered Markdown comparisons |
+| Terminals | Windows shells, multiple sessions, split terminals, search, and terminal settings |
+| SSH | One local workspace or one SSH connection per window, shared by files, search, Git, and the default terminal |
+| Settings and extensions | Searchable settings, native preferences, and supported community plugins with their original settings owners |
+| Updates | ZIP updates with installation checks and backups; install immediately, then restart manually |
 
-Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供预览；源码标签可分别编辑与保存。C/C++ 符号大纲需要本机 clangd。当前没有 VS Code 扩展宿主。平台支持和未覆盖能力见[环境要求](docs/installation.md#环境要求)与[功能范围](docs/workbench_parity.md)。
+Markdown splits share one active native Typora editor; the other splits provide previews. Source tabs can be edited and saved independently. C/C++ analysis requires a local clangd installation. Third-party plugins, external commands, and language servers retain their own capabilities and limitations.
 
-开发与稳定性验收入口：[需求设计](docs/requirements_design.md)、[测试架构与用例](docs/stability_testing.md)、[问题分类索引](docs/stability_issues.md)。
+## Install on Windows
 
-**2026.09.22.13** 新增代码和纯文本围栏一键复制，悬停右上角或键盘进入即可使用；复制完整当前内容并给出成功/失败反馈，正文和只读预览共用。
-
-**2026.09.23.16** 隔离本地与SSH仓库记录，仓库选择只显示真实远端路径。远程文件选择支持路径输入、祖先跳转和选中确认；“打开本地文件夹”通过系统选择器统一切换资源管理器、Git、搜索与终端。一个窗口只服务本地或一个SSH连接，选择其他连接须先切换整个工作区；多连接/账号记录保留。详见[服务对象与资源选择](docs/remote_ssh.md#r0707-当前窗口服务对象与资源选择2026-09-23)。
-
-**2026.09.23.4** 增加SSH连接目录：按电脑分组保存多个账号，支持别名、搜索、编辑和删除，一键选中连接。默认终端跟随当前窗口的SSH身份，也可明确选择其他已存连接（.16起统一切换整个工作区）；密码通过系统凭据及ASKPASS复用。顶栏显示`SSH: 用户名`。密码查看需独立保险密码，重置只清除查看域，自动登录保留；详见[连接与密码管理](docs/remote_ssh.md#r0705-多连接与账号管理)。
-
-**2026.09.22.14** 将SSH接入主工作区：远端文件/文件夹选择、资源操作、搜索和SCM/Graph共享远端身份，Markdown直接使用原生编辑器，保存先确认远端写入。图片按需加载，中文相对链接、锚点和前后导航可用；Windows文件连接支持可选加密密码记忆。该版终端的独立认证边界由2026.09.23.4统一凭据能力替代。外部改动自动加载、完整会话恢复及其他未覆盖范围见[当前边界](docs/remote_ssh.md#当前边界与未完成项)，不宣称完整VS Code Remote SSH等价。
-
-**2026.09.22.10** 增加[统一设置](docs/workspace_settings.md)：左下齿轮“设置…”打开自有功能搜索与统一配置，原生偏好和社区插件各自管理；SSH连接配置、可见目录定时刷新与独立Git审阅标签已接入，慢Git不阻塞文件操作。同时保留Win10端已交付的PowerShell历史滚动修复。继续改善[Git刷新隔离与大列表响应](docs/workspace_responsiveness.md)：Git确认后释放全局弹窗，变更及历史文件按可见范围绘制；空文件夹提供初始化入口，嵌套仓库按实际Git身份识别。保留[SSH远程目录、项目终端与只读Git状态](docs/remote_ssh.md)，以及[Markdown链接左右/上下只读分屏预览](docs/link_preview.md)。
-
-Git大仓库状态采用流式读取与可见行展示，减少重复扫描；长时间读取显示等待且可取消，错误保留实际原因。已有Git直接复用，Windows确认缺失时提供系统安装入口；[容量与验证边界](docs/workspace_responsiveness.md#r0712-大仓库git执行与呈现隔离)。
-
-当前发行版本为 **2026.09.23.15**，帮助菜单可直接打开项目GitHub仓库下载完整ZIP；检查更新失败或超时可直接重试。更新页始终明确显示当前窗口的运行版本；安装后尚未重启时，另外显示已安装版本和重启提示。已安装此版本的用户保存文档后正常重启生效；Win10 PowerShell连续回车的历史丢失已在19045.7725、Typora 1.14.10原始宿主隔离副本修复并复测；滚动条仍按原有规则在悬停/滚动时显示、离开渐隐。保留长代码展开后短代码框高度隔离修复。保留路径搜索等待磁盘检查时已枚举文件继续可用并显示等待/错误状态的修复；保留终端末行边界修复，各版本修复公告以[发行记录](enhancements/release.json)为准。Alt＋左右键及顶栏箭头共用[导航历史](docs/navigation_history.md)，记录链接起终点、源码行列及编辑组，关闭标签后可以回溯重开；普通源码近邻移动合并，明确跳转保留位置。共享弹窗提供右上角×关闭，底部操作统一右对齐，窄窗口按钮自动换行；关闭沿用原有取消逻辑。点击终端先显示面板，准备目录、检测Shell、启动进程和等待首次输出时显示状态与活动进度；Shell启动等待不再阻挡界面展示。检查、校验和安装更新持续显示活动进度；下载显示实际大小，有有效总量才显示百分比。取消立即反馈，关闭后可重新查看同一更新任务；安装完成后手动重启生效。切换目录会隔离旧工作区，并按原生恢复配置恢复目标目录上次打开的文件；空编辑区不再显示假文件。Git 提交详情支持 Markdown 列表与代码显示。底栏图标复用共享居中规则，滚动条离开后渐隐；社区插件在工作台显示后加载。资源管理器、时间线和Git一级分区共用留白与整行悬停背景；共享菜单完整显示名称及快捷键，极窄窗口换行。原生图标启动后一次呈现完整工作台，不显示加载提示覆盖层；侧栏功能切换保持展开，详见[启动与切换稳定性](docs/startup_stability.md)。
-
-本轮统一了资源管理器与Git分区的折叠图标槽位；提交详情可按远端识别GitHub、Gitee、GitLab和Bitbucket并打开网页。安装按实际写权限决定是否申请系统授权；更新下载和解压默认创建Typora用户数据下的`temp`，同版本新提交也可更新。详细行为见[安装与更新](docs/installation.md)及[提交网页入口](docs/git_commit_web.md)。
-
-分屏与拖动已修复删除/合并后的比例错位，分隔线只调整相邻两栏；标签重排保留当前编辑器，拖动停止滚动后不再空转动画。拖出仅接收指定文件，不恢复原目录整组标签；同文件正文/保存格式一致时复用目标标签及撤销，确有差异保留双方并提示；合并不需要额外确认，宿主短暂切换会自动等待，失败保留文档并轻提示。20／100／1000轮协议压力、源码/Markdown的已保存与未保存四种状态各20次原生往返的结果及操作边界见[拖动与多窗口](docs/drag_and_windows.md)。
-
-验证与限制以[最新交付记录](docs/feedback_review.md)为准；仍有启动长任务及跨机器/平台验收缺口。更新安装后需要保存文档并手动重启所有 Typora 窗口，已运行窗口不会热替换。
-
-设置从左下齿轮或 `Ctrl+,` 打开独立浮层，支持最大化与右上关闭；编辑器分类可配置标签换行和自动链接预览。选中Markdown链接会在左下独立只读预览，右上可关闭，顶部、右边及右上角可拖动调高宽；收起功能侧栏仍保留预览；预览只覆盖左下角自身区域，正文保持正常宽度，不留下整列空白。本地Markdown和源码预览提供50%—150%滑条、百分比及加减按钮，与搜索预览共用比例记忆，Ctrl/Meta滚轮同步显示。右键可左右或上下分屏，图标提供打开源文件和刷新。标签更多菜单使用可搜索的已打开编辑器列表。详见[预览与标签](docs/link_preview.md)和[设置](docs/workspace_settings.md)。
-
-## 1.1\_安装、检查与恢复
-
-**Windows 快速开始：**
-
-1. 从 [Typora 官方网站](https://typora.io/)安装 Typora，并确认可以正常打开文档。
-2. 在**本仓库网页**点击 **Code → Download ZIP**，完整解压下载包。进入能看到本文件和 `install_windows.cmd` 的目录。包内已含 `enhancements/dist/`，普通安装无需构建或预装 Node.js。
-3. 保存正在编辑的文档。双击 **`install_windows.cmd`**，按提示完成安装并记下输出的 **Backup** 目录；首次安装需要联网下载经摘要校验的私有 Node 运行时。普通权限优先；遇受保护写入目标时说明原因并请求Windows系统授权，取消保留原安装。
-4. 在该目录打开 PowerShell，执行下面的只读检查。返回 **`status: OK`** 后，正常重启 Typora，在“主题”菜单选择 **cpp github consolas**。
+1. Install [Typora](https://typora.io/) and check that it opens documents normally.
+2. Download the complete repository using **Code → Download ZIP**, then extract it. Keep the included `enhancements/dist/` directory. Normal installation does not require a source build or a system Node.js installation.
+3. Save your documents and run `install_windows.cmd`. The first installation downloads and verifies a pinned private Node runtime. Keep the reported backup location.
+4. Run the read-only check below. After `status: OK`, restart Typora normally to load the installed files.
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1
 ```
 
-**Windows 卸载：**保存文档并退出 Typora，双击 **`uninstall_windows.cmd`**。脚本自动查找当前用户的有效安装前备份；只有多个候选时才需要选择，空输入取消。没有兼容备份时，备份当前启动页后移除工作台加载入口，保留当前宿主版本与文档、主题、用户设置及插件缓存。可用 `uninstall_windows.ps1 -check_only` 只读预检；日志和失败回滚见安装指南。
+The installer requests Windows elevation only when the actual target requires it. Cancelling elevation keeps the previous installation. Installation does not close your windows or hot-replace an already running workbench.
 
-**安装、离线准备、权限问题、更新、卸载及恢复原配置，统一见[安装与恢复指南](docs/installation.md)。** 后续更新备份通过 `restore_windows.ps1` 回退版本，不能用于卸载。保留备份，不要直接删除 Typora 用户数据目录。Typora 更新可能替换启动入口，更新后重新检查并安装增强。
+To uninstall on Windows, save your documents, exit Typora, and run `uninstall_windows.cmd`. The public uninstaller restores a compatible pre-installation backup, or removes the loading entry when no compatible backup exists. It preserves documents, settings, themes, and plugin caches. Use `uninstall_windows.ps1 -check_only` for a read-only preview. Use `restore_windows.ps1` for a version rollback.
 
-Linux / MSYS2 UCRT64 用户请从[对应环境步骤](docs/installation.md#linux与ucrt64)开始；Linux 原生环境、Windows ARM64 和 UCRT64 的完整实机验收尚未完成，Linux 暂无集成终端运行包。
+See the [installation guide](docs/installation.en.md) for offline preparation, write locations, updates, recovery, and other platforms. Windows x64 is the primary validated environment. Windows ARM64, MSYS2 UCRT64, and Linux have outstanding native acceptance work; Linux currently has no bundled integrated terminal runtime. macOS and Windows 32-bit are outside the current installer scope.
 
-## 1.2\_按需求阅读
+## Using the workbench
 
-| 需求 | 对应说明 |
-| --- | --- |
-| 同窗多文档标签、左右／上下分栏、Alt 方向键阅读历史 | [标签页、分栏与阅读历史](./enhancements/README.md#1.4_标签页、分栏与阅读历史) |
-| 目标标题与目录定位、来源栏位置保留、重开文档继续阅读 | [阅读位置与标题定位](./enhancements/README.md#1.4.1_阅读位置与标题定位) |
-| 复制文件或文件夹的相对路径、绝对路径 | [复制文件路径](./enhancements/README.md#1.4.2_复制文件路径) |
-| 全文件资源管理器、隐藏目录、源码编辑保存及编码／换行设置 | [文件与语言识别](./enhancements/README.md#1.4.3_全部文件与语言识别) |
-| 按文件搜索、精确行列跳转、范围筛选及替换预览 | [工作区搜索与替换](./enhancements/README.md#1.4.4_工作区搜索与替换) |
-| 选中文字设置常用／自定义字体颜色、恢复默认及明暗主题适配 | [Markdown 字体颜色](docs/markdown_text_color.md) |
-| Ctrl／Cmd 加左键查找选中文字、单击预览及双击打开 | [选中文字的跳转预览](./enhancements/README.md#1.4.6_选中文字的跳转预览) |
-| 多文件时搜索卡顿、渐进结果与性能数据 | [搜索性能](docs/search_performance.md) |
-| 标签及侧栏工具的左键拖动、移至新窗口 | [拖动与多窗口](docs/drag_and_windows.md) |
-| Ctrl+= / Ctrl+- 缩放界面并保持内容视觉字号；Ctrl+滚轮在编辑区/终端分别调整会话字号，新视图继承、重启复位，底栏入口常驻 | [窗口缩放](docs/workspace_zoom.md) |
-| 活动栏排序、侧栏缩窄收起、大纲紧凑布局及减少动画 | [活动栏与侧栏布局](./enhancements/README.md#1.4.5_活动栏与侧栏布局) |
-| 中文源代码管理主侧栏、分支操作、远端同步与评审 | [Git Graph 提交关系图](./enhancements/README.md#1.5_Git_Graph提交关系图) |
-| 宽窄自动切换差异、红绿概览、改动导航及只读历史正文 | [差异编辑器与时间线](./enhancements/README.md#1.5.2_中央差异编辑器与文件时间线) |
-| 文件菜单、系统选择窗口和资源管理器操作 | [文件操作](docs/file_operations.md) |
-| 终端面板、本机 Shell 识别、会话和设置 | [终端操作与配置](docs/terminal_operations.md) |
-| 终端展开时的目录浮层与字数居中 | [底栏布局设计](docs/statusbar_layout.md) |
-| 统一命令、领域服务和资源生命周期 | [工作台架构](docs/workspace_architecture.md) |
-| 需求编号、对应设计文档和持续更新规则 | [需求设计索引](docs/requirements_design.md) |
-| 终端依赖、离线缓存和测试边界 | [终端运行文件与验证](./enhancements/README.md#1.7_终端运行文件、安装与验证) |
-| VS Code Git Graph 功能收集、选项与实现边界 | [完整功能对照](./enhancements/git_graph_features.md#第1章_Git_Graph功能对照与操作说明) |
-| C/C++ 宏、函数和类型的语法高亮 | [语法识别与颜色映射](./typora配置修改.md#4.1_为什么主题CSS不等于语法识别器) |
-| 在代码框外点击后直接展开、收起长代码 | [长代码块限高与完整展开](./typora配置修改.md#4.3_长代码块限高与完整展开) |
-| Mermaid 全屏、缩放、拖动与适应宽度 | [查看器操作](./typora配置修改.md#5.2_查看器操作) |
-| Typora 原生偏好设置 | [原有设置截图](./typora配置展示.md#第1章_文件) |
-| 修改扩展源码、重建 bundle 和运行回归测试 | [开发者构建](./enhancements/README.md#1.2_开发者构建) |
+Start with the [user guide and shortcuts](docs/user_guide.en.md). The Help menu also provides the installed offline guide and the onboarding tutorial. The installed guide's language and full workbench localization are being prepared; this documentation entry does not claim that all current UI text is already translated.
 
-## 1.3\_维护与参与开发
+Use **File → Open Folder** to select a project. Use the lower-left gear or `Ctrl+,` for settings. `Ctrl+P` finds files, `Ctrl+Shift+F` searches content, `Alt+B` toggles the sidebar, and `Alt+Left/Right` navigates editor history. Typora's Markdown shortcuts remain available, including `Ctrl+B` for bold.
 
-| 入口 | 内容 |
-| --- | --- |
-| [安装与恢复指南](docs/installation.md) | 用户下载安装、环境、离线缓存、更新与卸载 |
-| [增强模块说明](enhancements/README.md#1.2_开发者构建) | 源码构建、依赖和测试命令 |
-| [开发交接](docs/development_handoff.md) | 架构边界、当前实现和后续工作 |
-| [需求设计索引](docs/requirements_design.md) | 稳定需求编号与设计入口 |
-| [反馈复查记录](docs/feedback_review.md) | 各次实际验证和交付记录 |
+The authoritative version and release notes are in [release.json](enhancements/release.json). An installed version takes effect after all Typora windows are restarted. Unpublished local candidates are not available from GitHub.
 
-用户脚本在仓库根目录，以 `install`、`check`、`uninstall`（Windows 卸载）、`restore`（备份恢复）命名；平台与事务实现位于 `scripts/`。`enhancements/src/` 保存工作台源码，`enhancements/dist/` 保存配套预构建文件。第三方资产的许可证、来源和摘要随 `enhancements/vendor/` 与 `enhancements/dist/licenses/` 保留。
+## Development
 
-## 1.4\_版权与来源声明
+```powershell
+cd enhancements
+npm ci
+npm run build
+npm run check
+npm run check:ui
+```
 
-本项目的原创代码、界面、文档、主题和安装脚本，除特别说明外，采用根目录 [LICENSE](LICENSE) 中的 **GNU GPL version 2（GPL-2.0-only）** 发布。
+Use this repository as the project root. Implementation lives in `enhancements/src/`; matching prebuilt assets live in `enhancements/dist/`. Build outputs include source and license provenance. Targeted UI tests use the existing runner, for example `npm run check:ui -- test_workspace_titlebar.cjs`.
 
-原创维护者为 **FormingSystem**，联系邮箱为 `lizhaojun97@qq.com`，项目地址为 [FormingSystem/typora_code](https://github.com/FormingSystem/typora_code)。原创署名、二次开发与官方贡献、非官方分叉及未来版本边界统一见 [版权、开源与贡献声明](COPYRIGHT.md)。
+Read the [contributor guide](docs/contributing.en.md) before changing behavior. Design records and historical acceptance evidence currently remain in Chinese; their English migration is tracked separately. A passing hidden-window test is not a substitute for native Typora acceptance or another platform's validation.
 
-Typora Code 是独立维护的社区增强项目。Typora 本体、第三方依赖与资源保留其原有版权和许可证；用户打开、编辑和导出的文档仍归各自权利人。本项目的许可证不重新授权这些内容。
+## License and attribution
 
-## 操作指导
+Original project code, UI, documentation, themes, and installation scripts are released under **GPL-2.0-only**, except where otherwise noted; see [LICENSE](LICENSE). Third-party components retain their respective licenses and notices in `enhancements/vendor/` and `enhancements/dist/licenses/`.
 
-安装后正常重启即可进入可跳过的逐步教学；“帮助 → 操作指导”可重看，“帮助 → 操作说明与快捷键”打开安装包内的离线说明。预览/常驻标签、内容缩放、Git、终端及默认键位见[操作说明与快捷键](docs/user_guide.md)。
+Maintainer: **FormingSystem** · Contact: `lizhaojun97@qq.com` · [Project repository](https://github.com/FormingSystem/typora_code).
+
+See the [copyright and contribution statement](COPYRIGHT.en.md). Your documents and other user files retain their own ownership and licenses.

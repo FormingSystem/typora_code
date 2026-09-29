@@ -1,5 +1,7 @@
 # Typora Code 安装与恢复指南
 
+简体中文 | [英文](installation.en.md)
+
 Typora Code 是运行在 Typora 中的社区工作台增强。普通用户使用下载包中的预构建文件安装；开发者修改源码后再按[构建说明](../enhancements/README.md#1.2_开发者构建)生成同一套文件。
 
 ## 环境要求
