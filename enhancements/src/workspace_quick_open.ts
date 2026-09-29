@@ -177,7 +177,7 @@ export function create_workspace_quick_open(files: workspace_file_host) {
     if(editor_group)catalogue=read_editors();
     let pattern_mode=match_mode!=='fuzzy'&&!!query;
     const path_glob=match_mode==='glob',pattern=path_glob?query.replaceAll('\\','/'):query;
-    const ranked:quick_match[]=[];const matcher=create_quick_matcher(pattern_mode?'':query);
+    const ranked:quick_match[]=[];const matcher=create_quick_matcher(pattern_mode?'':query,scan_root);
     const order=editor_group&&!query?()=>0:pattern_mode?(left:quick_match,right:quick_match)=>left.file.relative_path.localeCompare(right.file.relative_path):matcher.compare;
     // 已枚举候选先筛选；显式路径探测独立补充，不能因磁盘等待清空整个搜索。
     if(!editor_group&&direct_query!==query){

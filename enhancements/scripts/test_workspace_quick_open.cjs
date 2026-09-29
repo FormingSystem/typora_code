@@ -45,6 +45,17 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate(`getComputedStyle(picker.root.querySelector('.workspace-quick-open-highlight')).fontWeight`),'700');
   assert.equal(await evaluate(`getComputedStyle(picker.root.querySelector('.workspace-quick-open-result')).height`),'22px');
   await query('samples\\bringup');assert.equal(await evaluate(`picker.root.querySelectorAll('.workspace-quick-open-result').length`),6);
+  // Relative, absolute and incomplete directory queries share the same file candidates.
+  for(const directory_query of ['bringup','samples/bringup/','samples/bri','./samples/bringup',path.join(root,'workspace','samples','bri'),path.join(root,'workspace','samples','bringup')+path.sep]){
+    await query(directory_query);
+    const names=await evaluate(`[...picker.root.querySelectorAll('.workspace-quick-open-name')].map(node=>node.textContent)`);
+    for(const name of ['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt'])assert(names.includes(name),directory_query+' must include '+name);
+    assert(await evaluate(`!!picker.root.querySelector('.workspace-quick-open-path .workspace-quick-open-highlight')`),'directory match is highlighted');
+  }
+  await query('./samples/bringup/src/');
+  await evaluate(`picker.root.querySelector('.workspace-quick-open-result').click();void 0`);await wait('picker.root.hidden');
+  assert.equal(await evaluate('opened.pop().text'),'fixture samples/bringup/src/main.c','directory candidate click opens the file');
+  await evaluate('picker.open();void 0');
   await query('main bringup');assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name').textContent`),'main.c');
   assert.equal(await evaluate(`picker.root.querySelector('.workspace-quick-open-name .workspace-quick-open-highlight').textContent`),'main');
   await evaluate(`picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));picker.input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));void 0`);

@@ -164227,8 +164227,18 @@ https://creativecommons.org/licenses/by/4.0/
     getItemDescription: (file) => file.directory,
     getItemPath: (file) => file.file_path
   };
-  function create_quick_matcher(value) {
-    const query = prepareQuery(value.trim());
+  function relative_query(value, root) {
+    const input = value.trim().replaceAll("\\", "/");
+    const base = root.replaceAll("\\", "/").replace(/\/+$/u, "");
+    if (root === "/" && input.startsWith("/")) return input.slice(1);
+    const windows_root = /^(?:[a-z]:|\/\/)/iu.test(base);
+    const comparable = windows_root ? input.toLowerCase() : input;
+    const prefix = windows_root ? base.toLowerCase() : base;
+    if (base && (comparable === prefix || comparable.startsWith(prefix + "/"))) return input.slice(base.length).replace(/^\//u, "");
+    return input.startsWith("./") ? input.slice(2) : value.trim();
+  }
+  function create_quick_matcher(value, root = "") {
+    const query = prepareQuery(relative_query(value, root));
     const cache = /* @__PURE__ */ Object.create(null);
     return {
       match(file) {
@@ -165019,7 +165029,7 @@ https://creativecommons.org/licenses/by/4.0/
         let pattern_mode = match_mode !== "fuzzy" && !!query;
         const path_glob = match_mode === "glob", pattern = path_glob ? query.replaceAll("\\", "/") : query;
         const ranked = [];
-        const matcher = create_quick_matcher(pattern_mode ? "" : query);
+        const matcher = create_quick_matcher(pattern_mode ? "" : query, scan_root);
         const order = editor_group && !query ? () => 0 : pattern_mode ? (left, right) => left.file.relative_path.localeCompare(right.file.relative_path) : matcher.compare;
         if (!editor_group && direct_query !== query) {
           direct_query = query;
@@ -243724,6 +243734,14 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092902,
+        version: "2026.09.29.2",
+        date: "2026-09-29",
+        notes: [
+          "\u4FEE\u590D\u9876\u90E8\u6587\u4EF6\u641C\u7D22\u5BF9\u5DE5\u4F5C\u533A\u5185\u7EDD\u5BF9\u76EE\u5F55\u3001\u534A\u622A\u8DEF\u5F84\u548C ./ \u524D\u7F00\u7684\u6F0F\u5339\u914D\uFF0C\u76EE\u5F55\u5019\u9009\u53EF\u76F4\u63A5\u9009\u62E9\u6253\u5F00\u3002"
+        ]
+      },
       {
         sequence: 2026092901,
         version: "2026.09.29.1",

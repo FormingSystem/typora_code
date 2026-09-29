@@ -29,6 +29,17 @@
   await query('samples/bringup');
   assert([...picker().querySelectorAll('.workspace-quick-open-name')].map(n=>n.textContent).join('|')==='prj.conf|README.md|main.c|tests.yaml|CMakeLists.txt','原生构建目录查询顺序与固定上游一致');
   assert([...picker().querySelectorAll('.workspace-quick-open-path .workspace-quick-open-highlight')].every(n=>n.textContent==='samples/bringup'),'每个路径命中片段均高亮');
+  // Exercise the titlebar entry with partial directory paths, then open a child file.
+  for(const type of ['keydown','keyup'])picker().querySelector('input').dispatchEvent(new KeyboardEvent(type,{key:'Escape',code:'Escape',bubbles:true,cancelable:true}));await wait(()=>picker().hidden,'close before titlebar');
+  const center=document.querySelector('.workspace-titlebar-search');assert(!!center,'顶栏搜索入口存在');center.click();await wait(()=>!picker().hidden,'titlebar open');
+  for(const value of ['bringup','samples/bri','samples/bringup/','./samples/bringup',path.join(root,'samples','bri'),path.join(root,'samples','bringup')+path.sep]){
+   await query(value);const names=[...picker().querySelectorAll('.workspace-quick-open-name')].map(node=>node.textContent);
+   assert(['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt'].every(name=>names.includes(name)),'目录后代文件 '+value);
+   assert(!!picker().querySelector('.workspace-quick-open-path .workspace-quick-open-highlight'),'路径片段高亮 '+value);
+  }
+  await query('./samples/bringup/README');picker().querySelector('.workspace-quick-open-result').click();
+  await wait(()=>picker().hidden&&files.current_file()===path.join(root,'samples/bringup/README.md')&&!File.isFileLoading(),'click directory candidate');
+  assert(File.editor.getMarkdown().includes('Native fixture samples/bringup/README.md'),'顶栏路径候选单击实际打开');await open();await query('samples/bringup');
   assert(getComputedStyle(picker().querySelector('.workspace-quick-open-result')).height==='22px','原生主题真实结果行22px');
   assert(picker().getBoundingClientRect().width===600,'原生候选宽600px：'+picker().getBoundingClientRect().width+'，视口'+innerWidth);
   const input=await query('README bringup');input.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true,cancelable:true}));

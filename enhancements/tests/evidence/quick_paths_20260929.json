@@ -1,0 +1,115 @@
+{
+  "requirements": [
+    "R058.5"
+  ],
+  "date": "2026-09-29",
+  "version": "2026.09.29.2",
+  "baseline": "0914d6c7fd2c86127539354d051986a90579fb37",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/contrib/search/browser/anythingQuickAccess.ts",
+      "src/vs/base/common/fuzzyScorer.ts"
+    ],
+    "adaptation": "Relative item descriptions and workspace-qualified queries use the same shared query context; retain existing vendored scoring, sorting and highlights."
+  },
+  "reproduction": "Existing matcher returns zero for ./samples/bri and C:/work/samples/bri despite known child files; ordinary relative directory fragments already match. New assertion failed 0 versus 5 before implementation. Fuzzy matching may include other subsequences; verification checks expected leading child files instead of forbidding valid fuzzy results.",
+  "changes": [
+    "Normalize ./ and absolute workspace prefix at complete path boundaries before scoring",
+    "Titlebar, Ctrl+P and active editor picker pass the current workspace root",
+    "Keep explicit regex/glob semantics, asynchronous direct-file probe, shared catalogue and cancellation"
+  ],
+  "asset_sha256": "02abe5badb7a516d1b3886fdef7d1661bc2243a1511ce1825c2188a17834b405",
+  "checks": {
+    "build": "PASS",
+    "core": {
+      "id": "c4c435061f924ba89c0ee660de74eee0",
+      "payload_state": "cleaned",
+      "status": "PASS"
+    },
+    "matcher": {
+      "status": "PASS",
+      "existing_scoring_rounds": 1000,
+      "new_cases": [
+        "relative directory",
+        "trailing slash",
+        "partial segment",
+        "dot-relative",
+        "Windows absolute and root case",
+        "POSIX case",
+        "root prefix boundary",
+        "path highlights"
+      ]
+    },
+    "ui": [
+      {
+        "id": "fb0ce1a081ff4348b28dc3050733c137",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      },
+      {
+        "id": "92027c3681354bbd8119996000c28515",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      },
+      {
+        "id": "16334e66551e410994d14fe724848e1a",
+        "payload_state": "cleaned",
+        "status": "PASS"
+      }
+    ],
+    "native": {
+      "id": "8a1ee016001c4110a507954eed8f69a4",
+      "payload_state": "cleaned",
+      "status": "PASS",
+      "assertions": 44
+    },
+    "install": {
+      "id": "4e0d588f70f84ab5b033f3b46369bb22",
+      "payload_state": "cleaned",
+      "status": "PASS"
+    },
+    "uninstall": {
+      "id": "797567449cb1471082b857c4ab4bbe04",
+      "payload_state": "cleaned",
+      "status": "PASS",
+      "assertions": 65
+    }
+  },
+  "performance": {
+    "scope": "isolated Chromium, 50000 synthetic filenames, single final run, not a physical device guarantee",
+    "first_result_ms": 125,
+    "max_event_loop_gap_ms": 40,
+    "input_sync_ms": 9
+  },
+  "fixture_failures": [
+    "UI selection typo test_workspace_recent_view.cjs rejected before execution; corrected to registered test_workspace_recent.cjs",
+    "5d7494b9002248f390e8e29454592686: obsolete 512-result ceiling assertion; current product retains 50000 candidates",
+    "429a19137d034e4cad2afc2dfee9def6 and 75deb5df846244e799270922fc6e914c: synthetic readdir compared slash form against normalized Windows root; corrected root normalization and reset fixture ownership",
+    "c6ad04e7f09a438cbfc32f0f67827406: incomplete synthetic Escape sequence; corrected code and keyup then original host passed"
+  ],
+  "delivery": {
+    "codes": {
+      "uninstall_windows.ps1": 0,
+      "install_windows.ps1": 0,
+      "check_windows.ps1": 0
+    },
+    "asset_counts": [
+      49,
+      24
+    ],
+    "protected_unchanged": 8,
+    "manifest_sha256": "02abe5badb7a516d1b3886fdef7d1661bc2243a1511ce1825c2188a17834b405",
+    "window_restarted": false
+  },
+  "boundaries": [
+    "User did not provide the exact failing input; confirmed qualified-directory failure fixed, not a claim that every original relative-directory query failed",
+    "Original Typora 1.14.10, actual built assets and document loading; synthetic keyboard/click events, not physical input",
+    "No full UI suite, no live SSH or non-Windows host run; POSIX matching checked in pure tests",
+    "Existing .git/node_modules scan exclusions unchanged; no new external-root directory traversal",
+    "Build refresh includes previously committed bilingual guide link; full offline English help wiring remains R082 pending",
+    "R068.6 paused, R068.10 live clipping, terminal smooth-scroll old case, R047.9 prompt and prior occupied test payload remain open"
+  ],
+  "commit_state": "pending at evidence generation; receipt in Git and local ledger",
+  "pushed": false
+}

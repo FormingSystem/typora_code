@@ -5260,7 +5260,8 @@
       "level": "unit",
       "purpose": "implementation",
       "requirements": [
-        "R058"
+        "R058",
+        "R058.5"
       ],
       "design": "docs/quick_open.md",
       "implementation": [
@@ -5293,7 +5294,8 @@
       "level": "unit",
       "purpose": "stress",
       "requirements": [
-        "R058"
+        "R058",
+        "R058.5"
       ],
       "design": "docs/quick_open.md",
       "implementation": [
@@ -5331,7 +5333,8 @@
         "R070.9",
         "R075",
         "R058.1",
-        "R058.3"
+        "R058.3",
+        "R058.5"
       ],
       "design": "docs/quick_open.md",
       "implementation": [
@@ -5367,7 +5370,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R058"
+        "R058",
+        "R058.5"
       ],
       "design": "docs/quick_open.md",
       "implementation": [

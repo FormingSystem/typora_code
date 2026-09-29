@@ -8,9 +8,21 @@ const file_accessor = {
   getItemPath:(file:quick_file)=>file.file_path,
 };
 
-/** 查询、排序和高亮共用上游算法；缓存仅存活于一次筛选，避免逐次输入无限增长。 */
-export function create_quick_matcher(value:string) {
-  const query=prepareQuery(value.trim());
+/** Align workspace-qualified queries with relative item descriptions before scoring. */
+function relative_query(value:string,root:string):string {
+  const input=value.trim().replaceAll('\\','/');
+  const base=root.replaceAll('\\','/').replace(/\/+$/u,'');
+  if(root==='/'&&input.startsWith('/'))return input.slice(1);
+  const windows_root=/^(?:[a-z]:|\/\/)/iu.test(base);
+  const comparable=windows_root?input.toLowerCase():input;
+  const prefix=windows_root?base.toLowerCase():base;
+  if(base&&(comparable===prefix||comparable.startsWith(prefix+'/')))return input.slice(base.length).replace(/^\//u,'');
+  return input.startsWith('./')?input.slice(2):value.trim();
+}
+
+/** Share upstream scoring, ordering and highlights; keep the cache query-local. */
+export function create_quick_matcher(value:string,root='') {
+  const query=prepareQuery(relative_query(value,root));
   const cache:FuzzyScorerCache=Object.create(null);
   return {
     match(file:quick_file):quick_match|undefined {

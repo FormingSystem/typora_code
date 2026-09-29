@@ -489,3 +489,5 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-navigation-empty-selection：原生四文档链形成A/A/B/B/C/C/D；文件初次无选区与随后有效选区重复入栈。按固定上游shouldReplaceStackEntry补全原项；无选区离开保留有效光标。只修排队的候选仍失败，诊断运行与最终正式资产验收分开记录。
 
 - BUG-navigation-control-focus（R067.6，2026-09-29）：共同入口将同编辑器的活动通知按普通选区记录，工具控件引起的宿主缓存选区变化截断前进；全局按下还会更新离开位置。旧候选UI 25a720cc复现，修复在共同记录入口区分文档事件/真实编辑器切换与纯UI焦点，当前验收见台账。
+
+- BUG-quick-open-qualified-directory（R058.5，2026-09-29）：相对描述评分未处理工作区绝对前缀及`./`，目录/半截路径无结果，精确文件stat旁路掩盖问题；补共享路径适配及顶栏/原生回归，状态见台账。

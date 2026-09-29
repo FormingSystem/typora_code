@@ -8,6 +8,17 @@ const file=relative_path=>({file_path:'C:\\work\\'+relative_path.replaceAll('/',
 const paths=['samples/bringup/prj.conf','samples/bringup/README.md','samples/bringup/src/main.c','samples/bringup/tests.yaml','samples/bringup/CMakeLists.txt','samples/boards/st/bluetooth/interactive_gui/prj.conf','README.md','src/readModel.ts'].map(file);
 const rank=query=>{const matcher=create_quick_matcher(query);return paths.map(matcher.match).filter(Boolean).sort(matcher.compare);};
 const rounds=Number(process.env.TYPORA_STRESS_ITERATIONS||20);
+for(const query of ['./samples/bri','C:/work/samples/bri','C:\\work\\samples\\bringup\\','c:/WORK/samples/bri']){
+  const matcher=create_quick_matcher(query,'C:\\work');
+  const hits=paths.map(matcher.match).filter(Boolean).sort(matcher.compare);
+  assert.deepEqual(hits.slice(0,5).map(hit=>hit.file.relative_path).sort(),paths.slice(0,5).map(file=>file.relative_path).sort(),`directory prefix must return child files: ${query}`);
+  assert(hits.every(hit=>hit.score.descriptionMatch?.length),'path matches retain directory highlights');
+}
+assert.equal(paths.map(create_quick_matcher('C:/work/','C:/work').match).filter(Boolean).length,paths.length);
+assert.equal(paths.map(create_quick_matcher('C:/workspace/samples','C:/work').match).filter(Boolean).length,0,'root prefix must end at a path segment');
+const posix_file={file_path:'/Work/src/a.c',relative_path:'src/a.c',directory:'src',name:'a.c'};
+assert(create_quick_matcher('/Work/sr','/Work').match(posix_file));
+assert(!create_quick_matcher('/work/sr','/Work').match(posix_file),'POSIX roots retain case sensitivity');
 for(let round=0;round<rounds;round++){
   // 固定上游基准：目录连续命中优先，再按路径长度、名称比较；不是词典顺序。
   assert.deepEqual(rank('samples/bringup').slice(0,5).map(item=>item.file.name),['prj.conf','README.md','main.c','tests.yaml','CMakeLists.txt']);
