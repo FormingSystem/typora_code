@@ -1,0 +1,133 @@
+{
+  "requirements": [
+    "R067.6",
+    "R067.5"
+  ],
+  "date": "2026-09-29",
+  "version": "2026.09.29.1",
+  "baseline": {
+    "commit": "243fa6b8a039123dd99d08ea5ee28aef4396cf00",
+    "failure": "25a720ccceb14ed29ed9755ec5d2cf49：后退后工具点击及同编辑器活动通知将前进状态从true改为false"
+  },
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/workbench/services/history/browser/historyService.ts",
+    "rules": [
+      "活动编辑器onDidChangeSelection而非全局点击采样",
+      "实际编辑器身份切换",
+      "恢复期间不新增栈项"
+    ],
+    "adaptation": "原生Markdown宿主选区在失焦时可重建，共同适配层划定事件所有权；两方向继续调用同一travel_history"
+  },
+  "cause": "同编辑器active-leaf通知被当作普通选区采样；全局pointerdown改写检查点，工具失焦后的宿主缓存选区又进入来源快照",
+  "change": "纯UI交互终止普通选区采样；相同编辑器焦点通知不入栈；仅暂存失焦前可信位置，真正离开时使用；真实正文编辑、明确定位和不同编辑器身份正常记录",
+  "asset_sha256": "838ac63cd7178f92d994add2880202600c5a057139080397c81316f5ed22aca9",
+  "source_sha256": {
+    "enhancements/src/reading_history.ts": "ecce6708c9ae88b8c8aae1655640c81f932f6e05c8eb1a41fd5a12666133484a",
+    "enhancements/src/reading_navigation.ts": "bfd5155e7a0c444ff80d0849e0ac85064c22caf12523d0d28a7f510fb086f09d"
+  },
+  "checks": {
+    "build": "PASS",
+    "full_check": {
+      "id": "54cf72dddaae4caea7ac5aea6a6b65e1",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 253
+    },
+    "ui": [
+      {
+        "id": "87bbeaad93b343f8ac35eb58875c0f10",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "reading_lifecycle",
+        "toolbar_rounds": 20,
+        "queue_rounds": [
+          20,
+          100,
+          1000
+        ],
+        "scope": "纯工具焦点、延迟选区、前进/来源保护、滚动位置、正文编辑、明确定位及原连续队列回归"
+      },
+      {
+        "id": "a94720ca0f3b4a2082af32e23ef14c28",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "git_revision_reader",
+        "checks": 17,
+        "closed_reopen_rounds": 20
+      },
+      {
+        "id": "60ea3dadaaff4aab8f71695fff77b58c",
+        "status": "passed",
+        "payload_state": "cleaned",
+        "suite": "workspace_titlebar"
+      }
+    ],
+    "native": [
+      {
+        "id": "de5181886bad4f6a8b8bf3478e47c89a",
+        "status": "PASS",
+        "payload_state": "cleaned",
+        "checks": 252,
+        "suite": "navigation_links_native.js"
+      },
+      {
+        "id": "a913994985c540eca4d04faf82e42fa3",
+        "status": "PASS",
+        "payload_state": "cleaned",
+        "checks": 271,
+        "suite": "navigation_history_native.js"
+      }
+    ],
+    "install_cycles": {
+      "id": "021b720f734f4c1ea3b17f19003133cb",
+      "status": "passed",
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "8534c10194c14343a0b4ccd869894ad8",
+      "status": "passed",
+      "payload_state": "cleaned",
+      "assertions": 65
+    }
+  },
+  "fixture_failures": [
+    {
+      "id": "9f3254b7f3174a86a9ca99a8b61ce9d0",
+      "cause": "测试executeJavaScript重复声明顶层const，改局部闭包后复验"
+    },
+    {
+      "id": "cc90d5ec62b34807a59231a1a9de9a8f",
+      "cause": "活动栏按下处理提前结束click传播；可信输入核验改在window捕获pointerdown，顶栏历史仍核验click"
+    }
+  ],
+  "boundaries": [
+    "原始Typora1.14.10正式候选；23次可信历史按钮点击加20次活动栏与1次菜单可信指针输入；快速键盘为DOM，模拟宿主选区污染在Electron中验证",
+    "最后的失焦前滚动缓存差量重新构建，完整check、生命周期UI和两套原生均重跑；Git与顶栏UI覆盖其未改变模块",
+    "未运行全量UI，真实浏览器进程、远端高延迟和非Windows实机未验收",
+    "R068.6暂停、R068.10现场持续裁切、终端平滑滚动旧用例、R047.9提示和旧文件占用载荷保留原状态"
+  ],
+  "delivery": {
+    "local_install": {
+      "codes": {
+        "uninstall_windows.ps1": 0,
+        "install_windows.ps1": 0,
+        "check_windows.ps1": 0
+      },
+      "asset_counts": [
+        49,
+        24
+      ],
+      "protected_unchanged": 8,
+      "manifest_sha256": "838ac63cd7178f92d994add2880202600c5a057139080397c81316f5ed22aca9",
+      "window_restarted": false
+    },
+    "runtime_loaded": false,
+    "actual_uninstall": "仅只读预检",
+    "pushed": false,
+    "commit_state": "生成证据时待提交，回执见Git与本地台账"
+  }
+}

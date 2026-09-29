@@ -84,6 +84,7 @@ export function bind_reading_navigation(): () => void {
   let pending_timer = 0;
   let selection_timer = 0;
   let restoring_focus = false;
+  let document_interaction = true;
   let last_location: reading_location | null = null;
   const owned_remap_paths = remap_paths = map => {
     if (disposed) return;
@@ -110,6 +111,12 @@ export function bind_reading_navigation(): () => void {
       } catch { /* 没有正文选区时仍保存阅读位置。 */ }
     }
     return { file_path: context.file_path, ...position, position, cursor, view_id: context.view_id };
+  };
+  // 功能栏可以改变宿主缓存选区；离开文档后只使用最后由文档事件确认的位置。
+  const capture_departure = () => {
+    const current = capture();
+    return !document_interaction && current && last_location && current.file_path === last_location.file_path
+      && current.kind === last_location.kind && current.view_id === last_location.view_id ? last_location : current;
   };
   const finish_pending = () => {
     window.clearTimeout(pending_timer);
@@ -189,7 +196,7 @@ export function bind_reading_navigation(): () => void {
       if (!fs.statSync(path).isFile()) throw new Error("目标不是普通文件。");
     }
     if (disposed || signal.aborted) return false;
-    const from = capture() ?? last_location;
+    const from = capture_departure() ?? last_location;
     workspace.checkpoint();
     workspace.stop_restoring();
     workspace.hold(path, true);
@@ -284,7 +291,7 @@ export function bind_reading_navigation(): () => void {
         if (!await wait_for(() => !navigating && !history.is_navigating() && !is_busy(), signal)) break;
         finish_pending();
         workspace.stop_restoring();
-        const result = await history.travel(queue[0].direction, capture(), async location => {
+        const result = await history.travel(queue[0].direction, capture_departure(), async location => {
           const restored = location.kind != null
             ? await navigation_editor().restore(location, signal)
             : await navigate(location.file_path, undefined, location, {signal});
@@ -321,7 +328,7 @@ export function bind_reading_navigation(): () => void {
     if (navigating) return;
     if (editor.sourceView?.inSourceMode || (!/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url))) {
       // 外部程序往返可能清空再重建原生选区；它不是正文内的新定位。
-      restoring_focus = true; clearTimeout(selection_timer);
+      restoring_focus = true; document_interaction = false; clearTimeout(selection_timer);
       return original_open_url.call(this, url, ...args);
     }
     if (local_url.startsWith("#")) {
@@ -372,7 +379,7 @@ export function bind_reading_navigation(): () => void {
       if (disposed) return;
       workspace.checkpoint();
       if (navigating || history.is_navigating() || pending_from) return;
-      pending_from = capture() ?? last_location;
+      pending_from = capture_departure() ?? last_location;
     }));
     collect(app.workspace.on("file:open", () => {
       if (disposed) return;
@@ -381,21 +388,37 @@ export function bind_reading_navigation(): () => void {
       pending_timer = window.setTimeout(finish_pending, 500);
     }));
   }
-  const record_selection = (explicit = false) => {
+  const record_selection = (explicit = false, editor_change_only = false) => {
     if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
     const current = capture();
     if (!current) return;
+    // 同一编辑器的焦点/布局通知不等于新的文档选区；明确定位仍由领域入口提交。
+    if ((editor_change_only || (!explicit && !document_interaction)) && history.is_current_editor(current)) return;
     if (!(restoring_focus && !explicit && history.checkpoint(current))) history.record_selection(current, explicit);
     last_location = current; publish_history_state();
   };
   collect(observe_navigation_selection(record_selection));
-  const schedule_selection = () => {
+  const schedule_selection = (editor_change_only = false) => {
     clearTimeout(selection_timer);
-    selection_timer = window.setTimeout(() => record_selection(), 100);
+    selection_timer = window.setTimeout(() => record_selection(false, editor_change_only), 100);
+  };
+  const is_document_event = (event: Event) => {
+    const path = event.composedPath().filter((node): node is Element => node instanceof Element);
+    return !path.some(node => node.matches('.workspace-link-preview, button, input, select, [role="toolbar"], .find-widget'))
+      && path.some(node => node.matches('#write, .linux-note-source-file, .git-graph-document'));
+  };
+  const leave_document = (capture_before_blur = false) => {
+    // 只缓存失焦前真实文档位置，不提交历史；后续实际离开时可保留刚滚到的阅读位置。
+    if (capture_before_blur && document_interaction && !navigating && !history.is_navigating() && !is_busy() && !pending_from) {
+      const current = capture();
+      if (current && history.is_current_editor(current)) last_location = current;
+    }
+    document_interaction = false; clearTimeout(selection_timer);
   };
   // 点击前更新来源的滚动位置；定位由对应入口提交，滚轮本身不新增记录。
   document.addEventListener("pointerdown", event => {
-    if (event.target instanceof Element && event.target.closest(".workspace-link-preview")) return;
+    if (!is_document_event(event)) { leave_document(true); return; }
+    document_interaction = true;
     if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
     const current = capture();
     if (current) { history.checkpoint(current); last_location = current; }
@@ -404,11 +427,13 @@ export function bind_reading_navigation(): () => void {
   document.addEventListener("selectionchange", () => {
     if (window.getSelection()?.anchorNode?.getRootNode()===document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
   }, {signal: controller.signal});
-  if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
+  if (app) collect(app.workspace.on("active-leaf:change", () => record_selection(false, true)));
   schedule_selection();
-  window.addEventListener("blur", () => { restoring_focus = true; clearTimeout(selection_timer); }, {signal: controller.signal});
+  document.addEventListener("focusin", event => { if (!is_document_event(event)) leave_document(); }, {capture: true, signal: controller.signal});
+  document.addEventListener("beforeinput", event => { if (is_document_event(event)) { document_interaction = true; restoring_focus = false; } }, {capture: true, signal: controller.signal});
+  window.addEventListener("blur", () => { restoring_focus = true; leave_document(); }, {signal: controller.signal});
   window.addEventListener("keydown", (event) => {
-    if (!event.altKey && !["Control", "Shift", "Meta"].includes(event.key) && event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document")) restoring_focus = false;
+    if (!event.altKey && !["Control", "Shift", "Meta", "Tab"].includes(event.key) && is_document_event(event)) { document_interaction = true; restoring_focus = false; }
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing
         || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) return;
     const active = document.activeElement;

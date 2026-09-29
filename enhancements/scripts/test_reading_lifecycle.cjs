@@ -126,6 +126,32 @@ app.whenReady().then(async () => {
   test_window.webContents.sendInputEvent({type:'keyUp',keyCode:'Alt'});
   await evaluate('dispose_inner();void 0');
   assert(await evaluate('File.editor.tryOpenUrl_===native_inner'),'销毁恢复真实内部链接入口');
+  // 工具面板切换可能重复通知同一活动编辑器，并改变缓存的原生选区；不能污染文档历史。
+  await evaluate(`window.toolbar_cursor={type:'cursor',id:'a',start:0};File.editor.selection.buildUndo=()=>toolbar_cursor;File.editor.undo={exeCommand(cursor){toolbar_cursor=cursor}};window.dispose_toolbar_nav=qa.bind_reading_navigation();qa.notify_navigation_selection();toolbar_cursor={type:'cursor',id:'b',start:0};qa.notify_navigation_selection(true);toolbar_cursor={type:'cursor',id:'c',start:0};qa.notify_navigation_selection(true);void 0`);
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
+  assert.equal(await evaluate('toolbar_cursor.id'),'b');
+  await evaluate(`const tool=document.createElement('button');tool.id='activity-tool';tool.textContent='搜索';document.body.append(tool);tool.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));tool.focus();toolbar_cursor={type:'cursor',id:'host-focus-reset',start:0};emit('active-leaf:change');void 0`);await delay(180);
+  assert.equal(await evaluate('document.documentElement.dataset.linuxNoteHistoryForward'),'true','功能栏点击及同编辑器焦点通知不能截断前进');
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:1}}));void 0`);await delay(400);
+  assert.equal(await evaluate('toolbar_cursor.id'),'c','工具栏操作后前进仍到原文档位置');
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
+  await evaluate(`document.querySelector('#write').dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));document.querySelector('content').scrollTop=450;void 0`);
+  for(let round=0;round<20;round++){
+    await evaluate(`(()=>{const tool=document.querySelector('#activity-tool');tool.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));tool.focus();toolbar_cursor={type:'cursor',id:'background-${round}',start:0};const range=document.createRange();range.selectNodeContents(document.querySelector('#write p'));window.getSelection().removeAllRanges();window.getSelection().addRange(range);document.dispatchEvent(new Event('selectionchange'));emit('active-leaf:change');qa.notify_navigation_selection();})()`);await delay(120);
+    assert.equal(await evaluate('document.documentElement.dataset.linuxNoteHistoryForward'),'true','工具控件与延迟正文选区不截断前进 '+round);
+  }
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:1}}));void 0`);await delay(400);
+  assert.equal(await evaluate('toolbar_cursor.id'),'c');
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
+  assert.equal(await evaluate('toolbar_cursor.id'),'b','返回来源未被工具期间的宿主缓存选区覆盖');
+  assert.equal(await evaluate("document.querySelector('content').scrollTop"),450,'离开前的正文阅读滚动仍能恢复，工具控件本身不产生历史');
+  // 起点在功能栏的明确定位仍记录；正文再次接受鼠标/键盘编辑后恢复普通选区采样。
+  await evaluate(`toolbar_cursor={type:'cursor',id:'outline-target',start:0};qa.notify_navigation_selection(true);void 0`);
+  assert.equal(await evaluate('document.documentElement.dataset.linuxNoteHistoryForward'),'false','明确定位正常截断旧前进');
+  await evaluate(`const root=document.querySelector('#write');root.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true}));toolbar_cursor={type:'cursor',id:'text-edit',start:0};root.dispatchEvent(new InputEvent('beforeinput',{bubbles:true,inputType:'insertText',data:'x'}));qa.notify_navigation_selection();void 0`);
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}));void 0`);await delay(400);
+  assert.equal(await evaluate('toolbar_cursor.id'),'outline-target','正文编辑位置正常进入共同历史');
+  await evaluate(`dispose_toolbar_nav();document.querySelector('#activity-tool').remove();File.editor.selection.buildUndo=()=>null;void 0`);
   // Monaco以textarea接收键盘，不能被普通表单的Alt保护误拦截。
   await evaluate(`window.source_position={kind:'source',file_path:'/test/code.c',view_id:-1,line:10,cursor:{startLineNumber:10},scroll_top:10,scroll_left:0};window.release_port=qa.register_navigation_editor({capture:()=>source_position,restore:async location=>{source_position=location;qa.notify_navigation_selection();return true}});window.dispose_source_nav=qa.bind_reading_navigation();window.dispatchEvent(new Event('blur'));qa.notify_navigation_selection();source_position={...source_position,line:11,cursor:{startLineNumber:11}};qa.notify_navigation_selection(true);const source_panel=document.createElement('section');source_panel.className='linux-note-source-file';source_panel.innerHTML='<textarea></textarea>';document.body.append(source_panel);source_panel.firstChild.focus();void 0;`);
   test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left',modifiers:['alt']});

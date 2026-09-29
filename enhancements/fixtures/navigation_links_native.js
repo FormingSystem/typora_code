@@ -1,7 +1,8 @@
 // 原生Markdown连续链接与Alt导航；隔离临时文档。
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[],latencies=[];
- let native_clicks=0;document.addEventListener('click',event=>{if(event.isTrusted&&event.target.closest?.('.workspace-titlebar-history'))native_clicks++;},true);
+ let native_clicks=0;document.addEventListener('click',event=>{if(event.isTrusted&&event.target.closest?.('.workspace-titlebar-history, .workspace-activity-item, .workspace-titlebar-menu > button'))native_clicks++;},true);
+ let native_controls=0;window.addEventListener('pointerdown',event=>{if(event.isTrusted&&event.target.closest?.('.workspace-activity-item, .workspace-titlebar-menu > button'))native_controls++;},true);
  const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
  const pause=ms=>new Promise(r=>setTimeout(r,ms));
  document.addEventListener('pointerdown',event=>{
@@ -27,10 +28,10 @@
   document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowLeft',altKey:true,bubbles:true,cancelable:true}));await pause(1100);assert(files.current_file()===docs[2],'链接后Alt返回来源');
   const buttons=[...document.querySelectorAll('.workspace-titlebar-history')];
   const click_button=async(button)=>{
-   const box=button.getBoundingClientRect(),id=crypto.randomUUID(),before=native_clicks;
+   const box=button.getBoundingClientRect(),id=crypto.randomUUID(),is_history=button.matches('.workspace-titlebar-history'),count=()=>is_history?native_clicks:native_controls,before=count();
    fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind:'click',x:box.x+box.width/2,y:box.y+box.height/2,width:innerWidth,height:innerHeight}));
-   const start=Date.now();while(Date.now()-start<3000&&native_clicks===before)await pause(30);
-   assert(native_clicks===before+1,'顶栏可信鼠标点击 '+native_clicks);await pause(850);
+   const start=Date.now();while(Date.now()-start<3000&&count()===before)await pause(30);
+   assert(count()===before+1,'工作台可信鼠标输入 '+native_clicks+'/'+native_controls);await pause(850);
   };
   snapshot('before toolbar');await click_button(buttons[1]);assert(files.current_file()===docs[3],'链接返回后顶栏前进');
   const original_browser=JSBridge.showInBrowser,opened=[];
@@ -54,6 +55,17 @@
   const wait_path=async target=>{const start=Date.now();while(files.current_file()!==target&&Date.now()-start<10000)await pause(20);await pause(250);assert(files.current_file()===target,'连续指令最终资源 '+path.basename(target));};
   const burst=keys=>{for(const key of keys)window.dispatchEvent(new KeyboardEvent('keydown',{key,altKey:true,bubbles:true,cancelable:true}));};
   const assert_trace=expected=>{samples.push({transitions:[...transitions],expected});assert(JSON.stringify(transitions)===JSON.stringify(expected),'连续指令每一步资源顺序');transitions.length=0;};
+  burst(['ArrowLeft']);await wait_path(docs[2]);assert_trace([docs[2]]);
+  const activities=[...document.querySelectorAll('.workspace-activity-item')].filter(node=>node.getBoundingClientRect().height>0);
+  assert(activities.length>=3,'真实活动栏控件存在');
+  for(let i=0;i<20;i++){
+   await click_button(activities[i%2?2:0]);
+   assert(files.current_file()===docs[2]&&document.documentElement.dataset.linuxNoteHistoryForward==='true','功能栏切换保持文档与前进 '+i);
+  }
+  const menu=document.querySelector('.workspace-titlebar-menu > button');await click_button(menu);
+  document.activeElement.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true,cancelable:true}));await pause(200);
+  assert(document.documentElement.dataset.linuxNoteHistoryForward==='true','菜单打开关闭不截断前进');
+  burst(['ArrowRight']);await wait_path(docs[3]);assert_trace([docs[3]]);
   burst(['ArrowLeft','ArrowLeft','ArrowLeft']);await wait_path(docs[0]);assert_trace([docs[2],docs[1],docs[0]]);
   const all_leaves=[];core.app.workspace.eachLeaves(leaf=>{all_leaves.push(leaf);});
   for(const target of [docs[1],docs[2]]){const leaf=all_leaves.find(leaf=>path.normalize(leaf.state.path)===target);assert(!!leaf,'关闭连续前进目标存在');assert(await files.close_leaf(leaf),'关闭连续前进目标');}

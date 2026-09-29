@@ -194431,6 +194431,7 @@ https://creativecommons.org/licenses/by/4.0/
         navigating = false;
       },
       is_navigating: () => navigating,
+      is_current_editor: (current2) => entries3[index]?.file_path === current2.file_path && entries3[index]?.kind === current2.kind && entries3[index]?.view_id === current2.view_id,
       // 是否可接收下一方向只取决于逻辑栈边界；恢复串行化由导航入口拥有。
       can_travel: (direction, pending_offset = 0) => index + pending_offset + direction >= 0 && index + pending_offset + direction < entries3.length,
       remap_paths(map) {
@@ -194932,6 +194933,7 @@ https://creativecommons.org/licenses/by/4.0/
     let pending_timer = 0;
     let selection_timer = 0;
     let restoring_focus = false;
+    let document_interaction = true;
     let last_location = null;
     const owned_remap_paths = remap_paths = (map) => {
       if (disposed) return;
@@ -194960,6 +194962,10 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       return { file_path: context.file_path, ...position2, position: position2, cursor, view_id: context.view_id };
+    };
+    const capture_departure = () => {
+      const current2 = capture();
+      return !document_interaction && current2 && last_location && current2.file_path === last_location.file_path && current2.kind === last_location.kind && current2.view_id === last_location.view_id ? last_location : current2;
     };
     const finish_pending = () => {
       window.clearTimeout(pending_timer);
@@ -195038,7 +195044,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (!fs2.statSync(path).isFile()) throw new Error("\u76EE\u6807\u4E0D\u662F\u666E\u901A\u6587\u4EF6\u3002");
         }
         if (disposed || signal.aborted) return false;
-        const from = capture() ?? last_location;
+        const from = capture_departure() ?? last_location;
         workspace.checkpoint();
         workspace.stop_restoring();
         workspace.hold(path, true);
@@ -195140,7 +195146,7 @@ https://creativecommons.org/licenses/by/4.0/
           if (!await wait_for(() => !navigating && !history.is_navigating() && !is_busy(), signal)) break;
           finish_pending();
           workspace.stop_restoring();
-          const result = await history.travel(queue2[0].direction, capture(), async (location) => {
+          const result = await history.travel(queue2[0].direction, capture_departure(), async (location) => {
             const restored = location.kind != null ? await navigation_editor().restore(location, signal) : await navigate(location.file_path, void 0, location, { signal });
             return restored && !disposed && !signal.aborted ? capture() ?? false : false;
           });
@@ -195174,6 +195180,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (navigating) return;
       if (editor2.sourceView?.inSourceMode || !/^[a-z]:[\\/]/iu.test(local_url) && /^(?!file:)[a-z][a-z0-9+.-]*:/iu.test(local_url)) {
         restoring_focus = true;
+        document_interaction = false;
         clearTimeout(selection_timer);
         return original_open_url.call(this, url, ...args);
       }
@@ -195230,7 +195237,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed) return;
         workspace.checkpoint();
         if (navigating || history.is_navigating() || pending_from) return;
-        pending_from = capture() ?? last_location;
+        pending_from = capture_departure() ?? last_location;
       }));
       collect(app.workspace.on("file:open", () => {
         if (disposed) return;
@@ -195239,21 +195246,38 @@ https://creativecommons.org/licenses/by/4.0/
         pending_timer = window.setTimeout(finish_pending, 500);
       }));
     }
-    const record_selection = (explicit = false) => {
+    const record_selection = (explicit = false, editor_change_only = false) => {
       if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
       const current2 = capture();
       if (!current2) return;
+      if ((editor_change_only || !explicit && !document_interaction) && history.is_current_editor(current2)) return;
       if (!(restoring_focus && !explicit && history.checkpoint(current2))) history.record_selection(current2, explicit);
       last_location = current2;
       publish_history_state();
     };
     collect(observe_navigation_selection(record_selection));
-    const schedule_selection = () => {
+    const schedule_selection = (editor_change_only = false) => {
       clearTimeout(selection_timer);
-      selection_timer = window.setTimeout(() => record_selection(), 100);
+      selection_timer = window.setTimeout(() => record_selection(false, editor_change_only), 100);
+    };
+    const is_document_event = (event) => {
+      const path = event.composedPath().filter((node) => node instanceof Element);
+      return !path.some((node) => node.matches('.workspace-link-preview, button, input, select, [role="toolbar"], .find-widget')) && path.some((node) => node.matches("#write, .linux-note-source-file, .git-graph-document"));
+    };
+    const leave_document = (capture_before_blur = false) => {
+      if (capture_before_blur && document_interaction && !navigating && !history.is_navigating() && !is_busy() && !pending_from) {
+        const current2 = capture();
+        if (current2 && history.is_current_editor(current2)) last_location = current2;
+      }
+      document_interaction = false;
+      clearTimeout(selection_timer);
     };
     document.addEventListener("pointerdown", (event) => {
-      if (event.target instanceof Element && event.target.closest(".workspace-link-preview")) return;
+      if (!is_document_event(event)) {
+        leave_document(true);
+        return;
+      }
+      document_interaction = true;
       if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
       const current2 = capture();
       if (current2) {
@@ -195265,14 +195289,26 @@ https://creativecommons.org/licenses/by/4.0/
     document.addEventListener("selectionchange", () => {
       if (window.getSelection()?.anchorNode?.getRootNode() === document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
     }, { signal: controller.signal });
-    if (app) collect(app.workspace.on("active-leaf:change", schedule_selection));
+    if (app) collect(app.workspace.on("active-leaf:change", () => record_selection(false, true)));
     schedule_selection();
+    document.addEventListener("focusin", (event) => {
+      if (!is_document_event(event)) leave_document();
+    }, { capture: true, signal: controller.signal });
+    document.addEventListener("beforeinput", (event) => {
+      if (is_document_event(event)) {
+        document_interaction = true;
+        restoring_focus = false;
+      }
+    }, { capture: true, signal: controller.signal });
     window.addEventListener("blur", () => {
       restoring_focus = true;
-      clearTimeout(selection_timer);
+      leave_document();
     }, { signal: controller.signal });
     window.addEventListener("keydown", (event) => {
-      if (!event.altKey && !["Control", "Shift", "Meta"].includes(event.key) && event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document")) restoring_focus = false;
+      if (!event.altKey && !["Control", "Shift", "Meta", "Tab"].includes(event.key) && is_document_event(event)) {
+        document_interaction = true;
+        restoring_focus = false;
+      }
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active2 = document.activeElement;
       if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
@@ -243688,6 +243724,15 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026092901,
+        version: "2026.09.29.1",
+        date: "2026-09-29",
+        notes: [
+          "\u4FEE\u590D\u529F\u80FD\u680F\u70B9\u51FB\u53CA\u540C\u7F16\u8F91\u5668\u7126\u70B9\u901A\u77E5\u6C61\u67D3\u6587\u6863\u5BFC\u822A\u5386\u53F2\uFF1A\u4FDD\u7559\u539F\u524D\u8FDB\u5206\u652F\u548C\u6587\u6863\u4F4D\u7F6E\u3002",
+          "\u524D\u8FDB\u3001\u540E\u9000\u5171\u7528\u540C\u4E00\u6587\u6863\u5386\u53F2\uFF1B\u6B63\u6587\u7F16\u8F91\u3001\u6587\u4EF6\u5207\u6362\u548C\u660E\u786E\u5B9A\u4F4D\u6B63\u5E38\u8BB0\u5F55\uFF0C\u7EAF\u5DE5\u5177\u63A7\u4EF6\u7126\u70B9\u4E0D\u518D\u53C2\u4E0E\u4F4D\u7F6E\u91C7\u6837\u3002"
+        ]
+      },
       {
         sequence: 2026092803,
         version: "2026.09.28.3",

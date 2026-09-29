@@ -25,6 +25,8 @@ export function create_reading_history(maximum_entries = 50) {
   return {
     clear(){revision++;entries=[];index=-1;navigating=false;},
     is_navigating: () => navigating,
+    is_current_editor: (current: reading_location) => entries[index]?.file_path === current.file_path
+      && entries[index]?.kind === current.kind && entries[index]?.view_id === current.view_id,
     // 是否可接收下一方向只取决于逻辑栈边界；恢复串行化由导航入口拥有。
     can_travel: (direction: -1 | 1, pending_offset = 0) => index + pending_offset + direction >= 0 && index + pending_offset + direction < entries.length,
     remap_paths(map: (path: string) => string | undefined) {
