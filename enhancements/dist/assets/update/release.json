@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026093001,
+      "version": "2026.09.30.1",
+      "date": "2026-09-30",
+      "notes": [
+        "暗色主题的操作按钮增加常显边框，未悬停时也能辨认可点击，避免误认提示文字。",
+        "按钮尺寸和文字位置保持，键盘焦点、禁用状态与菜单、列表及正文样式仍按各自规则显示。"
+      ],
+      "notes_en": [
+        "Dark-theme action buttons now have visible idle borders so they are clearly distinguishable from informational text.",
+        "Button size and text position are unchanged; keyboard focus, disabled states, menus, lists and document content keep their existing behavior."
+      ]
+    },
+    {
       "sequence": 2026092906,
       "version": "2026.09.29.6",
       "date": "2026-09-29",

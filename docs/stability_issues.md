@@ -506,3 +506,6 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 2026-09-29 R082/R052：BUG-explorer-layout-event-001（状态刷新/P2）。关闭最后一个文档时没有新活动文档，旧Open Editors订阅了工作台上不存在的布局事件，产生未命名残行；与旧core.empty身份问题区分。改为观察布局根，文件服务仍是文档身份所有者。旧HEAD隔离复现和修复后用例分别记录，详见[资源管理器设计](explorer_history.md)与localization_20260929.json。
 
 2026-09-29 TEST-localization-baseline：本轮完整UI首次91/106通过。对起始HEAD的8项隔离失败对照，区分实际布局订阅缺陷与旧夹具：异步渲染未等待、设置齿轮旧入口、选中与展开混用、退役预览尺寸限制、终端设置重排未完成等。按当前职责更新夹具，保留全部失败运行，不降低生产行为断言；最终复跑结果见localization_20260929.json。
+
+
+- BUG-workspace-dark-button-boundary（R020.2，2026-09-30）：暗色普通操作只提供悬停/焦点，局部无边框或#333536弱边线与底板接近，误认提示文字。共享层补常显内侧边界，保留焦点优先、几何与独立领域；本次验证及安装状态见台账和本轮证据。

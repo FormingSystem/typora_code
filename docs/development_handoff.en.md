@@ -548,3 +548,6 @@ Same candidate two types of isolated uninstall and reinstall, 65 uninstall asser
 
 
 2026-09-29 R058.5 delivered 2026.09.29.2, workspace limited directory/half path sharing matching fix, complete check/3 sets of UI/native 44 items and installation/uninstallation checks passed; user window was not restarted, saved and normal restart loading. Exact scope and failure records see [this evidence](../enhancements/tests/evidence/quick_paths_20260929.json), R082 and other historical unresolved items remained.
+
+
+2026-09-30 R020.2: workspace_interaction.css now owns visible dark action outlines; its 1px inset drawing preserves geometry and yields to keyboard focus. The baseline was aligned with installed 2026.09.29.6 to preserve localization and appearance restoration. 2026.09.30.1 is installed and checked; users must save and restart. Seven targeted UI suites, 897 native checks and both uninstall/reinstall paths passed; the complete business check and full UI suite were not run. Historical outstanding items and three locked earlier native payloads remain. See [current evidence](../enhancements/tests/evidence/dark_button_borders_20260930.json).

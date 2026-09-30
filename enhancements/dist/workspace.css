@@ -2067,6 +2067,12 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
 :where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }
 :where([role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]) { --workspace-default-hover:var(--workspace-menu-item-hover); }
 :where([data-workspace-interaction="menu"],[role="menubar"]>[role="menuitem"]) { --workspace-default-hover:var(--workspace-menu-hover); }
+/* R020.2: Keep dark actions visibly outlined without changing their geometry.
+   #707070 follows 6807068 checkbox.border; keyboard focus below takes precedence. */
+:where(:root[data-workspace-colors="dark"],:root:not([data-workspace-colors])[data-workspace-file-icon-theme="dark"]) body :is([data-workspace-interaction="action"],[data-workspace-interaction="primary"],:where([data-workspace-surface]) :is(button,[role="button"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,[data-workspace-interaction="menu"],[data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],[role="option"],[role^="menuitem"],[data-workspace-selected],summary,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) {
+  outline:1px solid var(--workspace-interaction-border,#707070)!important;
+  outline-offset:-1px;
+}
 /* VS Code button.css theme roles: main operations share colors, domains only retain size and split shape. */
 body [data-workspace-interaction="primary"]:not(:where([data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *,#typora-source *)) {
   background-color:var(--vscode-button-background,#0078d4)!important;

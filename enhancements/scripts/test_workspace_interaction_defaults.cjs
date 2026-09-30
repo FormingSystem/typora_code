@@ -23,18 +23,48 @@ app.whenReady().then(async()=>{
   assert.equal((await style('#nested')).shape[2],'12px');assert.equal((await style('#child')).shape[2],'4px','parent override must not leak to child');
   await move('#child');assert.equal((await style('#nested')).bg,'rgba(0, 0, 0, 0)','only deepest control receives hover');assert.notEqual((await style('#child')).bg,'rgba(0, 0, 0, 0)');
  }
+ // R020.2: Verify idle outlines, text geometry and semantic boundaries across themes.
+ await ev(`document.head.insertAdjacentHTML('beforeend','<style id="button_boundary_fixture">#scope button{border:0}#scope{color:#bfbfbf}#disabled{opacity:.5}#boundary_selected{background:#2c2d2e;color:#ededed}#boundary_override{--workspace-interaction-border:#abcdef}</style>');
+ for(const [id,attrs] of [['boundary_icon',''],['boundary_selected','aria-pressed="true"'],['boundary_override',''],['boundary_row','role="treeitem"'],['boundary_menu','role="menuitem"'],['boundary_tab','role="tab"'],['boundary_list','data-workspace-selected="true"'],['boundary_none','data-workspace-interaction="none"']]){const node=document.createElement('button');node.id=id;node.textContent=id==='boundary_icon'?'×':'操作';if(attrs){const parts=attrs.split('=');node.setAttribute(parts[0],parts[1].replaceAll('"',''));}document.querySelector('#scope').append(node);}
+ window.boundary_style=id=>{const node=document.querySelector(id),style=getComputedStyle(node),range=document.createRange();range.selectNodeContents(node);return {outline:[style.outlineStyle,style.outlineColor,style.outlineWidth,style.outlineOffset],box:node.getBoundingClientRect().toJSON(),text:range.getBoundingClientRect().toJSON(),background:style.backgroundColor,opacity:style.opacity};};void 0`);
+ for(const zoom of [1,1.25,1.5]){
+  win.webContents.setZoomFactor(zoom);await move('#outside');
+  await ev(`document.documentElement.dataset.workspaceFileIconTheme='light';document.body.style.background='#fff';void 0`);
+  const before=await ev(`Object.fromEntries(['#long','#circle','#dynamic','#boundary_icon','#boundary_selected'].map(id=>[id,boundary_style(id)]))`);
+  await ev(`document.documentElement.dataset.workspaceFileIconTheme='dark';document.body.style.background='#191a1b';void 0`);await pause(60);
+  for(const id of Object.keys(before)){
+   const after=await ev(`boundary_style('${id}')`);
+   assert.deepEqual(after.outline.slice(0,2),['solid','rgb(112, 112, 112)'],id+' non-hover visible boundary');assert(Number.parseFloat(after.outline[2])*zoom>=.99&&Number.parseFloat(after.outline[2])<=1.01,id+' rasterized one CSS pixel');assert.equal(Number.parseFloat(after.outline[3]),-Number.parseFloat(after.outline[2]),id+' inset boundary');
+   assert.deepEqual(after.box,before[id].box,id+' button geometry unchanged');assert.deepEqual(after.text,before[id].text,id+' text geometry unchanged');
+   await move(id);assert.equal((await ev(`boundary_style('${id}')`)).outline[1],'rgb(112, 112, 112)',id+' hover keeps boundary');await move('#outside');
+   checks.push('dark visible boundary and text geometry '+zoom+' '+id);
+  }
+  for(const id of ['#boundary_row','#boundary_menu','#boundary_tab','#boundary_list','#boundary_none','#editor','#document','#none button','#outside']){
+   assert.notEqual((await ev(`boundary_style('${id}')`)).outline[0],'solid',id+' independent semantic scope');
+  }
+  assert.equal((await ev(`boundary_style('#boundary_override')`)).outline[1],'rgb(171, 205, 239)','local boundary override');
+  assert.equal((await ev(`boundary_style('#disabled')`)).outline[0],'solid','disabled keeps shape');assert.equal((await ev(`boundary_style('#disabled')`)).opacity,'0.5','disabled opacity retained');
+  checks.push('semantic isolation, disabled and local override '+zoom);
+ }
+ // Capture actual pixels as well as computed styles.
+ win.webContents.setZoomFactor(1);await move('#outside');await pause(100);
+ fs.writeFileSync(path.join(evidence,'dark_buttons.png'),(await win.webContents.capturePage()).toPNG());
+ await ev(`document.documentElement.dataset.workspaceColors='light';void 0`);
+ assert.notEqual((await ev(`boundary_style('#long')`)).outline[0],'solid','explicit light palette overrides stale dark icon marker');
+ await ev(`delete document.documentElement.dataset.workspaceColors;document.querySelectorAll('[id^="boundary_"]').forEach(node=>node.remove());void 0`);
+ checks.push('light palette and dark fallback ownership');
  win.webContents.setZoomFactor(1);
  await ev(`const primary=qa.workspace_button('主操作',()=>{});primary.id='primary';qa.workspace_interaction(primary,'primary');document.querySelector('#scope').append(primary);void 0`);
  for(const background of ['rgb(0, 120, 212)','rgb(17, 60, 100)']) {
   await ev(`document.documentElement.style.setProperty('--vscode-button-background','${background}');document.documentElement.style.setProperty('--vscode-button-hoverBackground','rgb(30, 90, 150)');document.documentElement.style.setProperty('--vscode-button-foreground','rgb(255, 255, 255)');`);
-  await move('#outside');assert.equal((await style('#primary')).bg,background);
+  await move('#outside');assert.equal((await style('#primary')).bg,background);assert.equal((await ev(`boundary_style('#primary')`)).outline[0],'solid','primary non-hover boundary');
   await move('#primary');assert.equal((await style('#primary')).bg,'rgb(30, 90, 150)');assert.equal((await style('#primary')).color,'rgb(255, 255, 255)');
   await ev('document.querySelector("#primary").disabled=true');assert.equal((await style('#primary')).bg,background,'disabled primary does not use hover');
   await ev('document.querySelector("#primary").disabled=false');checks.push('primary theme, hover and disabled '+background);
  }
  await ev('document.querySelector("#primary").remove()');await move('#outside');win.webContents.focus();await ev('document.querySelector("#circle").focus()');win.webContents.sendInputEvent({type:'keyDown',keyCode:'Tab'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Tab'});await pause(80);
- assert(await ev('document.activeElement.id==="long"&&document.activeElement.matches(":focus-visible")&&getComputedStyle(document.activeElement).outlineStyle==="solid"'),'real keyboard focus uses shared outline '+JSON.stringify(await ev('({id:document.activeElement.id,visible:document.activeElement.matches(":focus-visible"),outline:getComputedStyle(document.activeElement).outlineStyle})')));checks.push('keyboard focus');
- await ev('binding.remove()');assert.equal((await style('#dynamic')).shape[2],'0px','scope disposal restores previous radius');await move('#outside');await move('#long');assert.equal((await style('#long')).bg,'rgba(0, 0, 0, 0)','removed scope restores unregistered descendants');
+ assert(await ev('document.activeElement.id==="long"&&document.activeElement.matches(":focus-visible")&&getComputedStyle(document.activeElement).outlineStyle==="solid"'),'real keyboard focus uses shared outline '+JSON.stringify(await ev('({id:document.activeElement.id,visible:document.activeElement.matches(":focus-visible"),outline:getComputedStyle(document.activeElement).outlineStyle})')));assert.equal((await ev(`boundary_style('#long')`)).outline[1],'rgba(57, 148, 188, 0.7)','keyboard focus takes precedence over dark boundary');checks.push('keyboard focus');
+ await ev('binding.remove()');assert.notEqual((await ev(`boundary_style('#dynamic')`)).outline[0],'solid','scope disposal restores boundary');assert.equal((await style('#dynamic')).shape[2],'0px','scope disposal restores previous radius');await move('#outside');await move('#long');assert.equal((await style('#long')).bg,'rgba(0, 0, 0, 0)','removed scope restores unregistered descendants');
  await move('#factory');assert.notEqual((await style('#factory')).bg,'rgba(0, 0, 0, 0)','independent owner keeps common style');await ev('extra.remove()');assert(await ev('!document.getElementById("typora-code-style:workspace_interaction")'),'last owner removes fallback stylesheet');checks.push('independent ownership and disposal');
  fs.writeFileSync(path.join(evidence,'checks.json'),JSON.stringify({status:'PASS',checks},null,2));console.log(JSON.stringify({status:'PASS',count:checks.length,evidence}));win.destroy();app.exit(0);
 }).catch(e=>{console.error(e.stack);if(win&&!win.isDestroyed())win.destroy();app.exit(1)});

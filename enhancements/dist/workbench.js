@@ -252083,6 +252083,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026093001,
+        version: "2026.09.30.1",
+        date: "2026-09-30",
+        notes: [
+          "\u6697\u8272\u4E3B\u9898\u7684\u64CD\u4F5C\u6309\u94AE\u589E\u52A0\u5E38\u663E\u8FB9\u6846\uFF0C\u672A\u60AC\u505C\u65F6\u4E5F\u80FD\u8FA8\u8BA4\u53EF\u70B9\u51FB\uFF0C\u907F\u514D\u8BEF\u8BA4\u63D0\u793A\u6587\u5B57\u3002",
+          "\u6309\u94AE\u5C3A\u5BF8\u548C\u6587\u5B57\u4F4D\u7F6E\u4FDD\u6301\uFF0C\u952E\u76D8\u7126\u70B9\u3001\u7981\u7528\u72B6\u6001\u4E0E\u83DC\u5355\u3001\u5217\u8868\u53CA\u6B63\u6587\u6837\u5F0F\u4ECD\u6309\u5404\u81EA\u89C4\u5219\u663E\u793A\u3002"
+        ],
+        notes_en: [
+          "Dark-theme action buttons now have visible idle borders so they are clearly distinguishable from informational text.",
+          "Button size and text position are unchanged; keyboard focus, disabled states, menus, lists and document content keep their existing behavior."
+        ]
+      },
+      {
         sequence: 2026092906,
         version: "2026.09.29.6",
         date: "2026-09-29",

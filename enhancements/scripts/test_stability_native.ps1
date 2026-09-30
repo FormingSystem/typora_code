@@ -1,7 +1,7 @@
 # Exclusive host copy + private desktop; no need to close or restart user window.
 [CmdletBinding()]
 param([string]$typora_root=$env:TYPORA_NATIVE_TEST_ROOT,
- [ValidateSet('stability_native.js','drag_windows_native.js')][string]$fixture='stability_native.js')
+ [ValidateSet('stability_native.js','drag_windows_native.js','button_boundary_native.js')][string]$fixture='stability_native.js')
 $ErrorActionPreference='Stop'
 if (!$typora_root) { throw 'Set TYPORA_NATIVE_TEST_ROOT to the verified original Typora 1.14.10 installation.' }
 $case_root = & python -X utf8 (Join-Path $PSScriptRoot 'prepare_stability_native.py') $typora_root $fixture

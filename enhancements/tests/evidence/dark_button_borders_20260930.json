@@ -1,0 +1,121 @@
+{
+  "schema": 1,
+  "requirements": [
+    "R020.2"
+  ],
+  "date": "2026-09-30",
+  "version": "2026.09.30.1",
+  "baseline": {
+    "initial": "5866546",
+    "installed_verified": "1d3cace0fadae2e83e444dc2f86ad3acfaeab478",
+    "installed_version": "2026.09.29.6",
+    "installed_assets_verified": 56,
+    "action": "保存本轮差量后快进到已安装提交，再重建和重验；保留双语、剪贴板与外观恢复功能"
+  },
+  "change": "暗色操作按钮常显1px内侧轮廓，主按钮与动态控件共用；焦点优先，不改变尺寸、内容盒、原阴影或独立领域",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "button_css": "src/vs/base/browser/ui/button/button.css",
+    "colors": "extensions/theme-defaults/themes/2026-dark.json",
+    "width": "1px",
+    "color": "#707070 (checkbox.border)",
+    "adaptation": "用户明确要求更清楚的按钮边线；不是声称原生button.secondaryBorder为#707070"
+  },
+  "asset_manifest_sha256": "0da4d6dd09ef939972d4c0890b950ba0baa18741a957099e8ebcf69e63fd2fb3",
+  "checks": {
+    "build": "PASS",
+    "static_core_deployment": "PASS",
+    "catalog_suites": 262,
+    "documents": {
+      "pairs": 69,
+      "links": 2614,
+      "status": "PASS"
+    },
+    "ui": {
+      "status": "PASS",
+      "suites": 7,
+      "run_ids": [
+        "d61fbf684250415d8cd51a4f67c1ae19",
+        "f03d32d6001a4f1080ba8253f4d04a17",
+        "2b1e9c192ddc4c5c96aac78c5af64c69",
+        "4977b8972f6345e2b88263ad2132b4e9",
+        "c7ab11917b9a4a4890bc15707d933d2e",
+        "a7ed8a1596274d91a39e3ff207a60220",
+        "376f47aa5fa34b7f8ab18e31494d9d92"
+      ],
+      "checks_by_suite": {
+        "interaction_defaults": 77,
+        "colors": 61,
+        "settings": 278,
+        "widgets": 102,
+        "escape_focus": 21,
+        "terminal_panel": 33,
+        "titlebar": "PASS"
+      }
+    },
+    "native": {
+      "id": "69066ebb47584edc86bbcdd027d5eac7",
+      "status": "PASS",
+      "checks": 897,
+      "host": "Typora 1.14.10 Windows x64独立副本，主桌面未切换",
+      "themes": [
+        "VSCode2026_Dark",
+        "CppGithubConsoles_Dark",
+        "Night"
+      ],
+      "input": "宿主命令与DOM点击；可信Chromium鼠标/键盘在UI夹具中验证",
+      "screenshots_reviewed": true,
+      "payload_state": "cleaned"
+    },
+    "uninstall": {
+      "id": "1f120b8e68fa4c109e395d0f0b2883c0",
+      "status": "PASS",
+      "assertions": 65,
+      "payload_state": "cleaned"
+    },
+    "install_cycles": {
+      "id": "d9a10153cef54df2816b29e1c070d8a6",
+      "status": "PASS",
+      "payload_state": "cleaned",
+      "paths": [
+        "install/check/restore-uninstall/reinstall/check",
+        "detach-uninstall/reinstall/check"
+      ],
+      "document_settings_backup": "preserved"
+    },
+    "local_install": {
+      "status": "PASS",
+      "check": "OK",
+      "workspace_assets": 56,
+      "terminal_assets": 24,
+      "managed_themes": 5,
+      "protected_hashes_unchanged": 7,
+      "uninstall_preflight": "restore, read-only; no real uninstall",
+      "running_windows": "not restarted",
+      "version": "2026.09.30.1"
+    }
+  },
+  "diagnostics": [
+    {
+      "scope": "旧基线，仅诊断",
+      "detail": "旧完整check先遇Codicons README和两份2026 JSON换行摘要差异；较新基线已有README修正，未将该修正混入本次差量。旧基线完整检查在识别本机新版后取消，载荷已回收。"
+    },
+    {
+      "scope": "测试夹具修正",
+      "detail": "125%下1px轮廓按设备像素吸附为0.8 CSS px；原生几何比较改为真实可见按钮，并排除跨不同主题自身字体变化。"
+    },
+    {
+      "scope": "旧基线UI已有失败",
+      "detail": "提交浮层列重叠与Graph模式输入为空在恢复原CSS的对照中同样失败；未修改这些功能，不算本次通过。"
+    }
+  ],
+  "boundaries": [
+    "最终候选未执行完整npm run check与全量UI；仅列出的本轮静态、部署、功能及系统用例可作为证据。",
+    "用户运行窗口未重启；磁盘安装与实际窗口加载分别记录。",
+    "三个旧基线原生目录仍有app.asar占用，公共清理重试失败，保留受管标记待回收；最终原生、隔离安装及卸载载荷分别记录。",
+    "R068.6暂停、R068.10现场裁切、R047.9、R047.6/R071.4及历史UI问题保持；其他平台和物理键盘现场未验收。",
+    "未推送，未声明其他用户已可下载。"
+  ],
+  "delivery": "installed_not_restarted",
+  "build_notes": "三份生成许可/来源文件随标准构建发生纯换行差量；源码主题与已安装上一版仅换行不同，按标准安装备份并部署。"
+}
