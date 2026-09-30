@@ -423,6 +423,8 @@ This time, the original host reproduces the second root cause of the long paragr
 
 ## R020.2 Visible dark action-button borders (2026-09-30)
 
+Scope correction (2026-09-30): the global proposal below is superseded by [R072.4 settings content scope](workspace_settings.en.md#settings-button-boundary). The original diagnosis and values remain recorded; Explorer, settings categories and other panels no longer receive idle outlines.
+
 The user reported that dark-theme buttons without borders, or with borders matching their background, look like informational text. Idle action buttons must remain identifiable. The shared interaction layer previously supplied hover and focus feedback only; local buttons could remove their border, while dialog buttons used the faint input border. The change covers registered ordinary and primary actions, including dynamically inserted controls in settings, dialogs, Git, terminal, search and preview tools. Menu items, tree/list rows, tabs and activity items retain their own presentation. Light themes, document content, third-party editors and explicit `none` boundaries remain under their existing owners.
 
 The fixed VS Code commit `68070681e87284e2f22728f15fe3f3651fbf932b` uses a 1px border and 4px radius in `src/vs/base/browser/ui/button/button.css`. Its `2026-dark.json` defines secondary button borders as `#333536`, primary borders as `#297AA0` (also the primary background), and checkbox borders as `#707070`. This user-requested adaptation adopts the stronger existing `#707070` control color; it does not claim exact VS Code button-color parity.

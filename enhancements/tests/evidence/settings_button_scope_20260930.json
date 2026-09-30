@@ -1,0 +1,102 @@
+{
+  "schema": 1,
+  "date": "2026-09-30",
+  "requirements": [
+    "R072.4",
+    "R020.2"
+  ],
+  "version": "2026.09.30.2",
+  "baseline": "a781194f03686ffedcddd07ba0ef1b44e3928b7b",
+  "remote_sync": "git pull --ff-only origin main: already up to date",
+  "change": "Remove workbench-wide idle outlines; retain them only within registered owned settings content. Explorer, settings categories and window actions keep their prior styles.",
+  "manifest_sha256": "97593986823180bf69d9a047e5b8c1e3462a6ce5d277cfd0449f3504c4af6e4e",
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "run": "2ff433dba61e445e817e181167a43cd8",
+      "catalog_suites": 262
+    },
+    "ui": {
+      "status": "PASS",
+      "suites": 4,
+      "runs": {
+        "interaction": "9c5b041f8d0c43f9a25af0ecbcab8cc4",
+        "settings": "c89de6754b214dd2892f142a1ed60983",
+        "widgets": "ac95e195698342d1b6f16f9ac4247793",
+        "explorer": "ac945227d46f496e87cb2c31b476fe47"
+      },
+      "checks": [
+        77,
+        278,
+        102,
+        34
+      ]
+    },
+    "native": {
+      "status": "PASS",
+      "run": "381cedb151114902963d181e547fd37d",
+      "checks": 954,
+      "themes": [
+        "VSCode2026_Dark",
+        "CppGithubConsoles_Dark",
+        "Night"
+      ],
+      "theme_transitions_per_theme": 20,
+      "input": "Native commands and DOM clicks; real Chromium mouse and keyboard covered by UI tests",
+      "screenshots_reviewed": [
+        "VSCode2026_Dark",
+        "Night"
+      ]
+    },
+    "install_cycles": {
+      "status": "PASS",
+      "run": "c8a058fee0304e62a68f99f80e3cefef",
+      "paths": [
+        "install/check/restore-uninstall/reinstall/check",
+        "detach-uninstall/reinstall/check"
+      ],
+      "document_settings_backup": "preserved"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "run": "b9dbf5cb59f94b428f45f03f4c172385",
+      "checks": 65
+    },
+    "local": {
+      "version": "2026.09.30.2",
+      "manifest_sha256": "97593986823180bf69d9a047e5b8c1e3462a6ce5d277cfd0449f3504c4af6e4e",
+      "asset_counts": [
+        56,
+        24
+      ],
+      "protected_unchanged": 8,
+      "checks": "PASS",
+      "restarted": false,
+      "manifest_verified_separately": true,
+      "uninstall_preflight": "detach, read-only"
+    }
+  },
+  "diagnostics": [
+    {
+      "run": "14d0bfa2a48f4193a9322ae3f1f118e0",
+      "result": "Expected old-CSS failure: settings_category independent semantic scope; final candidate passes."
+    },
+    {
+      "run": "d1dce3a8fc284dedbf5153fd2e935428",
+      "result": "First native run failed while theme was still changing; fixture now awaits the actual theme marker and invokes the native theme owner. Product behavior unchanged by this fixture adjustment."
+    },
+    "Initial verification helper expected a terminal SHA256SUMS file that the installer does not deploy. Corrected helper verified all 24 terminal asset hashes; standard installer check passed.",
+    "Three generated metadata/license files changed line endings only; normalized-byte comparison passed."
+  ],
+  "cleanup": {
+    "ui_core_install_uninstall": "cleaned",
+    "native": "Both native runs retain a locked app.asar payload. Public cleanup retried; no matching Typora process remains. Markers, logs, checks and screenshots retained."
+  },
+  "limits": [
+    "No full UI suite or non-Windows native validation in this round.",
+    "Physical OS input and the existing user window remain unverified; save and restart normally to load the installed candidate.",
+    "R068.6 paused, R068.10 field clipping, R047.9 and other historical unresolved items retain their existing state.",
+    "Local commit only; no push requested."
+  ]
+}

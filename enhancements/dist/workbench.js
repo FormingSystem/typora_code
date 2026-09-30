@@ -252083,6 +252083,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026093002,
+        version: "2026.09.30.2",
+        date: "2026-09-30",
+        notes: [
+          "\u5C06\u6697\u8272\u5E38\u663E\u6309\u94AE\u8FB9\u6846\u9650\u5B9A\u5230\u8BBE\u7F6E\u53F3\u4FA7\u7684\u64CD\u4F5C\u6309\u94AE\uFF0C\u6062\u590D\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u8BBE\u7F6E\u5DE6\u4FA7\u5206\u7C7B\u53CA\u5176\u4ED6\u533A\u57DF\u539F\u6765\u7684\u5916\u89C2\u3002",
+          "\u4FDD\u7559\u8BBE\u7F6E\u64CD\u4F5C\u6309\u94AE\u7684\u8FA8\u8BC6\u5EA6\u4E0E\u539F\u6709\u952E\u76D8\u7126\u70B9\u3001\u60AC\u505C\u548C\u7981\u7528\u884C\u4E3A\uFF0C\u4E0D\u6539\u53D8\u6309\u94AE\u5C3A\u5BF8\u6216\u529F\u80FD\u3002"
+        ],
+        notes_en: [
+          "Limit dark idle button borders to actions in the right-hand settings content, restoring the previous appearance of Explorer, settings categories and other areas.",
+          "Keep settings actions identifiable while preserving keyboard focus, hover, disabled behavior, button geometry and functionality."
+        ]
+      },
+      {
         sequence: 2026093001,
         version: "2026.09.30.1",
         date: "2026-09-30",

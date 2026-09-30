@@ -1,4 +1,4 @@
-// R020.2: Verify production buttons in an isolated native host, without touching user windows.
+// R072.4: Verify production buttons in an isolated native host, without touching user windows.
 (async()=>{
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],samples=[];
  const core=window[Symbol.for('typora-code:workspace')];
@@ -8,13 +8,13 @@
  const sample=node=>{const style=getComputedStyle(node),range=document.createRange();range.selectNodeContents(node);return {text:node.textContent,title:node.title,outline:style.outlineStyle,color:style.outlineColor,width:style.outlineWidth,offset:style.outlineOffset,rect:node.getBoundingClientRect().toJSON(),text_rect:range.getBoundingClientRect().toJSON()};};
  const visible=node=>{const rect=node.getBoundingClientRect();if(rect.width<=0||rect.height<=0||rect.top<0||rect.bottom>innerHeight||getComputedStyle(node).visibility!=='visible'||getComputedStyle(node).opacity==='0')return false;const hit=document.elementFromPoint(rect.left+rect.width/2,rect.top+rect.height/2);return hit===node||node.contains(hit);};
  const operation=node=>!node.matches('[role^=menuitem],[role=tab],[role=treeitem],[role=option],[data-workspace-selected],[data-workspace-interaction=menu],[data-workspace-interaction=row],[data-workspace-interaction=tab],[data-workspace-interaction=activity]')&&!node.closest('[data-workspace-interaction=none],.monaco-editor,.CodeMirror,.xterm,#write');
- const verify=(root,label)=>{const buttons=[...root.querySelectorAll('button')].filter(node=>visible(node)&&operation(node));assert(buttons.length>0,label+'存在可见操作');for(const node of buttons){const paint=sample(node);samples.push({label,...paint});assert(paint.outline==='solid'&&paint.color==='rgb(112, 112, 112)',label+'静止边线 '+(node.title||node.textContent));}return buttons;};
+ const verify=(root,label)=>{const buttons=[...root.querySelectorAll('button')].filter(node=>visible(node)&&operation(node));assert(buttons.length>0,label+'存在可见操作');for(const node of buttons){const paint=sample(node);samples.push({label,...paint});const owned=Boolean(node.closest('.workspace-settings-body'));assert((paint.outline==='solid'&&paint.color==='rgb(112, 112, 112)')===owned,label+(owned?'设置内容静止边线 ':'范围外无强调边线 ')+(node.title||node.textContent));}return buttons;};
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'独立窗口未就绪');await pause(600);
   for(const theme of ['vscode2026_dark.css','cpp_github-consolas_dark.css','night.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(650);
    document.activeElement?.blur();assert(document.documentElement.dataset.workspaceColors==='dark','真实暗主题 '+theme);
-   for(const id of ['core.search','linux_note:source_control','typora_code:remote_ssh']){
+   for(const id of ['core.file-explorer','core.search','linux_note:source_control','typora_code:remote_ssh']){
     document.querySelector('.typ-ribbon-item[data-id="'+id+'"]')?.click();await pause(350);document.activeElement?.blur();
     verify(core.app.workspace.sidebar.activePanel.containerEl,theme+' '+id);
    }
@@ -22,12 +22,12 @@
    verify(document.querySelector('.terminal-panel-header'),theme+' 终端');
    core.app.commands.run('linux_note:terminal_toggle');
    core.app.commands.run('typora_code:settings');await wait(()=>document.querySelector('.workspace-settings'),'设置未打开');await pause(250);document.activeElement?.blur();
-   const modal=document.querySelector('.workspace-settings-modal');const buttons=verify(modal,theme+' 设置与弹窗');
+   const modal=document.querySelector('.workspace-settings-modal');verify(modal.querySelector('.workspace-settings-categories'),theme+' 左侧分类');verify(modal.querySelector('.workspace-dialog-header'),theme+' 标题操作');const buttons=verify(modal.querySelector('.workspace-settings-body'),theme+' 右侧操作');
    const before=buttons.map(node=>sample(node));
    const neutral=document.createElement('style');neutral.textContent='html body [data-workspace-surface] button{outline-width:0!important}';document.head.append(neutral);buttons.forEach((node,index)=>{const actual=sample(node);assert(JSON.stringify(actual.rect)===JSON.stringify(before[index].rect)&&JSON.stringify(actual.text_rect)===JSON.stringify(before[index].text_rect),'同一主题边线不改变几何 '+theme+' '+index);});neutral.remove();
-   for(let round=0;round<4;round++){
+   for(let round=0;round<20;round++){
     const light=round%2===0;const next=light?'vscode2026_light.css':theme;
-    File.setTheme(next);await pause(160);
+    await JSBridge.invoke('setting.setCurTheme',next,next);File.setTheme(next);await wait(()=>document.documentElement.dataset.workspaceColors===(light?'light':'dark'),'等待原生主题切换 '+theme+' '+round);await pause(160);
     assert(document.documentElement.dataset.workspaceColors===(light?'light':'dark'),'原生主题切换 '+theme+' '+round);
     buttons.forEach((node,index)=>{const after=sample(node);assert(node.isConnected,'切换保留按钮身份 '+theme+' '+round+' '+index);if(theme!=='night.css')assert(JSON.stringify(after.rect)===JSON.stringify(before[index].rect)&&JSON.stringify(after.text_rect)===JSON.stringify(before[index].text_rect),'同排版明暗按钮几何不变 '+theme+' '+round+' '+index);if(light)assert(after.color!=='rgb(112, 112, 112)'||after.outline!=='solid','浅色撤销共享轮廓 '+index);});
    }

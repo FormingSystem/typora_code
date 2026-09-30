@@ -553,3 +553,5 @@ BUG-navigation-focus-branch：top bar pointerdown mistakenly calls the new selec
 
 
 - BUG-workspace-dark-button-boundary (R020.2, 2026-09-30): missing or faint idle action outlines can make dark buttons look like informational text. The shared layer adds an inset outline while retaining focus priority, geometry and independent domains. Current verification and delivery evidence are recorded separately.
+
+- BUG-settings-button-scope (R072.4, 2026-09-30): R020.2 placed local button emphasis in the shared action rule, outlining Explorer and settings categories. Remove the global idle outline and constrain it to owned settings content. Current validation and installation passed; retained native payloads and user-window loading limits are recorded in settings_button_scope_20260930.json.

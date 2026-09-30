@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026093002,
+      "version": "2026.09.30.2",
+      "date": "2026-09-30",
+      "notes": [
+        "将暗色常显按钮边框限定到设置右侧的操作按钮，恢复资源管理器、设置左侧分类及其他区域原来的外观。",
+        "保留设置操作按钮的辨识度与原有键盘焦点、悬停和禁用行为，不改变按钮尺寸或功能。"
+      ],
+      "notes_en": [
+        "Limit dark idle button borders to actions in the right-hand settings content, restoring the previous appearance of Explorer, settings categories and other areas.",
+        "Keep settings actions identifiable while preserving keyboard focus, hover, disabled behavior, button geometry and functionality."
+      ]
+    },
+    {
       "sequence": 2026093001,
       "version": "2026.09.30.1",
       "date": "2026-09-30",

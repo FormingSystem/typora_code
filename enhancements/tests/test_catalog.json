@@ -2856,13 +2856,15 @@
       "requirements": [
         "R020",
         "R044",
-        "R020.2"
+        "R020.2",
+        "R072.4"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
         "enhancements/src/workspace_interaction.ts",
         "enhancements/src/workspace_widgets.ts",
-        "enhancements/src/workspace_interaction.css"
+        "enhancements/src/workspace_interaction.css",
+        "enhancements/src/workspace_settings_view.css"
       ],
       "related_modules": [
         "menu",
@@ -2874,7 +2876,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
+        "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归"
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -3753,7 +3756,8 @@
         "R061",
         "R065",
         "R005.1",
-        "R020.2"
+        "R020.2",
+        "R072.4"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3776,7 +3780,8 @@
         "enhancements/src/git_graph.css",
         "enhancements/src/workspace_widgets.ts",
         "enhancements/src/workspace_widgets.css",
-        "enhancements/fixtures/button_boundary_native.js"
+        "enhancements/fixtures/button_boundary_native.js",
+        "enhancements/src/workspace_settings_view.css"
       ],
       "related_modules": [
         "files",
@@ -3796,7 +3801,8 @@
         "操作真实最近目录、无后缀重命名、dirty保存与回收站",
         "Github/Night下标题跳转，真实功能菜单字体与SVG行盒、间距截图",
         "Explorer在300/220px侧栏与Github/Night主题核对UI字体、实际SVG、按钮命中区和截图",
-        "R020.2使用同一入口 -fixture button_boundary_native.js，核对三暗主题实际按钮和文字几何、切换及截图"
+        "R020.2使用同一入口 -fixture button_boundary_native.js，核对三暗主题实际按钮和文字几何、切换及截图",
+        "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归"
       ],
       "expected": [
         "原生操作成功，源文档字节保持，标题可见，图标及文字对齐，原ASAR不变；checks.json=PASS"
@@ -6285,7 +6291,8 @@
         "R072.3",
         "R034.5",
         "R034.6",
-        "R034.7"
+        "R034.7",
+        "R072.4"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6296,7 +6303,8 @@
         "enhancements/src/workspace_settings_view.ts",
         "enhancements/src/workspace_settings_sections.ts",
         "enhancements/src/remote_ssh_settings.ts",
-        "enhancements/src/workspace_settings_owner.ts"
+        "enhancements/src/workspace_settings_owner.ts",
+        "enhancements/src/workspace_settings_view.css"
       ],
       "related_modules": [
         "设置",
@@ -6305,7 +6313,8 @@
       ],
       "steps": [
         "三层入口、搜索、校验失败、默认值、作用域保护与100轮注册清理",
-        "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖"
+        "R072.1：单一设置入口、Ctrl+,、无三页重复导航；插件原始SettingTab不受工作台字段与交互样式覆盖",
+        "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归"
       ],
       "expected": [
         "操作隔离且配置唯一所有者，失败不覆盖状态",
