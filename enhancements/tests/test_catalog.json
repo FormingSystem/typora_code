@@ -3757,7 +3757,8 @@
         "R065",
         "R005.1",
         "R020.2",
-        "R072.4"
+        "R072.4",
+        "R072.5"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3781,7 +3782,9 @@
         "enhancements/src/workspace_widgets.ts",
         "enhancements/src/workspace_widgets.css",
         "enhancements/fixtures/button_boundary_native.js",
-        "enhancements/src/workspace_settings_view.css"
+        "enhancements/src/workspace_settings_view.css",
+        "cpp_github-consolas.css",
+        "enhancements/fixtures/native_preferences_theme.js"
       ],
       "related_modules": [
         "files",
@@ -3802,7 +3805,8 @@
         "Github/Night下标题跳转，真实功能菜单字体与SVG行盒、间距截图",
         "Explorer在300/220px侧栏与Github/Night主题核对UI字体、实际SVG、按钮命中区和截图",
         "R020.2使用同一入口 -fixture button_boundary_native.js，核对三暗主题实际按钮和文字几何、切换及截图",
-        "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归"
+        "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归",
+        "R072.5使用同一入口 -fixture native_preferences_theme.js，核对五种主题、20次打开中明暗切换、原生与统一设置入口、实际内容背景和原生节点清理"
       ],
       "expected": [
         "原生操作成功，源文档字节保持，标题可见，图标及文字对齐，原ASAR不变；checks.json=PASS"

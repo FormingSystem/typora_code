@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100101,
+      "version": "2026.10.01.1",
+      "date": "2026-10-01",
+      "notes": [
+        "修复深色主题下Typora原生偏好页仍显示白底的问题，移除旧主题的固定背景与分类选中色，恢复Typora自身的明暗适配。"
+      ],
+      "notes_en": [
+        "Fix the white background in native Typora preferences under dark themes by removing old fixed surface and category colors, restoring Typora-owned light and dark styling."
+      ]
+    },
+    {
       "sequence": 2026093002,
       "version": "2026.09.30.2",
       "date": "2026-09-30",

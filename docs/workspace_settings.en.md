@@ -83,3 +83,19 @@ Remove the global idle outline from workspace_interaction.css and scope the same
 Field reads, save failures, picker cancellation and close/focus behavior remain unchanged. Validation must reproduce leakage with the old global rule and cover settings actions, categories, actual Explorer controls, window controls, primary and dynamic buttons. Check three dark themes, light switching, zoom, narrow layouts, idle painting, keyboard focus, disabled state and disposal. Native production assets, isolated install/uninstall and local delivery require separate current evidence. Earlier R020.2 results do not validate this corrected scope.
 
 Current delivery and limits: [validation evidence](../enhancements/tests/evidence/settings_button_scope_20260930.json).
+
+
+<a id="native-preferences-theme"></a>
+## R072.5 Native preferences follow the theme (2026-10-01)
+
+The screenshot shows a dark workbench but a white native preferences content surface with light text. Original Typora1.14.10 source and an isolated host confirm that megaMenu.applyTheme already invokes setThemeForNode and setIsDarkMode in the preferences page. Initial loading uses current-theme.css; later changes select the actual theme file. No new adapter, persisted preference, replacement skin or ASAR change is needed.
+
+The shared cpp_github-consolas.css still forces #fafafa onto .ty-preferences .window-content and white text/#999 onto its selected navigation item. Both dark themes import this shared file, overriding the correctly loaded dark theme. Remove these two preferences-specific overrides. Native Preferences CSS already uses transparent pane/window/sidebar surfaces and --bg-color on html; electron.css owns navigation selection through the active-file theme variables. These native rules are not copied into the workbench.
+
+Native fields, saving, cancellation, geometry, focus and community pages retain their owners. Standalone and hosted preferences use the same real webview and existing native theme updates. This does not propagate every custom workbench color into preferences. If a future host removes these capabilities, preserve its presentation and reverify instead of injecting a replacement skin.
+
+Sources: Typora1.14.10 appsrc/window/frame.js megaMenu.applyTheme/showPreferencePanel; page-dist/setting.html setThemeForNode/setIsDarkMode; Preferences.962926a4.e68254cc.css pane/window/sidebar and html backgrounds; page-dist/electron.css selected navigation variables. Root-only color checks miss descendant overrides, so validation must inspect actual window-content, panes, navigation and text painting.
+
+Reproduce #fafafa content under the old dark theme, then verify VSCode2026_Dark, CppGithubConsoles_Dark, Night and light themes, standalone/hosted entry points, initial open, switching, reopening, zoom and screenshots. Confirm no injected style, retained fields/documents and working native APIs. Record isolated restore/detach uninstall cycles, read-only local preflight and installation separately; preserve untested-platform and running-window limits.
+
+Current five-theme, standalone/hosted, actual-surface, Image-category and zoom validation passed. Installation and remaining limits are recorded in [validation evidence](../enhancements/tests/evidence/native_preferences_theme_20261001.json).

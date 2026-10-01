@@ -1,0 +1,238 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "requirements": [
+    "R072.5"
+  ],
+  "design": "docs/workspace_settings.md#native-preferences-theme",
+  "version": "2026.10.01.1",
+  "baseline": "42e19dcc2abfdfe8d412a8873fa1550ab1224294",
+  "change": {
+    "file": "cpp_github-consolas.css",
+    "removed": [
+      ".ty-preferences .window-content fixed #fafafa",
+      ".ty-preferences .nav-group-item.active fixed white/#999"
+    ],
+    "native_owner": "Typora megaMenu.applyTheme -> setThemeForNode / setIsDarkMode",
+    "new_skin_or_adapter": false
+  },
+  "native": {
+    "status": "PASS",
+    "id": "0ac46261920940daa9e63562a57bfc0c",
+    "checks": 295,
+    "samples": 45,
+    "theme_count": 5,
+    "open_page_transitions": 20,
+    "dark_image_zoom_factors": [
+      1,
+      1.25
+    ],
+    "entry_points": [
+      "standalone",
+      "unified settings native owner"
+    ],
+    "screenshots": {
+      "stage_native_preferences_cpp_github_consolas_dark_660594.png": "c96f204afdead035d739a0a2d7f9559a1fdbec5e9f3abdeca3109ecd5cc5e49a",
+      "stage_native_preferences_cpp_github_consolas_light_660594.png": "a166fe6ed0d12c08d4fc8395098ed5f5b2b245007180947bf13cd92d7f44bcd6",
+      "stage_native_preferences_hosted_cpp_github_consolas_dark_660594.png": "4f6785238f4e70de79a4388172850f8690f08a18d5d1bd68404247a226b55b6f",
+      "stage_native_preferences_hosted_cpp_github_consolas_light_660594.png": "82748ade1c2745878fb583e011af299989dd611499c2c31905f39a86d04aa6b8",
+      "stage_native_preferences_hosted_night_660594.png": "091ce32ef8b4396fca44f46572867da4e392ec7c2d81c630bcc156027b30b855",
+      "stage_native_preferences_hosted_vscode2026_dark_660594.png": "4f6785238f4e70de79a4388172850f8690f08a18d5d1bd68404247a226b55b6f",
+      "stage_native_preferences_hosted_vscode2026_light_660594.png": "fefa718898feec052732e8d31502e298daa5e90a247d211e5cb2772081f9b681",
+      "stage_native_preferences_night_660594.png": "d63b9a7edd84a006fed7256764ac4b17818a6ed66686a862fd8b2aff17af8915",
+      "stage_native_preferences_vscode2026_dark_660594.png": "a07612c9ba76fceb83ec85106943e1737aeeb9270ec68446bf9c22f3dd96df0d",
+      "stage_native_preferences_vscode2026_light_660594.png": "7eb925b99c1ab9fbc30f9dcb5e208db90782962f5b5704a8ab7b0e95cebfac44"
+    },
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "3d54ee7bd96779d7643363b3d160ccae82ca4feedf6c79a9859e55ce27666c5c",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "23f9d318af4fbad4b2b00f4ed0cf90b35395253a775c7f52f18ff52dec4a09d5",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "checks_sha256": "ad0b6dac6b03a1f22b0a6b5d8a0f941ce6915f3b5f73df55ad3fa4228bd6668d",
+    "surface_samples": [
+      {
+        "label": "vscode2026_dark.css standalone",
+        "mode": "dark unibody-window",
+        "background": "rgb(18, 19, 20)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(187, 190, 191)",
+        "selected_background": "rgb(44, 45, 46)"
+      },
+      {
+        "label": "vscode2026_dark.css hosted",
+        "mode": "unibody-window dark",
+        "background": "rgb(18, 19, 20)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(187, 190, 191)",
+        "selected_background": "rgb(44, 45, 46)"
+      },
+      {
+        "label": "cpp_github-consolas_dark.css standalone",
+        "mode": "unibody-window dark",
+        "background": "rgb(18, 19, 20)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(187, 190, 191)",
+        "selected_background": "rgb(44, 45, 46)"
+      },
+      {
+        "label": "cpp_github-consolas_dark.css hosted",
+        "mode": "unibody-window dark",
+        "background": "rgb(18, 19, 20)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(187, 190, 191)",
+        "selected_background": "rgb(44, 45, 46)"
+      },
+      {
+        "label": "night.css standalone",
+        "mode": "unibody-window dark",
+        "background": "rgb(54, 59, 64)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(184, 191, 198)",
+        "selected_background": "rgb(112, 113, 125)"
+      },
+      {
+        "label": "night.css hosted",
+        "mode": "unibody-window dark",
+        "background": "rgb(54, 59, 64)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(184, 191, 198)",
+        "selected_background": "rgb(112, 113, 125)"
+      },
+      {
+        "label": "vscode2026_light.css standalone",
+        "mode": "unibody-window light",
+        "background": "rgb(255, 255, 255)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(32, 32, 32)",
+        "selected_background": "rgba(0, 0, 0, 0.145)"
+      },
+      {
+        "label": "vscode2026_light.css hosted",
+        "mode": "unibody-window light",
+        "background": "rgb(255, 255, 255)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(32, 32, 32)",
+        "selected_background": "rgba(0, 0, 0, 0.145)"
+      },
+      {
+        "label": "cpp_github-consolas_light.css standalone",
+        "mode": "unibody-window light",
+        "background": "rgb(255, 255, 255)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(51, 51, 51)",
+        "selected_background": "rgb(238, 238, 238)"
+      },
+      {
+        "label": "cpp_github-consolas_light.css hosted",
+        "mode": "unibody-window light",
+        "background": "rgb(255, 255, 255)",
+        "content_background": "rgba(0, 0, 0, 0)",
+        "text": "rgb(51, 51, 51)",
+        "selected_background": "rgb(238, 238, 238)"
+      }
+    ],
+    "committed_fixture_sha256": "73ee7bede3b042bb9e66686914ff9ca6a756a9a096773d393e864540eae10a0a",
+    "post_validation_fixture_edit": "Trailing whitespace removed and Git text line endings normalized only; node --check passed."
+  },
+  "validation": {
+    "build": "PASS",
+    "full_check": "PASS",
+    "ui": {
+      "test_workspace_settings.cjs": 278,
+      "test_workspace_colors.cjs": 61,
+      "test_workspace_interaction.cjs": 126
+    },
+    "isolated_install": "PASS: install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved",
+    "uninstall_regression": "PASS: 65 assertions, failure/cancellation/rollback",
+    "local_installation": {
+      "status": "PASS",
+      "release": "2026.10.01.1",
+      "assets": {
+        "workspace": 56,
+        "terminal": 24
+      },
+      "themes": 5,
+      "protected_unchanged": 8,
+      "protected_sha256": {
+        "host_asar": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "profile": "efb399f79368350ad6d917243af8bd55c3d69898e22ab1cf1a1fadeff10b10c6",
+        "workspace_settings": "24f6568274bfea37061396d51b927a8572ff726d6d5f177b9a8f292889fa5a12",
+        "workspace_hotkeys": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "community_core": "5a209cc2b1ac773ccf203aa71ca6851c453dd7538f91731e85e334cd6a258abb",
+        "community_plugins": "c6f8281620c2b87cf6a94f523311eae977e420ef9a6cda8667f61be906ceca90",
+        "community_hotkeys": "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a",
+        "night_theme": "8a88f1e138d30240234cdfd50fe7e7efc393dda4de4ff4284e6fa2aedb6b5f25"
+      },
+      "native_manifest_matches": true,
+      "loaded_user_window": "not restarted"
+    },
+    "documentation": "PASS: 69 language pairs and 2632 links after final evidence updates"
+  },
+  "diagnostics": [
+    {
+      "id": "4cb0556061ab4eac8fd6d1fc2d501505",
+      "result": "Initial probe verified only root colors, insufficient to rule out descendant overrides."
+    },
+    {
+      "id": "ed02fa31eb5941b890ec0e4046131384",
+      "result": "Fixture selector .pane.content did not exist. Original native source identified .pane; content already recorded rgb(250,250,250)."
+    },
+    {
+      "id": "334c3ec8dba645c39dded9b77f58e144",
+      "result": "Old CSS reproduced failure at actual content transparency with rgb(250,250,250), dark root and pale text."
+    },
+    {
+      "id": "38fa257577984d148d08245e4d97443d",
+      "result": "PASS 230 checks before additional screenshot acknowledgement and zoom coverage."
+    },
+    {
+      "id": "44ec3aea8eb94ab890e773a28c154089",
+      "result": "Screenshot acknowledgement parser did not accept the PowerShell UTF-8 BOM; test helper corrected."
+    },
+    {
+      "id": "274f67e53ea54f31896f299f53ba71e9",
+      "result": "Screenshot stage with hyphen was rejected by existing runner contract; test helper normalizes stages to lowercase snake_case."
+    }
+  ],
+  "cleanup": {
+    "native": {
+      "4cb0556061ab4eac8fd6d1fc2d501505": "cleaned",
+      "ed02fa31eb5941b890ec0e4046131384": "cleaned",
+      "334c3ec8dba645c39dded9b77f58e144": "cleaned",
+      "38fa257577984d148d08245e4d97443d": "cleaned",
+      "44ec3aea8eb94ab890e773a28c154089": "cleaned",
+      "274f67e53ea54f31896f299f53ba71e9": "cleaned",
+      "0ac46261920940daa9e63562a57bfc0c": "cleaned"
+    },
+    "test_runs": {
+      "d8fa574e60204f1fa55f190db1436351": "cleaned",
+      "108af862bdf344f9828acbcede03d691": "cleaned",
+      "2d84b82b5a854cebbc5b1a1fecf5c317": "cleaned",
+      "31e3ae9110c940ecb165c023d81ff93b": "cleaned",
+      "ebe69067ce1744b79a25f62186eb5511": "cleaned",
+      "f7f976c7434344e88873ad277fc52b52": "cleaned"
+    }
+  },
+  "logs_sha256": {
+    "native_preferences_build_20261001.log": "15389bce1a37173a2c0b138d12c69c160f6463f5f7fabafa1aae8123fe5b4c17",
+    "native_preferences_check_20261001.log": "71abdb73dcb2e003ddf19c024797ae6f532d0b0298cbc98c708845427df7114f",
+    "native_preferences_ui_20261001.log": "06f8baa7fd6aa4d2b23d202b96bb828d36dc29be0adf8bbd70f2a69d0ad621f0",
+    "native_preferences_install_cycle_20261001.log": "3a6c31aad4189a58bca8857cbb0fb5b26feaf9906c4d6683a9dbe4561de04bd6",
+    "native_preferences_uninstall_20261001.log": "fdf0ffd7a0b2d0e737dd7bd6150325b68a34ddd59ead94aba4aa03d9556f6af1",
+    "native_preferences_local_preflight_20261001.log": "d3ad9b38b0b0ef80f747519b8fee6ca9eebc6968135dbb55287c348c25952e26",
+    "native_preferences_local_install_20261001.log": "8dbaeece7dc662436db91b2833d51e8438f21dd06170b19bb4b0f8fb5775c82f",
+    "native_preferences_local_check_20261001.log": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3",
+    "native_preferences_verified_20261001.log": "dcb137eacea55d96f1957961ff69c69ee95a99bbee29481518e4d471d1721a22"
+  },
+  "limits": [
+    "Windows x64 / original Typora 1.14.10. Other host versions and platforms are not verified.",
+    "Native commands, DOM clicks and computed styles were exercised; physical keyboard input and full UI suite were not rerun.",
+    "Zoom coverage uses the dark image category after each light/dark transition loop; all five themes are checked through standalone and hosted entries.",
+    "Local disk assets installed and checked; current user windows were not restarted.",
+    "Existing unrelated unresolved requirements remain open."
+  ]
+}

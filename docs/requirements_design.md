@@ -172,6 +172,7 @@
 | R072.2 | 浮动设置与最大化 | [设计](workspace_settings.md#r0722-浮动设置窗口2026-09-22) | 单一窗口、关闭焦点、原生和社区所有权不变 |
 | R072.3 | 原生与社区设置右侧托管 | [设计](workspace_settings.md#r0723-右侧托管原始设置页面) | 保留真实页面和保存，统一窗口内命中/焦点/关闭 |
 | R072.4 | 设置按钮辨识度与范围纠正 | [设计](workspace_settings.md#settings-button-boundary) | 覆盖R020.2全域范围，仅设置右侧操作按钮 |
+| R072.5 | 原生偏好页跟随主题 | [设计](workspace_settings.md#native-preferences-theme) | 移除旧主题覆盖，沿用宿主明暗机制 |
 | R074 | 工作台颜色与视觉层次 | [共享颜色设计](workspace_colors.md) | 功能框架、内容、浮层和状态统一，正文与第三方主题独立 |
 | R074.1 | 明暗工作台与Markdown正文统一为VS Code风格 | [统一主题](workspace_colors.md#r0741-明暗工作台与正文统一) | 用户新授权覆盖正文外观保留限制；共享角色、阅读呈现与切换稳定性 |
 | R074.2 | 暗色标题与阅读层级柔化 | [正文主题归属](workspace_colors.md#r0742-恢复正文主题) | 正文恢复当前Typora主题；仅Night保留用户选色#CE9178，工作台外观独立 |

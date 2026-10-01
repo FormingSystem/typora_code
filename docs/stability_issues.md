@@ -511,3 +511,5 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-workspace-dark-button-boundary（R020.2，2026-09-30）：暗色普通操作只提供悬停/焦点，局部无边框或#333536弱边线与底板接近，误认提示文字。共享层补常显内侧边界，保留焦点优先、几何与独立领域；本次验证及安装状态见台账和本轮证据。
 
 - BUG-settings-button-scope（R072.4，2026-09-30）：R020.2把局部按钮辨识需求放入公共action规则，资源管理器与设置左侧分类被误加边线；撤去全域常显轮廓，限定设置右侧自有内容。本次已验证及安装，原生占用载荷与现场加载边界见settings_button_scope_20260930.json。
+
+- BUG-native-preferences-theme（R072.5，2026-10-01）：共享主题硬编码偏好页#fafafa内容底板及分类配色，覆盖已正确加载的原生暗主题；移除这两条旧覆盖，直接沿用宿主现有呈现，不能只测html背景判定通过。本次295项原生检查、关联回归及安装已通过；宿主版本与当前窗口加载边界见native_preferences_theme_20261001.json。

@@ -75,3 +75,19 @@ R072.1本次交付证据：[设置隔离与双机合并验证](../enhancements/t
 设置字段读取、保存失败反馈、文件选择取消及关闭恢复均不改变。验收须先在旧全域规则下复现范围泄漏，再核对设置内容按钮、分类导航、Explorer真实操作、标题按钮、共享主按钮和动态控件；覆盖三种暗主题、浅色切换、缩放、窄窗、非悬停实际绘制、键盘焦点、禁用和销毁。原生正式资产与隔离安装/卸载、本机交付分别记录，旧R020.2通过不视为本次范围验收。
 
 本次交付与边界见[验证证据](../enhancements/tests/evidence/settings_button_scope_20260930.json)。
+
+
+<a id="native-preferences-theme"></a>
+## R072.5 原生偏好页跟随主题（2026-10-01）
+
+截图中的工作台为深色，原生偏好页却出现白色内容底板和浅色文字。核对Typora1.14.10原始源码及独立宿主后确认：宿主本来就通过megaMenu.applyTheme调用偏好页的setThemeForNode和setIsDarkMode；首次打开加载current-theme.css，后续切换加载实际主题文件。明暗控制已经存在，本次不新增适配脚本、持久化设置或原生页面皮肤，也不修改ASAR。
+
+根因是本项目共用cpp_github-consolas.css仍包含.ty-preferences .window-content的#fafafa固定底板及.nav-group-item.active的白字/#999覆盖；两种暗主题都导入该共用主题，造成容器白底覆盖已经正确加载的深色主题。移除这两条针对原生偏好页的旧覆盖，让原生Preferences CSS的pane/window/sidebar透明底、html使用--bg-color及electron.css使用active-file主题变量的分类状态规则自行生效。采用的样式属于宿主，不复制进工作台，也不为同类页面增加补丁。
+
+设置正文、原生字段/保存/取消、托管几何、焦点和社区页面保持原所有者。原生独立入口与统一设置右侧托管使用同一个真实webview，随原生主题切换更新；本次不承诺将工作台自定义的全部细分颜色传播到原生偏好页。将来宿主移除明暗机制时，保留原生呈现并重新核对能力，不自行注入替代皮肤。
+
+源码依据：Typora1.14.10 appsrc/window/frame.js的megaMenu.applyTheme、showPreferencePanel；page-dist/setting.html的setThemeForNode/setIsDarkMode；Preferences.962926a4.e68254cc.css的pane/window/sidebar与html背景；page-dist/electron.css的nav-group-item.active主题变量。旧样本仅测根背景会漏掉子容器覆盖，本次必须核对实际window-content、pane、分类与文字绘制。
+
+验收先以旧CSS复现深色内容区#fafafa，再验证VSCode2026_Dark、CppGithubConsoles_Dark、Night、浅色主题，独立及托管入口、首次打开/主题切换/关闭重开、缩放和实际截图；核对页面没有额外注入样式、字段和文档保持、原生接口有效。两类隔离卸载重装、本机只读预检与最终安装分别留证，未测平台和用户运行窗口明确保留。
+
+本次五主题、原生/托管入口与实际容器、图像分类及缩放验证已通过，安装与保留边界见[验证证据](../enhancements/tests/evidence/native_preferences_theme_20261001.json)。

@@ -252083,6 +252083,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100101,
+        version: "2026.10.01.1",
+        date: "2026-10-01",
+        notes: [
+          "\u4FEE\u590D\u6DF1\u8272\u4E3B\u9898\u4E0BTypora\u539F\u751F\u504F\u597D\u9875\u4ECD\u663E\u793A\u767D\u5E95\u7684\u95EE\u9898\uFF0C\u79FB\u9664\u65E7\u4E3B\u9898\u7684\u56FA\u5B9A\u80CC\u666F\u4E0E\u5206\u7C7B\u9009\u4E2D\u8272\uFF0C\u6062\u590DTypora\u81EA\u8EAB\u7684\u660E\u6697\u9002\u914D\u3002"
+        ],
+        notes_en: [
+          "Fix the white background in native Typora preferences under dark themes by removing old fixed surface and category colors, restoring Typora-owned light and dark styling."
+        ]
+      },
+      {
         sequence: 2026093002,
         version: "2026.09.30.2",
         date: "2026-09-30",
