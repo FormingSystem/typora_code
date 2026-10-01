@@ -13,7 +13,7 @@ import {open_breadcrumb_picker,type breadcrumb_item} from "./workspace_breadcrum
 import {read_breadcrumb_settings,observe_breadcrumb_settings,open_breadcrumb_settings,set_breadcrumb_enabled,type breadcrumb_settings} from "./workspace_breadcrumbs_settings";
 import {subscribe_document_symbols,document_symbol_chain,type document_symbols} from "./workspace_document_symbols";
 import {reading_viewport_bounds} from "./reading_viewport";
-import {acquire_reading_blocks,reading_block_snapshot} from "./reading_blocks";
+import {acquire_reading_blocks,reading_block_revision} from "./reading_blocks";
 import type {source_symbol} from "./source_symbols";
 import type {workspace_file_host} from "./workspace_files";
 import type {graph_core} from "./git_graph_host";
@@ -59,7 +59,7 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
     if(!container||(!native&&!container.matches(".typ-markdown-view")))return [];
     let tree=markdown_trees.get(state);
     if(tree?.root!==container){tree?.lease.dispose();tree={root:container,lease:acquire_reading_blocks(container),revision:undefined,roots:[],elements:[],chains:new Map()};markdown_trees.set(state,tree);}
-    const revision=reading_block_snapshot(container).items;
+    const revision=reading_block_revision(container);
     if(tree.revision!==revision){
       tree.revision=revision;tree.roots=[];tree.chains.clear();
       tree.elements=[...container.querySelectorAll<HTMLElement>("h1,h2,h3,h4,h5,h6")].filter(node=>!node.closest("pre,code,.workspace-breadcrumbs"));

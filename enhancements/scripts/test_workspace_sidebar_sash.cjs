@@ -57,6 +57,12 @@ app.whenReady().then(async()=>{
   const events_before=await evaluate('resize_count');await delay(350);assert.equal(await evaluate('resize_count'),events_before,'resize observer has no self-sustaining event loop');
   assert.equal(await evaluate('binding.element.getAttribute("aria-valuenow")'),'220');assert.equal(await evaluate('binding.element.getAttribute("aria-hidden")'),null);
   assert.equal(await evaluate('binding.element.getBoundingClientRect().top'),35,'drag, collapse, panel changes and resize retain the same 35px boundary');
+  await evaluate('window.before_resize=resize_count');
+  drag=await start_drag();
+  await evaluate(`(()=>{for(let i=0;i<1000;i++)document.dispatchEvent(new PointerEvent('pointermove',{pointerId:1,clientX:${drag.x}+i/10,bubbles:true}));})()`);
+  await end_drag(drag,320);
+  assert.equal(await evaluate('resize_count'),await evaluate('before_resize'),'local drag never broadcasts a window resize');
+  assert.equal(await evaluate('document.documentElement.style.getPropertyValue("--linux-note-sidebar-sash-left")'),'','sash position is not inherited by document text');
   await evaluate('binding.dispose()');assert.equal(await evaluate('binding.element.getAttribute("aria-hidden")'),'true');assert.equal(await evaluate('binding.element.dataset.workspaceSidebarSash'),undefined);assert(!(await evaluate('state()')).dragging);
   console.log(JSON.stringify({status:'PASS',checks:['native top 0 and single-row top 35 share the exact editor boundary','actual pointer drag stays below the titlebar through panel changes and resize','170px minimum and 85px snap threshold match VS Code','drag resizes immediately before release','same pointer drag collapses and expands without losing capture','activity bar stays visible while all panels hide','width persists only after a completed expanded drag','collapsed drag preserves pre-drag width','all five panel activity entries restore the previous width','new drag from collapsed boundary expands the retained panel','native drag-shadow handlers are suppressed','keyboard arrows, Home and Enter operate the separator','editor retains 220px at maximum width','right dock is included in maximum width','narrow window collapses sidebar without overwriting remembered width','resize observation does not loop','dispose restores native accessibility and removes listeners'],initial,maximum,docked,evidence},null,2));
   test_window.destroy();app.exit(0);

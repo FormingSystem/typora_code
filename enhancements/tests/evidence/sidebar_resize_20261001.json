@@ -1,0 +1,443 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "release": "2026.10.01.3",
+  "sequence": 2026100103,
+  "requirements": [
+    "R071.6",
+    "R083"
+  ],
+  "design": [
+    "docs/workspace_responsiveness.md#r0716-相邻区域拖动与正文重排",
+    "docs/editor_presentation.md"
+  ],
+  "baseline": "b684d99d1a0b62a962443982b3a6061eca764b66",
+  "asset_manifest_sha256": "39e321996feb58a59782f1fb0e7b1586fd8ded5fc47a0bc083fc717cf3f4293a",
+  "root_causes": [
+    "Sidebar pointer processing interleaved layout writes and reads and broadcast window resize plus optimizedResize.",
+    "Native frame geometry used inherited body custom properties; content consumers conflated text revisions with whole-document measurements.",
+    "Source font and width changes require one logical anchor and a measured CodeMirror line before deriving its document coordinate."
+  ],
+  "native_reference": {
+    "case_id": "798033f21c274c009efe3aa332bf77d7",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "43b8c01fd5bac3e23f1c7321a05329b776960d8c431de48e2d15eac0a601b1bd",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "9dd1914d80cefeefcb5ff84d0ea396fb6f466e85c4173531691a755d095f288c",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32",
+      "reference_commit": "b684d99d1a0b62a962443982b3a6061eca764b66"
+    },
+    "status": "ERROR",
+    "failure": "Error: vscode2026_dark.css: source keeps its visible logical line",
+    "completed_checks": 24,
+    "measurements": [
+      {
+        "name": "short",
+        "inputs": 196,
+        "trusted": 196,
+        "cm": 0,
+        "rects": 12652,
+        "cm_ms": 0,
+        "tail_ms": 20.90000000037253,
+        "gaps_ms": {
+          "count": 545,
+          "p95": 18.8,
+          "max": 24.9
+        },
+        "latencies_ms": {
+          "count": 183,
+          "p95": 22.1,
+          "max": 24.6
+        },
+        "window_resize_events": 196,
+        "optimized_resize_events": 392
+      },
+      {
+        "name": "paragraphs",
+        "inputs": 106,
+        "trusted": 106,
+        "cm": 0,
+        "rects": 24547,
+        "cm_ms": 0,
+        "tail_ms": 35.5,
+        "gaps_ms": {
+          "count": 399,
+          "p95": 31.3,
+          "max": 82.3
+        },
+        "latencies_ms": {
+          "count": 104,
+          "p95": 19.5,
+          "max": 44.1
+        },
+        "window_resize_events": 106,
+        "optimized_resize_events": 212
+      },
+      {
+        "name": "fences_20",
+        "inputs": 63,
+        "trusted": 63,
+        "cm": 3,
+        "rects": 18888,
+        "cm_ms": 11.799999998882413,
+        "tail_ms": 114.59999999962747,
+        "gaps_ms": {
+          "count": 367,
+          "p95": 56.3,
+          "max": 87.4
+        },
+        "latencies_ms": {
+          "count": 61,
+          "p95": 36.1,
+          "max": 63.6
+        },
+        "window_resize_events": 63,
+        "optimized_resize_events": 126
+      },
+      {
+        "name": "fences_100",
+        "inputs": 43,
+        "trusted": 43,
+        "cm": 3,
+        "rects": 35570,
+        "cm_ms": 12.299999997019768,
+        "tail_ms": 399.90000000037253,
+        "gaps_ms": {
+          "count": 339,
+          "p95": 81.2,
+          "max": 100.3
+        },
+        "latencies_ms": {
+          "count": 41,
+          "p95": 58.6,
+          "max": 103.9
+        },
+        "window_resize_events": 43,
+        "optimized_resize_events": 86
+      },
+      {
+        "name": "fences_1000",
+        "inputs": 13,
+        "trusted": 13,
+        "cm": 3,
+        "rects": 81006,
+        "cm_ms": 24,
+        "tail_ms": 448.2000000011176,
+        "gaps_ms": {
+          "count": 273,
+          "p95": 75.1,
+          "max": 581.4
+        },
+        "latencies_ms": {
+          "count": 10,
+          "p95": 678,
+          "max": 678
+        },
+        "window_resize_events": 12,
+        "optimized_resize_events": 24
+      },
+      {
+        "name": "reported",
+        "inputs": 32,
+        "trusted": 32,
+        "cm": 1,
+        "rects": 68889,
+        "cm_ms": 7,
+        "tail_ms": 457.80000000074506,
+        "gaps_ms": {
+          "count": 301,
+          "p95": 109.8,
+          "max": 150
+        },
+        "latencies_ms": {
+          "count": 30,
+          "p95": 144.4,
+          "max": 156.3
+        },
+        "window_resize_events": 32,
+        "optimized_resize_events": 64
+      }
+    ]
+  },
+  "native_candidate": {
+    "case_id": "b7dccb32af79400aad07918ff4bd93d4",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "39e321996feb58a59782f1fb0e7b1586fd8ded5fc47a0bc083fc717cf3f4293a",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "83d5786eb63c504e2c804cad6391589b244671fdcc4c4718de36a57360b6b33f",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "status": "PASS",
+    "checks": [
+      "short: trusted drag resizes the sidebar",
+      "short: receives trusted pointer moves",
+      "short: document unchanged",
+      "short: returning drag restores width",
+      "paragraphs: trusted drag resizes the sidebar",
+      "paragraphs: receives trusted pointer moves",
+      "paragraphs: document unchanged",
+      "paragraphs: returning drag restores width",
+      "fences_20: trusted drag resizes the sidebar",
+      "fences_20: receives trusted pointer moves",
+      "fences_20: document unchanged",
+      "fences_20: returning drag restores width",
+      "fences_100: trusted drag resizes the sidebar",
+      "fences_100: receives trusted pointer moves",
+      "fences_100: document unchanged",
+      "fences_100: returning drag restores width",
+      "fences_1000: trusted drag resizes the sidebar",
+      "fences_1000: receives trusted pointer moves",
+      "fences_1000: document unchanged",
+      "fences_1000: returning drag restores width",
+      "reported: trusted drag resizes the sidebar",
+      "reported: receives trusted pointer moves",
+      "reported: document unchanged",
+      "reported: returning drag restores width",
+      "vscode2026_dark.css: source keeps its visible logical line",
+      "vscode2026_dark.css: source cursor is unchanged",
+      "vscode2026_dark.css: source shares the native group rectangle",
+      "vscode2026_dark.css: source scroll geometry refreshed",
+      "vscode2026_light.css: source keeps its visible logical line",
+      "vscode2026_light.css: source cursor is unchanged",
+      "vscode2026_light.css: source shares the native group rectangle",
+      "vscode2026_light.css: source scroll geometry refreshed",
+      "native frame follows the resized split group",
+      "trusted editor split dragging updates the same native frame",
+      "source resizing and split movement preserve document content"
+    ],
+    "measurements": [
+      {
+        "name": "short",
+        "inputs": 200,
+        "trusted": 200,
+        "cm": 0,
+        "rects": 11437,
+        "cm_ms": 0,
+        "tail_ms": 13.099999999627471,
+        "gaps_ms": {
+          "count": 804,
+          "p95": 6.3,
+          "max": 6.5
+        },
+        "latencies_ms": {
+          "count": 200,
+          "p95": 7.7,
+          "max": 13.1
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "paragraphs",
+        "inputs": 169,
+        "trusted": 169,
+        "cm": 0,
+        "rects": 11149,
+        "cm_ms": 0,
+        "tail_ms": 20.40000000037253,
+        "gaps_ms": {
+          "count": 471,
+          "p95": 18.8,
+          "max": 25.1
+        },
+        "latencies_ms": {
+          "count": 164,
+          "p95": 1.3,
+          "max": 18.6
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "fences_20",
+        "inputs": 115,
+        "trusted": 115,
+        "cm": 3,
+        "rects": 23410,
+        "cm_ms": 0,
+        "tail_ms": 37.399999998509884,
+        "gaps_ms": {
+          "count": 415,
+          "p95": 31.3,
+          "max": 37.6
+        },
+        "latencies_ms": {
+          "count": 109,
+          "p95": 13.9,
+          "max": 18.1
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "fences_100",
+        "inputs": 78,
+        "trusted": 78,
+        "cm": 3,
+        "rects": 24499,
+        "cm_ms": 0,
+        "tail_ms": 38.69999999925494,
+        "gaps_ms": {
+          "count": 388,
+          "p95": 43.8,
+          "max": 75
+        },
+        "latencies_ms": {
+          "count": 76,
+          "p95": 19.2,
+          "max": 25.8
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "fences_1000",
+        "inputs": 25,
+        "trusted": 25,
+        "cm": 3,
+        "rects": 36439,
+        "cm_ms": 0,
+        "tail_ms": 171.39999999850988,
+        "gaps_ms": {
+          "count": 312,
+          "p95": 143.7,
+          "max": 256.2
+        },
+        "latencies_ms": {
+          "count": 23,
+          "p95": 113.9,
+          "max": 133.1
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "reported",
+        "inputs": 60,
+        "trusted": 60,
+        "cm": 1,
+        "rects": 35986,
+        "cm_ms": 0,
+        "tail_ms": 67,
+        "gaps_ms": {
+          "count": 343,
+          "p95": 62.4,
+          "max": 87.4
+        },
+        "latencies_ms": {
+          "count": 58,
+          "p95": 35.1,
+          "max": 42.9
+        },
+        "window_resize_events": 0,
+        "optimized_resize_events": 0
+      },
+      {
+        "name": "source_position",
+        "theme": "vscode2026_dark.css",
+        "line": 1488,
+        "after_line": 1488
+      },
+      {
+        "name": "source_position",
+        "theme": "vscode2026_light.css",
+        "line": 1488,
+        "after_line": 1488
+      },
+      {
+        "name": "split_geometry",
+        "actual": {
+          "x": 288.5714416503906,
+          "y": 89.00000762939453,
+          "width": 448.64288330078125,
+          "height": 618.1428833007812,
+          "top": 89.00000762939453,
+          "right": 737.2143249511719,
+          "bottom": 707.1428909301758,
+          "left": 288.5714416503906
+        },
+        "expected": {
+          "x": 288.5714416503906,
+          "y": 89.00000762939453,
+          "width": 448.64288330078125,
+          "height": 618.1428833007812,
+          "top": 89.00000762939453,
+          "right": 737.2143249511719,
+          "bottom": 707.1428909301758,
+          "left": 288.5714416503906
+        }
+      }
+    ]
+  },
+  "measurement_scope": "Windows original Typora 1.14.10 on a private desktop, software rendering. Each performance scene posts two bounded 100-step HWND drags. Received trusted events may be coalesced. Timing covers renderer input receipt to changed native content geometry on rAF; gaps include settling/idle. Reference and final performance phases are identical; later source/split diagnostics were extended. Counts distinguish fences from actually instantiated CodeMirror editors. User text is copied only to ignored fixtures.",
+  "intermediate_findings": [
+    "Whole-window notifications removed first; body geometry and block consumers were then scoped.",
+    "Source adapters retaining separate anchors still drifted. Consolidated font/container ownership and measured the retained virtual line before restoring its offset.",
+    "An initial split assertion incorrectly compared native content to a moved preview leaf. Corrected the fixture to resize the actual native owning group and its adjacent divider.",
+    "One UI complexity assertion read its counter after asynchronous layout; captured the measurement synchronously. A function-valued IPC test return was changed to void."
+  ],
+  "validation": {
+    "build": "PASS",
+    "core_check": {
+      "status": "PASS",
+      "case_id": "834432cf282a4f05b74d99314399524f"
+    },
+    "ui": {
+      "status": "PASS",
+      "final_suites": [
+        "test_reading_performance.cjs",
+        "test_workspace_zoom.cjs",
+        "test_wheel_zoom.cjs",
+        "test_workspace_view_layout.cjs",
+        "test_workspace_drag.cjs"
+      ],
+      "related_final_suites": [
+        "test_reading_lifecycle.cjs",
+        "test_workspace_sidebar_sash.cjs",
+        "test_reading_code_geometry.cjs",
+        "test_reading_minimap.cjs",
+        "test_workspace_breadcrumbs.cjs",
+        "test_workspace_outline.cjs",
+        "test_workspace_theme_pair.cjs",
+        "test_workspace_core_smoke.cjs"
+      ]
+    },
+    "reading_scroll_native": {
+      "status": "PASS",
+      "case_id": "9c2fcfbe24254c7c86ac9925dce99771",
+      "checks": 53,
+      "scope": "Reported P03 copy, 47 trusted wheel events, 20 source/rendered cycles, theme and zoom, navigation and edit/undo; both retained screenshots inspected."
+    },
+    "isolated_install_uninstall": {
+      "status": "PASS",
+      "cycle_case": "0d1f92b026e34f4eafa9e9a44b544d22",
+      "failure_cancel_rollback_case": "04410a299fc6437b8bcfd83ae29e8083",
+      "uninstall_assertions": 65
+    },
+    "local_install": {
+      "status": "PASS",
+      "assets": {
+        "workspace": 56,
+        "terminal": 24
+      },
+      "themes": 5,
+      "protected_unchanged": 8,
+      "manifest": "39e321996feb58a59782f1fb0e7b1586fd8ded5fc47a0bc083fc717cf3f4293a",
+      "installed_sequence": 2026100103,
+      "uninstall_precheck": "PASS; read-only on user environment",
+      "check_windows": "OK",
+      "running_windows": "Not restarted by agent; save documents and restart all Typora windows normally."
+    }
+  },
+  "limits": [
+    "Private-desktop messages are not physical mouse/GPU measurements. Other Typora versions and platforms are not covered.",
+    "Long native document reflow remains linear; the 1000-fence stress document still has substantial frame gaps. This is not a constant-frame-rate claim.",
+    "Unrelated previously unresolved requirements remain unchanged."
+  ]
+}

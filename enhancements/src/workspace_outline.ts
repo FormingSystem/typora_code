@@ -55,7 +55,7 @@ export function install_workspace_outline(host: workspace_outline_host) {
     const content = document.querySelector<HTMLElement>("content");
     const write = document.querySelector<HTMLElement>("#write");
     if (!content || !write) return;
-    const snapshot=reading_block_snapshot(write),heading_blocks=snapshot.items.filter(item=>item.node.matches("h1,h2,h3,h4,h5,h6"));
+    const snapshot=reading_block_snapshot(write,"h1,h2,h3,h4,h5,h6"),heading_blocks=snapshot.items;
     const headings=heading_blocks.map(item=>item.node);
     if (!headings.length) return;
     // The reference of offsetTop changes with the main content container's positioning; compared within the same coordinate system as the scrolling viewport.

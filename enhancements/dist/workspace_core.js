@@ -4001,6 +4001,10 @@ ${doc.documentElement.outerHTML}`;
     contentEl = editor.writingArea.parentElement;
     _parentTabs = null;
     _resizeObserver = null;
+    geometry_style = null;
+    native_leaf = null;
+    release_layout = null;
+    layout_frame = 0;
     handleSettingActiveLeaf = null;
     enter(ctx) {
       const { containerEl, leaf } = ctx;
@@ -4014,9 +4018,15 @@ ${doc.documentElement.outerHTML}`;
         this.workspace.activeLeaf = leaf;
       });
       this._parentTabs = leaf.parent;
-      this.syncSize();
+      this.native_leaf = leaf;
+      if (!this.geometry_style) {
+        this.geometry_style = document.createElement("style");
+        this.geometry_style.textContent = "content.typ-workspace-binding:not(.typ-deactive) {}";
+        document.head.append(this.geometry_style);
+      }
       this.unregisterObserver();
       this.registerObserver();
+      this.syncSize();
     }
     exit(ctx) {
       ctx.containerEl.classList.remove("mode-typora");
@@ -4024,6 +4034,10 @@ ${doc.documentElement.outerHTML}`;
       this.contentEl.classList.remove("typ-workspace-binding");
       this.contentEl.removeEventListener("mousedown", this.handleSettingActiveLeaf);
       this.unregisterObserver();
+      this.geometry_style?.remove();
+      this.geometry_style = null;
+      this.native_leaf = null;
+      this._parentTabs = null;
     }
     getScroll() {
       return { scrollTop: this.contentEl.scrollTop };
@@ -4036,21 +4050,38 @@ ${doc.documentElement.outerHTML}`;
       if (this._parentTabs) {
         this._resizeObserver.observe(this._parentTabs.tabContentEl);
       }
+      this.release_layout = this.workspace.rootSplit.on("layout-changed", () => {
+        if (!this.layout_frame) this.layout_frame = requestAnimationFrame(() => {
+          this.layout_frame = 0;
+          this.syncSize();
+        });
+      });
     }
     unregisterObserver() {
       this._resizeObserver?.disconnect();
       this._resizeObserver = null;
+      this.release_layout?.();
+      this.release_layout = null;
+      cancelAnimationFrame(this.layout_frame);
+      this.layout_frame = 0;
     }
     syncSize() {
-      const parent = this._parentTabs;
-      if (!parent) return;
-      const { style } = document.body;
+      const parent = this.native_leaf?.parent;
+      if (!parent?.tabContentEl) return;
+      if (parent !== this._parentTabs) {
+        if (this._parentTabs) this._resizeObserver?.unobserve(this._parentTabs.tabContentEl);
+        this._parentTabs = parent;
+        this._resizeObserver?.observe(parent.tabContentEl);
+        useEditingTabs().setEditingTabs(parent);
+      }
+      const style = this.geometry_style?.sheet?.cssRules[0]?.style;
+      if (!style) return;
       const targetEl = parent.tabContentEl;
       const rect = targetEl.getBoundingClientRect();
-      style.setProperty("--typ-editor-top", rect.top + "px");
-      style.setProperty("--typ-editor-left", rect.left + "px");
-      style.setProperty("--typ-editor-width", rect.width + "px");
-      style.setProperty("--typ-editor-height", rect.height + "px");
+      for (const name of ["top", "left", "width", "height"]) {
+        const value = rect[name] + "px";
+        if (style.getPropertyValue(name) !== value) style.setProperty(name, value, name === "left" ? "important" : "");
+      }
     }
   };
 

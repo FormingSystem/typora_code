@@ -758,7 +758,7 @@
       "path": "src/ui/views/markdown-view/index.scss",
       "upstream_path": "src/ui/views/markdown-view/index.scss",
       "upstream_sha256": "620852b37f7a8203e49a86bc3372f5266e82bda52e722d31a4599f6daaa955b1",
-      "sha256": "4baf779162983a021ec0b0b19b3277e867ebdbe2c623fa2efc2de75cd192fcd5"
+      "sha256": "f3a6ed25ec636f387eb2c4d71a1acb5445a2e93c23ea8c72646ef12799e3697b"
     },
     {
       "path": "src/ui/views/markdown-view/index.ts",
@@ -770,7 +770,7 @@
       "path": "src/ui/views/markdown-view/md-editor-mode.ts",
       "upstream_path": "src/ui/views/markdown-view/md-editor-mode.ts",
       "upstream_sha256": "03ebe50ceee1988b04adc87a9be7184bd088e28c3574c474e010b3e267039d75",
-      "sha256": "03ebe50ceee1988b04adc87a9be7184bd088e28c3574c474e010b3e267039d75"
+      "sha256": "2197505202f28615b033c8e799ecb4e2670df84efbaa86e33fcfd3e0a6c2558b"
     },
     {
       "path": "src/ui/views/markdown-view/md-previewer-mode.ts",

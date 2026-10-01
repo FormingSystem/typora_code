@@ -95,7 +95,7 @@ try {
   $input_path=Join-Path $case_root 'native_input_request.json'
   if(Test-Path -LiteralPath $input_path) {
    try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
-   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
+   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click','drag') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
     $delivered=$false
     $input_window=[isolated_desktop+enum_windows]{param($hwnd,$state)
      $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
@@ -112,6 +112,17 @@ try {
        $position=[IntPtr]::new((($y-$origin.y) -shl 16) -bor (($x-$origin.x) -band 0xffff))
        [void][isolated_desktop]::PostMessage($hwnd,0x0200,[IntPtr]::Zero,$position)
        $down=[isolated_desktop]::PostMessage($hwnd,0x0201,[IntPtr]::new(1),$position)
+       if($input_request.kind -eq 'drag') {
+        # A bounded path belongs only to this isolated HWND; never move the user's desktop pointer.
+        $steps=[Math]::Min(240,[Math]::Max(1,[int]$input_request.steps))
+        $interval=[Math]::Min(50,[Math]::Max(4,[int]$input_request.interval))
+        for($step=1;$step -le $steps;$step++) {
+         Start-Sleep -Milliseconds $interval
+         $drag_x=[int]($bounds.left+($input_request.x+$input_request.dx*$step/$steps)*($bounds.right-$bounds.left)/$input_request.width)
+         $position=[IntPtr]::new((($y-$origin.y) -shl 16) -bor (($drag_x-$origin.x) -band 0xffff))
+         [void][isolated_desktop]::PostMessage($hwnd,0x0200,[IntPtr]::new(1),$position)
+        }
+       }
        $up=[isolated_desktop]::PostMessage($hwnd,0x0202,[IntPtr]::Zero,$position)
        $script:delivered=$down -and $up
       }

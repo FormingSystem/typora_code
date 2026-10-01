@@ -166668,6 +166668,8 @@ https://creativecommons.org/licenses/by/4.0/
     return rgb[0] * 0.2126 + rgb[1] * 0.7152 + rgb[2] * 0.0722 < 128 ? "dark" : "light";
   }
   var scheme = typeof matchMedia === "function" ? matchMedia("(prefers-color-scheme: dark)") : void 0;
+  var geometry_properties = /* @__PURE__ */ new Set(["--sidebar-width", "--typ-editor-top", "--typ-editor-left", "--typ-editor-width", "--typ-editor-height"]);
+  var theme_style = (element) => Array.from(element.style).filter((name) => !geometry_properties.has(name)).sort().map((name) => "".concat(name, ":").concat(element.style.getPropertyValue(name), ":").concat(element.style.getPropertyPriority(name))).join(";");
   var update = () => {
     if (frame) return;
     frame = requestAnimationFrame(() => {
@@ -166680,7 +166682,20 @@ https://creativecommons.org/licenses/by/4.0/
     const owners4 = role === "palette" ? palette_listeners : listeners;
     owners4.add(listener);
     if (!observer) {
-      observer = new MutationObserver(update);
+      const styles = new Map([document.documentElement, document.body].map((element) => [element, theme_style(element)]));
+      observer = new MutationObserver((records) => {
+        let changed2 = false;
+        for (const record of records) {
+          if (record.type === "attributes" && record.attributeName === "style" && styles.has(record.target)) {
+            const element = record.target, signature = theme_style(element);
+            if (styles.get(element) !== signature) {
+              styles.set(element, signature);
+              changed2 = true;
+            }
+          } else changed2 = true;
+        }
+        if (changed2) update();
+      });
       observer.observe(document.documentElement, { attributes: true, attributeFilter: ["class", "style", "data-theme"] });
       observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
       observer.observe(document.head, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["href", "media", "disabled"] });
@@ -198888,46 +198903,86 @@ https://creativecommons.org/licenses/by/4.0/
     const editor2 = root.CodeMirror;
     if (!editor2) return;
     const original = ["font-size", "line-height"].map((name) => [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)]);
-    let base = 14, line = "normal", retained;
+    let base = 14, line = "normal", family = "", signature = "", width2 = 0, height = 0, disposed = false, restoring = false;
+    let anchor, restored_top;
     const restore_style = () => {
       for (const [name, value, priority] of original) if (value) root.style.setProperty(name, value, priority);
       else root.style.removeProperty(name);
     };
     const capture = () => {
-      if (!root.getClientRects().length) return;
-      const info = editor2.getScrollInfo(), position2 = editor2.coordsChar({ left: info.left, top: info.top }, "local");
-      return { position: position2, offset: info.top - editor2.charCoords(position2, "local").top, left: info.left };
+      if (disposed || restoring || !root.getClientRects().length) return;
+      const info = editor2.getScrollInfo();
+      if (restored_top !== void 0 && Math.abs(restored_top - info.top) < 1 && anchor) return;
+      restored_top = void 0;
+      const position2 = editor2.coordsChar({ left: info.left, top: info.top }, "local");
+      anchor = { position: position2, offset: info.top - editor2.charCoords(position2, "local").top, left: info.left };
+    };
+    const relayout = () => {
+      if (disposed || !root.getClientRects().length) return;
+      if (!anchor) capture();
+      restoring = true;
+      try {
+        editor2.refresh();
+        if (anchor) {
+          editor2.scrollIntoView(anchor.position, 0);
+          editor2.scrollTo(anchor.left, editor2.charCoords(anchor.position, "local").top + anchor.offset);
+        }
+        restored_top = editor2.getScrollInfo().top;
+      } finally {
+        restoring = false;
+      }
     };
     const apply3 = () => {
-      const size = content_font_size(base), height = line === "normal" ? line : String(Number.parseFloat(line) / base);
-      if (root.style.fontSize === size + "px" && root.style.lineHeight === height) {
-        retained = void 0;
-        return;
-      }
-      const anchor = retained || capture();
-      retained = void 0;
-      root.style.setProperty("font-size", size + "px", "important");
-      root.style.setProperty("line-height", height, "important");
-      editor2.refresh();
-      if (anchor) editor2.scrollTo(anchor.left, editor2.charCoords(anchor.position, "local").top + anchor.offset);
+      const size = content_font_size(base), line_height = line === "normal" ? line : String(Number.parseFloat(line) / base);
+      const next = "".concat(size, ":").concat(line_height, ":").concat(family);
+      if (root.style.fontSize !== size + "px") root.style.setProperty("font-size", size + "px", "important");
+      if (root.style.lineHeight !== line_height) root.style.setProperty("line-height", line_height, "important");
+      if (next === signature) return;
+      signature = next;
+      relayout();
     };
     const refresh = () => {
-      retained = capture();
+      if (!anchor) capture();
       restore_style();
       const style = getComputedStyle(root);
       base = Number.parseFloat(style.fontSize) || 14;
       line = style.lineHeight || "normal";
+      family = style.fontFamily;
       apply3();
     };
-    const stop = observe_content_zoom(apply3, () => {
-      retained = capture();
-    }), theme2 = observe_workspace_theme(refresh);
+    const changed2 = () => {
+      anchor = void 0;
+      restored_top = void 0;
+      capture();
+    };
+    const prepare = () => {
+      restored_top = void 0;
+      capture();
+    };
+    const resize = new ResizeObserver((records) => {
+      const rect = records[0]?.contentRect;
+      if (!rect || !rect.width || !rect.height || rect.width === width2 && rect.height === height) return;
+      width2 = rect.width;
+      height = rect.height;
+      relayout();
+    });
+    editor2.on("scroll", capture);
+    editor2.on("changes", changed2);
+    resize.observe(root);
+    window.addEventListener("pointerdown", prepare, true);
+    const stop = observe_content_zoom(apply3, prepare), theme2 = observe_workspace_theme(refresh);
+    capture();
     refresh();
     return { dispose() {
+      disposed = true;
       stop();
       theme2();
+      resize.disconnect();
+      window.removeEventListener("pointerdown", prepare, true);
+      editor2.off("scroll", capture);
+      editor2.off("changes", changed2);
       restore_style();
-      retained = void 0;
+      anchor = void 0;
       editor2.refresh();
     } };
   }
@@ -199021,11 +199076,17 @@ https://creativecommons.org/licenses/by/4.0/
   // src/reading_blocks.ts
   var indexes = /* @__PURE__ */ new WeakMap();
   function create_block_index(root) {
-    let dirty = true, width2 = -1, height = -1, items = [], ordered = true;
+    let dirty = true, width2 = -1, height = -1;
+    const projections = /* @__PURE__ */ new Map();
+    let content_revision = {};
     const invalidate2 = () => {
       dirty = true;
     };
-    const mutation = new MutationObserver(invalidate2);
+    const content_changed = () => {
+      content_revision = {};
+      invalidate2();
+    };
+    const mutation = new MutationObserver(content_changed);
     mutation.observe(root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     const resize = new ResizeObserver(invalidate2);
     resize.observe(root);
@@ -199036,18 +199097,26 @@ https://creativecommons.org/licenses/by/4.0/
     document.fonts?.addEventListener("loadingdone", invalidate2);
     document.head.addEventListener("load", invalidate2, true);
     return {
-      read() {
-        if (mutation.takeRecords().length || styles.takeRecords().length) dirty = true;
+      revision() {
+        if (mutation.takeRecords().length) content_changed();
+        return content_revision;
+      },
+      read(selector = "") {
+        if (mutation.takeRecords().length) content_changed();
+        if (styles.takeRecords().length) dirty = true;
         const box = root.getBoundingClientRect();
         if (dirty || width2 !== box.width || height !== box.height) {
           dirty = false;
           width2 = box.width;
           height = box.height;
-          items = [];
-          ordered = true;
-          let previous = -Infinity;
+          projections.clear();
+        }
+        let projection = projections.get(selector);
+        if (!projection) {
+          const items = [];
+          let ordered = true, previous = -Infinity;
           for (const node of root.children) {
-            if (!(node instanceof HTMLElement) || node.matches("script,style,button")) continue;
+            if (!(node instanceof HTMLElement) || node.matches("script,style,button") || selector && !node.matches(selector)) continue;
             const rect = node.getBoundingClientRect();
             if (!rect.height) continue;
             const bottom = rect.bottom - box.top;
@@ -199055,8 +199124,10 @@ https://creativecommons.org/licenses/by/4.0/
             previous = bottom;
             items.push({ node, top: rect.top - box.top, bottom });
           }
+          projection = { items, ordered };
+          projections.set(selector, projection);
         }
-        return { items, top: box.top, ordered };
+        return { ...projection, top: box.top };
       },
       invalidate: invalidate2,
       dispose() {
@@ -199065,7 +199136,7 @@ https://creativecommons.org/licenses/by/4.0/
         styles.disconnect();
         document.fonts?.removeEventListener("loadingdone", invalidate2);
         document.head.removeEventListener("load", invalidate2, true);
-        items = [];
+        projections.clear();
       }
     };
   }
@@ -199107,13 +199178,16 @@ https://creativecommons.org/licenses/by/4.0/
       temporary?.dispose();
     }
   }
-  function reading_block_snapshot(root) {
+  function reading_block_snapshot(root, selector = "") {
     const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root);
     try {
-      return (owned2 || temporary).read();
+      return (owned2 || temporary).read(selector);
     } finally {
       temporary?.dispose();
     }
+  }
+  function reading_block_revision(root) {
+    return indexes.get(root)?.index.revision();
   }
 
   // src/reading_reflow.ts
@@ -199183,7 +199257,7 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_reading_reflow(scroller, root) {
     const blocks3 = acquire_reading_blocks(root);
     let disposed = false, frame3 = 0, anchor;
-    let geometry = "";
+    let geometry = "", restored_scroll;
     const size = () => "".concat(scroller.clientWidth, ":").concat(scroller.clientHeight, ":").concat(root.getBoundingClientRect().width, ":").concat(getComputedStyle(root).fontSize, ":").concat(getComputedStyle(root).zoom);
     const capture = () => {
       if (disposed) return;
@@ -199194,7 +199268,9 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       stop_native_reading_scroll(scroller);
       restore_reflow_anchor(scroller, root, anchor);
-      capture();
+      geometry = size();
+      restored_scroll = scroller.scrollTop;
+      if (!anchor || !root.contains(anchor.node)) capture();
     };
     const resize = new ResizeObserver(() => {
       if (size() !== geometry) restore();
@@ -199204,6 +199280,11 @@ https://creativecommons.org/licenses/by/4.0/
     const scroll = () => {
       const next = size();
       if (next !== geometry) return;
+      if (restored_scroll === scroller.scrollTop) {
+        restored_scroll = void 0;
+        return;
+      }
+      restored_scroll = void 0;
       anchor = capture_reflow_anchor(scroller, root);
     };
     scroller.addEventListener("scroll", scroll, { passive: true });
@@ -252398,6 +252479,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100103,
+        version: "2026.10.01.3",
+        date: "2026-10-01",
+        notes: [
+          "\u4F18\u5316\u6709\u6B63\u6587\u65F6\u62D6\u52A8\u4FA7\u680F\u4E0E\u7F16\u8F91\u533A\u7684\u54CD\u5E94\uFF1A\u5408\u5E76\u6BCF\u5E27\u5BBD\u5EA6\u66F4\u65B0\uFF0C\u79FB\u9664\u5C40\u90E8\u62D6\u52A8\u89E6\u53D1\u7684\u6574\u7A97\u53E3\u5237\u65B0\u3002",
+          "\u7F16\u8F91\u7EC4\u7EDF\u4E00\u7BA1\u7406\u539F\u751F\u6B63\u6587\u4E0E\u6E90\u7801\u77E9\u5F62\uFF0C\u9605\u8BFB\u91CD\u6392\u4FDD\u7559\u5F53\u524D\u5B57\u7B26\uFF0C\u5927\u7EB2\u4E0E\u9762\u5305\u5C51\u53EA\u8BFB\u53D6\u5404\u81EA\u9700\u8981\u7684\u5185\u5BB9\u548C\u51E0\u4F55\u3002"
+        ],
+        notes_en: [
+          "Improve sidebar resizing with rendered text by applying the latest width once per frame and removing whole-window refreshes caused by local dragging.",
+          "Keep native rendered and source frames under the editor group, retain the reading character through reflow, and separate outline geometry from breadcrumb content revisions."
+        ]
+      },
+      {
         sequence: 2026100102,
         version: "2026.10.01.2",
         date: "2026-10-01",
@@ -255478,7 +255572,7 @@ https://creativecommons.org/licenses/by/4.0/
         tree = { root: container, lease: acquire_reading_blocks(container), revision: void 0, roots: [], elements: [], chains: /* @__PURE__ */ new Map() };
         markdown_trees.set(state, tree);
       }
-      const revision = reading_block_snapshot(container).items;
+      const revision = reading_block_revision(container);
       if (tree.revision !== revision) {
         tree.revision = revision;
         tree.roots = [];
@@ -256955,46 +257049,38 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", workspace_sidebar_sash_default, {});
     const attributes = ["role", "aria-hidden", "aria-label", "aria-orientation", "aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-valuetext", "tabindex", "title"];
     const original_attributes = new Map(attributes.map((name) => [name, sash.getAttribute(name)]));
+    const original_left = sash.style.getPropertyValue("--linux-note-sidebar-sash-left");
+    const original_left_priority = sash.style.getPropertyPriority("--linux-note-sidebar-sash-left");
     const read_width = () => Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar_element.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
     let preferred_width = Math.max(SIDEBAR_MIN_WIDTH, Math.round(read_width()));
-    let disposed = false, notifying = false, frame3 = 0;
+    let disposed = false, frame3 = 0;
+    let pending_x;
+    let current_width = preferred_width;
     let drag;
     const activity_width = () => ribbon.getBoundingClientRect().width;
     const available_width = () => Math.max(0, root.clientWidth - activity_width() - (Number.parseFloat(getComputedStyle(document.body).getPropertyValue("--typ-sidedock-width")) || 0) - EDITOR_MIN_WIDTH);
-    const clamp_width = (width2) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available_width(), width2)));
-    const notify_layout = () => {
-      if (frame3 || disposed) return;
-      frame3 = requestAnimationFrame(() => {
-        frame3 = 0;
-        notifying = true;
-        window.dispatchEvent(new Event("resize"));
-        window.dispatchEvent(new Event("optimizedResize"));
-        notifying = false;
-      });
-    };
-    const sync_sash = () => {
-      const width2 = options2.sidebar.isShown ? read_width() : 0;
-      root.style.setProperty("--linux-note-sidebar-sash-left", "".concat(activity_width() + width2, "px"));
-      sash.setAttribute("aria-valuenow", String(Math.round(width2)));
-      sash.setAttribute("aria-valuemax", String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available_width()))));
-      sash.setAttribute("aria-valuetext", width2 ? workspace_text("sidebar_sash_sidebar_width_pixels", { value_0: String(Math.round(width2)) }) : workspace_text("sidebar_sash_sidebar_is_collapsed_press_enter_or_click_the_right_arrow_to"));
+    const clamp_width = (width2, available = available_width()) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available, width2)));
+    const sync_sash = (activity = activity_width(), available = available_width()) => {
+      const width2 = options2.sidebar.isShown ? current_width : 0;
+      const left = "".concat(activity + width2, "px");
+      if (sash.style.getPropertyValue("--linux-note-sidebar-sash-left") !== left) sash.style.setProperty("--linux-note-sidebar-sash-left", left);
+      const values = {
+        "aria-valuenow": String(Math.round(width2)),
+        "aria-valuemax": String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available))),
+        "aria-valuetext": width2 ? workspace_text("sidebar_sash_sidebar_width_pixels", { value_0: String(Math.round(width2)) }) : workspace_text("sidebar_sash_sidebar_is_collapsed_press_enter_or_click_the_right_arrow_to")
+      };
+      for (const [name, value] of Object.entries(values)) if (sash.getAttribute(name) !== value) sash.setAttribute(name, value);
     };
     const apply_width = (width2) => {
-      const value = "".concat(Math.round(width2), "px");
-      if (root.style.getPropertyValue("--sidebar-width") !== value) {
-        window.dispatchEvent(new Event("beforeResize"));
-        root.style.setProperty("--sidebar-width", value);
-        notify_layout();
-      }
-      sync_sash();
+      current_width = Math.round(width2);
+      const value = "".concat(current_width, "px");
+      if (root.style.getPropertyValue("--sidebar-width") !== value) root.style.setProperty("--sidebar-width", value);
     };
     const set_visible = (visible3) => {
       if (options2.sidebar.isShown === visible3) return;
       if (visible3) options2.sidebar.show();
       else options2.sidebar.hide();
       if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
-      notify_layout();
-      sync_sash();
     };
     const persist2 = () => {
       try {
@@ -257004,21 +257090,23 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const refresh = () => {
-      if (disposed || notifying) return;
+      if (disposed) return;
+      const activity = activity_width(), available = available_width();
       if (options2.sidebar.isShown) {
-        if (available_width() < SIDEBAR_MIN_WIDTH) {
+        if (available < SIDEBAR_MIN_WIDTH) {
           set_visible(false);
           apply_width(preferred_width);
-        } else if (!drag) apply_width(clamp_width(preferred_width));
+        } else if (!drag) apply_width(clamp_width(preferred_width, available));
       }
-      sync_sash();
+      sync_sash(activity, available);
     };
     const finish = () => {
       if (!drag) return;
+      flush_drag();
       const previous = drag;
       drag = void 0;
       if (options2.sidebar.isShown) {
-        preferred_width = clamp_width(read_width());
+        preferred_width = current_width;
         persist2();
       } else {
         preferred_width = previous.saved_width;
@@ -257027,7 +257115,6 @@ https://creativecommons.org/licenses/by/4.0/
       document.body.classList.remove("linux-note-sidebar-dragging");
       if (sash.hasPointerCapture(previous.pointer_id)) sash.releasePointerCapture(previous.pointer_id);
       sync_sash();
-      notify_layout();
     };
     const pointer_down = (event) => {
       if (event.button !== 0 || drag) return;
@@ -257042,14 +257129,24 @@ https://creativecommons.org/licenses/by/4.0/
       if (!drag || drag.pointer_id !== event.pointerId) return;
       event.preventDefault();
       event.stopImmediatePropagation();
-      const width2 = drag.start_width + event.clientX - drag.start_x;
-      if (width2 < SIDEBAR_SNAP_WIDTH || available_width() < SIDEBAR_MIN_WIDTH) {
+      pending_x = event.clientX;
+      if (!frame3) frame3 = requestAnimationFrame(flush_drag);
+    };
+    const flush_drag = () => {
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
+      if (!drag || pending_x === void 0) return;
+      const activity = activity_width(), available = available_width();
+      const width2 = drag.start_width + pending_x - drag.start_x;
+      pending_x = void 0;
+      if (width2 < SIDEBAR_SNAP_WIDTH || available < SIDEBAR_MIN_WIDTH) {
         set_visible(false);
         apply_width(drag.saved_width);
       } else {
-        apply_width(clamp_width(width2));
+        apply_width(clamp_width(width2, available));
         set_visible(true);
       }
+      sync_sash(activity, available);
     };
     const pointer_finish = (event) => {
       if (drag?.pointer_id === event.pointerId) {
@@ -257069,17 +257166,20 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.key === "Enter" && options2.sidebar.isShown) {
         set_visible(false);
         apply_width(preferred_width);
+        sync_sash();
         return;
       }
       if (available_width() < SIDEBAR_MIN_WIDTH) return;
       if (!options2.sidebar.isShown) {
         apply_width(clamp_width(preferred_width));
         set_visible(true);
+        sync_sash();
         return;
       }
       const width2 = event.key === "Home" ? SIDEBAR_MIN_WIDTH : event.key === "End" ? available_width() : read_width() + (event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0) * (event.shiftKey ? 50 : 10);
       preferred_width = clamp_width(width2);
       apply_width(preferred_width);
+      sync_sash();
       persist2();
     };
     const observer3 = new MutationObserver(refresh);
@@ -257124,13 +257224,15 @@ https://creativecommons.org/licenses/by/4.0/
         else sash.setAttribute(name, value);
       }
       delete sash.dataset.workspaceSidebarSash;
-      root.style.removeProperty("--linux-note-sidebar-sash-left");
+      if (original_left) sash.style.setProperty("--linux-note-sidebar-sash-left", original_left, original_left_priority);
+      else sash.style.removeProperty("--linux-note-sidebar-sash-left");
       style.remove();
       bindings7.delete(sash);
     };
     const binding = { element: sash, set_width(width2) {
       preferred_width = clamp_width(width2);
       apply_width(preferred_width);
+      sync_sash();
       persist2();
     }, refresh, dispose: dispose2 };
     bindings7.set(sash, binding);
@@ -257640,8 +257742,8 @@ https://creativecommons.org/licenses/by/4.0/
     const shadow = markdown_host.attachShadow({ mode: "open" });
     const reader = workspace_element("article");
     reader.id = "write";
-    const theme_style = workspace_element("style");
-    shadow.append(theme_style, reader);
+    const theme_style2 = workspace_element("style");
+    shadow.append(theme_style2, reader);
     const reflow = bind_reading_reflow(body, reader);
     const code_copy2 = bind_reading_code_copy(reader, (text3) => files.copy(text3));
     container.append(body);
@@ -257696,7 +257798,7 @@ https://creativecommons.org/licenses/by/4.0/
       local.textContent += "#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}";
       rules.push(local.textContent || "");
       const text3 = rules.join("\n");
-      if (theme_style.textContent !== text3) theme_style.textContent = text3;
+      if (theme_style2.textContent !== text3) theme_style2.textContent = text3;
       const color = getComputedStyle(document.body).color.match(/\d+/gu)?.map(Number) || [0, 0, 0];
       const mode = color[0] + color[1] + color[2] > 450 ? "dark" : "light";
       if (reader.dataset.previewTheme !== mode) reader.dataset.previewTheme = mode;
@@ -259758,7 +259860,7 @@ https://creativecommons.org/licenses/by/4.0/
       const content = document.querySelector("content");
       const write = document.querySelector("#write");
       if (!content || !write) return;
-      const snapshot = reading_block_snapshot(write), heading_blocks = snapshot.items.filter((item) => item.node.matches("h1,h2,h3,h4,h5,h6"));
+      const snapshot = reading_block_snapshot(write, "h1,h2,h3,h4,h5,h6"), heading_blocks = snapshot.items;
       const headings = heading_blocks.map((item) => item.node);
       if (!headings.length) return;
       const { top, bottom } = reading_viewport_bounds(content);

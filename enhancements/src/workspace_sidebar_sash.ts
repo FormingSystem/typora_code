@@ -27,59 +27,57 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   const style = acquire_workspace_style("typora-code-style:workspace_sidebar_sash", sidebar_sash_css, {});
   const attributes = ["role", "aria-hidden", "aria-label", "aria-orientation", "aria-valuemin", "aria-valuemax", "aria-valuenow", "aria-valuetext", "tabindex", "title"];
   const original_attributes = new Map(attributes.map(name => [name, sash.getAttribute(name)]));
+  const original_left = sash.style.getPropertyValue("--linux-note-sidebar-sash-left");
+  const original_left_priority = sash.style.getPropertyPriority("--linux-note-sidebar-sash-left");
   const read_width = () => Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || sidebar_element.getBoundingClientRect().width || SIDEBAR_MIN_WIDTH;
   let preferred_width = Math.max(SIDEBAR_MIN_WIDTH, Math.round(read_width()));
-  let disposed = false, notifying = false, frame = 0;
+  let disposed = false, frame = 0;
+  let pending_x: number | undefined;
+  let current_width = preferred_width;
   let drag: { pointer_id: number; start_x: number; start_width: number; saved_width: number } | undefined;
   const activity_width = () => ribbon.getBoundingClientRect().width;
   const available_width = () => Math.max(0, root.clientWidth - activity_width() - (Number.parseFloat(getComputedStyle(document.body).getPropertyValue("--typ-sidedock-width")) || 0) - EDITOR_MIN_WIDTH);
-  const clamp_width = (width: number) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available_width(), width)));
-  const notify_layout = () => {
-    if (frame || disposed) return;
-    frame = requestAnimationFrame(() => {
-      frame = 0; notifying = true;
-      window.dispatchEvent(new Event("resize")); window.dispatchEvent(new Event("optimizedResize"));
-      notifying = false;
-    });
-  };
-  const sync_sash = () => {
-    const width = options.sidebar.isShown ? read_width() : 0;
-    root.style.setProperty("--linux-note-sidebar-sash-left", `${activity_width() + width}px`);
-    sash.setAttribute("aria-valuenow", String(Math.round(width)));
-    sash.setAttribute("aria-valuemax", String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available_width()))));
-    sash.setAttribute("aria-valuetext", width ? workspace_text("sidebar_sash_sidebar_width_pixels", {value_0: String(Math.round(width))}) : workspace_text("sidebar_sash_sidebar_is_collapsed_press_enter_or_click_the_right_arrow_to"));
+  const clamp_width = (width: number, available = available_width()) => Math.round(Math.max(SIDEBAR_MIN_WIDTH, Math.min(available, width)));
+  const sync_sash = (activity = activity_width(), available = available_width()) => {
+    const width = options.sidebar.isShown ? current_width : 0;
+    const left = `${activity + width}px`;
+    if (sash.style.getPropertyValue("--linux-note-sidebar-sash-left") !== left) sash.style.setProperty("--linux-note-sidebar-sash-left", left);
+    const values = {"aria-valuenow": String(Math.round(width)), "aria-valuemax": String(Math.max(SIDEBAR_MIN_WIDTH, Math.floor(available))),
+      "aria-valuetext": width ? workspace_text("sidebar_sash_sidebar_width_pixels", {value_0: String(Math.round(width))}) : workspace_text("sidebar_sash_sidebar_is_collapsed_press_enter_or_click_the_right_arrow_to")};
+    for (const [name, value] of Object.entries(values)) if (sash.getAttribute(name) !== value) sash.setAttribute(name, value);
   };
   const apply_width = (width: number) => {
-    const value = `${Math.round(width)}px`;
-    if (root.style.getPropertyValue("--sidebar-width") !== value) {
-      window.dispatchEvent(new Event("beforeResize")); root.style.setProperty("--sidebar-width", value); notify_layout();
-    }
-    sync_sash();
+    current_width = Math.round(width);
+    const value = `${current_width}px`;
+    // Container observers own editor layout. A pane resize is not a window resize.
+    if (root.style.getPropertyValue("--sidebar-width") !== value) root.style.setProperty("--sidebar-width", value);
   };
   const set_visible = (visible: boolean) => {
     if (options.sidebar.isShown === visible) return;
     if (visible) options.sidebar.show(); else options.sidebar.hide();
     // Native show/hide registers a one-time transitionend cleanup; the waiting period must also end when the drag is closed immediately.
     if (drag) sidebar_element.dispatchEvent(new TransitionEvent("transitionend", { propertyName: "left" }));
-    notify_layout(); sync_sash();
+
   };
   const persist = () => { try { options.save_width(preferred_width); } catch (error) { console.warn(workspace_text("sidebar_sash_failed_to_save_sidebar_width"), error); } };
   const refresh = () => {
-    if (disposed || notifying) return;
+    if (disposed) return;
+    const activity = activity_width(), available = available_width();
     if (options.sidebar.isShown) {
-      if (available_width() < SIDEBAR_MIN_WIDTH) { set_visible(false); apply_width(preferred_width); }
-      else if (!drag) apply_width(clamp_width(preferred_width));
+      if (available < SIDEBAR_MIN_WIDTH) { set_visible(false); apply_width(preferred_width); }
+      else if (!drag) apply_width(clamp_width(preferred_width, available));
     }
-    sync_sash();
+    sync_sash(activity, available);
   };
   const finish = () => {
     if (!drag) return;
+    flush_drag();
     const previous = drag; drag = undefined;
-    if (options.sidebar.isShown) { preferred_width = clamp_width(read_width()); persist(); }
+    if (options.sidebar.isShown) { preferred_width = current_width; persist(); }
     else { preferred_width = previous.saved_width; apply_width(preferred_width); }
     document.body.classList.remove("linux-note-sidebar-dragging");
     if (sash.hasPointerCapture(previous.pointer_id)) sash.releasePointerCapture(previous.pointer_id);
-    sync_sash(); notify_layout();
+    sync_sash();
   };
   const pointer_down = (event: PointerEvent) => {
     if (event.button !== 0 || drag) return;
@@ -91,20 +89,28 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
   const pointer_move = (event: PointerEvent) => {
     if (!drag || drag.pointer_id !== event.pointerId) return;
     event.preventDefault(); event.stopImmediatePropagation();
-    const width = drag.start_width + event.clientX - drag.start_x;
-    if (width < SIDEBAR_SNAP_WIDTH || available_width() < SIDEBAR_MIN_WIDTH) { set_visible(false); apply_width(drag.saved_width); }
-    else { apply_width(clamp_width(width)); set_visible(true); }
+    pending_x = event.clientX;
+    if (!frame) frame = requestAnimationFrame(flush_drag);
+  };
+  const flush_drag = () => {
+    cancelAnimationFrame(frame); frame = 0;
+    if (!drag || pending_x === undefined) return;
+    const activity = activity_width(), available = available_width();
+    const width = drag.start_width + pending_x - drag.start_x; pending_x = undefined;
+    if (width < SIDEBAR_SNAP_WIDTH || available < SIDEBAR_MIN_WIDTH) { set_visible(false); apply_width(drag.saved_width); }
+    else { apply_width(clamp_width(width, available)); set_visible(true); }
+    sync_sash(activity, available);
   };
   const pointer_finish = (event: PointerEvent) => { if (drag?.pointer_id === event.pointerId) { event.preventDefault(); event.stopImmediatePropagation(); finish(); } };
   const suppress_native_mouse = (event: MouseEvent) => { event.preventDefault(); event.stopImmediatePropagation(); };
   const keydown = (event: KeyboardEvent) => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End", "Enter"].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
     event.preventDefault(); event.stopImmediatePropagation();
-    if (event.key === "Enter" && options.sidebar.isShown) { set_visible(false); apply_width(preferred_width); return; }
+    if (event.key === "Enter" && options.sidebar.isShown) { set_visible(false); apply_width(preferred_width); sync_sash(); return; }
     if (available_width() < SIDEBAR_MIN_WIDTH) return;
-    if (!options.sidebar.isShown) { apply_width(clamp_width(preferred_width)); set_visible(true); return; }
+    if (!options.sidebar.isShown) { apply_width(clamp_width(preferred_width)); set_visible(true); sync_sash(); return; }
     const width = event.key === "Home" ? SIDEBAR_MIN_WIDTH : event.key === "End" ? available_width() : read_width() + (event.key === "ArrowLeft" ? -1 : event.key === "ArrowRight" ? 1 : 0) * (event.shiftKey ? 50 : 10);
-    preferred_width = clamp_width(width); apply_width(preferred_width); persist();
+    preferred_width = clamp_width(width); apply_width(preferred_width); sync_sash(); persist();
   };
   const observer = new MutationObserver(refresh);
   observer.observe(document.body, { attributes: true, attributeFilter: ["class", "style"] });
@@ -125,9 +131,11 @@ export function install_workspace_sidebar_sash(options: sidebar_sash_options): s
     for (const name of ["mousedown", "mousemove", "mouseup"]) sash.removeEventListener(name, suppress_native_mouse as EventListener, true);
     sash.removeEventListener("keydown", keydown, true); window.removeEventListener("resize", refresh); window.removeEventListener("blur", finish); window.removeEventListener("pagehide", dispose);
     for (const [name, value] of original_attributes) { if (value === null) sash.removeAttribute(name); else sash.setAttribute(name, value); }
-    delete sash.dataset.workspaceSidebarSash; root.style.removeProperty("--linux-note-sidebar-sash-left"); style.remove(); bindings.delete(sash);
+    delete sash.dataset.workspaceSidebarSash;
+    if (original_left) sash.style.setProperty("--linux-note-sidebar-sash-left", original_left, original_left_priority); else sash.style.removeProperty("--linux-note-sidebar-sash-left");
+    style.remove(); bindings.delete(sash);
   };
-  const binding = { element: sash, set_width(width:number){preferred_width=clamp_width(width);apply_width(preferred_width);persist();}, refresh, dispose }; bindings.set(sash, binding); window.addEventListener("pagehide", dispose, { once: true }); refresh(); return binding;
+  const binding = { element: sash, set_width(width:number){preferred_width=clamp_width(width);apply_width(preferred_width);sync_sash();persist();}, refresh, dispose }; bindings.set(sash, binding); window.addEventListener("pagehide", dispose, { once: true }); refresh(); return binding;
 }
 
 /** The preview drag within the same column reuses the side bar width owner, avoiding the next resize from restoring the old width. */

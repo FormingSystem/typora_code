@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100103,
+      "version": "2026.10.01.3",
+      "date": "2026-10-01",
+      "notes": [
+        "优化有正文时拖动侧栏与编辑区的响应：合并每帧宽度更新，移除局部拖动触发的整窗口刷新。",
+        "编辑组统一管理原生正文与源码矩形，阅读重排保留当前字符，大纲与面包屑只读取各自需要的内容和几何。"
+      ],
+      "notes_en": [
+        "Improve sidebar resizing with rendered text by applying the latest width once per frame and removing whole-window refreshes caused by local dragging.",
+        "Keep native rendered and source frames under the editor group, retain the reading character through reflow, and separate outline geometry from breadcrumb content revisions."
+      ]
+    },
+    {
       "sequence": 2026100102,
       "version": "2026.10.01.2",
       "date": "2026-10-01",

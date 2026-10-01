@@ -3,9 +3,12 @@ type block_geometry={node:HTMLElement;bottom:number;top:number};
 type block_index=ReturnType<typeof create_block_index>;
 const indexes=new WeakMap<HTMLElement,{index:block_index;users:number}>();
 function create_block_index(root:HTMLElement){
-  let dirty=true,width=-1,height=-1,items:block_geometry[]=[],ordered=true;
+  let dirty=true,width=-1,height=-1;
+  const projections=new Map<string,{items:block_geometry[];ordered:boolean}>();
+  let content_revision = {};
   const invalidate=()=>{dirty=true;};
-  const mutation=new MutationObserver(invalidate);mutation.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden']});
+  const content_changed=()=>{content_revision={};invalidate();};
+  const mutation=new MutationObserver(content_changed);mutation.observe(root,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['class','style','hidden']});
   const resize=new ResizeObserver(invalidate);resize.observe(root);
   // StyleSheet replacement/font loading does not necessarily modify document nodes.
   const styles=new MutationObserver(invalidate);styles.observe(document.head,{subtree:true,childList:true,characterData:true,attributes:true,attributeFilter:['href','media','disabled']});
@@ -14,24 +17,31 @@ function create_block_index(root:HTMLElement){
   document.fonts?.addEventListener('loadingdone',invalidate);
   document.head.addEventListener('load',invalidate,true);
   return {
-    read(){
-      if(mutation.takeRecords().length||styles.takeRecords().length)dirty=true;
+    revision(){if(mutation.takeRecords().length)content_changed();return content_revision;},
+    read(selector=''){
+      if(mutation.takeRecords().length)content_changed();
+      if(styles.takeRecords().length)dirty=true;
       // Moving positions does not make internal geometry invalid; changes in width/height are handled in a timely manner, and are not asynchronous observers.
       const box=root.getBoundingClientRect();
       if(dirty||width!==box.width||height!==box.height){
-        dirty=false;width=box.width;height=box.height;items=[];ordered=true;let previous=-Infinity;
+        dirty=false;width=box.width;height=box.height;projections.clear();
+      }
+      let projection=projections.get(selector);
+      if(!projection){
+        const items:block_geometry[]=[];let ordered=true,previous=-Infinity;
         for(const node of root.children){
-          if(!(node instanceof HTMLElement)||node.matches('script,style,button'))continue;
+          if(!(node instanceof HTMLElement)||node.matches('script,style,button')||(selector&&!node.matches(selector)))continue;
           const rect=node.getBoundingClientRect();if(!rect.height)continue;
           const bottom=rect.bottom-box.top;
           if(bottom<previous)ordered=false;previous=bottom;
           items.push({node,top:rect.top-box.top,bottom});
         }
+        projection={items,ordered};projections.set(selector,projection);
       }
-      return {items,top:box.top,ordered};
+      return {...projection,top:box.top};
     },
     invalidate,
-    dispose(){mutation.disconnect();resize.disconnect();styles.disconnect();document.fonts?.removeEventListener('loadingdone',invalidate);document.head.removeEventListener('load',invalidate,true);items=[];}
+    dispose(){mutation.disconnect();resize.disconnect();styles.disconnect();document.fonts?.removeEventListener('loadingdone',invalidate);document.head.removeEventListener('load',invalidate,true);projections.clear();}
   };
 }
 export function acquire_reading_blocks(root:HTMLElement){
@@ -50,7 +60,11 @@ export function reading_block_at(root:HTMLElement,target:number){
     return item?{node:item.node,index:at,top:item.top+top}:undefined;
   }finally{temporary?.dispose();}
 }
-export function reading_block_snapshot(root:HTMLElement){
+export function reading_block_snapshot(root:HTMLElement,selector=''){
   const owned=indexes.get(root)?.index,temporary=owned?undefined:create_block_index(root);
-  try{return (owned||temporary!).read();}finally{temporary?.dispose();}
+  try{return (owned||temporary!).read(selector);}finally{temporary?.dispose();}
+}
+/** Content consumers must not measure geometry merely to discover a text/tree revision. */
+export function reading_block_revision(root:HTMLElement){
+  return indexes.get(root)?.index.revision();
 }

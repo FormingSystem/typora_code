@@ -50,12 +50,18 @@ export function change_reading_geometry(scroller:HTMLElement,root:HTMLElement,ac
 export function bind_reading_reflow(scroller:HTMLElement,root:HTMLElement){
   const blocks=acquire_reading_blocks(root);
   let disposed=false,frame=0,anchor:text_anchor|undefined;
-  let geometry="";
+  let geometry="", restored_scroll:number|undefined;
   const size=()=>`${scroller.clientWidth}:${scroller.clientHeight}:${root.getBoundingClientRect().width}:${getComputedStyle(root).fontSize}:${getComputedStyle(root).zoom}`;
   const capture=()=>{if(disposed)return;geometry=size();anchor=capture_reflow_anchor(scroller,root);};
-  const restore=()=>{if(disposed)return;stop_native_reading_scroll(scroller);restore_reflow_anchor(scroller,root,anchor);capture();};
+  const restore=()=>{
+    if(disposed)return;stop_native_reading_scroll(scroller);
+    restore_reflow_anchor(scroller,root,anchor);
+    // A resize retains the same character. Re-capturing would rescan the document and replace that anchor on every frame.
+    geometry=size();restored_scroll=scroller.scrollTop;
+    if(!anchor||!root.contains(anchor.node))capture();
+  };
   const resize=new ResizeObserver(()=>{if(size()!==geometry)restore();});resize.observe(scroller);resize.observe(root);
-  const scroll=()=>{const next=size();if(next!==geometry)return;anchor=capture_reflow_anchor(scroller,root);};
+  const scroll=()=>{const next=size();if(next!==geometry)return;if(restored_scroll===scroller.scrollTop){restored_scroll=undefined;return;}restored_scroll=undefined;anchor=capture_reflow_anchor(scroller,root);};
   scroller.addEventListener("scroll",scroll,{passive:true});capture();
   const binding={capture,change(action:()=>void,retained?:text_anchor){stop_native_reading_scroll(scroller);capture();if(retained)anchor=retained;action();blocks.invalidate();restore_reflow_anchor(scroller,root,anchor);cancelAnimationFrame(frame);frame=requestAnimationFrame(restore);},dispose(){disposed=true;cancelAnimationFrame(frame);resize.disconnect();blocks.dispose();scroller.removeEventListener("scroll",scroll);anchor=undefined;if(active_bindings.get(root)===binding)active_bindings.delete(root);}};
   active_bindings.set(root,binding);return binding;

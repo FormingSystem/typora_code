@@ -12,6 +12,8 @@
 
 底栏公共图标角色拥有内容居中和水平内边距，源码激活只表达状态，不改变盒模型；沿用22px操作槽与16px官方`edit-code`图标。原节点与点击事件保留。共同规则也回归文件、菜单、列表切换和Git操作，业务隐藏规则仍由原所有者决定。
 
+R071.6进一步把矩形写入框架自身持有的CSS规则，停止用body继承变量传播四个尺寸；相同尺寸不写，退出绑定清理规则。分屏、侧栏、终端导致的容器变化都由同一ResizeObserver适配。源码CodeMirror观察自己的尺寸并保留逻辑阅读行，不依赖分隔线伪造全窗口resize。
+
 ## 宿主与上游依据
 
 Typora 1.14.10的`File.toggleSourceMode`调用`library.tmpHideSidebar/recoverSidebar`、`sourceView.show/hide`与`freshMenuWithDelay`。工作台宿主适配集中调整该命令的侧栏边界，底栏、原生快捷键与工作台视图菜单均调用已核对的`File.toggleSourceMode`；内容切换仍调用原生源码视图。移除适配时恢复原方法。原生`window.css`在源码激活时对按钮增加10px左内距，`base-control.css`对源码层使用固定定位，均须纳入共同框架约束。

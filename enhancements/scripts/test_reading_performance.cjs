@@ -6,13 +6,17 @@ let win;const pause=ms=>new Promise(r=>setTimeout(r,ms)),read=s=>win.webContents
 app.whenReady().then(async()=>{
  win=new BrowserWindow({show:false,width:1000,height:800,webPreferences:{contextIsolation:false,offscreen:true,backgroundThrottling:false}});
  const html=path.join(evidence,'fixture.html');fs.writeFileSync(html,'<!doctype html><meta charset="utf-8"><style>body{margin:0}content{display:block;height:500px;overflow:auto}#write{font:18px/1.5 sans-serif;width:800px;margin:0}p{margin:12px 0}</style><content><article id="write"></article></content>');await win.loadFile(html);
- const bundle=await build({stdin:{contents:'export * from "./src/reading_reflow";export * from "./src/reading_positions";export * from "./src/workspace_markdown_theme";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'qa',write:false});await read(bundle.outputFiles[0].text);
+ const bundle=await build({stdin:{contents:'export * from "./src/workspace_theme";export * from "./src/reading_blocks";export * from "./src/reading_reflow";export * from "./src/reading_positions";export * from "./src/workspace_markdown_theme";',resolveDir:path.join(__dirname,'..')},bundle:true,format:'iife',globalName:'qa',write:false});await read(bundle.outputFiles[0].text);
  await read(`window.root=document.querySelector('#write');window.scroller=document.querySelector('content');window.binding=qa.bind_reading_reflow(scroller,root);window.bounds=0;window.original=Element.prototype.getBoundingClientRect;Element.prototype.getBoundingClientRect=function(){bounds++;return original.call(this)};window.reference=()=>{const top=original.call(scroller).top,blocks=[...root.children].filter(n=>original.call(n).height>0&&!n.matches('script,style,button'));return blocks.find(n=>original.call(n).bottom>top+16)||blocks.at(-1)};void 0;`);
  for(const count of [20,100,1000]){
   await read(`root.innerHTML=Array.from({length:${count}},(_,i)=>'<p id="p'+i+'">Paragraph '+i+' '+('long 中文 paragraph '.repeat(20))+'</p>').join('');scroller.scrollTop=scroller.scrollHeight-1600`);await pause(80);
   await read('qa.capture_position(scroller,root);bounds=0;window.correct=true;for(let i=0;i<1000;i++){scroller.scrollTop+=i%2?12:-12;const p=qa.capture_position(scroller,root),a=qa.capture_reflow_anchor(scroller,root);correct=correct&&p.block.text===reference().textContent.trim().slice(0,160)&&!!a;}window.cost=bounds;void 0;');
   await check('correct','1000次采样与实际块一致 '+count);await check('cost<15000','滚动几何读取有界而非随正文增长 '+count);
  }
+ await read(`window.revision=qa.reading_block_revision(root);bounds=0;root.style.width='799px';window.same_revision=qa.reading_block_revision(root)===revision;window.revision_bounds=bounds;void 0;`);
+ await check('revision_bounds===0','content revision never measures document geometry');
+ await read(`window.revision=qa.reading_block_revision(root);document.body.style.setProperty('--fixture-width','42px');window.same_revision=qa.reading_block_revision(root)===revision;bounds=0;qa.reading_block_snapshot(root,'h1,h2,h3,h4,h5,h6');window.heading_bounds=bounds;`);
+ await check('same_revision&&heading_bounds<5','ancestor layout leaves content revision stable and headings skip unrelated paragraphs');
  await read(`root.querySelector('#p997').hidden=true;root.querySelector('#p995').textContent='Changed '+ 'wrap '.repeat(300);window.position=qa.capture_position(scroller,root);`);
  await check('position.block.text===reference().textContent.trim().slice(0,160)','同一任务修改/隐藏后立即失效');await pause(80);
  await read('window.anchor=qa.capture_reflow_anchor(scroller,root);binding.change(()=>{root.style.width="450px"});');await pause(80);
@@ -30,6 +34,11 @@ app.whenReady().then(async()=>{
  await check(`new_rules.includes('padding: 9px')&&!new_rules.includes('padding: 7px')`,'同一任务修改样式后同步读取不命中旧缓存');
  await read(`window.before=calls;for(let i=0;i<1000;i++)document.body.classList.toggle('irrelevant',!!(i%2));`);await pause(80);
  await check('calls-before<=2','1000次宿主状态变化每消费者只刷新一帧');
+ await read('window.theme_calls=0;window.theme_stop=qa.observe_workspace_theme(()=>theme_calls++);void 0;');await pause(80);
+ await read(`window.theme_before=theme_calls;for(let i=0;i<1000;i++)document.documentElement.style.setProperty('--sidebar-width',(170+i%300)+'px');`);await pause(80);
+ await check('theme_calls===theme_before','1000 local widths do not refresh theme consumers');
+ await read(`document.documentElement.style.setProperty('--test-theme-color','red');`);await pause(80);
+ await check('theme_calls>theme_before','real style changes still reach theme consumers');await read('theme_stop();');
  await read('stop1();stop2();binding.dispose();window.before=calls;document.body.classList.toggle("irrelevant");scroller.scrollTop=50');await pause(80);
  await check('calls===before','销毁不保留主题回调');
  fs.writeFileSync(path.join(evidence,'checks.json'),JSON.stringify({status:'PASS',checks},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,evidence}));win.destroy();app.exit(0);

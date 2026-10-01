@@ -1948,7 +1948,8 @@
         "R034",
         "R043",
         "R034.4",
-        "R034.10"
+        "R034.10",
+        "R071.6"
       ],
       "design": "docs/editor_header.md",
       "implementation": [
@@ -2991,7 +2992,8 @@
       "purpose": "implementation",
       "requirements": [
         "H005",
-        "R043"
+        "R043",
+        "R071.6"
       ],
       "design": "docs/source_outline.md",
       "implementation": [
@@ -3300,7 +3302,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R071.6"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -7117,7 +7120,8 @@
       "level": "functional",
       "purpose": "stress",
       "requirements": [
-        "R071.3"
+        "R071.3",
+        "R071.6"
       ],
       "design": "docs/workspace_responsiveness.md",
       "implementation": [
@@ -9208,6 +9212,44 @@
         "Passive mode changes preserve viewport, active source follows visible content, panels remain usable and text stays unchanged"
       ],
       "platform": "win32",
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-sidebar-resize-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R071.6",
+        "R083"
+      ],
+      "design": "docs/workspace_responsiveness.md#r0716-相邻区域拖动与正文重排",
+      "implementation": [
+        "enhancements/src/workspace_sidebar_sash.ts",
+        "enhancements/src/reading_blocks.ts",
+        "enhancements/src/reading_reflow.ts",
+        "enhancements/src/native_source_font_zoom.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/md-editor-mode.ts",
+        "enhancements/src/workspace_theme.ts"
+      ],
+      "related_modules": [
+        "outline",
+        "breadcrumbs",
+        "minimap",
+        "source",
+        "layout"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/sidebar_resize_native.js",
+      "environment": "Windows private desktop, original Typora 1.14.10, software rendering",
+      "preconditions": "Use the verified host and isolated user data; optional repro.md is a read-only copy, never the user original.",
+      "steps": [
+        "Run with -fixture sidebar_resize_native.js. Compare the same fixture with the recorded reference assets.",
+        "Trusted HWND drag input across short text, long paragraphs, 20/100/1000 code fences and optional reported document; source themes and split groups."
+      ],
+      "expected": [
+        "Preserve text and selections, update group/source geometry, retain the source logical line, and report input-to-geometry/frame latency and trailing work without claiming physical GPU performance."
+      ],
       "timeout_ms": 240000
     }
   ]

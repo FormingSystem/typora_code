@@ -6,6 +6,8 @@ The October 1, 2026 report identifies disappearing sidebars and outline, a clipp
 
 ## Ownership and scope
 
+R071.6 keeps the frame rectangle in its owned CSS rule, replacing inherited body variables. Unchanged fields are not written and exiting removes the rule. Sidebar, split and terminal layout share the same container observer. Source CodeMirror observes its own dimensions and retains the logical reading line without synthetic window resize events.
+
 The editor group owns its header and content rectangle. Native Markdown uses `content.typ-workspace-binding` as the single host boundary. Rendered content and the native source surface share that rectangle; the source surface fills its parent instead of positioning itself against the entire window. Native editors retain text, undo, cursor, scrolling and syntax ownership.
 
 The workbench owns activity-bar visibility, the active sidebar panel and its open state. Switching presentation does not toggle that state. Explicit sidebar commands still work, and preferences retain their independent temporary-hiding behavior. Shared status-bar icon roles own alignment and padding in every state, retaining the existing 22px action target and 16px official icon.
