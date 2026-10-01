@@ -276,6 +276,10 @@
     {
       "zh_cn": "README.zh-CN.md",
       "en": "README.md"
+    },
+    {
+      "zh_cn": "docs/editor_presentation.md",
+      "en": "docs/editor_presentation.en.md"
     }
   ]
 }

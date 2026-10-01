@@ -1,27 +1,29 @@
 import {workspace_text} from "./workspace_i18n";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {is_source_file_uri,source_file_path} from "./workspace_file_uri";
-import {subscribe_document_symbols} from "./workspace_document_symbols";
+import {subscribe_document_symbols, markdown_document_symbols} from "./workspace_document_symbols";
+import {active_native_markdown_editor} from './native_markdown_editor';
 import {open_source_outline_settings} from "./source_outline_settings";
 import {observe_workspace_theme,workspace_theme_mode} from "./workspace_theme";
 import {git_icon,git_icon_button, type git_icon_name} from "./git_icons";
 import type {source_symbol} from "./source_symbols";
 
-/** Read only the active source Monaco model; the host still owns the native Markdown outline. */
+/** Share source outline rendering across Monaco and the native Markdown adapter. */
 export function install_workspace_source_outline(sidebar:HTMLElement,context_root?:()=>string){
   const pane=document.createElement("div");pane.className="workspace-source-outline";
   const toolbar=document.createElement("div");toolbar.className="workspace-source-outline-toolbar";
   const provider=document.createElement("span");provider.textContent=workspace_text("source_outline_code_outline");
   const tree=document.createElement("div");tree.setAttribute("role","tree");tree.setAttribute("aria-label",workspace_text("source_outline_code_symbol_outline"));
   const configure=()=>open_source_outline_settings(context_root?.()||"",()=>{version=-1;schedule();});
-  toolbar.append(provider,git_icon_button("settings-gear",workspace_text("browser_code_outline_parse_environment_settings"),configure));pane.append(toolbar,tree);
+  const configure_button=git_icon_button("settings-gear",workspace_text("browser_code_outline_parse_environment_settings"),configure);
+  toolbar.append(provider,configure_button);pane.append(toolbar,tree);
   (sidebar.querySelector("#sidebar-content")||sidebar).append(pane);
-  let symbols_binding:ReturnType<typeof subscribe_document_symbols>|undefined;
+  let symbols_binding:{refresh():void;dispose():void}|undefined;
   const release_theme=observe_workspace_theme(()=>{const mode=workspace_theme_mode();if(pane.dataset.theme!==mode)pane.dataset.theme=mode;});
   let disposed=false,model:any,editor:any,leaf:any,version=-1;
   const collapsed=new Set<string>();
   const active=()=>get_workspace_app()?.workspace.activeLeaf;
-  const source=()=>{const candidate=active();return candidate&&is_source_file_uri(candidate.state.path)?candidate:undefined;};
+  const source=()=>{const candidate=active();return candidate&&(is_source_file_uri(candidate.state.path)||active_native_markdown_editor())?candidate:undefined;};
   const message=(text:string)=>{tree.replaceChildren();const label=document.createElement("p");label.textContent=text;tree.append(label);};
   const current=(target:any,target_model:any)=>!disposed&&active()===target&&model===target_model&&!target_model.isDisposed();
   const render=(symbols:source_symbol[],target:any,target_model:any)=>{
@@ -35,7 +37,8 @@ export function install_workspace_source_outline(sidebar:HTMLElement,context_roo
       const button=document.createElement("button");button.className="workspace-source-symbol-label";button.title=symbol.detail;button.dataset.symbolName=symbol.name;
       const icons:Record<string,git_icon_name>={function:"symbol-method",method:"symbol-method",class:"symbol-class",struct:"symbol-structure",interface:"symbol-interface",variable:"symbol-variable",constant:"symbol-constant",property:"symbol-property",field:"symbol-field",namespace:"symbol-namespace",enum:"symbol-enum","enum-member":"symbol-enum-member","type-parameter":"symbol-parameter"};
       const label=document.createElement("span");label.textContent=symbol.name;
-      button.append(git_icon(icons[symbol.kind]||"symbol-variable"),label);
+      if(!editor.native_markdown)button.append(git_icon(icons[symbol.kind]||"symbol-variable"));
+      button.append(label);
       button.onclick=()=>{if(!current(target,target_model)||target_model.getVersionId()!==version)return;const start=target_model.getPositionAt(symbol.selection_start),end=target_model.getPositionAt(symbol.selection_end);const range={startLineNumber:start.lineNumber,startColumn:start.column,endLineNumber:end.lineNumber,endColumn:end.column};editor.setSelection(range);editor.revealRangeInCenter(range);editor.focus();pane.querySelectorAll('[aria-selected="true"]').forEach(node=>node.removeAttribute("aria-selected"));row.setAttribute("aria-selected","true");};
       row.append(disclosure,button);container.append(row);if(symbol.children.length){container.append(children);append(symbol.children,children,depth+1,key);}
     });
@@ -44,9 +47,20 @@ export function install_workspace_source_outline(sidebar:HTMLElement,context_roo
   const schedule=()=>symbols_binding?.refresh();
   const refresh=()=>{
     if(disposed)return;const target=source(),visible=Boolean(target&&sidebar.classList.contains("active-tab-outline"));if(pane.hidden===visible)pane.hidden=!visible;
-    const next_editor=(target?.view as any)?.editor?.focused_editor?.(),next_model=next_editor?.getModel();
+    const next_editor=active_native_markdown_editor()||(target?.view as any)?.editor?.focused_editor?.(),next_model=next_editor?.getModel();
+    const native_source=Boolean(next_editor?.native_markdown);
+    if(configure_button.hidden!==native_source)configure_button.hidden=native_source;
+    sidebar.classList.toggle('workspace-native-source-outline', Boolean(visible&&next_editor?.native_markdown));
     if(next_model!==model||target!==leaf||!visible){symbols_binding?.dispose();symbols_binding=undefined;model=next_model;editor=next_editor;leaf=target;version=-1;collapsed.clear();}
     if(visible&&model&&!symbols_binding){const target_model=model;
+      if(next_editor.native_markdown){
+        let timer=0,closed=false;
+        const update=()=>{timer=0;if(closed||!current(target,target_model))return;version=target_model.getVersionId();provider.textContent='Markdown';render(markdown_document_symbols(target_model.getValue()),target,target_model);};
+        const refresh=()=>{clearTimeout(timer);timer=window.setTimeout(update,150);};
+        const content=target_model.onDidChangeContent(refresh);
+        symbols_binding={refresh,dispose(){closed=true;clearTimeout(timer);content.dispose();}};update();
+        return;
+      }
       symbols_binding=subscribe_document_symbols(model,source_file_path(target.state.path)||"",context_root?.()||"",state=>{
         if(!current(target,target_model))return;version=state.version;provider.textContent=state.provider==="clangd"?"C/C++ · clangd":workspace_text("source_outline_code_outline");provider.title=state.notice;pane.dataset.provider=state.provider;pane.dataset.incomplete=String(state.incomplete);
         if(state.loading)message(workspace_text("source_outline_reading_syntax_symbols"));else if(state.error)message(state.error);else{render(state.symbols,target,target_model);if(state.notice){const note=document.createElement("p");note.className="workspace-source-outline-notice";note.textContent=state.notice;tree.append(note);}}
@@ -54,6 +68,7 @@ export function install_workspace_source_outline(sidebar:HTMLElement,context_roo
     }
   };
   const observer=new MutationObserver(refresh);observer.observe(document.body,{childList:true,subtree:true});
+  const mode_observer=new MutationObserver(refresh);mode_observer.observe(document.body,{attributes:true,attributeFilter:['class']});
   const unsubscribe=get_workspace_app()?.workspace.on("active-leaf:change",refresh);
-  refresh();return {available:()=>Boolean(source()),refresh,configure,dispose(){if(disposed)return;disposed=true;observer.disconnect();if(typeof unsubscribe==="function")unsubscribe();symbols_binding?.dispose();release_theme();pane.remove();}};
+  refresh();return {available:()=>Boolean(source()),refresh,configure,dispose(){if(disposed)return;disposed=true;observer.disconnect();mode_observer.disconnect();if(typeof unsubscribe==="function")unsubscribe();symbols_binding?.dispose();release_theme();pane.remove();sidebar.classList.remove('workspace-native-source-outline');}};
 }

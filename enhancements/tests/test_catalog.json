@@ -9172,6 +9172,43 @@
       ],
       "timeout_ms": 600000,
       "required_executables": []
+    },
+    {
+      "id": "TC-reading-native-scroll-source-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R071.5",
+        "R083"
+      ],
+      "design": "docs/editor_presentation.md",
+      "implementation": [
+        "enhancements/src/reading_native_scroll.ts",
+        "enhancements/src/workspace_markdown_presentation.ts",
+        "enhancements/src/native_markdown_editor.ts",
+        "enhancements/src/native_markdown_position.ts"
+      ],
+      "related_modules": [
+        "reading",
+        "outline",
+        "navigation",
+        "workspace"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/reading_scroll_native.js",
+      "environment": "Original Typora 1.14.10 on an isolated Windows desktop",
+      "preconditions": "TYPORA_NATIVE_TEST_ROOT points to the verified host; generated document or private reproduction copy only",
+      "steps": [
+        "Run with -fixture reading_scroll_native.js",
+        "Expand code and deliver 47 trusted wheel messages over document whitespace; wait and cross the native IME/line-number DOM threshold",
+        "Switch presentation repeatedly, navigate/edit/undo using shared outline and inspect geometry"
+      ],
+      "expected": [
+        "Passive mode changes preserve viewport, active source follows visible content, panels remain usable and text stays unchanged"
+      ],
+      "platform": "win32",
+      "timeout_ms": 240000
     }
   ]
 }

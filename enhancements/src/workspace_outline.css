@@ -25,6 +25,9 @@ html[data-linux-note-workspace-outline="ready"] #outline-menu > .divider:has(+ [
 }
 
 html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-outline="false"] #outline-content {display:none!important;}
+/* Source and rendered Markdown keep one visible outline, with their own model adapter. */
+#typora-sidebar.workspace-native-source-outline #outline-content {display:none!important;}
+.workspace-source-outline [hidden] {display:none!important;}
 .workspace-outline-empty{display:none;margin:0;padding:8px 12px;font-size:12px;color:var(--linux-note-shell-description-foreground,#6c6c6c);}
 #typora-sidebar.active-tab-outline .workspace-outline-empty:not([hidden]){display:block;}
 

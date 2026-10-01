@@ -1,0 +1,372 @@
+{
+  "schema": 1,
+  "date": "2026-10-01",
+  "release": "2026.10.01.2",
+  "sequence": 2026100102,
+  "requirements": [
+    "R071.5",
+    "R083"
+  ],
+  "design": [
+    "docs/workspace_responsiveness.md#r0715-阅读视口被旧光标覆盖",
+    "docs/editor_presentation.md"
+  ],
+  "baseline": "7c07a2d832d44c14bba182e4caf908db4175340c",
+  "asset_manifest_sha256": "43b8c01fd5bac3e23f1c7321a05329b776960d8c431de48e2d15eac0a601b1bd",
+  "root_cause": {
+    "rendered": "Lazy fence creation triggers native performance mode; contenteditable transition focuses the retained paragraph without preventScroll.",
+    "source": "Native refresh reapplies unchanged typewriter configuration and reveals the retained source cursor.",
+    "old_reproduction": {
+      "case_id": "42b37eac6a1b4d71bb6185fd1f6dd45d",
+      "before": 27532.572265625,
+      "after": 24668,
+      "preconditions": "Reported document copy, 47 trusted wheel messages, complete lazy fences, native line numbers and IME state enabled by fixture."
+    }
+  },
+  "native_runs": [
+    {
+      "label": "generated_long_document",
+      "case_id": "834c213fbf294f05ad5ec47f6f756aa0",
+      "status": "PASS",
+      "checks": [
+        "trusted click expands native code",
+        "native DOM threshold enters performance mode",
+        "automatic delayed performance transition observed",
+        "passive native transitions preserve the current viewport",
+        "explicit performance transition probes also retain viewport",
+        "source mode retains the activity bar and outline sidebar",
+        "source and rendered modes share the editor group rectangle",
+        "source viewport maps the currently visible fence line instead of the old cursor",
+        "return to rendered Markdown preserves the visible code line",
+        "mode cycle 1 retains sidebar",
+        "mode cycle 2 retains sidebar",
+        "mode cycle 3 retains sidebar",
+        "mode cycle 4 retains sidebar",
+        "mode cycle 5 retains sidebar",
+        "mode cycle 6 retains sidebar",
+        "mode cycle 7 retains sidebar",
+        "mode cycle 8 retains sidebar",
+        "mode cycle 9 retains sidebar",
+        "mode cycle 10 retains sidebar",
+        "mode cycle 11 retains sidebar",
+        "mode cycle 12 retains sidebar",
+        "mode cycle 13 retains sidebar",
+        "mode cycle 14 retains sidebar",
+        "mode cycle 15 retains sidebar",
+        "mode cycle 16 retains sidebar",
+        "mode cycle 17 retains sidebar",
+        "mode cycle 18 retains sidebar",
+        "mode cycle 19 retains sidebar",
+        "mode cycle 20 retains sidebar",
+        "shared outline navigates the native source editor",
+        "shared history returns to the previous native source heading",
+        "shared history advances to the native source heading",
+        "source outline reads current memory after editing",
+        "source edit undo preserved",
+        "vscode2026_dark.css 1 source icon complete and centered",
+        "vscode2026_dark.css 1 shared source frame",
+        "vscode2026_dark.css 1.25 source icon complete and centered",
+        "vscode2026_dark.css 1.25 shared source frame",
+        "vscode2026_light.css 1 source icon complete and centered",
+        "vscode2026_light.css 1 shared source frame",
+        "vscode2026_light.css 1.25 source icon complete and centered",
+        "vscode2026_light.css 1.25 shared source frame",
+        "explicit sidebar hiding works in source mode",
+        "native command keeps an explicitly hidden sidebar hidden",
+        "explicit sidebar reopening works in source mode",
+        "native Markdown outline does not expose unrelated parser configuration",
+        "source frame follows the actual split group",
+        "native footer uses the common presentation command",
+        "native footer returns to source without hiding the sidebar",
+        "history restores the source presentation from rendered Markdown",
+        "history restores rendered Markdown from source without waiting on a hidden view",
+        "trusted wheel events received",
+        "document unchanged"
+      ],
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "43b8c01fd5bac3e23f1c7321a05329b776960d8c431de48e2d15eac0a601b1bd",
+        "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+        "fixture_sha256": "b1b72ac292f0d7004044a31a8b0f1ff4f36f28ef0b0ca81f74e7915e6dc60fd8",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "checks_sha256": "2e716f3b84ae31910fe0417fbb242c724c3cbfc8bc8ee99c0ee265ef00a7ff6b",
+      "artifact_state": "cleaned",
+      "wheel_events": 47,
+      "wheel_targets": [
+        "write enable-diagrams"
+      ],
+      "wheel_to_first_changed_frame_ms": {
+        "samples": 47,
+        "median": 10.900000000372529,
+        "max": 16.0
+      },
+      "scroll_tail_ms": [
+        13.799999998882413,
+        12.599999999627471
+      ],
+      "transitions": [
+        {
+          "phase": "lazy_native_fences",
+          "before": 3148.571533203125,
+          "after": 3148.571533203125,
+          "busy": true
+        },
+        {
+          "phase": "native_busy_transition",
+          "before": 3148.571533203125,
+          "after": 3148.571533203125,
+          "busy": false
+        },
+        {
+          "phase": "native_busy_transition",
+          "before": 3148.571533203125,
+          "after": 3148.571533203125,
+          "busy": true
+        },
+        {
+          "phase": "source_switch",
+          "before": 0,
+          "after": 0,
+          "busy": false
+        },
+        {
+          "phase": "source_switch",
+          "before": 0,
+          "after": 0,
+          "busy": true
+        }
+      ],
+      "source_line_mapping": [
+        {
+          "time": 47830.79999999888,
+          "phase": "source_switch",
+          "kind": "line_mapping_result",
+          "top": 0,
+          "expected_line": 59,
+          "actual_line": 58,
+          "scroll": {
+            "left": 0,
+            "top": 1293.142822265625,
+            "height": 13421,
+            "width": 795,
+            "clientHeight": 618,
+            "clientWidth": 795
+          },
+          "cursor": {
+            "line": 26,
+            "ch": 12,
+            "lineText": "## Section 0",
+            "inRef": null,
+            "textBefore": "## Section 0"
+          }
+        }
+      ],
+      "screenshots": {
+        "stage_source_dark_725612.png": "51b03621be80637609d8aa2efdab6edd2b746f4cd0a1c9e038c454ddaddd068d",
+        "stage_source_light_725612.png": "6314c2d9d1f52983cfff2cd385c32db34d59f79205c090bf6e20bce2bca63ae7"
+      }
+    },
+    {
+      "label": "reported_document_copy",
+      "case_id": "ba6956f40b66442096b68a5d1fde0215",
+      "status": "PASS",
+      "checks": [
+        "trusted click expands native code",
+        "native DOM threshold enters performance mode",
+        "automatic delayed performance transition observed",
+        "passive native transitions preserve the current viewport",
+        "explicit performance transition probes also retain viewport",
+        "source mode retains the activity bar and outline sidebar",
+        "source and rendered modes share the editor group rectangle",
+        "source viewport maps the currently visible fence line instead of the old cursor",
+        "return to rendered Markdown preserves the visible code line",
+        "mode cycle 1 retains sidebar",
+        "mode cycle 2 retains sidebar",
+        "mode cycle 3 retains sidebar",
+        "mode cycle 4 retains sidebar",
+        "mode cycle 5 retains sidebar",
+        "mode cycle 6 retains sidebar",
+        "mode cycle 7 retains sidebar",
+        "mode cycle 8 retains sidebar",
+        "mode cycle 9 retains sidebar",
+        "mode cycle 10 retains sidebar",
+        "mode cycle 11 retains sidebar",
+        "mode cycle 12 retains sidebar",
+        "mode cycle 13 retains sidebar",
+        "mode cycle 14 retains sidebar",
+        "mode cycle 15 retains sidebar",
+        "mode cycle 16 retains sidebar",
+        "mode cycle 17 retains sidebar",
+        "mode cycle 18 retains sidebar",
+        "mode cycle 19 retains sidebar",
+        "mode cycle 20 retains sidebar",
+        "shared outline navigates the native source editor",
+        "shared history returns to the previous native source heading",
+        "shared history advances to the native source heading",
+        "source outline reads current memory after editing",
+        "source edit undo preserved",
+        "vscode2026_dark.css 1 source icon complete and centered",
+        "vscode2026_dark.css 1 shared source frame",
+        "vscode2026_dark.css 1.25 source icon complete and centered",
+        "vscode2026_dark.css 1.25 shared source frame",
+        "vscode2026_light.css 1 source icon complete and centered",
+        "vscode2026_light.css 1 shared source frame",
+        "vscode2026_light.css 1.25 source icon complete and centered",
+        "vscode2026_light.css 1.25 shared source frame",
+        "explicit sidebar hiding works in source mode",
+        "native command keeps an explicitly hidden sidebar hidden",
+        "explicit sidebar reopening works in source mode",
+        "native Markdown outline does not expose unrelated parser configuration",
+        "source frame follows the actual split group",
+        "native footer uses the common presentation command",
+        "native footer returns to source without hiding the sidebar",
+        "history restores the source presentation from rendered Markdown",
+        "history restores rendered Markdown from source without waiting on a hidden view",
+        "trusted wheel events received",
+        "document unchanged"
+      ],
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "43b8c01fd5bac3e23f1c7321a05329b776960d8c431de48e2d15eac0a601b1bd",
+        "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+        "fixture_sha256": "b1b72ac292f0d7004044a31a8b0f1ff4f36f28ef0b0ca81f74e7915e6dc60fd8",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "checks_sha256": "e2368d84c75bda796d8ce8ad2355edbb4540f49b62e7090a7b99edf94079df9a",
+      "artifact_state": "cleaned",
+      "wheel_events": 47,
+      "wheel_targets": [
+        "write enable-diagrams"
+      ],
+      "wheel_to_first_changed_frame_ms": {
+        "samples": 47,
+        "median": 12.400000000372529,
+        "max": 15.399999998509884
+      },
+      "scroll_tail_ms": [
+        0.6999999992549419,
+        13.900000000372529
+      ],
+      "transitions": [
+        {
+          "phase": "lazy_native_fences",
+          "before": 27532.572265625,
+          "after": 27532.572265625,
+          "busy": true
+        },
+        {
+          "phase": "native_busy_transition",
+          "before": 27532.572265625,
+          "after": 27532.572265625,
+          "busy": false
+        },
+        {
+          "phase": "native_busy_transition",
+          "before": 27532.572265625,
+          "after": 27532.572265625,
+          "busy": true
+        },
+        {
+          "phase": "source_switch",
+          "before": 0,
+          "after": 0,
+          "busy": false
+        }
+      ],
+      "source_line_mapping": [
+        {
+          "time": 45467.300000000745,
+          "phase": "source_switch",
+          "kind": "line_mapping_result",
+          "top": 0,
+          "expected_line": 1412,
+          "actual_line": 1411,
+          "scroll": {
+            "left": 0,
+            "top": 21289.71484375,
+            "height": 28107,
+            "width": 795,
+            "clientHeight": 618,
+            "clientWidth": 795
+          },
+          "cursor": {
+            "line": 1379,
+            "ch": 9,
+            "lineText": "完全可以逐步成长：",
+            "inRef": null,
+            "textBefore": "完全可以逐步成长："
+          }
+        }
+      ],
+      "screenshots": {
+        "stage_source_dark_136496.png": "111f99e27c24aece994989e30433bc1840fa35082afc8a73f6948e9da6e658ea",
+        "stage_source_light_136496.png": "6290137c364aaa65d13f8b0ae3d128b41494e7623de794846eff33c6da74d6f7"
+      }
+    }
+  ],
+  "validation": {
+    "build": "PASS",
+    "core": "PASS",
+    "ui": [
+      "reading lifecycle",
+      "footer geometry and states",
+      "source outline",
+      "rendered outline",
+      "code geometry",
+      "reading performance"
+    ],
+    "final_changed_navigation_recheck": [
+      "reading lifecycle",
+      "source outline"
+    ],
+    "guard_lifecycle_cycles": 100,
+    "guard_assertions": 402,
+    "native_mode_cycles_per_run": 20,
+    "uninstall_assertions": 65,
+    "isolated_install_cycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; documents, settings and backups preserved",
+    "local_uninstall": "read-only preflight only",
+    "logs_sha256": {
+      "reading_delivery_build_20261001.log": "d98b9803ec92459817febf9688f45889c084bc4222e0ed501f8f3c107147a69f",
+      "reading_delivery_check_20261001.log": "9ab50411ee553a47b99cb9dc943a2c4667a0eefae8ff1dd539bb9bd16f5e84e3",
+      "reading_final_ui_20261001.log": "f48f358d0cec8cb0fbd4900dd9b1c983ab1dc0d8c065443ff9da4ffe61478e2a",
+      "reading_delivery_ui_20261001.log": "b968cb5a47bc46ecd9f93714f12835af1c86baf63f8698c350d7f4c9c87c8972",
+      "reading_delivery_install_cycle_20261001.log": "325d21fe4a0a2cfe21208e1c85bde785e583e22ab19d069e8fdee56f554d96ac",
+      "reading_delivery_uninstall_cases_20261001.log": "a444a9ca86978c1e0139e73c8b115df091ec15a7f7b4071e0c184db16cf052e5",
+      "reading_local_uninstall_preflight_20261001.log": "d3ad9b38b0b0ef80f747519b8fee6ca9eebc6968135dbb55287c348c25952e26",
+      "reading_local_install_20261001.log": "ab40580e3c30037a712efa654b94f7b4ed2278a3e930f13cf2861e06d7b5a932",
+      "reading_local_check_20261001.log": "1ac02583141c9fe08f9f0c10b88ac22c21e73a0be5f6b52b1a2a48da0e1922b3"
+    }
+  },
+  "local_install": {
+    "status": "PASS",
+    "release": "2026.10.01.2",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 8,
+    "loaded_user_window": "not restarted"
+  },
+  "failures_retained": [
+    "Initial ordinary-wheel probes did not cross the weighted native DOM threshold.",
+    "An intermediate source check exposed delayed unchanged typewriter refresh after the first position mapping.",
+    "Repeated hidden writes caused a native outline observer loop; writes are now idempotent.",
+    "Narrow-footer regression exposed native mode-dependent padding and a fixed source target; common text controls now yield width.",
+    "A test expected a nonexistent ClientCommand.toggleSourceMode; verified native footer/keyboard/View paths use File.toggleSourceMode.",
+    "English page link label failed language lint and was corrected."
+  ],
+  "limits": [
+    "Windows Typora 1.14.10 only; no other host version or platform certification.",
+    "Trusted Windows messages on a private desktop, not a physical mouse/IME session. IME precondition is controlled by the fixture.",
+    "No full UI suite; targeted affected suites only.",
+    "Private-desktop screenshots were inspected with computed geometry; screenshots alone are not theme or position evidence.",
+    "User running windows were not restarted; local assets load after a normal restart.",
+    "Existing R068.6, R068.10 and R047.9 follow-ups remain outside this repair."
+  ]
+}

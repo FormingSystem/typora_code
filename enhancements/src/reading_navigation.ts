@@ -200,6 +200,7 @@ export function bind_reading_navigation(): () => void {
     const from = capture_departure() ?? last_location;
     workspace.checkpoint();
     workspace.stop_restoring();
+    active_native_markdown_editor()?.show_rendered_for_navigation();
     workspace.hold(path, true);
     held_path=path;
       let target: reading_context | undefined;
@@ -406,7 +407,7 @@ export function bind_reading_navigation(): () => void {
   const is_document_event = (event: Event) => {
     const path = event.composedPath().filter((node): node is Element => node instanceof Element);
     return !path.some(node => node.matches('.workspace-link-preview, button, input, select, [role="toolbar"], .find-widget'))
-      && path.some(node => node.matches('#write, .linux-note-source-file, .git-graph-document'));
+      && path.some(node => node.matches('#write, #typora-source, .linux-note-source-file, .git-graph-document'));
   };
   const leave_document = (capture_before_blur = false) => {
     // Only cache the real document position before losing focus, do not submit history; when leaving actually later, you can keep the reading position just rolled to.
@@ -423,7 +424,7 @@ export function bind_reading_navigation(): () => void {
     if (disposed || navigating || history.is_navigating() || is_busy() || pending_from) return;
     const current = capture();
     if (current) { history.checkpoint(current); last_location = current; }
-    if (event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
+    if (event.target instanceof Element && event.target.closest("#write, #typora-source, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
   }, {capture: true, signal: controller.signal});
   document.addEventListener("selectionchange", () => {
     if (window.getSelection()?.anchorNode?.getRootNode()===document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
@@ -440,8 +441,7 @@ export function bind_reading_navigation(): () => void {
     const active = document.activeElement;
     if(event.composedPath().some(node=>node instanceof Element&&node.matches(".workspace-link-preview")))return;
     if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]')
-        || editor.sourceView?.inSourceMode
-        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, .linux-note-source-file, .git-graph-document"))) return;
+        || (active instanceof Element && active.matches("input, textarea, [contenteditable='true']") && !active.closest("#write, #typora-source, .linux-note-source-file, .git-graph-document"))) return;
     event.preventDefault();
     event.stopImmediatePropagation();
     void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
@@ -471,3 +471,4 @@ export function bind_reading_navigation(): () => void {
   },{signal:controller.signal});
   return dispose;
 }
+import {active_native_markdown_editor} from './native_markdown_editor';

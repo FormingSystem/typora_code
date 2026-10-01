@@ -15,12 +15,16 @@ footer.ty-footer :is(.workspace-footer-group,.workspace-footer-control,.workspac
 /* The hiding and padding of native footer-btn are taken over by the shared icon role; business hide and inline hiding remain valid. */
 footer.ty-footer #ty-sidebar-footer .workspace-footer-control.workspace-footer-icon-control,
 footer.ty-footer .workspace-footer-control.workspace-footer-icon-control {
-  display:flex;align-items:center;justify-content:center;padding-left:0;padding-right:0;
+  display:flex;align-items:center;justify-content:center;padding-left:0!important;padding-right:0!important;
 }
 footer.ty-footer .workspace-footer-icon-control .workspace-official-icon-slot {
   display:inline-flex;align-items:center;justify-content:center;
   width:16px;height:16px;padding:0;margin:0;line-height:0;
   position:static!important;inset:auto!important;vertical-align:middle;
+}
+/* A native button can itself be the icon slot; its hit target still belongs to the control role. */
+footer.ty-footer .workspace-footer-icon-control.workspace-official-icon-slot {
+  width:var(--workspace-footer-action-size,22px);min-width:var(--workspace-footer-action-size,22px);
 }
 footer.ty-footer .workspace-footer-icon-control > span,
 footer.ty-footer .workspace-footer-icon-control .footer-btn {line-height:0;vertical-align:middle;}

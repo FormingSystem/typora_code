@@ -1,5 +1,5 @@
 /* The separator line remains permanently between the active bar and the document content, allowing it to be dragged back to the right from the collapsed state; the active bar itself does not participate in the collapse. */
-body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel):not(.typora-sourceview-on) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
+body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {
   display:block!important; position:fixed; left:var(--linux-note-sidebar-sash-left)!important;
   top:var(--typ-workspace-top,0px);bottom:0;
   right:auto!important; width:7px!important; margin-left:-3px!important; z-index:99;

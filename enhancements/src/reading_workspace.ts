@@ -54,7 +54,7 @@ export function create_reading_workspace(native_path: () => string, is_busy: () 
     const view = context.leaf?.view;
     if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
     if (!view || view.isEditor()) {
-      if (is_busy() || file_key(context.file_path) !== file_key(native_path())) return null;
+      if (is_busy() || document.body.classList.contains('typora-sourceview-on') || file_key(context.file_path) !== file_key(native_path())) return null;
       const scroller = document.querySelector<HTMLElement>("content");
       const root = document.querySelector<HTMLElement>("#write");
       return scroller && root?.children.length && scroller.getBoundingClientRect().height > 0 ? { scroller, root } : null;

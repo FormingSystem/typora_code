@@ -433,11 +433,18 @@ content.typ-workspace-binding {
 content.typ-workspace-binding #write {
   width: unset;
 }
+content.typ-workspace-binding #typora-source {
+  position: absolute;
+  inset: 0 !important;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+}
 content.typ-deactive {
   width: 0;
   height: 0;
 }
-content.typ-deactive #write {
+content.typ-deactive #write, content.typ-deactive #typora-source {
   display: none;
 }
 
@@ -551,7 +558,6 @@ content.typ-deactive #write {
 .mac-seamless-mode #typora-sidebar {
   padding-top: 28px;
 }
-@charset "UTF-8";
 :root {
   --typ-ribbon-width: 0px;
 }
@@ -562,28 +568,29 @@ content.typ-deactive #write {
 .typ-ribbon--enable {
   --typ-ribbon-width: 48px;
 }
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) #top-titlebar,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) .md-notification-container,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) #md-searchpanel,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) content,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) footer.ty-footer {
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) #top-titlebar,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) .md-notification-container,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) #md-searchpanel,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) content,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) footer.ty-footer {
   left: var(--typ-ribbon-width);
 }
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).show-preference-panel #top-titlebar {
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).show-preference-panel #top-titlebar {
   left: 0;
 }
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on) {
-  /* 侧栏展开时 */
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) {
+  /* The sidebar belongs to the workbench, independently of editor presentation. */
 }
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline #typora-sidebar {
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline #typora-sidebar {
+  display: block;
   left: var(--typ-ribbon-width);
 }
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline #top-titlebar,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline #typora-sidebar-resizer:not(.dragging),
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline .md-notification-container,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline #md-searchpanel,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline content,
-.typ-ribbon--enable:not(.megamenu-opened):not(.typora-sourceview-on).pin-outline footer.ty-footer {
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline #top-titlebar,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline #typora-sidebar-resizer:not(.dragging),
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline .md-notification-container,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline #md-searchpanel,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline content,
+.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel).pin-outline footer.ty-footer {
   left: calc(var(--typ-ribbon-width) + var(--sidebar-width));
 }
 .typ-ribbon--enable .info-panel-tab-wrapper {
@@ -611,7 +618,7 @@ content.typ-deactive #write {
 .html-for-mac.mac-seamless-mode .typ-ribbon {
   padding-top: 28px;
 }
-.typora-node.megamenu-opened .typ-ribbon, .typora-node.typora-sourceview-on .typ-ribbon, .typora-node.show-preference-panel .typ-ribbon {
+.typora-node.megamenu-opened .typ-ribbon, .typora-node.show-preference-panel .typ-ribbon {
   display: none;
 }
 .typ-ribbon > .group {

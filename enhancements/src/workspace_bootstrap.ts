@@ -1,6 +1,7 @@
 import { bind_workspace_zoom_commands } from "./workspace_zoom";
 import { install_workspace_shortcuts } from "./workspace_shortcuts";
 import { create_workspace_lifetime } from "./workspace_lifetime";
+import {bind_workspace_markdown_presentation} from './workspace_markdown_presentation';
 
 const WORKSPACE_NAMESPACE = "typora-code:workspace";
 
@@ -76,6 +77,7 @@ export async function initialize_workspace(signal?: AbortSignal) {
     if (current) sidebar.activePanel = current;
   };
   lifetime.listen(document, "click", reconcile_sidebar as EventListener, true);
+  lifetime.add(bind_workspace_markdown_presentation(runtime));
 
   lifetime.own(bind_workspace_zoom_commands(app, runtime));
   lifetime.own(install_workspace_shortcuts(app, runtime));

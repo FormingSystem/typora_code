@@ -9,7 +9,7 @@
 .typ-ribbon--enable {
   --typ-ribbon-width: 48px;
 
-  &:not(.megamenu-opened):not(.typora-sourceview-on) {
+  &:not(.megamenu-opened):not(.show-preference-panel) {
 
     #top-titlebar,
     .md-notification-container,
@@ -23,10 +23,11 @@
       left: 0;
     }
 
-    /* 侧栏展开时 */
+    /* The sidebar belongs to the workbench, independently of editor presentation. */
     &.pin-outline {
 
       #typora-sidebar {
+        display: block;
         left: var(--typ-ribbon-width);
       }
 
@@ -76,7 +77,6 @@
   }
 
   .typora-node.megamenu-opened &,
-  .typora-node.typora-sourceview-on &,
   .typora-node.show-preference-panel & {
     display: none;
   }

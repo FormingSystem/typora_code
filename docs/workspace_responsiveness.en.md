@@ -1,5 +1,17 @@
 [Chinese](workspace_responsiveness.md)
 
+## R071.5 Old cursor overrides the reading viewport
+
+The October 1, 2026 report describes a persistent backward jump after expanding long code and scrolling over document text or whitespace. Viewport and editing cursor have separate ownership. Passive work must not reveal a retained cursor, while explicit editing, search and navigation remain free to reveal their targets.
+
+Verified Typora 1.14.10 chain: lazy code creation schedules `tryEnterBusyModeWithDelay`; its weighted DOM threshold includes CodeMirror instances and line numbers, with a lower threshold after IME use. Changing `#write` contenteditable invokes `setAttributeOnlyNeeded`, which focuses the retained paragraph without preventScroll. In a copy of the reported document, 47 trusted wheel messages followed by completing lazy instances with the verified IME/line-number preconditions triggered the automatic transition and moved scrollTop from 27532.57 to 24668. This is a native focus reveal, not a full-document refresh. The IME precondition was set by the fixture, not physical IME typing; initial non-reproducing probes and a separate forced-transition probe remain distinct evidence.
+
+The shared native scroll adapter snapshots the viewport around this synchronous layout transaction and restores it in finally only while document/container identity is unchanged. Native performance mode and selection migration still run. Initialization, file switching and source presentation are excluded. No global scroll lock, polling or wheel multiplier is introduced; disposal restores method descriptors without overwriting later owners. Rendered/source position mapping and shared geometry are owned by [R083](editor_presentation.en.md).
+
+A second verified source path is native refresh calling `setTypeWriterMode(File.isTypeWriterMode, true)`: reapplying the unchanged mode still reveals the cursor. The shared native scroll adapter retains the logical source line and offset only for this unchanged refresh transaction; explicit mode changes retain native cursor positioning.
+
+Use the original host, unchanged document copies and trusted input messages; record focus/scroll stacks, input-to-frame and scroll-tail timing. Cover long code, delayed mode changes, repeated switches, edits/undo, navigation and cancellation. Physical input, other hosts and platforms require separate evidence.
+
 <a id="section_42f198551dd7"></a>
 # R071 Module Refresh Isolation and Repository Lifecycle
 

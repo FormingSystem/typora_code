@@ -32040,13 +32040,13 @@ https://creativecommons.org/licenses/by/4.0/
          * @returns A new color representing the mix
          */
         mix(color, factor2 = 0.5) {
-          const normalize5 = Math.min(Math.max(factor2, 0), 1);
+          const normalize6 = Math.min(Math.max(factor2, 0), 1);
           const thisRGBA = this.rgba;
           const otherRGBA = color.rgba;
-          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize5;
-          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize5;
-          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize5;
-          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize5;
+          const r4 = thisRGBA.r + (otherRGBA.r - thisRGBA.r) * normalize6;
+          const g = thisRGBA.g + (otherRGBA.g - thisRGBA.g) * normalize6;
+          const b2 = thisRGBA.b + (otherRGBA.b - thisRGBA.b) * normalize6;
+          const a = thisRGBA.a + (otherRGBA.a - thisRGBA.a) * normalize6;
           return new _Color(new RGBA(r4, g, b2, a));
         }
         makeOpaque(opaqueBackground) {
@@ -158902,7 +158902,7 @@ https://creativecommons.org/licenses/by/4.0/
       "use strict";
       var { workspace_service_text, set_workspace_service_locale } = require_workspace_service_i18n();
       var defaults2 = Object.freeze({ proxy_mode: "environment", http_proxy_url: "", https_proxy_url: "", ca_file: "" });
-      function normalize5(value = {}) {
+      function normalize6(value = {}) {
         const legacy = value.proxy_url ?? "";
         const result = { ...defaults2, ...value, http_proxy_url: Object.hasOwn(value, "http_proxy_url") ? value.http_proxy_url : legacy, https_proxy_url: Object.hasOwn(value, "https_proxy_url") ? value.https_proxy_url : legacy };
         if (!["environment", "direct", "manual"].includes(result.proxy_mode)) throw Error(workspace_service_text("service_d0b51287ac28"));
@@ -158924,7 +158924,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!allow_auth && (url.username || url.password)) throw Error(workspace_service_text("service_dace023253b3"));
         return url;
       }
-      module.exports = { set_workspace_service_locale, defaults: defaults2, normalize: normalize5, parse_proxy };
+      module.exports = { set_workspace_service_locale, defaults: defaults2, normalize: normalize6, parse_proxy };
     }
   });
 
@@ -175365,10 +175365,10 @@ https://creativecommons.org/licenses/by/4.0/
     const name = basename3(file_path), lower_name = name.toLowerCase();
     for (const rule2 of FILE_LANGUAGE_RULES) {
       const candidate = rule2.case_sensitive ? name : lower_name;
-      const normalize5 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
-      const exact = rule2.filenames?.find((value) => candidate === normalize5(value));
+      const normalize6 = (value) => rule2.case_sensitive ? value : value.toLowerCase();
+      const exact = rule2.filenames?.find((value) => candidate === normalize6(value));
       if (exact) return from_rule(rule2, "filename", exact);
-      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize5(value)));
+      const prefix = rule2.filename_prefixes?.find((value) => candidate.startsWith(normalize6(value)));
       if (prefix) return from_rule(rule2, "filename", prefix + "*");
     }
     for (const { rule: rule2, suffix } of suffix_rules) {
@@ -178384,6 +178384,262 @@ https://creativecommons.org/licenses/by/4.0/
     return binding;
   }
 
+  // src/native_markdown_position.ts
+  var normalize3 = (text3) => text3.replace(/\r\n?/g, "\n");
+  function native_markdown_spans(editor2) {
+    const root = document.querySelector("#write");
+    if (!root || !editor2?.getNode) return [];
+    const text3 = normalize3(editor2.nodeMap.toMark());
+    const starts = [0];
+    for (let index = 0; index < text3.length; index++) if (text3[index] === "\n") starts.push(index + 1);
+    const line_at = (offset2) => {
+      let low = 0, high = starts.length;
+      while (low < high) {
+        const mid = low + high >>> 1;
+        if (starts[mid] <= offset2) low = mid + 1;
+        else high = mid;
+      }
+      return Math.max(0, low - 1);
+    };
+    const spans = [];
+    let offset = 0;
+    for (const node of root.children) {
+      if (!(node instanceof HTMLElement) || !node.hasAttribute("cid")) continue;
+      const fragment = normalize3(editor2.getNode(node.getAttribute("cid"))?.toMark?.() || "").trim();
+      if (!fragment) continue;
+      const start = text3.indexOf(fragment, offset);
+      if (start < 0) continue;
+      offset = start + fragment.length;
+      const cm = node.querySelector(".CodeMirror")?.CodeMirror;
+      const code = cm && node.matches(".md-fences") ? normalize3(cm.getValue()) : "";
+      const code_offset = code ? text3.indexOf(code, start) : -1;
+      spans.push({
+        node,
+        start: line_at(start),
+        end: line_at(offset),
+        cm,
+        code_start: code_offset >= start && code_offset + code.length <= offset ? line_at(code_offset) : void 0
+      });
+    }
+    return spans;
+  }
+  function capture_native_markdown_line(editor2) {
+    const scroller = document.querySelector("content.typ-workspace-binding");
+    if (!scroller) return;
+    const viewport = reading_viewport_bounds(scroller), y = (viewport.top + viewport.bottom) / 2;
+    const spans = native_markdown_spans(editor2);
+    const span = spans.find((item) => item.node.getBoundingClientRect().bottom > y) || spans.at(-1);
+    if (!span) return;
+    if (span.cm && span.code_start !== void 0) {
+      const rect2 = span.cm.getWrapperElement().getBoundingClientRect();
+      return span.code_start + span.cm.coordsChar({ left: rect2.left + 8, top: y }, "window").line;
+    }
+    const rect = span.node.getBoundingClientRect();
+    const fraction = Math.max(0, Math.min(0.999, (y - rect.top) / Math.max(1, rect.height)));
+    return span.start + Math.floor(fraction * (span.end - span.start + 1));
+  }
+  function reveal_native_markdown_line(editor2, line) {
+    const scroller = document.querySelector("content.typ-workspace-binding");
+    if (!scroller) return;
+    const spans = native_markdown_spans(editor2);
+    const span = spans.find((item) => item.end >= line) || spans.at(-1);
+    if (!span) return;
+    const viewport = reading_viewport_bounds(scroller), center = (viewport.top + viewport.bottom) / 2;
+    let top;
+    if (span.cm && span.code_start !== void 0) {
+      const position2 = { line: Math.max(0, Math.min(span.cm.lineCount() - 1, line - span.code_start)), ch: 0 };
+      span.cm.scrollTo(null, span.cm.charCoords(position2, "local").top - span.cm.getScrollInfo().clientHeight / 2);
+      top = span.cm.charCoords(position2, "window").top;
+    } else {
+      const rect = span.node.getBoundingClientRect();
+      top = rect.top + rect.height * Math.max(0, Math.min(1, (line - span.start + 0.5) / (span.end - span.start + 1)));
+    }
+    scroller.scrollTop += top - center;
+  }
+
+  // src/native_markdown_editor.ts
+  var current_editor;
+  function active_native_markdown_editor() {
+    return current_editor?.active() ? current_editor : void 0;
+  }
+  function create_native_markdown_editor(runtime3, cancel_transition) {
+    let cm, version = 0, disposed = false;
+    const listeners12 = /* @__PURE__ */ new Set(), ids = /* @__PURE__ */ new WeakMap();
+    let next_id = 1;
+    const file = runtime3.File, source = file.editor.sourceView;
+    const active2 = () => {
+      const leaf = get_workspace_app()?.workspace.activeLeaf;
+      return !disposed && source.inSourceMode && leaf?.view?.isEditor?.() && file_key(leaf.state.path) === file_key(file.bundle?.filePath || "");
+    };
+    const changed2 = () => {
+      version++;
+      for (const listener of listeners12) listener();
+    };
+    const selected = () => {
+      if (active2()) notify_navigation_selection();
+    };
+    const synchronize = () => {
+      if (cm === source.cm) return;
+      cm?.off("changes", changed2);
+      cm?.off("cursorActivity", selected);
+      cm = source.cm;
+      version++;
+      cm?.on("changes", changed2);
+      cm?.on("cursorActivity", selected);
+    };
+    const model = {
+      getValue: () => cm.getValue(),
+      getVersionId: () => version,
+      isDisposed: () => disposed,
+      getPositionAt: (offset) => {
+        const p = cm.posFromIndex(offset);
+        return { lineNumber: p.line + 1, column: p.ch + 1 };
+      },
+      onDidChangeContent: (listener) => {
+        listeners12.add(listener);
+        return { dispose: () => listeners12.delete(listener) };
+      }
+    };
+    const editor2 = {
+      native_markdown: true,
+      active: active2,
+      synchronize,
+      show_rendered_for_navigation: () => {
+        if (source.inSourceMode) source.hide();
+        cancel_transition();
+      },
+      getModel: () => {
+        synchronize();
+        return model;
+      },
+      setSelection: (range2) => {
+        cancel_transition();
+        cm.setSelection({ line: range2.startLineNumber - 1, ch: range2.startColumn - 1 }, { line: range2.endLineNumber - 1, ch: range2.endColumn - 1 });
+      },
+      revealRangeInCenter: (range2) => {
+        cm.scrollTo(null, cm.charCoords({ line: range2.startLineNumber - 1, ch: 0 }, "local").top - cm.getScrollInfo().clientHeight / 2);
+        notify_navigation_selection(true);
+      },
+      focus: () => cm.focus(),
+      dispose: () => {
+        disposed = true;
+        release_navigation();
+        cm?.off("changes", changed2);
+        cm?.off("cursorActivity", selected);
+        listeners12.clear();
+        if (current_editor === editor2) current_editor = void 0;
+      }
+    };
+    const release_navigation = register_navigation_editor({
+      capture() {
+        if (!active2()) return null;
+        synchronize();
+        const leaf = get_workspace_app().workspace.activeLeaf;
+        if (!ids.has(leaf)) ids.set(leaf, next_id++);
+        const info = cm.getScrollInfo(), anchor = cm.coordsChar({ left: info.left, top: info.top }, "local");
+        return {
+          kind: "native_markdown",
+          file_path: file.bundle.filePath,
+          view_id: ids.get(leaf),
+          scroll_top: info.top,
+          scroll_left: info.left,
+          cursor: { ...cm.getCursor() },
+          line: cm.getCursor().line + 1,
+          editor_state: { selections: cm.listSelections(), anchor, offset: info.top - cm.charCoords(anchor, "local").top }
+        };
+      },
+      async restore(location, signal) {
+        if (disposed || signal.aborted) return false;
+        const app = get_workspace_app(), files = app?.[Symbol.for("linux-note.workspace-files@v1")]?.host;
+        if (!files) return false;
+        let target;
+        app.workspace.eachLeaves((leaf) => {
+          if (ids.get(leaf) === location.view_id && file_key(leaf.state.path) === file_key(location.file_path)) target = leaf;
+        });
+        if (target) app.workspace.activeLeaf = target;
+        else await files.open_file(location.file_path);
+        if (disposed || signal.aborted || file_key(file.bundle?.filePath || "") !== file_key(location.file_path)) return false;
+        if (!source.inSourceMode) source.show();
+        cancel_transition();
+        synchronize();
+        const state = location.editor_state;
+        if (state?.selections) cm.setSelections(state.selections);
+        cm.focus();
+        cm.scrollTo(location.scroll_left, state?.anchor ? cm.charCoords(state.anchor, "local").top + state.offset : location.scroll_top);
+        return true;
+      }
+    }, "native_markdown");
+    current_editor = editor2;
+    return editor2;
+  }
+
+  // src/workspace_markdown_presentation.ts
+  function bind_workspace_markdown_presentation(runtime3) {
+    const file = runtime3.File;
+    if (typeof file?.toggleSourceMode !== "function" || !file.editor?.sourceView) return () => {
+    };
+    const toggle_descriptor = Object.getOwnPropertyDescriptor(file, "toggleSourceMode");
+    const source = file.editor.sourceView;
+    const methods = /* @__PURE__ */ new Map();
+    let frame3 = 0, disposed = false;
+    const cancel = () => {
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
+    };
+    const editor2 = create_native_markdown_editor(runtime3, cancel);
+    const input = (event) => {
+      if (event.isTrusted) cancel();
+    };
+    for (const name of ["wheel", "pointerdown", "keydown", "touchstart"]) window.addEventListener(name, input, true);
+    for (const name of ["show", "hide"]) {
+      const original = source[name];
+      if (typeof original !== "function") continue;
+      const descriptor = Object.getOwnPropertyDescriptor(source, name);
+      const wrapped = function(...args) {
+        cancel();
+        const opening = name === "show", path = file.bundle?.filePath;
+        const info = !opening && source.cm?.getScrollInfo();
+        const line = opening ? capture_native_markdown_line(file.editor) : info ? source.cm.coordsChar({ left: info.left, top: info.top + info.clientHeight / 2 }, "local").line : void 0;
+        const result = original.apply(this, args);
+        editor2.synchronize();
+        const restore = () => {
+          if (disposed || file.bundle?.filePath !== path || Boolean(source.inSourceMode) !== opening || line === void 0) return;
+          if (opening) source.cm.scrollTo(null, source.cm.charCoords({ line, ch: 0 }, "local").top - source.cm.getScrollInfo().clientHeight / 2);
+          else reveal_native_markdown_line(file.editor, line);
+        };
+        restore();
+        frame3 = requestAnimationFrame(() => {
+          frame3 = 0;
+          restore();
+        });
+        return result;
+      };
+      source[name] = wrapped;
+      methods.set(name, { descriptor, wrapped });
+    }
+    const toggle = () => {
+      const source2 = file.editor.sourceView;
+      if (source2.inSourceMode) source2.hide();
+      else source2.show();
+      file.freshMenuWithDelay();
+    };
+    file.toggleSourceMode = toggle;
+    return () => {
+      disposed = true;
+      cancel();
+      editor2.dispose();
+      for (const name of ["wheel", "pointerdown", "keydown", "touchstart"]) window.removeEventListener(name, input, true);
+      for (const [name, { descriptor, wrapped }] of methods) if (source[name] === wrapped) {
+        if (descriptor) Object.defineProperty(source, name, descriptor);
+        else delete source[name];
+      }
+      if (file.toggleSourceMode === toggle) {
+        if (toggle_descriptor) Object.defineProperty(file, "toggleSourceMode", toggle_descriptor);
+        else delete file.toggleSourceMode;
+      }
+    };
+  }
+
   // src/workspace_bootstrap.ts
   var WORKSPACE_NAMESPACE = "typora-code:workspace";
   function get_workspace_app() {
@@ -178417,6 +178673,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (current2) sidebar.activePanel = current2;
     };
     lifetime.listen(document, "click", reconcile_sidebar, true);
+    lifetime.add(bind_workspace_markdown_presentation(runtime3));
     lifetime.own(bind_workspace_zoom_commands(app, runtime3));
     lifetime.own(install_workspace_shortcuts(app, runtime3));
     lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace"));
@@ -198682,8 +198939,12 @@ https://creativecommons.org/licenses/by/4.0/
     runtime3.$?.(scroller).stop?.(true, false);
   }
   function bind_reading_native_scroll(editor2, runtime3) {
+    const restore_busy = bind_native_reading_layout(editor2, runtime3);
+    const restore_source = bind_native_source_layout(editor2, runtime3);
     const selection = editor2?.selection, original = selection?.scrollAdjust;
     if (typeof original !== "function") return () => {
+      restore_busy();
+      restore_source();
     };
     const descriptor = Object.getOwnPropertyDescriptor(selection, "scrollAdjust");
     const adjusted = function(target, margin, duration, force) {
@@ -198698,9 +198959,62 @@ https://creativecommons.org/licenses/by/4.0/
     };
     selection.scrollAdjust = adjusted;
     return () => {
+      restore_busy();
+      restore_source();
       if (selection.scrollAdjust !== adjusted) return;
       if (descriptor) Object.defineProperty(selection, "scrollAdjust", descriptor);
       else delete selection.scrollAdjust;
+    };
+  }
+  function bind_native_source_layout(editor2, runtime3) {
+    const original = editor2?.setTypeWriterMode;
+    if (typeof original !== "function") return () => {
+    };
+    const descriptor = Object.getOwnPropertyDescriptor(editor2, "setTypeWriterMode");
+    const guarded = function(enabled, refresh, notice) {
+      const source = editor2.sourceView, cm = source?.cm;
+      const preserve = refresh && enabled === runtime3.File?.isTypeWriterMode && source?.inSourceMode && cm;
+      const info = preserve && cm.getScrollInfo();
+      const anchor = info && cm.coordsChar({ left: info.left, top: info.top }, "local");
+      const offset = anchor && info.top - cm.charCoords(anchor, "local").top;
+      try {
+        return original.call(this, enabled, refresh, notice);
+      } finally {
+        if (anchor && source.inSourceMode && source.cm === cm) cm.scrollTo(info.left, cm.charCoords(anchor, "local").top + offset);
+      }
+    };
+    editor2.setTypeWriterMode = guarded;
+    return () => {
+      if (editor2.setTypeWriterMode !== guarded) return;
+      if (descriptor) Object.defineProperty(editor2, "setTypeWriterMode", descriptor);
+      else delete editor2.setTypeWriterMode;
+    };
+  }
+  function bind_native_reading_layout(editor2, runtime3) {
+    const original = editor2?.tryEnterBusyMode;
+    if (typeof original !== "function") return () => {
+    };
+    const descriptor = Object.getOwnPropertyDescriptor(editor2, "tryEnterBusyMode");
+    const guarded = function(...args) {
+      const file = runtime3.File, path = file?.bundle?.filePath;
+      const scroller = document.querySelector("content.typ-workspace-binding");
+      const root = editor2.writingArea;
+      const preserve = scroller && root?.isConnected && scroller.contains(root) && !editor2.sourceView?.inSourceMode && !file?._onInitParse && !file?._onFileSwitching;
+      const top = scroller?.scrollTop, left = scroller?.scrollLeft;
+      try {
+        return original.apply(this, args);
+      } finally {
+        if (preserve && scroller.isConnected && root === editor2.writingArea && path === file?.bundle?.filePath) {
+          if (scroller.scrollTop !== top) scroller.scrollTop = top;
+          if (scroller.scrollLeft !== left) scroller.scrollLeft = left;
+        }
+      }
+    };
+    editor2.tryEnterBusyMode = guarded;
+    return () => {
+      if (editor2.tryEnterBusyMode !== guarded) return;
+      if (descriptor) Object.defineProperty(editor2, "tryEnterBusyMode", descriptor);
+      else delete editor2.tryEnterBusyMode;
     };
   }
 
@@ -201187,10 +201501,10 @@ https://creativecommons.org/licenses/by/4.0/
   var git_markdown_diff_shadow_default = ":host{display:block;min-height:0;color:inherit;overscroll-behavior:contain}\n#write{position:static!important;inset:auto!important;width:100%!important;max-width:none!important;min-width:0!important;margin:0!important;padding:0!important;box-sizing:border-box}\n.markdown-diff-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}\n.markdown-diff-cell{min-width:0;overflow-wrap:anywhere;padding:8px 16px}\n.markdown-diff-cell+ .markdown-diff-cell{border-left:1px solid var(--workspace-border,#e4e5e6)}\n.markdown-diff-cell>*{max-width:100%;box-sizing:border-box}\n.markdown-diff-cell pre{overflow:auto;white-space:pre-wrap}\n.markdown-diff-cell table{display:block;overflow:auto}\n.markdown-diff-cell input{pointer-events:none}\n.markdown-diff-cell a{cursor:text}\n.markdown-diff-sign,.markdown-diff-head{font:13px/22px system-ui;color:inherit}\n.markdown-diff-sign{position:absolute;width:1px;height:1px;overflow:hidden;clip-path:inset(50%)}\n.markdown-diff-head{position:sticky;top:0;z-index:1;background:var(--workspace-sidebar-background,var(--bg-color,#fff));font-weight:600}\n.markdown-diff-head>.markdown-diff-cell{padding:2px 16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}\n.markdown-diff-row:focus{outline:none}\n.lookup-diagram svg{max-width:100%;height:auto}\n.markdown-diff-attachment{font-style:italic}\n\n.markdown-diff-cell th,.markdown-diff-cell td{min-width:4em;word-break:normal;overflow-wrap:anywhere}\n#write[data-word-wrap=false] .markdown-diff-cell pre{white-space:pre;overflow-wrap:normal}\n#write[data-word-wrap=false] .markdown-diff-cell th,#write[data-word-wrap=false] .markdown-diff-cell td{white-space:nowrap;overflow-wrap:normal}\n\n/* VS Code Markdown Preview : Light blocks decoration, actual word changes are stacked with emphasis, and blank pairing areas are not colored. */\n:host {--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#ad070726);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#587c0c26);--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#2090d3);}\n:host([data-theme=dark]) {--markdown-diff-modified:var(--vscode-editorGutter-modifiedBackground,#1b81a8);--markdown-diff-removed:var(--vscode-diffEditor-removedTextBackground,#f470674d);--markdown-diff-added:var(--vscode-diffEditor-insertedTextBackground,#57ab5a4d);}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=left]>[data-source-line]>*,[data-diff-fragment=left] {background-color:var(--markdown-diff-removed)!important;border-radius:2px;}\n.markdown-diff-row[data-changed=true]:not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>*,[data-diff-fragment=right] {background-color:var(--markdown-diff-added)!important;border-radius:2px;}\n.markdown-diff-row[data-changed=true]:has(>.markdown-diff-cell[data-side=left][data-empty=false]):not([data-refined=true])>.markdown-diff-cell[data-side=right]>[data-source-line]>* {box-shadow:-4px 0 0 var(--markdown-diff-modified);}\nmark[data-diff-inline] {color:inherit!important;font:inherit!important;padding:0!important;border-radius:0;}\nmark[data-diff-inline=left] {background:var(--markdown-diff-removed)!important;}\nmark[data-diff-inline=right] {background:var(--markdown-diff-added)!important;}\n[data-diff-fragment]:focus-visible,.markdown-diff-row:focus-visible>.markdown-diff-cell>[data-source-line] {outline:1px solid var(--markdown-diff-modified);outline-offset:1px;}\n";
 
   // src/git_markdown_diff.ts
-  var normalize3 = (value) => value.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
+  var normalize4 = (value) => value.replace(/\r\n?/gu, "\n").replace(/^( *)(\t+)/gmu, (_2, leading, tabs) => leading + "    ".repeat(tabs.length));
   var escape4 = (value) => value.replace(/&/gu, "&amp;").replace(/</gu, "&lt;").replace(/>/gu, "&gt;").replace(/"/gu, "&quot;");
   async function blocks(source, current2) {
-    const text3 = normalize3(source), front = text3.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0] || "";
+    const text3 = normalize4(source), front = text3.match(/^---\n[\s\S]*?\n(?:---|\.\.\.)(?:\n|$)/u)?.[0] || "";
     const tokens = marked2.lexer(text3.slice(front.length), { gfm: true });
     const result = [];
     let offset = 0, line = 1;
@@ -202863,7 +203177,7 @@ https://creativecommons.org/licenses/by/4.0/
       const view = context.leaf?.view;
       if (context.leaf && !context.leaf.containerEl.classList.contains("mod-active")) return null;
       if (!view || view.isEditor()) {
-        if (is_busy() || file_key(context.file_path) !== file_key(native_path())) return null;
+        if (is_busy() || document.body.classList.contains("typora-sourceview-on") || file_key(context.file_path) !== file_key(native_path())) return null;
         const scroller = document.querySelector("content");
         const root2 = document.querySelector("#write");
         return scroller && root2?.children.length && scroller.getBoundingClientRect().height > 0 ? { scroller, root: root2 } : null;
@@ -203337,6 +203651,7 @@ https://creativecommons.org/licenses/by/4.0/
         const from = capture_departure() ?? last_location;
         workspace.checkpoint();
         workspace.stop_restoring();
+        active_native_markdown_editor()?.show_rendered_for_navigation();
         workspace.hold(path, true);
         held_path = path;
         let target;
@@ -203552,7 +203867,7 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const is_document_event = (event) => {
       const path = event.composedPath().filter((node) => node instanceof Element);
-      return !path.some((node) => node.matches('.workspace-link-preview, button, input, select, [role="toolbar"], .find-widget')) && path.some((node) => node.matches("#write, .linux-note-source-file, .git-graph-document"));
+      return !path.some((node) => node.matches('.workspace-link-preview, button, input, select, [role="toolbar"], .find-widget')) && path.some((node) => node.matches("#write, #typora-source, .linux-note-source-file, .git-graph-document"));
     };
     const leave_document = (capture_before_blur = false) => {
       if (capture_before_blur && document_interaction && !navigating && !history.is_navigating() && !is_busy() && !pending_from) {
@@ -203574,7 +203889,7 @@ https://creativecommons.org/licenses/by/4.0/
         history.checkpoint(current2);
         last_location = current2;
       }
-      if (event.target instanceof Element && event.target.closest("#write, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
+      if (event.target instanceof Element && event.target.closest("#write, #typora-source, .linux-note-source-file, .git-graph-document") && !((event.ctrlKey || event.metaKey) && event.target.closest("a"))) restoring_focus = false;
     }, { capture: true, signal: controller.signal });
     document.addEventListener("selectionchange", () => {
       if (window.getSelection()?.anchorNode?.getRootNode() === document && window.getSelection()?.anchorNode?.parentElement?.closest("#write")) schedule_selection();
@@ -203602,7 +203917,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || event.isComposing || event.key !== "ArrowLeft" && event.key !== "ArrowRight") return;
       const active2 = document.activeElement;
       if (event.composedPath().some((node) => node instanceof Element && node.matches(".workspace-link-preview"))) return;
-      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || editor2.sourceView?.inSourceMode || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, .linux-note-source-file, .git-graph-document")) return;
+      if (document.querySelector('.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]') || active2 instanceof Element && active2.matches("input, textarea, [contenteditable='true']") && !active2.closest("#write, #typora-source, .linux-note-source-file, .git-graph-document")) return;
       event.preventDefault();
       event.stopImmediatePropagation();
       void travel_history(event.key === "ArrowLeft" ? -1 : 1).catch(report);
@@ -209393,7 +209708,7 @@ https://creativecommons.org/licenses/by/4.0/
     const scan_stats = /* @__PURE__ */ new Map();
     let snapshot = [], pending = null;
     const clone4 = () => snapshot.map((profile) => ({ ...profile, args: [...profile.args], ...profile.env ? { env: { ...profile.env } } : {} }));
-    const normalize5 = (value) => windows ? path_api.normalize(value).toLowerCase() : path_api.normalize(value);
+    const normalize6 = (value) => windows ? path_api.normalize(value).toLowerCase() : path_api.normalize(value);
     const expand = (value) => value.replace(/%([^%]+)%/gu, (match2, name) => env2[name.toLowerCase()] || match2);
     const remaining_time = () => Math.max(0, scan_deadline - Date.now());
     function warn(message) {
@@ -209424,7 +209739,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     async function stat(file_path) {
       if (disposed || !file_path || file_path.includes("\0")) return null;
-      const key4 = normalize5(file_path);
+      const key4 = normalize6(file_path);
       if (scan_stats.has(key4)) return scan_stats.get(key4);
       if (remaining_time() <= 0) {
         warn(workspace_text("terminal_profile_detection_partial_installation_location_query_timeout_can_be_rechecked"));
@@ -209504,7 +209819,7 @@ https://creativecommons.org/licenses/by/4.0/
       function add_paths(value) {
         for (const entry of String(value || "").split(windows ? ";" : ":")) {
           const normalized2 = expand(entry.trim().replace(/^"|"$/gu, ""));
-          if (path_api.isAbsolute(normalized2)) path_entries.add(normalize5(normalized2));
+          if (path_api.isAbsolute(normalized2)) path_entries.add(normalize6(normalized2));
         }
       }
       add_paths(env2.path);
@@ -209530,7 +209845,7 @@ https://creativecommons.org/licenses/by/4.0/
         add_paths(installations.user_path);
         const git_roots = /* @__PURE__ */ new Set(), msys_roots = /* @__PURE__ */ new Set(), cygwin_roots = /* @__PURE__ */ new Set(), powershell_roots = /* @__PURE__ */ new Set();
         const add_root = (roots, value) => {
-          if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize5(value));
+          if (typeof value === "string" && path_api.isAbsolute(value)) roots.add(normalize6(value));
         };
         for (const installation of Array.isArray(installations.installations) ? installations.installations : []) {
           const roots = { git: git_roots, msys: msys_roots, cygwin: cygwin_roots, pwsh: powershell_roots }[installation.kind];
@@ -209584,7 +209899,7 @@ https://creativecommons.org/licenses/by/4.0/
           for (const segments_item of segments) {
             const file_path = path_api.join(root, ...segments_item);
             if (await exists(file_path)) {
-              assigned_bash.add(normalize5(file_path));
+              assigned_bash.add(normalize6(file_path));
               if (!chosen) chosen = file_path;
             }
           }
@@ -209607,7 +209922,7 @@ https://creativecommons.org/licenses/by/4.0/
           const executable = await bash_for_root(root, [["bin", "bash.exe"]]);
           if (executable) add("cygwin_" + stable_suffix(root), "Cygwin", executable, ["--login", "-i"], 55, { CHERE_INVOKING: "1" });
         }
-        for (const executable of path_bash.sort()) if (!assigned_bash.has(normalize5(executable))) add("bash", "Bash", executable, ["--login", "-i"], 70);
+        for (const executable of path_bash.sort()) if (!assigned_bash.has(normalize6(executable))) add("bash", "Bash", executable, ["--login", "-i"], 70);
         if (env2.cmder_root && system_folder && await exists(path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd"))) {
           add("cmder", "Cmder", path_api.join(system_folder, "cmd.exe"), ["/K", path_api.join(env2.cmder_root, "vendor", "bin", "vscode_init.cmd")], 75);
         }
@@ -209654,7 +209969,7 @@ https://creativecommons.org/licenses/by/4.0/
       valid.sort((left, right) => left.priority - right.priority || left.executable.localeCompare(right.executable, void 0, { numeric: true }) || left.id.localeCompare(right.id));
       const keys = /* @__PURE__ */ new Set(), ids = /* @__PURE__ */ new Set(), result = [];
       for (const candidate of valid) {
-        const key4 = JSON.stringify([normalize5(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
+        const key4 = JSON.stringify([normalize6(candidate.canonical_path || candidate.executable), candidate.args, Object.entries(candidate.env || {}).sort()]);
         if (keys.has(key4)) continue;
         keys.add(key4);
         const { priority, canonical_path, ...profile } = candidate;
@@ -221154,7 +221469,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (event.target === textarea && !composing && !key4.isComposing && key4.keyCode !== 229 && !key4.ctrlKey && !key4.altKey && !key4.metaKey && !key4.getModifierState("AltGraph") && (key4.key === "Shift" || key4.keyCode === 16)) event.stopPropagation();
     }, true);
     let pending;
-    const normalize5 = (record) => {
+    const normalize6 = (record) => {
       if (lifetime.disposed || !textarea.isConnected || textarea.value !== record.committed) return;
       const start = textarea.selectionStart, end = textarea.selectionEnd, direction = textarea.selectionDirection;
       textarea.value = record.previous + record.committed;
@@ -221165,7 +221480,7 @@ https://creativecommons.org/licenses/by/4.0/
       clearTimeout(timer);
       timer = 0;
       pending = void 0;
-      normalize5(record);
+      normalize6(record);
     };
     const invalidate2 = () => {
       clearTimeout(timer);
@@ -221187,7 +221502,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!previous || !committed) return;
       const record = { previous, committed };
       pending = record;
-      normalize5(record);
+      normalize6(record);
       timer = window.setTimeout(() => flush(record), 0);
     }, true);
     lifetime.listen(textarea, "blur", invalidate2);
@@ -223573,8 +223888,8 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/git_repository_operation.ts
   var repository_operations = /* @__PURE__ */ new WeakMap();
-  function acquire_git_repository_operation(owner2, root, normalize5) {
-    const key4 = normalize5(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
+  function acquire_git_repository_operation(owner2, root, normalize6) {
+    const key4 = normalize6(root), active2 = repository_operations.get(owner2) || /* @__PURE__ */ new Set();
     if (active2.has(key4)) throw new Error(workspace_text("git_repository_operation_this_repository_already_has_git_operation_in_progress_please"));
     repository_operations.set(owner2, active2);
     active2.add(key4);
@@ -252083,6 +252398,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100102,
+        version: "2026.10.01.2",
+        date: "2026-10-01",
+        notes: [
+          "\u4FEE\u590D\u957F\u6587\u4EE3\u7801\u5757\u52A0\u8F7D\u540E\u56DE\u8DF3\u5230\u65E7\u5149\u6807\uFF1A\u539F\u751F\u6027\u80FD\u6A21\u5F0F\u5207\u6362\u53CA\u6E90\u7801\u914D\u7F6E\u91CD\u590D\u5E94\u7528\u4FDD\u7559\u5F53\u524D\u9605\u8BFB\u89C6\u53E3\u3002",
+          "Markdown\u6E90\u7801\u4E0E\u6E32\u67D3\u5171\u7528\u7F16\u8F91\u533A\u5E03\u5C40\u3001\u6D3B\u52A8\u680F\u548C\u4FA7\u680F\uFF1B\u6E90\u7801\u5927\u7EB2\u8BFB\u53D6\u5F53\u524D\u5185\u5B58\u5185\u5BB9\uFF0C\u5207\u6362\u8DDF\u968F\u53EF\u89C1\u4EE3\u7801\u884C\uFF0C\u5E95\u680F\u56FE\u6807\u91C7\u7528\u516C\u5171\u5C45\u4E2D\u89C4\u5219\u3002"
+        ],
+        notes_en: [
+          "Preserve the reading viewport when native performance mode changes or unchanged source configuration is reapplied, preventing jumps to an old cursor after lazy code loading.",
+          "Share the editor frame, activity bar and sidebar across rendered and source Markdown. Source outline reads current memory, presentation switches follow visible code lines, and status icons use shared centering."
+        ]
+      },
+      {
         sequence: 2026100101,
         version: "2026.10.01.1",
         date: "2026-10-01",
@@ -259194,7 +259522,8 @@ https://creativecommons.org/licenses/by/4.0/
       version = -1;
       schedule();
     });
-    toolbar.append(provider, git_icon_button("settings-gear", workspace_text("browser_code_outline_parse_environment_settings"), configure));
+    const configure_button = git_icon_button("settings-gear", workspace_text("browser_code_outline_parse_environment_settings"), configure);
+    toolbar.append(provider, configure_button);
     pane.append(toolbar, tree);
     (sidebar.querySelector("#sidebar-content") || sidebar).append(pane);
     let symbols_binding;
@@ -259207,7 +259536,7 @@ https://creativecommons.org/licenses/by/4.0/
     const active2 = () => get_workspace_app()?.workspace.activeLeaf;
     const source = () => {
       const candidate = active2();
-      return candidate && is_source_file_uri(candidate.state.path) ? candidate : void 0;
+      return candidate && (is_source_file_uri(candidate.state.path) || active_native_markdown_editor()) ? candidate : void 0;
     };
     const message = (text3) => {
       tree.replaceChildren();
@@ -259252,7 +259581,8 @@ https://creativecommons.org/licenses/by/4.0/
         const icons3 = { function: "symbol-method", method: "symbol-method", class: "symbol-class", struct: "symbol-structure", interface: "symbol-interface", variable: "symbol-variable", constant: "symbol-constant", property: "symbol-property", field: "symbol-field", namespace: "symbol-namespace", enum: "symbol-enum", "enum-member": "symbol-enum-member", "type-parameter": "symbol-parameter" };
         const label = document.createElement("span");
         label.textContent = symbol.name;
-        button.append(git_icon(icons3[symbol.kind] || "symbol-variable"), label);
+        if (!editor2.native_markdown) button.append(git_icon(icons3[symbol.kind] || "symbol-variable"));
+        button.append(label);
         button.onclick = () => {
           if (!current2(target, target_model) || target_model.getVersionId() !== version) return;
           const start = target_model.getPositionAt(symbol.selection_start), end = target_model.getPositionAt(symbol.selection_end);
@@ -259278,7 +259608,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       const target = source(), visible3 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
       if (pane.hidden === visible3) pane.hidden = !visible3;
-      const next_editor = target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
+      const next_editor = active_native_markdown_editor() || target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
+      const native_source = Boolean(next_editor?.native_markdown);
+      if (configure_button.hidden !== native_source) configure_button.hidden = native_source;
+      sidebar.classList.toggle("workspace-native-source-outline", Boolean(visible3 && next_editor?.native_markdown));
       if (next_model !== model || target !== leaf || !visible3) {
         symbols_binding?.dispose();
         symbols_binding = void 0;
@@ -259290,6 +259623,28 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (visible3 && model && !symbols_binding) {
         const target_model = model;
+        if (next_editor.native_markdown) {
+          let timer = 0, closed = false;
+          const update2 = () => {
+            timer = 0;
+            if (closed || !current2(target, target_model)) return;
+            version = target_model.getVersionId();
+            provider.textContent = "Markdown";
+            render(markdown_document_symbols(target_model.getValue()), target, target_model);
+          };
+          const refresh2 = () => {
+            clearTimeout(timer);
+            timer = window.setTimeout(update2, 150);
+          };
+          const content = target_model.onDidChangeContent(refresh2);
+          symbols_binding = { refresh: refresh2, dispose() {
+            closed = true;
+            clearTimeout(timer);
+            content.dispose();
+          } };
+          update2();
+          return;
+        }
         symbols_binding = subscribe_document_symbols(model, source_file_path(target.state.path) || "", context_root?.() || "", (state) => {
           if (!current2(target, target_model)) return;
           version = state.version;
@@ -259313,16 +259668,20 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const observer3 = new MutationObserver(refresh);
     observer3.observe(document.body, { childList: true, subtree: true });
+    const mode_observer = new MutationObserver(refresh);
+    mode_observer.observe(document.body, { attributes: true, attributeFilter: ["class"] });
     const unsubscribe = get_workspace_app()?.workspace.on("active-leaf:change", refresh);
     refresh();
     return { available: () => Boolean(source()), refresh, configure, dispose() {
       if (disposed) return;
       disposed = true;
       observer3.disconnect();
+      mode_observer.disconnect();
       if (typeof unsubscribe === "function") unsubscribe();
       symbols_binding?.dispose();
       release_theme3();
       pane.remove();
+      sidebar.classList.remove("workspace-native-source-outline");
     } };
   }
 

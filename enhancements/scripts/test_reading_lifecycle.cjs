@@ -16,7 +16,7 @@ app.whenReady().then(async () => {
   const filename = path.join(root, 'test.html');
   fs.writeFileSync(filename, '<!doctype html><meta charset="utf-8"><style>content{display:block;height:300px;overflow:auto}#write{height:3000px}#menu{display:block}</style><content><div id="write"><p>Reading content</p></div></content><ul id="menu"></ul>');
   await test_window.loadFile(filename);
-  const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { register_navigation_editor, notify_navigation_selection } from "./src/reading_navigation_ports"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
+  const bundle = await build({ plugins:editor_plugins(), stdin:{contents:'export { bind_reading_native_scroll } from "./src/reading_native_scroll"; export { bind_reading_minimap } from "./src/reading_minimap"; export { bind_file_path_actions } from "./src/file_path_actions"; export { bind_reading_navigation, navigate_reading_target } from "./src/reading_navigation"; export { register_navigation_editor, notify_navigation_selection } from "./src/reading_navigation_ports"; export { create_reading_workspace } from "./src/reading_workspace"; export { reveal_markdown_location } from "./src/workspace_markdown_location";', resolveDir:path.join(__dirname,'..')}, bundle:true, loader:{'.css':'text'}, format:'iife', globalName:'qa', write:false });
   await evaluate(bundle.outputFiles[0].text);
   await evaluate(`window.navigation_sample={};window.addEventListener('keydown',function measure(event){if(window.measure_navigation&&event.altKey&&event.key==='ArrowLeft'){window.removeEventListener('keydown',measure,true);const started=performance.now();const sample=()=>{if(document.querySelector('content').scrollTop===120&&!navigation_sample.first_frame_ms)navigation_sample.first_frame_ms=performance.now()-started;if(document.documentElement.dataset.linuxNoteHistoryForward==='true'){navigation_sample.ready_ms=performance.now()-started;return}requestAnimationFrame(sample)};requestAnimationFrame(sample)}},true);void 0`);
   await evaluate(`(() => {
@@ -33,6 +33,26 @@ app.whenReady().then(async () => {
     window.JSBridge={invoke(){copy_count++;return new Promise(resolve=>window.finish_copy=resolve)}};
     window.original_url=File.editor.tryOpenUrl;window.original_file=File.editor.library.openFile;window.original_app=host.openFile;window.original_editor=host.workspace.activeEditor.openFile;
   })()`);
+  const layout_checks=await evaluate(`(() => {
+    const owner=document.querySelector('content'),root=document.querySelector('#write');
+    owner.classList.add('typ-workspace-binding');
+    let count=0;
+    for(let index=0;index<100;index++){
+      const original=function(){owner.scrollTop=20;File.inBusyMode=!File.inBusyMode;return 7;};
+      const editor={writingArea:root,sourceView:{inSourceMode:false},tryEnterBusyMode:original};
+      const release=qa.bind_reading_native_scroll(editor,{File});
+      owner.scrollTop=300; if(editor.tryEnterBusyMode()!==7||owner.scrollTop!==300)throw Error('passive focus jump');count++;
+      editor.sourceView.inSourceMode=true;editor.tryEnterBusyMode();if(owner.scrollTop!==20)throw Error('source owner intercepted');count++;
+      editor.sourceView.inSourceMode=false;File._onInitParse=true;owner.scrollTop=300;editor.tryEnterBusyMode();if(owner.scrollTop!==20)throw Error('initialization intercepted');count++;
+      File._onInitParse=false;release();if(editor.tryEnterBusyMode!==original)throw Error('method not restored');count++;
+    }
+    const failing={writingArea:root,sourceView:{},tryEnterBusyMode(){owner.scrollTop=25;throw Error('native failure');}};
+    const release=qa.bind_reading_native_scroll(failing,{File});owner.scrollTop=400;
+    try{failing.tryEnterBusyMode();throw Error('missing failure');}catch(error){if(error.message!=='native failure'||owner.scrollTop!==400)throw error;}count++;
+    const replacement=()=>{};failing.tryEnterBusyMode=replacement;release();if(failing.tryEnterBusyMode!==replacement)throw Error('later owner replaced');count++;
+    owner.scrollTop=0;return count;
+  })()`);
+  assert.equal(layout_checks,402,'100 passive-layout binding cycles, ownership boundaries and failure cleanup');
   await evaluate('window.dispose_nav=qa.bind_reading_navigation(); window.dispose_paths=qa.bind_file_path_actions();window.dispose_map=qa.bind_reading_minimap();void 0;');
   assert(await evaluate('dispose_nav===qa.bind_reading_navigation()&&dispose_paths===qa.bind_file_path_actions()&&dispose_map===qa.bind_reading_minimap()'));
   assert.equal(await evaluate('commands.size'),2);

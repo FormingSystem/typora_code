@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100102,
+      "version": "2026.10.01.2",
+      "date": "2026-10-01",
+      "notes": [
+        "修复长文代码块加载后回跳到旧光标：原生性能模式切换及源码配置重复应用保留当前阅读视口。",
+        "Markdown源码与渲染共用编辑区布局、活动栏和侧栏；源码大纲读取当前内存内容，切换跟随可见代码行，底栏图标采用公共居中规则。"
+      ],
+      "notes_en": [
+        "Preserve the reading viewport when native performance mode changes or unchanged source configuration is reapplied, preventing jumps to an old cursor after lazy code loading.",
+        "Share the editor frame, activity bar and sidebar across rendered and source Markdown. Source outline reads current memory, presentation switches follow visible code lines, and status icons use shared centering."
+      ]
+    },
+    {
       "sequence": 2026100101,
       "version": "2026.10.01.1",
       "date": "2026-10-01",

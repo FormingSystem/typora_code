@@ -4,7 +4,7 @@ export type reading_location = {
   scroll_left: number;
   cursor: Record<string, unknown> | null;
   view_id?: number;
-  kind?: "source" | "git";
+  kind?: "source" | "git" | "native_markdown";
   line?: number;
   editor_state?: unknown;
   position?: import("./reading_positions").reading_position;

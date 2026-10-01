@@ -542,7 +542,7 @@
       "path": "src/ui/ribbon/workspace-ribbon.scss",
       "upstream_path": "src/ui/ribbon/workspace-ribbon.scss",
       "upstream_sha256": "1849d249d1fc83b490547db60dc18203ab23939e1c6b6be4bcf1e8af6b1b692f",
-      "sha256": "1849d249d1fc83b490547db60dc18203ab23939e1c6b6be4bcf1e8af6b1b692f"
+      "sha256": "ec9c5ec2f6f44f3b5a4b24e0d87f1ded429b0cd974999e32a59d843d982f731d"
     },
     {
       "path": "src/ui/ribbon/workspace-ribbon.ts",
@@ -758,7 +758,7 @@
       "path": "src/ui/views/markdown-view/index.scss",
       "upstream_path": "src/ui/views/markdown-view/index.scss",
       "upstream_sha256": "620852b37f7a8203e49a86bc3372f5266e82bda52e722d31a4599f6daaa955b1",
-      "sha256": "620852b37f7a8203e49a86bc3372f5266e82bda52e722d31a4599f6daaa955b1"
+      "sha256": "4baf779162983a021ec0b0b19b3277e867ebdbe2c623fa2efc2de75cd192fcd5"
     },
     {
       "path": "src/ui/views/markdown-view/index.ts",

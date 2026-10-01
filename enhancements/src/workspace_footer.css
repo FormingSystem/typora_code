@@ -9,6 +9,13 @@ footer.ty-footer[data-workspace-footer=ready] > .footer-item {
 footer.ty-footer[data-workspace-footer=ready] > .linux-note-git-status {
   flex:0 1 auto; min-width:0;
 }
+/* Text-bearing controls yield before fixed icon hit targets in narrow groups. */
+footer.ty-footer[data-workspace-footer=ready] > .workspace-footer-control:has(.workspace-footer-text) {
+  flex-shrink:1;min-width:0;
+}
+footer.ty-footer[data-workspace-footer=ready] .workspace-footer-text {
+  min-width:0;overflow:hidden;text-overflow:ellipsis;
+}
 footer.ty-footer[data-workspace-footer=ready] > #ty-sidebar-footer {
   position:relative!important; inset:auto!important; display:flex!important;
   flex:0 0 auto; min-width:0; max-width:none; width:max-content!important;
@@ -62,7 +69,7 @@ body.show-footer footer.ty-footer[data-workspace-footer-popup-open=true] {z-inde
   overflow:auto;overscroll-behavior:contain;z-index:101!important;animation:none!important;transition:none!important;transform:none!important;
 }
 /* The number of characters and language share the same box model; cancel the bottom 8px padding / negative margin of the native floating status bar; text and arrows are centered according to the compact status bar content box. */
-body:not(.typora-sourceview-on) footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
+footer.ty-footer[data-workspace-footer=ready] > :is(#footer-word-count,#footer-spell-check) {
   gap:2px;padding-left:6px;padding-right:6px;
 }
 /* The document language is a continuous state; native menus and source code/diff visibility continues to be managed by the host. */
