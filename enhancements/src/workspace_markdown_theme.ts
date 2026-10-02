@@ -20,6 +20,7 @@ export function markdown_theme_rules():string {
   if(users&&cached_rules!==undefined)return inherited+cached_rules;
   const stack=new Set<CSSStyleSheet>();
   const collect=(sheet:CSSStyleSheet):string=>{
+    if((sheet.ownerNode as Element|null)?.hasAttribute?.('data-markdown-reader-style'))return '';
     if(sheet.disabled||stack.has(sheet))return '';stack.add(sheet);
     try{
       const text=[...sheet.cssRules].map(rule=>{
@@ -44,4 +45,13 @@ export function markdown_theme_rules():string {
     return text&&sheet.media.mediaText?'@media '+sheet.media.mediaText+'{'+adapted+'}':adapted;
   });
   const text=rules.join('\n');if(users)cached_rules=text;return inherited+text;
+}
+
+/** Light-DOM split readers use the same extracted theme inside a CSS scope. */
+export function markdown_scoped_theme_rules(selector:string):string {
+  return `@scope (${selector}) {${markdown_theme_rules()
+    .replace(/:host-context\(([^)]+)\)/gu,'$1')
+    .replace(/content\s*>\s*#write/gu,':scope')
+    .replace(/#write\b/gu,':scope')
+    .replace(/:host\b/gu,':scope')}}`;
 }

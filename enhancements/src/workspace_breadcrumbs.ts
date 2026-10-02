@@ -46,7 +46,7 @@ export function bind_workspace_breadcrumbs(core:graph_core,files:workspace_file_
   const directory_items=async(state:group_state,directory:string,leaf:any):Promise<breadcrumb_item[]>=>{
     const entries=await files.fs.promises.readdir(directory,{withFileTypes:true});
     return entries.filter((entry:any)=>entry.isFile()||entry.isDirectory()||entry.isSymbolicLink()).sort((a:any,b:any)=>Number(b.isDirectory())-Number(a.isDirectory())||a.name.localeCompare(b.name,undefined,{numeric:true})).map((entry:any)=>{
-      const path=files.path_api.join(directory,entry.name),folder=entry.isDirectory();return{id:path,label:entry.name,title:path,icon:!folder&&state.settings?.icons?()=>workspace_file_icon(path):undefined,children:folder?()=>directory_items(state,path,leaf):undefined,select:folder?undefined:async()=>{if(!valid(state,leaf))return;await files.open_file(path,{preview:true},leaf.parent);}};
+      const path=files.path_api.join(directory,entry.name),folder=entry.isDirectory();return{id:path,label:entry.name,title:path,icon:!folder&&state.settings?.icons?()=>workspace_file_icon(path):undefined,children:folder?()=>directory_items(state,path,leaf):undefined,select:folder?undefined:async()=>{if(!valid(state,leaf))return;core.app.workspace.activeLeaf=leaf;await files.open_file(path,{preview:true});}};
     });
   };
   const native_tree=(state:group_state)=>{

@@ -1,4 +1,5 @@
 import {workspace_text} from "./workspace_i18n";
+import {bind_workspace_split_markdown} from './workspace_split_markdown';
 import {bind_workspace_onboarding} from './workspace_onboarding';
 import {bind_native_vscode_menu,vscode_resource_entry} from "./workspace_open_vscode";
 import {workspace_context_switching} from "./workspace_context";
@@ -42,6 +43,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_colors());
   lifetime.own(bind_workspace_file_tab_icons(core));
   const files=lifetime.own(bind_workspace_files(core));
+  lifetime.own(bind_workspace_split_markdown(files));
   lifetime.own(bind_native_vscode_menu(files));
   lifetime.own(bind_remote_workspace_media());
   lifetime.own(bind_workspace_link_dock(core,files));
@@ -67,7 +69,7 @@ export function bind_workspace_browser() {
       {title:workspace_text("terminal_workspace_open_repository_terminal_as_administrator_uac"),disabled:(window as unknown as {reqnode(name:string):any}).reqnode("process").platform!=="win32",action:()=>window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path,admin:true}}))}
     ]});
   lifetime.own(explorer);
-  const outline_binding=lifetime.own(install_workspace_outline({context_root:files.context_root,document_active:()=>Boolean(core.app.workspace.activeLeaf)&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
+  const outline_binding=lifetime.own(install_workspace_outline({context_root:files.context_root,document_active:()=>Boolean(core.app.workspace.activeLeaf)&&core.app.workspace.activeLeaf?.view?.isEditor?.()!==false&&!String(core.app.workspace.activeLeaf?.state.path||"").startsWith("typ://"),outline:(window as unknown as {File?:{editor?:{library?:{outline?:any}}}}).File?.editor?.library?.outline}));
   lifetime.own(bind_workspace_breadcrumbs(core,files,outline_binding));
   lifetime.add(core.app.commands.register({id:"linux_note:source_outline_settings",title:workspace_text("browser_code_outline_parse_environment_settings"),scope:"global",callback:()=>outline_binding?.configure()}));
   lifetime.add(core.app.workspace.on("active-leaf:change",()=>outline_binding?.refresh()));

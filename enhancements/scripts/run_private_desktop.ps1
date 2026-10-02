@@ -1,5 +1,5 @@
 ﻿# Run a dedicated host copy on an independent desktop that has not switched; only terminate the process of that copy.
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [switch]$enable_gpu, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -21,12 +21,37 @@ Remove-Item Env:ELECTRON_RUN_AS_NODE -ErrorAction SilentlyContinue
 Add-Type -TypeDefinition @'
 using System;
 using System.Text;
+using System.Threading;
 using System.Runtime.InteropServices;
 public class isolated_desktop {
  [DllImport("user32.dll")] public static extern bool EnumChildWindows(IntPtr parent,enum_windows callback,IntPtr data);
  [StructLayout(LayoutKind.Sequential)] public struct point { public int x,y; }
  [DllImport("user32.dll")] public static extern bool ClientToScreen(IntPtr hwnd,ref point p);
 
+ [DllImport("user32.dll")] public static extern bool SetThreadDesktop(IntPtr desktop);
+ [DllImport("kernel32.dll")] public static extern uint GetCurrentThreadId();
+ [DllImport("user32.dll")] public static extern bool AttachThreadInput(uint from,uint to,bool attach);
+ [DllImport("user32.dll")] public static extern bool GetKeyboardState(byte[] state);
+ [DllImport("user32.dll")] public static extern bool SetKeyboardState(byte[] state);
+ [DllImport("user32.dll")] public static extern IntPtr SendMessageTimeout(IntPtr hwnd,uint message,IntPtr w,IntPtr l,uint flags,uint timeout,out IntPtr result);
+ public static bool send_save_key(IntPtr desktop,IntPtr hwnd) {
+  bool delivered=false;
+  var worker=new Thread(()=>{
+   if(!SetThreadDesktop(desktop))return;
+   uint owner;uint target=GetWindowThreadProcessId(hwnd,out owner),current=GetCurrentThreadId();
+   if(!AttachThreadInput(current,target,true))return;
+   var previous=new byte[256];bool captured=GetKeyboardState(previous);
+   try {
+    if(!captured)return;
+    var keys=(byte[])previous.Clone();keys[0x11]=keys[0xA2]=0x80;
+    if(!SetKeyboardState(keys))return;
+    IntPtr result;
+    delivered=SendMessageTimeout(hwnd,0x0100,new IntPtr(0x53),new IntPtr(0x001F0001),2,2000,out result)!=IntPtr.Zero;
+    SendMessageTimeout(hwnd,0x0101,new IntPtr(0x53),new IntPtr(unchecked((int)0xC01F0001)),2,2000,out result);
+   }finally{if(captured)SetKeyboardState(previous);AttachThreadInput(current,target,false);}
+  });
+  worker.Start();worker.Join();return delivered;
+ }
  [DllImport("user32.dll")] public static extern bool PostMessage(IntPtr hwnd,uint msg,IntPtr w,IntPtr l);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetClassName(IntPtr hwnd,StringBuilder text,int count);
 
@@ -66,7 +91,7 @@ $startup.desktop = $desktop_name
 $info = New-Object isolated_desktop+process_information
 if (!$document_path) { $document_path=Join-Path $probe_root 'sample.md' }
 $command = New-Object Text.StringBuilder
-[void]$command.Append('"' + $exe + '" --no-sandbox --disable-gpu --user-data-dir="' + (Join-Path $case_root 'user_data') + '"')
+[void]$command.Append('"' + $exe + '" --no-sandbox ' + $(if ($enable_gpu) { '' } else { '--disable-gpu ' }) + '--user-data-dir="' + (Join-Path $case_root 'user_data') + '"')
 if (!$restore_session) { [void]$command.Append(' "' + $document_path + '"') }
 $watch = [Diagnostics.Stopwatch]::StartNew()
 try {
@@ -89,13 +114,26 @@ try {
   $all_windows_seen[$hwnd.ToInt64().ToString()]=@{hwnd=$hwnd.ToInt64();pid=$owner;title=$label.ToString()}
   return $true
  }
+ $observed_processes=@{}; $process_samples=[Collections.Generic.List[object]]::new(); $next_process_sample=0
  $captured_stages=[Collections.Generic.HashSet[string]]::new()
  do {
+  if ($watch.ElapsedMilliseconds -ge $next_process_sample) {
+   $next_process_sample=$watch.ElapsedMilliseconds+1000
+   foreach($candidate in (Get-Process Typora -ErrorAction SilentlyContinue | Where-Object {$_.Path -eq $exe})) {
+    if(!$observed_processes.ContainsKey($candidate.Id)){[void]$candidate.Handle;$observed_processes[$candidate.Id]=$candidate}
+   }
+   foreach($tracked in $observed_processes.Values) {
+    $tracked.Refresh()
+    if($tracked.HasExited){$process_samples.Add(@{time_ms=$watch.ElapsedMilliseconds;pid=$tracked.Id;exit_code=$tracked.ExitCode})}
+    else{$process_samples.Add(@{time_ms=$watch.ElapsedMilliseconds;pid=$tracked.Id;private_bytes=$tracked.PrivateMemorySize64;working_set=$tracked.WorkingSet64})}
+   }
+   $process_samples | ConvertTo-Json -Depth 4 | Set-Content -LiteralPath (Join-Path $case_root 'process_samples.json') -Encoding utf8
+  }
   # Input is only delivered to the current independent host window; does not move the real desktop mouse or activate the user window.
   $input_path=Join-Path $case_root 'native_input_request.json'
   if(Test-Path -LiteralPath $input_path) {
    try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
-   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click','drag') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
+   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click','drag','text','key','save_key') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
     $delivered=$false
     $input_window=[isolated_desktop+enum_windows]{param($hwnd,$state)
      $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
@@ -104,7 +142,22 @@ try {
       $bounds=New-Object isolated_desktop+rect;[void][isolated_desktop]::GetWindowRect($hwnd,[ref]$bounds)
       $x=[int]($bounds.left+$input_request.x*($bounds.right-$bounds.left)/$input_request.width)
       $y=[int]($bounds.top+$input_request.y*($bounds.bottom-$bounds.top)/$input_request.height)
-      if($input_request.kind -eq 'wheel') {
+      if($input_request.kind -eq 'save_key') {
+       $script:delivered=[isolated_desktop]::send_save_key($desktop,$hwnd)
+      } elseif($input_request.kind -eq 'text') {
+       # Bound text is delivered only to this test process's verified window.
+       $script:delivered=$true
+       foreach($character in ([string]$input_request.text).Substring(0,[Math]::Min(256,([string]$input_request.text).Length)).ToCharArray()) {
+        $script:delivered=[isolated_desktop]::PostMessage($hwnd,0x0102,[IntPtr]::new([int]$character),[IntPtr]::new(1)) -and $script:delivered
+       }
+      } elseif($input_request.kind -eq 'key') {
+       $key=[int]$input_request.key
+       if($key -in @(8,13,27,37,38,39,40,46)) {
+        $down=[isolated_desktop]::PostMessage($hwnd,0x0100,[IntPtr]::new($key),[IntPtr]::new(1))
+        $up=[isolated_desktop]::PostMessage($hwnd,0x0101,[IntPtr]::new($key),[IntPtr]::new(0xC0000001L))
+        $script:delivered=$down -and $up
+       }
+      } elseif($input_request.kind -eq 'wheel') {
        $delta=[int]$input_request.delta
        $script:delivered=[isolated_desktop]::PostMessage($hwnd,0x020A,[IntPtr]::new(($delta -band 0xffff) -shl 16),[IntPtr]::new(($y -shl 16) -bor ($x -band 0xffff)))
       } else {
@@ -210,6 +263,7 @@ try {
  $result | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath (Join-Path $case_root 'result.json') -Encoding utf8
  $result | ConvertTo-Json -Depth 10
 } finally {
+ foreach($tracked in $observed_processes.Values){$tracked.Dispose()}
  # Only processes with the exact private-copy executable path may be stopped.
  Get-Process Typora -ErrorAction SilentlyContinue | Where-Object { $_.Path -eq $exe } | Stop-Process -Force
  if ($info.thread -ne [IntPtr]::Zero) { [void][isolated_desktop]::CloseHandle($info.thread) }

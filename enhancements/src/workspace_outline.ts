@@ -179,6 +179,19 @@ export function install_workspace_outline(host: workspace_outline_host) {
     if(!(event.target instanceof HTMLElement)||!event.target.matches('content'))return;
     schedule_sync();
   };
+  const on_outline_click = (event: MouseEvent) => {
+    if (event.button !== 0 || !is_outline_open()) return;
+    const label = (event.target as Element)?.closest<HTMLElement>('#outline-content .outline-label');
+    const cid = label?.getAttribute('data-ref');
+    const content = document.querySelector<HTMLElement>('content');
+    const heading = cid && [...document.querySelectorAll<HTMLElement>('#write > :is(h1,h2,h3,h4,h5,h6)')].find(node => node.getAttribute('cid') === cid);
+    if (!heading || !content) return;
+    event.preventDefault();event.stopImmediatePropagation();cancel_sync();
+    let scale = 1;
+    for (let node:HTMLElement|null = content; node; node = node.parentElement) scale *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
+    content.scrollTop += (heading.getBoundingClientRect().top - reading_viewport_bounds(content).top - heading_boundary_slack) / scale;
+    selected_heading = heading;selected_label = undefined;explicit_position = content.scrollTop;sync_current_heading();
+  };
   const refresh = () => {
     if(disposed)return;
     update_document();
@@ -211,12 +224,13 @@ export function install_workspace_outline(host: workspace_outline_host) {
   });
   observer.observe(sidebar, {subtree: true, childList: true, attributes: true, attributeFilter: ["class","hidden"]});
   document.addEventListener("scroll", on_document_scroll, true);
+  sidebar.addEventListener('click', on_outline_click, true);
   refresh();
   outline_open = is_outline_open();
   if (outline_open) schedule_sync();
   return {current_heading:()=>{selected_heading=current_heading();return selected_heading;},select_heading:(heading:HTMLElement)=>{selected_heading=heading;explicit_position=document.querySelector<HTMLElement>("content")?.scrollTop;schedule_sync();},refresh:()=>{refresh();schedule_sync();}, configure:source_outline.configure, dispose: () => {
     if(disposed)return;disposed=true;
-    source_outline.dispose();control_icons.dispose();observer.disconnect();document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
+    source_outline.dispose();control_icons.dispose();observer.disconnect();sidebar.removeEventListener('click',on_outline_click,true);document.removeEventListener("scroll", on_document_scroll, true);cancel_sync();style.remove();empty.remove();
     if (native_outline?.highlightVisibleHeader === coordinated_highlight) {
       if (native_highlight_descriptor) Object.defineProperty(native_outline, "highlightVisibleHeader", native_highlight_descriptor);
       else delete native_outline.highlightVisibleHeader;

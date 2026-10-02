@@ -1,0 +1,307 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "requirement": "R071.7",
+  "installed_candidate": "2026.10.02.3",
+  "asset_manifest_sha256": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+  "acceptance": "UNRESOLVED: actual user renderer termination is confirmed; isolated tests have not reproduced it",
+  "actual_host_evidence": {
+    "time": "11:58:17",
+    "message": "render process is killed? [object Object]",
+    "following_failure": "Error sending from webFrameMain",
+    "details": "Host dropped structured exit details. User reports whole-window black content and Ctrl+S trigger.",
+    "system_event": "No matching application crash, GPU reset or resource-exhaustion event found in queried interval."
+  },
+  "cases": [
+    {
+      "case": "12a0423c11ae4ddcbb7bf6f835d1a1a4",
+      "status": "PASS",
+      "assertions": 302,
+      "fixture_sha256": "a530279a84cbc24423362368be5e76e488fd5ef7997d012153a31594c0a185c1",
+      "trusted_input_count": null,
+      "trusted_ctrl_s_count": null,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "3f0cb8f946df4dbea111c484b6633403",
+      "status": "PASS",
+      "assertions": 402,
+      "fixture_sha256": "b77e46d768c0fd2bf52e0b842033d2e840b008b94fd975e1a46c55c1cb315a87",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": null,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "1b3d714baf2741a38b1a1ee48d5db7a9",
+      "status": "PASS",
+      "assertions": 402,
+      "fixture_sha256": "b77e46d768c0fd2bf52e0b842033d2e840b008b94fd975e1a46c55c1cb315a87",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": null,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "da60de2a379c4568ab49d73af4459e6c",
+      "status": "ERROR",
+      "assertions": 1,
+      "fixture_sha256": "0d8b89e6eff505c98bb6d528c6f4ed788a7600ab3d0b16e364d034ae18170327",
+      "trusted_input_count": null,
+      "trusted_ctrl_s_count": null,
+      "error": "TypeError: Cannot read properties of undefined (reading 'scrollIntoView')\n    at eval (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:25:165)\n    at async typora://app/typemark/window.html:25:277",
+      "remaining_payload": false
+    },
+    {
+      "case": "cb65d8c964d9458698f0b2b06ae6dceb",
+      "status": "ERROR",
+      "assertions": 4,
+      "fixture_sha256": "83a03fe17b05e01cdae5cd1bd96a29854b3978bf9dc011ef8434008baaefeaf2",
+      "trusted_input_count": null,
+      "trusted_ctrl_s_count": null,
+      "error": "Error: fence content retained 0\n    at assert (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:6:47)\n    at eval (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:37:4)\n    at async typora://app/typemark/window.html:25:277",
+      "remaining_payload": false
+    },
+    {
+      "case": "b7d01e557c7440f98aa7476c9c5f0eb5",
+      "status": "PASS",
+      "assertions": 802,
+      "fixture_sha256": "9cc144345c53a547ca2a92af6fe076bc61873a08ad76587cee788d7616f5d7bb",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": null,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "b2146266bc1543639e6a39be98d82e81",
+      "status": "PASS",
+      "assertions": 802,
+      "fixture_sha256": "9cc144345c53a547ca2a92af6fe076bc61873a08ad76587cee788d7616f5d7bb",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": null,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "42aea1932df641aaab5268ee22d9d242",
+      "status": "PASS",
+      "assertions": 902,
+      "fixture_sha256": "2e26492844356933b1b26c8f073e79967c51f1b89b16874838284b80911cda2d",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": 50,
+      "error": null,
+      "remaining_payload": false
+    },
+    {
+      "case": "f2744c75e4214c6dbf38fd2ab3806cc1",
+      "status": "PASS",
+      "assertions": 902,
+      "fixture_sha256": "22ed0b5847547965db4b39f49813ea7b50dbc45508eb2e45635b866da785d5a3",
+      "trusted_input_count": 100,
+      "trusted_ctrl_s_count": 50,
+      "error": null,
+      "remaining_payload": false
+    }
+  ],
+  "failed_fixture_analysis": {
+    "da60de2a379c4568ab49d73af4459e6c": "The live document copy had changed and no longer contained tex fences; fixture precondition failed before editing.",
+    "cb65d8c964d9458698f0b2b06ae6dceb": "Native undo coalesced prior changes; the assertion of one-line-only undo was invalid. This failure did not terminate a renderer."
+  },
+  "limits": [
+    "Private desktop with GPU-enabled launch is not physical desktop/GPU certification.",
+    "Native foreground save gating overridden only in disposable fixture.",
+    "Observed memory did not establish a leak or prove absence of one at the actual failure.",
+    "No black-screen corrective runtime change, new installation or commit delivered.",
+    "Ten-minute one-shot read-only user renderer exit observation writes only process identity/time/exit code to ignored local evidence."
+  ],
+  "next": "Collect the actual renderer exit reason and use a reproducing case before delivering a runtime fix.",
+  "duration_and_previous_day_cases": [
+    {
+      "case": "e20194c92fe4498897c2f8850ad8a099",
+      "label": "candidate with pre-save sync",
+      "status": "PASS",
+      "assertions": 452,
+      "elapsed_ms": 1257278.5,
+      "sampled_process_duration_ms": 1257923,
+      "trusted_input_count": 50,
+      "trusted_ctrl_s_count": 25,
+      "pre_save_sync": true,
+      "fixture_sha256": "3099dc3e73038f499dad47db727361df67e12d5614bc866d1106b2448d758a10",
+      "asset_manifest_sha256": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+      "nonzero_process_exits": [],
+      "heap_range_bytes": [
+        69205958,
+        102264446
+      ],
+      "remaining_payload": false,
+      "error": null
+    },
+    {
+      "case": "b8070654597c4b90b4ce1206e79c17ea",
+      "label": "same-day image/search control with pre-save sync",
+      "status": "PASS",
+      "assertions": 452,
+      "elapsed_ms": 1255445.4000000004,
+      "sampled_process_duration_ms": 1256093,
+      "trusted_input_count": 50,
+      "trusted_ctrl_s_count": 25,
+      "pre_save_sync": true,
+      "fixture_sha256": "3099dc3e73038f499dad47db727361df67e12d5614bc866d1106b2448d758a10",
+      "asset_manifest_sha256": "5e11dc02b10ba4b95ebcd74503180c85bcf42c4c9cbf1a95b5f6c079ba5575fd",
+      "nonzero_process_exits": [],
+      "heap_range_bytes": [
+        67554576,
+        82556883
+      ],
+      "remaining_payload": false,
+      "error": null
+    },
+    {
+      "case": "46d5f65b71644ef190a18c3cf707a9ae",
+      "label": "candidate direct Ctrl+S without pre-save sync",
+      "status": "PASS",
+      "assertions": 452,
+      "elapsed_ms": 1255080.1999999993,
+      "sampled_process_duration_ms": 1256490,
+      "trusted_input_count": 50,
+      "trusted_ctrl_s_count": 25,
+      "pre_save_sync": false,
+      "fixture_sha256": "2ed7d62bf75dc45486d942e2987d51ca897f555498724a1ba2761e7157c01f92",
+      "asset_manifest_sha256": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+      "nonzero_process_exits": [],
+      "heap_range_bytes": [
+        69442167,
+        89992286
+      ],
+      "remaining_payload": false,
+      "error": null
+    },
+    {
+      "case": "1c6266e500cf4d2aa2fdd8728767cdc3",
+      "label": "yesterday short baseline",
+      "status": "ERROR",
+      "assertions": 95,
+      "elapsed_ms": null,
+      "sampled_process_duration_ms": 10867,
+      "trusted_input_count": null,
+      "trusted_ctrl_s_count": null,
+      "pre_save_sync": false,
+      "fixture_sha256": "2ed7d62bf75dc45486d942e2987d51ca897f555498724a1ba2761e7157c01f92",
+      "asset_manifest_sha256": "39e321996feb58a59782f1fb0e7b1586fd8ded5fc47a0bc083fc717cf3f4293a",
+      "nonzero_process_exits": [],
+      "heap_range_bytes": [
+        73908569,
+        83818317
+      ],
+      "remaining_payload": false,
+      "error": "Error: backspace retains native fence 10\n    at assert (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:6:47)\n    at eval (eval at <anonymous> (typora://app/typemark/window.html:1:283), <anonymous>:46:4)\n    at async typora://app/typemark/window.html:25:277",
+      "limitation": "Failed at backspace content assertion in cycle 11; cause is not determined. Not a successful baseline and not renderer termination."
+    }
+  ],
+  "change_first_audit": {
+    "date": "2026-10-02",
+    "requirement": "R071.7",
+    "comparison_start": "45e95a313f30cb07e2c3d80b1930b25b1723f269",
+    "installed_candidate": "2026.10.02.3",
+    "runtime_changed_files": [
+      "enhancements/src/reading_image_controls.ts",
+      "enhancements/src/reading_image_layout.ts",
+      "enhancements/src/reading_image_menu.ts",
+      "enhancements/src/reading_image_native.ts",
+      "enhancements/src/reading_image_settings.ts",
+      "enhancements/src/reading_image_viewer.ts",
+      "enhancements/src/reading_media_entry.css",
+      "enhancements/src/reading_media_entry.ts",
+      "enhancements/src/reading_reflow.ts",
+      "enhancements/src/typora_enhancements.ts",
+      "enhancements/src/workspace_breadcrumbs.ts",
+      "enhancements/src/workspace_browser.ts",
+      "enhancements/src/workspace_link_preview.ts",
+      "enhancements/src/workspace_lookup_preview.css",
+      "enhancements/src/workspace_lookup_preview.ts",
+      "enhancements/src/workspace_markdown_theme.ts",
+      "enhancements/src/workspace_messages.json",
+      "enhancements/src/workspace_outline.ts",
+      "enhancements/src/workspace_search.css",
+      "enhancements/src/workspace_search.ts",
+      "enhancements/src/workspace_search_preview_context.ts",
+      "enhancements/src/workspace_settings_sections.ts",
+      "enhancements/src/workspace_source_outline.ts",
+      "enhancements/src/workspace_split_markdown.ts",
+      "enhancements/vendor/workspace_core/src/ui/editor/markdown-renderer.ts",
+      "enhancements/vendor/workspace_core/src/ui/views/markdown-view/index.ts",
+      "enhancements/vendor/workspace_core/src/ui/views/markdown-view/md-previewer-mode.ts",
+      "enhancements/vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts"
+    ],
+    "native_binary_asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "today_groups": [
+      {
+        "commit": "5c10068",
+        "version": "2026.10.02.1",
+        "scope": "Search and link preview match rendering, anchors and result-follow subscriptions."
+      },
+      {
+        "commit": "a8045f9",
+        "version": "2026.10.02.2",
+        "scope": "Image sizing, global settings, per-image native style action, context menu wrapper and hover controls."
+      },
+      {
+        "commit": null,
+        "version": "2026.10.02.3",
+        "scope": "Split mode/open lifecycle, native input ownership handoff, scoped preview theme, image/code/diagram bindings and outline navigation."
+      }
+    ],
+    "today_persistent_settings": {
+      "reading_images.alignment": "center (default)",
+      "reading_images.scale": "100 (default), accepted range 20..600",
+      "reading_images.size_mode": "natural (default), fit_width optional"
+    },
+    "existing_native_interceptions": [
+      {
+        "path": "enhancements/src/workspace_native_save.ts",
+        "interfaces": [
+          "File.option.enableAutoSave getter returns false; workspace service owns automatic saving",
+          "File.saveUseNode",
+          "File.updateChangeCount",
+          "JSBridge.invoke / didSave",
+          "File.isActiveWindow only within owned save depth"
+        ],
+        "changed_today": false
+      },
+      {
+        "path": "enhancements/src/reading_native_scroll.ts",
+        "interfaces": [
+          "selection.scrollAdjust margin",
+          "editor.setTypeWriterMode scroll restoration",
+          "editor.tryEnterBusyMode scroll restoration"
+        ],
+        "changed_today": false,
+        "last_behavior_change": "b684d99 on 2026-10-01"
+      }
+    ],
+    "risks_pending_causal_validation": [
+      "Image/control bindings observe the whole body, so normal fence edits and UI changes schedule image enumeration/geometry even without touching an image. Today adds computed style work and multiple controls per image.",
+      "Every media binding registers a body observer; with multiple previews, one edit can schedule multiple readers. Existing architecture amplified by new bindings; not yet proved responsible for renderer termination.",
+      "Split theme subscription/style and removal observer are registered even in a single-pane window. The installed version excludes its generated stylesheet from extraction, but still participates in shared theme invalidation.",
+      "Auto-save and performance-mode runtime wrappers are older and must remain in interaction review rather than being excluded solely because source bytes did not change today."
+    ],
+    "not_observed_in_today_diff": [
+      "Native memory/heap budget change",
+      "Native GPU command-line or preference change",
+      "Edit/save count quota",
+      "Native busy-mode threshold change",
+      "ASAR modification",
+      "New production replacement of File.isActiveWindow with an always-true function (only isolated fixture does this)"
+    ],
+    "limits": [
+      "Absence in source diff is not proof of absence of runtime interaction.",
+      "Private desktop passing samples do not exclude failure in user workspace.",
+      "Earlier .2 comparison already contains today search/image changes; it is not a pre-regression baseline.",
+      "No newly installed black-screen fix."
+    ]
+  },
+  "duration_acceptance": "Three isolated cases completed about 21 minutes and 50 edit/save cycles each, with 452 assertions each. Actual user black-screen root cause remains unresolved. Yesterday control failed a different input assertion and cannot rule out same-day changes.",
+  "gpu_limitation": "Private desktop launch omitted --disable-gpu; actual hardware acceleration is not established.",
+  "delivery": "No new production fix, build, installation or commit in this diagnostic continuation. Installed version remains 2026.10.02.3."
+}

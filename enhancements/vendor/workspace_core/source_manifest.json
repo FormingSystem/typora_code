@@ -296,7 +296,7 @@
       "path": "src/ui/editor/markdown-renderer.ts",
       "upstream_path": "src/ui/editor/markdown-renderer.ts",
       "upstream_sha256": "afec762edc6b423efef01f430b383e5ba9cb8a895498c70c82c90a2084751448",
-      "sha256": "afec762edc6b423efef01f430b383e5ba9cb8a895498c70c82c90a2084751448"
+      "sha256": "487da498586be59509241e482820ee400ea38c3aa90ddeb61011ba1d95b42127"
     },
     {
       "path": "src/ui/editor/postprocessor/codeblock-postprocessor.ts",
@@ -764,7 +764,7 @@
       "path": "src/ui/views/markdown-view/index.ts",
       "upstream_path": "src/ui/views/markdown-view/index.ts",
       "upstream_sha256": "2a3387b1c0c8300af0f684ee4d6eefafbe98d5a726a95c4160d70ed566f7d536",
-      "sha256": "5b1c0100070b189d66540125f58ac50e981a5d25fe5539b45fabd166d6de358d"
+      "sha256": "a2202159dcf4de481c6a2df57bde2f4e90b5ec35fe076d62aebcae5f1e91a591"
     },
     {
       "path": "src/ui/views/markdown-view/md-editor-mode.ts",
@@ -776,7 +776,7 @@
       "path": "src/ui/views/markdown-view/md-previewer-mode.ts",
       "upstream_path": "src/ui/views/markdown-view/md-previewer-mode.ts",
       "upstream_sha256": "b66d93d3b72eb3abc938def3137a833b974c24c23e6423abb714b5c2ee318f3d",
-      "sha256": "c6081e8352e414227611fa1d60e52d90edd131325ffd276f807e9585b7cab0cb"
+      "sha256": "2d39f99b6d65a6a5aa28d7c43f902338d703a8159730b62a026cd397b90641f3"
     },
     {
       "path": "src/ui/views/markdown-view/mode-controller.ts",
@@ -788,7 +788,7 @@
       "path": "src/ui/views/markdown-view/swap-command.ts",
       "upstream_path": "src/ui/views/markdown-view/swap-command.ts",
       "upstream_sha256": "39d60f3b6a449b4f1895b97f2db8bd68096773d6f1020dc57833af8ab1ad8be0",
-      "sha256": "395354478bbd345b19734305883007fefb3cd9463a85f997827eeff98f5af845"
+      "sha256": "2e0240ac4c6c140dbf2273abb5b0f87a82231743e76bb98014707ad7ebc5d896"
     },
     {
       "path": "src/ui/views/markdown-view/use-editing-tabs.ts",

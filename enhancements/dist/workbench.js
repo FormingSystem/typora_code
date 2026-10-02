@@ -199626,7 +199626,7 @@ https://creativecommons.org/licenses/by/4.0/
         const binding = bind_native_source_font_zoom(root);
         if (binding) sources.set(root, binding);
       }
-      for (const [root, entry] of bindings9) if (!root.isConnected) {
+      for (const [root, entry] of bindings9) if (!root.isConnected || !root.matches("#write,.typ-markdown-preview")) {
         entry.font.dispose();
         entry.binding.dispose();
         bindings9.delete(root);
@@ -201459,6 +201459,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (users && cached_rules !== void 0) return inherited + cached_rules;
     const stack = /* @__PURE__ */ new Set();
     const collect = (sheet) => {
+      if (sheet.ownerNode?.hasAttribute?.("data-markdown-reader-style")) return "";
       if (sheet.disabled || stack.has(sheet)) return "";
       stack.add(sheet);
       try {
@@ -201490,6 +201491,9 @@ https://creativecommons.org/licenses/by/4.0/
     const text3 = rules.join("\n");
     if (users) cached_rules = text3;
     return inherited + text3;
+  }
+  function markdown_scoped_theme_rules(selector) {
+    return "@scope (".concat(selector, ") {").concat(markdown_theme_rules().replace(/:host-context\(([^)]+)\)/gu, "$1").replace(/content\s*>\s*#write/gu, ":scope").replace(/#write\b/gu, ":scope").replace(/:host\b/gu, ":scope"), "}");
   }
 
   // src/workspace_markdown_preview_render.ts
@@ -252626,6 +252630,68 @@ https://creativecommons.org/licenses/by/4.0/
     }
   }
 
+  // src/workspace_split_markdown.ts
+  function bind_workspace_split_markdown(files2) {
+    const style = document.createElement("style");
+    style.setAttribute("data-markdown-reader-style", "split");
+    document.head.append(style);
+    const update_theme = () => {
+      const text3 = markdown_scoped_theme_rules(".typ-markdown-preview");
+      if (style.textContent !== text3) style.textContent = text3;
+    };
+    const release_theme3 = observe_markdown_theme(update_theme);
+    update_theme();
+    let next_reader = 0;
+    const sessions = /* @__PURE__ */ new Map();
+    const bind = (root, signal) => {
+      sessions.get(root)?.();
+      const reader = String(++next_reader);
+      root.dataset.splitReader = reader;
+      const images = bind_reading_images(root, '[data-split-reader="' + reader + '"] img'), copy = bind_reading_code_copy(root, (text3) => files2.copy(text3)), diagrams = create_preview_diagrams();
+      let disposed = false;
+      const observer3 = new IntersectionObserver((entries3) => {
+        for (const entry of entries3) if (entry.isIntersecting) {
+          observer3.unobserve(entry.target);
+          const code = entry.target;
+          if (code.classList.contains("language-mermaid")) void diagrams.render(code, root.clientWidth, false, () => !disposed);
+          else void highlight_preview_code(code).catch(() => {
+          });
+        }
+      }, { root: root.parentElement });
+      for (const code of root.querySelectorAll("pre > code")) observer3.observe(code);
+      const dispose2 = () => {
+        if (disposed) return;
+        disposed = true;
+        observer3.disconnect();
+        images.dispose();
+        copy.dispose();
+        diagrams.dispose();
+        signal?.removeEventListener("abort", dispose2);
+        if (root.dataset.splitReader === reader) delete root.dataset.splitReader;
+        sessions.delete(root);
+      };
+      sessions.set(root, dispose2);
+      signal?.addEventListener("abort", dispose2, { once: true });
+    };
+    const rendered = (event) => {
+      const detail = event.detail;
+      if (detail?.root instanceof HTMLElement) bind(detail.root, detail.signal);
+    };
+    document.addEventListener("typora-code:markdown-pane-rendered", rendered);
+    for (const root of document.querySelectorAll(".typ-markdown-preview")) bind(root);
+    const removed = new MutationObserver(() => {
+      for (const [root, dispose2] of sessions) if (!root.isConnected || !root.matches(".typ-markdown-preview")) dispose2();
+    });
+    removed.observe(document.body, { subtree: true, childList: true });
+    return { dispose() {
+      removed.disconnect();
+      document.removeEventListener("typora-code:markdown-pane-rendered", rendered);
+      for (const dispose2 of [...sessions.values()]) dispose2();
+      release_theme3();
+      style.remove();
+    } };
+  }
+
   // src/workspace_onboarding.css
   var workspace_onboarding_default = "";
 
@@ -252779,6 +252845,21 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026100203,
+        version: "2026.10.02.3",
+        date: "2026-10-02",
+        notes: [
+          "\u5206\u680F\u91CD\u590D\u5E03\u5C40\u4FDD\u6301\u9884\u89C8\u8282\u70B9\u4E0E\u4F4D\u7F6E\uFF1B\u5207\u6362\u6587\u4EF6\u5148\u6838\u5BF9\u76EE\u6807\u5E76\u6062\u590D\u9605\u8BFB\u4F4D\u7F6E\uFF0C\u6E05\u7406\u8FC7\u671F\u56DE\u8C03\u3002",
+          "\u975E\u6D3B\u52A8\u5206\u680F\u6309\u6587\u6863\u8DEF\u5F84\u52A0\u8F7D\u56FE\u7247\uFF0C\u4F7F\u7528\u9759\u6001\u4EE3\u7801\u5448\u73B0\u4E0E\u72EC\u7ACB\u5927\u7EB2\uFF0C\u51CF\u5C11\u91CD\u590D\u89E3\u6790\u53CA\u7F16\u8F91\u5668\u5B9E\u4F8B\u3002",
+          "\u6B64\u5019\u9009\u4FEE\u590D\u5DF2\u5B9A\u4F4D\u7684\u5206\u680F\u95EE\u9898\uFF1B\u4E24\u4E2A\u72EC\u7ACB\u539F\u751F\u5BCC\u6587\u672C\u7F16\u8F91\u5668\u53CA\u957F\u65F6\u95F4\u9ED1\u5C4F\u6839\u56E0\u4ECD\u5F85\u9A8C\u8BC1\u3002"
+        ],
+        notes_en: [
+          "Split layout updates retain preview nodes and positions. File handoff validates the target and restores reading position before showing native content.",
+          "Inactive split panes resolve images from their document, use static code rendering and own their outline, reducing repeated parsing and editor instances.",
+          "This candidate fixes identified split-pane defects. Two independent native rich-text editors and the cause of long-running black screens remain unverified."
+        ]
+      },
       {
         sequence: 2026100202,
         version: "2026.10.02.2",
@@ -255882,7 +255963,8 @@ https://creativecommons.org/licenses/by/4.0/
         const path = files2.path_api.join(directory, entry.name), folder = entry.isDirectory();
         return { id: path, label: entry.name, title: path, icon: !folder && state.settings?.icons ? () => workspace_file_icon(path) : void 0, children: folder ? () => directory_items(state, path, leaf) : void 0, select: folder ? void 0 : async () => {
           if (!valid(state, leaf)) return;
-          await files2.open_file(path, { preview: true }, leaf.parent);
+          core.app.workspace.activeLeaf = leaf;
+          await files2.open_file(path, { preview: true });
         } };
       });
     };
@@ -260159,11 +260241,12 @@ https://creativecommons.org/licenses/by/4.0/
       if (pane.dataset.theme !== mode) pane.dataset.theme = mode;
     });
     let disposed = false, model, editor2, leaf, version = -1;
+    let preview_root, preview_headings = [];
     const collapsed2 = /* @__PURE__ */ new Set();
     const active2 = () => get_workspace_app()?.workspace.activeLeaf;
     const source = () => {
       const candidate = active2();
-      return candidate && (is_source_file_uri(candidate.state.path) || active_native_markdown_editor()) ? candidate : void 0;
+      return candidate && (is_source_file_uri(candidate.state.path) || active_native_markdown_editor() || candidate.view?.containerEl?.matches(".mode-previewer")) ? candidate : void 0;
     };
     const message = (text3) => {
       tree.replaceChildren();
@@ -260182,6 +260265,7 @@ https://creativecommons.org/licenses/by/4.0/
         row.setAttribute("aria-level", String(depth + 1));
         row.dataset.symbol = symbol.name;
         row.dataset.symbolKind = symbol.kind;
+        row.dataset.symbolOffset = String(symbol.selection_start);
         row.style.paddingLeft = "".concat(depth * 16, "px");
         const disclosure = document.createElement(symbol.children.length ? "button" : "span");
         disclosure.className = "workspace-source-disclosure";
@@ -260235,6 +260319,84 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       const target = source(), visible3 = Boolean(target && sidebar.classList.contains("active-tab-outline"));
       if (pane.hidden === visible3) pane.hidden = !visible3;
+      const candidate_root = target?.view?.containerEl;
+      const next_preview = candidate_root?.matches(".mode-previewer") ? candidate_root : void 0;
+      if (visible3 && next_preview) {
+        const headings = [...next_preview.querySelectorAll("h1,h2,h3,h4,h5,h6")];
+        if (!sidebar.classList.contains("workspace-native-source-outline")) sidebar.classList.add("workspace-native-source-outline");
+        if (!configure_button.hidden) configure_button.hidden = true;
+        if (provider.textContent !== "Markdown") provider.textContent = "Markdown";
+        if (preview_root === next_preview && leaf === target && headings.length === preview_headings.length && headings.every((item, index) => item === preview_headings[index])) return;
+        symbols_binding?.dispose();
+        symbols_binding = void 0;
+        preview_root = next_preview;
+        preview_headings = headings;
+        leaf = target;
+        version = 1;
+        const scroller = next_preview.parentElement;
+        model = { isDisposed: () => !next_preview.isConnected, getVersionId: () => 1, getPositionAt: (index) => ({ lineNumber: index + 1, column: 1 }) };
+        editor2 = { native_markdown: true, setSelection() {
+        }, revealRangeInCenter(range2) {
+          const heading3 = headings[range2.startLineNumber - 1];
+          if (!heading3) return;
+          let scale = 1;
+          for (let node = scroller; node; node = node.parentElement) scale *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
+          scroller.scrollTop += (heading3.getBoundingClientRect().top - reading_viewport_bounds(scroller).top - 12) / scale;
+        }, focus() {
+          scroller.tabIndex = -1;
+          scroller.focus({ preventScroll: true });
+        } };
+        const roots = [], stack = [];
+        for (const [index, heading3] of headings.entries()) {
+          const depth = Number(heading3.tagName[1]);
+          while (stack.length && stack.at(-1).depth >= depth) stack.pop();
+          const symbol = { name: heading3.textContent || "", detail: heading3.textContent || "", kind: "string", start: index, end: index, selection_start: index, selection_end: index, children: [] };
+          (stack.at(-1)?.symbol.children || roots).push(symbol);
+          stack.push({ depth, symbol });
+        }
+        render(roots, target, model);
+        let frame3 = 0, selected = -1;
+        const follow = () => {
+          frame3 = 0;
+          if (active2() !== target) return;
+          const top = reading_viewport_bounds(scroller).top + 13;
+          let index = 0;
+          for (let i = 0; i < headings.length; i++) {
+            if (headings[i].getBoundingClientRect().top <= top) index = i;
+            else break;
+          }
+          if (selected === index) return;
+          selected = index;
+          tree.querySelectorAll('[aria-selected="true"]').forEach((node) => node.removeAttribute("aria-selected"));
+          const row = tree.querySelector('[data-symbol-offset="' + index + '"]');
+          if (!row) return;
+          row.setAttribute("aria-selected", "true");
+          for (let group = row.parentElement; group && group !== tree; group = group.parentElement) if (group.getAttribute("role") === "group") {
+            group.hidden = false;
+            group.previousElementSibling?.setAttribute("aria-expanded", "true");
+          }
+          const box = pane.getBoundingClientRect(), rect = row.getBoundingClientRect();
+          if (rect.top < box.top) pane.scrollTop += rect.top - box.top;
+          else if (rect.bottom > box.bottom) pane.scrollTop += rect.bottom - box.bottom;
+        };
+        const scroll = () => {
+          if (!frame3) frame3 = requestAnimationFrame(follow);
+        };
+        scroller.addEventListener("scroll", scroll, { passive: true });
+        follow();
+        symbols_binding = { refresh: scroll, dispose() {
+          cancelAnimationFrame(frame3);
+          scroller.removeEventListener("scroll", scroll);
+        } };
+        return;
+      }
+      if (preview_root) {
+        symbols_binding?.dispose();
+        symbols_binding = void 0;
+        preview_root = void 0;
+        preview_headings = [];
+        model = void 0;
+      }
       const next_editor = active_native_markdown_editor() || target?.view?.editor?.focused_editor?.(), next_model = next_editor?.getModel();
       const native_source = Boolean(next_editor?.native_markdown);
       if (configure_button.hidden !== native_source) configure_button.hidden = native_source;
@@ -260502,6 +260664,24 @@ https://creativecommons.org/licenses/by/4.0/
       if (!(event.target instanceof HTMLElement) || !event.target.matches("content")) return;
       schedule_sync();
     };
+    const on_outline_click = (event) => {
+      if (event.button !== 0 || !is_outline_open()) return;
+      const label = event.target?.closest("#outline-content .outline-label");
+      const cid = label?.getAttribute("data-ref");
+      const content = document.querySelector("content");
+      const heading3 = cid && [...document.querySelectorAll("#write > :is(h1,h2,h3,h4,h5,h6)")].find((node) => node.getAttribute("cid") === cid);
+      if (!heading3 || !content) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      cancel_sync();
+      let scale = 1;
+      for (let node = content; node; node = node.parentElement) scale *= Number.parseFloat(getComputedStyle(node).zoom) || 1;
+      content.scrollTop += (heading3.getBoundingClientRect().top - reading_viewport_bounds(content).top - heading_boundary_slack) / scale;
+      selected_heading = heading3;
+      selected_label = void 0;
+      explicit_position = content.scrollTop;
+      sync_current_heading();
+    };
     const refresh = () => {
       if (disposed) return;
       update_document();
@@ -260536,6 +260716,7 @@ https://creativecommons.org/licenses/by/4.0/
     });
     observer3.observe(sidebar, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden"] });
     document.addEventListener("scroll", on_document_scroll, true);
+    sidebar.addEventListener("click", on_outline_click, true);
     refresh();
     outline_open = is_outline_open();
     if (outline_open) schedule_sync();
@@ -260555,6 +260736,7 @@ https://creativecommons.org/licenses/by/4.0/
       source_outline.dispose();
       control_icons.dispose();
       observer3.disconnect();
+      sidebar.removeEventListener("click", on_outline_click, true);
       document.removeEventListener("scroll", on_document_scroll, true);
       cancel_sync();
       style.remove();
@@ -266043,6 +266225,7 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(bind_workspace_colors());
       lifetime.own(bind_workspace_file_tab_icons(core));
       const files2 = lifetime.own(bind_workspace_files(core));
+      lifetime.own(bind_workspace_split_markdown(files2));
       lifetime.own(bind_native_vscode_menu(files2));
       lifetime.own(bind_remote_workspace_media());
       lifetime.own(bind_workspace_link_dock(core, files2));
@@ -266080,7 +266263,7 @@ https://creativecommons.org/licenses/by/4.0/
         ]
       });
       lifetime.own(explorer);
-      const outline_binding = lifetime.own(install_workspace_outline({ context_root: files2.context_root, document_active: () => Boolean(core.app.workspace.activeLeaf) && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://"), outline: window.File?.editor?.library?.outline }));
+      const outline_binding = lifetime.own(install_workspace_outline({ context_root: files2.context_root, document_active: () => Boolean(core.app.workspace.activeLeaf) && core.app.workspace.activeLeaf?.view?.isEditor?.() !== false && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://"), outline: window.File?.editor?.library?.outline }));
       lifetime.own(bind_workspace_breadcrumbs(core, files2, outline_binding));
       lifetime.add(core.app.commands.register({ id: "linux_note:source_outline_settings", title: workspace_text("browser_code_outline_parse_environment_settings"), scope: "global", callback: () => outline_binding?.configure() }));
       lifetime.add(core.app.workspace.on("active-leaf:change", () => outline_binding?.refresh()));

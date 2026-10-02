@@ -1,90 +1,52 @@
 import './markdown-renderer.scss'
-import { CodeMirror, editor, File, MathJax } from "typora"
+import { editor, MathJax, reqnode } from "typora"
+import DOMPurify from 'dompurify'
 import { useService } from "src/common/service"
-import type { MdPreviewerMode } from '../views/markdown-view/md-previewer-mode'
-import { memorize, parseMarkdown, uniqueId } from "src/utils"
-
-
-const OPTIONS = {
-  mode: 'text',
-  readOnly: true,
-  styleSelectedText: true,
-  maxHighlightLength: 1 / 0,
-  viewportMargin: 1 / 0,
-  styleActiveLine: true,
-  theme: " inner null-scroll",
-  resetSelectionOnContextMenu: true,
-  cursorScrollMargin: 60,
-  dragDrop: false,
-  scrollbarStyle: "null",
-}
-
-const FAKE_EDITOR = {
-  sourceView: {
-    inSourceMode: false,
-  },
-  undo: {
-    register() { },
-    lastRegisteredOperationCommand() { },
-  }
-}
+import { memorize, parseMarkdown } from "src/utils"
 
 const MarkdownParser = memorize(() => editor.nodeMap.allNodes.first()!.__proto__.constructor)
 
+/** Native parsing retains block identity; inactive panes own only inert reading DOM. */
 export class MarkdownRenderer {
-
-  private _cmInstances: WeakMap<HTMLElement, CodeMirror.Editor> = new WeakMap()
-
+  private sessions = new WeakMap<HTMLElement, AbortController>()
   constructor(private mdEditor = useService('markdown-editor')) { }
 
-  /**
-   * Render markdown in HTMLElement
-   */
-  renderTo(md: string, targetEl: HTMLElement): void {
+  release(target: HTMLElement) {
+    this.sessions.get(target)?.abort()
+    this.sessions.delete(target)
+    ;(MathJax as any)?.typesetClear?.([target])
+  }
 
-    // handle: preprocessor
+  renderTo(md: string, target: HTMLElement, file_path = ''): void {
+    this.release(target)
+    const controller = new AbortController()
+    this.sessions.set(target, controller)
     md = this.mdEditor.preProcessor.process('preload', md)
-
-    // handle: front matter
     const { frontMatter, content } = parseMarkdown(md)
-    const frontMattersHtml = frontMatter ? `<pre mdtype="meta_block" class="md-meta-block md-end-block">${frontMatter}</pre>` : ''
-
-    // handle: markdown → html
-    const [contentHtml] = MarkdownParser().parseFrom(content)
-    targetEl.classList.add('typ-markdown-preview')
-    targetEl.innerHTML = frontMattersHtml + contentHtml
-    $('[contenteditable="true"]', targetEl).attr('contenteditable', 'false')
-
-    // handle: code block highlight
-    $('pre.md-fences', targetEl).each((i, el) => {
-      const code = el.innerText
-      el.innerHTML = ''
-      const opts = {
-        ...OPTIONS,
-        // @ts-ignore
-        mode: window.getCodeMirrorMode(el.getAttribute('lang')),
-        lineWrapping: !File.option.noLineWrapping,
-        lineNumbers: File.option.showLineNumbersForFence,
-        indentUnit: File.option.codeIndentSize,
-        tabSize: File.option.codeIndentSize,
-      }
-      const cm = CodeMirror(el, opts, FAKE_EDITOR, uniqueId('cm'))
-      cm.setValue(code)
-      this._cmInstances.set(el, cm)
+    const [html] = MarkdownParser().parseFrom(content)
+    target.classList.add('typ-markdown-preview')
+    target.innerHTML = DOMPurify.sanitize(html, {FORBID_TAGS:['script','iframe','object','embed'], FORBID_ATTR:['contenteditable']})
+    if (frontMatter) { const pre = document.createElement('pre'); pre.className = 'md-meta-block md-end-block'; pre.textContent = frontMatter; target.prepend(pre) }
+    target.querySelectorAll<HTMLElement>('pre.md-fences').forEach(pre => {
+      const code = document.createElement('code'); code.className = 'language-' + (pre.getAttribute('lang') || 'plaintext'); code.textContent = pre.innerText
+      pre.replaceChildren(code)
     })
-
-    // handle: latex render
-    MathJax.typesetPromise($('.math-jax-preprocess', targetEl).toArray())
-
-    // handle: postprocessor
-    this.mdEditor.postProcessor.processAll(targetEl)
+    const path_api = reqnode('path'), url_api = reqnode('url')
+    for (const image of target.querySelectorAll<HTMLImageElement>('img')) {
+      const source = image.getAttribute('src') || image.closest('.md-image')?.getAttribute('data-src') || ''
+      try {
+        let decoded = source
+        try { decoded = decodeURIComponent(source) } catch { /* Literal percent characters remain valid file names. */ }
+        const resolved = /^[a-z][a-z0-9+.-]*:/i.test(source) && !path_api.isAbsolute(source) ? new URL(source) : url_api.pathToFileURL(path_api.resolve(path_api.dirname(file_path), decoded))
+        if (!['file:', 'http:', 'https:', 'data:'].includes(resolved.protocol) || resolved.protocol === 'data:' && !source.startsWith('data:image/')) { image.removeAttribute('src'); continue }
+        image.src = resolved.href; image.loading = 'lazy'; image.decoding = 'async'; image.referrerPolicy = 'no-referrer'
+      } catch { image.removeAttribute('src') }
+    }
+    target.dispatchEvent(new CustomEvent('typora-code:markdown-pane-rendered', {bubbles:true,detail:{root:target,file_path,signal:controller.signal}}))
+    const math = [...target.querySelectorAll('.math-jax-preprocess')]
+    if (math.length) void MathJax.typesetPromise(math).catch(() => {}).then(() => { if (controller.signal.aborted) (MathJax as any)?.typesetClear?.(math) })
   }
 
-  /**
-   * Get the `CodeMirror` instance of the codeblock rendered by the {@link MdPreviewerMode} in the `WorkspaceRoot`
-   */
-  getCodeMirrorInstance(cid: string): CodeMirror.Editor {
-    const el = $('.typ-workspace-root').find(`[cid="${cid}"]`)[0]
-    return this._cmInstances.get(el)
-  }
+  /** Read-only code blocks have no mutable editor instance. */
+  getCodeMirrorInstance(_cid: string): undefined { return undefined }
 }

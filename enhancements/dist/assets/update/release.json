@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100203,
+      "version": "2026.10.02.3",
+      "date": "2026-10-02",
+      "notes": [
+        "分栏重复布局保持预览节点与位置；切换文件先核对目标并恢复阅读位置，清理过期回调。",
+        "非活动分栏按文档路径加载图片，使用静态代码呈现与独立大纲，减少重复解析及编辑器实例。",
+        "此候选修复已定位的分栏问题；两个独立原生富文本编辑器及长时间黑屏根因仍待验证。"
+      ],
+      "notes_en": [
+        "Split layout updates retain preview nodes and positions. File handoff validates the target and restores reading position before showing native content.",
+        "Inactive split panes resolve images from their document, use static code rendering and own their outline, reducing repeated parsing and editor instances.",
+        "This candidate fixes identified split-pane defects. Two independent native rich-text editors and the cause of long-running black screens remain unverified."
+      ]
+    },
+    {
       "sequence": 2026100202,
       "version": "2026.10.02.2",
       "date": "2026-10-02",

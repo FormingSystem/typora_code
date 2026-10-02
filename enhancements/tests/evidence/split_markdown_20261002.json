@@ -1,0 +1,517 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "version": "2026.10.02.3",
+  "requirements": [
+    "R005.4",
+    "R071.7"
+  ],
+  "design": [
+    "docs/drag_and_windows.md#r0054-分屏编辑连续性与阅读资源2026-10-02",
+    "docs/workspace_responsiveness.md#r0717-分屏黑屏与资源审计2026-10-02"
+  ],
+  "asset_manifest_sha256": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+  "baseline": {
+    "commit": "a8045f9cbad676e4d3a400f0ce901b6d9e84d3c5",
+    "native_case": "a92186698a2f47dd9981034296737b47",
+    "reproduced": "Repeated layout replaced nodes and reset preview scroll from 450 to zero; 20 inactive CodeMirror instances."
+  },
+  "validation": {
+    "build": "PASS final candidate",
+    "full_check": {
+      "status": "PASS",
+      "case": "c327d8323d8442eeba81ef2d262b18b4",
+      "scope": "Complete check before final block-identity, target-validity, breadcrumb-routing and fractional-heading adjustments. Final core hashes, bundle, deployment, document languages, targeted UI and native tests rechecked."
+    },
+    "ui": {
+      "seven_suites": "PASS outline, source outline, breadcrumbs, image layout, link preview, lookup preview, drag",
+      "final_targeted": "PASS source outline and breadcrumbs after fractional tolerance correction",
+      "full_ui": "Not run"
+    },
+    "native": {
+      "case": "fd344f39c01b44df922b4a8929141a88",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+        "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+        "fixture_sha256": "22ce69e1c3deb5a6b52abf7f32a9c4e359fe183b9b59d383c3b7460f15090c83",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "assertions": 226,
+      "status": "PASS",
+      "checks": [
+        "split creates exactly two groups",
+        "unchanged layout preserves preview nodes",
+        "unchanged layout performs no preview render",
+        "unchanged layout preserves scroll",
+        "relative images render in split",
+        "inactive split has no code editor instances",
+        "unrelated native edits do not re-render inactive file",
+        "test does not edit source",
+        "swap 0 retains document identity",
+        "swap 0 owns no inactive editors",
+        "swap 1 retains document identity",
+        "swap 1 owns no inactive editors",
+        "swap 2 retains document identity",
+        "swap 2 owns no inactive editors",
+        "swap 3 retains document identity",
+        "swap 3 owns no inactive editors",
+        "swap 4 retains document identity",
+        "swap 4 owns no inactive editors",
+        "swap 5 retains document identity",
+        "swap 5 owns no inactive editors",
+        "swap 6 retains document identity",
+        "swap 6 owns no inactive editors",
+        "swap 7 retains document identity",
+        "swap 7 owns no inactive editors",
+        "swap 8 retains document identity",
+        "swap 8 owns no inactive editors",
+        "swap 9 retains document identity",
+        "swap 9 owns no inactive editors",
+        "swap 10 retains document identity",
+        "swap 10 owns no inactive editors",
+        "swap 11 retains document identity",
+        "swap 11 owns no inactive editors",
+        "swap 12 retains document identity",
+        "swap 12 owns no inactive editors",
+        "swap 13 retains document identity",
+        "swap 13 owns no inactive editors",
+        "swap 14 retains document identity",
+        "swap 14 owns no inactive editors",
+        "swap 15 retains document identity",
+        "swap 15 owns no inactive editors",
+        "swap 16 retains document identity",
+        "swap 16 owns no inactive editors",
+        "swap 17 retains document identity",
+        "swap 17 owns no inactive editors",
+        "swap 18 retains document identity",
+        "swap 18 owns no inactive editors",
+        "swap 19 retains document identity",
+        "swap 19 owns no inactive editors",
+        "swap 20 retains document identity",
+        "swap 20 owns no inactive editors",
+        "swap 21 retains document identity",
+        "swap 21 owns no inactive editors",
+        "swap 22 retains document identity",
+        "swap 22 owns no inactive editors",
+        "swap 23 retains document identity",
+        "swap 23 owns no inactive editors",
+        "swap 24 retains document identity",
+        "swap 24 owns no inactive editors",
+        "swap 25 retains document identity",
+        "swap 25 owns no inactive editors",
+        "swap 26 retains document identity",
+        "swap 26 owns no inactive editors",
+        "swap 27 retains document identity",
+        "swap 27 owns no inactive editors",
+        "swap 28 retains document identity",
+        "swap 28 owns no inactive editors",
+        "swap 29 retains document identity",
+        "swap 29 owns no inactive editors",
+        "swap 30 retains document identity",
+        "swap 30 owns no inactive editors",
+        "swap 31 retains document identity",
+        "swap 31 owns no inactive editors",
+        "swap 32 retains document identity",
+        "swap 32 owns no inactive editors",
+        "swap 33 retains document identity",
+        "swap 33 owns no inactive editors",
+        "swap 34 retains document identity",
+        "swap 34 owns no inactive editors",
+        "swap 35 retains document identity",
+        "swap 35 owns no inactive editors",
+        "swap 36 retains document identity",
+        "swap 36 owns no inactive editors",
+        "swap 37 retains document identity",
+        "swap 37 owns no inactive editors",
+        "swap 38 retains document identity",
+        "swap 38 owns no inactive editors",
+        "swap 39 retains document identity",
+        "swap 39 owns no inactive editors",
+        "swap 40 retains document identity",
+        "swap 40 owns no inactive editors",
+        "swap 41 retains document identity",
+        "swap 41 owns no inactive editors",
+        "swap 42 retains document identity",
+        "swap 42 owns no inactive editors",
+        "swap 43 retains document identity",
+        "swap 43 owns no inactive editors",
+        "swap 44 retains document identity",
+        "swap 44 owns no inactive editors",
+        "swap 45 retains document identity",
+        "swap 45 owns no inactive editors",
+        "swap 46 retains document identity",
+        "swap 46 owns no inactive editors",
+        "swap 47 retains document identity",
+        "swap 47 owns no inactive editors",
+        "swap 48 retains document identity",
+        "swap 48 owns no inactive editors",
+        "swap 49 retains document identity",
+        "swap 49 owns no inactive editors",
+        "swap 50 retains document identity",
+        "swap 50 owns no inactive editors",
+        "swap 51 retains document identity",
+        "swap 51 owns no inactive editors",
+        "swap 52 retains document identity",
+        "swap 52 owns no inactive editors",
+        "swap 53 retains document identity",
+        "swap 53 owns no inactive editors",
+        "swap 54 retains document identity",
+        "swap 54 owns no inactive editors",
+        "swap 55 retains document identity",
+        "swap 55 owns no inactive editors",
+        "swap 56 retains document identity",
+        "swap 56 owns no inactive editors",
+        "swap 57 retains document identity",
+        "swap 57 owns no inactive editors",
+        "swap 58 retains document identity",
+        "swap 58 owns no inactive editors",
+        "swap 59 retains document identity",
+        "swap 59 owns no inactive editors",
+        "swap 60 retains document identity",
+        "swap 60 owns no inactive editors",
+        "swap 61 retains document identity",
+        "swap 61 owns no inactive editors",
+        "swap 62 retains document identity",
+        "swap 62 owns no inactive editors",
+        "swap 63 retains document identity",
+        "swap 63 owns no inactive editors",
+        "swap 64 retains document identity",
+        "swap 64 owns no inactive editors",
+        "swap 65 retains document identity",
+        "swap 65 owns no inactive editors",
+        "swap 66 retains document identity",
+        "swap 66 owns no inactive editors",
+        "swap 67 retains document identity",
+        "swap 67 owns no inactive editors",
+        "swap 68 retains document identity",
+        "swap 68 owns no inactive editors",
+        "swap 69 retains document identity",
+        "swap 69 owns no inactive editors",
+        "swap 70 retains document identity",
+        "swap 70 owns no inactive editors",
+        "swap 71 retains document identity",
+        "swap 71 owns no inactive editors",
+        "swap 72 retains document identity",
+        "swap 72 owns no inactive editors",
+        "swap 73 retains document identity",
+        "swap 73 owns no inactive editors",
+        "swap 74 retains document identity",
+        "swap 74 owns no inactive editors",
+        "swap 75 retains document identity",
+        "swap 75 owns no inactive editors",
+        "swap 76 retains document identity",
+        "swap 76 owns no inactive editors",
+        "swap 77 retains document identity",
+        "swap 77 owns no inactive editors",
+        "swap 78 retains document identity",
+        "swap 78 owns no inactive editors",
+        "swap 79 retains document identity",
+        "swap 79 owns no inactive editors",
+        "swap 80 retains document identity",
+        "swap 80 owns no inactive editors",
+        "swap 81 retains document identity",
+        "swap 81 owns no inactive editors",
+        "swap 82 retains document identity",
+        "swap 82 owns no inactive editors",
+        "swap 83 retains document identity",
+        "swap 83 owns no inactive editors",
+        "swap 84 retains document identity",
+        "swap 84 owns no inactive editors",
+        "swap 85 retains document identity",
+        "swap 85 owns no inactive editors",
+        "swap 86 retains document identity",
+        "swap 86 owns no inactive editors",
+        "swap 87 retains document identity",
+        "swap 87 owns no inactive editors",
+        "swap 88 retains document identity",
+        "swap 88 owns no inactive editors",
+        "swap 89 retains document identity",
+        "swap 89 owns no inactive editors",
+        "swap 90 retains document identity",
+        "swap 90 owns no inactive editors",
+        "swap 91 retains document identity",
+        "swap 91 owns no inactive editors",
+        "swap 92 retains document identity",
+        "swap 92 owns no inactive editors",
+        "swap 93 retains document identity",
+        "swap 93 owns no inactive editors",
+        "swap 94 retains document identity",
+        "swap 94 owns no inactive editors",
+        "swap 95 retains document identity",
+        "swap 95 owns no inactive editors",
+        "swap 96 retains document identity",
+        "swap 96 owns no inactive editors",
+        "swap 97 retains document identity",
+        "swap 97 owns no inactive editors",
+        "swap 98 retains document identity",
+        "swap 98 owns no inactive editors",
+        "swap 99 retains document identity",
+        "swap 99 owns no inactive editors",
+        "restoration callbacks remain bounded",
+        "vscode2026_light.css shared heading typography",
+        "vscode2026_dark.css shared heading typography",
+        "inactive group has its own outline",
+        "inactive outline contains target file headings",
+        "inactive outline jump retains visible heading",
+        "inactive outline keeps clicked heading",
+        "native wheel changes split content by next observed frame",
+        "native outline belongs to native document",
+        "native outline click clears group navigation",
+        "native outline keeps clicked heading through delayed callbacks",
+        "native outline jump leaves other pane position unchanged",
+        "static reading retains 20 complete code blocks",
+        "static reading creates no editor for 20 blocks",
+        "static reading retains 100 complete code blocks",
+        "static reading creates no editor for 100 blocks",
+        "static reading retains 1000 complete code blocks",
+        "static reading creates no editor for 1000 blocks"
+      ],
+      "samples": [
+        {
+          "stage": "initial",
+          "left_native": false,
+          "right_native": true,
+          "left_top": 0,
+          "right_top": 51.42856979370117,
+          "preview_images": 20,
+          "preview_cm": 0,
+          "heap": 97229245,
+          "disposables": [
+            4,
+            4
+          ]
+        },
+        {
+          "stage": "layout",
+          "left_native": false,
+          "right_native": true,
+          "left_top": 450.28570556640625,
+          "right_top": 51.42856979370117,
+          "preview_images": 20,
+          "preview_cm": 0,
+          "heap": 98235599,
+          "disposables": [
+            4,
+            4
+          ],
+          "renders": 0,
+          "same_node": true
+        },
+        {
+          "stage": "100 swaps",
+          "left_native": false,
+          "right_native": true,
+          "left_top": 450.28570556640625,
+          "right_top": 51.42856979370117,
+          "preview_images": 20,
+          "preview_cm": 0,
+          "heap": 85234377,
+          "disposables": [
+            4,
+            4
+          ]
+        },
+        {
+          "stage": "vscode2026_light.css",
+          "heading_styles": {
+            "fontFamily": [
+              "Consolas, Monaco, \"Courier New\", \"Open Sans\", \"Clear Sans\", \"Helvetica Neue\", Helvetica, Arial, \"Segoe UI Emoji\", \"SF Pro\", sans-serif",
+              "Consolas, Monaco, \"Courier New\", \"Open Sans\", \"Clear Sans\", \"Helvetica Neue\", Helvetica, Arial, \"Segoe UI Emoji\", \"SF Pro\", sans-serif"
+            ],
+            "fontSize": [
+              "28px",
+              "28px"
+            ],
+            "fontWeight": [
+              "700",
+              "700"
+            ],
+            "color": [
+              "rgb(0, 105, 204)",
+              "rgb(0, 105, 204)"
+            ],
+            "lineHeight": [
+              "34.3px",
+              "34.3px"
+            ]
+          }
+        },
+        {
+          "stage": "vscode2026_dark.css",
+          "heading_styles": {
+            "fontFamily": [
+              "Consolas, Monaco, \"Courier New\", \"Open Sans\", \"Clear Sans\", \"Helvetica Neue\", Helvetica, Arial, \"Segoe UI Emoji\", \"SF Pro\", sans-serif",
+              "Consolas, Monaco, \"Courier New\", \"Open Sans\", \"Clear Sans\", \"Helvetica Neue\", Helvetica, Arial, \"Segoe UI Emoji\", \"SF Pro\", sans-serif"
+            ],
+            "fontSize": [
+              "28px",
+              "28px"
+            ],
+            "fontWeight": [
+              "700",
+              "700"
+            ],
+            "color": [
+              "rgb(206, 145, 120)",
+              "rgb(206, 145, 120)"
+            ],
+            "lineHeight": [
+              "34.3px",
+              "34.3px"
+            ]
+          }
+        },
+        {
+          "stage": "trusted wheel",
+          "input_time": 55367,
+          "first_frame_ms": 20.299999998882413,
+          "scroll_tail_ms": 9.400000000372529
+        },
+        {
+          "stage": "geometry",
+          "viewport": [
+            1187,
+            737
+          ],
+          "groups": [
+            {
+              "group": {
+                "x": 287,
+                "y": 35,
+                "width": 449.71429443359375,
+                "height": 672.1428833007812,
+                "top": 35,
+                "right": 736.7142944335938,
+                "bottom": 707.1428833007812,
+                "left": 287
+              },
+              "content": {
+                "x": 287.5714416503906,
+                "y": 89.00000762939453,
+                "width": 449.14288330078125,
+                "height": 618.1428833007812,
+                "top": 89.00000762939453,
+                "right": 736.7143249511719,
+                "bottom": 707.1428909301758,
+                "left": 287.5714416503906
+              },
+              "tabs": {
+                "x": 287.5714416503906,
+                "y": 35,
+                "width": 449.14288330078125,
+                "height": 32,
+                "top": 35,
+                "right": 736.7143249511719,
+                "bottom": 67,
+                "left": 287.5714416503906
+              }
+            },
+            {
+              "group": {
+                "x": 736.7142944335938,
+                "y": 35,
+                "width": 449.71429443359375,
+                "height": 672.1428833007812,
+                "top": 35,
+                "right": 1186.4285888671875,
+                "bottom": 707.1428833007812,
+                "left": 736.7142944335938
+              },
+              "content": {
+                "x": 737.2857666015625,
+                "y": 89.00000762939453,
+                "width": 449.14288330078125,
+                "height": 618.1428833007812,
+                "top": 89.00000762939453,
+                "right": 1186.4286499023438,
+                "bottom": 707.1428909301758,
+                "left": 737.2857666015625
+              },
+              "tabs": {
+                "x": 737.2857666015625,
+                "y": 35,
+                "width": 449.14288330078125,
+                "height": 32,
+                "top": 35,
+                "right": 1186.4286499023438,
+                "bottom": 67,
+                "left": 737.2857666015625
+              }
+            }
+          ],
+          "sidebar": {
+            "x": 48.000003814697266,
+            "y": 35,
+            "width": 240.00001525878906,
+            "height": 702.1428833007812,
+            "top": 35,
+            "right": 288.0000190734863,
+            "bottom": 737.1428833007812,
+            "left": 48.000003814697266
+          }
+        }
+      ]
+    },
+    "isolated_install_uninstall": {
+      "status": "PASS",
+      "cycle_case": "0c10c7e3f5d8419c9ffe4a8c534c51f8",
+      "uninstall_case": "8afe3da9146e4579a9df8070fdac7ce6",
+      "uninstall_assertions": 65,
+      "modes": [
+        "restore",
+        "detach"
+      ],
+      "payloads": "cleaned"
+    },
+    "black_screen_log_audit": {
+      "log_exists": true,
+      "bytes": 365355,
+      "keyword_counts": {
+        "render-process-gone": 0,
+        "gpu-process": 0,
+        "out of memory": 0,
+        "context lost": 0,
+        "unresponsive": 0,
+        "crash": 0,
+        "ERR_FILE_NOT_FOUND": 60
+      },
+      "interpretation": "Keyword absence does not rule out renderer/GPU failure. No user process, cache or profile was changed."
+    }
+  },
+  "delivery": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "0dd223951d949ac83034196af9fd52a690cc6927ab7a8e6a5933a0a48d3dc32a",
+    "installed_sequence": 2026100203,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  },
+  "resolved_validation_failures": [
+    "New preview outline wrote identical provider text on every body mutation: isolated timeout case 898ca17244cf4cd2be9ed6aeaa6cb722. Equal-value guard plus idle regression added; never installed.",
+    "Fixture passed a group object to a direction parameter and created an empty extra group. Corrected public right entry; production breadcrumb call had the same parameter mismatch and was fixed.",
+    "With exactly two groups, fractional scroll rounding selected the preceding heading: case 08d72ed6a9e84476be9e5a2ae16064a4. One CSS-pixel tolerance and final native retest passed.",
+    "Initial UI invocation named two nonexistent suites; corrected to registered shared-image and link/lookup preview suites. A direct static checker invocation used the wrong cwd and was rerun from enhancements."
+  ],
+  "limitations": [
+    "Single native Typora input owner remains. Two independent native rich-text editors and per-document native source/rendered state plus complete undo retention are not certified.",
+    "Black screen not reproduced; no GPU/OOM cause established. Software rendering and short tests do not certify long sessions, user GPU, background combinations or other platforms.",
+    "Wheel timing is one trusted private-desktop input sample, not percentile or end-user performance. Heap samples are not forced-GC leak measurements.",
+    "Native screenshot includes the host first-run notification over the upper chrome; measured group and title bounds supplement it.",
+    "No push and no user-window restart. Existing historical unresolved requirements remain open."
+  ],
+  "stability_acceptance": {
+    "status": "OPEN - user reports frequent whole-window black screen after installation",
+    "trigger": "Single pane tex/bash edits and Ctrl+S",
+    "observed": "Actual host logged renderer termination at 2026-10-02 11:58:17; exit details were not serialized",
+    "limitation": "Prior split checks remain factual but do not establish stability; no corrective runtime candidate has been verified."
+  }
+}

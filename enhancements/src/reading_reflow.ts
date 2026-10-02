@@ -76,7 +76,7 @@ export function bind_workspace_reading_reflow(){
     frame=0;if(disposed)return;
     for(const [root,binding]of sources)if(!root.isConnected){binding.dispose();sources.delete(root);}
     for(const root of document.querySelectorAll<HTMLElement>('#typora-source .CodeMirror'))if(!sources.has(root)){const binding=bind_native_source_font_zoom(root);if(binding)sources.set(root,binding);}
-    for(const [root,entry]of bindings)if(!root.isConnected){entry.font.dispose();entry.binding.dispose();bindings.delete(root);}
+    for(const [root,entry]of bindings)if(!root.isConnected||!root.matches('#write,.typ-markdown-preview')){entry.font.dispose();entry.binding.dispose();bindings.delete(root);}
     for(const root of document.querySelectorAll<HTMLElement>('#write,.typ-markdown-preview')){
       if(root.closest('.workspace-link-preview,.workspace-lookup-preview'))continue;
       let scroller=root.parentElement;

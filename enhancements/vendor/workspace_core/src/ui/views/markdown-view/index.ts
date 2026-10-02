@@ -17,7 +17,8 @@ const KEY_OPENFILE = Symbol.for('openFile$original')
 
 type MarkdownViewState = {
   scrollTop: number,
-  cursorOffset: number
+  cursorOffset: number,
+  block_anchor: {index:number;text:string;offset:number}
 }
 
 export class MarkdownView extends WorkspaceView {
@@ -29,6 +30,8 @@ export class MarkdownView extends WorkspaceView {
 
   private _modeState: ModeController | null = null
   private _swapCommand = new SwapCommand()
+  private restore_frame = 0
+  private open_cleanup: (() => void) | undefined
 
   constructor(
     public leaf: WorkspaceLeaf,
@@ -53,6 +56,7 @@ export class MarkdownView extends WorkspaceView {
 
   /** @override */
   onload() {
+    this.register(() => { cancelAnimationFrame(this.restore_frame); this.open_cleanup?.() })
     this.addChild(this._swapCommand)
     const mode_timer = setTimeout(() => this.autoSetMode())
     this.register(() => clearTimeout(mode_timer))
@@ -64,7 +68,7 @@ export class MarkdownView extends WorkspaceView {
     // Save the current editor's cursor on mousedown (fires before browser moves focus).
     // This is critical because in the click handler the selection is no longer in #write.
     this.registerDomEvent(this.containerEl, 'mousedown', e => {
-      if (this.isEditor()) return
+      if (this.isEditor() || (e.target as Element).closest('button,input,select,textarea,[role=button]')) return
       // Explicit key modifiers for jumping are left to the root link proxy; regular left-click includes links and enters this split view for editing.
       if (e.button !== 0 || (e.target as HTMLElement).closest('a') && (e.ctrlKey || e.metaKey)) return
 
@@ -110,6 +114,7 @@ export class MarkdownView extends WorkspaceView {
 
   /** @override */
   onOpen() {
+    this.open_cleanup?.(); this.open_cleanup = undefined
     this.autoSetMode()
 
     const doRestore = () => {
@@ -121,22 +126,25 @@ export class MarkdownView extends WorkspaceView {
 
     if (this.isEditor()) {
       editor.writingArea.parentElement!.classList.remove('typ-deactive')
-      this.register(request_markdown_open(this.filePath, () => this._loaded && (this.leaf.parent as WorkspaceTabs)?.activeLeaf === this.leaf))
       const stop = this.workspace.on('file:open', path => {
         if (path !== this.filePath) return
         stop()
         doRestore()
       })
-      this.register(stop)
+      const cancel_open = request_markdown_open(this.filePath, () => this._loaded && (this.leaf.parent as WorkspaceTabs)?.activeLeaf === this.leaf)
+      this.open_cleanup = () => { stop(); cancel_open() }
+      if (this.workspace.activeFile === this.filePath) doRestore()
     }
     else {
       const restore_timer = setTimeout(doRestore)
-      this.register(() => clearTimeout(restore_timer))
+      this.open_cleanup = () => clearTimeout(restore_timer)
     }
   }
 
   /** @override */
   onClose() {
+    this.open_cleanup?.(); this.open_cleanup = undefined
+    cancelAnimationFrame(this.restore_frame)
     const { saveStateToLeaf } = useRecord()
     saveStateToLeaf(this)
 
@@ -172,6 +180,7 @@ export class MarkdownView extends WorkspaceView {
   /** @private */
   setMode(mode: 'typora' | 'previewer') {
     const prevMode = this._modeState
+    if ((mode === 'typora' && prevMode instanceof MdEditorMode) || (mode === 'previewer' && prevMode instanceof MdPreviewerMode)) return
 
     if (prevMode instanceof MdEditorMode) {
       this._modeCtx.containerEl.classList.remove('mode-typora')
@@ -193,24 +202,43 @@ export class MarkdownView extends WorkspaceView {
     if (this.isEditor()) {
       state.cursorOffset = this.mdEditor.selection.getCursor()!
     }
+    const root = this.isEditor() ? editor.writingArea : this.containerEl
+    const scroller = this.isEditor() ? editor.writingArea.parentElement! : this.containerEl.parentElement!
+    const blocks = [...root.children].filter((node): node is HTMLElement => node instanceof HTMLElement && !node.matches('script,style,button'))
+    const top = scroller.getBoundingClientRect().top
+    const index = blocks.findIndex(node => node.getBoundingClientRect().bottom > top)
+    if (index >= 0) state.block_anchor = {index,text:(blocks[index].textContent || '').replace(/\s+/g,' ').trim(),offset:blocks[index].getBoundingClientRect().top-top}
     return state
   }
 
   setState(state: Partial<MarkdownViewState>) {
-    const restore_frame = requestAnimationFrame(() => {
+    cancelAnimationFrame(this.restore_frame)
+    this.restore_frame = requestAnimationFrame(() => {
+      this.restore_frame = 0
       if (!this._loaded || (this.leaf.parent as WorkspaceTabs)?.activeLeaf !== this.leaf) return
       if (this.isEditor() && this.workspace.activeFile !== this.filePath) return
-      if (state.scrollTop != null) {
-        this.applyScroll(state as any)
-      }
       if (state.cursorOffset != null && this.isEditor()) {
         this.mdEditor.selection.setCursor(state.cursorOffset)
       }
+      if (state.scrollTop != null) this.applyScroll(state as any)
+      if (state.block_anchor) {
+        const root = this.isEditor() ? editor.writingArea : this.containerEl
+        const scroller = this.isEditor() ? editor.writingArea.parentElement! : this.containerEl.parentElement!
+        const blocks = [...root.children].filter((node): node is HTMLElement => node instanceof HTMLElement && !node.matches('script,style,button'))
+        const anchor = state.block_anchor
+        const matches = (node:HTMLElement) => (node.textContent || '').replace(/\s+/g,' ').trim() === anchor.text
+        const recorded = blocks[anchor.index]
+        const block = recorded && matches(recorded) ? recorded : blocks.filter(matches).sort((a,b)=>Math.abs(blocks.indexOf(a)-anchor.index)-Math.abs(blocks.indexOf(b)-anchor.index))[0] || recorded
+        if (block) {
+          let scale = 1
+          for (let node:HTMLElement|null = scroller; node; node = node.parentElement) scale *= Number.parseFloat(getComputedStyle(node).zoom) || 1
+          scroller.scrollTop += (block.getBoundingClientRect().top-scroller.getBoundingClientRect().top-anchor.offset)/scale
+        }
+      }
     })
-    this.register(() => cancelAnimationFrame(restore_frame))
   }
 
-  getCodeMirrorInstance(cid: string): CodeMirror.Editor {
+  getCodeMirrorInstance(cid: string): CodeMirror.Editor | undefined {
     return this.isEditor()
       ? editor.fences.getCm(cid)!
       : this.mdRenderer.getCodeMirrorInstance(cid)

@@ -9358,6 +9358,77 @@
       ],
       "timeout_ms": 240000,
       "fixture": "enhancements/fixtures/image_layout_native.js"
+    },
+    {
+      "id": "TC-split-markdown-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R005.4",
+        "R071.7"
+      ],
+      "design": "docs/drag_and_windows.md#r0054-分屏编辑连续性与阅读资源2026-10-02",
+      "implementation": [
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/index.ts",
+        "enhancements/vendor/workspace_core/src/ui/views/markdown-view/swap-command.ts",
+        "enhancements/vendor/workspace_core/src/ui/editor/markdown-renderer.ts",
+        "enhancements/src/workspace_split_markdown.ts",
+        "enhancements/src/workspace_source_outline.ts"
+      ],
+      "related_modules": [
+        "editor",
+        "preview",
+        "outline",
+        "images",
+        "lifecycle"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/split_markdown_native.js",
+      "environment": "Windows private desktop; original Typora 1.14.10; software rendering",
+      "preconditions": "Verified original host and disposable profile. Never open user documents.",
+      "steps": [
+        "Exercise repeated layout, unrelated edits, relative images and 100 alternating native input handoffs.",
+        "Check independent outline navigation and retain resource samples and screenshot."
+      ],
+      "expected": [
+        "No unchanged-input rebuilding, no inactive CodeMirror, bounded callbacks and correct file identity.",
+        "This does not certify dual native editors or diagnose a GPU black screen."
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-code-edit-stability-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "stress",
+      "requirements": [
+        "R071.7"
+      ],
+      "design": "docs/workspace_responsiveness.md#r0717-单屏代码编辑复现补充2026-10-02",
+      "implementation": [
+        "enhancements/src/workspace_native_save.ts",
+        "enhancements/src/workspace_save_service.ts",
+        "enhancements/src/reading_code_geometry.ts"
+      ],
+      "related_modules": [
+        "native_editor",
+        "save",
+        "keyboard",
+        "rendering"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/code_edit_stability_native.js",
+      "environment": "Windows private original Typora 1.14.10; optional GPU-enabled launch; rendering hardware not certified",
+      "preconditions": "Isolated profile and documents only. The fixture overrides foreground gating only in the disposable host.",
+      "steps": [
+        "Run 100 native fence edits and deletions; alternate 50 trusted Ctrl+S messages with 50 save-service calls.",
+        "Compare native memory and actual disk writes; sample frames, DOM, style size and heap. Retain errors and screenshots."
+      ],
+      "expected": [
+        "Current candidate content is retained in this sequence. Passing does not close the actual user renderer-termination issue."
+      ],
+      "timeout_ms": 240000
     }
   ]
 }
