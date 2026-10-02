@@ -6,6 +6,7 @@ import {bind_reading_code_copy} from "./reading_code_copy";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 import {open_reading_media,close_reading_media} from "./reading_media_viewer";
 import {bind_reading_images} from "./reading_image_viewer";
+import {bind_reading_image_menu} from "./reading_image_menu";
 import {bind_markdown_color_menu} from "./markdown_color_menu";
 import {acquire_workspace_style,type workspace_style_handle} from "./workspace_styles";
 import {git_icon} from "./git_icons";
@@ -457,6 +458,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   lifetime.add(()=>{close_reading_media();});
   const images=bind_reading_images(document.body,"content > #write img");
   lifetime.add(()=>images.dispose());
+  if(core?.app)lifetime.own(bind_reading_image_menu(core));
   // Highlight is not a prerequisite for the workbench layout; complete chrome mounting first before initializing syntax.
   performance.mark("typora-code:grammar:start");
   grammar_loading ||= load_textmate_grammars().catch(error=>{grammar_loading=undefined;throw error;});

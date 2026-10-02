@@ -22,4 +22,13 @@ body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 .reading-media-entry.is-compact .reading-copy-feedback{position:absolute;right:32px;top:0;width:max-content;max-width:min(240px,calc(100vw - 64px));padding:3px 6px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px/18px "Segoe UI","Microsoft YaHei UI",sans-serif;white-space:normal;pointer-events:none}
 .reading-media-entry.is-feedback .reading-media-open{opacity:1;pointer-events:auto}
 .reading-copy-feedback:empty{display:none}
+.reading-media-entry.has-controls{height:auto;min-height:40px;align-items:center;gap:4px;flex-wrap:wrap}
+.reading-media-extra[hidden]{display:none!important}
+.reading-media-extra{flex:none}
+.reading-media-entry .reading-media-extra{opacity:0;pointer-events:none}
+.reading-media-entry.is-revealed .reading-media-extra,.reading-media-entry:focus-within .reading-media-extra{opacity:1;pointer-events:auto}
+.reading-image-scale{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);border:1px solid var(--window-border-color,#d0d7de);box-sizing:border-box}
+.reading-image-scale input{width:92px;max-width:100%;margin:0}
+.reading-image-scale output{min-width:4ch;text-align:right}
+.reading-media-entry .reading-media-open[aria-pressed=true]{border-color:var(--vscode-focusBorder,#0069cc)}
 .reading-media-open[hidden]~.reading-copy-feedback{display:none}

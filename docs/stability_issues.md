@@ -517,3 +517,5 @@ BUG-navigation-focus-branch：顶栏pointerdown误调用新增选区入口，恢
 - BUG-settings-button-scope（R072.4，2026-09-30）：R020.2把局部按钮辨识需求放入公共action规则，资源管理器与设置左侧分类被误加边线；撤去全域常显轮廓，限定设置右侧自有内容。本次已验证及安装，原生占用载荷与现场加载边界见settings_button_scope_20260930.json。
 
 - BUG-native-preferences-theme（R072.5，2026-10-01）：共享主题硬编码偏好页#fafafa内容底板及分类配色，覆盖已正确加载的原生暗主题；移除这两条旧覆盖，直接沿用宿主现有呈现，不能只测html背景判定通过。本次295项原生检查、关联回归及安装已通过；宿主版本与当前窗口加载边界见native_preferences_theme_20261001.json。
+
+- BUG-reading-image-layout（R031.2，2026-10-02）：原生对照小Markdown图片未拉伸，但显式width:100%的HTML图片铺满；以共享阅读尺寸策略覆盖显示宽高，区分全局对齐与原生单图margin覆盖。滑条Esc曾被宿主/共享退出捕获，改为手势期间登记统一退出层；旧UI断言仍要求不吸附及全屏文字，按新悬停工具条契约更新并保留失败证据。原生撤销、重做、保存、重开和菜单两种作用范围见image_layout_20261002.json。

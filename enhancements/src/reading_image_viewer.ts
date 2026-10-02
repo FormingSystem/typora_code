@@ -1,10 +1,13 @@
 import {workspace_text} from "./workspace_i18n";
+import {bind_reading_image_layout} from "./reading_image_layout";
+import {create_reading_image_controls} from "./reading_image_controls";
 import {open_reading_media} from "./reading_media_viewer";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 
-type image_entry={control:reading_media_entry};
+type image_entry={control:reading_media_entry;extras:ReturnType<typeof create_reading_image_controls>};
 /** Only adapt to the original image source; hover positioning and input are managed by the shared entry, and the original image and its parent nodes are preserved. */
 export function bind_reading_images(root:HTMLElement,selector="img"){
+  const layout=bind_reading_image_layout(root,selector);
   const controls=bind_reading_media_entries(root),entries=new Map<HTMLImageElement,image_entry>();
   const controller=new AbortController(),{signal}=controller;let disposed=false,frame=0;
   let session:{image:HTMLImageElement;url:string;close:(restore?:boolean)=>void}|undefined;
@@ -20,12 +23,14 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
   function update(){
     frame=0;if(disposed)return;
     const images=new Set([...root.querySelectorAll<HTMLImageElement>(selector)].filter(image=>!image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
-    for(const [image,entry]of entries)if(!images.has(image)||!entry.control.button.isConnected){entry.control.dispose();entries.delete(image);}
+    layout.update(images);
+    for(const [image,entry]of entries)if(!images.has(image)||!entry.control.button.isConnected){entry.extras.dispose();entry.control.dispose();entries.delete(image);}
     for(const image of images){
       let entry=entries.get(image);
       if(!entry){
-        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",open:()=>open(image,entries.get(image)!)});
-        entry={control};entries.set(image,entry);
+        const extras=create_reading_image_controls(image);
+        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",controls:extras.controls,open:()=>open(image,entries.get(image)!)});
+        entry={control,extras};entries.set(image,entry);
       }
       entry.control.set_enabled(Boolean(source_url(image)));
     }
@@ -43,5 +48,5 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
     if(!image||!source_url(image))return;event.preventDefault();event.stopImmediatePropagation();open(image,entries.get(image)!,true);
   },{capture:true,signal});
   schedule();
-  return {dispose(){if(disposed)return;disposed=true;close_session();controller.abort();cancelAnimationFrame(frame);observer.disconnect();for(const [image,entry]of entries)entry.control.dispose();entries.clear();controls.dispose();}};
+  return {dispose(){if(disposed)return;disposed=true;close_session();controller.abort();cancelAnimationFrame(frame);observer.disconnect();for(const [image,entry]of entries){entry.extras.dispose();entry.control.dispose();}entries.clear();controls.dispose();layout.dispose();}};
 }

@@ -6,7 +6,7 @@ import {reading_viewport_bounds} from "./reading_viewport";
 import {git_icon,type git_icon_name} from "./git_icons";
 import css from "./reading_media_entry.css";
 
-type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean};
+type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[]};
 export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;dispose():void};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 
@@ -23,10 +23,8 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
     frame=0;if(disposed)return;
     for(const [button,entry]of entries){
       const {source}=entry.options,rect=source.getBoundingClientRect(),width=rect.width;
-      const enabled=entry.enabled&&source.isConnected&&width>=48&&rect.height>0;
-      const height=entry.toolbar.offsetHeight;
-      button.classList.toggle("is-small",width<160);
-      const entry_top=entry.options.compact?rect.top+4:rect.top-height;
+      const enabled=entry.enabled&&source.isConnected&&width>=(entry.options.controls?1:48)&&rect.height>0;
+      button.classList.toggle("is-small",!!entry.options.controls||width<160);
       let left=0,right=innerWidth,top=0,bottom=innerHeight,shown=enabled;
       for(let node:Element|null=source;shown&&node;node=parent_element(node)){
         const computed=getComputedStyle(node);
@@ -45,12 +43,18 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
         if(node instanceof HTMLElement&&node.tagName==="CONTENT"){const bounds=reading_viewport_bounds(node);left=Math.max(left,bounds.left);right=Math.min(right,bounds.right);top=Math.max(top,bounds.top);bottom=Math.min(bottom,bounds.bottom);}
       }
       const x=Math.max(left,rect.left),end=Math.min(right,rect.right);
-      // Outer entry is fully visible before it is displayed; when scrolling to the middle of the image, it does not adhere to the content being read.
-      shown=shown&&entry_top>=top&&entry_top+height<=bottom&&end-x>=48;
+      const controls=entry.options.controls;
+      const preferred=controls?Math.ceil(16+button.getBoundingClientRect().width+controls.reduce((sum,node)=>sum+node.getBoundingClientRect().width+4,0)):button.offsetWidth+16;
+      const entry_width=Math.min(Math.max(0,controls?right-left:end-x),preferred);
+      entry.toolbar.style.width=`${entry_width}px`;
+      const height=entry.toolbar.offsetHeight;
+      const entry_top=entry.options.compact?rect.top+4:Math.max(controls?top:-Infinity,rect.top-height);
+      // Image controls stay reachable at the viewport edge while their source remains visible.
+      shown=shown&&rect.bottom>top&&rect.top<bottom&&entry_top>=top&&entry_top+height<=bottom&&end-x>=(controls?1:48);
       button.hidden=!shown;
+      if(controls)for(const node of controls)node.hidden=!shown;
       // Hit bridge only follows the button width, does not turn the entire image and text gap into an unselectable operational area.
-      const entry_width=Math.min(Math.max(0,end-x),button.offsetWidth+16);
-      entry.toolbar.style.left=`${end-entry_width}px`;entry.toolbar.style.top=`${entry_top}px`;entry.toolbar.style.width=`${entry_width}px`;
+      entry.toolbar.style.left=`${Math.max(left,end-entry_width)}px`;entry.toolbar.style.top=`${entry_top}px`;
     }
   }
   const observer=new MutationObserver(changes=>{
@@ -63,6 +67,8 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
   window.addEventListener("resize",schedule,{passive:true,signal});
   // Capture entry only manages its own button, avoids the host's first click rebuilding the document; image single click does not go here.
   const activate=(event:Event)=>{
+    const control=event.composedPath().find(node=>node instanceof HTMLElement&&node.closest('.reading-media-extra')) as HTMLElement|undefined;
+    if(control&&layer.contains(control))return;
     const button=event.composedPath().find(node=>node instanceof HTMLButtonElement&&entries.has(node)) as HTMLButtonElement|undefined;
     if(!button||button.hidden)return;const entry=entries.get(button)!;
     if(event instanceof KeyboardEvent){
@@ -78,7 +84,9 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
     add(options:entry_options):reading_media_entry{
       const toolbar=el("div","reading-media-entry"+(options.compact?" is-compact":"")),button=el("button",`reading-media-open ${options.button_class}`);
       button.type="button";button.hidden=true;button.title=options.label;button.setAttribute("aria-label",options.label);button.append(git_icon(options.icon||"screen-full"));if(!options.compact)button.append(el("span","",workspace_text("reading_media_entry_view_in_full_screen")));toolbar.append(button);layer.append(toolbar);
+      if(options.controls){toolbar.classList.add('has-controls');for(const control of options.controls){control.classList.add('reading-media-extra');toolbar.insertBefore(control,button);}}
       const entry_events=new AbortController();
+      if(options.controls)for(const name of ['pointerdown','pointerup','mousedown','mouseup','click','dblclick','keydown','keyup'])toolbar.addEventListener(name,event=>{event.stopPropagation();if(name==='mousedown'&&(event.target as Element).closest('button'))event.preventDefault();},{signal:entry_events.signal});
       const reveal=(event:PointerEvent)=>{const target=event.relatedTarget;const inside=target instanceof Node&&(options.host.contains(target)||toolbar.contains(target));if(event.type==='pointerenter'||!inside)toolbar.classList.toggle('is-revealed',event.type==='pointerenter');};
       for(const node of [options.host,toolbar])for(const name of ['pointerenter','pointerleave'])node.addEventListener(name,reveal as EventListener,{signal:entry_events.signal});
       if(options.host.matches(':hover'))toolbar.classList.add('is-revealed');

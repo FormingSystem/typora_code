@@ -38,6 +38,7 @@ const ui_tests = Object.freeze([
   "test_workspace_popup_refresh.cjs",
   "test_remote_ssh_directory.cjs",
   "test_reading_code_copy.cjs",
+  "test_reading_image_layout.cjs",
   "test_workspace_settings.cjs",
   "test_git_responsiveness.cjs",
   "test_workspace_link_preview.cjs",

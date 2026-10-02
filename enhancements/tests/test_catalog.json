@@ -1223,7 +1223,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R029"
+        "R029",
+        "R031.2"
       ],
       "design": "docs/reading_media_viewer.md",
       "implementation": [
@@ -9290,6 +9291,73 @@
         "The floating link preview borrows ordinary highlights without search anchors or result-following behavior; its source document remains unchanged."
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-image-layout-001",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.2"
+      ],
+      "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
+      "implementation": [
+        "enhancements/src/reading_image_layout.ts",
+        "enhancements/src/reading_image_settings.ts",
+        "enhancements/src/reading_image_native.ts",
+        "enhancements/src/reading_image_controls.ts",
+        "enhancements/src/reading_image_menu.ts"
+      ],
+      "related_modules": [
+        "images",
+        "settings",
+        "native_editor",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_reading_image_layout.cjs",
+      "environment": "Isolated Electron",
+      "preconditions": "Use temporary documents and isolated profile.",
+      "steps": [
+        "Run shared sizing/settings ownership and 20/100/1000 image lifecycle checks."
+      ],
+      "expected": [
+        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-image-layout-native-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.2"
+      ],
+      "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
+      "implementation": [
+        "enhancements/src/reading_image_layout.ts",
+        "enhancements/src/reading_image_settings.ts",
+        "enhancements/src/reading_image_native.ts",
+        "enhancements/src/reading_image_controls.ts",
+        "enhancements/src/reading_image_menu.ts"
+      ],
+      "related_modules": [
+        "images",
+        "settings",
+        "native_editor",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Windows private original Typora 1.14.10",
+      "preconditions": "Use temporary documents and isolated profile.",
+      "steps": [
+        "Run native image_layout_native.js: menu scopes, global sizing, individual alignment, undo/redo, save/reopen."
+      ],
+      "expected": [
+        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
+      ],
+      "timeout_ms": 240000,
+      "fixture": "enhancements/fixtures/image_layout_native.js"
     }
   ]
 }

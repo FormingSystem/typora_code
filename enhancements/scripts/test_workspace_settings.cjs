@@ -23,6 +23,12 @@ app.whenReady().then(async()=>{
   change('language.display_language','auto');assert(values.get('displayLang')===undefined,'following Typora removes the explicit preference');
   assert(document.querySelector('.workspace-settings-modal[role=dialog]'),'设置为独立浮动窗口');binding.show();assert(document.querySelectorAll('.workspace-settings-modal').length===1&&leaves.length===0,'重复打开复用窗口，不改动原编辑组');
   let reset_events=0;window.addEventListener('typora-code:reset-appearance',()=>reset_events++);setting('appearance.reset_defaults').click();assert(reset_events===1&&document.activeElement===setting('appearance.reset_defaults'),'appearance reset executes once, refreshes controls and restores keyboard focus');
+  change('images.alignment','right');assert(values.get('reading_images').alignment==='right','image alignment uses its shared settings owner');
+  change('images.scale','150');assert(values.get('reading_images').scale===150&&values.get('reading_images').size_mode==='natural','image scale commits natural-size percentage');
+  change('images.size_mode','fit_width');assert(values.get('reading_images').size_mode==='fit_width','fit width is explicitly selectable');
+  window.fail_save=true;change('images.alignment','left');assert(values.get('reading_images').alignment==='right','failed image preference save retains the previous value');window.fail_save=false;
+  change('images.scale','0');assert(values.get('reading_images').scale===150,'image scale rejects out-of-range values');
+  setting('images.alignment').closest('.workspace-setting-row').querySelector('button').click();assert(values.get('reading_images').alignment==='center','image alignment reset restores the shared default');
   change('editor.enable_preview',false);assert(!qa.read_workspace_editor_settings().enable_preview,'修改保存至原所有者');
   setting('editor.enable_preview').closest('.workspace-setting-row').querySelector('button').click();assert(qa.read_workspace_editor_settings().enable_preview,'单项恢复默认');
   window.fail_save=true;change('editor.enable_preview',false);assert(qa.read_workspace_editor_settings().enable_preview&&document.querySelector('.workspace-settings-status').textContent.includes('磁盘'),'保存失败保持配置');window.fail_save=false;

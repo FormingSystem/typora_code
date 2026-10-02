@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100202,
+      "version": "2026.10.02.2",
+      "date": "2026-10-02",
+      "notes": [
+        "图片默认优先原始尺寸，大图适应编辑区；悬停工具条提供全局缩放滑条、100%与适应宽度。",
+        "图片对齐支持全局默认与单图覆盖；右键和悬停菜单均可选择，单图设置随文档保存并支持原生撤销。"
+      ],
+      "notes_en": [
+        "Images prefer their natural size and fit within the editor. Hover controls provide a global scale slider, 100%, and fit width.",
+        "Choose global image alignment or an individual override from the context or hover menu. Individual alignment is saved in the document and supports native undo."
+      ]
+    },
+    {
       "sequence": 2026100201,
       "version": "2026.10.02.1",
       "date": "2026-10-02",

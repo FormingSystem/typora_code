@@ -1,0 +1,152 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "release": "2026.10.02.2",
+  "sequence": 2026100202,
+  "requirements": [
+    "R031.2"
+  ],
+  "baseline": "5c10068b82ccac3c0b27f108d6616ab38b9ae8e3",
+  "design": [
+    "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02"
+  ],
+  "asset_manifest_sha256": "5e11dc02b10ba4b95ebcd74503180c85bcf42c4c9cbf1a95b5f6c079ba5575fd",
+  "native": {
+    "case_id": "222f37ff534147ff98a34796aa21d883",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "5e11dc02b10ba4b95ebcd74503180c85bcf42c4c9cbf1a95b5f6c079ba5575fd",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "a8050fd6d1f6ec05d05cf0b41362e34a9fa9cfc4605e3d9b1ddcf4ed5ae90689",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "status": "PASS",
+    "checks": [
+      "small image stays natural",
+      "authored full width follows natural default",
+      "large image fits editor",
+      "native image layout entry",
+      "scope exists: 全局图片对齐",
+      "choice exists: 靠右",
+      "global alignment persists",
+      "global alignment does not add document style",
+      "global preferences do not modify source",
+      "slider preview is not persisted",
+      "slider changes rendered size",
+      "slider commits",
+      "Escape rolls back uncommitted slider",
+      "native image layout entry",
+      "scope exists: 此图片对齐",
+      "choice exists: 靠左",
+      "single image uses native style editing",
+      "single override leaves other images and global setting",
+      "document contains portable image alignment",
+      "single native undo removes alignment",
+      "single native redo restores alignment",
+      "single alignment saves",
+      "single alignment survives reopen",
+      "native image layout entry",
+      "scope exists: 此图片对齐",
+      "choice exists: 跟随全局",
+      "follow global removes individual override",
+      "follow global saves removal",
+      "native image zoom retained"
+    ],
+    "input_boundary": "Native DOM/API activation; trusted Chromium mouse/keyboard coverage is in the isolated UI suite.",
+    "prior_same_asset_case_id": "021b635f32d14b6ca1506c8b1399ad2c"
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": 6,
+    "case_ids": [
+      "baba9f6823c64ee2b3546517d984bac3",
+      "bec5a666dda745f2a14b95382991b50d",
+      "fc3095cf16414d1daf211f684ff1a763",
+      "a1a89207e7dc485f9e7bc6d5d73219b3",
+      "6416bc9761064e41a3a182add998ce2c",
+      "fcafc39ed5014be893a998be80df0c6e"
+    ],
+    "image_owner_checks": 19,
+    "media_checks": 47,
+    "settings_checks": 289,
+    "code_copy_cycles": 100,
+    "history_checks": 17,
+    "loads": [
+      {
+        "count": 20,
+        "elapsed_ms": 264.40000000037253
+      },
+      {
+        "count": 100,
+        "elapsed_ms": 260.79999999981374
+      },
+      {
+        "count": 1000,
+        "elapsed_ms": 4300.799999999814
+      }
+    ]
+  },
+  "build": "PASS",
+  "check": {
+    "status": "PASS",
+    "case_id": "b65a19e5f1d54ef998e77aeb2129a740"
+  },
+  "installation": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "5e11dc02b10ba4b95ebcd74503180c85bcf42c4c9cbf1a95b5f6c079ba5575fd",
+    "installed_sequence": 2026100202,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  },
+  "isolated_delivery": {
+    "install_case": "f19ace4db148415bad09d13b75bae9da",
+    "uninstall_case": "f8aed96bed9c4a52b96970e3d4336a93",
+    "status": "PASS",
+    "uninstall_assertions": 65,
+    "paths": [
+      "restore compatible backup",
+      "detach without compatible backup"
+    ],
+    "preserved": [
+      "documents",
+      "settings",
+      "backups"
+    ]
+  },
+  "cleanup": {
+    "baba9f6823c64ee2b3546517d984bac3": "cleaned",
+    "bec5a666dda745f2a14b95382991b50d": "cleaned",
+    "fc3095cf16414d1daf211f684ff1a763": "cleaned",
+    "a1a89207e7dc485f9e7bc6d5d73219b3": "cleaned",
+    "6416bc9761064e41a3a182add998ce2c": "cleaned",
+    "fcafc39ed5014be893a998be80df0c6e": "cleaned",
+    "b65a19e5f1d54ef998e77aeb2129a740": "cleaned",
+    "f19ace4db148415bad09d13b75bae9da": "cleaned",
+    "f8aed96bed9c4a52b96970e3d4336a93": "cleaned",
+    "021b635f32d14b6ca1506c8b1399ad2c": "cleaned",
+    "222f37ff534147ff98a34796aa21d883": "cleaned"
+  },
+  "failures_retained": [
+    "Old geometry assertions assumed no image layout changes, no pinned toolbar and a visible fullscreen label; updated for the requested layout and retained original failures.",
+    "Reset assertion expected a missing key but the shared settings reset writes its default; corrected to center.",
+    "Native Escape cancellation failed before using the common dismissal layer; rerun passed.",
+    "New UI test initially omitted from the explicit runner classification; registered and rerun.",
+    "Staged fixture SHA differed only by Git line-ending normalization; reran the native fixture using the exact staged bytes and identical release assets."
+  ],
+  "boundaries": [
+    "No full UI suite, non-Windows host, GPU rendering, user-window restart or full physical input validation.",
+    "1000-image lifecycle took about 4.3 seconds in this combined run. This proves ownership and cleanup, not smooth large-gallery input/scroll latency; background and large-gallery responsiveness remain unverified.",
+    "Existing native per-image zoom takes priority over global scaling. Individual alignment uses portable HTML margin and can convert Markdown image syntax.",
+    "R068.6 paused, R068.10现场裁切, R047.9 and other prior unresolved requirements remain open."
+  ],
+  "git": "This evidence accompanies the reviewed functional commit; no push."
+}
