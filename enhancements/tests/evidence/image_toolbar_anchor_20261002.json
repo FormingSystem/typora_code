@@ -1,0 +1,539 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "requirement": "R031.2",
+  "version": "2026.10.02.7",
+  "sequence": 2026100207,
+  "design": "docs/reading_media_viewer.md#r0312-调整图片期间固定工具条2026-10-02",
+  "manifest_sha256": "17af5b37caa6eb87e5dfb73021e366574f161d398bb3a9fa925a187a81ef72c4",
+  "status": "PASS; installed, running user windows not restarted",
+  "implementation": "The existing media-entry owner captures toolbar coordinates for pointer/focus/keyboard interaction. Active anchors survive image resize and automatic document scroll clamping; explicit wheel input or leaving releases them, while viewport changes clamp them. No new observer or host option.",
+  "validation": {
+    "red_reproduction": {
+      "case": "0e11290919264420b11734d0a31506a5",
+      "baseline": "77908284085c4326222d7c4898ce002fb54d070b",
+      "result": "100% to 95% moved the minus-button center from x=460 to x=430."
+    },
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case": "7bd208e07e4349779fc1feb0e3919919",
+      "scope": "Full check passed; final pointerdown/keydown re-anchoring change also verified by final core/static/deployment checks, UI and original-host run."
+    },
+    "final_static": "PASS: catalog, core, static bundle, deployment",
+    "ui": {
+      "status": "PASS",
+      "image": {
+        "case": "41aa7f428d4949f0b93db4027996e38c",
+        "checks": 56,
+        "loads": [
+          {
+            "count": 20,
+            "elapsed_ms": 258.30000000074506
+          },
+          {
+            "count": 100,
+            "elapsed_ms": 261.4000000022352
+          },
+          {
+            "count": 1000,
+            "elapsed_ms": 3738.300000000745
+          }
+        ]
+      },
+      "media": {
+        "case": "cc36cb75ee274f17bc618943415cc519",
+        "status": "PASS"
+      },
+      "copy": {
+        "case": "2beafdc85bf447649f74acb91e461ab3",
+        "checks": 10,
+        "cycles": 100
+      }
+    },
+    "native": {
+      "status": "PASS",
+      "case": "a8fdb7fda2e9440bbacaf3e1451a6b12",
+      "host_version": "1.14.10",
+      "fixture_sha256": "7452aab10e949a28a46bc3b77087117cba0562c5e1588d0ff41ed0167cfd9008",
+      "assertions": 50,
+      "checks": [
+        "small image stays natural",
+        "authored full width follows natural default",
+        "large image fits editor",
+        "native image layout entry",
+        "scope exists: 全局图片对齐",
+        "choice exists: 靠右",
+        "global alignment persists",
+        "global alignment does not add document style",
+        "global preferences do not modify source",
+        "numeric image scale replaces slider",
+        "native focused numeric input retains toolbar position",
+        "trusted numeric typing and Enter commit",
+        "slider preview is not persisted",
+        "slider changes rendered size",
+        "slider commits",
+        "Escape rolls back uncommitted slider",
+        "large image uses half of live editor width",
+        "large image enlargement remains capped",
+        "decrease button steps five",
+        "increase button steps five",
+        "native large image percentage and plus stop at fitted width",
+        "native focusing capped field preserves shared scale",
+        "native excessive numeric input clamps to fitted width",
+        "native opaque toolbar and numeric field vscode2026_light.css",
+        "native opaque toolbar and numeric field vscode2026_dark.css",
+        "native fixed-coordinate scale click 1",
+        "native fixed-coordinate scale click 2",
+        "native fixed-coordinate scale click 3",
+        "native fixed-coordinate scale click 4",
+        "native fixed-coordinate scale click 5",
+        "native fixed-coordinate scale click 6",
+        "native fixed-coordinate scale click 7",
+        "native fixed-coordinate scale click 8",
+        "native fixed-coordinate scale click 9",
+        "native fixed-coordinate scale click 10",
+        "every image has inline alignment shortcuts",
+        "trusted global alignment click center",
+        "trusted global alignment click right",
+        "global and single shortcut selections remain distinct",
+        "single image uses native style editing",
+        "single override leaves other images and global setting",
+        "document contains portable image alignment",
+        "single native undo removes alignment",
+        "native undo refreshes follow selection",
+        "single native redo restores alignment",
+        "single alignment saves",
+        "single alignment survives reopen",
+        "follow global removes individual override",
+        "follow global saves removal",
+        "native image zoom retained"
+      ],
+      "stationary_samples": [
+        {
+          "stage": "stationary_step",
+          "step": 1,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 95,
+          "scroll": 99.42857360839844,
+          "image": {
+            "x": 101.9464340209961,
+            "y": 154.00894165039062,
+            "width": 926.107177734375,
+            "height": 460.1964416503906,
+            "top": 154.00894165039062,
+            "right": 1028.053611755371,
+            "bottom": 614.2053833007812,
+            "left": 101.9464340209961
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 2,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 90,
+          "scroll": 99.42857360839844,
+          "image": {
+            "x": 126.31250762939453,
+            "y": 152.00894165039062,
+            "width": 877.3660888671875,
+            "height": 435.8214416503906,
+            "top": 152.00894165039062,
+            "right": 1003.678596496582,
+            "bottom": 587.8303833007812,
+            "left": 126.31250762939453
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 3,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 85,
+          "scroll": 99.42857360839844,
+          "image": {
+            "x": 150.6875,
+            "y": 150.00894165039062,
+            "width": 828.6250610351562,
+            "height": 411.45538330078125,
+            "top": 150.00894165039062,
+            "right": 979.3125610351562,
+            "bottom": 561.4643249511719,
+            "left": 150.6875
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 4,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 80,
+          "scroll": 99.42857360839844,
+          "image": {
+            "x": 175.05357360839844,
+            "y": 148.00894165039062,
+            "width": 779.8839721679688,
+            "height": 387.08038330078125,
+            "top": 148.00894165039062,
+            "right": 954.9375457763672,
+            "bottom": 535.0893249511719,
+            "left": 175.05357360839844
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 5,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 75,
+          "scroll": 99.42857360839844,
+          "image": {
+            "x": 199.42857360839844,
+            "y": 146.0178680419922,
+            "width": 731.1428833007812,
+            "height": 362.71429443359375,
+            "top": 146.0178680419922,
+            "right": 930.5714569091797,
+            "bottom": 508.73216247558594,
+            "left": 199.42857360839844
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 6,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 70,
+          "scroll": 82.28571319580078,
+          "image": {
+            "x": 223.8035888671875,
+            "y": 161.15179443359375,
+            "width": 682.3928833007812,
+            "height": 338.33929443359375,
+            "top": 161.15179443359375,
+            "right": 906.1964721679688,
+            "bottom": 499.4910888671875,
+            "left": 223.8035888671875
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 7,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 65,
+          "scroll": 53.71428680419922,
+          "image": {
+            "x": 248.16964721679688,
+            "y": 187.7232208251953,
+            "width": 633.6517944335938,
+            "height": 313.96429443359375,
+            "top": 187.7232208251953,
+            "right": 881.8214416503906,
+            "bottom": 501.68751525878906,
+            "left": 248.16964721679688
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 8,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 60,
+          "scroll": 25.714284896850586,
+          "image": {
+            "x": 272.5446472167969,
+            "y": 213.7232208251953,
+            "width": 584.9107666015625,
+            "height": 289.5982360839844,
+            "top": 213.7232208251953,
+            "right": 857.4554138183594,
+            "bottom": 503.3214569091797,
+            "left": 272.5446472167969
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 9,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 55,
+          "scroll": 0,
+          "image": {
+            "x": 298.71429443359375,
+            "y": 237.43751525878906,
+            "width": 540.5714721679688,
+            "height": 267.4285888671875,
+            "top": 237.43751525878906,
+            "right": 839.2857666015625,
+            "bottom": 504.86610412597656,
+            "left": 298.71429443359375
+          },
+          "hover": false,
+          "focused": true
+        },
+        {
+          "stage": "stationary_step",
+          "step": 10,
+          "rect": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "initial": {
+            "x": 295.375,
+            "y": 115.58929443359375,
+            "width": 37.142860412597656,
+            "height": 32,
+            "top": 115.58929443359375,
+            "right": 332.51786041259766,
+            "bottom": 147.58929443359375,
+            "left": 295.375
+          },
+          "scale": 50,
+          "scroll": 0,
+          "image": {
+            "x": 323.2857360839844,
+            "y": 235.44644165039062,
+            "width": 491.4285888671875,
+            "height": 242.85714721679688,
+            "top": 235.44644165039062,
+            "right": 814.7143249511719,
+            "bottom": 478.3035888671875,
+            "left": 323.2857360839844
+          },
+          "hover": false,
+          "focused": true
+        }
+      ]
+    },
+    "uninstall_regression": {
+      "status": "PASS",
+      "case": "d354f47f71ec4b139721f26fb9c1cb88",
+      "assertions": 65
+    },
+    "installation_cycle": {
+      "status": "PASS",
+      "case": "7b9057058f444bd9b8d692e30672e72a",
+      "steps": [
+        "install",
+        "check",
+        "restore uninstall",
+        "reinstall",
+        "check",
+        "detach uninstall",
+        "reinstall",
+        "check"
+      ],
+      "documents_settings_backups": "preserved",
+      "payload": "cleaned"
+    }
+  },
+  "delivery": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "17af5b37caa6eb87e5dfb73021e366574f161d398bb3a9fa925a187a81ef72c4",
+    "installed_sequence": 2026100207,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally.",
+    "git": "Commit receipt in local ledger; not pushed."
+  },
+  "limitations": [
+    "R071.7 black screens, R005.4 dual native editors and original R068.11 clipping remain open.",
+    "No full UI suite, GPU long-session or cross-platform verification. Image lifecycle at 20/100/1000 is not a responsiveness guarantee.",
+    "Isolated offscreen focus tests explicitly dispatch focus events because the hidden window is inactive; native typing and clicks are separately verified.",
+    "First native anchor attempt failed at the sixth click due to document scroll clamping (cases 680a6681d15d448484ff1b3adb2e43f9 and 61d78adcee7a46c5bd19bb3c91ec302c); preserved.",
+    "Media geometry regression now leaves active controls before checking idle image-relative positioning. An intermediate build hit EBUSY while a terminal test held conpty.node; the final build succeeded after it released."
+  ]
+}

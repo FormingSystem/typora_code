@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100207,
+      "version": "2026.10.02.7",
+      "date": "2026-10-02",
+      "notes": [
+        "图片浮动工具条在鼠标操作或输入百分比期间保持位置，连续加减不再追着图片边缘移动。",
+        "离开操作区或滚动正文后重新定位；缩小窗口时保持控件在可见范围内。"
+      ],
+      "notes_en": [
+        "Keep the image toolbar stationary while using its controls or entering a percentage, so repeated scale clicks no longer chase the image edge.",
+        "Reposition after leaving the controls or scrolling the document, and keep controls within the visible area when the window shrinks."
+      ]
+    },
+    {
       "sequence": 2026100206,
       "version": "2026.10.02.6",
       "date": "2026-10-02",

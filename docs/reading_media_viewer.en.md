@@ -90,3 +90,13 @@ The visible image toolbar uses a complete opaque editorWidget surface, shared fo
 100% uses the lesser of natural and containing content width. Each toolbar caps its effective percentage at the containing width and the existing 600% global limit, accounting for border-box edges. Large images stop at 100%; small images can grow to the container. Viewing a clamped value does not rewrite shared settings. Over-limit numeric drafts and commits clamp; plus disables at the limit and minus steps down by five from the displayed value, including fit-width mode. Existing overlay geometry scheduling refreshes the limit without another global observer. Native authored zoom remains owned by Typora.
 
 Verify opaque surfaces in both themes, hidden state, wrapping, bounds and input clamping for large/small images, resizing without implicit configuration writes, native alignment/undo/save/reopen and standard installation lifecycle. The black-screen investigation remains unresolved.
+
+### R031.2 Stable toolbar during image adjustments (2026-10-02)
+
+The toolbar moved with the resized image edge, causing repeated clicks to miss. Capture its viewport position on toolbar pointer entry or control focus, preserving that anchor while changing scale/alignment. Release when both pointer and focus leave, or on explicit wheel input. Keep the anchor within the available viewport after window/pane resizing. Removal, hiding, document replacement and disposal discard it. Diagram and code-copy entries retain their existing positioning.
+
+The media-entry owner holds position; image settings still own scale. Capture a fresh anchor when pointer/keyboard adjustment resumes after scrolling. Reuse existing pointer/focus, scroll and geometry scheduling without another observer or document-layout changes. Pinned 6807068 base/browser/ui/contextview/contextview.ts separates anchor capture from viewport layout; freezing an image toolbar during interaction is this product's adaptation, not a claim of VS Code image-widget equivalence.
+
+Use actual repeated clicks at the same minus-button coordinates, checking percentage changes and stable button bounds. Cover numeric/keyboard interaction, themes, narrow windows, other images, leave/re-enter, scrolling and disposal. Validate native trusted input in isolated documents and the final standard install/uninstall lifecycle.
+
+Native verification confirmed that shrinking images can clamp the document scroll offset. Preserve the anchor during an active interaction through this automatic layout scroll. Wheel input explicitly releases it, and scrolling after blur/leave follows the image again. The passive wheel listener belongs to the same disposal controller and does not intercept scrolling or change host options.

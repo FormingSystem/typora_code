@@ -37,7 +37,9 @@
   let native_input_id=0,trusted_numeric_inputs=0;
   slider.addEventListener('input',event=>{if(event.isTrusted)trusted_numeric_inputs++;});
   const send_numeric=async(kind,value)=>{const id=++native_input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind,width:innerWidth,height:innerHeight,x:100,y:200,...value}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id}catch{return false}},'numeric input delivered');await pause(80);};
-  images()[0].scrollIntoView({block:'center'});await pause(100);slider.focus();slider.select();await send_numeric('text',{text:'125'});await send_numeric('key',{key:13});
+  document.querySelector('[data-image-align-scope=global][data-image-align=center]').click();
+  images()[0].scrollIntoView({block:'center'});await pause(100);slider.focus();slider.select();const numeric_anchor=slider.getBoundingClientRect();await send_numeric('text',{text:'125'});await send_numeric('key',{key:13});
+  assert(Math.abs(slider.getBoundingClientRect().left-numeric_anchor.left)<1&&Math.abs(slider.getBoundingClientRect().top-numeric_anchor.top)<1,'native focused numeric input retains toolbar position');
   assert(trusted_numeric_inputs>0&&core.app.settings.get('reading_images').scale===125,'trusted numeric typing and Enter commit');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'numeric_scale'}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='numeric_scale'}catch{return false}},'numeric controls captured');
   slider.value='150';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(80);
@@ -65,6 +67,18 @@
   big_field.value='200';big_field.dispatchEvent(new Event('input'));big_field.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));await pause(100);
   assert(big_field.value==='100'&&core.app.settings.get('reading_images').scale===100,'native excessive numeric input clamps to fitted width');
   for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){ClientCommand.setTheme(theme,theme);await pause(400);images()[0].scrollIntoView({block:'center'});await pause(100);image_toolbar().querySelector('input').focus();await pause(80);const toolbar_style=getComputedStyle(image_toolbar()),field_style=getComputedStyle(image_toolbar().querySelector('input'));assert(!toolbar_style.backgroundColor.startsWith('rgba')&&!field_style.backgroundColor.startsWith('rgba')&&toolbar_style.borderTopStyle==='solid','native opaque toolbar and numeric field '+theme);samples.push({stage:'opaque_'+theme,background:toolbar_style.backgroundColor,border:toolbar_style.borderTopColor,foreground:toolbar_style.color,input:field_style.backgroundColor});}
+  image_toolbar().querySelector('[data-image-align-scope="global"][data-image-align="center"]').click();
+  document.activeElement?.blur();images()[1].scrollIntoView({block:'center'});await pause(150);
+  const stationary_minus=large_toolbar().querySelector('[data-image-scale-action=decrease]');
+  large_toolbar().querySelector('input').focus();await pause(100);
+  const stationary_rect=stationary_minus.getBoundingClientRect(),stationary_point={x:stationary_rect.left+stationary_rect.width/2,y:stationary_rect.top+stationary_rect.height/2};
+  for(let step=1;step<=10;step++){
+   await send_numeric('click',stationary_point);const rect=stationary_minus.getBoundingClientRect();
+   samples.push({stage:'stationary_step',step,rect:rect.toJSON(),initial:stationary_rect.toJSON(),scale:core.app.settings.get('reading_images').scale,scroll:document.querySelector('content').scrollTop,image:images()[1].getBoundingClientRect().toJSON(),hover:large_toolbar().matches(':hover'),focused:large_toolbar().contains(document.activeElement)});
+   assert(Math.abs(rect.left-stationary_rect.left)<1&&Math.abs(rect.top-stationary_rect.top)<1&&core.app.settings.get('reading_images').scale===100-step*5,'native fixed-coordinate scale click '+step);
+  }
+  samples.push({stage:'stationary_toolbar',point:stationary_point,rect:stationary_minus.getBoundingClientRect().toJSON(),scale:core.app.settings.get('reading_images').scale});
+  document.activeElement?.blur();
   const shortcut=(scope,value)=>image_toolbar().querySelector('[data-image-align-scope="'+scope+'"][data-image-align="'+value+'"]');
   assert(document.querySelectorAll('[data-image-align-scope]').length===images().length*7,'every image has inline alignment shortcuts');
   const clicks=[];document.addEventListener('click',event=>clicks.push({trusted:event.isTrusted,target:event.target.outerHTML?.slice(0,250),x:event.clientX,y:event.clientY}),true);

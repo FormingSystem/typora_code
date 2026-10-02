@@ -9306,7 +9306,8 @@
         "enhancements/src/reading_image_settings.ts",
         "enhancements/src/reading_image_native.ts",
         "enhancements/src/reading_image_controls.ts",
-        "enhancements/src/reading_image_menu.ts"
+        "enhancements/src/reading_image_menu.ts",
+        "enhancements/src/reading_media_entry.ts"
       ],
       "related_modules": [
         "images",
@@ -9318,7 +9319,7 @@
       "environment": "Isolated Electron",
       "preconditions": "Use temporary documents and isolated profile.",
       "steps": [
-        "Run shared sizing/settings ownership and 20/100/1000 image lifecycle checks."
+        "Run shared sizing/settings ownership, fixed-coordinate repeated clicks, focus anchoring, wheel release, pane bounds, hidden/disposal cleanup and 20/100/1000 image lifecycle checks."
       ],
       "expected": [
         "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
@@ -9339,7 +9340,8 @@
         "enhancements/src/reading_image_settings.ts",
         "enhancements/src/reading_image_native.ts",
         "enhancements/src/reading_image_controls.ts",
-        "enhancements/src/reading_image_menu.ts"
+        "enhancements/src/reading_image_menu.ts",
+        "enhancements/src/reading_media_entry.ts"
       ],
       "related_modules": [
         "images",
@@ -9351,7 +9353,7 @@
       "environment": "Windows private original Typora 1.14.10",
       "preconditions": "Use temporary documents and isolated profile.",
       "steps": [
-        "Run native image_layout_native.js: numeric typing/Enter, 5% controls, fitted-width scale and dynamic input/plus limits, opaque light/dark surfaces, inline global/individual alignment with trusted clicks and undo state, menu scopes, individual alignment, undo/redo, save/reopen."
+        "Run native image_layout_native.js: anchored numeric typing/Enter and ten fixed-coordinate 5% clicks through automatic document scroll clamping, fitted-width scale and dynamic input/plus limits, opaque light/dark surfaces, inline global/individual alignment with trusted clicks and undo state, menu scopes, individual alignment, undo/redo, save/reopen."
       ],
       "expected": [
         "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."

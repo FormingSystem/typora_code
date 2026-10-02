@@ -169438,12 +169438,14 @@ https://creativecommons.org/licenses/by/4.0/
         const entry_width = Math.min(Math.max(0, controls ? right - left : end - x), preferred);
         entry.toolbar.style.width = "".concat(entry_width, "px");
         const height = entry.toolbar.offsetHeight;
-        const entry_top = entry.options.compact ? rect.top + 4 : Math.max(controls ? top : -Infinity, rect.top - height);
+        const entry_top = entry.anchor ? Math.max(top, Math.min(entry.anchor.top, bottom - height)) : entry.options.compact ? rect.top + 4 : Math.max(controls ? top : -Infinity, rect.top - height);
+        const entry_left = entry.anchor ? Math.max(left, Math.min(entry.anchor.left, right - entry_width)) : Math.max(left, end - entry_width);
         shown = shown && rect.bottom > top && rect.top < bottom && entry_top >= top && entry_top + height <= bottom && end - x >= (controls ? 1 : 48);
         button.hidden = !shown;
         entry.toolbar.classList.toggle("is-offscreen", !shown);
+        if (!shown) entry.anchor = void 0;
         if (controls) for (const node of controls) node.hidden = !shown;
-        entry.toolbar.style.left = "".concat(Math.max(left, end - entry_width), "px");
+        entry.toolbar.style.left = "".concat(entry_left, "px");
         entry.toolbar.style.top = "".concat(entry_top, "px");
       }
     }
@@ -169452,8 +169454,20 @@ https://creativecommons.org/licenses/by/4.0/
     });
     observer3.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
     if (root.getRootNode() instanceof ShadowRoot) observer3.observe(root, { childList: true, subtree: true, attributes: true, attributeFilter: ["class", "style", "hidden"] });
-    document.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
-    if (root !== document.body) root.addEventListener("scroll", schedule, { capture: true, passive: true, signal });
+    const interacting = (entry) => entry.toolbar.matches(":hover") || entry.toolbar.contains(document.activeElement);
+    const scroll = (event) => {
+      for (const entry of entries3.values()) {
+        if (!interacting(entry) && event.target instanceof Node && event.target.contains(entry.options.source)) entry.anchor = void 0;
+      }
+      schedule();
+    };
+    const release_scroll = () => {
+      for (const entry of entries3.values()) entry.anchor = void 0;
+      schedule();
+    };
+    document.addEventListener("wheel", release_scroll, { capture: true, passive: true, signal });
+    document.addEventListener("scroll", scroll, { capture: true, passive: true, signal });
+    if (root !== document.body) root.addEventListener("scroll", scroll, { capture: true, passive: true, signal });
     window.addEventListener("resize", schedule, { passive: true, signal });
     const activate = (event) => {
       const control = event.composedPath().find((node) => node instanceof HTMLElement && node.closest(".reading-media-extra"));
@@ -169492,6 +169506,31 @@ https://creativecommons.org/licenses/by/4.0/
           }
         }
         const entry_events = new AbortController();
+        const state = { options: options2, toolbar, enabled: true, events: entry_events };
+        if (options2.controls) {
+          const pin = () => {
+            if (state.anchor || button.hidden) return;
+            const rect = toolbar.getBoundingClientRect();
+            state.anchor = { left: rect.left, top: rect.top };
+          };
+          const release = () => {
+            if (!toolbar.matches(":hover") && !toolbar.contains(document.activeElement)) {
+              state.anchor = void 0;
+              schedule();
+            }
+          };
+          toolbar.addEventListener("pointerenter", pin, { signal: entry_events.signal });
+          toolbar.addEventListener("focusin", pin, { signal: entry_events.signal });
+          toolbar.addEventListener("pointerdown", pin, { capture: true, signal: entry_events.signal });
+          toolbar.addEventListener("keydown", pin, { capture: true, signal: entry_events.signal });
+          toolbar.addEventListener("pointerleave", release, { signal: entry_events.signal });
+          toolbar.addEventListener("focusout", (event) => {
+            if (!(event.relatedTarget instanceof Node && toolbar.contains(event.relatedTarget)) && !toolbar.matches(":hover")) {
+              state.anchor = void 0;
+              schedule();
+            }
+          }, { signal: entry_events.signal });
+        }
         if (options2.controls) for (const name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keyup"]) toolbar.addEventListener(name, (event) => {
           event.stopPropagation();
           if (name === "mousedown" && event.target.closest("button")) event.preventDefault();
@@ -169503,7 +169542,6 @@ https://creativecommons.org/licenses/by/4.0/
         };
         for (const node of [options2.host, toolbar]) for (const name of ["pointerenter", "pointerleave"]) node.addEventListener(name, reveal, { signal: entry_events.signal });
         if (options2.host.matches(":hover")) toolbar.classList.add("is-revealed");
-        const state = { options: options2, toolbar, enabled: true, events: entry_events };
         entries3.set(button, state);
         resize.observe(options2.source);
         resize.observe(toolbar);
@@ -252929,6 +252967,19 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026100207,
+        version: "2026.10.02.7",
+        date: "2026-10-02",
+        notes: [
+          "\u56FE\u7247\u6D6E\u52A8\u5DE5\u5177\u6761\u5728\u9F20\u6807\u64CD\u4F5C\u6216\u8F93\u5165\u767E\u5206\u6BD4\u671F\u95F4\u4FDD\u6301\u4F4D\u7F6E\uFF0C\u8FDE\u7EED\u52A0\u51CF\u4E0D\u518D\u8FFD\u7740\u56FE\u7247\u8FB9\u7F18\u79FB\u52A8\u3002",
+          "\u79BB\u5F00\u64CD\u4F5C\u533A\u6216\u6EDA\u52A8\u6B63\u6587\u540E\u91CD\u65B0\u5B9A\u4F4D\uFF1B\u7F29\u5C0F\u7A97\u53E3\u65F6\u4FDD\u6301\u63A7\u4EF6\u5728\u53EF\u89C1\u8303\u56F4\u5185\u3002"
+        ],
+        notes_en: [
+          "Keep the image toolbar stationary while using its controls or entering a percentage, so repeated scale clicks no longer chase the image edge.",
+          "Reposition after leaving the controls or scrolling the document, and keep controls within the visible area when the window shrinks."
+        ]
+      },
       {
         sequence: 2026100206,
         version: "2026.10.02.6",

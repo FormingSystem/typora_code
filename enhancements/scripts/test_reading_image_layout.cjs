@@ -3,7 +3,7 @@ const fs=require('node:fs'),os=require('node:os'),path=require('node:path');
 app.setPath('userData',fs.mkdtempSync(path.join(os.tmpdir(),'typora-image-layout-')));app.disableHardwareAcceleration();
 let win;
 app.whenReady().then(async()=>{
- win=new BrowserWindow({show:false,width:800,height:600,webPreferences:{offscreen:true,contextIsolation:false,backgroundThrottling:false}});
+ win=new BrowserWindow({show:false,width:1600,height:900,webPreferences:{offscreen:true,contextIsolation:false,backgroundThrottling:false}});
  await win.loadURL('data:text/html,<style>article{width:400px}img{width:100%}</style><article></article>');
  const built=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:`export * from './src/reading_image_settings';export * from './src/reading_image_viewer';export * from './src/reading_image_controls';`,resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
  await win.webContents.executeJavaScript(built.outputFiles[0].text);
@@ -53,5 +53,37 @@ app.whenReady().then(async()=>{
   const loads=[];for(const count of [20,100,1000]){article.replaceChildren(...Array.from({length:count},()=>image.cloneNode()));const started=performance.now(),bound=qa.bind_reading_images(article);await pause(250);assert(document.querySelectorAll('.reading-image-open').length===count,'controls created '+count);bound.dispose();assert(!document.querySelector('.reading-media-entries'),'controls disposed '+count);loads.push({count,elapsed_ms:performance.now()-started});}
   assert(!document.querySelector('style[data-reading-image-layout]'),'layout stylesheet ownership cleaned');
   return {status:'PASS',checks,loads};
- })()`);console.log(JSON.stringify(result));
+ })()`);
+ await win.webContents.executeJavaScript(`(async()=>{const article=document.querySelector('article');article.style.width='1200px';article.replaceChildren();const image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="400"/>');article.append(image);await image.decode();qa.write_reading_image_setting('alignment','center');qa.write_reading_image_setting('scale',100);window.motion_binding=qa.bind_reading_images(article);})()`);
+ const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));await pause(120);
+ const point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('article img').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+20)}})()`);
+ win.webContents.sendInputEvent({type:'mouseMove',...point});await pause(60);
+ const button_point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect();return{x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
+ win.webContents.sendInputEvent({type:'mouseMove',...button_point});await pause(40);
+ for(let i=1;i<=10;i++){
+  for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,...button_point,button:'left',clickCount:1});await pause(60);
+  const sample=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect();return{x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2),scale:qa.read_reading_image_settings().scale}})()`);
+  if(sample.x!==button_point.x||sample.y!==button_point.y||sample.scale!==100-i*5)throw Error('stationary repeated image scale click '+JSON.stringify({i,button_point,sample}));
+ }
+ result.checks.push('ten trusted clicks at fixed coordinates keep toolbar and change percentage each time');
+ win.webContents.sendInputEvent({type:'mouseMove',x:1500,y:800});await pause(100);
+ const released=await win.webContents.executeJavaScript(`document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect().left`);
+ if(Math.abs(released-(button_point.x-16))<5)throw Error('toolbar did not re-anchor after leaving');result.checks.push('leaving toolbar reanchors to resized image');
+ const extra=await win.webContents.executeJavaScript(`(async()=>{
+  const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
+  const article=document.querySelector('article'),toolbar=document.querySelector('.reading-media-entry'),field=toolbar.querySelector('input'),rect=()=>toolbar.getBoundingClientRect();
+  field.focus();field.dispatchEvent(new FocusEvent('focusin',{bubbles:true}));const pinned=rect();qa.write_reading_image_setting('scale',100);await pause(100);
+  assert(rect().left===pinned.left&&rect().top===pinned.top,'focus event holds position across scale changes');
+  article.style.cssText='width:1200px;height:400px;overflow:auto';article.style.paddingTop='120px';article.append(Object.assign(document.createElement('div'),{style:'height:1000px'}));await pause(100);
+  article.dispatchEvent(new WheelEvent('wheel',{bubbles:true,deltaY:40}));article.scrollTop=40;await pause(100);
+  assert(rect().left!==pinned.left||rect().top!==pinned.top,'document scrolling releases pinned position');
+  const resumed=rect();field.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowDown',bubbles:true}));await pause(100);
+  assert(rect().left===resumed.left&&rect().top===resumed.top,'continuing keyboard adjustment after scrolling captures a fresh anchor');
+  field.blur();field.focus();field.dispatchEvent(new FocusEvent('focusin',{bubbles:true}));article.style.width='600px';await pause(100);
+  assert(rect().left>=article.getBoundingClientRect().left&&rect().right<=article.getBoundingClientRect().right+1,'resized pane keeps controls within visible bounds');
+  article.hidden=true;await pause(100);assert(toolbar.classList.contains('is-offscreen'),'hidden source hides pinned controls');
+  field.blur();article.hidden=false;await pause(100);assert(!toolbar.classList.contains('is-offscreen'),'shown source restores controls');
+  motion_binding.dispose();assert(!document.querySelector('.reading-media-entries'),'disposing pinned controls removes their overlay');
+  return checks;
+ })()`);result.checks.push(...extra);console.log(JSON.stringify(result));
 }).catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});
