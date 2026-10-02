@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100209,
+      "version": "2026.10.02.9",
+      "date": "2026-10-02",
+      "notes": [
+        "代码阅读预览沿用原生编辑的语言分类与共同主题，统一函数、变量、关键字等颜色。",
+        "VSCode2026保留新版默认代码配色，Cpp保留Modern默认配色；搜索、链接、分屏与Git阅读共用规则。"
+      ],
+      "notes_en": [
+        "Use native editing token roles and the shared theme in code readers, keeping functions, variables and keywords consistent.",
+        "Keep the 2026 defaults for VSCode2026 and Modern defaults for Cpp across search, link, split and Git readers."
+      ]
+    },
+    {
       "sequence": 2026100208,
       "version": "2026.10.02.8",
       "date": "2026-10-02",

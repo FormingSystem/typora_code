@@ -575,3 +575,7 @@ R071.7 recurrence: retain the stable BUG-split-black-screen-unconfirmed identifi
 - BUG-reading-image-toolbar-anchor (R031.2, 2026-10-02): the baseline moved the minus button 30px when reducing 100% to 95%. Native image shrink also clamps document scrolling; this must not release an active control anchor. The shared overlay preserves it during interaction, releases on wheel/leave and clamps to viewport bounds. See image_toolbar_anchor_20261002.json; black screens and original clipping remain separate open issues.
 
 - BUG-explorer-rename-dismiss (R028.1, 2026-10-02): inline filename editing only handled Enter/Escape. A trusted click on a non-focusing activity item reproduced the stuck input. Register shared outside/focus dismissal, preserve destination events and disk bytes, and release ownership on completion, cancellation, hiding, root changes and disposal. See rename_dismiss_20261002.json.
+
+## R068.12 Reader and native editing code colors differ (2026-10-02)
+
+Classification: reading/theme, inconsistent lexical ownership. Native CodeMirror roles and preview Monaco categories differed; lookup views also carried a separate old palette. A shared static host tokenizer and theme now own ordinary-language rendering; C/C++ TextMate remains unchanged. Validation links TC-reading-code-preview-theme-native and color/search/link/Git UI tests; see [evidence](../enhancements/tests/evidence/code_preview_colors_20261002.json). This work does not close R071.7 black screens, R068.11 reported clipping or the R005.4 dual-native-editor gap.

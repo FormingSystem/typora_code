@@ -1,6 +1,7 @@
 import {workspace_text} from "./workspace_i18n";
 import {mermaid_theme_options,observe_mermaid_theme} from './reading_mermaid_theme';
 import {load_code_themes,initial_code_stack} from './reading_code_theme';
+import {native_code_fragment} from './reading_native_code';
 import * as monaco from "monaco-editor/editor/editor.api";
 import DOMPurify from "dompurify";
 import { initialize_editor } from "./git_diff_editor";
@@ -9,9 +10,8 @@ import { detect_file_language } from "./file_language";
 type diagram_api = { initialize(options: Record<string,unknown>): void; render(id: string, source: string, container?: HTMLElement): Promise<{svg: string}> };
 let diagram_serial = 0;
 
-/** Reuse the language registration of the source code editor and tokenizer, preserving the original text bytes corresponding to the characters and line breaks. */
+/** Native fences and readers share token roles; no preview editor is created. */
 export async function highlight_preview_code(code: HTMLElement): Promise<void> {
-  initialize_editor();
   const hint = (code.className.match(/language-([^\s]+)/u)?.[1] || "plaintext").toLowerCase();
   const aliases: Record<string,string> = {js:"javascript",ts:"typescript",sh:"shell",bash:"shell",py:"python",yml:"yaml","c++":"cpp",ps1:"powershell"};
   const language = aliases[hint] || (monaco.languages.getLanguages().some(item=>item.id===hint) ? hint : detect_file_language(`preview.${hint}`));
@@ -21,6 +21,10 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
     text.split('\n').forEach((line,index)=>{if(index)fragment.append(document.createTextNode('\n'));const result=grammar.tokenizeLine(line,stack);stack=result.ruleStack;for(const token of result.tokens){const span=document.createElement('span');span.className=token.style;span.textContent=line.slice(token.startIndex,token.endIndex);fragment.append(span);}});
     code.replaceChildren(fragment);return;
   }
+  const native=await native_code_fragment(text,hint,code.ownerDocument);
+  if(native){code.replaceChildren(native);return;}
+  // Non-Typora consumers retain the existing static source-editor fallback.
+  initialize_editor();
   // The colorize waits for the language to be loaded on demand; the actual DOM uses the original text and tokenizer character offsets to construct.
   await monaco.editor.colorize(text, language, {tabSize:4});
   const tokens = monaco.editor.tokenize(text, language), lines = text.split("\n"), fragment = document.createDocumentFragment();

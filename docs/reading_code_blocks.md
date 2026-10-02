@@ -110,3 +110,15 @@ TextMate四套注册表与代码编辑状态使用同一配置；同明暗主题
 验收包含明暗、窗口缩放、长行换行、末行即时/首帧/稳定几何、撤销重做、反复增删20轮，以及既有展开首行/滚轮/复制回归。最终候选经公开安装卸载事务及本机校验；黑屏仍为独立未决。
 
 2026-10-02实现依据：原生键盘删除的九行样本退出折叠后，测量失效次数为0（9efdffac87ba4b9090c7a2aff826732d）；当前样本末行仍完整，因此确认的是交接缺口，尚不能证明全部现场裁切因果。控制器仅在实际移除collapsible状态时调用现有code_geometry.refresh(fence)，由可见性门禁合并到一帧，重复扫描不刷新，销毁时几何所有者已释放。固定6807068的common/viewLayout/viewLayout.ts按contentHeight变化更新滚动维度；这里沿用变化驱动失效原则，原生refresh端口沿已验证Typora1.14.10，不抄用Monaco布局算法。
+
+## R068.12 编辑与预览共用代码颜色（2026-10-02）
+
+问题与目标：原生围栏的普通语言由宿主CodeMirror分词，阅读预览却用Monaco分类且丢失函数、变量等角色，搜索视图另有写死的旧色表。同一主题下编辑/阅读应采用相同词法与共同颜色。
+
+范围与交互：搜索嵌入/浮动、链接、分栏及Git Markdown阅读共用静态代码呈现。保留VSCode2026的2026 Light/Dark与Cpp的Light/Dark Modern身份，来源继续为界面基线固定6807068的官方主题；本次不更换上游版本、正文主题、语言服务或语义分析配置。
+
+职责与方案：C/C++继续共用reading_code_theme的TextMate；普通语言由集中宿主适配读取getCodeMirrorMode和CodeMirror模式注册表，保持跨行状态及所有cm角色，只生成静态span。缺少宿主时保留现有静态降级，未知模式显示原文；不得创建预览编辑器、调用围栏refreshEditor或修改宿主偏好。异步结果仍服从原视图生命周期。删除查询预览局部色表，颜色仅由reading_code_theme与共享Markdown主题提取提供；核对Shadow和分栏CSS作用域，不改预览导航/锚点。
+
+验收：真实宿主的bash/tex/JavaScript及C/C++样本，对照逐段文本、分类、计算前景和代码背景；四种主题及同明暗跨族切换，空行/多行字符串、未知语言、销毁和原文不变回归。分栏、搜索/链接、Git消费者回归，分别记录隔离Chromium与原始宿主证据；不以配色测试宣称R071.7黑屏解决。
+
+R068.12实现核对：原始Typora 1.14.10的`window/frame.js`中，围栏使用`getCodeMirrorMode`解析语言，`File.option.codeIndentSize`同时作为tabSize/indentUnit，`fences.lazyload`加载`lib.asar/codemirror/mode.min.js`并刷新围栏。本次适配只加载同一注册表并使用相同缩进值，不调用其刷新入口。以shell/stex/javascript是否已注册判定完整语言包，避免工作台自注册C/C++模式使简单模式数量判断失真。原始宿主初始只有3种模式、尚未编辑代码时的搜索预览已实测；Cpp/2026四种主题均沿原共同色表，不新增颜色配置。

@@ -3,7 +3,7 @@ const base=fs.mkdtempSync(path.join(os.tmpdir(),'code_editor_colors_'));app.setP
 app.whenReady().then(async()=>{
  view=new BrowserWindow({show:false,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});
  await view.loadURL('data:text/html;charset=utf-8,'+encodeURIComponent(`<style>.CodeMirror-cursor{border-left:1px solid black}.CodeMirror-selected{background:#ddd}.CodeMirror-gutters{background:white}.cm-searching{background:yellow}.CodeMirror-selectedtext{background:blue}</style><div id="write"><p id="body">正文</p><div class="md-fences"><div class="CodeMirror"><div class="CodeMirror-cursor CodeMirror-overwrite"></div><div class="CodeMirror-selected"></div><div class="CodeMirror-gutters"></div><div class="CodeMirror-activeline-gutter"><div class="CodeMirror-linenumber">1</div></div><div class="CodeMirror-activeline-background"></div><pre class="CodeMirror-line"><span class="cm-variable">p = plain;</span><span class="cm-searching">find</span><span class="CodeMirror-matchingbracket">(</span><span class="CodeMirror-composing">输入</span></pre></div></div><div class="md-diagram"><svg></svg></div></div>`));
- const bundle=await build({stdin:{contents:'export * from "./src/reading_code_theme"; export {markdown_theme_rules} from "./src/workspace_markdown_theme";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'api',loader:{'.wasm':'binary'}});
+ const bundle=await build({stdin:{contents:'export * from "./src/reading_code_theme"; export {markdown_theme_rules,markdown_scoped_theme_rules} from "./src/workspace_markdown_theme";',resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'api',loader:{'.wasm':'binary'}});
  await view.webContents.executeJavaScript(bundle.outputFiles[0].text);
  const results=await view.webContents.executeJavaScript(`(async()=>{
  const data=await api.load_code_themes(),style=document.createElement('style');style.textContent=data.css;document.head.append(style);
@@ -41,5 +41,17 @@ app.whenReady().then(async()=>{
  assert.equal(palette.night.identity,'dark');assert.equal(palette.night.bg,'rgb(31, 31, 31)');assert.equal(palette.night.cursor,'rgb(174, 175, 173)');assert.deepEqual(palette.restored,palette.dark);
  assert.deepEqual(palette.light,{identity:'light_2026',bg:'rgb(255, 255, 255)',cursor:'rgb(32, 32, 32)',selection:'rgba(0, 105, 204, 0.25)',keyword:'rgb(207, 34, 46)'});
  assert.deepEqual(palette.light_preview,{bg:'rgb(255, 255, 255)',keyword:'rgb(207, 34, 46)'});
- fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks:311,samples:results,palette},null,2));console.log('PASS 303 editor-state assertions and 8 official 2026/base CSS/Shadow/same-mode switch checks');view.destroy();app.exit(0);
+ const scoped=await view.webContents.executeJavaScript(`(async()=>{
+  const release=await api.bind_code_theme(),root=document.documentElement,container=document.createElement('div'),style=document.createElement('style');
+  container.className='fixture-reader';container.innerHTML='<pre><code><span class="cm-keyword">if</span></code></pre>';document.body.append(container);
+  style.setAttribute('data-markdown-reader-style','fixture');document.head.append(style);const samples=[];
+  for(const identity of ['dark','dark_2026','light','light_2026']){
+   root.dataset.workspaceCodeTheme=identity;style.textContent=api.markdown_scoped_theme_rules('.fixture-reader');
+   const native=document.querySelector('.CodeMirror-line span');native.className='cm-keyword';
+   samples.push({identity,native:getComputedStyle(native).color,preview:getComputedStyle(container.querySelector('span')).color,native_bg:getComputedStyle(document.querySelector('.CodeMirror')).backgroundColor,preview_bg:getComputedStyle(container.querySelector('pre')).backgroundColor});
+  }
+  container.remove();style.remove();release();return samples;
+ })()`);
+ for(const sample of scoped){assert.equal(sample.preview,sample.native,JSON.stringify(sample));assert.equal(sample.preview_bg,sample.native_bg,JSON.stringify(sample));}
+ fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks:319,samples:results,palette,scoped},null,2));console.log('PASS 303 editor-state assertions and 8 official 2026/base CSS/Shadow/same-mode switch checks and 8 scoped-reader comparisons');view.destroy();app.exit(0);
 }).catch(error=>{console.error(error);view?.destroy();app.exit(1)});

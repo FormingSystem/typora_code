@@ -7997,7 +7997,8 @@
       "purpose": "implementation",
       "requirements": [
         "R068.3",
-        "R074.7"
+        "R074.7",
+        "R068.12"
       ],
       "design": "docs/reading_code_blocks.md#r0683-代码编辑状态明暗适配",
       "implementation": [
@@ -9496,6 +9497,41 @@
         "All six drafts cancel without renaming or changing file bytes; trusted activity clicks switch panels on the same gesture; dismissal ownership is released."
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-code-preview-theme-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.12",
+        "R074.7"
+      ],
+      "design": "docs/reading_code_blocks.md#r06812-编辑与预览共用代码颜色2026-10-02",
+      "implementation": [
+        "enhancements/src/reading_native_code.ts",
+        "enhancements/src/workspace_markdown_preview_render.ts",
+        "enhancements/src/reading_code_theme.ts",
+        "enhancements/src/workspace_markdown_theme.ts"
+      ],
+      "related_modules": [
+        "theme",
+        "CodeMirror"
+      ],
+      "script": "enhancements/fixtures/code_preview_theme_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "独立测试目录及最终构建"
+      ],
+      "steps": [
+        "Compare actual native fence characters and computed colors with production search and split readers in bash, tex, js, c and cpp under four theme identities."
+      ],
+      "expected": [
+        "Identical source text, foreground and background; no preview CodeMirror instances; source files unchanged."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

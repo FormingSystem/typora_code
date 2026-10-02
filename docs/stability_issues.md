@@ -531,3 +531,7 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 - BUG-reading-image-toolbar-anchor（R031.2，2026-10-02）：旧版居中大图从100%减到95%导致操作按钮横移30px；原生短文还会在图片缩短后自动钳制scrollTop，不能把此滚动误作用户离开操作。修复由共享浮层持有操作期锚点，滚轮/离开释放，边界变化钳制；证据见image_toolbar_anchor_20261002.json。此前黑屏及原始末行裁切仍独立待验。
 
 - BUG-explorer-rename-dismiss（R028.1，2026-10-02）：文件名输入仅处理Enter/Esc，点击不转移焦点的活动按钮后残留；旧版可信点击已复现。接入共享外部/焦点退出层，外部取消不吞事件、不写磁盘，成功/取消/隐藏/切根/销毁释放登记。验证关联rename_dismiss_20261002.json。
+
+## R068.12 阅读代码与原生编辑颜色分歧（2026-10-02）
+
+分类：reading/theme，普通语言分词所有者不一致。原生CodeMirror与预览Monaco分类不等价，查询视图另有旧色表。修复由共享宿主静态分词适配和共同主题负责，C/C++ TextMate保持。验收关联TC-reading-code-preview-theme-native、代码颜色与搜索/链接/Git主题UI；证据见[本次记录](../enhancements/tests/evidence/code_preview_colors_20261002.json)。本次不能关闭R071.7黑屏、R068.11现场裁切或R005.4双原生编辑器缺口。

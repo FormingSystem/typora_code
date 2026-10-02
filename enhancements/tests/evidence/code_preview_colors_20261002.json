@@ -1,0 +1,565 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "requirement": "R068.12",
+  "version": "2026.10.02.9",
+  "sequence": 2026100209,
+  "design": "docs/reading_code_blocks.md#r06812-编辑与预览共用代码颜色2026-10-02",
+  "status": "PASS; installed, running windows not restarted",
+  "manifest_sha256": "85019ed71be4829ad96abf5b5c58f3b9f3a4cac83ffbae94cbbb33c2f7a99c82",
+  "implementation": "Native CodeMirror mode resolution and indentation feed static preview spans for ordinary languages. Retain shared C/C++ TextMate, remove the lookup-only palette, and preserve the four existing Modern/2026 theme identities. No preview editor instance or native refresh call.",
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case": "e78fa928638942b684b3991d4e64cc14",
+      "boundary": "Before final mode-readiness guard adjustment; final guard rechecked through core/static/deployment, UI and native cold-start validation."
+    },
+    "final_core_static_deployment": "PASS; 272 catalog suites, 174 core source hashes, 56 workspace assets",
+    "ui": {
+      "status": "PASS",
+      "cases": {
+        "code_editor_colors": "b6aee4a754a04e46a2225c8da60d0434",
+        "lookup_preview": "2c11273037164ef0860b54b177b71ff3",
+        "theme_pair": "d632afa6db8641c0a5b7ae8a396dc616",
+        "git_markdown_diff": "211601291cf749aa9def7691d26993fe",
+        "link_preview": "d2e71e7454014422acee75ceb346affc"
+      },
+      "scoped_color_checks": 8,
+      "editor_color_assertions_total": 319
+    },
+    "native": {
+      "status": "PASS",
+      "case": "5e00685c7bb4415db2a3d1b08ca22a8e",
+      "host_version": "1.14.10",
+      "fixture_sha256": "23a30f7aeb314071e6035e9794a58d22352f032b6de0495c35c8bb7bb78de9b4",
+      "manifest_sha256": "85019ed71be4829ad96abf5b5c58f3b9f3a4cac83ffbae94cbbb33c2f7a99c82",
+      "assertions": 219,
+      "theme_switches": 24,
+      "languages": [
+        "bash",
+        "tex",
+        "js",
+        "c",
+        "cpp",
+        "unknown_fixture"
+      ],
+      "initial_mode_count": 3,
+      "coverage": "Search before opening native fences; actual native fence glyphs vs production search Shadow DOM and production split renderer in a bounded test holder; four theme identities, multiline/blank comment state, unknown plain text, background, unchanged files and single shared style owner. No trusted edit latency or split navigation claim.",
+      "comparisons": [
+        {
+          "language": "bash",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "bash",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "bash",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "bash",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "bash",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "bash",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "bash",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "bash",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "shell",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "tex",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "tex",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "tex",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "tex",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "tex",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "tex",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "tex",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "tex",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "text/x-stex",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "js",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "js",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "js",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "js",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "js",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "js",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "js",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "js",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "javascript",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "c",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "c",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "c",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "c",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "c",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "c",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "c",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "c",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-c",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "cpp",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "cpp",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "cpp",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "cpp",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "cpp",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "cpp",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "cpp",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "cpp",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "linux-note-vscode-textmate-cpp",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "dark",
+          "kind": "split",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "dark",
+          "kind": "search",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(31, 31, 31)",
+          "preview_bg": "rgb(31, 31, 31)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "dark_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "dark_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(18, 19, 20)",
+          "preview_bg": "rgb(18, 19, 20)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "light_2026",
+          "kind": "split",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "light_2026",
+          "kind": "search",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "light",
+          "kind": "split",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        },
+        {
+          "language": "unknown_fixture",
+          "identity": "light",
+          "kind": "search",
+          "differences": [],
+          "mode": "unknown_fixture",
+          "native_bg": "rgb(255, 255, 255)",
+          "preview_bg": "rgb(255, 255, 255)"
+        }
+      ]
+    },
+    "earlier_native_attempts": [
+      {
+        "case": "eb4955d940e84301a6be587ae223e0e0",
+        "error": "Error: split tokens bash",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "cc6b704ecdbc4cc88a668e85faa32825",
+        "error": "Error: split tokens bash",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "cad426827b224e03a3cce0be8a8c90cb",
+        "error": "Error: search tokens bash",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "8dd83589105e4a7dbc72e44fcaa4c7e7",
+        "error": "Error: search tokens bash",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "005735ca8183410899994d0a13031631",
+        "error": "Error: search rendered bash",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "b308dda9e3f0417f8acb470f3c1ea1d4",
+        "error": "Error: native source bash dark",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "57b0430f6d5544599599b09b3ffdf030",
+        "error": "Error: native source bash dark \"#!/bin/bash\\n# comment\\nname=\\\"hello\\\"\\nif [ \\\"$name\\\" ]; then\\n  echo \\\"$name\\\" 42\\nfi\"",
+        "checks_before_failure": 0
+      },
+      {
+        "case": "ee5706e4e7434646a596ee506371ecc0",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "checks_before_failure": 72
+      },
+      {
+        "case": "3e7885f4aab74335ae3570b4c070e503",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "checks_before_failure": 72
+      }
+    ],
+    "fixture_corrections": "Use a bounded parent for the split IntersectionObserver, wait for rendered search content, normalize native nonbreaking indent spaces/blank-line markers, and use one corpus. Early multi-file attempts stopped at native navigation after two documents; that separate handoff limit remains unclaimed.",
+    "install_cycle": {
+      "status": "PASS",
+      "case": "e3da530d7c5b4e9e810e381b77401c11",
+      "coverage": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/config/backup preserved",
+      "payload": "cleaned"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "case": "b782fa4ac7a44e4ca809698a18458ed1",
+      "assertions": 65,
+      "payload": "cleaned"
+    }
+  },
+  "local_installation": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "85019ed71be4829ad96abf5b5c58f3b9f3a4cac83ffbae94cbbb33c2f7a99c82",
+    "installed_sequence": 2026100209,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  },
+  "limitations": [
+    "Other platforms and full UI suite not run.",
+    "Native regression checks code rendering, not long-duration GPU/input latency or independent dual native editors.",
+    "R071.7 whole-window black screens, R068.11 original clipping and R005.4 dual-native editing remain unresolved.",
+    "No push; current user windows retain their loaded version until manual restart."
+  ]
+}

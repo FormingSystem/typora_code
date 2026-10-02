@@ -201618,11 +201618,63 @@ https://creativecommons.org/licenses/by/4.0/
     return "@scope (".concat(selector, ") {").concat(markdown_theme_rules().replace(/:host-context\(([^)]+)\)/gu, "$1").replace(/content\s*>\s*#write/gu, ":scope").replace(/#write\b/gu, ":scope").replace(/:host\b/gu, ":scope"), "}");
   }
 
+  // src/reading_native_code.ts
+  var mode_loading;
+  async function load_native_modes(host, doc) {
+    if (["shell", "stex", "javascript"].every((name) => host.CodeMirror.modes[name])) return;
+    if (!mode_loading) mode_loading = new Promise((resolve3, reject) => {
+      const script = doc.createElement("script");
+      const finish = (error) => {
+        clearTimeout(timeout2);
+        script.onload = script.onerror = null;
+        script.remove();
+        error ? reject(error) : resolve3();
+      };
+      const timeout2 = setTimeout(() => finish(new Error("Native code modes timed out")), 1e4);
+      script.onload = () => finish();
+      script.onerror = () => finish(new Error("Native code modes unavailable"));
+      script.src = new URL("".concat(host.File?.isNode && !host.debugMode ? "./lib.asar" : "./lib", "/codemirror/mode.min.js"), doc.baseURI).href;
+      doc.head.append(script);
+    }).catch((error) => {
+      mode_loading = void 0;
+      throw error;
+    });
+    await mode_loading;
+  }
+  async function native_code_fragment(text3, language44, doc = document) {
+    const host = doc.defaultView, api2 = host?.CodeMirror;
+    if (!api2?.getMode || !api2.startState || !api2.StringStream || !host?.getCodeMirrorMode) return void 0;
+    await load_native_modes(host, doc);
+    const tab_size = host.File?.option?.codeIndentSize || 4;
+    const mode = api2.getMode({ tabSize: tab_size, indentUnit: tab_size }, host.getCodeMirrorMode(language44));
+    const state = api2.startState(mode), fragment = doc.createDocumentFragment();
+    text3.split("\n").forEach((line, index) => {
+      if (index) fragment.append(doc.createTextNode("\n"));
+      if (!line) {
+        mode.blankLine?.(state);
+        return;
+      }
+      const stream = new api2.StringStream(line, tab_size);
+      while (!stream.eol()) {
+        const style = mode.token(stream, state);
+        if (stream.pos <= stream.start) stream.pos = stream.start + 1;
+        const value = stream.current();
+        if (style) {
+          const span = doc.createElement("span");
+          span.className = style.split(/\s+/u).filter(Boolean).map((role) => "cm-" + role).join(" ");
+          span.textContent = value;
+          fragment.append(span);
+        } else fragment.append(doc.createTextNode(value));
+        stream.start = stream.pos;
+      }
+    });
+    return fragment;
+  }
+
   // src/workspace_markdown_preview_render.ts
   init_editor_api();
   var diagram_serial = 0;
   async function highlight_preview_code(code) {
-    initialize_editor();
     const hint = (code.className.match(/language-([^\s]+)/u)?.[1] || "plaintext").toLowerCase();
     const aliases = { js: "javascript", ts: "typescript", sh: "shell", bash: "shell", py: "python", yml: "yaml", "c++": "cpp", ps1: "powershell" };
     const language44 = aliases[hint] || (languages.getLanguages().some((item) => item.id === hint) ? hint : detect_file_language("preview.".concat(hint)));
@@ -201645,6 +201697,12 @@ https://creativecommons.org/licenses/by/4.0/
       code.replaceChildren(fragment2);
       return;
     }
+    const native = await native_code_fragment(text3, hint, code.ownerDocument);
+    if (native) {
+      code.replaceChildren(native);
+      return;
+    }
+    initialize_editor();
     await editor.colorize(text3, language44, { tabSize: 4 });
     const tokens = editor.tokenize(text3, language44), lines = text3.split("\n"), fragment = document.createDocumentFragment();
     lines.forEach((line, index) => {
@@ -252987,6 +253045,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100209,
+        version: "2026.10.02.9",
+        date: "2026-10-02",
+        notes: [
+          "\u4EE3\u7801\u9605\u8BFB\u9884\u89C8\u6CBF\u7528\u539F\u751F\u7F16\u8F91\u7684\u8BED\u8A00\u5206\u7C7B\u4E0E\u5171\u540C\u4E3B\u9898\uFF0C\u7EDF\u4E00\u51FD\u6570\u3001\u53D8\u91CF\u3001\u5173\u952E\u5B57\u7B49\u989C\u8272\u3002",
+          "VSCode2026\u4FDD\u7559\u65B0\u7248\u9ED8\u8BA4\u4EE3\u7801\u914D\u8272\uFF0CCpp\u4FDD\u7559Modern\u9ED8\u8BA4\u914D\u8272\uFF1B\u641C\u7D22\u3001\u94FE\u63A5\u3001\u5206\u5C4F\u4E0EGit\u9605\u8BFB\u5171\u7528\u89C4\u5219\u3002"
+        ],
+        notes_en: [
+          "Use native editing token roles and the shared theme in code readers, keeping functions, variables and keywords consistent.",
+          "Keep the 2026 defaults for VSCode2026 and Modern defaults for Cpp across search, link, split and Git readers."
+        ]
+      },
+      {
         sequence: 2026100208,
         version: "2026.10.02.8",
         date: "2026-10-02",
@@ -258517,7 +258588,7 @@ https://creativecommons.org/licenses/by/4.0/
       rules.push(markdown_theme_rules());
       const local = workspace_element("style");
       local.textContent = ":host{display:block;color:inherit}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:12px!important;inset:auto!important;overflow-wrap:anywhere}#write img{max-width:100%}#write .lookup-target-block{outline:1px solid var(--select-text-bg-color,#007acc);outline-offset:2px}#write mark[data-lookup-match]{background:var(--lookup-match-background);color:inherit}#write mark.lookup-anchor-match{background:var(--lookup-anchor-background);outline:1px solid var(--vscode-focusBorder,#0069CC)}#write a{cursor:".concat(options2.navigate ? "pointer" : "default", "}#write input{pointer-events:none}");
-      local.textContent += "#write{--lookup-code-keyword:#0000ff;--lookup-code-string:#a31515;--lookup-code-comment:#008000;--lookup-code-number:#098658;--lookup-code-type:#267f99}#write[data-preview-theme=dark]{--lookup-code-keyword:#569cd6;--lookup-code-string:#ce9178;--lookup-code-comment:#6a9955;--lookup-code-number:#b5cea8;--lookup-code-type:#4ec9b0}#write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--lookup-code-keyword)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--lookup-code-string)}#write .lookup-code-comment{color:var(--lookup-code-comment)}#write .lookup-code-number{color:var(--lookup-code-number)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--lookup-code-type)}#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}";
+      local.textContent += "#write .lookup-diagram svg{max-width:100%;height:auto}#write .lookup-diagram-source-label{font-size:.8em;opacity:.65}";
       rules.push(local.textContent || "");
       const text3 = rules.join("\n");
       if (theme_style2.textContent !== text3) theme_style2.textContent = text3;
