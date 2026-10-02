@@ -187,11 +187,14 @@ function code_fence_is_diagram(fence: Element): boolean {
 }
 
 function remove_code_collapse(fence: HTMLElement): void {
+  const was_collapsible = fence.classList.contains("linux-note-code-collapsible");
   for (const class_name of ["linux-note-code-collapsible", "is-code-collapsed", "is-code-expanded"]) {
     if (fence.classList.contains(class_name)) fence.classList.remove(class_name);
   }
   fence.style.removeProperty("--linux-note-code-collapsed-height");
   fence.querySelector(":scope > .linux-note-code-toolbar")?.remove();
+  // Re-measure after automatic fold exit just as after an explicit expand action.
+  if (was_collapsible) code_geometry?.refresh(fence);
 }
 
 function render_code_toggle(button: HTMLButtonElement, expanded: boolean): void {

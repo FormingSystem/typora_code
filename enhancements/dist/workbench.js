@@ -252930,6 +252930,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100206,
+        version: "2026.10.02.6",
+        date: "2026-10-02",
+        notes: [
+          "\u957F\u4EE3\u7801\u5757\u5220\u9664\u591A\u884C\u3001\u9000\u51FA\u6298\u53E0\u9650\u5236\u540E\uFF0C\u81EA\u52A8\u91CD\u65B0\u6D4B\u91CF\u8BE5\u4EE3\u7801\u5757\uFF0C\u8865\u9F50\u9AD8\u5EA6\u66F4\u65B0\u901A\u77E5\uFF1B\u4FDD\u7559\u539F\u751F\u7F16\u8F91\u548C\u64A4\u9500\u3002",
+          "\u73B0\u573A\u672B\u884C\u88C1\u5207\u4ECD\u9700\u590D\u6838\uFF0C\u65E2\u6709\u9ED1\u5C4F\u95EE\u9898\u4ECD\u672A\u89E3\u51B3\u3002"
+        ],
+        notes_en: [
+          "When deleting lines makes a code block leave its folding limit, its native measurements are invalidated automatically while editing and undo remain native.",
+          "The reported last-line clipping still needs confirmation in the original scenario. The previous black-screen issue remains unresolved."
+        ]
+      },
+      {
         sequence: 2026100205,
         version: "2026.10.02.5",
         date: "2026-10-02",
@@ -267954,11 +267967,13 @@ https://creativecommons.org/licenses/by/4.0/
     return ["flow", "flowchart", "mermaid", "plantuml", "sequence"].includes(language44) || Boolean(fence.querySelector(".md-diagram-panel-preview"));
   }
   function remove_code_collapse(fence) {
+    const was_collapsible = fence.classList.contains("linux-note-code-collapsible");
     for (const class_name of ["linux-note-code-collapsible", "is-code-collapsed", "is-code-expanded"]) {
       if (fence.classList.contains(class_name)) fence.classList.remove(class_name);
     }
     fence.style.removeProperty("--linux-note-code-collapsed-height");
     fence.querySelector(":scope > .linux-note-code-toolbar")?.remove();
+    if (was_collapsible) code_geometry?.refresh(fence);
   }
   function render_code_toggle(button, expanded2) {
     if (button.getAttribute("aria-expanded") === String(expanded2)) return;

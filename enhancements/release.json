@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100206,
+      "version": "2026.10.02.6",
+      "date": "2026-10-02",
+      "notes": [
+        "长代码块删除多行、退出折叠限制后，自动重新测量该代码块，补齐高度更新通知；保留原生编辑和撤销。",
+        "现场末行裁切仍需复核，既有黑屏问题仍未解决。"
+      ],
+      "notes_en": [
+        "When deleting lines makes a code block leave its folding limit, its native measurements are invalidated automatically while editing and undo remain native.",
+        "The reported last-line clipping still needs confirmation in the original scenario. The previous black-screen issue remains unresolved."
+      ]
+    },
+    {
       "sequence": 2026100205,
       "version": "2026.10.02.5",
       "date": "2026-10-02",

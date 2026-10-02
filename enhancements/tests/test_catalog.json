@@ -9429,6 +9429,37 @@
         "Current candidate content is retained in this sequence. Passing does not close the actual user renderer-termination issue."
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-code-shrink-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.11"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/reading_code_geometry.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "CodeMirror",
+        "reading",
+        "zoom",
+        "minimap"
+      ],
+      "script": "enhancements/fixtures/code_shrink_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora 1.14.10独立副本、Windows私有桌面、真实CodeMirror",
+      "preconditions": "使用prepare_stability_native.py创建独立用户数据及文档，等待运行器窗口尺寸就绪；不操作用户窗口。",
+      "steps": [
+        "Delete from a folded/expanded wrapped fence using native keyboard, verify final-line bounds, fold-exit measurement, undo/redo and repeated transitions in both themes and zoom levels."
+      ],
+      "expected": [
+        "Native geometry handoff runs after actual fold exit; content/undo and complete final-line ranges survive. Passing does not establish reproduction of the original clipping."
+      ],
+      "timeout_ms": 60000
     }
   ]
 }
