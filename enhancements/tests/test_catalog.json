@@ -2928,7 +2928,8 @@
       "requirements": [
         "R020",
         "R044",
-        "R069.1"
+        "R069.1",
+        "R023.1"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -3234,7 +3235,8 @@
         "R002",
         "R042",
         "R069",
-        "R069.3"
+        "R069.3",
+        "R023.1"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -5979,7 +5981,8 @@
         "R069.7",
         "R069.8",
         "R069.9",
-        "R069.10"
+        "R069.10",
+        "R023.1"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -9249,6 +9252,42 @@
       ],
       "expected": [
         "Preserve text and selections, update group/source geometry, retain the source logical line, and report input-to-geometry/frame latency and trailing work without claiming physical GPU performance."
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-search-preview-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R023.1"
+      ],
+      "design": "docs/search_performance.md#r0231-搜索结果大纲与点击锚点2026-10-02",
+      "implementation": [
+        "enhancements/src/workspace_search.ts",
+        "enhancements/src/workspace_lookup_preview.ts",
+        "enhancements/src/workspace_search_preview_context.ts",
+        "enhancements/src/workspace_link_preview.ts"
+      ],
+      "related_modules": [
+        "search",
+        "preview",
+        "selection",
+        "theme"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/search_preview_native.js",
+      "environment": "Windows private desktop, original Typora 1.14.10, software rendering",
+      "preconditions": "Use the verified host and isolated user data; optional repro.md is a read-only copy, never the user original.",
+      "steps": [
+        "Run test_stability_native.ps1 -fixture search_preview_native.js with the verified host.",
+        "Use 100 Markdown and 100 source matches, two native themes and trusted wheel messages in the isolated desktop.",
+        "Select a native Markdown link, scroll its floating preview, and record Markdown input-to-frame and trailing scroll timing."
+      ],
+      "expected": [
+        "All matches have decorations; explicit selection and reading marker remain independent; return reveals the anchor; main document and files remain unchanged.",
+        "The floating link preview borrows ordinary highlights without search anchors or result-following behavior; its source document remains unchanged."
       ],
       "timeout_ms": 240000
     }

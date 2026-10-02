@@ -1,3 +1,4 @@
+import {create_search_preview_context} from "./workspace_search_preview_context";
 import {workspace_text} from "./workspace_i18n";
 import {apply_workspace_row_selection} from "./workspace_list_selection";
 import {create_preview_scale_controls} from "./workspace_preview_scale";
@@ -28,6 +29,7 @@ const search_path_order = new Intl.Collator("zh-CN", {numeric: true});
 /** File search occupies a dedicated sidebar panel, with fixed input area and separate scrolling result area. */
 export function bind_workspace_search(core: graph_core, files: workspace_file_host) {
   const lifetime=create_workspace_lifetime();
+  const preview_context=lifetime.own(create_search_preview_context());
   try {
   const style = acquire_workspace_style("typora-code-style:workspace_search", search_css, {});
   lifetime.add(()=>style.remove());
@@ -52,9 +54,10 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     form = el("div", "workspace-search-form"); results = el("div", "workspace-search-results"); status = el("div", "workspace-search-status");
     replace_row = el("div", "workspace-search-input-row workspace-search-replace"); details = el("div", "workspace-search-details");
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
-    preview = lifetime.own(create_lookup_preview(files)); preview_section = el("section", "workspace-search-preview-section");
+    preview = lifetime.own(create_lookup_preview(files,undefined,{visible_match:(file,match)=>this.follow_preview(file,match)})); preview_section = el("section", "workspace-search-preview-section");
     preview_toggle = git_icon_button("chevron-down", workspace_text("search_collapse_preview"), () => this.set_preview_open(!this.preview_open)); preview_open = true;
     preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
+    reading_match_id = "";
     selected?: {file:workspace_search_file;match:workspace_search_match}; remembered = new Map<string,string>(); open_generation = 0;
     options: workspace_search_options = {query:"",regex:DEFAULT_SEARCH_REGEX,use_ignore:true}; result?: workspace_search_result;
     controller?: AbortController; visible=false; timer=0; tree=false; sort="path"; only_open=false; only_changed=false; history: string[]=[]; history_index=-1;
@@ -110,7 +113,8 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
       exclude_box.append(this.excludes,ignore);this.details.append(include_box,exclude_label,exclude_box);this.form.append(query_row,this.replace_row,options_row,this.details,this.status);
       const preview_heading=el("div","workspace-search-preview-heading");preview_heading.setAttribute("role","toolbar");preview_heading.setAttribute("aria-label",workspace_text("search_preview_toolbar"));
       this.preview_toggle.append(el("span","",workspace_text("reading_minimap_preview")));this.preview_toggle.setAttribute("aria-expanded","true");
-      preview_heading.append(this.preview_toggle,this.preview_scale.container);this.preview_section.append(preview_heading,this.preview.container);this.preview_section.hidden=true;
+      const return_anchor=git_icon_button("target",workspace_text("search_return_preview_anchor"),()=>this.preview.reveal_match(),"workspace-search-return-anchor");
+      preview_heading.append(this.preview_toggle,return_anchor,this.preview_scale.container);this.preview_section.append(preview_heading,this.preview.container);this.preview_section.hidden=true;
       this.split.tabIndex=0;this.split.setAttribute("role","separator");this.split.setAttribute("aria-orientation","horizontal");this.split.setAttribute("aria-label",workspace_text("search_adjust_search_results_and_preview_height"));this.split.setAttribute("aria-valuemin","15");this.split.setAttribute("aria-valuemax","75");this.split.hidden=true;this.set_split(40);
       this.body.append(this.results,this.split,this.preview_section);
       lifetime.own(bind_preview_resize(this.preview_section,()=>({width:native_sidebar?.contains(this.containerEl)?native_sidebar.offsetWidth:this.preview_section.offsetWidth,height:this.preview_section.offsetHeight}),size=>{
@@ -139,7 +143,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     set_split(value:number){value=Math.max(15,Math.min(75,Math.round(value)));this.body.style.setProperty("--search-results-size",`${value}%`);this.split.setAttribute("aria-valuenow",String(value));}
     set_preview_open(open:boolean){this.preview_open=open;this.preview_section.classList.toggle("is-collapsed",!open);this.preview.container.hidden=!open;this.split.hidden=!open||this.preview_section.hidden;this.body.classList.toggle("has-preview",open&&!this.preview_section.hidden);this.preview_toggle.setAttribute("aria-expanded",String(open));this.preview_toggle.title=open?workspace_text("search_collapse_preview"):workspace_text("search_preview_expansion");this.preview_toggle.setAttribute("aria-label",this.preview_toggle.title);}
-    clear_results(){this.preview.clear();++this.open_generation;this.render_versions.set(this.results,(this.render_versions.get(this.results)||0)+1);this.omitted_files.clear();this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
+    clear_results(){preview_context.clear();this.reading_match_id="";this.preview.clear();++this.open_generation;this.render_versions.set(this.results,(this.render_versions.get(this.results)||0)+1);this.omitted_files.clear();this.result=undefined;this.selected=undefined;this.results.replaceChildren();this.preview_section.hidden=true;this.split.hidden=true;this.body.classList.remove("has-preview");this.containerEl.dataset.state="waiting";}
     clear_native(){if(this.visible&&native_sidebar){const classes=["active-tab-files","active-tab-outline","ty-show-search","ty-on-search"];if(classes.some(name=>native_sidebar.classList.contains(name)))native_sidebar.classList.remove(...classes);}}
     onshow(){this.visible=true;this.clear_native();if(native_sidebar)this.native_observer.observe(native_sidebar,{attributes:true,attributeFilter:["class"]});}
     onhide(){this.visible=false;this.native_observer.disconnect();}
@@ -165,6 +169,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     }
     remove_result(file:workspace_search_file,group:HTMLElement){
       const result=this.result;if(!result||!result.files.includes(file))return;
+      preview_context.remove(file.file_path);
       this.omitted_files.add(file.file_path);
       result.files=result.files.filter(item=>item!==file);result.counts.matched_files=result.files.length;result.counts.matches=result.files.reduce((sum,item)=>sum+item.matches.length,0);
       group.remove();this.update_status();this.render();
@@ -190,7 +195,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         this.result=progressive;let progress_time=0;const render_tasks:Promise<void>[]=[];let render_error:unknown;
         const result=await engine.search(root,options,{signal:controller.signal,on_file:(file,counts)=>{
           if(disposed||this.controller!==controller||controller.signal.aborted)return;
-          progressive.files.push(file);progressive.counts=counts;render_tasks.push(this.render(this.results,file).catch(error=>{render_error ||= error;}));
+          preview_context.publish(file);progressive.files.push(file);progressive.counts=counts;render_tasks.push(this.render(this.results,file).catch(error=>{render_error ||= error;}));
           if(performance.now()-progress_time>=80){progress_time=performance.now();this.status.replaceChildren(el('span','workspace-search-counts',workspace_text("search_searching_files_results", {value_0: String(counts.matched_files), value_1: String(counts.matches)})),stop);}
         }});
         await Promise.all(render_tasks);if(disposed||this.controller!==controller)return;if(render_error)throw render_error;
@@ -257,7 +262,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         for(const match of file.matches){
           if(rendered++%64===63||performance.now()>deadline){await new Promise<void>(resolve=>window.setTimeout(resolve,0));if(!current())return;deadline=performance.now()+8;}
           const row=button("",()=>this.select(file,match),"workspace-search-match");row.dataset.matchId=match.id;row.title=`${file.relative_path}:${match.line}:${match.column}\n${match.preview}`;row.setAttribute("aria-label",workspace_text("search_line_column", {value_0: String(file.relative_path), value_1: String(match.line), value_2: String(match.column), value_3: String(match.preview)}));
-          const selected=this.selected?.match.id===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",String(selected));
+          const selected=this.selected?.match.id===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",this.reading_match_id===row.dataset.matchId?"location":"false");
           row.append(el("span","workspace-search-line",String(match.line)));const preview=el("span","workspace-search-preview");let start=0;
           for(const range of match.preview_ranges){preview.append(document.createTextNode(match.preview.slice(start,range.start)),el("mark","",match.preview.slice(range.start,range.end)));start=range.end;}preview.append(document.createTextNode(match.preview.slice(start)));row.append(preview);
           row.oncontextmenu=event=>workspace_menu(event,[{title:workspace_text("search_open_matching_location"),action:()=>this.open_match(file,match)}, {title:workspace_text("file_tree_open_on_the_right"),action:()=>this.open_match(file,match,"right")}, {title:workspace_text("search_copy_matching_line"),action:()=>files.copy(match.preview)}, {title:workspace_text("search_replace_this_match"),action:()=>void this.replace(file.file_path,[match.id])}]);
@@ -267,13 +272,25 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
         this.rendered_groups.set(group,file);
       }
     }
+    follow_preview(file:workspace_search_file,match:workspace_search_match){
+      if(disposed||this.selected?.file!==file)return;
+      this.reading_match_id=match.id;
+      let current:HTMLElement|undefined;
+      for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){
+        const active=row.dataset.matchId===match.id;row.setAttribute("aria-current",active?"location":"false");if(active)current=row;
+      }
+      if(!current?.getClientRects().length)return;
+      const row=current.getBoundingClientRect(),list=this.results.getBoundingClientRect();
+      if(row.top<list.top)this.results.scrollTop+=row.top-list.top;
+      else if(row.bottom>list.bottom)this.results.scrollTop+=row.bottom-list.bottom;
+    }
     file_match(file:workspace_search_file){return file.matches.find(match=>match.id===this.remembered.get(file.file_path))||file.matches[0];}
     select(file:workspace_search_file,match:workspace_search_match){
 
       if(!match||disposed)return;this.preview_section.hidden=false;this.set_preview_open(true);
       if(this.selected?.file===file&&this.selected.match===match){this.preview.reveal_match();return;}
-      ++this.open_generation;this.selected={file,match};this.remembered.set(file.file_path,match.id);
-      for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",String(selected));}
+      ++this.open_generation;this.reading_match_id=match.id;this.selected={file,match};this.remembered.set(file.file_path,match.id);preview_context.publish(file);
+      for(const row of this.results.querySelectorAll<HTMLElement>("[data-match-id]")){const selected=row.dataset.matchId===match.id;apply_workspace_row_selection(row,selected,selected);row.setAttribute("aria-current",this.reading_match_id===row.dataset.matchId?"location":"false");}
 
       void Promise.resolve(this.preview.show(file,match,"",true)).catch(error=>{if(!disposed&&this.selected?.match===match)this.status.textContent=String(error);});
     }

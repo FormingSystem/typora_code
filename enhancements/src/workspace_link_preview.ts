@@ -1,3 +1,4 @@
+import {read_search_preview_context,observe_search_preview_context} from "./workspace_search_preview_context";
 import {workspace_text} from "./workspace_i18n";
 import {create_preview_web} from './workspace_preview_web';
 import type {workspace_file_host} from "./workspace_files";
@@ -36,6 +37,15 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const sync_scale=()=>{const value=String(reader?.get_scale()||80);if(container.dataset.previewScale!==value)container.dataset.previewScale=value;};
   const scale_observer=new MutationObserver(sync_scale);scale_observer.observe(content,{subtree:true,attributes:true,attributeFilter:['data-preview-scale']});
   const open=git_icon_button("go-to-file",workspace_text("link_preview_open_source_file"),async()=>{const version=generation;if(open.disabled||directory)return;open.disabled=true;try{if(target?.kind==="file")await files.open_file(target.path,{hash:target.hash});else if(target?.kind==="web")await runtime.JSBridge?.showInBrowser?.(web?.current_url()||target.url);}catch(error){if(!disposed&&version===generation)fail(error);}finally{if(!disposed&&version===generation)open.disabled=false;}});
+  let search_file:unknown;
+  const sync_search=()=>{
+    const context=target?.kind==="file"&&!directory?read_search_preview_context(target.path):undefined;
+    if(!reader||!target||target.kind!=="file"||search_file===context?.file)return;
+    search_file=context?.file;
+    const current_reader=reader,version=generation;
+    void reader.update_matches(context?.file||{file_path:target.path,relative_path:files.path_api.basename(target.path),matches:[]}).catch(error=>{if(!disposed&&generation===version&&reader===current_reader)fail(error);});
+  };
+  const release_search=observe_search_preview_context(sync_search);
   const retry=git_icon_button("refresh",workspace_text("link_preview_reload"),()=>{if(web&&!failed_request){web.reload();return;}const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
   const back=git_icon_button('arrow-left',workspace_text("link_preview_preview_back_alt"),()=>void travel(-1));
   const forward=git_icon_button('arrow-right',workspace_text("link_preview_preview_forward_alt"),()=>void travel(1));
@@ -67,6 +77,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     if(!target){title.textContent=value.href;title.title=value.href;open.disabled=true;}
     let next_web:ReturnType<typeof create_preview_web>|undefined;
     let next:preview_reader|undefined,next_directory:ReturnType<typeof create_preview_directory>|undefined;
+    let next_search_file:ReturnType<typeof read_search_preview_context>;
     const stage=el('div','workspace-link-preview-stage');stage.style.cssText='position:absolute;inset:0;visibility:hidden;display:flex;min-height:0';pending_stage=stage;content.append(stage);
     try{
       const resolved=resolve_preview_link(files.path_api,value.source,value.href);
@@ -80,17 +91,20 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
           if(!restore){const index=next_directories.findIndex(item=>item.path===resolved.path);if(index>=0){directory_position=next_directories[index].position;next_directories=next_directories.slice(0,index);}}
           next_directory=create_preview_directory(files,resolved.path,entries,path=>void navigate(path_request(path)));pending_directory=next_directory;stage.append(next_directory.container);
         }else{
-        next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href)});pending_reader=next;stage.append(next.container);
+        next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href),search_anchor:false});pending_reader=next;stage.append(next.container);
         const ok=await next.show({file_path:resolved.path,relative_path:files.path_api.basename(resolved.path),matches:[]},{id:"link",start:0,end:0,line:1,column:1,end_line:1,end_column:1,text:"",preview:"",preview_ranges:[]},resolved.hash,true);
         if(!ok)throw new Error(next.container.textContent||workspace_text("link_preview_cannot_read_link_target"));
+        next_search_file=read_search_preview_context(resolved.path);
+        if(next_search_file)await next.update_matches(next_search_file.file);
         }
       }else{
         next_web=create_preview_web(resolved.url,()=>{if(disposed||version!==generation)return;sync_navigation();if(web&&target?.kind==='web'){const url=web.current_url();try{title.textContent=new URL(url).hostname;title.title=url;}catch{}}});stage.append(next_web.frame,next_web.status);
       }
       if(disposed||version!==generation){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
       web?.dispose();web=next_web;reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
-      target=resolved;request={...value};message.hidden=true;
+      target=resolved;request={...value};message.hidden=true;search_file=next_search_file?.file;
       if(restore?.position)reader?.restore_position(restore.position);
+      sync_search();
       if(directory_position)directory?.restore_position(directory_position);
       const last=directories.at(-1);return_directory.hidden=!last;return_directory.textContent=last?workspace_text("link_preview_return_to_directory")+(files.path_api.basename(last.path)||last.path):'';return_directory.title=last?.path||'';
       title.textContent=resolved.kind==="file"?files.path_api.basename(resolved.path):new URL(resolved.url).hostname;title.title=resolved.kind==='file'?resolved.path+resolved.hash:resolved.url;
@@ -110,5 +124,5 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)void travel(event.key==='ArrowLeft'?-1:1);
   };
   container.addEventListener('keydown',keydown,true);
-  return {container,show,clear,set_pinned,dispose(){if(disposed)return;disposed=true;clear();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
+  return {container,show,clear,set_pinned,dispose(){release_search();if(disposed)return;disposed=true;clear();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
 }

@@ -37,3 +37,6 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-preview-directory-entry{display:flex;align-items:center;width:100%;gap:6px;padding:0 8px;border:0;background:transparent;color:inherit;text-align:left;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
 .workspace-preview-directory-entry>.git-standard-icon{flex:none;width:16px;height:16px}
 .workspace-preview-directory-name{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.workspace-lookup-preview .lookup-search-match{background:var(--lookup-match-background)}
+.workspace-lookup-preview .lookup-anchor-match{background:var(--lookup-anchor-background);outline:1px solid var(--vscode-focusBorder,#0069CC)}

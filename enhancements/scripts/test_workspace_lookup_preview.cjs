@@ -22,6 +22,8 @@ const documents = {
   'tab_positions.md': ['---','title: Metadata stays hidden','---','','# Source map','','```c','static int sample(void) {','\treturn 1;','}','```','','```mermaid','sequenceDiagram','  A->>B: Earlier diagram','```','','## Correct paragraph','','`ct_rcu_watching_cpu_acquire()` is the expected rendered position.',''].join('\r\n'),
   'diagram.md':['# Diagram preview','','```mermaid','flowchart LR','  A[diagram_target] --> B[Next step]','```','','Selected paragraph_target stays below the rendered diagram.',''].join('\n'),
   'large.md': 'large_target',
+  'outline.md': Array.from({length:1000},(_,index)=>`Paragraph ${index}: outline_needle with **bold** content.\n\n`).join(''),
+  'outline.ts': Array.from({length:1000},(_,index)=>`const outline_needle_${index} = ${index};`).join('\n'),
   'binary.bin': '\0binary_target',
 };
 for (const [name, text] of Object.entries(documents)) fs.writeFileSync(path.join(workspace, name), text);
@@ -208,6 +210,36 @@ app.whenReady().then(async () => {
       const result=await evaluate(`(()=>{const r=document.createRange();r.setStart(anchor.node,anchor.offset);r.setEnd(anchor.node,anchor.offset+1);const p=r.getBoundingClientRect(),v=scroll_body.getBoundingClientRect();return {top:p.top-v.top,height:v.height,scroll:scroll_body.scrollTop};})()`);
       assert(result.top>=0&&result.top<result.height&&result.scroll>1000,JSON.stringify({i,...result}));
     }
+  });
+  await verify('All Markdown matches, explicit anchor and reading position remain independent at 20/100/1000 hits',async()=>{
+    await evaluate(`preview.dispose();window.visible_hits=[];window.preview=lookup_qa.create_lookup_preview(files,undefined,{visible_match:(file,match)=>visible_hits.push(match.id)});document.querySelector('#preview_mount').append(preview.container);window.make_all=(name,count)=>({file_path:path_api.join(workspace_path,name),relative_path:name,matches:Array.from({length:count},(_,index)=>make_match(name,'outline_needle',index))});void 0`);
+    for(const count of [20,100,1000]){
+      await evaluate(`window.outline_file=make_all('outline.md',${count});preview.show(outline_file,outline_file.matches[0])`);
+      assert.equal(await evaluate('markdown_root().querySelectorAll("mark[data-lookup-match]").length'),count);
+      assert.equal(await evaluate('markdown_root().querySelectorAll("mark.lookup-anchor-match").length'),1);
+    }
+    const colors=await evaluate('(()=>{const marks=markdown_root().querySelectorAll("mark");return [getComputedStyle(marks[0]).backgroundColor,getComputedStyle(marks[1]).backgroundColor]})()');assert.notEqual(colors[0],colors[1]);
+    await evaluate(`window.saved_reader=markdown_root().querySelector('#write');window.outline_reads=reads.length;preview.show(outline_file,outline_file.matches[700])`);
+    assert(await evaluate('saved_reader===markdown_root().querySelector("#write")&&reads.length===outline_reads'),'same file reuses reader and disk content');
+    await delay(80);await wheel(-1400);await delay(100);
+    assert.notEqual(await evaluate('visible_hits.at(-1)'),await evaluate('outline_file.matches[700].id'));
+    assert.equal(await evaluate('markdown_root().querySelector(".lookup-anchor-match").dataset.lookupMatch'),await evaluate('outline_file.matches[700].id'));
+    await evaluate('preview.reveal_match();void 0');await delay(100);
+    assert.equal(await evaluate('visible_hits.at(-1)'),await evaluate('outline_file.matches[700].id'));
+  });
+  await verify('Monaco highlights all matches, retains its model and returns to the explicit anchor after scrolling',async()=>{
+    await evaluate(`window.outline_source=make_all('outline.ts',1000);preview.show(outline_source,outline_source.matches[200])`);await delay(80);
+    assert.equal(await evaluate('source_editor().getModel().getAllDecorations().filter(item=>item.options.className?.includes("lookup-search-match")).length'),1000);
+    await evaluate('window.saved_model=source_editor().getModel();preview.show(outline_source,outline_source.matches[700])');
+    assert(await evaluate('saved_model===source_editor().getModel()'));
+    await wheel(-1200);assert.notEqual(await evaluate('visible_hits.at(-1)'),await evaluate('outline_source.matches[700].id'));
+    await evaluate('source_editor().setSelection({startLineNumber:1,startColumn:1,endLineNumber:1,endColumn:1});preview.reveal_match();void 0');await delay(80);
+    assert.equal(await evaluate('source_editor().getSelection().startLineNumber'),701);
+  });
+  await verify('All visible link text matches are highlighted without decorating the hidden URL',async()=>{
+    await evaluate(`window.link_file={file_path:path_api.join(workspace_path,'link_offset.md'),relative_path:'link_offset.md',matches:Array.from({length:4},(_,index)=>make_match('link_offset.md','repeat_link',index))};preview.show(link_file,link_file.matches[2])`);
+    const marked=await evaluate('[...markdown_root().querySelectorAll("mark[data-lookup-match]")].map(node=>node.dataset.lookupMatch)');
+    assert.equal(marked.length,3);assert(!marked.includes(await evaluate('link_file.matches[1].id')));
   });
   await verify('Disposing during a pending read removes resources and prevents late rendering', async () => {
     await evaluate('window.pending_request=show_file("slow.md","slow_target");preview.dispose()');await evaluate('pending_request');assert.equal(await evaluate('document.querySelectorAll(".workspace-lookup-preview").length'),0);assert.equal(await evaluate('lookup_qa.monaco.editor.getModels().length'),0);

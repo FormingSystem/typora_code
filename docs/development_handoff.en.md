@@ -3,6 +3,9 @@
 <a id="section_ddfea55b21d8"></a>
 # TyporaCode Development Handover
 
+2026-10-02 R023.1: 2026.10.02.1 is built, verified and installed locally. Search owns match identities, its sidebar owns the explicit return anchor, and the reader reports viewport position. Link previews borrow ordinary match context without driving search selection. Asynchronous decoration retains the latest position; link history restoration waits for initial highlights. Four related UI suites, 26 native checks, full core checks and install/uninstall validation passed. Existing windows require a normal restart. Ownership, corrected failures and platform limits are recorded in the [evidence](../enhancements/tests/evidence/search_preview_outline_20261002.json).
+
+
 2026-10-01 R071.6/R083: 2026.10.01.3 is built, validated and installed locally. Shared layout owns local resizing and native frame dimensions; source font and width changes share one reading anchor. The drag suite passes 35 assertions and the existing native regression passes 53. User windows need a normal restart. Measurements and 1000-fence limits are in the [current evidence](../enhancements/tests/evidence/sidebar_resize_20261001.json).
 
 

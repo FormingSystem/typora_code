@@ -69,3 +69,6 @@
 .workspace-search-split:hover,.workspace-search-split:focus { background:#007fd4; outline:none; }
 .workspace-search-folder-scope:not([hidden]){display:flex;align-items:center;gap:4px;min-height:24px;border:1px solid var(--linux-note-shell-border,#e5e5e5);padding-left:6px;margin-bottom:4px}
 .workspace-search-folder-scope>span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.workspace-search-match[aria-current=location]{outline:1px solid var(--vscode-list-focusOutline,#0069CC);outline-offset:-1px}
+.workspace-search-preview-heading>.workspace-search-return-anchor{flex:0 0 var(--linux-note-shell-action-size,22px);justify-content:center;padding:2px}

@@ -1,0 +1,194 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "release": "2026.10.02.1",
+  "sequence": 2026100201,
+  "requirements": [
+    "R023.1"
+  ],
+  "baseline": "45e95a313f30cb07e2c3d80b1930b25b1723f269",
+  "design": [
+    "docs/search_performance.md#r0231"
+  ],
+  "asset_manifest_sha256": "adb1d5c52f45bba2bb38cd955042aa6e3222ffad9e62a23d6adc3cd713f00445",
+  "root_causes": [
+    "The reader decorated only the selected match and provided no independent viewport projection to search results.",
+    "Explicit reveal did not refresh the shared reflow anchor; collapse/reopen could restore an earlier position.",
+    "Borrowed asynchronous highlights must finish before link history restoration and retain the latest position at commit."
+  ],
+  "native": {
+    "case_id": "9d9a973156054a46a756da9f9728409f",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "adb1d5c52f45bba2bb38cd955042aa6e3222ffad9e62a23d6adc3cd713f00445",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "1b0faf17a8ba6d5e9becf6e4aadb206c561a349d10d23d8e0ee47937ef680d60",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "status": "PASS",
+    "checks": [
+      "vscode2026_light.css: all Markdown matches",
+      "vscode2026_light.css: distinct anchor color",
+      "vscode2026_light.css: trusted wheel",
+      "vscode2026_light.css: reading position moves",
+      "vscode2026_light.css: explicit selection retained",
+      "vscode2026_light.css: result outline follows locally",
+      "vscode2026_light.css: return reveals anchor",
+      "vscode2026_light.css: return synchronizes reading marker",
+      "vscode2026_dark.css: all Markdown matches",
+      "vscode2026_dark.css: distinct anchor color",
+      "vscode2026_dark.css: trusted wheel",
+      "vscode2026_dark.css: reading position moves",
+      "vscode2026_dark.css: explicit selection retained",
+      "vscode2026_dark.css: result outline follows locally",
+      "vscode2026_dark.css: return reveals anchor",
+      "vscode2026_dark.css: return synchronizes reading marker",
+      "source displays multiple visible highlights",
+      "source reading outline follows",
+      "source explicit anchor retained",
+      "source returns to explicit anchor",
+      "search never changes main document or file",
+      "search preserves file bytes",
+      "native link source exists",
+      "link preview has no search anchor or return control",
+      "floating scroll does not drive the search outline",
+      "link search highlights retain native source and selected link"
+    ],
+    "themes": [
+      {
+        "theme": "vscode2026_light.css",
+        "anchor_color": "rgba(0, 105, 204, 0.25)",
+        "other_color": "rgba(0, 105, 204, 0.1)",
+        "trusted": 1
+      },
+      {
+        "theme": "vscode2026_dark.css",
+        "anchor_color": "rgba(39, 103, 130, 0.565)",
+        "other_color": "rgba(39, 103, 130, 0.5)",
+        "trusted": 1
+      }
+    ],
+    "wheel_samples": [
+      {
+        "id": 1,
+        "kind": "markdown",
+        "first_frame_ms": 8.399999999906868,
+        "scroll_tail_ms": 7.899999999906868,
+        "trusted": true
+      },
+      {
+        "id": 2,
+        "kind": "markdown",
+        "first_frame_ms": 10.5,
+        "scroll_tail_ms": 9.5,
+        "trusted": true
+      },
+      {
+        "id": 3,
+        "kind": "source",
+        "first_frame_ms": 0,
+        "scroll_tail_ms": null,
+        "trusted": true
+      },
+      {
+        "id": 4,
+        "kind": "markdown",
+        "first_frame_ms": 10.099999999627471,
+        "scroll_tail_ms": 9.199999999720603,
+        "trusted": true
+      }
+    ],
+    "artifact_state": "cleaned",
+    "screenshots_reviewed": [
+      "stage_search_vscode2026_light_3478876.png",
+      "stage_search_vscode2026_dark_3478876.png"
+    ],
+    "floating_screenshot_reviewed": {
+      "case_id": "3d37a16236704371848e53593ea1567c",
+      "file": "stage_floating_link_plain_search_71022.png"
+    }
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": [
+      {
+        "suite": "test_workspace_lookup_preview.cjs",
+        "case_id": "9106594af2b545d180237c9c39f689df",
+        "checks": 36,
+        "match_workloads": [
+          20,
+          100,
+          1000
+        ]
+      },
+      {
+        "suite": "test_workspace_selection_search.cjs",
+        "case_id": "683d95ce3a754cd69897c6ec784ed4b1"
+      },
+      {
+        "suite": "test_workspace_link_preview.cjs",
+        "case_id": "72e92a219398411cabf2d0180585f044",
+        "checks": 132
+      },
+      {
+        "suite": "test_workspace_files_search.cjs",
+        "case_id": "41d6f674e133414ab36a847782c1f35c"
+      }
+    ]
+  },
+  "validation": {
+    "build": "PASS",
+    "core_check": {
+      "status": "PASS",
+      "case_id": "28c2200566eb47fb911624177603ae66"
+    },
+    "isolated_install_uninstall": {
+      "status": "PASS",
+      "cycle_case": "3c7d17ac42944af5b24f7f7087986a61",
+      "failure_cancel_rollback_case": "050cfc072f3640de9954bd8df5fa007f",
+      "uninstall_assertions": 65,
+      "payloads": "cleaned"
+    },
+    "local_install": {
+      "status": "PASS",
+      "assets": {
+        "workspace": 56,
+        "terminal": 24
+      },
+      "themes": 5,
+      "protected_unchanged": 9,
+      "manifest": "adb1d5c52f45bba2bb38cd955042aa6e3222ffad9e62a23d6adc3cd713f00445",
+      "installed_sequence": 2026100201,
+      "uninstall_precheck": "PASS; read-only on user environment",
+      "check_windows": "OK",
+      "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+    }
+  },
+  "retained_failures": [
+    {
+      "case_id": "e010260d192f43f8924f69e1d99f3748",
+      "reason": "Catalog checker requires heading slug rather than the explicit HTML anchor; corrected."
+    },
+    {
+      "case_id": "a2bd9a6b2b534c908ebb46bdb8c96a23",
+      "reason": "Reflow restored the earlier position after collapse/reopen; explicit reveal now captures the current anchor."
+    },
+    {
+      "case_id": "84c8801b8f02443c8830fc77e8fe2fc3",
+      "reason": "Viewport center selected a later match at the document top; boundaries now use first/last matches."
+    },
+    {
+      "case_id": "610b38482b024c7eb8dae7677b2d9422",
+      "reason": "Added link fixture used top-level await and a disposed view; corrected test setup, not classified as product failures."
+    }
+  ],
+  "limits": [
+    "Native tests use an isolated original Typora 1.14.10 on a software-rendered private desktop. HWND wheel events are trusted renderer inputs, not physical-device or GPU benchmarks.",
+    "Markdown wheel latency samples measure input to the first frame after a DOM scroll and the last observed scroll within 250 ms. Monaco uses its own scroll pipeline: source DOM-scroll latency is unmeasured (zero/null), while behavior is verified.",
+    "The 20/100/1000 match workloads are functional/stress cases, not 1000 full native sessions. Background workload combinations, other platforms and the entire UI catalog were not run.",
+    "Source-only Markdown matches retain block positioning instead of fabricated visible-word highlighting. Search updates preserve link history and do not create search anchors in link previews.",
+    "Existing unrelated pending requirements remain unchanged. User windows are not closed or restarted by the agent; this candidate is not pushed."
+  ]
+}

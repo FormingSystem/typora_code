@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100201,
+      "version": "2026.10.02.1",
+      "date": "2026-10-02",
+      "notes": [
+        "搜索结果预览高亮同文件全部命中，点击锚点使用独立颜色；滚动同步结果大纲位置，顶部定位按钮返回选中命中。",
+        "链接跳转预览共用普通搜索高亮，保持独立阅读位置与历史，不引入搜索锚点或大纲选中。"
+      ],
+      "notes_en": [
+        "Highlight every match in search previews, distinguish the explicit anchor, follow the reading position in results, and return to the selected hit from the preview toolbar.",
+        "Link navigation previews share ordinary search highlights while retaining independent reading position and history, without search anchors or outline selection."
+      ]
+    },
+    {
       "sequence": 2026100103,
       "version": "2026.10.01.3",
       "date": "2026-10-01",

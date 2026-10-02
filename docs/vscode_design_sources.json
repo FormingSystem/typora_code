@@ -715,5 +715,28 @@
         "sha256": "20696295c1752fe7fad07b61262adc1aafb79fd22c9cf8a8e768e6cffe20474a"
       }
     ]
+  },
+  "search_preview_20261002": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "requirement": "R023.1",
+    "files": [
+      {
+        "path": "extensions/theme-defaults/themes/2026-light.json",
+        "sha256": "90f14578d618349d87a6f8bf8afc192e3c8f17823cc182dbf7d294654b164978"
+      },
+      {
+        "path": "extensions/theme-defaults/themes/2026-dark.json",
+        "sha256": "0022a0dfdcde04d574cb56e1fb5095a1451ceea20a438a65faa40eae7331b63c"
+      },
+      {
+        "path": "src/vs/platform/theme/common/colors/editorColors.ts",
+        "sha256": "102f75453a91da52d97fa31eca9a0528c7a70159751eeb75a995de015e84f1e5"
+      },
+      {
+        "path": "src/vs/platform/theme/common/colors/listColors.ts",
+        "sha256": "9f6b4224aa5077dc7330ca33d1c474084b86318070fbd0577a9374f9a8035f26"
+      }
+    ],
+    "adopted": "Current/other find colors, list focus outline, existing 22px toolbar action role and official bundled target Codicon. Reading outline and explicit search anchor are product-owned independent states."
   }
 }

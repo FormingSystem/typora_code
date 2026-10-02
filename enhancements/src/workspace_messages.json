@@ -1,4 +1,5 @@
 {
+  "search_return_preview_anchor": {"zh_cn": "返回点击的搜索位置", "en": "Return to selected search match"},
   "release_notes_unavailable": {
     "en": "This release does not provide English notes. See its original release information for details.",
     "zh_cn": "此版本未提供英文公告，详情请查看原始发行说明。"
