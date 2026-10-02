@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100205,
+      "version": "2026.10.02.5",
+      "date": "2026-10-02",
+      "notes": [
+        "图片悬停工具条直接平铺全局及此图对齐按钮，靠左、居中、靠右和跟随全局单击生效，两组各自显示选中状态。",
+        "图片浮动工具条使用不透明底板和清晰边框；图片达到编辑区宽度后禁用加号，数字输入限制到当前图片可显示的最大比例。",
+        "窄窗口自动换行，保留数字缩放、原生单图撤销保存和右键菜单。此前黑屏问题仍未解决。"
+      ],
+      "notes_en": [
+        "The image hover toolbar now shows inline global and individual alignment buttons. Left, center, right, and follow-global execute in one click with independent selected states.",
+        "The floating image toolbar has an opaque surface and visible borders. Plus stops at editor width, and numeric input clamps to the current image limit.",
+        "Narrow windows wrap the toolbar. Numeric scaling, native individual undo/save, and context menus are preserved. The previously reported black screen remains unresolved."
+      ]
+    },
+    {
       "sequence": 2026100204,
       "version": "2026.10.02.4",
       "date": "2026-10-02",

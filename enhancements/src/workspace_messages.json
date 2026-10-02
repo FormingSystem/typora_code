@@ -3,6 +3,8 @@
   "image_layout_alignment": {"zh_cn":"图片对齐", "en":"Image alignment"},
   "image_layout_menu": {"zh_cn":"图片排版…", "en":"Image layout…"},
   "image_layout_description": {"zh_cn":"未单独指定对齐的图片使用此默认值；单图对齐可从图片悬停或右键菜单设置并随文档保存。", "en":"Default alignment for images without an individual override. Set individual alignment from the hover or context menu and save it with the document."},
+  "image_layout_global_short": {"zh_cn":"全局", "en":"All"},
+  "image_layout_single_short": {"zh_cn":"此图", "en":"This"},
   "image_layout_single": {"zh_cn":"此图片对齐", "en":"This image alignment"},
   "image_layout_global": {"zh_cn":"全局图片对齐", "en":"Global image alignment"},
   "image_layout_follow": {"zh_cn":"跟随全局", "en":"Follow global default"},

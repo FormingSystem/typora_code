@@ -986,7 +986,7 @@ footer.ty-footer .linux-note-git-status {
 
 /* reading_media_entry.css */
 /* Shared hover overlay: retain 32px control and 8px gap, all located outside of the document content layout. */
-.reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style}
+.reading-media-entries{position:fixed;inset:0;z-index:30;pointer-events:none;contain:layout style;--bg-color:var(--vscode-editorWidget-background,#f3f3f3);--text-color:var(--workspace-ui-foreground,#202020);--window-border-color:var(--vscode-editorWidget-border,#d0d7de)}
 .reading-media-entry{position:absolute;display:flex;align-items:flex-start;justify-content:flex-end;box-sizing:border-box;height:40px;padding:0 8px 8px;margin:0;pointer-events:none}
 /* Hover overlay entry uses a solid reading background color, which cannot be replaced by the semi-transparent hover of the general tool bar. */
 .reading-media-open{--workspace-interaction-hover:var(--bg-color,#fff);--workspace-interaction-foreground:var(--text-color,#24292f);display:inline-flex;flex:none;align-items:center;justify-content:center;gap:6px;box-sizing:border-box;min-width:32px;height:32px;margin:0;padding:6px 10px;pointer-events:auto;color:var(--text-color,#24292f);background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);font:600 12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;cursor:pointer;box-shadow:0 1px 2px rgb(31 35 40 / 8%)}
@@ -1010,16 +1010,23 @@ body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 .reading-media-entry.is-feedback .reading-media-open{opacity:1;pointer-events:auto}
 .reading-copy-feedback:empty{display:none}
 .reading-media-entry.has-controls{height:auto;min-height:40px;align-items:center;gap:4px;flex-wrap:wrap}
+.reading-media-entry.has-controls{padding:4px 8px 8px;border:1px solid transparent;border-radius:4px}
+.reading-media-entry.has-controls.is-revealed,.reading-media-entry.has-controls:focus-within{background:var(--bg-color);color:var(--text-color);border-color:var(--window-border-color);box-shadow:0 2px 8px rgb(0 0 0 / 25%)}
+.reading-media-entry.is-offscreen{visibility:hidden}
 .reading-media-extra[hidden]{display:none!important}
 .reading-media-extra{flex:none}
 .reading-media-entry .reading-media-extra{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-extra,.reading-media-entry:focus-within .reading-media-extra{opacity:1;pointer-events:auto}
 .reading-image-scale{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);border:1px solid var(--window-border-color,#d0d7de);box-sizing:border-box}
-.reading-image-scale input{width:7ch;max-width:100%;margin:0;padding:4px 6px;box-sizing:border-box;font:inherit;color:inherit;background:transparent;appearance:textfield}
+.reading-image-scale input{width:7ch;max-width:100%;margin:0;padding:4px 6px;box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);appearance:textfield}
 .reading-image-scale input::-webkit-inner-spin-button,.reading-image-scale input::-webkit-outer-spin-button{appearance:none;margin:0}
 .reading-image-scale>span{flex:none}
 .reading-media-entry .reading-media-open[aria-pressed=true]{border-color:var(--vscode-focusBorder,#0069cc)}
 .reading-media-open[hidden]~.reading-copy-feedback{display:none}
+
+.reading-image-scope{display:inline-flex;align-items:center;height:32px;padding:0 4px;font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:var(--text-color,#24292f);background:var(--bg-color,#fff)}
+
+:root[data-workspace-file-icon-theme="dark"] .reading-media-entries{--bg-color:var(--vscode-editorWidget-background,#252526);--text-color:var(--workspace-ui-foreground,#ccc);--window-border-color:var(--vscode-editorWidget-border,#454545)}
 
 /* reading_media_viewer.css */
 .reading-media-viewer{position:fixed;z-index:2147483646;inset:0;display:flex;flex-direction:column;box-sizing:border-box;color:var(--reading-media-foreground,#24292f);background:var(--reading-media-background,#fff);font:12px/1.2 "Segoe UI","Microsoft YaHei UI",sans-serif;--reading-media-border:#d0d7de;--reading-media-muted:#57606a;--workspace-interaction-foreground:var(--reading-media-foreground,#24292f)}

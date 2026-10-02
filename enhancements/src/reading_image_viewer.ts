@@ -29,10 +29,10 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
       let entry=entries.get(image);
       if(!entry){
         const extras=create_reading_image_controls(image);
-        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",controls:extras.controls,open:()=>open(image,entries.get(image)!)});
+        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",controls:extras.controls,refresh_controls:extras.refresh,open:()=>open(image,entries.get(image)!)});
         entry={control,extras};entries.set(image,entry);
       }
-      entry.control.set_enabled(Boolean(source_url(image)));
+      entry.control.set_enabled(Boolean(source_url(image)));entry.extras.refresh();
     }
     if(session&&(!entries.has(session.image)||source_url(session.image)!==session.url))close_session();
   }

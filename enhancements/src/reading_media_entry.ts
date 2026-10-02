@@ -6,7 +6,7 @@ import {reading_viewport_bounds} from "./reading_viewport";
 import {git_icon,type git_icon_name} from "./git_icons";
 import css from "./reading_media_entry.css";
 
-type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[]};
+type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[];refresh_controls?:()=>void};
 export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;dispose():void};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 
@@ -22,6 +22,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
   function update(){
     frame=0;if(disposed)return;
     for(const [button,entry]of entries){
+      entry.options.refresh_controls?.();
       const {source}=entry.options,rect=source.getBoundingClientRect(),width=rect.width;
       const enabled=entry.enabled&&source.isConnected&&width>=(entry.options.controls?1:48)&&rect.height>0;
       button.classList.toggle("is-small",!!entry.options.controls||width<160);
@@ -44,7 +45,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       }
       const x=Math.max(left,rect.left),end=Math.min(right,rect.right);
       const controls=entry.options.controls;
-      const preferred=controls?Math.ceil(16+button.getBoundingClientRect().width+controls.reduce((sum,node)=>sum+node.getBoundingClientRect().width+4,0)):button.offsetWidth+16;
+      const preferred=controls?Math.ceil(18+button.getBoundingClientRect().width+controls.reduce((sum,node)=>sum+node.getBoundingClientRect().width+4,0)):button.offsetWidth+16;
       const entry_width=Math.min(Math.max(0,controls?right-left:end-x),preferred);
       entry.toolbar.style.width=`${entry_width}px`;
       const height=entry.toolbar.offsetHeight;
@@ -52,6 +53,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       // Image controls stay reachable at the viewport edge while their source remains visible.
       shown=shown&&rect.bottom>top&&rect.top<bottom&&entry_top>=top&&entry_top+height<=bottom&&end-x>=(controls?1:48);
       button.hidden=!shown;
+      entry.toolbar.classList.toggle('is-offscreen',!shown);
       if(controls)for(const node of controls)node.hidden=!shown;
       // Hit bridge only follows the button width, does not turn the entire image and text gap into an unselectable operational area.
       entry.toolbar.style.left=`${Math.max(left,end-entry_width)}px`;entry.toolbar.style.top=`${entry_top}px`;
