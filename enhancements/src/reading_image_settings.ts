@@ -20,7 +20,7 @@ export function write_reading_image_setting(key:string,value:unknown){
   if(key==="scale")next.size_mode="natural";
   settings.set_and_save(KEY,next);preview=undefined;notify();
 }
-/** A slider gesture previews in memory and writes once when committed. */
+/** A numeric input draft previews in memory and writes once when committed. */
 export function begin_reading_image_scale(){
   const token=Symbol();
   return {update(scale:number){if(!Number.isFinite(scale)||scale<20||scale>600)return;preview={token,scale};notify();},commit(scale:number){try{write_reading_image_setting("scale",scale);}finally{if(preview?.token===token){preview=undefined;notify();}}},cancel(){if(preview?.token===token){preview=undefined;notify();}}};

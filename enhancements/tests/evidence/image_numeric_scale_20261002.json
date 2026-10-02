@@ -1,0 +1,127 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "requirement": "R031.2",
+  "version": "2026.10.02.4",
+  "sequence": 2026100204,
+  "design": "docs/reading_media_viewer.md#r0312-数字比例与宽度基准修订2026-10-02",
+  "manifest_sha256": "95e4e1d14e48ed4039f386b9d67c362a7eea266ea9614a433e150150abbd6ce1",
+  "behavior": [
+    "Numeric global image percentage replaces the slider; plus/minus and arrow keys step by five percentage points.",
+    "Use the smaller of natural and available editor width as the baseline, then scale and cap at available width.",
+    "Enter/blur saves, Escape cancels, invalid drafts do not persist. Existing native per-image zoom retains precedence."
+  ],
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case": "76dd4feb6c0b48bfa11b1a19f6957c9d"
+    },
+    "ui": [
+      {
+        "script": "test_reading_image_layout.cjs",
+        "case": "59e285f3291446f69761c112d221d09a",
+        "assertions": 35
+      },
+      {
+        "script": "test_reading_media_viewer.cjs",
+        "case": "6380fff68a5d42778ce64b658100268d",
+        "assertions": 47
+      },
+      {
+        "script": "test_workspace_settings.cjs",
+        "case": "2af83db6686a4878a1c5421a38358604",
+        "assertions": 289
+      }
+    ],
+    "native": {
+      "case": "33cfd5add42548e5ad79e64afefc7272",
+      "status": "PASS",
+      "host_version": "1.14.10",
+      "fixture_sha256": "543c416898a15f3c37a155d1cb457873add2e81c4a0c426a050689e83d3f2c7f",
+      "assertions": 35,
+      "checks": [
+        "small image stays natural",
+        "authored full width follows natural default",
+        "large image fits editor",
+        "native image layout entry",
+        "scope exists: 全局图片对齐",
+        "choice exists: 靠右",
+        "global alignment persists",
+        "global alignment does not add document style",
+        "global preferences do not modify source",
+        "numeric image scale replaces slider",
+        "trusted numeric typing and Enter commit",
+        "slider preview is not persisted",
+        "slider changes rendered size",
+        "slider commits",
+        "Escape rolls back uncommitted slider",
+        "large image uses half of live editor width",
+        "large image enlargement remains capped",
+        "decrease button steps five",
+        "increase button steps five",
+        "native image layout entry",
+        "scope exists: 此图片对齐",
+        "choice exists: 靠左",
+        "single image uses native style editing",
+        "single override leaves other images and global setting",
+        "document contains portable image alignment",
+        "single native undo removes alignment",
+        "single native redo restores alignment",
+        "single alignment saves",
+        "single alignment survives reopen",
+        "native image layout entry",
+        "scope exists: 此图片对齐",
+        "choice exists: 跟随全局",
+        "follow global removes individual override",
+        "follow global saves removal",
+        "native image zoom retained"
+      ],
+      "visual_review": "Captured focused numeric input and official minus/plus icons in the dark native host; controls remain outside document content."
+    },
+    "install_cycle": {
+      "case": "e10854419d3649708cd2a2f14fb3b47a",
+      "status": "PASS",
+      "paths": [
+        "install/check/restore-uninstall/reinstall/check",
+        "detach-uninstall/reinstall/check"
+      ],
+      "retained": [
+        "documents",
+        "settings",
+        "backups"
+      ]
+    },
+    "uninstall_errors": {
+      "case": "7f061f0145734ad4908c6a687e1c6f11",
+      "status": "PASS",
+      "assertions": 65
+    }
+  },
+  "installation": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "95e4e1d14e48ed4039f386b9d67c362a7eea266ea9614a433e150150abbd6ce1",
+    "installed_sequence": 2026100204,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  },
+  "failures_retained": [
+    "First UI run omitted Escape keyup required by the shared dismissal owner; corrected input sequence and passed.",
+    "Native comparison initially assumed stable editor width across scaling; vertical scrollbar appearance changed that width. Replaced the stale cross-state width assumption with the live containing width; final checks passed."
+  ],
+  "boundaries": [
+    "No user windows restarted; restart normally to load installed assets.",
+    "Whole-window black-screen R071.7 remains unresolved. This delivery is not a black-screen fix.",
+    "No new global observers, native memory/GPU parameters or save hooks.",
+    "Windows Typora 1.14.10 private desktop; other host versions/platforms and full physical input coverage not verified."
+  ],
+  "git": "Reviewed local commit; no push.",
+  "payload_cleanup": "All final native/install/uninstall case payloads cleaned; evidence retained."
+}

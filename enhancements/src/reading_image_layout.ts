@@ -10,7 +10,7 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   const scope=`:is(${selector}):not(.md-diagram-panel-preview img,.reading-media-viewer img,.CodeMirror img,.md-emoji,.md-emoji img)`;
   const update=()=>{
     const {alignment,scale,size_mode}=read_reading_image_settings();
-    style.textContent=`${scope}{width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`calc(var(--reading-image-natural-width) * ${scale/100} + var(--reading-image-border,0px))`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
+    style.textContent=`${scope}{width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`min(calc(var(--reading-image-natural-width) * ${scale/100} + var(--reading-image-border,0px)),${scale}%)`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
   };
   const release=observe_reading_image_settings(update);update();
   return {update(images:Iterable<HTMLImageElement>){

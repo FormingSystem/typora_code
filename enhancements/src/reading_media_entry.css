@@ -28,7 +28,8 @@ body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 .reading-media-entry .reading-media-extra{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-extra,.reading-media-entry:focus-within .reading-media-extra{opacity:1;pointer-events:auto}
 .reading-image-scale{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);border:1px solid var(--window-border-color,#d0d7de);box-sizing:border-box}
-.reading-image-scale input{width:92px;max-width:100%;margin:0}
-.reading-image-scale output{min-width:4ch;text-align:right}
+.reading-image-scale input{width:7ch;max-width:100%;margin:0;padding:4px 6px;box-sizing:border-box;font:inherit;color:inherit;background:transparent;appearance:textfield}
+.reading-image-scale input::-webkit-inner-spin-button,.reading-image-scale input::-webkit-outer-spin-button{appearance:none;margin:0}
+.reading-image-scale>span{flex:none}
 .reading-media-entry .reading-media-open[aria-pressed=true]{border-color:var(--vscode-focusBorder,#0069cc)}
 .reading-media-open[hidden]~.reading-copy-feedback{display:none}

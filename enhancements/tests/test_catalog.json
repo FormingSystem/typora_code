@@ -9351,7 +9351,7 @@
       "environment": "Windows private original Typora 1.14.10",
       "preconditions": "Use temporary documents and isolated profile.",
       "steps": [
-        "Run native image_layout_native.js: menu scopes, global sizing, individual alignment, undo/redo, save/reopen."
+        "Run native image_layout_native.js: numeric typing/Enter, 5% controls, fitted-width scale and capping, menu scopes, individual alignment, undo/redo, save/reopen."
       ],
       "expected": [
         "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."

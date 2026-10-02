@@ -22,6 +22,20 @@ app.whenReady().then(async()=>{
   for(const value of ['left','center','right']){qa.write_reading_image_setting('alignment',value);const r=image.getBoundingClientRect(),p=article.getBoundingClientRect();assert(Math.abs(r.left-(value==='left'?p.left:value==='center'?p.left+152:p.right-96))<1,'global alignment '+value);}
   image.style.margin='0 auto 0 0';qa.write_reading_image_setting('alignment','right');assert(image.getBoundingClientRect().left===article.getBoundingClientRect().left,'individual alignment wins');image.removeAttribute('style');
   assert(article.innerHTML===html,'global presentation leaves source DOM unchanged');
+  const field=document.querySelector('.reading-image-scale input'),down=document.querySelector('[data-image-scale-action="decrease"]'),up=document.querySelector('[data-image-scale-action="increase"]');
+  assert(field.type==='number'&&!document.querySelector('input[type="range"]'),'numeric field replaces slider');
+  const enter=(value,key='Enter')=>{field.value=value;field.dispatchEvent(new Event('input'));field.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));field.dispatchEvent(new KeyboardEvent('keyup',{key,bubbles:true}));};
+  enter('125');assert(qa.read_reading_image_settings().scale===125&&image.getBoundingClientRect().width===80,'numeric Enter commits proportion');
+  const stepped=writes;down.click();assert(qa.read_reading_image_settings().scale===120,'minus steps 5');up.click();assert(qa.read_reading_image_settings().scale===125&&writes===stepped+2,'plus steps 5 with one write per click');
+  field.dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowUp',bubbles:true}));assert(qa.read_reading_image_settings().scale===130,'keyboard steps 5');
+  const committed=writes;enter('150','Escape');field.dispatchEvent(new Event('blur'));assert(qa.read_reading_image_settings().scale===130&&writes===committed,'Escape cancels without blur recommitting');
+  enter('');assert(qa.read_reading_image_settings().scale===130&&writes===committed,'empty input does not persist zero');enter('700');assert(qa.read_reading_image_settings().scale===130&&writes===committed,'out of range rejected');
+  field.value='135';field.dispatchEvent(new Event('input'));field.dispatchEvent(new Event('blur'));assert(qa.read_reading_image_settings().scale===135,'blur commits valid draft');
+  qa.write_reading_image_setting('size_mode','fit_width');enter('150','Escape');field.dispatchEvent(new Event('blur'));assert(qa.read_reading_image_settings().size_mode==='fit_width','Escape preserves prior fit mode');
+  qa.write_reading_image_setting('scale',20);assert(down.disabled&&!up.disabled,'lower bound disables decrement');qa.write_reading_image_setting('scale',600);assert(up.disabled&&!down.disabled,'upper bound disables increment');
+  const large=new Image();large.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="1000"/>');article.append(large);await large.decode();await pause(100);
+  for(const [scale,width]of [[50,200],[100,400],[150,400]]){qa.write_reading_image_setting('scale',scale);assert(Math.abs(large.getBoundingClientRect().width-width)<1,'large image available-width base '+scale);}
+  qa.write_reading_image_setting('scale',50);article.style.width='300px';assert(Math.abs(large.getBoundingClientRect().width-150)<1,'container resize updates percentage base');article.style.width='400px';large.remove();
   binding.dispose();assert(!document.querySelector('.reading-media-entries'),'dispose removes controls');
   const loads=[];for(const count of [20,100,1000]){article.replaceChildren(...Array.from({length:count},()=>image.cloneNode()));const started=performance.now(),bound=qa.bind_reading_images(article);await pause(250);assert(document.querySelectorAll('.reading-image-open').length===count,'controls created '+count);bound.dispose();assert(!document.querySelector('.reading-media-entries'),'controls disposed '+count);loads.push({count,elapsed_ms:performance.now()-started});}
   assert(!document.querySelector('style[data-reading-image-layout]'),'layout stylesheet ownership cleaned');

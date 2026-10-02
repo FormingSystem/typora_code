@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100204,
+      "version": "2026.10.02.4",
+      "date": "2026-10-02",
+      "notes": [
+        "图片缩放改为百分比数字框和左右加减按钮，每次调整5%；支持回车或失焦保存、Esc取消。",
+        "大图以适应编辑区后的宽度计算比例，小图以原尺寸计算；所有比例仍不超过编辑区宽度。",
+        "此前全窗口黑屏原因仍在调查，本次图片改动不代表黑屏已经修复。"
+      ],
+      "notes_en": [
+        "Image scaling now uses a percentage field with minus/plus buttons in 5% steps. Enter or blur saves; Escape cancels.",
+        "Large images scale from their fitted editor width; small images scale from natural width. Every result remains capped at editor width.",
+        "The previously reported whole-window black screen remains under investigation; this image update does not establish a fix."
+      ]
+    },
+    {
       "sequence": 2026100203,
       "version": "2026.10.02.3",
       "date": "2026-10-02",
