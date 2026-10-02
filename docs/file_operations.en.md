@@ -105,3 +105,11 @@ R042: After successful file transactions, the model is re-recognized with the ne
 Acceptance: TC-files corresponds to system selection, cancellation/lateness, duplicate history, native bridge true/false/throw/interface missing/fake success, temporary file recycling, suffix change clean/dirty and subsequent saving, multiple copies/directory renaming and file protection.
 
 R041 deletion confirmation reads the existing File.option.noWarnigForDeleteFile in the host, respecting the user's effective configuration for canceling deletion warnings. When not set, it retains one accurate target confirmation, without establishing a second set of preferences. Confirmation and non-confirmation share the same execution/marshaling/error/refresh entry.
+
+## R028.1 Dismissing inline rename outside its input (2026-10-02)
+
+Double-click rename only handled Enter/Escape, leaving the input active after clicking unrelated controls. Register the input with the shared dismissal owner. Outside pointer input cancels the draft without swallowing the destination action; focus departure, window blur and panel hiding also cancel. Inside clicks keep editing. Escape returns focus to the tree, while outside cancellation does not steal focus. Preserve R028's cancel-without-writing contract; Enter alone submits the existing rename/create transaction and IME composition does not submit. An already started write retains its original completion/error ownership.
+
+The file tree owns the edit and registration; workspace_focus owns shared listeners. Release on completion, root change, hiding and disposal. Cancelling creation removes its placeholder; failures remain retryable. Pinned 6807068 explorerViewer.ts BLUR/onFinish provides the lifecycle reference. Its valid-input blur submission is deliberately not adopted because this project already specifies cancellation.
+
+Reproduce using trusted Chromium clicks on a control that prevents focus transfer; verify one destination action, no rename, inside clicks, editor/blank targets, Escape/Enter, conflicts, create cancellation, hiding and disposal. Verify the native outline entry on isolated documents and regress shared dismissal, file operations and workspace changes, followed by the same-candidate install/uninstall lifecycle.

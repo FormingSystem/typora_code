@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100208,
+      "version": "2026.10.02.8",
+      "date": "2026-10-02",
+      "notes": [
+        "文件名编辑时，点击大纲、搜索、正文等输入框外区域会取消未确认改名，并执行所点击的功能。",
+        "隐藏资源管理器、切换目录或结束编辑时清理输入状态；Enter确认和已有文件操作保护保持。"
+      ],
+      "notes_en": [
+        "Cancel unconfirmed inline filename edits when clicking the outline, search, document or other outside areas, while executing the clicked action.",
+        "Clear editing state when hiding Explorer, switching roots or ending the edit; preserve Enter confirmation and existing file-operation safeguards."
+      ]
+    },
+    {
       "sequence": 2026100207,
       "version": "2026.10.02.7",
       "date": "2026-10-02",

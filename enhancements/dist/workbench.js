@@ -204875,6 +204875,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.append(toolbar, root_label, tree, status2);
     let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
     let flat_nodes = [], render_frame = 0;
+    let edit_dismissal;
     let rename_state;
     let compact_folders = false;
     let search_projection = false;
@@ -205251,6 +205252,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     function begin_rename(node) {
       if (!root || node === root || disposed || rename_state?.busy) return;
+      cancel_edit();
       select(node, true);
       const input = workspace_element("input", "workspace-explorer-rename");
       input.value = node.name;
@@ -205258,6 +205260,13 @@ https://creativecommons.org/licenses/by/4.0/
       input.spellcheck = false;
       rename_state = { node, input, busy: false, focus_requested: true };
       set_status(workspace_text("file_tree_enter_new_name_press_enter_to_confirm_esc_to_cancel"));
+      edit_dismissal = register_workspace_dismissal(() => [input], (reason) => {
+        if (rename_state?.input !== input || rename_state.busy) return;
+        cancel_edit();
+        set_status(workspace_text("file_tree_operation_canceled"));
+        if (reason === "escape") tree.focus({ preventScroll: true });
+        render();
+      }, { window_blur: true });
       input.onkeydown = (event) => {
         event.stopPropagation();
         if (event.isComposing) return;
@@ -205280,7 +205289,7 @@ https://creativecommons.org/licenses/by/4.0/
       const edit3 = rename_state, current_root = root;
       if (!edit3 || !current_root || edit3.busy) return;
       if (!edit3.creating && edit3.input.value === edit3.node.name) {
-        rename_state = void 0;
+        clear_edit();
         tree.focus({ preventScroll: true });
         render();
         return;
@@ -205291,7 +205300,7 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         const expanded2 = edit3.node.expanded;
         const target = edit3.creating ? await options2.create(current_root.path, edit3.node.parent.path, edit3.input.value, edit3.node.directory) : await options2.rename(current_root.path, edit3.node.path, edit3.input.value);
-        rename_state = void 0;
+        clear_edit();
         if (disposed || root !== current_root) return;
         close_branch(edit3.node, true);
         await load_children(edit3.node.parent || current_root, true);
@@ -205307,7 +205316,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed) return;
         const renamed_path = error.renamed_path;
         if (renamed_path) {
-          rename_state = void 0;
+          clear_edit();
           await refresh();
           await reveal(renamed_path);
           set_status(String(error instanceof Error ? error.message : error));
@@ -205320,9 +205329,15 @@ https://creativecommons.org/licenses/by/4.0/
         edit3.input.focus({ preventScroll: true });
       }
     }
-    function cancel_edit() {
+    function clear_edit() {
       const edit3 = rename_state;
       rename_state = void 0;
+      edit_dismissal?.dispose();
+      edit_dismissal = void 0;
+      return edit3;
+    }
+    function cancel_edit() {
+      const edit3 = clear_edit();
       if (edit3?.creating) {
         const parent = edit3.node.parent;
         parent.children = parent.children?.filter((child) => child !== edit3.node);
@@ -205436,7 +205451,7 @@ https://creativecommons.org/licenses/by/4.0/
           generation++;
           close_branch(root, true);
           root = void 0;
-          rename_state = void 0;
+          clear_edit();
           selection_paths.clear();
           compare_path = "";
           root_name.textContent = workspace_text("file_tree_folder_not_opened");
@@ -205455,7 +205470,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       generation++;
-      rename_state = void 0;
+      clear_edit();
       selection_paths.clear();
       compare_path = "";
       if (root) close_branch(root, true);
@@ -205524,6 +205539,10 @@ https://creativecommons.org/licenses/by/4.0/
     async function set_visible(value) {
       visible3 = value;
       if (!value) {
+        if (!rename_state?.busy) {
+          cancel_edit();
+          render();
+        }
         if (root) close_branch(root);
         return;
       }
@@ -205633,7 +205652,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (render_frame) cancelAnimationFrame(render_frame);
       row_views.clear();
       click_sequence = void 0;
-      rename_state = void 0;
+      clear_edit();
       for (const dialog2 of dialogs) dialog2.close();
       dialogs.clear();
       for (const detach of detachers) detach();
@@ -252967,6 +252986,19 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026100208,
+        version: "2026.10.02.8",
+        date: "2026-10-02",
+        notes: [
+          "\u6587\u4EF6\u540D\u7F16\u8F91\u65F6\uFF0C\u70B9\u51FB\u5927\u7EB2\u3001\u641C\u7D22\u3001\u6B63\u6587\u7B49\u8F93\u5165\u6846\u5916\u533A\u57DF\u4F1A\u53D6\u6D88\u672A\u786E\u8BA4\u6539\u540D\uFF0C\u5E76\u6267\u884C\u6240\u70B9\u51FB\u7684\u529F\u80FD\u3002",
+          "\u9690\u85CF\u8D44\u6E90\u7BA1\u7406\u5668\u3001\u5207\u6362\u76EE\u5F55\u6216\u7ED3\u675F\u7F16\u8F91\u65F6\u6E05\u7406\u8F93\u5165\u72B6\u6001\uFF1BEnter\u786E\u8BA4\u548C\u5DF2\u6709\u6587\u4EF6\u64CD\u4F5C\u4FDD\u62A4\u4FDD\u6301\u3002"
+        ],
+        notes_en: [
+          "Cancel unconfirmed inline filename edits when clicking the outline, search, document or other outside areas, while executing the clicked action.",
+          "Clear editing state when hiding Explorer, switching roots or ending the edit; preserve Enter confirmation and existing file-operation safeguards."
+        ]
+      },
       {
         sequence: 2026100207,
         version: "2026.10.02.7",

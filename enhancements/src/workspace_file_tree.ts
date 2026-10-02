@@ -1,3 +1,4 @@
+import {register_workspace_dismissal,type workspace_dismiss_layer} from './workspace_focus';
 import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_directories} from './workspace_directory_service';
 import {workspace_list_selection} from "./workspace_list_selection";
@@ -61,6 +62,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0;
+  let edit_dismissal:workspace_dismiss_layer|undefined;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
   let search_projection = false;
@@ -315,9 +317,15 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   }
   function begin_rename(node: explorer_node) {
     if (!root || node === root || disposed || rename_state?.busy) return;
-    select(node, true);
+    cancel_edit();select(node, true);
     const input = el("input", "workspace-explorer-rename"); input.value = node.name; input.setAttribute("aria-label", workspace_text("file_tree_new_name")); input.spellcheck = false;
     rename_state = {node, input, busy: false, focus_requested: true}; set_status(workspace_text("file_tree_enter_new_name_press_enter_to_confirm_esc_to_cancel"));
+    edit_dismissal=register_workspace_dismissal(()=>[input],reason=>{
+      if(rename_state?.input!==input||rename_state.busy)return;
+      cancel_edit();set_status(workspace_text("file_tree_operation_canceled"));
+      if(reason==='escape')tree.focus({preventScroll:true});
+      render();
+    },{window_blur:true});
     input.onkeydown = event => {
       event.stopPropagation();
       if (event.isComposing) return;
@@ -330,12 +338,12 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   async function finish_rename() {
     const edit = rename_state, current_root = root;
     if (!edit || !current_root || edit.busy) return;
-    if (!edit.creating && edit.input.value === edit.node.name) { rename_state = undefined; tree.focus({preventScroll: true}); render(); return; }
+    if (!edit.creating && edit.input.value === edit.node.name) { clear_edit(); tree.focus({preventScroll: true}); render(); return; }
     edit.busy = true; edit.input.disabled = true; set_status(workspace_text("file_tree_renaming"));
     try {
       const expanded = edit.node.expanded;
       const target = edit.creating ? await options.create!(current_root.path, edit.node.parent!.path, edit.input.value, edit.node.directory) : await options.rename!(current_root.path, edit.node.path, edit.input.value);
-      rename_state = undefined;
+      clear_edit();
       if (disposed || root !== current_root) return;
       // Discard old path monitoring handles, then re-expand to the new name, avoiding reading the old path after directory renaming.
       close_branch(edit.node, true); await load_children(edit.node.parent || current_root, true); await reveal(target);
@@ -344,13 +352,14 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     } catch (error) {
       if (disposed) return;
       const renamed_path = (error as {renamed_path?: string}).renamed_path;
-      if (renamed_path) { rename_state = undefined; await refresh(); await reveal(renamed_path); set_status(String(error instanceof Error ? error.message : error)); return; }
+      if (renamed_path) { clear_edit(); await refresh(); await reveal(renamed_path); set_status(String(error instanceof Error ? error.message : error)); return; }
       edit.busy = false; edit.input.disabled = false; edit.input.setAttribute("aria-invalid", "true"); set_status(String(error instanceof Error ? error.message : error));
       edit.input.focus({preventScroll: true});
     }
   }
+  function clear_edit(){const edit=rename_state;rename_state=undefined;edit_dismissal?.dispose();edit_dismissal=undefined;return edit;}
   function cancel_edit() {
-    const edit = rename_state; rename_state = undefined;
+    const edit = clear_edit();
     if (edit?.creating) { const parent = edit.node.parent!; parent.children = parent.children?.filter(child => child !== edit.node); nodes.delete(edit.node.path); rebuild(); }
   }
   async function begin_create(directory: boolean, parent = nodes.get(selected_path) || root) {
@@ -400,13 +409,13 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if(search_projection){search_projection=false;generation++;if(root)close_branch(root,true);root=undefined;}
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
-      if (root) { generation++; close_branch(root, true); root = undefined; rename_state=undefined;selection_paths.clear();compare_path="";root_name.textContent = workspace_text("file_tree_folder_not_opened"); selected_path = ""; rebuild(); }
+      if (root) { generation++; close_branch(root, true); root = undefined; clear_edit();selection_paths.clear();compare_path="";root_name.textContent = workspace_text("file_tree_folder_not_opened"); selected_path = ""; rebuild(); }
       set_status(workspace_text("file_tree_open_a_folder_to_browse_all_files")); return;
     }
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) {set_status("");await load_children(root, true);} return; }
     generation++;
-    rename_state = undefined; selection_paths.clear();compare_path="";
+    clear_edit(); selection_paths.clear();compare_path="";
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
     selected_path = "";const remote=remote_files_for(root.path);root_name.textContent = root.name+(remote?` [SSH: ${remote.connection.target}]`:''); root_label.title = remote?remote.remote_path(root.path):root.path; tree.scrollTop = 0;
@@ -442,7 +451,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   }
   async function set_visible(value:boolean) {
     visible=value;
-    if(!value){if(root)close_branch(root);return;}
+    if(!value){if(!rename_state?.busy){cancel_edit();render();}if(root)close_branch(root);return;}
     await sync_root();if(root)watch_visible(root);
   }
   tree.addEventListener("scroll", render, {passive: true});
@@ -491,7 +500,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame);
-    row_views.clear(); click_sequence = undefined; rename_state = undefined; for (const dialog of dialogs) dialog.close(); dialogs.clear();
+    row_views.clear(); click_sequence = undefined; clear_edit(); for (const dialog of dialogs) dialog.close(); dialogs.clear();
     for (const detach of detachers) detach();
     container.remove();style.remove();
   }

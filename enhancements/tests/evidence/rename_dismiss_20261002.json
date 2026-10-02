@@ -1,0 +1,196 @@
+{
+  "schema": 1,
+  "date": "2026-10-02",
+  "requirement": "R028.1",
+  "version": "2026.10.02.8",
+  "sequence": 2026100208,
+  "design": "docs/file_operations.md#r0281-重命名的外部退出2026-10-02",
+  "status": "PASS; installed, running windows not restarted",
+  "manifest_sha256": "3cb427e69f7ceda8fd4bd085ff69be2f8c1fc38c225ce10a3f4f67f71080da56",
+  "implementation": "Register the existing inline rename/create input with the shared dismissal service. Outside cancellation passes through the destination gesture and does not write to disk. Clear registration on completion, cancellation, hide, root change and disposal; preserve in-flight transactions.",
+  "validation": {
+    "red": {
+      "case": "44873eb0f6384e1c8fa4e7d092e15f2f",
+      "baseline": "8e6975bf535b1c8c316b7423c130a6f0d933ec39",
+      "result": "Trusted outside activity click that prevents focus transfer left the filename input active."
+    },
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case": "a11f47b0c5af4f2f8e64bf1a832131c7"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 271
+    },
+    "ui": {
+      "status": "PASS",
+      "cases": {
+        "explorer": "8a6e466afd304f2fa4ba88ddc55f7588",
+        "escape_focus": "537256acf5c24e7aa1f0950107c5291a",
+        "dismissal": "2f6d4e8ae2ec48d4ac676a9aed06e6e5",
+        "workspace_switch": "ef9abd1eb968459ca9f780d7eed56367"
+      },
+      "new_assertions": [
+        "inside click retains input",
+        "outside non-focusing activity cancels",
+        "destination action runs on first click",
+        "no rename or file-byte change on cancel",
+        "document click cancels",
+        "hide/show does not restore stale input",
+        "shared pointer boundary released",
+        "new-file draft cancellation removes placeholder"
+      ]
+    },
+    "native": {
+      "status": "PASS",
+      "case": "93024c2308464eacb8cada90c6261a98",
+      "host_version": "1.14.10",
+      "fixture_sha256": "f34cd43c9f0eb08f70f58bb4436c7c0c801134f3dc0474552e96dfdef4c8c98a",
+      "assertions": 46,
+      "cycles": 6,
+      "checks": [
+        "visible click target",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "activity action runs on same click",
+        "visible click target",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "activity action runs on same click",
+        "visible click target",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "activity action runs on same click",
+        "visible click target",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "activity action runs on same click",
+        "visible click target",
+        "isolated file row",
+        "visible click target",
+        "native draft typing",
+        "visible click target",
+        "cancel leaves file and bytes unchanged",
+        "dismissal owner released",
+        "trusted outline and search actions received"
+      ],
+      "samples": [
+        {
+          "round": 0,
+          "target": "core.outline",
+          "active_panel": "core.outline",
+          "last_click": {
+            "trusted": true,
+            "target": "core.outline"
+          }
+        },
+        {
+          "round": 1,
+          "target": "core.search",
+          "active_panel": "linux_note:search",
+          "last_click": {
+            "trusted": true
+          }
+        },
+        {
+          "round": 2,
+          "target": "document",
+          "active_panel": "linux_note:file_explorer",
+          "last_click": {
+            "trusted": true
+          }
+        },
+        {
+          "round": 3,
+          "target": "core.outline",
+          "active_panel": "core.outline",
+          "last_click": {
+            "trusted": true,
+            "target": "core.outline"
+          }
+        },
+        {
+          "round": 4,
+          "target": "core.search",
+          "active_panel": "linux_note:search",
+          "last_click": {
+            "trusted": true
+          }
+        },
+        {
+          "round": 5,
+          "target": "document",
+          "active_panel": "linux_note:file_explorer",
+          "last_click": {
+            "trusted": true
+          }
+        }
+      ],
+      "limits": "Original Typora 1.14.10; F2 entry dispatched at the production tree; external mouse and draft text use native message input; no user documents changed."
+    },
+    "installation_cycle": {
+      "status": "PASS",
+      "case": "9455d6f065374c6289efc53615ea8202",
+      "steps": [
+        "install",
+        "check",
+        "restore uninstall",
+        "reinstall",
+        "check",
+        "detach uninstall",
+        "reinstall",
+        "check"
+      ],
+      "documents_settings_backups": "preserved",
+      "payload": "cleaned"
+    },
+    "uninstall_regression": {
+      "status": "PASS",
+      "case": "b3c83b46a5c6478d944e4c6836052082",
+      "assertions": 65
+    }
+  },
+  "delivery": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "3cb427e69f7ceda8fd4bd085ff69be2f8c1fc38c225ce10a3f4f67f71080da56",
+    "installed_sequence": 2026100208,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally.",
+    "git": "Commit receipt in local ledger; not pushed."
+  },
+  "limitations": [
+    "Native F2 entry is dispatched at the production tree; draft text and external clicks use native message input. Actual double-click entry is covered by isolated Chromium Explorer regression.",
+    "The first native attempt completed all six functional cycles but its final search-click selector assertion failed after the native action changed target ancestry. Final evidence checks trusted input and resulting active-panel identity.",
+    "No full UI suite, long-running GPU test or cross-platform verification. Prior R071.7 black screens, R068.11 original clipping and R005.4 dual native editors remain open."
+  ]
+}

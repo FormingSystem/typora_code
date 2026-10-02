@@ -2368,7 +2368,8 @@
         "R061",
         "R070.8",
         "R080",
-        "R058.1"
+        "R058.1",
+        "R028.1"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2381,7 +2382,8 @@
         "enhancements/src/workspace_explorer_sections.css",
         "enhancements/src/workspace_interaction.css",
         "enhancements/src/git_graph.css",
-        "enhancements/src/workspace_file_tree.ts"
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_focus.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2395,7 +2397,8 @@
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "新建/改名/复制/剪切/粘贴，按Delete取消与确认，关闭原生确认选项后直接回收",
-        "2000行虚拟文件树，展开/根切换/迟到读取及销毁"
+        "2000行虚拟文件树，展开/根切换/迟到读取及销毁",
+        "Use trusted clicks on a non-focusing outline control and the document to cancel rename without writes or swallowing the destination click; retain inside clicks and remove pending create/hide state."
       ],
       "expected": [
         "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果"
@@ -9462,6 +9465,37 @@
         "Native geometry handoff runs after actual fold exit; content/undo and complete final-line ranges survive. Passing does not establish reproduction of the original clipping."
       ],
       "timeout_ms": 60000
+    },
+    {
+      "id": "TC-files-rename-dismiss-native-001",
+      "domain": "files",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R028.1"
+      ],
+      "design": "docs/file_operations.md#r0281-重命名的外部退出2026-10-02",
+      "implementation": [
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_focus.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "focus",
+        "sidebar",
+        "native_editor"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/rename_dismiss_native.js",
+      "environment": "Windows private original Typora 1.14.10",
+      "preconditions": "Isolated workspace, host and user data; final built candidate.",
+      "steps": [
+        "Enter rename through the production F2 handler; type a draft with native input and click outline, search and document twice each."
+      ],
+      "expected": [
+        "All six drafts cancel without renaming or changing file bytes; trusted activity clicks switch panels on the same gesture; dismissal ownership is released."
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

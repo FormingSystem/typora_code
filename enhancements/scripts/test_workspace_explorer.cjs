@@ -110,6 +110,24 @@ app.whenReady().then(async()=>{
   await evaluate('document.querySelector(".workspace-explorer-rename").value="renamed_file.py"');await key('Enter');await wait(`!!document.querySelector(${JSON.stringify(row('renamed_file.py'))})`);assert(!fs.existsSync(path.join(workspace,'new_file.py')));assert.equal(fs.readFileSync(path.join(workspace,'renamed_file.py'),'utf8'),'print(1)');
   await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="Dockerfile.dev"');await key('Enter');await wait('!!document.querySelector(".workspace-explorer-rename[aria-invalid=true]")');await assert_row_visible('.workspace-explorer-rename');assert.equal(fs.readFileSync(path.join(workspace,'Dockerfile.dev'),'utf8'),'FROM scratch');assert(fs.existsSync(path.join(workspace,'renamed_file.py')));await key('Escape');assert.equal(await evaluate('document.querySelector(".workspace-explorer-rename")'),null);
   await assert_row_visible(row('renamed_file.py'));
+  await evaluate(`window.outside_actions=0;const target=document.querySelector('[data-id="core.outline"]');target.onmousedown=event=>event.preventDefault();target.onclick=()=>outside_actions++;void 0`);
+  await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');
+  await evaluate('document.querySelector(".workspace-explorer-rename").value="should_not_rename.py"');
+  await click('.workspace-explorer-rename');assert(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),'inside click retains edit');
+  await click('[data-id="core.outline"]');
+  assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false,'outside non-focusing activity click cancels inline rename');
+  assert.equal(await evaluate('outside_actions'),1,'outside action executes on first click');
+  assert(fs.existsSync(path.join(workspace,'renamed_file.py'))&&!fs.existsSync(path.join(workspace,'should_not_rename.py')),'outside dismissal does not rename');
+  for(const target of ['#editor','[data-id="core.outline"]']){
+    await click(row('renamed_file.py'));await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');await click(target);
+    assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false,'cancel by '+target);
+  }
+  await click(row('renamed_file.py'));await key('F2');await wait('!!document.querySelector(".workspace-explorer-rename")');
+  await evaluate('sidebar.hide();void 0');await click('[data-id="core.file-explorer"]');
+  assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false,'hidden panel does not restore stale rename');
+  assert.equal(await evaluate('document.documentElement.hasAttribute("data-workspace-dismissal-active")'),false,'cancelled edit releases shared pointer boundary');
+
+
   const double_open_count=await evaluate('opened.length');
   await click(row('renamed_file.py'));assert.equal(await evaluate('opened.length'),double_open_count+1,'single click opens immediately');assert.equal((await evaluate('opened')).at(-1)[1].preview,true);
   const double_click=async selector=>{
@@ -127,6 +145,8 @@ app.whenReady().then(async()=>{
   await evaluate(`instance.reveal(${JSON.stringify(path.join(workspace,'folder'))})`);await wait(`!!document.querySelector(${JSON.stringify(row('folder'))})`);await click(row('folder'),'right');await evaluate('[...document.querySelectorAll("[role=menu] button")].find(button=>(button.querySelector(".git-menu-label")?.textContent||button.textContent)==="重命名").click()');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="renamed_folder"');await key('Enter');await wait(`!!document.querySelector(${JSON.stringify(row('renamed_folder'))})`);assert.equal(fs.readFileSync(path.join(workspace,'renamed_folder','nested.d.ts'),'utf8'),'declare const value: string;');
   const command = async key => { await evaluate(`document.querySelector('.workspace-explorer-tree').focus();document.querySelector('.workspace-explorer-tree').dispatchEvent(new KeyboardEvent('keydown',{key:${JSON.stringify(key)},ctrlKey:true,bubbles:true}))`); await delay(100); };
   const root_menu = async title => { await evaluate(`document.querySelector('.workspace-explorer-tree').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true}));[...document.querySelectorAll('[role=menu] button')].find(button=>(button.querySelector(".git-menu-label")?.textContent||button.textContent)===${JSON.stringify(title)}).click()`); await delay(100); };
+  await root_menu('新建文件…');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="cancelled_create.txt"');await click('#editor');
+  assert.equal(await evaluate('!!document.querySelector(".workspace-explorer-rename")'),false);assert(!fs.existsSync(path.join(workspace,'cancelled_create.txt')),'outside cancellation removes unsaved creation');
   await root_menu('新建文件…');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="created.txt"');await key('Enter');await wait(`!!document.querySelector(${JSON.stringify(row('created.txt'))})`);assert(fs.existsSync(path.join(workspace,'created.txt')));
   await root_menu('新建文件夹…');await wait('!!document.querySelector(".workspace-explorer-rename")');await evaluate('document.querySelector(".workspace-explorer-rename").value="created_folder"');await key('Enter');await wait(`!!document.querySelector(${JSON.stringify(row('created_folder'))})`);assert(fs.statSync(path.join(workspace,'created_folder')).isDirectory());
   await evaluate(`instance.reveal(${JSON.stringify(path.join(workspace,'created.txt'))})`);await command('c');
