@@ -535,3 +535,7 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 ## R068.12 阅读代码与原生编辑颜色分歧（2026-10-02）
 
 分类：reading/theme，普通语言分词所有者不一致。原生CodeMirror与预览Monaco分类不等价，查询视图另有旧色表。修复由共享宿主静态分词适配和共同主题负责，C/C++ TextMate保持。验收关联TC-reading-code-preview-theme-native、代码颜色与搜索/链接/Git主题UI；证据见[本次记录](../enhancements/tests/evidence/code_preview_colors_20261002.json)。本次不能关闭R071.7黑屏、R068.11现场裁切或R005.4双原生编辑器缺口。
+
+## R028.2 资源树相邻文件切换抖动（2026-10-03）
+
+分类files/navigation：自动活动文件通知复用无条件居中的手动reveal，导致可见相邻行重新定位。现区分定位意图并复用已知节点，按请求身份抑制迟到选择。UI红测和原始宿主逐帧证据见[本次验证](../enhancements/tests/evidence/explorer_stable_20261003.json)；TC-explorer-stable-native及已有Explorer/分区/切库测试关联此项。历史渲染黑屏等其他问题保持独立。

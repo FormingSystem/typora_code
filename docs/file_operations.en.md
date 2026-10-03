@@ -113,3 +113,15 @@ Double-click rename only handled Enter/Escape, leaving the input active after cl
 The file tree owns the edit and registration; workspace_focus owns shared listeners. Release on completion, root change, hiding and disposal. Cancelling creation removes its placeholder; failures remain retryable. Pinned 6807068 explorerViewer.ts BLUR/onFinish provides the lifecycle reference. Its valid-input blur submission is deliberately not adopted because this project already specifies cancellation.
 
 Reproduce using trusted Chromium clicks on a control that prevents focus transfer; verify one destination action, no rename, inside clicks, editor/blank targets, Escape/Enter, conflicts, create cancellation, hiding and disposal. Verify the native outline entry on isolated documents and regress shared dismissal, file operations and workspace changes, followed by the same-candidate install/uninstall lifecycle.
+
+## R028.2 Preserve Explorer position when switching adjacent files (2026-10-03)
+
+Clicking a row already selects it, but active-leaf:change/file:open then called reveal, which unconditionally centered the target and walked the expansion/rebuild path. Adjacent visible files therefore moved under the pointer.
+
+Automatic following should scroll only when a row is not fully visible, retaining nodes, expansion and scroll position. The explicit locate-current-file action keeps its centering intent. File opening, preview tabs, rename, multiselection, persistence and directory refresh semantics stay with their existing owners.
+
+workspace_explorer passes automatic intent; workspace_file_tree owns selection, virtualization and positioning. Known flattened targets synchronize selection directly without directory reads or rebuilding; repeated same-target events do not repaint. Collapsed targets retain lazy expansion. Per-request identity prevents stale reveals from replacing newer requests, in addition to root/disposal generation checks. Queued frames stop after hiding. No new setting, observer, polling or global refresh.
+
+Baseline: pinned VS Code 6807068, src/vs/workbench/contrib/files/browser/views/explorerView.ts selectResource only calls tree.reveal(item,0.5) when getRelativeTop(item) is null. Adopt its visible-row stability and selection/reveal separation while retaining explicit centering.
+
+Validate real Chromium pointer input plus document events, per-frame scroll/row geometry/node identity/reads/expansion during 20 adjacent switches, duplicate events, offscreen and explicit reveal, stale requests, editor focus and 2000-row virtualization. Original Typora uses an isolated corpus and trusted input, with input/open/frame and settling measurements. Record pressure/platform limits separately and deliver the same candidate through build/check, isolated uninstall cycles and local installation.

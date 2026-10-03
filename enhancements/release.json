@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100301,
+      "version": "2026.10.03.1",
+      "date": "2026-10-03",
+      "notes": [
+        "修复点击相邻文件时资源管理器重复居中造成的刷新感和位置抖动，可见文件行保持原位。",
+        "自动跟随复用已有树节点和目录状态，离屏文件仍会定位；手动定位按钮继续居中。"
+      ],
+      "notes_en": [
+        "Keep visible Explorer rows stationary when switching adjacent files, avoiding redundant recentering and apparent refresh flicker.",
+        "Automatic following reuses tree nodes and directory state; offscreen files remain discoverable and explicit locate still centers."
+      ]
+    },
+    {
       "sequence": 2026100209,
       "version": "2026.10.02.9",
       "date": "2026-10-02",

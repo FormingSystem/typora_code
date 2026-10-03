@@ -61,7 +61,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
-  let flat_nodes: explorer_node[] = [], render_frame = 0;
+  let flat_nodes: explorer_node[] = [], render_frame = 0, reveal_request = 0;
   let edit_dismissal:workspace_dismiss_layer|undefined;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
@@ -428,26 +428,40 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     // Refresh expanded directories in sequence to avoid issuing a large number of requests simultaneously to network drives or large directories.
     for (const node of expanded) if (!disposed && nodes.get(node.path) === node) await load_children(node, true);
   }
-  async function reveal(file_path = options.active_file?.() || "") {
-    await sync_root(); if (!root || !file_path || !path_api.isAbsolute(file_path)) return;
+  async function reveal(file_path = options.active_file?.() || "", intent:'center'|'auto'='center') {
+    const request=++reveal_request;
+    await sync_root(); if (disposed || request!==reveal_request || !root || !file_path || !path_api.isAbsolute(file_path)) return;
     file_path = path_api.normalize(file_path);
     const relative = path_api.relative(root.path, file_path);
     if (!relative || path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) return;
     let parent = root;const reveal_generation=generation;
-    const current=()=>!disposed&&generation===reveal_generation;
+    const current=()=>!disposed&&generation===reveal_generation&&request===reveal_request;
+    const apply=(node:explorer_node)=>{
+      const changed=selected_path!==node.path||selection_paths.size!==1||!selection_paths.has(node.path);
+      if(changed){selection_paths.clear();selection_paths.add(node.path);selected_path=node.path;options.selection?.select(node.path,node.directory);}
+      const top=flat_nodes.indexOf(node)*ROW_HEIGHT;
+      const needs_scroll=intent==='center'||top<tree.scrollTop||top+ROW_HEIGHT>tree.scrollTop+tree.clientHeight;
+      if(status.textContent)set_status("");
+      if(needs_scroll){tree.scrollTop=Math.max(0,top-tree.clientHeight/2);render();}
+      else if(changed)render();
+    };
+    // Opening a visible row already selected it. Host notifications must not
+    // walk directories, rebuild the list or move that row under the pointer.
+    const known=nodes.get(file_path);
+    if(intent==='auto'&&known&&flat_nodes.includes(known)){apply(known);return;}
     const components = relative.split(path_api.sep);
     for (const name of components.slice(0, -1)) {
       await load_children(parent);if(!current())return;
       const child = parent.children?.find(node => path_api.sep === "\\" ? node.name.toLowerCase() === name.toLowerCase() : node.name === name); if (!child) return;
       if (child.link && !child.directory) { try { child.directory = (await fs.promises.stat(child.path)).isDirectory(); } catch { return; } }
       if (!child.directory) return;
-      child.expanded = true; await load_children(child); parent = child;
+      child.expanded = true; await load_children(child);if(!current())return; parent = child;
     }
     await load_children(parent);if(!current())return;rebuild();
     const name = components.at(-1)!;
     let node = parent.children?.find(candidate => path_api.sep === "\\" ? candidate.name.toLowerCase() === name.toLowerCase() : candidate.name === name);
     while (node?.compact_parent && node.children?.length === 1) node = node.children[0];
-    if (node&&current()) { selection_paths.clear(); selection_paths.add(node.path); selected_path = node.path; options.selection?.select(node.path,node.directory); set_status(""); const index = flat_nodes.indexOf(node); tree.scrollTop = Math.max(0, index * ROW_HEIGHT - tree.clientHeight / 2); render(); }
+    if (node&&current()) apply(node);
   }
   async function set_visible(value:boolean) {
     visible=value;

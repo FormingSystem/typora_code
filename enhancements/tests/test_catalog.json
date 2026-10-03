@@ -2369,7 +2369,8 @@
         "R070.8",
         "R080",
         "R058.1",
-        "R028.1"
+        "R028.1",
+        "R028.2"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -9530,6 +9531,39 @@
       ],
       "expected": [
         "Identical source text, foreground and background; no preview CodeMirror instances; source files unchanged."
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-explorer-stable-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R028.2"
+      ],
+      "design": "docs/file_operations.md#r0282-相邻文件切换保持资源树位置2026-10-03",
+      "implementation": [
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_explorer.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "files",
+        "navigation"
+      ],
+      "script": "enhancements/fixtures/explorer_stable_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "独立测试目录及最终构建"
+      ],
+      "steps": [
+        "20 trusted adjacent file clicks; framewise scroll and row identity; explicit and offscreen automatic reveal."
+      ],
+      "expected": [
+        "Stable visible rows; correct open target; original files unchanged."
       ],
       "timeout_ms": 180000
     }

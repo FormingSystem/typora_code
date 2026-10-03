@@ -579,3 +579,7 @@ R071.7 recurrence: retain the stable BUG-split-black-screen-unconfirmed identifi
 ## R068.12 Reader and native editing code colors differ (2026-10-02)
 
 Classification: reading/theme, inconsistent lexical ownership. Native CodeMirror roles and preview Monaco categories differed; lookup views also carried a separate old palette. A shared static host tokenizer and theme now own ordinary-language rendering; C/C++ TextMate remains unchanged. Validation links TC-reading-code-preview-theme-native and color/search/link/Git UI tests; see [evidence](../enhancements/tests/evidence/code_preview_colors_20261002.json). This work does not close R071.7 black screens, R068.11 reported clipping or the R005.4 dual-native-editor gap.
+
+## R028.2 Explorer jitter across adjacent files (2026-10-03)
+
+Classification files/navigation: active-file notifications reused the unconditional centering path, repositioning already visible rows. Reveal intent now separates automatic following from explicit locating, reuses known nodes and rejects stale selections. See [red/native frame evidence](../enhancements/tests/evidence/explorer_stable_20261003.json), TC-explorer-stable-native and existing Explorer/sections/workspace-switch coverage. Historical renderer black screens and other issues remain separate.

@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "requirement": "R028.2",
+  "version": "2026.10.03.1",
+  "sequence": 2026100301,
+  "design": "docs/file_operations.md#r0282-相邻文件切换保持资源树位置2026-10-03",
+  "status": "PASS; installed, loaded windows not restarted",
+  "manifest_sha256": "426ae0d4c51d23d65693111af873119b951c0f26d08cff1f8edb33d37665bc46",
+  "implementation": "Automatic document following retains fully visible rows and directly projects known targets without walking/rebuilding the tree. Explicit reveal still centers; request identity rejects stale async reveals; hidden queued frames do not reveal.",
+  "validation": {
+    "red": {
+      "case": "02a003d4dfd14dc08af11c4555c65e49",
+      "baseline": "93c01ca1aba55c96aad14681b45d3cca2ac874ce",
+      "result": "Real Chromium adjacent clicks plus active-leaf/file-open notifications fail the every-frame scroll/geometry/identity assertion before the fix."
+    },
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case": "f1bc2cabd4b64ca59fc50a72974de4c2"
+    },
+    "ui": {
+      "status": "PASS",
+      "cases": {
+        "explorer": "dee6795620a845dc833f06be7ecc97e3",
+        "explorer_history": "3d512a4008964c3bbc9cef1582710508",
+        "workspace_switch": "69ab386ae79e4ab08f892621828cda33"
+      },
+      "adjacent_clicks": 20,
+      "frames": 243,
+      "extra_directory_reads": 0,
+      "duplicate_notification_pairs": 1000,
+      "coverage": [
+        "unchanged visible row nodes and scroll",
+        "explicit reveal still centers",
+        "late slow reveal cannot override later target",
+        "no DOM mutation for duplicate automatic events",
+        "rename/dismissal/clipboard/focus protections",
+        "2000-row virtualization, light/dark and 100/125 percent zoom",
+        "workspace switch lifecycle"
+      ]
+    },
+    "native": {
+      "status": "PASS",
+      "case": "348dfb08010e49fbba78e6c969203935",
+      "host_version": "1.14.10",
+      "fixture_sha256": "ad185ec4ba145769d3cbd428fdfd347e6c6276e4d6537f82c3c812f2ca2b6a25",
+      "manifest_sha256": "426ae0d4c51d23d65693111af873119b951c0f26d08cff1f8edb33d37665bc46",
+      "assertions": 186,
+      "trusted_adjacent_clicks": 20,
+      "frames": 1479,
+      "max_scroll_deviation": 0,
+      "theme": "VSCode2026 Dark",
+      "coverage": "Actual native Markdown file switching through production Explorer rows; native document content checked each time; manual center/offscreen auto reveal and 100 original file bytes checked. Open Editors collapsed to match the reported screenshot. Setup refresh/collapse use DOM actions, adjacent clicks use trusted private-desktop messages.",
+      "timings": [
+        {
+          "index": 0,
+          "target": "entry_051.md",
+          "opened_ms": 67,
+          "next_frame_ms": 11.600000000558794,
+          "scroll": 1092
+        },
+        {
+          "index": 1,
+          "target": "entry_050.md",
+          "opened_ms": 92,
+          "next_frame_ms": 20,
+          "scroll": 1092
+        },
+        {
+          "index": 2,
+          "target": "entry_051.md",
+          "opened_ms": 99.5,
+          "next_frame_ms": 20,
+          "scroll": 1092
+        },
+        {
+          "index": 3,
+          "target": "entry_050.md",
+          "opened_ms": 124.29999999981374,
+          "next_frame_ms": 9.299999999813735,
+          "scroll": 1092
+        },
+        {
+          "index": 4,
+          "target": "entry_051.md",
+          "opened_ms": 96.5,
+          "next_frame_ms": 18.700000000186265,
+          "scroll": 1092
+        },
+        {
+          "index": 5,
+          "target": "entry_050.md",
+          "opened_ms": 123.29999999981374,
+          "next_frame_ms": 8.599999999627471,
+          "scroll": 1092
+        },
+        {
+          "index": 6,
+          "target": "entry_051.md",
+          "opened_ms": 90.20000000018626,
+          "next_frame_ms": 17.200000000186265,
+          "scroll": 1092
+        },
+        {
+          "index": 7,
+          "target": "entry_050.md",
+          "opened_ms": 88.09999999962747,
+          "next_frame_ms": 18.299999999813735,
+          "scroll": 1092
+        },
+        {
+          "index": 8,
+          "target": "entry_051.md",
+          "opened_ms": 90.40000000037253,
+          "next_frame_ms": 18.5,
+          "scroll": 1092
+        },
+        {
+          "index": 9,
+          "target": "entry_050.md",
+          "opened_ms": 90.6000000005588,
+          "next_frame_ms": 19.600000000558794,
+          "scroll": 1092
+        },
+        {
+          "index": 10,
+          "target": "entry_051.md",
+          "opened_ms": 95.1000000005588,
+          "next_frame_ms": 18.300000000745058,
+          "scroll": 1092
+        },
+        {
+          "index": 11,
+          "target": "entry_050.md",
+          "opened_ms": 89.30000000074506,
+          "next_frame_ms": 18.40000000037253,
+          "scroll": 1092
+        },
+        {
+          "index": 12,
+          "target": "entry_051.md",
+          "opened_ms": 93.20000000018626,
+          "next_frame_ms": 17.90000000037253,
+          "scroll": 1092
+        },
+        {
+          "index": 13,
+          "target": "entry_050.md",
+          "opened_ms": 120.59999999962747,
+          "next_frame_ms": 8.700000000186265,
+          "scroll": 1092
+        },
+        {
+          "index": 14,
+          "target": "entry_051.md",
+          "opened_ms": 93.69999999925494,
+          "next_frame_ms": 19.09999999962747,
+          "scroll": 1092
+        },
+        {
+          "index": 15,
+          "target": "entry_050.md",
+          "opened_ms": 121.69999999925494,
+          "next_frame_ms": 9.199999999254942,
+          "scroll": 1092
+        },
+        {
+          "index": 16,
+          "target": "entry_051.md",
+          "opened_ms": 97.5,
+          "next_frame_ms": 18.299999999813735,
+          "scroll": 1092
+        },
+        {
+          "index": 17,
+          "target": "entry_050.md",
+          "opened_ms": 129.8999999994412,
+          "next_frame_ms": 8.599999999627471,
+          "scroll": 1092
+        },
+        {
+          "index": 18,
+          "target": "entry_051.md",
+          "opened_ms": 84.79999999981374,
+          "next_frame_ms": 16.799999999813735,
+          "scroll": 1092
+        },
+        {
+          "index": 19,
+          "target": "entry_050.md",
+          "opened_ms": 85.59999999962747,
+          "next_frame_ms": 17.59999999962747,
+          "scroll": 1092
+        }
+      ],
+      "timing_boundary": "opened_ms measures pointerdown to observed target identity/not-loading with 25ms polling; next_frame_ms is the next animation frame. Document equality checked after settling, not claimed as precise paint latency."
+    },
+    "earlier_native_failures": [
+      {
+        "case": "82ae5ca2640349faa152f9bb0392cf7d",
+        "error": "Error: visible target",
+        "passed_before_failure": 1
+      },
+      {
+        "case": "c0f77114101349669a8f94a73257b05b",
+        "error": "Error: visible target",
+        "passed_before_failure": 1
+      },
+      {
+        "case": "4408777b014f483b9139657b1b9a24eb",
+        "error": "Error: adjacent rows",
+        "passed_before_failure": 1
+      },
+      {
+        "case": "ae532f8c65884bfc9f11fb1c67ae2ec4",
+        "error": "Error: opened target",
+        "passed_before_failure": 2
+      },
+      {
+        "case": "c47346526dab49c2892d9b8e3d9b9cc8",
+        "error": "Error: adjacent geometry stable 0",
+        "passed_before_failure": 2
+      }
+    ],
+    "fixture_notes": "Early runs attempted a hidden hover-only refresh button, then used a stale cached directory; setup now invokes the public refresh action. One run timed out with unexpected range selection (cause unconfirmed). Expanded Open Editors legitimately changed tree top as tabs appeared; final corpus matches the reported collapsed section. Earlier UI follow-up required restoring its active-path fixture before independent rename tests. Failures retained.",
+    "install_cycle": {
+      "status": "PASS",
+      "case": "d8946737088c46889958b842376385a4",
+      "coverage": "same-candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/config/backup preserved",
+      "payload": "cleaned"
+    },
+    "uninstall": {
+      "status": "PASS",
+      "case": "5ad02d61d267479c9c9ff2a62532ea7b",
+      "assertions": 65,
+      "payload": "cleaned"
+    }
+  },
+  "local_installation": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "426ae0d4c51d23d65693111af873119b951c0f26d08cff1f8edb33d37665bc46",
+    "installed_sequence": 2026100301,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  },
+  "limitations": [
+    "Full UI suite and other native platforms not run.",
+    "No long-duration GPU stress or claim to resolve R071.7 black screens, R068.11 original clipping or R005.4 dual native editors.",
+    "No push; user windows require manual restart."
+  ]
+}

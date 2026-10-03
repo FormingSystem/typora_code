@@ -204932,7 +204932,7 @@ https://creativecommons.org/licenses/by/4.0/
     toolbar.append(title, actions);
     container.append(toolbar, root_label, tree, status2);
     let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
-    let flat_nodes = [], render_frame = 0;
+    let flat_nodes = [], render_frame = 0, reveal_request = 0;
     let edit_dismissal;
     let rename_state;
     let compact_folders = false;
@@ -205550,15 +205550,37 @@ https://creativecommons.org/licenses/by/4.0/
       const expanded2 = [...nodes.values()].filter((node) => node.directory && (node.expanded || node.compact_parent));
       for (const node of expanded2) if (!disposed && nodes.get(node.path) === node) await load_children(node, true);
     }
-    async function reveal(file_path = options2.active_file?.() || "") {
+    async function reveal(file_path = options2.active_file?.() || "", intent = "center") {
+      const request = ++reveal_request;
       await sync_root();
-      if (!root || !file_path || !path_api.isAbsolute(file_path)) return;
+      if (disposed || request !== reveal_request || !root || !file_path || !path_api.isAbsolute(file_path)) return;
       file_path = path_api.normalize(file_path);
       const relative2 = path_api.relative(root.path, file_path);
       if (!relative2 || path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) return;
       let parent = root;
       const reveal_generation = generation;
-      const current2 = () => !disposed && generation === reveal_generation;
+      const current2 = () => !disposed && generation === reveal_generation && request === reveal_request;
+      const apply3 = (node2) => {
+        const changed2 = selected_path !== node2.path || selection_paths.size !== 1 || !selection_paths.has(node2.path);
+        if (changed2) {
+          selection_paths.clear();
+          selection_paths.add(node2.path);
+          selected_path = node2.path;
+          options2.selection?.select(node2.path, node2.directory);
+        }
+        const top = flat_nodes.indexOf(node2) * ROW_HEIGHT;
+        const needs_scroll = intent === "center" || top < tree.scrollTop || top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight;
+        if (status2.textContent) set_status("");
+        if (needs_scroll) {
+          tree.scrollTop = Math.max(0, top - tree.clientHeight / 2);
+          render();
+        } else if (changed2) render();
+      };
+      const known = nodes.get(file_path);
+      if (intent === "auto" && known && flat_nodes.includes(known)) {
+        apply3(known);
+        return;
+      }
       const components = relative2.split(path_api.sep);
       for (const name2 of components.slice(0, -1)) {
         await load_children(parent);
@@ -205575,6 +205597,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!child.directory) return;
         child.expanded = true;
         await load_children(child);
+        if (!current2()) return;
         parent = child;
       }
       await load_children(parent);
@@ -205583,16 +205606,7 @@ https://creativecommons.org/licenses/by/4.0/
       const name = components.at(-1);
       let node = parent.children?.find((candidate) => path_api.sep === "\\" ? candidate.name.toLowerCase() === name.toLowerCase() : candidate.name === name);
       while (node?.compact_parent && node.children?.length === 1) node = node.children[0];
-      if (node && current2()) {
-        selection_paths.clear();
-        selection_paths.add(node.path);
-        selected_path = node.path;
-        options2.selection?.select(node.path, node.directory);
-        set_status("");
-        const index = flat_nodes.indexOf(node);
-        tree.scrollTop = Math.max(0, index * ROW_HEIGHT - tree.clientHeight / 2);
-        render();
-      }
+      if (node && current2()) apply3(node);
     }
     async function set_visible(value) {
       visible3 = value;
@@ -253045,6 +253059,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100301,
+        version: "2026.10.03.1",
+        date: "2026-10-03",
+        notes: [
+          "\u4FEE\u590D\u70B9\u51FB\u76F8\u90BB\u6587\u4EF6\u65F6\u8D44\u6E90\u7BA1\u7406\u5668\u91CD\u590D\u5C45\u4E2D\u9020\u6210\u7684\u5237\u65B0\u611F\u548C\u4F4D\u7F6E\u6296\u52A8\uFF0C\u53EF\u89C1\u6587\u4EF6\u884C\u4FDD\u6301\u539F\u4F4D\u3002",
+          "\u81EA\u52A8\u8DDF\u968F\u590D\u7528\u5DF2\u6709\u6811\u8282\u70B9\u548C\u76EE\u5F55\u72B6\u6001\uFF0C\u79BB\u5C4F\u6587\u4EF6\u4ECD\u4F1A\u5B9A\u4F4D\uFF1B\u624B\u52A8\u5B9A\u4F4D\u6309\u94AE\u7EE7\u7EED\u5C45\u4E2D\u3002"
+        ],
+        notes_en: [
+          "Keep visible Explorer rows stationary when switching adjacent files, avoiding redundant recentering and apparent refresh flicker.",
+          "Automatic following reuses tree nodes and directory state; offscreen files remain discoverable and explicit locate still centers."
+        ]
+      },
+      {
         sequence: 2026100209,
         version: "2026.10.02.9",
         date: "2026-10-02",
@@ -257582,7 +257609,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!visible3 || disposed || refresh_frame) return;
       refresh_frame = requestAnimationFrame(() => {
         refresh_frame = 0;
-        run(() => reveal());
+        if (visible3 && !disposed) run(() => reveal(void 0, "auto"));
       });
     };
     for (const event of ["active-leaf:change", "file:open"]) {
