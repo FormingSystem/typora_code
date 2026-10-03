@@ -583,3 +583,9 @@ Classification: reading/theme, inconsistent lexical ownership. Native CodeMirror
 ## R028.2 Explorer jitter across adjacent files (2026-10-03)
 
 Classification files/navigation: active-file notifications reused the unconditional centering path, repositioning already visible rows. Reveal intent now separates automatic following from explicit locating, reuses known nodes and rejects stale selections. See [red/native frame evidence](../enhancements/tests/evidence/explorer_stable_20261003.json), TC-explorer-stable-native and existing Explorer/sections/workspace-switch coverage. Historical renderer black screens and other issues remain separate.
+
+## R068.13 Code expansion lost after navigation (2026-10-03)
+
+DOM-only choices caused every reconstructed fence to default to collapsed. Workspace-session choices now use resource identity and block fingerprint/duplicate order, with existing scans restoring state and releasing node references. No new configuration or periodic task. The old native unlabelled-fence case failed on return; the candidate passed 20 round trips, same-file locations, explicit collapse, edits/save and close/reopen. See [evidence](../enhancements/tests/evidence/code_fold_state_20261003.json).
+
+Boundary: the initial bash corpus failed while returning, before the expansion assertion, with native `tryAddLangUndo` accessing a deleted node. A trusted tab-click attempt also failed to return. This occurred on the old candidate and remains open; passing the unlabelled corpus does not resolve it. The expansion service is language-independent, but labelled-fence native cross-file loading remains a separate verification gap. R071.7 black screens, R068.11 original clipping and R005.4 remain open.

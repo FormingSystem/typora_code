@@ -9566,6 +9566,70 @@
         "Stable visible rows; correct open target; original files unchanged."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-code-fold-state",
+      "domain": "reading",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.13"
+      ],
+      "design": "docs/reading_code_blocks.md#r06813-跳转切换保留代码块展开状态",
+      "implementation": [
+        "enhancements/src/reading_code_fold_state.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "navigation",
+        "CodeMirror"
+      ],
+      "script": "enhancements/scripts/test_reading_code_fold_state.mjs",
+      "environment": [
+        "Node.js"
+      ],
+      "preconditions": [
+        "Installed development dependencies"
+      ],
+      "steps": [
+        "Explicit choices across reconstruction, edited duplicates, draft identity and 20/100/1000 round trips."
+      ],
+      "expected": [
+        "Independent choices restored; cleared state releases all references."
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-code-fold-state-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R068.13"
+      ],
+      "design": "docs/reading_code_blocks.md#r06813-跳转切换保留代码块展开状态",
+      "implementation": [
+        "enhancements/src/reading_code_fold_state.ts",
+        "enhancements/src/typora_enhancements.ts"
+      ],
+      "related_modules": [
+        "navigation",
+        "CodeMirror"
+      ],
+      "script": "enhancements/fixtures/code_fold_state_native.js",
+      "environment": [
+        "Windows Typora 1.14.10"
+      ],
+      "preconditions": [
+        "Installed development dependencies"
+      ],
+      "steps": [
+        "20 native document round trips, trusted expansion/collapse clicks and same-file location."
+      ],
+      "expected": [
+        "Expanded fence preserved; duplicate and other file independent; disk text unchanged."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

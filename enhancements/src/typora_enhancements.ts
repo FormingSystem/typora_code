@@ -21,7 +21,7 @@ import scrollbar_css from "./workspace_scrollbars.css";
 import {bind_workspace_scrollbars} from "./workspace_scrollbars";
 
 import { bind_reading_navigation } from "./reading_navigation";
-import { initialize_workspace } from "./workspace_bootstrap";
+import { initialize_workspace, get_workspace_app } from "./workspace_bootstrap";
 import { bind_file_path_actions } from "./file_path_actions";
 import { bind_git_graph } from "./git_graph_view";
 import { bind_workspace_browser } from "./workspace_browser";
@@ -29,6 +29,9 @@ import {bind_workspace_update} from "./workspace_update";
 import {bind_community_plugins} from "./community_plugins";
 import { bind_reading_minimap } from "./reading_minimap";
 import { bind_reading_link_hover } from "./reading_link_hover";
+import {create_reading_code_fold_state} from "./reading_code_fold_state";
+import {file_key} from "./workspace_file_uri";
+import {workspace_context_switching} from "./workspace_context";
 
 type code_mirror_stream = {
   string: string;
@@ -87,6 +90,7 @@ let reading_binding: ReturnType<typeof bind_reading_navigation>;
 let grammar_loading: Promise<void> | undefined;
 const original_code_modes = new Map<code_mirror_instance, unknown>();
 let code_geometry:ReturnType<typeof bind_reading_code_geometry>|undefined;
+const code_fold_state=create_reading_code_fold_state();
 let code_copy:ReturnType<typeof bind_reading_code_copy>|undefined;
 let runtime_observer: MutationObserver | null = null;
 let dispose_reading_action_events: (() => void) | null = null;
@@ -241,7 +245,9 @@ function bind_reading_action_events(): () => void {
     // Keep the document content cursor position; the mouse is still switched by click, and if the button is pressed and then moved out, it will not switch.
     if (event.type === "mousedown" || event.type === "click") event.preventDefault();
     if (event.type === "click") {
-      set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+      const expanded=!fence.classList.contains("is-code-expanded");
+      code_fold_state.remember(fence,expanded);
+      set_code_expanded(fence, button, expanded);
     }
   };
   for (const event_name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -288,8 +294,9 @@ function ensure_code_collapse(fence_element: Element): void {
     toolbar.append(button);
     fence.append(toolbar);
   }
-  if (!fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
-    set_code_expanded(fence, button, false);
+  const restored=code_fold_state.take_restore(fence);
+  if (restored!==undefined || !fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
+    set_code_expanded(fence, button, restored ?? code_fold_state.expanded(fence) ?? false);
   } else {
     render_code_toggle(button, fence.classList.contains("is-code-expanded"));
   }
@@ -315,7 +322,19 @@ function scan_document(): void {
   code_copy?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)&&Boolean(code_mirror_for_fence(fence))).map(element=>({element,read_text:()=>{
     const editor=code_mirror_for_fence(element);if(!editor)throw new Error(workspace_text("typora_enhancements_the_code_block_is_reloading"));return editor.getValue();
   }})));
-  fences.forEach(ensure_code_collapse);
+  const file=(window as unknown as {File?:{bundle?:{filePath?:string};isFileLoading?():boolean;_onFileSwitching?:boolean;_onInitParse?:boolean}}).File;
+  if(!workspace_context_switching()&&!file?.isFileLoading?.()&&!file?._onFileSwitching&&!file?._onInitParse){
+    const app=get_workspace_app(),path=file?.bundle?.filePath ?? "";
+    let native_owner:string|object|undefined;
+    app?.workspace.eachLeaves(leaf=>{if(leaf.view.isEditor?.()&&file_key(leaf.state.path)===file_key(path))native_owner=path?file_key(path):leaf.view;});
+    const entries=fences.flatMap(element=>{
+      const editor=code_mirror_for_fence(element);
+      if(!editor||!native_owner||!element.closest('#write')||code_fence_is_diagram(element))return [];
+      return [{element,owner:native_owner,read_text:()=>editor.getValue()}];
+    });
+    code_fold_state.reconcile(entries);
+    fences.forEach(ensure_code_collapse);
+  }
   const diagram_containers = new Set<Element>();
   document.querySelectorAll(".md-diagram-panel-preview").forEach((preview) => {
     diagram_containers.add(mermaid_container_for_preview(preview));
@@ -481,6 +500,11 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   runtime_lifetime.add(bind_reading_code_wheel());
   code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error(workspace_text("typora_enhancements_clipboard_is_not_ready"));files.copy(text);});
   dispose_reading_action_events = bind_reading_action_events();
+  const release_fold_checkpoint=get_workspace_app()?.workspace.on('file:will-open',()=>code_fold_state.checkpoint());
+  if(typeof release_fold_checkpoint==='function')lifetime.add(release_fold_checkpoint as ()=>void);
+  const clear_fold_state=()=>code_fold_state.clear();
+  window.addEventListener('linux-note-workspace-context-changed',clear_fold_state);
+  lifetime.add(()=>window.removeEventListener('linux-note-workspace-context-changed',clear_fold_state));
   scan_document();
   runtime_observer = new MutationObserver(schedule_scan);
   runtime_observer.observe(document.body, {subtree:true,childList:true,attributes:true,attributeFilter:["class","hidden","lang"]});
@@ -522,6 +546,7 @@ export function deactivate_typora_enhancements(): void {
   }
   runtime_observer?.disconnect();
   runtime_observer = null;
+  code_fold_state.clear();
   code_geometry?.dispose();code_geometry=undefined;
   code_copy?.dispose();code_copy=undefined;
   dispose_reading_action_events?.();

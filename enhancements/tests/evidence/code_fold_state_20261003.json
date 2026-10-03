@@ -1,0 +1,243 @@
+{
+  "schema": 1,
+  "date": "2026-10-03",
+  "requirement": "R068.13",
+  "version": "2026.10.03.2",
+  "sequence": 2026100302,
+  "design": "docs/reading_code_blocks.md#r06813-跳转切换保留代码块展开状态",
+  "status": "PASS for implemented fold-state fix; installed, running windows not restarted; labelled native loading gap retained",
+  "manifest_sha256": "bd324272a80f2875bc140984b71e5aee96b90ab3d48a85ba018f25bdc7a3f0ea",
+  "validation": {
+    "build": "PASS",
+    "unit": "PASS: 20/100/1000 round trips; duplicate identities, edit/save checkpoint, drafts and clear",
+    "ui": {
+      "status": "PASS",
+      "cases": [
+        "b639cda136184a4bb4dc37d47bcfccb0",
+        "f6b46bc74c1a465e9e4e20d2ac0de1a3",
+        "660ad1580b4545e797a729a3f4e766f6",
+        "a19354e5e24449528cc94c02dd61bd6a"
+      ],
+      "coverage": "geometry, wheel, copy and navigation lifecycle; before import-order-only rebuild"
+    },
+    "native": {
+      "status": "PASS",
+      "case": "dce79e38ae764e5f99b9b497ac5fbe46",
+      "setup": {
+        "host_version": "1.14.10",
+        "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+        "asset_manifest_sha256": "bd324272a80f2875bc140984b71e5aee96b90ab3d48a85ba018f25bdc7a3f0ea",
+        "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+        "fixture_sha256": "f2e5008efd88fa512bcab8986efbd2dd37fc2e0be1d9f0f8a9e76ed69a90afae",
+        "early_fixture_sha256": null,
+        "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+      },
+      "assertions": 111,
+      "round_trips": 20,
+      "checks": [
+        "explicitly expanded first fence",
+        "duplicate second fence independent",
+        "other file isolated 0",
+        "returned expansion 0",
+        "duplicate remains collapsed 0",
+        "same file location 0",
+        "native content unchanged 0",
+        "other file isolated 1",
+        "returned expansion 1",
+        "duplicate remains collapsed 1",
+        "same file location 1",
+        "native content unchanged 1",
+        "other file isolated 2",
+        "returned expansion 2",
+        "duplicate remains collapsed 2",
+        "same file location 2",
+        "native content unchanged 2",
+        "other file isolated 3",
+        "returned expansion 3",
+        "duplicate remains collapsed 3",
+        "same file location 3",
+        "native content unchanged 3",
+        "other file isolated 4",
+        "returned expansion 4",
+        "duplicate remains collapsed 4",
+        "same file location 4",
+        "native content unchanged 4",
+        "other file isolated 5",
+        "returned expansion 5",
+        "duplicate remains collapsed 5",
+        "same file location 5",
+        "native content unchanged 5",
+        "other file isolated 6",
+        "returned expansion 6",
+        "duplicate remains collapsed 6",
+        "same file location 6",
+        "native content unchanged 6",
+        "other file isolated 7",
+        "returned expansion 7",
+        "duplicate remains collapsed 7",
+        "same file location 7",
+        "native content unchanged 7",
+        "other file isolated 8",
+        "returned expansion 8",
+        "duplicate remains collapsed 8",
+        "same file location 8",
+        "native content unchanged 8",
+        "other file isolated 9",
+        "returned expansion 9",
+        "duplicate remains collapsed 9",
+        "same file location 9",
+        "native content unchanged 9",
+        "other file isolated 10",
+        "returned expansion 10",
+        "duplicate remains collapsed 10",
+        "same file location 10",
+        "native content unchanged 10",
+        "other file isolated 11",
+        "returned expansion 11",
+        "duplicate remains collapsed 11",
+        "same file location 11",
+        "native content unchanged 11",
+        "other file isolated 12",
+        "returned expansion 12",
+        "duplicate remains collapsed 12",
+        "same file location 12",
+        "native content unchanged 12",
+        "other file isolated 13",
+        "returned expansion 13",
+        "duplicate remains collapsed 13",
+        "same file location 13",
+        "native content unchanged 13",
+        "other file isolated 14",
+        "returned expansion 14",
+        "duplicate remains collapsed 14",
+        "same file location 14",
+        "native content unchanged 14",
+        "other file isolated 15",
+        "returned expansion 15",
+        "duplicate remains collapsed 15",
+        "same file location 15",
+        "native content unchanged 15",
+        "other file isolated 16",
+        "returned expansion 16",
+        "duplicate remains collapsed 16",
+        "same file location 16",
+        "native content unchanged 16",
+        "other file isolated 17",
+        "returned expansion 17",
+        "duplicate remains collapsed 17",
+        "same file location 17",
+        "native content unchanged 17",
+        "other file isolated 18",
+        "returned expansion 18",
+        "duplicate remains collapsed 18",
+        "same file location 18",
+        "native content unchanged 18",
+        "other file isolated 19",
+        "returned expansion 19",
+        "duplicate remains collapsed 19",
+        "same file location 19",
+        "native content unchanged 19",
+        "explicit collapse retained",
+        "disk content unchanged",
+        "save isolated edited document",
+        "edited duplicate retains its own expansion",
+        "edited native text retained",
+        "close isolated document",
+        "closed preview resource retains workspace choice",
+        "only explicit isolated save changed disk",
+        "trusted controls and next-frame timings captured"
+      ],
+      "boundary": "Actual unlabelled CodeMirror fences, trusted expansion/collapse clicks, production file service transitions and same-file line navigation. Two identical fences; edited/saved fixture then close/reopen. Test-owned Markdown only.",
+      "payload": "cleaned",
+      "input_samples": [
+        {
+          "trusted": true,
+          "next_frame_ms": 3.8000000044703484,
+          "expanded": "true"
+        },
+        {
+          "trusted": true,
+          "next_frame_ms": 3.899999998509884,
+          "expanded": "false"
+        },
+        {
+          "trusted": true,
+          "next_frame_ms": 2.899999998509884,
+          "expanded": "true"
+        }
+      ]
+    },
+    "red_and_earlier_failures": [
+      {
+        "case": "4da1c7eb38874e46bd5b11777713cf39",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "40e9f544471d4688a0ab848f1b778c84",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "c6367ab5a5a94996b312d70d15ede9cd",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "05d062432bfa4425bf18ddfcd897108a",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "07e90b0d48724991a28970ecc0df8cd3",
+        "error": "Error: native file loaded",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "4df2ca0317e14eb5a765af16b405f527",
+        "error": "Error: 无法切换到目标 Markdown；请先处理文件打开或未保存确认后重试。",
+        "passed_before_failure": 3
+      },
+      {
+        "case": "b62e6013ed6d4eea9474348eea00ff0a",
+        "error": "Error: returned expansion 0",
+        "passed_before_failure": 3
+      }
+    ],
+    "install_cycle": {
+      "case": "83b77fc6dc6d4bb8b0894a378b947672",
+      "status": "PASS",
+      "payload": "cleaned",
+      "coverage": "same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; documents/configuration/backups preserved"
+    },
+    "uninstall": {
+      "case": "194a050688c341c29bb5acbceaf136ef",
+      "status": "PASS",
+      "assertions": 65,
+      "payload": "cleaned"
+    },
+    "full_check": {
+      "status": "PASS",
+      "case": "de2b256075cb47deba4a426a7f3e1bc3"
+    }
+  },
+  "limitations": [
+    "Initial labelled bash native corpus failed on the old candidate before expansion assertions with tryAddLangUndo against a deleted node; labelled cross-file loading remains unresolved.",
+    "No restart persistence or other native platforms claimed. No full UI or long GPU stress run.",
+    "R071.7 black screens, R068.11 original clipping and R005.4 dual native editing remain open."
+  ],
+  "local_installation": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 56,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 9,
+    "manifest": "bd324272a80f2875bc140984b71e5aee96b90ab3d48a85ba018f25bdc7a3f0ea",
+    "installed_sequence": 2026100302,
+    "uninstall_precheck": "PASS; read-only on user environment",
+    "check_windows": "OK",
+    "running_windows": "Not restarted; save documents and restart all Typora windows normally."
+  }
+}

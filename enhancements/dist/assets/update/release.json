@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100302,
+      "version": "2026.10.03.2",
+      "date": "2026-10-03",
+      "notes": [
+        "修复文件切换或搜索跳转后代码块重新收起，保留当前工作区内各代码块的手动展开与收起选择。",
+        "返回文件时恢复代码块状态，重复内容与不同文档分别管理；不更改正文或新增配置。"
+      ],
+      "notes_en": [
+        "Preserve explicit code block expansion and collapse when navigating or returning to documents in the current workspace.",
+        "Restore choices independently for repeated blocks and separate documents without editing content or adding settings."
+      ]
+    },
+    {
       "sequence": 2026100301,
       "version": "2026.10.03.1",
       "date": "2026-10-03",

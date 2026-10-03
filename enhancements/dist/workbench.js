@@ -201752,10 +201752,10 @@ https://creativecommons.org/licenses/by/4.0/
     });
     const render_current = async (api2, source, current2) => {
       while (!disposed && current2()) {
-        const options2 = mermaid_theme_options(), fingerprint = JSON.stringify(options2);
+        const options2 = mermaid_theme_options(), fingerprint2 = JSON.stringify(options2);
         api2.initialize({ ...options2, startOnLoad: false, securityLevel: "strict", suppressErrorRendering: true, htmlLabels: false, flowchart: { ...options2.flowchart, htmlLabels: false } });
         const result = await api2.render("linux_note_lookup_diagram_".concat(++diagram_serial), source);
-        if (fingerprint === JSON.stringify(mermaid_theme_options())) return result;
+        if (fingerprint2 === JSON.stringify(mermaid_theme_options())) return result;
       }
       return void 0;
     };
@@ -201786,9 +201786,9 @@ https://creativecommons.org/licenses/by/4.0/
       return task;
     };
     const unwatch = observe_mermaid_theme(() => {
-      const fingerprint = JSON.stringify(mermaid_theme_options());
-      if (fingerprint === theme_fingerprint) return;
-      theme_fingerprint = fingerprint;
+      const fingerprint2 = JSON.stringify(mermaid_theme_options());
+      if (fingerprint2 === theme_fingerprint) return;
+      theme_fingerprint = fingerprint2;
       for (const entry of entries3) {
         if (!entry.element.isConnected || !entry.current()) {
           entries3.delete(entry);
@@ -226189,7 +226189,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (action !== "stage" && action !== "revert") failure(workspace_text("git_diff_ranges_unknown_selection_operation"));
     if (!file || /[\0\r\n\\]/u.test(file) || /^(?:[a-z]:|\/)/iu.test(file) || file.split("/").some((part) => !part || part === "." || part === ".." || part.toLowerCase() === ".git")) failure(workspace_text("git_diff_ranges_invalid_selection_file_path"));
     if (request.encoding && !/^utf-?8$/iu.test(request.encoding)) failure(workspace_text("git_diff_ranges_selection_operations_currently_only_support_non_destructive"));
-    const fingerprint = await repository_fingerprint(run, root);
+    const fingerprint2 = await repository_fingerprint(run, root);
     const [index, attributes, raw_work_guard, original_raw, working_state] = await Promise.all([
       run(root, ["ls-files", "--stage", "-z", "--", file]),
       run(root, ["check-attr", "-z", "filter", "working-tree-encoding", "ident", "--", file]),
@@ -226218,14 +226218,14 @@ https://creativecommons.org/licenses/by/4.0/
     const prepared = create_git_diff_range_patch(original_raw, modified_raw, request.line_changes, request.selections, action, file);
     const args = ["apply", ...action === "stage" ? ["--cached"] : [], "--unidiff-zero", "--whitespace=nowarn", "-"];
     await run(root, [...args.slice(0, -1), "--check", "-"], { stdin: prepared.patch });
-    if (await repository_fingerprint(run, root) !== fingerprint || await run(root, ["hash-object", "--no-filters", "--", file]) !== raw_work_guard || await run(root, ["ls-files", "--stage", "-z", "--", file]) !== index) stale();
+    if (await repository_fingerprint(run, root) !== fingerprint2 || await run(root, ["hash-object", "--no-filters", "--", file]) !== raw_work_guard || await run(root, ["ls-files", "--stage", "-z", "--", file]) !== index) stale();
     return {
       action: { id: action === "stage" ? "stage_ranges" : "revert_ranges", title: action === "stage" ? workspace_text("git_diff_ranges_stage_selected_lines") : workspace_text("git_diff_ranges_revert_selected_lines"), targets: ["file"], fields: [], touches_files: true },
       context: { root, target: file, hash: "", operation: "", paths: [file] },
       args,
       stdin: prepared.patch,
       preview: workspace_text("git_diff_ranges_processing_row_changes", { value_0: String(prepared.selected_count) }),
-      fingerprint,
+      fingerprint: fingerprint2,
       file_guard: raw_work_guard,
       index_guard: index
     };
@@ -253059,6 +253059,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100302,
+        version: "2026.10.03.2",
+        date: "2026-10-03",
+        notes: [
+          "\u4FEE\u590D\u6587\u4EF6\u5207\u6362\u6216\u641C\u7D22\u8DF3\u8F6C\u540E\u4EE3\u7801\u5757\u91CD\u65B0\u6536\u8D77\uFF0C\u4FDD\u7559\u5F53\u524D\u5DE5\u4F5C\u533A\u5185\u5404\u4EE3\u7801\u5757\u7684\u624B\u52A8\u5C55\u5F00\u4E0E\u6536\u8D77\u9009\u62E9\u3002",
+          "\u8FD4\u56DE\u6587\u4EF6\u65F6\u6062\u590D\u4EE3\u7801\u5757\u72B6\u6001\uFF0C\u91CD\u590D\u5185\u5BB9\u4E0E\u4E0D\u540C\u6587\u6863\u5206\u522B\u7BA1\u7406\uFF1B\u4E0D\u66F4\u6539\u6B63\u6587\u6216\u65B0\u589E\u914D\u7F6E\u3002"
+        ],
+        notes_en: [
+          "Preserve explicit code block expansion and collapse when navigating or returning to documents in the current workspace.",
+          "Restore choices independently for repeated blocks and separate documents without editing content or adding settings."
+        ]
+      },
+      {
         sequence: 2026100301,
         version: "2026.10.03.1",
         date: "2026-10-03",
@@ -263087,7 +263100,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!path.isAbsolute(target)) throw new Error(workspace_text("history_restore_invalid_recovery_target"));
     const bytes = await store.read(entry);
     let before, identity5;
-    const fingerprint = (stat) => [stat.dev, stat.ino, stat.size, stat.mtimeMs, stat.ctimeMs].join(":");
+    const fingerprint2 = (stat) => [stat.dev, stat.ino, stat.size, stat.mtimeMs, stat.ctimeMs].join(":");
     const verify = async () => {
       if (!valid()) throw new Error(workspace_text("history_restore_editor_content_or_target_has_changed_recovery_not_performed"));
       let stat;
@@ -263099,10 +263112,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
       if (!stat.isFile() || stat.isSymbolicLink() || expected_hash === void 0) throw new Error(workspace_text("history_restore_target_for_recovery_has_changed"));
       if ((stat.mode & 146) === 0) throw new Error(workspace_text("history_restore_recovery_target_is_a_read_only_file"));
-      if (identity5 && fingerprint(stat) !== identity5) throw new Error(workspace_text("history_restore_file_has_changed_please_refresh_the_comparison_before_recove"));
+      if (identity5 && fingerprint2(stat) !== identity5) throw new Error(workspace_text("history_restore_file_has_changed_please_refresh_the_comparison_before_recove"));
       const current2 = await store.read_snapshot(target);
       if (store.hash(current2) !== expected_hash) throw new Error(workspace_text("history_restore_file_has_changed_please_refresh_the_comparison_before_recove"));
-      identity5 = fingerprint(stat);
+      identity5 = fingerprint2(stat);
       before = current2;
     };
     await verify();
@@ -268034,6 +268047,88 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/reading_code_fold_state.ts
+  function fingerprint(text3) {
+    let first = 2166136261, second = 5381;
+    for (let index = 0; index < text3.length; index++) {
+      const code = text3.charCodeAt(index);
+      first = Math.imul(first ^ code, 16777619);
+      second = Math.imul(second, 33) ^ code;
+    }
+    return "".concat(text3.length, ":").concat(first >>> 0, ":").concat(second >>> 0);
+  }
+  function create_reading_code_fold_state() {
+    const saved = /* @__PURE__ */ new Map();
+    const records = /* @__PURE__ */ new Map();
+    const checkpoint = () => {
+      const occurrences = /* @__PURE__ */ new Map();
+      const updates = [];
+      for (const record of [...records.values()].sort((left, right) => left.index - right.index)) {
+        let counts = occurrences.get(record.owner);
+        if (!counts) occurrences.set(record.owner, counts = /* @__PURE__ */ new Map());
+        let signature;
+        try {
+          signature = fingerprint(record.read_text());
+        } catch {
+          continue;
+        }
+        const occurrence = counts.get(signature) ?? 0;
+        counts.set(signature, occurrence + 1);
+        updates.push({ record, key: "".concat(signature, ":").concat(occurrence) });
+      }
+      for (const { record } of updates) if (record.expanded !== void 0) saved.get(record.owner)?.delete(record.key);
+      for (const { record, key: key4 } of updates) {
+        record.key = key4;
+        if (record.expanded === void 0) continue;
+        let choices = saved.get(record.owner);
+        if (!choices) saved.set(record.owner, choices = /* @__PURE__ */ new Map());
+        choices.set(key4, record.expanded);
+      }
+    };
+    const reconcile = (entries3) => {
+      const next = new Map(entries3.map((entry) => [entry.element, entry]));
+      if ([...records.values()].some((record) => next.get(record.element)?.owner !== record.owner)) checkpoint();
+      for (const [element, record] of records) if (next.get(element)?.owner !== record.owner) records.delete(element);
+      const occurrences = /* @__PURE__ */ new Map();
+      entries3.forEach((entry, index) => {
+        const existing = records.get(entry.element);
+        let counts = occurrences.get(entry.owner);
+        if (!counts) occurrences.set(entry.owner, counts = /* @__PURE__ */ new Map());
+        const signature = existing ? existing.key.slice(0, existing.key.lastIndexOf(":")) : fingerprint(entry.read_text());
+        const occurrence = counts.get(signature) ?? 0;
+        counts.set(signature, occurrence + 1);
+        const key4 = "".concat(signature, ":").concat(occurrence);
+        if (existing) {
+          existing.index = index;
+          existing.read_text = entry.read_text;
+          return;
+        }
+        records.set(entry.element, { ...entry, index, key: key4, expanded: saved.get(entry.owner)?.get(key4), restoring: true });
+      });
+    };
+    return {
+      reconcile,
+      checkpoint,
+      expanded: (element) => records.get(element)?.expanded,
+      take_restore(element) {
+        const record = records.get(element);
+        if (!record?.restoring) return void 0;
+        record.restoring = false;
+        return record.expanded ?? false;
+      },
+      remember(element, expanded2) {
+        const record = records.get(element);
+        if (!record) return;
+        record.expanded = expanded2;
+        checkpoint();
+      },
+      clear() {
+        records.clear();
+        saved.clear();
+      }
+    };
+  }
+
   // src/typora_enhancements.ts
   var EXTENSION_STYLE_ID = "linux-note-typora-enhancements-style";
   var C_MODE_NAME = "linux-note-vscode-textmate-c";
@@ -268055,6 +268150,7 @@ https://creativecommons.org/licenses/by/4.0/
   var grammar_loading;
   var original_code_modes = /* @__PURE__ */ new Map();
   var code_geometry;
+  var code_fold_state = create_reading_code_fold_state();
   var code_copy;
   var runtime_observer = null;
   var dispose_reading_action_events = null;
@@ -268190,7 +268286,9 @@ https://creativecommons.org/licenses/by/4.0/
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
       if (event.type === "click") {
-        set_code_expanded(fence, button, !fence.classList.contains("is-code-expanded"));
+        const expanded2 = !fence.classList.contains("is-code-expanded");
+        code_fold_state.remember(fence, expanded2);
+        set_code_expanded(fence, button, expanded2);
       }
     };
     for (const event_name3 of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) {
@@ -268234,8 +268332,9 @@ https://creativecommons.org/licenses/by/4.0/
       toolbar.append(button);
       fence.append(toolbar);
     }
-    if (!fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
-      set_code_expanded(fence, button, false);
+    const restored = code_fold_state.take_restore(fence);
+    if (restored !== void 0 || !fence.classList.contains("is-code-collapsed") && !fence.classList.contains("is-code-expanded")) {
+      set_code_expanded(fence, button, restored ?? code_fold_state.expanded(fence) ?? false);
     } else {
       render_code_toggle(button, fence.classList.contains("is-code-expanded"));
     }
@@ -268260,7 +268359,21 @@ https://creativecommons.org/licenses/by/4.0/
       if (!editor2) throw new Error(workspace_text("typora_enhancements_the_code_block_is_reloading"));
       return editor2.getValue();
     } })));
-    fences3.forEach(ensure_code_collapse);
+    const file = window.File;
+    if (!workspace_context_switching() && !file?.isFileLoading?.() && !file?._onFileSwitching && !file?._onInitParse) {
+      const app = get_workspace_app(), path = file?.bundle?.filePath ?? "";
+      let native_owner;
+      app?.workspace.eachLeaves((leaf) => {
+        if (leaf.view.isEditor?.() && file_key(leaf.state.path) === file_key(path)) native_owner = path ? file_key(path) : leaf.view;
+      });
+      const entries3 = fences3.flatMap((element) => {
+        const editor2 = code_mirror_for_fence(element);
+        if (!editor2 || !native_owner || !element.closest("#write") || code_fence_is_diagram(element)) return [];
+        return [{ element, owner: native_owner, read_text: () => editor2.getValue() }];
+      });
+      code_fold_state.reconcile(entries3);
+      fences3.forEach(ensure_code_collapse);
+    }
     const diagram_containers = /* @__PURE__ */ new Set();
     document.querySelectorAll(".md-diagram-panel-preview").forEach((preview2) => {
       diagram_containers.add(mermaid_container_for_preview(preview2));
@@ -268446,6 +268559,11 @@ https://creativecommons.org/licenses/by/4.0/
       files2.copy(text3);
     });
     dispose_reading_action_events = bind_reading_action_events();
+    const release_fold_checkpoint = get_workspace_app()?.workspace.on("file:will-open", () => code_fold_state.checkpoint());
+    if (typeof release_fold_checkpoint === "function") lifetime.add(release_fold_checkpoint);
+    const clear_fold_state = () => code_fold_state.clear();
+    window.addEventListener("linux-note-workspace-context-changed", clear_fold_state);
+    lifetime.add(() => window.removeEventListener("linux-note-workspace-context-changed", clear_fold_state));
     scan_document();
     runtime_observer = new MutationObserver(schedule_scan);
     runtime_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["class", "hidden", "lang"] });
@@ -268484,6 +268602,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     runtime_observer?.disconnect();
     runtime_observer = null;
+    code_fold_state.clear();
     code_geometry?.dispose();
     code_geometry = void 0;
     code_copy?.dispose();
