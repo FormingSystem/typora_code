@@ -16,7 +16,7 @@
   for(let i=0;i<12;i++)dock.querySelector('[data-edge="east"]').dispatchEvent(new KeyboardEvent('keydown',{key:'ArrowRight',shiftKey:true,bubbles:true}));
   command('terminal');await wait(()=>document.querySelector('.typora-terminal-panel')&&!document.querySelector('.typora-terminal-panel').hidden,'终端未打开');
   const panel=document.querySelector('.typora-terminal-panel');await pause(300);
-  for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(300);
    for(const zoom of [1,1.25]){
     reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);

@@ -72,9 +72,9 @@
   const rgb_cell=colored_cell('TC_RGB');assert(rgb_cell?.isFgRGB()&&rgb_cell.getFgColor()===0x0c7bea,'真实SSH的RGB颜色无损到达xterm');
   const terminal=remote.surface.term,screen=text(remote);terminal.select(0,0,8);const selection=terminal.getSelection(),pid=remote.session.pid;
   for(const [theme,mode,foreground,background,inactive,cursor] of [
-   ['vscode2026_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
-   ['vscode2026_dark.css','dark','#cccccc','#191a1b','#3a3d41','#bfbfbf'],
-   ['vscode2026_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
+   ['vscode_default_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
+   ['vscode_default_dark.css','dark','#cccccc','#191a1b','#3a3d41','#bfbfbf'],
+   ['vscode_default_light.css','light','#3b3b3b','#fafafd','#e5ebf1','#202020'],
   ]){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);
    await wait(()=>terminal.options.theme.foreground?.toLowerCase()===foreground,'原生终端主题未切换 '+mode);

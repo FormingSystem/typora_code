@@ -17,7 +17,7 @@ try {
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','vscode_default_light.css','vscode_default_dark.css','vscode_default/base.css','enhancements/theme_catalog.json','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
     $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse
@@ -54,12 +54,20 @@ try {
     $unmanaged=Join-Path $user_data 'typora_code/assets/source_symbols/user-note.txt'
     write_fixture $unmanaged 'unmanaged content'
     $profile=Join-Path $user_data 'profile.data'
-    write_profile_fixture $profile @{framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
+    New-Item -ItemType Directory -Force -Path (Join-Path $user_data 'themes') | Out-Null
+    Copy-Item -LiteralPath (Join-Path $source_root 'enhancements/fixtures/legacy_theme_dark.css') -Destination (Join-Path $user_data 'themes/vscode2026_dark.css')
+    write_fixture (Join-Path $user_data 'themes/cpp_github-consolas.css') 'user modified theme'
+    write_profile_fixture $profile @{theme='vscode2026_dark.css';darkTheme='vscode2026_dark.css';framelessWindow=$false;nested=@{text='中文';items=@(1,$false)};later=1}
     $backup=Join-Path $test_root 'first backup'
     $install_output=@(& $installer -typora_root $fake_root -backup_root $backup -non_interactive)
     assert_equal $install_output.Count 0 'Installation logs contaminated the success output stream'
     & $checker -typora_root $fake_root -non_interactive
     assert_equal (read_profile_fixture $profile).framelessWindow $true 'Native window preference was not installed'
+    assert_equal (read_profile_fixture $profile).theme 'vscode_default_dark.css' 'Legacy theme choice was not migrated'
+    assert_equal (read_profile_fixture $profile).darkTheme 'vscode_default_dark.css' 'Separate dark choice was not migrated'
+    assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'themes/vscode2026_dark.css')) $false 'Owned legacy theme not retired'
+    assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'themes/cpp_github-consolas.css'))) 'user modified theme' 'Custom legacy CSS was overwritten'
+    write_fixture (Join-Path $user_data 'themes/cpp_github-consolas.css') 'later user theme edit'
     $profile_data=read_profile_fixture $profile; $profile_data.later=2; write_profile_fixture $profile $profile_data
     assert_equal (Test-Path -LiteralPath $retired) $false 'Retired bootstrap file remains'
     assert_equal ([IO.File]::ReadAllText((Join-Path $backup 'product/appearance_bootstrap.js'))) 'old appearance startup' 'Retired bootstrap not backed up'
@@ -134,6 +142,9 @@ try {
     assert_equal ([IO.File]::ReadAllText($window)) $original 'Window restore failed'
     assert_equal (read_profile_fixture $profile).framelessWindow $false 'Original native preference was not restored'
     assert_equal (read_profile_fixture $profile).later 2 'Restore overwrote later native settings'
+    assert_equal (read_profile_fixture $profile).theme 'vscode2026_dark.css' 'Restore lost old theme choice'
+    assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'themes/cpp_github-consolas.css'))) 'later user theme edit' 'Restore touched a custom legacy theme outside the transaction'
+    assert_equal ((Get-FileHash -LiteralPath (Join-Path $user_data 'themes/vscode2026_dark.css')).Hash) ((Get-FileHash -LiteralPath (Join-Path $source_root 'enhancements/fixtures/legacy_theme_dark.css')).Hash) 'Restore lost old theme bytes'
     assert_equal ([IO.File]::ReadAllText($retired)) 'old appearance startup' 'Retired bootstrap was not restored'
     foreach ($name in $retired_grammars.Keys) { assert_equal ([Convert]::ToBase64String([IO.File]::ReadAllBytes((Join-Path $user_data ('typora_code/'+$name))))) ([Convert]::ToBase64String($retired_grammars[$name])) ('Retired asset was not restored: '+$name) }
     foreach ($asset in get_typora_migration_assets) { assert_equal ([IO.File]::ReadAllText((Join-Path $user_data ('plugins/'+$asset.relative_path)))) ('old:'+$asset.relative_path) 'Old asset restore failed' }

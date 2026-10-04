@@ -1,0 +1,45 @@
+{
+  "schema": 1,
+  "files": [
+    "vscode_default/base.css",
+    "vscode_default_light.css",
+    "vscode_default_dark.css"
+  ],
+  "legacy": {
+    "cpp_github-consolas.css": {
+      "sha256": [
+        "d2a8fcef5c34a584b814494a4620494779282d2ccb9785ff9a773fa1de08cd92",
+        "577acb16f720a57fc71c89454dab6f83097fdd107c676d477a0c04d99b490918"
+      ],
+      "replacement": "vscode_default_light.css"
+    },
+    "cpp_github-consolas_light.css": {
+      "sha256": [
+        "fa0da21c40159b27fba9134a12380b18ffc6a32f69a7614e01936d3fa30c2d6f",
+        "fa0da21c40159b27fba9134a12380b18ffc6a32f69a7614e01936d3fa30c2d6f"
+      ],
+      "replacement": "vscode_default_light.css"
+    },
+    "cpp_github-consolas_dark.css": {
+      "sha256": [
+        "21ee690aeca4dfa1461df100d9ed374338c2ac9797a0be9c976c0d35f85c34e7",
+        "c104b1b7cb623a5266890ac8e9c01f1381f034f5a916170ce3bc479bbd5fe67d"
+      ],
+      "replacement": "vscode_default_dark.css"
+    },
+    "vscode2026_light.css": {
+      "sha256": [
+        "8969ce185069e805fd3d3953396327cf2d6a82d7a81c72c5beda7651ba07e7ca",
+        "8969ce185069e805fd3d3953396327cf2d6a82d7a81c72c5beda7651ba07e7ca"
+      ],
+      "replacement": "vscode_default_light.css"
+    },
+    "vscode2026_dark.css": {
+      "sha256": [
+        "87e057cc90a454d1413a60dc2c21943979d7c3640009d99cd1b32d16c82d47ac",
+        "c458daab910563901eb9d07229c1a103cd99cee422296c53d4a07edb37a0a961"
+      ],
+      "replacement": "vscode_default_dark.css"
+    }
+  }
+}

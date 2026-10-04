@@ -49,7 +49,7 @@
   const source_scrolls=[],original_scroll=cm.scrollTo;
   cm.scrollTo=function(...args){if(source_scrolls.length<400)source_scrolls.push({time:performance.now(),args,stack:new Error().stack});return original_scroll.apply(this,args);};cleanup.push(()=>{cm.scrollTo=original_scroll;});
   const anchor=()=>{const info=cm.getScrollInfo();return cm.coordsChar({left:info.left,top:info.top+80},'local').line;};
-  for(const theme of ['vscode2026_dark.css','vscode2026_light.css']){
+  for(const theme of ['vscode_default_dark.css','vscode_default_light.css']){
    ClientCommand.setTheme(theme,theme);await pause(500);
    const line=anchor(),before=cm.getScrollInfo();await resize(160);await resize(-160);
    const after_line=anchor(),info=cm.getScrollInfo(),point=cm.coordsChar({left:info.left,top:info.top},'local'),coord=cm.charCoords(point,'local');samples.push({name:'source_position',theme,line,after_line,before,after:info,point,coord,roundtrip:cm.coordsChar({left:coord.left,top:coord.top},'local'),font:getComputedStyle(cm.getWrapperElement()).fontSize,source_scrolls:[...source_scrolls]});source_scrolls.length=0;

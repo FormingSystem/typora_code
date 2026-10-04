@@ -43,3 +43,19 @@ write({framelessWindow:true,untouched:1});const already_true=fs.readFileSync(fil
 const helper=fileURLToPath(new URL('../../scripts/lib/typora_native_profile.cjs',import.meta.url));
 const check=()=>spawnSync(process.execPath,[helper,'check',file],{encoding:'utf8'}).status;
 assert.equal(check(),0);write({framelessWindow:false});assert.equal(check(),1);fs.unlinkSync(file);assert.equal(check(),1);
+
+const theme_directory=path.join(root,'themes');fs.mkdirSync(theme_directory);
+for(const mode of ['light','dark'])fs.writeFileSync(path.join(theme_directory,'vscode_default_'+mode+'.css'),'new theme');
+for(const old of ['cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css']){
+ const replacement=old.includes('_dark')?'vscode_default_dark.css':'vscode_default_light.css';
+ write({framelessWindow:true,theme:old,darkTheme:old,useSeparateDarkTheme:true,zoom:1.25});fs.copyFileSync(file,backup);
+ update_profile(file,'install',read_profile(file).sha256);
+ assert.deepEqual(read_profile(file).data,{framelessWindow:true,theme:replacement,darkTheme:replacement,useSeparateDarkTheme:true,zoom:1.25});
+ update_profile(file,'restore',read_profile(file).sha256,backup);assert.equal(read_profile(file).data.theme,old);
+ fs.writeFileSync(path.join(theme_directory,old),'user edited theme');
+ update_profile(file,'install',read_profile(file).sha256);assert.equal(read_profile(file).data.theme,old);
+ fs.unlinkSync(path.join(theme_directory,old));
+ write({...read_profile(file).data,theme:'my-theme.css',darkTheme:'my-night.css'});
+ update_profile(file,'restore',read_profile(file).sha256,backup);assert.equal(read_profile(file).data.theme,'my-theme.css');assert.equal(read_profile(file).data.darkTheme,'my-night.css');
+}
+console.log('PASS default theme migration: five legacy names, both choices, rollback, custom CSS and later selections preserved');

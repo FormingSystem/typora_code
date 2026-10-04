@@ -36,7 +36,7 @@
    await wait(()=>{try{const receipt=JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,''));return receipt.id==='cmake_'+line&&receipt.delivered;}catch{return false;}},'native Ctrl input delivered');
    await wait(()=>files.editor_state(core.app.workspace.activeLeaf).file_path===target&&core.app.workspace.activeLeaf.view.editor.focused_editor().getPosition().lineNumber===target_line,'native CMake project Ctrl+click '+line);assert(true,'native source Ctrl+click reaches project definition from line '+line);for(const event of events)event.dispose();assert(mouse_events.slice(-2).every(event=>event.ctrl&&event.trusted),'trusted native Ctrl input '+line);
   }
-  const profile=service.profile(id,path.dirname(sample),'cmake');assert(profile.initialization_options.semantic_token===true,'CMake semantic initialization matches upstream client');
+  const profile=service.profile(id,path.dirname(sample),'cmake');assert(profile.initialization_options.semantic_token===false,'CMake managed profile keeps TextMate syntax coloring independent of LSP navigation');
   core.app.extensions.open();row.dispatchEvent(new MouseEvent('dblclick',{bubbles:true}));
   await wait(()=>document.querySelector('.language-support-settings'),'independent settings');
   const click=(label,scope=document)=>{const button=[...scope.querySelectorAll('button')].find(item=>item.textContent===label);assert(button&&!button.disabled,'enabled action: '+label);button.click();};

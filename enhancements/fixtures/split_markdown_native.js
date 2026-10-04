@@ -43,7 +43,7 @@
   samples.push(sample('100 swaps'));
   assert(left.view._disposables.length<12&&right.view._disposables.length<12,'restoration callbacks remain bounded');
   renderer.renderTo=original;
-  for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
     ClientCommand.setTheme(theme,theme);await pause(350);
     const native_heading=document.querySelector('#write h2'),preview_heading=preview().view.containerEl.querySelector('h2');
     const properties=['fontFamily','fontSize','fontWeight','color','lineHeight'];

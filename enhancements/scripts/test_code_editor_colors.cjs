@@ -21,8 +21,8 @@ app.whenReady().then(async()=>{
  })()`);
  for(const sample of results.result){const dark=sample.mode==='dark';assert.equal(sample.cursor.border,dark?'rgb(174, 175, 173)':'rgb(0, 0, 0)');assert.equal(sample.selection.bg,dark?'rgb(38, 79, 120)':'rgb(173, 214, 255)');assert.equal(sample.inactive.bg,dark?'rgb(58, 61, 65)':'rgb(229, 235, 241)');assert.equal(sample.gutter.bg,dark?'rgb(31, 31, 31)':'rgb(255, 255, 255)');assert.equal(sample.number.color,dark?'rgb(204, 204, 204)':'rgb(23, 17, 132)');assert.equal(sample.line.bg,'rgba(0, 0, 0, 0)');assert.equal(sample.token.bg,'rgba(0, 0, 0, 0)');assert.equal(sample.find.bg,'rgba(234, 92, 0, 0.333)');assert.equal(sample.diagram.bg,'rgba(0, 0, 0, 0)');assert.equal(sample.cursor.bottom,dark?'rgb(174, 175, 173)':'rgb(0, 0, 0)');assert.equal(sample.block.bg,dark?'rgb(174, 175, 173)':'rgb(0, 0, 0)');assert.equal(sample.bracket.bg,'rgba(0, 100, 0, 0.1)');assert.equal(sample.bracket.outline,dark?'rgb(136, 136, 136)':'rgb(185, 185, 185)');assert.equal(sample.composition.bottom,dark?'rgb(255, 255, 255)':'rgb(0, 0, 0)');assert(sample.active.shadow.includes(dark?'40, 40, 40':'238, 238, 238'));}
  assert.equal(results.added,'rgb(0, 0, 0)');assert.equal(results.restored,'rgb(0, 0, 0)');assert.equal(results.body,'正文');
- const dark_css=fs.readFileSync(path.join(__dirname,'../../vscode2026_dark.css'),'utf8').replace(/@import[^;]+;/u,'');
- const light_css=fs.readFileSync(path.join(__dirname,'../../vscode2026_light.css'),'utf8').replace(/@import[^;]+;/u,'');
+ const dark_css=fs.readFileSync(path.join(__dirname,'../../vscode_default_dark.css'),'utf8').replace(/@import[^;]+;/u,'');
+ const light_css=fs.readFileSync(path.join(__dirname,'../../vscode_default_light.css'),'utf8').replace(/@import[^;]+;/u,'');
  const palette=await view.webContents.executeJavaScript(`(async()=>{
   const root=document.documentElement,theme=document.createElement('style');theme.textContent=${JSON.stringify(dark_css)};document.head.append(theme);root.dataset.workspaceColors='dark';
   const release=await api.bind_code_theme(),cm=document.querySelector('.CodeMirror');cm.classList.add('CodeMirror-focused');

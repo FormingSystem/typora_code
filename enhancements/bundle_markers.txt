@@ -1,5 +1,4 @@
-linux-note-vscode-textmate-c
-linux-note-vscode-textmate-cpp
+linux-note-vscode-textmate-
 reading-media-viewer
 reading-media-entry
 linux-note-code-collapsible

@@ -1,0 +1,26 @@
+/* VS Code 1.140.0 default light theme; commit 07f806f999227108933c2e30515b26eecc1fda74. */
+@import url("./vscode_default/base.css");
+:root {
+  --workspace-code-theme: light_2026;
+  --bg-color: #FFFFFF;
+  --text-color: #202020;
+  --side-bar-bg-color: #FAFAFD;
+  --control-text-color: #202020;
+  --control-text-hover-color: #202020;
+  --select-text-bg-color: #0069CC40;
+  --active-file-bg-color: #DADADA99;
+  --active-file-text-color: #202020;
+  --primary-color: #0069CC;
+  --item-hover-bg-color: #00000014;
+  --theme-border: #EEEEEE;
+  --theme-link: #0069CC;
+  --theme-link-active: #0069CC;
+  --theme-muted: #606060;
+  --theme-quote: #EAEAEA;
+  --theme-quote-border: #F0F1F2;
+  --theme-table: #FAFAFD;
+  --theme-inline-text: #606060;
+  --theme-inline: #ECECEC;
+  --theme-code: #EAEAEA;
+  --search-select-bg-color: #0069CC1A;
+}

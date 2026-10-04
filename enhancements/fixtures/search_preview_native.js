@@ -30,7 +30,7 @@
   const panel=()=>document.querySelector('.linux-note-workspace-search');
   await wait(()=>panel()?.dataset.state==='ready'&&panel().querySelectorAll('.workspace-search-match').length===200,'200 search matches');
   const preview=()=>panel().querySelector('.workspace-lookup-preview-body');
-  for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    ClientCommand.setTheme(theme,theme);await pause(600);
    const rows=[...panel().querySelectorAll('.workspace-search-file[data-path$="outline.md"] .workspace-search-match')];
    rows[20].click();await wait(()=>preview()?.dataset.previewPath?.endsWith('outline.md'),'Markdown preview');await pause(200);

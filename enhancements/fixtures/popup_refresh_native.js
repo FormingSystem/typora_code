@@ -20,7 +20,7 @@
   const first=menu.firstElementChild;let writes=0;
   monitor=new MutationObserver(records=>writes+=records.length);monitor.observe(menu,{attributes:true,attributeFilter:['style']});
   command('terminal_toggle');await wait(()=>document.querySelector('.linux-note-terminal')?.dataset.state==='running','终端未启动');await pause(400);
-  for(const [theme,name]of [['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
+  for(const [theme,name]of [['night.css','Night'],['vscode_default_light.css','Cpp Github Consolas']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(700);
    for(const level of [0,1,2,-1]){
     frame.setZoomLevel(level);window.dispatchEvent(new Event('resize'));await pause(750);

@@ -30,7 +30,7 @@ install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
-cpp_github-consolas.css / cpp_github-consolas_light.css / cpp_github-consolas_dark.css
+vscode_default_light.css / vscode_default_dark.css / vscode_default/base.css
 scripts/
 enhancements/dist/SHA256SUMS
 enhancements/dist/terminal_runtime/
@@ -104,7 +104,7 @@ The 'User Data Directory' on Windows is `%APPDATA%\Typora`, on Linux is `$XDG_CO
 | Typora Installation Directory `resources/window.html` | Add static CSS and persistent script entry points; `app.asar` remains unchanged |
 | User Data `typora_code/` | Workbench runtime assets; `settings/workspace.json` retains existing settings |
 | User Data `linux_note_enhancements/terminal_runtime/` | Existing directory name for the current Windows terminal runtime assets |
-| User Data `themes/cpp_github-consolas.css` | Theme for this project; back up files with the same name before overwriting |
+| User Data `themes/vscode_default_light.css / themes/vscode_default_dark.css` | Theme for this project; back up files with the same name before overwriting |
 | User Data `profile.data` | Full backup, only adjust the borderless window field; when restoring this field, retain later preferences |
 | User Data `backups/typora_code_configuration/` | List of backups and original files for each independent installation |
 
@@ -231,14 +231,14 @@ After installation, select **CppGithubConsoles_Light** or **CppGithubConsoles_Da
 
 **Theme → Customize Colors…** or **Settings → Customize Colors** opens the same color palette, allowing you to search for color items such as document content, links, titles, workbench, terminals, etc. Enter a valid hexadecimal color value or drag the color picker to see changes immediately and save automatically; individual items or the current theme can be restored to default, with support for JSON import/export. Light and dark configurations are saved separately; after modifying the configuration of one theme, switch to that theme to observe the changes.
 
-For manual color testing, find `cpp_github-consolas_dark.css` from **Theme → Open Theme Folder**, and the link selector is `a, a:hover, a:visited`; when the workbench is running, the default role for links is located in the source code `enhancements/src/workspace_colors.css` at `--workspace-markdown-link`, which takes precedence over theme CSS. For daily debugging, it is recommended to directly use the `markdown_link` in the color palette, without editing installation files or rebuilding. JSON saves color configurations, not the entire theme; fonts and formatting continue to be owned by the theme.
+For manual color testing, find `vscode_default_dark.css` from **Theme → Open Theme Folder**, and the link selector is `a, a:hover, a:visited`; when the workbench is running, the default role for links is located in the source code `enhancements/src/workspace_colors.css` at `--workspace-markdown-link`, which takes precedence over theme CSS. For daily debugging, it is recommended to directly use the `markdown_link` in the color palette, without editing installation files or rebuilding. JSON saves color configurations, not the entire theme; fonts and formatting continue to be owned by the theme.
 
 <a id="section_e6f8ab21071e"></a>
 ### R081 Post-Installation Operation Guide
 
 Each standard installation generates a new installation identifier. On the next startup, a ready window automatically displays the guide once. Reinstalling the same version also prompts; duplicates across multiple windows are removed, and skipping or completing the guide prevents repetition on regular restarts. The Help menu can always be revisited and opens the offline user_guide.md. On installation failure, the rollback identifier is retained, and user windows are not closed prematurely. The design is described in [Operation Guide](onboarding.en.md).
 
-2026-09-27 added themes `VSCode2026_Light` / `VSCode2026_Dark`, which use fixed VS Code 2026 Light / Dark color schemes, along with the Consolas font and existing formatting. Original `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` and `Night` are retained. Installation does not switch the current theme; after restarting, select the new theme from the theme menu.
+Since 2026-10-04, the owned pair is `VSCODE_Default_Light` / `VSCODE_Default_Dark`, using VS Code 1.140.0 Light/Dark 2026 colors and Markdown typography. Standard setup backs up and migrates unmodified CppGithubConsoles/VSCode2026 files and both theme choices. Modified legacy files, third-party themes, saved font/zoom preferences and custom colors are retained. Save documents and restart all Typora windows to load this version.
 
 ## Graphical setup and language plugins
 

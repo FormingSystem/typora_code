@@ -12,7 +12,7 @@
   cp.spawn=function(file,args,options){if(file===application){calls.push({file,args,options});const child=new(reqnode('events').EventEmitter)();child.unref=()=>{};queueMicrotask(()=>child.emit('spawn'));return child;}return original_spawn.call(this,file,args,options);};
   const core=window[Symbol.for('typora-code:workspace')],text=fs.readFileSync(source,'utf8'),dirty=File.isDirty;
   const native_open=async()=>{File.editor.contextMenu.show(new MouseEvent('contextmenu',{clientX:600,clientY:320}),document.querySelector('#write'));await pause(80);const item=document.querySelector('[data-key="typora-code-open-vscode"]');assert(item&&!item.classList.contains('hide'),'正文原生菜单有VS Code动作');assert(item.querySelector('img[data-product-icon=vscode]'),'正文有官方图标');return item;};
-  for(const theme of ['cpp_github-consolas_light.css','cpp_github-consolas_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(350);
    const item=await native_open(),icon=item.querySelector('img');await icon.decode();const r=icon.getBoundingClientRect();assert(r.width===16&&r.height===16,'原生菜单16px图标 '+theme);samples.push({theme,width:r.width,height:r.height});item.querySelector('a').click();await wait(()=>calls.length===samples.length);assert(calls.at(-1).args[1]===path.join(base,'workspace')&&calls.at(-1).args[2]===source,'正文传递原文件路径');
   }

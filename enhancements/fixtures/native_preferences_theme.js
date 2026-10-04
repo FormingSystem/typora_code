@@ -21,7 +21,7 @@
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window readiness');
   const original=File.editor.getMarkdown();let stable_view;
-  for(const theme of ['vscode2026_dark.css','cpp_github-consolas_dark.css','night.css','vscode2026_light.css','cpp_github-consolas_light.css']){
+  for(const theme of ['vscode_default_dark.css','vscode_default_dark.css','night.css','vscode_default_light.css','vscode_default_light.css']){
    const dark=theme.includes('dark')||theme==='night.css';
    ClientCommand.setTheme(theme,theme);await pause(800);
    ClientCommand.showPreferencePanel();
@@ -32,7 +32,7 @@
    File.megaMenu.applyTheme();await pause(300);
    const after=await verify(theme+' native apply',dark);assert(after.style_count===before.style_count,theme+' no injected skin');
    for(let round=0;round<4;round++){
-    const next_dark=round%2!==0,next=next_dark?'vscode2026_dark.css':'vscode2026_light.css';
+    const next_dark=round%2!==0,next=next_dark?'vscode_default_dark.css':'vscode_default_light.css';
     ClientCommand.setTheme(next,next);await pause(400);
     await wait(async()=>{try{const p=await read_page(view());return p.mode.split(' ').includes(next_dark?'dark':'light')&&p.theme.endsWith('/'+next);}catch{return false;}},'native theme switch');
     await verify(theme+' open switch '+round,next_dark);

@@ -36,7 +36,7 @@
   const color=node=>{const value=getComputedStyle(node);return {bg:value.backgroundColor,fg:value.color,border:value.borderTopColor};},samples=[];
   const close=()=>{for(const type of ['keydown','keyup'])document.activeElement.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));};
   for(const mode of ['light','dark']){
-   const theme='vscode2026_'+mode+'.css';await JSBridge.invoke('setting.setCurTheme',theme,'VSCode2026_'+mode);File.setTheme(theme);await pause(700);
+   const theme='vscode_default_'+mode+'.css';await JSBridge.invoke('setting.setCurTheme',theme,'VSCODE_Default_'+mode);File.setTheme(theme);await pause(700);
    await wait(()=>document.documentElement.dataset.workspaceColors===mode,'主题切换');
    document.querySelector('.workspace-titlebar-search').click();await pause(150);
    const before=document.querySelector('#write').innerHTML;

@@ -1,5 +1,7 @@
 'use strict';
 const fs = require('node:fs'), crypto = require('node:crypto');
+const path = require('node:path');
+const themes = require('../../enhancements/theme_catalog.json');
 const key = 'framelessWindow';
 const digest = bytes => crypto.createHash('sha256').update(bytes).digest('hex');
 function read_profile(file) {
@@ -18,6 +20,18 @@ function update_profile(file, operation, expected, backup) {
   const previous = operation === 'restore' ? read_profile(backup).data : { [key]: true };
   const data = { ...current.data };
   if (Object.hasOwn(previous, key)) data[key] = previous[key]; else delete data[key];
+  for (const field of ['theme', 'darkTheme']) {
+    if (operation === 'restore') {
+      const legacy = themes.legacy[previous[field]];
+      if (legacy && data[field] === legacy.replacement) data[field] = previous[field];
+    } else {
+      const legacy = themes.legacy[data[field]];
+      if (!legacy) continue;
+      const directory = path.join(path.dirname(file), 'themes');
+      const old_file = path.join(directory, data[field]);
+      if (fs.existsSync(path.join(directory, legacy.replacement)) && (!fs.existsSync(old_file) || legacy.sha256.includes(digest(fs.readFileSync(old_file))))) data[field] = legacy.replacement;
+    }
+  }
   if (JSON.stringify(data) === JSON.stringify(current.data)) return { changed: false, sha256: current.sha256 };
   const bytes = Buffer.from(Buffer.from(JSON.stringify(data), 'utf8').toString('hex'), 'ascii');
   const temporary = file + '.typora-code-' + crypto.randomUUID() + '.tmp';

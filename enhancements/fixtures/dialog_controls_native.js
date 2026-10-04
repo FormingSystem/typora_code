@@ -28,7 +28,7 @@
   service.cancel_update=()=>cancel_count++;
   for(let i=0;i<100&&(File.isFileLoading()||!File.bundle.filePath.endsWith('front.md'));i++)await pause(50);
   await pause(2400);
-  for(const [theme,name]of [['github.css','Github'],['cpp_github-consolas.css','Cpp'],['night.css','Night']]){
+  for(const [theme,name]of [['github.css','Github'],['vscode_default_light.css','Cpp'],['night.css','Night']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(350);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    for(const zoom of [1,1.25]){
     reqnode('electron').webFrame.setZoomFactor(zoom);await pause(120);

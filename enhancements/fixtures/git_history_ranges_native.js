@@ -38,7 +38,7 @@
   assert(node_color(history.list,current)?.includes('charts-blue'),'HEAD恢复蓝色角色');
   app.commands.run('linux_note:git_graph');await wait(()=>app.workspace.activeLeaf?.view.panel?.loaded,'reopen graph');const full=app.workspace.activeLeaf.view.panel;await full.refresh();
   assert(node_color(full.list,future)===node_color(history.list,future),'完整Graph与侧栏同色');
-  for(const [theme,name,mode,blue] of [['cpp_github-consolas.css','Cpp Github Consolas','light','rgb(26, 92, 255)'],['night.css','Night','dark','rgb(87, 163, 248)']]){
+  for(const [theme,name,mode,blue] of [['vscode_default_light.css','Cpp Github Consolas','light','rgb(26, 92, 255)'],['night.css','Night','dark','rgb(87, 163, 248)']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(900);
    assert(document.documentElement.dataset.workspaceColors===mode,'实际主题 '+mode);
    assert(getComputedStyle(full.list.querySelector('[data-hash="'+future+'"] circle')).fill==='rgb(255, 176, 0)','独有历史黄色 '+mode);

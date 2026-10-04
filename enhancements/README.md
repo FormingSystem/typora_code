@@ -69,7 +69,7 @@ Ctrl+滚轮按指针区域调整编辑器或终端的当前窗口字号，编辑
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
 - 在原有主侧栏使用中文源代码管理，在原有编辑标签中查看 Git Graph、文件历史和随编辑组宽度切换的 Monaco 差异；
 - 按对象配置 Git 右键菜单，拖动面板分界线；从仓库根目录打开集成终端，先显示面板再检测及启动Shell，等待过程使用共享进度和阶段文字，支持多会话、分栏和管理员入口；
-- 使用 VS Code 内置 C/C++ TextMate 语法和 Oniguruma 解析 Typora 的 `c`、`cpp` 等代码围栏，并沿用内置 VS Code Light Modern / Dark Modern 的原始主题配置，包含默认文字与完整 C/C++ TextMate token 着色；
+- 使用 VS Code TextMate 语法与 Oniguruma 为 C/C++、C#、Java、JS/TS、HTML、CSS、Bash、Makefile、CMake 等代码编辑器、围栏与预览提供同源语法着色；自有主题统一为 `VSCODE_Default_Light` / `VSCODE_Default_Dark`，采用固定 VS Code 1.140.0 默认配色；
 - 对超过响应式阅读高度的普通代码块默认限高，提供 `展开全部代码` / `收起代码` 切换；正文或代码块获焦时都能直接点击，按钮获焦后支持 Enter / 空格，打印时自动完整展开且不修改 Markdown；
 - 图片与 Mermaid 共用外侧右上方的悬停全屏按钮；按钮在正文外覆盖显示，不插入工具行或推开正文，随原图滚动并按来源去重；
 - 为 Typora 已渲染的 Mermaid SVG 增加独立全屏查看器，默认保持 `100%`，支持按钮缩放、`Ctrl + 滚轮` 指针中心缩放、左键拖动、适应宽度、适应屏幕、恢复 `100%` 和 `Esc` 退出。
@@ -98,7 +98,7 @@ npm run check
 npm run check:ui
 ```
 
-`vendor/vscode_cpp/` 保存 C/C++ grammar，`vendor/gemoji/` 保存 emoji 数据与许可，`vendor/workspace_core/` 保存固定 `2.10.15` 上游源码裁剪的常驻核心，见 [SOURCE.json](vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](vendor/workspace_core/LICENSE.md)。`scripts/build_workspace_core.mjs` 输出核心脚本、CSS 和三个语言包；总构建输出其余静态样式与工作台脚本。`npm run check` 核对发布摘要、部署入口、核心构建闭包、功能标记、语法及状态逻辑。
+`vendor/vscode_cpp/` 保存 C/C++ grammar，`vendor/vscode_languages/` 保存常用语言语法、来源摘要和上游许可声明，`vendor/vscode_themes/` 保存官方主题完整继承链，`vendor/gemoji/` 保存 emoji 数据与许可，`vendor/workspace_core/` 保存固定 `2.10.15` 上游源码裁剪的常驻核心，见 [SOURCE.json](vendor/workspace_core/SOURCE.json) 与 [LICENSE.md](vendor/workspace_core/LICENSE.md)。`scripts/build_workspace_core.mjs` 输出核心脚本、CSS 和三个语言包；总构建输出其余静态样式与工作台脚本。`npm run check` 核对发布摘要、部署入口、核心构建闭包、功能标记、语法及状态逻辑。
 
 需求、用例分类、压力档位与当次证据统一见[稳定性测试架构](../docs/stability_testing.md)。用 `npm run test:quality -- --list` 查看带需求关联的全部套件；原生隔离验收和未具备环境的处理规则也在该文档中。
 

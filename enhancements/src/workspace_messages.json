@@ -3563,13 +3563,13 @@
     "en": "Do not display comparison",
     "zh_cn": "不显示对照"
   },
-  "color_view_vscode2026_light_light_theme": {
-    "en": "VSCode2026_Light · Light theme",
-    "zh_cn": "VSCode2026_Light · 明色"
+  "color_view_vscode_default_light_light_theme": {
+    "en": "VSCODE_Default_Light · Light theme",
+    "zh_cn": "VSCODE_Default_Light · 明色"
   },
-  "color_view_vscode2026_dark_dark_theme": {
-    "en": "VSCode2026_Dark · Dark theme",
-    "zh_cn": "VSCode2026_Dark · 暗色"
+  "color_view_vscode_default_dark_dark_theme": {
+    "en": "VSCODE_Default_Dark · Dark theme",
+    "zh_cn": "VSCODE_Default_Dark · 暗色"
   },
   "color_view_this_item_is_set_to_be_searched_and_hidden_please_clear_the": {
     "en": "This item is set to be searched and hidden. Please clear the search to locate: ",
@@ -6531,9 +6531,9 @@
     "en": "Workspace: {value_0}",
     "zh_cn": "工作区：{value_0}"
   },
-  "settings_sections_user_settings_vscode2026_light_dark": {
-    "en": "User Settings · VSCode2026_Light / Dark",
-    "zh_cn": "用户设置 · VSCode2026_Light / Dark"
+  "settings_sections_user_settings_vscode_default_light_dark": {
+    "en": "User Settings · VSCODE_Default_Light / Dark",
+    "zh_cn": "用户设置 · VSCODE_Default_Light / Dark"
   },
   "settings_sections_color_settings_are_saved_through_the_palette": {
     "en": "Color settings are saved through the palette.",

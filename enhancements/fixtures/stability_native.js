@@ -94,7 +94,7 @@
   const navigation=path.join(root,'navigation.md');fs.writeFileSync(navigation,'# 起点\n\n'+Array.from({length:70},(_,i)=>'段落 '+i+'\n\n').join('')+'## 目标章节\n\n'+Array.from({length:30},()=> '结尾\n\n').join(''),'utf8');
   await files.open_file(navigation);await wait(()=>File.bundle.filePath===navigation&&!File.isFileLoading()&&document.querySelector('#write h2'),'navigation ready');await pause(300);
   for(let index=0;index<60;index++)fs.writeFileSync(path.join(root,'scrollbar_'+index+'.txt'),'scrollbar fixture\n','utf8');
-  for(const [theme,name]of [['github.css','Github'],['cpp_github-consolas.css','Cpp'],['night.css','Night']]){
+  for(const [theme,name]of [['github.css','Github'],['vscode_default_light.css','Cpp'],['night.css','Night']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(350);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    assert(document.documentElement.dataset.workspaceFileIconTheme===(name==='Night'?'dark':'light'),'实际主题完成 '+name);
    // Explorer uses the real host theme; title, file content, and auxiliary actions are respectively verified.

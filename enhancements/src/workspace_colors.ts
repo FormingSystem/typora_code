@@ -16,7 +16,7 @@ export function bind_workspace_colors(){
     // Typora 1.14.10 File.setTheme updates this node; only matches complete filenames, does not take over other themes according to light and dark.
     const href=document.getElementById('theme_css')?.getAttribute('href')||'';
     const name=href.split(/[\\/]/u).pop()?.split(/[?#]/u)[0].toLowerCase();
-    const mode=['cpp_github-consolas.css','cpp_github-consolas_light.css','vscode2026_light.css'].includes(name||'')?'light':['night.css','cpp_github-consolas_dark.css','vscode2026_dark.css'].includes(name||'')?'dark':undefined;
+    const mode=['vscode_default_light.css'].includes(name||'')?'light':['night.css','vscode_default_dark.css'].includes(name||'')?'dark':undefined;
     if(mode){if(root.getAttribute('data-workspace-colors')!==mode)root.setAttribute('data-workspace-colors',mode);}
     else root.removeAttribute('data-workspace-colors');
   };

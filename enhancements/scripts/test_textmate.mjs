@@ -99,3 +99,32 @@ for(const [name,hash]of Object.entries(manifest.files))assert.equal(createHash('
 function resolve_theme(name){const raw=ts.parseConfigFileTextToJson(name,fs.readFileSync(upstream_root+name,'utf8')).config,parent=raw.include?resolve_theme(raw.include.replace('./','')):{colors:{},tokenColors:[]};return{colors:{...parent.colors,...raw.colors},tokenColors:[...parent.tokenColors,...(raw.tokenColors||[])]};}
 assert.deepEqual(JSON.parse(fs.readFileSync(upstream_root+'resolved.json','utf8')),{light:resolve_theme('light_modern.json'),dark:resolve_theme('dark_modern.json'),dark_2026:resolve_theme('2026-dark.json'),light_2026:resolve_theme('2026-light.json')});
 console.log('PASS official theme source SHA256 and complete JSONC include resolution');
+
+const language_source=JSON.parse(fs.readFileSync('vendor/vscode_languages/SOURCE.json','utf8'));
+assert.equal(createHash('sha256').update(fs.readFileSync('vendor/vscode_languages/grammars.json')).digest('hex'),language_source.bundle_sha256);
+assert.equal(createHash('sha256').update(fs.readFileSync('vendor/vscode_languages/THIRD_PARTY_NOTICES.txt')).digest('hex'),language_source.notices_sha256);
+const samples={cmake:'# SPDX-License-Identifier: Apache-2.0\nexecute_process(COMMAND ${PYTHON_EXECUTABLE} OUTPUT_VARIABLE WORDSIZE)\nif(WORDSIZE STREQUAL "32")\nendif()',csharp:'// comment\npublic class Sample { string name = "hello"; }',java:'// comment\nclass Sample { String name = "hello"; }',javascript:'/* comment */\nconst value = "hello";',typescript:'const value: string = "hello";',html:'<div class="sample">hello</div>',css:'/* comment */\n.sample { color: red; }',shell:'#!/bin/bash\n# comment\necho "$HOME"',makefile:'# comment\nall: main\n\t@echo hello'};
+for(const [language,source]of Object.entries(samples)){
+ let stack=production.initial_code_stack();const colors=new Set();
+ for(const line of source.split('\n')){
+  const result=themed.grammars[language].tokenizeLine(line,stack);stack=result.ruleStack;
+  assert.equal(result.tokens.map(token=>line.slice(token.startIndex,token.endIndex)).join(''),line);
+  result.tokens.forEach(token=>colors.add(token.style));
+ }
+ assert(colors.size>1,language+' uses lexical scopes');
+}
+for(const mode of ['light_2026','dark_2026']){
+ const profile=themed.profiles[mode],grammar=profile.grammars.cmake;
+ const comment=grammar.tokenizeLine('# SPDX-License-Identifier: Apache-2.0',production.initial_code_stack()[0]);
+ assert(comment.tokens.every(token=>token.scopes.some(scope=>scope.startsWith('comment.'))));
+ for(const [line,offset,scope]of [['execute_process(COMMAND ${PYTHON_EXECUTABLE})',0,'support.function.cmake'],['execute_process(COMMAND ${PYTHON_EXECUTABLE})',16,'support.function.commandProperty.cmake'],['message("text")',9,'string.']]){
+  const parsed=grammar.tokenizeLine(line,production.initial_code_stack()[0]),token=parsed.tokens.find(token=>token.startIndex<=offset&&token.endIndex>offset);
+  assert(token.scopes.some(value=>value.startsWith(scope)),JSON.stringify({line,offset,scopes:token.scopes}));
+ }
+}
+const semantic_bundle=await build({entryPoints:['src/source_semantic_tokens.ts'],bundle:true,write:false,platform:'node',format:'esm'});
+const semantics=await import('data:text/javascript;base64,'+Buffer.from(semantic_bundle.outputFiles[0].text).toString('base64'));
+const encoded=data=>semantics.convert_semantic_tokens({data,token_types:['variable'],token_modifiers:[]});
+assert.equal(encoded([0,0,6,0,0,0,2,2,0,0]).length,0,'overlapping tokens must retain lexical fallback');
+assert.equal(encoded([0,0,2,0,0,0,2,2,0,0,1,0,3,0,0]).length,15,'adjacent and next-line tokens remain valid');
+console.log('PASS common-language TextMate scopes and overlapping semantic-token fallback');

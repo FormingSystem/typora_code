@@ -5,7 +5,7 @@ const output = path.resolve("dist/workbench.js");
 if (!fs.existsSync(output)) throw new Error("dist/workbench.js is missing; run npm run build");
 const source = fs.readFileSync(output, "utf8");
 const enhancement_css = fs.readFileSync(path.resolve("src/typora_enhancements.css"), "utf8");
-const typora_theme = fs.readFileSync(path.resolve("../cpp_github-consolas.css"), "utf8");
+const typora_theme = fs.readFileSync(path.resolve("../vscode_default_light.css"), "utf8");
 const runtime_source = fs.readFileSync(path.resolve("dist/workspace_core.js"), "utf8");
 const static_css = fs.readFileSync(path.resolve("dist/workspace.css"), "utf8");
 if (!source.includes('Symbol.for("typora-code:workspace")')) throw new Error("resident core bridge is missing");
@@ -15,8 +15,7 @@ for (const forbidden of ["PluginManager", "InternalPluginManager", "class linux_
 }
 if (!source.includes('bind_community_plugins') || (source.match(/typora-plugin-core@v2/g)||[]).length!==1 || runtime_source.includes('typora-plugin-core@v2')) throw new Error('Community ABI must be exposed only by the resident workbench adapter');
 for (const marker of [
-  "linux-note-vscode-textmate-c",
-  "linux-note-vscode-textmate-cpp",
+  "linux-note-vscode-textmate-",
   "reading-media-viewer",
   "reading-media-entry",
   "linux-note-code-collapsible",
@@ -35,14 +34,7 @@ if (source.includes("schedule_mermaid_positions")) {
 for (const marker of ['load_code_themes','typora-code-official-code-theme','editor.foreground']) {
   if (!source.includes(marker)) throw new Error('Official code theme pipeline missing: '+marker);
 }
-for (const marker of [
-  "background-color: #f6f8fa;",
-  "--code-keyword-color: #d73a49;",
-  "--code-comment-color: #6a737d;",
-  "--code-string-color: #032f62;",
-  "--code-definition-color: #6f42c1;",
-  "--code-variable-color: #005cc5;",
-]) {
-  if (!typora_theme.includes(marker)) throw new Error(`GitHub Light Typora theme color is missing: ${marker}`);
+for (const marker of ['--workspace-code-theme: light_2026', '--text-color: #202020', 'vscode_default/base.css']) {
+  if (!typora_theme.includes(marker)) throw new Error('Default Typora theme missing: '+marker);
 }
 console.log(`validated ${path.relative(process.cwd(), output)} (${source.length} bytes)`);

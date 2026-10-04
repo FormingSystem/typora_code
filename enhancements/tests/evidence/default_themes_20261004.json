@@ -1,0 +1,85 @@
+{
+  "requirement": "R074.9",
+  "date": "2026-10-04",
+  "version": "2026.10.04.4",
+  "source": {
+    "vscode": "1.140.0 stable",
+    "commit": "07f806f999227108933c2e30515b26eecc1fda74",
+    "cmake_grammar": "Microsoft CMake Tools 1.24.42",
+    "themes": [
+      "VSCODE_Default_Light",
+      "VSCODE_Default_Dark"
+    ]
+  },
+  "runtime_sha256": {
+    "workbench.js": "561bc5cbfd4590110c4a5978bb490fd2824dd1befc9ca2e24b2ef1c65046391d",
+    "workspace.css": "9a9a9280524999aa97b85820fd86fe1d56c4ed48af93d5de1f514b280fb2b2db",
+    "workspace_core.js": "b86288005c8e269bea20f40bffbed4bb164d4f2c712441d384749b8d3df9a29d"
+  },
+  "native": {
+    "preview": {
+      "status": "PASS",
+      "checks": 243,
+      "case": "5aa0bfc459c944f089324b77c1cdf2be",
+      "comparisons": 48
+    },
+    "language": {
+      "status": "PASS",
+      "checks": 29,
+      "case": "b0854e02d14e4e8e9a5ed376d7445333"
+    },
+    "editing": {
+      "status": "PASS",
+      "checks": 902,
+      "case": "19775edb82cf4d2fb5854455bc6db3d8",
+      "cycles": 100,
+      "trusted_inputs": 100,
+      "trusted_saves": 50,
+      "input_to_next_raf_ms": {
+        "median": 7,
+        "p95": 9.300000000745058,
+        "max": 88.10000000149012
+      }
+    }
+  },
+  "checks": {
+    "build": "PASS",
+    "full_core": "PASS; final runtime implementation, 284 registered suites",
+    "targeted_ui": "PASS six suites including actual CMake server and six Ctrl+click targets; final base spacing rechecked with theme-pair suite",
+    "syntax": "PASS 21 bundled grammar scopes, common-language reconstruction, CMake categories, balanced brackets, source and notices hashes, semantic overlap rejection",
+    "windows_transaction": "PASS final package after notices: install/check/restore uninstall/reinstall/check/detach uninstall/reinstall/check, plus legacy choice migration and custom-file exclusion from restore",
+    "windows_uninstall": "PASS 65 assertions; original isolated fixture needed the new theme catalog copied",
+    "python_transaction": "PASS temporary filesystem transaction on Windows; no Linux host claim",
+    "zip_update": "PASS real ZIP and standard transaction with final runtime implementation; final attribution-only package also passed standard install/uninstall cycles",
+    "local_preflight": "PASS detach read-only; user environment not uninstalled",
+    "local_install": "PASS standard install/check, both native theme preferences migrated; final 68+24 assets and three theme files match; ten protected files and four shell records retained; windows not restarted"
+  },
+  "corrected_failures": [
+    "Old Markdown link and heading overrides retained previous colors.",
+    "Generic Markdown pre margins reached CodeMirror line nodes; exclude internal line roles and verify actual native boxes.",
+    "Native preview test expected legacy token classes and literal tab glyphs instead of TextMate metadata and expanded tab layout.",
+    "Test-only TextMate INITIAL from a separate module instance was incompatible; use the production stack.",
+    "Isolated uninstall package fixture omitted the newly required theme catalog."
+  ],
+  "limits": [
+    "Current user windows are not restarted; manual save and restart required.",
+    "Saved font sizes, window zoom and custom colors are preserved; no pixel-equivalence claim for arbitrary VS Code extensions.",
+    "CMake uses syntax colors by default and retains LSP definitions/diagnostics; dynamic CMake evaluation remains outside scope.",
+    "No all-UI-suite run, non-Windows native host or long GPU stress validation.",
+    "R071.7 black frames, R068.11 clipping, R005.4 and the historical language-fence return issue remain independent open items."
+  ],
+  "local": {
+    "status": "PASS",
+    "profile_theme": "vscode_default_dark.css",
+    "profile_dark_theme": "vscode_default_dark.css",
+    "protected_files": 10,
+    "registry_records": 4,
+    "matched_assets": {
+      "workbench": 68,
+      "terminal": 24
+    },
+    "themes": 3,
+    "manifest_sha256": "f8aa7b8b9b9d2d6ff9c2076868bf1d4717ce35c37e5330ccd06501e2e9717c87"
+  },
+  "manifest_sha256": "f8aa7b8b9b9d2d6ff9c2076868bf1d4717ce35c37e5330ccd06501e2e9717c87"
+}

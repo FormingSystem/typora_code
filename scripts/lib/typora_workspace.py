@@ -12,7 +12,9 @@ import time
 from datetime import datetime
 from pathlib import Path
 
-THEME_FILES = ['cpp_github-consolas.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css']
+THEME_CATALOG = json.loads((Path(__file__).resolve().parents[2] / 'enhancements/theme_catalog.json').read_text(encoding='utf-8'))
+THEME_FILES = THEME_CATALOG['files']
+THEME_BACKUP_FILES = [*THEME_FILES, *THEME_CATALOG['legacy']]
 
 class install_log:
     "Log for each installation is saved independently; recording failures does not change installation or rollback results."
@@ -84,6 +86,18 @@ def update_native_profile(path, operation, expected, backup=None):
         data['framelessWindow'] = previous['framelessWindow']
     else:
         data.pop('framelessWindow', None)
+    for field in ['theme', 'darkTheme']:
+        legacy = THEME_CATALOG['legacy'].get(previous.get(field) if operation == 'restore' else data.get(field))
+        if not legacy:
+            continue
+        if operation == 'restore':
+            if data.get(field) == legacy['replacement']:
+                data[field] = previous[field]
+        else:
+            directory = path.parent / 'themes'
+            old_file = directory / data[field]
+            if (directory / legacy['replacement']).is_file() and (not old_file.exists() or digest(old_file) in legacy['sha256']):
+                data[field] = legacy['replacement']
     if data == current['data']:
         return False
     raw = json.dumps(data, ensure_ascii=False, separators=(',', ':'), allow_nan=False).encode('utf-8').hex().encode('ascii')
@@ -233,7 +247,7 @@ def validate_records(root, backup, records, scope):
         relative = record['relative_path']
         target, saved = asset_path(root, relative), asset_path(backup, relative)
         valid = {'product': product_path(relative) or relative in RETIRED_PRODUCT_FILES or relative == 'installation.json', 'migration': relative in MIGRATION_FILES,
-                 'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative in THEME_FILES,
+                 'native_profile': relative == 'profile.data', 'settings': relative == 'plugins.json', 'theme': relative in THEME_BACKUP_FILES,
                  'terminal': bool(re.fullmatch(r'([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))', relative))}[scope]
         if not valid or relative in seen or type(record['existed']) is not bool or target.is_dir():
             raise ValueError('Invalid backup record or target')
@@ -346,7 +360,9 @@ def install_files(tools_root, typora_root, user_data, backup, log, managed_backu
         theme.read_bytes()
     assets['SHA256SUMS'] = digest(source / 'SHA256SUMS')
     roots = group_roots(user_data)
-    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES + ['installation.json'], 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': THEME_FILES, 'native_profile': ['profile.data']}
+    legacy_names = [name for name, legacy in THEME_CATALOG['legacy'].items()
+                    if asset_path(roots['theme'], name).is_file() and digest(asset_path(roots['theme'], name)) in legacy['sha256']]
+    paths = {'product': list(assets) + RETIRED_PRODUCT_FILES + ['installation.json'], 'migration': MIGRATION_FILES, 'terminal': [], 'settings': ['plugins.json'], 'theme': THEME_FILES + legacy_names, 'native_profile': ['profile.data']}
     for name, entries in paths.items():
         for relative in entries:
             if asset_path(roots[name], relative).is_dir():
@@ -380,8 +396,15 @@ def install_files(tools_root, typora_root, user_data, backup, log, managed_backu
             write_json(settings_target, new_settings)
             created = True
         roots['theme'].mkdir(parents=True, exist_ok=True)
-        for theme in themes:
-            shutil.copy2(theme, roots['theme'] / theme.name)
+        for name in THEME_FILES:
+            target = asset_path(roots['theme'], name)
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(tools_root / name, target)
+        for name in legacy_names:
+            legacy = THEME_CATALOG['legacy'][name]
+            target = asset_path(roots['theme'], name)
+            if target.is_file() and digest(target) in legacy['sha256']:
+                target.unlink()
         window.write_text(updated, encoding='utf-8')
         log.step(5, '验证安装结果')
         verify_assets(roots['product'], assets)

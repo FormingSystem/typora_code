@@ -11,7 +11,7 @@
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>undefined;
   document.addEventListener('click',event=>input_events.push({trusted:event.isTrusted,ctrl:event.ctrlKey,shift:event.shiftKey,alt:event.altKey,path:event.target.closest?.('[data-path]')?.dataset.path,x:event.clientX,y:event.clientY}),true);
-  ClientCommand.setTheme('vscode2026_dark.css','vscode2026_dark.css');await wait(()=>document.documentElement.dataset.workspaceColors==='dark','dark theme applied');
+  ClientCommand.setTheme('vscode_default_dark.css','vscode_default_dark.css');await wait(()=>document.documentElement.dataset.workspaceColors==='dark','dark theme applied');
   const directory=path.join(base,'workspace'),content=index=>'# File '+index+'\n\nOriginal content '+index+'\n';
   for(let index=0;index<100;index++)fs.writeFileSync(path.join(directory,'entry_'+String(index).padStart(3,'0')+'.md'),content(index),'utf8');
   await files.open_file(path.join(directory,'entry_050.md'));await pause(500);

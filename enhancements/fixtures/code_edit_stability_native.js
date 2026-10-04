@@ -9,7 +9,8 @@
  const cycles=Math.max(1,Math.min(1000,scenario.cycles||100)),interval_ms=Math.max(0,Math.min(60000,scenario.interval_ms||0)),started=performance.now();
  let mutations=0,head_mutations=0,frames=0,stopped=false,trusted_inputs=0,input_id=0,trusted_saves=0;
  const on_key=event=>{if(event.isTrusted&&event.ctrlKey&&event.code==='KeyS')trusted_saves++;};
- const on_input=event=>{if(event.isTrusted)trusted_inputs++;};
+ const input_frames=[];
+ const on_input=event=>{if(event.isTrusted){trusted_inputs++;requestAnimationFrame(()=>input_frames.push(performance.now()-event.timeStamp));}};
  document.addEventListener('keydown',on_key,true);document.addEventListener('input',on_input,true);
  const original_active=File.isActiveWindow;
  const send=async(kind,value)=>{const id=++input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind,...value,width:innerWidth,height:innerHeight,x:100,y:200}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id}catch{return false}},'input delivered');await pause(80);};
@@ -30,6 +31,7 @@
   // Explicit saves in a private desktop cannot acquire the user's foreground window.
   File.isActiveWindow=()=>true;
   for(let i=0;i<cycles;i++){
+   if(i===0||i===Math.floor(cycles/2)){const theme=i===0?'vscode_default_dark.css':'vscode_default_light.css';ClientCommand.setTheme(theme,theme);await pause(300);}
    const language=i%2?'bash':'tex',fences=[...document.querySelectorAll(`#write .md-fences[lang="${language}"]`)],fence=fences[Math.floor(i/2)%fences.length];fence.scrollIntoView({block:'center'});await pause(50);
    await wait(()=>fence.querySelector('.CodeMirror')?.CodeMirror,'code editor available');
    const cm=fence.querySelector('.CodeMirror').CodeMirror;cm.focus();cm.setCursor({line:0,ch:0});
@@ -56,7 +58,7 @@
   assert(fs.readFileSync(file,'utf8')===baseline,'isolated source restored after explicit saves');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'code_edit'}));
   await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='code_edit'}catch{return false}},'capture complete');
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,errors,trusted_inputs,trusted_saves,cycles,elapsed_ms:performance.now()-started,input:'OS text, backspace and Ctrl+S messages to isolated host; alternating save service'},null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,errors,trusted_inputs,trusted_saves,cycles,input_frames,elapsed_ms:performance.now()-started,input:'OS text, backspace and Ctrl+S messages to isolated host; alternating save service'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples,errors},null,2));}
  finally{stopped=true;File.isActiveWindow=original_active;body_observer.disconnect();head_observer.disconnect();document.removeEventListener('keydown',on_key,true);document.removeEventListener('input',on_input,true);window.removeEventListener('error',on_error);}
 })();

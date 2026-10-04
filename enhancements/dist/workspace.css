@@ -1493,7 +1493,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
 @media(max-width:760px){.workspace-color-previews{flex-direction:column}}
 
 /* workspace_colors.css */
-/* R074：VS Code 6807068 Light/Dark 2026 functional color；source and role see docs/workspace_colors.md. */
+/* VS Code 1.140.0 07f806f999 Light/Dark 2026 functional colors; see docs/workspace_colors.md. */
 :root[data-workspace-colors=light] {
   --vscode-titleBar-activeForeground:#606060;
   --vscode-statusBar-foreground:#606060;
@@ -1513,7 +1513,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-terminal-inactiveSelectionBackground:#E5EBF1;
   --vscode-terminalCursor-foreground:#202020;
   --vscode-terminalCursor-background:#FFFFFF;
-  --workspace-markdown-heading:#0069CC;
+  --workspace-markdown-heading:#202020;
   --workspace-markdown-border:#0000002E;
   --workspace-markdown-table-header:#000000B0;
   --vscode-foreground:#202020;
@@ -1537,9 +1537,9 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-activityBar-inactiveForeground:#606060;
   --vscode-activityBar-foreground:#202020;
   --vscode-activityBar-activeBorder:#000000;
-  --vscode-modernActivityBarItem-activeBackground:#D6D6D6;
-  --vscode-modernActivityBarItem-hoverBackground:#00000014;
-  --vscode-modernActivityBarItem-activeForeground:#202020;
+  --vscode-modernActivityBarItem-activeBackground:#e4e6f1;
+  --vscode-modernActivityBarItem-hoverBackground:#F2F2F2;
+  --vscode-modernActivityBarItem-activeForeground:#3B3B3B;
   --vscode-textLink-foreground:#0069CC;
   --workspace-ui-background:#FFFFFF;
   --workspace-ui-chrome:#FAFAFD;
@@ -1579,7 +1579,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-quickInputList-focusHighlightForeground:#FFFFFF;
   --vscode-charts-blue:#1A5CFF;
   --vscode-charts-purple:#652D90;
-  --vscode-editorGutter-modifiedBackground:#2090D3;
+  --vscode-editorGutter-modifiedBackground:#005FB8;
   --workspace-list-background:#FAFAFD;
 }
 :root[data-workspace-colors=dark] {
@@ -1601,8 +1601,8 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-terminal-inactiveSelectionBackground:#3A3D41;
   --vscode-terminalCursor-foreground:#bfbfbf;
   --vscode-terminalCursor-background:#191A1B;
-  --workspace-markdown-heading:#CE9178;
-  --workspace-markdown-link:#5ca4df;
+  --workspace-markdown-heading:#BBBEBF;
+  --workspace-markdown-link:#48A0C7;
   --workspace-markdown-border:#FFFFFF2E;
   --workspace-markdown-table-header:rgba(255,255,255,.69);
   --vscode-foreground:#bfbfbf;
@@ -1626,8 +1626,8 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-activityBar-inactiveForeground:#8C8C8C;
   --vscode-activityBar-foreground:#bfbfbf;
   --vscode-activityBar-activeBorder:#bfbfbf;
-  --vscode-modernActivityBarItem-activeBackground:#313233;
-  --vscode-modernActivityBarItem-hoverBackground:#FFFFFF14;
+  --vscode-modernActivityBarItem-activeBackground:#FFFFFF22;
+  --vscode-modernActivityBarItem-hoverBackground:#FFFFFF11;
   --vscode-textLink-foreground:#48A0C7;
   --workspace-ui-background:#121314;
   --workspace-ui-chrome:#191A1B;
@@ -1663,7 +1663,7 @@ body.typ-ribbon--enable #top-titlebar[data-workspace-titlebar=ready] {
   --vscode-quickInputList-focusForeground:#FFFFFF;
   --vscode-quickInputList-focusIconForeground:#FFFFFF;
   --vscode-quickInputList-focusHighlightForeground:#FFFFFF;
-  --vscode-editorGutter-modifiedBackground:#1B81A8;
+  --vscode-editorGutter-modifiedBackground:#0078D4;
   --vscode-charts-blue:#57A3F8;
   --vscode-charts-purple:#AD80D7;
   --workspace-list-background:#191A1B;

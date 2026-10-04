@@ -65,5 +65,6 @@ export function register_file_languages(): void {
   for (const [id, grammar] of Object.entries(grammars)) {
     if (monaco.languages.getLanguages().some(language => language.id === id)) continue;
     monaco.languages.register({id}); monaco.languages.setMonarchTokensProvider(id, grammar);
+    if(id==='cmake')monaco.languages.setLanguageConfiguration(id,{comments:{lineComment:'#',blockComment:['#[[',']]']},brackets:[['(',')'],['{','}'],['[',']']]});
   }
 }

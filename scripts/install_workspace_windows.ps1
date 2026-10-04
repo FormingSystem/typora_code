@@ -40,7 +40,12 @@ assert_typora_window_source $window_source $head
 $terminal_source = Join-Path $source 'terminal_runtime'
 $terminal_assets = @(get_typora_terminal_assets $terminal_source)
 assert_typora_workspace_assets $terminal_source $terminal_assets
-$theme_names = @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css')
+$theme_catalog = get_typora_theme_catalog
+$theme_names = @($theme_catalog.files)
+$legacy_names = @($theme_catalog.legacy.PSObject.Properties.Name | Where-Object {
+    $legacy_target = resolve_typora_asset_path (Join-Path $user_data 'themes') $_
+    (Test-Path -LiteralPath $legacy_target -PathType Leaf) -and (Get-FileHash -LiteralPath $legacy_target -Algorithm SHA256).Hash.ToLowerInvariant() -in $theme_catalog.legacy.$_.sha256
+})
 if ($include_theme) { foreach ($name in $theme_names) { if (-not (Test-Path -LiteralPath (Join-Path $tools_root $name) -PathType Leaf)) { throw 'Theme source is missing.' } } }
 if (-not $backup_root) { $managed_backup = $true; $backup_root = Join-Path $user_data ('backups/typora_code_configuration/' + (Get-Date -Format 'yyyyMMdd-HHmmss-fff') + '-' + [guid]::NewGuid().ToString('N')) }
 $backup_root = [IO.Path]::GetFullPath($backup_root)
@@ -60,7 +65,7 @@ $groups = @(
     [pscustomobject]@{name='migration';root=(Join-Path $user_data 'plugins');assets=@(get_typora_migration_assets)},
     [pscustomobject]@{name='terminal';root=(Join-Path $user_data 'linux_note_enhancements/terminal_runtime');assets=@($terminal_assets + $node_stage.assets)},
     [pscustomobject]@{name='settings';root=(Join-Path $user_data 'plugins/settings');assets=@([pscustomobject]@{relative_path='plugins.json'})},
-    [pscustomobject]@{name='theme';root=(Join-Path $user_data 'themes');assets=$(if ($include_theme) { @($theme_names | ForEach-Object { [pscustomobject]@{relative_path=$_} }) } else { @() })},
+    [pscustomobject]@{name='theme';root=(Join-Path $user_data 'themes');assets=$(if ($include_theme) { @(($theme_names + $legacy_names) | ForEach-Object { [pscustomobject]@{relative_path=$_} }) } else { @() })},
     [pscustomobject]@{name='native_profile';root=$user_data;assets=@([pscustomobject]@{relative_path='profile.data'})}
 )
 foreach ($group in $groups) {
@@ -135,7 +140,17 @@ try {
         [IO.File]::WriteAllText($settings_target, $migrated_settings, [Text.UTF8Encoding]::new($false))
         $created_settings = $true
     }
-    if ($include_theme) { New-Item -ItemType Directory -Force -Path $groups[4].root | Out-Null; foreach ($name in $theme_names) { Copy-Item -LiteralPath (Join-Path $tools_root $name) -Destination (resolve_typora_asset_path $groups[4].root $name) -Force } }
+    if ($include_theme) {
+        foreach ($name in $theme_names) {
+            $target = resolve_typora_asset_path $groups[4].root $name
+            New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+            Copy-Item -LiteralPath (Join-Path $tools_root $name) -Destination $target -Force
+        }
+        foreach ($name in $legacy_names) {
+            $target = resolve_typora_asset_path $groups[4].root $name
+            if ((Test-Path -LiteralPath $target -PathType Leaf) -and (Get-FileHash -LiteralPath $target -Algorithm SHA256).Hash.ToLowerInvariant() -in $theme_catalog.legacy.$name.sha256) { Remove-Item -LiteralPath $target }
+        }
+    }
     if ($window_changed) {
         # Registration begins upon writing; partial writing failure also must follow the original backup rollback.
         $window_written = $true
@@ -177,7 +192,7 @@ write_typora_install_log $install_log SUCCESS ((get_typora_text -key 'installati
 write_typora_install_log $install_log INFO ('Backup: ' + $backup_root)
 if ($install_log.path) { write_typora_install_log $install_log INFO ('Log: ' + $install_log.path) }
 write_typora_install_log $install_log INFO (get_typora_text -key 'save_your_documents_and_restart_typora_normally_to_load_this_ins')
-if ($include_theme) { write_typora_install_log $install_log INFO (get_typora_text -key 'select_vscode2026_light_or_vscode2026_dark_in_the_theme_menu_exi') }
+if ($include_theme) { write_typora_install_log $install_log INFO (get_typora_text -key 'select_vscode_default_light_or_dark') }
 } catch {
     write_typora_install_log $install_log ERROR ((get_typora_text -key 'failed') -f $install_log.step, $_.Exception.Message)
     if ($rollback_state -eq 'not_required') { write_typora_install_log $install_log INFO (get_typora_text -key 'installation_has_not_written_any_target_files_rollback_is_unnece') }

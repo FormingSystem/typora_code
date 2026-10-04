@@ -32,7 +32,7 @@
     assert(diff.rendered_markdown&&Math.abs(preview.scroll.scrollTop-remembered)<2,'打开工作树Markdown后Alt后退恢复比较模式和位置');
     alt('ArrowRight');await wait(()=>app.workspace.activeLeaf!==leaf);await settled();assert(File.bundle.filePath.replace(/\\/g,'/').endsWith('/review.md'),'Alt前进重新激活工作树文件');
     alt('ArrowLeft');await wait(()=>app.workspace.activeLeaf===leaf);await settled();
-    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
+    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['vscode_default_light.css','Cpp Github Consolas']]){
       await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(700);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
       const native=document.querySelector('content > #write'), rendered=shadow.querySelector('#write');
       for(const property of ['fontFamily','fontSize','lineHeight','color'])assert(getComputedStyle(rendered)[property]===getComputedStyle(native)[property],'主题正文继承 '+name+' '+property+' '+getComputedStyle(rendered)[property]+'/'+getComputedStyle(native)[property]);

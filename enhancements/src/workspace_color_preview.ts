@@ -24,8 +24,8 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
    const clone=source.cloneNode(true) as HTMLElement;
    if(clone instanceof HTMLLinkElement){
     clone.href=(source as HTMLLinkElement).href;clone.rel='stylesheet';
-    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode2026_${mode}.css`);
-    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode2026_${mode}.user.css`);
+    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode_default_${mode}.css`);
+    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode_default_${mode}.user.css`);
     loads.push(new Promise((resolve,reject)=>{clone.onload=()=>resolve();clone.onerror=()=>['base_user_css','theme_user_css'].includes(source.id)?resolve():reject(Error(workspace_text("color_preview_theme_style_preview_loading_failed")+clone.href));}));
    }
    current.head.append(clone);

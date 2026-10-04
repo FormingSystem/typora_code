@@ -10,7 +10,7 @@
   for(let i=0;i<200&&!fs.existsSync(path.join(base,'window_bounds_ready.json'));i++)await pause(30);
   const text=fs.readFileSync(path.join(base,'workspace/front.md'),'utf8'),dirty=File.isDirty;
   const labels=["What's New...",'Quick Start','Markdown Reference','Install and Use Pandoc','Custom Themes','Use Images in Typora','Data Recovery and Version Control','More Topics...','鸣谢','更新日志','隐私条款','官方网站','反馈','检查更新...','我的许可证...','关于','检查 Typora Code 更新…','Typora Code GitHub 仓库'];
-  for(const theme of ['cpp_github-consolas_light.css','cpp_github-consolas_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    await original_invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(450);
    for(const width of [1280,720]){
     window.resizeTo(width,850);await pause(150);const menu=await open();const rows=[...menu.querySelectorAll('button')];

@@ -9,7 +9,7 @@
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备');fs.writeFileSync(file,text);await files.open_file(file);
   await wait(()=>document.querySelector('.md-fences[lang=c] .CodeMirror')?.CodeMirror,'原生围栏');
   for(const mode of ['dark','light','night','dark']){
-   const theme=mode==='night'?'night.css':'vscode2026_'+mode+'.css';await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(700);
+   const theme=mode==='night'?'night.css':'vscode_default_'+mode+'.css';await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(700);
    for(const lang of ['c','bash','plain']){
     const fence=(lang==='plain'?[...document.querySelectorAll('.md-fences')].find(n=>!n.getAttribute('lang')):document.querySelector('.md-fences[lang='+lang+']'));fence.scrollIntoView({block:'center'});await pause(250);
     const node=fence.querySelector('.CodeMirror'),cm=node.CodeMirror;cm.refresh();cm.setOption('cursorBlinkRate',0);cm.focus();cm.setCursor({line:0,ch:4});await pause(150);

@@ -77,7 +77,7 @@
   assert(Math.abs(parseFloat(getComputedStyle(cm_root).fontSize)*frame.getZoomFactor()-cm_font)<.05,'原生Markdown源码补偿窗口比例');
   assert(cm.getValue()===cm_text&&JSON.stringify(cm.getCursor())===cm_cursor,'原生Markdown源码保留正文及编辑光标');
   command('zoom_reset');File.editor.sourceView.hide();await pause(250);
-  for(const [theme,name]of [['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
+  for(const [theme,name]of [['night.css','Night'],['vscode_default_light.css','Cpp Github Consolas']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(250);
    assert(trigger.getBoundingClientRect().width>0&&!trigger.closest('[hidden]'),'主题下100%入口可见 '+name);
    samples.push({theme:name,color:getComputedStyle(trigger).color,background:getComputedStyle(trigger).backgroundColor,font_size:term.options.fontSize});

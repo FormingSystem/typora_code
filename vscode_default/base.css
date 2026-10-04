@@ -1,0 +1,35 @@
+/* Typora adaptation of VS Code 1.140.0 markdown preview typography (MIT).
+   Upstream: extensions/markdown-language-features/media/markdown.css. */
+:root { --monospace: Consolas, "Courier New", monospace; }
+html { font-size: 14px; }
+body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(--text-color); background: var(--bg-color); }
+#write { max-width: none; margin: 0 auto; padding: 16px 26px 40px; font-size: 14px; line-height: 22px; word-wrap: break-word; }
+#write :is(h1,h2,h3,h4,h5,h6,p,ol,ul,pre:not(.CodeMirror-line,.CodeMirror-line-like)) { margin-top: 0; }
+#write :is(h1,h2,h3,h4,h5,h6) { color: inherit; font-weight: 600; margin-top: 24px; margin-bottom: 16px; line-height: 1.25; }
+#write h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
+#write h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
+#write h3 { font-size: 1.25em; }
+#write h4 { font-size: 1em; }
+#write h5 { font-size: .875em; }
+#write h6 { font-size: .85em; }
+#write :is(p,blockquote,ul,ol,dl,table,pre:not(.CodeMirror-line,.CodeMirror-line-like)) { margin-bottom: 16px; }
+#write :is(ul,ol) { padding-left: 2em; }
+#write li>p { margin-top: 16px; }
+#write :is(ul,ol) :is(ul,ol) { margin-bottom: 0; }
+#write a { color: var(--theme-link); text-decoration: none; }
+#write a:hover { color: var(--theme-link-active); text-decoration: underline; }
+#write :is(strong,b,th) { font-weight: 600; }
+#write blockquote { margin-left: 0; margin-right: 0; padding: 0 16px; color: var(--theme-muted); background: var(--theme-quote); border-left: 5px solid var(--theme-quote-border); }
+#write blockquote>:last-child { margin-bottom: 0; }
+#write hr { height: 0; border: 0; border-top: 1px solid var(--theme-border); margin: 24px 0; }
+#write table { border-collapse: collapse; border-spacing: 0; }
+#write :is(th,td) { padding: 6px 13px; border: 1px solid var(--theme-border); }
+#write th { background: var(--theme-table); }
+#write :is(code,tt,kbd), .md-fences, .CodeMirror { font-family: var(--monospace); }
+#write :is(code,tt) { color: var(--theme-inline-text); background: var(--theme-inline); padding: .2em .4em; border-radius: 3px; }
+#write .md-fences { margin: 16px 0; padding: 16px; border-radius: 3px; color: var(--text-color); background: var(--theme-code); }
+#write pre code { padding: 0; background: transparent; }
+#write img { max-width: 100%; }
+#write mark { color: var(--text-color); background: var(--search-select-bg-color); }
+#write .md-toc { color: var(--text-color); }
+::selection { background: var(--select-text-bg-color); }

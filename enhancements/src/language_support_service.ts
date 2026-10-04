@@ -19,7 +19,7 @@ export function bind_language_support(core:any){
  const options=(id:string)=>registry.list()[id];
  const profile=(id:string,project:string,language:string,force=false)=>{
   const setting=options(id);if(!setting?.installed||(!force&&(!setting.enabled||!setting.use_environment)))return;
-  const record=manager.current(id);if(!record)return;const args=[...record.args];let initialization_options:Record<string,unknown>=language==='cmake'?{semantic_token:true,use_snippets:false}:{};
+  const record=manager.current(id);if(!record)return;const args=[...record.args];let initialization_options:Record<string,unknown>=language==='cmake'?{semantic_token:false,use_snippets:false}:{};
   if(language==='c'||language==='cpp'){const outline=read_source_outline_settings(project);if(outline.clangd_path&&!force)return;args[0]='--background-index='+String(outline.background_index!==false);if(outline.compile_commands_dir)args.push('--compile-commands-dir='+path.resolve(project,outline.compile_commands_dir));initialization_options={fallbackFlags:outline.fallback_flags};}
   return {provider:'lsp' as const,command:record.command,args,environment:{...record.environment},initialization_options};
  };

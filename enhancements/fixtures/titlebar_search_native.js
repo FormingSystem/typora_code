@@ -9,7 +9,7 @@
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口尺寸未就绪');await pause(500);
   const button=document.querySelector('.workspace-titlebar-search'),label=button.querySelector('span');
-  for(const theme of ['cpp_github-consolas_light.css','cpp_github-consolas_dark.css','night.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css','night.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(500);
    for(const zoom of [1,.9,1.25]){frame.setZoomFactor(zoom);await pause(100);
     for(const text of ['zephyr_hc32f4a0','搜索文件','长工作区名称'.repeat(30)]){

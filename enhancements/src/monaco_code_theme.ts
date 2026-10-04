@@ -3,7 +3,7 @@ import "monaco-editor/editor/contrib/semanticTokens/browser/documentSemanticToke
 import {SEMANTIC_TYPES,SEMANTIC_MODIFIERS,source_semantics,observe_source_semantics,convert_semantic_tokens} from "./source_semantic_tokens";
 import * as monaco from 'monaco-editor/editor/editor.api';
 import {INITIAL,type StateStack} from 'vscode-textmate';
-import {load_code_themes,workspace_code_theme} from './reading_code_theme';
+import {load_code_themes,workspace_code_theme,code_languages} from './reading_code_theme';
 import themes from '../vendor/vscode_themes/resolved.json';
 import {observe_workspace_theme} from './workspace_theme';
 
@@ -29,8 +29,8 @@ export function sync_monaco_code_theme(){
  if(current===mode)return;
  current=mode;const profile=ready.profiles[mode];
  for(const provider of providers.splice(0))provider.dispose();
- for(const language of ['c','cpp'] as const){
-  const grammar=profile[language],language_id=monaco.languages.getEncodedLanguageId(language);
+ for(const language of Object.keys(code_languages).filter(id=>monaco.languages.getLanguages().some(item=>item.id===id))){
+  const grammar=profile.grammars[language],language_id=monaco.languages.getEncodedLanguageId(language);
   providers.push(monaco.languages.setTokensProvider(language,{getInitialState:()=>new grammar_state(),tokenizeEncoded(line,state){
    const result=grammar.tokenizeLine2(line,(state as grammar_state).stack),tokens=result.tokens.slice();
    // The TextMate registration table does not hold the Monaco language ID; other standard token metadata is retained.
@@ -46,7 +46,7 @@ export function initialize_monaco_code_theme(){
   for(const mode of ['light','dark','light_2026','dark_2026'] as const)monaco.editor.defineTheme('typora-code-'+mode.replace('_','-'),{base:mode.startsWith('dark')?'vs-dark':'vs',inherit:true,colors:themes[mode].colors,rules:[]});
   monaco.editor.setTheme('typora-code-'+workspace_code_theme().replace('_','-'));
   // Let Monaco lazy loading complete first, to prevent its Monarch from occurring after covering the official syntax.
-  await Promise.all(monaco.languages.getLanguages().filter(item=>['c','cpp'].includes(item.id)).map(item=>item.loader?.()));
+  await Promise.all(monaco.languages.getLanguages().filter(item=>!!code_languages[item.id]).map(item=>item.loader?.()));
   ready=await load_code_themes();
   monaco.languages.registerDocumentSemanticTokensProvider('*',{
    getLegend:()=>({tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS}),

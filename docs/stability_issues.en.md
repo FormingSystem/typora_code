@@ -599,3 +599,8 @@ Legacy language plugins only read tool records instead of preparing missing envi
 ## R085.3/R085.4 Repeated rendering and CMake project indexing gaps (2026-10-04)
 
 Extensions/render and reading/navigation: unconditional DOM writes refreshed unrelated Available rows; a valid CMake server still missed project declarations. Guard unchanged values and supplement empty definitions with grammar-confirmed candidates. See [current evidence](../enhancements/tests/evidence/language_navigation_20261004.json) for the old mutation failure, 29 native checks with trusted Ctrl input and installation. Upstream semantic overlap, dynamic evaluation limits and historical native defects remain open.
+
+
+## R074.9 Theme identity, lexical overrides and internal line boxes (2026-10-04)
+
+Theme/identity, syntax/render and editor/geometry: parallel old themes, simplified grammars and invalid CMake semantic classifications produced inconsistent colors. Migrate theme choices, share syntax sources and reject overlap. Native screenshots exposed Markdown pre spacing reaching CodeMirror lines; exclude internal roles and assert real line boxes. Missing catalog payload and legacy assertions were test-fixture failures and are recorded. See [evidence](../enhancements/tests/evidence/default_themes_20261004.json); other long-running native issues remain open.

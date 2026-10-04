@@ -3,8 +3,9 @@ const {app,BrowserWindow}=require('electron'),fs=require('node:fs'),path=require
 const base=fs.mkdtempSync(path.join(os.tmpdir(),'typora-color-settings-'));app.setPath('userData',path.join(base,'profile'));app.disableHardwareAcceleration();let win;
 const checks=[],pause=ms=>new Promise(r=>setTimeout(r,ms)),ev=s=>win.webContents.executeJavaScript(s),check=async(s,label)=>{assert(await ev(s),label);checks.push(label);};
 app.whenReady().then(async()=>{
+ fs.cpSync(path.join(__dirname,'../../vscode_default'),path.join(base,'vscode_default'),{recursive:true});
  win=new BrowserWindow({show:false,width:1200,height:900,webPreferences:{nodeIntegration:true,contextIsolation:false,backgroundThrottling:false,offscreen:true}});
- for(const name of ['cpp_github-consolas.css','vscode2026_light.css','vscode2026_dark.css'])fs.copyFileSync(path.join(__dirname,'../..',name),path.join(base,name));
+ for(const name of ['vscode_default_light.css','vscode_default_dark.css'])fs.copyFileSync(path.join(__dirname,'../..',name),path.join(base,name));
  const css=fs.readFileSync(path.join(__dirname,'../dist/workspace.css'),'utf8');
  fs.writeFileSync(path.join(base,'workspace.css'),css);
  fs.writeFileSync(path.join(base,'test.html'),`<link id=theme_css href=night.css><link id=typora-code-workspace-styles rel=stylesheet href=workspace.css><style>body{background:#191a1b;color:#bbb;--bg-color:#191a1b;--text-color:#bbb}#write{font:18px/1.6 Georgia;background:#222;color:#bbb}#write h1{font-size:32px}#write td{border:2px solid #888}#write a{color:#ccc}</style><body><div id=write><h1>标题</h1><p>正文 <a href=#target>链接</a></p><table><tr><td>表格</td></tr></table><pre><code class=hljs-string>字符串</code></pre></div><aside id=typora-sidebar></aside></body>`);
@@ -23,9 +24,9 @@ app.whenReady().then(async()=>{
  await check(`qa.read_color_config().profiles[0].name==='柔和夜色'`,'另存为独立命名方案');
  await check(`qa.parse_color_config(qa.serialize_color_config(qa.read_color_config())).profiles[0].name==='柔和夜色'`,'JSON保留命名方案身份');
  await ev(`window.applied_theme='';window.ClientCommand={setTheme(file){applied_theme=file;document.querySelector('#theme_css').href=file;}};action('activate');void 0`);await pause(180);
- await check(`applied_theme==='vscode2026_dark.css'&&qa.read_color_config().active.dark===qa.read_color_config().profiles[0].id`,'应用命名方案切换对应基础并保存活动身份');
- await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['vscode2026_dark.css'],current:'vscode2026_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return entries.some(entry=>entry.label==='柔和夜色'&&entry.checked)&&!entries.find(entry=>entry.label==='VSCode2026_Dark').checked;})()`,'主题菜单展示自定义方案且只有实际方案勾选');
- await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css','night.css'],current:'cpp_github-consolas_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return ['CppGithubConsoles_Light','CppGithubConsoles_Dark','VSCode2026_Light','VSCode2026_Dark','Night'].every(name=>entries.some(e=>e.label===name));})()`,'主题菜单保留原双主题和Night，新增2026双主题');
+ await check(`applied_theme==='vscode_default_dark.css'&&qa.read_color_config().active.dark===qa.read_color_config().profiles[0].id`,'应用命名方案切换对应基础并保存活动身份');
+ await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['vscode_default_dark.css'],current:'vscode_default_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return entries.some(entry=>entry.label==='柔和夜色'&&entry.checked)&&!entries.find(entry=>entry.label==='VSCODE_Default_Dark').checked;})()`,'主题菜单展示自定义方案且只有实际方案勾选');
+ await check(`(async()=>{const entries=await qa.create_workspace_titlebar_definitions({core,context_root:()=>''},{ClientCommand,JSBridge:{invoke:async()=>({all:['vscode_default_light.css','vscode_default_dark.css','night.css'],current:'vscode_default_dark.css'})}},()=>{}).find(d=>d.label==='主题').entries();return ['VSCODE_Default_Light','VSCODE_Default_Dark','Night'].every(name=>entries.some(e=>e.label===name));})()`,'主题菜单只显示新的自有双主题和外部Night');
  await ev(`qa.activate_color_profile('dark',()=>{});void 0`);await pause(20);
  await ev(`input('markdown_link','#456789');document.querySelector('[aria-label="对照配色方案"]').value='dark';document.querySelector('[aria-label="对照配色方案"]').dispatchEvent(new Event('change'));void 0`);await pause(350);
  await check(`qa.read_color_config().profiles[0].colors.markdown_link==='#456789'&&!qa.read_color_config().themes.dark.markdown_link`,'方案编辑不覆盖基础配置');
@@ -35,7 +36,7 @@ app.whenReady().then(async()=>{
  await ev(`document.querySelector('[aria-label="新配色方案名称"]').value='柔和夜色';action('duplicate');void 0`);
  await check(`qa.read_color_config().profiles.length===1`,'重名另存拒绝且保留已有方案');
  await ev(`document.querySelector('.workspace-color-toolbar select').value='dark';document.querySelector('.workspace-color-toolbar select').dispatchEvent(new Event('change'));void 0`);await pause(350);
- await check(`color('#write a')==='rgb(92, 164, 223)'`,'保留用户试选默认链接色');
+ await check(`color('#write a')==='rgb(72, 160, 199)'`,'保留用户试选默认链接色');
  await ev(`input('markdown_link','#789abc');input('ui_chrome','#182838');input('markdown_table_border','#abcdef');input('terminal_red','#aa1122');input('markdown_syntax_string','#228844');void 0`);await pause(100);
  await check(`color('#write a')==='rgb(120, 154, 188)'&&color('#write a',shadow)===color('#write a')`,'试色即时传播正文和Shadow');
  await check(`getComputedStyle(document.querySelector('#typora-sidebar')).backgroundColor==='rgb(24, 40, 56)'&&qa.terminal_theme().red==='#AA1122'`,'工作台和终端API跟随同一配置');
@@ -60,7 +61,7 @@ app.whenReady().then(async()=>{
  await ev(`import_text(${JSON.stringify(imported)})`);
  await check(`qa.read_color_config().themes.dark.markdown_link==='#667788'&&values.get('workspace_colors').themes.light.markdown_link==='#223344'`,'导入完整校验后自动保存两主题');
  for(const value of ['{',JSON.stringify({schema:2,themes:{light:{},dark:{}}}),JSON.stringify({schema:1,themes:{light:{},dark:{bogus:'#123'}}}),JSON.stringify({schema:1,themes:{light:{},dark:{markdown_link:'url(bad)'}}}),JSON.stringify({schema:1,themes:{light:[],dark:{}}})]){await ev(`import_text(${JSON.stringify(value)})`);await check(`qa.read_color_config().themes.dark.markdown_link==='#667788'`,'非法JSON原子拒绝 '+value);}
- await ev(`document.querySelector('.workspace-color-toolbar select').value='light';document.querySelector('.workspace-color-toolbar select').dispatchEvent(new Event('change'));document.querySelector('#theme_css').setAttribute('href','cpp_github-consolas.css');void 0`);await pause(80);
+ await ev(`document.querySelector('.workspace-color-toolbar select').value='light';document.querySelector('.workspace-color-toolbar select').dispatchEvent(new Event('change'));document.querySelector('#theme_css').setAttribute('href','vscode_default_light.css');void 0`);await pause(80);
  await check(`color('#write a')==='rgb(34, 51, 68)'&&document.querySelector('[data-color-key=markdown_link]').value==='#223344'`,'明暗分别保存并按实际主题应用');
  await ev(`document.querySelector('#theme_css').setAttribute('href','github.css');void 0`);await pause(80);
  await check(`color('#write a')==='rgb(204, 204, 204)'&&!document.documentElement.hasAttribute('data-workspace-colors')`,'其他主题退出全部覆盖');
@@ -71,7 +72,7 @@ app.whenReady().then(async()=>{
  await ev(`commands.get('typora_code:custom_colors')();window.finish_import=undefined;const picker=document.querySelector('[data-color-import]');Object.defineProperty(picker,'files',{configurable:true,value:[{text:()=>new Promise(r=>finish_import=r)}]});picker.dispatchEvent(new Event('change'));document.querySelector('.workspace-dialog-close').click();finish_import(${JSON.stringify(imported.replace('#678','#abc'))});void 0`);await pause(80);
  await check(`qa.read_color_config().themes.dark.markdown_link==='#112233'`,'关闭后迟到导入不能覆盖配置');
  await ev(`commands.get('typora_code:custom_colors')();action('inherit');void 0`);await pause(80);
- await check(`color('#write a')==='rgb(92, 164, 223)'&&Object.keys(qa.read_color_config().themes.dark).length===0&&qa.read_color_config().themes.light.markdown_link==='#223344'`,'整主题恢复继承不改另一个主题');
+ await check(`color('#write a')==='rgb(72, 160, 199)'&&Object.keys(qa.read_color_config().themes.dark).length===0&&qa.read_color_config().themes.light.markdown_link==='#223344'`,'整主题恢复继承不改另一个主题');
  await ev(`(async()=>{window.release_code=await qa.bind_code_theme();window.code_sample=document.createElement('code');code_sample.className='language-c';code_sample.textContent='p = rcu_dereference(table[id]);';const code_host=document.body.appendChild(document.createElement('div'));window.code_shadow=code_host.attachShadow({mode:'open'});code_shadow.innerHTML='<style></style><div id=write></div>';const pre=document.createElement('pre');pre.append(code_sample);code_shadow.querySelector('#write').append(pre);await qa.highlight_preview_code(code_sample);code_shadow.querySelector('style').textContent=qa.markdown_theme_rules();})()`);
  await check(`getComputedStyle(code_sample.querySelector('span')).color==='rgb(204, 204, 204)'&&getComputedStyle([...code_sample.querySelectorAll('span')].find(span=>span.textContent==='rcu_dereference')).color==='rgb(220, 220, 170)'`,'C预览使用相同官方默认前景和函数色');
  await ev(`release_code();void 0`);
@@ -79,7 +80,7 @@ app.whenReady().then(async()=>{
  assert(menu.includes('自定义颜色…'));checks.push('顶部主题菜单包含自定义颜色');
  await ev(`window.writes=0;window.observer=new MutationObserver(r=>writes+=r.length);observer.observe(document.getElementById('typora-code-custom-colors'),{childList:true});const config=qa.read_color_config();for(let i=0;i<1000;i++)qa.save_color_config(config);void 0`);await pause(100);
  await check('writes===0','1000次同值保存不重复写样式');
- for(let i=0;i<20;i++){await ev(`document.querySelector('#theme_css').setAttribute('href',${JSON.stringify(i%2?'night.css':'cpp_github-consolas.css')});void 0`);await pause(20);}
+ for(let i=0;i<20;i++){await ev(`document.querySelector('#theme_css').setAttribute('href',${JSON.stringify(i%2?'night.css':'vscode_default_light.css')});void 0`);await pause(20);}
  await check(`document.querySelector('#write').innerHTML===before`,'20次切主题正文保持');
  win.setContentSize(700,650);win.webContents.setZoomFactor(1.25);await pause(100);
  await check(`document.querySelector('.workspace-color-toolbar').scrollWidth<=document.querySelector('.workspace-color-toolbar').clientWidth+1`,'窄窗口125%操作栏换行');

@@ -8,7 +8,7 @@
   const original=document.querySelector('#write').innerHTML;
   const geometry=()=>{const style=getComputedStyle(document.querySelector('#write'));return Object.fromEntries(['fontFamily','fontSize','lineHeight','paddingLeft','paddingRight','maxWidth'].map(key=>[key,style[key]]));};
   let light_geometry;
-  for(const theme of ['cpp_github-consolas_light.css','cpp_github-consolas_dark.css','night.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css','night.css']){
    frame.setZoomFactor(1);await pause(100);
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(300);
    if(theme.includes('_light'))light_geometry=geometry();
@@ -38,7 +38,7 @@
    }
   }
   checks.push({name:'切主题/菜单保持原文',pass:document.querySelector('#write').innerHTML===original});
-  constraint.remove();frame.setZoomFactor(1);await JSBridge.invoke('setting.setCurTheme','cpp_github-consolas_dark.css','cpp_github-consolas_dark.css');File.setTheme('cpp_github-consolas_dark.css');await pause(200);document.querySelector('.workspace-preferences-trigger').click();
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:checks.every(check=>check.pass)?'PASS':'FAIL',checks,samples,theme_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'themes/cpp_github-consolas_dark.css'))).digest('hex'),asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/workbench.js'))).digest('hex')},null,2));
+  constraint.remove();frame.setZoomFactor(1);await JSBridge.invoke('setting.setCurTheme','vscode_default_dark.css','vscode_default_dark.css');File.setTheme('vscode_default_dark.css');await pause(200);document.querySelector('.workspace-preferences-trigger').click();
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:checks.every(check=>check.pass)?'PASS':'FAIL',checks,samples,theme_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'themes/vscode_default_dark.css'))).digest('hex'),asset_sha256:crypto.createHash('sha256').update(fs.readFileSync(path.join(window._options.userDataPath,'typora_code/workbench.js'))).digest('hex')},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',checks,samples,error:String(error),stack:error.stack},null,2));}
 })();

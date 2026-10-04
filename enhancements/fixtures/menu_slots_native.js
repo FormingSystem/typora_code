@@ -21,7 +21,7 @@
       assert(metrics.filter(row=>row.slot).every(row=>row.glyph===(row.checked==='true')),scope+' 未勾选保留槽且已勾选显示图标');
       const shortcuts=[...menu.querySelectorAll('.workspace-titlebar-shortcut,.git-menu-shortcut')].map(node=>node.getBoundingClientRect().right);assert(shortcuts.every(right=>Math.abs(right-shortcuts[0])<1),scope+' 快捷键右边缘对齐');assert(menu.scrollWidth<=menu.clientWidth,scope+' 无水平溢出');samples.push({scope,metrics});
     };
-    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
+    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['vscode_default_light.css','Cpp Github Consolas']]){
       await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(650);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
       for(const zoom of [1,1.25]){
         reqnode('electron').webFrame.setZoomFactor(zoom);window.resizeTo(1280,850);await pause(200);

@@ -11,7 +11,7 @@
  const verify=(root,label)=>{const buttons=[...root.querySelectorAll('button')].filter(node=>visible(node)&&operation(node));assert(buttons.length>0,label+'存在可见操作');for(const node of buttons){const paint=sample(node);samples.push({label,...paint});const owned=Boolean(node.closest('.workspace-settings-body'));assert((paint.outline==='solid'&&paint.color==='rgb(112, 112, 112)')===owned,label+(owned?'设置内容静止边线 ':'范围外无强调边线 ')+(node.title||node.textContent));}return buttons;};
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'独立窗口未就绪');await pause(600);
-  for(const theme of ['vscode2026_dark.css','cpp_github-consolas_dark.css','night.css']){
+  for(const theme of ['vscode_default_dark.css','vscode_default_dark.css','night.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(650);
    document.activeElement?.blur();assert(document.documentElement.dataset.workspaceColors==='dark','真实暗主题 '+theme);
    for(const id of ['core.file-explorer','core.search','linux_note:source_control','typora_code:remote_ssh']){
@@ -26,7 +26,7 @@
    const before=buttons.map(node=>sample(node));
    const neutral=document.createElement('style');neutral.textContent='html body [data-workspace-surface] button{outline-width:0!important}';document.head.append(neutral);buttons.forEach((node,index)=>{const actual=sample(node);assert(JSON.stringify(actual.rect)===JSON.stringify(before[index].rect)&&JSON.stringify(actual.text_rect)===JSON.stringify(before[index].text_rect),'同一主题边线不改变几何 '+theme+' '+index);});neutral.remove();
    for(let round=0;round<20;round++){
-    const light=round%2===0;const next=light?'vscode2026_light.css':theme;
+    const light=round%2===0;const next=light?'vscode_default_light.css':theme;
     await JSBridge.invoke('setting.setCurTheme',next,next);File.setTheme(next);await wait(()=>document.documentElement.dataset.workspaceColors===(light?'light':'dark'),'等待原生主题切换 '+theme+' '+round);await pause(160);
     assert(document.documentElement.dataset.workspaceColors===(light?'light':'dark'),'原生主题切换 '+theme+' '+round);
     buttons.forEach((node,index)=>{const after=sample(node);assert(node.isConnected,'切换保留按钮身份 '+theme+' '+round+' '+index);if(theme!=='night.css')assert(JSON.stringify(after.rect)===JSON.stringify(before[index].rect)&&JSON.stringify(after.text_rect)===JSON.stringify(before[index].text_rect),'同排版明暗按钮几何不变 '+theme+' '+round+' '+index);if(light)assert(after.color!=='rgb(112, 112, 112)'||after.outline!=='solid','浅色撤销共享轮廓 '+index);});

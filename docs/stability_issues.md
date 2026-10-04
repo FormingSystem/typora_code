@@ -555,3 +555,8 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 ## R085.3/R085.4 重复呈现与CMake工程索引缺口（2026-10-04）
 
 分类extensions/render和reading/navigation：无条件DOM写入使无关可安装区刷新；CMake已正确配置，但服务未索引动态工程声明。分别采用值比较和LSP空结果的语法候选补充。旧版零写入红测、29项原生可信Ctrl输入与安装证据见[本次记录](../enhancements/tests/evidence/language_navigation_20261004.json)。上游语义标记重叠与动态求值边界继续保留，历史原生缺陷不随此项关闭。
+
+
+## R074.9 主题身份、词法覆盖与内部行盒（2026-10-04）
+
+分类theme/identity、syntax/render与editor/geometry：旧主题并列、常用语言简单分词和CMake异常语义覆盖导致颜色不一致；迁移主题、共享语法源并拒绝重叠数据。原生截图发现通用Markdown pre间距污染CodeMirror行，按内部角色排除并新增真实行盒断言。卸载夹具遗漏清单及旧断言属于test/fixture；保留失败并补齐。见[当前证据](../enhancements/tests/evidence/default_themes_20261004.json)，不关闭其他原生长期问题。

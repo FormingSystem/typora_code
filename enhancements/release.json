@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100404,
+      "version": "2026.10.04.4",
+      "date": "2026-10-04",
+      "notes": [
+        "自有明暗主题统一为 VSCODE_Default_Light / Dark，采用 VS Code 1.140.0 默认 2026 配色与 Markdown 排版，安装时迁移未修改的旧主题。",
+        "常用语言接入 VS Code TextMate 语法，统一代码编辑器、围栏和预览配色；修正 CMake 注释及命令被异常语义标记覆盖的问题。"
+      ],
+      "notes_en": [
+        "Unify owned themes as VSCODE_Default_Light / Dark using VS Code 1.140.0 default 2026 colors and Markdown typography; migrate unmodified legacy themes during setup.",
+        "Use VS Code TextMate grammars across common languages, editors, fences and previews; prevent invalid CMake semantic classifications from overriding syntax colors."
+      ]
+    },
+    {
       "sequence": 2026100403,
       "version": "2026.10.04.3",
       "date": "2026-10-04",

@@ -26,7 +26,7 @@ install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
-cpp_github-consolas.css / cpp_github-consolas_light.css / cpp_github-consolas_dark.css
+vscode_default_light.css / vscode_default_dark.css / vscode_default/base.css
 scripts/
 enhancements/dist/SHA256SUMS
 enhancements/dist/terminal_runtime/
@@ -100,7 +100,7 @@ Linux 以调用者身份操作，要求当前用户能写入宿主 `resources/wi
 | Typora 安装目录 `resources/window.html` | 加入静态 CSS 和常驻脚本入口；`app.asar` 保持原样 |
 | 用户数据 `typora_code/` | 工作台运行资产；`settings/workspace.json` 中既有设置保留 |
 | 用户数据 `linux_note_enhancements/terminal_runtime/` | 当前 Windows 终端运行资产的既有目录名 |
-| 用户数据 `themes/cpp_github-consolas.css` | 本项目主题；覆盖前备份同名文件 |
+| 用户数据 `themes/vscode_default_light.css / themes/vscode_default_dark.css` | 本项目主题；覆盖前备份同名文件 |
 | 用户数据 `profile.data` | 完整备份，只调整无边框窗口字段；恢复该字段时保留后来的其他偏好 |
 | 用户数据 `backups/typora_code_configuration/` | 每次独立安装的备份清单与原文件 |
 
@@ -220,10 +220,10 @@ Typora官方更新若覆盖启动入口，重新运行本工程标准安装与�
 
 **主题 → 自定义颜色…** 或 **设置 → 自定义颜色** 打开同一张配色表，可搜索正文、链接、标题、工作台、终端等颜色项目。输入有效十六进制色值或拖动取色器，立即显示并自动保存；单项或当前主题可恢复默认，支持JSON导入/导出。明暗配置分别保存，改动另一主题的配置后需切到该主题观察。
 
-手工试色可从“主题 → 打开主题文件夹”找到 `cpp_github-consolas_dark.css`，链接选择器为 `a, a:hover, a:visited`；工作台运行时链接默认角色位于源码 `enhancements/src/workspace_colors.css` 的 `--workspace-markdown-link`，优先于主题CSS。日常调试建议直接用配色表的 `markdown_link`，无需编辑安装文件或再次构建。JSON保存的是颜色配置而非整份主题，字体与排版继续由主题拥有。
+手工试色可从“主题 → 打开主题文件夹”找到 `vscode_default_dark.css`，链接选择器为 `a, a:hover, a:visited`；工作台运行时链接默认角色位于源码 `enhancements/src/workspace_colors.css` 的 `--workspace-markdown-link`，优先于主题CSS。日常调试建议直接用配色表的 `markdown_link`，无需编辑安装文件或再次构建。JSON保存的是颜色配置而非整份主题，字体与排版继续由主题拥有。
 
 ### R081 安装后的操作指导
 
 每次标准安装成功生成新的安装标识，下一次启动就绪的窗口自动显示一次指导，同版本重装也会提示；多个窗口去重，跳过或完成后普通重启不再重复。帮助菜单始终可重看及打开离线 user_guide.md。安装失败回滚标识，不提前关闭用户窗口。设计见[操作指导](onboarding.md)。
 
-2026-09-27新增主题 `VSCode2026_Light` / `VSCode2026_Dark`，分别采用固定 VS Code 2026 Light / Dark 配色，沿用 Consolas 字体与现有排版。原 `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` 和 `Night` 保留。安装不会切换当前主题，重启后在主题菜单选择新主题。
+2026-10-04起，自有主题统一为 `VSCODE_Default_Light` / `VSCODE_Default_Dark`，采用固定 VS Code 1.140.0 的 Light/Dark 2026 配色与 Markdown 排版。标准安装备份并迁移未修改的 CppGithubConsoles/VSCode2026 旧文件和明暗选择；修改过的旧文件、第三方主题、保存的字号/缩放及用户配色保留。保存文档后重启全部 Typora 窗口加载新版本。

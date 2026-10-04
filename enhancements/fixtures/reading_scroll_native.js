@@ -125,7 +125,7 @@
   const original_source=cm.getValue();cm.replaceRange('\n\n# Native outline edit probe\n',{line:cm.lineCount()-1,ch:cm.getLine(cm.lineCount()-1).length});await pause(250);
   assert([...document.querySelectorAll('.workspace-source-symbol-label')].some(node=>node.textContent==='Native outline edit probe'),'source outline reads current memory after editing');
   cm.undo();await pause(250);assert(cm.getValue()===original_source,'source edit undo preserved');
-  for(const theme of ['vscode2026_dark.css','vscode2026_light.css']){
+  for(const theme of ['vscode_default_dark.css','vscode_default_light.css']){
    ClientCommand.setTheme(theme,theme);await pause(600);
    for(const zoom of [1,1.25]){
     reqnode('electron').webFrame.setZoomFactor(zoom);await pause(250);

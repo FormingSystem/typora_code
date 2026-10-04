@@ -32,7 +32,7 @@ app.whenReady().then(async()=>{
   await run('theme_node.media="not all"');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('未生效的主题media不能覆盖有效样式');
   await run('theme_node.media="all";theme_node.sheet.disabled=true;document.body.classList.add("qa-theme-change")');await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');checks.push('禁用主题不进入阅读样式');
   await run('theme_node.remove()');
-  await run('window.theme_link=document.head.appendChild(document.createElement("link"));theme_link.id="theme_css";theme_link.href="cpp_github-consolas.css";window.colors=qa.bind_workspace_colors();void 0');
+  await run('window.theme_link=document.head.appendChild(document.createElement("link"));theme_link.id="theme_css";theme_link.href="vscode_default_light.css";window.colors=qa.bind_workspace_colors();void 0');
   await wait('getComputedStyle(shadow.querySelector("h1")).color==="rgb(0, 102, 187)"');
   await check('getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=left] pre")).backgroundColor!==getComputedStyle(shadow.querySelector("[data-changed=true] [data-side=right] pre")).backgroundColor','共享明暗外观保留围栏差异背景');
   await check('getComputedStyle(shadow.querySelector("strong [data-diff-inline=left]")).backgroundColor!==getComputedStyle(shadow.querySelector("strong [data-diff-inline=right]")).backgroundColor','共享明暗外观保留行内差异');

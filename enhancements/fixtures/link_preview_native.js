@@ -145,7 +145,7 @@
    assert(!leaf.view.containerEl.querySelector('[contenteditable=true]'),'分屏只读'+i);
    if(i===0)await verify_scale(leaf.view.containerEl,'分屏预览');
    if(i===0){
-    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['cpp_github-consolas.css','Cpp Github Consolas']]){
+    for(const [theme,name] of [['github.css','Github'],['night.css','Night'],['vscode_default_light.css','Cpp Github Consolas']]){
      await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(250);
      for(const zoom of [1,1.25]){
       reqnode('electron').webFrame.setZoomFactor(zoom);await pause(100);

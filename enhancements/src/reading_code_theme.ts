@@ -6,6 +6,9 @@ import cpp from '../vendor/vscode_cpp/syntaxes/cpp.tmLanguage.json';
 import macro from '../vendor/vscode_cpp/syntaxes/cpp.embedded.macro.tmLanguage.json';
 import platform from '../vendor/vscode_cpp/syntaxes/platform.tmLanguage.json';
 import themes from '../vendor/vscode_themes/resolved.json';
+import language_catalog from '../vendor/vscode_languages/grammars.json';
+export const code_languages:Record<string,string>={c:'source.c',cpp:'source.cpp',...language_catalog.languages,shell:language_catalog.languages.shellscript};
+export function normalize_code_language(value:string):string|undefined{const hint=value.trim().toLowerCase(),aliases:Record<string,string>={'c++':'cpp',cc:'cpp',cxx:'cpp',h:'cpp',hpp:'cpp','h++':'cpp',clike:'c',csrc:'c','text/x-csrc':'c','text/x-c++src':'cpp',js:'javascript',ts:'typescript',sh:'shell',bash:'shell',shellscript:'shell',make:'makefile','c#':'csharp',cs:'csharp',py:'python'};const language=aliases[hint]||hint;return code_languages[language]?language:undefined;}
 import {code_editor_state_css} from './reading_code_editor_colors';
 import {observe_workspace_theme,workspace_theme_mode} from './workspace_theme';
 
@@ -21,8 +24,8 @@ export function workspace_code_theme(doc:Document=document):typeof modes[number]
 }
 type code_token={startIndex:number;endIndex:number;style:string};
 export type themed_grammar={tokenizeLine(line:string,stack:code_stack):{tokens:code_token[];ruleStack:code_stack}};
-type code_profile={c:IGrammar;cpp:IGrammar;colors:string[];rules:{token:string;foreground:string;fontStyle:string}[]};
-let loading:Promise<{c:themed_grammar;cpp:themed_grammar;css:string;profiles:Record<string,code_profile>}>|undefined;
+type code_profile={grammars:Record<string,IGrammar>;colors:string[];rules:{token:string;foreground:string;fontStyle:string}[]};
+let loading:Promise<{grammars:Record<string,themed_grammar>;c:themed_grammar;cpp:themed_grammar;css:string;profiles:Record<string,code_profile>}>|undefined;
 const fallback_scopes:Record<string,string>={comment:'comment',string:'string',number:'constant.numeric',keyword:'keyword',def:'entity.name.function',type:'entity.name.type',variable:'variable',property:'variable.other.property',operator:'keyword.operator',atom:'constant.language',meta:'meta.preprocessor',builtin:'support.function',tag:'entity.name.tag',attribute:'entity.other.attribute-name',regexp:'string.regexp'};
 // Fix the semantic category of VS Code tokenClassificationRegistry in the fallback scope.
 export const semantic_scopes:Record<string,string>={namespace:'entity.name.namespace',type:'entity.name.type',class:'entity.name.type.class',enum:'entity.name.type.enum',interface:'entity.name.type.interface',struct:'entity.name.type.struct',typeParameter:'entity.name.type.parameter',parameter:'variable.parameter',variable:'variable.other.readwrite',property:'variable.other.property',enumMember:'variable.other.enummember',function:'entity.name.function',method:'entity.name.function.member',macro:'entity.name.function.preprocessor',event:'variable.other.event',decorator:'entity.name.decorator','variable.readonly':'variable.other.constant','property.readonly':'variable.other.constant.property','type.defaultLibrary':'support.type','class.defaultLibrary':'support.class','function.defaultLibrary':'support.function','variable.defaultLibrary':'support.variable',keyword:'keyword.control'};
@@ -31,12 +34,13 @@ function metadata_class(mode:string,metadata:number){return `vsc-${mode}-fg-${(m
 export function load_code_themes(){return loading ||= (async()=>{
  await loadWASM(wasm.buffer);
  const sources=new Map([['source.c',c],['source.cpp',cpp],['source.cpp.embedded.macro',macro],['source.c.platform',platform]].map(([scope,value])=>[scope as string,parseRawGrammar(JSON.stringify(value),'grammar.json')]));
+ for(const [scope,grammar]of Object.entries(language_catalog.grammars))sources.set(scope,parseRawGrammar(JSON.stringify(grammar),'grammar.json'));
  const fallback={scopeName:'source.code-fallback',patterns:Object.entries(fallback_scopes).map(([key,name])=>({match:`\\b${key}\\b`,name}))};
  sources.set(fallback.scopeName,parseRawGrammar(JSON.stringify(fallback),'fallback.json'));
  const semantic={scopeName:'source.semantic-fallback',patterns:Object.entries(semantic_scopes).sort((a,b)=>b[0].length-a[0].length).map(([key,name])=>({match:`\\b${key.replaceAll(".","\\.")}\\b`,name}))};
  sources.set(semantic.scopeName,parseRawGrammar(JSON.stringify(semantic),'semantic.json'));
  const registries=modes.map(mode=>new Registry({theme:{settings:[{settings:{foreground:themes[mode].colors['editor.foreground'],background:themes[mode].colors['editor.background']}},...themes[mode].tokenColors.filter(rule=>rule.scope)]} as IRawTheme,onigLib:Promise.resolve({createOnigScanner:patterns=>new OnigScanner(patterns),createOnigString:text=>new OnigString(text)}),loadGrammar:async scope=>sources.get(scope)||null}));
- const grammars=await Promise.all(registries.map(async registry=>({c:(await registry.loadGrammar('source.c'))!,cpp:(await registry.loadGrammar('source.cpp'))!,fallback:(await registry.loadGrammar(fallback.scopeName))!,semantic:(await registry.loadGrammar(semantic.scopeName))!})));
+ const grammars=await Promise.all(registries.map(async registry=>({grammars:Object.fromEntries(await Promise.all(Object.entries(code_languages).map(async([id,scope])=>[id,(await registry.loadGrammarWithConfiguration(scope,0,{balancedBracketSelectors:['*'],unbalancedBracketSelectors:[]}))!]))),fallback:(await registry.loadGrammar(fallback.scopeName))!,semantic:(await registry.loadGrammar(semantic.scopeName))!})));
  const css:string[]=[];
  modes.forEach((mode,index)=>{
   const prefix=`:root[data-workspace-code-theme=${mode}] #write`,colors=themes[mode].colors;
@@ -52,8 +56,8 @@ export function load_code_themes(){return loading ||= (async()=>{
   for(let style=0;style<16;style++)css.push(`${prefix} :is(.cm-vsc-${mode}-style-${style},.vsc-${mode}-style-${style}){font-style:${style&1?'italic':'normal'}!important;font-weight:${style&2?'bold':'normal'}!important;text-decoration:${[style&4?'underline':'',style&8?'line-through':''].filter(Boolean).join(' ')||'none'}!important}`);
   css.push(code_editor_state_css(mode));
  });
- const pair=(language:'c'|'cpp'):themed_grammar=>({tokenizeLine(line,stack){
-  const results=grammars.map((grammar,index)=>grammar[language].tokenizeLine2(line,stack[index]));
+ const pair=(language:string):themed_grammar=>({tokenizeLine(line,stack){
+  const results=grammars.map((grammar,index)=>grammar.grammars[language].tokenizeLine2(line,stack[index]));
   const boundaries=[...new Set([0,line.length,...results.flatMap(result=>Array.from(result.tokens).filter((_,index)=>index%2===0))])].filter(n=>n<=line.length).sort((a,b)=>a-b),positions=modes.map(()=>0);
   return {ruleStack:results.map(result=>result.ruleStack) as code_stack,tokens:boundaries.slice(0,-1).map((start,index)=>({startIndex:start,endIndex:boundaries[index+1],style:results.map((result,side)=>{while(positions[side]+2<result.tokens.length&&result.tokens[positions[side]+2]<=start)positions[side]+=2;return metadata_class(modes[side],result.tokens[positions[side]+1]);}).join(' ')}))};
  }});
@@ -61,9 +65,9 @@ export function load_code_themes(){return loading ||= (async()=>{
   const registry=registries[index],grammar=grammars[index];
   const rule=(token:string,metadata:number)=>({token,foreground:registry.getColorMap()[(metadata>>>15)&511],fontStyle:[metadata&(1<<11)?'italic':'',metadata&(2<<11)?'bold':'',metadata&(4<<11)?'underline':'',metadata&(8<<11)?'strikethrough':''].filter(Boolean).join(' ')});
   const rules=[...Object.keys(fallback_scopes).map(key=>rule(key,grammar.fallback.tokenizeLine2(key,INITIAL).tokens[1])),...Object.keys(semantic_scopes).map(key=>rule(key,grammar.semantic.tokenizeLine2(key,INITIAL).tokens[1]))];
-  return [mode,{c:grammar.c,cpp:grammar.cpp,colors:registry.getColorMap(),rules}];
+  return [mode,{grammars:grammar.grammars,colors:registry.getColorMap(),rules}];
  }));
- return {c:pair('c'),cpp:pair('cpp'),css:css.join('\n'),profiles};
+ const paired=Object.fromEntries(Object.keys(code_languages).map(language=>[language,pair(language)]));return {grammars:paired,c:paired.c,cpp:paired.cpp,css:css.join('\n'),profiles};
 })().catch(error=>{loading=undefined;throw error;});}
 
 export async function bind_code_theme(){

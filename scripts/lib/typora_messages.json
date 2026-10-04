@@ -103,9 +103,9 @@
     "en": "Save your documents and restart Typora normally to load this installation.",
     "zh_cn": "保存文档后正常重启 Typora，即可加载本次安装。"
   },
-  "select_vscode2026_light_or_vscode2026_dark_in_the_theme_menu_exi": {
-    "en": "Select VSCode2026_Light or VSCode2026_Dark in the Theme menu. Existing CppGithubConsoles_Light/Dark, Night, and preferences are preserved.",
-    "zh_cn": "在“主题”菜单选择 VSCode2026_Light 或 VSCode2026_Dark；原 CppGithubConsoles_Light/Dark、Night 和已有偏好设置保留。"
+  "select_vscode_default_light_or_dark": {
+    "en": "Select VSCODE_Default_Light or VSCODE_Default_Dark in the Theme menu. Unmodified owned legacy themes migrate automatically; custom themes and preferences are preserved.",
+    "zh_cn": "在“主题”菜单选择 VSCODE_Default_Light 或 VSCODE_Default_Dark。未修改的旧版自有主题自动迁移，自定义主题和偏好设置保留。"
   },
   "failed": {
     "en": "{0} failed: {1}",

@@ -1,4 +1,7 @@
-﻿# All list paths are relative to the dedicated asset directory; recovery lists cannot escape to external files.
+﻿function get_typora_theme_catalog {
+    return ([IO.File]::ReadAllText((Join-Path $PSScriptRoot '../../enhancements/theme_catalog.json'), [Text.Encoding]::UTF8) | ConvertFrom-Json)
+}
+# All list paths are relative to the dedicated asset directory; recovery lists cannot escape to external files.
 function resolve_typora_asset_path {
     param([string]$asset_root, [string]$relative_path)
     if ($relative_path -notmatch '^[a-zA-Z0-9_-][a-zA-Z0-9_./-]*$' -or $relative_path.Contains('..') -or $relative_path.EndsWith('/')) { throw 'Invalid asset path.' }
@@ -227,7 +230,7 @@ function assert_typora_record_scope {
             'migration' { $migration -contains $record.relative_path }
             'terminal' { $record.relative_path -match '^([0-9.]+/(node-pty/[a-zA-Z0-9_./-]+|terminal_broker.cjs)|node/[0-9.]+/(node.exe|LICENSE))$' }
             'settings' { $record.relative_path -eq 'plugins.json' }
-            'theme' { $record.relative_path -in @('cpp_github-consolas.css','cpp_github-consolas_light.css','cpp_github-consolas_dark.css','vscode2026_light.css','vscode2026_dark.css') }
+            'theme' { $record.relative_path -in (@((get_typora_theme_catalog).files) + @((get_typora_theme_catalog).legacy.PSObject.Properties.Name)) }
         }
         if (-not $valid) { throw "Backup path is outside the managed $scope scope: $($record.relative_path)" }
     }

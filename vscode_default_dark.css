@@ -1,0 +1,27 @@
+/* VS Code 1.140.0 default dark theme; commit 07f806f999227108933c2e30515b26eecc1fda74. */
+@import url("./vscode_default/base.css");
+:root {
+  --workspace-code-theme: dark_2026;
+  --bg-color: #121314;
+  --text-color: #BBBEBF;
+  --side-bar-bg-color: #191A1B;
+  --control-text-color: #bfbfbf;
+  --control-text-hover-color: #bfbfbf;
+  --select-text-bg-color: #276782dd;
+  --active-file-bg-color: #2C2D2E;
+  --active-file-text-color: #ededed;
+  --primary-color: #48A0C7;
+  --item-hover-bg-color: #FFFFFF14;
+  --theme-border: #2a2a2a;
+  --theme-link: #48A0C7;
+  --theme-link-active: #53A5CA;
+  --theme-muted: #8C8C8C;
+  --theme-quote: #242526;
+  --theme-quote-border: #2A2B2C;
+  --theme-table: #191A1B;
+  --theme-inline-text: #8C8C8C;
+  --theme-inline: #262626;
+  --theme-code: #242526;
+  --search-select-bg-color: #27678280;
+}
+:root { --mermaid-theme: night; }

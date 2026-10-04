@@ -11,7 +11,7 @@
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'宿主窗口尺寸回执');
   reqnode('electron').webFrame.setZoomFactor(1);File.option.showLineNumbersForFence=true;
-  await JSBridge.invoke('setting.setCurTheme','vscode2026_light.css','vscode2026_light.css');File.setTheme('vscode2026_light.css');
+  await JSBridge.invoke('setting.setCurTheme','vscode_default_light.css','vscode_default_light.css');File.setTheme('vscode_default_light.css');
   await files.open_file(source);await wait(()=>document.querySelector('#write .md-fences'),'围栏未创建');
   const fence=document.querySelector('#write .md-fences'),owner=fence.closest('content');fence.scrollIntoView({block:'center'});
   await wait(()=>fence.querySelector('.linux-note-code-toggle'),'按钮未创建');await pause(500);
@@ -32,7 +32,7 @@
   };
   const complete=label=>{const s=measure(label);assert(s.scroll_top===0&&s.model_top===0&&s.text.top>=s.scroller.top-0.5,'首行无内部偏移/裁剪 '+label);};
   for(let i=0;i<8;i++){scroller.dispatchEvent(new WheelEvent('wheel',{bubbles:true,cancelable:true,ctrlKey:true,deltaY:-120}));await pause(60);}
-  for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(250);
    for(const zoom of [1,1.25]){
     reqnode('electron').webFrame.setZoomFactor(zoom);await pause(250);

@@ -22,7 +22,7 @@
    for(let node=line.parentElement;node&&node!==fence.parentElement;node=node.parentElement){const css=getComputedStyle(node);if(/hidden|auto|scroll|clip/.test(css.overflowY)){const r=node.getBoundingClientRect();clips.push({class:node.className,top:r.top,bottom:r.bottom,overflow:css.overflowY});}}
    const bottom=Math.min(...clips.map(c=>c.bottom));const sample={label,class:fence.className,text:text.toJSON(),clips,clipped:text.bottom-bottom,info:cm.getScrollInfo(),model_top:cm.doc.scrollTop,scroll_top:scroller.scrollTop,wrapper:wrapper.getBoundingClientRect().toJSON(),doc_height:cm.doc.height,lines:cm.lineCount(),refreshed_after_exit};samples.push(sample);return sample;
   };
-  for(const theme of ['vscode2026_light.css','vscode2026_dark.css']){
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
    ClientCommand.setTheme(theme,theme);await pause(300);
    for(const zoom of [1,1.25]){
     reqnode('electron').webFrame.setZoomFactor(zoom);await pause(150);

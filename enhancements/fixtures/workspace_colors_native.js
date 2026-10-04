@@ -12,7 +12,7 @@
   fs.writeFileSync(file,text);await files.open_file(file);await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'文档未打开');await pause(200);
   core.app.commands.run('linux_note:terminal_toggle');await wait(()=>document.querySelector('.linux-note-terminal')?.dataset.state==='running','终端未启动');await pause(300);
   const terminal=document.querySelector('.linux-note-terminal'),sidebar=core.app.workspace.sidebar;
-  for(const [theme,name,mode]of [['cpp_github-consolas.css','Cpp Github Consolas','light'],['night.css','Night','dark']]){
+  for(const [theme,name,mode]of [['vscode_default_light.css','Cpp Github Consolas','light'],['night.css','Night','dark']]){
    await JSBridge.invoke('setting.setCurTheme',theme,name);File.setTheme(theme);await pause(800);document.querySelector('#ty-suppress-mode-warning-close-btn')?.click();
    assert(document.documentElement.dataset.workspaceColors===mode,'宿主实际主题 '+mode);
    const chrome=mode==='light'?'rgb(250, 250, 253)':'rgb(25, 26, 27)',content=mode==='light'?'rgb(255, 255, 255)':'rgb(18, 19, 20)';
@@ -49,9 +49,9 @@
    assert(writes===0&&first===menu.firstElementChild,'静止主题无刷新且菜单节点保持 '+mode);
    await capture('colors_menu_'+mode);document.getElementById('close-sidebar-menu-btn').dispatchEvent(new MouseEvent('mousedown',{bubbles:true,cancelable:true}));await pause(100);
   }
-  for(const theme of ['github.css','newsprint.css','night.css','cpp_github-consolas.css']){
+  for(const theme of ['github.css','newsprint.css','night.css','vscode_default_light.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(800);
-   const managed=theme==='night.css'||theme==='cpp_github-consolas.css';
+   const managed=theme==='night.css'||theme==='vscode_default_light.css';
    assert(document.documentElement.hasAttribute('data-workspace-colors')===managed,'实际主题范围 '+theme);
    if(!managed){
     const before=color('#write'),heading=color('#write h1'),link=color('#write a[href]');const style=document.createElement('style');style.textContent=':root{--workspace-markdown-heading:rgb(1,2,3);--workspace-markdown-link:rgb(3,2,1)}';document.head.append(style);await pause(60);
@@ -62,7 +62,7 @@
 
   const geometry=()=>Object.fromEntries(['#write','#write p','#write h1','#write h2','#write a','#write th','#write td','#write blockquote','#write pre','.md-fences .CodeMirror'].map(selector=>{const node=document.querySelector(selector);if(!node)return[selector,null];const c=getComputedStyle(node);return[selector,Object.fromEntries(['font-family','font-size','font-weight','font-style','line-height','padding-top','padding-left','margin-top','margin-bottom','border-top-width','border-left-width','border-top-style'].map(key=>[key,c.getPropertyValue(key)]))]}));
   const original_geometry=geometry();
-  for(const [theme,mode] of [['cpp_github-consolas_light.css','light'],['cpp_github-consolas_dark.css','dark']]){
+  for(const [theme,mode] of [['vscode_default_light.css','light'],['vscode_default_dark.css','dark']]){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(900);
    assert(document.documentElement.dataset.workspaceColors===mode,'成对主题作用域 '+theme);
    const actual=geometry();samples.push({theme,geometry:actual});

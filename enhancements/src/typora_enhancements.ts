@@ -15,7 +15,7 @@ import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { dispose_workspace_widgets } from "./workspace_widgets";
 import type { graph_core } from "./git_graph_host";
-import {load_code_themes,bind_code_theme,initial_code_stack,type code_stack,type themed_grammar} from './reading_code_theme';
+import {load_code_themes,bind_code_theme,initial_code_stack,normalize_code_language,type code_stack,type themed_grammar} from './reading_code_theme';
 import extension_css from "./typora_enhancements.css";
 import scrollbar_css from "./workspace_scrollbars.css";
 import {bind_workspace_scrollbars} from "./workspace_scrollbars";
@@ -72,14 +72,11 @@ declare global {
 }
 
 const EXTENSION_STYLE_ID = "linux-note-typora-enhancements-style";
-const C_MODE_NAME = "linux-note-vscode-textmate-c";
-const CPP_MODE_NAME = "linux-note-vscode-textmate-cpp";
 const MINIMUM_COLLAPSED_CODE_HEIGHT = 320;
 const MAXIMUM_COLLAPSED_CODE_HEIGHT = 560;
 const CODE_COLLAPSE_TOLERANCE = 48;
 
-let c_textmate_grammar: themed_grammar | null = null;
-let cpp_textmate_grammar: themed_grammar | null = null;
+let textmate_grammars:Record<string,themed_grammar>={};
 let scan_timer = 0;
 const mermaid_buttons = new Map<Element, reading_media_entry>();
 let mermaid_theme:ReturnType<typeof bind_native_mermaid_theme>|undefined;
@@ -101,7 +98,7 @@ let extension_style:workspace_style_handle|undefined;
 function ensure_style(): void { extension_style ??= acquire_workspace_style(EXTENSION_STYLE_ID,extension_css); }
 
 async function load_textmate_grammars(): Promise<void> {
- const themes=await load_code_themes();c_textmate_grammar=themes.c;cpp_textmate_grammar=themes.cpp;
+ textmate_grammars=(await load_code_themes()).grammars;
 }
 
 function create_textmate_mode(grammar: themed_grammar) {
@@ -156,12 +153,6 @@ function create_textmate_mode(grammar: themed_grammar) {
   };
 }
 
-function normalize_language(value: string): "c" | "cpp" | null {
-  const language = value.trim().toLowerCase();
-  if (["c", "clike", "csrc", "text/x-csrc"].includes(language)) return "c";
-  if (["c++", "cpp", "cc", "cxx", "h", "hpp", "h++", "text/x-c++src"].includes(language)) return "cpp";
-  return null;
-}
 
 function code_mirror_for_fence(fence: Element): code_mirror_instance | null {
   const wrapper = fence.querySelector<HTMLElement>(".CodeMirror");
@@ -170,11 +161,11 @@ function code_mirror_for_fence(fence: Element): code_mirror_instance | null {
 }
 
 function apply_textmate_mode(fence: Element): void {
-  const language = normalize_language(fence.getAttribute("lang") ?? "");
+  const language = normalize_code_language(fence.getAttribute("lang") ?? "");
   if (!language) return;
   const code_mirror = code_mirror_for_fence(fence);
   if (!code_mirror) return;
-  const mode = language === "c" ? C_MODE_NAME : CPP_MODE_NAME;
+  const mode = "linux-note-vscode-textmate-"+language;
   if (code_mirror.getOption("mode") === mode) return;
   if(!original_code_modes.has(code_mirror))original_code_modes.set(code_mirror,code_mirror.getOption("mode"));
   code_mirror.setOption("mode", mode);
@@ -496,10 +487,9 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   performance.measure("typora-code:grammar","typora-code:grammar:start");
   if (!window.CodeMirror) throw new Error("Typora CodeMirror is unavailable");
   const code_mirror=window.CodeMirror;
-  const previous_modes=[C_MODE_NAME,CPP_MODE_NAME].map(name=>code_mirror.modes?.[name]);
-  code_mirror.defineMode(C_MODE_NAME, () => create_textmate_mode(c_textmate_grammar!));
-  code_mirror.defineMode(CPP_MODE_NAME, () => create_textmate_mode(cpp_textmate_grammar!));
-  lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of [C_MODE_NAME,CPP_MODE_NAME].entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
+  const mode_names=Object.keys(textmate_grammars).map(language=>"linux-note-vscode-textmate-"+language),previous_modes=mode_names.map(name=>code_mirror.modes?.[name]);
+  for(const [language,grammar]of Object.entries(textmate_grammars))code_mirror.defineMode("linux-note-vscode-textmate-"+language,()=>create_textmate_mode(grammar));
+  lifetime.add(()=>{if(code_mirror.modes)for(const [index,name]of mode_names.entries()){const previous=previous_modes[index];if(previous)code_mirror.modes[name]=previous;else delete code_mirror.modes[name];}});
   code_geometry=bind_reading_code_geometry();
   runtime_lifetime.add(bind_reading_code_wheel());
   code_copy=bind_reading_code_copy(document.body,text=>{const files=get_workspace_files();if(!files)throw new Error(workspace_text("typora_enhancements_clipboard_is_not_ready"));files.copy(text);});
@@ -562,7 +552,7 @@ export function deactivate_typora_enhancements(): void {
   mermaid_buttons.clear();
   document.querySelectorAll<HTMLElement>(".linux-note-code-collapsible").forEach(remove_code_collapse);
   for(const [editor,mode]of original_code_modes){
-    try{if([C_MODE_NAME,CPP_MODE_NAME].includes(String(editor.getOption("mode"))))editor.setOption("mode",mode);delete editor.state.linux_note_textmate_language;}catch(error){console.error("[Typora Code restore syntax]",error);}
+    try{if(String(editor.getOption("mode")).startsWith("linux-note-vscode-textmate-"))editor.setOption("mode",mode);delete editor.state.linux_note_textmate_language;}catch(error){console.error("[Typora Code restore syntax]",error);}
   }
   original_code_modes.clear();
   runtime_lifetime.dispose();graph_binding=undefined;reading_binding=undefined;

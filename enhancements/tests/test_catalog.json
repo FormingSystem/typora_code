@@ -960,9 +960,10 @@
         "R025",
         "R056",
         "R057",
-        "R063"
+        "R063",
+        "R074.9"
       ],
-      "design": "docs/installation_design.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "install_windows.ps1",
         "check_windows.ps1",
@@ -1088,9 +1089,10 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R025"
+        "R025",
+        "R074.9"
       ],
-      "design": "docs/installation_design.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "scripts/lib/typora_native_profile.cjs"
       ],
@@ -1816,9 +1818,10 @@
         "R043",
         "H008",
         "R068.2",
-        "R074.7"
+        "R074.7",
+        "R074.9"
       ],
-      "design": "docs/editor_header.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/textmate_style.ts",
         "enhancements/src/reading_code_theme.ts"
@@ -1847,7 +1850,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R025"
+        "R025",
+        "R074.9"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
@@ -2759,9 +2763,10 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R025"
+        "R025",
+        "R074.9"
       ],
-      "design": "docs/installation_design.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "scripts/lib/typora_workspace.py"
       ],
@@ -3793,7 +3798,7 @@
         "enhancements/src/workspace_widgets.css",
         "enhancements/fixtures/button_boundary_native.js",
         "enhancements/src/workspace_settings_view.css",
-        "cpp_github-consolas.css",
+        "vscode_default_light.css",
         "enhancements/fixtures/native_preferences_theme.js"
       ],
       "related_modules": [
@@ -6882,9 +6887,10 @@
         "R074.1",
         "R074.2",
         "R074.3",
-        "R074.8"
+        "R074.8",
+        "R074.9"
       ],
-      "design": "docs/workspace_colors.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/workspace_colors.ts",
         "enhancements/src/workspace_colors.css",
@@ -6911,7 +6917,7 @@
       ],
       "expected": [
         "共享明暗角色、明深蓝/暗浅蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入",
-        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复",
+        "仅vscode_default_light.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复",
         "输入底板独立于浮层；颜色跟随共享主题，无正文或搜索模式变化。"
       ],
       "timeout_ms": 180000,
@@ -6955,7 +6961,7 @@
       ],
       "expected": [
         "共享明暗角色、明深蓝/暗浅蓝色标题与中性正文；预览同源，保持节点、焦点、滚动、字号配置和第三方表单，静止零主题标记写入",
-        "仅cpp_github-consolas.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复"
+        "仅vscode_default_light.css和night.css接入；其他主题退出正文及色表覆盖，往返恢复"
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/run_private_desktop.ps1"
@@ -7648,9 +7654,10 @@
       "purpose": "stress",
       "requirements": [
         "R074.4",
-        "R074.6"
+        "R074.6",
+        "R074.9"
       ],
-      "design": "docs/workspace_colors.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/workspace_color_settings.ts",
         "enhancements/src/workspace_color_view.ts",
@@ -7687,12 +7694,13 @@
       "requirements": [
         "R074.5",
         "R065.2",
-        "R074.7"
+        "R074.7",
+        "R074.9"
       ],
-      "design": "docs/workspace_colors.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
-        "vscode2026_light.css",
-        "vscode2026_dark.css",
+        "vscode_default_light.css",
+        "vscode_default_dark.css",
         "enhancements/src/workspace_markdown_theme.ts",
         "enhancements/src/workspace_titlebar.css"
       ],
@@ -7708,8 +7716,8 @@
       "environment": "独立Electron/正式CSS",
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
-        "逐属性比较原Cpp/Light/Dark正文与Shadow的字体、字号、行距、边框和间距",
-        "验证2026 Dark配色、土色标题、链接及Shadow同源，与100%/125%实际菜单文字行盒"
+        "Compare official default Light/Dark typography and shared shadow rendering.",
+        "Verify official colors, body-colored headings and menu glyph bounds at 100% and 125% zoom."
       ],
       "expected": [
         "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切"
@@ -7764,7 +7772,7 @@
       "design": "docs/reading_media_viewer.md",
       "implementation": [
         "enhancements/src/reading_mermaid_theme.ts",
-        "vscode2026_dark.css"
+        "vscode_default_dark.css"
       ],
       "related_modules": [
         "native",
@@ -8608,9 +8616,10 @@
         "R068.6",
         "R068.7",
         "R068.8",
-        "R085.4"
+        "R085.4",
+        "R074.9"
       ],
-      "design": "docs/code_analysis_colors.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/monaco_code_theme.ts",
         "enhancements/src/language_analysis_service.ts",
@@ -9411,7 +9420,8 @@
       "level": "system",
       "purpose": "stress",
       "requirements": [
-        "R071.7"
+        "R071.7",
+        "R074.9"
       ],
       "design": "docs/workspace_responsiveness.md#r0717-单屏代码编辑复现补充2026-10-02",
       "implementation": [
@@ -9507,9 +9517,10 @@
       "purpose": "implementation",
       "requirements": [
         "R068.12",
-        "R074.7"
+        "R074.7",
+        "R074.9"
       ],
-      "design": "docs/reading_code_blocks.md#r06812-编辑与预览共用代码颜色2026-10-02",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/reading_native_code.ts",
         "enhancements/src/workspace_markdown_preview_render.ts",
@@ -9744,9 +9755,10 @@
         "R085.1",
         "R085.2",
         "R085.4",
-        "R085.3"
+        "R085.3",
+        "R074.9"
       ],
-      "design": "docs/language_environment_plugins.md",
+      "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "enhancements/src/language_environment_service.cjs",
         "enhancements/src/language_support_service.ts",

@@ -1,6 +1,6 @@
 import {workspace_text} from "./workspace_i18n";
 import {mermaid_theme_options,observe_mermaid_theme} from './reading_mermaid_theme';
-import {load_code_themes,initial_code_stack} from './reading_code_theme';
+import {load_code_themes,initial_code_stack,normalize_code_language} from './reading_code_theme';
 import {native_code_fragment} from './reading_native_code';
 import * as monaco from "monaco-editor/editor/editor.api";
 import DOMPurify from "dompurify";
@@ -16,8 +16,9 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
   const aliases: Record<string,string> = {js:"javascript",ts:"typescript",sh:"shell",bash:"shell",py:"python",yml:"yaml","c++":"cpp",ps1:"powershell"};
   const language = aliases[hint] || (monaco.languages.getLanguages().some(item=>item.id===hint) ? hint : detect_file_language(`preview.${hint}`));
   const text = code.textContent || "";
-  if(['c','cpp'].includes(language)){
-    const grammar=(await load_code_themes())[language as 'c'|'cpp'];let stack=initial_code_stack();const fragment=document.createDocumentFragment();
+  const precise=normalize_code_language(hint)||normalize_code_language(language);
+  if(precise){
+    const grammar=(await load_code_themes()).grammars[precise];let stack=initial_code_stack();const fragment=document.createDocumentFragment();
     text.split('\n').forEach((line,index)=>{if(index)fragment.append(document.createTextNode('\n'));const result=grammar.tokenizeLine(line,stack);stack=result.ruleStack;for(const token of result.tokens){const span=document.createElement('span');span.className=token.style;span.textContent=line.slice(token.startIndex,token.endIndex);fragment.append(span);}});
     code.replaceChildren(fragment);return;
   }

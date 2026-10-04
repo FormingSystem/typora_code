@@ -71,7 +71,8 @@ try:
         shutil.copyfile(original_night / 'night.css', user_data / 'themes/night.css')
         shutil.copytree(original_night / 'night', user_data / 'themes/night')
 
-    for theme_name in ['cpp_github-consolas.css', 'vscode2026_light.css', 'vscode2026_dark.css', 'cpp_github-consolas_light.css', 'cpp_github-consolas_dark.css']:
+    for theme_name in json.loads((repository_root / 'enhancements/theme_catalog.json').read_text(encoding='utf-8'))['files']:
+        (user_data / 'themes' / theme_name).parent.mkdir(parents=True, exist_ok=True)
         shutil.copyfile(repository_root / theme_name, user_data / 'themes' / theme_name)
     for line in (release / 'SHA256SUMS').read_text(encoding='utf-8-sig').splitlines():
         if not line.strip():

@@ -138,3 +138,8 @@ R069.2读取固定1.137.0提交的[sash.css](https://github.com/microsoft/vscode
 固定6807068的menu.ts仅生成有值的keybinding与真实子菜单indicator，24px行高、2em标签左右留白，标签右2em加快捷键左2em共4em；本工具按最大真实行计算宽度、右箭头复用尾部留白，避免永久三轨，并补实际滚动条占用。此为既有菜单适配，不新增菜单功能。2026-dark.json的editor.background/foreground分别#121314/#BBBEBF，正文Dark改用该基线；标题#CE9178为用户保留值，Night及Cpp字体几何不改。代码块独立VS Code主题继续由现有服务管理。
 
 2026-09-27 R074.7追加：新增VSCode2026_Light/Dark，官方2026-light/dark.json完整include链与摘要保存在vendor/vscode_themes；代码服务读取主题显式身份，编辑状态和token同源。Light editor #FFFFFF/#202020、cursor #202020、selection #0069CC40；Dark editor #121314/#BBBEBF、cursor #BBBEBF、selection #276782dd。原Cpp双主题/Night沿原配置，标题和字体例外见workspace_colors设计。
+
+
+## 2026-10-04 R074.9 默认主题来源更新
+
+颜色和Markdown基础排版更新到实际安装的VS Code 1.140.0 stable（07f806f999227108933c2e30515b26eecc1fda74）；其他几何继续既有固定基线。`extensions/theme-defaults/themes/2026-{light,dark}.json`及完整include链保存在`enhancements/vendor/vscode_themes`；默认Markdown字体14px、行高22px、标题600字重、段间24/16px来自`extensions/markdown-language-features/media/markdown.css`，按Typora的#write/围栏节点适配。代码Consolas与已保存会话字号继续独立。常用语言语法原件、路径、版本及SHA见`vendor/vscode_languages/SOURCE.json`；CMake为微软CMake Tools 1.24.42，C/C++沿已有固定语法。TextMate默认平衡括号选择器见`textMateTokenizationFeatureImpl.ts`，启用和颜色池默认见`textModelDefaults.ts`。本机VS Code当前为Dark 2026；同时安装的其他CMake扩展可能改变语法，不能把任意扩展组合承诺为逐像素相同。

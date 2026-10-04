@@ -1,0 +1,117 @@
+{
+  "repository": "https://github.com/microsoft/vscode",
+  "commit": "07f806f999227108933c2e30515b26eecc1fda74",
+  "version": "1.140.0",
+  "cmake_repository": "https://github.com/microsoft/vscode-cmake-tools",
+  "cmake_version": "1.24.42",
+  "files": [
+    {
+      "path": "extensions/csharp/syntaxes/csharp.tmLanguage.json",
+      "sha256": "7868ddbe5a500f29d8a0e3ce4c6b3dad5f4073bb9ae1f99da1b1a7810972d99b",
+      "scope": "source.cs"
+    },
+    {
+      "path": "extensions/java/syntaxes/java.tmLanguage.json",
+      "sha256": "294fd6b4ac01e841734f9f9cf46ab11d919c564cdecaa90319e62020e980d8b1",
+      "scope": "source.java"
+    },
+    {
+      "path": "extensions/javascript/syntaxes/JavaScriptReact.tmLanguage.json",
+      "sha256": "4b7c84632bc5ff20d639c13ba9ceaa69ad3e9f97b595ec638bedb61576cf898f",
+      "scope": "source.js.jsx"
+    },
+    {
+      "path": "extensions/javascript/syntaxes/JavaScript.tmLanguage.json",
+      "sha256": "fbb253d385c855075ef743c958ffa3ef63939c7e65ced110ba3d2575be7a5025",
+      "scope": "source.js"
+    },
+    {
+      "path": "extensions/javascript/syntaxes/Regular Expressions (JavaScript).tmLanguage",
+      "sha256": "66ec824c6a4c382a55106efd8d1599af6ad372a72fa2e6d8466050f2904e05c3",
+      "scope": "source.js.regexp"
+    },
+    {
+      "path": "extensions/typescript-basics/syntaxes/TypeScript.tmLanguage.json",
+      "sha256": "5422ec4b90f842fd729a43e95a5d31e41382c94623fb3c93e127e4ef582998c9",
+      "scope": "source.ts"
+    },
+    {
+      "path": "extensions/typescript-basics/syntaxes/TypeScriptReact.tmLanguage.json",
+      "sha256": "6873461fb8e634046ee0cfafb41aa8ccdf87ec2f8c201bf2cac0a941e058280a",
+      "scope": "source.tsx"
+    },
+    {
+      "path": "extensions/typescript-basics/syntaxes/jsdoc.ts.injection.tmLanguage.json",
+      "sha256": "e807df82897392decd0cd8484ae32b92e098f4a5dac93e9db90225c58f9a7270",
+      "scope": "documentation.injection.ts"
+    },
+    {
+      "path": "extensions/typescript-basics/syntaxes/jsdoc.js.injection.tmLanguage.json",
+      "sha256": "620b02d2cbfd4de4dfa27c61dcb715701d54b155246a1babb4b42f2c7e787531",
+      "scope": "documentation.injection.js.jsx"
+    },
+    {
+      "path": "extensions/css/syntaxes/css.tmLanguage.json",
+      "sha256": "1fe1c50fe650f7fe07b381012d624080955170e376cf7ffc66170d783de7e436",
+      "scope": "source.css"
+    },
+    {
+      "path": "extensions/html/syntaxes/html.tmLanguage.json",
+      "sha256": "a042290a8410d18c90577111b755caa272b296a432a3b66cf6c6770abb74af7a",
+      "scope": "text.html.basic"
+    },
+    {
+      "path": "extensions/html/syntaxes/html-derivative.tmLanguage.json",
+      "sha256": "5719f42419d8c1fe551fcd4b80ac4a1795cc1ddd76bf9069a9b46f78abee0638",
+      "scope": "text.html.derivative"
+    },
+    {
+      "path": "extensions/shellscript/syntaxes/shell-unix-bash.tmLanguage.json",
+      "sha256": "c1de56a5d97bc5682d224017cae65deeaccdc0dd7dc85af436fdbaddb9b36588",
+      "scope": "source.shell"
+    },
+    {
+      "path": "extensions/make/syntaxes/make.tmLanguage.json",
+      "sha256": "d34bb431a1e1dc27370fc02c7c3a01bf978c5326b6b601104d028b1505b460b9",
+      "scope": "source.makefile"
+    },
+    {
+      "path": "extensions/python/syntaxes/MagicPython.tmLanguage.json",
+      "sha256": "a8ec27ce79ecb1fda05783d47636efee45413565f62dd15a2ebc41d7f0d716a0",
+      "scope": "source.python"
+    },
+    {
+      "path": "extensions/python/syntaxes/MagicRegExp.tmLanguage.json",
+      "sha256": "1255604439ca2c27b6754c5a18ec0b489e6408d19c413eda1270d404c0b2a9b8",
+      "scope": "source.regexp.python"
+    },
+    {
+      "path": "extensions/json/syntaxes/JSON.tmLanguage.json",
+      "sha256": "e0f398297881c13909fa5d30e7e5e7632defabb4e8d60dfd5ba94d0bf09e8898",
+      "scope": "source.json"
+    },
+    {
+      "path": "extensions/json/syntaxes/JSONC.tmLanguage.json",
+      "sha256": "8d271fb168bef199f8568264b0c920e9af0c505006674bbcd6b7f8ee109cbda9",
+      "scope": "source.json.comments"
+    },
+    {
+      "path": "extensions/json/syntaxes/JSONL.tmLanguage.json",
+      "sha256": "97637ab48aef1b6c314a53ab074c84559cee4be71fb2d9994df78875ec65e70c",
+      "scope": "source.json.lines"
+    },
+    {
+      "path": "extensions/json/syntaxes/snippets.tmLanguage.json",
+      "sha256": "86702a6be211a3826f98d1ced5104395445f2f9b4cb114ce6ca13d9d408b2e29",
+      "scope": "source.json.comments.snippets"
+    },
+    {
+      "path": "syntaxes/CMake.tmLanguage.json",
+      "sha256": "97a1a711279fdabe3e863dc368fae17da4b6ee7f95ff601a5bbbab2b44f87140",
+      "scope": "source.cmake"
+    }
+  ],
+  "bundle_sha256": "476b09b5b3681a0b01b62e4287ff5b225714585aaa8fd79b33f5acd50c7da502",
+  "notice_source_sha256": "7304d2af99f430661904b9ea43459ac5ae682ead9e115613b85581d4f78902cc",
+  "notices_sha256": "5d21c13c1b2c3f170af260b6fa10abfc2b4d8c6e6912a08b9b87937c6713f4a5"
+}
