@@ -570,5 +570,9 @@
   "language_environment_entry": {
     "en": "Installed tool entry missing: {name}",
     "zh_cn": "安装后缺少工具入口：{name}"
+  },
+  "language_support_registry_busy": {
+    "en": "Language support is being changed in another window. Try again shortly.",
+    "zh_cn": "另一窗口正在修改语言支持，请稍后重试。"
   }
 }

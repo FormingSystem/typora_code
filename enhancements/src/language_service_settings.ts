@@ -4,10 +4,10 @@ import {get_workspace_app} from './workspace_bootstrap';
 export type language_service_profile={provider:'default'|'lsp'|'disabled';command?:string;args?:string[];environment?:Record<string,string>;initialization_options?:Record<string,unknown>;settings?:Record<string,unknown>};
 export type language_service_profiles=Record<string,language_service_profile>;
 const listeners=new Set<()=>void>();
-const providers=new Map<string,{languages:readonly string[];resolve:(root:string,language:string)=>language_service_profile|undefined}>();
-export function register_language_service_provider(id:string,languages:readonly string[],resolve:(root:string,language:string)=>language_service_profile|undefined){
+const providers=new Map<string,{languages:readonly string[];resolve:(root:string,language:string)=>language_service_profile|undefined;prepare?:()=>Promise<unknown>}>();
+export function register_language_service_provider(id:string,languages:readonly string[],resolve:(root:string,language:string)=>language_service_profile|undefined,prepare?:()=>Promise<unknown>){
  if(providers.has(id))throw Error('Language provider already registered: '+id);
- providers.set(id,{languages,resolve});notify_language_services();return()=>{providers.delete(id);notify_language_services();};
+ providers.set(id,{languages,resolve,prepare});notify_language_services();return()=>{providers.delete(id);notify_language_services();};
 }
 export function observe_language_services(callback:()=>void){listeners.add(callback);return()=>{listeners.delete(callback);};}
 export function notify_language_services(){for(const callback of listeners)callback();}
@@ -19,6 +19,20 @@ export function read_language_service_profile(root:string,language:string):langu
  if(explicit&&explicit.provider!=='default')return explicit;
  for(const provider of providers.values())if(provider.languages.includes(language)){const value=provider.resolve(root,language);if(value)return value;}
  return explicit||{provider:'default'};
+}
+/** A caller can stop waiting without cancelling the plugin-owned shared preparation. */
+export async function resolve_language_service_profile(root:string,language:string,signal:AbortSignal):Promise<language_service_profile>{
+ const check=()=>{if(signal.aborted)throw new DOMException('Language request cancelled','AbortError');};check();
+ const value=read_language_service_profile(root,language);if(value.provider!=='default')return value;
+ for(const provider of providers.values())if(provider.languages.includes(language)&&provider.prepare){
+  await new Promise<void>((resolve,reject)=>{
+   const abort=()=>{signal.removeEventListener('abort',abort);reject(new DOMException('Language request cancelled','AbortError'));};
+   signal.addEventListener('abort',abort,{once:true});
+   Promise.resolve().then(provider.prepare).then(()=>{signal.removeEventListener('abort',abort);resolve();},error=>{signal.removeEventListener('abort',abort);reject(error);});
+   if(signal.aborted)abort();
+  });check();return read_language_service_profile(root,language);
+ }
+ return value;
 }
 export function validate_language_service_profiles(value:unknown):language_service_profiles{
  if(!value||typeof value!=='object'||Array.isArray(value))throw Error(workspace_text("language_service_settings_the_language_configuration_must_be_a_json_object_mapping_fro"));

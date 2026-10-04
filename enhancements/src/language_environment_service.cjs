@@ -59,11 +59,15 @@ function create_language_environment_service({root,request,extract_zip,acquire_l
  fs.mkdirSync(root,{recursive:true});const state_file=path.join(root,'installed.json');
  const state=()=>{try{const value=read_json(state_file);if(value.schema!==1||!value.environments||Array.isArray(value.environments))throw Error(workspace_service_text('language_environment_state'));return value;}catch(error){if(error.code==='ENOENT')return {schema:1,environments:{}};throw error;}};
  const current=id=>{entry_for(id);return state().environments[id];};
- const with_lock=async action=>{const unlock=await acquire_lock();try{return await action();}finally{await unlock();}};
+ const with_lock=async(action,signal)=>{
+  let unlock;const deadline=Date.now()+600000;
+  while(!unlock){check(signal);try{unlock=await acquire_lock();}catch(error){if(error.code!=='EADDRINUSE'||Date.now()>=deadline)throw error;await new Promise(resolve=>setTimeout(resolve,100));}}
+  try{check(signal);return await action();}finally{await unlock();}
+ };
  const digest_file=async(file,algorithm)=>{const hash=crypto.createHash(algorithm);for await(const bytes of fs.createReadStream(file))hash.update(bytes);return hash.digest('hex');};
- const install=(id,{directory='',signal,on_progress=()=>{}}={})=>with_lock(async()=>{
+ const install=(id,{directory='',signal,on_progress=()=>{},reuse=false}={})=>with_lock(async()=>{
   const entry=entry_for(id);if(platform!=='win32'||arch!=='x64')throw Error(workspace_service_text('language_environment_platform'));
-  check(signal);const value=state();if(value.environments[id])throw Error(workspace_service_text('language_environment_exists'));
+  check(signal);const value=state();if(value.environments[id]){if(reuse)return value.environments[id];throw Error(workspace_service_text('language_environment_exists'));}
   const base=directory||path.join(root,'tools');if(!path.isAbsolute(base)||/[\r\n\0]/.test(base))throw Error(workspace_service_text('language_environment_absolute'));
   await no_links(base);await fs.promises.mkdir(base,{recursive:true});
   const destination=path.join(base,'typora_code_tools',id.replace('typora_code.language_',''),'env-'+crypto.randomBytes(8).toString('hex'));await no_links(destination);await fs.promises.mkdir(destination,{recursive:true});
@@ -106,7 +110,7 @@ function create_language_environment_service({root,request,extract_zip,acquire_l
    await verify_tree(destination);const record={id,version:entry.version,directory:destination,command,args,environment,tools,installed_at:new Date().toISOString()};
    await fs.promises.rm(downloads,{recursive:true});check(signal);value.environments[id]=record;await write_json(state_file,value);on_progress(workspace_service_text('language_environment_installed'));return record;
   }catch(error){try{await remove_owned(destination,id);}catch(cleanup_error){error.message+='\nCleanup required: '+destination+'\n'+cleanup_error.message;}throw error;}
- });
+ },signal);
  const uninstall=id=>with_lock(async()=>{entry_for(id);const value=state(),record=value.environments[id];if(!record)return;try{await remove_owned(record.directory,id);}catch(error){if(error.code!=='ENOENT'||fs.existsSync(record.directory))throw error;}delete value.environments[id];await write_json(state_file,value);});
  return {catalog:()=>catalog.plugins,current,install,uninstall};
 }

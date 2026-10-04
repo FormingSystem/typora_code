@@ -1,5 +1,4 @@
 import {load_workspace_service} from "./workspace_service_loader";
-import {create_language_environment_plugins} from './language_environment_plugins';
 import {workspace_text} from "./workspace_i18n";
 import {read_network_settings} from './workspace_network_settings';
 import {workspace_button,workspace_element} from './workspace_widgets';
@@ -38,10 +37,7 @@ export function bind_community_plugins(){
   const network=load_workspace_service(runtime.reqnode, path.join(asset_root,'assets/update/workspace_update_service.cjs'));
 
   const abort=new AbortController();let disposed=false;
-  const languages=create_language_environment_plugins(core,asset_root);
-  const builtin_root=path.join(asset_root,'assets/plugins/language_plugins');
   const service=api.create_community_service({
-    builtin_root:fs.existsSync(builtin_root)?builtin_root:undefined,before_uninstall:(id:string)=>languages.uninstall(id),
     root:path.join(asset_root,'community'),acquire_lock:()=>network.acquire_update_lock(path.join(asset_root,'community')),host_version:runtime._options.appVersion,
     request:(address:string,options:any)=>network.download(address,{...options,signal:abort.signal,network:read_network_settings()}),
     extract:(archive:string,destination:string)=>network.execute(network.powershell(),['-NoProfile','-NonInteractive','-ExecutionPolicy','Bypass','-File',path.join(asset_root,'assets/update/workspace_update_archive.ps1'),'-archive',archive,'-destination',destination,'-package_kind','plugin'],{timeout:60000}),
@@ -63,7 +59,7 @@ export function bind_community_plugins(){
   const style=acquire_workspace_style('typora-code-style:community_plugins',css);
   runtime[abi_key]=abi;
   let refresh_manager=()=>{};
-  const settings=create_community_plugin_settings(()=>service.list(),()=>refresh_manager(),mode=>{open_manager();manager?.select(mode);});
+  const settings=create_community_plugin_settings(()=>service.list(),()=>refresh_manager(),mode=>{core.app.extensions?.open('community',mode);});
   const create_manager=()=>{
     let alive=true,busy=false,mode=service.list().length?'installed':'catalog',catalog:any[]=[],catalog_loaded=false;
     const content=workspace_element('div','workspace-community-manager');
@@ -76,23 +72,21 @@ export function bind_community_plugins(){
     const load_catalog=()=>run(async()=>{catalog=await service.catalog();catalog_loaded=true;return workspace_text("community_plugins_loaded_community_plugins", {value_0: String(catalog.length)});});
     const select=(next:string)=>{mode=next;search.value='';message.textContent='';render();if(mode==='catalog'&&!catalog_loaded)void load_catalog();};
     const community=workspace_button(workspace_text("community_plugins_community_plugin_market"),()=>select('catalog'));
-    const language_market=workspace_button(workspace_text('language_plugin_market'),()=>select('languages'));
     const refresh=workspace_button(workspace_text("community_plugins_refresh_directory"),()=>void load_catalog());
     const picker=workspace_element('input');picker.type='file';picker.accept='.zip';picker.hidden=true;
     picker.onchange=()=>{const file=picker.files?.[0] as any;if(!file)return;const archive=file.path||runtime.reqnode('electron').webUtils?.getPathForFile(file);picker.value='';if(!archive){message.textContent=workspace_text("community_plugins_unable_to_obtain_the_selected_file_path");return;}void run(async()=>{const info=await service.install_archive(archive);mode='installed';search.value='';return workspace_text("community_plugins_installed_199eab99", {value_0: String(info.name), value_1: String(info.enabled?workspace_text("community_plugins_updates_for_enabled_plugins_will_take_effect_after_a_normal"):workspace_text("community_plugins_use_it_after_clicking_trust_and_enable_plugins_that_provide"))});});};
     const local=workspace_button(workspace_text("community_plugins_install_local_zip"),()=>picker.click());
-    toolbar.append(installed,community,language_market,refresh,local,picker);content.append(search,toolbar,message,list,explanation);
+    toolbar.append(workspace_button(workspace_text('language_support_back'),()=>core.app.extensions?.open('languages')),installed,community,refresh,local,picker);content.append(search,toolbar,message,list,explanation);
     const render=()=>{
-      if(!alive)return;for(const node of [installed,community,language_market,refresh,local])node.disabled=busy;
+      if(!alive)return;for(const node of [installed,community,refresh,local])node.disabled=busy;
       refresh.hidden=mode!=='catalog';content.setAttribute('aria-busy',String(busy));
       installed.setAttribute('aria-pressed',String(mode==='installed'));community.setAttribute('aria-pressed',String(mode==='catalog'));
-      language_market.setAttribute('aria-pressed',String(mode==='languages'));
       list.replaceChildren();let rows:any[]=[];
-      try{rows=mode==='installed'?service.list():mode==='languages'?service.builtin_catalog():catalog;}catch(error){message.textContent=String((error as Error).message);return;}
+      try{rows=mode==='installed'?service.list():catalog;}catch(error){message.textContent=String((error as Error).message);return;}
       const installed_rows=service.list(),needle=search.value.trim().toLocaleLowerCase();
       for(const info of rows.filter(row=>(row.name+' '+row.id+' '+(row.description||'')+' '+(row.author||'')).toLocaleLowerCase().includes(needle))){
         const row=workspace_element('section','workspace-community-row'),details=workspace_element('div');
-        details.append(workspace_element('strong','',info.name),workspace_element('p','workspace-community-description',info.id.startsWith('typora_code.language_')?workspace_text('language_plugin_description'):info.description||info.id));
+        details.append(workspace_element('strong','',info.name),workspace_element('p','workspace-community-description',info.description||info.id));
         const metadata=workspace_element('p','workspace-community-meta',`${info.author||workspace_text("community_plugins_author_not_provided")}${info.platforms?.length?' · '+info.platforms.map((platform:string)=>({win32:'Windows',darwin:'macOS',linux:'Linux'}[platform]||platform)).join(' / '):''}`);
         details.append(metadata);
         if(/^[\w.-]+\/[\w.-]+$/.test(info.repo||'')){
@@ -121,40 +115,12 @@ export function bind_community_plugins(){
     const unsubscribe=service.subscribe(()=>{render();settings.refresh();});search.oninput=render;refresh_manager=()=>{render();settings.refresh();};render();if(mode==='catalog')void load_catalog();
     return {content,select,focus:()=>search.focus(),dispose(){alive=false;unsubscribe();interaction.remove();content.remove();refresh_manager=()=>{};}};
   };
-  let manager:ReturnType<typeof create_manager>|undefined;
-  class community_sidebar extends core.SidebarPanel {
-    containerEl=workspace_element('section','workspace-community-sidebar');
-    visible=false;
-    native_observer=new MutationObserver(()=>this.clear_native_tabs());
-    constructor(){
-      super();this.addRibbonButton({id:'typora_code:community_plugins',title:workspace_text("community_plugins_extension_ctrl_shift_x"),icon:git_icon('extensions'),group:'top'});
-      const title=workspace_element('div','workspace-community-title',workspace_text("community_plugins_extension"));title.setAttribute('role','heading');title.setAttribute('aria-level','2');this.containerEl.append(title);
-    }
-    clear_native_tabs(){
-      const native=document.querySelector('#typora-sidebar');
-      const classes=['active-tab-files','active-tab-outline','ty-show-search'];
-      if(this.visible&&native&&classes.some(name=>native.classList.contains(name)))native.classList.remove(...classes);
-    }
-    onshow(){
-      this.visible=true;this.clear_native_tabs();
-      const native=document.querySelector('#typora-sidebar');if(native)this.native_observer.observe(native,{attributes:true,attributeFilter:['class']});
-      if(!manager){manager=create_manager();this.containerEl.append(manager.content);}
-    }
-    onhide(){this.visible=false;this.native_observer.disconnect();}
-  }
-  const sidebar=core.app.workspace.sidebar,panel=new community_sidebar();
-  const remove_panel=sidebar.addPanel(panel);
-  const open_manager=()=>{
-    if(disposed)return;
-    if(sidebar.activePanel===panel)sidebar.show();else sidebar.switch(community_sidebar);
-    manager?.focus();
-  };
-  const binding={service,open_manager,open_settings:()=>settings.open(),register_setting_tab:settings.register,mount_settings:settings.mount};
+  const open_manager=()=>core.app.extensions?.open('community');
+  const binding={service,create_manager,open_manager,open_settings:()=>settings.open(),register_setting_tab:settings.register,mount_settings:settings.mount};
   core.app.community_plugins=binding;
-  core.app.language_environments=languages;
   const unregister=core.app.commands.register({id:'typora_code:community_plugins',title:workspace_text("community_plugins_manage_community_plugins"),scope:'global',callback:open_manager});
   const unregister_settings=core.app.commands.register({id:'typora_code:community_plugin_settings',title:workspace_text("community_plugins_plugin_settings"),scope:'global',callback:binding.open_settings});
   // Do not wait for third-party code, which does not affect the basic workbench ready; load failures are reported on the management page one by one.
-  let start_frame=requestAnimationFrame(()=>{start_frame=requestAnimationFrame(()=>{if(!disposed)void service.start().catch((error:Error)=>{console.error(error);if(!disposed)new core.Notice(workspace_text("community_plugins_community_plugin_load_failed")+error.message);});});});
-  return {dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(start_frame);abort.abort();unregister();unregister_settings();remove_panel();panel.onhide();manager?.dispose();settings.dispose();void service.dispose().then(()=>languages.dispose()).catch(console.error);style.remove();if(core.app.language_environments===languages)delete core.app.language_environments;if(core.app.community_plugins===binding)delete core.app.community_plugins;if(runtime[abi_key]===abi){if(previous_abi)runtime[abi_key]=previous_abi;else delete runtime[abi_key];}}};
+  let start_frame=requestAnimationFrame(()=>{start_frame=requestAnimationFrame(()=>{if(!disposed)void Promise.resolve(core.app.language_support?.ready).then(()=>service.start()).catch((error:Error)=>{console.error(error);if(!disposed)new core.Notice(workspace_text("community_plugins_community_plugin_load_failed")+error.message);});});});
+  return {dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(start_frame);abort.abort();unregister();unregister_settings();settings.dispose();void service.dispose().catch(console.error);style.remove();if(core.app.community_plugins===binding)delete core.app.community_plugins;if(runtime[abi_key]===abi){if(previous_abi)runtime[abi_key]=previous_abi;else delete runtime[abi_key];}}};
 }

@@ -1,0 +1,122 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "requirements": [
+    "R085.1",
+    "R085.2"
+  ],
+  "release": "2026.10.04.2",
+  "sequence": 2026100402,
+  "baseline": "9c49c049fd7960eeba4b652bad5778c30bbb0567",
+  "design": [
+    "docs/language_environment_plugins.md"
+  ],
+  "asset_manifest_sha256": "98dc4572b5593baa0d3d7416d15bce1bdbadf6639e43d00f6a1d698095463116",
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case_id": "acd50632782e406faa2eb6610586553a"
+    },
+    "ui": {
+      "status": "PASS",
+      "suites": {
+        "test_language_support_ui.cjs": "e4988137460e40fe8a557e08bd74ab41",
+        "test_community_plugins_ui.cjs": "56aea1e573bd47c6a22ae8b51133359a",
+        "test_workspace_preferences.cjs": "dd442ea7749244eeaf5d43a2687a209d",
+        "test_workspace_titlebar_entries.cjs": "bf0c09a1af2e4ec892ede1f927524b40",
+        "test_workspace_file_icons.cjs": "9f9bf2bbaacb497189a58a38a1211584",
+        "test_scm_file_icons.cjs": "4a08c882232c4732945cdb9f733b91bc",
+        "test_workspace_shortcuts.cjs": "398af4323b7643b2a5fda7c75fb81d2c"
+      },
+      "layouts": [
+        "220px dark",
+        "220px light",
+        "380px dark",
+        "380px light"
+      ],
+      "scope": "72px rows, 28px search, official Seti icons at 24/36px, selection/focus/identity through 100 updates, separate settings, community routing and disposal."
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "16a7d1ec0c344a9195223bf85f0f0bed",
+      "checks": 22,
+      "host": "Original Typora 1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "scope": [
+        "nine independent language entries",
+        "language view does not mount community manager",
+        "install automatically downloads CMake: 正在解压 server",
+        "pending F12 reaches variable definition after preparation",
+        "CMake include opens exact helper file",
+        "CMake semantic initialization matches upstream client",
+        "settings do not use community SettingTab",
+        "enabled action: 配置外部工具及语言参数…",
+        "enabled action: 将已安装工具链填入配置草稿",
+        "managed command in optional draft",
+        "cancel advanced draft",
+        "settings keyboard focus: night.css",
+        "settings viewport bounds: night.css",
+        "settings keyboard focus: github.css",
+        "settings viewport bounds: github.css",
+        "enabled action: 清除受管分析环境",
+        "clear owns the language lifecycle",
+        "retry cannot race with clear",
+        "clear opts out and removes only owned files",
+        "re-enable respects cleared automatic opt-out",
+        "independent uninstall removes registration",
+        "language was never registered in community"
+      ]
+    },
+    "migration_and_preparation": {
+      "status": "PASS",
+      "scope": "Exact legacy IDs and preferences, preserved third-party entries, 20 migration repetitions, 100 serialized writes, registration updates while download lock is held; 100 readiness waiters, caller cancellation and explicit profile precedence."
+    },
+    "install_pair": {
+      "status": "PASS",
+      "case_id": "defa6344033d47ebb9728fb213ea9218",
+      "runner_case_id": "31b0d85721e441eab86cffd718dc1052",
+      "flow": "Install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; documents, preferences and original backup preserved; payload cleaned."
+    },
+    "uninstall_regressions": {
+      "status": "PASS",
+      "case_id": "abb1eb934f144f9981ce03c72f65d1e9",
+      "runner_case_id": "39e6ac026efb46a1a84c755a1426128b",
+      "checks": 65,
+      "scope": "Failure, cancellation, rollback and retained user data; payload cleaned."
+    }
+  },
+  "corrected_failures": [
+    "The initial independent registry omitted the shared locale setter required by the service loader, blocking native startup. The loader contract was restored and the final native fixture passed.",
+    "Moving an installed list row between groups lost keyboard focus. The view now preserves node identity, selection and focus, including 100 progress updates.",
+    "Returning from community settings lost the selected catalog section. The neutral Extensions shell now forwards that section to its owner.",
+    "Clear could race with retry. Removal now owns a per-language busy state and rejects conflicting writes; native regression passed.",
+    "The test wrapper inherited PowerShell Core module paths into Windows PowerShell 5.1, hiding Get-FileHash. Final tests used a process-local native PSModulePath; no machine setting was changed."
+  ],
+  "local_install": {
+    "status": "PASS",
+    "check": "OK",
+    "uninstall_preflight": "Read-only detach; actual user environment was not uninstalled.",
+    "verification": {
+      "protected_files": 10,
+      "registry_records": 4,
+      "matched_assets": {
+        "workbench": 64,
+        "terminal": 24
+      },
+      "unrelated_path_entries_preserved": true
+    },
+    "running_windows": "Not closed or restarted. Save documents and restart all Typora windows to load; legacy migration and automatic preparation occur at that startup."
+  },
+  "limits": [
+    "Managed downloads currently target Windows x64. Other platforms and complete SDK/build/debug environments are not validated here.",
+    "Current native validation uses a real CMake server and synthetic DOM actions/F12; arbitrary dynamic Zephyr variables depend on server/project context, and full VS Code extension equivalence is not claimed.",
+    "All nine clean-PATH recipe checks belong to release 2026.10.04.1; this turn reran real CMake automatic setup, not every external download. See language_setup_20261004.json.",
+    "UI fixtures use the production view with a controlled service; native evidence separately verifies actual download and navigation.",
+    "Only seven related UI suites were run, not the full UI library. Historical black-screen, clipping, dual-native-editor and fenced-code native-return issues remain open."
+  ],
+  "delivery": {
+    "commit": "Recorded in the local requirement ledger after commit",
+    "pushed": false
+  }
+}

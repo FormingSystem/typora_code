@@ -22,7 +22,7 @@ This is an independently maintained community project. It is not an official Typ
 | Settings and extensions | Searchable settings, native preferences, and supported community plugins with their original settings owners |
 | Updates | ZIP updates with installation checks and backups; install immediately, then restart manually |
 
-Markdown splits share one active native Typora editor; the other splits provide previews. Source tabs can be edited and saved independently. C/C++ analysis requires a local clangd installation. Third-party plugins, external commands, and language servers retain their own capabilities and limitations.
+Markdown splits share one active native Typora editor; the other splits provide previews. Source tabs can be edited and saved independently. Install first-party language support in Extensions to prepare private tools automatically, or configure an existing language server. Third-party plugins, external commands, and language servers retain their own capabilities and limitations.
 
 ## Install on Windows
 

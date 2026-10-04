@@ -89,7 +89,7 @@ export function install_workspace_shortcuts(
     if (!event.shiftKey && workspace_alt_modifier(event) && event.code === "KeyB") { run(event,()=>app.workspace.sidebar.toggle()); return; }
 
     if (primary_modifier(event)) {
-      if(event.code==="KeyX"&&event.shiftKey){run(event,()=>app.commands.run("typora_code:community_plugins"));return;}
+      if(event.code==="KeyX"&&event.shiftKey){run(event,()=>app.commands.run("typora_code:extensions"));return;}
       if(event.code==="KeyR"&&!event.shiftKey){run(event,()=>app.commands.run("linux_note:open_recent"));return;}
       if(event.code === "KeyO" && !event.shiftKey && !(chord_started>0 && Date.now()-chord_started<2000)) { run(event,()=>app.commands.run("linux_note:open_file")); return; }
       if(event.code === "KeyS"&&event.shiftKey){run(event,()=>app.commands.run("linux_note:save_as"));return;}

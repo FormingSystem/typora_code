@@ -9670,12 +9670,14 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R085"
+        "R085",
+        "R085.1",
+        "R085.2"
       ],
       "design": "docs/language_environment_plugins.md",
       "implementation": [
         "enhancements/src/language_environment_service.cjs",
-        "enhancements/src/language_environment_plugins.ts",
+        "enhancements/src/language_support_service.ts",
         "enhancements/src/language_file_watchers.ts"
       ],
       "related_modules": [
@@ -9737,12 +9739,14 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R085"
+        "R085",
+        "R085.1",
+        "R085.2"
       ],
       "design": "docs/language_environment_plugins.md",
       "implementation": [
         "enhancements/src/language_environment_service.cjs",
-        "enhancements/src/language_environment_plugins.ts",
+        "enhancements/src/language_support_service.ts",
         "enhancements/src/language_file_watchers.ts"
       ],
       "related_modules": [
@@ -9798,6 +9802,112 @@
         "Exact resource or workspace opens through the original executable."
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-language-auto-prepare",
+      "domain": "workspace",
+      "level": "unit",
+      "purpose": "implementation",
+      "requirements": [
+        "R085",
+        "R085.1",
+        "R085.2"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/language_service_settings.ts",
+        "enhancements/src/language_support_registry.cjs"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_language_auto_prepare.mjs",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Installed development dependencies; real language mode requires HTTPS access"
+      ],
+      "steps": [
+        "Run automatic readiness / independent registry cases."
+      ],
+      "expected": [
+        "Preserve explicit configuration, cancellation, migration ownership and retry invariants."
+      ],
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "TC-language-support-registry",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R085",
+        "R085.1",
+        "R085.2"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/language_service_settings.ts",
+        "enhancements/src/language_support_registry.cjs"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_language_support_registry.mjs",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Installed development dependencies; real language mode requires HTTPS access"
+      ],
+      "steps": [
+        "Run automatic readiness / independent registry cases."
+      ],
+      "expected": [
+        "Preserve explicit configuration, cancellation, migration ownership and retry invariants."
+      ],
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "TC-language-support-ui",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R085",
+        "R085.1",
+        "R085.2"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/language_support_view.ts",
+        "enhancements/src/language_support.css",
+        "enhancements/src/workspace_extensions.ts"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_language_support_ui.cjs",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Installed development dependencies; real language mode requires HTTPS access"
+      ],
+      "steps": [
+        "Exercise independent list, install state, 100 progress refreshes, keyboard, filtering and narrow/wide themed geometry."
+      ],
+      "expected": [
+        "Stable selection, focus and row identity with separate language settings and community navigation."
+      ],
+      "timeout_ms": 120000
     }
   ]
 }

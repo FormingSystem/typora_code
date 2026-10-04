@@ -6,7 +6,7 @@ app.whenReady().then(async()=>{
  win.webContents.on('console-message',event=>console.log('renderer:',event.message));
  await win.loadURL('data:text/html,<html><head></head><body><div id="typora-sidebar"><div id="sidebar-content" style="height:calc(100vh - 40px);width:260px"></div></div><button id="outside">outside</button></body></html>');
  const ev=async s=>{try{return await win.webContents.executeJavaScript(s)}catch(error){console.error('Renderer expression:',s);throw error}},check=async(label,s)=>{assert(await ev(s),label);checks.push(label);};
- const bundle=await build({plugins:require('./editor_bundle.cjs').editor_plugins(),entryPoints:[path.join(__dirname,'../src/community_plugins.ts')],bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});await ev(bundle.outputFiles[0].text);
+ const bundle=await build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:'export * from "./src/community_plugins";export * from "./src/workspace_extensions";',resolveDir:path.resolve(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});await ev(bundle.outputFiles[0].text);
  await ev(`
  const css=document.createElement('style');css.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../dist/workspace.css'),'utf8'))};document.head.append(css);
  window._options={userDataPath:${JSON.stringify(base)},appVersion:'1.14.10'};window.records=[{id:'example.plugin',name:'示例插件',description:'完整描述',version:'1.0.0',repo:'example/plugin',enabled:false,running:false}];window.listeners=new Set();window.calls=[];window.disposed_count=0;
@@ -18,7 +18,7 @@ app.whenReady().then(async()=>{
  window.preflight_failure=false;try{qa.bind_community_plugins()}catch{preflight_failure=true;}window.reqnode=saved_require;void 0;
  `);
  await check('服务初始化失败不留下ABI、命令或样式','preflight_failure&&!window[Symbol.for("typora-plugin-core@v2")]&&!Object.keys(commands).length&&!document.getElementById("typora-code-style:community_plugins")');
- await ev(`window.binding=qa.bind_community_plugins();commands['typora_code:community_plugins']();void 0;
+ await ev(`window.binding=qa.bind_community_plugins();window.extensions=qa.bind_workspace_extensions(window[Symbol.for('typora-code:workspace')]);commands['typora_code:community_plugins']();void 0;
  `);await pause(100);
  await check('社区配置同引用对象触发保存且默认对象跨实例独立',`(()=>{class Base{setDefault(value){this.data=value}get(key){return this.data[key]}set(key,value){if(this.get(key)!==value){this.data[key]=value;this.changes=(this.changes||0)+1}}}const Settings=qa.community_settings_class(Base),a=new Settings(),b=new Settings(),defaults={nested:{value:1}};a.setDefault(defaults);b.setDefault(defaults);const changed=a.get('nested');changed.value=2;a.set('nested',changed);return a.changes===1&&b.get('nested').value===1&&defaults.nested.value===1;})()`);
  const click=async text=>{await ev(`[...document.querySelectorAll('.workspace-community-manager button')].find(n=>n.textContent===${JSON.stringify(text)}).click();void 0`);await pause(40);};
@@ -46,15 +46,15 @@ app.whenReady().then(async()=>{
  await ev(`commands['typora_code:community_plugin_settings']();void 0`);await check('无可配置插件时说明状态','document.querySelector(".workspace-community-setting-list").textContent.includes("尚未启用" )');
  win.webContents.sendInputEvent({type:'keyDown',keyCode:'Escape'});win.webContents.sendInputEvent({type:'keyUp',keyCode:'Escape'});await pause(60);
  await check('真实Escape只关闭插件设置并保留侧栏','!document.querySelector(".workspace-community-settings")&&!!document.querySelector(".workspace-community-manager")');
- await ev(`commands['typora_code:community_plugins']();window.finish_catalog=undefined;fake.catalog=()=>new Promise(resolve=>finish_catalog=resolve);void 0`);await click('社区插件市场');await click('刷新目录');await check('异步期间防重复动作','[...document.querySelectorAll(".workspace-community-toolbar button")].every(n=>n.disabled)');
- await ev(`binding.dispose();finish_catalog([]);void 0`);await pause(60);await check('销毁后迟到结果不重开窗口且ABI清理','!document.querySelector(".workspace-community-manager")&&disposed_count===1&&!window[Symbol.for("typora-plugin-core@v2")]&&Object.keys(commands).length===0&&listeners.size===0');
- await ev(`records=[];fake.catalog=async()=>[{id:'example.catalog',name:'真实目录端口',description:'选择安装',author:'作者检索词',repo:'example/catalog',platforms:['win32']},{id:'example.mac',name:'另一系统',description:'不可装',repo:'example/mac',platforms:['darwin']}];window.second=qa.bind_community_plugins();commands['typora_code:community_plugins']();void 0`);await pause(60);
+ await ev(`commands['typora_code:community_plugins']();window.finish_catalog=undefined;fake.catalog=()=>new Promise(resolve=>finish_catalog=resolve);void 0`);await click('社区插件市场');await click('刷新目录');await check('异步期间防重复动作','[...document.querySelectorAll(".workspace-community-toolbar button")].filter(n=>n.textContent!=="语言支持").every(n=>n.disabled)');
+ await ev(`extensions.dispose();binding.dispose();finish_catalog([]);void 0`);await pause(60);await check('销毁后迟到结果不重开窗口且ABI清理','!document.querySelector(".workspace-community-manager")&&disposed_count===1&&!window[Symbol.for("typora-plugin-core@v2")]&&Object.keys(commands).length===0&&listeners.size===0');
+ await ev(`records=[];fake.catalog=async()=>[{id:'example.catalog',name:'真实目录端口',description:'选择安装',author:'作者检索词',repo:'example/catalog',platforms:['win32']},{id:'example.mac',name:'另一系统',description:'不可装',repo:'example/mac',platforms:['darwin']}];window.second=qa.bind_community_plugins();window.second_extensions=qa.bind_workspace_extensions(window[Symbol.for('typora-code:workspace')]);commands['typora_code:community_plugins']();void 0`);await pause(60);
  await check('空安装首次自动加载社区市场而非空白已安装',`document.querySelector('.workspace-community-toolbar button[aria-pressed=true]').textContent==='社区插件市场'&&document.querySelectorAll('.workspace-community-row').length===2`);
  await check('不支持当前系统的包禁用安装并说明原因',`[...document.querySelectorAll('.workspace-community-row')].find(n=>n.textContent.includes('另一系统')).querySelector('button').disabled`);
  await ev(`document.querySelector('input[type=search]').value='作者检索词';document.querySelector('input[type=search]').dispatchEvent(new Event('input'));void 0`);
  await check('作者筛选及真实仓库说明可见',`document.querySelectorAll('.workspace-community-row').length===1&&document.querySelector('.workspace-community-source').href==='https://github.com/example/catalog'`);
  await ev(`commands['typora_code:community_plugin_settings']();[...document.querySelectorAll('.workspace-community-settings button')].find(n=>n.textContent==='浏览社区插件市场').click();void 0`);
  await check('空设置可以直接返回社区市场选择插件',`!document.querySelector('.workspace-community-settings')&&document.querySelectorAll('.workspace-community-row').length===2`);
- await ev(`second.dispose();void 0`);
+ await ev(`second_extensions.dispose();second.dispose();void 0`);
  console.log(JSON.stringify({status:'PASS',checks,evidence:base,scope:'真实Chromium窗口/键盘、共享对话框与服务端口替身'}));win.destroy();app.exit(0);
 }).catch(error=>{console.error(error);win?.destroy();app.exit(1)});

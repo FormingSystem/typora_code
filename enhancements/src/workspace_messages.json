@@ -1,27 +1,96 @@
 {
-  "image_layout_section": {"zh_cn":"图片", "en":"Images"},
-  "image_layout_alignment": {"zh_cn":"图片对齐", "en":"Image alignment"},
-  "image_layout_menu": {"zh_cn":"图片排版…", "en":"Image layout…"},
-  "image_layout_description": {"zh_cn":"未单独指定对齐的图片使用此默认值；单图对齐可从图片悬停或右键菜单设置并随文档保存。", "en":"Default alignment for images without an individual override. Set individual alignment from the hover or context menu and save it with the document."},
-  "image_layout_global_short": {"zh_cn":"全局", "en":"All"},
-  "image_layout_single_short": {"zh_cn":"此图", "en":"This"},
-  "image_layout_single": {"zh_cn":"此图片对齐", "en":"This image alignment"},
-  "image_layout_global": {"zh_cn":"全局图片对齐", "en":"Global image alignment"},
-  "image_layout_follow": {"zh_cn":"跟随全局", "en":"Follow global default"},
-  "image_layout_stale": {"zh_cn":"图片或文档已变化，请重新选择图片。", "en":"The image or document changed. Select the image again."},
-  "image_layout_decrease": {"zh_cn":"缩小5%", "en":"Decrease by 5%"},
-  "image_layout_increase": {"zh_cn":"放大5%", "en":"Increase by 5%"},
-  "image_layout_scale": {"zh_cn":"全局图片缩放（%）", "en":"Global image scale (%)"},
-  "image_layout_scale_description": {"zh_cn":"输入20%～600%；100%以原图与编辑区可用宽度中较小值为基准，放大仍不超过编辑区。加减每次5%。原生单图缩放优先。", "en":"Enter 20%–600%. 100% uses the smaller of natural and available editor width; enlargement remains capped at editor width. Buttons step by 5%. Native per-image zoom takes precedence."},
-  "image_layout_natural": {"zh_cn":"原始尺寸（全局100%）", "en":"Natural size (global 100%)"},
-  "image_layout_fit": {"zh_cn":"按编辑框宽度缩放（全局）", "en":"Fit editor width (global)"},
-  "image_layout_fit_short": {"zh_cn":"适应宽度", "en":"Fit width"},
-  "image_layout_size_mode": {"zh_cn":"全局图片尺寸模式", "en":"Global image sizing"},
-  "image_layout_left": {"zh_cn":"靠左", "en":"Left"},
-  "image_layout_center": {"zh_cn":"居中", "en":"Center"},
-  "image_layout_right": {"zh_cn":"靠右", "en":"Right"},
-  "image_layout_invalid": {"zh_cn":"无效的图片对齐设置", "en":"Invalid image alignment setting"},
-  "search_return_preview_anchor": {"zh_cn": "返回点击的搜索位置", "en": "Return to selected search match"},
+  "image_layout_section": {
+    "zh_cn": "图片",
+    "en": "Images"
+  },
+  "image_layout_alignment": {
+    "zh_cn": "图片对齐",
+    "en": "Image alignment"
+  },
+  "image_layout_menu": {
+    "zh_cn": "图片排版…",
+    "en": "Image layout…"
+  },
+  "image_layout_description": {
+    "zh_cn": "未单独指定对齐的图片使用此默认值；单图对齐可从图片悬停或右键菜单设置并随文档保存。",
+    "en": "Default alignment for images without an individual override. Set individual alignment from the hover or context menu and save it with the document."
+  },
+  "image_layout_global_short": {
+    "zh_cn": "全局",
+    "en": "All"
+  },
+  "image_layout_single_short": {
+    "zh_cn": "此图",
+    "en": "This"
+  },
+  "image_layout_single": {
+    "zh_cn": "此图片对齐",
+    "en": "This image alignment"
+  },
+  "image_layout_global": {
+    "zh_cn": "全局图片对齐",
+    "en": "Global image alignment"
+  },
+  "image_layout_follow": {
+    "zh_cn": "跟随全局",
+    "en": "Follow global default"
+  },
+  "image_layout_stale": {
+    "zh_cn": "图片或文档已变化，请重新选择图片。",
+    "en": "The image or document changed. Select the image again."
+  },
+  "image_layout_decrease": {
+    "zh_cn": "缩小5%",
+    "en": "Decrease by 5%"
+  },
+  "image_layout_increase": {
+    "zh_cn": "放大5%",
+    "en": "Increase by 5%"
+  },
+  "image_layout_scale": {
+    "zh_cn": "全局图片缩放（%）",
+    "en": "Global image scale (%)"
+  },
+  "image_layout_scale_description": {
+    "zh_cn": "输入20%～600%；100%以原图与编辑区可用宽度中较小值为基准，放大仍不超过编辑区。加减每次5%。原生单图缩放优先。",
+    "en": "Enter 20%–600%. 100% uses the smaller of natural and available editor width; enlargement remains capped at editor width. Buttons step by 5%. Native per-image zoom takes precedence."
+  },
+  "image_layout_natural": {
+    "zh_cn": "原始尺寸（全局100%）",
+    "en": "Natural size (global 100%)"
+  },
+  "image_layout_fit": {
+    "zh_cn": "按编辑框宽度缩放（全局）",
+    "en": "Fit editor width (global)"
+  },
+  "image_layout_fit_short": {
+    "zh_cn": "适应宽度",
+    "en": "Fit width"
+  },
+  "image_layout_size_mode": {
+    "zh_cn": "全局图片尺寸模式",
+    "en": "Global image sizing"
+  },
+  "image_layout_left": {
+    "zh_cn": "靠左",
+    "en": "Left"
+  },
+  "image_layout_center": {
+    "zh_cn": "居中",
+    "en": "Center"
+  },
+  "image_layout_right": {
+    "zh_cn": "靠右",
+    "en": "Right"
+  },
+  "image_layout_invalid": {
+    "zh_cn": "无效的图片对齐设置",
+    "en": "Invalid image alignment setting"
+  },
+  "search_return_preview_anchor": {
+    "zh_cn": "返回点击的搜索位置",
+    "en": "Return to selected search match"
+  },
   "release_notes_unavailable": {
     "en": "This release does not provide English notes. See its original release information for details.",
     "zh_cn": "此版本未提供英文公告，详情请查看原始发行说明。"
@@ -887,8 +956,8 @@
     "zh_cn": "分析方式"
   },
   "language_service_settings_view_default_parser": {
-    "en": "Default parser",
-    "zh_cn": "默认解析器"
+    "en": "Automatic (enabled language plugin / built-in parser)",
+    "zh_cn": "自动配置（已启用语言插件 / 内置解析器）"
   },
   "language_service_settings_view_external_language_service_lsp": {
     "en": "External language service (LSP)",
@@ -7695,8 +7764,8 @@
     "en": "Language environment plugins"
   },
   "language_plugin_description": {
-    "zh_cn": "插件可下载独立工具链，无需预装系统工具。安装环境后可选择是否使用；外部配置与用户文件不随清除删除。",
-    "en": "Download a private toolchain without system prerequisites. Choose whether to use it after installation. External tools and user files are preserved."
+    "en": "Enabling this plugin automatically prepares its private analysis tools. Choose a location or external tools in settings; clearing only removes owned files.",
+    "zh_cn": "启用后自动准备独立分析工具，无需预装或手填路径。可选择安装位置或外部工具；清除只删除插件自有文件。"
   },
   "language_plugin_directory": {
     "zh_cn": "工具链安装目录",
@@ -7761,5 +7830,85 @@
   "language_plugin_use_managed_command": {
     "en": "Copy installed toolchain into this draft",
     "zh_cn": "将已安装工具链填入配置草稿"
+  },
+  "language_plugin_preparing": {
+    "en": "Preparing {name} automatically. Analysis and navigation will resume when ready; progress and cancellation are in plugin settings.",
+    "zh_cn": "正在自动准备 {name}，完成后接通解析和跳转。可在插件设置查看进度或取消。"
+  },
+  "language_plugin_failed": {
+    "en": "{name} setup failed: {error}. Retry in plugin settings.",
+    "zh_cn": "{name} 自动准备失败：{error}。可在插件设置重试。"
+  },
+  "language_support_search": {
+    "en": "Search language support",
+    "zh_cn": "搜索语言支持"
+  },
+  "language_support_installed": {
+    "en": "Installed",
+    "zh_cn": "已安装"
+  },
+  "language_support_available": {
+    "en": "Available",
+    "zh_cn": "可安装"
+  },
+  "language_support_community": {
+    "en": "Community plugins…",
+    "zh_cn": "社区插件…"
+  },
+  "language_support_back": {
+    "en": "Language support",
+    "zh_cn": "语言支持"
+  },
+  "language_support_summary": {
+    "en": "Analysis and navigation · {name}",
+    "zh_cn": "代码分析与跳转 · {name}"
+  },
+  "language_support_manage": {
+    "en": "Manage {name}",
+    "zh_cn": "管理 {name}"
+  },
+  "language_support_enable": {
+    "en": "Enable",
+    "zh_cn": "启用"
+  },
+  "language_support_removing": {
+    "zh_cn": "正在清除语言环境，请稍候…",
+    "en": "Removing the language environment. Please wait…"
+  },
+  "language_support_retry": {
+    "en": "Prepare / retry",
+    "zh_cn": "自动准备 / 重试"
+  },
+  "language_support_preparing": {
+    "en": "Preparing…",
+    "zh_cn": "正在准备…"
+  },
+  "language_support_failed": {
+    "en": "Setup failed",
+    "zh_cn": "准备失败"
+  },
+  "language_support_ready": {
+    "en": "Ready",
+    "zh_cn": "已就绪"
+  },
+  "language_support_clear_before_move": {
+    "en": "Clear the managed environment before changing its location.",
+    "zh_cn": "更换位置前请先清除受管环境。"
+  },
+  "language_support_default_directory": {
+    "en": "Default private tools directory",
+    "zh_cn": "默认私有工具目录"
+  },
+  "language_support_save_directory": {
+    "en": "Save location",
+    "zh_cn": "保存位置"
+  },
+  "language_support_automatic": {
+    "en": "Prepare and use private tools automatically",
+    "zh_cn": "自动准备并使用独立工具"
+  },
+  "language_support_settings_help": {
+    "en": "TyporaCode language support. Missing tools are prepared automatically; external paths and arguments remain optional.",
+    "zh_cn": "TyporaCode 自有语言支持。缺少工具时自动准备，也可选用外部路径和参数。"
   }
 }

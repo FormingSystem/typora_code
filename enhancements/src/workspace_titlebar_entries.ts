@@ -168,7 +168,7 @@ export function create_workspace_titlebar_definitions(
     {label:workspace_text("breadcrumbs_breadcrumbs_settings"),action:()=>files.core.app.commands.run("linux_note:breadcrumbs_settings")},
     {label: workspace_text("titlebar_entries_outline"), checked:sidebar.sidebar_visible&&sidebar.active_id==="core.outline", action: () => toggle_sidebar_view("core.outline","linux_note:outline")},
     {label: workspace_text("titlebar_entries_file_tree"), checked:sidebar.sidebar_visible&&sidebar.active_id==="core.file-explorer", action: () => toggle_sidebar_view("core.file-explorer","linux_note:file_explorer")},
-    {label:workspace_text("community_plugins_extension"),shortcut:"Ctrl+Shift+X",checked:sidebar.sidebar_visible&&sidebar.active_id==="typora_code:community_plugins",action:()=>toggle_sidebar_view("typora_code:community_plugins","typora_code:community_plugins")},
+    {label:workspace_text("community_plugins_extension"),shortcut:"Ctrl+Shift+X",checked:sidebar.sidebar_visible&&sidebar.active_id==="typora_code:extensions",action:()=>toggle_sidebar_view("typora_code:extensions","typora_code:extensions")},
     {...command(workspace_text("titlebar_entries_status_bar"), "toggleStatusBar"),checked:document.body.classList.contains("show-footer")},
     {...native_command(workspace_text("titlebar_entries_toolbar"), "toggleToolbar",undefined,false),checked:Boolean(native_active()&&toolbar?.getClientRects().length&&getComputedStyle(toolbar).display!=="none")},
     {label:workspace_text("terminal_panel_terminal"),shortcut:"Ctrl+`",checked:Boolean(terminal?.panel_visible),disabled:!terminal,action:()=>files.core.app.commands.run("linux_note:terminal_toggle")},separator(),

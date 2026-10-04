@@ -1,0 +1,21 @@
+/* VS Code 68070681 extension list geometry; interaction and selection colors remain shared. */
+.language-support{display:flex;flex-direction:column;flex:1;min-height:0;min-width:0;font:inherit;color:var(--linux-note-shell-foreground,inherit);container-type:inline-size}
+.language-support-search{box-sizing:border-box;flex:none;height:41px;padding:5px 12px 6px 20px}
+.language-support-search input{box-sizing:border-box;width:100%;min-width:0;height:28px;padding:4px;border:1px solid var(--vscode-input-border,transparent);background:var(--vscode-input-background,var(--bg-color));color:inherit;font:inherit;line-height:18px}
+.language-support-list{flex:1;min-height:0;overflow:auto}
+.language-support-group{display:flex;align-items:center;gap:6px;width:100%;height:22px;padding:0 12px 0 6px;border:0;background:transparent;color:inherit;font:inherit;text-align:left}
+.language-support-group svg{width:16px;height:16px;flex:none}.language-support-group[aria-expanded=false] svg{transform:rotate(-90deg)}
+.language-support-count{margin-left:auto;padding:0 5px;border-radius:11px;font-size:11px;line-height:18px;background:var(--vscode-badge-background,#007acc);color:var(--vscode-badge-foreground,#fff)}
+.language-support-row{box-sizing:border-box;display:flex;align-items:center;height:72px;min-width:0;padding:0 10px 0 16px;gap:16px;--workspace-interaction-radius:0}
+.language-support-row>.workspace-file-theme-icon{--workspace-file-icon-size:36px;--workspace-file-icon-font-size:36px;--workspace-file-icon-line-height:36px;height:36px}
+.language-support-details{display:flex;flex-direction:column;flex:1;min-width:0}.language-support-name,.language-support-description{display:block;height:20px;line-height:20px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.language-support-name{font-size:inherit;font-weight:600}.language-support-description,.language-support-publisher{color:var(--linux-note-shell-description-foreground,#888)}
+.language-support-footer{display:flex;align-items:center;gap:6px;height:20px;min-width:0}.language-support-publisher{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:11px}
+.language-support-install{padding:0 6px;height:18px;border:0;color:var(--vscode-button-foreground,#fff);background:var(--vscode-button-background,#007acc);font:inherit;font-size:11px;line-height:18px}
+.language-support-menu{display:flex;align-items:center;justify-content:center;width:20px;height:20px;padding:2px;border:0;background:transparent;color:inherit}.language-support-menu svg{width:16px;height:16px}
+.language-support .is-disabled>.workspace-file-theme-icon,.language-support .is-disabled .language-support-name{opacity:.5}
+.language-support-community{flex:none;margin:6px 12px;padding:4px;border:0;background:transparent;color:var(--linux-note-shell-link-foreground,#0078d4);font:inherit;text-align:left}
+.language-support-status{white-space:pre-wrap;overflow-wrap:anywhere;margin:8px 12px;max-height:140px;overflow:auto;font-size:12px}.language-support-status:empty{display:none}
+.language-support [hidden]{display:none!important}
+.language-support-settings .git-graph-dialog-content{display:flex;flex-direction:column;gap:8px}.language-support-directory{display:flex;flex-direction:column;gap:4px}.language-support-directory input{width:100%;box-sizing:border-box}.language-support-use{display:flex;gap:8px;align-items:center}.language-support-settings-actions{display:flex;flex-wrap:wrap;gap:8px}
+@container (max-width:300px){.language-support-row{gap:8px}.language-support-row>.workspace-file-theme-icon{--workspace-file-icon-size:24px;--workspace-file-icon-font-size:24px;--workspace-file-icon-line-height:24px;height:24px}}

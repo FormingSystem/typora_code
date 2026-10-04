@@ -19,11 +19,11 @@ export function bind_workspace_preferences(core:graph_core) {
   button.setAttribute('aria-haspopup','menu');button.setAttribute('aria-expanded','false');
   button.onclick=event=>{
     if(close_menu){close_menu();return;}
-    const plugins=Boolean((core.app as any).community_plugins);
+    const plugins=Boolean((core.app as any).extensions);
     button.setAttribute('aria-expanded','true');
     close_menu=workspace_menu(event,[
       {title:workspace_text("community_plugins_settings"),shortcut:'Ctrl+,',action:()=>core.app.commands.run('typora_code:settings')},
-      {title:workspace_text("preferences_extensions"),shortcut:'Ctrl+Shift+X',disabled:!plugins,action:()=>core.app.commands.run('typora_code:community_plugins')},
+      {title:workspace_text("preferences_extensions"),shortcut:'Ctrl+Shift+X',disabled:!plugins,action:()=>core.app.commands.run('typora_code:extensions')},
     ],'workspace-preferences-menu',()=>{close_menu=undefined;button.setAttribute('aria-expanded','false');},{anchor:button});
   };
   let disposed=false;

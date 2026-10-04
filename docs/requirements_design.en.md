@@ -47,6 +47,8 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |
 | R084 | Graphical setup and shell integration | [Design](installation_design.en.md) | Transactions, ownership, cancellation and verification |
 | R085 | Language environment plugins | [Design](language_environment_plugins.en.md) | Managed toolchains and community plugin lifecycle |
+| R085.1 | Prepare language tools automatically and await navigation readiness | [R085.1 design](language_environment_plugins.en.md#r0851-automatic-preparation-and-navigation-waiting-2026-10-04) |
+| R085.2 | Independent language support and VS Code extension list geometry | [R085.2 design](language_environment_plugins.en.md#r0852-independent-language-support-and-extension-list-2026-10-04) |
 | R082 | Independent Chinese-English Documents, English Code Comments, and Bilingual Interface | [Chinese/English release design](localization.en.md) | Full bilingual implementation and documentation are in place; see the design and evidence for verification and delivery boundaries |
 | R081 | Installation post-step operation guidance, help entry points, and offline explanations | [Operation Guidance](onboarding.en.md) | Exists; installation identifier, multi-window deduplication, focus, dynamic illustrations, and delivery acceptance |
 | R001 | Native file and folder selection | [Design chapter](file_operations.en.md#section_ee98cca2ce18) | Existing entry, cancel, and invalid design |

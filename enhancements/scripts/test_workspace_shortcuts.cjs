@@ -76,7 +76,7 @@ app.whenReady().then(async () => {
   check(await evaluate(`binding.dispose();calls=[];send('KeyC',{key:'c',altKey:true,shiftKey:true});const quiet=calls.length===0;binding=shortcut_qa.install_workspace_shortcuts(host,runtime);send('KeyC',{key:'c',altKey:true,shiftKey:true});quiet&&calls.length===1`), 'dispose removes the listener and permits a clean reinstall');
 
   check(await evaluate(`calls=[];send('KeyP',{key:'P',ctrlKey:true,shiftKey:true})&&calls[0][1]==='command:open'`), 'Ctrl+Shift+P opens the registered command panel');
-  check(await evaluate(`calls=[];send('KeyX',{key:'X',ctrlKey:true,shiftKey:true})&&calls.length===1&&calls[0][1]==='typora_code:community_plugins'`), 'Ctrl+Shift+X opens extensions through the shared command');
+  check(await evaluate(`calls=[];send('KeyX',{key:'X',ctrlKey:true,shiftKey:true})&&calls.length===1&&calls[0][1]==='typora_code:extensions'`), 'Ctrl+Shift+X opens extensions through the shared command');
   check(await evaluate(`calls=[];!send('KeyX',{key:'X',ctrlKey:true,shiftKey:true,isComposing:true})&&calls.length===0`), 'extensions shortcut respects IME composition');
   check(await evaluate(`calls=[];!send('KeyX',{key:'X',ctrlKey:true,shiftKey:true},'#terminal')&&calls.length===0`), 'extensions shortcut respects terminal input');
   check(await evaluate(`calls=[];send('KeyF',{key:'F',ctrlKey:true,shiftKey:true})&&calls[0][1]==='linux_note:search'`), 'Ctrl+Shift+F opens workspace search');

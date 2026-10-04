@@ -113,6 +113,6 @@ After each successful installation, the operation guide will be prompted once on
 
 Check for updates and view this tool's repository through the help menu. The native help's Quick Start, Markdown Reference, license, and check for updates are still retained. When reporting issues, provide reproduction steps, current version, theme used, and error messages; do not include passwords or tokens.
 
-## Language environment plugins
+## Language support
 
-In Extensions → Language environment plugins, install and enable the desired plugin, open its settings and select Download and install environment. Recipes supply private runtimes without requiring global Node, Python, JDK or .NET. Choose installation locations, enable/disable use, clear managed tools or configure external tools and arguments. Managed recipes currently support Windows x64; see [language environment plugins](language_environment_plugins.en.md).
+Extensions defaults to TyporaCode language support. Install enables a language and automatically prepares private tools without global Node, Python, JDK or .NET; analysis and initial definition navigation await readiness. The installed entry's gear menu offers settings, enable/disable, retry and uninstall. Settings allow a tool location, clear operation and optional external tools or language arguments. Clear or cancel preserves the choice not to download again until automatic use is enabled. Existing language plugins and preferences migrate on first startup; third-party community plugins keep a separate entry. Managed downloads support Windows x64; see [language support](language_environment_plugins.en.md) for capability limits.

@@ -23,7 +23,7 @@ export function install_workspace_activity(options: workspace_activity_options):
   const interaction_nodes=new Map<HTMLElement,string|null>();
   const allowed = new Set(options.item_ids);
   // The core may insert search first according to the registration sequence; only items without user sorting use the finalized order of files/search/outline/Git.
-  const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control", "typora_code:community_plugins"].filter(id => allowed.has(id));
+  const default_order = ["core.file-explorer", "core.search", "core.outline", "linux_note:source_control", "typora_code:extensions"].filter(id => allowed.has(id));
   const storage_key = options.storage_key || "linux-note:workspace:activity-order:v1";
   const style = acquire_workspace_style("typora-code-style:workspace_activity", activity_css, {"data-workspace-activity-style":"ready"});
   const chrome_style = acquire_workspace_style("typora-code-style:workspace_chrome", chrome_css);
@@ -71,7 +71,7 @@ export function install_workspace_activity(options: workspace_activity_options):
       if (!originals.has(item)) {
         originals.set(item, {draggable: item.getAttribute("draggable"), role: item.getAttribute("role"), tabindex: item.getAttribute("tabindex"), label: item.getAttribute("aria-label"), nodes: [...item.childNodes]});
         // The outline retains the native fa-list directory icon and original nodes, and follows the user's finalized order without replacement.
-        const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control", "typora_code:community_plugins":"extensions"} as const;
+        const icon_names = {"core.file-explorer":"files", "core.search":"search", "linux_note:source_control":"source-control", "typora_code:extensions":"extensions"} as const;
         const icon_name = icon_names[item.dataset.id as keyof typeof icon_names];
         if (icon_name) item.replaceChildren(git_icon(icon_name));
         item.classList.add("workspace-activity-item"); item.draggable = false; item.setAttribute("role", "button"); item.tabIndex = 0;

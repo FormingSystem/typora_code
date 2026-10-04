@@ -3691,9 +3691,20 @@ function create_language_environment_service({ root, request, extract_zip, acqui
     entry_for(id);
     return state().environments[id];
   };
-  const with_lock = async (action) => {
-    const unlock = await acquire_lock();
+  const with_lock = async (action, signal) => {
+    let unlock;
+    const deadline = Date.now() + 6e5;
+    while (!unlock) {
+      check(signal);
+      try {
+        unlock = await acquire_lock();
+      } catch (error) {
+        if (error.code !== "EADDRINUSE" || Date.now() >= deadline) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 100));
+      }
+    }
     try {
+      check(signal);
       return await action();
     } finally {
       await unlock();
@@ -3705,12 +3716,15 @@ function create_language_environment_service({ root, request, extract_zip, acqui
     return hash.digest("hex");
   };
   const install = (id, { directory = "", signal, on_progress = () => {
-  } } = {}) => with_lock(async () => {
+  }, reuse = false } = {}) => with_lock(async () => {
     const entry = entry_for(id);
     if (platform !== "win32" || arch !== "x64") throw Error(workspace_service_text("language_environment_platform"));
     check(signal);
     const value = state();
-    if (value.environments[id]) throw Error(workspace_service_text("language_environment_exists"));
+    if (value.environments[id]) {
+      if (reuse) return value.environments[id];
+      throw Error(workspace_service_text("language_environment_exists"));
+    }
     const base = directory || path.join(root, "tools");
     if (!path.isAbsolute(base) || /[\r\n\0]/.test(base)) throw Error(workspace_service_text("language_environment_absolute"));
     await no_links(base);
@@ -3807,7 +3821,7 @@ function create_language_environment_service({ root, request, extract_zip, acqui
       }
       throw error;
     }
-  });
+  }, signal);
   const uninstall = (id) => with_lock(async () => {
     entry_for(id);
     const value = state(), record = value.environments[id];

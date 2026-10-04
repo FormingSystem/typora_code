@@ -41,11 +41,3 @@ await service.set_enabled(manifest.id,false);await new Promise(resolve=>setTimeo
 await Promise.all([service.set_enabled(manifest.id,true),peer.set_enabled(manifest.id,false)]);await new Promise(resolve=>setTimeout(resolve,100));assert.equal(service.list()[0].running,peer.list()[0].running,'并发写入经共享互斥后收敛');
 await peer.dispose();await service.dispose();await service.dispose();
 console.log(JSON.stringify({status:'PASS',iterations:tier,heartbeat,loaded,unloaded,evidence:root,scope:'真实临时文件系统与包事务；下载/解压/插件执行端口替身'}));
-
-const builtin_root=path.resolve('dist/assets/plugins/language_plugins'),builtin_state=path.join(root,'builtin');
-const builtin=create_community_service({...ports,root:builtin_state,builtin_root,platform:'linux',acquire_lock:()=>acquire_update_lock(builtin_state)});
-assert.equal(builtin.builtin_catalog().length,9,'catalog lists unsupported platforms without blocking other community plugins');
-await assert.rejects(builtin.install_online(builtin.builtin_catalog()[0]));
-await assert.rejects(builtin.latest({id:'example.external',repo:'example/external'}),/网络不可用/);
-await builtin.dispose();
-console.log('PASS bundled catalog is visible cross-platform while incompatible installation is rejected.');

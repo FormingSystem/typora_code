@@ -738,5 +738,37 @@
       }
     ],
     "adopted": "Current/other find colors, list focus outline, existing 22px toolbar action role and official bundled target Codicon. Reading outline and explicit search anchor are product-owned independent states."
+  },
+  "language_support_20261004": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "scope": "R085.2 independent language support; fixed VS Code geometry adapted to shared TyporaCode interaction and Seti glyphs",
+    "sources": [
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/extensionsList.ts",
+        "sha256": "7f6c2bb4b75961bc4132d77d9250125a69794c4cae44c373413508ca1a258882"
+      },
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/media/extensionsViewlet.css",
+        "sha256": "2597c83fffb6cac1d2f1d6b655a510b93d8e3cf51e96b18218bd88d911012d47"
+      },
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/media/extension.css",
+        "sha256": "560ab488ece3d03d62fd272016b38a0503a804f79a0ee106b160412ec94d6e7c"
+      },
+      {
+        "path": "src/vs/workbench/contrib/extensions/browser/media/extensionsWidgets.css",
+        "sha256": "91085055a7a121614a7aa52ed1760dbe96e8954ffc4d95be3c144d6c41aa7902"
+      }
+    ],
+    "adopted": {
+      "row_height": 72,
+      "search_region_height": 41,
+      "input_height": 28,
+      "detail_line_height": 20,
+      "icon_size": 36,
+      "narrow_icon_size": 24,
+      "icon_spacing": 16,
+      "narrow_icon_spacing": 8
+    }
   }
 }

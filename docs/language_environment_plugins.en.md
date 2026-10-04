@@ -4,17 +4,15 @@
 
 ## Scope and operation
 
-Nine actual community plugins cover C/C++, C#, CMake, Makefile, Bash, Java, HTML, CSS and JavaScript/TypeScript. Each has its own manifest, entry point and original SettingTab, using the existing install/enable/disable/uninstall lifecycle. They ship in the **Language environment plugins** catalog; this change does not publish them to an external marketplace.
+Nine TyporaCode-owned language supports cover C/C++, C#, CMake, Makefile, Bash, Java, HTML, CSS and JavaScript/TypeScript. An independent service owns registration, settings and downloads. R085.2 supersedes the original community Plugin/SettingTab implementation; third-party community plugins keep a separate entry.
 
-The user's clarification requires operation without globally installed tools. Recipes therefore download portable Node, Python, JDK or .NET automatically when users install an environment. Managed downloads currently support Windows x64. Other platforms retain external service configuration. This does not provide a VS Code extension host, project builder or debugger.
+1. Open Extensions and select Install in Available. This enables the language and automatically prepares missing private tools; no separate download click or LSP path is required. Existing tools are reused.
+2. Analysis and the first F12 wait for readiness. Progress and retryable failures appear in the list and settings.
+3. The gear menu provides settings, enable/disable, retry and uninstall. Choose a private tools directory or optionally configure external commands and arguments; explicit profiles take priority.
+4. Clear or cancel preserves an opt-out until automatic use is selected again. Clear an existing environment before changing its location. Uninstall removes only owned files and registration, preserving external tools and user configuration.
+5. Existing legacy language entries migrate installation state, location and use choice on first startup. No community trust/enable step is required for first-party language support.
 
-1. Open Extensions → Language environment plugins. Install the desired plugin, then trust and enable it.
-2. In its settings, leave the installation directory empty for `typora_code/language_environments/tools` inside Typora user data, or browse for another base. Select **Download and install environment**. The recipe supplies the required runtime and server without requiring download URLs.
-3. **Use managed environment** controls the fallback provider. Disabling the plugin keeps downloaded files for later reuse.
-4. **Configure external tools and language arguments** opens the shared user/workspace form for executable, argument array, process environment, initialization options and server settings. **Copy installed toolchain into this draft** supplies a starting point. Changes only apply on save; cancellation preserves previous settings.
-5. **Clear managed environment** disables its provider and removes only files with matching ownership. To move an environment, clear it, choose a new base, reinstall and enable its use. Uninstalling the plugin also clears its own tools, while retaining user configuration and referenced external programs.
-
-Progress includes upstream command output. Cancellation stops the download and owned install processes and clears staging files. Failure never registers a ready environment; retry transient network errors. If Windows path limits prevent installation or loading, select a shorter base. Tools are not added to system PATH.
+Managed Windows x64 recipes supply private Node, Python, JDK or .NET without global runtimes. Full project SDKs/build/debug workflows remain separate; semantic results depend on server capabilities and project context. Archives are verified and failed/cancelled staging is removed; no system PATH changes occur.
 
 ## Recipes and verified capabilities
 
@@ -46,8 +44,34 @@ Downloads reuse shared HTTPS proxy/CA settings. npm/pip receive local proxy and 
 
 ## Sources and acceptance
 
-The pinned VS Code `68070681` sources `src/vscode-dts/vscode.d.ts` (`ExtensionContext.globalStorageUri`) and the TypeScript extension `package.json` (`js/ts.tsdk.path`) establish the reference for extension-owned storage and selectable SDKs. TyporaCode implements those responsibilities through its existing community SettingTab and services.
+The pinned VS Code `68070681` sources `src/vscode-dts/vscode.d.ts` (`ExtensionContext.globalStorageUri`) and the TypeScript extension `package.json` (`js/ts.tsdk.path`) establish the reference for extension-owned storage and selectable SDKs. TyporaCode implements those responsibilities through its existing independent language settings and services.
 
 Installation and argument references: [clangd](https://clangd.llvm.org/installation), [neocmakelsp](https://neocmakelsp.github.io/docs/installation.html), [Makefile service](https://github.com/Freed-Wu/autotools-language-server), [Bash](https://github.com/bash-lsp/bash-language-server), [TypeScript](https://github.com/typescript-language-server/typescript-language-server), [HTML/CSS](https://github.com/hrsh7th/vscode-langservers-extracted), [C#](https://github.com/razzmatazz/csharp-language-server), [Java](https://github.com/eclipse-jdtls/eclipse.jdt.ls). Makefile pins an older release because 0.1.3 no longer contains the `make_language_server` entry point.
 
-The test catalog links transaction, real-download and original-host checks. Real-service tests restrict PATH to Windows System32 and remove external runtime variables, then install, analyze unsaved code and uninstall all nine recipes. One CMake connection reset was recorded and its targeted retry passed. Original Typora 1.14.10 checks cover all nine plugin lifecycles/SettingTabs, actual CMake installation, configuration drafts/cancellation/removal, light/dark themes and focus. Complete projects and other platforms remain outside those results. Current evidence and delivery status are recorded in the feedback review.
+Initial 2026.10.04.1 verification: the test catalog links transaction, real-download and original-host checks. Real-service tests restrict PATH to Windows System32 and remove external runtime variables, then install, analyze unsaved code and uninstall all nine recipes. One CMake connection reset was recorded and its targeted retry passed. Original Typora 1.14.10 checks cover all nine plugin lifecycles/SettingTabs, actual CMake installation, configuration drafts/cancellation/removal, light/dark themes and focus. Complete projects and other platforms remain outside those results. Current evidence and delivery status are recorded in the feedback review.
+
+## R085.1 Automatic preparation and navigation waiting (2026-10-04)
+
+The reported CMake plugin was enabled with default analysis, but no managed tools existed. Registration previously only read existing installation records and still required a separate download click. This correction supersedes that required manual step: enabling a plugin with its environment selected automatically prepares tools in the configured directory and reuses an existing environment. Cancel, clear or deselect persists the choice not to use it automatically; selecting it again or retrying resumes preparation. Disabling the plugin cancels its task.
+
+The plugin owns downloads and errors. The configuration owner exposes an awaitable preparation entry point shared by outlines and definition navigation, without repeated downloads on edits. Readiness notifications do not cancel the first pending navigation; document changes, switching and disposal still cancel stale requests. Failure retains a useful retryable error rather than requesting a manual LSP path. Explicit external or disabled profiles take priority. The environment lock serializes plugins/windows, with cancellable waiting and reuse checked inside the lock.
+
+No user CMake project is executed to guess variables. Lexical highlighting is separate from semantic analysis. The neocmakelsp VS Code adapter downloads its default server and also accepts a local target. Results depend on that server and project context; other VS Code CMake extensions can use different providers, so arbitrary dynamic Zephyr variables are not claimed equivalent.
+
+Validation adds enable → automatic download → current-document analysis → variable/cross-file definitions, plus configuration precedence, cancellation, failure/retry, concurrency and cleanup. Native isolated Typora and real CMake service checks must start without tools rather than reuse a preinstalled fixture as evidence of automatic preparation.
+
+## R085.2 Independent language support and extension list (2026-10-04)
+
+The latest user direction makes language support a TyporaCode-owned feature, independent of community plugins. This section supersedes the original Plugin/SettingTab architecture and required manual setup steps. An independent service owns language registrations, settings and downloads; shared language configuration and analysis remain the only analysis owners. The existing Extensions activity entry defaults to language support, with a separate entry for the unchanged community domain.
+
+Before community startup, migrate only the nine known legacy IDs, preserving installed/enabled state, directory and use preference. Persist independent records before removing exact old registry entries; retries preserve existing tools and configuration. No legacy entries means no community writes. Migration failure is explicit and never starts duplicate language providers.
+
+The view offers search, collapsible installed/available groups, three-line entries, install actions and a gear menu. Install enables automatic preparation; failure retains a retryable entry. Disable cancels preparation and releases the provider; uninstall removes only owned tools and registration. Independent settings offer directory, automatic use, progress/retry/cancel and the existing advanced profile form.
+
+Geometry comes from fixed VS Code 68070681: extensionsViewlet.css has a 41px search region and 28px input with 12/20px margins; extension.css supplies three-line details and 20px title/description lines; extensionsList.ts uses 72px rows. Narrow/normal icons follow 24/36px geometry, rendered with the existing official Seti file glyphs and Codicons actions. Shared interaction, selection, menus and scrollbars own state colors and focus. Arrow keys, Enter/Space, filtering and background progress preserve selection and focus.
+
+Validate migration, independent enable/disable/uninstall, automatic first F12, configuration precedence, light/dark narrow/wide geometry, long labels and the community entry. This does not implement a VS Code extension host or change unrelated panel layouts.
+
+[Upstream CMake client](https://github.com/neocmakelsp/neocmakelsp-vscode/blob/master/src/extension.ts): `NeocmakeContext.create` downloads the server before startup and enables `semantic_token: true`; both are adopted. Geometry source hashes are in `vscode_design_sources.json`, `language_support_20261004`.
+
+Clear and uninstall own an exclusive per-language task. Conflicting actions are disabled, and the service rejects retry or configuration changes until removal finishes. Registration uses a separate lock so cancellation does not wait for the download lock. See the [current independent-service evidence](../enhancements/tests/evidence/language_support_20261004.json); the initial community-plugin checks do not substitute for this architecture.

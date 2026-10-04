@@ -1,7 +1,7 @@
 import {workspace_text} from "./workspace_i18n";
 import {set_source_inactive_regions} from "./source_inactive_regions";
 import type {language_navigation_kind,language_position,language_location,language_diagnostic} from "./language_locations";
-import {read_language_service_profile,observe_language_services} from "./language_service_settings";
+import {resolve_language_service_profile,observe_language_services} from "./language_service_settings";
 import {create_language_file_watcher} from './language_file_watchers';
 import {workspace_resource_fs} from './remote_workspace_files';
 import {set_source_semantics} from "./source_semantic_tokens";
@@ -37,14 +37,14 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
   let owner=entries.get(key);
   if(!owner){
     const state:document_symbols={symbols:[],version:-1,language:"",loading:true,error:"",incomplete:false,provider:"",notice:""},listeners=new Set<(s:document_symbols)=>void>();
-    let analysis_running=false,semantic_refresh_pending=false,navigation:AbortController|undefined;
+    let analysis_running=false,semantic_refresh_pending=false,navigation_preparing=false,navigation:AbortController|undefined;
     let disposed=false,timer=0,request:AbortController|undefined,worker:ReturnType<typeof create_source_symbol_service>|undefined,clangd:ReturnType<typeof create_language_analysis_service>|undefined;
     const notify=()=>{for(const callback of listeners)callback(state);};
     const parse=async()=>{
       timer=0;if(disposed||model.isDisposed())return;if(navigation){semantic_refresh_pending=true;return;}analysis_running=true;const controller=request=new AbortController(),version=model.getVersionId(),language=model.getLanguageId();
       Object.assign(state,{loading:true,symbols:[],error:"",notice:"",language,version:-1});notify();
       try{
-        const profile=read_language_service_profile(workspace_root,language);
+        const profile=await resolve_language_service_profile(workspace_root,language,controller.signal);
         const compiled=language==="c"||language==="cpp",settings=compiled?read_source_outline_settings(workspace_root):undefined;
         const use_lsp=profile.provider==="lsp"||(compiled&&profile.provider==="default");
         if(!use_lsp&&clangd){await clangd.dispose();clangd=undefined;}
@@ -65,18 +65,21 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
     };
     const navigate:navigation_query=async(kind,position,signal)=>{
       if(disposed||model.isDisposed()||signal.aborted)throw new DOMException(workspace_text("document_symbols_navigation_has_been_canceled"),"AbortError");
-      const language=model.getLanguageId(),profile=read_language_service_profile(workspace_root,language),compiled=language==="c"||language==="cpp";
-      if(profile.provider!=="lsp"&&!(compiled&&profile.provider==="default"))throw Error(workspace_text("document_symbols_the_navigation_service_for_this_language_is_not_configured_p"));
+      const language=model.getLanguageId(),compiled=language==="c"||language==="cpp";
       request?.abort();navigation?.abort();clearTimeout(timer);
       const controller=navigation=new AbortController(),version=model.getVersionId(),abort=()=>controller.abort();signal.addEventListener("abort",abort,{once:true});
       const settings=compiled?read_source_outline_settings(workspace_root):undefined;
       try{
+        navigation_preparing=true;
+        const profile=await resolve_language_service_profile(workspace_root,language,controller.signal);navigation_preparing=false;
+        if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())throw new DOMException('Navigation cancelled','AbortError');
+        if(profile.provider!=="lsp"&&!(compiled&&profile.provider==="default"))throw Error(workspace_text("document_symbols_the_navigation_service_for_this_language_is_not_configured_p"));
         const result=await(clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics,create_language_file_watcher(workspace_resource_fs((window as any).reqnode("fs")),(window as any).reqnode("path")))).navigate({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},kind,position,controller.signal);
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())throw new DOMException(workspace_text("document_symbols_navigation_has_been_canceled"),"AbortError");return result;
-      }finally{signal.removeEventListener("abort",abort);if(navigation===controller){navigation=undefined;semantic_refresh();}}
+      }finally{signal.removeEventListener("abort",abort);if(navigation===controller){navigation=undefined;navigation_preparing=false;semantic_refresh();}}
     };
     const refresh=()=>{navigation?.abort();request?.abort();state.diagnostics=[];state.diagnostics_version=-1;set_source_semantics(model);set_source_inactive_regions(model,[]);clearTimeout(timer);Object.assign(state,{symbols:[],loading:true,version:-1,error:""});notify();timer=window.setTimeout(parse,150);};
-    const settings_release=observe_language_services(refresh);
+    const settings_release=observe_language_services(()=>{if(navigation&&navigation_preparing){semantic_refresh_pending=true;return;}refresh();});
     const content=model.onDidChangeContent(refresh),language=model.onDidChangeLanguage(refresh);
     owner={state,listeners,navigate,refresh,dispose(){if(disposed)return;disposed=true;navigation?.abort();settings_release();set_source_semantics(model);set_source_inactive_regions(model,[]);clearTimeout(timer);request?.abort();content.dispose();language.dispose();worker?.dispose();void clangd?.dispose();listeners.clear();}};entries.set(key,owner);refresh();
   }

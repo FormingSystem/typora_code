@@ -35,12 +35,13 @@ try{
  for(let iteration=0;iteration<20;iteration++){
   const record=await fixture.install(fixture_entry.id,{directory:path.join(base,'custom location')});
   assert.equal(fixture.current(fixture_entry.id).directory,record.directory);
+  assert.equal((await fixture.install(fixture_entry.id,{reuse:true})).directory,record.directory,'automatic preparation reuses installed tools');
   await assert.rejects(fixture.install(fixture_entry.id),/Clear the existing/);
   await fixture.uninstall(fixture_entry.id);assert.equal(fixture.current(fixture_entry.id),undefined);await assert.rejects(fs.stat(record.directory));
  }
  let release;gate=new Promise(resolve=>release=resolve);const ready=new Promise(resolve=>entered=resolve),cancel=new AbortController();
  const pending=fixture.install(fixture_entry.id,{signal:cancel.signal});await ready;
- await assert.rejects(fixture.install(fixture_entry.id),'shared lock rejects overlapping writes');cancel.abort();release();await assert.rejects(pending,error=>error.name==='AbortError');gate=undefined;
+ const waiting_abort=new AbortController(),waiting=fixture.install(fixture_entry.id,{signal:waiting_abort.signal});waiting_abort.abort();await assert.rejects(waiting,error=>error.name==='AbortError');cancel.abort();release();await assert.rejects(pending,error=>error.name==='AbortError');gate=undefined;
  assert.equal(fixture.current(fixture_entry.id),undefined);
  const linked=await fixture.install(fixture_entry.id);await fs.symlink(outside,path.join(linked.directory,'external'),'junction');
  await assert.rejects(fixture.uninstall(fixture_entry.id),/Linked|links/);assert(fixture.current(fixture_entry.id));assert.equal(await fs.readFile(path.join(outside,'keep.txt'),'utf8'),'owned by user');

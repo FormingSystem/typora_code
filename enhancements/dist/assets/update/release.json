@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100402,
+      "version": "2026.10.04.2",
+      "date": "2026-10-04",
+      "notes": [
+        "修复语言插件启用后仍要求手填LSP：自动准备备用工具链，解析和首次跳转等待就绪，取消与清除保留不自动使用的选择。",
+        "CMake服务开启与其VS Code扩展一致的语义标记初始化选项；配置失败提供原因与重试。",
+        "语言支持改为TyporaCode独立管理，迁移现有安装及配置；扩展列表按VS Code整理搜索、分组、语言图标与操作菜单。"
+      ],
+      "notes_en": [
+        "Prepare private language tools automatically when a plugin is enabled; analysis and first navigation await readiness. Cancel and clear preserve the opt-out choice.",
+        "Enable CMake semantic-token initialization as in its VS Code extension; report setup failures with a retry path.",
+        "Manage language support independently of community plugins, migrate existing state and reorganize Extensions with VS Code search, groups, language icons and action menus."
+      ]
+    },
+    {
       "sequence": 2026100401,
       "version": "2026.10.04.1",
       "date": "2026-10-04",

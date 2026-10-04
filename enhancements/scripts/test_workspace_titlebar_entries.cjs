@@ -18,7 +18,7 @@ app.whenReady().then(async()=>{
  window.reqnode=require;const preferences={};files.core.app.settings={get:k=>preferences[k],set_and_save:(k,v)=>preferences[k]=v};window[Symbol.for('typora-code:workspace')]=files.core;
  const defs=entries_api.create_workspace_titlebar_definitions(files,runtime,record('picker'));const get=async(menu,label)=>(await defs.find(d=>d.label===menu).entries()).find(e=>e.label===label);
  check((await get('视图','面包屑导航')).checked,'breadcrumbs menu reads shared defaults');(await get('视图','面包屑导航')).action();check(!(await get('视图','面包屑导航')).checked,'breadcrumbs menu writes shared settings');
- (await get('视图','扩展')).action();check(calls.at(-1).join('|')==='core|typora_code:community_plugins','extensions view routes to shared sidebar command');
+ (await get('视图','扩展')).action();check(calls.at(-1).join('|')==='core|typora_code:extensions','extensions view routes to shared sidebar command');
  check(!(await get('帮助','社区插件…')),'plugin manager is removed from Help');
  const native_help=["What's New...",'|','Quick Start','Markdown Reference','Install and Use Pandoc','Custom Themes','Use Images in Typora','Data Recovery and Version Control','More Topics...','|','鸣谢','更新日志','隐私条款','官方网站','反馈','|','检查更新...','我的许可证...','关于','|','操作指导…','操作说明与快捷键…','检查 Typora Code 更新…','Typora Code GitHub 仓库'];
  check(JSON.stringify((await defs.at(-1).entries()).map(e=>e.separator?'|':e.label))===JSON.stringify(native_help),'帮助原生名称、顺序和分组完整');
