@@ -595,3 +595,7 @@ Boundary: the initial bash corpus failed while returning, before the expansion a
 ## R085.1/R085.2 Automatic preparation and language ownership (2026-10-04)
 
 Legacy language plugins only read tool records instead of preparing missing environments on enable. Community and first-party ownership were mixed, and moving list groups lost keyboard focus. An independent service now owns registration, preparation and removal; shared analysis awaits readiness and the view retains row identity. Original-host first F12, 22 lifecycle assertions and seven UI suites pass. See [current evidence](../enhancements/tests/evidence/language_support_20261004.json); historical native-rendering issues remain open.
+
+## R085.3/R085.4 Repeated rendering and CMake project indexing gaps (2026-10-04)
+
+Extensions/render and reading/navigation: unconditional DOM writes refreshed unrelated Available rows; a valid CMake server still missed project declarations. Guard unchanged values and supplement empty definitions with grammar-confirmed candidates. See [current evidence](../enhancements/tests/evidence/language_navigation_20261004.json) for the old mutation failure, 29 native checks with trusted Ctrl input and installation. Upstream semantic overlap, dynamic evaluation limits and historical native defects remain open.

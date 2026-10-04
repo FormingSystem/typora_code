@@ -8607,7 +8607,8 @@
         "R068.5",
         "R068.6",
         "R068.7",
-        "R068.8"
+        "R068.8",
+        "R085.4"
       ],
       "design": "docs/code_analysis_colors.md",
       "implementation": [
@@ -9741,7 +9742,9 @@
       "requirements": [
         "R085",
         "R085.1",
-        "R085.2"
+        "R085.2",
+        "R085.4",
+        "R085.3"
       ],
       "design": "docs/language_environment_plugins.md",
       "implementation": [
@@ -9762,7 +9765,8 @@
         "Installed development dependencies; real language mode requires HTTPS access"
       ],
       "steps": [
-        "Install and enable nine actual plugin entries; use native SettingTab to download, configure and remove portable CMake; verify themes and cleanup."
+        "Install and enable nine actual plugin entries; use native SettingTab to download, configure and remove portable CMake; verify themes and cleanup.",
+        "Observe Available during real download; deliver trusted HWND Ctrl+click to project declarations after switching files."
       ],
       "expected": [
         "No external files removed; selected operations work and cleanup retains evidence."
@@ -9881,7 +9885,8 @@
       "requirements": [
         "R085",
         "R085.1",
-        "R085.2"
+        "R085.2",
+        "R085.3"
       ],
       "design": "docs/language_environment_plugins.md",
       "implementation": [
@@ -9902,10 +9907,45 @@
         "Installed development dependencies; real language mode requires HTTPS access"
       ],
       "steps": [
-        "Exercise independent list, install state, 100 progress refreshes, keyboard, filtering and narrow/wide themed geometry."
+        "Exercise independent install state and 20/100/1000 progress changes plus duplicate notifications, keyboard, filtering and narrow/wide themed geometry."
       ],
       "expected": [
-        "Stable selection, focus and row identity with separate language settings and community navigation."
+        "Zero Available subtree and group mutations during installed progress; stable text nodes, geometry, scroll, selection and focus."
+      ],
+      "timeout_ms": 120000
+    },
+    {
+      "id": "TC-language-cmake-navigation-001",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R085.4"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/cmake_navigation.ts",
+        "enhancements/src/cmake_syntax.ts",
+        "enhancements/src/workspace_document_symbols.ts"
+      ],
+      "related_modules": [
+        "source_editor",
+        "navigation",
+        "language_analysis",
+        "workspace_directories"
+      ],
+      "script": "enhancements/scripts/test_cmake_navigation.mjs",
+      "environment": [
+        "Node and real Tree-sitter CMake grammar"
+      ],
+      "preconditions": [
+        "Installed development dependencies; temporary project only, no network or system CMake required"
+      ],
+      "steps": [
+        "Use the real CMake grammar for 20 cycles of project variable, function and include navigation; verify comments, unsaved text, file changes, multiple definitions, abort and disposal."
+      ],
+      "expected": [
+        "Return only grammar-confirmed definitions and existing paths; preserve memory precedence and reject cancelled or disposed queries."
       ],
       "timeout_ms": 120000
     }

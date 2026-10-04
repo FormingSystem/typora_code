@@ -551,3 +551,7 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 ## R085.1/R085.2 自动准备与语言状态归属（2026-10-04）
 
 旧语言插件只读取工具登记，未在启用时准备环境；社区生命周期与自有语言状态混合，列表分组移动还会丢失键盘焦点。现由独立语言服务拥有注册、下载与清除任务，共同解析等待准备，UI保持条目身份；原生首次F12、22项生命周期及七组UI通过。问题与修复证据见[本次验证](../enhancements/tests/evidence/language_support_20261004.json)，历史原生渲染问题不随本项关闭。
+
+## R085.3/R085.4 重复呈现与CMake工程索引缺口（2026-10-04）
+
+分类extensions/render和reading/navigation：无条件DOM写入使无关可安装区刷新；CMake已正确配置，但服务未索引动态工程声明。分别采用值比较和LSP空结果的语法候选补充。旧版零写入红测、29项原生可信Ctrl输入与安装证据见[本次记录](../enhancements/tests/evidence/language_navigation_20261004.json)。上游语义标记重叠与动态求值边界继续保留，历史原生缺陷不随此项关闭。

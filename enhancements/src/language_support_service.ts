@@ -28,7 +28,7 @@ export function bind_language_support(core:any){
   const job=jobs.get(id);if(job)return job.promise;if(manager.current(id))return Promise.resolve();if(failures.has(id))return Promise.reject(failures.get(id));
   const abort=new AbortController(),name=api.entry_for(id).name;
   messages.set(id,workspace_text('language_plugin_preparing',{name}));notify();
-  const promise=Promise.resolve().then(()=>manager.install(id,{directory:setting.installation_directory||'',signal:abort.signal,reuse:true,on_progress:(message:string)=>{messages.set(id,message);notify();}})).then(value=>{messages.set(id,workspace_text('language_plugin_completed'));return value;},error=>{const failure=Object.assign(Error(workspace_text('language_plugin_failed',{name,error:String(error.message||error)})),{name:error.name});failures.set(id,failure);messages.set(id,failure.message);throw failure;}).finally(()=>{jobs.delete(id);analysis_changed();notify();});
+  const promise=Promise.resolve().then(()=>manager.install(id,{directory:setting.installation_directory||'',signal:abort.signal,reuse:true,on_progress:(message:string)=>{if(messages.get(id)!==message){messages.set(id,message);notify();}}})).then(value=>{messages.set(id,workspace_text('language_plugin_completed'));return value;},error=>{const failure=Object.assign(Error(workspace_text('language_plugin_failed',{name,error:String(error.message||error)})),{name:error.name});failures.set(id,failure);messages.set(id,failure.message);throw failure;}).finally(()=>{jobs.delete(id);analysis_changed();notify();});
   jobs.set(id,{abort,promise});return promise;
  };
  const cancel_task=async(id:string)=>{const job=jobs.get(id);job?.abort.abort();await job?.promise.catch(()=>{});};

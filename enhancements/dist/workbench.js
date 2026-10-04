@@ -179405,6 +179405,117 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/cmake_navigation.ts
+  function create_cmake_navigation(fs2, path, parse5) {
+    const directories = acquire_workspace_directories(fs2, path);
+    let disposed = false;
+    const equal = (left, right) => path.sep === "\\" ? path.resolve(left).toLowerCase() === path.resolve(right).toLowerCase() : path.resolve(left) === path.resolve(right);
+    return {
+      async definition(root, file, text3, position2, signal) {
+        const check2 = () => {
+          signal.throwIfAborted();
+          if (disposed) throw new DOMException("CMake navigation disposed", "AbortError");
+        };
+        check2();
+        const offset = text3.split("\n").slice(0, position2.line).reduce((size, line) => size + line.length + 1, 0) + position2.character;
+        const current2 = (await parse5(text3, signal)).cmake;
+        check2();
+        if (!current2) return [];
+        const matches = current2.references.filter((item) => item.start <= offset && offset < item.end), reference = matches.find((item) => item.kind === "variable") || matches[0];
+        if (!reference) return [];
+        if (reference.kind !== "file") {
+          const local = current2.definitions.filter((item) => item.kind === reference.kind && (item.kind === "function" ? item.name.toLowerCase() === reference.name.toLowerCase() : item.name === reference.name));
+          if (local.length) return local.map((definition2) => ({ file_path: file, range: definition2.range }));
+        }
+        const catalogue = await directories.service.catalogue(root);
+        check2();
+        const files2 = catalogue.files.filter((item) => /\.cmake$/i.test(item.name) || item.name.toLowerCase() === "cmakelists.txt").map((item) => item.file_path);
+        const contents = /* @__PURE__ */ new Map(), documents = /* @__PURE__ */ new Map();
+        contents.set(file, Promise.resolve(text3));
+        documents.set(file, Promise.resolve(current2));
+        const read3 = (target2) => {
+          if (equal(target2, file)) return Promise.resolve(text3);
+          let value = contents.get(target2);
+          if (!value) {
+            value = fs2.promises.stat(target2).then((stat) => stat.size <= 4194304 ? fs2.promises.readFile(target2, "utf8") : "").catch((error) => {
+              if (["ENOENT", "EACCES", "EPERM"].includes(error.code)) return "";
+              throw error;
+            });
+            contents.set(target2, value);
+          }
+          return value;
+        };
+        const document2 = async (target2, source) => {
+          if (equal(target2, file)) return current2;
+          let value = documents.get(target2);
+          if (!value) {
+            value = parse5(source, signal).then((result) => result.cmake);
+            documents.set(target2, value);
+          }
+          return value;
+        };
+        const find = async (name, kind) => {
+          const results = [], targets = [file, ...files2.filter((target2) => !equal(target2, file))];
+          let next = 0;
+          await Promise.all(Array.from({ length: Math.min(8, targets.length) }, async () => {
+            while (next < targets.length) {
+              check2();
+              const target2 = targets[next++], source = await read3(target2);
+              check2();
+              if (!(kind === "function" ? source.toLowerCase().includes(name.toLowerCase()) : source.includes(name))) continue;
+              const parsed = await document2(target2, source);
+              check2();
+              for (const definition2 of parsed?.definitions || []) if (definition2.kind === kind && (kind === "function" ? definition2.name.toLowerCase() === name.toLowerCase() : definition2.name === name)) results.push({ file: target2, definition: definition2 });
+            }
+          }));
+          return results.sort((a, b2) => a.file.localeCompare(b2.file) || a.definition.range.start.line - b2.definition.range.start.line);
+        };
+        if (reference.kind !== "file") {
+          const definitions = await find(reference.name, reference.kind);
+          check2();
+          return definitions.map((item) => ({ file_path: item.file, range: item.definition.range }));
+        }
+        const expand = async (value, origin, seen = /* @__PURE__ */ new Set()) => {
+          if (seen.size > 8) return;
+          let expanded3 = value;
+          for (const match2 of value.matchAll(/\$\{([\w.-]+)\}/g)) {
+            const name = match2[1];
+            if (seen.has(name)) return;
+            let replacement;
+            if (name === "CMAKE_CURRENT_LIST_DIR") replacement = path.dirname(origin);
+            else if (name === "CMAKE_SOURCE_DIR" || name === "PROJECT_SOURCE_DIR") replacement = root;
+            else {
+              const values = /* @__PURE__ */ new Set();
+              for (const item of await find(name, "variable")) if (item.definition.value !== void 0) {
+                const candidate = await expand(item.definition.value, item.file, /* @__PURE__ */ new Set([...seen, name]));
+                if (candidate !== void 0) values.add(item.definition.absolute ? path.resolve(path.dirname(item.file), candidate) : candidate);
+              }
+              if (values.size === 1) replacement = [...values][0];
+            }
+            if (replacement === void 0) return;
+            expanded3 = expanded3.replaceAll(match2[0], replacement);
+          }
+          return /\$|[;\r\n]/.test(expanded3) ? void 0 : expanded3;
+        };
+        const expanded2 = await expand(reference.name, file);
+        check2();
+        if (!expanded2) return [];
+        const target = path.resolve(path.dirname(file), expanded2, reference.directory ? "CMakeLists.txt" : "");
+        const candidates = reference.directory || path.extname(target) ? [target] : [target, target + ".cmake"];
+        for (const candidate of candidates) {
+          const exists = await fs2.promises.stat(candidate).then((stat) => stat.isFile(), () => false);
+          check2();
+          if (exists) return [{ file_path: candidate, range: { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } } }];
+        }
+        return [];
+      },
+      dispose() {
+        disposed = true;
+        directories.dispose();
+      }
+    };
+  }
+
   // src/source_inactive_regions.css
   var source_inactive_regions_default = "";
 
@@ -182309,6 +182420,7 @@ https://creativecommons.org/licenses/by/4.0/
     if (!owner3) {
       const state = { symbols: [], version: -1, language: "", loading: true, error: "", incomplete: false, provider: "", notice: "" }, listeners14 = /* @__PURE__ */ new Set();
       let analysis_running = false, semantic_refresh_pending = false, navigation_preparing = false, navigation;
+      let cmake_navigation;
       let disposed = false, timer = 0, request, worker, clangd;
       const notify3 = () => {
         for (const callback of listeners14) callback(state);
@@ -182383,7 +182495,12 @@ https://creativecommons.org/licenses/by/4.0/
           navigation_preparing = false;
           if (disposed || controller.signal.aborted || model.isDisposed() || version !== model.getVersionId()) throw new DOMException("Navigation cancelled", "AbortError");
           if (profile.provider !== "lsp" && !(compiled && profile.provider === "default")) throw Error(workspace_text("document_symbols_the_navigation_service_for_this_language_is_not_configured_p"));
-          const result = await (clangd ??= create_language_analysis_service(void 0, semantic_refresh, receive_diagnostics, create_language_file_watcher(workspace_resource_fs(window.reqnode("fs")), window.reqnode("path")))).navigate({ file_path, workspace_root, language: language45, text: model.getValue(), server: profile, executable: settings?.clangd_path, compile_commands_dir: settings?.compile_commands_dir, fallback_flags: settings?.fallback_flags, background_index: settings?.background_index }, kind, position2, controller.signal);
+          let result = await (clangd ??= create_language_analysis_service(void 0, semantic_refresh, receive_diagnostics, create_language_file_watcher(workspace_resource_fs(window.reqnode("fs")), window.reqnode("path")))).navigate({ file_path, workspace_root, language: language45, text: model.getValue(), server: profile, executable: settings?.clangd_path, compile_commands_dir: settings?.compile_commands_dir, fallback_flags: settings?.fallback_flags, background_index: settings?.background_index }, kind, position2, controller.signal);
+          if (language45 === "cmake" && kind === "definition" && !result.length) {
+            const runtime3 = window;
+            cmake_navigation ??= create_cmake_navigation(workspace_resource_fs(runtime3.reqnode("fs")), runtime3.reqnode("path"), (text3, signal2) => (worker ??= create_source_symbol_service()).parse("cmake", text3, signal2));
+            result = await cmake_navigation.definition(workspace_root || runtime3.reqnode("path").dirname(file_path), file_path, model.getValue(), position2, controller.signal);
+          }
           if (disposed || controller.signal.aborted || model.isDisposed() || version !== model.getVersionId()) throw new DOMException(workspace_text("document_symbols_navigation_has_been_canceled"), "AbortError");
           return result;
         } finally {
@@ -182426,6 +182543,7 @@ https://creativecommons.org/licenses/by/4.0/
         request?.abort();
         content.dispose();
         language44.dispose();
+        cmake_navigation?.dispose();
         worker?.dispose();
         void clangd?.dispose();
         listeners14.clear();
@@ -253489,6 +253607,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100403,
+        version: "2026.10.04.3",
+        date: "2026-10-04",
+        notes: [
+          "\u4FEE\u590D\u8BED\u8A00\u5DE5\u5177\u4E0B\u8F7D\u671F\u95F4\u53EF\u5B89\u88C5\u5217\u8868\u53CD\u590D\u5237\u65B0\uFF0C\u4FDD\u7559\u9759\u6001\u6761\u76EE\u3001\u9009\u62E9\u548C\u6EDA\u52A8\u4F4D\u7F6E\u3002",
+          "CMake\u5B9A\u4E49\u67E5\u8BE2\u65E0\u7ED3\u679C\u65F6\u8865\u67E5\u5DE5\u7A0B\u771F\u5B9E\u8BED\u6CD5\u58F0\u660E\uFF0C\u652F\u6301\u8DE8\u6587\u4EF6\u53D8\u91CF\u3001\u51FD\u6570\u3001\u53EF\u89E3\u6790\u8DEF\u5F84\u53CA\u547D\u4EE4\u8F93\u51FA\u53D8\u91CF\u7684Ctrl+\u5DE6\u952E\u8DF3\u8F6C\u3002"
+        ],
+        notes_en: [
+          "Keep available language entries, selection and scroll stable while installed tools download.",
+          "Supplement empty CMake definitions with grammar-confirmed project declarations for Ctrl+click on variables, functions, resolvable paths and command output variables."
+        ]
+      },
+      {
         sequence: 2026100402,
         version: "2026.10.04.2",
         date: "2026-10-04",
@@ -267471,8 +267602,10 @@ https://creativecommons.org/licenses/by/4.0/
       messages.set(id, workspace_text("language_plugin_preparing", { name }));
       notify3();
       const promise = Promise.resolve().then(() => manager.install(id, { directory: setting.installation_directory || "", signal: abort.signal, reuse: true, on_progress: (message) => {
-        messages.set(id, message);
-        notify3();
+        if (messages.get(id) !== message) {
+          messages.set(id, message);
+          notify3();
+        }
       } })).then((value) => {
         messages.set(id, workspace_text("language_plugin_completed"));
         return value;
@@ -267610,6 +267743,12 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/language_support_view.ts
   var sample_files = { cpp: "source.cpp", csharp: "source.cs", cmake: "CMakeLists.txt", makefile: "Makefile", bash: "source.sh", java: "source.java", javascript: "source.js", html: "source.html", css: "source.css" };
+  var set_text = (node, value) => {
+    if (node.textContent !== value) node.textContent = value;
+  };
+  var set_hidden = (node, value) => {
+    if (node.hidden !== value) node.hidden = value;
+  };
   var title = (entry) => entry.name.split(" (")[0];
   var description = (entry) => workspace_text("language_support_summary", { name: entry.name.slice(entry.name.indexOf("(") + 1).replace(/\)$/, "") });
   function open_language_support_settings(service, id) {
@@ -267742,23 +267881,25 @@ https://creativecommons.org/licenses/by/4.0/
           const order = entries3.findIndex((entry) => entry.id === info.id), next = [...group.items.children].find((node) => entries3.findIndex((entry) => entry.id === node.dataset.workspaceRowKey) > order);
           group.items.insertBefore(row.node, next || null);
         }
-        row.node.hidden = !(info.name + " " + info.id + " " + info.languages.join(" ")).toLocaleLowerCase().includes(needle);
+        set_hidden(row.node, !(info.name + " " + info.id + " " + info.languages.join(" ")).toLocaleLowerCase().includes(needle));
         if (!row.node.hidden) visible3++;
-        row.meta.textContent = "TyporaCode" + (info.removing ? " \xB7 " + workspace_text("language_support_removing") : info.busy ? " \xB7 " + workspace_text("language_support_preparing") : info.error ? " \xB7 " + workspace_text("language_support_failed") : info.installed && !info.enabled ? " \xB7 " + workspace_text("community_plugins_disabled") : info.record ? " \xB7 " + workspace_text("language_support_ready") : "");
-        row.meta.title = info.message || "TyporaCode";
-        row.node.classList.toggle("is-disabled", info.installed && !info.enabled);
-        row.node.setAttribute("aria-busy", String(info.busy));
-        row.install.hidden = !!info.installed;
-        row.menu.hidden = !info.installed;
+        set_text(row.meta, "TyporaCode" + (info.removing ? " \xB7 " + workspace_text("language_support_removing") : info.busy ? " \xB7 " + workspace_text("language_support_preparing") : info.error ? " \xB7 " + workspace_text("language_support_failed") : info.installed && !info.enabled ? " \xB7 " + workspace_text("community_plugins_disabled") : info.record ? " \xB7 " + workspace_text("language_support_ready") : ""));
+        const hint = info.message || "TyporaCode";
+        if (row.meta.title !== hint) row.meta.title = hint;
+        const disabled = !!info.installed && !info.enabled;
+        if (row.node.classList.contains("is-disabled") !== disabled) row.node.classList.toggle("is-disabled", disabled);
+        const busy = String(!!info.busy);
+        if (row.node.getAttribute("aria-busy") !== busy) row.node.setAttribute("aria-busy", busy);
+        set_hidden(row.install, !!info.installed);
+        set_hidden(row.menu, !info.installed);
       }
       for (const group of groups.values()) {
         const count = [...group.items.children].filter((node) => !node.hidden).length;
-        group.count.textContent = String(count);
-        group.header.hidden = count === 0;
-        group.items.hidden = group.closed || count === 0;
+        set_text(group.count, String(count));
+        set_hidden(group.header, count === 0);
+        set_hidden(group.items, group.closed || count === 0);
       }
-      message.textContent = visible3 ? "" : workspace_text("community_plugins_no_matching_plugin_found");
-      selection.refresh();
+      set_text(message, visible3 ? "" : workspace_text("community_plugins_no_matching_plugin_found"));
       if (owned_focus && previous_focus.isConnected && document.activeElement !== previous_focus) {
         const target = previous_focus.hidden ? previous_focus.closest(".language-support-row") : previous_focus;
         if (target && !target.hidden) target.focus({ preventScroll: true });

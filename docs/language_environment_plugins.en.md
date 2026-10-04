@@ -75,3 +75,23 @@ Validate migration, independent enable/disable/uninstall, automatic first F12, c
 [Upstream CMake client](https://github.com/neocmakelsp/neocmakelsp-vscode/blob/master/src/extension.ts): `NeocmakeContext.create` downloads the server before startup and enables `semantic_token: true`; both are adopted. Geometry source hashes are in `vscode_design_sources.json`, `language_support_20261004`.
 
 Clear and uninstall own an exclusive per-language task. Conflicting actions are disabled, and the service rejects retry or configuration changes until removal finishes. Registration uses a separate lock so cancellation does not wait for the download lock. See the [current independent-service evidence](../enhancements/tests/evidence/language_support_20261004.json); the initial community-plugin checks do not substitute for this architecture.
+
+## R085.3 Keep available languages static (2026-10-04)
+
+Installed-tool progress previously rewrote every row, group counter and selection attribute. Retaining row identity did not prevent mutations in the unrelated Available subtree; prior tests missed this boundary.
+
+The view now compares row presentation and list structure before writing. Only changed text, hints, state or membership update; progress cannot repaint unrelated rows, groups or selection. Actual search, installation, enablement and group changes retain their existing owners. Repeated identical progress is suppressed at the service, without adding a polling/throttling timer. Failure and cancellation affect their own row; disposal releases subscriptions and frames.
+
+The reference is pinned 68070681 extensionsList.ts renderElement and extensionsViews.ts query reuse, adopting data-driven rendering without copying the virtual-list implementation. Test 20/100/1000 progress and repeated notifications with zero mutations in Available, stable text nodes, selection, focus, scroll and rectangles; also exercise installation, filtering, folding and disposal. Native rendering evidence covers actual download notifications; synthetic host actions and trusted Chromium input are reported separately.
+
+## R085.4 Project CMake definitions (2026-10-04)
+
+The installed CMake environment and inherited profile are valid. Real Chromium Ctrl+click passes simple variables, user functions and include files, but direct LSP requests for the reported Zephyr variables and function return no definitions. Pinned neocmakelsp 0.11.2 follows resolvable include/subdirectory paths and cached values; dynamic paths and command output variables leave gaps.
+
+Keep LSP first. If a CMake definition query returns no targets, a separate adapter supplements static project definitions using the existing Tree-sitter worker. Current in-memory content wins; candidates come from the shared directory catalogue, with bounded reads, name prefiltering and syntax confirmation. Only declarations, functions/macros and existing files qualify. Comments, references and arbitrary strings are excluded; multiple candidates use the shared picker. No CMake execution, polling or generated project files are introduced. Disposal and cancellation belong to the document subscription. Built-in commands without source definitions retain a clear no-result message.
+
+Paths use the current directory, workspace directory and provable direct set values; unresolved dynamic expressions do not produce guessed targets. Validate multiple files, variables/functions/includes, execute_process output variables, comment exclusions, ambiguity, unsaved content, cancellation, file changes and disposal, with original-host routing and separate trusted Chromium Ctrl+click coverage.
+
+Source references: [neocmakelsp v0.11.2 jump.rs](https://github.com/neocmakelsp/neocmakelsp/blob/v0.11.2/src/jump.rs) and [scansubs.rs](https://github.com/neocmakelsp/neocmakelsp/blob/v0.11.2/src/scansubs.rs). See [evidence](../enhancements/tests/evidence/language_navigation_20261004.json) for acceptance and semantic/cold-scan limits.
+
+Path expansion accepts get_filename_component ABSOLUTE only without additional arguments. Forms with BASE_DIR or other unmodeled options stay unresolved instead of selecting a coincidentally existing path.

@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100403,
+      "version": "2026.10.04.3",
+      "date": "2026-10-04",
+      "notes": [
+        "修复语言工具下载期间可安装列表反复刷新，保留静态条目、选择和滚动位置。",
+        "CMake定义查询无结果时补查工程真实语法声明，支持跨文件变量、函数、可解析路径及命令输出变量的Ctrl+左键跳转。"
+      ],
+      "notes_en": [
+        "Keep available language entries, selection and scroll stable while installed tools download.",
+        "Supplement empty CMake definitions with grammar-confirmed project declarations for Ctrl+click on variables, functions, resolvable paths and command output variables."
+      ]
+    },
+    {
       "sequence": 2026100402,
       "version": "2026.10.04.2",
       "date": "2026-10-04",

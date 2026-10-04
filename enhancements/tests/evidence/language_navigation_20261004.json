@@ -1,0 +1,225 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "requirements": [
+    "R085.3",
+    "R085.4"
+  ],
+  "release": "2026.10.04.3",
+  "sequence": 2026100403,
+  "baseline": "c5679510c91f7452f94e6fbce5a04a3677003123",
+  "design": [
+    "docs/language_environment_plugins.md"
+  ],
+  "asset_manifest_sha256": "ec025163803cebd05ab775a8e2f803027230432d8486687befc5989f4ddb57ab",
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case_id": "1a73816c16d742fdaf50f951f98bb67e"
+    },
+    "catalog": {
+      "status": "PASS",
+      "suites": 284
+    },
+    "ui": {
+      "status": "PASS",
+      "suites": {
+        "test_language_support_ui.cjs": "1b0da357eb2c425aaaefa95b6a7f9eae",
+        "test_code_analysis_colors.cjs": "6ba3d174095146249f21c44d008904d4",
+        "test_community_plugins_ui.cjs": "c48847efd83644d7ad14c5e8cb011e72"
+      },
+      "scope": [
+        "20/100/1000 installed progress changes plus duplicate notifications: zero Available row/group mutations; stable text identity, geometry, selection, focus and scroll",
+        "220/380 CSS pixel widths in light/dark, unchanged geometry and theme contracts",
+        "Real CMake and clangd semantic responses, Monaco CMake lexical categories, six trusted Chromium CMake Ctrl-click targets",
+        "Independent language settings and separate community routing"
+      ]
+    },
+    "cmake_grammar": {
+      "status": "PASS",
+      "cycles": 20,
+      "scope": "Real grammar, cross-file variable/function/include paths, output variables, comment/string exclusions, unsaved text, changed files, ambiguity, abort and disposal; BASE_DIR expressions remain unresolved instead of guessing"
+    },
+    "native": {
+      "status": "PASS",
+      "case_id": "9e2140da5b36429386f310af6d88b29b",
+      "checks": 29,
+      "host": "Original Typora 1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "scope": [
+        "nine independent language entries",
+        "language view does not mount community manager",
+        "actual automatic download leaves available subtree unchanged",
+        "install automatically downloads CMake: 操作完成。",
+        "pending F12 reaches variable definition after preparation",
+        "CMake include opens exact helper file",
+        "native source Ctrl+click reaches project definition from line 4",
+        "trusted native Ctrl input 4",
+        "native source Ctrl+click reaches project definition from line 5",
+        "trusted native Ctrl input 5",
+        "native source Ctrl+click reaches project definition from line 7",
+        "trusted native Ctrl input 7",
+        "CMake semantic initialization matches upstream client",
+        "settings do not use community SettingTab",
+        "enabled action: 配置外部工具及语言参数…",
+        "enabled action: 将已安装工具链填入配置草稿",
+        "managed command in optional draft",
+        "cancel advanced draft",
+        "settings keyboard focus: night.css",
+        "settings viewport bounds: night.css",
+        "settings keyboard focus: github.css",
+        "settings viewport bounds: github.css",
+        "enabled action: 清除受管分析环境",
+        "clear owns the language lifecycle",
+        "retry cannot race with clear",
+        "clear opts out and removes only owned files",
+        "re-enable respects cleared automatic opt-out",
+        "independent uninstall removes registration",
+        "language was never registered in community"
+      ],
+      "mouse_events": [
+        {
+          "kind": "down",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 4,
+            "column": 15
+          }
+        },
+        {
+          "kind": "up",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 4,
+            "column": 15
+          }
+        },
+        {
+          "kind": "down",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 5,
+            "column": 6
+          }
+        },
+        {
+          "kind": "up",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 5,
+            "column": 6
+          }
+        },
+        {
+          "kind": "down",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 7,
+            "column": 13
+          }
+        },
+        {
+          "kind": "up",
+          "ctrl": true,
+          "trusted": true,
+          "type": 6,
+          "position": {
+            "lineNumber": 7,
+            "column": 13
+          }
+        }
+      ],
+      "payload_cleaned": true,
+      "fixture_source": {
+        "raw_sha256": "0b8f4a6f15535f7520ab099af878d3b33c6b21f483a998b887cad0d6345a3102",
+        "git_lf_sha256": "072abe718ad920311776d6d7cd37029bfebcc304cb908d3a1323872bb1579cd5",
+        "normalization": "prepare_stability_native.py reads fixture with UTF-8 universal newlines before injection; normalized tested text exactly matches Git LF blob."
+      }
+    },
+    "project_probe": {
+      "scope": "Read-only reported Zephyr project; raw installed neocmakelsp 0.11.2 gave no targets for all three requests; grammar fallback resolves declarations without executing project code. This is a service probe, not user-window input.",
+      "targets": [
+        {
+          "symbol": "PYTHON_EXECUTABLE",
+          "file": "cmake/modules/python.cmake",
+          "line": 98,
+          "elapsed_ms": 1953
+        },
+        {
+          "symbol": "WORDSIZE",
+          "file": "arch/posix/aarch64.cmake",
+          "line": 13,
+          "elapsed_ms": 1
+        },
+        {
+          "symbol": "zephyr_compile_options",
+          "file": "cmake/modules/extensions.cmake",
+          "line": 182,
+          "elapsed_ms": 446
+        }
+      ],
+      "cold_catalogue_ms": 11800,
+      "timing_limit": "Separate earlier cold scan and final-candidate warm OS/shared directory observations; not an input latency or performance guarantee."
+    },
+    "install_pair": {
+      "status": "PASS",
+      "case_id": "8c067afbb10f4d1fa5e867865b9665f2",
+      "runner_case_id": "4770b48944a146bd80788384fbaa679b",
+      "flow": "Install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, preferences and backup retained; owned payload cleaned."
+    },
+    "uninstall_regressions": {
+      "status": "PASS",
+      "case_id": "e52ad2c9c22e4beca16a209d655862e1",
+      "runner_case_id": "559099020ef34c389cbb6adfe5a48e63",
+      "assertions": 65,
+      "payload_cleaned": true
+    }
+  },
+  "regression_evidence": {
+    "old_available_mutation_failure": "305b77574cf249fb94979e468961d4da",
+    "discarded_early_test": "An empty observer callback drained records; corrected accumulation reproduced the old defect before the fix. The early false-green is not acceptance evidence.",
+    "native_failures": [
+      {
+        "case_id": "36b5c4013b3c4fbeabd1308c7064de94",
+        "reason": "Synthetic DOM mouse delivery did not complete navigation; replaced with HWND input, without claiming this as a product regression."
+      },
+      {
+        "case_id": "ee752245a431420186bdd1814e2638f2",
+        "reason": "New ctrl_click request omitted from runner allowlist; no events delivered. Fixed allowlist and added receipt verification; final trusted events and targets pass."
+      }
+    ]
+  },
+  "local_delivery": {
+    "installed": "2026.10.04.3",
+    "check": "OK",
+    "uninstall": "Read-only preflight only",
+    "protected_files": 10,
+    "registry_records": 4,
+    "matched_assets": {
+      "workbench": 64,
+      "terminal": 24
+    },
+    "unrelated_path_entries_preserved": true,
+    "user_windows_restarted": false,
+    "load_instruction": "Save documents and restart all Typora windows.",
+    "pushed": false
+  },
+  "limits": [
+    "CMake fallback is static candidate discovery, not CMake execution or complete VS Code language-extension equivalence. It may return multiple declarations from separate scopes; the shared picker makes ambiguity explicit.",
+    "Built-in commands without source definitions and unresolved dynamic paths remain no-result. Current document memory wins; other candidate files are read from disk.",
+    "Upstream CMake semantic output still emits an overlapping-token warning in Chromium; lexical classification and navigation pass, but full semantic parity is not claimed.",
+    "Other eight tool download recipes, full UI library, other platforms and long GPU stress were not rerun.",
+    "Historical R071.7 black screen, R068.11 clipping, R005.4 dual-native-editor and fenced-code host return exceptions remain open."
+  ]
+}

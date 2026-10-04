@@ -77,3 +77,23 @@ Node 使用完整便携包中的 npm，Python 使用 embedded 路径隔离及专
 [上游CMake客户端](https://github.com/neocmakelsp/neocmakelsp-vscode/blob/master/src/extension.ts)的`NeocmakeContext.create`先下载服务再启动，初始化选项包含`semantic_token: true`；本次已采用。具体扩展几何来源和摘要见`vscode_design_sources.json`的`language_support_20261004`。
 
 清除与卸载持有该语言的独占任务状态；进行期间禁用冲突操作，服务也拒绝重试和配置写入，避免新环境被旧清除任务移除。注册锁独立于下载锁，取消或停用不必等待下载锁释放。当前自动准备、独立列表与迁移验证见[本次证据](../enhancements/tests/evidence/language_support_20261004.json)，不以首版社区插件验收代替独立架构验证。
+
+## R085.3 可安装列表静态保持（2026-10-04）
+
+已安装环境下载进度通知触发整个列表refresh，无条件重写可安装条目的textContent、hidden与ARIA、分组计数及选择属性。虽然条目节点保留，这些DOM写入仍影响绘制与宿主观察器；上一轮只验证节点身份，没有覆盖静态子树的零写入。
+
+自有视图逐项比较呈现值与现有DOM状态；仅更新实际变化的文本、提示、状态或成员关系，进度不能刷新无关条目/分组/选择。搜索、安装迁移、启停与真实分组变化继续走同一状态所有者，不用定时器降低刷新频率掩盖重复写入。后台服务重复同值进度不发出新的通知；订阅与帧任务随所有者清理。失败/取消只改变所属条目，不清空列表。
+
+对照固定68070681 extensionsList.ts的renderElement与extensionsViews.ts的同查询复用：采用按数据变化呈现，不复制其虚拟列表实现。验证可安装子树在20/100/1000次已安装进度及重复通知下无MutationObserver记录、文本节点/选择/焦点/滚动/矩形保持；真实安装、筛选、折叠及销毁仍有效。原生宿主验证实际下载通知与真实绘制，明确与物理鼠标事件的边界。
+
+## R085.4 工程CMake定义解析（2026-10-04）
+
+现场受管CMake已安装且配置继承正常。真实Chromium Ctrl+左键对简单变量、用户函数及include路径通过；现场Zephyr文件中PYTHON_EXECUTABLE、WORDSIZE和zephyr_compile_options的直接LSP定义查询均返回空，不能将小样本通过当工程支持完成。固定neocmakelsp 0.11.2主要沿可解析的include/add_subdirectory及缓存建立定义，动态路径和命令输出变量有缺口。
+
+保留LSP优先，在CMake定义请求无结果时由独立CMake导航适配器补充静态工程定义。使用现有Tree-sitter工作线程识别请求处语法及真实声明，当前内存正文优先；工程候选读取复用共同目录清单，按名称先筛选内容，再解析声明，限制并发并支持取消。只返回变量声明、函数/宏定义与存在的文件，不把注释、普通引用或字符串当定义。多候选沿共享选择器，不执行CMake、不猜运行时值，不生成编译或缓存文件。服务随文档订阅清理，无新增轮询或全局刷新。内建命令没有工程源码定义时仍明确反馈未找到，不伪造目标。
+
+文件路径解析只使用当前目录、工程目录及可从语法确定的直接set值；无法证明的动态变量保留无结果。验收包含独立目录内多文件工程、变量/函数/include、execute_process输出变量、注释同名排除、多个定义、未保存正文、取消、文件变化及销毁。真实原生源码视图和Chromium Ctrl+左键分别验证，记录复杂动态表达式边界。
+
+源码依据：[neocmakelsp v0.11.2 jump.rs](https://github.com/neocmakelsp/neocmakelsp/blob/v0.11.2/src/jump.rs)与[scansubs.rs](https://github.com/neocmakelsp/neocmakelsp/blob/v0.11.2/src/scansubs.rs)。本次验收与已知语义/冷扫描限制见[证据](../enhancements/tests/evidence/language_navigation_20261004.json)。
+
+路径补充只接受无额外参数的get_filename_component ABSOLUTE；含BASE_DIR等尚未建模的形式保留未解析，防止碰巧存在的同名路径被误选。
