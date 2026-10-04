@@ -9630,6 +9630,174 @@
         "Expanded fence preserved; duplicate and other file independent; disk text unchanged."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-shell-integration",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R084"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/lib/typora_shell_integration.ps1",
+        "setup_windows.ps1"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_shell_integration.ps1",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Windows PowerShell 5.1"
+      ],
+      "steps": [
+        "20 installs in an isolated HKCU namespace; independent PATH/file/folder options, conflicts, rollback and owned removal."
+      ],
+      "expected": [
+        "No external files removed; selected operations work and cleanup retains evidence."
+      ],
+      "timeout_ms": 60000
+    },
+    {
+      "id": "TC-language-environments",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R085"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/language_environment_service.cjs",
+        "enhancements/src/language_environment_plugins.ts",
+        "enhancements/src/language_file_watchers.ts"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_language_environments.mjs",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Installed development dependencies; real language mode requires HTTPS access"
+      ],
+      "steps": [
+        "Run isolated ownership, failure, cancellation and lifecycle cases; --real additionally downloads portable tools and analyzes unsaved source."
+      ],
+      "expected": [
+        "No external files removed; selected operations work and cleanup retains evidence."
+      ],
+      "timeout_ms": 1200000
+    },
+    {
+      "id": "TC-setup-windows",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R084"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/lib/typora_shell_integration.ps1",
+        "setup_windows.ps1"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_setup_windows.ps1",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Windows PowerShell 5.1"
+      ],
+      "steps": [
+        "Render bilingual WPF layouts; run public GUI install/check, public uninstall, GUI reinstall/check in isolated directories."
+      ],
+      "expected": [
+        "No external files removed; selected operations work and cleanup retains evidence."
+      ],
+      "timeout_ms": 600000
+    },
+    {
+      "id": "TC-language-plugins-native",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R085"
+      ],
+      "design": "docs/language_environment_plugins.md",
+      "implementation": [
+        "enhancements/src/language_environment_service.cjs",
+        "enhancements/src/language_environment_plugins.ts",
+        "enhancements/src/language_file_watchers.ts"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/fixtures/language_plugins_native.js",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Installed development dependencies; real language mode requires HTTPS access"
+      ],
+      "steps": [
+        "Install and enable nine actual plugin entries; use native SettingTab to download, configure and remove portable CMake; verify themes and cleanup."
+      ],
+      "expected": [
+        "No external files removed; selected operations work and cleanup retains evidence."
+      ],
+      "timeout_ms": 180000,
+      "runner": "enhancements/scripts/test_stability_native.ps1"
+    },
+    {
+      "id": "TC-shell-open-native",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R084"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "enhancements/fixtures/shell_open_native.js",
+        "scripts/lib/typora_shell_integration.ps1"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_shell_open_native.ps1",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Windows PowerShell 5.1"
+      ],
+      "steps": [
+        "Launch isolated original Typora with a quoted Markdown file, source file and folder."
+      ],
+      "expected": [
+        "Exact resource or workspace opens through the original executable."
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

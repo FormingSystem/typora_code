@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100401,
+      "version": "2026.10.04.1",
+      "date": "2026-10-04",
+      "notes": [
+        "Windows 安装入口新增图形界面，可选当前用户 PATH 与文件、文件夹右键打开，保留命令行及有所有权的集成卸载。",
+        "新增九个语言环境插件，支持私有运行时下载、自选安装位置、启停、清除与外部工具/参数配置；受管工具链当前支持 Windows x64。"
+      ],
+      "notes_en": [
+        "Add graphical Windows setup with optional user PATH and file/folder context menus; retain command-line operations and owned integration removal.",
+        "Add nine language environment plugins with private runtimes, selectable locations, enable/disable, removal and external tool/argument configuration. Managed toolchains currently support Windows x64."
+      ]
+    },
+    {
       "sequence": 2026100302,
       "version": "2026.10.03.2",
       "date": "2026-10-03",

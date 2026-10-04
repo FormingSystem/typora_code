@@ -15,14 +15,14 @@ Typora Code 是运行在 Typora 中的社区工作台增强。普通用户使用
 
 macOS、Git Bash、MSYS2 MINGW64 和 Windows 32 位不属于当前安装支持范围。路径转换支持 WSL 风格路径不代表支持在 WSL 中运行 Windows 安装流程。Typora 自身的系统要求以[官方下载页](https://typora.io/)为准；Linux 的宿主安装方式见[官方 Linux 指南](https://support.typora.io/Typora-on-Linux/)。
 
-核心工作台使用随包文件。Windows 首次安装还会从 `nodejs.org` 下载固定的私有 Node 运行时并检查 SHA-256，不修改系统 PATH；已装系统 Node 不能替代该固定运行时。Git 功能需要 `git` 可从当前环境找到；C/C++ 大纲需要 clangd，可在工作台“解析环境设置”中指定路径。没有这些可选工具时，先安装所需工具再使用对应功能。
+核心工作台使用随包文件。Windows 首次安装还会从 `nodejs.org` 下载固定的私有 Node 运行时并检查 SHA-256，不修改系统 PATH；已装系统 Node 不能替代该固定运行时。Git 功能需要 `git` 可从当前环境找到；语言分析可从“扩展 → 语言环境插件”下载插件自带工具链，也可在设置中指定已有程序；当前受管环境支持 Windows x64，详见[语言环境插件](language_environment_plugins.md)。
 
 ## 下载完整安装包
 
 已安装用户可从 **帮助 → Typora Code GitHub 仓库** 用系统浏览器打开[项目仓库](https://github.com/FormingSystem/typora_code)，选择 **Code → Download ZIP**，解压整个目录。该入口不依赖更新检查成功。目标机无法连接GitHub时，可在其他可联网设备下载后转移完整包；纯离线首次安装还需准备下文“离线安装”所述运行时缓存。请确认同时存在：
 
 ```text
-install_windows.cmd / install_windows.ps1 / install.sh
+install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
@@ -38,10 +38,12 @@ enhancements/node_runtime.json
 ## Windows安装
 
 1. 先安装并打开 Typora，确认宿主可正常运行。保存所有未保存的文档；安装器不会强制关闭窗口。
-2. 完整解压 Typora Code。双击根目录的 `install_windows.cmd`；它调用同目录 PowerShell 脚本，显示结果并保留窗口供查看。
-3. 自动发现安装位置失败时，按提示输入 Typora 安装目录。安装器也接受 `Typora.exe`、`resources` 或 `resources/window.html` 的路径。
+2. 完整解压 Typora Code。双击根目录的 `install_windows.cmd`；它打开图形安装窗口，提供安装位置、可选系统集成、安装/更新、检查和卸载。
+3. 自动发现失败时，使用“浏览”选择包含 `Typora.exe` 的目录。可分别勾选当前用户 PATH、文件右键菜单、文件夹及目录空白处右键菜单；首次默认不勾选。
 4. 记录末尾 `Backup:` 后的完整备份目录。首次安装前的备份是以后恢复原环境的依据，更新时也要保留。
 5. 执行只读检查，正常重启 Typora，选择“主题 → cpp github consolas”。
+
+安装期间可查看日志，按钮暂时禁用，待事务结束后再关闭。需要修改可选项时重新运行图形安装即可。右键菜单不改变默认文件关联；Windows 11可能把传统菜单放在“显示更多选项”中。PATH广播给新进程，已打开的终端需重新启动；卸载仅撤销仍匹配本工程记录的集成。
 
 需要明确指定路径或用于自动化时，在下载包根目录执行：
 
@@ -50,6 +52,8 @@ enhancements/node_runtime.json
 powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
 powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1 -typora_root '<Typora安装目录>' -non_interactive
 ```
+
+只用命令行可执行 `install_windows.cmd -cli`。可选集成参数采用 `on` / `off` / `keep`，例如 `powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -non_interactive -add_path on -file_menu on -folder_menu on`；省略或 `keep` 保持现值，`off` 撤销属于本工程的对应项。
 
 安装支持 `-user_data '<实际Typora用户目录>'` 指定便携／独立配置目录，自动更新会传入当前宿主使用的真实位置；省略仍使用默认用户数据目录。额外支持 `-backup_root '<新的备份目录>'`，指定目录必须尚未存在。默认使用用户数据目录下的 `backups/typora_code_configuration/`。`-non_interactive` 在无法发现路径时直接失败，适合自动化，不会等待输入。PowerShell 帮助可通过 `Get-Help .\install_windows.ps1 -Detailed` 查看；`ExecutionPolicy Bypass` 仅作用于本次 PowerShell 进程。
 

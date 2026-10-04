@@ -18,7 +18,7 @@ Typora Code is a community workbench enhancement running in Typora. Regular user
 
 macOS, Git Bash, MSYS2 MINGW64, and Windows 32-bit are not within the current installation support scope. Path conversion support for WSL-style paths does not imply support for running Windows installation procedures within WSL. Typora's own system requirements are subject to the [official download page](https://typora.io/); for Linux host installation methods, see the [official Linux guide](https://support.typora.io/Typora-on-Linux/).
 
-The core workbench uses bundled files. On Windows, the first installation will also download a fixed private Node runtime from `nodejs.org` and check its SHA-256, without modifying the system PATH; the installed system Node cannot replace this fixed runtime. Git functionality requires `git` to be found in the current environment; the C/C++ outline requires clangd, whose path can be specified in the workbench's 'Parsing Environment Settings'. When these optional tools are not available, install the required tools first and then use the corresponding features.
+The core workbench uses bundled files. On Windows, the first installation will also download a fixed private Node runtime from `nodejs.org` and check its SHA-256, without modifying the system PATH; the installed system Node cannot replace this fixed runtime. Git functionality requires `git` to be found in the current environment; language analysis can use private tools installed from Extensions → Language environment plugins, or explicitly configured external programs. Managed toolchains currently support Windows x64.
 
 <a id="section_8b262e1c5e32"></a>
 ## Download the full installation package
@@ -26,7 +26,7 @@ The core workbench uses bundled files. On Windows, the first installation will a
 Existing users can open the [project repository](https://github.com/FormingSystem/typora_code) via the system browser from **Help → Typora Code GitHub Repository**, selecting **Code → Download ZIP**, and extracting the entire directory. This entry does not depend on the success of the update check. If the target machine cannot connect to GitHub, download the package on another connected device and transfer the full package; for a pure offline first installation, also prepare the runtime cache described in the following 'Offline Installation' section. Please confirm that the following are present:
 
 ```text
-install_windows.cmd / install_windows.ps1 / install.sh
+install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
@@ -43,8 +43,8 @@ A working tree obtained from Git is also applicable. Do not download only a sing
 ## Windows Installation
 
 1. First, install and open Typora, confirming that the host can run normally. Save all unsaved documents; the installer will not forcibly close the window.
-2. Fully extract Typora Code. Double-click `install_windows.cmd` in the root directory; it invokes a PowerShell script in the same directory, displays the results, and keeps the window open for viewing.
-3. If automatic discovery of the installation location fails, enter the Typora installation directory as prompted. The installer also accepts paths for `Typora.exe`, `resources`, or `resources/window.html`.
+2. Fully extract Typora Code. Double-click `install_windows.cmd` in the root directory; it opens graphical setup with installation location, independent integration options, install/update, check and uninstall actions.
+3. If discovery fails, browse for the folder containing Typora.exe. User PATH, file context menus and folder/background context menus are optional and initially unchecked.
 4. Record the complete backup directory after `Backup:`. The backup before the first installation serves as the basis for restoring the original environment in the future, and it should also be retained during updates.
 5. Perform a read-only check, restart Typora normally, and select 'Theme → cpp github consolas'.
 
@@ -239,3 +239,11 @@ For manual color testing, find `cpp_github-consolas_dark.css` from **Theme → O
 Each standard installation generates a new installation identifier. On the next startup, a ready window automatically displays the guide once. Reinstalling the same version also prompts; duplicates across multiple windows are removed, and skipping or completing the guide prevents repetition on regular restarts. The Help menu can always be revisited and opens the offline user_guide.md. On installation failure, the rollback identifier is retained, and user windows are not closed prematurely. The design is described in [Operation Guide](onboarding.en.md).
 
 2026-09-27 added themes `VSCode2026_Light` / `VSCode2026_Dark`, which use fixed VS Code 2026 Light / Dark color schemes, along with the Consolas font and existing formatting. Original `CppGithubConsoles_Light` / `CppGithubConsoles_Dark` and `Night` are retained. Installation does not switch the current theme; after restarting, select the new theme from the theme menu.
+
+## Graphical setup and language plugins
+
+Double-click `install_windows.cmd` to open Windows graphical setup. Browse for Typora and choose user PATH, file context menu and folder/background context menus independently. Options are unchecked on first use. Install/update, check and uninstall call the same public transactions, show logs and leave running Typora windows open. Save and restart Typora manually after installation. Existing terminals must be restarted to receive PATH changes; Windows 11 may display traditional entries under Show more options. Default file associations remain unchanged.
+
+`install_windows.cmd -cli` retains console mode. `install_windows.ps1` accepts `-add_path on`, `-file_menu on` and `-folder_menu on`; each also accepts `off` or `keep`. Omitted options preserve current choices. Uninstallation removes only still-matching owned PATH/menu entries.
+
+Extensions → Language environment plugins provides nine plugins with downloadable private runtimes, custom installation directories and external tool/argument configuration. See [language environment plugins](language_environment_plugins.en.md). Managed downloads currently support Windows x64.

@@ -1,0 +1,130 @@
+{
+  "schema": 1,
+  "date": "2026-10-04",
+  "requirements": [
+    "R084",
+    "R085"
+  ],
+  "release": "2026.10.04.1",
+  "sequence": 2026100401,
+  "baseline": "5e13fd3494d3607a086ba72e49efb785723acc92",
+  "design": [
+    "docs/installation_design.md#r084-图形安装与系统集成2026-10-04",
+    "docs/language_environment_plugins.md"
+  ],
+  "asset_manifest_sha256": "d62d90499a036a59e5f0c8737595e04cf9c4812775d5e70b91db4c529ee94d44",
+  "validation": {
+    "build": "PASS",
+    "full_check": {
+      "status": "PASS",
+      "case_id": "fa86104ef3534007ad98868a5896addf"
+    },
+    "ui": {
+      "status": "PASS",
+      "suites": [
+        "test_workspace_startup.cjs",
+        "test_workspace_file_editing.cjs",
+        "test_community_plugins_ui.cjs",
+        "test_code_analysis_colors.cjs"
+      ]
+    },
+    "gui": {
+      "status": "PASS",
+      "case_id": "83626a23f2194da5b4ae6c30bbc17938",
+      "host": "Windows PowerShell 5.1 WPF",
+      "layouts": [
+        "zh-CN 560px",
+        "zh-CN 720px",
+        "en-US 560px",
+        "en-US 720px"
+      ],
+      "flow": "Actual button events run public install/check/uninstall/reinstall/check; render images reviewed."
+    },
+    "shell_integration": {
+      "status": "PASS",
+      "case_id": "a8426566695d46c8af2b96d574dac38e",
+      "repeat_cycles": 20,
+      "scope": "Isolated HKCU keys; independent options, literal PATH preservation, ownership, external modifications, receipt failure rollback."
+    },
+    "portable_languages": {
+      "initial_case": "0477b03acea541459874e785c7bb4547",
+      "initial_passed": 8,
+      "initial_failed": {
+        "cmake": "HTTPS read ECONNRESET"
+      },
+      "cmake_retry": {
+        "status": "PASS",
+        "case_id": "c763c1355d0f44b0b3f6e9a4cb21d423"
+      },
+      "makefile_retry": {
+        "status": "PASS",
+        "case_id": "b9372016a7034c1fb8d00de8f1518d9f"
+      },
+      "scope": "Windows x64; PATH restricted to System32 and external runtime variables removed. Real downloads, unsaved document analysis and owned uninstall. Makefile uses definition navigation; server has no document symbols."
+    },
+    "native_plugins": {
+      "status": "PASS",
+      "case_id": "e0e5f63fb0bc4e96bb08e56096a2ec9c",
+      "checks": 53,
+      "host": "Original Typora 1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "scope": "Nine real plugin install/enable/SettingTab/disable lifecycles; CMake download, editable profile draft and cancel, light/dark keyboard focus and bounds, clear and uninstall."
+    },
+    "native_shell": {
+      "status": "PASS",
+      "cases": {
+        "markdown": "2e0b771546e2409da264aaf606bf1e92",
+        "source": "dd6c0b5fbf3c410088506669a6fabff8",
+        "folder": "3d3974020c714bb5a43663c999d61487"
+      },
+      "scope": "Quoted native startup targets, exact resource and one editor identity; isolated private desktop."
+    },
+    "install_pair": {
+      "status": "PASS",
+      "case_id": "a5b2f20d78b04104b59e5ab0a92c36d0",
+      "flow": "Install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check"
+    },
+    "uninstall_regressions": {
+      "status": "PASS",
+      "case_id": "57522a3437c04a3f9d4144bc6d6ef9ec",
+      "checks": 65,
+      "scope": "Failure, cancellation, rollback, preserved documents/configuration/backups"
+    }
+  },
+  "corrected_failures": [
+    "Native initial C++ target was loaded as Markdown before source routing. Startup now adopts through the shared file service after checking unchanged clean native state; read failure/cancellation retains the original leaf.",
+    "CMake server requires dynamic file watcher registration. The LSP adapter now uses the shared directory service and releases registrations with the client.",
+    "Latest autotools-language-server removed the Makefile executable. The recipe pins a compatible server and tests definitions rather than unsupported symbols.",
+    "Initial long private runtime paths prevented native server loading; owned directory names were shortened.",
+    "PowerShell 5.1 child output/module loading and exit-code lifetime required a fixed operation script, explicit Utility import and retained process handle.",
+    "Early .NET experiments added two owned test entries to the user PATH. Final recipes disable PATH/certificate setup; exactly those two entries were removed and all other entries preserved before delivery."
+  ],
+  "local_install": {
+    "status": "PASS",
+    "check": "OK",
+    "uninstall_preflight": "Read-only detach plan; no actual user uninstall",
+    "verification": {
+      "protected_files": 8,
+      "registry_records": 4,
+      "matched_assets": {
+        "workbench": 81,
+        "terminal": 24
+      },
+      "removed_owned_test_path_entries": 2,
+      "unrelated_path_entries_preserved": true
+    },
+    "running_windows": "Not closed or restarted; save documents and restart all Typora windows to load."
+  },
+  "limits": [
+    "Bundled real community-compatible plugin packages are available in the local extension catalog; not published to an external marketplace.",
+    "Managed downloads target Windows x64. Other platforms retain external tool configuration and are not validated here.",
+    "Clean-PATH tests are not pristine virtual machines. Complex real projects, all language subtypes and physical input/GPU scenarios were not exhaustively tested.",
+    "Analysis runtimes are bundled; complete C/C++ platform headers/SDKs, ShellCheck, build/debug workflows are outside this delivery.",
+    "Direct archives are hash pinned; npm/PyPI/NuGet transitive dependency resolution is not a complete reproducible offline lock.",
+    "Full UI suite was not run; four related suites and native fixtures passed. Historical black screen, clipping, dual native editor and fenced-code native return issues remain open."
+  ],
+  "delivery": {
+    "commit": "Recorded in the local requirement ledger after commit",
+    "pushed": false
+  }
+}

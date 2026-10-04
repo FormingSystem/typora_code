@@ -1,5 +1,9 @@
 @echo off
 setlocal
+if "%~1"=="" (
+    powershell.exe -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "%~dp0setup_windows.ps1"
+    exit /b
+)
 powershell.exe -NoProfile -ExecutionPolicy Bypass -File "%~dp0install_windows.ps1" %*
 set "install_exit_code=%errorlevel%"
 if not "%install_exit_code%"=="0" (

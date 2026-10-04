@@ -43,6 +43,8 @@ try:
             archive.writestr('manifest.json', json.dumps({'id':'fixture.public-api','name':'公共API测试','description':'设置与生命周期验收','author':'TyporaCode','repo':'fixture/public-api','version':'1.0.0','minCoreVersion':'2.0.0','minAppVersion':'1.0.0','platforms':['win32']}, ensure_ascii=False))
             archive.write(fixture_directory / 'community_api_plugin.js', 'main.js')
     (workspace / 'front.md').write_text('# 原生稳定性验收\n\n原文必须保持。\n', encoding='utf-8')
+    if fixture_path.name == 'shell_open_native.js':
+        (workspace / 'context code.cpp').write_text('int sample() { return 1; }\n', encoding='utf-8')
     if fixture_path.name == 'session_restart_native.js':
         corpus = case / 'corpus'
         corpus.mkdir()

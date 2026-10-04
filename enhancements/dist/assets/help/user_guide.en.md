@@ -112,3 +112,7 @@ Some bindings that conflict with the native Typora editor have been moved to Alt
 After each successful installation, the operation guide will be prompted once on the next startup; skipping it will prevent it from popping up again on regular restarts. The help menu can always be accessed again. Multiple windows will only show the prompt once. Installation does not forcibly close documents currently being edited; having the disk installed does not mean the current window has been loaded. A normal restart after saving will suffice.
 
 Check for updates and view this tool's repository through the help menu. The native help's Quick Start, Markdown Reference, license, and check for updates are still retained. When reporting issues, provide reproduction steps, current version, theme used, and error messages; do not include passwords or tokens.
+
+## Language environment plugins
+
+In Extensions → Language environment plugins, install and enable the desired plugin, open its settings and select Download and install environment. Recipes supply private runtimes without requiring global Node, Python, JDK or .NET. Choose installation locations, enable/disable use, clear managed tools or configure external tools and arguments. Managed recipes currently support Windows x64; see [language environment plugins](language_environment_plugins.en.md).

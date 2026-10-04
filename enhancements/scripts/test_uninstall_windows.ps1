@@ -89,7 +89,7 @@ try {
     # Copy entries and transactions to independent packages containing spaces and square brackets; do not read or modify real APPDATA.
     foreach ($relative in @('uninstall_windows.cmd','uninstall_windows.ps1','restore_windows.ps1',
         'scripts/restore_workspace_windows.ps1','scripts/lib/typora_environment.ps1','scripts/lib/typora_workspace.ps1',
-        'scripts/lib/typora_locale.ps1','scripts/lib/typora_messages.json','scripts/lib/typora_uninstall.ps1','scripts/lib/typora_install_log.ps1','scripts/lib/typora_install_permissions.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
+        'scripts/lib/typora_locale.ps1','scripts/lib/typora_shell_integration.ps1','scripts/lib/typora_messages.json','scripts/lib/typora_uninstall.ps1','scripts/lib/typora_install_log.ps1','scripts/lib/typora_install_permissions.ps1','scripts/lib/typora_terminal.ps1','scripts/lib/typora_native_profile.cjs','enhancements/node_runtime.json')) {
         $destination = Join-Path $package_root $relative
         New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
         Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination

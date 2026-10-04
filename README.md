@@ -28,7 +28,7 @@ Markdown splits share one active native Typora editor; the other splits provide 
 
 1. Install [Typora](https://typora.io/) and check that it opens documents normally.
 2. Download the complete repository using **Code → Download ZIP**, then extract it. Keep the included `enhancements/dist/` directory. Normal installation does not require a source build or a system Node.js installation.
-3. Save your documents and run `install_windows.cmd`. The first installation downloads and verifies a pinned private Node runtime. Keep the reported backup location.
+3. Save your documents and run `install_windows.cmd` for graphical setup with optional user PATH and file/folder context menus. The first installation downloads and verifies a pinned private Node runtime. Keep the reported backup location.
 4. Run the read-only check below. After `status: OK`, restart Typora normally to load the installed files.
 
 ```powershell

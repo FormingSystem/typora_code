@@ -1,5 +1,5 @@
 ﻿[CmdletBinding()]
-param([Parameter(Mandatory=$true)][string]$archive,[Parameter(Mandatory=$true)][string]$destination,[ValidateSet('repository','plugin')][string]$package_kind='repository')
+param([Parameter(Mandatory=$true)][string]$archive,[Parameter(Mandatory=$true)][string]$destination,[ValidateSet('repository','plugin','tools')][string]$package_kind='repository')
 $ErrorActionPreference='Stop'
 [Console]::OutputEncoding=[Text.UTF8Encoding]::new($false)
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -34,8 +34,8 @@ try {
   New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
   [IO.Compression.ZipFileExtensions]::ExtractToFile($entry,$target,$false)
  }
- $root=if($package_kind -eq 'plugin'){$destination}else{Join-Path $destination (@($roots)[0])}
- $required=if($package_kind -eq 'plugin'){@('manifest.json','main.js')}else{@('install_windows.ps1','enhancements/release.json','enhancements/dist/SHA256SUMS')}
+ $root=if($package_kind -ne 'repository'){$destination}else{Join-Path $destination (@($roots)[0])}
+ $required=if($package_kind -eq 'tools'){@()}elseif($package_kind -eq 'plugin'){@('manifest.json','main.js')}else{@('install_windows.ps1','enhancements/release.json','enhancements/dist/SHA256SUMS')}
  foreach($name in $required){if(!(Test-Path -LiteralPath (Join-Path $root $name) -PathType Leaf)){throw 'Incomplete archive.'}}
  Write-Output $root
 } finally {$zip.Dispose()}

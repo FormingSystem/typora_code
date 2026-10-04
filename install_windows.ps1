@@ -14,6 +14,15 @@ Immediately report an error if automatic discovery fails, without waiting for in
 .PARAMETER allow_elevation
 Allow unattended entry to apply once Windows system authorization after confirming write permission is insufficient; interactive installation defaults to applying as needed. #>
 [CmdletBinding()]
-param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='', [switch]$allow_elevation)
+param([string]$typora_root='', [string]$backup_root='', [switch]$non_interactive, [string]$user_data='', [switch]$allow_elevation, [switch]$cli, [ValidateSet('keep','on','off')][string]$add_path='keep', [ValidateSet('keep','on','off')][string]$file_menu='keep', [ValidateSet('keep','on','off')][string]$folder_menu='keep')
 $ErrorActionPreference = 'Stop'
 & (Join-Path $PSScriptRoot 'scripts/install_workspace_windows.ps1') -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive -include_theme -user_data $user_data -allow_elevation:$allow_elevation
+if ($add_path -ne 'keep' -or $file_menu -ne 'keep' -or $folder_menu -ne 'keep') {
+    . (Join-Path $PSScriptRoot 'scripts/lib/typora_environment.ps1')
+    . (Join-Path $PSScriptRoot 'scripts/lib/typora_shell_integration.ps1')
+    if (!$user_data) {$user_data=get_typora_windows_user_data}
+    $typora_root=resolve_typora_windows_root -typora_root $typora_root -non_interactive
+    $previous=get_typora_shell_state $user_data
+    try {set_typora_shell_integration -typora_root $typora_root -user_data $user_data -add_path $(if($add_path -ne 'keep'){$add_path -eq 'on'}else{$previous.add_path}) -file_menu $(if($file_menu -ne 'keep'){$file_menu -eq 'on'}else{$previous.file_menu}) -folder_menu $(if($folder_menu -ne 'keep'){$folder_menu -eq 'on'}else{$previous.folder_menu})}
+    catch {throw ('Workbench installed, but shell integration failed and was rolled back: '+$_.Exception.Message)}
+}

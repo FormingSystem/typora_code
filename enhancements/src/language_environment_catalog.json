@@ -1,0 +1,259 @@
+{
+  "schema": 1,
+  "runtimes": {
+    "node": {
+      "url": "https://nodejs.org/dist/v24.20.0/node-v24.20.0-win-x64.zip",
+      "sha256": "6cac9ffbca8f6a47091e4b5c772e0606049c3871cb67d900c0cedde630e545ba",
+      "prefix": "node-v24.20.0-win-x64"
+    },
+    "python": {
+      "url": "https://www.python.org/ftp/python/3.13.7/python-3.13.7-embed-amd64.zip",
+      "sha256": "f6cca216a359be84797cabb54149ce5e062afb16cc7567eb7fc51cacb2d86b65",
+      "size": 10922561
+    },
+    "pip": {
+      "url": "https://files.pythonhosted.org/packages/f3/6e/1736e5b4ae2b778ef2f81c47d797de9f891d4d8acb047a24ca37a60294dd/pip-26.2.1-py3-none-any.whl",
+      "sha256": "71138adf1f4ca900cdb7d289c21b7494329f2332b6d85f0e1c42108c0384ed3e"
+    },
+    "jdk": {
+      "url": "https://github.com/adoptium/temurin21-binaries/releases/download/jdk-21.0.12.1%2B1/OpenJDK21U-jdk_x64_windows_hotspot_21.0.12.1_1.zip",
+      "sha256": "f9d6e191ab098c0d416e7d588a24420a8621cd2f4720dab2459b8b7b2d2d8b4e",
+      "prefix": "jdk-21.0.12.1+1"
+    },
+    "dotnet": {
+      "url": "https://builds.dotnet.microsoft.com/dotnet/Sdk/10.0.401/dotnet-sdk-10.0.401-win-x64.zip",
+      "sha512": "24b670ad3d923bfcf47df6c3b034152398b42f6dbc388e10d783aee1cfb5e5817d399fc0ae2a12cfa822a55e61d34830ccb15c50ef6efee437ab874bb7c79430"
+    }
+  },
+  "plugins": [
+    {
+      "id": "typora_code.language_cpp",
+      "name": "C / C++ (clangd)",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "c",
+        "cpp"
+      ],
+      "recipe": "archive",
+      "asset": {
+        "url": "https://github.com/clangd/clangd/releases/download/23.1.0/clangd-windows-23.1.0.zip",
+        "sha256": "23412a240756a162e7b98a282f36aa2a23a88db5ce16a0cbc4fef7253768c810",
+        "prefix": "clangd_23.1.0"
+      },
+      "entry": "bin/clangd.exe",
+      "args": [
+        "--background-index=true",
+        "--clang-tidy=false",
+        "--pch-storage=memory",
+        "--log=error",
+        "--enable-config=false"
+      ],
+      "source": "https://clangd.llvm.org/installation"
+    },
+    {
+      "id": "typora_code.language_cmake",
+      "name": "CMake (neocmakelsp)",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "cmake"
+      ],
+      "recipe": "archive",
+      "asset": {
+        "url": "https://github.com/neocmakelsp/neocmakelsp/releases/download/v0.11.2/neocmakelsp-x86_64-pc-windows-msvc.zip",
+        "sha256": "011aedd26fa5855490b612280482832ad10367ab4807d4e89f2d6fa4f8bae3cb",
+        "prefix": ""
+      },
+      "entry": "neocmakelsp.exe",
+      "args": [
+        "stdio"
+      ],
+      "source": "https://neocmakelsp.github.io/docs/installation.html"
+    },
+    {
+      "id": "typora_code.language_makefile",
+      "name": "Makefile (autotools)",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "makefile"
+      ],
+      "recipe": "python",
+      "packages": [
+        "autotools-language-server==0.0.23",
+        "lsp-tree-sitter==0.1.0"
+      ],
+      "entry": "make_language_server",
+      "source": "https://autotools-language-server.readthedocs.io/en/latest/resources/install.html"
+    },
+    {
+      "id": "typora_code.language_bash",
+      "name": "Bash",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "shell"
+      ],
+      "recipe": "npm",
+      "packages": [
+        "bash-language-server@5.8.1"
+      ],
+      "entry": "bash-language-server/out/cli.js",
+      "args": [
+        "start"
+      ],
+      "source": "https://github.com/bash-lsp/bash-language-server"
+    },
+    {
+      "id": "typora_code.language_javascript",
+      "name": "JavaScript / TypeScript",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "javascript",
+        "typescript"
+      ],
+      "recipe": "npm",
+      "packages": [
+        "typescript-language-server@6.0.1",
+        "typescript@6.0.3"
+      ],
+      "entry": "typescript-language-server/lib/cli.mjs",
+      "args": [
+        "--stdio"
+      ],
+      "source": "https://github.com/typescript-language-server/typescript-language-server"
+    },
+    {
+      "id": "typora_code.language_html",
+      "name": "HTML",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "html"
+      ],
+      "recipe": "npm",
+      "packages": [
+        "vscode-langservers-extracted@4.10.0"
+      ],
+      "entry": "vscode-langservers-extracted/bin/vscode-html-language-server",
+      "args": [
+        "--stdio"
+      ],
+      "source": "https://github.com/hrsh7th/vscode-langservers-extracted"
+    },
+    {
+      "id": "typora_code.language_css",
+      "name": "CSS",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "css",
+        "scss",
+        "less"
+      ],
+      "recipe": "npm",
+      "packages": [
+        "vscode-langservers-extracted@4.10.0"
+      ],
+      "entry": "vscode-langservers-extracted/bin/vscode-css-language-server",
+      "args": [
+        "--stdio"
+      ],
+      "source": "https://github.com/hrsh7th/vscode-langservers-extracted"
+    },
+    {
+      "id": "typora_code.language_csharp",
+      "name": "C# (csharp-ls)",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "csharp"
+      ],
+      "recipe": "dotnet",
+      "server_version": "0.28.0",
+      "source": "https://github.com/razzmatazz/csharp-language-server"
+    },
+    {
+      "id": "typora_code.language_java",
+      "name": "Java (Eclipse JDT LS)",
+      "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+      "author": "FormingSystem",
+      "repo": "FormingSystem/typora_code",
+      "version": "1.0.0",
+      "minCoreVersion": "2.10.15",
+      "minAppVersion": "1.14.10",
+      "platforms": [
+        "win32"
+      ],
+      "languages": [
+        "java"
+      ],
+      "recipe": "java",
+      "asset": {
+        "url": "https://download.eclipse.org/jdtls/milestones/1.55.0/jdt-language-server-1.55.0-202601131729.tar.gz",
+        "sha256": "90627c9f03704dbb404f37651625d0751c078ab7534246023d53adcea1411b91",
+        "size": 50931267,
+        "kind": "tar"
+      },
+      "source": "https://github.com/eclipse-jdtls/eclipse.jdt.ls"
+    }
+  ]
+}

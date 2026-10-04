@@ -280,6 +280,10 @@
     {
       "zh_cn": "docs/editor_presentation.md",
       "en": "docs/editor_presentation.en.md"
+    },
+    {
+      "zh_cn": "docs/language_environment_plugins.md",
+      "en": "docs/language_environment_plugins.en.md"
     }
   ]
 }

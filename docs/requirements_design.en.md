@@ -45,6 +45,8 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R071.6 | Slow adjacent pane resizing with rendered text | [Container layout](workspace_responsiveness.en.md#r0716-adjacent-pane-dragging-and-document-layout) | Local layout and content/geometry ownership; current evidence reported separately |
 | R071.5 | Passive native focus must preserve the reading viewport | [Response ownership](workspace_responsiveness.en.md#r0715-old-cursor-overrides-the-reading-viewport) | Verified native boundaries; platform validation reported separately |
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |
+| R084 | Graphical setup and shell integration | [Design](installation_design.en.md) | Transactions, ownership, cancellation and verification |
+| R085 | Language environment plugins | [Design](language_environment_plugins.en.md) | Managed toolchains and community plugin lifecycle |
 | R082 | Independent Chinese-English Documents, English Code Comments, and Bilingual Interface | [Chinese/English release design](localization.en.md) | Full bilingual implementation and documentation are in place; see the design and evidence for verification and delivery boundaries |
 | R081 | Installation post-step operation guidance, help entry points, and offline explanations | [Operation Guidance](onboarding.en.md) | Exists; installation identifier, multi-window deduplication, focus, dynamic illustrations, and delivery acceptance |
 | R001 | Native file and folder selection | [Design chapter](file_operations.en.md#section_ee98cca2ce18) | Existing entry, cancel, and invalid design |

@@ -1,5 +1,5 @@
 ﻿# Run a dedicated host copy on an independent desktop that has not switched; only terminate the process of that copy.
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [switch]$enable_gpu, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300)
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [switch]$enable_gpu, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300, [string]$open_target='workspace/front.md')
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -11,7 +11,9 @@ $artifact_manager = Join-Path $PSScriptRoot 'manage_test_artifacts.py'
 if ($LASTEXITCODE -ne 0) { throw 'Test artifact claim failed' }
 $probe_root = $case_root
 $case_name = Split-Path -Leaf $case_root
-$document_path = Join-Path $case_root 'workspace/front.md'
+$document_path = [IO.Path]::GetFullPath((Join-Path $case_root $open_target))
+if (!$document_path.StartsWith($case_root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $document_path)) {throw 'Startup target must exist inside this isolated case.'}
+[IO.File]::WriteAllText((Join-Path $case_root 'startup_target.json'),(@{path=$document_path}|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
 $exit_on_checks = !$wait_for_normal_exit
 New-Item -ItemType Directory -Force -Path $case_root,(Join-Path $case_root 'appdata'),(Join-Path $case_root 'localappdata'),(Join-Path $case_root 'user_data') | Out-Null
 $env:APPDATA = Join-Path $case_root 'appdata'

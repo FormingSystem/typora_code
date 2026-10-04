@@ -41,6 +41,15 @@ await build({entryPoints:['src/workspace_network.cjs'],outfile:`${update_root}/w
 for(const name of ['http-proxy-agent','https-proxy-agent','agent-base','debug','ms','proxy-from-env']){const directory=`node_modules/${name}`;const license=fs.readdirSync(directory).find(file=>/^licen[cs]e/i.test(file));if(!license)throw Error('Missing network dependency license: '+name);fs.copyFileSync(`${directory}/${license}`,`dist/licenses/${name}.txt`);}
 fs.mkdirSync('dist/assets/plugins',{recursive:true});
 fs.writeFileSync('dist/assets/plugins/community_plugin_service.cjs',fs.readFileSync('src/community_plugin_service.cjs','utf8').replace(/\r\n?/gu,'\n'));
+await build({entryPoints:['src/language_environment_service.cjs'],outfile:'dist/assets/plugins/language_environment_service.cjs',bundle:true,external:['./workspace_service_i18n.cjs'],platform:'node',format:'cjs',target:'node18'});
+const language_catalog=JSON.parse(fs.readFileSync('src/language_environment_catalog.json','utf8'));
+for(const entry of language_catalog.plugins){
+ const directory=path.join('dist/assets/plugins/language_plugins',entry.id);fs.mkdirSync(directory,{recursive:true});
+ const {id,name,description,author,repo,version,minCoreVersion,minAppVersion,platforms}=entry;
+ fs.writeFileSync(path.join(directory,'manifest.json'),JSON.stringify({id,name,description,author,repo,version,minCoreVersion,minAppVersion,platforms},null,2)+'\n');
+ fs.copyFileSync('src/language_environment_plugin.js',path.join(directory,'main.js'));
+}
+for(const name of ['tar','chownr','minipass','minizlib','yallist','@isaacs/fs-minipass']){const directory=`node_modules/${name}`;const license=fs.readdirSync(directory).find(file=>/^licen[cs]e/i.test(file));if(!license)throw Error('Missing archive dependency license: '+name);fs.copyFileSync(`${directory}/${license}`,`dist/licenses/${name.replace(/^@/,'').replaceAll('/','_')}.txt`);}
 fs.mkdirSync('dist/assets/remote',{recursive:true});
 for(const name of ['remote_ssh_service.cjs','remote_ssh_askpass.mjs','remote_ssh_agent.py','remote_ssh_credentials.cjs','remote_ssh_wincred.ps1','remote_ssh_auth.cjs','remote_ssh_connections.cjs'])fs.writeFileSync('dist/assets/remote/'+name,fs.readFileSync('src/'+name,'utf8').replace(/\r\n?/gu,'\n'));
 for(const directory of ['update','plugins','remote'])for(const name of ['workspace_service_i18n.cjs','workspace_service_messages.json'])fs.writeFileSync(`dist/assets/${directory}/${name}`,fs.readFileSync(`src/${name}`,'utf8').replace(/\r\n?/gu,'\n'));

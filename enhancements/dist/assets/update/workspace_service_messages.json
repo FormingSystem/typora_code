@@ -482,5 +482,93 @@
   "service_e734ff9096ca": {
     "en": " Temporary files have not been cleaned up and will be retried in the next update.",
     "zh_cn": " 临时文件暂未清理，将在后续更新中重试。"
+  },
+  "language_environment_cancelled": {
+    "en": "Language environment operation cancelled.",
+    "zh_cn": "已取消语言环境操作。"
+  },
+  "language_environment_unknown": {
+    "en": "Unknown language environment plugin.",
+    "zh_cn": "未知语言环境插件。"
+  },
+  "language_environment_source": {
+    "en": "Unsupported language tool download source.",
+    "zh_cn": "不支持此语言工具下载来源。"
+  },
+  "language_environment_links": {
+    "en": "Managed tool directories cannot contain links.",
+    "zh_cn": "受管工具目录不能包含符号链接或目录联接。"
+  },
+  "language_environment_linked": {
+    "en": "Linked files cannot be managed.",
+    "zh_cn": "不能接管链接文件。"
+  },
+  "language_environment_ownership": {
+    "en": "Refusing to clear a directory without matching ownership.",
+    "zh_cn": "目录所有权记录不匹配，已拒绝清除。"
+  },
+  "language_environment_timeout": {
+    "en": "Language tool command timed out.",
+    "zh_cn": "语言工具命令执行超时。"
+  },
+  "language_environment_duplicate": {
+    "en": "Duplicate language tool archive entry.",
+    "zh_cn": "语言工具压缩包包含重名条目。"
+  },
+  "language_environment_state": {
+    "en": "Invalid environment state.",
+    "zh_cn": "语言环境状态记录无效。"
+  },
+  "language_environment_platform": {
+    "en": "Managed language toolchains currently support Windows x64. External services remain configurable.",
+    "zh_cn": "受管语言工具链目前支持 Windows x64，其他平台可配置外部服务。"
+  },
+  "language_environment_exists": {
+    "en": "Clear the existing managed environment before changing its installation location.",
+    "zh_cn": "更改安装位置前，请先清除现有受管环境。"
+  },
+  "language_environment_absolute": {
+    "en": "Select an absolute installation directory.",
+    "zh_cn": "请选择绝对路径的安装目录。"
+  },
+  "language_environment_python": {
+    "en": "Python embedded path configuration missing.",
+    "zh_cn": "Python 便携运行时缺少路径配置。"
+  },
+  "language_environment_java": {
+    "en": "JDT LS launcher is ambiguous.",
+    "zh_cn": "JDT LS 启动入口不唯一。"
+  },
+  "language_environment_recipe": {
+    "en": "Unknown installation recipe.",
+    "zh_cn": "未知语言环境安装配方。"
+  },
+  "language_environment_installed": {
+    "en": "Environment installed.",
+    "zh_cn": "语言环境已安装。"
+  },
+  "language_environment_download": {
+    "en": "Downloading {name}",
+    "zh_cn": "正在下载 {name}"
+  },
+  "language_environment_extract": {
+    "en": "Extracting {name}",
+    "zh_cn": "正在解压 {name}"
+  },
+  "language_environment_prepare": {
+    "en": "Preparing {name}",
+    "zh_cn": "正在准备 {name}"
+  },
+  "language_environment_checksum": {
+    "en": "Tool download checksum mismatch: {name}",
+    "zh_cn": "工具下载摘要不匹配：{name}"
+  },
+  "language_environment_archive": {
+    "en": "Unsafe language tool archive entry: {name}",
+    "zh_cn": "语言工具压缩包条目不安全：{name}"
+  },
+  "language_environment_entry": {
+    "en": "Installed tool entry missing: {name}",
+    "zh_cn": "安装后缺少工具入口：{name}"
   }
 }

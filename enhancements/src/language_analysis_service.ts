@@ -76,15 +76,17 @@ export function language_document_symbols(items:any,text:string):source_symbol[]
   return Array.isArray(items)?map(items):[];
 }
 
-export function create_language_analysis_service(node=host_node,on_semantic_refresh:()=>void=()=>{},on_diagnostics:(text:string,items:language_diagnostic[])=>void=()=>{}){
+export function create_language_analysis_service(node=host_node,on_semantic_refresh:()=>void=()=>{},on_diagnostics:(text:string,items:language_diagnostic[])=>void=()=>{},watch_files?:(root:string,watchers:any[],notify:(changes:{path:string;type:number}[])=>void)=>()=>void){
   const path=node("path"),url=node("url");
+  const session_id=node('crypto').randomUUID();
+  const registrations=new Map<string,()=>void>();
   let disposed=false,transport:ReturnType<typeof create_language_server_transport>|undefined,environment:clangd_environment|undefined,configuration="",document_uri="",document_text="",document_language="",document_version=0;
   let capabilities:any;
   let active:AbortController|undefined,queue:Promise<unknown>=Promise.resolve();
   const inactive_regions=new Map<string,language_range[]>();
   const diagnostics=new Map<string,{version?:number;items:any[]}>();
   const abort_error=()=>new DOMException(workspace_text("language_analysis_service_analysis_has_been_canceled"),"AbortError");
-  const close=async()=>{const previous=transport;transport=undefined;configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();inactive_regions.clear();await previous?.dispose();};
+  const close=async()=>{const previous=transport;transport=undefined;for(const release of registrations.values())release();registrations.clear();configuration="";document_uri="";document_text="";document_language="";diagnostics.clear();inactive_regions.clear();await previous?.dispose();};
   const run=async(options:language_analysis_request,signal:AbortSignal,navigation?:{kind:language_navigation_kind;position:language_position;fallback:boolean}):Promise<language_analysis_result|language_location[]>=>{
     if(disposed||signal.aborted)throw abort_error();if(!path.isAbsolute(options.file_path))throw new Error(workspace_text("language_analysis_service_the_code_outline_requires_an_absolute_file_path"));
     const generic=options.server?.provider==="lsp";
@@ -97,7 +99,7 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
       const key=JSON.stringify([root,options.executable||"",options.compile_commands_dir||"",options.fallback_flags||[],options.background_index===true,options.server]);
       if(key!==configuration||!transport||transport.failure){
         await close();check();environment=generic?{executable:await discover_language_server(options.server!.command!,node),compile_commands_dir:"",candidates:[],compile_commands_candidates:[]}:await discover_clangd_environment({...options,workspace_root:root},node);check();
-        const args=generic?[...(options.server!.args||[])]:[`--background-index=${options.background_index===true}`,"--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
+        const args=generic?(options.server!.args||[]).map(arg=>arg.replaceAll('${workspace_hash}',node('crypto').createHash('sha256').update(root).digest('hex')).replaceAll('${session_id}',session_id)):[`--background-index=${options.background_index===true}`,"--clang-tidy=false","--pch-storage=memory","--log=error","--enable-config=false"];
         if(environment.compile_commands_dir)args.push(`--compile-commands-dir=${environment.compile_commands_dir}`);
         let current_transport:ReturnType<typeof create_language_server_transport>;
         transport=current_transport=create_language_server_transport(node,environment.executable,args,root,(method,params)=>{
@@ -115,10 +117,19 @@ export function create_language_analysis_service(node=host_node,on_semantic_refr
           if(method==="workspace/workspaceFolders")return [{uri:url.pathToFileURL(root).href,name:path.basename(root)}];
           if(method==="workspace/semanticTokens/refresh"){if(!disposed)on_semantic_refresh();return null;}
           if(method==="window/workDoneProgress/create")return null;
+          if(method==='client/registerCapability'&&watch_files&&Array.isArray(params?.registrations)&&params.registrations.every((item:any)=>item.method==='workspace/didChangeWatchedFiles')){
+            for(const item of params.registrations){
+              registrations.get(item.id)?.();
+              registrations.set(item.id,watch_files(root,item.registerOptions?.watchers||[],changes=>{
+                if(!disposed&&transport===current_transport)current_transport.notify('workspace/didChangeWatchedFiles',{changes:changes.map(change=>({uri:url.pathToFileURL(change.path).href,type:change.type}))});
+              }));
+            }return null;
+          }
+          if(method==='client/unregisterCapability'&&Array.isArray(params?.unregisterations)){for(const item of params.unregisterations){registrations.get(item.id)?.();registrations.delete(item.id);}return null;}
           return undefined;
-        });
+        },options.server?.environment);
         try{
-          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{inactiveRegionsCapabilities:{inactiveRegions:true},definition:{linkSupport:true},declaration:{linkSupport:true},implementation:{linkSupport:true},references:{},semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
+          const response=await transport.request("initialize",{processId:node("process").pid,rootUri:url.pathToFileURL(root).href,clientInfo:{name:"TyporaCode",version:"1"},workspaceFolders:[{uri:url.pathToFileURL(root).href,name:path.basename(root)}],capabilities:{workspace:{configuration:true,workspaceFolders:true,didChangeWatchedFiles:{dynamicRegistration:!!watch_files,relativePatternSupport:false},semanticTokens:{refreshSupport:true}},general:{positionEncodings:["utf-16"]},offsetEncoding:["utf-16"],textDocument:{inactiveRegionsCapabilities:{inactiveRegions:true},definition:{linkSupport:true},declaration:{linkSupport:true},implementation:{linkSupport:true},references:{},semanticTokens:{requests:{full:true},tokenTypes:SEMANTIC_TYPES,tokenModifiers:SEMANTIC_MODIFIERS,formats:["relative"],overlappingTokenSupport:false,multilineTokenSupport:false},documentSymbol:{hierarchicalDocumentSymbolSupport:true,symbolKind:{valueSet:Array.from({length:26},(_,index)=>index+1)}},publishDiagnostics:{versionSupport:true}}},initializationOptions:generic?options.server?.initialization_options||{}:{fallbackFlags:options.fallback_flags||[]}},controller.signal);
           const encoding=response?.capabilities?.positionEncoding||response?.offsetEncoding||"utf-16";
           if(encoding!=="utf-16")throw new Error(workspace_text("language_analysis_service_clangd_does_not_accept_utf_16_location_protocol"));
           capabilities=response?.capabilities||{};

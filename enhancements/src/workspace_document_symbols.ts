@@ -2,6 +2,8 @@ import {workspace_text} from "./workspace_i18n";
 import {set_source_inactive_regions} from "./source_inactive_regions";
 import type {language_navigation_kind,language_position,language_location,language_diagnostic} from "./language_locations";
 import {read_language_service_profile,observe_language_services} from "./language_service_settings";
+import {create_language_file_watcher} from './language_file_watchers';
+import {workspace_resource_fs} from './remote_workspace_files';
 import {set_source_semantics} from "./source_semantic_tokens";
 import {marked} from "marked";
 import {create_source_symbol_service} from "./source_symbol_service";
@@ -46,7 +48,7 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
         const compiled=language==="c"||language==="cpp",settings=compiled?read_source_outline_settings(workspace_root):undefined;
         const use_lsp=profile.provider==="lsp"||(compiled&&profile.provider==="default");
         if(!use_lsp&&clangd){await clangd.dispose();clangd=undefined;}
-        const result=profile.provider==="disabled"?{symbols:[],incomplete:false}:language==="markdown"?{symbols:markdown_document_symbols(model.getValue()),incomplete:false}:use_lsp?await (clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics)).parse({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},controller.signal):await(worker??=create_source_symbol_service()).parse(language,model.getValue(),controller.signal);
+        const result=profile.provider==="disabled"?{symbols:[],incomplete:false}:language==="markdown"?{symbols:markdown_document_symbols(model.getValue()),incomplete:false}:use_lsp?await (clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics,create_language_file_watcher(workspace_resource_fs((window as any).reqnode("fs")),(window as any).reqnode("path")))).parse({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},controller.signal):await(worker??=create_source_symbol_service()).parse(language,model.getValue(),controller.signal);
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())return;
         set_source_inactive_regions(model,"inactive_regions" in result?result.inactive_regions:[]);
         set_source_semantics(model,"semantic_tokens" in result?result.semantic_tokens:undefined);
@@ -69,7 +71,7 @@ export function subscribe_document_symbols(model:any,file_path:string,workspace_
       const controller=navigation=new AbortController(),version=model.getVersionId(),abort=()=>controller.abort();signal.addEventListener("abort",abort,{once:true});
       const settings=compiled?read_source_outline_settings(workspace_root):undefined;
       try{
-        const result=await(clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics)).navigate({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},kind,position,controller.signal);
+        const result=await(clangd??=create_language_analysis_service(undefined,semantic_refresh,receive_diagnostics,create_language_file_watcher(workspace_resource_fs((window as any).reqnode("fs")),(window as any).reqnode("path")))).navigate({file_path,workspace_root,language,text:model.getValue(),server:profile,executable:settings?.clangd_path,compile_commands_dir:settings?.compile_commands_dir,fallback_flags:settings?.fallback_flags,background_index:settings?.background_index},kind,position,controller.signal);
         if(disposed||controller.signal.aborted||model.isDisposed()||version!==model.getVersionId())throw new DOMException(workspace_text("document_symbols_navigation_has_been_canceled"),"AbortError");return result;
       }finally{signal.removeEventListener("abort",abort);if(navigation===controller){navigation=undefined;semantic_refresh();}}
     };

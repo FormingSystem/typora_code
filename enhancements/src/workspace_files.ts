@@ -1203,7 +1203,20 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   });
-  const host = {fs, path_api, core, open_file, restore_files, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  // A native command-line launch can precede our open-file adapter. Adopt its clean source document once.
+  const adopt_startup_source=async(signal:AbortSignal)=>{
+    const leaf=core.app.workspace.activeLeaf,file_path=real_path(leaf);
+    if(!leaf||!path_api.isAbsolute(file_path)||is_markdown_file(file_path)||is_source_file_uri(leaf.state.path)||file_key(file_path)!==file_key(runtime._options?.initFilePath||''))return;
+    const current=()=>!signal.aborted&&binding.active&&core.app.workspace.activeLeaf===leaf&&file_key(runtime.File?.bundle?.filePath||'')===file_key(file_path)&&!runtime.File?.changeCounter?.isDocumentEdited();
+    if(!current())return;
+    await prepare_transfer(current,signal);if(!current())return;
+    await open_file(file_path,{source:true,reason:'restore',signal});
+    const opened=core.app.workspace.activeLeaf,view=[...views].find(item=>item.leaf===opened);
+    await view?.load_task;
+    if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
+    await close_leaf(leaf);
+  };
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

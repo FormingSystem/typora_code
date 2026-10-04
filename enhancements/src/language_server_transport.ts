@@ -1,8 +1,8 @@
 import {workspace_text} from "./workspace_i18n";
 /** Language service's stdio JSON-RPC channel; only start the specified process, not through shell. */
-export function create_language_server_transport(node:(name:string)=>any,executable:string,args:string[],cwd:string,on_notification:(method:string,params:any)=>void,on_request?:(method:string,params:any)=>any){
+export function create_language_server_transport(node:(name:string)=>any,executable:string,args:string[],cwd:string,on_notification:(method:string,params:any)=>void,on_request?:(method:string,params:any)=>any,environment?:Record<string,string>){
   const bytes=node("buffer").Buffer;
-  const child=node("child_process").spawn(executable,args,{cwd,shell:false,windowsHide:true,stdio:["pipe","pipe","pipe"]});
+  const child=node("child_process").spawn(executable,args,{cwd,...(environment?{env:{...node('process').env,...environment}}:{}),shell:false,windowsHide:true,stdio:["pipe","pipe","pipe"]});
   let buffer=bytes.alloc(0),next_id=0,failed:Error|undefined,closed=false,stderr="";
   const pending=new Map<number,{finish:(error?:Error,value?:any)=>void}>();
   const abort_error=()=>new DOMException(workspace_text("language_analysis_service_analysis_has_been_canceled"),"AbortError");

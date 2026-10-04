@@ -2,6 +2,8 @@
 
 # 稳定性问题索引
 
+2026-10-04 R084/R085：INSTALL-gui-child-lifetime（PS5.1模块加载/退出码）、SOURCE-native-startup（源码首启落入Markdown）、LSP-managed-runtime（长路径、CMake动态监听、Makefile入口移除）分别在所属适配层修复，未引入第二套配置或目录监听。早期.NET初始化修改测试PATH，最终配方禁用此行为并已撤销两条自有记录；HTTPS连接重置记录为下载失败，单项重试通过。完整回归、原生与安装证据见[本次证据](../enhancements/tests/evidence/language_setup_20261004.json)，不能据此关闭历史黑屏、裁切或原生带语言围栏返回问题。
+
 2026-09-24 R027.1：GIT-history-tracking-range——原图仅投影真实提交，领先／落后计数缺少可展开的区间对象。共同图模型新增真实上游的虚拟区间，业务diff仍使用实际提交端点；无上游与分页边界不伪造节点。真实Git、原始宿主及共享选择／明暗布局验证见[证据](../enhancements/tests/evidence/git_history_ranges_20260924.json)。原生夹具曾错用未挂载的控制器，修正为公共来源定位入口和实际侧栏所有者，未把测试接线错误归为产品缺陷。
 
 按领域和根因检索，重复复现更新同一编号。需求设计见[测试架构](stability_testing.md)，本轮运行证据见[验收记录](stability_validation_20260919.md)。本表记录缺陷结论与边界；当前交付进度以本地台账为准，避免每份文档再建一套完成清单。

@@ -55,6 +55,8 @@ if (!bundle_source.includes('Copyright (c) 2019 GitHub, Inc.')) throw new Error(
 const deployment_files = [
   "install_windows.cmd",
   "install_windows.ps1",
+  "setup_windows.ps1",
+  "scripts/lib/typora_shell_integration.ps1",
   "check_windows.ps1",
   "uninstall_windows.cmd",
   "uninstall_windows.ps1",

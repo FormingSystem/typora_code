@@ -7689,5 +7689,77 @@
   "appearance_reset_description": {
     "en": "Appearance is saved across restarts. Reset interface zoom to 100%, content font adjustments and terminal font/layout defaults, and hide the terminal panel. Documents, running Shells, themes, connections and other settings are retained.",
     "zh_cn": "关闭应用后保留上次外观。此操作将界面缩放恢复100%、清除内容字号调整、恢复终端字体及面板比例并隐藏面板；保留正文、正在运行的Shell、主题、连接及其他设置。"
+  },
+  "language_plugin_market": {
+    "zh_cn": "语言环境插件",
+    "en": "Language environment plugins"
+  },
+  "language_plugin_description": {
+    "zh_cn": "插件可下载独立工具链，无需预装系统工具。安装环境后可选择是否使用；外部配置与用户文件不随清除删除。",
+    "en": "Download a private toolchain without system prerequisites. Choose whether to use it after installation. External tools and user files are preserved."
+  },
+  "language_plugin_directory": {
+    "zh_cn": "工具链安装目录",
+    "en": "Toolchain installation directory"
+  },
+  "language_plugin_directory_help": {
+    "zh_cn": "留空使用默认目录。所选目录内创建插件专属子目录；更换位置前先清除已有受管环境。",
+    "en": "Leave empty for the default. A plugin-owned subdirectory is created inside the selected folder. Clear the managed environment before changing its location."
+  },
+  "language_plugin_browse": {
+    "zh_cn": "选择目录…",
+    "en": "Choose directory…"
+  },
+  "language_plugin_install": {
+    "zh_cn": "下载并安装分析环境",
+    "en": "Download and install environment"
+  },
+  "language_plugin_clear": {
+    "zh_cn": "清除受管分析环境",
+    "en": "Clear managed environment"
+  },
+  "language_plugin_use": {
+    "zh_cn": "使用插件的分析环境",
+    "en": "Use the plugin environment"
+  },
+  "language_plugin_configure": {
+    "zh_cn": "配置外部工具及语言参数…",
+    "en": "Configure external tools and language arguments…"
+  },
+  "language_plugin_compiler": {
+    "zh_cn": "C/C++编译数据库与后备参数…",
+    "en": "C/C++ compilation database and fallback arguments…"
+  },
+  "language_plugin_cancel": {
+    "zh_cn": "取消下载 / 安装",
+    "en": "Cancel download / installation"
+  },
+  "language_plugin_working": {
+    "zh_cn": "正在准备环境…",
+    "en": "Preparing environment…"
+  },
+  "language_plugin_completed": {
+    "zh_cn": "操作完成。",
+    "en": "Operation completed."
+  },
+  "language_plugin_absolute_directory": {
+    "zh_cn": "请选择完整的安装目录路径。",
+    "en": "Select an absolute installation directory."
+  },
+  "language_plugin_installed": {
+    "zh_cn": "已安装：{directory}",
+    "en": "Installed: {directory}"
+  },
+  "language_plugin_not_installed": {
+    "zh_cn": "尚未安装受管工具链；可以安装或配置自己的外部工具。",
+    "en": "No managed toolchain installed. Install one or configure your own external tools."
+  },
+  "language_plugin_environment_variables": {
+    "en": "Process environment variables (JSON object)",
+    "zh_cn": "进程环境变量（JSON 对象）"
+  },
+  "language_plugin_use_managed_command": {
+    "en": "Copy installed toolchain into this draft",
+    "zh_cn": "将已安装工具链填入配置草稿"
   }
 }

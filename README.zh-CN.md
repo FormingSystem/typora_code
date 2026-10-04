@@ -28,7 +28,7 @@ Markdown 分栏共用一个活动的 Typora 原生编辑器，其余分栏提供
 
 1. 安装 [Typora](https://typora.io/)，确认能够正常打开文档。
 2. 在仓库网页通过“代码 → 下载压缩包”下载并完整解压，保留随包的 `enhancements/dist/`。普通安装不需要源码构建或系统 Node.js。
-3. 保存文档，运行 `install_windows.cmd`。首次安装下载并校验固定的私有 Node 运行时，请保留输出的备份位置。
+3. 保存文档，运行 `install_windows.cmd` 打开图形安装器，可选用户 PATH 和文件/文件夹右键菜单。首次安装下载并校验固定的私有 Node 运行时，请保留输出的备份位置。
 4. 执行下方只读检查。出现 `status: OK` 后正常重启 Typora，加载已安装文件。
 
 ```powershell

@@ -76,6 +76,10 @@ export function bind_workspace_sessions(files:workspace_file_host){
   // Wait for constant modules such as reading navigation to complete assembly, do not save the first empty layout ahead to disk.
   const ready=(async()=>{
     while(!disposed&&document.documentElement.dataset.linuxNoteTyporaEnhancements==="loading")await new Promise(resolve=>setTimeout(resolve,30));
+    if(disposed)return;
+    if(owns_session&&runtime._options?.initFilePath&&!activation_controller.signal.aborted){
+      try{await files.adopt_startup_source(activation_controller.signal);}catch(error){if(!activation_controller.signal.aborted)notice(error);}
+    }
     if(disposed)return;await restore(true);paused=false;
   })();
   return {ready,

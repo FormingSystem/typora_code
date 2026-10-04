@@ -1,0 +1,13 @@
+{
+  "id": "typora_code.language_css",
+  "name": "CSS",
+  "description": "Managed language server and portable toolchain. Configure installation directory and external tools in plugin settings.",
+  "author": "FormingSystem",
+  "repo": "FormingSystem/typora_code",
+  "version": "1.0.0",
+  "minCoreVersion": "2.10.15",
+  "minAppVersion": "1.14.10",
+  "platforms": [
+    "win32"
+  ]
+}

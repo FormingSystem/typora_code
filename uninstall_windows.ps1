@@ -20,6 +20,7 @@ $ErrorActionPreference = 'Stop'
 . (Join-Path $PSScriptRoot 'scripts/lib/typora_uninstall.ps1')
 . (Join-Path $PSScriptRoot 'scripts/lib/typora_install_log.ps1')
 . (Join-Path $PSScriptRoot 'scripts/lib/typora_install_permissions.ps1')
+. (Join-Path $PSScriptRoot 'scripts/lib/typora_shell_integration.ps1')
 $user_data = get_typora_windows_user_data
 $log = $null
 $mutex = $null
@@ -36,7 +37,7 @@ try {
     if ($null -eq $plan) { Write-Host 'Typora Code uninstall cancelled. No files changed.'; return }
     Write-Host "Uninstall plan: $($plan.mode) | $($plan.typora_root)"
     if ($check_only) { Write-Host 'Read-only preflight complete. No files changed.'; return }
-    if ($plan.mode -eq 'absent') { write_typora_install_log $log SUCCESS 'Typora Code is already detached. No startup entry remains.'; return }
+    if ($plan.mode -eq 'absent') { set_typora_shell_integration -typora_root $plan.typora_root -user_data $user_data -remove; write_typora_install_log $log SUCCESS 'Typora Code is already detached. No startup entry remains.'; return }
     assert_typora_uninstall_closed $plan.typora_root
     if ($plan.mode -eq 'restore') {
         write_typora_install_log $log INFO ("Backup: " + $plan.context.backup_root)
@@ -46,6 +47,7 @@ try {
         $attempt = invoke_typora_current_uninstall $plan $user_data
         write_typora_install_log $log INFO ("Startup backup: " + $attempt)
     }
+    set_typora_shell_integration -typora_root $plan.typora_root -user_data $user_data -remove
     write_typora_install_log $log SUCCESS 'Typora Code uninstalled. Open Typora and select your previous theme. Documents, settings and backups are preserved.'
 } catch {
     if ($null -ne $log) { write_typora_install_log $log ERROR $_.Exception.Message }

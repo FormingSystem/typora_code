@@ -19,7 +19,7 @@ function release_info(value){
 }
 function allowed_url(value){const url=new URL(value);if(url.protocol!=='https:'||url.username||url.password||url.port||!['api.github.com','raw.githubusercontent.com','codeload.github.com','github.com','release-assets.githubusercontent.com'].includes(url.hostname))throw Error(workspace_service_text("service_86c7aea302ad"));return url;}
 /** Connection cutoff time overrides redirection and slow response; download does not close TLS certificate verification. */
-function download(url,{file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{},network}={}){
+function download(url,{file,signal,timeout_ms=30000,redirects=0,deadline=Date.now()+timeout_ms,on_progress=()=>{},network,validate_url=allowed_url}={}){
  return new Promise((resolve,reject)=>{
   let settled=false,request,response,output,agent,total=0;const chunks=[],transport_abort=new AbortController();
   const cleanup=()=>{clearTimeout(timer);signal?.removeEventListener('abort',abort);transport_abort.abort();agent?.destroy();};
@@ -28,13 +28,13 @@ function download(url,{file,signal,timeout_ms=30000,redirects=0,deadline=Date.no
   const timer=setTimeout(()=>fail(Error(workspace_service_text("service_f09e28003ff4"))),Math.max(1,deadline-Date.now()));
   try{
    if(signal?.aborted)return abort();signal?.addEventListener('abort',abort,{once:true});
-   const target=allowed_url(url),transport=network_service.create_agent(target.href,network,transport_abort.signal);agent=transport.agent;
+   const target=validate_url(url),transport=network_service.create_agent(target.href,network,transport_abort.signal);agent=transport.agent;
    request=https.get(target,{...transport,headers:{'User-Agent':'TyporaCode-Updater','Accept':'application/vnd.github+json'}},incoming=>{
     response=incoming;response.on('error',fail);
     if([301,302,303,307,308].includes(response.statusCode)){
      const location=response.headers.location;response.resume();
      if(!location||redirects>=4)return fail(Error(workspace_service_text("service_2b4755c89b5c")));
-     settled=true;cleanup();download(new URL(location,url).href,{file,signal,deadline,redirects:redirects+1,on_progress,network}).then(resolve,reject);return;
+     settled=true;cleanup();download(new URL(location,url).href,{file,signal,deadline,redirects:redirects+1,on_progress,network,validate_url}).then(resolve,reject);return;
     }
     if(response.statusCode!==200){response.resume();return fail(Error(workspace_service_text("service_5b9df0dd9a0a")+response.statusCode+workspace_service_text("service_3ae5530c0a8e")));}
     const length=Number(response.headers['content-length']);
