@@ -2,6 +2,8 @@
 
 # TyporaCode 开发交接
 
+2026-10-05 R069.13/R031.1：2026.10.05.2修复浮动预览全局重排及边界外指针遗漏，保留原生Mermaid明暗。完整check、相关UI、原生80+28项及安装/卸载验证通过，本机安装/check OK。用户窗口待保存后完整重启，未推送；[证据与性能边界](../enhancements/tests/evidence/preview_resize_20261005.json)。
+
 2026-10-05 R074.9：2026.10.05.1已纠正为Default/2026各明暗四主题，保留原蓝色/暖棕Markdown标题。完整身份贯穿设置、工作台、代码和阅读；七组UI及原生579项、安装卸载/ZIP通过，本机安装检查OK。用户窗口待保存后完整重启，未推送；[证据与边界](../enhancements/tests/evidence/four_themes_20261005.json)。
 
 2026-10-04 R074.9：2026.10.04.4统一VSCODE_Default明暗主题与常用语言TextMate配色，迁移旧选择并保护用户主题。核心/六组UI/原生243+29+902项及安装卸载/ZIP检查通过；本机安装与版本加载分开记录，保存后重启全部窗口。来源、修正失败及边界见[本次证据](../enhancements/tests/evidence/default_themes_20261004.json)。

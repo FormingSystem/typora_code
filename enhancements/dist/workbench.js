@@ -253623,6 +253623,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100502,
+        version: "2026.10.05.2",
+        date: "2026-10-05",
+        notes: [
+          "\u4FEE\u590D\u8C03\u6574\u6D6E\u52A8\u9884\u89C8\u65F6\u89E6\u53D1\u6B63\u6587\u5168\u5C40\u91CD\u6392\u548C\u5361\u987F\uFF1B\u5C3A\u5BF8\u66F4\u65B0\u5C40\u9650\u4E8E\u9884\u89C8\u548C\u4FA7\u680F\u5360\u4F4D\u3002",
+          "\u62D6\u52A8\u6309\u5E27\u5408\u5E76\uFF0C\u677E\u624B\u63D0\u4EA4\u6700\u7EC8\u4F4D\u7F6E\uFF0C\u53D6\u6D88\u3001\u5931\u7126\u548C\u5173\u95ED\u6E05\u7406\u5F85\u5904\u7406\u66F4\u65B0\uFF0C\u4FDD\u7559\u539F\u6709\u56DB\u5957\u4E3B\u9898\u548C\u5F69\u8272\u6807\u9898\u3002"
+        ],
+        notes_en: [
+          "Prevent floating preview resizing from triggering editor-wide relayout and stalls; constrain changes to the preview and its sidebar reservation.",
+          "Coalesce drag input per frame, commit the final release position, and clear pending updates on cancellation, blur or close. Preserve all four themes and colored headings."
+        ]
+      },
+      {
         sequence: 2026100501,
         version: "2026.10.05.1",
         date: "2026-10-05",
@@ -258404,9 +258417,45 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_preview_resize", workspace_preview_resize_default, {});
     const handles = [];
     let active2;
+    let frame3 = 0, pending, disposed = false;
+    const flush = () => {
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
+      const point = pending;
+      pending = void 0;
+      if (active2 && point && !disposed) active2.resize(active2.size, (point.x - active2.x) / active2.scale, (point.y - active2.y) / active2.scale);
+    };
+    const move = (event) => {
+      if (!active2 || active2.id !== event.pointerId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pending = { x: event.clientX, y: event.clientY };
+      if (!frame3) frame3 = requestAnimationFrame(flush);
+    };
+    const release = (event) => {
+      if (!active2 || active2.id !== event.pointerId) return;
+      event.preventDefault();
+      event.stopPropagation();
+      pending = { x: event.clientX, y: event.clientY };
+      flush();
+      finish();
+    };
+    const cancel = (event) => {
+      if (active2?.id === event.pointerId) {
+        event.stopPropagation();
+        finish();
+      }
+    };
     const finish = () => {
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
+      pending = void 0;
+      document.removeEventListener("pointermove", move, true);
+      document.removeEventListener("pointerup", release, true);
+      document.removeEventListener("pointercancel", cancel, true);
       const previous = active2;
       active2 = void 0;
+      root.removeAttribute("data-preview-resizing");
       if (previous) {
         previous.handle.classList.remove("is-dragging");
         if (previous.handle.hasPointerCapture(previous.id)) previous.handle.releasePointerCapture(previous.id);
@@ -258422,23 +258471,30 @@ https://creativecommons.org/licenses/by/4.0/
       handle.setAttribute("aria-orientation", edge === "north" ? "horizontal" : "vertical");
       const resize = (size, x, y) => change({ width: size.width + (edge.includes("east") ? x : 0), height: size.height - (edge.includes("north") ? y : 0) });
       handle.onpointerdown = (event) => {
-        if (event.button !== 0) return;
+        if (event.button !== 0 || disposed) return;
         event.preventDefault();
         event.stopPropagation();
         finish();
         handle.focus({ preventScroll: true });
-        active2 = { handle, id: event.pointerId, x: event.clientX, y: event.clientY, size: read3(), scale: root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1 };
+        active2 = { handle, id: event.pointerId, x: event.clientX, y: event.clientY, size: read3(), scale: root.offsetWidth ? root.getBoundingClientRect().width / root.offsetWidth : 1, resize };
         handle.setPointerCapture(event.pointerId);
         handle.classList.add("is-dragging");
+        root.setAttribute("data-preview-resizing", edge);
+        document.addEventListener("pointermove", move, true);
+        document.addEventListener("pointerup", release, true);
+        document.addEventListener("pointercancel", cancel, true);
       };
-      handle.onpointermove = (event) => {
-        if (active2?.handle !== handle || active2.id !== event.pointerId) return;
-        event.preventDefault();
-        resize(active2.size, (event.clientX - active2.x) / active2.scale, (event.clientY - active2.y) / active2.scale);
+      handle.onlostpointercapture = (event) => {
+        if (active2?.handle === handle) cancel(event);
       };
-      handle.onpointerup = handle.onpointercancel = handle.onlostpointercapture = finish;
       handle.onkeydown = (event) => {
-        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key)) return;
+        if (event.key === "Escape" && active2) {
+          event.preventDefault();
+          event.stopPropagation();
+          finish();
+          return;
+        }
+        if (!["ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown"].includes(event.key) || event.altKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
         event.stopPropagation();
         const step = event.shiftKey ? 50 : 10;
@@ -258449,6 +258505,8 @@ https://creativecommons.org/licenses/by/4.0/
     }
     window.addEventListener("blur", finish);
     return { cancel: finish, dispose() {
+      if (disposed) return;
+      disposed = true;
       finish();
       window.removeEventListener("blur", finish);
       handles.forEach((handle) => handle.remove());
@@ -267056,9 +267114,16 @@ https://creativecommons.org/licenses/by/4.0/
     dock.append(preview2.container);
     body.append(dock);
     let width2 = Number.parseFloat(getComputedStyle(root).getPropertyValue("--sidebar-width")) || 300, height = 0, disposed = false, frame3 = 0;
-    const set = (name, value) => {
-      if (body.style.getPropertyValue(name) !== value) body.style.setProperty(name, value);
+    const height_owners = [document.getElementById("typora-sidebar"), document.getElementById("typora-sidebar-resizer")].filter((node) => !!node);
+    const original_heights = height_owners.map((node) => [node.style.getPropertyValue("--workspace-preview-height"), node.style.getPropertyPriority("--workspace-preview-height")]);
+    const set = (node, name, value) => {
+      if (node.style.getPropertyValue(name) !== value) node.style.setProperty(name, value);
     };
+    const restore_heights = () => height_owners.forEach((node, index) => {
+      const [value, priority] = original_heights[index];
+      if (value) node.style.setProperty("--workspace-preview-height", value, priority);
+      else node.style.removeProperty("--workspace-preview-height");
+    });
     const layout2 = () => {
       if (disposed || dock.hidden) return;
       const style = getComputedStyle(body), ribbon = Number.parseFloat(style.getPropertyValue("--typ-ribbon-width")) || 0;
@@ -267067,39 +267132,37 @@ https://creativecommons.org/licenses/by/4.0/
       const max_height = Math.max(0, root.clientHeight - top - footer);
       width2 = Math.min(available, Math.max(SIDEBAR_MIN_WIDTH, width2));
       height = Math.min(max_height, Math.max(Math.min(120, max_height), height || max_height * 0.4));
-      set("--workspace-preview-width", width2 + "px");
-      set("--workspace-preview-height", height + "px");
+      set(dock, "--workspace-preview-width", width2 + "px");
+      set(dock, "--workspace-preview-height", height + "px");
+      for (const node of height_owners) set(node, "--workspace-preview-height", height + "px");
     };
-    const notify3 = () => {
-      if (frame3 || disposed) return;
+    const schedule_layout = () => {
+      if (frame3 || disposed || dock.hidden) return;
       frame3 = requestAnimationFrame(() => {
         frame3 = 0;
-        window.dispatchEvent(new Event("resize"));
-        window.dispatchEvent(new Event("optimizedResize"));
+        layout2();
       });
     };
     const resize = bind_preview_resize(dock, () => ({ width: width2, height }), (size) => {
-      window.dispatchEvent(new Event("beforeResize"));
       width2 = size.width;
       height = size.height;
       layout2();
-      notify3();
     });
     const close = () => {
       pinned = false;
       preview2.set_pinned(false);
       resize.cancel();
+      cancelAnimationFrame(frame3);
+      frame3 = 0;
       dock.hidden = true;
       body.classList.remove("has-workspace-link-preview");
+      restore_heights();
       preview2.clear();
-      notify3();
     };
     const selection = bind_workspace_link_selection(core, files2, () => read_workspace_editor_settings().link_preview_enabled, (request) => {
-      window.dispatchEvent(new Event("beforeResize"));
       dock.hidden = false;
       body.classList.add("has-workspace-link-preview");
       layout2();
-      notify3();
       void preview2.show(request);
     }, { root: dock, outside: () => {
       if (!pinned && !dock.hidden) close();
@@ -267114,10 +267177,10 @@ https://creativecommons.org/licenses/by/4.0/
       close();
       selection.reset();
     };
-    const observer3 = new MutationObserver(layout2);
+    const observer3 = new MutationObserver(schedule_layout);
     observer3.observe(body, { attributes: true, attributeFilter: ["class", "style"] });
     observer3.observe(root, { attributes: true, attributeFilter: ["style"] });
-    window.addEventListener("resize", layout2);
+    window.addEventListener("resize", schedule_layout);
     window.addEventListener("linux-note-workspace-context-changed", context_changed);
     return { dispose() {
       if (disposed) return;
@@ -267126,14 +267189,13 @@ https://creativecommons.org/licenses/by/4.0/
       observer3.disconnect();
       cancelAnimationFrame(frame3);
       resize.dispose();
-      window.removeEventListener("resize", layout2);
+      window.removeEventListener("resize", schedule_layout);
       window.removeEventListener("linux-note-workspace-context-changed", context_changed);
       selection.dispose();
       preview2.dispose();
       dock.remove();
       body.classList.remove("has-workspace-link-preview");
-      for (const name of ["width", "height"]) body.style.removeProperty("--workspace-preview-" + name);
-      window.dispatchEvent(new Event("resize"));
+      restore_heights();
     } };
   }
 

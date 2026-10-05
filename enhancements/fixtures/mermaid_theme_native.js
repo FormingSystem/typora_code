@@ -9,12 +9,13 @@
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'窗口准备超时');fs.writeFileSync(file,text);await files.open_file(file);
   await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'文件打开');await wait(()=>svg(),'Mermaid未渲染');
   const dirty=File.isDirty,source=File.editor.diagrams;
-  for(const theme of ['night.css','vscode_default_dark.css','vscode_default_light.css','vscode_default_dark.css']){
+  for(const theme of ['night.css','vscode_default_dark.css','vscode_default_light.css','vscode_2026_default_dark.css','vscode_2026_default_light.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(1300);
    await wait(()=>document.querySelectorAll('#write [lang=mermaid] svg').length===3,'三类图表');
    const opts=source.getCurrentMermaidOptions(),line=svg().querySelector('.flowchart-link'),label=svg().querySelector('.node .nodeLabel');
    samples.push({theme,options:opts,node:color(),line:line&&getComputedStyle(line).stroke,label:label&&getComputedStyle(label).color,canvas:getComputedStyle(document.querySelector('#write [lang=mermaid]')).backgroundColor});
    assert(opts.theme===(theme==='night.css'||theme.includes('dark')?'dark':'default'),'原生Mermaid主题 '+theme);
+   if(theme.includes('light')){assert(color()==='rgb(236, 236, 255)','Light节点保留原生默认浅紫');}
    if(theme.includes('dark')){assert(color()===samples[0].node,'Dark节点与原版Night一致');assert(line&&getComputedStyle(line).stroke===samples[0].line,'Dark连线与原版Night一致');}
    assert([...svg().querySelectorAll('.node rect')].some(node=>getComputedStyle(node).fill==='rgb(18, 52, 86)'),'作者style保留');
    assert(getComputedStyle(document.querySelector('#write [lang=mermaid]')).backgroundColor==='rgba(0, 0, 0, 0)','图表不再继承代码底色');

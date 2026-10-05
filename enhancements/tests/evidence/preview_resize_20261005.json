@@ -1,0 +1,644 @@
+{
+  "schema": 1,
+  "date": "2026-10-05",
+  "release": "2026.10.05.2",
+  "requirements": [
+    "R069.13",
+    "R031.1"
+  ],
+  "baseline": "bb75a72a231c8b2b826b8ec2e6bc73e530ed25e0",
+  "design": [
+    "docs/link_preview.md#r06913-浮动预览尺寸隔离与拖动响应2026-10-05",
+    "docs/reading_media_viewer.md#r0311-mermaid跟随原生主题"
+  ],
+  "root_causes": [
+    "Floating geometry broadcast global window resize and wrote body variables, causing unrelated editor and theme work.",
+    "Edge-only pointer listeners could miss movement/release routed to other nodes in the native host.",
+    "The native test driver included window borders in input coordinates; narrow sash hit testing exposed the error."
+  ],
+  "runtime_sha256": {
+    "workbench.js": "08f91f576879dfd7b919570ae2a1f6ac1e67a5c917009c72a2f3591a1597c475",
+    "workspace.css": "874aa6ed27c220a757c6e54aa522629755ec559a04de21b2a0b95ac48eba6e15",
+    "workspace_core.js": "b86288005c8e269bea20f40bffbed4bb164d4f2c712441d384749b8d3df9a29d",
+    "SHA256SUMS": "6d3ff42a83c59e9f860088b952bbba8bce31a35963180fafa137a4ae53bae8f0"
+  },
+  "native_reference": {
+    "case_id": "d2d2eae3072a491faae04fd3e6105812",
+    "status": "ERROR",
+    "checks": 3,
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "572554e62e49145a854cb2e9c6e1725e106f610600a24c9d98d3e43ac84f2df1",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "f5b7c79eb3cd242792aaa8ff3f313ee3b46c312b6abe2c146a91ce78fb020fc7",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "samples": [
+      {
+        "count": 20,
+        "theme": "vscode_default_light.css",
+        "edge": "east",
+        "inputs": 20,
+        "trusted": 20,
+        "events": {
+          "beforeResize": 20,
+          "resize": 20,
+          "optimizedResize": 40
+        },
+        "editor_layouts": 80,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 21.1,
+          "p95": 25.5,
+          "max": 30.4
+        },
+        "frame_gap_ms": {
+          "p95": 87.5,
+          "max": 93.8
+        },
+        "tail_ms": 21,
+        "active_after_release": null
+      }
+    ],
+    "error": "Error: no global resize 20 east {\"beforeResize\":20,\"resize\":20,\"optimizedResize\":40}"
+  },
+  "native_candidate": {
+    "case_id": "4bcb965048d14bd481ef2d444bbf0bb1",
+    "status": "PASS",
+    "checks": 80,
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "6d3ff42a83c59e9f860088b952bbba8bce31a35963180fafa137a4ae53bae8f0",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "2a7ef32a96e581fa807b6e25728eb7cddf01592b088ef18ddba3eb2ceafecb42",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "samples": [
+      {
+        "count": 20,
+        "theme": "vscode_default_light.css",
+        "identity": "light",
+        "kind": "web",
+        "edge": "east",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 7,
+          "p95": 8.2,
+          "max": 9
+        },
+        "frame_gap_ms": {
+          "p95": 7,
+          "max": 10.2
+        },
+        "tail_ms": 3.4,
+        "active_after_release": null
+      },
+      {
+        "count": 20,
+        "theme": "vscode_default_light.css",
+        "identity": "light",
+        "kind": "web",
+        "edge": "north",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.7,
+          "p95": 8,
+          "max": 8.4
+        },
+        "frame_gap_ms": {
+          "p95": 7,
+          "max": 18.7
+        },
+        "tail_ms": 5.7,
+        "active_after_release": null
+      },
+      {
+        "count": 20,
+        "theme": "vscode_default_light.css",
+        "identity": "light",
+        "kind": "web",
+        "edge": "north-east",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.6,
+          "p95": 7.8,
+          "max": 9.6
+        },
+        "frame_gap_ms": {
+          "p95": 7,
+          "max": 8.6
+        },
+        "tail_ms": 2.7,
+        "active_after_release": null
+      },
+      {
+        "count": 100,
+        "theme": "vscode_2026_default_dark.css",
+        "identity": "dark_2026",
+        "kind": "web",
+        "edge": "east",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.6,
+          "p95": 7.8,
+          "max": 10.4
+        },
+        "frame_gap_ms": {
+          "p95": 6.9,
+          "max": 31.3
+        },
+        "tail_ms": 2.1,
+        "active_after_release": null
+      },
+      {
+        "count": 100,
+        "theme": "vscode_2026_default_dark.css",
+        "identity": "dark_2026",
+        "kind": "web",
+        "edge": "north",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.5,
+          "p95": 7.3,
+          "max": 8.1
+        },
+        "frame_gap_ms": {
+          "p95": 6.3,
+          "max": 8.4
+        },
+        "tail_ms": 2.5,
+        "active_after_release": null
+      },
+      {
+        "count": 100,
+        "theme": "vscode_2026_default_dark.css",
+        "identity": "dark_2026",
+        "kind": "web",
+        "edge": "north-east",
+        "inputs": 99,
+        "trusted": 99,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.7,
+          "p95": 8,
+          "max": 8.4
+        },
+        "frame_gap_ms": {
+          "p95": 6.3,
+          "max": 43.7
+        },
+        "tail_ms": 5,
+        "active_after_release": null
+      },
+      {
+        "count": 1000,
+        "theme": "vscode_default_dark.css",
+        "identity": "dark",
+        "kind": "web",
+        "edge": "east",
+        "inputs": 97,
+        "trusted": 97,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.7,
+          "p95": 8.4,
+          "max": 52.6
+        },
+        "frame_gap_ms": {
+          "p95": 7,
+          "max": 100
+        },
+        "tail_ms": 2.7,
+        "active_after_release": null
+      },
+      {
+        "count": 1000,
+        "theme": "vscode_default_dark.css",
+        "identity": "dark",
+        "kind": "web",
+        "edge": "north",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.5,
+          "p95": 7.9,
+          "max": 8.3
+        },
+        "frame_gap_ms": {
+          "p95": 6.3,
+          "max": 8.8
+        },
+        "tail_ms": 5.2,
+        "active_after_release": null
+      },
+      {
+        "count": 1000,
+        "theme": "vscode_default_dark.css",
+        "identity": "dark",
+        "kind": "web",
+        "edge": "north-east",
+        "inputs": 97,
+        "trusted": 97,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 7.2,
+          "p95": 8.2,
+          "max": 11
+        },
+        "frame_gap_ms": {
+          "p95": 7,
+          "max": 75
+        },
+        "tail_ms": 4.5,
+        "active_after_release": null
+      },
+      {
+        "count": 20,
+        "theme": "vscode_2026_default_light.css",
+        "identity": "light_2026",
+        "kind": "markdown",
+        "edge": "east",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 7,
+          "p95": 7.3,
+          "max": 8.6
+        },
+        "frame_gap_ms": {
+          "p95": 6.7,
+          "max": 13.2
+        },
+        "tail_ms": 2.6,
+        "active_after_release": null
+      },
+      {
+        "count": 20,
+        "theme": "vscode_2026_default_light.css",
+        "identity": "light_2026",
+        "kind": "markdown",
+        "edge": "north",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.5,
+          "p95": 7.4,
+          "max": 8.1
+        },
+        "frame_gap_ms": {
+          "p95": 6.7,
+          "max": 9.7
+        },
+        "tail_ms": 2.8,
+        "active_after_release": null
+      },
+      {
+        "count": 20,
+        "theme": "vscode_2026_default_light.css",
+        "identity": "light_2026",
+        "kind": "markdown",
+        "edge": "north-east",
+        "inputs": 100,
+        "trusted": 100,
+        "events": {},
+        "editor_layouts": 0,
+        "geometry_changes": 0,
+        "scroll_changes": 0,
+        "input_to_geometry_ms": {
+          "p50": 6.4,
+          "p95": 7.2,
+          "max": 8.4
+        },
+        "frame_gap_ms": {
+          "p95": 6.7,
+          "max": 13.2
+        },
+        "tail_ms": 4.1,
+        "active_after_release": null
+      }
+    ]
+  },
+  "mermaid": {
+    "case_id": "426cedbfdd734670805845164d6ffab4",
+    "status": "PASS",
+    "checks": 28,
+    "samples": [
+      {
+        "theme": "night.css",
+        "options": {
+          "securityLevel": "strict",
+          "theme": "dark",
+          "themeVariables": {
+            "darkMode": false,
+            "fontFamily": "\"trebuchet ms\", verdana, arial, sans-serif"
+          },
+          "darkMode": true,
+          "altFontFamily": "sans-serif",
+          "fontFamily": "sans-serif",
+          "startOnLoad": false,
+          "flowchart": {
+            "htmlLabels": true,
+            "useMaxWidth": true,
+            "curve": "linear"
+          },
+          "sequence": {
+            "showSequenceNumbers": false,
+            "useMaxWidth": false,
+            "diagramMarginX": 8,
+            "diagramMarginY": 8,
+            "boxMargin": 8
+          },
+          "gantt": {
+            "leftPadding": 75,
+            "rightPadding": 20
+          }
+        },
+        "node": "rgb(31, 32, 32)",
+        "line": "rgb(211, 211, 211)",
+        "label": "rgb(204, 204, 204)",
+        "canvas": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "theme": "vscode_default_dark.css",
+        "options": {
+          "securityLevel": "strict",
+          "theme": "dark",
+          "themeVariables": {
+            "darkMode": false,
+            "fontFamily": "\"trebuchet ms\", verdana, arial, sans-serif"
+          },
+          "darkMode": true,
+          "altFontFamily": "sans-serif",
+          "fontFamily": "sans-serif",
+          "startOnLoad": false,
+          "flowchart": {
+            "htmlLabels": true,
+            "useMaxWidth": true,
+            "curve": "linear"
+          },
+          "sequence": {
+            "showSequenceNumbers": false,
+            "useMaxWidth": false,
+            "diagramMarginX": 8,
+            "diagramMarginY": 8,
+            "boxMargin": 8
+          },
+          "gantt": {
+            "leftPadding": 75,
+            "rightPadding": 20
+          }
+        },
+        "node": "rgb(31, 32, 32)",
+        "line": "rgb(211, 211, 211)",
+        "label": "rgb(204, 204, 204)",
+        "canvas": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "theme": "vscode_default_light.css",
+        "options": {
+          "securityLevel": "strict",
+          "theme": "default",
+          "themeVariables": {},
+          "darkMode": false,
+          "altFontFamily": "sans-serif",
+          "fontFamily": "sans-serif",
+          "startOnLoad": false,
+          "flowchart": {
+            "htmlLabels": true,
+            "useMaxWidth": true,
+            "curve": "linear"
+          },
+          "sequence": {
+            "showSequenceNumbers": false,
+            "useMaxWidth": false,
+            "diagramMarginX": 8,
+            "diagramMarginY": 8,
+            "boxMargin": 8
+          },
+          "gantt": {
+            "leftPadding": 75,
+            "rightPadding": 20
+          }
+        },
+        "node": "rgb(236, 236, 255)",
+        "line": "rgb(51, 51, 51)",
+        "label": "rgb(51, 51, 51)",
+        "canvas": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "theme": "vscode_2026_default_dark.css",
+        "options": {
+          "securityLevel": "strict",
+          "theme": "dark",
+          "themeVariables": {
+            "darkMode": false,
+            "fontFamily": "\"trebuchet ms\", verdana, arial, sans-serif"
+          },
+          "darkMode": true,
+          "altFontFamily": "sans-serif",
+          "fontFamily": "sans-serif",
+          "startOnLoad": false,
+          "flowchart": {
+            "htmlLabels": true,
+            "useMaxWidth": true,
+            "curve": "linear"
+          },
+          "sequence": {
+            "showSequenceNumbers": false,
+            "useMaxWidth": false,
+            "diagramMarginX": 8,
+            "diagramMarginY": 8,
+            "boxMargin": 8
+          },
+          "gantt": {
+            "leftPadding": 75,
+            "rightPadding": 20
+          }
+        },
+        "node": "rgb(31, 32, 32)",
+        "line": "rgb(211, 211, 211)",
+        "label": "rgb(204, 204, 204)",
+        "canvas": "rgba(0, 0, 0, 0)"
+      },
+      {
+        "theme": "vscode_2026_default_light.css",
+        "options": {
+          "securityLevel": "strict",
+          "theme": "default",
+          "themeVariables": {},
+          "darkMode": false,
+          "altFontFamily": "sans-serif",
+          "fontFamily": "sans-serif",
+          "startOnLoad": false,
+          "flowchart": {
+            "htmlLabels": true,
+            "useMaxWidth": true,
+            "curve": "linear"
+          },
+          "sequence": {
+            "showSequenceNumbers": false,
+            "useMaxWidth": false,
+            "diagramMarginX": 8,
+            "diagramMarginY": 8,
+            "boxMargin": 8
+          },
+          "gantt": {
+            "leftPadding": 75,
+            "rightPadding": 20
+          }
+        },
+        "node": "rgb(236, 236, 255)",
+        "line": "rgb(51, 51, 51)",
+        "label": "rgb(51, 51, 51)",
+        "canvas": "rgba(0, 0, 0, 0)"
+      }
+    ],
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "6d3ff42a83c59e9f860088b952bbba8bce31a35963180fafa137a4ae53bae8f0",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "4e04f2c33a15b0a9fbb61758dd93ba1876e96dbf4dc73a7787cc18f788625e0a",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "implementation_changed": false
+  },
+  "checks": {
+    "build": "PASS",
+    "core": {
+      "status": "PASS",
+      "artifact_id": "21669c7c22b4419684f9ef77f4bc0ef4"
+    },
+    "ui": {
+      "preview_dock": {
+        "status": "PASS",
+        "checks": 77,
+        "artifact_id": "dbe9163e7b084e988f4fae65a7c2aa1b"
+      },
+      "link_preview": {
+        "status": "PASS",
+        "checks": 132,
+        "artifact_id": "c4136f67ad364ad1bb30b4fdb9c49a46"
+      },
+      "files_search": {
+        "status": "PASS",
+        "artifact_id": "7bd85e154cea432facbdbf9affee7436"
+      },
+      "theme_pair": {
+        "status": "PASS",
+        "checks": 21,
+        "artifact_id": "e11063f169884427888e344aa14db078"
+      },
+      "mermaid": {
+        "status": "PASS",
+        "checks": 9,
+        "actual_host_library": true,
+        "artifact_id": "e103d4e127f2468fb5ea163214a4626a"
+      }
+    }
+  },
+  "installation": {
+    "isolated_install_restore_uninstall_reinstall_detach_uninstall_reinstall_check": {
+      "status": "PASS",
+      "artifact_id": "3046cf04321a4e6283f004626b7fc360"
+    },
+    "uninstall_failure_cancel_rollback": {
+      "status": "PASS",
+      "checks": 65,
+      "artifact_id": "b4addf629b2f4cbba201544460dcf1a9"
+    },
+    "local": {
+      "status": "PASS",
+      "profile_theme": "vscode_default_dark.css",
+      "profile_dark_theme": "vscode_2026_default_dark.css",
+      "protected_files": 10,
+      "registry_records": 4,
+      "matched_assets": {
+        "workbench": 68,
+        "terminal": 24
+      },
+      "themes": 5,
+      "manifest_sha256": "6d3ff42a83c59e9f860088b952bbba8bce31a35963180fafa137a4ae53bae8f0"
+    },
+    "local_check": "OK",
+    "real_uninstall": "read-only preflight only",
+    "user_windows_restarted": false,
+    "pushed": false
+  },
+  "retained_failures": [
+    {
+      "cases": [
+        "f2d39dd6b4c84fcb88f9a8612cf97e17",
+        "fd5c686c0af34f74ab2bdbd139178df0",
+        "9d268571df8345e482268c300e6dee12"
+      ],
+      "cause": "Initial narrow-edge native input missed the sash due to outer-window coordinates; corrected to client coordinates."
+    },
+    {
+      "case": "41f36a6d84f74013905fa110bbf28bff",
+      "cause": "Intermediate edge-only listeners missed active movement/release; final implementation uses gesture-scoped document capture."
+    },
+    {
+      "cause": "First Mermaid preparation lacked TYPORA_ORIGINAL_NIGHT_ROOT; rerun with the verified original Night snapshot passed."
+    }
+  ],
+  "limits": [
+    "Windows original Typora 1.14.10 private desktop with software rendering; no physical GPU latency guarantee or non-Windows native validation.",
+    "Reference sample reproduced 80 code-block relayout calls, but its editor scrollTop and outer rectangle did not move.",
+    "All candidate samples preserved editor geometry, scroll and content; the 1000-fence case still had a 52.6 ms maximum input-to-geometry sample and 100 ms frame gap. This is not a zero-jank guarantee.",
+    "Focused UI regression only; R071.7, R068.11, R005.4 and the existing language-fence return problem remain open.",
+    "Local assets are installed; currently open user windows have not been restarted."
+  ]
+}

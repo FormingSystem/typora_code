@@ -14,7 +14,10 @@ export function bind_workspace_link_dock(core:graph_core,files:workspace_file_ho
   let pinned=false;
   const preview=create_link_preview(files,{close:()=>{close();selection.dismiss();},pin:()=>{pinned=!pinned;preview.set_pinned(pinned);}});dock.append(preview.container);body.append(dock);
   let width=Number.parseFloat(getComputedStyle(root).getPropertyValue('--sidebar-width'))||300,height=0,disposed=false,frame=0;
-  const set=(name:string,value:string)=>{if(body.style.getPropertyValue(name)!==value)body.style.setProperty(name,value);};
+  const height_owners=[document.getElementById('typora-sidebar'),document.getElementById('typora-sidebar-resizer')].filter((node):node is HTMLElement=>!!node);
+  const original_heights=height_owners.map(node=>[node.style.getPropertyValue('--workspace-preview-height'),node.style.getPropertyPriority('--workspace-preview-height')]);
+  const set=(node:HTMLElement,name:string,value:string)=>{if(node.style.getPropertyValue(name)!==value)node.style.setProperty(name,value);};
+  const restore_heights=()=>height_owners.forEach((node,index)=>{const [value,priority]=original_heights[index];if(value)node.style.setProperty('--workspace-preview-height',value,priority);else node.style.removeProperty('--workspace-preview-height');});
   const layout=()=>{
     if(disposed||dock.hidden)return;
     const style=getComputedStyle(body),ribbon=Number.parseFloat(style.getPropertyValue('--typ-ribbon-width'))||0;
@@ -22,18 +25,20 @@ export function bind_workspace_link_dock(core:graph_core,files:workspace_file_ho
     const available=Math.max(0,root.clientWidth-ribbon-(Number.parseFloat(style.getPropertyValue('--typ-sidedock-width'))||0)-EDITOR_MIN_WIDTH);
     const max_height=Math.max(0,root.clientHeight-top-footer);
     width=Math.min(available,Math.max(SIDEBAR_MIN_WIDTH,width));height=Math.min(max_height,Math.max(Math.min(120,max_height),height||max_height*.4));
-    set('--workspace-preview-width',width+'px');set('--workspace-preview-height',height+'px');
+    set(dock,'--workspace-preview-width',width+'px');set(dock,'--workspace-preview-height',height+'px');
+    for(const node of height_owners)set(node,'--workspace-preview-height',height+'px');
 
   };
-  const notify=()=>{if(frame||disposed)return;frame=requestAnimationFrame(()=>{frame=0;window.dispatchEvent(new Event('resize'));window.dispatchEvent(new Event('optimizedResize'));});};
-  const resize=bind_preview_resize(dock,()=>({width,height}),size=>{window.dispatchEvent(new Event('beforeResize'));width=size.width;height=size.height;layout();notify();});
-  const close=()=>{pinned=false;preview.set_pinned(false);resize.cancel();dock.hidden=true;body.classList.remove('has-workspace-link-preview');preview.clear();notify();};
+  // Floating geometry is not a window resize; only the reserved sidebar height is shared.
+  const schedule_layout=()=>{if(frame||disposed||dock.hidden)return;frame=requestAnimationFrame(()=>{frame=0;layout();});};
+  const resize=bind_preview_resize(dock,()=>({width,height}),size=>{width=size.width;height=size.height;layout();});
+  const close=()=>{pinned=false;preview.set_pinned(false);resize.cancel();cancelAnimationFrame(frame);frame=0;dock.hidden=true;body.classList.remove('has-workspace-link-preview');restore_heights();preview.clear();};
   const selection=bind_workspace_link_selection(core,files,()=>read_workspace_editor_settings().link_preview_enabled,request=>{
-    window.dispatchEvent(new Event('beforeResize'));dock.hidden=false;body.classList.add('has-workspace-link-preview');layout();notify();void preview.show(request);
+    dock.hidden=false;body.classList.add('has-workspace-link-preview');layout();void preview.show(request);
   },{root:dock,outside:()=>{if(!pinned&&!dock.hidden)close();}});
   const settings=observe_workspace_editor_settings(()=>{if(!read_workspace_editor_settings().link_preview_enabled){close();selection.dismiss();}});
   const context_changed=()=>{close();selection.reset();};
-  const observer=new MutationObserver(layout);observer.observe(body,{attributes:true,attributeFilter:['class','style']});observer.observe(root,{attributes:true,attributeFilter:['style']});
-  window.addEventListener('resize',layout);window.addEventListener('linux-note-workspace-context-changed',context_changed);
-  return {dispose(){if(disposed)return;disposed=true;settings();observer.disconnect();cancelAnimationFrame(frame);resize.dispose();window.removeEventListener('resize',layout);window.removeEventListener('linux-note-workspace-context-changed',context_changed);selection.dispose();preview.dispose();dock.remove();body.classList.remove('has-workspace-link-preview');for(const name of ['width','height'])body.style.removeProperty('--workspace-preview-'+name);window.dispatchEvent(new Event('resize'));}};
+  const observer=new MutationObserver(schedule_layout);observer.observe(body,{attributes:true,attributeFilter:['class','style']});observer.observe(root,{attributes:true,attributeFilter:['style']});
+  window.addEventListener('resize',schedule_layout);window.addEventListener('linux-note-workspace-context-changed',context_changed);
+  return {dispose(){if(disposed)return;disposed=true;settings();observer.disconnect();cancelAnimationFrame(frame);resize.dispose();window.removeEventListener('resize',schedule_layout);window.removeEventListener('linux-note-workspace-context-changed',context_changed);selection.dispose();preview.dispose();dock.remove();body.classList.remove('has-workspace-link-preview');restore_heights();}};
 }

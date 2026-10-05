@@ -5,3 +5,5 @@
 .workspace-preview-sash[data-edge=north-east]{top:0;right:0;width:8px;height:8px;cursor:nesw-resize}
 .workspace-preview-sash:is(:hover,:focus-visible,.is-dragging){background:var(--workspace-focus-border,#007acc);outline:none}
 .workspace-search-preview-section{position:relative;max-width:100%}
+/* Guest contents must not capture the active sash gesture; normal input resumes on release. */
+[data-preview-resizing] :is(webview,iframe){pointer-events:none}

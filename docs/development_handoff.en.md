@@ -3,6 +3,8 @@
 <a id="section_ddfea55b21d8"></a>
 # TyporaCode Development Handover
 
+2026-10-05 R069.13/R031.1: 2026.10.05.2 fixes global editor relayout and missed out-of-edge pointer events during floating preview resizing, retaining native Mermaid light/dark colors. Full core, related UI, native 80+28 checks and install/uninstall validation passed; local installation/check passed. Save and fully restart user windows; no push. [Evidence and performance limits](../enhancements/tests/evidence/preview_resize_20261005.json).
+
 2026-10-05 R074.9: 2026.10.05.1 provides separate Default/2026 light/dark pairs and preserves blue/brown Markdown headings. Full identity flows through settings, workbench, code and readers. Seven UI suites, 579 original-host assertions and install/uninstall/ZIP checks pass; local installation/check pass. User windows need a normal restart after saving; no push. [Evidence and limits](../enhancements/tests/evidence/four_themes_20261005.json).
 
 2026-10-04 R074.9: 2026.10.04.4 unifies VSCODE_Default themes and shared TextMate language colors, migrates old selections and protects customized themes. Core/six UI/native 243+29+902 checks and installation/uninstallation/ZIP validation passed. Local installation and loaded windows are separate; save and restart all windows. See [evidence](../enhancements/tests/evidence/default_themes_20261004.json).

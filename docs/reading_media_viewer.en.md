@@ -55,6 +55,8 @@ Dark fills in this variable, with code background rules excluding diagrams, and 
 
 Acceptance comparison of the actual native configurations, processes/sequences/pie charts, author styles, and SVG calculated colors of the original Night, Dark, and Light. Coverage of 20 switches, preview isolation, full-screen changes, unchanged main content/dirty status, and cleanup. Relevant code/reader regression and candidate installation/uninstallation are verified in pairs. The untested platform is retained separately.
 
+2026-10-05 clarification: Mermaid in Zephyr documents retains native light/dark styling. The four VS Code themes select native default/dark without replacing diagram colors. Compare each theme with native light and original Night colors, preserving author styles and source content independently of workbench and code palettes.
+
 ## R031.2 Natural image size and global alignment (2026-10-02)
 
 Images default to 100% natural size, capped at the available editor width. Settings offer global scaling from 20% to 600% and an explicit fit-width mode. Hover controls provide the slider, 100%, fit width, alignment and fullscreen. The slider previews in memory and saves once per completed gesture; Escape, blur, cancellation or failed saving restores the saved presentation. Fullscreen zoom remains independent.

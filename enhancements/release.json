@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100502,
+      "version": "2026.10.05.2",
+      "date": "2026-10-05",
+      "notes": [
+        "修复调整浮动预览时触发正文全局重排和卡顿；尺寸更新局限于预览和侧栏占位。",
+        "拖动按帧合并，松手提交最终位置，取消、失焦和关闭清理待处理更新，保留原有四套主题和彩色标题。"
+      ],
+      "notes_en": [
+        "Prevent floating preview resizing from triggering editor-wide relayout and stalls; constrain changes to the preview and its sidebar reservation.",
+        "Coalesce drag input per frame, commit the final release position, and clear pending updates on cancellation, blur or close. Preserve all four themes and colored headings."
+      ]
+    },
+    {
       "sequence": 2026100501,
       "version": "2026.10.05.1",
       "date": "2026-10-05",

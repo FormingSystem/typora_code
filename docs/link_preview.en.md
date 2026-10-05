@@ -200,3 +200,29 @@ Native navigation uses the guest's canGoBack/canGoForward and goBack/goForward, 
 Only adjust the independent link dock, the search sidebar preview and split view reading still follow their respective layouts. The visibility/fixed/external click of the preview is still owned by the dock and shared exit mechanism, without reflowing the main content, terminal, or preview rectangle. Overlapping areas display and hit the preview main content, toolbar, and adjust boundaries; the terminal's other areas can input scrolling, temporary preview follows the original rules for external click exit and fixed preview retention, and closes the terminal to restore hitting. Menus and dialogs should be above both.
 
 Regression uses real coordinate hitting and interaction verification of the overlapping area, not just comparing z-index; covers two opening orders, light/dark, wide/narrow, and scaling, fixed/non-fixed, closing and reopening, search embedded preview and terminal maximization. Original host separately verifies the final candidate.
+
+
+## R069.13 Floating preview geometry isolation and drag response (2026-10-05)
+
+Resizing a floating web preview moves the editor and stalls. The old dock dispatches beforeResize/resize/optimizedResize for local changes and writes geometry to body, waking global layout/theme observers. Resize only the overlay; retain its existing lower-sidebar height reservation while preserving editor width, scroll, selection, document and instance identity. Embedded search preview width still belongs to the main-sidebar service.
+
+The dock owns size, constraints and visibility. Shared resize owns pointer capture, frame coalescing, keyboard and cleanup. Width/height variables belong to the dock; reserved height belongs only to the sidebar and its sash, restored on close. Never dispatch synthetic window resize events. Actual window changes still clamp bounds. Process only the active pointer, commit final coordinates on release, and cancel pending work on cancellation, blur, close and disposal. Disable guest/iframe pointer targeting during the gesture and restore it without reloading. Arrow keys retain 10px/Shift50px steps; unchanged clamped geometry performs no writes.
+
+Pinned 6807068 sash.ts dispatches local onDidChange to the owning splitview, stops propagation, and disables iframe hit testing during gestures. splitview.ts lays out only its viewItems. Follow the existing sidebar frame-coalescing model: store coordinates on input, then read constraints and write geometry once per frame. No polling or global refresh.
+
+Reproduce the old global notifications first. Test real Chromium and trusted original-host input across horizontal/vertical/corner dragging, burst input, rapid release, cancellation/blur/capture loss, keyboard, close/context/disposal, theme/zoom/narrow windows. Include web/local readers, embedded search, terminal overlap and 20/100/1000-fence documents. Measure input-to-overlay geometry/frame latency, tail work, global events and editor relayout; verify content, scroll, selection and identity. Record failures and platform limits separately, retain historical black-screen issues, and finish with candidate install/uninstall and local delivery.
+
+Native verification also found that active-pointer events can target other nodes, leaving edge-only listeners without movement or release. Like the existing sidebar adapter, shared resizing now registers document capture listeners only during the gesture, filters the pointer identity and removes them on completion. Actual capture loss still cancels. Tests cover out-of-edge delivery and 20/100/1000 same-frame inputs. Native input uses client-area coordinates to exclude window borders; initial missed-target and interrupted-capture evidence is retained.
+
+Coverage matrix:
+
+| Surface | Geometry and event owner | Regression entry |
+| --- | --- | --- |
+| Floating web/Markdown/code | Local dock geometry; no synthetic window resize | preview_resize_native, workspace_preview_dock, workspace_link_preview |
+| Sidebar reservation | Height only; restore on close, preserve sidebar width | workspace_preview_dock |
+| Embedded search preview | Search height and shared sidebar width service | workspace_files_search |
+| Active gesture | Shared pointer filtering, frame coalescing, final flush, cancellation and listener removal | workspace_preview_dock, including out-of-edge delivery and 20/100/1000 bursts |
+| Terminal, zoom and themes | Existing region ownership, overlap hit testing, 1/1.25/1.5 zoom and four themes | workspace_preview_dock, workspace_theme_pair, native fixture |
+| Mermaid | Native default/dark and author styles, independent from VS Code syntax colors | mermaid_theme, mermaid_theme_native (R031.1) |
+
+The reference 20-fence sample did not move the editor scrollTop or outer rectangle, but produced 80 code-block relayout calls. This does not claim every reported movement was reproduced. Final timings, corrected failures and delivery limits are recorded in the [focused evidence](../enhancements/tests/evidence/preview_resize_20261005.json).

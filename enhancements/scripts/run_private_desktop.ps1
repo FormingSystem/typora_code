@@ -61,6 +61,7 @@ public class isolated_desktop {
  [StructLayout(LayoutKind.Sequential)] public struct rect { public int left,top,right,bottom; }
  [DllImport("user32.dll")] public static extern bool MoveWindow(IntPtr hwnd,int x,int y,int width,int height,bool repaint);
  [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hwnd,out rect bounds);
+ [DllImport("user32.dll")] public static extern bool GetClientRect(IntPtr hwnd,out rect bounds);
  [DllImport("user32.dll")] public static extern bool PrintWindow(IntPtr hwnd,IntPtr dc,uint flags);
  [DllImport("user32.dll",CharSet=CharSet.Unicode)] public static extern int GetWindowText(IntPtr hwnd,StringBuilder text,int count);
  public delegate bool enum_windows(IntPtr hwnd,IntPtr state);
@@ -141,7 +142,10 @@ try {
      $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
      $title=[Text.StringBuilder]::new(1024);[void][isolated_desktop]::GetWindowText($hwnd,$title,1024)
      if($owner -eq $info.pid -and $title.ToString().EndsWith(' - Typora')) {
-      $bounds=New-Object isolated_desktop+rect;[void][isolated_desktop]::GetWindowRect($hwnd,[ref]$bounds)
+      # Renderer coordinates cover the client area, excluding the native window frame.
+      $bounds=New-Object isolated_desktop+rect;[void][isolated_desktop]::GetClientRect($hwnd,[ref]$bounds)
+      $client_origin=New-Object isolated_desktop+point;[void][isolated_desktop]::ClientToScreen($hwnd,[ref]$client_origin)
+      $bounds.right+=$client_origin.x;$bounds.bottom+=$client_origin.y;$bounds.left=$client_origin.x;$bounds.top=$client_origin.y
       $x=[int]($bounds.left+$input_request.x*($bounds.right-$bounds.left)/$input_request.width)
       $y=[int]($bounds.top+$input_request.y*($bounds.bottom-$bounds.top)/$input_request.height)
       if($input_request.kind -eq 'save_key') {
@@ -175,7 +179,8 @@ try {
         for($step=1;$step -le $steps;$step++) {
          Start-Sleep -Milliseconds $interval
          $drag_x=[int]($bounds.left+($input_request.x+$input_request.dx*$step/$steps)*($bounds.right-$bounds.left)/$input_request.width)
-         $position=[IntPtr]::new((($y-$origin.y) -shl 16) -bor (($drag_x-$origin.x) -band 0xffff))
+         $drag_y=[int]($bounds.top+($input_request.y+$input_request.dy*$step/$steps)*($bounds.bottom-$bounds.top)/$input_request.height)
+         $position=[IntPtr]::new((($drag_y-$origin.y) -shl 16) -bor (($drag_x-$origin.x) -band 0xffff))
          [void][isolated_desktop]::PostMessage($hwnd,0x0200,[IntPtr]::new(1),$position)
         }
        }

@@ -6625,7 +6625,8 @@
         "R069.2",
         "R069.4",
         "R069.5",
-        "R069.12"
+        "R069.12",
+        "R069.13"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6648,7 +6649,8 @@
         "浮动预览与终端重叠区域真实命中、关闭恢复和打开顺序"
       ],
       "expected": [
-        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
+        "No synthesized window resize or root style writes; editor geometry/content remain stable. Frame-coalesced gestures flush on release and cancel on blur, capture loss or Escape."
       ],
       "timeout_ms": 240000,
       "required_executables": []
@@ -7798,7 +7800,8 @@
         "run_private_desktop.ps1执行；读checks.json并核对实际SVG颜色"
       ],
       "expected": [
-        "Dark和原版Night渲染颜色一致，作者颜色、dirty和正文不变，切换及全屏生命周期正常"
+        "Dark和原版Night渲染颜色一致，作者颜色、dirty和正文不变，切换及全屏生命周期正常",
+        "Both Default and 2026 light/dark themes retain native Mermaid colors and author styles; no VS Code diagram palette is introduced."
       ],
       "timeout_ms": 90000
     },
@@ -9966,6 +9969,38 @@
         "Return only grammar-confirmed definitions and existing paths; preserve memory precedence and reject cancelled or disposed queries."
       ],
       "timeout_ms": 120000
+    },
+    {
+      "id": "TC-preview-resize-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R069.13"
+      ],
+      "design": "docs/link_preview.md#r06913-浮动预览尺寸隔离与拖动响应2026-10-05",
+      "implementation": [
+        "enhancements/src/workspace_link_dock.ts",
+        "enhancements/src/workspace_preview_resize.ts"
+      ],
+      "related_modules": [
+        "preview",
+        "reading",
+        "sidebar",
+        "theme"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/preview_resize_native.js",
+      "environment": "Windows private desktop, original Typora 1.14.10, software rendering",
+      "preconditions": "Independent verified host and profile; user windows are never manipulated.",
+      "steps": [
+        "Run with -fixture preview_resize_native.js. Trusted native horizontal, vertical and corner drags with web and Markdown previews, all four themes, 20/100/1000 code fences.",
+        "Compare with reference assets and retain failures; use client coordinates excluding native window borders."
+      ],
+      "expected": [
+        "Actual preview geometry changes, no global resize, no main editor reflow or geometry/scroll/content changes. Record input-to-geometry, frame gaps and tail latency."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }
