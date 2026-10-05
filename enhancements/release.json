@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100503,
+      "version": "2026.10.05.3",
+      "date": "2026-10-05",
+      "notes": [
+        "新增“转到”菜单，接入后退、前进、文件和编辑器选择及已有语言导航。",
+        "Ctrl+G 输入行号或行:列；代码与源码可预览位置、Esc 恢复，Enter 确认。原生 Markdown 确认后按源码行定位，保留未保存内容。"
+      ],
+      "notes_en": [
+        "Add the Go menu for existing back/forward history, file and editor selection, and language navigation.",
+        "Use Ctrl+G with a line or line:column. Code and source views preview the target, Escape restores the position and Enter confirms. Rendered Markdown maps source lines on confirmation without replacing unsaved content."
+      ]
+    },
+    {
       "sequence": 2026100502,
       "version": "2026.10.05.2",
       "date": "2026-10-05",

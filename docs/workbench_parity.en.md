@@ -8,6 +8,8 @@
 Record date: 2026-09-10. The workbench is referenced by the user confirmed Monday screenshot and `59412a2` (2026-09-06) flat layout, and retains the subsequent explicitly authorized fixes. This is not a full library rollback, nor is it to complete all VS Code functions. The reading of the fix baseline is `5622258`; subsequent search performance and drag/drag across window implementation are maintained as independent documents, the current delivery and verification status is unified see [Feedback recheck record](feedback_review.en.md), and it is not extrapolated from the old pass count.
 
 <a id="section_30289cd58765"></a>
+The explicitly authorized Go menu and Ctrl+G follow the [Go navigation design](go_navigation.en.md). Other layout boundaries remain unchanged.
+
 ## Current scope
 
 2026-09-20 synchronization: File operations and terminal are authorized on September 12; opened editors / timeline are authorized on September 19 R037; start and switch are authorized on R054; other areas remain unchanged layout.

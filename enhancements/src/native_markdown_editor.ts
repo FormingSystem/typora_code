@@ -41,6 +41,12 @@ export function create_native_markdown_editor(runtime: any, cancel_transition: (
     dispose: () => {disposed = true; release_navigation();cm?.off('changes', changed);cm?.off('cursorActivity', selected);listeners.clear();if(current_editor === editor)current_editor = undefined;}
   };
   const release_navigation = register_navigation_editor({
+    line_target(){
+      if(!active())return;synchronize();const instance=cm,revision=version,leaf=get_workspace_app()?.workspace.activeLeaf,scroll=cm.getScrollInfo(),selections=cm.listSelections();
+      const valid=()=>active()&&cm===instance&&version===revision&&get_workspace_app()?.workspace.activeLeaf===leaf;
+      const preview=(position:{line:number;column:number})=>{if(valid())cm.scrollTo(null,cm.charCoords({line:position.line-1,ch:position.column-1},'local').top-cm.getScrollInfo().clientHeight/2);};
+      return {text:cm.getValue(),tab_size:cm.getOption('tabSize')||4,valid,preview,on_invalidate(listener:()=>void){listeners.add(listener);return()=>listeners.delete(listener);},restore(){if(valid()){cm.setSelections(selections);cm.scrollTo(scroll.left,scroll.top);}},accept(position:{line:number;column:number}){if(valid()){cancel_transition();cm.setCursor({line:position.line-1,ch:position.column-1});preview(position);cm.focus();}}};
+    },
     capture() {
       if (!active()) return null;
       synchronize();

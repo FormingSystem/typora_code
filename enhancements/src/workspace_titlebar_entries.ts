@@ -1,3 +1,5 @@
+import {active_line_target,GO_LINE_COMMAND} from './workspace_go_line';
+import {get_workspace_quick_open} from './workspace_quick_open';
 import {color_theme_from_file,WORKSPACE_COLOR_THEMES} from './workspace_color_identity';
 import {workspace_text} from "./workspace_i18n";
 import {read_color_config,save_color_config,activate_color_profile} from './workspace_color_settings';
@@ -93,6 +95,17 @@ export function create_workspace_titlebar_definitions(
       {label: workspace_text("titlebar_entries_close_tab"), shortcut: "Ctrl+W / Ctrl+F4", disabled: !close_button(), action: () => {if (workspace.activeLeaf === leaf) files.core.app.commands.run("linux_note:close_editor");}},
       {label:workspace_text("file_commands_close_folder"),shortcut:"Alt+K F",disabled:!files.context_root(),action:()=>files.core.app.commands.run("linux_note:close_folder")},
       command(workspace_text("titlebar_entries_preferences"), "showPreferencePanel", "Ctrl+,"), command(workspace_text("titlebar_entries_close_window"), "close", "Alt+F4")];
+  };
+  const go_entries=async():Promise<entry[]>=>{
+    const leaf=workspace.activeLeaf,guard=(action:()=>unknown)=>()=>{if(workspace.activeLeaf===leaf)return action();};
+    return [
+      {label:workspace_text('go_back'),shortcut:'Alt+Left',disabled:document.documentElement.dataset.linuxNoteHistoryBack!=='true',action:()=>window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:-1}}))},
+      {label:workspace_text('go_forward'),shortcut:'Alt+Right',disabled:document.documentElement.dataset.linuxNoteHistoryForward!=='true',action:()=>window.dispatchEvent(new CustomEvent('linux-note-reading-history-travel',{detail:{direction:1}}))},separator(),
+      {label:workspace_text('titlebar_entries_quick_open'),shortcut:'Ctrl+P',action:open_files},
+      {label:workspace_text('go_switch_editor'),disabled:!leaf,action:guard(()=>leaf&&get_workspace_quick_open()?.open_editors(leaf.parent))},separator(),
+      ...(files.navigation_entries?.()||[]).map(item=>({label:item.title,shortcut:item.shortcut,action:guard(item.action)})),
+      {label:workspace_text('go_line_title'),shortcut:'Ctrl+G',disabled:!active_line_target(files,runtime),action:guard(()=>files.core.app.commands.run(GO_LINE_COMMAND))}
+    ];
   };
   const search_entry = (replace: boolean): entry => {
     const leaf = workspace.activeLeaf;
@@ -229,7 +242,7 @@ export function create_workspace_titlebar_definitions(
   return [
     {label: workspace_text("recent_view_file"), mnemonic: "F", entries: file_entries}, {label: workspace_text("titlebar_entries_edit"), mnemonic: "E", entries: edit_entries},
     {label: workspace_text("titlebar_entries_paragraph"), mnemonic: "P", entries: paragraph_entries}, {label: workspace_text("titlebar_entries_format"), mnemonic: "O", entries: format_entries},
-    {label: workspace_text("titlebar_entries_view"), mnemonic: "V", entries: view_entries}, {label: workspace_text("titlebar_entries_theme"), mnemonic: "T", entries: theme_entries},
+    {label: workspace_text("titlebar_entries_view"), mnemonic: "V", entries: view_entries}, {label:workspace_text('go_menu'),mnemonic:'G',entries:go_entries}, {label: workspace_text("titlebar_entries_theme"), mnemonic: "T", entries: theme_entries},
     {label: workspace_text("terminal_panel_terminal"), mnemonic: "R", entries: terminal_entries},
     {label: workspace_text("titlebar_entries_help"), mnemonic: "H", entries: help_entries},
   ];

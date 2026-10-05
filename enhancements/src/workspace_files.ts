@@ -1,3 +1,4 @@
+import {monaco_line_target} from './workspace_line_target';
 import {workspace_text} from "./workspace_i18n";
 import {monaco_text_input,run_text_input_command} from "./monaco_text_input";
 import {run_monaco_source_command} from './monaco_source_command';
@@ -60,6 +61,7 @@ export type workspace_file_host = {
   reopen_leaf(leaf:graph_leaf,source:boolean):Promise<boolean>;
   source_editor_active(): boolean;
   run_editor_command(command: string): void;
+  navigation_entries?():{id:string;title:string;shortcut?:string;action:()=>void}[];
   current_file(): string;
   can_save_active(): boolean;
   save_active(): Promise<boolean>;
@@ -481,6 +483,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   window.addEventListener("linux-note-workspace-context-changed",refresh_source_analysis);
 
   const release_navigation = register_navigation_editor({
+    line_target(){const view=[...views].find(item=>!item.disposed&&item.leaf===core.app.workspace.activeLeaf);if(!view?.loaded||view.loading||!view.editor)return;return monaco_line_target(view.editor.focused_editor(),()=>!view.disposed&&view.leaf===core.app.workspace.activeLeaf);},
     capture() {
       const view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf);
       if (!view?.editor || view.loading || !view.loaded) return null;
@@ -1216,7 +1219,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
     await close_leaf(leaf);
   };
-  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

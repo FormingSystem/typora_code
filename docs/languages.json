@@ -284,6 +284,10 @@
     {
       "zh_cn": "docs/language_environment_plugins.md",
       "en": "docs/language_environment_plugins.en.md"
+    },
+    {
+      "zh_cn": "docs/go_navigation.md",
+      "en": "docs/go_navigation.en.md"
     }
   ]
 }

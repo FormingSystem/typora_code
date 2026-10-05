@@ -27,11 +27,11 @@ app.whenReady().then(async()=>{
  assert(await run(`document.querySelector('#title-text').isConnected&&document.querySelector('#w-menu-btn').isConnected&&document.querySelector('#title-text').textContent==='target.md'&&document.querySelector('#title-text').getBoundingClientRect().height===0`));
  const geometry=await run(`(()=>{const rect=s=>{const r=document.querySelector(s).getBoundingClientRect();return{x:r.x,y:r.y,width:r.width,height:r.height,right:r.right,bottom:r.bottom}};return{bar:rect('#top-titlebar'),logo:rect('.workspace-titlebar-logo'),search:rect('.workspace-titlebar-search'),controls:rect('#w-traffic-lights'),editor:rect('#write'),menus:[...document.querySelectorAll('.workspace-titlebar-menu>button')].filter(b=>!b.hidden).map(b=>b.textContent)}})()`);
  // Menus are arranged according to actual text width; cannot fix the visible number affected by the system DPI/ font as seven.
- assert.equal(geometry.bar.height,35);assert.equal(geometry.editor.y,35);assert(geometry.menus.length>1&&geometry.menus.length<=8);assert.deepEqual(geometry.menus,[...['文件','编辑','段落','格式','视图','主题','终端'].slice(0,geometry.menus.length-1),'']);assert.equal(geometry.search.height,22);assert.equal(geometry.controls.width,138);assert(geometry.search.x>300&&geometry.search.right<geometry.controls.x);
- assert.deepEqual(await run('[...document.querySelectorAll(".workspace-titlebar-menu>button")].slice(0,-1).map(b=>b.textContent)'),['文件','编辑','段落','格式','视图','主题','终端','帮助']);
+ assert.equal(geometry.bar.height,35);assert.equal(geometry.editor.y,35);assert(geometry.menus.length>1&&geometry.menus.length<=9);assert.deepEqual(geometry.menus,[...['文件','编辑','段落','格式','视图','转到','主题','终端'].slice(0,geometry.menus.length-1),'']);assert.equal(geometry.search.height,22);assert.equal(geometry.controls.width,138);assert(geometry.search.x>300&&geometry.search.right<geometry.controls.x);
+ assert.deepEqual(await run('[...document.querySelectorAll(".workspace-titlebar-menu>button")].slice(0,-1).map(b=>b.textContent)'),['文件','编辑','段落','格式','视图','转到','主题','终端','帮助']);
  await run('document.querySelector(".workspace-titlebar-menu>button:last-child").click();void 0');await tick();assert(await run('document.querySelector(".workspace-titlebar-popup").textContent.includes("帮助")'),'overflow retains Help when the new terminal menu consumes its slot');await run('window.dispatchEvent(new Event("workspace-titlebar-dismiss"))');
  assert.equal(geometry.logo.width,24);assert.equal(geometry.logo.height,24);assert.equal(geometry.logo.y+12,17.5);
- await run(`document.querySelector('.workspace-titlebar-menu>button:nth-child(8)').click();void 0`);await tick();
+ await run(`document.querySelector('.workspace-titlebar-menu>button:nth-child(9)').click();void 0`);await tick();
  assert(await run(`[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='Typora Code GitHub 仓库').disabled`),'浏览器适配缺失时仓库入口禁用');
  await run(`window.dispatchEvent(new Event('workspace-titlebar-dismiss'));window.repository_urls=[];JSBridge.showInBrowser=url=>repository_urls.push(url);document.querySelector('.workspace-titlebar-menu>button:last-child').click();void 0`);await tick();
  await run(`[...document.querySelectorAll('.workspace-titlebar-popup button')].find(b=>b.textContent==='帮助').click();void 0`);await tick();
@@ -155,7 +155,7 @@ app.whenReady().then(async()=>{
  }
  win.webContents.setZoomFactor(1);
  await run(`menu.dispose();owned_menu.style.display='';void 0`);await win.setSize(1280,800);await tick();
- assert.equal(await run('[...owned_menu.children].filter(button=>!button.hidden).map(button=>button.textContent).join(",")'),'文件,编辑,段落,格式,视图,主题,终端,');
+ assert.equal(await run('[...owned_menu.children].filter(button=>!button.hidden).map(button=>button.textContent).join(",")'),'文件,编辑,段落,格式,视图,转到,主题,');
  await run(`window.input=document.createElement('input');input.value='abcdef';document.body.append(input);input.focus();input.setSelectionRange(2,4);owned_menu.children[2].click();void 0`);await tick();
  await run(`for(const type of ['keydown','keyup'])window.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true,cancelable:true}));void 0`);assert(await run('!document.querySelector(".workspace-titlebar-popup")&&document.activeElement===input&&input.selectionStart===2&&input.selectionEnd===4'));
  await run('input.remove();editor.focus();void 0');

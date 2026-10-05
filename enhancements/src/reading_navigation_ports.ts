@@ -1,7 +1,9 @@
 import type {reading_location} from "./reading_history";
+import type {line_target} from './workspace_line_target';
 
 /** Editor only provides its own position; history and keyboard shortcuts are still managed uniformly by the reading navigator. */
 export type navigation_editor_port = {
+  line_target?():line_target|undefined;
   capture(): reading_location | null;
   restore(location: reading_location, signal: AbortSignal): Promise<boolean>;
 };
@@ -12,6 +14,7 @@ export function register_navigation_editor(port: navigation_editor_port,kind:Non
   return () => { if (ports.get(kind)===port) ports.delete(kind); };
 }
 const editor_port:navigation_editor_port={
+  line_target(){for(const port of ports.values()){const target=port.line_target?.();if(target)return target;}},
   capture(){for(const port of ports.values()){const location=port.capture();if(location)return location;}return null;},
   async restore(location,signal){return location.kind?await ports.get(location.kind)?.restore(location,signal)??false:false;}
 };

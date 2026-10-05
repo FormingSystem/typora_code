@@ -36,7 +36,7 @@ public class isolated_desktop {
  [DllImport("user32.dll")] public static extern bool GetKeyboardState(byte[] state);
  [DllImport("user32.dll")] public static extern bool SetKeyboardState(byte[] state);
  [DllImport("user32.dll")] public static extern IntPtr SendMessageTimeout(IntPtr hwnd,uint message,IntPtr w,IntPtr l,uint flags,uint timeout,out IntPtr result);
- public static bool send_save_key(IntPtr desktop,IntPtr hwnd) {
+ public static bool send_control_key(IntPtr desktop,IntPtr hwnd,int key,int scan) {
   bool delivered=false;
   var worker=new Thread(()=>{
    if(!SetThreadDesktop(desktop))return;
@@ -48,8 +48,8 @@ public class isolated_desktop {
     var keys=(byte[])previous.Clone();keys[0x11]=keys[0xA2]=0x80;
     if(!SetKeyboardState(keys))return;
     IntPtr result;
-    delivered=SendMessageTimeout(hwnd,0x0100,new IntPtr(0x53),new IntPtr(0x001F0001),2,2000,out result)!=IntPtr.Zero;
-    SendMessageTimeout(hwnd,0x0101,new IntPtr(0x53),new IntPtr(unchecked((int)0xC01F0001)),2,2000,out result);
+    delivered=SendMessageTimeout(hwnd,0x0100,new IntPtr(key),new IntPtr((scan<<16)|1),2,2000,out result)!=IntPtr.Zero;
+    SendMessageTimeout(hwnd,0x0101,new IntPtr(key),new IntPtr(unchecked((int)0xC0000001)|(scan<<16)),2,2000,out result);
    }finally{if(captured)SetKeyboardState(previous);AttachThreadInput(current,target,false);}
   });
   worker.Start();worker.Join();return delivered;
@@ -136,7 +136,7 @@ try {
   $input_path=Join-Path $case_root 'native_input_request.json'
   if(Test-Path -LiteralPath $input_path) {
    try {$input_request=Get-Content -LiteralPath $input_path -Raw -Encoding utf8 | ConvertFrom-Json} catch {$input_request=$null}
-   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click','ctrl_click','drag','text','key','save_key') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
+   if($input_request -and $input_request.id -ne $last_input_id -and $input_request.kind -in @('wheel','click','ctrl_click','drag','text','key','save_key','go_line_key') -and $input_request.width -gt 0 -and $input_request.height -gt 0) {
     $delivered=$false
     $input_window=[isolated_desktop+enum_windows]{param($hwnd,$state)
      $owner=[uint32]0;[void][isolated_desktop]::GetWindowThreadProcessId($hwnd,[ref]$owner)
@@ -148,8 +148,8 @@ try {
       $bounds.right+=$client_origin.x;$bounds.bottom+=$client_origin.y;$bounds.left=$client_origin.x;$bounds.top=$client_origin.y
       $x=[int]($bounds.left+$input_request.x*($bounds.right-$bounds.left)/$input_request.width)
       $y=[int]($bounds.top+$input_request.y*($bounds.bottom-$bounds.top)/$input_request.height)
-      if($input_request.kind -eq 'save_key') {
-       $script:delivered=[isolated_desktop]::send_save_key($desktop,$hwnd)
+      if($input_request.kind -in @('save_key','go_line_key')) {
+       $script:delivered=[isolated_desktop]::send_control_key($desktop,$hwnd,$(if($input_request.kind -eq 'save_key'){0x53}else{0x47}),$(if($input_request.kind -eq 'save_key'){0x1F}else{0x22}))
       } elseif($input_request.kind -eq 'text') {
        # Bound text is delivered only to this test process's verified window.
        $script:delivered=$true

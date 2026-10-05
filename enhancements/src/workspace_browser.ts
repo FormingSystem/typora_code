@@ -1,3 +1,4 @@
+import {bind_workspace_go_line} from './workspace_go_line';
 import {workspace_text} from "./workspace_i18n";
 import {bind_workspace_split_markdown} from './workspace_split_markdown';
 import {bind_workspace_onboarding} from './workspace_onboarding';
@@ -51,6 +52,7 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_settings_sections(files));
   lifetime.own(bind_workspace_settings_view(core));
   lifetime.own(create_workspace_quick_open(files));
+  lifetime.own(bind_workspace_go_line(files));
   lifetime.own(bind_workspace_tab_controls(core,files));
   lifetime.own(bind_workspace_native_toolbar(files,window as any));
   lifetime.own(install_workspace_titlebar(files,()=>get_workspace_quick_open()?.open(),()=>get_workspace_quick_open()?.open_center()));

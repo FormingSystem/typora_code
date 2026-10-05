@@ -7910,5 +7910,33 @@
   "language_support_settings_help": {
     "en": "TyporaCode language support. Missing tools are prepared automatically; external paths and arguments remain optional.",
     "zh_cn": "TyporaCode 自有语言支持。缺少工具时自动准备，也可选用外部路径和参数。"
+  },
+  "go_menu": {
+    "zh_cn": "转到",
+    "en": "Go"
+  },
+  "go_back": {
+    "zh_cn": "后退",
+    "en": "Back"
+  },
+  "go_forward": {
+    "zh_cn": "前进",
+    "en": "Forward"
+  },
+  "go_switch_editor": {
+    "zh_cn": "切换编辑器…",
+    "en": "Switch Editor..."
+  },
+  "go_line_title": {
+    "zh_cn": "转到行/列…",
+    "en": "Go to Line/Column..."
+  },
+  "go_line_prompt": {
+    "zh_cn": "输入要跳转的行号（1 到 {count}）。",
+    "en": "Type a line number to go to (from 1 to {count})."
+  },
+  "go_line_position": {
+    "zh_cn": "按 Enter 跳转到第 {line} 行，第 {column} 列。",
+    "en": "Press Enter to go to line {line} at column {column}."
   }
 }

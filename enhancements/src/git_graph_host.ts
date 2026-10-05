@@ -1,3 +1,4 @@
+import {monaco_line_target} from './workspace_line_target';
 import {workspace_text} from "./workspace_i18n";
 import type {git_diff_source} from './git_diff_source';
 import {git_workspace_resources} from './git_workspace_resources';
@@ -327,6 +328,7 @@ export function create_graph_host(core: graph_core) {
   };
   type navigation_state={data?:diff_document;options?:document_options;reopen?:NonNullable<document_options['navigation']>['reopen'];parent:graph_leaf['parent'];position:ReturnType<git_diff_editor['capture_navigation_state']>|{scroll_top:number;scroll_left:number}};
   const unregister_navigation=register_navigation_editor({
+    line_target(){const view=core.app.workspace.activeLeaf?.view;if(!(view instanceof graph_document_view)||!view.editor||view.editor.rendered_markdown)return;return monaco_line_target(view.editor.focused_editor(),()=>!disposed&&core.app.workspace.activeLeaf?.view===view&&!view.editor?.rendered_markdown);},
     capture(){
       const view=core.app.workspace.activeLeaf?.view;
       if(!(view instanceof graph_document_view)||!view.document)return null;

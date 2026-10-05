@@ -1,0 +1,223 @@
+{
+  "schema": 1,
+  "date": "2026-10-05",
+  "release": "2026.10.05.3",
+  "requirements": [
+    "R086"
+  ],
+  "baseline": "9992a8a52f077a69d9ceee8def5ebe97c612835a",
+  "design": [
+    "docs/go_navigation.md"
+  ],
+  "runtime_sha256": {
+    "workbench.js": "81eb418c527971726b9a7cb3c7ea2f966021aeb3fc55fc20e524ee5f832c1454",
+    "workspace.css": "874aa6ed27c220a757c6e54aa522629755ec559a04de21b2a0b95ac48eba6e15",
+    "workspace_core.js": "b86288005c8e269bea20f40bffbed4bb164d4f2c712441d384749b8d3df9a29d",
+    "SHA256SUMS": "72eae10a59cafb0a4fd15832c9046ae0811f2fc6fd2422d85f93e6988933d932"
+  },
+  "native": {
+    "case_id": "9155debf04a047b39cfb932b59774f15",
+    "status": "PASS",
+    "checks": 30,
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "72eae10a59cafb0a4fd15832c9046ae0811f2fc6fd2422d85f93e6988933d932",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "6ee9196a63464f3c92fab504fb65a00c916c25efbddfbaef53e9bf4013c481c9",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "samples": [
+      {
+        "stage": "source_preview",
+        "before": {
+          "cursorState": [
+            {
+              "inSelectionMode": false,
+              "selectionStart": {
+                "lineNumber": 3,
+                "column": 2
+              },
+              "position": {
+                "lineNumber": 3,
+                "column": 2
+              }
+            }
+          ],
+          "viewState": {
+            "scrollLeft": 0,
+            "firstPosition": {
+              "lineNumber": 1,
+              "column": 1
+            },
+            "firstPositionDeltaTop": 8
+          },
+          "contributionsState": {
+            "editor.contrib.folding": {
+              "lineCount": 300,
+              "foldedImports": false
+            }
+          }
+        },
+        "position": {
+          "lineNumber": 3,
+          "column": 2
+        },
+        "scroll": 3417
+      },
+      {
+        "theme": "vscode_default_light.css",
+        "rect": {
+          "x": 293.71429443359375,
+          "y": 6.000000476837158,
+          "width": 600,
+          "height": 64.14286041259766,
+          "top": 6.000000476837158,
+          "right": 893.7142944335938,
+          "bottom": 70.14286088943481,
+          "left": 293.71429443359375
+        },
+        "background": "rgb(248, 248, 248)",
+        "foreground": "rgb(59, 59, 59)",
+        "selection": "rgb(232, 232, 232)"
+      },
+      {
+        "theme": "vscode_default_dark.css",
+        "rect": {
+          "x": 293.71429443359375,
+          "y": 6.000000476837158,
+          "width": 600,
+          "height": 64.14286041259766,
+          "top": 6.000000476837158,
+          "right": 893.7142944335938,
+          "bottom": 70.14286088943481,
+          "left": 293.71429443359375
+        },
+        "background": "rgb(34, 34, 34)",
+        "foreground": "rgb(204, 204, 204)",
+        "selection": "rgb(4, 57, 94)"
+      },
+      {
+        "theme": "vscode_2026_default_light.css",
+        "rect": {
+          "x": 293.71429443359375,
+          "y": 6.000000476837158,
+          "width": 600,
+          "height": 64.14286041259766,
+          "top": 6.000000476837158,
+          "right": 893.7142944335938,
+          "bottom": 70.14286088943481,
+          "left": 293.71429443359375
+        },
+        "background": "rgb(250, 250, 253)",
+        "foreground": "rgb(32, 32, 32)",
+        "selection": "rgb(0, 105, 204)"
+      },
+      {
+        "theme": "vscode_2026_default_dark.css",
+        "rect": {
+          "x": 293.71429443359375,
+          "y": 6.000000476837158,
+          "width": 600,
+          "height": 64.14286041259766,
+          "top": 6.000000476837158,
+          "right": 893.7142944335938,
+          "bottom": 70.14286088943481,
+          "left": 293.71429443359375
+        },
+        "background": "rgb(32, 33, 34)",
+        "foreground": "rgb(191, 191, 191)",
+        "selection": "rgb(41, 122, 160)"
+      },
+      {
+        "stage": "rendered",
+        "cursor": {
+          "type": "cursor",
+          "id": "n42",
+          "start": 5,
+          "end": 5
+        },
+        "selection": "Paragraph 41 stays unchanged."
+      }
+    ],
+    "environment": "Original Typora 1.14.10; private Windows desktop; OS-posted keyboard; software rendering"
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": [
+      "test_workspace_go_line.cjs",
+      "test_workspace_titlebar.cjs",
+      "test_workspace_shortcuts.cjs",
+      "test_workspace_quick_open.cjs"
+    ],
+    "go_line_checks": 36,
+    "go_line_case": "ff7f081452724a378dd62f0a3ddc2a55",
+    "parser_workloads": [
+      20,
+      100,
+      1000
+    ],
+    "locales": [
+      "zh-cn",
+      "en"
+    ],
+    "widths": [
+      420,
+      1000
+    ],
+    "zoom": [
+      1,
+      1.25
+    ]
+  },
+  "fixture_corrections": [
+    "Nested executeJavaScript code requires an async IIFE and escaped newlines; trusted key observer must register before the consuming handler.",
+    "The hidden fixture now addresses Go by mnemonic; titlebar help/overflow assertions account for the new menu.",
+    "Monaco saveViewState stores a logical anchor, not scrollTop; native scroll assertions now use getScrollTop. Floating-point geometry uses a one-pixel tolerance."
+  ],
+  "retained_failures": [
+    "14631d6d4385448d83ac78b0e541ba67",
+    "952bc17cdbd24a9aa61e324342566dc3",
+    "3c5676c9b003497fa22a2551fe762031"
+  ],
+  "checks_status": "PASS",
+  "install_status": "PASS",
+  "limitations": [
+    "No precise column mapping for rendered Git comparisons; source/readonly Monaco uses the navigation port.",
+    "Native tests cover Windows Typora 1.14.10 only; no physical keyboard, hardware GPU or full UI suite claim.",
+    "Rendered Markdown maps representable source locations on confirmation; it does not preview each input change.",
+    "R071.7, R068.11, R005.4 and the previously tracked language-fence return issue remain open."
+  ],
+  "checks_case": "be981eb2106f4751bbddc5757c78a8e9",
+  "isolation": {
+    "install_case": "02df507090624536acbba1c87f03a220",
+    "install_status": "PASS",
+    "uninstall_case": "afc608c363484b49929886cfb199752f",
+    "uninstall_assertions": 65,
+    "uninstall_status": "PASS",
+    "lifecycle": "install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+    "cleanup": "both cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "profile_theme": "vscode_2026_default_dark.css",
+    "profile_dark_theme": "vscode_2026_default_dark.css",
+    "protected_files": 10,
+    "registry_records": 4,
+    "matched_assets": {
+      "workbench": 68,
+      "terminal": 24
+    },
+    "themes": 5,
+    "manifest_sha256": "72eae10a59cafb0a4fd15832c9046ae0811f2fc6fd2422d85f93e6988933d932",
+    "uninstall": "read-only detach preflight PASS",
+    "window": "No user window was closed or restarted; restart normally to ensure this disk candidate is loaded."
+  },
+  "cleanup": {
+    "native_prior_cases": "cleaned",
+    "final_native_case": "pending_file_lock",
+    "reason": "Windows Restart Manager identified the existing user Typora renderer as holding app.asar. No user process was terminated. The owned artifact marker retains the error for a retry after normal restart.",
+    "evidence_retained": true
+  }
+}

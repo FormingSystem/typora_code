@@ -56,3 +56,7 @@ Scope: Common window routing first processes Ctrl+P/Ctrl+Shift+P as global entry
 Quick open itself holds query, cancel, and original focus snapshot: Repeating Ctrl+P uses the original instance; Esc restores terminal focus, opens the file to the file service, and on failure, follows existing feedback while preserving current content. Processed keys are blocked from re-use by the common consumed set, and are destroyed and cleared. The selector is not yet initialized, so it does not consume keys; the command panel still uses command:open.
 
 Acceptance covers terminal visibility but main content gains focus, real xterm gains focus, bottom/editing group movement, single-time calls of Ctrl+P and Ctrl+Shift+P, no leakage of PTY for repeat/keyup, continued input after Esc, file selection, and input method/modal protection. Trusted Electron input and original Typora synthesized events are separately recorded, 20 rounds of switch and existing clipboard/IME regression; build, isolate installation/uninstallation, and native installation each leave evidence.
+
+## R086 Go to Line/Column (2026-10-05)
+
+The user explicitly authorized Ctrl+G and the Go menu. `workspace_go_line` owns this command; existing navigation ports supply the active editor target. Terminal, floating previews and unrelated inputs retain their keys. The menu uses the same command. This request supersedes the native same-key behavior inside editors without modifying user configuration. See [Go navigation](go_navigation.en.md) for input, cancellation and mapping boundaries.

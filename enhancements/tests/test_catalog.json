@@ -10001,6 +10001,71 @@
         "Actual preview geometry changes, no global resize, no main editor reflow or geometry/scroll/content changes. Record input-to-geometry, frame gaps and tail latency."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-go-line-001",
+      "domain": "workspace",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R086"
+      ],
+      "design": "docs/go_navigation.md",
+      "implementation": [
+        "enhancements/src/workspace_go_line.ts",
+        "enhancements/src/workspace_line_target.ts",
+        "enhancements/src/workspace_titlebar_entries.ts"
+      ],
+      "related_modules": [
+        "source",
+        "history",
+        "markdown",
+        "titlebar",
+        "quick-input"
+      ],
+      "script": "enhancements/scripts/test_workspace_go_line.cjs",
+      "environment": "Hidden Electron / real Monaco / trusted keyboard input",
+      "preconditions": "Dedicated temporary files and profile; preserve user documents and windows.",
+      "steps": [
+        "Check parsing workloads 20/100/1000, preview/accept/cancel, stale models, readonly content, focus/IME ownership, menu, narrow/zoomed bilingual UI and disposal."
+      ],
+      "expected": [
+        "Navigation uses current memory without writing files or creating a second history; cancellation and stale-target handling preserve ownership."
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-go-line-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R086"
+      ],
+      "design": "docs/go_navigation.md",
+      "implementation": [
+        "enhancements/src/workspace_go_line.ts",
+        "enhancements/src/workspace_line_target.ts",
+        "enhancements/src/workspace_titlebar_entries.ts"
+      ],
+      "related_modules": [
+        "source",
+        "history",
+        "markdown",
+        "titlebar",
+        "quick-input"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Windows private desktop / original Typora 1.14.10",
+      "preconditions": "Dedicated temporary files and profile; preserve user documents and windows.",
+      "steps": [
+        "Run the fixture with -fixture go_line_native.js; exercise native Ctrl+G, unsaved source, source history, split ownership, four themes, native Markdown source/rendered mapping and menu."
+      ],
+      "expected": [
+        "Navigation uses current memory without writing files or creating a second history; cancellation and stale-target handling preserve ownership."
+      ],
+      "timeout_ms": 180000,
+      "fixture": "enhancements/fixtures/go_line_native.js"
     }
   ]
 }
