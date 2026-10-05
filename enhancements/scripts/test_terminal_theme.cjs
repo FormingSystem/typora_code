@@ -79,15 +79,15 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('output_text()'), baseline);
   const resolved=JSON.parse(fs.readFileSync(path.join(__dirname,'../vendor/vscode_themes/resolved.json'),'utf8'));
   await evaluate(`{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_colors.css'),'utf8'))};document.head.append(style);}`);
-  for(const mode of ['light','dark','light']){
-    const colors=resolved[mode+'_2026'].colors;
-    await evaluate(`document.querySelector('#fixture-theme').textContent=${JSON.stringify(mode==='dark'?dark:light)};document.documentElement.setAttribute('data-workspace-colors','${mode}')`);
-    await wait(`view.term.options.theme.foreground.toLowerCase()===${JSON.stringify(colors['terminal.foreground'].toLowerCase())}`);
+  for(const identity of ['light','light_2026','dark','dark_2026','light']){
+    const mode=identity.startsWith('dark')?'dark':'light',colors=resolved[identity].colors;
+    await evaluate(`document.querySelector('#fixture-theme').textContent=${JSON.stringify(mode==='dark'?dark:light)};document.documentElement.setAttribute('data-workspace-colors','${mode}');document.documentElement.setAttribute('data-workspace-palette','${identity}')`);
+    await wait(`view.term.options.theme.foreground.toLowerCase()===${JSON.stringify(colors['terminal.foreground'].toLowerCase())}&&view.term.options.theme.background.toLowerCase()===${JSON.stringify(colors['panel.background'].toLowerCase())}`);
     const actual=await evaluate('view.term.options.theme');
-    for(const [key,role] of [['foreground','terminal.foreground'],['background','panel.background'],['selectionBackground','terminal.selectionBackground'],['selectionInactiveBackground','terminal.inactiveSelectionBackground'],['cursor','terminalCursor.foreground'],['cursorAccent','terminalCursor.background']])assert.equal(actual[key].toLowerCase(),colors[role].toLowerCase(),mode+' '+role);
+    for(const [key,role] of [['foreground','terminal.foreground'],['background','panel.background'],['selectionBackground','terminal.selectionBackground'],['selectionInactiveBackground','terminal.inactiveSelectionBackground'],['cursor','terminalCursor.foreground'],['cursorAccent','terminalCursor.background']]){const expected=colors[role];if(expected)assert.equal(actual[key].toLowerCase(),expected.toLowerCase(),identity+' '+role);else assert(actual[key],identity+' inherited '+role);}
     assert.equal(await evaluate('output_text()'),baseline);assert.equal(await evaluate('view.term.getSelection()'),'PRESERVED_OUTPUT');
   }
-  checks.push('2026 light/dark/light terminal-specific foreground background cursor and both selections follow official tokens and preserve existing output');
+  checks.push('four palettes including same-mode transitions: terminal-specific foreground background cursor and both selections follow official tokens and preserve existing output');
   fs.writeFileSync(path.join(evidence,'terminal_theme_dark.png'),(await test_window.webContents.capturePage()).toPNG());
   await evaluate('window.dispatchEvent(new CustomEvent("linux-note-open-terminal",{detail:{path:terminal_host.context_path()}}))');
   await wait('typeof resolve_terminal_root === "function"');

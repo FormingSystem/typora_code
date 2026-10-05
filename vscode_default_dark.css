@@ -1,27 +1,29 @@
 /* VS Code 1.140.0 default dark theme; commit 07f806f999227108933c2e30515b26eecc1fda74. */
 @import url("./vscode_default/base.css");
 :root {
-  --workspace-code-theme: dark_2026;
-  --bg-color: #121314;
-  --text-color: #BBBEBF;
-  --side-bar-bg-color: #191A1B;
-  --control-text-color: #bfbfbf;
-  --control-text-hover-color: #bfbfbf;
-  --select-text-bg-color: #276782dd;
-  --active-file-bg-color: #2C2D2E;
-  --active-file-text-color: #ededed;
-  --primary-color: #48A0C7;
-  --item-hover-bg-color: #FFFFFF14;
-  --theme-border: #2a2a2a;
-  --theme-link: #48A0C7;
-  --theme-link-active: #53A5CA;
-  --theme-muted: #8C8C8C;
-  --theme-quote: #242526;
-  --theme-quote-border: #2A2B2C;
-  --theme-table: #191A1B;
-  --theme-inline-text: #8C8C8C;
-  --theme-inline: #262626;
-  --theme-code: #242526;
-  --search-select-bg-color: #27678280;
+  --theme-heading: #CE9178;
+  --workspace-code-theme: dark;
+  --bg-color: #1F1F1F;
+  --text-color: #CCCCCC;
+  --side-bar-bg-color: #181818;
+  --control-text-color: #CCCCCC;
+  --control-text-hover-color: #CCCCCC;
+  --select-text-bg-color: #264F78;
+  --active-file-bg-color: #37373D;
+  --active-file-text-color: #CCCCCC;
+  --primary-color: #0078D4;
+  --item-hover-bg-color: #2A2D2E;
+  --theme-border: #2B2B2B;
+  --theme-link: #4daafc;
+  --theme-link-active: #4daafc;
+  --theme-muted: #9D9D9D;
+  --theme-quote: #2B2B2B;
+  --theme-quote-border: #616161;
+  --theme-table: #181818;
+  --theme-inline-text: #D0D0D0;
+  --theme-inline: #3C3C3C;
+  --theme-code: #2B2B2B;
+  --search-select-bg-color: #0078d4;
 }
-:root { --mermaid-theme: night; }
+:root {
+  --theme-heading: #CE9178; --mermaid-theme: night; }

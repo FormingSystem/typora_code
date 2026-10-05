@@ -560,3 +560,5 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 ## R074.9 主题身份、词法覆盖与内部行盒（2026-10-04）
 
 分类theme/identity、syntax/render与editor/geometry：旧主题并列、常用语言简单分词和CMake异常语义覆盖导致颜色不一致；迁移主题、共享语法源并拒绝重叠数据。原生截图发现通用Markdown pre间距污染CodeMirror行，按内部角色排除并新增真实行盒断言。卸载夹具遗漏清单及旧断言属于test/fixture；保留失败并补齐。见[当前证据](../enhancements/tests/evidence/default_themes_20261004.json)，不关闭其他原生长期问题。
+
+2026-10-05 R074.9范围纠正：主题数目误解导致只提供2026；新增完整配色身份，恢复四主题与彩色标题。验证发现Shadow规则未识别新身份，已修正共享提取并通过四主题原生579项；[证据](../enhancements/tests/evidence/four_themes_20261005.json)。此前原生长期未决项保持。

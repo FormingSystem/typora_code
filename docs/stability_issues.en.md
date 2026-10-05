@@ -604,3 +604,5 @@ Extensions/render and reading/navigation: unconditional DOM writes refreshed unr
 ## R074.9 Theme identity, lexical overrides and internal line boxes (2026-10-04)
 
 Theme/identity, syntax/render and editor/geometry: parallel old themes, simplified grammars and invalid CMake semantic classifications produced inconsistent colors. Migrate theme choices, share syntax sources and reject overlap. Native screenshots exposed Markdown pre spacing reaching CodeMirror lines; exclude internal roles and assert real line boxes. Missing catalog payload and legacy assertions were test-fixture failures and are recorded. See [evidence](../enhancements/tests/evidence/default_themes_20261004.json); other long-running native issues remain open.
+
+2026-10-05 R074.9 correction: a scope misunderstanding shipped only 2026. Restore four distinct palettes and colored headings. Verification exposed missing Shadow identity selectors; shared extraction is corrected and 579 native assertions pass. See [evidence](../enhancements/tests/evidence/four_themes_20261005.json). Historical long-running native issues remain open.

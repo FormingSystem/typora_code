@@ -26,7 +26,7 @@ install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
-vscode_default_light.css / vscode_default_dark.css / vscode_default/base.css
+vscode_default_light.css / vscode_default_dark.css / vscode_2026_default_light.css / vscode_2026_default_dark.css / vscode_default/base.css
 scripts/
 enhancements/dist/SHA256SUMS
 enhancements/dist/terminal_runtime/
@@ -226,4 +226,4 @@ Typora官方更新若覆盖启动入口，重新运行本工程标准安装与�
 
 每次标准安装成功生成新的安装标识，下一次启动就绪的窗口自动显示一次指导，同版本重装也会提示；多个窗口去重，跳过或完成后普通重启不再重复。帮助菜单始终可重看及打开离线 user_guide.md。安装失败回滚标识，不提前关闭用户窗口。设计见[操作指导](onboarding.md)。
 
-2026-10-04起，自有主题统一为 `VSCODE_Default_Light` / `VSCODE_Default_Dark`，采用固定 VS Code 1.140.0 的 Light/Dark 2026 配色与 Markdown 排版。标准安装备份并迁移未修改的 CppGithubConsoles/VSCode2026 旧文件和明暗选择；修改过的旧文件、第三方主题、保存的字号/缩放及用户配色保留。保存文档后重启全部 Typora 窗口加载新版本。
+2026-10-05纠正为四个独立主题：`VSCODE_Default_Light` / `VSCODE_Default_Dark` 使用固定 VS Code 1.140.0 的 Modern 配色，`VSCODE_2026_Default_Light` / `VSCODE_2026_Default_Dark` 使用 2026 配色。Markdown标题保留浅色蓝色、深色暖棕色。上一版Default选择保留文件身份并采用正确Modern配色，可从主题菜单选2026。标准安装备份并迁移未修改的 CppGithubConsoles/VSCode2026 旧文件和明暗选择；修改过的旧文件、第三方主题、保存的字号/缩放及用户配色保留。保存文档后重启全部 Typora 窗口加载新版本。

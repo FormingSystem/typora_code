@@ -2,6 +2,8 @@
 
 # TyporaCode 开发交接
 
+2026-10-05 R074.9：2026.10.05.1已纠正为Default/2026各明暗四主题，保留原蓝色/暖棕Markdown标题。完整身份贯穿设置、工作台、代码和阅读；七组UI及原生579项、安装卸载/ZIP通过，本机安装检查OK。用户窗口待保存后完整重启，未推送；[证据与边界](../enhancements/tests/evidence/four_themes_20261005.json)。
+
 2026-10-04 R074.9：2026.10.04.4统一VSCODE_Default明暗主题与常用语言TextMate配色，迁移旧选择并保护用户主题。核心/六组UI/原生243+29+902项及安装卸载/ZIP检查通过；本机安装与版本加载分开记录，保存后重启全部窗口。来源、修正失败及边界见[本次证据](../enhancements/tests/evidence/default_themes_20261004.json)。
 
 2026-10-04 R084/R085：2026.10.04.1已构建、验证并本机安装。WPF仅组织安装交互，公开PowerShell事务与独立系统集成所有者负责变更；语言插件使用同一社区生命周期，后端负责下载、私有运行时、锁与目录所有权，配置仍由language_service_settings管理。九项真实工具配方、53项原生插件检查、三个原生启动目标、完整check与相关UI及安装卸载检查通过。CMake动态监听、Makefile服务版本、PS5.1子进程及初始源码路由的联调问题已修正；早期.NET试验的两个PATH条目已清理。用户窗口待保存后正常重启；下载平台、服务能力和历史未决边界见[本次证据](../enhancements/tests/evidence/language_setup_20261004.json)。

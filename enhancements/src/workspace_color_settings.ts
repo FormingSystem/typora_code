@@ -1,13 +1,14 @@
+import {COLOR_THEME_IDS,WORKSPACE_COLOR_THEMES,type color_theme_id} from './workspace_color_identity';
 import {workspace_text} from "./workspace_i18n";
 import {get_workspace_app} from './workspace_bootstrap';
 import {WORKSPACE_COLOR_ROLES} from './workspace_color_catalog';
 
-export type color_mode='light'|'dark';
+export type color_mode=color_theme_id;
 export type color_profile={id:string;name:string;mode:color_mode;colors:Record<string,string>};
 export type workspace_color_config={schema:1;themes:Record<color_mode,Record<string,string>>;profiles?:color_profile[];active?:Partial<Record<color_mode,string>>};
 const listeners=new Set<()=>void>();
 const known_keys=new Set(WORKSPACE_COLOR_ROLES.map(role=>role.key));
-export const empty_color_config=():workspace_color_config=>({schema:1,themes:{light:{},dark:{}}});
+export const empty_color_config=():workspace_color_config=>({schema:1,themes:{light:{},dark:{},light_2026:{},dark_2026:{}}});
 export function normalize_custom_color(value:unknown):string{
   if(typeof value!=='string')throw Error(workspace_text("color_settings_the_color_must_be_hexadecimal_text"));
   const color=value.trim();if(!color)return '';
@@ -17,10 +18,10 @@ export function normalize_custom_color(value:unknown):string{
 function object(value:unknown):value is Record<string,unknown>{return Boolean(value)&&typeof value==='object'&&!Array.isArray(value);}
 export function validate_color_config(value:unknown):workspace_color_config{
   if(!object(value)||value.schema!==1||Object.keys(value).some(key=>!['schema','themes','profiles','active'].includes(key))||!object(value.themes))throw Error(workspace_text("color_settings_unsupported_color_configuration_requires_schema_1_and_themes"));
-  if(Object.keys(value.themes).some(key=>key!=='light'&&key!=='dark'))throw Error(workspace_text("color_settings_color_configuration_contains_an_unknown_theme"));
+  if(Object.keys(value.themes).some(key=>!COLOR_THEME_IDS.includes(key as color_mode)))throw Error(workspace_text("color_settings_color_configuration_contains_an_unknown_theme"));
   const result=empty_color_config();
-  for(const mode of ['light','dark'] as const){
-    const colors=value.themes[mode];if(!object(colors))throw Error(workspace_text("color_missing_theme",{theme:mode}));
+  for(const mode of COLOR_THEME_IDS){
+    const colors=value.themes[mode]??(mode.endsWith('_2026')?{}:undefined);if(!object(colors))throw Error(workspace_text("color_missing_theme",{theme:mode}));
     for(const [key,color] of Object.entries(colors)){
       if(!known_keys.has(key))throw Error(workspace_text("color_settings_unknown_color_item")+key);
       const normalized=normalize_custom_color(color);if(normalized)result.themes[mode][key]=normalized;
@@ -30,15 +31,15 @@ export function validate_color_config(value:unknown):workspace_color_config{
     if(!Array.isArray(value.profiles))throw Error(workspace_text("color_settings_the_color_scheme_must_be_an_array"));
     const ids=new Set<string>(),names=new Set<string>();
     result.profiles=value.profiles.map(raw=>{
-      if(!object(raw)||typeof raw.id!=='string'||!/^[\w-]+$/u.test(raw.id)||typeof raw.name!=='string'||!raw.name.trim()||!['light','dark'].includes(String(raw.mode))||!object(raw.colors))throw Error(workspace_text("color_settings_invalid_color_scheme_format"));
+      if(!object(raw)||typeof raw.id!=='string'||!/^[\w-]+$/u.test(raw.id)||typeof raw.name!=='string'||!raw.name.trim()||!COLOR_THEME_IDS.includes(raw.mode as color_mode)||!object(raw.colors))throw Error(workspace_text("color_settings_invalid_color_scheme_format"));
       const name=raw.name.trim();if(ids.has(raw.id)||names.has(name.toLowerCase()))throw Error(workspace_text("color_settings_color_scheme_number_or_name_is_duplicated"));ids.add(raw.id);names.add(name.toLowerCase());
       const colors:Record<string,string>={};for(const [key,color]of Object.entries(raw.colors)){if(!known_keys.has(key))throw Error(workspace_text("color_settings_unknown_color_item")+key);const normalized=normalize_custom_color(color);if(normalized)colors[key]=normalized;}
       return {id:raw.id,name,mode:raw.mode as color_mode,colors};
     });
   }
   if(value.active!==undefined){
-    if(!object(value.active)||Object.keys(value.active).some(key=>key!=='light'&&key!=='dark'))throw Error(workspace_text("color_settings_active_color_scheme_is_invalid"));
-    result.active={};for(const mode of ['light','dark'] as const){const id=value.active[mode];if(id===undefined)continue;if(!result.profiles?.some(profile=>profile.id===id&&profile.mode===mode))throw Error(workspace_text("color_settings_active_scheme_does_not_exist_or_base_theme_is_inconsistent"));result.active[mode]=String(id);}
+    if(!object(value.active)||Object.keys(value.active).some(key=>!COLOR_THEME_IDS.includes(key as color_mode)))throw Error(workspace_text("color_settings_active_color_scheme_is_invalid"));
+    result.active={};for(const mode of COLOR_THEME_IDS){const id=value.active[mode];if(id===undefined)continue;if(!result.profiles?.some(profile=>profile.id===id&&profile.mode===mode))throw Error(workspace_text("color_settings_active_scheme_does_not_exist_or_base_theme_is_inconsistent"));result.active[mode]=String(id);}
   }
   return result;
 }
@@ -49,9 +50,9 @@ export function duplicate_color_profile(config:workspace_color_config,id:string,
 }
 export async function activate_color_profile(id:string,set_theme:(file:string,name:string)=>unknown){
  const previous=read_color_config(),next=structuredClone(previous),profile=next.profiles?.find(item=>item.id===id),mode=profile?.mode||id as color_mode;
- if(mode!=='light'&&mode!=='dark')throw Error(workspace_text("color_settings_color_scheme_does_not_exist"));
+ if(!COLOR_THEME_IDS.includes(mode))throw Error(workspace_text("color_settings_color_scheme_does_not_exist"));
  next.active||={};if(profile)next.active[mode]=id;else delete next.active[mode];
- save_color_config(next);try{return await set_theme(`vscode_default_${mode}.css`,profile?.name||`VSCODE_Default_${mode==='dark'?'Dark':'Light'}`);}catch(error){if(serialize_color_config(read_color_config())===serialize_color_config(next))save_color_config(previous);throw error;}
+ save_color_config(next);try{return await set_theme(WORKSPACE_COLOR_THEMES[mode].file,profile?.name||WORKSPACE_COLOR_THEMES[mode].label);}catch(error){if(serialize_color_config(read_color_config())===serialize_color_config(next))save_color_config(previous);throw error;}
 }
 export const official_code_role=(key:string)=>key.startsWith('markdown_syntax_')||key.startsWith('markdown_fence_');
 export function parse_color_config(text:string){return validate_color_config(JSON.parse(text.replace(/^\uFEFF/u,'')));}
@@ -70,9 +71,9 @@ export function save_color_config(value:workspace_color_config){
 }
 export function color_config_css(config:workspace_color_config){
   const css:string[]=[];
-  for(const mode of ['light','dark'] as const){
+  for(const mode of COLOR_THEME_IDS){
     const colors=effective_colors(config,mode);
-    const prefix=`:root[data-workspace-colors=${mode}]`,variables:string[]=[];
+    const prefix=mode.endsWith('_2026')?`:root[data-workspace-palette=${mode}]`:`:root[data-workspace-colors=${mode}]:not([data-workspace-palette$="_2026"])`,variables:string[]=[];
     for(const role of WORKSPACE_COLOR_ROLES){
       const value=colors[role.key];if(!value||official_code_role(role.key))continue;
       if(role.variable)variables.push(`${role.variable}:${value}!important`);

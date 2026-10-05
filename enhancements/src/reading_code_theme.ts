@@ -18,7 +18,7 @@ export const initial_code_stack=():code_stack=>[INITIAL,INITIAL,INITIAL,INITIAL]
 /** Base theme explicit selection configuration; other themes continue to use the original light/dark code configuration. */
 export function workspace_code_theme(doc:Document=document):typeof modes[number]{
  const declared=doc.defaultView?.getComputedStyle(doc.documentElement).getPropertyValue('--workspace-code-theme').trim();
- if(declared==='dark_2026'||declared==='light_2026')return declared;
+ if(declared==='dark'||declared==='light'||declared==='dark_2026'||declared==='light_2026')return declared;
  const mode=doc.documentElement.dataset.workspaceColors||(doc===document?workspace_theme_mode():'light');
  return mode==='dark'?'dark':'light';
 }

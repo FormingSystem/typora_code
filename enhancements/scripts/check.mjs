@@ -5,7 +5,6 @@ const output = path.resolve("dist/workbench.js");
 if (!fs.existsSync(output)) throw new Error("dist/workbench.js is missing; run npm run build");
 const source = fs.readFileSync(output, "utf8");
 const enhancement_css = fs.readFileSync(path.resolve("src/typora_enhancements.css"), "utf8");
-const typora_theme = fs.readFileSync(path.resolve("../vscode_default_light.css"), "utf8");
 const runtime_source = fs.readFileSync(path.resolve("dist/workspace_core.js"), "utf8");
 const static_css = fs.readFileSync(path.resolve("dist/workspace.css"), "utf8");
 if (!source.includes('Symbol.for("typora-code:workspace")')) throw new Error("resident core bridge is missing");
@@ -34,7 +33,8 @@ if (source.includes("schedule_mermaid_positions")) {
 for (const marker of ['load_code_themes','typora-code-official-code-theme','editor.foreground']) {
   if (!source.includes(marker)) throw new Error('Official code theme pipeline missing: '+marker);
 }
-for (const marker of ['--workspace-code-theme: light_2026', '--text-color: #202020', 'vscode_default/base.css']) {
-  if (!typora_theme.includes(marker)) throw new Error('Default Typora theme missing: '+marker);
+for(const [file,identity,color] of [['vscode_default_light.css','light','#3B3B3B'],['vscode_default_dark.css','dark','#CCCCCC'],['vscode_2026_default_light.css','light_2026','#202020'],['vscode_2026_default_dark.css','dark_2026','#BBBEBF']]){
+  const theme=fs.readFileSync(path.resolve('..',file),'utf8');
+  for(const marker of [`--workspace-code-theme: ${identity};`,`--text-color: ${color}`,`--theme-heading: ${identity.startsWith('dark')?'#CE9178':'#0066CC'}`, 'vscode_default/base.css'])if(!theme.includes(marker))throw Error(file+' missing '+marker);
 }
 console.log(`validated ${path.relative(process.cwd(), output)} (${source.length} bytes)`);

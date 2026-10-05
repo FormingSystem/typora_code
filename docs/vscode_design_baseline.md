@@ -143,3 +143,5 @@ R069.2读取固定1.137.0提交的[sash.css](https://github.com/microsoft/vscode
 ## 2026-10-04 R074.9 默认主题来源更新
 
 颜色和Markdown基础排版更新到实际安装的VS Code 1.140.0 stable（07f806f999227108933c2e30515b26eecc1fda74）；其他几何继续既有固定基线。`extensions/theme-defaults/themes/2026-{light,dark}.json`及完整include链保存在`enhancements/vendor/vscode_themes`；默认Markdown字体14px、行高22px、标题600字重、段间24/16px来自`extensions/markdown-language-features/media/markdown.css`，按Typora的#write/围栏节点适配。代码Consolas与已保存会话字号继续独立。常用语言语法原件、路径、版本及SHA见`vendor/vscode_languages/SOURCE.json`；CMake为微软CMake Tools 1.24.42，C/C++沿已有固定语法。TextMate默认平衡括号选择器见`textMateTokenizationFeatureImpl.ts`，启用和颜色池默认见`textModelDefaults.ts`。本机VS Code当前为Dark 2026；同时安装的其他CMake扩展可能改变语法，不能把任意扩展组合承诺为逐像素相同。
+
+2026-10-05 R074.9纠正：同时发布上述固定版本Light/Dark Modern和Light/Dark 2026，共四个选项。Modern缺省角色沿6807068的listColors/menuColors/quickpickColors/editorColors/chartsColors解析继承；无显式焦点填充使用transparent，前景继承foreground。Markdown标题按用户要求保留旧蓝色#0066CC与暖棕#CE9178。来源身份与主题命名表见颜色设计，不以当前VS Code选中主题替代用户要求的全部主题。

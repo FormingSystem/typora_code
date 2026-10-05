@@ -1,3 +1,4 @@
+import {color_theme_from_file,WORKSPACE_COLOR_THEMES} from './workspace_color_identity';
 import {workspace_text} from "./workspace_i18n";
 import {read_color_config,save_color_config,activate_color_profile} from './workspace_color_settings';
 import {get_workspace_recents} from "./workspace_recent";
@@ -183,11 +184,11 @@ export function create_workspace_titlebar_definitions(
     try {
       const data = await runtime.JSBridge?.invoke("setting.getThemes");
       if (!Array.isArray(data?.all)) throw new Error("invalid themes");
-      const config=read_color_config(),profiles=(config.profiles||[]).map(profile=>({label:profile.name,checked:data.current===`vscode_default_${profile.mode}.css`&&config.active?.[profile.mode]===profile.id,disabled:!has_command('setTheme'),action:()=>activate_color_profile(profile.id,(file,name)=>call_command('setTheme',[file,name]))}));
+      const config=read_color_config(),profiles=(config.profiles||[]).map(profile=>({label:profile.name,checked:data.current===WORKSPACE_COLOR_THEMES[profile.mode].file&&config.active?.[profile.mode]===profile.id,disabled:!has_command('setTheme'),action:()=>activate_color_profile(profile.id,(file,name)=>call_command('setTheme',[file,name]))}));
       return [customize,...profiles,separator(),...data.all.filter((name:unknown) => typeof name === "string").map((name:string) => {
-        const paired_names:Record<string,string>={'vscode_default_light.css':'VSCODE_Default_Light','vscode_default_dark.css':'VSCODE_Default_Dark'};
-        const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
-        return {label: display, checked: name === data.current && !(name.startsWith("vscode_default_") && (name.includes("dark")?config.active?.dark:name.includes("light")?config.active?.light:false)), disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")){const config=read_color_config();config.active={};save_color_config(config);return call_command("setTheme", [name, display]);}}};
+        const identity=color_theme_from_file(name);
+        const display = (identity?WORKSPACE_COLOR_THEMES[identity].label:undefined) || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_:string, letter:string) => letter.toUpperCase());
+        return {label: display, checked: name === data.current && !(identity && config.active?.[identity]), disabled: !has_command("setTheme"), action: () => {if (has_command("setTheme")){const config=read_color_config();config.active={};save_color_config(config);return call_command("setTheme", [name, display]);}}};
       })];
     } catch {return [customize,separator(),{label: workspace_text("titlebar_entries_cannot_read_theme_list"), disabled: true}];}
   };

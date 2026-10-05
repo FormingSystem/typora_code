@@ -16,7 +16,7 @@ fixture = Path(tempfile.mkdtemp(prefix='typora_direct_linux_'))
 tools = fixture / 'portable checkout'
 (tools / 'enhancements').mkdir(parents=True)
 shutil.copytree(project / 'enhancements/dist', tools / 'enhancements/dist')
-for name in ['enhancements/runtime_head.html', 'enhancements/bundle_markers.txt', 'vscode_default_light.css','vscode_default_dark.css','vscode_default/base.css','enhancements/theme_catalog.json']:
+for name in ['enhancements/runtime_head.html', 'enhancements/bundle_markers.txt', 'vscode_default_light.css','vscode_default_dark.css','vscode_2026_default_light.css','vscode_2026_default_dark.css','vscode_default/base.css','enhancements/theme_catalog.json']:
     (tools / name).parent.mkdir(parents=True, exist_ok=True)
     shutil.copy2(project / name, tools / name)
 root = fixture / 'installation with spaces'

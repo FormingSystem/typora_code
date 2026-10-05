@@ -69,7 +69,7 @@ Ctrl+滚轮按指针区域调整编辑器或终端的当前窗口字号，编辑
 - 在标签和侧栏文件树的右键菜单复制相对路径、绝对路径，并提供 VS Code 风格的复制路径快捷键；
 - 在原有主侧栏使用中文源代码管理，在原有编辑标签中查看 Git Graph、文件历史和随编辑组宽度切换的 Monaco 差异；
 - 按对象配置 Git 右键菜单，拖动面板分界线；从仓库根目录打开集成终端，先显示面板再检测及启动Shell，等待过程使用共享进度和阶段文字，支持多会话、分栏和管理员入口；
-- 使用 VS Code TextMate 语法与 Oniguruma 为 C/C++、C#、Java、JS/TS、HTML、CSS、Bash、Makefile、CMake 等代码编辑器、围栏与预览提供同源语法着色；自有主题统一为 `VSCODE_Default_Light` / `VSCODE_Default_Dark`，采用固定 VS Code 1.140.0 默认配色；
+- 使用 VS Code TextMate 语法与 Oniguruma 为 C/C++、C#、Java、JS/TS、HTML、CSS、Bash、Makefile、CMake 等代码编辑器、围栏与预览提供同源语法着色；自有主题提供 `VSCODE_Default_Light/Dark`（Modern）与 `VSCODE_2026_Default_Light/Dark` 四个独立选项，采用固定 VS Code 1.140.0 对应配色，保留原有彩色Markdown标题；
 - 对超过响应式阅读高度的普通代码块默认限高，提供 `展开全部代码` / `收起代码` 切换；正文或代码块获焦时都能直接点击，按钮获焦后支持 Enter / 空格，打印时自动完整展开且不修改 Markdown；
 - 图片与 Mermaid 共用外侧右上方的悬停全屏按钮；按钮在正文外覆盖显示，不插入工具行或推开正文，随原图滚动并按来源去重；
 - 为 Typora 已渲染的 Mermaid SVG 增加独立全屏查看器，默认保持 `100%`，支持按钮缩放、`Ctrl + 滚轮` 指针中心缩放、左键拖动、适应宽度、适应屏幕、恢复 `100%` 和 `Esc` 退出。

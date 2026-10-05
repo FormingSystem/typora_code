@@ -7663,7 +7663,8 @@
         "enhancements/src/workspace_color_view.ts",
         "enhancements/src/workspace_color_catalog.ts",
         "enhancements/src/workspace_colors.ts",
-        "enhancements/src/workspace_color_preview.ts"
+        "enhancements/src/workspace_color_preview.ts",
+        "enhancements/src/workspace_color_identity.ts"
       ],
       "related_modules": [
         "theme",
@@ -7678,7 +7679,8 @@
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
         "覆盖主题入口、正文/Shadow/终端自动保存、保存失败与恢复默认、JSON导入导出及迟到取消、明暗切换、生命周期和窄窗",
-        "实际色值复制、命名方案、双模板对照及反向定位"
+        "实际色值复制、命名方案、双模板对照及反向定位",
+        "Four independent previews and overrides; older JSON initialization; named 2026 profiles retain source identity."
       ],
       "expected": [
         "颜色与持久化一致，错误不覆盖配置，正文及几何保持"
@@ -7702,7 +7704,11 @@
         "vscode_default_light.css",
         "vscode_default_dark.css",
         "enhancements/src/workspace_markdown_theme.ts",
-        "enhancements/src/workspace_titlebar.css"
+        "enhancements/src/workspace_titlebar.css",
+        "vscode_2026_default_light.css",
+        "vscode_2026_default_dark.css",
+        "vscode_default/base.css",
+        "enhancements/src/workspace_color_identity.ts"
       ],
       "related_modules": [
         "theme",
@@ -7716,8 +7722,8 @@
       "environment": "独立Electron/正式CSS",
       "preconditions": "隔离配置/文档与当前构建资产，不操作用户运行窗口",
       "steps": [
-        "Compare official default Light/Dark typography and shared shadow rendering.",
-        "Verify official colors, body-colored headings and menu glyph bounds at 100% and 125% zoom."
+        "Compare Default Modern and 2026 Light/Dark as four independent palettes with identical typography and shared Shadow rendering.",
+        "Verify official code/workbench colors, preserved blue/brown headings and menu glyph bounds at 100% and 125% zoom."
       ],
       "expected": [
         "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切"

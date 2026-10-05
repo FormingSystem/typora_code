@@ -1,3 +1,4 @@
+import {WORKSPACE_COLOR_THEMES} from './workspace_color_identity';
 import {workspace_text} from "./workspace_i18n";
 import {terminal_theme} from './terminal_theme';
 import {load_code_themes,initial_code_stack,workspace_code_theme} from './reading_code_theme';
@@ -15,7 +16,7 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
  let disposed=false,request=0,doc:Document|undefined;
  const load=async(mode:color_mode,colors:Record<string,string>)=>{
   const revision=++request;await new Promise<void>(resolve=>requestAnimationFrame(()=>resolve()));if(disposed||revision!==request)return null;doc=frame.contentDocument!;doc.open();doc.write('<!doctype html><html><head></head><body></body></html>');doc.close();
-  const current=doc,root=current.documentElement;root.dataset.workspaceColors=mode;root.dataset.workspaceCodeTheme=mode;
+  const current=doc,root=current.documentElement;root.dataset.workspaceColors=WORKSPACE_COLOR_THEMES[mode].mode;root.dataset.workspacePalette=mode;root.dataset.workspaceCodeTheme=mode;
   const base=current.createElement('base');base.href=document.baseURI;current.head.append(base);
   const loads:Promise<void>[]=[];
   for(const source of document.head.querySelectorAll('style,link[rel=stylesheet],link#theme_css')){
@@ -24,8 +25,8 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
    const clone=source.cloneNode(true) as HTMLElement;
    if(clone instanceof HTMLLinkElement){
     clone.href=(source as HTMLLinkElement).href;clone.rel='stylesheet';
-    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode_default_${mode}.css`);
-    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,`vscode_default_${mode}.user.css`);
+    if(source.id==='theme_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,WORKSPACE_COLOR_THEMES[mode].file);
+    if(source.id==='theme_user_css')clone.href=clone.href.replace(/[^/\\]+(?:[?#].*)?$/u,WORKSPACE_COLOR_THEMES[mode].file.replace('.css','.user.css'));
     loads.push(new Promise((resolve,reject)=>{clone.onload=()=>resolve();clone.onerror=()=>['base_user_css','theme_user_css'].includes(source.id)?resolve():reject(Error(workspace_text("color_preview_theme_style_preview_loading_failed")+clone.href));}));
    }
    current.head.append(clone);
@@ -51,7 +52,7 @@ export function create_color_preview(host:HTMLElement,on_select:(key:string)=>vo
  };
  const read_colors=()=>Object.fromEntries(WORKSPACE_COLOR_ROLES.map(role=>[role.key,read_color(role)]));
  const update=(colors:Record<string,string>)=>{
-  if(!doc||disposed)return;const config=empty_color_config();config.themes[doc.documentElement.dataset.workspaceColors as color_mode]=colors;doc.getElementById('color-preview-overrides')!.textContent=color_config_css(config);
+  if(!doc||disposed)return;const config=empty_color_config();config.themes[doc.documentElement.dataset.workspacePalette as color_mode]=colors;doc.getElementById('color-preview-overrides')!.textContent=color_config_css(config);
   const values=read_colors(),samples=doc.querySelector('.color-role-samples')!,fragment=doc.createDocumentFragment();
   for(const role of WORKSPACE_COLOR_ROLES){const sample=doc.createElement('div');sample.className='color-role-sample';sample.dataset.colorTarget=role.key;sample.tabIndex=0;sample.setAttribute('role','button');const swatch=doc.createElement('i'),value=values[role.key];swatch.style.backgroundColor=value||'transparent';sample.append(swatch,role.title+' '+(value||workspace_text("color_preview_undefined"))+(official_code_role(role.key)?' · VS Code':''));sample.addEventListener('keydown',event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();on_select(role.key);}});fragment.append(sample);}
   samples.replaceChildren(fragment);

@@ -17,7 +17,7 @@ try {
 $source_root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $tools_copy = Join-Path $test_root 'portable checkout'
 New-Item -ItemType Directory -Force -Path $tools_copy | Out-Null
-foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','vscode_default_light.css','vscode_default_dark.css','vscode_default/base.css','enhancements/theme_catalog.json','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
+foreach ($relative in @('install_windows.ps1','check_windows.ps1','restore_windows.ps1','uninstall_windows.ps1','vscode_default_light.css','vscode_default_dark.css','vscode_2026_default_light.css','vscode_2026_default_dark.css','vscode_default/base.css','enhancements/theme_catalog.json','scripts','enhancements/scripts','enhancements/dist','enhancements/runtime_head.html','enhancements/bundle_markers.txt','enhancements/node_runtime.json')) {
     $destination=Join-Path $tools_copy $relative
     New-Item -ItemType Directory -Force -Path (Split-Path -Parent $destination) | Out-Null
     Copy-Item -LiteralPath (Join-Path $source_root $relative) -Destination $destination -Recurse
@@ -63,8 +63,8 @@ try {
     assert_equal $install_output.Count 0 'Installation logs contaminated the success output stream'
     & $checker -typora_root $fake_root -non_interactive
     assert_equal (read_profile_fixture $profile).framelessWindow $true 'Native window preference was not installed'
-    assert_equal (read_profile_fixture $profile).theme 'vscode_default_dark.css' 'Legacy theme choice was not migrated'
-    assert_equal (read_profile_fixture $profile).darkTheme 'vscode_default_dark.css' 'Separate dark choice was not migrated'
+    assert_equal (read_profile_fixture $profile).theme 'vscode_2026_default_dark.css' 'Legacy theme choice was not migrated'
+    assert_equal (read_profile_fixture $profile).darkTheme 'vscode_2026_default_dark.css' 'Separate dark choice was not migrated'
     assert_equal (Test-Path -LiteralPath (Join-Path $user_data 'themes/vscode2026_dark.css')) $false 'Owned legacy theme not retired'
     assert_equal ([IO.File]::ReadAllText((Join-Path $user_data 'themes/cpp_github-consolas.css'))) 'user modified theme' 'Custom legacy CSS was overwritten'
     write_fixture (Join-Path $user_data 'themes/cpp_github-consolas.css') 'later user theme edit'

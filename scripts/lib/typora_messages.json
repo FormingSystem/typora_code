@@ -104,8 +104,8 @@
     "zh_cn": "保存文档后正常重启 Typora，即可加载本次安装。"
   },
   "select_vscode_default_light_or_dark": {
-    "en": "Select VSCODE_Default_Light or VSCODE_Default_Dark in the Theme menu. Unmodified owned legacy themes migrate automatically; custom themes and preferences are preserved.",
-    "zh_cn": "在“主题”菜单选择 VSCODE_Default_Light 或 VSCODE_Default_Dark。未修改的旧版自有主题自动迁移，自定义主题和偏好设置保留。"
+    "en": "Select VSCODE_Default_Light / Dark or VSCODE_2026_Default_Light / Dark in the Theme menu. Unmodified owned legacy themes migrate automatically; custom themes and preferences are preserved.",
+    "zh_cn": "在“主题”菜单选择 VSCODE_Default_Light / Dark 或 VSCODE_2026_Default_Light / Dark。未修改的旧版自有主题自动迁移，自定义主题和偏好设置保留。"
   },
   "failed": {
     "en": "{0} failed: {1}",

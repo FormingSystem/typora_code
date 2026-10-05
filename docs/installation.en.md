@@ -30,7 +30,7 @@ install_windows.cmd / setup_windows.ps1 / install_windows.ps1 / install.sh
 check_windows.ps1 / check.sh
 uninstall_windows.cmd / uninstall_windows.ps1
 restore_windows.ps1 / restore.sh
-vscode_default_light.css / vscode_default_dark.css / vscode_default/base.css
+vscode_default_light.css / vscode_default_dark.css / vscode_2026_default_light.css / vscode_2026_default_dark.css / vscode_default/base.css
 scripts/
 enhancements/dist/SHA256SUMS
 enhancements/dist/terminal_runtime/
@@ -238,7 +238,7 @@ For manual color testing, find `vscode_default_dark.css` from **Theme → Open T
 
 Each standard installation generates a new installation identifier. On the next startup, a ready window automatically displays the guide once. Reinstalling the same version also prompts; duplicates across multiple windows are removed, and skipping or completing the guide prevents repetition on regular restarts. The Help menu can always be revisited and opens the offline user_guide.md. On installation failure, the rollback identifier is retained, and user windows are not closed prematurely. The design is described in [Operation Guide](onboarding.en.md).
 
-Since 2026-10-04, the owned pair is `VSCODE_Default_Light` / `VSCODE_Default_Dark`, using VS Code 1.140.0 Light/Dark 2026 colors and Markdown typography. Standard setup backs up and migrates unmodified CppGithubConsoles/VSCode2026 files and both theme choices. Modified legacy files, third-party themes, saved font/zoom preferences and custom colors are retained. Save documents and restart all Typora windows to load this version.
+Corrected on 2026-10-05: `VSCODE_Default_Light` / `VSCODE_Default_Dark` use pinned VS Code 1.140.0 Modern colors; `VSCODE_2026_Default_Light` / `VSCODE_2026_Default_Dark` use 2026 colors. Markdown headings retain blue in light themes and warm brown in dark themes. Existing Default choices retain their filenames and now use Modern; select 2026 in the Theme menu if desired. Standard setup backs up and migrates unmodified CppGithubConsoles/VSCode2026 files and both theme choices. Modified legacy files, third-party themes, saved font/zoom preferences and custom colors are retained. Save documents and restart all Typora windows to load this version.
 
 ## Graphical setup and language plugins
 

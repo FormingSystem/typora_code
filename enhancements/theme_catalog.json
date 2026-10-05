@@ -3,7 +3,9 @@
   "files": [
     "vscode_default/base.css",
     "vscode_default_light.css",
-    "vscode_default_dark.css"
+    "vscode_default_dark.css",
+    "vscode_2026_default_light.css",
+    "vscode_2026_default_dark.css"
   ],
   "legacy": {
     "cpp_github-consolas.css": {
@@ -32,14 +34,14 @@
         "8969ce185069e805fd3d3953396327cf2d6a82d7a81c72c5beda7651ba07e7ca",
         "8969ce185069e805fd3d3953396327cf2d6a82d7a81c72c5beda7651ba07e7ca"
       ],
-      "replacement": "vscode_default_light.css"
+      "replacement": "vscode_2026_default_light.css"
     },
     "vscode2026_dark.css": {
       "sha256": [
         "87e057cc90a454d1413a60dc2c21943979d7c3640009d99cd1b32d16c82d47ac",
         "c458daab910563901eb9d07229c1a103cd99cee422296c53d4a07edb37a0a961"
       ],
-      "replacement": "vscode_default_dark.css"
+      "replacement": "vscode_2026_default_dark.css"
     }
   }
 }

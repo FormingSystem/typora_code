@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100501,
+      "version": "2026.10.05.1",
+      "date": "2026-10-05",
+      "notes": [
+        "纠正主题合并：提供独立的 VSCODE_Default_Light/Dark 与 VSCODE_2026_Default_Light/Dark，工作台、代码、阅读和终端采用各自完整配色。",
+        "四个主题分别支持设置预览、自定义颜色及命名方案，同明暗切换立即更新。",
+        "保留原有 Markdown 彩色标题：浅色蓝色、深色暖棕色，正文和阅读预览一致。"
+      ],
+      "notes_en": [
+        "Correct the merged themes: provide separate VSCODE_Default_Light/Dark and VSCODE_2026_Default_Light/Dark with matching workbench, code, reading and terminal palettes.",
+        "Give each theme independent settings previews, custom colors and named profiles, including immediate same-brightness switching.",
+        "Preserve colored Markdown headings: blue in light themes and warm brown in dark themes, including reading previews."
+      ]
+    },
+    {
       "sequence": 2026100404,
       "version": "2026.10.04.4",
       "date": "2026-10-04",

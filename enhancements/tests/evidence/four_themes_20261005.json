@@ -1,0 +1,133 @@
+{
+  "requirement": "R074.9",
+  "date": "2026-10-05",
+  "version": "2026.10.05.1",
+  "correction": "Four independent palettes; retain colored Markdown headings. Supersedes the two-theme interpretation delivered in 2026.10.04.4.",
+  "source": {
+    "vscode": "1.140.0 stable",
+    "commit": "07f806f999227108933c2e30515b26eecc1fda74",
+    "default": [
+      "Light Modern",
+      "Dark Modern"
+    ],
+    "2026": [
+      "Light 2026",
+      "Dark 2026"
+    ],
+    "registry_defaults": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "headings": {
+      "light": "#0066CC",
+      "dark": "#CE9178",
+      "source": "owned themes before 671f175"
+    }
+  },
+  "runtime_sha256": {
+    "workbench.js": "086982604db067b4a6310d2200bbfeaade56534c1869c70d171eda1dc7e27a34",
+    "workspace.css": "d69f4c50b528c9966c1d29b5af4181a610c45a8aa521e0a55b11f5b75f116ffb",
+    "workspace_core.js": "b86288005c8e269bea20f40bffbed4bb164d4f2c712441d384749b8d3df9a29d",
+    "SHA256SUMS": "572554e62e49145a854cb2e9c6e1725e106f610600a24c9d98d3e43ac84f2df1"
+  },
+  "themes_sha256": {
+    "vscode_default/base.css": "18a9b1a55095837a3d8ed63dcacc4e4545d145fffd4d7742af991e125cf44c3b",
+    "vscode_default_light.css": "692d48df1a8ebf9c619124a4dc1064a865ce6778aaef236633c4482a18f92594",
+    "vscode_default_dark.css": "a86876bb10d4d47ebbf0dfa8ee3b768dac017c935a086fca755e70360991cc98",
+    "vscode_2026_default_light.css": "69f0cc670b6d5f4280b1ea46b39dfbf55f0498553bcc5da2d438bf2fcde1a899",
+    "vscode_2026_default_dark.css": "6025711d491f295ecba0ae55179304154c7bb3ef01b614fd552d58a070cba640"
+  },
+  "checks": {
+    "build": "PASS",
+    "core": {
+      "status": "PASS",
+      "run": "ca845429eb5b41b8af5b27285333a285"
+    },
+    "ui": {
+      "theme_pair": {
+        "checks": 21,
+        "run": "db603b0ba5054c9e8f1eea5aee4b3467"
+      },
+      "color_settings": {
+        "checks": 61,
+        "run": "200b6fd5c43240599b422eb97b8a86f0"
+      },
+      "workspace_colors": {
+        "checks": 61,
+        "run": "72c7ec4deae64cb1a1baaa6b4fe843bf"
+      },
+      "code_analysis": {
+        "run": "d2feaf491afa4906819cc6da47d56894"
+      },
+      "code_editor_colors": {
+        "checks": 319,
+        "run": "2bdc21ede0f3464d8ff8700301f4f21d"
+      },
+      "terminal_theme": {
+        "checks": 10,
+        "run": "a041e29991544acdb0df4c567d408adf"
+      },
+      "interaction": {
+        "checks": 126,
+        "run": "907b0265ecbf4a7f87bb46d9c655415f"
+      }
+    },
+    "native": {
+      "status": "PASS",
+      "checks": 579,
+      "comparisons": 96,
+      "languages": 12,
+      "themes": 4,
+      "case": "7403e314b42a4a9099f727b294126b68",
+      "screenshots_reviewed": true,
+      "payload_cleanup": "cleaned"
+    },
+    "install_restore_revoke_reinstall": {
+      "status": "PASS",
+      "run": "f037041d52f6464397388e6482e4662a"
+    },
+    "uninstall_failure_cancel_rollback": {
+      "status": "PASS",
+      "checks": 65,
+      "run": "cb0dc4a6e2254bfe9c298c7122793ec0"
+    },
+    "python_transactions": {
+      "status": "PASS",
+      "run": "8d95adba172a43f0b03bb5a34e462436"
+    },
+    "zip_update": {
+      "status": "PASS",
+      "run": "22ad6f7592e548cea49e3dc7587ebcbb"
+    },
+    "native_profile_migration": "PASS five legacy names, both choices, rollback and custom-file protection"
+  },
+  "local": {
+    "status": "PASS",
+    "profile_theme": "vscode_default_dark.css",
+    "profile_dark_theme": "vscode_2026_default_dark.css",
+    "protected_files": 10,
+    "registry_records": 4,
+    "matched_assets": {
+      "workbench": 68,
+      "terminal": 24
+    },
+    "themes": 5,
+    "manifest_sha256": "572554e62e49145a854cb2e9c6e1725e106f610600a24c9d98d3e43ac84f2df1"
+  },
+  "delivery": {
+    "installed": true,
+    "check": "PASS",
+    "uninstall": "read-only preflight; actual local environment not uninstalled",
+    "running_user_windows": "not restarted",
+    "commit": "recorded in local requirement ledger",
+    "pushed": false
+  },
+  "corrected_failures": [
+    "Initial preview extraction omitted full palette identity and compound override selectors; extended shared extraction, then reran previews/native colors.",
+    "Updated tests that assumed two 2026 palettes or monochrome headings; fixture HTML now declares UTF-8.",
+    "Terminal same-brightness test initially waited for unchanged foreground only; now awaits the new panel background."
+  ],
+  "boundaries": [
+    "Windows x64 Typora 1.14.10 and isolated Electron; no other OS or host version acceptance.",
+    "No claim of full VS Code layout or arbitrary extension equivalence.",
+    "R071.7 long-running native black screen, R068.11, R005.4 and prior fenced-language return issue remain open.",
+    "No full UI suite or long-running GPU stress repeated for this palette correction."
+  ]
+}

@@ -234,3 +234,13 @@ Publish vscode_default_light.css and vscode_default_dark.css with a shared base 
 Shared theme notifications update presentation without recreating models, documents or terminals. The code-theme owner manages token registration and restores temporary CodeMirror modes on disposal. Initialization failure retains readable fallback syntax and reports the error. Installation cancellation/failure uses the standard transaction and never closes existing windows.
 
 Validate CMake comments, commands, arguments, variables, strings and brackets, common languages and existing C/C++ behavior. Cover light/dark, narrow/wide, keyboard, source/reading/preview/diff/terminal/settings identity, 20 switches, duplicate notifications, custom colors, unsaved text and model identity. Verify old selection migration, modified legacy-file retention, install/check/restore-and-detach-uninstall/reinstall and cancellation/rollback. Report original Typora and real local installation separately.
+
+### 2026-10-05 R074.9 correction: four distinct themes
+
+The user requires two pairs. The previous two-theme interpretation is superseded: VSCODE_Default_Light/Dark use pinned VS Code 1.140.0 Light/Dark Modern; VSCODE_2026_Default_Light/Dark use Light/Dark 2026. Four CSS entries share Markdown typography and declare separate code identities. The shared palette owner tracks brightness and full identity across menus, settings, comparisons, named profiles, editors, fences, readers and terminals. Switching within the same brightness invalidates colors without rebuilding documents or sessions.
+
+Existing light/dark settings remain Default overrides; light_2026/dark_2026 are independent optional settings, empty when reading older JSON. The installation inventory adds two 2026 themes. Legacy vscode2026 choices migrate to the new 2026 names; Cpp choices migrate to Default. The previous incorrectly named Default choice retains its filename and now uses Modern; users may select 2026 in the theme menu. Failed or canceled writes retain existing settings through the standard transactions.
+
+Validate all four pinned palettes, same-brightness transitions, settings previews, syntax and terminal colors, native Markdown geometry and model identity. Record isolated install/check/uninstall/reinstall, read-only local uninstall preflight and final local installation separately.
+
+2026-10-05 follow-up: preserve the previous colored Markdown headings, superseding the earlier plain foreground rule. The original themes before 671f175 use #0066CC for all light headings and #CE9178 for all dark headings. All four themes and shared readers retain these colors, with custom heading overrides taking precedence. Code and workbench palettes remain official.

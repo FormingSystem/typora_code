@@ -187836,7 +187836,7 @@ https://creativecommons.org/licenses/by/4.0/
   var initial_code_stack = () => [import_vscode_textmate.INITIAL, import_vscode_textmate.INITIAL, import_vscode_textmate.INITIAL, import_vscode_textmate.INITIAL];
   function workspace_code_theme(doc = document) {
     const declared = doc.defaultView?.getComputedStyle(doc.documentElement).getPropertyValue("--workspace-code-theme").trim();
-    if (declared === "dark_2026" || declared === "light_2026") return declared;
+    if (declared === "dark" || declared === "light" || declared === "dark_2026" || declared === "light_2026") return declared;
     const mode = doc.documentElement.dataset.workspaceColors || (doc === document ? workspace_theme_mode() : "light");
     return mode === "dark" ? "dark" : "light";
   }
@@ -202156,7 +202156,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const rules = [...document.styleSheets].map((sheet) => {
-      const text4 = collect(sheet), adapted = text4.replace(/:root(\[data-workspace-(?:colors|code-theme)(?:=[^\]]+)?\])/gu, ":host-context(html$1)").replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
+      const text4 = collect(sheet), adapted = text4.replace(/:root((?:\[data-workspace-(?:colors|code-theme|palette)[^\]]*\]|:not\(\[data-workspace-palette[^\]]*\]\))+)/gu, ":host-context(html$1)").replace(/:root\b/gu, ":host").replace(/\b((?:body|html)(?:\.[\w-]+)*)\s+(?=#write)/gu, ":host-context($1) ");
       return text4 && sheet.media.mediaText ? "@media " + sheet.media.mediaText + "{" + adapted + "}" : adapted;
     });
     const text3 = rules.join("\n");
@@ -253623,6 +253623,21 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100501,
+        version: "2026.10.05.1",
+        date: "2026-10-05",
+        notes: [
+          "\u7EA0\u6B63\u4E3B\u9898\u5408\u5E76\uFF1A\u63D0\u4F9B\u72EC\u7ACB\u7684 VSCODE_Default_Light/Dark \u4E0E VSCODE_2026_Default_Light/Dark\uFF0C\u5DE5\u4F5C\u53F0\u3001\u4EE3\u7801\u3001\u9605\u8BFB\u548C\u7EC8\u7AEF\u91C7\u7528\u5404\u81EA\u5B8C\u6574\u914D\u8272\u3002",
+          "\u56DB\u4E2A\u4E3B\u9898\u5206\u522B\u652F\u6301\u8BBE\u7F6E\u9884\u89C8\u3001\u81EA\u5B9A\u4E49\u989C\u8272\u53CA\u547D\u540D\u65B9\u6848\uFF0C\u540C\u660E\u6697\u5207\u6362\u7ACB\u5373\u66F4\u65B0\u3002",
+          "\u4FDD\u7559\u539F\u6709 Markdown \u5F69\u8272\u6807\u9898\uFF1A\u6D45\u8272\u84DD\u8272\u3001\u6DF1\u8272\u6696\u68D5\u8272\uFF0C\u6B63\u6587\u548C\u9605\u8BFB\u9884\u89C8\u4E00\u81F4\u3002"
+        ],
+        notes_en: [
+          "Correct the merged themes: provide separate VSCODE_Default_Light/Dark and VSCODE_2026_Default_Light/Dark with matching workbench, code, reading and terminal palettes.",
+          "Give each theme independent settings previews, custom colors and named profiles, including immediate same-brightness switching.",
+          "Preserve colored Markdown headings: blue in light themes and warm brown in dark themes, including reading previews."
+        ]
+      },
+      {
         sequence: 2026100404,
         version: "2026.10.04.4",
         date: "2026-10-04",
@@ -255674,6 +255689,18 @@ https://creativecommons.org/licenses/by/4.0/
     return lifetime;
   }
 
+  // src/workspace_color_identity.ts
+  var WORKSPACE_COLOR_THEMES = {
+    light: { file: "vscode_default_light.css", label: "VSCODE_Default_Light", mode: "light" },
+    dark: { file: "vscode_default_dark.css", label: "VSCODE_Default_Dark", mode: "dark" },
+    light_2026: { file: "vscode_2026_default_light.css", label: "VSCODE_2026_Default_Light", mode: "light" },
+    dark_2026: { file: "vscode_2026_default_dark.css", label: "VSCODE_2026_Default_Dark", mode: "dark" }
+  };
+  var COLOR_THEME_IDS = Object.keys(WORKSPACE_COLOR_THEMES);
+  function color_theme_from_file(file) {
+    return COLOR_THEME_IDS.find((id) => WORKSPACE_COLOR_THEMES[id].file === file);
+  }
+
   // src/workspace_colors.css
   var workspace_colors_default = "";
 
@@ -256155,7 +256182,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_color_settings.ts
   var listeners11 = /* @__PURE__ */ new Set();
   var known_keys = new Set(WORKSPACE_COLOR_ROLES.map((role) => role.key));
-  var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {} } });
+  var empty_color_config = () => ({ schema: 1, themes: { light: {}, dark: {}, light_2026: {}, dark_2026: {} } });
   function normalize_custom_color(value) {
     if (typeof value !== "string") throw Error(workspace_text("color_settings_the_color_must_be_hexadecimal_text"));
     const color = value.trim();
@@ -256168,10 +256195,10 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function validate_color_config(value) {
     if (!object(value) || value.schema !== 1 || Object.keys(value).some((key4) => !["schema", "themes", "profiles", "active"].includes(key4)) || !object(value.themes)) throw Error(workspace_text("color_settings_unsupported_color_configuration_requires_schema_1_and_themes"));
-    if (Object.keys(value.themes).some((key4) => key4 !== "light" && key4 !== "dark")) throw Error(workspace_text("color_settings_color_configuration_contains_an_unknown_theme"));
+    if (Object.keys(value.themes).some((key4) => !COLOR_THEME_IDS.includes(key4))) throw Error(workspace_text("color_settings_color_configuration_contains_an_unknown_theme"));
     const result = empty_color_config();
-    for (const mode of ["light", "dark"]) {
-      const colors = value.themes[mode];
+    for (const mode of COLOR_THEME_IDS) {
+      const colors = value.themes[mode] ?? (mode.endsWith("_2026") ? {} : void 0);
       if (!object(colors)) throw Error(workspace_text("color_missing_theme", { theme: mode }));
       for (const [key4, color] of Object.entries(colors)) {
         if (!known_keys.has(key4)) throw Error(workspace_text("color_settings_unknown_color_item") + key4);
@@ -256183,7 +256210,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!Array.isArray(value.profiles)) throw Error(workspace_text("color_settings_the_color_scheme_must_be_an_array"));
       const ids = /* @__PURE__ */ new Set(), names = /* @__PURE__ */ new Set();
       result.profiles = value.profiles.map((raw) => {
-        if (!object(raw) || typeof raw.id !== "string" || !/^[\w-]+$/u.test(raw.id) || typeof raw.name !== "string" || !raw.name.trim() || !["light", "dark"].includes(String(raw.mode)) || !object(raw.colors)) throw Error(workspace_text("color_settings_invalid_color_scheme_format"));
+        if (!object(raw) || typeof raw.id !== "string" || !/^[\w-]+$/u.test(raw.id) || typeof raw.name !== "string" || !raw.name.trim() || !COLOR_THEME_IDS.includes(raw.mode) || !object(raw.colors)) throw Error(workspace_text("color_settings_invalid_color_scheme_format"));
         const name = raw.name.trim();
         if (ids.has(raw.id) || names.has(name.toLowerCase())) throw Error(workspace_text("color_settings_color_scheme_number_or_name_is_duplicated"));
         ids.add(raw.id);
@@ -256198,9 +256225,9 @@ https://creativecommons.org/licenses/by/4.0/
       });
     }
     if (value.active !== void 0) {
-      if (!object(value.active) || Object.keys(value.active).some((key4) => key4 !== "light" && key4 !== "dark")) throw Error(workspace_text("color_settings_active_color_scheme_is_invalid"));
+      if (!object(value.active) || Object.keys(value.active).some((key4) => !COLOR_THEME_IDS.includes(key4))) throw Error(workspace_text("color_settings_active_color_scheme_is_invalid"));
       result.active = {};
-      for (const mode of ["light", "dark"]) {
+      for (const mode of COLOR_THEME_IDS) {
         const id = value.active[mode];
         if (id === void 0) continue;
         if (!result.profiles?.some((profile) => profile.id === id && profile.mode === mode)) throw Error(workspace_text("color_settings_active_scheme_does_not_exist_or_base_theme_is_inconsistent"));
@@ -256225,13 +256252,13 @@ https://creativecommons.org/licenses/by/4.0/
   }
   async function activate_color_profile(id, set_theme) {
     const previous = read_color_config(), next = structuredClone(previous), profile = next.profiles?.find((item) => item.id === id), mode = profile?.mode || id;
-    if (mode !== "light" && mode !== "dark") throw Error(workspace_text("color_settings_color_scheme_does_not_exist"));
+    if (!COLOR_THEME_IDS.includes(mode)) throw Error(workspace_text("color_settings_color_scheme_does_not_exist"));
     next.active ||= {};
     if (profile) next.active[mode] = id;
     else delete next.active[mode];
     save_color_config(next);
     try {
-      return await set_theme("vscode_default_".concat(mode, ".css"), profile?.name || "VSCODE_Default_".concat(mode === "dark" ? "Dark" : "Light"));
+      return await set_theme(WORKSPACE_COLOR_THEMES[mode].file, profile?.name || WORKSPACE_COLOR_THEMES[mode].label);
     } catch (error) {
       if (serialize_color_config(read_color_config()) === serialize_color_config(next)) save_color_config(previous);
       throw error;
@@ -256263,9 +256290,9 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function color_config_css(config) {
     const css = [];
-    for (const mode of ["light", "dark"]) {
+    for (const mode of COLOR_THEME_IDS) {
       const colors = effective_colors(config, mode);
-      const prefix = ":root[data-workspace-colors=".concat(mode, "]"), variables = [];
+      const prefix = mode.endsWith("_2026") ? ":root[data-workspace-palette=".concat(mode, "]") : ":root[data-workspace-colors=".concat(mode, ']:not([data-workspace-palette$="_2026"])'), variables = [];
       for (const role of WORKSPACE_COLOR_ROLES) {
         const value = colors[role.key];
         if (!value || official_code_role(role.key)) continue;
@@ -256285,7 +256312,7 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_workspace_colors() {
     const style = acquire_workspace_style("typora-code-style:workspace_colors", workspace_colors_default);
     const markdown_style = acquire_workspace_style("typora-code-style:workspace_markdown_appearance", workspace_markdown_appearance_default);
-    const root = document.documentElement, previous = root.getAttribute("data-workspace-colors");
+    const root = document.documentElement, previous = root.getAttribute("data-workspace-colors"), previous_palette = root.getAttribute("data-workspace-palette");
     const custom_style = document.createElement("style");
     custom_style.id = "typora-code-custom-colors";
     document.head.append(custom_style);
@@ -256300,7 +256327,10 @@ https://creativecommons.org/licenses/by/4.0/
     const refresh = () => {
       const href = document.getElementById("theme_css")?.getAttribute("href") || "";
       const name = href.split(/[\\/]/u).pop()?.split(/[?#]/u)[0].toLowerCase();
-      const mode = ["vscode_default_light.css"].includes(name || "") ? "light" : ["night.css", "vscode_default_dark.css"].includes(name || "") ? "dark" : void 0;
+      const palette = color_theme_from_file(name || ""), mode = palette ? WORKSPACE_COLOR_THEMES[palette].mode : name === "night.css" ? "dark" : void 0;
+      if (palette) {
+        if (root.dataset.workspacePalette !== palette) root.dataset.workspacePalette = palette;
+      } else root.removeAttribute("data-workspace-palette");
       if (mode) {
         if (root.getAttribute("data-workspace-colors") !== mode) root.setAttribute("data-workspace-colors", mode);
       } else root.removeAttribute("data-workspace-colors");
@@ -256317,6 +256347,8 @@ https://creativecommons.org/licenses/by/4.0/
       release();
       markdown_style.remove();
       style.remove();
+      if (previous_palette === null) root.removeAttribute("data-workspace-palette");
+      else root.setAttribute("data-workspace-palette", previous_palette);
       if (previous === null) root.removeAttribute("data-workspace-colors");
       else root.setAttribute("data-workspace-colors", previous);
     } };
@@ -262648,11 +262680,11 @@ https://creativecommons.org/licenses/by/4.0/
       try {
         const data = await runtime3.JSBridge?.invoke("setting.getThemes");
         if (!Array.isArray(data?.all)) throw new Error("invalid themes");
-        const config = read_color_config(), profiles = (config.profiles || []).map((profile) => ({ label: profile.name, checked: data.current === "vscode_default_".concat(profile.mode, ".css") && config.active?.[profile.mode] === profile.id, disabled: !has_command("setTheme"), action: () => activate_color_profile(profile.id, (file, name) => call_command("setTheme", [file, name])) }));
+        const config = read_color_config(), profiles = (config.profiles || []).map((profile) => ({ label: profile.name, checked: data.current === WORKSPACE_COLOR_THEMES[profile.mode].file && config.active?.[profile.mode] === profile.id, disabled: !has_command("setTheme"), action: () => activate_color_profile(profile.id, (file, name) => call_command("setTheme", [file, name])) }));
         return [customize, ...profiles, separator(), ...data.all.filter((name) => typeof name === "string").map((name) => {
-          const paired_names = { "vscode_default_light.css": "VSCODE_Default_Light", "vscode_default_dark.css": "VSCODE_Default_Dark" };
-          const display = paired_names[name] || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_2, letter) => letter.toUpperCase());
-          return { label: display, checked: name === data.current && !(name.startsWith("vscode_default_") && (name.includes("dark") ? config.active?.dark : name.includes("light") ? config.active?.light : false)), disabled: !has_command("setTheme"), action: () => {
+          const identity5 = color_theme_from_file(name);
+          const display = (identity5 ? WORKSPACE_COLOR_THEMES[identity5].label : void 0) || name.replace(/\.css$/i, "").replace(/(?:^|_|-)(\w)/g, (_2, letter) => letter.toUpperCase());
+          return { label: display, checked: name === data.current && !(identity5 && config.active?.[identity5]), disabled: !has_command("setTheme"), action: () => {
             if (has_command("setTheme")) {
               const config2 = read_color_config();
               config2.active = {};
@@ -265436,7 +265468,8 @@ https://creativecommons.org/licenses/by/4.0/
       doc.write("<!doctype html><html><head></head><body></body></html>");
       doc.close();
       const current2 = doc, root = current2.documentElement;
-      root.dataset.workspaceColors = mode;
+      root.dataset.workspaceColors = WORKSPACE_COLOR_THEMES[mode].mode;
+      root.dataset.workspacePalette = mode;
       root.dataset.workspaceCodeTheme = mode;
       const base = current2.createElement("base");
       base.href = document.baseURI;
@@ -265449,8 +265482,8 @@ https://creativecommons.org/licenses/by/4.0/
         if (clone4 instanceof HTMLLinkElement) {
           clone4.href = source.href;
           clone4.rel = "stylesheet";
-          if (source.id === "theme_css") clone4.href = clone4.href.replace(/[^/\\]+(?:[?#].*)?$/u, "vscode_default_".concat(mode, ".css"));
-          if (source.id === "theme_user_css") clone4.href = clone4.href.replace(/[^/\\]+(?:[?#].*)?$/u, "vscode_default_".concat(mode, ".user.css"));
+          if (source.id === "theme_css") clone4.href = clone4.href.replace(/[^/\\]+(?:[?#].*)?$/u, WORKSPACE_COLOR_THEMES[mode].file);
+          if (source.id === "theme_user_css") clone4.href = clone4.href.replace(/[^/\\]+(?:[?#].*)?$/u, WORKSPACE_COLOR_THEMES[mode].file.replace(".css", ".user.css"));
           loads.push(new Promise((resolve3, reject) => {
             clone4.onload = () => resolve3();
             clone4.onerror = () => ["base_user_css", "theme_user_css"].includes(source.id) ? resolve3() : reject(Error(workspace_text("color_preview_theme_style_preview_loading_failed") + clone4.href));
@@ -265535,7 +265568,7 @@ https://creativecommons.org/licenses/by/4.0/
     const update2 = (colors) => {
       if (!doc || disposed) return;
       const config = empty_color_config();
-      config.themes[doc.documentElement.dataset.workspaceColors] = colors;
+      config.themes[doc.documentElement.dataset.workspacePalette] = colors;
       doc.getElementById("color-preview-overrides").textContent = color_config_css(config);
       const values = read_colors(), samples = doc.querySelector(".color-role-samples"), fragment = doc.createDocumentFragment();
       for (const role of WORKSPACE_COLOR_ROLES) {
@@ -265578,7 +265611,7 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_color_view.ts
   function mount_color_settings(host, fields, status2) {
     const style = acquire_workspace_style("typora-code-style:workspace_color_view", workspace_color_view_default);
-    let draft = read_color_config(), id = document.documentElement.dataset.workspaceColors || workspace_theme_mode(), disposed = false, writing = false, revision = 0, preview_revision = 0, defaults2 = {};
+    let draft = read_color_config(), id = document.documentElement.dataset.workspacePalette || document.documentElement.dataset.workspaceColors || workspace_theme_mode(), disposed = false, writing = false, revision = 0, preview_revision = 0, defaults2 = {};
     id = draft.active?.[id] || id;
     const invalid = /* @__PURE__ */ new Set(), toolbar = workspace_element("div", "workspace-color-toolbar"), theme2 = workspace_element("select"), table = workspace_element("table", "workspace-color-table"), tbody = workspace_element("tbody"), preview_area = workspace_element("div", "workspace-color-previews"), primary_host = workspace_element("div"), compare_host = workspace_element("div"), compare2 = workspace_element("select");
     host.classList.add("workspace-color-settings");
@@ -265600,7 +265633,7 @@ https://creativecommons.org/licenses/by/4.0/
         const previous = select === theme2 ? id : select.value;
         select.replaceChildren();
         if (select === compare2) select.append(new Option(workspace_text("color_view_do_not_display_comparison"), ""));
-        select.append(new Option(workspace_text("color_view_vscode_default_light_light_theme"), "light"), new Option(workspace_text("color_view_vscode_default_dark_dark_theme"), "dark"));
+        for (const key4 of COLOR_THEME_IDS) select.append(new Option(WORKSPACE_COLOR_THEMES[key4].label, key4));
         for (const profile of draft.profiles || []) select.append(new Option(profile.name, profile.id));
         select.value = previous;
         if (select === compare2 && !select.value) select.value = "";
@@ -265812,7 +265845,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (disposed || generation !== revision) return;
         persist2(next);
         draft = next;
-        if (!["light", "dark"].includes(id) && !draft.profiles?.some((profile) => profile.id === id)) id = "light";
+        if (!COLOR_THEME_IDS.includes(id) && !draft.profiles?.some((profile) => profile.id === id)) id = "light";
         options2();
         render();
         void refresh_preview();
@@ -265856,7 +265889,7 @@ https://creativecommons.org/licenses/by/4.0/
     const unwatch = observe_color_config(() => {
       if (writing || disposed) return;
       draft = read_color_config();
-      if (!["light", "dark"].includes(id) && !draft.profiles?.some((profile) => profile.id === id)) id = "light";
+      if (!COLOR_THEME_IDS.includes(id) && !draft.profiles?.some((profile) => profile.id === id)) id = "light";
       options2();
       render();
       primary.update(chosen().colors);

@@ -13,7 +13,7 @@
  sources.css='/* comment */\n.sample { color: red; }';
  sources.makefile='# comment\nall: main\n    @echo hello';
  sources.unknown_fixture='plain value <thing>\nsecond line 42';
- const themes=[['vscode_default_dark.css','dark_2026'],['vscode_default_light.css','light_2026']];
+ const themes=[['vscode_default_dark.css','dark'],['vscode_2026_default_dark.css','dark_2026'],['vscode_default_light.css','light'],['vscode_2026_default_light.css','light_2026']];
  const directory=path.join(base,'workspace');
  const characters=root=>{const out=[],walker=document.createTreeWalker(root,NodeFilter.SHOW_TEXT);let node;while(node=walker.nextNode()){const color=getComputedStyle(node.parentElement).color;for(const value of node.nodeValue.replace(/\u00a0/g,' ').replace(/\u200b/g,''))out.push({value,color});}return out;};
  try{
@@ -43,6 +43,10 @@
    for(const [theme,identity] of themes){
     ClientCommand.setTheme(theme,theme);await wait(()=>document.documentElement.dataset.workspaceCodeTheme===identity,'theme '+identity);await pause(250);
     cm.refresh();await pause(80);
+    const heading_color=identity.startsWith('dark')?'rgb(206, 145, 120)':'rgb(0, 102, 204)';
+    assert(getComputedStyle(document.querySelector('#write h1')).color===heading_color,'preserve colored native heading '+language+' '+identity);
+    assert(getComputedStyle(shadow.querySelector('h1')).color===heading_color,'preserve colored preview heading '+language+' '+identity);
+    if(language==='cmake'){fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'four_themes_'+identity}));await pause(500);}
     assert([...fence().querySelectorAll('pre.CodeMirror-line')].every(line=>getComputedStyle(line).marginBottom==='0px'),'native line boxes exclude Markdown paragraph spacing '+language+' '+identity);
     const native=[...fence().querySelectorAll('.CodeMirror-code .CodeMirror-line')].flatMap((line,index)=>[...(index?[{value:'\n',color:null}]:[]),...characters(line)]);
     assert(native.map(item=>item.value).join('')===source,'native source '+language+' '+identity+' '+JSON.stringify(native.map(item=>item.value).join('')));

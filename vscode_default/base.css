@@ -5,7 +5,7 @@ html { font-size: 14px; }
 body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(--text-color); background: var(--bg-color); }
 #write { max-width: none; margin: 0 auto; padding: 16px 26px 40px; font-size: 14px; line-height: 22px; word-wrap: break-word; }
 #write :is(h1,h2,h3,h4,h5,h6,p,ol,ul,pre:not(.CodeMirror-line,.CodeMirror-line-like)) { margin-top: 0; }
-#write :is(h1,h2,h3,h4,h5,h6) { color: inherit; font-weight: 600; margin-top: 24px; margin-bottom: 16px; line-height: 1.25; }
+#write :is(h1,h2,h3,h4,h5,h6) { color: var(--theme-heading); font-weight: 600; margin-top: 24px; margin-bottom: 16px; line-height: 1.25; }
 #write h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
 #write h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
 #write h3 { font-size: 1.25em; }
