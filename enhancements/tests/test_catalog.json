@@ -2420,7 +2420,8 @@
         "R038",
         "R046",
         "R052",
-        "R061"
+        "R061",
+        "R037.1"
       ],
       "design": "docs/explorer_history.md",
       "implementation": [
@@ -2448,7 +2449,8 @@
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
-        "真实指针悬停验证一级标题整行背景、透明子标题和共同4px外距"
+        "真实指针悬停验证一级标题整行背景、透明子标题和共同4px外距",
+        "R037.1: preserve section state across preview lifecycles; deliver one real Timeline click before outside dismissal releases sidebar height."
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
@@ -6626,7 +6628,8 @@
         "R069.4",
         "R069.5",
         "R069.12",
-        "R069.13"
+        "R069.13",
+        "R037.1"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6646,7 +6649,8 @@
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单",
-        "浮动预览与终端重叠区域真实命中、关闭恢复和打开顺序"
+        "浮动预览与终端重叠区域真实命中、关闭恢复和打开顺序",
+        "R037.1: preserve section state across preview lifecycles; deliver one real Timeline click before outside dismissal releases sidebar height."
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
@@ -10066,6 +10070,39 @@
       ],
       "timeout_ms": 180000,
       "fixture": "enhancements/fixtures/go_line_native.js"
+    },
+    {
+      "id": "TC-timeline-preview-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R037.1",
+        "R069.13"
+      ],
+      "design": "docs/explorer_history.md",
+      "implementation": [
+        "enhancements/src/workspace_link_selection.ts",
+        "enhancements/src/workspace_timeline.ts",
+        "enhancements/src/workspace_link_dock.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "preview",
+        "input"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Windows private desktop / original Typora 1.14.10",
+      "preconditions": "Dedicated temporary files and profile; preserve user documents and windows.",
+      "steps": [
+        "Run with -fixture timeline_preview_native.js in the original isolated host.",
+        "Use trusted native clicks across four themes and 20 Timeline cycles; verify all section toggles, persistence, preview close and editor following."
+      ],
+      "expected": [
+        "Preview operations preserve independent Timeline state. Section clicks activate exactly once before preview dismissal releases sidebar height. User files remain unchanged."
+      ],
+      "timeout_ms": 180000,
+      "fixture": "enhancements/fixtures/timeline_preview_native.js"
     }
   ]
 }

@@ -208,3 +208,7 @@ Ctrl+选中文字仍打开搜索并在结果下方预览，单击预览、双击
 | Mermaid | 原生default/dark及作者style；与VS Code代码色分离 | mermaid_theme、mermaid_theme_native（R031.1） |
 
 旧候选20块样本未观察到正文scrollTop或外矩形变化，但记录到80次代码块重排；不把用户描述的所有移动形态都当作已复现。最终延迟数据、失败修正和交付边界集中在[本次证据](../enhancements/tests/evidence/preview_resize_20261005.json)。
+
+## R037.1 外部点击完成后退出（2026-10-06）
+
+预览退出会释放侧栏占位，因此不能在外部pointerdown中改变布局。链接选择控制器先取消旧选区的待处理开启，等待所属pointerup/click完成后退出；焦点跟随按下时不提前关闭，取消/失焦清理手势，新选择/切库/销毁取消旧退出。具体状态边界与验证见[时间线独立状态](explorer_history.md#r0371-预览与分区状态独立)。

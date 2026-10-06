@@ -161,7 +161,7 @@ app.whenReady().then(async()=>{
   await evaluate('is_visible=false;binding.reset();select_link()');await new Promise(r=>setTimeout(r,160));check('关闭自动预览不加载',await evaluate('previews.length===1'));
   for(let i=0;i<20;i++)await evaluate(`(()=>{const uri=commands.at(-1).args[0],leaf={state:{path:uri},parent:{removeTab(){}}};const v=callbacks.get('linux_note.link_preview')(leaf);leaf.view=v;leaves.push(leaf);document.body.append(v.containerEl);v.onOpen();leaves.pop();v.onClose();v.containerEl.remove();})()`);
   await evaluate('binding.dispose();view.dispose();zoom_binding.dispose()');check('销毁释放视图注册和Monaco',await evaluate(`callbacks.size===0&&qa.monaco.editor.getEditors().length===0`));
-  await evaluate(`window.dock_binding=qa.bind_workspace_link_dock(core,files);window.dock=document.querySelector('.workspace-link-dock');window.pointer=node=>node.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));window.pick=()=>{pointer(document.querySelector('#write a'));select_link();document.dispatchEvent(new Event('selectionchange'));};pick();`);
+  await evaluate(`window.dock_binding=qa.bind_workspace_link_dock(core,files);window.dock=document.querySelector('.workspace-link-dock');window.pointer=node=>{node.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));node.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,composed:true,button:0}));};window.pick=()=>{pointer(document.querySelector('#write a'));select_link();document.dispatchEvent(new Event('selectionchange'));};pick();`);
   const settle=()=>new Promise(r=>setTimeout(r,180));await settle();
   check('浮动预览默认未固定且图标可访问',await evaluate(`!dock.hidden&&dock.querySelector('[aria-label="固定链接预览"]').getAttribute('aria-pressed')==='false'`));
   await evaluate(`pointer(document.body);document.dispatchEvent(new Event('pointerup'));document.dispatchEvent(new Event('selectionchange'));`);await settle();
@@ -185,6 +185,18 @@ app.whenReady().then(async()=>{
   await evaluate(`pick();tool.style.cssText='position:fixed;left:700px;top:10px;width:100px;height:30px';window.trusted_outside=false;tool.addEventListener('pointerdown',e=>trusted_outside=e.isTrusted);`);await settle();
   win.webContents.sendInputEvent({type:'mouseDown',x:750,y:25,button:'left',clickCount:1});win.webContents.sendInputEvent({type:'mouseUp',x:750,y:25,button:'left',clickCount:1});await settle();
   check('真实Chromium外部鼠标操作收起',await evaluate('trusted_outside&&dock.hidden'));
+  await evaluate('pick()');await settle();
+  await evaluate(`tool.dispatchEvent(new PointerEvent('pointerdown',{pointerId:71,bubbles:true}));tool.focus();tool.dispatchEvent(new FocusEvent('focusin',{bubbles:true}));`);await settle();
+  check('R037.1 held outside press and its focus do not move the layout',await evaluate('!dock.hidden'));
+  await evaluate(`document.dispatchEvent(new PointerEvent('pointerup',{pointerId:72,bubbles:true}))`);await settle();
+  check('R037.1 unrelated pointer cannot finish pending dismissal',await evaluate('!dock.hidden'));
+  await evaluate(`document.dispatchEvent(new PointerEvent('pointerup',{pointerId:71,bubbles:true}));pick();`);await settle();
+  check('R037.1 new explicit link cancels an older queued dismissal',await evaluate('!dock.hidden'));
+  for(const end of ['pointercancel','blur']){
+    await evaluate(`tool.dispatchEvent(new PointerEvent('pointerdown',{pointerId:71,bubbles:true}));${end==='blur'?"window.dispatchEvent(new Event('blur'))":"document.dispatchEvent(new PointerEvent('pointercancel',{pointerId:71,bubbles:true}))"};`);await settle();
+    check('R037.1 outside gesture cleanup '+end,await evaluate('dock.hidden'));
+    await evaluate('pick()');await settle();
+  }
   await evaluate('pick()');await settle();await evaluate(`window.other_preview=document.createElement('section');other_preview.className='workspace-lookup-preview';document.body.append(other_preview);pointer(other_preview);`);await settle();check('其他搜索预览是外部操作且其内容不受影响',await evaluate(`dock.hidden&&other_preview.isConnected`));await evaluate('other_preview.remove()');
   await evaluate(`window.saved_read_text=files.read_text;window.release_dock_read=undefined;files.read_text=()=>new Promise(resolve=>{release_dock_read=resolve});pick();`);await settle();
   check('异步预览开始读取',await evaluate(`!!release_dock_read&&!dock.hidden&&dock.querySelector('.workspace-link-preview').dataset.state==='loading'`));

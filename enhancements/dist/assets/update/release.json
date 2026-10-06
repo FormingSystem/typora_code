@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100601,
+      "version": "2026.10.06.1",
+      "date": "2026-10-06",
+      "notes": [
+        "修复链接预览显示时，点击时间线等侧栏分区标题因预览提前关闭而失效；先完成点击，再释放预览占位。",
+        "打开、切换、调节和关闭预览均保留时间线的独立折叠及显隐状态。"
+      ],
+      "notes_en": [
+        "Keep sidebar section clicks intact while a link preview is open: finish the click before dismissing the preview and releasing its reserved space.",
+        "Preserve independent Timeline expansion and visibility while opening, navigating, resizing or closing previews."
+      ]
+    },
+    {
       "sequence": 2026100503,
       "version": "2026.10.05.3",
       "date": "2026-10-05",

@@ -610,3 +610,7 @@ Theme/identity, syntax/render and editor/geometry: parallel old themes, simplifi
 ## R069.13 Global resize broadcasts and missed preview pointer events (2026-10-05)
 
 Categories: preview/layout, preview/input and test/coordinates. The old overlay broadcast window resize and wrote body variables, triggering global theme observers; one native drag with 20 delivered moves caused 80 code-block relayout calls. Local variables and frame coalescing isolate geometry. Document capture exists only during the active gesture, covering movement/release outside the edge and removing listeners on completion. The runner now excludes window borders from input coordinates. Initial missed-target and intermediate capture failures are retained in the [focused evidence](../enhancements/tests/evidence/preview_resize_20261005.json). Historical R071.7/R068.11/R005.4 and language-fence return failures remain open.
+
+## R037.1 Preview dismissal loses sidebar clicks (2026-10-06)
+
+Categories: preview/input and explorer/state. Capturing pointerdown dismissed the preview synchronously, moving the Timeline header before mouseup and losing its collapse click. Retain the real-input baseline failure. The selection controller now defers dismissal until gesture completion and cancels stale exits. Timeline retains its existing state owner; no forced expansion or collapse. Delivery evidence is recorded separately.

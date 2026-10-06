@@ -226,3 +226,7 @@ Coverage matrix:
 | Mermaid | Native default/dark and author styles, independent from VS Code syntax colors | mermaid_theme, mermaid_theme_native (R031.1) |
 
 The reference 20-fence sample did not move the editor scrollTop or outer rectangle, but produced 80 code-block relayout calls. This does not claim every reported movement was reproduced. Final timings, corrected failures and delivery limits are recorded in the [focused evidence](../enhancements/tests/evidence/preview_resize_20261005.json).
+
+## R037.1 Dismiss after outside activation (2026-10-06)
+
+Dismissal releases sidebar space, so outside pointerdown must not change layout. The selection controller cancels pending selection activation immediately and dismisses after the matching pointerup/click. Pointer-induced focus does not dismiss early; cancellation/blur finishes the gesture, and new intent, context changes and disposal cancel stale exits. See [independent Timeline state](explorer_history.en.md#r0371-independent-preview-and-section-state) for ownership and validation.

@@ -253933,6 +253933,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100601,
+        version: "2026.10.06.1",
+        date: "2026-10-06",
+        notes: [
+          "\u4FEE\u590D\u94FE\u63A5\u9884\u89C8\u663E\u793A\u65F6\uFF0C\u70B9\u51FB\u65F6\u95F4\u7EBF\u7B49\u4FA7\u680F\u5206\u533A\u6807\u9898\u56E0\u9884\u89C8\u63D0\u524D\u5173\u95ED\u800C\u5931\u6548\uFF1B\u5148\u5B8C\u6210\u70B9\u51FB\uFF0C\u518D\u91CA\u653E\u9884\u89C8\u5360\u4F4D\u3002",
+          "\u6253\u5F00\u3001\u5207\u6362\u3001\u8C03\u8282\u548C\u5173\u95ED\u9884\u89C8\u5747\u4FDD\u7559\u65F6\u95F4\u7EBF\u7684\u72EC\u7ACB\u6298\u53E0\u53CA\u663E\u9690\u72B6\u6001\u3002"
+        ],
+        notes_en: [
+          "Keep sidebar section clicks intact while a link preview is open: finish the click before dismissing the preview and releasing its reserved space.",
+          "Preserve independent Timeline expansion and visibility while opening, navigating, resizing or closing previews."
+        ]
+      },
+      {
         sequence: 2026100503,
         version: "2026.10.05.3",
         date: "2026-10-05",
@@ -267219,6 +267232,20 @@ https://creativecommons.org/licenses/by/4.0/
     const lifetime = create_workspace_lifetime(), runtime3 = window, type = "linux_note.link_preview";
     const payloads = /* @__PURE__ */ new Map(), views = /* @__PURE__ */ new Set();
     let disposed = false, timer = 0, last = "", ignore_selection = false, close_menu;
+    let outside_pointer, outside_timer = 0;
+    const cancel_outside = () => {
+      clearTimeout(outside_timer);
+      outside_timer = 0;
+      outside_pointer = void 0;
+    };
+    const finish_outside = (event) => {
+      if (outside_pointer === void 0 || event instanceof PointerEvent && event.pointerId !== outside_pointer) return;
+      clearTimeout(outside_timer);
+      outside_timer = window.setTimeout(() => {
+        cancel_outside();
+        if (!disposed) interaction?.outside();
+      }, 0);
+    };
     const source_for = (node) => {
       if (node.closest("#write") && runtime3.File?.bundle?.filePath) return String(runtime3.File.bundle.filePath);
       let source = "";
@@ -267247,6 +267274,7 @@ https://creativecommons.org/licenses/by/4.0/
     const intent = (event) => {
       if (event instanceof KeyboardEvent && ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
       if (event.type === "focusin" && event.target instanceof Element && event.target.closest("#write,.typ-markdown-preview")) return;
+      if (event.type === "pointerdown" || event instanceof KeyboardEvent) cancel_outside();
       clearTimeout(timer);
       if (in_preview(event)) {
         ignore_selection = true;
@@ -267259,7 +267287,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
       ignore_selection = true;
       last = "";
-      interaction?.outside();
+      if (event instanceof PointerEvent && event.type === "pointerdown") outside_pointer = event.pointerId;
+      else if (outside_pointer === void 0) interaction?.outside();
       if (event instanceof KeyboardEvent && event.target instanceof Element && event.target.closest("#write,.typ-markdown-preview")) ignore_selection = false;
     };
     const update2 = () => {
@@ -267385,9 +267414,13 @@ https://creativecommons.org/licenses/by/4.0/
     lifetime.listen(document, "selectionchange", update2);
     lifetime.listen(document, "pointerup", update2);
     lifetime.listen(document, "pointerdown", intent, true);
+    lifetime.listen(window, "pointerup", finish_outside, true);
+    lifetime.listen(window, "pointercancel", finish_outside, true);
+    lifetime.listen(window, "blur", finish_outside);
     lifetime.listen(document, "focusin", intent, true);
     lifetime.listen(document, "keydown", intent, true);
     const reset2 = () => {
+      cancel_outside();
       last = "";
       ignore_selection = false;
       clearTimeout(timer);
@@ -267395,10 +267428,12 @@ https://creativecommons.org/licenses/by/4.0/
       menu_request = void 0;
     };
     return { refresh() {
+      cancel_outside();
       last = "";
       ignore_selection = false;
       update2();
     }, dismiss() {
+      cancel_outside();
       clearTimeout(timer);
       ignore_selection = true;
       const request = selected();

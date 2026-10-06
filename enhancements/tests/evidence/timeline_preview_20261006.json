@@ -1,0 +1,253 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "release": "2026.10.06.1",
+  "requirements": [
+    "R037.1"
+  ],
+  "baseline": "036f0eb3388a5117d1652edbef79673a4464e4fb",
+  "design": [
+    "docs/explorer_history.md#r0371-预览与分区状态独立",
+    "docs/link_preview.md"
+  ],
+  "runtime_sha256": {
+    "workbench.js": "d05f63bf8e91965b0c5bd65f0a6add882ca727c1f6eac2865e2fff8b51b49377",
+    "workspace.css": "874aa6ed27c220a757c6e54aa522629755ec559a04de21b2a0b95ac48eba6e15",
+    "workspace_core.js": "b86288005c8e269bea20f40bffbed4bb164d4f2c712441d384749b8d3df9a29d",
+    "SHA256SUMS": "83455ff63a57a682bdf7c174c22fd030bf22d5501ec0dd704c97a28524a0c7ed"
+  },
+  "baseline_failure": {
+    "case_id": "2c863ba019774e989c6cb208dc4aaa07",
+    "assertion": "Timeline collapse click survives preview dismissal",
+    "cause": "Capturing pointerdown released preview height before mouseup/click, moving the pressed Timeline title."
+  },
+  "core": {
+    "status": "PASS",
+    "case_id": "c81bad8370d741148c8785558befacf0"
+  },
+  "ui": [
+    {
+      "status": "PASS",
+      "case_id": "58917f7303394d2eaeadc63c2552a8d7",
+      "checks": 141
+    },
+    {
+      "status": "PASS",
+      "case_id": "cb0e8f24f7a8419aa3244bfce2cd64cf",
+      "checks": 137
+    },
+    {
+      "status": "PASS",
+      "case_id": "e40c160f011c44e9aded7004b107714d",
+      "checks": 70
+    }
+  ],
+  "native": {
+    "status": "PASS",
+    "case_id": "48afbe7472d3417890b4ba2edad3872d",
+    "checks": 159,
+    "trusted_clicks": 57,
+    "samples": [
+      {
+        "identity": "light",
+        "cycle": 0,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light",
+        "cycle": 1,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light",
+        "cycle": 2,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light",
+        "cycle": 3,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light",
+        "cycle": 4,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark",
+        "cycle": 0,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark",
+        "cycle": 1,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark",
+        "cycle": 2,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark",
+        "cycle": 3,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark",
+        "cycle": 4,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light_2026",
+        "cycle": 0,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light_2026",
+        "cycle": 1,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light_2026",
+        "cycle": 2,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light_2026",
+        "cycle": 3,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "light_2026",
+        "cycle": 4,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark_2026",
+        "cycle": 0,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark_2026",
+        "cycle": 1,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark_2026",
+        "cycle": 2,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark_2026",
+        "cycle": 3,
+        "before": "false",
+        "after": "true",
+        "activations": 1,
+        "closed": true
+      },
+      {
+        "identity": "dark_2026",
+        "cycle": 4,
+        "before": "true",
+        "after": "false",
+        "activations": 1,
+        "closed": true
+      }
+    ],
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "83455ff63a57a682bdf7c174c22fd030bf22d5501ec0dd704c97a28524a0c7ed",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "4a1ea03229518943023b78b3c5b8463108d4381e35204311fdc54802d7abc2d3",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "screenshots_reviewed": [
+      "stage_timeline_preview_light_false_203998.png",
+      "stage_timeline_preview_dark_2026_true_203998.png"
+    ],
+    "payload_state": "cleaned"
+  },
+  "installation": {
+    "isolated_lifecycle": "PASS",
+    "lifecycle_case_id": "88d896d4bcf04beb9f8a106aa5f49316",
+    "failure_cancel_rollback_assertions": 65,
+    "failure_case_id": "0ae7fa317d3a452883f7f47806b9abbc",
+    "real_uninstall": "read-only preflight",
+    "local": {
+      "status": "PASS",
+      "profile_theme": "vscode_2026_default_dark.css",
+      "profile_dark_theme": "vscode_2026_default_dark.css",
+      "protected_files": 10,
+      "registry_records": 4,
+      "matched_assets": {
+        "workbench": 68,
+        "terminal": 24
+      },
+      "themes": 5,
+      "manifest_sha256": "83455ff63a57a682bdf7c174c22fd030bf22d5501ec0dd704c97a28524a0c7ed"
+    },
+    "loaded_user_windows": "Not restarted; save and restart all Typora windows normally."
+  },
+  "limits": [
+    "No automatic expansion write was reproduced; the verified defect is a lost toggle click leaving the prior expanded state intact.",
+    "Targeted Windows original-host and Chromium validation, not full UI/platform or long-term GPU acceptance.",
+    "Historical R071.7, R068.11, R005.4 and language-fence return failures remain open."
+  ]
+}

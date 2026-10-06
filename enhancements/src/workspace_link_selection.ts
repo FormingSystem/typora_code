@@ -13,6 +13,13 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   const lifetime=create_workspace_lifetime(),runtime=window as any,type="linux_note.link_preview";
   const payloads=new Map<string,workspace_link_request>(),views=new Set<link_view>();
   let disposed=false,timer=0,last="",ignore_selection=false,close_menu:(()=>void)|undefined;
+  let outside_pointer:number|undefined,outside_timer=0;
+  const cancel_outside=()=>{clearTimeout(outside_timer);outside_timer=0;outside_pointer=undefined;};
+  // Keep the pressed control in place until its native mouseup/click has finished.
+  const finish_outside=(event:Event)=>{
+    if(outside_pointer===undefined||(event instanceof PointerEvent&&event.pointerId!==outside_pointer))return;
+    clearTimeout(outside_timer);outside_timer=window.setTimeout(()=>{cancel_outside();if(!disposed)interaction?.outside();},0);
+  };
   const source_for=(node:Element)=>{if(node.closest("#write")&&runtime.File?.bundle?.filePath)return String(runtime.File.bundle.filePath);let source="";core.app.workspace.eachLeaves(leaf=>{if(leaf.view.containerEl.contains(node))source=files.editor_state(leaf).file_path;});return source||files.current_file();};
   const request_for=(node:Node|null):workspace_link_request|undefined=>{
     const element=node instanceof Element?node:node?.parentElement;
@@ -30,10 +37,13 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   const intent=(event:Event)=>{
     if(event instanceof KeyboardEvent&&['Control','Shift','Alt','Meta'].includes(event.key))return;
     if(event.type==='focusin'&&event.target instanceof Element&&event.target.closest('#write,.typ-markdown-preview'))return;
+    if(event.type==='pointerdown'||event instanceof KeyboardEvent)cancel_outside();
     clearTimeout(timer);
     if(in_preview(event)){ignore_selection=true;return;}
     if(event.composedPath().some(node=>node instanceof Node&&!!request_for(node))){ignore_selection=false;last='';return;}
-    ignore_selection=true;last='';interaction?.outside();
+    ignore_selection=true;last='';
+    if(event instanceof PointerEvent&&event.type==='pointerdown')outside_pointer=event.pointerId;
+    else if(outside_pointer===undefined)interaction?.outside();
     if(event instanceof KeyboardEvent&&event.target instanceof Element&&event.target.closest('#write,.typ-markdown-preview'))ignore_selection=false;
   };
   const update=()=>{clearTimeout(timer);if(ignore_selection)return;timer=window.setTimeout(()=>{if(disposed||ignore_selection||!visible())return;const request=selected();if(!request){last='';const node=window.getSelection()?.anchorNode;const element=node instanceof Element?node:node?.parentElement;if(element?.getRootNode()===document&&element.closest('#write,.typ-markdown-preview'))interaction?.outside();return;}const key=JSON.stringify(request);if(key===last)return;last=key;preview(request);},80);};
@@ -81,8 +91,11 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   lifetime.listen(document,"selectionchange",update);
   lifetime.listen(document,"pointerup",update);
   lifetime.listen(document,"pointerdown",intent,true);
+  lifetime.listen(window,"pointerup",finish_outside,true);
+  lifetime.listen(window,"pointercancel",finish_outside,true);
+  lifetime.listen(window,"blur",finish_outside);
   lifetime.listen(document,"focusin",intent,true);
   lifetime.listen(document,"keydown",intent,true);
-  const reset=()=>{last="";ignore_selection=false;clearTimeout(timer);close_menu?.();menu_request=undefined;};
-  return {refresh(){last="";ignore_selection=false;update();},dismiss(){clearTimeout(timer);ignore_selection=true;const request=selected();if(request)last=JSON.stringify(request);},reset,dispose(){if(disposed)return;disposed=true;reset();lifetime.dispose();for(const view of views){view.reader.dispose();view.leaf.parent.removeTab?.(view.leaf.state.path);}views.clear();payloads.clear();}};
+  const reset=()=>{cancel_outside();last="";ignore_selection=false;clearTimeout(timer);close_menu?.();menu_request=undefined;};
+  return {refresh(){cancel_outside();last="";ignore_selection=false;update();},dismiss(){cancel_outside();clearTimeout(timer);ignore_selection=true;const request=selected();if(request)last=JSON.stringify(request);},reset,dispose(){if(disposed)return;disposed=true;reset();lifetime.dispose();for(const view of views){view.reader.dispose();view.leaf.parent.removeTab?.(view.leaf.state.path);}views.clear();payloads.clear();}};
 }
