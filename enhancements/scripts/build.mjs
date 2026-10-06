@@ -33,6 +33,17 @@ fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
 // Announcements and background auxiliary programs are installed along with an asset list; ordinary users do not depend on the source code repository or global Node.
 fs.mkdirSync("dist/assets/help",{recursive:true});
 for(const name of ["user_guide.md","user_guide.en.md"])fs.writeFileSync("dist/assets/help/"+name,fs.readFileSync("../docs/"+name,"utf8").replace(/\r\n?/gu,"\n"));
+const shell_metadata=JSON.parse(fs.readFileSync('native/windows_x64/build.json','utf8'));
+const {createHash:shell_hash}=await import('node:crypto');
+if(shell_hash('sha256').update(fs.readFileSync('../scripts/native/typora_shell.cpp','utf8').replace(/\r\n/gu,'\n')).digest('hex')!==shell_metadata.source_sha256)throw Error('Rebuild the Windows native shell adapter before packaging.');
+fs.mkdirSync('dist/assets/shell_windows_x64',{recursive:true});
+for(const name of ['typora_shell.dll','typora_shell_host.exe']){
+  const data=fs.readFileSync(`native/windows_x64/${name}`);
+  if(shell_hash('sha256').update(data).digest('hex')!==shell_metadata.files[name])throw Error('Native shell asset checksum mismatch: '+name);
+  fs.writeFileSync(`dist/assets/shell_windows_x64/${name}`,data);
+}
+fs.copyFileSync('native/windows_x64/build.json','dist/assets/shell_windows_x64/build.json');
+fs.writeFileSync('dist/assets/shell_windows_x64/appx_manifest.xml',fs.readFileSync('../scripts/native/appx_manifest.xml','utf8').replace(/\r\n/gu,'\n'));
 const update_root="dist/assets/update";
 fs.mkdirSync(update_root,{recursive:true});
 const {release_info}=await import("../src/workspace_update_service.cjs");

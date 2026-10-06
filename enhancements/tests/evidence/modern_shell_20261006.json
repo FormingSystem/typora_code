@@ -1,0 +1,116 @@
+{
+  "schema": 1,
+  "date": "2026-10-06",
+  "release": "2026.10.06.2",
+  "requirements": [
+    "R084.1"
+  ],
+  "baseline": "8199c33acd9495f2acee27919091d0c8e834c554",
+  "design": [
+    "docs/installation_design.md#r0841-windows-11第一层右键打开2026-10-06"
+  ],
+  "environment": {
+    "os": "Windows 11 x64 build 26300.9550",
+    "powershell": "5.1",
+    "typora": "1.14.10",
+    "developer_mode": "already enabled; unchanged",
+    "native_compiler": "MSVC x64 /MT /O1 /Brepro"
+  },
+  "runtime_sha256": {
+    "SHA256SUMS": "54987ff8405659c68932541a786cf2b7874f7717cfcc485def3f9c50ebd6d45c",
+    "workbench.js": "126e6ba21a9819620bced5be78aa2286f3443f4f6d97d0e5d5686feae1eea400",
+    "assets/shell_windows_x64/typora_shell.dll": "910a86bc7e8c2d3845eb66cbb2ae01011122ec8754f2f23f39980a948fe9e55e",
+    "assets/shell_windows_x64/typora_shell_host.exe": "395e7174f5f6db505cda99de21e93f2c919832d5e26ca93aaa915e1fd3cb0a50"
+  },
+  "native_shell": {
+    "status": "PASS",
+    "case_id": "28b997b7387b40788250ca2fca35dae5",
+    "argument_round_trips": 7000,
+    "registrations": 20,
+    "coverage": [
+      "COM identity and invalid input",
+      "single file, folder and drive-root actual process arguments",
+      "Chinese, spaces and ampersand",
+      "independent menu scopes",
+      "registration failure restores prior package",
+      "external edits rejected and preserved",
+      "unregister and reinstall"
+    ]
+  },
+  "legacy_shell": {
+    "status": "PASS",
+    "case_id": "82ac718463a34f3c9988bb10b8d8cd55",
+    "registrations": 20
+  },
+  "core": {
+    "status": "PASS",
+    "case_id": "7ee621ae64654322a83ea54c5aacb7ea"
+  },
+  "ui": [
+    {
+      "name": "workspace_startup",
+      "status": "PASS",
+      "case_id": "5a7ca355a21345ff8e8eb155945e32e2"
+    },
+    {
+      "name": "workspace_files_search",
+      "status": "PASS",
+      "case_id": "371f9b1d050743e2aefd75ff12b76a7e"
+    }
+  ],
+  "native_startup": {
+    "status": "PASS",
+    "targets": [
+      "Markdown",
+      "source.cpp",
+      "folder"
+    ],
+    "case_ids": [
+      "28444b1ca9e4492e83f18c550a1a2366",
+      "597fc87bdc894ee89392fdfde1aea556",
+      "8d17583595ac41b8ba4909df893cbd58"
+    ]
+  },
+  "installation": {
+    "status": "PASS",
+    "paired_case_id": "d92f4309f0af4ddabd3a8b9efff01630",
+    "uninstall_failure_case_id": "4efaa60e2698486186f7ff70d9e2434d",
+    "uninstall_assertions": 65,
+    "paired_scope": "public workbench install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; native package lifecycle separately tested by native_shell",
+    "local": "standard install with file_menu on, folder_menu on, modern_menu on; check and check_only uninstall passed",
+    "protected": [
+      "user PATH byte value unchanged",
+      "Developer Mode unchanged",
+      "original app.asar hash unchanged"
+    ],
+    "package_name": "TyporaCode.ShellDevelopment",
+    "registered_assets": "owned immutable user-data staging directory; DLL and host match installed candidate"
+  },
+  "real_explorer": {
+    "status": "PASS",
+    "method": "trusted desktop clicks and screenshots reviewed in conversation",
+    "surfaces": {
+      "file": "first-level entry opened selected README.md",
+      "folder": "first-level entry opened p02 with matching source tree",
+      "background": "first-level entry inside p03 opened p03 with matching source tree"
+    },
+    "user_windows": "not forcibly closed or restarted; new target windows were opened for testing",
+    "pptx_regression": "First selection with live WPS preview did not show a menu; retry on the selected PPTX displayed the full normal modern menu, including Typora, Code and WPS. No application command was invoked for PPTX."
+  },
+  "resolved_failures": [
+    "COM could not read traditional HKCU Classes configuration: projected immutable INI used",
+    "background construction supplied null selection: folder visibility accepted during construction",
+    "AppX staging path too long: shortened immutable directory identity"
+  ],
+  "cleanup": "registered test packages removed before local delivery; owned native and install/uninstall payloads reclaimed; failed long-path fixture reclaimed after repair; diagnostic logs retained",
+  "limits": [
+    "unsigned local development registration only; signed general distribution pending",
+    "single selection only; no new document-format support",
+    "no full UI suite, ARM64, Windows 10 or other native platforms",
+    "earlier general Explorer failure root cause unconfirmed",
+    "existing R071.7/R068.11/R005.4 and language-fence return issue not closed"
+  ],
+  "git": {
+    "pushed": false
+  }
+}

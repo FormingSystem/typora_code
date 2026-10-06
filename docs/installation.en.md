@@ -42,6 +42,8 @@ A working tree obtained from Git is also applicable. Do not download only a sing
 <a id="section_416b242f0fb5"></a>
 ## Windows Installation
 
+The Windows 11 modern-menu candidate is enabled with `-file_menu on -folder_menu on -modern_menu on` on `install_windows.ps1`. It supports a single file, folder or folder background on Windows x64 with Developer Mode already enabled. Setup never enables Developer Mode or imports certificates; a signed package for ordinary machines is not yet supplied. Use `-modern_menu off` to remove modern registration while keeping selected traditional menus. File/folder options also control the modern command. Updates retain the selection; uninstall verifies the owned package and file hashes, preserving and reporting external modifications. Restart File Explorer or sign in again if its cached menu has not refreshed. Typora does not need restarting for the shell command. This integration does not add support for document formats that Typora cannot open.
+
 1. First, install and open Typora, confirming that the host can run normally. Save all unsaved documents; the installer will not forcibly close the window.
 2. Fully extract Typora Code. Double-click `install_windows.cmd` in the root directory; it opens graphical setup with installation location, independent integration options, install/update, check and uninstall actions.
 3. If discovery fails, browse for the folder containing Typora.exe. User PATH, file context menus and folder/background context menus are optional and initially unchecked.

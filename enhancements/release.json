@@ -2,6 +2,13 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100602,
+      "version": "2026.10.06.2",
+      "date": "2026-10-06",
+      "notes": ["新增 Windows 11 第一层“用 Typora 打开”候选，支持单个文件、文件夹及目录空白处。", "当前仅支持已开启开发者模式的 Windows x64 本机注册；安装不更改开发者模式或证书信任。普通安装继续提供传统右键菜单。"],
+      "notes_en": ["Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.", "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."]
+    },
+    {
       "sequence": 2026100601,
       "version": "2026.10.06.1",
       "date": "2026-10-06",

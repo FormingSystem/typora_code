@@ -57,6 +57,7 @@ const deployment_files = [
   "install_windows.ps1",
   "setup_windows.ps1",
   "scripts/lib/typora_shell_integration.ps1",
+  "scripts/lib/typora_modern_shell.ps1",
   "check_windows.ps1",
   "uninstall_windows.cmd",
   "uninstall_windows.ps1",

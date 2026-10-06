@@ -10103,6 +10103,42 @@
       ],
       "timeout_ms": 180000,
       "fixture": "enhancements/fixtures/timeline_preview_native.js"
+    },
+    {
+      "id": "TC-modern-shell",
+      "domain": "delivery",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R084.1"
+      ],
+      "design": "docs/installation_design.md",
+      "implementation": [
+        "scripts/native/typora_shell.cpp",
+        "scripts/lib/typora_modern_shell.ps1",
+        "scripts/lib/typora_shell_integration.ps1"
+      ],
+      "related_modules": [
+        "installation",
+        "settings",
+        "extensions"
+      ],
+      "script": "enhancements/scripts/test_modern_shell.ps1",
+      "environment": [
+        "Windows x64"
+      ],
+      "preconditions": [
+        "Windows 11 x64 Developer Mode already enabled",
+        "Windows PowerShell 5.1 and MSVC x64",
+        "No existing TyporaCode development shell package; test before local delivery"
+      ],
+      "steps": [
+        "Verify argument quoting and COM lifetimes, register an owned isolated candidate, invoke files/folders/root paths through the real COM surrogate, toggle scopes, inject registration failure and external edits, uninstall and reinstall."
+      ],
+      "expected": [
+        "Exact original path reaches only the fixture executable; previous package is restored on failure; foreign changes are preserved; test registration and large payloads are removed."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

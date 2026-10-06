@@ -1,0 +1,10 @@
+{
+  "schema": 1,
+  "architecture": "x64",
+  "compiler": "MSVC /MT /O1 /Brepro",
+  "source_sha256": "87fa1aa9b1b839a826230dc57b7d267c40e0bdb419b02554417a9745297c099c",
+  "files": {
+    "typora_shell.dll": "910a86bc7e8c2d3845eb66cbb2ae01011122ec8754f2f23f39980a948fe9e55e",
+    "typora_shell_host.exe": "395e7174f5f6db505cda99de21e93f2c919832d5e26ca93aaa915e1fd3cb0a50"
+  }
+}

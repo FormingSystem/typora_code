@@ -55,6 +55,8 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\check_windows.ps1 -typora_
 
 只用命令行可执行 `install_windows.cmd -cli`。可选集成参数采用 `on` / `off` / `keep`，例如 `powershell -NoProfile -ExecutionPolicy Bypass -File .\install_windows.ps1 -non_interactive -add_path on -file_menu on -folder_menu on`；省略或 `keep` 保持现值，`off` 撤销属于本工程的对应项。
 
+Windows 11第一层菜单候选可使用 `-file_menu on -folder_menu on -modern_menu on` 启用“用 Typora 打开”。当前支持单个文件、文件夹及目录空白处，限已开启开发者模式的Windows x64；安装器不会开启该模式或导入证书。普通机器仍用传统菜单，正式签名包尚未交付。使用 `-modern_menu off` 撤销第一层入口并保留已选传统菜单；文件/文件夹选项也控制已启用的第一层动作。更新保留选择，卸载核对包身份和文件摘要后撤销自有注册，外部修改会保留并报告。菜单首次注册后若未显示，重新启动资源管理器或重新登录；不必重启Typora。此入口不会为Typora增加其本来不支持的文件格式。
+
 安装支持 `-user_data '<实际Typora用户目录>'` 指定便携／独立配置目录，自动更新会传入当前宿主使用的真实位置；省略仍使用默认用户数据目录。额外支持 `-backup_root '<新的备份目录>'`，指定目录必须尚未存在。默认使用用户数据目录下的 `backups/typora_code_configuration/`。`-non_interactive` 在无法发现路径时直接失败，适合自动化，不会等待输入。PowerShell 帮助可通过 `Get-Help .\install_windows.ps1 -Detailed` 查看；`ExecutionPolicy Bypass` 仅作用于本次 PowerShell 进程。
 
 普通安装无需预先用管理员启动。脚本先下载并校验运行时，再检查本次真正需要写入的目标；未变化的宿主启动页和运行资产不覆盖。若目标受保护，会显示具体路径与原因，再请求一次Windows UAC授权；取消保留原版本。授权续装显式沿用原用户目录、备份和缓存，不改用管理员账户的默认配置。只读、占用、网络故障不会误触发提权；已授权仍被拒绝时说明需核对ACL或安全软件策略。

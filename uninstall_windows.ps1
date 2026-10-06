@@ -36,6 +36,11 @@ try {
     $plan = get_typora_uninstall_plan -typora_root $typora_root -backup_root $backup_root -non_interactive:$non_interactive
     if ($null -eq $plan) { Write-Host 'Typora Code uninstall cancelled. No files changed.'; return }
     Write-Host "Uninstall plan: $($plan.mode) | $($plan.typora_root)"
+    $shell_state=get_typora_shell_state $user_data
+    if($shell_state.typora_root -ieq $plan.typora_root -and $shell_state.PSObject.Properties['modern_package'] -and $shell_state.modern_package){
+        assert_typora_modern_owner @(get_typora_modern_package) $shell_state.modern_package
+        Write-Host 'Modern shell package ownership preflight passed.'
+    }
     if ($check_only) { Write-Host 'Read-only preflight complete. No files changed.'; return }
     if ($plan.mode -eq 'absent') { set_typora_shell_integration -typora_root $plan.typora_root -user_data $user_data -remove; write_typora_install_log $log SUCCESS 'Typora Code is already detached. No startup entry remains.'; return }
     assert_typora_uninstall_closed $plan.typora_root

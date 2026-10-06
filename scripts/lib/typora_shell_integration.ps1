@@ -1,5 +1,7 @@
 ﻿Set-StrictMode -Version Latest
 
+. (Join-Path $PSScriptRoot 'typora_modern_shell.ps1')
+
 function get_typora_shell_state {
     param([string]$user_data)
     $file = Join-Path $user_data 'typora_code_shell.json'
@@ -43,10 +45,15 @@ function set_typora_shell_menu {
 function invoke_typora_shell_transaction {
     param([string]$typora_root, [string]$user_data, [bool]$add_path, [bool]$file_menu, [bool]$folder_menu,
         [Microsoft.Win32.RegistryKey]$registry = [Microsoft.Win32.Registry]::CurrentUser,
-        [string]$classes_key = 'Software\Classes', [string]$environment_key = 'Environment', [switch]$remove)
+        [string]$classes_key = 'Software\Classes', [string]$environment_key = 'Environment', [switch]$remove,
+        [ValidateSet('keep','on','off')][string]$modern_menu='keep')
     $receipt = Join-Path $user_data 'typora_code_shell.json'
     if ($remove -and !(Test-Path -LiteralPath $receipt)) {return}
     $old = get_typora_shell_state $user_data
+    $old_modern=if($old.PSObject.Properties['modern_package']){$old.modern_package}else{$null}
+    $modern_enabled=if($modern_menu -eq 'keep'){$old.PSObject.Properties['modern_menu'] -and $old.modern_menu}else{$modern_menu -eq 'on'}
+    if($remove){$modern_enabled=$false}
+    if(($modern_enabled -or $old_modern) -and ($registry.Name -ne 'HKEY_CURRENT_USER' -or $classes_key -ne 'Software\Classes' -or $environment_key -ne 'Environment')){throw 'Modern registration requires the real current-user shell scope.'}
     if ($remove) {
         if ($old.typora_root -and $typora_root -and $old.typora_root -ine $typora_root) { return }
         $typora_root = $old.typora_root
@@ -60,6 +67,8 @@ function invoke_typora_shell_transaction {
     $path_kind = if ($null -ne $previous_path) {$environment.GetValueKind('Path')} else {[Microsoft.Win32.RegistryValueKind]::ExpandString}
     $old_receipt = if (Test-Path -LiteralPath $receipt) {[IO.File]::ReadAllBytes($receipt)} else {$null}
     $changed = [Collections.Generic.List[object]]::new()
+    $modern_changed=$false
+    $next_modern=$old_modern
     try {
         $segments = @(([string]$previous_path).Split(';'))
         if ($old.path_owned -and $old.typora_root -and (!$add_path -or $old.typora_root -ine $typora_root)) {
@@ -88,7 +97,11 @@ function invoke_typora_shell_transaction {
         }
         $next_path = $segments -join ';'
         if ($next_path -cne [string]$previous_path) { $environment.SetValue('Path', $next_path, $path_kind) }
-        $state = [ordered]@{schema=1;typora_root=$typora_root;path_owned=[bool]$path_owned;add_path=$add_path;file_menu=$file_menu;folder_menu=$folder_menu;menus=@($menus)}
+        if($modern_enabled -or $old_modern){
+            $next_modern=set_typora_modern_package -user_data $user_data -typora_root $typora_root -file_menu $file_menu -folder_menu $folder_menu -previous $old_modern -enabled ([bool]$modern_enabled)
+            $modern_changed=$true
+        }
+        $state = [ordered]@{schema=1;typora_root=$typora_root;path_owned=[bool]$path_owned;add_path=$add_path;file_menu=$file_menu;folder_menu=$folder_menu;menus=@($menus);modern_menu=[bool]$modern_enabled;modern_package=$next_modern}
         [IO.Directory]::CreateDirectory($user_data) | Out-Null
         $temporary = $receipt + '.' + [Guid]::NewGuid().ToString('N') + '.tmp'
         try {
@@ -96,10 +109,14 @@ function invoke_typora_shell_transaction {
             if (Test-Path -LiteralPath $receipt) {[IO.File]::Replace($temporary,$receipt,($temporary+'.previous'),$true);[IO.File]::Delete($temporary+'.previous')} else {[IO.File]::Move($temporary,$receipt)}
         } finally {if (Test-Path -LiteralPath $temporary) {[IO.File]::Delete($temporary)}}
     } catch {
+        $failure=$_
+        $modern_rollback_error=$null
+        if($modern_changed){try{restore_typora_modern_package $next_modern $old_modern}catch{$modern_rollback_error=$_}}
         for ($index=$changed.Count-1; $index -ge 0; $index--) {set_typora_shell_menu $registry $changed[$index].key $changed[$index].before}
         if ($null -eq $previous_path) {$environment.DeleteValue('Path',$false)} else {$environment.SetValue('Path',$previous_path,$path_kind)}
         if ($null -ne $old_receipt) {[IO.File]::WriteAllBytes($receipt,$old_receipt)}
-        throw
+        if($modern_rollback_error){throw ('Shell integration failed: '+$failure.Exception.Message+'; package rollback also failed: '+$modern_rollback_error.Exception.Message)}
+        throw $failure
     } finally { $environment.Dispose() }
     if ($environment_key -eq 'Environment' -and $next_path -cne [string]$previous_path) {
         if (-not ('typora_shell_notifications' -as [type])) {
@@ -120,7 +137,8 @@ public static class typora_shell_notifications {
 function set_typora_shell_integration {
     param([string]$typora_root, [string]$user_data, [bool]$add_path, [bool]$file_menu, [bool]$folder_menu,
         [Microsoft.Win32.RegistryKey]$registry = [Microsoft.Win32.Registry]::CurrentUser,
-        [string]$classes_key = 'Software\Classes', [string]$environment_key = 'Environment', [switch]$remove)
+        [string]$classes_key = 'Software\Classes', [string]$environment_key = 'Environment', [switch]$remove,
+        [ValidateSet('keep','on','off')][string]$modern_menu='keep')
     $identity=[Security.Principal.WindowsIdentity]::GetCurrent().User.Value
     $mutex=[Threading.Mutex]::new($false,('Local\TyporaCodeShell_'+$identity))
     $locked=$false

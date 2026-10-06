@@ -253933,6 +253933,13 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100602,
+        version: "2026.10.06.2",
+        date: "2026-10-06",
+        notes: ["\u65B0\u589E Windows 11 \u7B2C\u4E00\u5C42\u201C\u7528 Typora \u6253\u5F00\u201D\u5019\u9009\uFF0C\u652F\u6301\u5355\u4E2A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u53CA\u76EE\u5F55\u7A7A\u767D\u5904\u3002", "\u5F53\u524D\u4EC5\u652F\u6301\u5DF2\u5F00\u542F\u5F00\u53D1\u8005\u6A21\u5F0F\u7684 Windows x64 \u672C\u673A\u6CE8\u518C\uFF1B\u5B89\u88C5\u4E0D\u66F4\u6539\u5F00\u53D1\u8005\u6A21\u5F0F\u6216\u8BC1\u4E66\u4FE1\u4EFB\u3002\u666E\u901A\u5B89\u88C5\u7EE7\u7EED\u63D0\u4F9B\u4F20\u7EDF\u53F3\u952E\u83DC\u5355\u3002"],
+        notes_en: ["Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.", "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."]
+      },
+      {
         sequence: 2026100601,
         version: "2026.10.06.1",
         date: "2026-10-06",

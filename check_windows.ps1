@@ -37,4 +37,15 @@ foreach ($theme_name in @((get_typora_theme_catalog).files)) {
 $theme = resolve_typora_asset_path $user_data ('themes/' + $theme_name)
 if ((Get-FileHash -LiteralPath $theme -Algorithm SHA256).Hash -ne (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot $theme_name) -Algorithm SHA256).Hash) { throw 'Installed theme differs from this release.' }
 }
+. (Join-Path $PSScriptRoot 'scripts/lib/typora_shell_integration.ps1')
+$shell_state=get_typora_shell_state $user_data
+if($shell_state.PSObject.Properties['modern_package'] -and $shell_state.modern_package){
+    $packages=@(get_typora_modern_package)
+    if($packages.Count -ne 1){throw 'The recorded modern shell package is not registered.'}
+    assert_typora_modern_owner $packages $shell_state.modern_package
+    foreach($name in @('typora_shell.dll','typora_shell_host.exe')){
+        if((Get-FileHash -LiteralPath (Join-Path $user_data "typora_code/assets/shell_windows_x64/$name") -Algorithm SHA256).Hash -ine $shell_state.modern_package.files.$name){throw 'The registered modern shell package differs from the installed candidate.'}
+    }
+    Write-Host 'status: OK (owned Windows 11 modern shell package and candidate hashes)'
+}
 Write-Host 'status: OK (independent head startup, static CSS, release hashes, migration and terminal)'

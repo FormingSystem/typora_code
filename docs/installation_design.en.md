@@ -3,6 +3,16 @@
 <a id="section_b3cc470f202e"></a>
 # Installation Delivery Design
 
+## R084.1 Windows 11 modern context menu (2026-10-06)
+
+The request covers a single file, selected folder and directory background in the first-level Windows 11 menu. R084's traditional static verbs do not meet that placement requirement. A native `IExplorerCommand` is registered with its own sparse package identity and COM surrogate. The existing file/folder options remain the single configuration owner; no default associations, global menu policies or other extensions are changed.
+
+The adapter follows [Microsoft's integration contract](https://learn.microsoft.com/en-us/windows/apps/desktop/modernize/integrate-packaged-app-with-file-explorer) and the [VS Code reference](https://github.com/microsoft/vscode-explorer-command/tree/676a2a43194e5821af2642926bc0eef9f6edd13f). Menu construction reads only the local configuration projection and shell item identity; it does not open documents, start Typora or contact the network. Invocation passes one quoted path directly to the verified executable. Null selection during background menu construction is handled separately from invocation. Unsupported multi-selection is hidden.
+
+The shared shell transaction owns registration and removal under the existing mutex. An immutable per-candidate directory under the selected user profile contains the DLL, hidden activation host, manifest, host icon and UTF-16 configuration projection. Packaged COM could not see the traditional HKCU Classes keys in the actual system test, so the native command reads that local projection. The receipt records package identity and all five file hashes. Registration failures restore the prior package; receipt failures undo modern registration along with traditional changes. External modifications fail safely and remain intact. Retained staging directories permit rollback and diagnostics.
+
+This candidate supports local development registration on Windows 11 x64 with Developer Mode already enabled. Setup changes neither security settings nor certificate trust. A signed package for general distribution is still pending. Native builds use MSVC with a static runtime and source/binary checksums; regular builds verify the checked-in binaries before copying release assets. Acceptance separately records COM activation, path round trips, independent options, repeated registration, failures, removal/reinstallation and actual Explorer menu invocation. Do not restart real Typora windows for testing.
+
 After the official host upgrade, reconnection to the enhanced subsequent architecture is seen in [R056](native_startup_design.en.md#section_f0e6be57ec2a). Currently, the following standard installation transactions are still used; automatic repair before external startup has not been implemented, and the existing workbench self-update function cannot be considered as a hook for host update completion.
 
 <a id="section_7279525292c7"></a>
