@@ -170,6 +170,16 @@ Acceptance first preserves old red evidence in the same sequence, then compares 
 <a id="section_0446301af7e1"></a>
 ## R006.8 Panel first displays and feedback during the startup phase (2026-09-20)
 
+### 2026-10-06: PowerShell prompt startup diagnosis
+
+When the process exists but the terminal is blank, distinguish PTY transport from Shell initialization. In this incident, the Windows PowerShell profile loaded `posh-git`. Its synchronous prompt status query caused a partial clone to fetch missing objects, blocking the prompt. The process tree and command lines established this chain; the same installed PTY produced output in an ordinary repository. A blank surface alone does not prove process creation failed.
+
+The local remedy belongs to the PowerShell profile: back it up, then set `RepositoriesInWhichToDisableFileStatus` for the affected repository only when `TERM_PROGRAM=Typora`. Retain the module, branch name and normal prompt behavior elsewhere; automatic file-change counts are omitted in the affected directory. This exception does not repair missing objects or connectivity, and manual Git operations can still wait. Keep personal paths and restoration copies in local diagnostic records, not product defaults. Do not apply `-NoProfile` globally, change the repository, or interrupt downloads owned by other applications. Restore the backup on configuration failure; existing sessions need a reload or a new session without closing user documents.
+
+Acceptance covers the original failure, a same-directory configuration comparison, a new real integrated terminal, read-only command output and the next prompt, plus exclusion of external PowerShell from the exception. Process readiness and initial control sequences are not prompt readiness. This is a local environment repair with unchanged workbench assets and no new package installation or uninstall transaction.
+
+### Existing panel startup and status feedback design
+
 The problem is that the first open waits for Shell scanning, and the panel and session are created only after scanning. Users mistakenly think the interface is unresponsive because the process is waiting. All integrated new entry points are created at the same session and xterm surface before the first asynchronous wait, and are displayed according to the existing panel/editor configuration. Subsequently, the directory is parsed, the Shell is detected, and the PTY is started. Switching between active tabs directly reuses the already created session, clearly creating new/split sessions according to user intent. External terminal administrators keep the original entry point.
 
 terminal_workspace only has display, session collection, and workspace generation; terminal_session has directory preparation, configuration parsing, process and output stages. During preparation, it can also be hidden, moved, or terminated; stale results do not re-open panels or steal focus. Database/destroy retains the original lifecycle cancellation; after directory parsing returns, it first checks the session generation before updating the base point, preventing old starts from covering the restart target. Failures are displayed in this session, and existing restart operations can be retried. Restart uses the initial directory parsing source of the session, and the selected Shell configuration uses the latest settings.
