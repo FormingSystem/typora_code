@@ -1,0 +1,119 @@
+{
+  "date": "2026-10-07",
+  "requirements": [
+    "R002.2"
+  ],
+  "release": "2026.10.07.3",
+  "finding": "Moves and renames had no file transaction undo history. Ctrl+Z was not reassigned; the tree handled clipboard keys but had no file undo route.",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/contrib/files/browser/files.contribution.ts",
+      "src/vs/workbench/contrib/bulkEdit/browser/bulkFileEdits.ts"
+    ],
+    "adopted": "Explorer focus/source routing, reversed file paths and one operation per batch through the existing document relocation service"
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case_ids": [
+      "ec22357005414fd1931f531f2e384c31"
+    ]
+  },
+  "unit": {
+    "status": "PASS",
+    "round_trips": [
+      20,
+      100,
+      1000
+    ],
+    "coverage": [
+      "batch and folder/child deduplication",
+      "rename and edited contents retained",
+      "collision preflight leaves the entire batch unchanged",
+      "mid-batch failure rolls back",
+      "failed rollback invalidates history",
+      "busy and root guards",
+      "new operation clears redo"
+    ]
+  },
+  "ui": {
+    "status": "PASS",
+    "case_ids": [
+      "57dad61b4d8a40a68e64426f402385d7",
+      "5d955afbbddc4f9b863cf02c78f65058",
+      "13134180d1424de3a5ce1f76d9e933d9",
+      "7320fb362bd34e2c9df21b0d46ab26fa"
+    ],
+    "suites": [
+      "test_workspace_explorer.cjs",
+      "test_workspace_file_editing.cjs",
+      "test_workspace_startup.cjs",
+      "test_workspace_shortcuts.cjs"
+    ],
+    "final_menu_case_ids": [
+      "93ec1d2a0a884f08a89514506aef18c0"
+    ],
+    "input": "Trusted Electron key events for Ctrl+Z/Y/Shift+Z; DOM context-menu actions; production tree with isolated filesystem and file history",
+    "coverage": [
+      "drag retains tree focus",
+      "undo/redo changes disk paths",
+      "cut/paste context menu undo/redo",
+      "editor input does not move files",
+      "dirty rename keeps model and editor undo identity",
+      "startup/disposal listener cleanup",
+      "native editor and terminal shortcut ownership"
+    ]
+  },
+  "native": {
+    "status": "PASS",
+    "case_ids": [
+      "3ec64180b024412a813b1052f4eae708"
+    ],
+    "checks": 21,
+    "input": "DOM drag and Ctrl+Z/Y events in original Typora 1.14.10; not a physical OS gesture",
+    "coverage": [
+      "source model and saved changes survive undo/redo",
+      "native Markdown dirty draft survives undo/redo",
+      "subsequent save uses the replayed path"
+    ],
+    "screenshot_reviewed": true
+  },
+  "installation": {
+    "status": "PASS",
+    "paired_case_ids": [
+      "ff8f90c96ba2437f8ff8d5d3ab2afe47"
+    ],
+    "uninstall_case_ids": [
+      "21af410ab5e940ffb710ca5e5c7b171b"
+    ],
+    "uninstall_assertions": 65,
+    "coverage": "Same candidate public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check, four startup mode updates, failure/cancellation/rollback",
+    "local": {
+      "status": "PASS",
+      "assets": {
+        "workspace": 72,
+        "terminal": 24
+      },
+      "theme_files": 5,
+      "protected_unchanged": 4,
+      "native_startup_unchanged": true,
+      "native_mode": "2",
+      "manifest": "10840d9248a373768392fd493d5702d26d1ce0a6c11aa5a626ae00f47f849780",
+      "release": "2026.10.07.3",
+      "runtime_loaded": "User windows not restarted",
+      "uninstall": "Read-only preflight only in user environment"
+    }
+  },
+  "limits": [
+    "History begins with operations in the loaded new version; old moves cannot be reconstructed.",
+    "History is scoped to the current window/workspace, with at most 100 batches; workspace switches and unsupported mutations invalidate it.",
+    "Copy/create/trash undo and cross-window/restart history are not implemented by this change.",
+    "No physical OS input, non-Windows/SSH native acceptance or full UI suite.",
+    "Existing historical issues remain open."
+  ],
+  "cleanup": "All final core/UI/native/isolated install/uninstall managed payloads were reclaimed; logs and screenshots retained.",
+  "git": {
+    "pushed": false
+  }
+}

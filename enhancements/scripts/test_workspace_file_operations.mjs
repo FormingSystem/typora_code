@@ -40,5 +40,30 @@ try {
   await assert.rejects(transfer({fs:bad_external,path_api:path},root,[outside],outside_failure,undefined,true),/external read failed/);assert.deepEqual(fs.readdirSync(outside_failure),[]);
   if(link_supported){const outside_link=path.join(temporary,'outside_link');fs.symlinkSync(outside,outside_link,process.platform==='win32'?'junction':'dir');await assert.rejects(transfer(modules,root,[path.join(outside_link,'unicode 空格.bin')],outside_failure,undefined,true),/符号链接/);}
   await assert.rejects(transfer(modules,root,['relative'],outside_target,undefined,true),/绝对路径/);
+  const history_bundle=await build({entryPoints:[fileURLToPath(new URL('../src/workspace_file_history.ts',import.meta.url))],bundle:true,platform:'node',format:'esm',write:false});
+  const {create_workspace_file_history}=await import('data:text/javascript;base64,'+Buffer.from(history_bundle.outputFiles[0].text).toString('base64'));
+  const rename_bundle=await build({entryPoints:[fileURLToPath(new URL('../src/workspace_rename.ts',import.meta.url))],bundle:true,platform:'node',format:'esm',write:false});
+  const {prepare_workspace_move}=await import('data:text/javascript;base64,'+Buffer.from(rename_bundle.outputFiles[0].text).toString('base64'));
+  let current_root=root,fail_source='',fail_rollback=false;
+  const raw_move=async(base,source,target)=>{if(source===fail_source||(fail_rollback&&source===b))throw Error('injected move failure');const plan=await prepare_workspace_move(modules,base,source,target);await plan.apply();return target;};
+  const history=create_workspace_file_history(modules,()=>current_root,raw_move);
+  const a=path.join(root,'undo_a.txt'),b=path.join(root,'undo_b.txt'),ta=path.join(target,'undo_a.txt'),tb=path.join(target,'undo_b.txt');
+  fs.writeFileSync(a,'A');fs.writeFileSync(b,'B');
+  await history.record(root,move=>transfer(modules,root,[a,b],target,move));assert(history.can());
+  await history.replay(root);assert(fs.existsSync(a)&&fs.existsSync(b)&&!fs.existsSync(ta));assert(history.can(true));
+  await history.replay(root,true);assert(fs.existsSync(ta)&&fs.existsSync(tb));
+  fs.writeFileSync(a,'external collision');await assert.rejects(history.replay(root));assert(fs.existsSync(tb)&&fs.readFileSync(a,'utf8')==='external collision');fs.unlinkSync(a);
+  // The first reversed item moves, then the second fails; the first must return.
+  fail_source=ta;await assert.rejects(history.replay(root),/injected/);assert(fs.existsSync(ta)&&fs.existsSync(tb)&&!fs.existsSync(b));assert(history.can());fail_source='';
+  fs.writeFileSync(ta,'changed after move');await history.replay(root);assert.equal(fs.readFileSync(a,'utf8'),'changed after move');
+  const renamed=path.join(root,'renamed.txt');await history.record(root,move=>move(root,a,renamed));assert(!history.can(true));await history.replay(root);assert(fs.existsSync(a));
+  history.clear();fail_source=b;await assert.rejects(history.record(root,move=>transfer(modules,root,[a,b],target,move)),/injected/);assert(!history.can()&&fs.existsSync(a)&&fs.existsSync(b));fail_source='';
+  for(const rounds of [20,100,1000]){for(let i=0;i<rounds;i++){await history.record(root,move=>move(root,a,ta));await history.replay(root);await history.replay(root,true);await history.replay(root);}assert(fs.existsSync(a)&&!fs.existsSync(ta));}
+  const directory=path.join(root,'undo_folder'),moved_directory=path.join(target,'undo_folder');fs.mkdirSync(directory);fs.writeFileSync(path.join(directory,'child'),'keep');
+  await history.record(root,move=>transfer(modules,root,[directory,path.join(directory,'child')],target,move));await history.replay(root);assert(fs.existsSync(path.join(directory,'child'))&&!fs.existsSync(moved_directory));
+  await history.record(root,move=>move(root,a,ta));current_root=temporary;assert(!history.can());current_root=root;assert(!history.can());await raw_move(root,ta,a);
+  let release;const pending=history.record(root,async move=>{await new Promise(resolve=>release=resolve);return move(root,a,ta);});await assert.rejects(history.replay(root),/正在进行/);release();await pending;await history.replay(root);
+  await history.record(root,move=>transfer(modules,root,[a,b],target,move));fail_source=ta;fail_rollback=true;await assert.rejects(history.replay(root));assert(!history.can()&&!history.can(true));fail_source='';fail_rollback=false;
+  console.log('PASS file history: batch/rename/folder, conflict, edited content, rollback, root/busy/redo guards and 1120 undo/redo cycles');
   console.log(JSON.stringify({status:"PASS",checks:["exclusive creation and workspace boundary","recursive binary copy","collision preserves target","copy into self rejected","copy failure rollback","concurrent external file retained during rollback","move callback and batch rollback","recycle partial completion report","root protection","symlink rejection","external Unicode folder and binary copy","external source survives failures","separate source and destination boundaries","external move and ancestor symlink rejected"],link_supported}));
 } finally { fs.rmSync(temporary,{recursive:true,force:true}); }

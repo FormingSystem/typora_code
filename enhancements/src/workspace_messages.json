@@ -7990,5 +7990,33 @@
   "window_startup_saving": {
     "zh_cn": "正在保存窗口启动设置，请稍后重试。",
     "en": "Saving the window startup preference. Please try again shortly."
+  },
+  "file_history_busy": {
+    "zh_cn": "文件操作正在进行或工作区已切换，请稍后重试。",
+    "en": "A file operation is running or the workspace changed. Please retry."
+  },
+  "file_history_rollback_failed": {
+    "zh_cn": "文件操作回滚未完成，请核对以下路径：\n",
+    "en": "File rollback was incomplete. Check these paths:\n"
+  },
+  "file_history_undo": {
+    "zh_cn": "撤销文件移动 / 重命名",
+    "en": "Undo File Move / Rename"
+  },
+  "file_history_redo": {
+    "zh_cn": "重做文件移动 / 重命名",
+    "en": "Redo File Move / Rename"
+  },
+  "file_history_empty": {
+    "zh_cn": "没有可撤销或重做的文件移动记录。",
+    "en": "No file move is available to undo or redo."
+  },
+  "file_history_undone": {
+    "zh_cn": "已撤销文件移动 / 重命名",
+    "en": "File move / rename undone"
+  },
+  "file_history_redone": {
+    "zh_cn": "已重做文件移动 / 重命名",
+    "en": "File move / rename redone"
   }
 }

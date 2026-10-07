@@ -2,6 +2,8 @@
 
 # 稳定性问题索引
 
+2026-10-07 R002.2：FILES-move-undo——文件移动和重命名只执行磁盘事务，未入撤销栈，树也没有Ctrl+Z路由。共享文件历史与树焦点分派补齐拖动/剪切/重命名撤销，后台正文不被撤销；冲突拒绝覆盖、失败回滚与草稿/保存路径见[证据](../enhancements/tests/evidence/file_undo_20261007.json)。复制/新建/删除撤销仍未实现，不归入本项通过范围。
+
 2026-10-07 R040.5：SETTINGS-startup-discovery——恢复选项藏在原生偏好文件分类中，统一页缺少直接入口；当前与安装前备份均为模式2，没有证据表明本次更新重置配置。新增“窗口 → 启动时”并复用原生所有者，四模式升级保留、保存失败/取消及真实重启验证见[本次证据](../enhancements/tests/evidence/window_startup_20261007.json)。不把入口修复等同于所有窗口恢复能力的验收。
 
 2026-10-04 R084/R085：INSTALL-gui-child-lifetime（PS5.1模块加载/退出码）、SOURCE-native-startup（源码首启落入Markdown）、LSP-managed-runtime（长路径、CMake动态监听、Makefile入口移除）分别在所属适配层修复，未引入第二套配置或目录监听。早期.NET初始化修改测试PATH，最终配方禁用此行为并已撤销两条自有记录；HTTPS连接重置记录为下载失败，单项重试通过。完整回归、原生与安装证据见[本次证据](../enhancements/tests/evidence/language_setup_20261004.json)，不能据此关闭历史黑屏、裁切或原生带语言围栏返回问题。

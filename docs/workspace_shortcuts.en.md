@@ -3,6 +3,8 @@
 <a id="section_8ce46fdb372f"></a>
 # R079 Native Markdown Shortcut Priority
 
+2026-10-07 R002.2: With Explorer tree focus, Ctrl+Z undoes moves/renames, while Ctrl+Y and Ctrl+Shift+Z redo. Editors, rename inputs and terminals retain their own undo. Ctrl+C/X/V, F2 and Delete keep their bindings. See [file transaction undo](file_operations.en.md#file-operation-undo) for batch history and failure boundaries.
+
 2026-09-27 User explicitly: Retain Typora editing habits; Change the Ctrl key for the workbench to Alt when there is a conflict with native Markdown editing. The same day, R014.2 explicitly clarifies exceptions: Ctrl+=/- restores window zoom, and the editing area's Ctrl+wheel only adjusts content font size; this latest agreement replaces the previous Alt zoom key, and other keys remain unchanged.
 
 <a id="section_79362472d87d"></a>

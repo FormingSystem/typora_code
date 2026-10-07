@@ -13,6 +13,7 @@ import {read_workspace_editor_settings,observe_workspace_editor_settings,select_
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {create_resource_file_clipboard} from "./remote_workspace_clipboard";
 import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./workspace_file_clipboard";
+import {create_workspace_file_history} from './workspace_file_history';
 import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
@@ -49,6 +50,8 @@ export type workspace_file_host = {
   read_text(file_path:string):Promise<string>;
   rename_file(root: string, old_path: string, name: string): Promise<string>;
   move_file(root: string, old_path: string, target: string): Promise<string>;
+  file_history: ReturnType<typeof create_workspace_file_history>;
+  replay_file_history(redo?: boolean): Promise<string[]>;
   transfer_entries(root: string, paths: string[], target: string, copy: boolean): Promise<string[]>;
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
   file_clipboard:workspace_file_clipboard;
@@ -639,8 +642,13 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       renaming = false;
     }
   };
-  const rename_file=async(root:string,old_path:string,name:string)=>{const target=await relocate_file(root,old_path,name);await refresh_renamed_editors();return target;};
-  const move_file=async(root:string,old_path:string,target:string)=>{const result=await relocate_file(root,old_path,target,true);await refresh_renamed_editors();return result;};
+  const relocate_with_editors=async(root:string,old_path:string,target:string)=>{const result=await relocate_file(root,old_path,target,true);try{await refresh_renamed_editors();}catch(error){throw Object.assign(new Error(String(error)),{renamed_path:result});}return result;};
+  const file_history=create_workspace_file_history({fs,path_api},context_root,relocate_with_editors);
+  const clear_file_history=()=>file_history.clear();
+  window.addEventListener("linux-note-workspace-context-changed",clear_file_history);
+  const rename_file=(root:string,old_path:string,name:string)=>file_operation(()=>file_history.record(root,async move=>{const plan=await prepare_workspace_rename({fs,path_api},root,old_path,name);return move(root,old_path,plan.new_path);}));
+  const move_file=(root:string,old_path:string,target:string)=>file_operation(()=>file_history.record(root,move=>move(root,old_path,target)));
+  const replay_file_history=(redo=false)=>file_operation(()=>file_history.replay(context_root(),redo));
   const active_source_view = () => [...views].find(view => view.leaf === core.app.workspace.activeLeaf);
   const native_document_active = () => Boolean(core.app.workspace.activeLeaf)
     && !String(core.app.workspace.activeLeaf?.state.path || "").startsWith("typ://");
@@ -1150,7 +1158,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
-    binding.active = false;window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);source_navigation?.dispose();source_navigation_language?.dispose();if(analysis_model&&!analysis_model.isDisposed())monaco.editor.setModelMarkers(analysis_model,"typora_code_lsp",[]);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
+    binding.active = false;file_history.clear();window.removeEventListener("linux-note-workspace-context-changed",clear_file_history);window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);source_navigation?.dispose();source_navigation_language?.dispose();if(analysis_model&&!analysis_model.isDisposed())monaco.editor.setModelMarkers(analysis_model,"typora_code_lsp",[]);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
     if (core.app.openFile === routed_app_open_file) core.app.openFile = native_app_open_file;
@@ -1183,23 +1191,28 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     window.addEventListener("pagehide", dispose, {once: true});
   };
   const file_operation=async<T>(action:()=>Promise<T>):Promise<T>=>{
-    if(!binding.active)throw new Error(workspace_text("git_graph_host_typora_code_is_disabled"));file_operation_count++;
+    if(!binding.active)throw new Error(workspace_text("git_graph_host_typora_code_is_disabled"));if(file_operation_count)throw new Error(workspace_text("file_history_busy"));file_operation_count++;
     try{return await action();}finally{file_operation_count--;}
   };
-  const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(()=>create_workspace_entry({fs,path_api},root,parent,name,directory));
+  const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(async()=>{const result=await create_workspace_entry({fs,path_api},root,parent,name,directory);file_history.clear();return result;});
   const transfer_entries=(root:string,paths:string[],target:string,copy:boolean)=>file_operation(async()=>{
     if(file_key(root)!==file_key(context_root())||workspace_context_switching())throw new Error(workspace_text('files_received_edit_group_or_workspace_has_changed_please_drag_aga'));
-    return transfer_workspace_entries({fs,path_api},root,paths,target,copy?undefined:move_file);
+    return transfer_with_history(root,paths,target,!copy);
   });
+  const transfer_with_history=async(root:string,paths:string[],target:string,move:boolean,external=false)=>{
+    if(move)return file_history.record(root,relocate=>transfer_workspace_entries({fs,path_api},root,paths,target,relocate,external));
+    try{return await transfer_workspace_entries({fs,path_api},root,paths,target,undefined,external);}finally{file_history.clear();}
+  };
   const file_clipboard=create_workspace_file_clipboard(create_resource_file_clipboard(name=>runtime.reqnode(name)),{
     validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths)),
-    transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_workspace_entries({fs,path_api},root,paths,target,move?move_file:undefined,external))
+    transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_with_history(root,paths,target,move,external))
   });
   const trash_entries=(root:string,paths:string[])=>file_operation(async()=>{
     const includes=(candidate:string)=>paths.some(path=>renamed_workspace_path(path_api,candidate,path,path,true)!==undefined);
     const affected=[...views].filter(view=>includes(view.file_path));
     if(renaming||affected.some(view=>view.dirty()||view.saving))throw new Error(workspace_text("files_the_project_to_be_deleted_contains_source_code_with_unsaved"));
     if(includes(runtime.File?.bundle?.filePath||"")&&runtime.File?.changeCounter?.isDocumentEdited())throw new Error(workspace_text("files_the_project_to_be_deleted_contains_unsaved_markdown_please_s"));
+    file_history.clear();
     await trash_workspace_entries({fs,path_api},root,paths,async(target:string)=>{
       // Before each file write to disk, recheck the draft; during batch editing, edits cannot be swallowed by subsequent deletions.
       if([...views].some(view=>includes(view.file_path)&&(view.dirty()||view.saving)))throw new Error(workspace_text("files_source_code_was_modified_during_deletion_the_subsequent_dele"));
@@ -1224,7 +1237,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
     await close_leaf(leaf);
   };
-  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, transfer_entries, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, file_history, replay_file_history, transfer_entries, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

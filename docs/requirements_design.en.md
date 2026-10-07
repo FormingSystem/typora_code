@@ -58,6 +58,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R001 | Native file and folder selection | [Design chapter](file_operations.en.md#section_ee98cca2ce18) | Existing entry, cancel, and invalid design |
 | R002 | File operations in Explorer | [Design section](file_operations.en.md#section_f2a513a39c41) | Existing internal file operations design; system clipboard see R009 |
 | R002.1 | Explorer drag moves and copies | [Design](file_operations.en.md#explorer-drag-drop) | In-tree target resolution, shared batch transaction, hover feedback and lifecycle; 2026-10-07 |
+| R002.2 | File move undo/redo and tree shortcuts | [Design](file_operations.en.md#file-operation-undo) | Ctrl+Z/Ctrl+Y, batch move/rename history, focus ownership and failure protection |
 | R003 | File tree hierarchy spacing | [Design section](file_operations.en.md#section_b477b2b2f83e) | Existing fixed upstream rules and adoption values |
 | R004 | Requirement tracking and omission prevention | [Design section](requirements_design.en.md#section_d9308715f332) | This process defines the division of responsibilities between tracking and formal documents |
 | R005 | Three window states drag and merge | [Design section](drag_and_windows.en.md#section_21ba3a7a6a0b) | Existing interactive design; R005.1 layering pressure testing and performance/resource cleanup; physical acceptance gap remains |

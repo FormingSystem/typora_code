@@ -7,6 +7,12 @@
  const assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
  const row=target=>[...document.querySelectorAll('.workspace-explorer-row')].find(item=>item.dataset.path===target);
  const refresh=async()=>{document.querySelector('.workspace-explorer-root [data-git-icon="refresh"]').closest('button').click();await pause(350);};
+ async function history_key(key,expected,missing){
+  const tree=document.querySelector('.workspace-explorer-tree');tree.focus();
+  const event=new KeyboardEvent('keydown',{key,ctrlKey:true,bubbles:true,cancelable:true});tree.dispatchEvent(event);
+  assert(event.defaultPrevented,'Explorer consumes file '+key);
+  await wait(()=>fs.existsSync(expected)&&!fs.existsSync(missing),'history disk result');await pause(350);
+ }
  async function drag(source,target,copy=false){
   await wait(()=>row(source)&&row(target),'drag rows visible');
   const origin=row(source),destination=row(target),data=new DataTransfer();
@@ -40,6 +46,9 @@
   assert(view.file_path===moved&&files.editor_state(leaf).dirty&&model.getValue()==='unsaved source\n','source draft and new path retained');
   assert(fs.readFileSync(moved,'utf8')==='original source\n','drag does not implicitly save source');
   await files.save_leaf(leaf);assert(fs.readFileSync(moved,'utf8')==='unsaved source\n'&&!fs.existsSync(source),'source save uses new path');
+  await history_key('z',source,moved);
+  assert(view.file_path===source&&view.editor.models[0]===model&&fs.readFileSync(source,'utf8')==='unsaved source\n','undo retains source model and saved edits');
+  await history_key('y',moved,source);assert(view.file_path===moved&&view.editor.models[0]===model,'redo retains source model and path');
   const markdown=path.join(root,'native.md'),new_markdown=path.join(destination,'native.md');fs.writeFileSync(markdown,'# Original\n\nNative text.\n');
   await files.open_file(markdown);await wait(()=>File.bundle.filePath===markdown&&!File.isFileLoading(),'Markdown ready');
   File.reloadContent('# Draft\n\nUnsaved native text.\n',{delayRefresh:false,skipChangeCount:false,skipStore:true});
@@ -47,10 +56,12 @@
   const draft=File.editor.getMarkdown();await refresh();await drag(markdown,destination);
   assert(File.bundle.filePath===new_markdown&&File.changeCounter.isDocumentEdited()&&File.editor.getMarkdown()===draft,'native draft and path retained');
   assert(fs.readFileSync(new_markdown,'utf8').startsWith('# Original'),'drag does not implicitly save Markdown');
+  await history_key('z',markdown,new_markdown);assert(File.bundle.filePath===markdown&&File.changeCounter.isDocumentEdited()&&File.editor.getMarkdown()===draft,'undo retains native dirty draft');
+  await history_key('y',new_markdown,markdown);assert(File.bundle.filePath===new_markdown&&File.changeCounter.isDocumentEdited()&&File.editor.getMarkdown()===draft,'redo retains native dirty draft');
   const old_active=File.isActiveWindow;File.isActiveWindow=()=>true;
   try{await files.save_active();await wait(()=>!File.changeCounter.isDocumentEdited(),'Markdown saved');}finally{File.isActiveWindow=old_active;}
   assert(fs.readFileSync(new_markdown,'utf8').includes('Unsaved native text.')&&!fs.existsSync(markdown),'Markdown saves at new path');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'explorer_drag'}));await pause(600);
-  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,input:'DOM DragEvents in original Typora; physical OS gesture not tested'},null,2));
+  fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,input:'DOM drag and Ctrl+Z/Y events in original Typora; physical OS gesture not tested'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,tree:document.querySelector('.workspace-explorer-tree')?.outerHTML.slice(0,12000),status:document.querySelector('.workspace-explorer-status')?.textContent},null,2));}
 })();

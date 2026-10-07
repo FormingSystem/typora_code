@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100703,
+      "version": "2026.10.07.3",
+      "date": "2026-10-07",
+      "notes": [
+        "资源管理器支持Ctrl+Z撤销移动和重命名，Ctrl+Y或Ctrl+Shift+Z重做；拖动与剪切粘贴共用批量历史。",
+        "撤销与重做保留打开文档、草稿和保存路径；正文和终端快捷键保持原归属，同名冲突拒绝覆盖。"
+      ],
+      "notes_en": [
+        "Explorer supports Ctrl+Z to undo moves and renames, with Ctrl+Y or Ctrl+Shift+Z to redo; drag and cut/paste share batch history.",
+        "Replay retains open documents, drafts and save paths. Editors and terminals keep their shortcut ownership, and collisions never overwrite files."
+      ]
+    },
+    {
       "sequence": 2026100702,
       "version": "2026.10.07.2",
       "date": "2026-10-07",

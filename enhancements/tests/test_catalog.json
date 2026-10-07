@@ -2377,7 +2377,8 @@
         "R058.1",
         "R028.1",
         "R028.2",
-        "R002.1"
+        "R002.1",
+        "R002.2"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2392,7 +2393,8 @@
         "enhancements/src/git_graph.css",
         "enhancements/src/workspace_file_tree.ts",
         "enhancements/src/workspace_focus.ts",
-        "enhancements/src/workspace_file_drag.ts"
+        "enhancements/src/workspace_file_drag.ts",
+        "enhancements/src/workspace_file_history.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2500,14 +2502,16 @@
       "purpose": "implementation",
       "requirements": [
         "R042",
-        "R038"
+        "R038",
+        "R002.2"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
         "enhancements/src/workspace_file_commands.ts",
         "enhancements/src/workspace_files.ts",
         "enhancements/src/workspace_search.ts",
-        "enhancements/src/workspace_shortcuts.ts"
+        "enhancements/src/workspace_shortcuts.ts",
+        "enhancements/src/workspace_file_history.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2603,11 +2607,13 @@
       "purpose": "implementation",
       "requirements": [
         "R002",
-        "R042"
+        "R042",
+        "R002.2"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
-        "enhancements/src/workspace_file_operations.ts"
+        "enhancements/src/workspace_file_operations.ts",
+        "enhancements/src/workspace_file_history.ts"
       ],
       "related_modules": [
         "explorer",
@@ -10156,13 +10162,15 @@
       "purpose": "implementation",
       "requirements": [
         "R002.1",
-        "R002"
+        "R002",
+        "R002.2"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
         "enhancements/src/workspace_file_drag.ts",
         "enhancements/src/workspace_file_tree.ts",
-        "enhancements/src/workspace_files.ts"
+        "enhancements/src/workspace_files.ts",
+        "enhancements/src/workspace_file_history.ts"
       ],
       "related_modules": [
         "explorer",

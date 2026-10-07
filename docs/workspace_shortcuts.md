@@ -2,6 +2,8 @@
 
 # R079 原生 Markdown 快捷键优先
 
+2026-10-07 R002.2：文件树获焦时Ctrl+Z撤销移动/重命名，Ctrl+Y及Ctrl+Shift+Z重做；正文、重命名输入框和终端继续使用各自撤销。Ctrl+C/X/V、F2、Delete不改键位。共享文件历史、批量与失败边界见[文件操作撤销](file_operations.md#file-operation-undo)。
+
 2026-09-27用户明确：保留Typora编辑习惯；与原生Markdown编辑冲突的工作台Ctrl键改Alt。同日后续R014.2明确例外：Ctrl+=/-恢复窗口缩放，编辑区Ctrl+滚轮只调内容字号；此最新约定替代此前Alt缩放键，其他已迁移键保持。
 
 ## 核对与采用

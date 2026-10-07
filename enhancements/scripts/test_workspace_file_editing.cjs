@@ -77,6 +77,10 @@ app.whenReady().then(async () => {
   assert.equal(await evaluate('editor().getModel()===extension_model&&editor().getModel().getLanguageId()==="markdown"&&view().dirty()'),true);
   assert.equal(await evaluate('editor().getModel().getAlternativeVersionId()'),await evaluate('extension_undo'));
   assert.equal(fs.readFileSync(md_renamed,'utf8'),saved_text);
+  await evaluate('files.replay_file_history()');assert(fs.existsSync(file_path)&&!fs.existsSync(md_renamed));
+  assert(await evaluate('editor().getModel()===extension_model&&view().dirty()&&editor().getModel().getAlternativeVersionId()===extension_undo'));
+  await evaluate('files.replay_file_history(true)');assert(fs.existsSync(md_renamed)&&!fs.existsSync(file_path));
+  assert(await evaluate('editor().getModel()===extension_model&&view().dirty()'));
   await evaluate(`files.rename_file(workspace_path,${JSON.stringify(md_renamed)},'sample.txt')`);
   assert.equal(await evaluate('editor().getModel().getLanguageId()'),'plaintext');
   await evaluate(`editor().getModel().setValue(${JSON.stringify(saved_text)});files.save_active()`);

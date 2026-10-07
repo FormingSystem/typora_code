@@ -3,6 +3,8 @@
 <a id="section_b691e1dc9210"></a>
 # Stability issue index
 
+2026-10-07 R002.2: FILES-move-undo — moves and renames executed filesystem transactions without an undo stack or Explorer Ctrl+Z route. Shared file history and tree-focus dispatch now cover drag/cut/rename undo without undoing background text. See [evidence](../enhancements/tests/evidence/file_undo_20261007.json) for collision refusal, rollback, drafts and save paths. Copy/create/trash undo remains unimplemented and is not included in this result.
+
 2026-10-07 R040.5: SETTINGS-startup-discovery — the restore option was nested inside native file preferences without a direct unified-settings entry. Current and pre-installation profiles both selected mode 2; no reset by this update was established. Window → On startup reuses the native owner. Four-mode upgrade preservation, failure/cancellation and real restart results are in the [evidence](../enhancements/tests/evidence/window_startup_20261007.json). This entry fix does not imply complete window-restoration parity.
 
 2026-10-04 R084/R085: INSTALL-gui-child-lifetime (PowerShell 5.1 module loading/exit codes), SOURCE-native-startup (source opened as Markdown) and LSP-managed-runtime (long paths, CMake dynamic watchers, removed Makefile entry point) were fixed in their owning adapters without duplicate configuration or directory watchers. Early .NET initialization modified the test PATH; final recipes disable this and the two owned entries were removed. An HTTPS connection reset remains recorded as a failed download followed by a successful retry. See [evidence](../enhancements/tests/evidence/language_setup_20261004.json); historical black-screen, clipping and native fenced-code return issues remain open.

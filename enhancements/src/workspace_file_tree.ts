@@ -31,6 +31,8 @@ export type workspace_file_tree_options = {
   rename?(root: string, old_path: string, name: string): Promise<string>;
   transfer?(root: string, paths: string[], target: string, copy: boolean): Promise<string[]>;
   create?(root: string, parent: string, name: string, directory: boolean): Promise<string>;
+  file_history?:{can(redo?:boolean):boolean};
+  replay_file_history?(redo?:boolean):Promise<string[]>;
   file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
   confirm_delete?(): boolean;
@@ -89,7 +91,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         const results = await options.transfer!(root_path, paths, target, copy);
         if (!disposed && root === captured) {
           await refresh(); if (results[0]) await reveal(results[0]);
-          selection_paths.clear(); for (const path of results) selection_paths.add(path); render();
+          selection_paths.clear(); for (const path of results) selection_paths.add(path); render(); tree.focus({preventScroll:true});
         }
       } finally { operation_busy = false; if (!disposed && root === captured) await refresh(); }
     }
@@ -331,6 +333,9 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (node !== root) entries.push({title: workspace_text("file_tree_rename"),shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
     if (node !== root && options.trash) entries.push({title: workspace_text("file_tree_delete"),shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
     if (node.directory) entries.push({title: workspace_text("file_tree_refresh_folder"),separator:true, action: () => run(() => load_children(node, true))});
+    if(options.replay_file_history)entries.push(
+      {title:workspace_text('file_history_undo'),shortcut:'Ctrl+Z',separator:true,disabled:operation_busy||!options.file_history?.can(),action:()=>run(()=>replay_history(false))},
+      {title:workspace_text('file_history_redo'),shortcut:'Ctrl+Y',disabled:operation_busy||!options.file_history?.can(true),action:()=>run(()=>replay_history(true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
     container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu",{detail:{path:node.path,directory:node.directory,entries}}));
     // When the root directory has switched or the target node has disappeared, the old menu cannot be operated again on the old selection.
@@ -492,6 +497,25 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if(!value){drag.reset();if(!rename_state?.busy){cancel_edit();render();}if(root)close_branch(root);return;}
     await sync_root();if(root)watch_visible(root);
   }
+  async function replay_history(redo:boolean){
+    if(!root||operation_busy||rename_state||!options.replay_file_history)return;
+    if(!options.file_history?.can(redo)){set_status(workspace_text('file_history_empty'));return;}
+    const captured=root;operation_busy=true;
+    try{
+      const paths=await options.replay_file_history(redo);
+      if(disposed||root!==captured)return;
+      await refresh();if(paths[0])await reveal(paths[0]);
+      selection_paths.clear();for(const path of paths)selection_paths.add(path);render();
+      set_status(workspace_text(redo?'file_history_redone':'file_history_undone'));
+    }finally{operation_busy=false;if(!disposed&&root===captured){await refresh();tree.focus({preventScroll:true});}}
+  }
+  const history_key=(event:KeyboardEvent)=>{
+    if(event.target!==tree||options.selection||!options.replay_file_history||event.isComposing||event.altKey||!(event.ctrlKey||event.metaKey))return;
+    const key=event.key.toLowerCase();if(key!=='z'&&key!=='y')return;
+    event.preventDefault();event.stopImmediatePropagation();
+    if(!event.repeat)run(()=>replay_history(key==='y'||event.shiftKey));
+  };
+  window.addEventListener('keydown',history_key,true);detachers.push(()=>window.removeEventListener('keydown',history_key,true));
   tree.addEventListener("scroll", render, {passive: true});
   tree.addEventListener("keydown", event => {
     if (event.target !== tree || event.isComposing) return;
