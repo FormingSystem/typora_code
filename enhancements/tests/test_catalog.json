@@ -961,14 +961,16 @@
         "R056",
         "R057",
         "R063",
-        "R074.9"
+        "R074.9",
+        "R040.5"
       ],
       "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
         "install_windows.ps1",
         "check_windows.ps1",
         "scripts/lib/typora_install_permissions.ps1",
-        "scripts/install_workspace_windows.ps1"
+        "scripts/install_workspace_windows.ps1",
+        "enhancements/src/workspace_window_settings.ts"
       ],
       "related_modules": [
         "runtime",
@@ -4641,13 +4643,15 @@
     {
       "domain": "workspace",
       "requirements": [
-        "R040.2"
+        "R040.2",
+        "R040.5"
       ],
       "design": "docs/workspace_switch.md",
       "implementation": [
         "enhancements/src/workspace_sessions.ts",
         "enhancements/src/workspace_session_store.ts",
-        "enhancements/src/workspace_open_dialog.ts"
+        "enhancements/src/workspace_open_dialog.ts",
+        "enhancements/src/workspace_window_settings.ts"
       ],
       "related_modules": [
         "files",
@@ -6317,7 +6321,8 @@
         "R034.5",
         "R034.6",
         "R034.7",
-        "R072.4"
+        "R072.4",
+        "R040.5"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6329,7 +6334,8 @@
         "enhancements/src/workspace_settings_sections.ts",
         "enhancements/src/remote_ssh_settings.ts",
         "enhancements/src/workspace_settings_owner.ts",
-        "enhancements/src/workspace_settings_view.css"
+        "enhancements/src/workspace_settings_view.css",
+        "enhancements/src/workspace_window_settings.ts"
       ],
       "related_modules": [
         "设置",
@@ -10175,6 +10181,38 @@
       "expected": [
         "Same source model and undo version; drafts preserved without implicit save; subsequent writes use only the new paths.",
         "DOM event evidence remains distinct from a physical OS mouse gesture."
+      ],
+      "timeout_ms": 240000
+    },
+    {
+      "id": "TC-window-startup-native-001",
+      "domain": "workspace",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R040.5"
+      ],
+      "design": "docs/workspace_switch.md",
+      "implementation": [
+        "enhancements/src/workspace_window_settings.ts",
+        "enhancements/src/workspace_settings_sections.ts"
+      ],
+      "related_modules": [
+        "settings",
+        "native_preferences",
+        "sessions",
+        "installation"
+      ],
+      "script": "enhancements/fixtures/window_startup_native.js",
+      "runner": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Original Typora 1.14.10, isolated profile and private desktop",
+      "preconditions": "Verified original host and final built assets; temporary configuration only",
+      "steps": [
+        "Run test_stability_native.ps1 -fixture window_startup_native.js.",
+        "Read four native modes without writing; save blank/restore, verify main process and profile.data; reopen 20 times and switch themes."
+      ],
+      "expected": [
+        "Native and disk values match the selected mode; custom folder remains unchanged; repeated open does not reset preferences."
       ],
       "timeout_ms": 240000
     }

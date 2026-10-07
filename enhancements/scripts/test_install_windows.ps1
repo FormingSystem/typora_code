@@ -360,6 +360,18 @@ function start_typora_elevated_install {
     assert_equal (Get-FileHash -LiteralPath $cycle_settings).Hash $settings_hash 'Lifecycle changed workspace settings'
     assert_equal (Get-FileHash -LiteralPath $cycle_storage).Hash $storage_hash 'Lifecycle changed local storage configuration contract'
     assert_equal (Test-Path -LiteralPath (Join-Path $cycle_backup 'manifest.json')) $true 'Lifecycle removed original backup'
+    # Every native startup choice survives an actual standard update of this candidate.
+    $cycle_profile=Join-Path $env:APPDATA 'Typora/profile.data'
+    foreach ($startup_mode in @(0,1,2,3)) {
+        write_profile_fixture $cycle_profile @{restoreWhenLaunch=$startup_mode;pinFolder=$cycle_root;framelessWindow=$true;user_marker='preserve startup choice'}
+        & $installer -typora_root $cycle_root -backup_root (Join-Path $test_root ('startup mode backup '+$startup_mode)) -non_interactive
+        & $checker -typora_root $cycle_root -non_interactive
+        $startup_after=read_profile_fixture $cycle_profile
+        assert_equal $startup_after.restoreWhenLaunch $startup_mode 'Update reset native startup mode'
+        assert_equal $startup_after.pinFolder $cycle_root 'Update reset pinned folder'
+        assert_equal $startup_after.user_marker 'preserve startup choice' 'Update rewrote unrelated native setting'
+    }
+    Write-Host 'PASS: native startup modes 0/1/2/3 and pinned folder survive standard updates.'
     Write-Host 'PASS: candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings and backup preserved.'
     Write-Host "Fixtures: $test_root"
 } catch { Write-Host $_.ScriptStackTrace; throw } finally { $env:APPDATA=$previous_appdata }

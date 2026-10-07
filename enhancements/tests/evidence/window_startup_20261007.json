@@ -1,0 +1,97 @@
+{
+  "date": "2026-10-07",
+  "requirement": "R040.5",
+  "release": "2026.10.07.2",
+  "finding": "Current native profile and pre-2026.10.07.1 backup both selected mode 2. The reported missing option was a discoverability problem; no reset of this preference was found.",
+  "ownership": "Native Typora restoreWhenLaunch/pinFolder only; opening settings, startup and updates do not write defaults or mirror these values in workspace.json.",
+  "native_source": {
+    "version": "1.14.10",
+    "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+    "contract": "Preferences.onChangeLaunchAction; setting.getExtraOption/put; modes 0/1/2/3"
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case_id": "3c88c6bb161d44c0b5f402dc403010da"
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": [
+      "test_workspace_settings.cjs",
+      "test_workspace_switch.cjs",
+      "test_workspace_startup.cjs"
+    ],
+    "settings_assertions": 306,
+    "case_ids": [
+      "369ffcc8178248118cf272347fdcce02",
+      "3af86488507b4d3c85814fc51c84e2d0",
+      "218182c4f94449dba31ac962fe4f9b23"
+    ],
+    "coverage": [
+      "existing four choices without writes",
+      "native write rejection and readback",
+      "custom folder cancellation and save",
+      "close during preparatory read",
+      "reopen reads actual persisted owner"
+    ]
+  },
+  "native": {
+    "status": "PASS",
+    "case_id": "750892406714458e8211d39d52eada0a",
+    "checks": 34,
+    "input": "DOM selection in original host; real main-process and profile persistence",
+    "screenshot_reviewed": true,
+    "coverage": [
+      "four existing modes",
+      "save mode 0 then 2 and disk readback",
+      "20 reopen cycles",
+      "Default dark/light row visibility"
+    ]
+  },
+  "restart": {
+    "status": "PASS",
+    "case_id": "00cb7a60bbad4515ad8e5f2ed8b0d5d3",
+    "phases": 2,
+    "coverage": [
+      "Markdown and source restored from disk in a new process",
+      "explicit startup file retains activation",
+      "native restore choice retained",
+      "20 workspace round trips and dirty guards"
+    ]
+  },
+  "installation": {
+    "status": "PASS",
+    "paired_case_id": "2d0ce115f31e4e0f88ae9b4ded8dfe8b",
+    "uninstall_case_id": "628d15e786cb438bbfc17296b62ca01a",
+    "uninstall_assertions": 65,
+    "coverage": [
+      "public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check",
+      "four actual updates preserve modes 0/1/2/3, pinned folder and unrelated native field",
+      "uninstall failure, cancellation and rollback"
+    ],
+    "local": {
+      "status": "PASS",
+      "assets": {
+        "workspace": 72,
+        "terminal": 24
+      },
+      "theme_files": 5,
+      "protected_unchanged": 4,
+      "native_startup_unchanged": true,
+      "native_mode": "2",
+      "manifest": "da61ba3164fb12a71a3c764c7242e349a8a540de15b0eba0eb29e174440191f6",
+      "release": "2026.10.07.2",
+      "runtime_loaded": "User windows not restarted",
+      "uninstall": "Read-only preflight only in user environment"
+    }
+  },
+  "limits": [
+    "No physical mouse/keyboard or non-Windows native acceptance and no full UI suite.",
+    "Startup policy does not add unsaved-body or full split-geometry recovery, or change explicit open-in-new-window routing.",
+    "Existing R071.7/R068.11/R005.4, language-fence return, PPT preview response and ordinary-machine signed shell delivery remain separate open items."
+  ],
+  "cleanup": "Core, UI, native, restart and isolated install/uninstall managed payloads reclaimed; logs and screenshots retained.",
+  "git": {
+    "pushed": false
+  }
+}

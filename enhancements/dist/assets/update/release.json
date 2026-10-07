@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100702,
+      "version": "2026.10.07.2",
+      "date": "2026-10-07",
+      "notes": [
+        "统一设置新增“窗口 → 启动时”，直接选择新空白文件或恢复上次关闭的文件和文件夹。",
+        "沿用 Typora 原生启动配置，保留已有选择和指定目录；启动、打开设置和更新均不强制重置默认值。"
+      ],
+      "notes_en": [
+        "Settings now includes Window > On startup, with a blank file or the last closed files and folders.",
+        "Uses the native Typora startup preference and preserves existing choices and custom folders; launching, opening settings and updating never force a default."
+      ]
+    },
+    {
       "sequence": 2026100701,
       "version": "2026.10.07.1",
       "date": "2026-10-07",

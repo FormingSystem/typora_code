@@ -7938,5 +7938,57 @@
   "go_line_position": {
     "zh_cn": "按 Enter 跳转到第 {line} 行，第 {column} 列。",
     "en": "Press Enter to go to line {line} at column {column}."
+  },
+  "window_settings_title": {
+    "zh_cn": "窗口",
+    "en": "Window"
+  },
+  "window_startup_label": {
+    "zh_cn": "启动时",
+    "en": "On startup"
+  },
+  "window_startup_description": {
+    "zh_cn": "选择打开新空白文件，或继续上次关闭的文件和文件夹。沿用 Typora 原生设置；更新保留你的选择，未保存正文不属于会话恢复。指定目录可在 Typora 偏好设置中更改。",
+    "en": "Start with a blank file or restore the last closed files and folders. Uses the native Typora preference; updates preserve your choice. Unsaved content is not restored. Change a custom folder in Typora preferences."
+  },
+  "window_startup_empty": {
+    "zh_cn": "打开新空白文件",
+    "en": "Open a new blank file"
+  },
+  "window_startup_folders": {
+    "zh_cn": "仅恢复上次关闭的文件夹",
+    "en": "Restore last closed folders only"
+  },
+  "window_startup_restore": {
+    "zh_cn": "恢复上次关闭的文件和文件夹",
+    "en": "Restore last closed files and folders"
+  },
+  "window_startup_custom": {
+    "zh_cn": "打开指定文件夹",
+    "en": "Open a custom folder"
+  },
+  "window_startup_unavailable": {
+    "zh_cn": "暂时无法读取 Typora 启动设置，请重试。",
+    "en": "Unable to read Typora startup preferences. Please retry."
+  },
+  "window_startup_native_default": {
+    "zh_cn": "使用 Typora 当前默认设置",
+    "en": "Use the current Typora default"
+  },
+  "window_startup_save_unconfirmed": {
+    "zh_cn": "未能确认启动设置已保存，请重新读取后重试。",
+    "en": "Could not confirm the startup preference was saved. Reload and retry."
+  },
+  "window_startup_saved": {
+    "zh_cn": "启动设置已保存，下次正常启动时生效。更新将保留此选择。",
+    "en": "Startup preference saved for the next normal launch. Updates preserve this choice."
+  },
+  "window_startup_reload": {
+    "zh_cn": "重新读取",
+    "en": "Reload"
+  },
+  "window_startup_saving": {
+    "zh_cn": "正在保存窗口启动设置，请稍后重试。",
+    "en": "Saving the window startup preference. Please try again shortly."
   }
 }
