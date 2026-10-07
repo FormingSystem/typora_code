@@ -2,11 +2,30 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026100701,
+      "version": "2026.10.07.1",
+      "date": "2026-10-07",
+      "notes": [
+        "资源管理器支持拖动文件和文件夹移动位置，支持多选、悬停展开和拖到根目录；按 Ctrl 拖动可复制。",
+        "移动保留已打开文档和未保存内容；同名目标拒绝覆盖，取消拖动不更改文件。"
+      ],
+      "notes_en": [
+        "Move files and folders by dragging in Explorer, including multiple selections, hover expansion and drops onto the workspace root; Ctrl-drag copies.",
+        "Moves preserve open documents and unsaved edits. Name collisions are rejected without overwriting, and canceled drags leave files unchanged."
+      ]
+    },
+    {
       "sequence": 2026100602,
       "version": "2026.10.06.2",
       "date": "2026-10-06",
-      "notes": ["新增 Windows 11 第一层“用 Typora 打开”候选，支持单个文件、文件夹及目录空白处。", "当前仅支持已开启开发者模式的 Windows x64 本机注册；安装不更改开发者模式或证书信任。普通安装继续提供传统右键菜单。"],
-      "notes_en": ["Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.", "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."]
+      "notes": [
+        "新增 Windows 11 第一层“用 Typora 打开”候选，支持单个文件、文件夹及目录空白处。",
+        "当前仅支持已开启开发者模式的 Windows x64 本机注册；安装不更改开发者模式或证书信任。普通安装继续提供传统右键菜单。"
+      ],
+      "notes_en": [
+        "Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.",
+        "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."
+      ]
     },
     {
       "sequence": 2026100601,

@@ -49,6 +49,7 @@ export type workspace_file_host = {
   read_text(file_path:string):Promise<string>;
   rename_file(root: string, old_path: string, name: string): Promise<string>;
   move_file(root: string, old_path: string, target: string): Promise<string>;
+  transfer_entries(root: string, paths: string[], target: string, copy: boolean): Promise<string[]>;
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
   file_clipboard:workspace_file_clipboard;
   trash_entries(root:string,paths:string[]):Promise<void>;
@@ -1186,6 +1187,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     try{return await action();}finally{file_operation_count--;}
   };
   const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(()=>create_workspace_entry({fs,path_api},root,parent,name,directory));
+  const transfer_entries=(root:string,paths:string[],target:string,copy:boolean)=>file_operation(async()=>{
+    if(file_key(root)!==file_key(context_root())||workspace_context_switching())throw new Error(workspace_text('files_received_edit_group_or_workspace_has_changed_please_drag_aga'));
+    return transfer_workspace_entries({fs,path_api},root,paths,target,copy?undefined:move_file);
+  });
   const file_clipboard=create_workspace_file_clipboard(create_resource_file_clipboard(name=>runtime.reqnode(name)),{
     validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths)),
     transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_workspace_entries({fs,path_api},root,paths,target,move?move_file:undefined,external))
@@ -1219,7 +1224,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
     await close_leaf(leaf);
   };
-  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, transfer_entries, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

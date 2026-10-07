@@ -2374,7 +2374,8 @@
         "R080",
         "R058.1",
         "R028.1",
-        "R028.2"
+        "R028.2",
+        "R002.1"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2388,7 +2389,8 @@
         "enhancements/src/workspace_interaction.css",
         "enhancements/src/git_graph.css",
         "enhancements/src/workspace_file_tree.ts",
-        "enhancements/src/workspace_focus.ts"
+        "enhancements/src/workspace_focus.ts",
+        "enhancements/src/workspace_file_drag.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2403,7 +2405,8 @@
       "steps": [
         "新建/改名/复制/剪切/粘贴，按Delete取消与确认，关闭原生确认选项后直接回收",
         "2000行虚拟文件树，展开/根切换/迟到读取及销毁",
-        "Use trusted clicks on a non-focusing outline control and the document to cancel rename without writes or swallowing the destination click; retain inside clicks and remove pending create/hide state."
+        "Use trusted clicks on a non-focusing outline control and the document to cancel rename without writes or swallowing the destination click; retain inside clicks and remove pending create/hide state.",
+        "Exercise production drag events against real temporary files: move/copy, invalid targets, cancellation and 20 round trips; native fixture explorer_drag_native.js separately checks source/Markdown drafts and subsequent saves."
       ],
       "expected": [
         "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果"
@@ -10139,6 +10142,41 @@
         "Exact original path reaches only the fixture executable; previous package is restored on failure; foreign changes are preserved; test registration and large payloads are removed."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-files-drag-native-001",
+      "domain": "files",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R002.1",
+        "R002"
+      ],
+      "design": "docs/file_operations.md",
+      "implementation": [
+        "enhancements/src/workspace_file_drag.ts",
+        "enhancements/src/workspace_file_tree.ts",
+        "enhancements/src/workspace_files.ts"
+      ],
+      "related_modules": [
+        "explorer",
+        "source_editor",
+        "native_markdown",
+        "navigation"
+      ],
+      "script": "enhancements/fixtures/explorer_drag_native.js",
+      "runner": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Verified original Typora 1.14.10, isolated profile and private desktop",
+      "preconditions": "Owned temporary workspace; final built candidate; no user files or production injection",
+      "steps": [
+        "Run test_stability_native.ps1 -fixture explorer_drag_native.js with the verified host.",
+        "Drop dirty source and native Markdown through production Explorer DOM events; expand the target and save after relocation."
+      ],
+      "expected": [
+        "Same source model and undo version; drafts preserved without implicit save; subsequent writes use only the new paths.",
+        "DOM event evidence remains distinct from a physical OS mouse gesture."
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

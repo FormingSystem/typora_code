@@ -40,7 +40,7 @@ app.whenReady().then(async()=>{
     document.querySelector('[data-id="core.file-explorer"]').onclick=()=>{native_clicks++;sidebar.switch(native_sidebar)};
     window.clipboard_snapshot={paths:[],version:'0',move_requested:false};window.clipboard_serial=0;
     window.file_clipboard=explorer_qa.create_workspace_file_clipboard({read:async()=>clipboard_snapshot,write:async paths=>(clipboard_snapshot={paths,version:String(++clipboard_serial),move_requested:false}),clear:async version=>{if(clipboard_snapshot.version!==version)return false;clipboard_snapshot={paths:[],version:String(++clipboard_serial),move_requested:false};return true;},dispose(){}},{validate:(root,paths)=>explorer_qa.validate_workspace_entries({fs:native_fs,path_api:require('path')},root,paths),transfer:(root,paths,target,move,external)=>explorer_qa.transfer_workspace_entries({fs:native_fs,path_api:require('path')},root,paths,target,move?async(_root,source,target)=>{await native_fs.promises.rename(source,target);return target}:undefined,external)});
-    window.instance=explorer_qa.bind_workspace_explorer(core,{compact_folders:false,context_root:()=>root_path,active_file:()=>active_path,open_file:(...args)=>{opened.push(args);if(window.follow_opens){active_path=args[0];listeners.get('active-leaf:change')?.();setTimeout(()=>listeners.get('file:open')?.(),30);}},open_folder:()=>{},copy:text=>copied.push(text),create:(root,parent,name,directory)=>explorer_qa.create_workspace_entry({fs:native_fs,path_api:require('path')},root,parent,name,directory),file_clipboard,confirm_delete:()=>window.confirm_delete!==false,trash:(root,paths)=>explorer_qa.trash_workspace_entries({fs:native_fs,path_api:require('path')},root,paths,async file=>{const recycle=require('path').join(require('path').dirname(root),'recycle');await native_fs.promises.mkdir(recycle,{recursive:true});await native_fs.promises.rename(file,require('path').join(recycle,require('path').basename(file)))}),rename:async(root,source,name)=>{const plan=await explorer_qa.prepare_workspace_rename({fs:native_fs,path_api:require('path')},root,source,name);await plan.apply();return plan.new_path;}});
+    window.instance=explorer_qa.bind_workspace_explorer(core,{compact_folders:false,context_root:()=>root_path,active_file:()=>active_path,open_file:(...args)=>{opened.push(args);if(window.follow_opens){active_path=args[0];listeners.get('active-leaf:change')?.();setTimeout(()=>listeners.get('file:open')?.(),30);}},open_folder:()=>{},copy:text=>copied.push(text),create:(root,parent,name,directory)=>explorer_qa.create_workspace_entry({fs:native_fs,path_api:require('path')},root,parent,name,directory),transfer:(root,paths,target,copy)=>explorer_qa.transfer_workspace_entries({fs:native_fs,path_api:require('path')},root,paths,target,copy?undefined:async(_root,source,target)=>{await native_fs.promises.rename(source,target);return target}),file_clipboard,confirm_delete:()=>window.confirm_delete!==false,trash:(root,paths)=>explorer_qa.trash_workspace_entries({fs:native_fs,path_api:require('path')},root,paths,async file=>{const recycle=require('path').join(require('path').dirname(root),'recycle');await native_fs.promises.mkdir(recycle,{recursive:true});await native_fs.promises.rename(file,require('path').join(recycle,require('path').basename(file)))}),rename:async(root,source,name)=>{const plan=await explorer_qa.prepare_workspace_rename({fs:native_fs,path_api:require('path')},root,source,name);await plan.apply();return plan.new_path;}});
     window.get_listeners=()=>listeners.size;window.emit_workspace_event=event=>listeners.get(event)?.();
   })()`);
 
@@ -318,6 +318,95 @@ app.whenReady().then(async()=>{
   }
   test_window.webContents.setZoomFactor(1);await evaluate(`if(${JSON.stringify(body_theme_before)}===null)document.body.removeAttribute('style');else document.body.setAttribute('style',${JSON.stringify(body_theme_before)});document.querySelector('#typora-sidebar').style.width='320px';void 0`);await wait('document.documentElement.dataset.workspaceFileIconTheme==="light"');
   await evaluate('instance.reveal(root_path)');
+
+  // Production drag events and real isolated filesystem mutations; not physical OS dragging.
+  await click('.workspace-explorer-root [data-git-icon="collapse-all"]');
+  const drag_root=path.join(workspace,'drag_cases');
+  for(const name of ['source','target','target/deep'])fs.mkdirSync(path.join(drag_root,name),{recursive:true});
+  fs.writeFileSync(path.join(drag_root,'source','move.txt'),'unsaved editor tests use the shared host fixture');
+  fs.writeFileSync(path.join(drag_root,'source','second.txt'),'second');
+  await evaluate(`instance.refresh()`);await evaluate(`instance.reveal(${JSON.stringify(path.join(drag_root,'source','move.txt'))})`);await delay(80);
+  const drag_event=async(source,target,copy=false,finish=true)=>evaluate(`(()=>{
+    const row=p=>[...document.querySelectorAll('.workspace-explorer-row')].find(r=>r.dataset.path===p);
+    const source=row(${JSON.stringify(source)}),target=${target==='root'?"document.querySelector('.workspace-explorer-root')":`row(${JSON.stringify(target)})`};
+    if(!source||!target)throw new Error('Missing drag row');
+    if(!source.draggable)throw new Error('Source row is not draggable');
+    window.drag_data=new DataTransfer();source.dispatchEvent(new DragEvent('dragstart',{bubbles:true,cancelable:true,dataTransfer:drag_data}));
+    const rect=target.getBoundingClientRect();window.drag_target=target;
+    target.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:drag_data,ctrlKey:${copy},clientY:rect.top+rect.height/2}));
+    const highlighted=document.querySelector('.workspace-explorer-tree').dataset.dropTarget||'';
+    if(${finish}){target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:drag_data,ctrlKey:${copy}}));source.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:drag_data}));}
+    return highlighted;
+  })()`);
+  const source=path.join(drag_root,'source'),target=path.join(drag_root,'target');
+  assert.equal(await drag_event(path.join(source,'move.txt'),target),target);
+  await wait(`require('fs').existsSync(${JSON.stringify(path.join(target,'move.txt'))})&&!require('fs').existsSync(${JSON.stringify(path.join(source,'move.txt'))})`);await delay(100);
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(target,'move.txt'))})`);await delay(60);
+  const clipboard_before=await evaluate('JSON.stringify(clipboard_snapshot)');
+  assert.equal(await drag_event(path.join(target,'move.txt'),source,true),source);await wait(`require('fs').existsSync(${JSON.stringify(path.join(source,'move.txt'))})`);await delay(80);
+  assert.equal(fs.readFileSync(path.join(target,'move.txt'),'utf8'),fs.readFileSync(path.join(source,'move.txt'),'utf8'));
+  assert.equal(await evaluate('JSON.stringify(clipboard_snapshot)'),clipboard_before);
+  // Existing name rejects the complete operation and retains both originals.
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(source,'move.txt'))})`);await delay(60);
+  await drag_event(path.join(source,'move.txt'),target);await wait(`!document.querySelector('.workspace-explorer-status').hidden`);
+  assert(fs.existsSync(path.join(source,'move.txt'))&&fs.existsSync(path.join(target,'move.txt')));
+  assert.equal(await drag_event(source,source),'');
+  assert.equal(await drag_event(source,path.join(source,'second.txt')),'');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(target,'deep'))})`);await delay(60);
+  assert.equal(await drag_event(target,path.join(target,'deep')),'');
+  // Escape cancels a pending hover/drop, without using the clipboard.
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(source,'second.txt'))})`);await delay(60);
+  await drag_event(path.join(source,'second.txt'),target,false,false);
+  await evaluate(`document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));drag_target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:drag_data}));void 0`);await delay(550);
+  assert(fs.existsSync(path.join(source,'second.txt'))&&!fs.existsSync(path.join(target,'second.txt')));
+  assert.equal(await evaluate(`document.querySelector('.workspace-explorer-tree').dataset.dropTarget||''`),'');
+  // Repeated round trips exercise stale rows, refresh, selection and retained bytes.
+  for(let index=0;index<20;index++){
+    const from=index%2?target:source,to=index%2?source:target;
+    await evaluate(`instance.reveal(${JSON.stringify(path.join(from,'second.txt'))})`);await delay(50);
+    assert.equal(await drag_event(path.join(from,'second.txt'),to),to);
+    await wait(`require('fs').existsSync(${JSON.stringify(path.join(to,'second.txt'))})&&!require('fs').existsSync(${JSON.stringify(path.join(from,'second.txt'))})`);await delay(70);
+  }
+  assert.equal(fs.readFileSync(path.join(source,'second.txt'),'utf8'),'second');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(source,'second.txt'))})`);await delay(60);
+  assert.equal(await drag_event(path.join(source,'second.txt'),'root'),workspace);
+  await wait(`require('fs').existsSync(${JSON.stringify(path.join(workspace,'second.txt'))})`);await delay(70);
+
+  // Selected parent and child are one transfer; file rows resolve to their parent.
+  const batch=path.join(drag_root,'batch');fs.mkdirSync(batch);fs.writeFileSync(path.join(batch,'child.txt'),'nested');
+  await evaluate('instance.refresh()');await evaluate(`instance.reveal(${JSON.stringify(path.join(batch,'child.txt'))})`);await delay(70);
+  await click(row(path.relative(workspace,batch)),'left',['control']);
+  assert.equal(await drag_event(batch,path.join(target,'move.txt')),target);
+  await wait(`require('fs').existsSync(${JSON.stringify(path.join(target,'batch','child.txt'))})`);await delay(100);
+  assert(!fs.existsSync(batch));assert.equal(fs.readFileSync(path.join(target,'batch','child.txt'),'utf8'),'nested');
+  // Moving into a collapsed directory opens it after the upstream 500ms delay.
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(workspace,'second.txt'))})`);await delay(60);
+  const collapsed=path.join(drag_root,'source');
+  if(await evaluate(`document.querySelector(${JSON.stringify(row(path.relative(workspace,collapsed)))}).getAttribute('aria-expanded')==='true'`))await click(row(path.relative(workspace,collapsed)));
+  await drag_event(path.join(workspace,'second.txt'),collapsed,false,false);await delay(600);
+  assert.equal(await evaluate(`document.querySelector(${JSON.stringify(row(path.relative(workspace,collapsed)))}).getAttribute('aria-expanded')`),'true');
+  await evaluate(`sidebar.hide();drag_target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:drag_data}));void 0`);await delay(100);
+  assert(fs.existsSync(path.join(workspace,'second.txt')));await evaluate('sidebar.show()');await delay(100);
+  // A root change invalidates the source session even before the scheduled refresh.
+  fs.writeFileSync(path.join(source,'stale.txt'),'stale');await evaluate('instance.refresh()');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(source,'stale.txt'))})`);await delay(80);
+  await drag_event(path.join(source,'stale.txt'),target,false,false);
+  await evaluate(`window.root_path=${JSON.stringify(root)};drag_target.dispatchEvent(new DragEvent('drop',{bubbles:true,cancelable:true,dataTransfer:drag_data}));window.root_path=${JSON.stringify(workspace)};void 0`);await delay(70);
+  assert(fs.existsSync(path.join(source,'stale.txt'))&&!fs.existsSync(path.join(target,'stale.txt')));
+
+  // Edge scrolling remains bounded and virtualization retains the native drag source.
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(source,'stale.txt'))})`);await delay(60);
+  await drag_event(path.join(source,'stale.txt'),target,false,false);
+  const scroll_before=await evaluate(`(()=>{window.retained_source=[...document.querySelectorAll('.workspace-explorer-row')].find(row=>row.dataset.path===${JSON.stringify(path.join(source,'stale.txt'))});const tree=document.querySelector('.workspace-explorer-tree'),b=tree.getBoundingClientRect();drag_target.dispatchEvent(new DragEvent('dragover',{bubbles:true,cancelable:true,dataTransfer:drag_data,clientY:b.bottom-1}));return tree.scrollTop})()`);
+  await delay(180);assert(await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop>${scroll_before}`));
+  await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop=10000;void 0`);await delay(60);
+  assert(await evaluate('retained_source.isConnected'),'virtualization retains dragged source');
+  assert(await evaluate(`document.querySelectorAll('.workspace-explorer-row').length<60`),'drag keeps virtual rows bounded');
+  await evaluate(`document.dispatchEvent(new DragEvent('dragend',{bubbles:true,dataTransfer:drag_data}));void 0`);await delay(30);
+  const stopped_scroll=await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop`);await delay(100);
+  assert.equal(await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop`),stopped_scroll);
+  assert.equal(await evaluate(`document.querySelector('.workspace-explorer-tree').dataset.dropTarget||''`),'');
+  console.log('R002.1 drag events: move/copy/collision/self/descendant/cancel/root/20 round trips PASS; no physical OS gesture claim');
   const before_dispose=await evaluate('({watchers,listeners:get_listeners(),rows:document.querySelectorAll(".workspace-explorer-row").length,reads})');
   await evaluate('instance.dispose()');assert.equal(await evaluate('watchers'),0);assert.equal(await evaluate('get_listeners()'),0);assert.equal(await evaluate('document.querySelector(".linux-note-workspace-explorer")'),null);
   await click('[data-id="core.file-explorer"]');assert.equal(await evaluate('native_clicks'),1,'dispose restores native button handling');

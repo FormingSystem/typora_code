@@ -205482,6 +205482,147 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_files.css
   var workspace_files_default = "";
 
+  // src/workspace_file_drag.ts
+  var DRAG_TYPE = "application/x-typora-code-explorer";
+  function bind_workspace_file_drag(options2) {
+    const { tree, root_label, path_api } = options2;
+    let session;
+    let target_path = "", expand_timer = 0, scroll_frame = 0, pointer_y = 0;
+    let serial2 = 0, disposed = false;
+    let source_row;
+    const within3 = (parent, child) => {
+      const relative2 = path_api.relative(parent, child);
+      return !path_api.isAbsolute(relative2) && relative2 !== ".." && !relative2.startsWith(".." + path_api.sep);
+    };
+    const same = (left, right) => path_api.relative(left, right) === "";
+    const row_at = (target) => target instanceof Element ? target.closest(".workspace-explorer-row") : null;
+    const current2 = () => !disposed && options2.enabled() && session && same(session.root, options2.root());
+    function clear_feedback() {
+      if (expand_timer) window.clearTimeout(expand_timer);
+      if (scroll_frame) cancelAnimationFrame(scroll_frame);
+      expand_timer = scroll_frame = 0;
+      target_path = "";
+      tree.removeAttribute("data-drop-target");
+      root_label.classList.remove("is-drop-target");
+      for (const row of tree.querySelectorAll(".is-drop-target")) row.classList.remove("is-drop-target");
+    }
+    function reset2() {
+      session = void 0;
+      source_row = void 0;
+      clear_feedback();
+    }
+    function start(event) {
+      const row = row_at(event.target), path = row?.dataset.path;
+      if (!path || !tree.contains(row) || !options2.enabled() || !event.dataTransfer || event.target instanceof Element && event.target.closest("input,button")) {
+        event.preventDefault();
+        return;
+      }
+      const entry = options2.entry(path);
+      if (!entry || entry.link) {
+        event.preventDefault();
+        return;
+      }
+      reset2();
+      let paths = options2.selection();
+      if (!paths.includes(path)) {
+        options2.select(path);
+        paths = [path];
+      }
+      paths = paths.filter((candidate) => !paths.some((parent) => parent !== candidate && within3(parent, candidate)));
+      if (!paths.length || paths.some((candidate) => !options2.entry(candidate) || options2.entry(candidate).link)) {
+        event.preventDefault();
+        return;
+      }
+      session = { root: options2.root(), paths, token: String(++serial2) };
+      source_row = row;
+      event.dataTransfer.setData(DRAG_TYPE, session.token);
+      event.dataTransfer.effectAllowed = "copyMove";
+      event.stopPropagation();
+    }
+    function destination(event) {
+      if (!current2() || !event.dataTransfer?.types.includes(DRAG_TYPE)) return "";
+      const row = row_at(event.target), entry = row && tree.contains(row) ? options2.entry(row.dataset.path || "") : void 0;
+      if (entry?.link) return "";
+      const target = entry ? entry.directory ? entry.path : path_api.dirname(entry.path) : session.root;
+      if (!within3(session.root, target)) return "";
+      if (session.paths.some((path) => !options2.entry(path) || within3(path, target) || same(path_api.dirname(path), target))) return "";
+      return target;
+    }
+    function scroll() {
+      scroll_frame = 0;
+      if (!current2()) {
+        reset2();
+        return;
+      }
+      const bounds = tree.getBoundingClientRect(), diff = pointer_y - bounds.top;
+      const delta = diff < 35 ? Math.max(-14, Math.floor(0.3 * (diff - 35))) : diff > bounds.height - 35 ? Math.min(14, Math.floor(0.3 * (diff - bounds.height + 35))) : 0;
+      if (!delta || diff < 0 || diff > bounds.height) return;
+      const before = tree.scrollTop;
+      tree.scrollTop += delta;
+      if (tree.scrollTop !== before) scroll_frame = requestAnimationFrame(scroll);
+    }
+    function over(event) {
+      if (!session) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const target = destination(event);
+      if (event.dataTransfer) event.dataTransfer.dropEffect = target ? event.ctrlKey ? "copy" : "move" : "none";
+      if (!target) {
+        clear_feedback();
+        return;
+      }
+      if (target !== target_path) {
+        clear_feedback();
+        target_path = target;
+        tree.dataset.dropTarget = target;
+        root_label.classList.toggle("is-drop-target", same(target, session.root));
+        for (const row of tree.querySelectorAll(".workspace-explorer-row")) row.classList.toggle("is-drop-target", row.dataset.path === target);
+        const captured = session;
+        expand_timer = window.setTimeout(() => {
+          expand_timer = 0;
+          if (current2() && session === captured && target_path === target) void options2.expand(target).catch(options2.error);
+        }, 500);
+      }
+      pointer_y = event.clientY;
+      if (!scroll_frame) scroll_frame = requestAnimationFrame(scroll);
+    }
+    function drop(event) {
+      if (!session) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const target = destination(event), captured = session;
+      const valid = event.dataTransfer?.getData(DRAG_TYPE) === captured.token;
+      reset2();
+      if (target && valid) void options2.transfer(captured.root, captured.paths, target, event.ctrlKey).catch(options2.error);
+    }
+    function leave(event) {
+      if (!(event.relatedTarget instanceof Node) || !tree.contains(event.relatedTarget) && !root_label.contains(event.relatedTarget)) clear_feedback();
+    }
+    const key4 = (event) => {
+      if (event.key === "Escape") reset2();
+    };
+    tree.addEventListener("dragstart", start);
+    for (const surface of [tree, root_label]) {
+      surface.addEventListener("dragover", over);
+      surface.addEventListener("drop", drop);
+      surface.addEventListener("dragleave", leave);
+    }
+    document.addEventListener("dragend", reset2, true);
+    document.addEventListener("keydown", key4, true);
+    return { reset: reset2, retains: (row) => row === source_row, dispose() {
+      disposed = true;
+      reset2();
+      tree.removeEventListener("dragstart", start);
+      for (const surface of [tree, root_label]) {
+        surface.removeEventListener("dragover", over);
+        surface.removeEventListener("drop", drop);
+        surface.removeEventListener("dragleave", leave);
+      }
+      document.removeEventListener("dragend", reset2, true);
+      document.removeEventListener("keydown", key4, true);
+    } };
+  }
+
   // src/workspace_list_selection.ts
   var owners3 = /* @__PURE__ */ new WeakMap();
   function apply_workspace_row_selection(row, selected, focused = false) {
@@ -205600,6 +205741,47 @@ https://creativecommons.org/licenses/by/4.0/
     const row_views = /* @__PURE__ */ new Map();
     let click_sequence;
     const collator = new Intl.Collator(void 0, { numeric: true, sensitivity: "base" });
+    const drag = bind_workspace_file_drag({
+      tree,
+      root_label,
+      path_api,
+      root: () => root?.path || "",
+      enabled: () => Boolean(options2.transfer && !options2.selection && visible3 && !disposed && !operation_busy && !rename_state && root && path_api.normalize(options2.context_root()) === root.path),
+      entry: (path) => nodes.get(path),
+      selection: () => [...selection_paths],
+      select: (path) => {
+        const node = nodes.get(path);
+        if (node) select(node, false, true);
+        click_sequence = void 0;
+      },
+      expand: async (path) => {
+        const node = nodes.get(path);
+        if (node?.directory && !node.expanded) {
+          node.expanded = true;
+          await load_children(node);
+          rebuild();
+        }
+      },
+      error: (error) => set_status(String(error)),
+      transfer: async (root_path, paths, target, copy) => {
+        const captured = root;
+        if (!captured || captured.path !== root_path || operation_busy || disposed || path_api.normalize(options2.context_root()) !== root_path) return;
+        operation_busy = true;
+        try {
+          const results = await options2.transfer(root_path, paths, target, copy);
+          if (!disposed && root === captured) {
+            await refresh();
+            if (results[0]) await reveal(results[0]);
+            selection_paths.clear();
+            for (const path of results) selection_paths.add(path);
+            render();
+          }
+        } finally {
+          operation_busy = false;
+          if (!disposed && root === captured) await refresh();
+        }
+      }
+    });
     function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
       if (!node || !tree.clientHeight) return;
       const index = flat_nodes.indexOf(node);
@@ -205711,7 +205893,7 @@ https://creativecommons.org/licenses/by/4.0/
         const shown = new Set(flat_nodes.slice(start, end));
         const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : void 0;
         const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
-        for (const [node, view] of row_views) if (!shown.has(node)) {
+        for (const [node, view] of row_views) if (!shown.has(node) && !drag.retains(view.row)) {
           view.row.remove();
           row_views.delete(node);
         }
@@ -205776,6 +205958,8 @@ https://creativecommons.org/licenses/by/4.0/
           }
           const { row, chevron, label, note, file_icon } = view;
           row.className = "workspace-explorer-row" + (selection_paths.has(node.path) ? " is-selected" : "") + (options2.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
+          row.draggable = Boolean(options2.transfer && !options2.selection && !node.link && !rename_state && !operation_busy);
+          row.classList.toggle("is-drop-target", tree.dataset.dropTarget === node.path);
           row.id = node.id;
           row.dataset.path = node.path;
           row.dataset.directory = String(node.directory);
@@ -206159,6 +206343,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const requested = options2.context_root();
       if (!requested || !path_api.isAbsolute(requested)) {
+        drag.reset();
         if (root) {
           generation++;
           close_branch(root, true);
@@ -206182,6 +206367,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       generation++;
+      drag.reset();
       clear_edit();
       selection_paths.clear();
       compare_path = "";
@@ -206265,6 +206451,7 @@ https://creativecommons.org/licenses/by/4.0/
     async function set_visible(value) {
       visible3 = value;
       if (!value) {
+        drag.reset();
         if (!rename_state?.busy) {
           cancel_edit();
           render();
@@ -206365,6 +206552,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (!disposed) render();
     }));
     function dispose2() {
+      drag.dispose();
       file_icon_style.remove();
       selection_model.dispose();
       if (disposed) return;
@@ -208675,6 +208863,10 @@ https://creativecommons.org/licenses/by/4.0/
       }
     };
     const create_entry = (root, parent, name, directory) => file_operation(() => create_workspace_entry({ fs: fs2, path_api }, root, parent, name, directory));
+    const transfer_entries = (root, paths, target, copy2) => file_operation(async () => {
+      if (file_key(root) !== file_key(context_root()) || workspace_context_switching()) throw new Error(workspace_text("files_received_edit_group_or_workspace_has_changed_please_drag_aga"));
+      return transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, copy2 ? void 0 : move_file);
+    });
     const file_clipboard = create_workspace_file_clipboard(create_resource_file_clipboard((name) => runtime3.reqnode(name)), {
       validate: (root, paths) => file_operation(() => validate_workspace_entries({ fs: fs2, path_api }, root, paths)),
       transfer: (root, paths, target, move, external) => file_operation(() => transfer_workspace_entries({ fs: fs2, path_api }, root, paths, target, move ? move_file : void 0, external))
@@ -208722,6 +208914,7 @@ https://creativecommons.org/licenses/by/4.0/
       copy,
       rename_file,
       move_file,
+      transfer_entries,
       create_entry,
       file_clipboard,
       trash_entries,
@@ -253933,11 +254126,30 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026100701,
+        version: "2026.10.07.1",
+        date: "2026-10-07",
+        notes: [
+          "\u8D44\u6E90\u7BA1\u7406\u5668\u652F\u6301\u62D6\u52A8\u6587\u4EF6\u548C\u6587\u4EF6\u5939\u79FB\u52A8\u4F4D\u7F6E\uFF0C\u652F\u6301\u591A\u9009\u3001\u60AC\u505C\u5C55\u5F00\u548C\u62D6\u5230\u6839\u76EE\u5F55\uFF1B\u6309 Ctrl \u62D6\u52A8\u53EF\u590D\u5236\u3002",
+          "\u79FB\u52A8\u4FDD\u7559\u5DF2\u6253\u5F00\u6587\u6863\u548C\u672A\u4FDD\u5B58\u5185\u5BB9\uFF1B\u540C\u540D\u76EE\u6807\u62D2\u7EDD\u8986\u76D6\uFF0C\u53D6\u6D88\u62D6\u52A8\u4E0D\u66F4\u6539\u6587\u4EF6\u3002"
+        ],
+        notes_en: [
+          "Move files and folders by dragging in Explorer, including multiple selections, hover expansion and drops onto the workspace root; Ctrl-drag copies.",
+          "Moves preserve open documents and unsaved edits. Name collisions are rejected without overwriting, and canceled drags leave files unchanged."
+        ]
+      },
+      {
         sequence: 2026100602,
         version: "2026.10.06.2",
         date: "2026-10-06",
-        notes: ["\u65B0\u589E Windows 11 \u7B2C\u4E00\u5C42\u201C\u7528 Typora \u6253\u5F00\u201D\u5019\u9009\uFF0C\u652F\u6301\u5355\u4E2A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u53CA\u76EE\u5F55\u7A7A\u767D\u5904\u3002", "\u5F53\u524D\u4EC5\u652F\u6301\u5DF2\u5F00\u542F\u5F00\u53D1\u8005\u6A21\u5F0F\u7684 Windows x64 \u672C\u673A\u6CE8\u518C\uFF1B\u5B89\u88C5\u4E0D\u66F4\u6539\u5F00\u53D1\u8005\u6A21\u5F0F\u6216\u8BC1\u4E66\u4FE1\u4EFB\u3002\u666E\u901A\u5B89\u88C5\u7EE7\u7EED\u63D0\u4F9B\u4F20\u7EDF\u53F3\u952E\u83DC\u5355\u3002"],
-        notes_en: ["Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.", "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."]
+        notes: [
+          "\u65B0\u589E Windows 11 \u7B2C\u4E00\u5C42\u201C\u7528 Typora \u6253\u5F00\u201D\u5019\u9009\uFF0C\u652F\u6301\u5355\u4E2A\u6587\u4EF6\u3001\u6587\u4EF6\u5939\u53CA\u76EE\u5F55\u7A7A\u767D\u5904\u3002",
+          "\u5F53\u524D\u4EC5\u652F\u6301\u5DF2\u5F00\u542F\u5F00\u53D1\u8005\u6A21\u5F0F\u7684 Windows x64 \u672C\u673A\u6CE8\u518C\uFF1B\u5B89\u88C5\u4E0D\u66F4\u6539\u5F00\u53D1\u8005\u6A21\u5F0F\u6216\u8BC1\u4E66\u4FE1\u4EFB\u3002\u666E\u901A\u5B89\u88C5\u7EE7\u7EED\u63D0\u4F9B\u4F20\u7EDF\u53F3\u952E\u83DC\u5355\u3002"
+        ],
+        notes_en: [
+          "Add a Windows 11 modern Open with Typora candidate for a single file, folder or folder background.",
+          "Local registration currently requires Windows x64 with Developer Mode already enabled; installation does not change security settings or certificate trust. Traditional context menus remain available."
+        ]
       },
       {
         sequence: 2026100601,
@@ -267670,6 +267882,7 @@ https://creativecommons.org/licenses/by/4.0/
         open_folder,
         copy: files2.copy,
         rename: files2.rename_file,
+        transfer: files2.transfer_entries,
         create: files2.create_entry,
         file_clipboard: files2.file_clipboard,
         trash: files2.trash_entries,

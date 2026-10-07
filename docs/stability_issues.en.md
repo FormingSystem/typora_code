@@ -614,3 +614,5 @@ Categories: preview/layout, preview/input and test/coordinates. The old overlay 
 ## R037.1 Preview dismissal loses sidebar clicks (2026-10-06)
 
 Categories: preview/input and explorer/state. Capturing pointerdown dismissed the preview synchronously, moving the Timeline header before mouseup and losing its collapse click. Retain the real-input baseline failure. The selection controller now defers dismissal until gesture completion and cancels stale exits. Timeline retains its existing state owner; no forced expansion or collapse. Delivery evidence is recorded separately.
+
+2026-10-07 R002.1: BUG-explorer-drag-001 — Existing file move transactions had no Explorer drag wiring. Add an in-tree session, target feedback, 500ms expansion and the shared batch transaction. Retain the dragged row during virtualization so recycling cannot terminate the gesture. Current validation and delivery are recorded in the Explorer drag evidence.

@@ -2003,6 +2003,7 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-explorer-root-name{overflow:hidden;text-overflow:ellipsis;min-width:0}
 .workspace-explorer-root .workspace-explorer-actions{flex:none}
 .workspace-explorer-row.is-cut{opacity:.5}
+.workspace-explorer-row.is-drop-target,.workspace-explorer-root.is-drop-target{background:var(--vscode-list-dropBackground)!important}
 .workspace-explorer-rename{height:22px}
 
 .workspace-explorer-status[hidden]{display:none}

@@ -682,3 +682,6 @@ Limits: static candidates do not execute CMake or model its full scopes. Built-i
 ## 2026-10-06 R037.1 handoff
 
 Preview dismissal waits for outside activation, preventing sidebar relayout from swallowing a Timeline toggle. Source, build, targeted validation and local 2026.10.06.1 installation are complete; user windows require a normal restart. See the [delivery record](feedback_review.en.md#2026-10-06-independent-link-preview-and-timeline-interaction-r0371) for baseline failure, evidence and retained historical limits.
+
+
+2026-10-07 R002.1: Explorer drag sessions call the shared file transaction. Virtual scrolling retains the source row; hover and scroll tasks end with the gesture. Version 2026.10.07.1 is locally installed and hash-checked; existing windows need a manual restart after saving. Core checks, four relevant UI suites, 13 original-host assertions and paired installation/uninstallation passed. Physical OS dragging and other native platforms/SSH remain untested; earlier issues stay open. See [evidence](../enhancements/tests/evidence/explorer_drag_20261007.json).

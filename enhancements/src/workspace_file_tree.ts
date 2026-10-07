@@ -1,5 +1,6 @@
 import {register_workspace_dismissal,type workspace_dismiss_layer} from './workspace_focus';
 import {workspace_text} from "./workspace_i18n";
+import {bind_workspace_file_drag} from './workspace_file_drag';
 import {acquire_workspace_directories} from './workspace_directory_service';
 import {workspace_list_selection} from "./workspace_list_selection";
 import {register_workspace_context_guard} from "./workspace_context";
@@ -28,6 +29,7 @@ export type workspace_file_tree_options = {
   terminal?(path:string):unknown;
   compare?(left:string,right:string):Promise<void>;
   rename?(root: string, old_path: string, name: string): Promise<string>;
+  transfer?(root: string, paths: string[], target: string, copy: boolean): Promise<string[]>;
   create?(root: string, parent: string, name: string, directory: boolean): Promise<string>;
   file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
@@ -74,6 +76,24 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const row_views = new Map<explorer_node, {row: HTMLDivElement; chevron: HTMLSpanElement; label: HTMLSpanElement; note: HTMLSpanElement; file_icon: HTMLElement}>();
   let click_sequence: {node: explorer_node; selected: boolean} | undefined;
   const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
+  const drag = bind_workspace_file_drag({tree, root_label, path_api,
+    root: () => root?.path || '', enabled: () => Boolean(options.transfer && !options.selection && visible && !disposed && !operation_busy && !rename_state && root && path_api.normalize(options.context_root()) === root.path),
+    entry: path => nodes.get(path), selection: () => [...selection_paths], select: path => { const node = nodes.get(path); if (node) select(node, false, true); click_sequence = undefined; },
+    expand: async path => { const node = nodes.get(path); if (node?.directory && !node.expanded) { node.expanded = true; await load_children(node); rebuild(); } },
+    error: error => set_status(String(error)),
+    transfer: async (root_path, paths, target, copy) => {
+      const captured = root;
+      if (!captured || captured.path !== root_path || operation_busy || disposed || path_api.normalize(options.context_root()) !== root_path) return;
+      operation_busy = true;
+      try {
+        const results = await options.transfer!(root_path, paths, target, copy);
+        if (!disposed && root === captured) {
+          await refresh(); if (results[0]) await reveal(results[0]);
+          selection_paths.clear(); for (const path of results) selection_paths.add(path); render();
+        }
+      } finally { operation_busy = false; if (!disposed && root === captured) await refresh(); }
+    }
+  });
 
   function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
     if (!node || !tree.clientHeight) return;
@@ -148,7 +168,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : undefined;
       const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : undefined;
       // Keep the line and name node under the mouse; only recycle lines that are off-screen, avoiding refresh cutting off browser double-click sequences.
-      for (const [node, view] of row_views) if (!shown.has(node)) { view.row.remove(); row_views.delete(node); }
+      for (const [node, view] of row_views) if (!shown.has(node) && !drag.retains(view.row)) { view.row.remove(); row_views.delete(node); }
       for (let index = start; index < end; index++) {
         const node = flat_nodes[index];
         let view = row_views.get(node);
@@ -185,6 +205,8 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         }
         const {row, chevron, label, note, file_icon} = view;
         row.className = "workspace-explorer-row" + (selection_paths.has(node.path) ? " is-selected" : "") + (options.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
+        row.draggable = Boolean(options.transfer && !options.selection && !node.link && !rename_state && !operation_busy);
+        row.classList.toggle('is-drop-target', tree.dataset.dropTarget === node.path);
         row.id = node.id; row.dataset.path = node.path; row.dataset.directory = String(node.directory); row.setAttribute("role", "treeitem");
         row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); selection_model.focused_key=selected_path;selection_model.bind(row,node.path);
         if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
@@ -409,12 +431,14 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if(search_projection){search_projection=false;generation++;if(root)close_branch(root,true);root=undefined;}
     const requested = options.context_root();
     if (!requested || !path_api.isAbsolute(requested)) {
+      drag.reset();
       if (root) { generation++; close_branch(root, true); root = undefined; clear_edit();selection_paths.clear();compare_path="";root_name.textContent = workspace_text("file_tree_folder_not_opened"); selected_path = ""; rebuild(); }
       set_status(workspace_text("file_tree_open_a_folder_to_browse_all_files")); return;
     }
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) {set_status("");await load_children(root, true);} return; }
     generation++;
+    drag.reset();
     clear_edit(); selection_paths.clear();compare_path="";
     if (root) close_branch(root, true);
     root = create_node(file_path, path_api.basename(file_path) || file_path, true, false); root.expanded = true;
@@ -465,7 +489,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   }
   async function set_visible(value:boolean) {
     visible=value;
-    if(!value){if(!rename_state?.busy){cancel_edit();render();}if(root)close_branch(root);return;}
+    if(!value){drag.reset();if(!rename_state?.busy){cancel_edit();render();}if(root)close_branch(root);return;}
     await sync_root();if(root)watch_visible(root);
   }
   tree.addEventListener("scroll", render, {passive: true});
@@ -509,6 +533,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);
   if(options.file_clipboard)detachers.push(options.file_clipboard.subscribe(()=>{if(!disposed)render();}));
   function dispose() {
+    drag.dispose();
     file_icon_style.remove();selection_model.dispose();
     if (disposed) return; disposed = true;directories.dispose();interaction.remove(); generation++; visible = false;
     resize_observer.disconnect();

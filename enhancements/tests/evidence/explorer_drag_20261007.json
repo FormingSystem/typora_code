@@ -1,0 +1,115 @@
+{
+  "schema": 1,
+  "date": "2026-10-07",
+  "release": "2026.10.07.1",
+  "requirements": [
+    "R002.1"
+  ],
+  "design": [
+    "docs/file_operations.md#explorer-drag-drop"
+  ],
+  "environment": {
+    "os": "Windows 11 x64",
+    "typora": "1.14.10",
+    "electron": "43.2.0",
+    "powershell": "5.1"
+  },
+  "source_reference": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/contrib/files/browser/views/explorerViewer.ts",
+      "src/vs/base/browser/ui/tree/abstractTree.ts",
+      "src/vs/base/browser/ui/list/listView.ts",
+      "src/vs/workbench/contrib/files/browser/files.contribution.ts"
+    ],
+    "adopted": [
+      "in-tree target resolution and parent deduplication",
+      "500ms hover expansion",
+      "35px edge and maximum 14px per frame",
+      "existing list.dropBackground token"
+    ],
+    "differences": [
+      "direct move without a new confirmation",
+      "reject collisions; no overwrite or auto-copy rename",
+      "same window/workspace only; no external or multi-root support"
+    ]
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case_id": "d4f3d2a37eed49d18ef310d988842dfb"
+  },
+  "explorer": {
+    "status": "PASS",
+    "case_id": "e08a076709304004a295f2689567198e",
+    "move_round_trips": 20,
+    "coverage": [
+      "move and Ctrl copy with real temporary files",
+      "root and file-parent destinations",
+      "parent-child multiselection deduplication",
+      "self/descendant/same-parent rejection and name collisions",
+      "Escape/hide/root change cancellation",
+      "500ms expansion and clipboard preservation",
+      "edge scrolling, drag source retention and bounded virtual rows",
+      "existing 2000-row tree, day/night geometry and click regressions"
+    ]
+  },
+  "related_ui": {
+    "status": "PASS",
+    "suites": [
+      "test_workspace_file_editing.cjs",
+      "test_workspace_startup.cjs",
+      "test_remote_workspace_picker.cjs"
+    ],
+    "log": "explorer_drag_ui.log"
+  },
+  "native": {
+    "status": "PASS",
+    "case_id": "e75c5db7d29f45c58a251f1d92086419",
+    "checks": 13,
+    "fixture": "enhancements/fixtures/explorer_drag_native.js",
+    "coverage": [
+      "source model/undo identity and dirty draft preserved",
+      "native Markdown draft and path preserved",
+      "no implicit save during move",
+      "both kinds subsequently save only to new paths",
+      "hover expansion in original host"
+    ],
+    "input": "production DOM DragEvents; physical OS dragging not exercised",
+    "screenshot_reviewed": true
+  },
+  "installation": {
+    "status": "PASS",
+    "paired_case_id": "419e917c916145d7814a3095b9828a5d",
+    "uninstall_failure_case_id": "08503ee507be4bca9edc3f76e632f0e1",
+    "uninstall_assertions": 65,
+    "scope": "public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; actual user environment check_only then standard install",
+    "local": {
+      "status": "PASS",
+      "release": "2026.10.07.1",
+      "assets": {
+        "workspace": 72,
+        "terminal": 24
+      },
+      "theme_files": 5,
+      "protected_unchanged": 4,
+      "manifest": "db42ea2f7c30536951115c99e41924a1f7ddfc52ea2250cda2fc38c3244e35d8",
+      "runtime_loaded": "user windows not restarted",
+      "uninstall": "check_only; actual user environment not uninstalled"
+    }
+  },
+  "resolved_test_failures": [
+    "New hover test originally assumed a target remained visible after the 2000-row case; collapse old branches before drag cases.",
+    "Showing the sidebar follows the active file and can reopen a large branch; use a fresh nearby source for stale-root validation."
+  ],
+  "limits": [
+    "Physical Windows OLE mouse drag not tested; native coverage uses real document owners with DOM DragEvents.",
+    "No Linux/ARM64/SSH native acceptance or full UI suite.",
+    "External and cross-window drag intentionally outside this change.",
+    "Earlier R071.7/R068.11/R005.4 and language fence return issue remain open."
+  ],
+  "cleanup": "Final core/UI/native/install/uninstall owned payloads reclaimed; evidence and earlier failed fixture logs retained.",
+  "git": {
+    "pushed": false
+  }
+}
