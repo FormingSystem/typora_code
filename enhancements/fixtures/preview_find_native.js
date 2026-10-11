@@ -18,9 +18,12 @@
   const pick=index=>{const link=document.querySelectorAll('#write a[href]')[index];link.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));const range=document.createRange();range.selectNodeContents(link);getSelection().removeAllRanges();getSelection().addRange(range);document.dispatchEvent(new Event('selectionchange'));};
   const dock=()=>document.querySelector('.workspace-link-dock'),panel=()=>dock()?.querySelector('.workspace-link-preview'),guest=()=>panel()?.querySelector('webview');
   const bar=()=>panel()?.querySelector('.workspace-preview-find'),status=()=>panel()?.querySelector('.workspace-preview-find-status').textContent;
+  const icon_geometry=()=>{const button=panel().querySelector('[data-preview-find-open]'),svg=button.querySelector('svg'),b=button.getBoundingClientRect(),s=svg.getBoundingClientRect();return{expanded:button.getAttribute('aria-expanded'),transform:getComputedStyle(svg).transform,dx:s.left+s.width/2-b.left-b.width/2,dy:s.top+s.height/2-b.top-b.height/2};};
+  const check_icon=label=>{const geometry=icon_geometry();(live.icon_geometry??=[]).push({label,...geometry});assert(geometry.transform==='none'&&Math.abs(geometry.dx)<1&&Math.abs(geometry.dy)<1,label);};
   const query=async value=>{const input=bar().querySelector('input');input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));await pause(150);};
   const capture=async stage=>{fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'' )).stage===stage;}catch{return false;}},'capture '+stage);};
   pick(0);await wait(()=>guest()?.dataset.loadState==='loaded','guest loaded');let view=guest();
+  check_icon('initial web search icon is upright and centered');
   live.preload=view.getAttribute('preload');live.events=[];view.addEventListener('ipc-message',event=>live.events.push({channel:event.channel,args:event.args}));view.addEventListener('found-in-page',event=>live.events.push(event.result));
   const native_find=view.findInPage.bind(view),native_stop=view.stopFindInPage.bind(view);view.findInPage=(query,options)=>{const id=native_find(query,options);live.events.push({call:'find',query,options,id});return id;};view.stopFindInPage=action=>{live.events.push({call:'stop',action});return native_stop(action);};
   live.safety=await view.executeJavaScript('({node:typeof require,process:typeof process,bridge:typeof JSBridge,ipc:typeof ipcRenderer})');
@@ -31,6 +34,7 @@
   assert(document.activeElement===bar().querySelector('input'),'trusted guest Ctrl F focuses preview input');
   await query('needle');await wait(()=>status()==='1/2','native needle matches: '+status());assert(true,'native case insensitive find count');
   await capture('web_find');
+  check_icon('open web search icon is upright and centered');
   bar().querySelector('[aria-label="下一个匹配（Enter）"]').click();await wait(()=>status()==='2/2','next native match');assert(await view.executeJavaScript('scrollY>1000'),'native next match scrolls guest content');
   bar().querySelector('[aria-label="下一个匹配（Enter）"]').click();trace('button wrap');await wait(()=>status()==='1/2','button wrap');assert(true,'button wraps search');
   trace('before F3');await guest_key('F3');live.f3={status:status(),active:document.activeElement.tagName};trace('after F3');await wait(()=>status()==='2/2','guest F3 next');assert(true,'trusted guest F3 advances search');
@@ -43,11 +47,15 @@
   await view.executeJavaScript('document.querySelector("a").click()');await wait(()=>view.getURL().endsWith('/next')&&status()==='1/3','query retained on navigation');assert(bar().querySelector('input').value==='needle','navigation reuses query and recomputes matches');
   panel().querySelector('[aria-label="重新加载"]').click();await pause(200);await wait(()=>view.dataset.loadState==='loaded'&&status()==='1/3','reload query');assert(true,'reload recomputes retained query');
   await guest_key('Escape');assert(bar().hidden&&!dock().hidden,'guest Escape closes find without closing preview');
+  await capture('web_find_closed');live.closed_find_transform=getComputedStyle(panel().querySelector('[data-preview-find-open] svg')).transform;assert(live.closed_find_transform==='none','closed search icon keeps official orientation');
   await view.executeJavaScript('document.dispatchEvent(new KeyboardEvent("keydown",{key:"f",ctrlKey:true,bubbles:true}))');await pause(100);assert(bar().hidden,'web content cannot synthesize privileged find shortcut');
-  for(let i=0;i<20;i++){panel().querySelector('[data-preview-find-open]').click();await query('needle');await wait(()=>status()==='1/3','cycle '+i);bar().querySelector('[aria-label="关闭查找（Esc）"]').click();assert(bar().hidden,'find close cycle '+i);}
+  for(let i=0;i<20;i++){panel().querySelector('[data-preview-find-open]').click();await query('needle');await wait(()=>status()==='1/3','cycle '+i);bar().querySelector('[aria-label="关闭查找（Esc）"]').click();assert(bar().hidden,'find close cycle '+i);check_icon('button-closed web icon '+i);}
   pick(1);await wait(()=>!!panel()?.querySelector('.workspace-lookup-markdown'),'local load');panel().querySelector('[data-preview-find-open]').click();await query('needle');await wait(()=>status()==='1/2','cross inline reader matches');
   assert([...CSS.highlights.keys()].some(name=>name.startsWith('preview-find-')),'local reader paints native highlight ranges');
   await capture('document_find');
+  check_icon('open document search icon is upright and centered');
+  bar().querySelector('[aria-label="关闭查找（Esc）"]').click();check_icon('closed document search icon is upright and centered');
+  await capture('document_find_closed');panel().querySelector('[data-preview-find-open]').click();
   await query('中文');await wait(()=>status()==='1/2','local Chinese');assert(true,'local Chinese matching');
   panel().querySelector('[aria-label="关闭链接预览"]').click();await wait(()=>dock().hidden,'preview close');assert(![...CSS.highlights.keys()].some(name=>name.startsWith('preview-find-')),'closing preview clears all owned highlights');
   assert(fs.readFileSync(source,'utf8')===original&&!File.changeCounter.isDocumentEdited(),'preview search preserves main document');

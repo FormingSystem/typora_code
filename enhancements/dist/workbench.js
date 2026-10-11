@@ -254403,6 +254403,13 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026101103,
+        version: "2026.10.11.3",
+        date: "2026-10-11",
+        notes: ["\u4FEE\u590D\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\u5173\u95ED\u67E5\u627E\u680F\u540E\uFF0C\u641C\u7D22\u56FE\u6807\u88AB\u8BEF\u65CB\u8F6C\u7684\u95EE\u9898\uFF1B\u4FDD\u7559\u539F\u6709\u6309\u94AE\u4F4D\u7F6E\u548C\u641C\u7D22\u9762\u677F\u6298\u53E0\u884C\u4E3A\u3002"],
+        notes_en: ["Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."]
+      },
+      {
         sequence: 2026101102,
         version: "2026.10.11.2",
         date: "2026-10-11",
@@ -260842,7 +260849,7 @@ https://creativecommons.org/licenses/by/4.0/
         split = workspace_element("div", "workspace-search-split");
         preview = lifetime.own(create_lookup_preview(files2, void 0, { visible_match: (file, match2) => this.follow_preview(file, match2) }));
         preview_section = workspace_element("section", "workspace-search-preview-section");
-        preview_toggle = git_icon_button("chevron-down", workspace_text("search_collapse_preview"), () => this.set_preview_open(!this.preview_open));
+        preview_toggle = git_icon_button("chevron-down", workspace_text("search_collapse_preview"), () => this.set_preview_open(!this.preview_open), "workspace-search-preview-toggle");
         preview_open = true;
         preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
         reading_match_id = "";

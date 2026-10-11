@@ -2,6 +2,13 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026101103,
+      "version": "2026.10.11.3",
+      "date": "2026-10-11",
+      "notes": ["修复浮动及分屏预览关闭查找栏后，搜索图标被误旋转的问题；保留原有按钮位置和搜索面板折叠行为。"],
+      "notes_en": ["Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."]
+    },
+    {
       "sequence": 2026101102,
       "version": "2026.10.11.2",
       "date": "2026-10-11",

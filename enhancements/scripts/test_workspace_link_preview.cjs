@@ -26,6 +26,8 @@ app.whenReady().then(async()=>{
   check('1000轮解析与协议边界',await evaluate(`(()=>{const p=require('path').win32;for(let i=0;i<1000;i++){if(qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','sub/a%20b.md#标题').path!=='C:\\\\docs\\\\sub\\\\a b.md')return false;}return qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','#标题').hash==='#标题';})()`));
   await evaluate('link("target.md#target-heading")');
   check('preview find entry is available',await evaluate(`!!view.container.querySelector('[data-preview-find-open]')`));
+  await evaluate(`(()=>{const style=document.createElement('style');style.textContent=${JSON.stringify(fs.readFileSync(path.join(__dirname,'../src/workspace_search.css'),'utf8'))};document.head.append(style)})()`);
+  check('closed preview search icon keeps official orientation with search panel CSS',await evaluate(`getComputedStyle(view.container.querySelector('[data-preview-find-open] svg')).transform==='none'`));
   const key=async(code,modifiers=[])=>{win.webContents.sendInputEvent({type:'keyDown',keyCode:code,modifiers});win.webContents.sendInputEvent({type:'keyUp',keyCode:code,modifiers});await new Promise(r=>setTimeout(r,70));};
   const find_latencies=[];
   const find_query=async value=>{const ms=await evaluate(`new Promise((resolve,reject)=>{const input=view.container.querySelector('.workspace-preview-find input'),status=view.container.querySelector('.workspace-preview-find-status'),start=performance.now();let done=false;const observer=new MutationObserver(()=>{if(done||!status.textContent)return;done=true;observer.disconnect();clearTimeout(timer);requestAnimationFrame(()=>resolve(performance.now()-start));});const timer=setTimeout(()=>{observer.disconnect();reject(Error('find response timeout'));},3000);observer.observe(status,{childList:true,subtree:true});input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}));})`);find_latencies.push({query:value,ms});};
@@ -72,9 +74,16 @@ app.whenReady().then(async()=>{
     check('late query cancellation at scale '+count,await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='无结果'`));
   }
   await find_query('中文');
+  for(let cycle=0;cycle<20;cycle++){
+    await key('Escape');
+    check('closed search icon stays upright '+cycle,await evaluate(`getComputedStyle(view.container.querySelector('[data-preview-find-open] svg')).transform==='none'`));
+    await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);
+    check('open search icon stays upright '+cycle,await evaluate(`getComputedStyle(view.container.querySelector('[data-preview-find-open] svg')).transform==='none'`));
+  }
   for(const width of [170,240,320])for(const dark of [false,true]){
     await evaluate(`document.querySelector('#mount').style.width='${width}px';view.container.style.setProperty('--side-bar-bg-color','${dark?'#181818':'#f8f8f8'}');view.container.style.color='${dark?'#cccccc':'#333333'}'`);await new Promise(r=>setTimeout(r,30));
     check('find controls fit '+width+' '+dark,await evaluate(`(()=>{const bar=view.container.querySelector('.workspace-preview-find'),r=bar.getBoundingClientRect();return [...bar.children].every(n=>{const b=n.getBoundingClientRect();return b.width>0&&b.height>=15&&b.left>=r.left&&b.right<=r.right+1&&b.bottom<=r.bottom+1})})()`));
+    check('search glyph is centered and upright '+width+' '+dark,await evaluate(`(()=>{const button=view.container.querySelector('[data-preview-find-open]'),svg=button.querySelector('svg'),b=button.getBoundingClientRect(),s=svg.getBoundingClientRect();return getComputedStyle(svg).transform==='none'&&s.width===16&&s.height===16&&Math.abs(s.left+s.width/2-b.left-b.width/2)<1&&Math.abs(s.top+s.height/2-b.top-b.height/2)<1})()`));
     if(width===320||width===170)fs.writeFileSync(path.join(evidence,'find_'+width+'_'+(dark?'dark':'light')+'.png'),(await win.webContents.capturePage()).toPNG());
   }
   fs.writeFileSync(path.join(evidence,'find_source.py'),'needle = "中文"\nprint(needle)\n');await evaluate(`document.querySelector('#mount').style.width='320px';link('find_source.py')`);await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('needle');
@@ -202,7 +211,7 @@ app.whenReady().then(async()=>{
     check('分屏命令 '+direction,await evaluate(`commands.at(-1).id==='core.workspace:split-${direction}'`));
   }
   await evaluate('is_visible=false;binding.reset();select_link()');await new Promise(r=>setTimeout(r,160));check('关闭自动预览不加载',await evaluate('previews.length===1'));
-  for(let i=0;i<20;i++)await evaluate(`(()=>{const uri=commands.at(-1).args[0],leaf={state:{path:uri},parent:{removeTab(){}}};const v=callbacks.get('linux_note.link_preview')(leaf);leaf.view=v;leaves.push(leaf);document.body.append(v.containerEl);v.onOpen();leaves.pop();v.onClose();v.containerEl.remove();})()`);
+  for(let i=0;i<20;i++)check('split preview search icon stays upright '+i,await evaluate(`(()=>{document.querySelector('#write a').dispatchEvent(new MouseEvent('contextmenu',{bubbles:true,clientX:400,clientY:60}));[...document.querySelectorAll('[role=menuitem]')].find(n=>n.textContent.includes('上下')).click();const uri=commands.at(-1).args[0],leaf={state:{path:uri},parent:{removeTab(){}}};const v=callbacks.get('linux_note.link_preview')(leaf);leaf.view=v;leaves.push(leaf);document.body.append(v.containerEl);v.onOpen();const svg=v.containerEl.querySelector('[data-preview-find-open] svg'),upright=getComputedStyle(svg).transform==='none';leaves.pop();v.onClose();v.containerEl.remove();return upright;})()`));
   await evaluate('binding.dispose();view.dispose();zoom_binding.dispose()');check('销毁释放视图注册和Monaco',await evaluate(`callbacks.size===0&&qa.monaco.editor.getEditors().length===0`));
   await evaluate(`window.dock_binding=qa.bind_workspace_link_dock(core,files);window.dock=document.querySelector('.workspace-link-dock');window.pointer=node=>{node.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));node.dispatchEvent(new PointerEvent('pointerup',{bubbles:true,composed:true,button:0}));};window.pick=()=>{pointer(document.querySelector('#write a'));select_link();document.dispatchEvent(new Event('selectionchange'));};pick();`);
   const settle=()=>new Promise(r=>setTimeout(r,180));await settle();

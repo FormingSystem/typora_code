@@ -1,0 +1,251 @@
+{
+  "date": "2026-10-11",
+  "requirements": [
+    "R069.15"
+  ],
+  "release": "2026.10.11.3",
+  "finding": "Shared preview heading CSS rotated every aria-expanded=false button SVG. Restrict rotation to the search-results preview disclosure; keep the official search path, accessible state and toolbar geometry.",
+  "upstream": {
+    "codicons_commit": "1c47ab36a4bb845c437866405c2fa67b8ca0fe36",
+    "icon": "enhancements/vendor/codicons/icons/search.svg",
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "file": "src/vs/base/browser/ui/splitview/paneview.css",
+    "adopted": "Original 16x16 search glyph; scope disclosure styles by role. No position, size or padding changes."
+  },
+  "baseline": {
+    "status": "REPRODUCED",
+    "ui_case": "2b305c7b10fe419c8bb87fd6564d37d5",
+    "native_case": "9fb704981dad44fa91d45f425e6da25c",
+    "transform": "matrix(0, -1, 1, 0, 0, 0)"
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case": "b7f5041d5ceb4173ae16d6fb35b2dfee",
+    "scope": "Complete npm run check"
+  },
+  "ui": {
+    "status": "PASS",
+    "link_case": "f157d5d5d0814332bf987afa94584dfa",
+    "link_checks": 239,
+    "files_search_case": "0dc8df0cc16a40e19f5ede5dd51f209e",
+    "dock_case": "6df340d1fd224147af62d1ecd36d6ce0",
+    "dock_checks": 141,
+    "scope": "Production search CSS combined with link previews; 20 open/Escape cycles and 20 fresh split lifecycles; centered 16px glyph at 170/240/320 widths with light/dark variables; actual search-panel disclosure collapse/reopen; existing find, navigation and dock regressions.",
+    "fixture_correction": {
+      "case": "756a364f407b48838d3cb2a586114508",
+      "reason": "Old split loop reused a disposed payload. New regression creates a fresh split through the menu each cycle; no product change."
+    }
+  },
+  "native": {
+    "status": "PASS",
+    "case": "50ea566ea75d4ebab5c61d5aea263a72",
+    "checks": 64,
+    "host": "Typora 1.14.10 / Electron 42.2.0",
+    "scope": "Initial/open/Escape/button-closed web and document search glyph; 20 web find cycles; trusted Chromium guest shortcuts and native matching.",
+    "geometry": [
+      {
+        "label": "initial web search icon is upright and centered",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "open web search icon is upright and centered",
+        "expanded": "true",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 0",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 1",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 2",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 3",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 4",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 5",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 6",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 7",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 8",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 9",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 10",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 11",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 12",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 13",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 14",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 15",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 16",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 17",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 18",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "button-closed web icon 19",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "open document search icon is upright and centered",
+        "expanded": "true",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      },
+      {
+        "label": "closed document search icon is upright and centered",
+        "expanded": "false",
+        "transform": "none",
+        "dx": -9.5367431640625e-07,
+        "dy": -9.5367431640625e-07
+      }
+    ],
+    "screenshots_reviewed": [
+      "stage_web_find_closed_3544020.png",
+      "stage_document_find_closed_3544020.png"
+    ],
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case": "fd5386f156854247abfca75c55c4f03b",
+    "exceptions_case": "53a4a1aea50943f89819e7d9e9ecb0d8",
+    "exception_assertions": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; startup modes 0/1/2/3; failure/cancel/rollback",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "theme_files": 5,
+    "protected_unchanged": 4,
+    "native_startup_unchanged": true,
+    "native_mode": "2",
+    "manifest": "061eb129c3f31486ea836f4150edf7cb510f0646931aaf8b8b93e74a4aa4215b",
+    "release": "2026.10.11.3",
+    "runtime_loaded": "User windows not restarted",
+    "uninstall": "Read-only preflight only in user environment"
+  },
+  "limits": [
+    "User windows not restarted; old loaded assets remain until normal restart.",
+    "No physical OS keyboard automation, full UI suite, four native themes, new window-zoom matrix or other-platform validation.",
+    "Existing navigation field sequence, rendering, fence-return, PPT preview and signed shell menu issues remain open."
+  ],
+  "git": "Commit recorded in local ledger; no new push authorization."
+}

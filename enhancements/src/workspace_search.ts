@@ -55,7 +55,7 @@ export function bind_workspace_search(core: graph_core, files: workspace_file_ho
     replace_row = el("div", "workspace-search-input-row workspace-search-replace"); details = el("div", "workspace-search-details");
     body = el("div", "workspace-search-body"); split = el("div", "workspace-search-split");
     preview = lifetime.own(create_lookup_preview(files,undefined,{visible_match:(file,match)=>this.follow_preview(file,match)})); preview_section = el("section", "workspace-search-preview-section");
-    preview_toggle = git_icon_button("chevron-down", workspace_text("search_collapse_preview"), () => this.set_preview_open(!this.preview_open)); preview_open = true;
+    preview_toggle = git_icon_button("chevron-down", workspace_text("search_collapse_preview"), () => this.set_preview_open(!this.preview_open), "workspace-search-preview-toggle"); preview_open = true;
     preview_scale = lifetime.own(create_preview_scale_controls(this.preview));
     reading_match_id = "";
     selected?: {file:workspace_search_file;match:workspace_search_match}; remembered = new Map<string,string>(); open_generation = 0;

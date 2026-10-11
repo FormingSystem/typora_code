@@ -232,6 +232,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R069.12 | Floating preview is higher than terminal | [Layer design](link_preview.en.md#section_385dd282945d) | Overlapping hit, fixed and exit, light and dark, and zoom |
 | R069.13 | Floating preview resize isolation and response | [Design](link_preview.en.md#r06913-floating-preview-geometry-isolation-and-drag-response-2026-10-05) | Local geometry, gesture cleanup and trusted input latency |
 | R069.14 | Find within local and web previews | [Design](link_preview.en.md#r06914-find-within-preview-2026-10-11) | Per-preview query, focus ownership, native guest find and cleanup |
+| R069.15 | Preview search icon orientation | [Style ownership](link_preview.en.md#r06915-search-icon-orientation-and-disclosure-ownership-2026-10-11) | Disclosure-only rotation and Find state regression with shared panel styles |
 | R069.11 | Web preview browser hosting and network connection | [Web browser](link_preview.en.md#section_7afc6fb72553) | Isolate guest, site embedded restrictions, web history, errors, and lifecycle |
 | R070.5 | SSH multiple connections and account management | [Design](remote_ssh.en.md#section_98ca1651d9a5) | Identity per window, connection directory, and shared terminal authentication |
 | R070.6 | SSH system credentials and view vault password | [Design](remote_ssh.en.md#section_ba7bc22d9b74) | Auto-login and plain text view are independent, reset only clears the view domain |
