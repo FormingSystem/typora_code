@@ -45,6 +45,8 @@ for(const name of ['typora_shell.dll','typora_shell_host.exe']){
 fs.copyFileSync('native/windows_x64/build.json','dist/assets/shell_windows_x64/build.json');
 fs.writeFileSync('dist/assets/shell_windows_x64/appx_manifest.xml',fs.readFileSync('../scripts/native/appx_manifest.xml','utf8').replace(/\r\n/gu,'\n'));
 const update_root="dist/assets/update";
+fs.mkdirSync('dist/assets/preview',{recursive:true});
+fs.writeFileSync('dist/assets/preview/workspace_preview_preload.cjs',fs.readFileSync('src/workspace_preview_preload.cjs','utf8').replace(/\r\n?/gu,'\n'));
 fs.mkdirSync(update_root,{recursive:true});
 const {release_info}=await import("../src/workspace_update_service.cjs");
 const release_source=fs.readFileSync("release.json","utf8").replace(/\r\n?/gu,"\n");

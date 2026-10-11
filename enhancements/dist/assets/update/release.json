@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026101102,
+      "version": "2026.10.11.2",
+      "date": "2026-10-11",
+      "notes": [
+        "浮动及分屏链接预览新增搜索图标，点击预览后 Ctrl+F 查找当前文档或网页内容。",
+        "支持命中高亮、计数和前后定位；切回编辑器恢复原快捷键，关闭预览清理查找状态，保留用户设置。"
+      ],
+      "notes_en": [
+        "Floating and split link previews now provide a search icon and Ctrl+F for their document or web content.",
+        "Find highlights and counts matches with previous/next navigation. Editor focus restores its shortcuts; closing a preview clears its search state and preserves user settings."
+      ]
+    },
+    {
       "sequence": 2026101101,
       "version": "2026.10.11.1",
       "date": "2026-10-11",

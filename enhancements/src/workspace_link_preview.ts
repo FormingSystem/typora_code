@@ -1,6 +1,7 @@
 import {read_search_preview_context,observe_search_preview_context} from "./workspace_search_preview_context";
 import {workspace_text} from "./workspace_i18n";
 import {create_preview_web} from './workspace_preview_web';
+import {create_preview_find} from './workspace_preview_find';
 import type {workspace_file_host} from "./workspace_files";
 import {create_lookup_preview} from "./workspace_lookup_preview";
 import {resolve_preview_link,type workspace_link_target} from "./workspace_link_target";
@@ -32,6 +33,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const return_directory=workspace_button('',()=>{const last=directories.at(-1);if(last)void navigate(path_request(last.path));},'workspace-preview-directory-return');return_directory.hidden=true;
   container.tabIndex=-1;
   const focus=()=>{if(directory)directory.focus();else if(reader)reader.focus();else container.focus({preventScroll:true});};
+  const find=create_preview_find(container,()=>container.dataset.state==='loading'||directory?undefined:web?.find_target||reader?.find_target);
   const scale=create_preview_scale_controls({container,get_scale:()=>reader?.get_scale()||80,set_scale:value=>reader?.set_scale(value)});
   scale.container.hidden=true;
   const sync_scale=()=>{const value=String(reader?.get_scale()||80);if(container.dataset.previewScale!==value)container.dataset.previewScale=value;};
@@ -49,16 +51,16 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const retry=git_icon_button("refresh",workspace_text("link_preview_reload"),()=>{if(web&&!failed_request){web.reload();return;}const value=failed_request||request;if(!value)return;if(failed_request)void navigate(value);else void load(value,capture()?.editor_state as preview_location|undefined);});
   const back=git_icon_button('arrow-left',workspace_text("link_preview_preview_back_alt"),()=>void travel(-1));
   const forward=git_icon_button('arrow-right',workspace_text("link_preview_preview_forward_alt"),()=>void travel(1));
-  const sync_navigation=()=>{back.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(-1)||history.can_travel(-1));forward.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(1)||history.can_travel(1));};
+  const sync_navigation=()=>{back.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(-1)||history.can_travel(-1));forward.disabled=disposed||container.dataset.state==='loading'||!(web?.can_travel(1)||history.can_travel(1));find.sync();};
   sync_navigation();
   const fail=(error:unknown)=>{message.textContent=String(error);message.hidden=false;container.dataset.state="error";};
-  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label",workspace_text("link_preview_link_preview_operations"));toolbar.append(title,scale.container,back,forward,open,retry);container.append(toolbar,return_directory,message,content);
+  toolbar.setAttribute("role","toolbar");toolbar.setAttribute("aria-label",workspace_text("link_preview_link_preview_operations"));toolbar.append(title,scale.container,find.open_button,back,forward,open,retry);container.append(toolbar,find.bar,return_directory,message,content);
   const pin=options.pin?git_icon_button('pinned',workspace_text("link_preview_pin_link_preview"),options.pin,'workspace-link-preview-pin'):undefined;
   const set_pinned=(value:boolean)=>{if(!pin)return;pin.setAttribute('aria-pressed',String(value));pin.title=value?workspace_text("link_preview_unpin_link_preview"):workspace_text("link_preview_pin_link_preview");pin.setAttribute('aria-label',pin.title);};
   if(pin){container.classList.add('has-pin');toolbar.append(pin);set_pinned(false);}
   if(options.close)toolbar.append(git_icon_button('close',workspace_text("link_preview_close_link_preview"),options.close));
   const cancel_pending=()=>{++generation;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
-  const clear=()=>{cancel_pending();web?.dispose();web=undefined;history.clear();sync_navigation();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
+  const clear=()=>{find.reset();cancel_pending();web?.dispose();web=undefined;history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;sync_navigation();directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
   const capture=():reading_location|undefined=>{
     if(!target||!request)return;
     const position=reader?.capture_position();
@@ -73,6 +75,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const load=async(value:workspace_link_request,restore?:preview_location)=>{
     cancel_pending();if(disposed)return false;const version=generation;
     container.dataset.state="loading";message.textContent=workspace_text("link_preview_loading_link_preview");message.hidden=false;failed_request=undefined;
+    find.refresh();
     sync_navigation();
     if(!target){title.textContent=value.href;title.title=value.href;open.disabled=true;}
     let next_web:ReturnType<typeof create_preview_web>|undefined;
@@ -91,14 +94,14 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
           if(!restore){const index=next_directories.findIndex(item=>item.path===resolved.path);if(index>=0){directory_position=next_directories[index].position;next_directories=next_directories.slice(0,index);}}
           next_directory=create_preview_directory(files,resolved.path,entries,path=>void navigate(path_request(path)));pending_directory=next_directory;stage.append(next_directory.container);
         }else{
-        next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href),search_anchor:false});pending_reader=next;stage.append(next.container);
+        next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href),search_anchor:false,find_changed:()=>find.refresh()});pending_reader=next;stage.append(next.container);
         const ok=await next.show({file_path:resolved.path,relative_path:files.path_api.basename(resolved.path),matches:[]},{id:"link",start:0,end:0,line:1,column:1,end_line:1,end_column:1,text:"",preview:"",preview_ranges:[]},resolved.hash,true);
         if(!ok)throw new Error(next.container.textContent||workspace_text("link_preview_cannot_read_link_target"));
         next_search_file=read_search_preview_context(resolved.path);
         if(next_search_file)await next.update_matches(next_search_file.file);
         }
       }else{
-        next_web=create_preview_web(resolved.url,()=>{if(disposed||version!==generation)return;sync_navigation();if(web&&target?.kind==='web'){const url=web.current_url();try{title.textContent=new URL(url).hostname;title.title=url;}catch{}}});stage.append(next_web.frame,next_web.status);
+        next_web=create_preview_web(resolved.url,()=>{if(disposed||version!==generation)return;sync_navigation();find.refresh();if(web&&target?.kind==='web'){const url=web.current_url();try{title.textContent=new URL(url).hostname;title.title=url;}catch{}}},action=>{if(!disposed&&version===generation)find.request(action);});stage.append(next_web.frame,next_web.status);
       }
       if(disposed||version!==generation){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
       web?.dispose();web=next_web;reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
@@ -109,8 +112,8 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       const last=directories.at(-1);return_directory.hidden=!last;return_directory.textContent=last?workspace_text("link_preview_return_to_directory")+(files.path_api.basename(last.path)||last.path):'';return_directory.title=last?.path||'';
       title.textContent=resolved.kind==="file"?files.path_api.basename(resolved.path):new URL(resolved.url).hostname;title.title=resolved.kind==='file'?resolved.path+resolved.hash:resolved.url;
       open.title=resolved.kind==="file"?workspace_text("link_preview_open_source_file"):workspace_text("link_preview_open_in_default_browser");open.setAttribute("aria-label",open.title);open.disabled=!!directory||(resolved.kind==="web"&&!runtime.JSBridge?.showInBrowser);
-      scale.container.hidden=resolved.kind!=='file'||!!directory;sync_scale();container.dataset.state="ready";return true;
-    }catch(error){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);}return false;}
+      scale.container.hidden=resolved.kind!=='file'||!!directory;sync_scale();container.dataset.state="ready";find.refresh();return true;
+    }catch(error){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);find.refresh();}return false;}
     finally{if(!disposed&&version===generation)sync_navigation();}
   };
   const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}sync_navigation();};
@@ -124,5 +127,5 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     event.preventDefault();event.stopImmediatePropagation();if(!event.repeat)void travel(event.key==='ArrowLeft'?-1:1);
   };
   container.addEventListener('keydown',keydown,true);
-  return {container,show,clear,set_pinned,dispose(){release_search();if(disposed)return;disposed=true;clear();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
+  return {container,show,clear,set_pinned,dispose(){release_search();if(disposed)return;disposed=true;clear();find.dispose();container.removeEventListener('keydown',keydown,true);scale_observer.disconnect();scale.dispose();interaction.remove();style.remove();container.remove();}};
 }

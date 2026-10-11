@@ -2402,6 +2402,14 @@ body:is(.megamenu-opened,.show-preference-panel)>.workspace-link-dock{visibility
 .workspace-lookup-preview .lookup-search-match{background:var(--lookup-match-background)}
 .workspace-lookup-preview .lookup-anchor-match{background:var(--lookup-anchor-background);outline:1px solid var(--vscode-focusBorder,#0069CC)}
 
+/* Find controls reuse the workbench input roles and remain inside their preview. */
+.workspace-preview-find{display:flex;flex:none;align-items:center;flex-wrap:wrap;gap:4px;padding:4px;min-width:0;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);background:var(--side-bar-bg-color,var(--bg-color))}
+.workspace-preview-find[hidden]{display:none}
+.workspace-preview-find>input{box-sizing:border-box;flex:1 1 80px;min-width:40px;width:80px;height:24px;padding:2px 4px;color:var(--vscode-input-foreground,inherit);background:var(--workspace-ui-input,var(--bg-color));border:1px solid var(--vscode-input-border,var(--workspace-border-color));border-radius:4px}
+.workspace-preview-find>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:20px;height:20px;padding:2px;border:0;background:transparent;color:inherit}
+.workspace-preview-find-status{flex:0 1 auto;min-width:0;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@container workspace-link-toolbar (max-width:240px){.workspace-preview-find>input{flex-basis:100%}.workspace-preview-find-status{flex:1}.workspace-link-preview .workspace-preview-scale-controls{display:none}}
+
 /* workspace_markdown_appearance.css */
 /* R074.2: Keep the Night title color confirmed by the user; R074.3 adjust the document links separately.
    The font, formatting, background, tables, citations, and code styles of the document are owned by the current Typora theme.

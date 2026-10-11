@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-11",
+  "requirements": [
+    "R069.14"
+  ],
+  "release": "2026.10.11.2",
+  "finding": "Floating/split link previews had no local find UI or shortcut owner. Added per-preview find state with document/source/web adapters. Native guest follow-up searches stalled at the last match; restart the native directional session at boundaries or zero matches.",
+  "upstream": {
+    "vscode_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/workbench/contrib/browserView/electron-browser/features/browserEditorFindFeature.ts",
+      "src/vs/platform/browserView/electron-main/browserView.ts",
+      "src/vs/workbench/contrib/codeEditor/browser/find/simpleFindWidget.css"
+    ],
+    "adopted": "Ctrl/Cmd+F, Enter/F3 directions, local result state, 20px actions and 4px padding; existing 26px preview toolbar.",
+    "electron": "42.2.0 electron_api_web_contents.cc FindInPage maps findNext to new_session."
+  },
+  "baseline": {
+    "status": "REPRODUCED",
+    "case_id": "699338b961e442898d4c3e5a69a55398",
+    "symptom": "Preview search entry absent before implementation."
+  },
+  "intermediate_failures": [
+    {
+      "case_id": "13b9e546e96e4f53aba911d9df4b55ea",
+      "reason": "Stale active flag captured main-editor Ctrl+F; route now checks actual focus."
+    },
+    {
+      "case_id": "a15e203c68444c3895e28ef463922cbd",
+      "reason": "Native button and F3 wrap returned no result; boundary restart verified with native counts and scroll."
+    },
+    {
+      "case_id": "bafc6ec2f07647ea99e8620ffca81b3b",
+      "reason": "Private test run did not produce checks; stopped only its private-copy processes and repeated sequentially. No pass claimed."
+    }
+  ],
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case_id": "8484f36d922440908b32a38b58215f8a",
+    "scope": "Complete npm run check. Final source match-limit adjustment additionally verified in the focused UI and final native candidate."
+  },
+  "ui": {
+    "status": "PASS",
+    "case_ids": [
+      "34cb2608c48241b9bae10b4f97a4f49e",
+      "4effc6761a934c2299aa5dc1a320df6a",
+      "989115427c0247bb80a9c5c42b0e4ff4"
+    ],
+    "suites": [
+      "test_workspace_link_preview.cjs",
+      "test_workspace_lookup_preview.cjs",
+      "test_workspace_preview_dock.cjs"
+    ],
+    "link_checks": 172,
+    "scope": "Trusted Chromium Ctrl+F/F3/Enter/Escape; editor/two-preview focus isolation; inline text and Chinese; 20/100/1000 Markdown matches and 1000 source matches beyond Monaco default 999; stale queries, cleanup, 170/240/320px find-row geometry, light/dark variables and screenshots.",
+    "latency": {
+      "event": "DOM input event to result text plus next animation frame",
+      "samples": 13,
+      "maximum_ms": 17.699999999254942,
+      "limits": "Observed isolated fixture values, not physical typing latency or a performance guarantee for arbitrary documents."
+    }
+  },
+  "native": {
+    "status": "PASS",
+    "case_id": "a2d794f44f224bd5905a6aecb2d6ee46",
+    "checks": 39,
+    "host": "Typora 1.14.10 / Electron 42.2.0",
+    "scope": "Trusted Chromium guest Ctrl+F/F3/Shift+F3/Escape; native counts and scroll, forward/reverse wrap, Chinese, no results and repeat, navigation/reload, 20 find lifecycles, local highlights and cleanup, page Node/host bridge denial and synthetic key rejection.",
+    "screenshots": [
+      "stage_web_find_*.png",
+      "stage_document_find_*.png"
+    ],
+    "asset_manifest_sha256": "80fb6a1de38ae9090ea2aa83d0533d79c4e3bad1ee40e5b31cf910917fb1b5c2",
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case_id": "76ac1f4790a0444d98f11bbf8aed63a3",
+    "exception_case_id": "e3f3d390e5b445f18518fda7d1bae419",
+    "uninstall_assertions": 65,
+    "scope": "Same final candidate standard install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; startup modes 0/1/2/3 and custom folder retained; failure/cancel/rollback assertions.",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "theme_files": 5,
+    "protected_unchanged": 4,
+    "native_startup_unchanged": true,
+    "native_mode": "2",
+    "manifest": "80fb6a1de38ae9090ea2aa83d0533d79c4e3bad1ee40e5b31cf910917fb1b5c2",
+    "release": "2026.10.11.2",
+    "runtime_loaded": "User windows not restarted",
+    "uninstall": "Read-only preflight only in user environment"
+  },
+  "delivery": {
+    "source": "implemented",
+    "build": "verified",
+    "installed": "verified",
+    "loaded": "User windows not restarted",
+    "commit": "Recorded in Git history",
+    "push": "not performed"
+  },
+  "limits": [
+    "No physical OS keyboard automation, other-platform or full application UI acceptance.",
+    "Web pages containing focused nested cross-origin frames were not tested for keyboard forwarding. Restricted iframe fallback hosts explicitly report unavailable web find.",
+    "Native screenshots use the light host theme; dark find-row variables and geometry were tested in Chromium, not all four native themes.",
+    "Existing R067.7 original field sequence, R071.7/R068.11/R005.4, language-fence return, PPT preview stalls and signed modern shell delivery remain open."
+  ]
+}

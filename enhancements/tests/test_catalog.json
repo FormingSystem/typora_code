@@ -6007,7 +6007,8 @@
         "R069.8",
         "R069.9",
         "R069.10",
-        "R023.1"
+        "R023.1",
+        "R069.14"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -6021,7 +6022,9 @@
         "enhancements/src/workspace_preview_directory.ts",
         "enhancements/src/workspace_lookup_preview.ts",
         "enhancements/src/workspace_preview_web.ts",
-        "enhancements/src/workspace_wheel_zoom.ts"
+        "enhancements/src/workspace_wheel_zoom.ts",
+        "enhancements/src/workspace_preview_find.ts",
+        "enhancements/src/workspace_preview_document_find.ts"
       ],
       "related_modules": [
         "search",
@@ -6038,7 +6041,8 @@
         "R069.7：目录一层子项、返回入口与位置、目录/文件Alt历史、当前源文件目标及可视行列表。",
         "R069.8：Shadow内部composed滚轮与全局缩放同时绑定；多实例/主正文隔离，真实鼠标命中及三种预览链接动作。",
         "R069.9：前进/后退图标与Alt历史共用，20轮按钮往返、Markdown/网页、禁用/重置及多个预览隔离。",
-        "R069.10：外部操作自动收起、固定与关闭重置、旧选区取消、内部Shadow/菜单及窄宽布局；事件注入与原生宿主证据分别记录。"
+        "R069.10：外部操作自动收起、固定与关闭重置、旧选区取消、内部Shadow/菜单及窄宽布局；事件注入与原生宿主证据分别记录。",
+        "Trusted Ctrl+F focus ownership, literal reader/source find, 20/100/1000 matches, cancellation, narrow/light/dark geometry and cleanup."
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
@@ -10252,6 +10256,37 @@
       ],
       "expected": [
         "每个窗口的历史可独立双向恢复；自动目录跟随不取消打开或关闭标签；另一窗口关闭不清理当前历史。DOM事件与物理键鼠验证分别记录。"
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-preview-find-native-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R069.14"
+      ],
+      "design": "docs/link_preview.md",
+      "implementation": [
+        "enhancements/src/workspace_preview_find.ts",
+        "enhancements/src/workspace_preview_web.ts",
+        "enhancements/src/workspace_preview_preload.cjs"
+      ],
+      "related_modules": [
+        "preview",
+        "shortcuts",
+        "focus"
+      ],
+      "script": "enhancements/fixtures/preview_find_native.js",
+      "runner": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Original Typora 1.14.10, isolated profile and private desktop",
+      "preconditions": "Final candidate assets and loopback HTTP pages; no user document modifications",
+      "steps": [
+        "Run with -fixture preview_find_native.js; trusted guest Ctrl+F/F3, match counts/scroll/navigation/Escape, sandbox isolation and 20 lifecycles."
+      ],
+      "expected": [
+        "Preview-owned search works without editing the main document or exposing Node/host APIs to pages."
       ],
       "timeout_ms": 180000
     }

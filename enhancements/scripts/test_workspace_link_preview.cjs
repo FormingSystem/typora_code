@@ -25,6 +25,24 @@ app.whenReady().then(async()=>{
   await evaluate(`window.host_zoom=0;window.zoom_binding=qa.bind_workspace_zoom_commands({commands:{register:()=>()=>{}}},{ClientCommand:{zoomIn:()=>host_zoom++,zoomOut:()=>host_zoom--}});void 0;`);
   check('1000轮解析与协议边界',await evaluate(`(()=>{const p=require('path').win32;for(let i=0;i<1000;i++){if(qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','sub/a%20b.md#标题').path!=='C:\\\\docs\\\\sub\\\\a b.md')return false;}return qa.resolve_preview_link(p,'C:\\\\docs\\\\source.md','#标题').hash==='#标题';})()`));
   await evaluate('link("target.md#target-heading")');
+  check('preview find entry is available',await evaluate(`!!view.container.querySelector('[data-preview-find-open]')`));
+  const key=async(code,modifiers=[])=>{win.webContents.sendInputEvent({type:'keyDown',keyCode:code,modifiers});win.webContents.sendInputEvent({type:'keyUp',keyCode:code,modifiers});await new Promise(r=>setTimeout(r,70));};
+  const find_latencies=[];
+  const find_query=async value=>{const ms=await evaluate(`new Promise((resolve,reject)=>{const input=view.container.querySelector('.workspace-preview-find input'),status=view.container.querySelector('.workspace-preview-find-status'),start=performance.now();let done=false;const observer=new MutationObserver(()=>{if(done||!status.textContent)return;done=true;observer.disconnect();clearTimeout(timer);requestAnimationFrame(()=>resolve(performance.now()-start));});const timer=setTimeout(()=>{observer.disconnect();reject(Error('find response timeout'));},3000);observer.observe(status,{childList:true,subtree:true});input.value=${JSON.stringify(value)};input.dispatchEvent(new Event('input',{bubbles:true}));})`);find_latencies.push({query:value,ms});};
+  await evaluate(`window.find_original=view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('#write').innerHTML;view.container.querySelector('.workspace-lookup-preview-body').focus();window.main_find_count=0;document.addEventListener('keydown',e=>{if(e.ctrlKey&&e.key.toLowerCase()==='f')main_find_count++});`);
+  await key('f',['control']);
+  check('trusted Ctrl F belongs to focused preview',await evaluate(`!view.container.querySelector('.workspace-preview-find').hidden&&document.activeElement===view.container.querySelector('.workspace-preview-find input')&&main_find_count===0`));
+  await find_query('first');
+  check('case insensitive reader matches and DOM preservation',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/2'&&view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('#write').innerHTML===find_original&&[...CSS.highlights.keys()].filter(n=>n.startsWith('preview-find-')).length===2`));
+  await key('Enter');check('Enter advances preview match',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='2/2'`));
+  await key('F3');check('F3 wraps preview match',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/2'`));
+  await key('F3',['shift']);check('Shift F3 searches backwards',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='2/2'`));
+  await find_query('not present');check('no results feedback',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent.includes('无结果')&&view.container.querySelector('[aria-label="下一个匹配（Enter）"]').disabled`));
+  await key('Escape');check('Escape closes find and clears highlight only',await evaluate(`view.container.querySelector('.workspace-preview-find').hidden&&!view.container.hidden&&![...CSS.highlights.keys()].some(n=>n.startsWith('preview-find-'))`));
+  await evaluate(`document.querySelector('#write').focus()`);await key('f',['control']);check('main editor keeps Ctrl F after focus leaves preview',await evaluate(`main_find_count===1&&view.container.querySelector('.workspace-preview-find').hidden`));
+  await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('First');
+  await evaluate(`document.querySelector('#write').focus()`);await key('Escape');check('inactive pinned find does not consume editor Escape',await evaluate(`!view.container.querySelector('.workspace-preview-find').hidden`));
+  await evaluate(`view.container.querySelector('.workspace-preview-find input').focus()`);await key('Escape');
   check('Markdown标题定位并渲染',await evaluate(`view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('.lookup-target-block').textContent.includes('Target heading')`));
   await evaluate(`document.querySelector('#write').style.fontFamily='monospace';document.body.classList.add('qa-selected-theme')`);await new Promise(r=>setTimeout(r,60));
   check('链接及搜索共用阅读器继承当前正文主题字体',await evaluate(`getComputedStyle(view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('#write')).fontFamily===getComputedStyle(document.querySelector('#write')).fontFamily`));
@@ -39,7 +57,32 @@ app.whenReady().then(async()=>{
   const preview_point=await evaluate(`(()=>{const r=view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('p').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+8)}})()`);
   win.webContents.sendInputEvent({type:'mouseWheel',...preview_point,deltaY:120,modifiers:['control'],canScroll:true});await new Promise(r=>setTimeout(r,100));
   check('真实Chromium鼠标命中预览而非主窗口',await evaluate(`host_zoom===0&&require('electron').webFrame.getZoomFactor()===1&&view.container.querySelector('.workspace-lookup-preview').dataset.previewScale==='120'&&isolated_second.container.querySelector('.workspace-lookup-preview').dataset.previewScale===other_scale`));
-  await evaluate('isolated_second.dispose()');
+  await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('First');
+  await evaluate(`isolated_second.container.querySelector('[data-preview-find-open]').click();window.second_find_input=isolated_second.container.querySelector('.workspace-preview-find input');second_find_input.value='Linked';second_find_input.dispatchEvent(new Event('input',{bubbles:true}));`);await new Promise(r=>setTimeout(r,90));
+  check('two previews retain independent queries and matches',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/2'&&isolated_second.container.querySelector('.workspace-preview-find-status').textContent==='1/1'`));
+  await key('Escape');check('Escape only closes the focused preview find',await evaluate(`isolated_second.container.querySelector('.workspace-preview-find').hidden&&!view.container.querySelector('.workspace-preview-find').hidden`));
+  await evaluate(`isolated_second.dispose();view.container.querySelector('.workspace-preview-find input').focus()`);await key('Escape');
+  for(const count of [20,100,1000]){
+    fs.writeFileSync(path.join(evidence,'find_scale.md'),'# Search\n\n'+Array.from({length:count},()=> 'Need**le** 中文\n\n').join(''));
+    await evaluate(`link('find_scale.md');`);await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('needle');
+    check('cross inline matches at scale '+count,await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/${count}'`));
+    await key('Enter',['shift']);check('reverse wrap at scale '+count,await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='${count}/${count}'&&view.container.querySelector('.workspace-lookup-preview-body').scrollTop>0`));
+    await find_query('中文');check('Chinese matches at scale '+count,await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/${count}'`));
+    await evaluate(`(()=>{const input=view.container.querySelector('.workspace-preview-find input');for(const value of ['needle','中文','missing']){input.value=value;input.dispatchEvent(new Event('input',{bubbles:true}));}})()`);await new Promise(r=>setTimeout(r,100));
+    check('late query cancellation at scale '+count,await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='无结果'`));
+  }
+  await find_query('中文');
+  for(const width of [170,240,320])for(const dark of [false,true]){
+    await evaluate(`document.querySelector('#mount').style.width='${width}px';view.container.style.setProperty('--side-bar-bg-color','${dark?'#181818':'#f8f8f8'}');view.container.style.color='${dark?'#cccccc':'#333333'}'`);await new Promise(r=>setTimeout(r,30));
+    check('find controls fit '+width+' '+dark,await evaluate(`(()=>{const bar=view.container.querySelector('.workspace-preview-find'),r=bar.getBoundingClientRect();return [...bar.children].every(n=>{const b=n.getBoundingClientRect();return b.width>0&&b.height>=15&&b.left>=r.left&&b.right<=r.right+1&&b.bottom<=r.bottom+1})})()`));
+    if(width===320||width===170)fs.writeFileSync(path.join(evidence,'find_'+width+'_'+(dark?'dark':'light')+'.png'),(await win.webContents.capturePage()).toPNG());
+  }
+  fs.writeFileSync(path.join(evidence,'find_source.py'),'needle = "中文"\nprint(needle)\n');await evaluate(`document.querySelector('#mount').style.width='320px';link('find_source.py')`);await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('needle');
+  check('source search uses readonly Monaco model',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/2'&&qa.monaco.editor.getEditors().filter(e=>view.container.contains(e.getDomNode())).every(e=>e.getOption(qa.monaco.editor.EditorOption.readOnly))`));
+  await key('Enter');check('source search advances independently',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='2/2'`));
+  fs.writeFileSync(path.join(evidence,'find_source_many.py'),Array.from({length:1000},()=> 'print("needle")\n').join(''));await evaluate(`link('find_source_many.py')`);await evaluate(`view.container.querySelector('[data-preview-find-open]').click()`);await find_query('needle');
+  check('source search exceeds Monaco default 999 result limit',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1/1000'`));await key('Enter',['shift']);check('source last match remains reachable',await evaluate(`view.container.querySelector('.workspace-preview-find-status').textContent==='1000/1000'`));
+  await evaluate(`link('target.md#target-heading')`);check('new preview clears find query and decorations',await evaluate(`view.container.querySelector('.workspace-preview-find').hidden&&view.container.querySelector('.workspace-preview-find input').value===''&&![...CSS.highlights.keys()].some(n=>n.startsWith('preview-find-'))`));
   await evaluate(`view.container.querySelector('[aria-label="打开源文件"]').click()`);
   check('显式打开源文件保留锚点',await evaluate(`opened.length===1&&opened[0].path.endsWith('target.md')&&opened[0].location.hash==='#target-heading'`));
   fs.writeFileSync(path.join(evidence,'target.md'),'# First\n\n[中文链接](%E4%B8%AD%E6%96%87.md#next) [锚点](#bottom) [引用][ref] [失败](missing.md)\n\n'+Array.from({length:70},(_,i)=>`段落 ${i} 阅读位置保持。\n\n`).join('')+'## Bottom\n\n结尾\n\n[ref]: 中文.md#next');
@@ -134,7 +177,7 @@ app.whenReady().then(async()=>{
   check('网页不展示不生效的文字比例控件',await evaluate(`view.container.querySelector('.workspace-preview-scale-controls').hidden`));
   check('真实URL经Chromium加载而非HTML快照',await evaluate(`view.container.querySelector('iframe').src.endsWith('/redirect')&&!view.container.querySelector('iframe').srcdoc`));
   check('网页可运行布局脚本但无同源及宿主权限',await evaluate(`view.container.querySelector('iframe').getAttribute('sandbox')==='allow-scripts'&&preview_attack===0`));
-  check('文件与关闭图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar]>.git-icon-button svg').length===5&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
+  check('文件、搜索与关闭图标保持快捷操作和可访问名称',await evaluate(`view.container.querySelectorAll('[role=toolbar]>.git-icon-button svg').length===6&&[...view.container.querySelectorAll('[role=toolbar] button')].every(n=>!n.textContent&&n.getAttribute('aria-label'))`));
   check('失败与被拒绝内嵌均有浏览器入口',await evaluate(`view.container.textContent.includes('浏览器')&&!!view.container.querySelector('[aria-label="在默认浏览器打开"]')`));
   await evaluate(`window.web_unhandled=0;window.on_web_unhandled=()=>web_unhandled++;window.addEventListener('unhandledrejection',on_web_unhandled);window.original_browser=JSBridge.showInBrowser;JSBridge.showInBrowser=async()=>{throw Error('browser-open-test')};view.container.querySelector('[aria-label="在默认浏览器打开"]').click();`);await new Promise(r=>setTimeout(r,50));
   check('默认浏览器启动失败由预览捕获不产生全局错误',await evaluate(`view.container.dataset.state==='error'&&view.container.textContent.includes('browser-open-test')&&web_unhandled===0`));
@@ -217,5 +260,5 @@ app.whenReady().then(async()=>{
   await evaluate('context.clear();void 0');await new Promise(resolve=>setTimeout(resolve,100));
   check('Clearing search removes borrowed marks without navigating the link session',await evaluate(`!view.container.querySelector('.workspace-lookup-markdown').shadowRoot.querySelector('mark[data-lookup-match]')&&Math.abs(link_body.scrollTop-link_scroll)<2`));
   await evaluate('context.dispose();view.dispose();void 0');
-  fs.writeFileSync(path.join(evidence,'checks.json'),JSON.stringify({status:'PASS',checks,split_cycles:20},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,evidence}));
+  fs.writeFileSync(path.join(evidence,'checks.json'),JSON.stringify({status:'PASS',checks,split_cycles:20,find_latencies},null,2));console.log(JSON.stringify({status:'PASS',checks:checks.length,evidence,find_latency_max_ms:Math.max(...find_latencies.map(item=>item.ms))}));
 }).catch(error=>{console.error(error);process.exitCode=1;fs.writeFileSync(path.join(evidence,'error.txt'),String(error.stack));}).finally(()=>{win?.destroy();server?.close();app.exit(process.exitCode||0);});

@@ -169,7 +169,7 @@ Ctrl+选中文字仍打开搜索并在结果下方预览，单击预览、双击
 
 原始宿主实测更新：Typora1.14.10/Electron42.2.0没有可用主进程/remote端口，但已启用webviewTag；独立partition、contextIsolation和sandbox的guest成功加载frame-ancestors none/X-Frame-Options DENY测试页，脚本/存储可用，require/process/JSBridge均不可见。采用宿主已开放webview适配，而不是修改ASAR以引入WebContentsView；Electron官方不推荐新工程采用webview，故此处限定为现有宿主的能力适配，升级需重新验收。不支持该端口的宿主保留受限iframe及明确提示。
 
-网页采用专用内存会话（不共享Typora默认会话或Chrome/Edge配置），不提供Node/preload/弹出窗口能力，不修改响应安全头与证书验证。网页内部导航由guest持有；预览按钮优先操作网页历史，边界再回到文档预览历史，刷新/默认浏览器打开使用当前网页URL。加载失败显示真实主框架错误；关闭/切目标移除guest并清理监听/计时。网页使用Chromium自身网络栈与系统信任；R047.7的Node代理/附加CA不能直接套用到它，企业自定义网络接入仍为独立待办，绝不全局关闭证书校验。
+网页采用专用内存会话（不共享Typora默认会话或Chrome/Edge配置），不提供Node或弹出窗口能力，不修改响应安全头与证书验证。2026-10-11 R069.14仅增加隔离的查找键预加载，网页不能访问预加载或宿主API。网页内部导航由guest持有；预览按钮优先操作网页历史，边界再回到文档预览历史，刷新/默认浏览器打开使用当前网页URL。加载失败显示真实主框架错误；关闭/切目标移除guest并清理监听/计时。网页使用Chromium自身网络栈与系统信任；R047.7的Node代理/附加CA不能直接套用到它，企业自定义网络接入仍为独立待办，绝不全局关闭证书校验。
 
 原生导航使用guest的canGoBack/canGoForward与goBack/goForward，不向网页注入历史脚本。无用户手势的合成点击会被Chromium跳过历史，验收必须为真实点击或明确带用户手势的测试调用，不能把history.length当作浏览器可回退项数。网页内部键盘由guest拥有，预览工具栏焦点下Alt与按钮共用路由。验收覆盖同来源及跨来源历史、实际GitHub仓库、表单、TLS错误与20次生命周期。
 
@@ -212,3 +212,17 @@ Ctrl+选中文字仍打开搜索并在结果下方预览，单击预览、双击
 ## R037.1 外部点击完成后退出（2026-10-06）
 
 预览退出会释放侧栏占位，因此不能在外部pointerdown中改变布局。链接选择控制器先取消旧选区的待处理开启，等待所属pointerup/click完成后退出；焦点跟随按下时不提前关闭，取消/失焦清理手势，新选择/切库/销毁取消旧退出。具体状态边界与验证见[时间线独立状态](explorer_history.md#r0371-预览与分区状态独立)。
+
+## R069.14 预览内容查找（2026-10-11）
+
+用户要求点击浮动预览后Ctrl+F只查找该预览，文档链接与网页均提供搜索图标，无须打开外部浏览器。范围为现有链接预览（浮动/分屏）中的Markdown、文本源码和网页；不提供替换，不修改正文、主编辑器选区或导航历史，不增加全局搜索配置。目录列表没有正文查找能力，按钮按目标能力禁用。
+
+共享查找栏由每个预览实例持有查询、计数、当前项及取消代次。Ctrl/Cmd+F与工具栏搜索图标打开并聚焦同一输入；Enter/F3下一项，Shift+Enter/Shift+F3上一项，首尾循环；Esc先关闭查找并回预览，下一次沿原退出规则。点击/键盘焦点离开预览后Ctrl+F恢复所属编辑器，多个预览不能串状态。字面量不区分大小写，与网页默认查找一致；空查询清理命中，无结果显示提示。内部换页保留查询并重新查找但不抢焦点；外部新预览、关闭和销毁释放高亮/请求。
+
+Markdown以可见文本Range及CSS Highlight绘制，不插入标记改写主题/复制/链接DOM；文本源码使用已有Monaco模型匹配和独立装饰。遍历分批让出，取消旧查询和迟到定位。网页通过现有隔离webview的findInPage/found-in-page/stopFindInPage，并按requestId过滤迟到结果。沙箱预加载仅监听可信查找按键，以固定IPC通道通知所属预览；不向页面暴露Node、文件或宿主命令接口，保持contextIsolation/sandbox/webSecurity与独立内存partition。受限iframe宿主显式提示不支持页内查找，不能假报无匹配。宿主能力须原生验收。
+
+上游依据：固定VS Code 6807068的browserEditorFindFeature.ts：CtrlCmd+F、Enter/F3方向、计数和浏览器模型查找；simpleFindWidget.css的20px动作、4px内边距。采用既有预览26px工具栏和官方search/arrow-up/arrow-down/close图标，查找行可在窄宽度换行而不挤出关闭控件；颜色使用公共输入/焦点/查找匹配角色。Electron webview文档规定file预加载、请求编号及found-in-page事件（https://www.electronjs.org/docs/latest/api/webview-tag），与实际Typora1.14.10逐项核对。
+
+验证：先保留旧版Ctrl+F未接入的证据；真实Chromium与原生宿主分别测点击内容后Ctrl+F、图标、中文/英文/跨行内标签、源码、网页可信按键、计数/滚动/循环/无结果、Esc、编辑区及多预览隔离、跨页/重载/迟到/关闭。核对明暗、窄窗口、缩放、实际行盒和高亮，正文/设置不变；20/100/1000文本规模按成本测试。最后执行标准构建、相关回归和同候选安装/卸载交付；未测物理OS/平台如实保留。
+
+原始Typora 1.14.10验证发现：网页最后一处匹配之后继续同一会话查找不返回结果，按钮与F3都能复现，并非快捷键转发丢失。网页适配器在首尾边界和无匹配时先清理选择，再以新会话按方向查找，计数仍由原生事件返回；不注入网页正文搜索脚本或伪造当前项。Electron 42.2.0的electron_api_web_contents.cc把findNext映射为new_session，与固定VS Code所用recompute一致。过期requestId仍拒绝更新。窄于240px时查找行分两行，现有缩放组暂时隐藏，保留全部导航/关闭按钮；不改变已保存的缩放值。

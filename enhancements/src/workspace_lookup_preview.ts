@@ -1,4 +1,5 @@
 import {workspace_text} from "./workspace_i18n";
+import {create_preview_document_find} from './workspace_preview_document_find';
 import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
@@ -19,7 +20,7 @@ const clamp_scale = (value: number) => Number.isFinite(value) ? Math.min(150, Ma
 const markdown_source = (text: string) => text.replace(/\r\n?/gu,"\n").replace(/^( *)(\t+)/gmu,(_,leading:string,tabs:string)=>leading+"    ".repeat(tabs.length));
 
 /** Sidebar preview is independent of the central editor, does not switch documents, does not create workspace tabs, and does not change the selection of the document content. */
-export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>, options:{search_anchor?:boolean;navigate?:(href:string)=>void; visible_match?:(file:workspace_search_file,match:workspace_search_match)=>void}={}) {
+export function create_lookup_preview(files: workspace_file_host, read_content?:(file_path:string)=>Promise<string>, options:{find_changed?:()=>void;search_anchor?:boolean;navigate?:(href:string)=>void; visible_match?:(file:workspace_search_file,match:workspace_search_match)=>void}={}) {
   const container = el("section", "workspace-lookup-preview");
   const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", preview_css, {});
   const body = el("div", "workspace-lookup-preview-body"); body.tabIndex = 0; body.setAttribute("aria-label", workspace_text("lookup_preview_hit_content_preview"));
@@ -32,6 +33,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   container.append(body); container.setAttribute("data-linux-note-lookup-preview", "ready");
   let scale = 80; try { scale = clamp_scale(Number(localStorage.getItem(SCALE_KEY) || 80)); } catch { /* Adjustment of the font size is allowed even if it is not stored. */ }
   let editor: git_diff_editor | undefined; let generation = 0; let disposed = false;
+  const find_target=create_preview_document_find(reader,body,()=>editor?.focused_editor(),()=>options.find_changed?.());
   const diagrams=create_preview_diagrams();
   let selected: {file: workspace_search_file; match: workspace_search_match} | undefined;
   let selected_block: HTMLElement | undefined;
@@ -317,6 +319,6 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const theme_observer = observe_markdown_theme(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
-  const clear=()=>{ready=false;visible_id="";targets.clear();positions=[];source_scroll?.dispose();source_scroll=undefined;close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
-  return {container, show, clear, update_matches, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {disposed = true;cancelAnimationFrame(scroll_frame);body.removeEventListener("scroll",schedule_position);match_resize.disconnect();source_scroll?.dispose();targets.clear(); close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer(); resize_observer.disconnect(); style.remove(); container.remove();}};
+  const clear=()=>{find_target.clear();ready=false;visible_id="";targets.clear();positions=[];source_scroll?.dispose();source_scroll=undefined;close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
+  return {container, find_target, show, clear, update_matches, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {find_target.dispose();disposed = true;cancelAnimationFrame(scroll_frame);body.removeEventListener("scroll",schedule_position);match_resize.disconnect();source_scroll?.dispose();targets.clear(); close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

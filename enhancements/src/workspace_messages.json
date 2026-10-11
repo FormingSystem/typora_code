@@ -8018,5 +8018,45 @@
   "file_history_redone": {
     "zh_cn": "已重做文件移动 / 重命名",
     "en": "File move / rename redone"
+  },
+  "preview_find_open": {
+    "zh_cn": "在预览中查找（Ctrl+F）",
+    "en": "Find in Preview (Ctrl+F)"
+  },
+  "preview_find_placeholder": {
+    "zh_cn": "在预览中查找",
+    "en": "Find in preview"
+  },
+  "preview_find_previous": {
+    "zh_cn": "上一个匹配（Shift+Enter）",
+    "en": "Previous Match (Shift+Enter)"
+  },
+  "preview_find_next": {
+    "zh_cn": "下一个匹配（Enter）",
+    "en": "Next Match (Enter)"
+  },
+  "preview_find_close": {
+    "zh_cn": "关闭查找（Esc）",
+    "en": "Close Find (Esc)"
+  },
+  "preview_find_count": {
+    "zh_cn": "{current}/{total}",
+    "en": "{current}/{total}"
+  },
+  "preview_find_no_results": {
+    "zh_cn": "无结果",
+    "en": "No results"
+  },
+  "preview_find_unavailable": {
+    "zh_cn": "当前宿主不支持网页内查找",
+    "en": "This host does not support finding within web pages"
+  },
+  "preview_find_wait": {
+    "zh_cn": "等待网页加载",
+    "en": "Waiting for the page to load"
+  },
+  "preview_find_failed": {
+    "zh_cn": "查找失败：",
+    "en": "Find failed: "
   }
 }
