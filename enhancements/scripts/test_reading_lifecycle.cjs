@@ -206,6 +206,10 @@ app.whenReady().then(async () => {
   await evaluate('burst_trace=[];fail_burst=true;void 0');burst_keys(['Right','Right','Right']);await delay(300);
   assert.deepEqual(await evaluate('burst_trace'),[],'失败不推进，余下请求不在失败后重放');
   await evaluate('fail_burst=false;void 0');burst_keys(['Right']);await delay(100);assert.equal(await evaluate('source_position.line'),30,'失败后的新请求仍可执行');
+  await evaluate('burst_trace=[];void 0');burst_keys(['Right']);
+  await evaluate(`window.dispatchEvent(new CustomEvent('linux-note-workspace-context-changed',{detail:{preserve_navigation:true}}));void 0`);await delay(150);
+  assert.deepEqual(await evaluate('burst_trace'),[50],'宿主自动目录跟随不取消本窗口的在途导航');
+  burst_keys(['Left']);await delay(100);assert.equal(await evaluate('source_position.line'),30,'目录跟随后仍保留双向历史');
   await evaluate('burst_trace=[];void 0');burst_keys(['Right','Right']);
   await evaluate(`window.dispatchEvent(new Event('linux-note-workspace-context-changed'));void 0`);await delay(200);
   assert.deepEqual(await evaluate('burst_trace'),[],'切工程取消执行中及排队导航');

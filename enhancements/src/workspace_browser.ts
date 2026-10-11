@@ -90,7 +90,7 @@ export function bind_workspace_browser() {
   const context_changed=(force=false)=>{
     if(lifetime.disposed||workspace_context_switching())return;
     const current=files.context_root();if(!force&&current===known_context)return;known_context=current;
-    if(!force){window.dispatchEvent(new Event("linux-note-workspace-context-changed"));return;}
+    if(!force){window.dispatchEvent(new CustomEvent("linux-note-workspace-context-changed",{detail:{preserve_navigation:true}}));return;}
     void explorer.refresh().catch(error=>console.error("Typora Code folder refresh:",error));
     search.refresh_context();outline_binding?.refresh();
   };

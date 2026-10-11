@@ -205417,7 +205417,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (active_dispose === dispose2) active_dispose = void 0;
     };
     active_dispose = dispose2;
-    window.addEventListener("linux-note-workspace-context-changed", () => {
+    window.addEventListener("linux-note-workspace-context-changed", (event) => {
+      if (event.detail?.preserve_navigation) return;
       context_controller.abort();
       context_controller = new AbortController();
       cancel_travel_queue();
@@ -254362,6 +254363,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026101101,
+        version: "2026.10.11.1",
+        date: "2026-10-11",
+        notes: [
+          "\u4FEE\u590D\u7A97\u53E3\u6253\u5F00\u5176\u4ED6\u76EE\u5F55\u6587\u4EF6\u65F6\u81EA\u52A8\u76EE\u5F55\u8DDF\u968F\u8BEF\u6E05\u7A7A\u5BFC\u822A\u5386\u53F2\u3001\u53D6\u6D88\u6253\u5F00\u548C\u5173\u95ED\u6807\u7B7E\u7684\u95EE\u9898\u3002",
+          "\u540E\u9000\u4E0E\u524D\u8FDB\u7EE7\u7EED\u4F7F\u7528\u5404\u7A97\u53E3\u72EC\u7ACB\u5386\u53F2\uFF1B\u660E\u786E\u5207\u6362\u5DE5\u4F5C\u533A\u4ECD\u53D6\u6D88\u65E7\u64CD\u4F5C\uFF0C\u4FDD\u7559\u7528\u6237\u542F\u52A8\u4E0E\u5176\u4ED6\u8BBE\u7F6E\u3002"
+        ],
+        notes_en: [
+          "Fix automatic folder following clearing navigation history, cancelling file opens and closing tabs when a window opens files from another directory.",
+          "Back and Forward retain independent per-window history. Explicit workspace changes still cancel old operations, while startup and other preferences are preserved."
+        ]
+      },
+      {
         sequence: 2026100703,
         version: "2026.10.07.3",
         date: "2026-10-07",
@@ -258691,6 +258705,7 @@ https://creativecommons.org/licenses/by/4.0/
       return pending;
     };
     const routed_root_changed = (path, skip_recent) => {
+      if (skip_recent) return native_root_changed?.call(library, path, skip_recent);
       if (typeof path !== "string" || !path) return native_root_changed?.call(library, path, skip_recent);
       return (open_recent_folder ? open_recent_folder(path) : set_folder(path)).catch((error) => {
         if (!disposed) new files2.core.Notice(String(error instanceof Error ? error.message : error), 5e3);
@@ -268311,7 +268326,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (!force && current2 === known_context) return;
         known_context = current2;
         if (!force) {
-          window.dispatchEvent(new Event("linux-note-workspace-context-changed"));
+          window.dispatchEvent(new CustomEvent("linux-note-workspace-context-changed", { detail: { preserve_navigation: true } }));
           return;
         }
         void explorer.refresh().catch((error) => console.error("Typora Code folder refresh:", error));

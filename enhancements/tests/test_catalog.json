@@ -10223,6 +10223,37 @@
         "Native and disk values match the selected mode; custom folder remains unchanged; repeated open does not reset preferences."
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-windows-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R067.7"
+      ],
+      "design": "docs/navigation_history.md",
+      "implementation": [
+        "enhancements/src/reading_navigation.ts",
+        "enhancements/src/workspace_browser.ts",
+        "enhancements/src/workspace_open_dialog.ts"
+      ],
+      "related_modules": [
+        "links",
+        "source",
+        "history"
+      ],
+      "script": "enhancements/fixtures/navigation_windows_native.js",
+      "runner": "enhancements/scripts/run_private_desktop.ps1",
+      "environment": "原始Typora1.14.10私有桌面独立副本",
+      "preconditions": "prepare_stability_native.py创建临时文档及正式候选，不写用户正文。",
+      "steps": [
+        "两个原始宿主窗口分别打开、切换标签并通过Alt和顶栏导航；跨目录、源码、预览及关闭窗口保持另一窗口可用"
+      ],
+      "expected": [
+        "每个窗口的历史可独立双向恢复；自动目录跟随不取消打开或关闭标签；另一窗口关闭不清理当前历史。DOM事件与物理键鼠验证分别记录。"
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

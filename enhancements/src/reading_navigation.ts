@@ -466,7 +466,9 @@ export function bind_reading_navigation(): () => void {
     if (active_dispose === dispose) active_dispose = undefined;
   };
   active_dispose = dispose;
-  window.addEventListener("linux-note-workspace-context-changed",()=>{
+  window.addEventListener("linux-note-workspace-context-changed",event=>{
+    // Native folder following keeps the window's editors; only explicit workspace replacement resets navigation.
+    if((event as CustomEvent<{preserve_navigation?:boolean}>).detail?.preserve_navigation)return;
     context_controller.abort();context_controller=new AbortController();cancel_travel_queue();clearTimeout(pending_timer);clearTimeout(selection_timer);pending_from=null;last_location=null;restoring_focus=false;history.clear();publish_history_state();
   },{signal:controller.signal});
   return dispose;

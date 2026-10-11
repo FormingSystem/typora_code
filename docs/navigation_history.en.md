@@ -156,3 +156,13 @@ Acceptance first re-plays the return and clicks the tool control, the delay in s
 
 
 2026-09-29 R067.6 delivered 2026.09.29.1: pure tool focus and same editor activity notification not written to history, document editing and explicit positioning still recorded; forward/backward shared entry. Final native 252+271 items, lifecycle UI, and complete check passed, isolated uninstall and reinstall and local installation checks passed; user window was not restarted, normal restart loading. Input classification, other UI regression, cleanup status, and untested boundaries see [this evidence](../enhancements/tests/evidence/navigation_scope_20260929.json), not replacing this round acceptance with old records.
+
+## R067.7 Independent windows and automatic folder following (2026-10-11)
+
+History, its restore queue and cancellation stay in each renderer, consistent with the pinned VS Code 6807068 workbench HistoryService. No shared navigation preference or second history service is introduced.
+
+A native two-window regression was reproduced when a window opened Markdown outside its mounted folder. Typora 1.14.10 first calls File.setMountFolder and then library.onRootChanged(folder, true). Folder observers cancelled navigation and cleared history; the second notification was incorrectly treated as an explicit workspace replacement that could close the new tab. Basic same-folder and separate-folder navigation passed, so this evidence does not establish every possible cause of the reported symptom.
+
+Automatic folder following refreshes folder-dependent panels while retaining editors, drafts and navigation. The skip_recent native notification delegates to its original owner. An explicit preserve_navigation event detail prevents the history owner from resetting the window. Explicit Open/Close Folder still uses the existing cancellation and workspace replacement transaction. Other windows and saved preferences remain untouched.
+
+Validation covers two original host windows, shared files, tabs, preview replacement, cross-folder navigation, source editors, failed targets and closing a window. DOM events and actual keyboard or pointer input are reported separately; installation and loaded-window status are also distinct.

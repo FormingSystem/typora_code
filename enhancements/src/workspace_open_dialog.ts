@@ -111,6 +111,8 @@ export function bind_workspace_open_dialog(files:workspace_file_host, changed:()
     return pending;
   };
   const routed_root_changed=(path?:string,skip_recent?:boolean)=>{
+    // Native document path updates already mounted this folder; this is not a user workspace replacement.
+    if(skip_recent)return native_root_changed?.call(library,path,skip_recent);
     if(typeof path!=="string"||!path)return native_root_changed?.call(library,path,skip_recent);
     return (open_recent_folder?open_recent_folder(path):set_folder(path)).catch(error=>{if(!disposed)new files.core.Notice(String(error instanceof Error?error.message:error),5000);});
   };

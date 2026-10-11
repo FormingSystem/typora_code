@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026101101,
+      "version": "2026.10.11.1",
+      "date": "2026-10-11",
+      "notes": [
+        "修复窗口打开其他目录文件时自动目录跟随误清空导航历史、取消打开和关闭标签的问题。",
+        "后退与前进继续使用各窗口独立历史；明确切换工作区仍取消旧操作，保留用户启动与其他设置。"
+      ],
+      "notes_en": [
+        "Fix automatic folder following clearing navigation history, cancelling file opens and closing tabs when a window opens files from another directory.",
+        "Back and Forward retain independent per-window history. Explicit workspace changes still cancel old operations, while startup and other preferences are preserved."
+      ]
+    },
+    {
       "sequence": 2026100703,
       "version": "2026.10.07.3",
       "date": "2026-10-07",

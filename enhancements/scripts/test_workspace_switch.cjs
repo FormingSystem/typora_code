@@ -75,6 +75,11 @@ app.whenReady().then(async()=>{
  await evaluate('window.same_leaf=fixture_core.app.workspace.activeLeaf;run_folder(fixture_root)');assert(await evaluate('fixture_leaves.includes(same_leaf)'));
  await evaluate('run_folder(require("path").join(fixture_root,"missing"))');assert(await evaluate('File.getMountFolder()===fixture_root&&fixture_leaves.includes(same_leaf)'));
  checks.push('same root refresh retains editors; invalid directory does not close or switch');
+ await evaluate('File.editor.library.onRootChanged(second_root,true)');
+ assert(await evaluate('File.getMountFolder()===second_root&&fixture_leaves.includes(same_leaf)'));
+ await evaluate('File.editor.library.onRootChanged(fixture_root,true)');
+ assert(await evaluate('fixture_leaves.includes(same_leaf)'));
+ checks.push('native automatic folder following preserves open editors without workspace replacement');
  await evaluate('File.editor.library.onRootChanged(second_root)');await wait('File.getMountFolder()===second_root');assert(!await evaluate('fixture_leaves.includes(same_leaf)'));
  await evaluate('run_folder(plain_root)');await wait('File.getMountFolder()===plain_root');await wait('document.querySelector(".linux-note-git-status")?.dataset.repository==="none"');
  await evaluate('window.fixture_root_refresh_error=true;run_folder(second_root)');await wait('File.getMountFolder()===second_root');await wait('document.querySelector(".git-status-branch")?.textContent.includes("target-branch")');

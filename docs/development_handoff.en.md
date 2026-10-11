@@ -689,3 +689,5 @@ Preview dismissal waits for outside activation, preventing sidebar relayout from
 
 
 2026-10-07 R002.1: Explorer drag sessions call the shared file transaction. Virtual scrolling retains the source row; hover and scroll tasks end with the gesture. Version 2026.10.07.1 is locally installed and hash-checked; existing windows need a manual restart after saving. Core checks, four relevant UI suites, 13 original-host assertions and paired installation/uninstallation passed. Physical OS dragging and other native platforms/SSH remain untested; earlier issues stay open. See [evidence](../enhancements/tests/evidence/explorer_drag_20261007.json).
+
+2026-10-11 R067.7: Automatic folder following now retains editor navigation independently from explicit workspace replacement. Release 2026.10.11.1 is installed locally; 87 original-host two-window checks and install/uninstall regressions passed. User windows require a normal restart. Physical OS focus switching and the original field sequence remain unconfirmed. See [evidence](../enhancements/tests/evidence/navigation_windows_20261011.json); unrelated open issues remain.

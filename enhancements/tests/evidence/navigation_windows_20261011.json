@@ -1,0 +1,113 @@
+{
+  "date": "2026-10-11",
+  "requirements": [
+    "R067.7"
+  ],
+  "release": "2026.10.11.1",
+  "finding": "History already belongs to each renderer. Native automatic folder following emitted a workspace reset and routed skip_recent through explicit workspace replacement, cancelling navigation and closing editors when opening files outside the mounted folder.",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "file": "src/vs/workbench/services/history/browser/historyService.ts",
+    "adopted": "Window workbench service ownership; navigation state is independent from folder refresh."
+  },
+  "baseline": {
+    "status": "REPRODUCED",
+    "case_id": "85a65f93e1da40ac8319f1103c496bf7",
+    "symptom": "Child open outside its mounted folder failed with empty active editor and disabled navigation.",
+    "passing_controls": [
+      "96c892f2393949efad1f00ad7a5c61dd",
+      "49fefd74f4a640db940fc6be9ad2693d",
+      "dba45c2579fe44148488442856f4b89f",
+      "ba9dab86dce249fe9c73273f50f161a1",
+      "d1f2699adfa84bbab3d28630715769f2"
+    ]
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case_id": "de5b88cab0b64973a3648f32693aaa99"
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": [
+      "test_reading_lifecycle.cjs",
+      "test_workspace_switch.cjs",
+      "test_workspace_titlebar.cjs"
+    ],
+    "case_ids": [
+      "4a821f326d0d42a4ba164d430bf5d8f8",
+      "dbcd1504d5d24d008ba336793437a302",
+      "35528e077a1f4899bcf14436d2a43b24"
+    ],
+    "scope": "Trusted Chromium Alt key routes and 20/100/1000 queue rounds; automatic-follow preservation versus explicit switch cancellation; dirty source save/cancel/failure; titlebar interactions."
+  },
+  "native": {
+    "status": "PASS",
+    "case_id": "35ae8737ca064a879df46152674f90f4",
+    "setup": {
+      "host_version": "1.14.10",
+      "asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+      "asset_manifest_sha256": "fe2476b6a36604c20332534e697d189b1629ea20ba911926b418a8037ddf8f6e",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "945f4fc9988ee42068cefa856c2f983f9153332eb1fdb71a4336374c3ba827e8",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "main_checks": 60,
+    "child_checks": 27,
+    "cross_folder_round_trips": 60,
+    "remaining_native_windows": 1,
+    "elapsed_ms": 65838,
+    "input": "Original Typora 1.14.10, two renderers on one private desktop and isolated profile. DOM Alt key and toolbar click events, host file/tab APIs. No physical OS Alt-tab automation.",
+    "coverage": [
+      "independent window resource/root/direction state",
+      "shared files and existing tabs",
+      "three outside directories and preview replacement",
+      "Markdown/source backward and forward",
+      "missing target preserves forward history",
+      "document bytes unchanged",
+      "child close confirmed by final native window inventory; main still navigates"
+    ],
+    "cleanup": "cleaned",
+    "intermediate_fixture_failure": {
+      "case_id": "7ebcaf456ec14774a226ec9148fb79a5",
+      "reason": "Host closed child without the fixture unload marker. Replaced marker with close request acknowledgement and independent native window inventory; product close behavior unchanged."
+    }
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case_id": "7039f74bc0c34035b1030d6bba66ce82",
+    "exception_case_id": "2999cc8047754aad87b5ad950574e664",
+    "uninstall_assertions": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check and startup modes 0/1/2/3 retained; failure/cancel/rollback tests.",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 72,
+      "terminal": 24
+    },
+    "theme_files": 5,
+    "protected_unchanged": 4,
+    "native_startup_unchanged": true,
+    "native_mode": "2",
+    "manifest": "fe2476b6a36604c20332534e697d189b1629ea20ba911926b418a8037ddf8f6e",
+    "release": "2026.10.11.1",
+    "runtime_loaded": "User windows not restarted",
+    "uninstall": "Read-only preflight only in user environment"
+  },
+  "delivery": {
+    "source": "implemented",
+    "build": "verified",
+    "installed": "verified",
+    "loaded": "User windows not restarted",
+    "commit": "Recorded in Git history",
+    "push": "not performed"
+  },
+  "limits": [
+    "The reproduced cross-folder trigger is fixed; the users exact original sequence still needs confirmation after loading this version.",
+    "Physical OS focus switching/Alt combinations, all UI suites, other platforms and real remote workspaces were not tested.",
+    "Existing R071.7/R068.11/R005.4, fenced-code navigation return, PPT preview stalls and signed modern shell delivery remain open."
+  ]
+}
