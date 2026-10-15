@@ -9682,7 +9682,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R084"
+        "R084",
+        "R084.3"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
@@ -9825,12 +9826,14 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R084"
+        "R084",
+        "R084.3"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
         "enhancements/fixtures/shell_open_native.js",
-        "scripts/lib/typora_shell_integration.ps1"
+        "scripts/lib/typora_shell_integration.ps1",
+        "enhancements/src/workspace_browser.ts"
       ],
       "related_modules": [
         "installation",
@@ -9845,10 +9848,10 @@
         "Windows PowerShell 5.1"
       ],
       "steps": [
-        "Launch isolated original Typora with a quoted Markdown file, source file and folder."
+        "Launch isolated original Typora with a quoted Markdown file, source file, nonempty folder and empty Chinese/special-character folder; seed outline preference and restore mode 2."
       ],
       "expected": [
-        "Exact resource or workspace opens through the original executable."
+        "Host userDataPath is the isolated profile. Exact resource or workspace opens; directory launches show Explorer and actual child rows without clicking, preserving restore mode 2."
       ],
       "timeout_ms": 240000
     },
@@ -10130,7 +10133,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R084.1"
+        "R084.1",
+        "R084.3"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
@@ -10148,12 +10152,13 @@
         "Windows x64"
       ],
       "preconditions": [
-        "Windows 11 x64 Developer Mode already enabled",
+        "Windows 11 x64 Developer Mode for registration; Windows x64 supports -adapter_only without registration",
         "Windows PowerShell 5.1 and MSVC x64",
-        "No existing TyporaCode development shell package; test before local delivery"
+        "No existing TyporaCode development shell package for registration mode; -adapter_only preserves the installed package"
       ],
       "steps": [
-        "Verify argument quoting and COM lifetimes, register an owned isolated candidate, invoke files/folders/root paths through the real COM surrogate, toggle scopes, inject registration failure and external edits, uninstall and reinstall."
+        "Verify argument quoting and COM lifetimes, register an owned isolated candidate, invoke files/folders/root paths through the real COM surrogate, toggle scopes, inject registration failure and external edits, uninstall and reinstall.",
+        "With -adapter_only, resolve null and empty background selections through actual Shell folder views and a test service site; cover browser fallback, selection priority, virtual folders, site lifecycle and isolated process arguments without replacing user registration."
       ],
       "expected": [
         "Exact original path reaches only the fixture executable; previous package is restored on failure; foreign changes are preserved; test registration and large payloads are removed."

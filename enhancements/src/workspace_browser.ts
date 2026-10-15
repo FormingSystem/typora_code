@@ -36,6 +36,7 @@ import {bind_workspace_settings_view} from './workspace_settings_view';
 import {bind_workspace_reading_reflow} from './reading_reflow';
 import {bind_workspace_link_dock} from './workspace_link_dock';
 import {bind_remote_workspace_media} from './remote_workspace_media';
+import {window_transfer_token} from './workspace_window_intent';
 
 export function bind_workspace_browser() {
   const core=(window as unknown as Record<symbol,graph_core>)[Symbol.for("typora-code:workspace")];if(!core?.app)return;
@@ -127,6 +128,8 @@ export function bind_workspace_browser() {
   lifetime.own(bind_workspace_file_header(files,editor_actions));
   const saves=lifetime.own(bind_workspace_save_service(files));
   lifetime.own(bind_workspace_explorer_sections(files,explorer,saves,editor_actions.entries));
+  const initial=(window as any)._options;
+  if(initial?.mountFolder&&!initial.initFilePath&&!window_transfer_token(initial.initFilePath,initial.initAnchor||''))explorer.show();
   document.documentElement.setAttribute("data-linux-note-workspace-browser","ready");
   lifetime.add(()=>document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
   lifetime.own(bind_workspace_onboarding(files));

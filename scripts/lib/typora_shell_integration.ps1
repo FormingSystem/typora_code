@@ -79,7 +79,8 @@ function invoke_typora_shell_transaction {
             $segments = @($segments | Where-Object {$_ -ne ''}) + @($typora_root); $path_owned=$true
         }
         $menus = @()
-        foreach ($entry in @(@('*','%1',$file_menu), @('Directory','%1',$folder_menu), @('Directory\Background','%V',$folder_menu))) {
+        # A directory separator before the closing quote would escape that quote in Windows argv parsing.
+        foreach ($entry in @(@('*','%1',$file_menu), @('Directory','%1\.',$folder_menu), @('Directory\Background','%V\.',$folder_menu))) {
             $key_path = "$classes_key\$($entry[0])\shell\TyporaCode"
             $current = get_typora_shell_menu $registry $key_path
             $owned = @($old.menus | Where-Object {$_.key -ceq $key_path} | Select-Object -First 1)
@@ -90,7 +91,8 @@ function invoke_typora_shell_transaction {
             }
             $next = $null
             if ($entry[2]) {
-                $next = [pscustomobject]@{key=$key_path;label='Open with Typora Code';icon=('"'+(Join-Path $typora_root 'Typora.exe')+'"');command=('"'+(Join-Path $typora_root 'Typora.exe')+'" "'+$entry[1]+'"')}
+                $launch_mode=if($entry[0] -eq '*'){''}else{' --new'}
+                $next = [pscustomobject]@{key=$key_path;label='Open with Typora Code';icon=('"'+(Join-Path $typora_root 'Typora.exe')+'"');command=('"'+(Join-Path $typora_root 'Typora.exe')+'"'+$launch_mode+' "'+$entry[1]+'"')}
                 $menus += $next
             }
             if ($current -or $next) { $changed.Add([pscustomobject]@{key=$key_path;before=$current;after=$next}); set_typora_shell_menu $registry $key_path $next }

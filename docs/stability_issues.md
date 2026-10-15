@@ -1,5 +1,7 @@
 [English](stability_issues.en.md)
 
+2026-10-15 R084.3：BUG-shell-directory-intent / BUG-shell-directory-quote / BUG-shell-background-site，分类startup/intent、shell/arguments及shell/COM。传统目录入口使用单次--new绕过宿主旧文档恢复，初始目录窗口展示文件树；尾反斜杠参数红测后改为等价目录后缀。现代入口独立补调用方文件夹视图，不能把现代问题当成本机传统入口的根因。原始宿主Downloads冷启动、9个子项和偏好保持通过；完整旧现场未在隔离配置重现，物理右键待现场复核。TEST-git-startup-sync-20261015两次等待网络调用超时、TEST-terminal-special-path-20261015的PTY特殊字符回显失败保持开放；BUG-session-outside-root-20261015已独立复现目标会话的根外活动文档改挂载目录，非本次Downloads现场，待会话所有者处理。中途夹具重复点击收起侧栏、旧主题夹具CRLF摘要和默认目录junction清理问题已纠正，不记为产品修复。详见[本轮证据](../enhancements/tests/evidence/shell_background_20261015.json)。
+
 # 稳定性问题索引
 
 2026-10-07 R002.2：FILES-move-undo——文件移动和重命名只执行磁盘事务，未入撤销栈，树也没有Ctrl+Z路由。共享文件历史与树焦点分派补齐拖动/剪切/重命名撤销，后台正文不被撤销；冲突拒绝覆盖、失败回滚与草稿/保存路径见[证据](../enhancements/tests/evidence/file_undo_20261007.json)。复制/新建/删除撤销仍未实现，不归入本项通过范围。

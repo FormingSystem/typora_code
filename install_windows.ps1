@@ -22,7 +22,8 @@ $ErrorActionPreference = 'Stop'
 if (!$user_data) {$user_data=get_typora_windows_user_data}
 $previous=get_typora_shell_state $user_data
 $refresh_modern=$previous.PSObject.Properties['modern_menu'] -and $previous.modern_menu
-if ($add_path -ne 'keep' -or $file_menu -ne 'keep' -or $folder_menu -ne 'keep' -or $modern_menu -ne 'keep' -or $refresh_modern) {
+$refresh_owned_menus=@($previous.menus | Where-Object {$_}).Count -gt 0
+if ($add_path -ne 'keep' -or $file_menu -ne 'keep' -or $folder_menu -ne 'keep' -or $modern_menu -ne 'keep' -or $refresh_modern -or $refresh_owned_menus) {
     $typora_root=resolve_typora_windows_root -typora_root $typora_root -non_interactive
     try {set_typora_shell_integration -typora_root $typora_root -user_data $user_data -modern_menu $modern_menu -add_path $(if($add_path -ne 'keep'){$add_path -eq 'on'}else{$previous.add_path}) -file_menu $(if($file_menu -ne 'keep'){$file_menu -eq 'on'}else{$previous.file_menu}) -folder_menu $(if($folder_menu -ne 'keep'){$folder_menu -eq 'on'}else{$previous.folder_menu})}
     catch {throw ('Workbench installed, but shell integration failed: '+$_.Exception.Message)}

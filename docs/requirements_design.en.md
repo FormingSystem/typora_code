@@ -47,6 +47,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |
 | R084 | Graphical setup and shell integration | [Design](installation_design.en.md) | Transactions, ownership, cancellation and verification |
 | R084.1 | Windows 11 modern context menu | [Design](installation_design.en.md#r0841-windows-11-modern-context-menu-2026-10-06) | Files, folders, background and owned development registration; signed distribution pending |
+| R084.3 | Resolve the current folder from background context menus | [Design](installation_design.en.md#r0843-folder-background-target-resolution-2026-10-15) | Per-invocation directory priority, visible Explorer, trailing separators, modern calling-site resolution and cleanup; install and push |
 | R086 | Go menu and Ctrl+G line/column navigation | [Design](go_navigation.en.md) | Active-editor sessions, cancellation and existing shared navigation commands |
 | R085 | Language environment plugins | [Design](language_environment_plugins.en.md) | Managed toolchains and community plugin lifecycle |
 | R085.1 | Prepare language tools automatically and await navigation readiness | [R085.1 design](language_environment_plugins.en.md#r0851-automatic-preparation-and-navigation-waiting-2026-10-04) |

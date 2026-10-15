@@ -8,6 +8,20 @@ $test_key='Software\TyporaCodeTests\'+[Guid]::NewGuid().ToString('N')
 $registry=[Microsoft.Win32.Registry]::CurrentUser
 $successful=$false
 function assert_true($value,$message){if(!$value){throw $message}}
+Add-Type -TypeDefinition @'
+using System;
+using System.Runtime.InteropServices;
+public static class shell_argument_parser {
+ [DllImport("shell32.dll", CharSet=CharSet.Unicode)] static extern IntPtr CommandLineToArgvW(string command, out int count);
+ [DllImport("kernel32.dll")] static extern IntPtr LocalFree(IntPtr value);
+ public static string[] Parse(string command) {
+  int count; IntPtr arguments=CommandLineToArgvW(command,out count);
+  if(arguments==IntPtr.Zero)throw new InvalidOperationException("Cannot parse command");
+  try {var result=new string[count];for(int i=0;i<count;i++)result[i]=Marshal.PtrToStringUni(Marshal.ReadIntPtr(arguments,i*IntPtr.Size));return result;}
+  finally {LocalFree(arguments);}
+ }
+}
+'@
 try {
  $host_root=Join-Path $base 'Typora 测试 & space';[IO.Directory]::CreateDirectory($host_root)|Out-Null;[IO.File]::WriteAllText((Join-Path $host_root 'Typora.exe'),'fixture')
  $user_data=Join-Path $base 'profile';$classes=$test_key+'\Classes';$environment=$test_key+'\Environment'
@@ -19,6 +33,29 @@ try {
  $env_key=$registry.OpenSubKey($environment);$actual=$env_key.GetValue('Path',$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames);$env_key.Dispose()
  assert_true ($actual -ceq ('%USERPROFILE%\Existing;C:\Unrelated;'+$host_root)) 'Repeated installation must preserve literal PATH and avoid duplicates.'
  assert_true ($state.menus[0].command -ceq ('"'+(Join-Path $host_root 'Typora.exe')+'" "%1"')) 'Context command must quote the executable and selected path.'
+ # Exercise the public keep-options dispatch with real isolated registry writes; the already-covered asset installer is a no-op here.
+ foreach($menu in $state.menus){$menu.command=$menu.command.Replace(' --new','').Replace('\."','"');set_typora_shell_menu $registry $menu.key $menu}
+ [IO.File]::WriteAllText((Join-Path $user_data 'typora_code_shell.json'),($state|ConvertTo-Json -Depth 8),[Text.UTF8Encoding]::new($false))
+ $public_root=Join-Path $base 'public installer';[IO.Directory]::CreateDirectory((Join-Path $public_root 'scripts'))|Out-Null
+ Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../../install_windows.ps1') -Destination $public_root
+ Copy-Item -LiteralPath (Join-Path $PSScriptRoot '../../scripts/lib') -Destination (Join-Path $public_root 'scripts') -Recurse
+ $adapter=Join-Path $public_root 'scripts/lib/typora_shell_integration.ps1'
+ $adapter_text=[IO.File]::ReadAllText($adapter,[Text.Encoding]::UTF8).Replace("'Software\Classes'",("'"+$classes+"'")).Replace("'Environment'",("'"+$environment+"'"))
+ [IO.File]::WriteAllText($adapter,$adapter_text,[Text.UTF8Encoding]::new($true))
+ [IO.File]::WriteAllText((Join-Path $public_root 'scripts/install_workspace_windows.ps1'),'param($typora_root,$backup_root,[switch]$non_interactive,[switch]$include_theme,$user_data,[switch]$allow_elevation)',[Text.UTF8Encoding]::new($false))
+ [IO.Directory]::CreateDirectory((Join-Path $host_root 'resources'))|Out-Null
+ [IO.File]::WriteAllText((Join-Path $host_root 'resources/window.html'),'fixture')
+ & (Join-Path $public_root 'install_windows.ps1') -typora_root $host_root -user_data $user_data -non_interactive
+ $state=get_typora_shell_state $user_data
+ assert_true ($state.add_path -and $state.file_menu -and $state.folder_menu -and !$state.modern_menu) 'Default update must preserve integration options.'
+ foreach($menu in $state.menus | Where-Object {$_.key -match '\\Directory\\'}){
+  foreach($target in @($host_root,($host_root+'\'),[IO.Path]::GetPathRoot($host_root),'\\server\share\')){
+   $arguments=[shell_argument_parser]::Parse($menu.command.Replace('%1',$target).Replace('%V',$target))
+   assert_true ($arguments.Count -eq 3 -and $arguments[1] -ceq '--new') 'Directory commands must override global reopen for this invocation and pass exactly one path.'
+   assert_true ($arguments[2].IndexOf('"') -lt 0) 'Directory trailing backslashes must not escape the closing quote.'
+   assert_true ([IO.Path]::GetFullPath($arguments[2]).TrimEnd('\') -ceq [IO.Path]::GetFullPath($target).TrimEnd('\')) 'Directory commands must retain the exact target after normalization.'
+  }
+ }
  set_typora_shell_integration @parameters -remove
  $env_key=$registry.OpenSubKey($environment);$actual=$env_key.GetValue('Path',$null,[Microsoft.Win32.RegistryValueOptions]::DoNotExpandEnvironmentNames);$env_key.Dispose()
  assert_true ($actual -ceq '%USERPROFILE%\Existing;C:\Unrelated') 'Uninstall must retain unrelated PATH.'

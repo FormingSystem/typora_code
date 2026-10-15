@@ -1,8 +1,8 @@
 [CmdletBinding()]
-param([string]$probe='')
+param([string]$probe='', [switch]$adapter_only)
 $ErrorActionPreference='Stop'
 . (Join-Path $PSScriptRoot '../../scripts/lib/typora_modern_shell.ps1')
-if(@(get_typora_modern_package).Count){throw 'Run before local delivery: an existing development shell package must not be replaced by tests.'}
+if(!$adapter_only -and @(get_typora_modern_package).Count){throw 'Run before local delivery: an existing development shell package must not be replaced by tests.'}
 $manager=Join-Path $PSScriptRoot 'manage_test_artifacts.py'
 $artifact=(& python -X utf8 $manager create --pid $PID | Select-Object -Last 1)
 if($LASTEXITCODE -ne 0){throw 'Cannot allocate owned test artifacts.'}
@@ -35,12 +35,36 @@ using System.IO;
 using System.Text;
 public class shell_target_recorder {
     public static void Main(string[] arguments) {
-        File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"arguments.txt"),arguments.Length == 1 ? arguments[0] : "INVALID_ARGUMENT_COUNT",Encoding.UTF8);
+        string target=arguments.Length==2&&arguments[0]=="--new"?arguments[1]:arguments.Length==1?arguments[0]:"INVALID_ARGUMENT_COUNT";
+        File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"arguments.txt"),target,Encoding.UTF8);
+        File.WriteAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory,"launch_mode.txt"),arguments.Length==2?arguments[0]:"file",Encoding.UTF8);
     }
 }
 '@ -OutputAssembly (Join-Path $host_root 'Typora.exe') -OutputType WindowsApplication
     $file=Join-Path $work ('space & '+[char]0x4e2d+[char]0x6587+'.md')
     [IO.File]::WriteAllText($file,'# Shell fixture',[Text.UTF8Encoding]::new($false))
+    if($adapter_only){
+        $config=Join-Path (Split-Path $probe -Parent) 'shell_config.ini'
+        if(Test-Path -LiteralPath $config){throw 'Refusing to replace an existing probe configuration.'}
+        try {
+            [IO.File]::WriteAllText($config,"[shell]`r`nexecutable=$(Join-Path $host_root 'Typora.exe')`r`nfile_menu=1`r`nfolder_menu=1`r`n",[Text.Encoding]::Unicode)
+            $empty_folder=Join-Path $work ('empty space & '+[char]0x4e2d+[char]0x6587)
+            [IO.Directory]::CreateDirectory($empty_folder)|Out-Null
+            foreach($target in @($host_root,$empty_folder,[IO.Path]::GetPathRoot($work))){
+                $record=Join-Path $host_root 'arguments.txt'
+                if(Test-Path -LiteralPath $record){[IO.File]::Delete($record)}
+                & $probe --background $target invoke
+                assert_true ($LASTEXITCODE -eq 0) 'Background COM resolution and invocation must succeed.'
+                $watch=[Diagnostics.Stopwatch]::StartNew()
+                while(!(Test-Path -LiteralPath $record) -and $watch.ElapsedMilliseconds -lt 5000){Start-Sleep -Milliseconds 50}
+                assert_true ((Test-Path -LiteralPath $record) -and [IO.File]::ReadAllText($record,[Text.Encoding]::UTF8) -ceq $target) 'Background invocation must pass exactly the current directory.'
+                assert_true ([IO.File]::ReadAllText((Join-Path $host_root 'launch_mode.txt'),[Text.Encoding]::UTF8) -ceq '--new') 'Background invocation must bypass global document reopen for this launch.'
+            }
+        } finally {if(Test-Path -LiteralPath $config){[IO.File]::Delete($config)}}
+        $successful=$true
+        Write-Output 'PASS: isolated background COM adapter and real process arguments; existing user package untouched.'
+        return
+    }
     $parameters=@{user_data=$profile;typora_root=$host_root;enabled=$true;file_menu=$true;folder_menu=$true}
     $state=set_typora_modern_package @parameters -previous $null
     $initial_path=$state.path

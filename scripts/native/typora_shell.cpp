@@ -4,6 +4,9 @@
 #include <shobjidl.h>
 #include <shlwapi.h>
 #include <shellapi.h>
+#include <ocidl.h>
+#include <shlguid.h>
+#include <wrl/client.h>
 #include <atomic>
 #include <new>
 #include <string>
@@ -11,6 +14,7 @@
 // System COM names are ABI contracts. All other names belong to this adapter.
 static const CLSID shell_clsid = {0x28de196c,0x133b,0x4513,{0xaf,0x13,0x21,0xac,0xeb,0x40,0xad,0x51}};
 static std::atomic<long> object_count{0};
+using Microsoft::WRL::ComPtr;
 
 static std::wstring quote_argument(const std::wstring& value) {
     std::wstring result=L"\"";
@@ -42,27 +46,52 @@ static std::wstring get_executable(bool folder) {
     return value;
 }
 
-static HRESULT get_target(IShellItemArray* items,std::wstring& path,bool& folder) {
-    if(!items) return E_INVALIDARG;
-    DWORD count=0;
-    HRESULT result=items->GetCount(&count);
-    if(FAILED(result) || count!=1) return E_INVALIDARG;
-    IShellItem* item=nullptr;
-    result=items->GetItemAt(0,&item);
-    if(FAILED(result)) return result;
+static HRESULT get_item_target(IShellItem* item,std::wstring& path,bool& folder) {
     SFGAOF attributes=0;
-    result=item->GetAttributes(SFGAO_FILESYSTEM|SFGAO_FOLDER,&attributes);
+    HRESULT result=item->GetAttributes(SFGAO_FILESYSTEM|SFGAO_FOLDER,&attributes);
     if(SUCCEEDED(result) && (attributes&SFGAO_FILESYSTEM)) {
         PWSTR raw=nullptr;
         result=item->GetDisplayName(SIGDN_FILESYSPATH,&raw);
-        if(SUCCEEDED(result)) {path=raw;CoTaskMemFree(raw);folder=(attributes&SFGAO_FOLDER)!=0;}
+        if(SUCCEEDED(result)) {try {path=raw;} catch(...) {CoTaskMemFree(raw);throw;} CoTaskMemFree(raw);folder=(attributes&SFGAO_FOLDER)!=0;}
     } else result=E_INVALIDARG;
-    item->Release();
     return result;
 }
 
-class shell_command final: public IExplorerCommand {
+static HRESULT get_target(IShellItemArray* items,IUnknown* site,std::wstring& path,bool& folder) {
+    DWORD count=0;
+    HRESULT result=items?items->GetCount(&count):S_OK;
+    if(FAILED(result))return result;
+    if(count>1)return E_INVALIDARG;
+    ComPtr<IShellItem> item;
+    if(count==1){
+        result=items->GetItemAt(0,&item);
+        return FAILED(result)?result:get_item_target(item.Get(),path,folder);
+    }
+    if(!site)return E_PENDING;
+    ComPtr<IServiceProvider> provider;
+    result=site->QueryInterface(IID_PPV_ARGS(&provider));
+    if(FAILED(result))return result;
+    ComPtr<IFolderView> view;
+    result=provider->QueryService(SID_SFolderView,IID_PPV_ARGS(&view));
+    if(FAILED(result)){
+        ComPtr<IShellBrowser> browser;
+        result=provider->QueryService(SID_STopLevelBrowser,IID_PPV_ARGS(&browser));
+        if(FAILED(result))return result;
+        ComPtr<IShellView> shell_view;
+        result=browser->QueryActiveShellView(&shell_view);
+        if(FAILED(result))return result;
+        result=shell_view.As(&view);
+        if(FAILED(result))return result;
+    }
+    result=view->GetFolder(IID_PPV_ARGS(&item));
+    if(FAILED(result))return result;
+    result=get_item_target(item.Get(),path,folder);
+    return SUCCEEDED(result)&&!folder?E_INVALIDARG:result;
+}
+
+class shell_command final: public IExplorerCommand, public IObjectWithSite {
     std::atomic<ULONG> references{1};
+    ComPtr<IUnknown> site;
 public:
     shell_command(){++object_count;}
     ~shell_command(){--object_count;}
@@ -70,17 +99,23 @@ public:
         if(!output)return E_POINTER;
         *output=nullptr;
         if(iid==IID_IUnknown||iid==IID_IExplorerCommand){*output=static_cast<IExplorerCommand*>(this);AddRef();return S_OK;}
+        if(iid==IID_IObjectWithSite){*output=static_cast<IObjectWithSite*>(this);AddRef();return S_OK;}
         return E_NOINTERFACE;
     }
     ULONG STDMETHODCALLTYPE AddRef() override {return ++references;}
     ULONG STDMETHODCALLTYPE Release() override {ULONG left=--references;if(!left)delete this;return left;}
+    HRESULT STDMETHODCALLTYPE SetSite(IUnknown* value) override {site=value;return S_OK;}
+    HRESULT STDMETHODCALLTYPE GetSite(REFIID iid,void** output) override {
+        if(!output)return E_POINTER;*output=nullptr;
+        return site?site->QueryInterface(iid,output):E_FAIL;
+    }
     HRESULT STDMETHODCALLTYPE GetTitle(IShellItemArray*,PWSTR* text) override {
         if(!text)return E_POINTER;
         return SHStrDupW(PRIMARYLANGID(GetUserDefaultUILanguage())==LANG_CHINESE?L"\u7528 Typora \u6253\u5f00":L"Open with Typora",text);
     }
     HRESULT STDMETHODCALLTYPE GetIcon(IShellItemArray* items,PWSTR* text) override {
         if(!text)return E_POINTER;*text=nullptr;
-        try {std::wstring target;bool folder=true;HRESULT result=items?get_target(items,target,folder):S_OK;if(FAILED(result))return result;
+        try {std::wstring target;bool folder=true;HRESULT result=get_target(items,site.Get(),target,folder);if(FAILED(result)&&result!=E_PENDING)return result;
             auto executable=get_executable(folder);return executable.empty()?E_FAIL:SHStrDupW(executable.c_str(),text);
         } catch(...) {return E_OUTOFMEMORY;}
     }
@@ -88,13 +123,13 @@ public:
     HRESULT STDMETHODCALLTYPE GetCanonicalName(GUID* value) override {if(!value)return E_POINTER;*value=shell_clsid;return S_OK;}
     HRESULT STDMETHODCALLTYPE GetState(IShellItemArray* items,BOOL,EXPCMDSTATE* state) override {
         if(!state)return E_POINTER;*state=ECS_HIDDEN;
-        try {std::wstring target;bool folder=true;if((!items||SUCCEEDED(get_target(items,target,folder)))&&!get_executable(folder).empty())*state=ECS_ENABLED;return S_OK;}
+        try {std::wstring target;bool folder=true;HRESULT result=get_target(items,site.Get(),target,folder);if((result==E_PENDING||SUCCEEDED(result))&&!get_executable(folder).empty())*state=ECS_ENABLED;return S_OK;}
         catch(...) {return E_OUTOFMEMORY;}
     }
     HRESULT STDMETHODCALLTYPE Invoke(IShellItemArray* items,IBindCtx*) override {
-        try {std::wstring target;bool folder=false;HRESULT result=get_target(items,target,folder);if(FAILED(result))return result;
+        try {std::wstring target;bool folder=false;HRESULT result=get_target(items,site.Get(),target,folder);if(FAILED(result))return result==E_PENDING?E_INVALIDARG:result;
             auto executable=get_executable(folder);if(executable.empty())return HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND);
-            auto arguments=quote_argument(target);
+            auto arguments=(folder?std::wstring(L"--new "):std::wstring())+quote_argument(target);
             SHELLEXECUTEINFOW operation={sizeof(operation)};
             operation.fMask=SEE_MASK_FLAG_NO_UI;operation.lpVerb=L"open";operation.lpFile=executable.c_str();operation.lpParameters=arguments.c_str();operation.nShow=SW_SHOWNORMAL;
             return ShellExecuteExW(&operation)?S_OK:HRESULT_FROM_WIN32(GetLastError());

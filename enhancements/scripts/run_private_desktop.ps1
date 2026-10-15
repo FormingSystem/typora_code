@@ -1,5 +1,5 @@
 ﻿# Run a dedicated host copy on an independent desktop that has not switched; only terminate the process of that copy.
-param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [switch]$enable_gpu, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300, [string]$open_target='workspace/front.md')
+param([Parameter(Mandatory=$true)][string]$case_root, [int]$wait_ms=60000, [switch]$wait_for_normal_exit, [switch]$restore_session, [switch]$keep_test_work, [switch]$enable_gpu, [ValidateRange(800,7680)][int]$window_width=2100, [ValidateRange(600,4320)][int]$window_height=1300, [string]$open_target='workspace/front.md', [switch]$shell_directory_argument, [string]$readonly_folder='')
 $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName UIAutomationClient
 Add-Type -AssemblyName System.Drawing
@@ -13,6 +13,12 @@ $probe_root = $case_root
 $case_name = Split-Path -Leaf $case_root
 $document_path = [IO.Path]::GetFullPath((Join-Path $case_root $open_target))
 if (!$document_path.StartsWith($case_root+[IO.Path]::DirectorySeparatorChar,[StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath $document_path)) {throw 'Startup target must exist inside this isolated case.'}
+if($readonly_folder){
+    $setup=[IO.File]::ReadAllText((Join-Path $case_root 'setup.json'),[Text.Encoding]::UTF8)|ConvertFrom-Json
+    $fixture_hash=(Get-FileHash -LiteralPath (Join-Path $PSScriptRoot '../fixtures/shell_open_native.js') -Algorithm SHA256).Hash
+    if($setup.fixture_sha256 -ine $fixture_hash -or $restore_session -or !(Test-Path -LiteralPath $readonly_folder -PathType Container)){throw 'External read-only directories require the current shell-open fixture without session restoration.'}
+    $document_path=[IO.Path]::GetFullPath($readonly_folder)
+}
 [IO.File]::WriteAllText((Join-Path $case_root 'startup_target.json'),(@{path=$document_path}|ConvertTo-Json),[Text.UTF8Encoding]::new($false))
 $exit_on_checks = !$wait_for_normal_exit
 New-Item -ItemType Directory -Force -Path $case_root,(Join-Path $case_root 'appdata'),(Join-Path $case_root 'localappdata'),(Join-Path $case_root 'user_data') | Out-Null
@@ -95,7 +101,10 @@ $info = New-Object isolated_desktop+process_information
 if (!$document_path) { $document_path=Join-Path $probe_root 'sample.md' }
 $command = New-Object Text.StringBuilder
 [void]$command.Append('"' + $exe + '" --no-sandbox ' + $(if ($enable_gpu) { '' } else { '--disable-gpu ' }) + '--user-data-dir="' + (Join-Path $case_root 'user_data') + '"')
-if (!$restore_session) { [void]$command.Append(' "' + $document_path + '"') }
+if (!$restore_session) {
+    if($shell_directory_argument -and !(Test-Path -LiteralPath $document_path -PathType Container)){throw 'Directory shell arguments require a directory fixture.'}
+    [void]$command.Append($(if($shell_directory_argument){' --new'}else{''}) + ' "' + $document_path + $(if($shell_directory_argument){'\.'}else{''}) + '"')
+}
 $watch = [Diagnostics.Stopwatch]::StartNew()
 try {
  if (-not [isolated_desktop]::CreateProcess($exe,$command,[IntPtr]::Zero,[IntPtr]::Zero,$false,0,[IntPtr]::Zero,(Join-Path $probe_root 'host'),[ref]$startup,[ref]$info)) { throw ('CreateProcess failed: '+[Runtime.InteropServices.Marshal]::GetLastWin32Error()) }

@@ -254412,6 +254412,13 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026101502,
+        version: "2026.10.15.2",
+        date: "2026-10-15",
+        notes: ["\u6587\u4EF6\u5939\u7A7A\u767D\u5904\u53F3\u952E\u6253\u5F00\u65F6\uFF0C\u672C\u6B21\u6307\u5B9A\u76EE\u5F55\u4F18\u5148\u4E8E\u5168\u5C40\u65E7\u6587\u6863\u6062\u590D\uFF0C\u76EE\u5F55\u7A97\u53E3\u76F4\u63A5\u663E\u793A\u6587\u4EF6\u6811\uFF1B\u4FDD\u7559\u5E73\u65F6\u542F\u52A8\u7684\u6062\u590D\u8BBE\u7F6E\u3002", "\u4FEE\u590D\u76EE\u5F55\u672B\u5C3E\u53CD\u659C\u6760\u7684\u53C2\u6570\u5F15\u7528\uFF0C\u8865\u9F50Windows 11\u7B2C\u4E00\u5C42\u83DC\u5355\u65E0\u9009\u4E2D\u9879\u65F6\u7684\u76EE\u5F55\u89E3\u6790\uFF1B\u4FDD\u7559\u5DF2\u6709\u83DC\u5355\u5F00\u5173\u3002"],
+        notes_en: ["Opening a folder from its background menu now prioritizes that directory over global document restoration and shows Explorer, preserving normal startup preferences.", "Fix trailing-backslash directory quoting and resolve empty-selection Windows 11 modern menu targets while retaining menu options."]
+      },
+      {
         sequence: 2026101501,
         version: "2026.10.15.1",
         date: "2026-10-15",
@@ -268875,6 +268882,8 @@ https://creativecommons.org/licenses/by/4.0/
       lifetime.own(bind_workspace_file_header(files2, editor_actions));
       const saves = lifetime.own(bind_workspace_save_service(files2));
       lifetime.own(bind_workspace_explorer_sections(files2, explorer, saves, editor_actions.entries));
+      const initial = window._options;
+      if (initial?.mountFolder && !initial.initFilePath && !window_transfer_token(initial.initFilePath, initial.initAnchor || "")) explorer.show();
       document.documentElement.setAttribute("data-linux-note-workspace-browser", "ready");
       lifetime.add(() => document.documentElement.removeAttribute("data-linux-note-workspace-browser"));
       lifetime.own(bind_workspace_onboarding(files2));

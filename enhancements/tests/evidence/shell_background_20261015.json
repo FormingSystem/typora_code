@@ -1,0 +1,77 @@
+{
+  "date": "2026-10-15",
+  "requirement": "R084.3",
+  "release": "2026.10.15.2",
+  "source_baseline": "2654579bf9dc0b5b73d12d1215aaa6adf2bc9b93",
+  "environment": "Windows 10 19045 x64, Windows PowerShell 5.1, original Typora 1.14.10",
+  "host_asar_sha256": "4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53",
+  "findings": [
+    "User screenshot identifies the traditional folder-background menu. Host logs receive the directory then reopen a previous document; complete old field behavior was not reproduced with isolated profiles.",
+    "Directory invocation now passes documented --new without changing the saved native launch preference. Directory-only initial windows reveal Explorer; transfer windows are excluded.",
+    "The old traditional directory command fails native argument parsing for trailing backslashes. Equivalent directory-dot suffix protects drive roots and trailing separators.",
+    "Modern background commands lacked calling-site directory resolution. This separate adapter defect is covered without enabling a modern package on this machine."
+  ],
+  "build": "PASS after one transient EPERM rename retry",
+  "targeted_core": "PASS: catalog 295 suites, 174 core hashes, bundle/deployment 73 assets and 24 runtime files, context/session 20/100/1000, transfer intent, 29 restore assertions and shared directory service",
+  "traditional": {
+    "status": "PASS",
+    "case_id": "02b0d433adbe43d7af4b8e908e9d3d6e",
+    "install_cycles": 20,
+    "coverage": "Native argument parsing: ordinary, trailing separator, drive and UNC roots; file command unchanged, ownership and rollback; public installer keep-options dispatch upgrades legacy receipt commands in isolated registry (asset step stubbed; lifecycle separately covered)"
+  },
+  "modern_adapter": {
+    "status": "PASS",
+    "case_id": "a1d2bb67313f4880baac8a407c00e122",
+    "quote_roundtrips": 7000,
+    "background_resolutions": 3000,
+    "coverage": "Actual Shell folder views with simulated COM sites; null/empty, browser fallback, selection precedence, error/multi/virtual rejection, lifecycle, real process directory and --new capture"
+  },
+  "native": {
+    "status": "PASS",
+    "launches": 6,
+    "coverage": "Markdown, C++ source, nonempty directory, empty Chinese/special-character directory, normal file-window exit then Downloads cold launch",
+    "downloads_case": "3d88ff00b3dc464f91eb18036a8dba88",
+    "downloads_child_rows": 9,
+    "launch_mode": "Explicit --user-data-dir with runtime assertion, isolated desktop and unchanged host executable; directory arguments match shell entry, no physical Explorer click",
+    "assertions": "Visible Explorer without a follow-up click, matching context/vault/tree roots, existing child paths, saved native restore preference 2 unchanged",
+    "downloads_screenshot_reviewed": true,
+    "user_directory_access": "Read-only directory listing; documents were not opened or modified"
+  },
+  "workspace_switch_ui": {
+    "status": "PASS",
+    "case_id": "460435826ba645ebac4155305006a273",
+    "checks": 15,
+    "repeated_switches": 20
+  },
+  "uninstall": {
+    "status": "PASS",
+    "case_id": "46863617d06d473ca29a9241806b6f91",
+    "assertions": 65
+  },
+  "isolated_install": {
+    "status": "PASS",
+    "case_id": "d17ee99d07a342ec9e8364bfa81d1583",
+    "coverage": "Public install/check/restore uninstall/reinstall/check, detach without compatible backup/reinstall/check, four startup preferences, permission and rollback; final public menu-dispatch change checked separately with real isolated registry"
+  },
+  "local_delivery": {
+    "status": "INSTALLED_AND_CHECKED",
+    "assets": 73,
+    "terminal_assets": 24,
+    "themes": 5,
+    "protected_non_profile_files_unchanged": 6,
+    "profile_preservation": "Current file matches immediate pre-install backup; earlier default-profile experiment rewrote profile, so whole-turn byte equality is not claimed",
+    "native_launch_preference": "2 unchanged",
+    "modern_menu": false,
+    "uninstall": "Read-only preflight PASS; real user environment not uninstalled",
+    "runtime": "User windows not restarted; manual restart loads candidate"
+  },
+  "limitations": [
+    "Full check failed in terminal special-character PTY roundtrip on an earlier candidate; not claimed as passing for the final candidate.",
+    "Startup UI suite failed twice waiting for Git footer Sync network calls on an earlier candidate; workspace-switch and native directory tests passed separately.",
+    "Modern package registration requires an unsupported local platform/developer-mode combination; no system policy was changed. Adapter tests are not Windows 11 physical menu acceptance.",
+    "A separate saved-workspace-session case with an active file outside its root remounts that file's directory; it is not the supplied Downloads case and remains open.",
+    "Physical Explorer clicking after local installation, existing user-window reuse and other platforms remain unverified; no user windows are closed automatically.",
+    "Earlier APPDATA-only default-profile experiments reached the real native profile and rewrote it; those runs are excluded. The test option was removed, runtime isolation assertion added, and all six acceptance launches rerun. Six non-profile protected files match the initial snapshot; profile matches immediate installation backup and retains restore mode 2. Whole-turn native profile byte preservation is not claimed."
+  ],
+  "artifact_cleanup": "Final native, adapter and uninstall payloads cleaned; an owned default-profile junction was removed nonrecursively before managed cleanup. Logs, checks and screenshots retained."
+}
