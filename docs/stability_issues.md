@@ -583,3 +583,5 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 
 
 2026-10-11 R069.15：BUG-preview-search-icon-rotation，分类preview/style。共享标题对所有aria-expanded=false按钮旋转，已按折叠角色隔离；此前UI漏加载搜索样式、原生截图只覆盖查找展开态，现补足关闭态及跨面板组合。红测/绿测与安装见[证据](../enhancements/tests/evidence/preview_find_icon_20261011.json)。其他未决不随本项关闭。
+
+2026-10-15 R031.3：BUG-preview-image-binary / BUG-preview-media-focus，分类preview/media与preview/input。本地图片误入文本二进制检查；中间候选实际原生放大时焦点误关闭来源浮层。分别修正图片适配与媒体事件来源归属。截图断言比较不同原始帧，夹具序列化、HTTP采样区域及就绪等待错误单独记录，不冒充产品缺陷。红绿与安装见[证据](../enhancements/tests/evidence/animated_images_20261015.json)。R084.2仍按用户要求暂停，其他未决不变。

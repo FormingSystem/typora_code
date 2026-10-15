@@ -1,6 +1,7 @@
 import {read_search_preview_context,observe_search_preview_context} from "./workspace_search_preview_context";
 import {workspace_text} from "./workspace_i18n";
 import {create_preview_web} from './workspace_preview_web';
+import {create_preview_image,preview_image_mime} from './workspace_preview_image';
 import {create_preview_find} from './workspace_preview_find';
 import type {workspace_file_host} from "./workspace_files";
 import {create_lookup_preview} from "./workspace_lookup_preview";
@@ -26,13 +27,14 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const runtime=window as any,interaction=acquire_workspace_interaction(container),history=create_reading_history();
   const style=acquire_workspace_style('typora-code-style:workspace_lookup_preview',preview_css,{});
   let web:ReturnType<typeof create_preview_web>|undefined;
+  let image:ReturnType<typeof create_preview_image>|undefined,pending_image:ReturnType<typeof create_preview_image>|undefined;
   let target:workspace_link_target|undefined,request:workspace_link_request|undefined,failed_request:workspace_link_request|undefined,generation=0,disposed=false;
   let reader:preview_reader|undefined,pending_reader:preview_reader|undefined,pending_stage:HTMLElement|undefined;
   let directory:ReturnType<typeof create_preview_directory>|undefined,pending_directory:ReturnType<typeof create_preview_directory>|undefined,directories:directory_location[]=[];
   const path_request=(path:string):workspace_link_request=>({source:path,href:encodeURI(path.replace(/\\/gu,'/')).replace(/#/gu,'%23')});
   const return_directory=workspace_button('',()=>{const last=directories.at(-1);if(last)void navigate(path_request(last.path));},'workspace-preview-directory-return');return_directory.hidden=true;
   container.tabIndex=-1;
-  const focus=()=>{if(directory)directory.focus();else if(reader)reader.focus();else container.focus({preventScroll:true});};
+  const focus=()=>{if(directory)directory.focus();else if(image)image.focus();else if(reader)reader.focus();else container.focus({preventScroll:true});};
   const find=create_preview_find(container,()=>container.dataset.state==='loading'||directory?undefined:web?.find_target||reader?.find_target);
   const scale=create_preview_scale_controls({container,get_scale:()=>reader?.get_scale()||80,set_scale:value=>reader?.set_scale(value)});
   scale.container.hidden=true;
@@ -59,8 +61,8 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
   const set_pinned=(value:boolean)=>{if(!pin)return;pin.setAttribute('aria-pressed',String(value));pin.title=value?workspace_text("link_preview_unpin_link_preview"):workspace_text("link_preview_pin_link_preview");pin.setAttribute('aria-label',pin.title);};
   if(pin){container.classList.add('has-pin');toolbar.append(pin);set_pinned(false);}
   if(options.close)toolbar.append(git_icon_button('close',workspace_text("link_preview_close_link_preview"),options.close));
-  const cancel_pending=()=>{++generation;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
-  const clear=()=>{find.reset();cancel_pending();web?.dispose();web=undefined;history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;sync_navigation();directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
+  const cancel_pending=()=>{++generation;pending_image?.dispose();pending_image=undefined;pending_reader?.dispose();pending_reader=undefined;pending_directory?.dispose();pending_directory=undefined;pending_stage?.remove();pending_stage=undefined;};
+  const clear=()=>{find.reset();cancel_pending();image?.dispose();image=undefined;web?.dispose();web=undefined;history.clear();reader?.dispose();reader=undefined;directory?.dispose();directory=undefined;sync_navigation();directories=[];return_directory.hidden=true;content.replaceChildren();scale.container.hidden=true;request=undefined;target=undefined;failed_request=undefined;message.hidden=true;};
   const capture=():reading_location|undefined=>{
     if(!target||!request)return;
     const position=reader?.capture_position();
@@ -79,6 +81,7 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
     sync_navigation();
     if(!target){title.textContent=value.href;title.title=value.href;open.disabled=true;}
     let next_web:ReturnType<typeof create_preview_web>|undefined;
+    let next_image:ReturnType<typeof create_preview_image>|undefined;
     let next:preview_reader|undefined,next_directory:ReturnType<typeof create_preview_directory>|undefined;
     let next_search_file:ReturnType<typeof read_search_preview_context>;
     const stage=el('div','workspace-link-preview-stage');stage.style.cssText='position:absolute;inset:0;visibility:hidden;display:flex;min-height:0';pending_stage=stage;content.append(stage);
@@ -93,6 +96,9 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
           const entries=await files.fs.promises.readdir(resolved.path,{withFileTypes:true});if(disposed||version!==generation){stage.remove();return false;}
           if(!restore){const index=next_directories.findIndex(item=>item.path===resolved.path);if(index>=0){directory_position=next_directories[index].position;next_directories=next_directories.slice(0,index);}}
           next_directory=create_preview_directory(files,resolved.path,entries,path=>void navigate(path_request(path)));pending_directory=next_directory;stage.append(next_directory.container);
+        }else if(preview_image_mime(resolved.path)){
+          const bytes=await files.fs.promises.readFile(resolved.path);if(disposed||version!==generation){stage.remove();return false;}
+          next_image=create_preview_image(bytes,preview_image_mime(resolved.path)!,files.path_api.basename(resolved.path));pending_image=next_image;stage.append(next_image.container);await next_image.ready;
         }else{
         next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href),search_anchor:false,find_changed:()=>find.refresh()});pending_reader=next;stage.append(next.container);
         const ok=await next.show({file_path:resolved.path,relative_path:files.path_api.basename(resolved.path),matches:[]},{id:"link",start:0,end:0,line:1,column:1,end_line:1,end_column:1,text:"",preview:"",preview_ranges:[]},resolved.hash,true);
@@ -103,7 +109,8 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       }else{
         next_web=create_preview_web(resolved.url,()=>{if(disposed||version!==generation)return;sync_navigation();find.refresh();if(web&&target?.kind==='web'){const url=web.current_url();try{title.textContent=new URL(url).hostname;title.title=url;}catch{}}},action=>{if(!disposed&&version===generation)find.request(action);});stage.append(next_web.frame,next_web.status);
       }
-      if(disposed||version!==generation){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
+      if(disposed||version!==generation){next_image?.dispose();next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();return false;}
+      image?.dispose();image=next_image;pending_image=undefined;
       web?.dispose();web=next_web;reader?.dispose();directory?.dispose();reader=next;directory=next_directory;directories=next_directories;pending_directory=undefined;pending_reader=undefined;pending_stage=undefined;content.replaceChildren(...stage.childNodes);stage.remove();
       target=resolved;request={...value};message.hidden=true;search_file=next_search_file?.file;
       if(restore?.position)reader?.restore_position(restore.position);
@@ -112,8 +119,8 @@ export function create_link_preview(files:workspace_file_host,options:{close?:()
       const last=directories.at(-1);return_directory.hidden=!last;return_directory.textContent=last?workspace_text("link_preview_return_to_directory")+(files.path_api.basename(last.path)||last.path):'';return_directory.title=last?.path||'';
       title.textContent=resolved.kind==="file"?files.path_api.basename(resolved.path):new URL(resolved.url).hostname;title.title=resolved.kind==='file'?resolved.path+resolved.hash:resolved.url;
       open.title=resolved.kind==="file"?workspace_text("link_preview_open_source_file"):workspace_text("link_preview_open_in_default_browser");open.setAttribute("aria-label",open.title);open.disabled=!!directory||(resolved.kind==="web"&&!runtime.JSBridge?.showInBrowser);
-      scale.container.hidden=resolved.kind!=='file'||!!directory;sync_scale();container.dataset.state="ready";find.refresh();return true;
-    }catch(error){next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);find.refresh();}return false;}
+      scale.container.hidden=resolved.kind!=='file'||!!directory||!!image;sync_scale();container.dataset.state="ready";find.refresh();return true;
+    }catch(error){next_image?.dispose();next_web?.dispose();next?.dispose();next_directory?.dispose();stage.remove();if(!disposed&&version===generation){pending_image=undefined;pending_reader=undefined;pending_directory=undefined;pending_stage=undefined;failed_request={...value};fail(error);find.refresh();}return false;}
     finally{if(!disposed&&version===generation)sync_navigation();}
   };
   const show=async(value:workspace_link_request)=>{clear();if(await load(value)){const location=capture();if(location)history.record_selection(location);}sync_navigation();};

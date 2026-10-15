@@ -7,6 +7,7 @@ import {workspace_element as el,workspace_menu} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {git_icon} from "./git_icons";
+import {reading_media_source_for_event} from './reading_media_viewer';
 
 /** Selection sends to the reading sidebar; split view holds its own fixed target and resources. */
 export function bind_workspace_link_selection(core:graph_core,files:workspace_file_host,visible:()=>boolean,preview:(request:workspace_link_request)=>void,interaction?:{root:HTMLElement;outside:()=>void}){
@@ -32,7 +33,11 @@ export function bind_workspace_link_selection(core:graph_core,files:workspace_fi
   };
   const selected=()=>{const selection=window.getSelection();if(!selection?.rangeCount)return;const first=request_for(selection.anchorNode),last=request_for(selection.focusNode);if(first&&last&&first.source===last.source&&first.href===last.href)return first;};
   const preview_scope='.workspace-link-dock,.workspace-link-preview,.workspace-lookup-preview,.workspace-link-preview-menu';
-  const in_preview=(event:Event)=>event.composedPath().some(node=>node instanceof Element&&(interaction?node===interaction.root||!!node.closest('.workspace-link-preview-menu'):!!node.closest(preview_scope)));
+  const in_preview=(event:Event)=>{
+    const source=reading_media_source_for_event(event);
+    if(source&&(interaction?interaction.root.contains(source):!!source.closest(preview_scope)))return true;
+    return event.composedPath().some(node=>node instanceof Element&&(interaction?node===interaction.root||!!node.closest('.workspace-link-preview-menu'):!!node.closest(preview_scope)));
+  };
   // Interaction intent is separate from the selection: tool buttons can retain the old selection of the document, but cannot borrow pointerup to open it again.
   const intent=(event:Event)=>{
     if(event instanceof KeyboardEvent&&['Control','Shift','Alt','Meta'].includes(event.key))return;

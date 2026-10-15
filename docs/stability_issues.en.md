@@ -627,3 +627,5 @@ Categories: preview/input and explorer/state. Capturing pointerdown dismissed th
 
 
 2026-10-11 R069.15: BUG-preview-search-icon-rotation (preview/style). Shared heading CSS rotated all aria-expanded=false buttons. Scope now follows disclosure ownership; regression tests combine search styles and closed Find states, missing from previous UI fixtures and native screenshots. See [baseline, fix and delivery](../enhancements/tests/evidence/preview_find_icon_20261011.json). Other open issues remain.
+
+2026-10-15 R031.3: BUG-preview-image-binary / BUG-preview-media-focus, categories preview/media and preview/input. Local images entered binary-text rejection; the intermediate native candidate dismissed the source dock when its viewer gained focus. Fixed with an image adapter and source-owned media events. Screenshot assertions compare distinct original frames. Fixture serialization, HTTP sampling region and readiness-wait corrections are recorded separately from product defects. See [red/green and installation evidence](../enhancements/tests/evidence/animated_images_20261015.json). R084.2 remains paused at user request; other open issues are unchanged.

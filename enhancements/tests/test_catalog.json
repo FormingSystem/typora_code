@@ -10291,6 +10291,78 @@
         "Preview-owned search works without editing the main document or exposing Node/host APIs to pages."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-animated-images-001",
+      "domain": "reading",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.3"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "implementation": [
+        "enhancements/src/workspace_preview_image.ts",
+        "enhancements/src/workspace_link_preview.ts",
+        "enhancements/src/reading_image_viewer.ts",
+        "enhancements/src/reading_media_viewer.ts",
+        "enhancements/src/workspace_link_selection.ts"
+      ],
+      "related_modules": [
+        "preview",
+        "reading",
+        "media"
+      ],
+      "script": "enhancements/scripts/test_animated_images.cjs",
+      "environment": [
+        "Isolated Electron with real local files and loopback HTTP"
+      ],
+      "preconditions": [
+        "Deterministic red/blue animated GIF"
+      ],
+      "steps": [
+        "Sample rendered pixels across time in document, full-screen and two previews; invalid, stale and repeated lifecycle checks."
+      ],
+      "expected": [
+        "Both red and blue frames are rendered; original bytes remain unchanged and object URLs are released."
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-animated-images-native-001",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R031.3"
+      ],
+      "design": "docs/reading_media_viewer.md",
+      "implementation": [
+        "enhancements/src/workspace_preview_image.ts",
+        "enhancements/src/reading_image_viewer.ts",
+        "enhancements/src/reading_media_viewer.ts",
+        "enhancements/src/workspace_link_selection.ts"
+      ],
+      "related_modules": [
+        "preview",
+        "reading",
+        "media"
+      ],
+      "script": "enhancements/fixtures/animated_images_native.js",
+      "runner": "enhancements/scripts/test_stability_native.ps1",
+      "environment": [
+        "Original Typora 1.14.10 on private desktop"
+      ],
+      "preconditions": [
+        "Final candidate and original animated GIF fixture"
+      ],
+      "steps": [
+        "Compare red/blue pixels in actual native screenshots for document and linked local/HTTP images, including full-screen zoom."
+      ],
+      "expected": [
+        "Both original frames render without document edits."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

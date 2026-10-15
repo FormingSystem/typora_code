@@ -2367,6 +2367,8 @@ body [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:
 .workspace-lookup-preview-message{padding:10px;font-size:12px}
 .workspace-link-preview,.workspace-link-preview-content{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;height:100%}
 .workspace-link-preview[hidden]{display:none}
+.workspace-preview-image{display:flex;flex:1;min-width:0;min-height:0;overflow:hidden}
+.workspace-preview-image>img{display:block;margin:auto;max-width:100%;max-height:100%;object-fit:contain}
 .workspace-link-preview-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:4px;height:26px;min-width:0;padding:0 6px;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
 .workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}

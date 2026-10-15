@@ -2,6 +2,13 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026101501,
+      "version": "2026.10.15.1",
+      "date": "2026-10-15",
+      "notes": ["本地图片链接支持浮动及分屏预览，GIF保留原始动画帧；双击图片可放大查看。", "正文、网络图片和放大查看继续播放原始动图；切换与关闭清理预览资源，不改写正文或图片设置。"],
+      "notes_en": ["Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.", "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."]
+    },
+    {
       "sequence": 2026101103,
       "version": "2026.10.11.3",
       "date": "2026-10-11",

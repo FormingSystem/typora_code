@@ -696,3 +696,5 @@ Preview dismissal waits for outside activation, preventing sidebar relayout from
 
 
 2026-10-11 R069.15: Disclosure rotation is scoped to the search-results preview button. Release 2026.10.11.3 is locally installed and verified; 64 native checks and targeted UI passed. User windows await normal restart; not pushed. See [evidence and retained limits](../enhancements/tests/evidence/preview_find_icon_20261011.json).
+
+2026-10-15 R031.3: The local image adapter owns original-byte object URLs and loading cleanup. Media viewers register their source; link selection retains source-scoped focus ownership. Documents and HTTP retain their existing decoding paths. Version 2026.10.15.1 is installed locally with verified assets/settings; user windows need a normal restart after saving. Actual GIF frames, core/related UI and install/uninstall checks passed. Not pushed; other animated formats/platforms are untested, R084.2 remains paused and prior issues remain open. See [current evidence](../enhancements/tests/evidence/animated_images_20261015.json).

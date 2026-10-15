@@ -3,6 +3,18 @@
 <a id="section_4d5524492a47"></a>
 # Zoom In for Images and Charts
 
+## R031.3 Animated document images and linked previews (2026-10-15)
+
+Native verification addition: a body-mounted media viewer retains the interaction ownership of its source preview. The media viewer registers the source and clears that association on close. Link selection treats only its own source viewer as internal interaction; other editor/preview interactions retain outside-dismissal behavior. Verify focus, buttons and zoom after enlargement without closing the source preview.
+
+The request covers documents and linked previews. Existing document and full-screen owners preserve original img sources; local links instead enter text preview and fail binary detection. Preserve original GIF frames for browser decoding and add an image preview, without snapshots, frame redraws, document edits or animation editing controls.
+
+The image adapter owns img/loading/object URLs; the link session owns target/history/cancellation/disposal. Local resources use the existing resolver and file service with recognized image types. Invalid images use existing error feedback without executing HTML or scripts. HTTP images retain the isolated web session; no main-process download bypass is added. Existing image owners retain zoom and cleanup; preview does not write global settings.
+
+Follow fixed VS Code 6807068 extensions/media-preview/media/imagePreview.js and imagePreview.css: original img sources and object-fit:contain. Reuse the existing container/full-screen viewer; images have no text-find capability. Switching/closing cancels loads, revokes URLs and rejects late reads. Failure preserves the main document and usable history.
+
+Compare actual screenshots across time for deterministic multi-frame GIFs in documents, full-screen and floating/split previews, local and HTTP. Cover PNG, Unicode/spaces, corrupt/missing files, reopening and stale results. Separate native-host and Chromium evidence; load/naturalWidth alone cannot prove animation. Record theme, narrow layout, zoom, installation/uninstallation and untested format/platform boundaries.
+
 <a id="section_9ed308d486be"></a>
 ## R031 Entry for Zooming In Images
 

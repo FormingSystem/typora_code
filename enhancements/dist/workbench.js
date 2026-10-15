@@ -170111,6 +170111,13 @@ https://creativecommons.org/licenses/by/4.0/
   var MAXIMUM_ZOOM = 6;
   var ZOOM_FACTOR = 1.25;
   var active_close;
+  var media_sources = /* @__PURE__ */ new WeakMap();
+  function reading_media_source_for_event(event) {
+    for (const node of event.composedPath()) if (node instanceof Element) {
+      const source = media_sources.get(node);
+      if (source) return source;
+    }
+  }
   function close_reading_media() {
     active_close?.(false);
   }
@@ -170118,6 +170125,7 @@ https://creativecommons.org/licenses/by/4.0/
     active_close?.(false);
     const previous = capture_workspace_focus(media.origin);
     const viewer = workspace_element("section", "reading-media-viewer"), header = workspace_element("div", "reading-media-header"), toolbar = workspace_element("div", "reading-media-toolbar");
+    if (media.source) media_sources.set(viewer, media.source);
     viewer.setAttribute("role", "dialog");
     viewer.setAttribute("aria-modal", "true");
     viewer.setAttribute("aria-label", media.label);
@@ -170202,6 +170210,7 @@ https://creativecommons.org/licenses/by/4.0/
       cancelAnimationFrame(ready_frame);
       resize.disconnect();
       dispose_theme();
+      media_sources.delete(viewer);
       viewer.remove();
       interaction.remove();
       style.remove();
@@ -254403,6 +254412,13 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026101501,
+        version: "2026.10.15.1",
+        date: "2026-10-15",
+        notes: ["\u672C\u5730\u56FE\u7247\u94FE\u63A5\u652F\u6301\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\uFF0CGIF\u4FDD\u7559\u539F\u59CB\u52A8\u753B\u5E27\uFF1B\u53CC\u51FB\u56FE\u7247\u53EF\u653E\u5927\u67E5\u770B\u3002", "\u6B63\u6587\u3001\u7F51\u7EDC\u56FE\u7247\u548C\u653E\u5927\u67E5\u770B\u7EE7\u7EED\u64AD\u653E\u539F\u59CB\u52A8\u56FE\uFF1B\u5207\u6362\u4E0E\u5173\u95ED\u6E05\u7406\u9884\u89C8\u8D44\u6E90\uFF0C\u4E0D\u6539\u5199\u6B63\u6587\u6216\u56FE\u7247\u8BBE\u7F6E\u3002"],
+        notes_en: ["Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.", "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."]
+      },
+      {
         sequence: 2026101103,
         version: "2026.10.11.3",
         date: "2026-10-11",
@@ -267735,6 +267751,69 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/workspace_preview_image.ts
+  function preview_image_mime(path) {
+    const extension = path.split(".").at(-1)?.toLowerCase();
+    return { gif: "image/gif", png: "image/png", apng: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", bmp: "image/bmp", avif: "image/avif", svg: "image/svg+xml", ico: "image/x-icon" }[extension || ""];
+  }
+  function create_preview_image(bytes, mime, label) {
+    const container = workspace_element("div", "workspace-preview-image"), image = workspace_element("img");
+    image.alt = label;
+    image.draggable = false;
+    container.tabIndex = 0;
+    container.append(image);
+    const url = URL.createObjectURL(new Blob([new Uint8Array(bytes)], { type: mime }));
+    let disposed = false, close_viewer, cancel_load = () => {
+    };
+    const ready2 = new Promise((resolve3, reject) => {
+      const clear = () => {
+        image.onload = null;
+        image.onerror = null;
+        cancel_load = () => {
+        };
+      };
+      image.onload = () => {
+        clear();
+        resolve3();
+      };
+      image.onerror = () => {
+        clear();
+        reject(new Error(workspace_text("reading_media_viewer_image_cannot_be_loaded_please_close_and_reopen") + ": " + label));
+      };
+      cancel_load = () => {
+        clear();
+        reject(new DOMException("Image preview cancelled", "AbortError"));
+      };
+    });
+    const open = () => {
+      if (disposed || !image.complete || !image.naturalWidth) return;
+      close_viewer?.(false);
+      const copy = new Image();
+      copy.alt = label;
+      copy.draggable = false;
+      close_viewer = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label, initial_fit: true });
+      copy.src = url;
+    };
+    const double_click = (event) => {
+      if (event.button || event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
+      event.preventDefault();
+      event.stopPropagation();
+      open();
+    };
+    image.addEventListener("dblclick", double_click);
+    image.src = url;
+    return { container, ready: ready2, focus: () => container.focus({ preventScroll: true }), dispose() {
+      if (disposed) return;
+      disposed = true;
+      cancel_load();
+      close_viewer?.(false);
+      image.removeEventListener("dblclick", double_click);
+      image.removeAttribute("src");
+      URL.revokeObjectURL(url);
+      container.remove();
+    } };
+  }
+
   // src/workspace_preview_find.ts
   function create_preview_find(root, target) {
     const bar = workspace_element("div", "workspace-preview-find"), input = workspace_element("input"), status2 = workspace_element("span", "workspace-preview-find-status");
@@ -267922,6 +268001,7 @@ https://creativecommons.org/licenses/by/4.0/
     const runtime3 = window, interaction = acquire_workspace_interaction(container), history = create_reading_history();
     const style = acquire_workspace_style("typora-code-style:workspace_lookup_preview", workspace_lookup_preview_default, {});
     let web;
+    let image, pending_image;
     let target, request, failed_request, generation = 0, disposed = false;
     let reader, pending_reader, pending_stage;
     let directory, pending_directory, directories = [];
@@ -267934,6 +268014,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.tabIndex = -1;
     const focus = () => {
       if (directory) directory.focus();
+      else if (image) image.focus();
       else if (reader) reader.focus();
       else container.focus({ preventScroll: true });
     };
@@ -268012,6 +268093,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (options2.close) toolbar.append(git_icon_button("close", workspace_text("link_preview_close_link_preview"), options2.close));
     const cancel_pending = () => {
       ++generation;
+      pending_image?.dispose();
+      pending_image = void 0;
       pending_reader?.dispose();
       pending_reader = void 0;
       pending_directory?.dispose();
@@ -268022,6 +268105,8 @@ https://creativecommons.org/licenses/by/4.0/
     const clear = () => {
       find.reset();
       cancel_pending();
+      image?.dispose();
+      image = void 0;
       web?.dispose();
       web = void 0;
       history.clear();
@@ -268076,6 +268161,7 @@ https://creativecommons.org/licenses/by/4.0/
         open.disabled = true;
       }
       let next_web;
+      let next_image;
       let next, next_directory;
       let next_search_file;
       const stage = workspace_element("div", "workspace-link-preview-stage");
@@ -268109,6 +268195,16 @@ https://creativecommons.org/licenses/by/4.0/
             next_directory = create_preview_directory(files2, resolved.path, entries3, (path) => void navigate(path_request(path)));
             pending_directory = next_directory;
             stage.append(next_directory.container);
+          } else if (preview_image_mime(resolved.path)) {
+            const bytes = await files2.fs.promises.readFile(resolved.path);
+            if (disposed || version !== generation) {
+              stage.remove();
+              return false;
+            }
+            next_image = create_preview_image(bytes, preview_image_mime(resolved.path), files2.path_api.basename(resolved.path));
+            pending_image = next_image;
+            stage.append(next_image.container);
+            await next_image.ready;
           } else {
             next = create_lookup_preview(files2, void 0, { navigate: (href) => void follow(href), search_anchor: false, find_changed: () => find.refresh() });
             pending_reader = next;
@@ -268137,12 +268233,16 @@ https://creativecommons.org/licenses/by/4.0/
           stage.append(next_web.frame, next_web.status);
         }
         if (disposed || version !== generation) {
+          next_image?.dispose();
           next_web?.dispose();
           next?.dispose();
           next_directory?.dispose();
           stage.remove();
           return false;
         }
+        image?.dispose();
+        image = next_image;
+        pending_image = void 0;
         web?.dispose();
         web = next_web;
         reader?.dispose();
@@ -268171,17 +268271,19 @@ https://creativecommons.org/licenses/by/4.0/
         open.title = resolved.kind === "file" ? workspace_text("link_preview_open_source_file") : workspace_text("link_preview_open_in_default_browser");
         open.setAttribute("aria-label", open.title);
         open.disabled = !!directory || resolved.kind === "web" && !runtime3.JSBridge?.showInBrowser;
-        scale.container.hidden = resolved.kind !== "file" || !!directory;
+        scale.container.hidden = resolved.kind !== "file" || !!directory || !!image;
         sync_scale();
         container.dataset.state = "ready";
         find.refresh();
         return true;
       } catch (error) {
+        next_image?.dispose();
         next_web?.dispose();
         next?.dispose();
         next_directory?.dispose();
         stage.remove();
         if (!disposed && version === generation) {
+          pending_image = void 0;
           pending_reader = void 0;
           pending_directory = void 0;
           pending_stage = void 0;
@@ -268283,7 +268385,11 @@ https://creativecommons.org/licenses/by/4.0/
       if (first && last2 && first.source === last2.source && first.href === last2.href) return first;
     };
     const preview_scope = ".workspace-link-dock,.workspace-link-preview,.workspace-lookup-preview,.workspace-link-preview-menu";
-    const in_preview = (event) => event.composedPath().some((node) => node instanceof Element && (interaction ? node === interaction.root || !!node.closest(".workspace-link-preview-menu") : !!node.closest(preview_scope)));
+    const in_preview = (event) => {
+      const source = reading_media_source_for_event(event);
+      if (source && (interaction ? interaction.root.contains(source) : !!source.closest(preview_scope))) return true;
+      return event.composedPath().some((node) => node instanceof Element && (interaction ? node === interaction.root || !!node.closest(".workspace-link-preview-menu") : !!node.closest(preview_scope)));
+    };
     const intent = (event) => {
       if (event instanceof KeyboardEvent && ["Control", "Shift", "Alt", "Meta"].includes(event.key)) return;
       if (event.type === "focusin" && event.target instanceof Element && event.target.closest("#write,.typ-markdown-preview")) return;

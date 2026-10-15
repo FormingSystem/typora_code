@@ -32,6 +32,8 @@ try:
         shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
     workspace = case / 'workspace'
     workspace.mkdir()
+    if fixture_path.name == 'animated_images_native.js':
+        shutil.copyfile(fixture_directory / 'animated_image.json', case / 'animated_image.json')
     if fixture_path.name == 'community_plugins_native.js':
         plugin_archive = repository_root / '.cache/community_copy_plugin/plugin.zip'
         assert digest(plugin_archive) == '41b52347fa526d23a5554813762309d368f440486c163c93885137229b44e704', 'Prepare verified Codeblock Copy Button 1.2.0 archive'

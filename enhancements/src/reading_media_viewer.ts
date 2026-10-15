@@ -10,6 +10,12 @@ import css from "./reading_media_viewer.css";
 type reading_media = {content:HTMLElement|SVGSVGElement;width:number;height:number;label:string;origin?:HTMLElement;source?:Element;initial_fit?:boolean};
 const MAXIMUM_ZOOM=6, ZOOM_FACTOR=1.25;
 let active_close:((restore?:boolean)=>void)|undefined;
+const media_sources=new WeakMap<Element,Element>();
+
+/** A body-mounted viewer retains the interaction owner of its source image. */
+export function reading_media_source_for_event(event:Event):Element|undefined {
+  for(const node of event.composedPath())if(node instanceof Element){const source=media_sources.get(node);if(source)return source;}
+}
 
 export function close_reading_media():void {active_close?.(false);}
 
@@ -18,6 +24,7 @@ export function open_reading_media(media:reading_media):(restore?:boolean)=>void
   active_close?.(false);
   const previous=capture_workspace_focus(media.origin);
   const viewer=el("section","reading-media-viewer"),header=el("div","reading-media-header"),toolbar=el("div","reading-media-toolbar");
+  if(media.source)media_sources.set(viewer,media.source);
   viewer.setAttribute("role","dialog");viewer.setAttribute("aria-modal","true");viewer.setAttribute("aria-label",media.label);
   toolbar.setAttribute("aria-label",workspace_text("reading_media_viewer_zoom_control"));
   const output=el("output"),canvas=el("div","reading-media-canvas"),positioner=el("div","reading-media-positioner"),content=el("div","reading-media-content");
@@ -57,7 +64,7 @@ export function open_reading_media(media:reading_media):(restore?:boolean)=>void
   const resize=new ResizeObserver(()=>{if(mode!=="manual")fit(mode==="fit-width",fit_initial);});resize.observe(canvas);
   const close=(restore=true)=>{
     if(closed)return;const owns_focus=escape_layer.owns_focus();closed=true;if(active_close===close)active_close=undefined;escape_layer.dispose();
-    controller.abort();source_observer.disconnect();cancelAnimationFrame(ready_frame);resize.disconnect();dispose_theme();viewer.remove();interaction.remove();style.remove();document.body.classList.remove("reading-media-viewer-open");
+    controller.abort();source_observer.disconnect();cancelAnimationFrame(ready_frame);resize.disconnect();dispose_theme();media_sources.delete(viewer);viewer.remove();interaction.remove();style.remove();document.body.classList.remove("reading-media-viewer-open");
     if(restore&&owns_focus)previous.restore();
   };
   const escape_layer=register_workspace_dismissal(()=>[viewer],()=>close(),{outside:false,focus_out:false});

@@ -1,0 +1,645 @@
+{
+  "date": "2026-10-15",
+  "requirements": [
+    "R031.3"
+  ],
+  "release": "2026.10.15.1",
+  "finding": "Local image links entered the text reader and failed binary detection. Preserve original encoded image bytes in a per-preview Blob URL. Document and HTTP image paths already preserve original frames. Native validation also exposed body-mounted viewer focus dismissing its source preview; route events through the source owner.",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "extensions/media-preview/media/imagePreview.js",
+      "extensions/media-preview/media/imagePreview.css"
+    ],
+    "adopted": "Original img source, contain sizing and automatic centering; existing shared viewer handles enlargement."
+  },
+  "baseline": {
+    "case": "f2a35bb217e24d36b2dbc7084ba60d7b",
+    "release": "2026.10.11.3",
+    "result": "Local GIF link rejected as binary text; document local/HTTP and full-screen GIF both frames already render."
+  },
+  "intermediate_defect": {
+    "case": "9e95e284eb33402a9024ae09a22c9e7b",
+    "result": "Local image preview animates, but viewer focus dismisses the floating source. Fixed with source-scoped media event ownership."
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case": "1cee1c3be8fb4e879e62ed850d172826",
+    "scope": "Complete npm run check after ownership fix",
+    "cleanup": "cleaned"
+  },
+  "ui": {
+    "status": "PASS",
+    "animation_case": "5165940f4804469dabbaf036e5011ce8",
+    "animation_checks": 39,
+    "frames": {
+      "document local GIF": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "document HTTP GIF": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "document full-screen GIF": [
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        }
+      ],
+      "linked GIF": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "linked full-screen GIF": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "zoomed GIF": [
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 2401
+        },
+        {
+          "red": 0,
+          "blue": 2401
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 2401
+        },
+        {
+          "red": 0,
+          "blue": 2401
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 2401,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 2401
+        }
+      ],
+      "second preview GIF": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "other preview survives close": [
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 1521,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1521
+        }
+      ],
+      "HTTP linked image": [
+        {
+          "red": 1600,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 1600,
+          "blue": 0
+        },
+        {
+          "red": 1600,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 1600,
+          "blue": 0
+        },
+        {
+          "red": 1600,
+          "blue": 0
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 0,
+          "blue": 1600
+        },
+        {
+          "red": 1600,
+          "blue": 0
+        }
+      ]
+    },
+    "link_case": "7aab82071a9e4a5a85c38a71a54e488b",
+    "link_checks": 239,
+    "media_case": "72b49fd6d1354e0d86844e41bbafce70",
+    "media_checks": 47,
+    "layout_case": "e9e364e1b06f46ff9e01f2ec05f81f1c",
+    "scope": "GIF frame changes in document, local/HTTP preview, full-screen and zoom; two preview instances, 20 reopen cycles, source focus, corrupt/missing/stale loads, URL cleanup and static PNG. Existing actual split lifecycle and image-layout regression suites also pass. Layout suite ran before source-focus change; layout implementation was unchanged.",
+    "fixture_corrections": [
+      "Electron executeJavaScript setup returned non-cloneable handles; changed setup completion to void.",
+      "HTTP iframe center was outside image; compare red/blue pixels across the preview rectangle.",
+      "Native selection must wait for ready/error, rather than accepting an unset state."
+    ]
+  },
+  "native": {
+    "status": "PASS",
+    "case": "39e11017b946451fa9f9076915648bc0",
+    "checks": 10,
+    "frames_bgr": {
+      "document_local": [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ],
+      "document_http": [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ],
+      "document_fullscreen": [
+        [
+          255,
+          0,
+          0
+        ],
+        [
+          0,
+          0,
+          255
+        ]
+      ],
+      "linked_local": [
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ]
+      ],
+      "linked_fullscreen": [
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ]
+      ],
+      "linked_zoom": [
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ]
+      ],
+      "linked_http": [
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          0,
+          0,
+          255
+        ],
+        [
+          255,
+          0,
+          0
+        ]
+      ]
+    },
+    "host": "Original Typora 1.14.10 / Electron 42.2.0",
+    "scope": "Original Typora, native PrintWindow screenshots; DOM gestures, not physical OS pointer input",
+    "screenshots_reviewed": [
+      "stage_linked_local_0_988118.png",
+      "stage_linked_local_2_988118.png",
+      "stage_linked_http_0_988118.png",
+      "stage_linked_http_2_988118.png"
+    ],
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case": "65ceaf3bdf2c473186d4ec0bcd020dc3",
+    "exceptions_case": "cee0dc2beb5c4841b7e4719497064bf9",
+    "exception_assertions": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; startup modes 0/1/2/3; failure/cancel/rollback",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "theme_files": 5,
+    "protected_unchanged": 4,
+    "native_startup_unchanged": true,
+    "native_mode": "2",
+    "manifest": "c0512868a8adb40f4d7939654c874a82cee80da2cccba6386e819f30f61e77b4",
+    "release": "2026.10.15.1",
+    "runtime_loaded": "User windows not restarted",
+    "uninstall": "Read-only preflight only in user environment"
+  },
+  "limits": [
+    "Animated playback was verified with GIF; PNG was the static control. Other browser-supported animated formats were not separately validated.",
+    "Native tests use DOM gestures and actual PrintWindow images, not physical OS pointer input; no full UI suite, full native theme/zoom matrix, large-animation benchmark or other-platform run.",
+    "The main-body animation path was already working and was verified without changing its implementation.",
+    "Win10 directory-background issue R084.2 remains paused at user request; previously open native rendering/navigation/PPT issues are unchanged."
+  ],
+  "git": "Commit receipt in local ledger; no push authorization for this task."
+}
