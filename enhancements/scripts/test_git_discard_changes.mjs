@@ -28,10 +28,11 @@ const create_repo = name => {
 };
 const selected = ['tracked.md', 'deleted.md', 'literal[1].md', 'new[1].md', 'folder/chosen.md'];
 const plan = (root, files = selected, include_untracked = true) => api.plan_git_action(reader.run, 'discard_changes', {root, target: '', hash: git(root, ['rev-parse', 'HEAD']), operation: '', paths: files}, {include_untracked});
+const index_entries = root => git(root, ['ls-files', '--stage', '-z']);
 const index_bytes = root => fs.readFileSync(path.join(root, '.git/index'));
 const gate = () => { let resolve; const promise = new Promise(done => { resolve = done; }); return {promise, resolve}; };
 try {
-  const mixed = create_repo('mixed'); const before_index = index_bytes(mixed); const before_head = git(mixed, ['rev-parse', 'HEAD']);
+  const mixed = create_repo('mixed'); const before_index = index_bytes(mixed); const before_entries = index_entries(mixed); const before_head = git(mixed, ['rev-parse', 'HEAD']);
   const prepared = await plan(mixed);
   assert.deepEqual(prepared.discard.deleted_paths, ['deleted.md']);
   const original_plan = structuredClone(prepared);
@@ -58,21 +59,34 @@ try {
     for (const file of files) { const target = path.join(recycle_root, file); fs.mkdirSync(path.dirname(target), {recursive: true}); fs.renameSync(path.join(root, file), target); recycled.push(file); }
   }});
   assert.deepEqual(recycled, ['new[1].md', 'folder/chosen.md']); assert.equal(read(recycle_root, 'new[1].md'), 'chosen new\n');
-  assert.equal(read(mixed, 'tracked.md'), 'staged\n'); assert.equal(read(mixed, 'deleted.md'), 'base\n'); assert(index_bytes(mixed).equals(before_index));
+  assert.equal(read(mixed, 'tracked.md'), 'staged\n'); assert.equal(read(mixed, 'deleted.md'), 'base\n'); assert.equal(index_entries(mixed), before_entries);
   assert.equal(git(mixed, ['rev-parse', 'HEAD']), before_head); assert.equal(read(mixed, 'staged_only.md'), 'staged only\n');
   assert.equal(read(mixed, 'literal[1].md'), 'base\n'); assert.equal(read(mixed, 'literal1.md'), 'unselected literal\n');
   assert.equal(read(mixed, 'unselected.md'), 'unselected working\n'); assert.equal(read(mixed, 'new1.md'), 'unselected new\n');
   assert.equal(read(mixed, 'folder/unselected.md'), 'unselected nested\n'); assert.equal(read(mixed, 'ignored/file.md'), 'ignored\n');
   checks.push('group discard restores tracked files from index, recycles only named untracked files, and preserves staged bytes and all unselected paths');
 
-  const tracked_only = create_repo('tracked_only'); const tracked_index = index_bytes(tracked_only);
+  const crlf = create_repo('crlf');
+  git(crlf, ['config', 'core.autocrlf', 'true']);
+  const crlf_entries = index_entries(crlf);
+  for (let cycle = 0; cycle < 20; cycle++) {
+    write(crlf, 'tracked.md', 'changed ' + cycle + '\n');
+    await api.execute_git_action(writer.run, await plan(crlf, ['tracked.md'], false), () => true);
+    assert.equal(read(crlf, 'tracked.md'), 'staged\r\n');
+    assert.equal(index_entries(crlf), crlf_entries);
+    const status = await reader.run(crlf, ['status', '--porcelain=v1', '--', 'tracked.md']);
+    assert.equal(status.trimEnd(), 'M  tracked.md');
+  }
+  checks.push('20 CRLF restores refresh stat metadata while preserving staged content and clearing unstaged status');
+
+  const tracked_only = create_repo('tracked_only'); const tracked_index = index_entries(tracked_only);
   const tracked_prepared = await plan(tracked_only);
   const selected_tracked = api.select_discard_scope(tracked_prepared, 'tracked');
   assert.deepEqual((await plan(tracked_only, selected, false)).discard, selected_tracked.discard);
   // Changes to untracked file bytes will not change the porcelain list; tracked selection no longer checks or recovers them.
   write(tracked_only, 'new[1].md', 'new user draft after preview\n');
   await api.execute_git_action(writer.run, selected_tracked, () => true);
-  assert.equal(read(tracked_only, 'tracked.md'), 'staged\n'); assert.equal(read(tracked_only, 'new[1].md'), 'new user draft after preview\n'); assert(index_bytes(tracked_only).equals(tracked_index));
+  assert.equal(read(tracked_only, 'tracked.md'), 'staged\n'); assert.equal(read(tracked_only, 'new[1].md'), 'new user draft after preview\n'); assert.equal(index_entries(tracked_only), tracked_index);
   assert.equal(read(tracked_only, 'folder/chosen.md'), 'chosen nested\n');
   checks.push('tracked-only selection needs no recycle adapter and leaves later untracked drafts untouched');
 
@@ -155,9 +169,9 @@ try {
   for (const files of [[], ['.'], ['..'], ['folder'], ['ignored/file.md'], ['staged_only.md'], ['.git/config']]) await assert.rejects(plan(invalid, files));
   assert.equal(read(invalid, 'tracked.md'), 'working\n'); checks.push('empty scope, directories, traversal, ignored files, staged-only files, and Git internals cannot expand a discard request');
 
-  const failed_recycle = create_repo('failed_recycle'); const failed_index = index_bytes(failed_recycle);
+  const failed_recycle = create_repo('failed_recycle'); const failed_index = index_entries(failed_recycle);
   await assert.rejects(api.execute_git_action(writer.run, await plan(failed_recycle), () => true, {trash_files: async () => { throw new Error('test recycle failure'); }}), /未执行永久删除/);
-  assert.equal(read(failed_recycle, 'new[1].md'), 'chosen new\n'); assert.equal(read(failed_recycle, 'tracked.md'), 'staged\n'); assert(index_bytes(failed_recycle).equals(failed_index));
+  assert.equal(read(failed_recycle, 'new[1].md'), 'chosen new\n'); assert.equal(read(failed_recycle, 'tracked.md'), 'staged\n'); assert.equal(index_entries(failed_recycle), failed_index);
   checks.push('recycle failures report partial completion and never fall back to permanent deletion');
   console.log(JSON.stringify({status: 'PASS', checks}, null, 2));
 } finally {

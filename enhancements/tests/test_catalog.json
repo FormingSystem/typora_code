@@ -236,7 +236,8 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R034.11"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -272,7 +273,8 @@
       "purpose": "implementation",
       "requirements": [
         "R027",
-        "R045"
+        "R045",
+        "R027.3"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -304,7 +306,8 @@
       "requirements": [
         "R027",
         "R045",
-        "R066"
+        "R066",
+        "R027.3"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
@@ -10366,6 +10369,42 @@
       ],
       "expected": [
         "Both original frames render without document edits."
+      ],
+      "timeout_ms": 180000
+    },
+    {
+      "id": "TC-git-interactions-native-001",
+      "domain": "git",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R034.11",
+        "R027.3"
+      ],
+      "design": "docs/git_scm_actions.md",
+      "implementation": [
+        "enhancements/src/git_diff_editor.ts",
+        "enhancements/src/git_graph_panel.ts",
+        "enhancements/src/git_graph_actions.ts"
+      ],
+      "related_modules": [
+        "git",
+        "diff",
+        "workspace"
+      ],
+      "script": "enhancements/fixtures/git_interactions_native.js",
+      "runner": "enhancements/scripts/test_stability_native.ps1",
+      "environment": [
+        "Original Typora 1.14.10 on private desktop"
+      ],
+      "preconditions": [
+        "Final candidate, original host, exclusive repository with core.autocrlf=true"
+      ],
+      "steps": [
+        "20 actual width transitions and 20 confirmed discards with independent disk/status assertions."
+      ],
+      "expected": [
+        "Both sides wrap; confirmed writes and subsequent state agree."
       ],
       "timeout_ms": 180000
     }

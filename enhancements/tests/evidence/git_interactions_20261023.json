@@ -1,0 +1,95 @@
+{
+  "date": "2026-10-23",
+  "requirements": [
+    "R034.11",
+    "R027.3"
+  ],
+  "release": "2026.10.23.1",
+  "baseline": "1def762 / 2026.10.15.2",
+  "findings": [
+    "Automatic narrow diff layout leaves the original editor secondary wrap override off when returning to two columns.",
+    "checkout-index omitted --index, leaving stale file stat metadata after restoration with CRLF conversion; native git diff was empty while porcelain reported M.",
+    "Successful background reads cleared the last operation failure reason."
+  ],
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      "src/vs/editor/browser/widget/diffEditor/components/diffEditorEditors.ts",
+      "extensions/git/src/repository.ts"
+    ],
+    "runtime": "Monaco 0.56.0",
+    "git_reference": "https://git-scm.com/docs/git-checkout-index",
+    "adopted": "Owner-scoped wrap override repair; update stat metadata during restoration while preserving staged objects; separate operation errors from read snapshots."
+  },
+  "red": {
+    "wrap_case": "e267f1f1675844e7a91eff062cb02713",
+    "failure_notice_case": "002ef8fa561f4bbfb3e5d161680550a1",
+    "native_discard_case": "6717d500ef934c2d8306844950b1e068",
+    "native_discard_observation": "Restored normalized text, empty git diff, porcelain M, core.autocrlf=true.",
+    "discarded_hypotheses": "Manual layout toggle and focus restoration race did not reproduce. An initial native raw-text assertion failed due to CRLF normalization and was corrected before status diagnosis."
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case": "e78514d5eb1a478caa2d04877b7a4cf2",
+    "scope": "Complete npm run check; includes 20 explicit CRLF restores preserving staged entries",
+    "cleanup": "cleaned"
+  },
+  "ui": {
+    "status": "PASS",
+    "diff_case": "c98bc7f97012440bb19a9ca3c37630c8",
+    "diff_checks": 72,
+    "discard_case": "3c8267d8b6774d23aa57197448439fc1",
+    "discard_checks": 13,
+    "scope": "Actual width transitions 20 times, explicit wrapping off/on, Git toolbar/range/keyboard operations, confirmation/cancellation/stale plans/failure retention/successful retry, light/dark and wide/narrow dialogs",
+    "screenshots_reviewed": [
+      "diff_long_wrap.png",
+      "diff_toolbar_1100_1_dark.png"
+    ],
+    "cleanup": "cleaned"
+  },
+  "native": {
+    "status": "PASS",
+    "case": "3c130acd28d1407c8c0236f4f0942851",
+    "host": "Original Typora 1.14.10 / Electron 42.2.0",
+    "checks": 100,
+    "width_cycles": 20,
+    "confirmed_discard_cycles": 20,
+    "scope": "Real host layout, DOM confirmation clicks, actual Git, independent disk and refreshed panel state assertions",
+    "screenshots_reviewed": [
+      "window_656862.png"
+    ],
+    "screenshot_timing": "Runner capture shows the wrap test before discard cycles; final discard assertions are in checks.json",
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case": "83c43c7ec0c4448c80389875a7c843f7",
+    "exceptions_case": "812f9b0c11be4005ad3a779b28d6edb4",
+    "exception_assertions": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; startup modes 0/1/2/3; failure/cancel/rollback",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "theme_files": 5,
+    "protected_unchanged": 4,
+    "native_startup_unchanged": true,
+    "native_mode": "2",
+    "manifest": "84f9a734800e1e592c9eddbb1ed74a5ecd00636e12de4f6cdaa3e1dc7e72f046",
+    "release": "2026.10.23.1",
+    "runtime_loaded": "User windows not restarted",
+    "uninstall": "Read-only preflight only in user environment",
+    "installer_result": "Workbench transaction succeeded; outer installer reported shell integration ownership conflict and preserved the externally changed Directory menu. Standard check and independent hashes subsequently passed. Shell registration was not forced."
+  },
+  "limits": [
+    "No physical OS mouse/keyboard, full UI suite, full native theme/zoom matrix, 100/1000-cycle focused stress run or other-platform acceptance.",
+    "Reproduced causes are fixed; this does not prove every possible intermittent Git failure or the exact unrecorded user session.",
+    "Previously open native rendering/navigation/PPT issues are unchanged; Win10 background-folder runtime acceptance from earlier work is not retested."
+  ],
+  "git": "Commit receipt in local ledger; no push authorization for this task."
+}

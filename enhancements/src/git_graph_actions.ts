@@ -280,8 +280,8 @@ export async function plan_git_action(run: git_run, id: string, context: action_
     case "discard_file": args = ["restore", "--worktree", "--", target]; break;
     case "discard_changes": {
       discard = await plan_discard_changes(run, root, context.paths, flag("include_untracked"));
-      // When checkout-index is not used with -u, it only writes to the workspace, and does not refresh the stat cache or staged content of the index.
-      args = discard.restore_paths.length ? ["checkout-index", "--force", "--", ...discard.restore_paths] : []; break;
+      // Refresh restored entries' stat cache while preserving staged objects and modes.
+      args = discard.restore_paths.length ? ["checkout-index", "--force", "--index", "--", ...discard.restore_paths] : []; break;
     }
     case "delete_untracked": args = ["clean", "-f", "--", target]; break;
     case "commit": args = ["commit", ...sign, ...(flag("amend") ? ["--amend"] : []), "-m", value("message")]; break;

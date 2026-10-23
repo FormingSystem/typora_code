@@ -171,6 +171,10 @@ app.whenReady().then(async()=>{
 
   const failed=create_repo('recycle_failure');await mount(failed);const failed_before=snapshot(failed);await open_group();await ready();await evaluate('window.recycle_failure=true');await click(scope('all'));await completed();
   const failed_after=snapshot(failed);assert.equal(failed_after.head,failed_before.head);assert.equal(failed_after.index,failed_before.index);for(const file of [long_path,binary_path])assert.equal(failed_after.files[file],failed_before.files[file]);assert.equal(await evaluate('recycled.length'),0);assert(await evaluate('panel.workbench.notice.textContent.includes("Controlled recycle failure")'));checks.push('recycle failure reports the error and retains untracked bytes, with no permanent-delete fallback');
+  await evaluate('panel.refresh()');assert(await evaluate('panel.workbench.notice.textContent.includes("Controlled recycle failure")'),'background refresh must retain the failed operation reason');
+  await evaluate('recycle_failure=false');await open_group();await ready();await click(scope('all'));await completed();assert(!(await evaluate('panel.workbench.notice.textContent')).includes('Controlled recycle failure'),'successful retry clears prior operation error');
+
+
 
   const geometry=create_repo('layout');await mount(geometry);const geometry_before=snapshot(geometry);
   for(const width of [320,900])for(const dark of [false,true])for(const kind of ['mixed','single']){

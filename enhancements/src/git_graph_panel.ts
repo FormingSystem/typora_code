@@ -76,6 +76,7 @@ export class git_graph_panel {
   repository_epoch = 0; epoch = 0; detail_epoch = 0; pending = false; writing = false; loaded = false; active = false; disposed = false;
   last_refreshed_at = 0; refresh_started_at = 0;
   private state_listeners = new Set<() => void>();
+  private operation_error = "";
   private refresh_task?: Promise<void>; private refresh_request = ""; private rendered_snapshot = "";
   private refresh_runner?: typeof this.runner; private detail_refresh_needed = false;
   files: graph_change[] = []; containment = new Map<string, string>(); ancestors = new Set<string>();
@@ -173,7 +174,7 @@ export class git_graph_panel {
     if (this.writing) { this.report(text("graph.operation_pending")); return; }
     this.column_binding?.dispose();this.column_binding=undefined;
     this.ref_picker.close(false); this.branch_picker.close(false); this.remote_picker?.close(false); this.discard_confirmation.close(false);
-    this.progress.reset();this.repository_epoch++; this.context_directory = root; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
+    this.operation_error="";this.progress.reset();this.repository_epoch++; this.context_directory = root; this.root = root; this.workbench.load_layout(); this.state = undefined; this.loaded = false; this.close_details(); this.branches = [];
     this.last_refreshed_at = 0; this.publish_state();
     this.settings = load_graph_settings(localStorage, root); this.runner.cancel(); this.runner = this.host.runner(this.settings); this.writer = this.host.runner(this.settings, true);
     this.branches = this.settings.on_load_branch ? ["HEAD"] : [...this.settings.on_load_branches]; await this.refresh();
@@ -275,7 +276,7 @@ export class git_graph_panel {
       await this.workbench.refresh(changed); if (epoch !== this.epoch) return; this.more_button.hidden = !state.more;
       this.rendered_snapshot = snapshot;
       this.status.textContent = `${state.commits.length ? text("graph.loaded_commits", {count: state.commits.length}) : text("graph.no_commits")} · ${text("graph.uncommitted_files", {count: state.changes.length})}${state.operation ? " · " + text("graph.operation_in_progress", {operation: operation_label(state.operation)}) : ""}`;
-      this.container.dataset.state = "ready";this.workbench.set_git_missing(false);this.workbench.notice.textContent="";
+      this.container.dataset.state = "ready";this.workbench.set_git_missing(false);this.workbench.notice.textContent=this.operation_error;
       if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
       if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || build_history_model(state).items.some(item=>item.id===this.selected))) {
         // The file still being M does not mean the content has not changed; variable versions continue to take content, while historical versions retain reading positions.
@@ -723,9 +724,12 @@ export class git_graph_panel {
     if (this.disposed || !this.state || this.pending || this.writing || this.writer !== expected_writer) throw new Error(text("graph.wait_for_repository"));
     const root = this.root, writer = expected_writer, action_epoch = ++this.action_epoch;
     const release = this.acquire_operation(root);
-    this.writing = true;const activity=this.progress.begin(id,this.operation_label(id));this.write_progress=activity;this.update_scm_actions();
+    this.operation_error="";this.writing = true;const activity=this.progress.begin(id,this.operation_label(id));this.write_progress=activity;this.update_scm_actions();
     try {
       return await operation(writer);
+    } catch(error) {
+      if(!this.disposed&&this.root===root&&this.writer===writer)this.operation_error=String(error instanceof Error?error.message:error);
+      throw error;
     } finally {
       // After switching databases or closing, the old preparation tasks are no longer released for new transactions, and they do not refresh other warehouses.
       try{if (action_epoch === this.action_epoch) {

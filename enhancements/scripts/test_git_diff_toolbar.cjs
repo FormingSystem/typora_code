@@ -39,6 +39,17 @@ const open_diff=async(name=filename,from='INDEX',to='WORKTREE')=>{await evaluate
 const more=async()=>{await click('[data-test-toolbar=current] [data-diff-action=more]');await wait('!!document.querySelector(".git-diff-title-menu")')};
 const select_line=async line=>{await evaluate(`right.focus();right.setPosition({lineNumber:${line},column:1});right.revealLineInCenter(${line});void 0`);await key('Down',['shift']);await check(`right.getSelection().startLineNumber===${line}&&right.getSelection().endLineNumber===${line+1}&&right.getSelection().endColumn===1`,'native Shift+Down selects only modified line '+line)};
 await open_diff();await evaluate('window.primary_leaf=leaf;window.primary_diff=diff;void 0');
+await evaluate(`window.wrap_original=left.getModel().getValue();window.wrap_modified=right.getModel().getValue();left.getModel().setValue('long '.repeat(200));right.getModel().setValue('long '.repeat(200)+' changed');diff.apply_wrap(true);diff.editor.updateOptions({renderSideBySide:true,useInlineViewWhenSpaceIsLimited:true});diff.body.style.width='400px';diff.editor.layout({width:400,height:600});void 0`);await delay(100);
+await evaluate(`diff.body.style.width='1000px';diff.editor.layout({width:1000,height:600});void 0`);await delay(100);
+for(let cycle=0;cycle<20;cycle++){await evaluate(`diff.body.style.width='400px';diff.editor.layout({width:400,height:600});void 0`);await delay(30);await evaluate(`diff.body.style.width='1000px';diff.editor.layout({width:1000,height:600});void 0`);await delay(30);await check(`left.getScrollWidth()<=left.getLayoutInfo().width+2&&right.getScrollWidth()<=right.getLayoutInfo().width+2`,'both sides wrap after resize cycle '+cycle);}
+await check(`left.getScrollWidth()<=left.getLayoutInfo().width+2&&right.getScrollWidth()<=right.getLayoutInfo().width+2`,'both long source lines wrap after inline to side-by-side transition');
+await capture('diff_long_wrap');
+await evaluate('diff.apply_wrap(false);void 0');await delay(60);
+await check('left.getScrollWidth()>left.getLayoutInfo().width&&right.getScrollWidth()>right.getLayoutInfo().width','explicit wrap off restores horizontal scrolling on both sides');
+await evaluate('diff.apply_wrap(true);void 0');await delay(60);
+await check('left.getScrollWidth()<=left.getLayoutInfo().width+2&&right.getScrollWidth()<=right.getLayoutInfo().width+2','explicit wrap on restores both sides without replacing models');
+await evaluate(`diff.body.style.width='';left.getModel().setValue(wrap_original);right.getModel().setValue(wrap_modified);void 0`);await delay(100);
+
 await check('diff.toolbar.parentElement.classList.contains("workspace-tab-strip")&&!diff.container.querySelector(".git-diff-toolbar")','production host attaches one toolbar to the owning editor group without an extra body row');
 await more();
 const required=['hide_unchanged','diff_view','show_moves','ignore_whitespace','accessible_diff','stage','open_file','refresh_diff','previous_file','next_file','stage_ranges','revert_ranges','show_opened_editors','close_all','close_saved','enable_preview_editors','lock_group','configure_editors'];
@@ -75,6 +86,8 @@ const final_work=[...reverted_lines];final_work[79]='const navigation_change = 8
 await open_diff(filename,head.trim(),'INDEX');await more();await check('!document.querySelector("[data-action=stage_ranges],[data-action=revert_ranges]")&&!!document.querySelector("[data-action=unstage]")','index comparison offers file unstage and does not invent unsupported selected-range unstage');await key('Escape');
 await open_diff(filename,head.trim(),head.trim());await more();await check('!document.querySelector("[data-action=stage_ranges],[data-action=revert_ranges],[data-action=stage],[data-action=unstage]")','historical comparison has no Git range or file write actions');await key('Escape');
 await open_diff();await evaluate('window.primary_leaf=leaf;window.primary_diff=diff;void 0');
+
+
 await open_diff(peername);await evaluate('window.peer_leaf=leaf;window.peer_diff=diff;select(primary_leaf);window.leaf=primary_leaf;window.diff=primary_diff;window.right=diff.editor.getModifiedEditor();document.querySelectorAll("[data-test-toolbar]").forEach(node=>delete node.dataset.testToolbar);diff.toolbar.dataset.testToolbar="current";void 0');
 await select_line(40);await evaluate('window.selection_before=JSON.stringify(right.getSelection());window.scroll_before=right.getScrollTop();void 0');
 await more();await click('[data-action=diff_view]');await click('[data-action=diff_mode_inline]');await wait('!primary_diff.side_by_side&&!peer_diff.side_by_side');

@@ -121,6 +121,12 @@ export class git_diff_editor {
       // The rightmost uses Monaco native difference overview: the left half is marked red for deletions, and the right half is marked green for additions.
       // The width of the overview, the click positioning, and the viewport box are managed by the upstream, without additional display of full-text thumbnails.
       this.editor = editor; editor.setModel({original, modified});
+      // Monaco's automatic inline layout leaves its secondary original-side override off.
+      // Release that stale override only when the diff owner enables wrapping again.
+      const original_editor=editor.getOriginalEditor();
+      const restore_wrap=()=>{const options=original_editor.getRawOptions();if(options.wordWrapOverride1==='on'&&options.wordWrapOverride2==='off')original_editor.updateOptions({wordWrapOverride2:'inherit'});};
+      this.subscriptions.push(original_editor.onDidChangeConfiguration(restore_wrap));restore_wrap();
+
       let revealed = false;
       this.subscriptions.push(editor.onDidUpdateDiff(() => {
         const changes = editor.getLineChanges(); this.status.textContent = changes ? text("diff.change_count", {count: changes.length}) : text("diff.incomplete");

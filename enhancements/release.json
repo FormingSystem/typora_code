@@ -2,25 +2,56 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102301,
+      "version": "2026.10.23.1",
+      "date": "2026-10-23",
+      "notes": [
+        "修复源码差异从窄布局恢复双栏后左侧不换行的问题。",
+        "修复丢弃更改后正文已恢复但文件仍显示修改的问题，保留暂存内容并同步文件状态。",
+        "Git操作失败原因在后台刷新后保留，便于识别丢弃等操作未执行的原因。"
+      ],
+      "notes_en": [
+        "Fix original-side source wrapping after returning from narrow diff layout.",
+        "Fix files remaining modified after discarding changes by refreshing file status while preserving staged content.",
+        "Retain Git operation failure reasons across background refreshes."
+      ]
+    },
+    {
       "sequence": 2026101502,
       "version": "2026.10.15.2",
       "date": "2026-10-15",
-      "notes": ["文件夹空白处右键打开时，本次指定目录优先于全局旧文档恢复，目录窗口直接显示文件树；保留平时启动的恢复设置。", "修复目录末尾反斜杠的参数引用，补齐Windows 11第一层菜单无选中项时的目录解析；保留已有菜单开关。"],
-      "notes_en": ["Opening a folder from its background menu now prioritizes that directory over global document restoration and shows Explorer, preserving normal startup preferences.", "Fix trailing-backslash directory quoting and resolve empty-selection Windows 11 modern menu targets while retaining menu options."]
+      "notes": [
+        "文件夹空白处右键打开时，本次指定目录优先于全局旧文档恢复，目录窗口直接显示文件树；保留平时启动的恢复设置。",
+        "修复目录末尾反斜杠的参数引用，补齐Windows 11第一层菜单无选中项时的目录解析；保留已有菜单开关。"
+      ],
+      "notes_en": [
+        "Opening a folder from its background menu now prioritizes that directory over global document restoration and shows Explorer, preserving normal startup preferences.",
+        "Fix trailing-backslash directory quoting and resolve empty-selection Windows 11 modern menu targets while retaining menu options."
+      ]
     },
     {
       "sequence": 2026101501,
       "version": "2026.10.15.1",
       "date": "2026-10-15",
-      "notes": ["本地图片链接支持浮动及分屏预览，GIF保留原始动画帧；双击图片可放大查看。", "正文、网络图片和放大查看继续播放原始动图；切换与关闭清理预览资源，不改写正文或图片设置。"],
-      "notes_en": ["Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.", "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."]
+      "notes": [
+        "本地图片链接支持浮动及分屏预览，GIF保留原始动画帧；双击图片可放大查看。",
+        "正文、网络图片和放大查看继续播放原始动图；切换与关闭清理预览资源，不改写正文或图片设置。"
+      ],
+      "notes_en": [
+        "Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.",
+        "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."
+      ]
     },
     {
       "sequence": 2026101103,
       "version": "2026.10.11.3",
       "date": "2026-10-11",
-      "notes": ["修复浮动及分屏预览关闭查找栏后，搜索图标被误旋转的问题；保留原有按钮位置和搜索面板折叠行为。"],
-      "notes_en": ["Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."]
+      "notes": [
+        "修复浮动及分屏预览关闭查找栏后，搜索图标被误旋转的问题；保留原有按钮位置和搜索面板折叠行为。"
+      ],
+      "notes_en": [
+        "Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."
+      ]
     },
     {
       "sequence": 2026101102,

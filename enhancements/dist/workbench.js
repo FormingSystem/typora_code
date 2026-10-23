@@ -203303,6 +203303,13 @@ https://creativecommons.org/licenses/by/4.0/
         const editor2 = editor.createDiffEditor(this.body, { ...options2, diffWordWrap: this.wrapped ? "on" : "off", renderSideBySide: this.side_by_side, useInlineViewWhenSpaceIsLimited: this.inline_when_narrow, originalEditable: false, renderGutterMenu: false, ignoreTrimWhitespace: this.ignore_whitespace, hideUnchangedRegions: { enabled: this.collapsed }, experimental: { showMoves: this.show_moves }, diffAlgorithm: "advanced", renderIndicators: true, renderOverviewRuler: true, enableSplitViewResizing: true, maxComputationTime: 0, maxFileSize: 0 });
         this.editor = editor2;
         editor2.setModel({ original, modified });
+        const original_editor = editor2.getOriginalEditor();
+        const restore_wrap = () => {
+          const options3 = original_editor.getRawOptions();
+          if (options3.wordWrapOverride1 === "on" && options3.wordWrapOverride2 === "off") original_editor.updateOptions({ wordWrapOverride2: "inherit" });
+        };
+        this.subscriptions.push(original_editor.onDidChangeConfiguration(restore_wrap));
+        restore_wrap();
         let revealed2 = false;
         this.subscriptions.push(editor2.onDidUpdateDiff(() => {
           const changes = editor2.getLineChanges();
@@ -210115,7 +210122,7 @@ https://creativecommons.org/licenses/by/4.0/
         break;
       case "discard_changes": {
         discard = await plan_discard_changes(run, root, context.paths, flag("include_untracked"));
-        args = discard.restore_paths.length ? ["checkout-index", "--force", "--", ...discard.restore_paths] : [];
+        args = discard.restore_paths.length ? ["checkout-index", "--force", "--index", "--", ...discard.restore_paths] : [];
         break;
       }
       case "delete_untracked":
@@ -251708,6 +251715,7 @@ https://creativecommons.org/licenses/by/4.0/
     last_refreshed_at = 0;
     refresh_started_at = 0;
     state_listeners = /* @__PURE__ */ new Set();
+    operation_error = "";
     refresh_task;
     refresh_request = "";
     rendered_snapshot = "";
@@ -251845,6 +251853,7 @@ https://creativecommons.org/licenses/by/4.0/
       this.branch_picker.close(false);
       this.remote_picker?.close(false);
       this.discard_confirmation.close(false);
+      this.operation_error = "";
       this.progress.reset();
       this.repository_epoch++;
       this.context_directory = root;
@@ -252011,7 +252020,7 @@ https://creativecommons.org/licenses/by/4.0/
         this.status.textContent = "".concat(state.commits.length ? git_graph_text("graph.loaded_commits", { count: state.commits.length }) : git_graph_text("graph.no_commits"), " \xB7 ").concat(git_graph_text("graph.uncommitted_files", { count: state.changes.length })).concat(state.operation ? " \xB7 " + git_graph_text("graph.operation_in_progress", { operation: operation_label(state.operation) }) : "");
         this.container.dataset.state = "ready";
         this.workbench.set_git_missing(false);
-        this.workbench.notice.textContent = "";
+        this.workbench.notice.textContent = this.operation_error;
         if (first_load && this.settings.on_load_head) this.scroll_to(state.head);
         if (this.selected && (this.selected === WORKTREE && state.changes.length > 0 || build_history_model(state).items.some((item) => item.id === this.selected))) {
           if (changed2 || this.detail_refresh_needed || [WORKTREE, INDEX].includes(this.from) || [WORKTREE, INDEX].includes(this.to)) void this.show_comparison(this.from, this.to);
@@ -252885,12 +252894,16 @@ https://creativecommons.org/licenses/by/4.0/
       if (this.disposed || !this.state || this.pending || this.writing || this.writer !== expected_writer) throw new Error(git_graph_text("graph.wait_for_repository"));
       const root = this.root, writer = expected_writer, action_epoch = ++this.action_epoch;
       const release = this.acquire_operation(root);
+      this.operation_error = "";
       this.writing = true;
       const activity = this.progress.begin(id, this.operation_label(id));
       this.write_progress = activity;
       this.update_scm_actions();
       try {
         return await operation(writer);
+      } catch (error) {
+        if (!this.disposed && this.root === root && this.writer === writer) this.operation_error = String(error instanceof Error ? error.message : error);
+        throw error;
       } finally {
         try {
           if (action_epoch === this.action_epoch) {
@@ -254412,25 +254425,56 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026102301,
+        version: "2026.10.23.1",
+        date: "2026-10-23",
+        notes: [
+          "\u4FEE\u590D\u6E90\u7801\u5DEE\u5F02\u4ECE\u7A84\u5E03\u5C40\u6062\u590D\u53CC\u680F\u540E\u5DE6\u4FA7\u4E0D\u6362\u884C\u7684\u95EE\u9898\u3002",
+          "\u4FEE\u590D\u4E22\u5F03\u66F4\u6539\u540E\u6B63\u6587\u5DF2\u6062\u590D\u4F46\u6587\u4EF6\u4ECD\u663E\u793A\u4FEE\u6539\u7684\u95EE\u9898\uFF0C\u4FDD\u7559\u6682\u5B58\u5185\u5BB9\u5E76\u540C\u6B65\u6587\u4EF6\u72B6\u6001\u3002",
+          "Git\u64CD\u4F5C\u5931\u8D25\u539F\u56E0\u5728\u540E\u53F0\u5237\u65B0\u540E\u4FDD\u7559\uFF0C\u4FBF\u4E8E\u8BC6\u522B\u4E22\u5F03\u7B49\u64CD\u4F5C\u672A\u6267\u884C\u7684\u539F\u56E0\u3002"
+        ],
+        notes_en: [
+          "Fix original-side source wrapping after returning from narrow diff layout.",
+          "Fix files remaining modified after discarding changes by refreshing file status while preserving staged content.",
+          "Retain Git operation failure reasons across background refreshes."
+        ]
+      },
+      {
         sequence: 2026101502,
         version: "2026.10.15.2",
         date: "2026-10-15",
-        notes: ["\u6587\u4EF6\u5939\u7A7A\u767D\u5904\u53F3\u952E\u6253\u5F00\u65F6\uFF0C\u672C\u6B21\u6307\u5B9A\u76EE\u5F55\u4F18\u5148\u4E8E\u5168\u5C40\u65E7\u6587\u6863\u6062\u590D\uFF0C\u76EE\u5F55\u7A97\u53E3\u76F4\u63A5\u663E\u793A\u6587\u4EF6\u6811\uFF1B\u4FDD\u7559\u5E73\u65F6\u542F\u52A8\u7684\u6062\u590D\u8BBE\u7F6E\u3002", "\u4FEE\u590D\u76EE\u5F55\u672B\u5C3E\u53CD\u659C\u6760\u7684\u53C2\u6570\u5F15\u7528\uFF0C\u8865\u9F50Windows 11\u7B2C\u4E00\u5C42\u83DC\u5355\u65E0\u9009\u4E2D\u9879\u65F6\u7684\u76EE\u5F55\u89E3\u6790\uFF1B\u4FDD\u7559\u5DF2\u6709\u83DC\u5355\u5F00\u5173\u3002"],
-        notes_en: ["Opening a folder from its background menu now prioritizes that directory over global document restoration and shows Explorer, preserving normal startup preferences.", "Fix trailing-backslash directory quoting and resolve empty-selection Windows 11 modern menu targets while retaining menu options."]
+        notes: [
+          "\u6587\u4EF6\u5939\u7A7A\u767D\u5904\u53F3\u952E\u6253\u5F00\u65F6\uFF0C\u672C\u6B21\u6307\u5B9A\u76EE\u5F55\u4F18\u5148\u4E8E\u5168\u5C40\u65E7\u6587\u6863\u6062\u590D\uFF0C\u76EE\u5F55\u7A97\u53E3\u76F4\u63A5\u663E\u793A\u6587\u4EF6\u6811\uFF1B\u4FDD\u7559\u5E73\u65F6\u542F\u52A8\u7684\u6062\u590D\u8BBE\u7F6E\u3002",
+          "\u4FEE\u590D\u76EE\u5F55\u672B\u5C3E\u53CD\u659C\u6760\u7684\u53C2\u6570\u5F15\u7528\uFF0C\u8865\u9F50Windows 11\u7B2C\u4E00\u5C42\u83DC\u5355\u65E0\u9009\u4E2D\u9879\u65F6\u7684\u76EE\u5F55\u89E3\u6790\uFF1B\u4FDD\u7559\u5DF2\u6709\u83DC\u5355\u5F00\u5173\u3002"
+        ],
+        notes_en: [
+          "Opening a folder from its background menu now prioritizes that directory over global document restoration and shows Explorer, preserving normal startup preferences.",
+          "Fix trailing-backslash directory quoting and resolve empty-selection Windows 11 modern menu targets while retaining menu options."
+        ]
       },
       {
         sequence: 2026101501,
         version: "2026.10.15.1",
         date: "2026-10-15",
-        notes: ["\u672C\u5730\u56FE\u7247\u94FE\u63A5\u652F\u6301\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\uFF0CGIF\u4FDD\u7559\u539F\u59CB\u52A8\u753B\u5E27\uFF1B\u53CC\u51FB\u56FE\u7247\u53EF\u653E\u5927\u67E5\u770B\u3002", "\u6B63\u6587\u3001\u7F51\u7EDC\u56FE\u7247\u548C\u653E\u5927\u67E5\u770B\u7EE7\u7EED\u64AD\u653E\u539F\u59CB\u52A8\u56FE\uFF1B\u5207\u6362\u4E0E\u5173\u95ED\u6E05\u7406\u9884\u89C8\u8D44\u6E90\uFF0C\u4E0D\u6539\u5199\u6B63\u6587\u6216\u56FE\u7247\u8BBE\u7F6E\u3002"],
-        notes_en: ["Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.", "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."]
+        notes: [
+          "\u672C\u5730\u56FE\u7247\u94FE\u63A5\u652F\u6301\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\uFF0CGIF\u4FDD\u7559\u539F\u59CB\u52A8\u753B\u5E27\uFF1B\u53CC\u51FB\u56FE\u7247\u53EF\u653E\u5927\u67E5\u770B\u3002",
+          "\u6B63\u6587\u3001\u7F51\u7EDC\u56FE\u7247\u548C\u653E\u5927\u67E5\u770B\u7EE7\u7EED\u64AD\u653E\u539F\u59CB\u52A8\u56FE\uFF1B\u5207\u6362\u4E0E\u5173\u95ED\u6E05\u7406\u9884\u89C8\u8D44\u6E90\uFF0C\u4E0D\u6539\u5199\u6B63\u6587\u6216\u56FE\u7247\u8BBE\u7F6E\u3002"
+        ],
+        notes_en: [
+          "Local image links now support floating and split previews with original GIF animation frames; double-click to open the image viewer.",
+          "Documents, web images and the image viewer retain original animation. Switching or closing releases preview resources without changing document content or image preferences."
+        ]
       },
       {
         sequence: 2026101103,
         version: "2026.10.11.3",
         date: "2026-10-11",
-        notes: ["\u4FEE\u590D\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\u5173\u95ED\u67E5\u627E\u680F\u540E\uFF0C\u641C\u7D22\u56FE\u6807\u88AB\u8BEF\u65CB\u8F6C\u7684\u95EE\u9898\uFF1B\u4FDD\u7559\u539F\u6709\u6309\u94AE\u4F4D\u7F6E\u548C\u641C\u7D22\u9762\u677F\u6298\u53E0\u884C\u4E3A\u3002"],
-        notes_en: ["Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."]
+        notes: [
+          "\u4FEE\u590D\u6D6E\u52A8\u53CA\u5206\u5C4F\u9884\u89C8\u5173\u95ED\u67E5\u627E\u680F\u540E\uFF0C\u641C\u7D22\u56FE\u6807\u88AB\u8BEF\u65CB\u8F6C\u7684\u95EE\u9898\uFF1B\u4FDD\u7559\u539F\u6709\u6309\u94AE\u4F4D\u7F6E\u548C\u641C\u7D22\u9762\u677F\u6298\u53E0\u884C\u4E3A\u3002"
+        ],
+        notes_en: [
+          "Fix the search icon rotating when Find is closed in floating and split previews, preserving toolbar positions and search-panel disclosure behavior."
+        ]
       },
       {
         sequence: 2026101102,
