@@ -85,5 +85,45 @@ app.whenReady().then(async()=>{
   field.blur();article.hidden=false;await pause(100);assert(!toolbar.classList.contains('is-offscreen'),'shown source restores controls');
   motion_binding.dispose();assert(!document.querySelector('.reading-media-entries'),'disposing pinned controls removes their overlay');
   return checks;
- })()`);result.checks.push(...extra);console.log(JSON.stringify(result));
+ })()`);result.checks.push(...extra);
+ // Ordinary raster 100% is pixel-for-pixel across real Chromium DPR and zoom.
+ await win.webContents.executeJavaScript(`(async()=>{
+  const article=document.querySelector('article');article.style.cssText='width:1000px';article.replaceChildren();
+  for(const width of [64,894,3840]){const canvas=document.createElement('canvas');canvas.width=width;canvas.height=80;const image=new Image();image.alt='raster '+width;image.src=canvas.toDataURL('image/png');article.append(image);await image.decode();}
+  const vector=new Image();vector.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(vector);await vector.decode();
+  window.raster_html=article.innerHTML;qa.write_reading_image_setting('scale',100);window.raster_binding=qa.bind_reading_images(article);
+ })()`);
+ win.webContents.debugger.attach('1.3');
+ const density_samples=[];
+ for(const density of [1,1.25,1.75,2])for(const zoom of [1,1.2,1.5]){
+  await win.webContents.debugger.sendCommand('Emulation.setDeviceMetricsOverride',{width:1400,height:900,deviceScaleFactor:density,mobile:false});
+  win.webContents.setZoomFactor(zoom);await pause(130);
+  const sample=await win.webContents.executeJavaScript(`(()=>{const article=document.querySelector('article'),images=[...article.querySelectorAll('img')];return{dpr:devicePixelRatio,available:article.clientWidth,widths:images.map(image=>({natural:image.naturalWidth,css:image.getBoundingClientRect().width})),unchanged:article.innerHTML===raster_html}})()`);
+  density_samples.push({density,zoom,...sample});
+  for(const image of sample.widths.slice(0,3))if(Math.abs(image.css-Math.min(image.natural/sample.dpr,sample.available))>1)throw Error('bitmap must not be enlarged by display scaling '+JSON.stringify({density,zoom,sample}));
+  if(Math.abs(sample.widths[3].css-64)>1||!sample.unchanged)throw Error('vector or source changed');
+ }
+ await win.webContents.executeJavaScript(`document.querySelector('article').style.width='200px'`);await pause(100);
+ const density_checks=await win.webContents.executeJavaScript(`(async()=>{
+  const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
+  const article=document.querySelector('article'),images=[...article.querySelectorAll('img')];
+  assert(Math.abs(images[1].getBoundingClientRect().width-200)<1,'894px bitmap shrinks to narrow content width');
+  article.style.width='1000px';qa.write_reading_image_setting('scale',150);await pause(100);
+  assert(Math.abs(images[0].getBoundingClientRect().width*devicePixelRatio-96)<2,'explicit manual bitmap enlargement remains available');
+  const field=[...document.querySelectorAll('.reading-image-scale input')][1],limit=Math.min(600,Math.floor(1000/(894/devicePixelRatio)*10000)/100);
+  assert(Math.abs(Number(field.max)-limit)<.01,'numeric limit shares bitmap density baseline');
+  qa.write_reading_image_setting('size_mode','fit_width');assert(Math.abs(images[0].getBoundingClientRect().width-1000)<1,'explicit fit-width remains intentional');
+  qa.write_reading_image_setting('scale',100);assert(article.innerHTML===raster_html,'density updates leave raster source attributes unchanged');
+  const host=document.createElement('div');document.body.append(host);const shadow=host.attachShadow({mode:'open'});shadow.innerHTML='<article style="width:1000px"></article>';const copy=images[1].cloneNode();shadow.querySelector('article').append(copy);await copy.decode();const binding=qa.bind_reading_images(shadow.querySelector('article'));await pause(100);
+  assert(Math.abs(copy.getBoundingClientRect().width*devicePixelRatio-894)<2,'Shadow Markdown reader uses the same pixel size');binding.dispose();host.remove();
+  const responsive=new Image();responsive.srcset=images[0].src+' 2x';article.append(responsive);await responsive.decode();await pause(100);
+  assert(Math.abs(responsive.getBoundingClientRect().width-responsive.naturalWidth)<1,'authored srcset density is not compensated twice');
+  images[0].src=images[1].src;await images[0].decode();await pause(100);
+  assert(Math.abs(images[0].getBoundingClientRect().width*devicePixelRatio-894)<2,'dynamic raster source uses refreshed natural dimensions');
+  raster_binding.dispose();assert(!document.querySelector('style[data-reading-image-layout]'),'density listener owner disposes its stylesheet');
+  return checks;
+ })()`);
+ result.checks.push(...density_checks);result.density_samples=density_samples;
+ fs.writeFileSync(path.join(app.getPath('userData'),'image_density_metrics.json'),JSON.stringify({status:'PASS',density_samples},null,2));
+ win.webContents.debugger.detach();console.log(JSON.stringify(result));
 }).catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

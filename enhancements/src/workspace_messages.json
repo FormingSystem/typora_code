@@ -52,8 +52,8 @@
     "en": "Global image scale (%)"
   },
   "image_layout_scale_description": {
-    "zh_cn": "输入20%～600%；100%以原图与编辑区可用宽度中较小值为基准，放大仍不超过编辑区。加减每次5%。原生单图缩放优先。",
-    "en": "Enter 20%–600%. 100% uses the smaller of natural and available editor width; enlargement remains capped at editor width. Buttons step by 5%. Native per-image zoom takes precedence."
+    "zh_cn": "输入20%～600%；位图100%按显示像素1:1，大图缩小到正文可用宽度。手动放大仍不超过正文宽度，加减每次5%。矢量图和原生单图缩放保留自身尺寸规则。",
+    "en": "Enter 20%–600%. Bitmap 100% maps image pixels to display pixels; large images shrink to the content width. Manual enlargement stays within that width; buttons step by 5%. Vector images and native per-image zoom keep their own sizing rules."
   },
   "image_layout_natural": {
     "zh_cn": "原始尺寸（全局100%）",

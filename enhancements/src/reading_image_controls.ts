@@ -6,6 +6,7 @@ import {begin_reading_image_scale,observe_reading_image_settings,read_reading_im
 import {capture_image_alignment,read_image_alignment} from "./reading_image_native";
 import {IMAGE_ALIGNMENT_VALUES,reading_image_alignment_labels,type image_alignment} from "./reading_image_settings";
 import {get_workspace_app} from "./workspace_bootstrap";
+import {reading_image_natural_width} from './reading_image_dimensions';
 
 /** Match the containing content box used by percentage image widths. */
 function image_scale_limit(image:HTMLImageElement){
@@ -14,7 +15,7 @@ function image_scale_limit(image:HTMLImageElement){
   if(!parent||!image.naturalWidth)return 100;
   const style=getComputedStyle(parent),available=parent.clientWidth-(parseFloat(style.paddingLeft)||0)-(parseFloat(style.paddingRight)||0);
   const image_style=getComputedStyle(image),border=image_style.boxSizing==='border-box'?['borderLeftWidth','borderRightWidth','paddingLeft','paddingRight'].reduce((sum,key)=>sum+(parseFloat((image_style as any)[key])||0),0):0;
-  const percent=Math.max(100,100*(available-border)/image.naturalWidth);
+  const percent=Math.max(100,100*(available-border)/reading_image_natural_width(image));
   return Math.max(20,Math.min(600,Math.floor(percent*100)/100));
 }
 

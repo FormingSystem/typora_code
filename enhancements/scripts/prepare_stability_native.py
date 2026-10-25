@@ -26,7 +26,7 @@ try:
     # New host versions are admitted only for fixtures whose ports are checked.
     expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
     host_version = '1.14.10'
-    if fixture_path.name == 'explorer_stable_native.js' and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
+    if fixture_path.name in ('explorer_stable_native.js', 'image_layout_native.js') and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
         expected_asar = digest(asar)
         host_version = '1.14.15'
         assert json.loads((host_root / 'resources/package.json').read_text(encoding='utf-8'))['version'] == host_version
@@ -37,6 +37,10 @@ try:
         shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
     workspace = case / 'workspace'
     workspace.mkdir()
+    if fixture_path.name == 'image_layout_native.js' and os.environ.get('TYPORA_IMAGE_SAMPLE'):
+        sample = Path(os.environ['TYPORA_IMAGE_SAMPLE']).resolve(strict=True)
+        assert sample.read_bytes()[:8] == b'\x89PNG\r\n\x1a\n', 'Image sample must be a PNG'
+        shutil.copyfile(sample, workspace / 'reported_sample.png')
     if fixture_path.name == 'animated_images_native.js':
         shutil.copyfile(fixture_directory / 'animated_image.json', case / 'animated_image.json')
     if fixture_path.name == 'community_plugins_native.js':

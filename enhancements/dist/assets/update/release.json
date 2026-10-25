@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102502,
+      "version": "2026.10.25.2",
+      "date": "2026-10-25",
+      "notes": [
+        "修复高DPI或窗口缩放下正文小图被额外放大的问题：位图100%按显示像素1:1，大图限制到正文宽度。",
+        "图片缩放数字框与显示共用尺寸基准，保留手动放大、适应宽度和原生单图缩放；不改图片或文档。"
+      ],
+      "notes_en": [
+        "Fix extra bitmap enlargement under display scaling or page zoom: 100% maps image pixels to display pixels, capped by content width.",
+        "Image controls share the same sizing baseline. Manual scaling, Fit Width and authored zoom remain available without changing image files or documents."
+      ]
+    },
+    {
       "sequence": 2026102501,
       "version": "2026.10.25.1",
       "date": "2026-10-25",

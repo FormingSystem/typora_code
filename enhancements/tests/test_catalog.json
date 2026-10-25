@@ -9361,7 +9361,8 @@
         "enhancements/src/reading_image_native.ts",
         "enhancements/src/reading_image_controls.ts",
         "enhancements/src/reading_image_menu.ts",
-        "enhancements/src/reading_media_entry.ts"
+        "enhancements/src/reading_media_entry.ts",
+        "enhancements/src/reading_image_dimensions.ts"
       ],
       "related_modules": [
         "images",
@@ -9373,7 +9374,8 @@
       "environment": "Isolated Electron",
       "preconditions": "Use temporary documents and isolated profile.",
       "steps": [
-        "Run shared sizing/settings ownership, fixed-coordinate repeated clicks, focus anchoring, wheel release, pane bounds, hidden/disposal cleanup and 20/100/1000 image lifecycle checks."
+        "Run shared sizing/settings ownership, fixed-coordinate repeated clicks, focus anchoring, wheel release, pane bounds, hidden/disposal cleanup and 20/100/1000 image lifecycle checks.",
+        "2026-10-25 R031.2: real Chromium display-density/page-zoom matrix and 894px PNG; pixel-for-pixel baseline, narrow content, unchanged source, shared numeric limits and lifecycle."
       ],
       "expected": [
         "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
@@ -9395,7 +9397,8 @@
         "enhancements/src/reading_image_native.ts",
         "enhancements/src/reading_image_controls.ts",
         "enhancements/src/reading_image_menu.ts",
-        "enhancements/src/reading_media_entry.ts"
+        "enhancements/src/reading_media_entry.ts",
+        "enhancements/src/reading_image_dimensions.ts"
       ],
       "related_modules": [
         "images",
@@ -9404,10 +9407,11 @@
         "reading"
       ],
       "script": "enhancements/scripts/test_stability_native.ps1",
-      "environment": "Windows private original Typora 1.14.10",
-      "preconditions": "Use temporary documents and isolated profile.",
+      "environment": "Original Typora 1.14.10 or pinned 1.14.15 on an isolated private desktop",
+      "preconditions": "Use temporary documents and isolated profile. Optional TYPORA_IMAGE_SAMPLE supplies a read-only PNG copy; fixture expects 894px width.",
       "steps": [
-        "Run native image_layout_native.js: anchored numeric typing/Enter and ten fixed-coordinate 5% clicks through automatic document scroll clamping, fitted-width scale and dynamic input/plus limits, opaque light/dark surfaces, inline global/individual alignment with trusted clicks and undo state, menu scopes, individual alignment, undo/redo, save/reopen."
+        "Run native image_layout_native.js: anchored numeric typing/Enter and ten fixed-coordinate 5% clicks through automatic document scroll clamping, fitted-width scale and dynamic input/plus limits, opaque light/dark surfaces, inline global/individual alignment with trusted clicks and undo state, menu scopes, individual alignment, undo/redo, save/reopen.",
+        "2026-10-25: sample PNG stays 894 display pixels at 100/120/150 percent window zoom, with OS density measured from the host; verify content cap and original bytes."
       ],
       "expected": [
         "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."

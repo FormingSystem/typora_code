@@ -784,5 +784,24 @@
       }
     ],
     "adopted": "Enabled, maximum seven ancestor rows and 40 percent viewport. Existing project 26px rows, shared selection and original row identity retained."
+  },
+  "reading_image_density_20261025": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "requirement": "R031.2",
+    "files": [
+      {
+        "path": "extensions/markdown-language-features/media/markdown.css",
+        "sha256": "f6d606ea4653fab1f575605d6ec253f1b13078a3763392c85a502bbc31f13110"
+      },
+      {
+        "path": "extensions/media-preview/media/imagePreview.js",
+        "sha256": "3ba9ae6cd121bb4b5a96ba3ae80cce7b0b72d6e38fc12c186a2825eaeadd00ab"
+      },
+      {
+        "path": "extensions/media-preview/media/imagePreview.css",
+        "sha256": "4207866981ca259fcd52d6e355fafb6cb7336808978628eb906224e666e3e298"
+      }
+    ],
+    "adopted": "Markdown content-width cap and separate explicit preview zoom. Bitmap naturalWidth/devicePixelRatio is a product-specific physical-pixel policy, not an upstream equivalence claim. Vector and authored responsive-image dimensions stay browser-owned."
   }
 }

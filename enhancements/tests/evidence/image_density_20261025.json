@@ -1,0 +1,145 @@
+{
+  "date": "2026-10-25",
+  "requirements": [
+    "R031.2"
+  ],
+  "release": "2026.10.25.2",
+  "baseline": "740686c / 2026.10.25.1",
+  "manifest": "b27d3f4babaf103e4b9948e8edd9f98993d8e14acaeef16449cf87b2ec8554b2",
+  "cause": "Natural bitmap pixels were treated as CSS pixels, so OS display scaling and window zoom enlarged default 100 percent images. The reported PNG is 894x1341, without a density chunk; Markdown has no explicit width/zoom and saved settings are natural/100.",
+  "implementation": "Use naturalWidth/devicePixelRatio for ordinary raster 100 percent, capped by the containing content box. Shared controls use the same baseline. Re-arm the resolution listener on density change and dispose it with its owner. Vector/srcset and explicit zoom retain their owners.",
+  "upstream": "docs/vscode_design_sources.json#reading_image_density_20261025; bitmap pixel mapping is a product adaptation.",
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case": "3e22696a6b544e8d8be6ce460722b528",
+    "scope": "Complete npm run check",
+    "cleanup": "cleaned"
+  },
+  "ui": {
+    "status": "PASS",
+    "layout_case": "a2b81e524a44485b98e92a5d6f5f4d90",
+    "layout_checks": 65,
+    "matrix_samples": 12,
+    "density": [
+      1,
+      1.25,
+      1.75,
+      2
+    ],
+    "page_zoom": [
+      1,
+      1.2,
+      1.5
+    ],
+    "regression_cases": [
+      "32876ea7034140c28524bd295f5b3b83",
+      "256b83e7efe044d08728f75bf3dac7cb",
+      "c0380a6d7eb14bea91cd1b781f49c911"
+    ],
+    "suites": [
+      "test_reading_image_layout.cjs",
+      "test_reading_media_viewer.cjs",
+      "test_animated_images.cjs"
+    ],
+    "scope": "Real Chromium emulated density and page zoom; 64/894/3840px PNG, narrow content, SVG/srcset, dynamic source, Shadow reader, manual scale and Fit Width, source protection and disposal. Existing alignment/keyboard/anchor/theme and 20/100/1000 lifecycle regression retained.",
+    "cleanup": "cleaned"
+  },
+  "native": {
+    "status": "PASS",
+    "case": "b8a1bf24509b4835873e72064f9f682d",
+    "host": "1.14.15",
+    "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+    "checks": 55,
+    "samples": [
+      {
+        "stage": "reported_density",
+        "zoom": 1,
+        "dpr": 1.75,
+        "available": 983,
+        "css": 516.5714721679688,
+        "pixels": 894.0000687939453,
+        "border": 5.71429,
+        "natural": 894,
+        "screen": {
+          "width": 2195,
+          "height": 1235
+        }
+      },
+      {
+        "stage": "reported_density",
+        "zoom": 1.2,
+        "dpr": 2.1000001430511475,
+        "available": 785,
+        "css": 431.4285583496094,
+        "pixels": 894.0000454330958,
+        "border": 5.7142800000000005,
+        "natural": 894,
+        "screen": {
+          "width": 2195,
+          "height": 1235
+        }
+      },
+      {
+        "stage": "reported_density",
+        "zoom": 1.5,
+        "dpr": 2.625,
+        "available": 587,
+        "css": 346.28570556640625,
+        "pixels": 893.9999921118165,
+        "border": 5.7142800000000005,
+        "natural": 894,
+        "screen": {
+          "width": 2195,
+          "height": 1235
+        }
+      }
+    ],
+    "scope": "Original host private desktop, actual reported PNG copy, light/dark toolbar, trusted typing and ten fixed-position clicks, alignment undo/redo/save/reopen, authored zoom and unchanged source.",
+    "screenshot_reviewed": "stage_reported_density_464708.png",
+    "cleanup": "cleaned"
+  },
+  "validation_notes": [
+    "Old implementation reproduced extra enlargement at real Chromium DPR 1.20000005; red case 068b338784294dac954f4c677002f802 retained.",
+    "Initial native assertion included transparent image borders in bitmap pixels; corrected measurement subtracts the border. The second run reached existing authored zoom and refused navigation with unsaved changes; fixture now saves that temporary document before loading the reported image. Product guard preserved.",
+    "First local uninstall preflight command used a nonexistent script subdirectory and made no changes; corrected public root entry passed."
+  ],
+  "limits": [
+    "No physical cross-monitor move, other-platform acceptance or full UI suite.",
+    "Native bitmap matrix uses one 175 percent Windows display; other display factors are Chromium emulation.",
+    "Full-screen and standalone image viewers retain their separate existing sizing.",
+    "User windows require normal restart; no window closure or live replacement.",
+    "Existing navigation/rendering/PPT and shell ownership issues remain open; no push authorized."
+  ],
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case": "3b58898d5d5641d39eb034c3e9582c8f",
+    "exceptions_case": "c0f61c11f16b4667a024a746e064d7fc",
+    "exception_assertions": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; startup modes 0/1/2/3, failures, cancel, rollback and user-data retention.",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged_from_early_snapshot": 3,
+    "native_profile_matches_install_backup": true,
+    "native_profile_note": "Profile changed after the earlier snapshot and before the installer backup; installed bytes exactly match that backup. No attempt to overwrite intervening host changes.",
+    "startup_unchanged": true,
+    "source_snapshot_comparison": {
+      ".md": false,
+      ".png": true
+    },
+    "source_note": "External Markdown changed during this task; only read by this task, never restored or rewritten. PNG bytes unchanged. Source protection also passed in isolated native tests.",
+    "sequence": 2026102502,
+    "manifest": "b27d3f4babaf103e4b9948e8edd9f98993d8e14acaeef16449cf87b2ec8554b2",
+    "standard_check": "PASS",
+    "uninstall_preflight": "PASS",
+    "runtime_loaded": "User windows not restarted",
+    "shell_integration": "Existing Directory menu ownership conflict preserved; workbench transaction installed"
+  }
+}

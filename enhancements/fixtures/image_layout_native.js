@@ -8,7 +8,7 @@
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
   const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>undefined;
-  for(const [name,width,height]of [['small',64,40],['large',1800,900]]){
+  for(const [name,width,height]of [['small',64,40],['large',4800,1800]]){
    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');context.fillStyle='#369';context.fillRect(0,0,width,height);
    fs.writeFileSync(path.join(base,'workspace',name+'.png'),Buffer.from(canvas.toDataURL('image/png').split(',')[1],'base64'));
   }
@@ -18,7 +18,9 @@
   const snapshot=()=>[...document.querySelectorAll('#write img')].map(image=>({outer:image.outerHTML,parent:image.parentElement.outerHTML,natural:[image.naturalWidth,image.naturalHeight],rect:image.getBoundingClientRect().toJSON(),width:getComputedStyle(image).width,display:getComputedStyle(image).display,margin:getComputedStyle(image).margin,zoom:getComputedStyle(image).zoom,rules:[...document.styleSheets].flatMap(sheet=>{try{return [...sheet.cssRules].filter(rule=>rule.selectorText&&image.matches(rule.selectorText)).map(rule=>rule.cssText);}catch{return [];}})}));
   for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){ClientCommand.setTheme(theme,theme);await pause(400);samples.push({theme,images:snapshot()});}
   const images=()=>[...document.querySelectorAll('#write img')];
-  assert(images()[0].getBoundingClientRect().width<80,'small image stays natural');
+  const border_width=image=>{const style=getComputedStyle(image);return parseFloat(style.borderLeftWidth)+parseFloat(style.borderRightWidth);};
+  const pixel_width=image=>(image.getBoundingClientRect().width-border_width(image))*devicePixelRatio;
+  assert(Math.abs(pixel_width(images()[0])-64)<2,'small bitmap stays pixel-for-pixel');
   assert(images()[2].getBoundingClientRect().width<80,'authored full width follows natural default');
   assert(images()[1].getBoundingClientRect().width<1800,'large image fits editor');
   const choose=async(scope,label)=>{
@@ -44,10 +46,10 @@
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'numeric_scale'}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='numeric_scale'}catch{return false}},'numeric controls captured');
   slider.value='150';slider.dispatchEvent(new Event('input',{bubbles:true}));await pause(80);
   assert(core.app.settings.get('reading_images').scale!==150,'slider preview is not persisted');
-  assert(images()[0].getBoundingClientRect().width>95&&images()[0].getBoundingClientRect().width<110,'slider changes rendered size');
+  assert(Math.abs(pixel_width(images()[0])-96)<2,'slider changes rendered bitmap size');
   slider.dispatchEvent(new Event('change',{bubbles:true}));assert(core.app.settings.get('reading_images').scale===150,'slider commits');
   slider.value='200';slider.dispatchEvent(new Event('input'));slider.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));slider.dispatchEvent(new KeyboardEvent('keyup',{key:'Escape',bubbles:true}));await pause(80);
-  assert(images()[0].getBoundingClientRect().width<110,'Escape rolls back uncommitted slider');
+  assert(Math.abs(pixel_width(images()[0])-96)<2,'Escape rolls back uncommitted slider');
   slider.value='50';slider.dispatchEvent(new Event('input'));slider.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter',bubbles:true}));await pause(150);
   const large_image=images()[1],block=large_image.closest('p'),block_style=getComputedStyle(block);
   const half=large_image.getBoundingClientRect().width,available=block.clientWidth-parseFloat(block_style.paddingLeft)-parseFloat(block_style.paddingRight);
@@ -101,6 +103,26 @@
   File.editor.imgEdit.zoomAction($(images()[0].closest('.md-image')),'50%');await pause(200);
   assert(parseFloat(getComputedStyle(images()[0]).zoom)===0.5,'native image zoom retained');
   samples.push({stage:'final',images:snapshot()});
+  await files.save_active();
+  const reported=path.join(base,'workspace/reported_sample.png');
+  if(!fs.existsSync(reported)){const canvas=document.createElement('canvas');canvas.width=894;canvas.height=1341;fs.writeFileSync(reported,Buffer.from(canvas.toDataURL('image/png').split(',')[1],'base64'));}
+  const reported_file=path.join(base,'workspace/reported.md'),reported_source='# Bitmap density\n\n![Reported](reported_sample.png)\n';
+  const original_bytes=fs.readFileSync(reported);fs.writeFileSync(reported_file,reported_source);await files.open_file(reported_file);
+  await wait(()=>images().length===1&&images()[0].naturalWidth===894,'reported image loaded');
+  const reset_button=()=>[...document.querySelectorAll('.reading-media-entry button')].find(button=>button.textContent==='100%');
+  reset_button().click();await pause(100);
+  const original_zoom=reqnode('electron').webFrame.getZoomFactor();
+  for(const zoom of [1,1.2,1.5]){
+   ClientCommand.setZoomLevel(Math.log(zoom)/Math.log(1.2));await pause(250);
+   const image=images()[0],parent=image.closest('p'),style=getComputedStyle(parent),available=parent.clientWidth-parseFloat(style.paddingLeft)-parseFloat(style.paddingRight);
+   const actual=image.getBoundingClientRect().width,expected=Math.min(894/devicePixelRatio+border_width(image),available);
+   samples.push({stage:'reported_density',zoom,dpr:devicePixelRatio,available,css:actual,pixels:pixel_width(image),border:border_width(image),natural:image.naturalWidth,screen:{width:screen.width,height:screen.height}});
+   assert(Math.abs(actual-expected)<1,'reported bitmap uses natural pixels and content width '+zoom);
+   if(zoom===1.2){image.scrollIntoView({block:'center'});await pause(100);fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'reported_density'}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='reported_density'}catch{return false}},'reported image captured');}
+  }
+  ClientCommand.setZoomLevel(Math.log(original_zoom)/Math.log(1.2));await pause(150);
+  assert(fs.readFileSync(reported).equals(original_bytes),'reported PNG bytes unchanged');
+  assert(File.editor.getMarkdown()===reported_source&&fs.readFileSync(reported_file,'utf8')===reported_source,'reported Markdown unchanged');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
 })();
