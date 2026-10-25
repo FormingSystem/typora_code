@@ -1987,6 +1987,10 @@ html[data-typora-code-presentation=error] #top-titlebar:not([data-workspace-titl
 .workspace-explorer-root { padding:0 var(--linux-note-shell-inset,10px); height:26px; line-height:26px; box-sizing:border-box; min-height:27px; font-size:12px; font-weight:600; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; border-bottom:1px solid #8882; }
 .workspace-explorer-tree { flex:1; min-height:0; position:relative; overflow:auto; outline:none; }
 .workspace-explorer-spacer { position:relative; min-width:100%; }
+/* Sticky ancestors share their original rows and interaction state. The opaque
+   layer prevents translucent selection colors exposing scrolled text below. */
+.workspace-explorer-sticky-anchor { position:sticky; top:0; height:0; z-index:2; }
+.workspace-explorer-sticky { position:relative; overflow:hidden; background:var(--workspace-sidebar-background,var(--side-bar-bg-color,#f8f8f8)); }
 .workspace-explorer-row { position:absolute; left:0; right:0; height:26px; display:flex; align-items:center; gap:0; cursor:pointer; padding-left:calc(var(--workspace-tree-depth,0) * var(--workspace-tree-indent)); padding-right:8px; white-space:nowrap; box-sizing:border-box; user-select:none; }
 
 .workspace-explorer-icon { flex:none; width:16px; height:16px; vertical-align:middle; }

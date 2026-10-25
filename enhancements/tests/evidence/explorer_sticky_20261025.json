@@ -1,0 +1,91 @@
+{
+  "date": "2026-10-25",
+  "requirements": [
+    "R028.3"
+  ],
+  "release": "2026.10.25.1",
+  "baseline": "27ac724 / 2026.10.23.1",
+  "manifest": "c37a1186342fb9dad386d52fbc8657ad412af5c32dc7aae75fe9c03a7a862c59",
+  "cause": "Virtualization recycled offscreen ancestors and supplied no sticky projection.",
+  "implementation": "Cache display ancestry and subtree ranges during model rebuilding; move original rows into a bounded sticky layer; reuse selection, commands, drag and lifecycle. Account for occlusion during keyboard/reveal and keep collapsed ancestors visible.",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source_manifest": "docs/vscode_design_sources.json#explorer_sticky_20261025",
+    "adopted": "Enabled, seven rows maximum, 40 percent viewport; existing project 26px geometry retained."
+  },
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "case": "94320946676141a8b2a30b130812870d",
+    "scope": "Complete npm run check",
+    "cleanup": "cleaned"
+  },
+  "ui": {
+    "status": "PASS",
+    "cases": [
+      "5d531ea9616340e3a210bc7f6b9056e4",
+      "345c8f8a2ded4527a170b56ee184c26a",
+      "ef3900e90612451c92abe349d5cd8da0"
+    ],
+    "suites": [
+      "test_workspace_explorer.cjs",
+      "test_workspace_explorer_history.cjs",
+      "test_remote_workspace_picker.cjs"
+    ],
+    "files": 1000,
+    "scroll_cycles": 20,
+    "wheel_input_to_observed_scroll_ms": 31,
+    "measurement_limit": "Single Chromium input sample including polling; not a performance benchmark or physical wheel measurement.",
+    "scope": "Nested ancestor rows, direct mouse/keyboard collapse, sibling replacement, depth cap seven, short viewport 40 percent cap, bounded rows, no scroll reads, row identity, refresh/root cleanup, four light/dark zoom combinations, shared picker and Explorer history regression.",
+    "screenshots_reviewed": [
+      "sticky_light_1.png",
+      "sticky_dark_1.25.png"
+    ],
+    "cleanup": "cleaned"
+  },
+  "native": {
+    "status": "PASS",
+    "case": "e453f7704cb04f8fbb97001e41373e41",
+    "host": "1.14.15",
+    "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+    "checks": 327,
+    "trusted_adjacent_clicks": 20,
+    "trusted_sticky_collapse_clicks": 20,
+    "scope": "Original Typora private desktop, production assets, 1000 nested files, bounded DOM, visible collapsed parent and unchanged editor content.",
+    "screenshot_reviewed": "stage_explorer_sticky_71582.png",
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "lifecycle_case": "3de16e20f96b43cab62e9319be629886",
+    "exceptions_case": "36014d67a7304619b02f3434c7619b70",
+    "exception_assertions": 65,
+    "scope": "Final candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check, startup modes 0/1/2/3, failure/cancel/rollback and user data retention.",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 4,
+    "startup_unchanged": true,
+    "sequence": 2026102501,
+    "manifest": "c37a1186342fb9dad386d52fbc8657ad412af5c32dc7aae75fe9c03a7a862c59",
+    "runtime_loaded": "User windows not restarted",
+    "shell_integration": "Existing Directory menu ownership conflict preserved; workbench transaction and standard check passed"
+  },
+  "validation_notes": [
+    "Initial native gate rejected installed Typora 1.14.15; failure retained in sticky_native_20261025.log. Checked frame.js theme, file and editor ports and pinned the exact ASAR only for the Explorer fixture. Final native run passed.",
+    "Final UI/native/installation runs followed the final row-order adjustment. Initial and final run evidence retained.",
+    "Initial npm build was invoked from repository root and failed before building; all successful candidate builds used enhancements/."
+  ],
+  "limits": [
+    "No full UI suite, full native light/zoom matrix, physical user desktop gestures or other-platform acceptance.",
+    "Compact folders were already inactive and remain inactive; no compact-mode acceptance claim.",
+    "User running windows require normal restart; installation does not hot-replace them.",
+    "Prior unresolved navigation, rendering, language, split/PPT and shell issues remain open. No push authorization."
+  ]
+}

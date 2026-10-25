@@ -770,5 +770,19 @@
       "icon_spacing": 16,
       "narrow_icon_spacing": 8
     }
+  },
+  "explorer_sticky_20261025": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "files": [
+      {
+        "path": "src/vs/platform/list/browser/listService.ts",
+        "sha256": "e6eb71e80f422b00c8f0c25c35bd83d922fbddad464d833fecebc75dceb96eb2"
+      },
+      {
+        "path": "src/vs/base/browser/ui/tree/abstractTree.ts",
+        "sha256": "b916c1dff06a64757275c2c6328ee88694a519fd87d62b04a7bea0c4d7ad881d"
+      }
+    ],
+    "adopted": "Enabled, maximum seven ancestor rows and 40 percent viewport. Existing project 26px rows, shared selection and original row identity retained."
   }
 }

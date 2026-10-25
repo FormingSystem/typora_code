@@ -41,6 +41,26 @@
   await files.open_file(path.join(directory,'entry_095.md'));await wait(()=>find('095'),'offscreen current file revealed');
   const box=find('095').getBoundingClientRect(),viewport=tree().getBoundingClientRect();assert(box.top>=viewport.top&&box.bottom<=viewport.bottom,'offscreen automatic target fully visible');
   for(let i=0;i<100;i++)assert(fs.readFileSync(path.join(directory,'entry_'+String(i).padStart(3,'0')+'.md'),'utf8')===content(i),'file unchanged '+i);
+  const parent=path.join(directory,'sticky_parent'),child=path.join(parent,'child');
+  fs.mkdirSync(child,{recursive:true});fs.writeFileSync(path.join(parent,'other.md'),'# Other\n');
+  for(let i=0;i<1000;i++)fs.writeFileSync(path.join(child,`nested_${String(i).padStart(4,'0')}.md`),'# Nested '+i+'\n');
+  const pinned=()=>[...tree().querySelectorAll('.workspace-explorer-sticky .workspace-explorer-row')];
+  const nested_file=path.join(child,'nested_0500.md');
+  for(let i=0;i<20;i++){
+   await files.open_file(nested_file);await pause(120);
+   await click(document.querySelector('.workspace-explorer-toolbar [data-git-icon="target"]').closest('button'));
+   await wait(()=>pinned().some(row=>row.dataset.path===child),'nested ancestor pinned');
+   const rows=pinned(),bounds=tree().getBoundingClientRect();
+   assert(rows.length===2,'two original ancestors '+i);
+   assert(rows.every(row=>row.getBoundingClientRect().top>=bounds.top&&row.getBoundingClientRect().bottom<=bounds.top+bounds.height*.4),'sticky geometry '+i);
+   assert(tree().querySelectorAll('.workspace-explorer-row').length<70,'bounded 1000-file DOM '+i);
+   if(i===0){fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'explorer_sticky'}));await pause(500);}
+   const target=rows.find(row=>row.dataset.path===child);
+   await click(target);await wait(()=>target.getAttribute('aria-expanded')==='false','native sticky collapse');
+   assert(target.isConnected&&target.getBoundingClientRect().top>=bounds.top,'collapsed folder stays visible '+i);
+   assert(File.editor.getMarkdown().trim()==='# Nested 500','collapse preserves editor '+i);
+  }
+  assert(input_events.filter(event=>event.trusted&&event.path===child).length===20,'20 trusted sticky collapse clicks');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'explorer_stable'}));await pause(500);
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,frames:frames.length,trusted,scroll:top,max_scroll_deviation:Math.max(...frames.map(frame=>Math.abs(frame.scroll-top)))},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples,input_events,diagnostic:{root:files.context_root(),tree:document.querySelector('.workspace-explorer-tree')?.outerHTML.slice(0,9000),panel:core.app.workspace.sidebar.activePanel?.ribbonButton?.id}},null,2));}

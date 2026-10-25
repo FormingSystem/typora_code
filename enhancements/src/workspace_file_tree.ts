@@ -61,11 +61,15 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const root_label = el("div", "workspace-explorer-root");
   const root_name = el("span", "workspace-explorer-root-name"), root_actions = el("div", "workspace-explorer-actions"); root_label.append(root_name, root_actions);
   const tree = el("div", "workspace-explorer-tree"); tree.tabIndex = 0; tree.setAttribute("role", "tree"); tree.setAttribute("aria-label", workspace_text("file_tree_files_and_folders"));
-  const spacer = el("div", "workspace-explorer-spacer"); tree.append(spacer);
+  const sticky_anchor = el("div", "workspace-explorer-sticky-anchor");
+  const sticky_layer = el("div", "workspace-explorer-sticky"); sticky_anchor.append(sticky_layer);
+  const spacer = el("div", "workspace-explorer-spacer"); tree.append(sticky_anchor, spacer);
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
   toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0, reveal_request = 0;
+  const display_ranges = new Map<explorer_node, {index:number; end:number; parent?:explorer_node}>();
+  let sticky_nodes = new Map<explorer_node, number>();
   let edit_dismissal:workspace_dismiss_layer|undefined;
   let rename_state: {node: explorer_node; input: HTMLInputElement; busy: boolean; focus_requested: boolean; creating?: boolean} | undefined;
   let compact_folders = false;
@@ -99,9 +103,11 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
 
   function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
     if (!node || !tree.clientHeight) return;
+    if (sticky_nodes.has(node) && rename_state?.node !== node) return;
     const index = flat_nodes.indexOf(node); if (index < 0) return;
     const top = index * ROW_HEIGHT, before = tree.scrollTop;
-    if (top < before) tree.scrollTop = top;
+    const padding = Math.min(7, Math.floor(tree.clientHeight * 0.4 / ROW_HEIGHT), node.display_depth ?? node.depth) * ROW_HEIGHT;
+    if (top < before + padding) tree.scrollTop = Math.max(0, top - padding);
     else if (top + ROW_HEIGHT > before + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
     if (tree.scrollTop !== before) render();
   }
@@ -142,23 +148,48 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     },node.path);node.watcher={close:stop};
   }
   function watch_visible(node: explorer_node) { if (node.expanded || node.compact_parent) { watch(node); for (const child of node.children || []) watch_visible(child); } }
-  function collapse(node: explorer_node) { node.expanded = false; close_branch(node); }
+  function collapse(node: explorer_node) {
+    const sticky_position = sticky_nodes.get(node), range = display_ranges.get(node);
+    if (sticky_position !== undefined && range) tree.scrollTop = Math.max(0, range.index * ROW_HEIGHT - Math.max(0, sticky_position));
+    node.expanded = false; close_branch(node);
+  }
   function create_node(file_path: string, name: string, directory: boolean, link: boolean, parent?: explorer_node): explorer_node {
     const node = {id: "workspace-explorer-node-" + ++serial, path: file_path, name, directory, link, expanded: false, parent, depth: parent ? parent.depth + 1 : -1};
     nodes.set(file_path, node); return node;
   }
   function rebuild() {
     flat_nodes = [];
+    display_ranges.clear();
     for (const node of nodes.values()) node.compact_parent = false;
-    const append = (node: explorer_node, depth = 0) => {
+    const append = (node: explorer_node, depth = 0, parent?:explorer_node) => {
       let current = node; const names = [node.name];
       if (compact_folders && !rename_state) while (current.directory && current.children?.length === 1 && current.children[0].directory && !current.children[0].link) { current.compact_parent = true; watch(current); current = current.children[0]; names.push(current.name); }
       current.display_name = names.join(" / "); current.display_depth = depth;
-      flat_nodes.push(current); if (current.expanded) for (const child of current.children || []) append(child, depth + 1);
+      const range = {index:flat_nodes.length, end:0, parent}; display_ranges.set(current, range);
+      flat_nodes.push(current); if (current.expanded) for (const child of current.children || []) append(child, depth + 1, current);
+      range.end = flat_nodes.length;
     };
     if (root) for (const child of root.children || []) append(child);
     spacer.style.height = flat_nodes.length * ROW_HEIGHT + "px";
     render();
+  }
+  function compute_sticky_nodes() {
+    const result = new Map<explorer_node, number>();
+    if (search_projection || !visible || tree.scrollTop <= 0) return result;
+    const limit = Math.min(7, Math.floor(tree.clientHeight * 0.4 / ROW_HEIGHT));
+    let previous:explorer_node|undefined;
+    for (let slot = 0; slot < limit; slot++) {
+      const offset = slot * ROW_HEIGHT;
+      let node = flat_nodes[Math.floor((tree.scrollTop + offset) / ROW_HEIGHT)];
+      if (!node) break;
+      let range = display_ranges.get(node)!;
+      while (range.parent && range.parent !== previous) { node = range.parent; range = display_ranges.get(node)!; }
+      if (range.parent !== previous || !node.expanded || range.end <= range.index + 1 || range.index * ROW_HEIGHT >= tree.scrollTop + offset) break;
+      const position = Math.min(offset, range.end * ROW_HEIGHT - tree.scrollTop - ROW_HEIGHT);
+      result.set(node, position); previous = node;
+      if (position < offset) break;
+    }
+    return result;
   }
   function render() {
     if (disposed || render_frame) return;
@@ -166,13 +197,16 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       render_frame = 0;
       const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
       const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
-      const shown = new Set(flat_nodes.slice(start, end));
+      sticky_nodes = compute_sticky_nodes();
+      const shown = new Set([...sticky_nodes.keys(), ...flat_nodes.slice(start, end)]);
+      sticky_layer.style.height = (sticky_nodes.size ? Math.max(...sticky_nodes.values()) + ROW_HEIGHT : 0) + "px";
       const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : undefined;
       const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : undefined;
       // Keep the line and name node under the mouse; only recycle lines that are off-screen, avoiding refresh cutting off browser double-click sequences.
       for (const [node, view] of row_views) if (!shown.has(node) && !drag.retains(view.row)) { view.row.remove(); row_views.delete(node); }
-      for (let index = start; index < end; index++) {
-        const node = flat_nodes[index];
+      let normal_index = 0, sticky_index = 0;
+      for (const node of shown) {
+        const index = display_ranges.get(node)!.index;
         let view = row_views.get(node);
         if (!view) {
           const row = el("div", "workspace-explorer-row"), chevron = el("span", "workspace-explorer-chevron");
@@ -214,6 +248,14 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         if (node.directory) row.setAttribute("aria-expanded", String(node.expanded)); else row.removeAttribute("aria-expanded");
         row.setAttribute("aria-busy", String(Boolean(node.loading)));
         row.style.top = index * ROW_HEIGHT + "px"; row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
+        const sticky_position = sticky_nodes.get(node);
+        row.classList.toggle("is-sticky", sticky_position !== undefined);
+        row.style.clipPath = "";
+        if (sticky_position !== undefined) {
+          row.style.top = sticky_position + "px";
+          const slot = [...sticky_nodes.keys()].indexOf(node);
+          row.style.clipPath = `inset(${Math.max(0, slot * ROW_HEIGHT - sticky_position)}px 0 0)`;
+        }
         row.title = (options.selection?.label(node.path) || node.path) + (node.error ? "\n" + node.error : "");
         const state = node.directory ? String(node.expanded) : "file";
         if (chevron.dataset.state !== state) { chevron.dataset.state = state; chevron.replaceChildren(...(node.directory ? [icon(node.expanded ? "chevron-down" : "chevron-right")] : [])); }
@@ -223,7 +265,9 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         const children = [chevron, ...(node.directory ? [] : [file_icon]), rename_state?.node === node ? rename_state.input : label, ...(message ? [note] : [])];
         for (const child of [...row.children]) if (!children.includes(child as HTMLElement)) child.remove();
         for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
-        if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
+        const parent = sticky_position === undefined ? spacer : sticky_layer;
+        const position = sticky_position === undefined ? normal_index++ : sticky_index++;
+        if (parent.children[position] !== row) parent.insertBefore(row, parent.children[position] || null);
       }
       if (focused_input?.isConnected && document.activeElement !== focused_input) { focused_input.focus({preventScroll: true}); focused_input.setSelectionRange(selection![0], selection![1]); }
       if (rename_state?.focus_requested && rename_state.input.isConnected) {
@@ -238,11 +282,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   function select(node: explorer_node, scroll = false, preserve_dom = false) {
     if (rename_state && rename_state.node !== node && !rename_state.busy) cancel_edit();
     selection_paths.clear(); selection_paths.add(node.path); selected_path = node.path; options.selection?.select(node.path,node.directory); set_status(""); tree.focus({preventScroll: true});
-    if (scroll) {
-      const index = flat_nodes.indexOf(node), top = index * ROW_HEIGHT;
-      if (top < tree.scrollTop) tree.scrollTop = top;
-      else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
-    }
+    if (scroll) keep_row_visible(node);
     if (preserve_dom) {
       selection_model.focused_key=selected_path;
       for (const row of tree.querySelectorAll<HTMLElement>(".workspace-explorer-row")) {
@@ -469,7 +509,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       const changed=selected_path!==node.path||selection_paths.size!==1||!selection_paths.has(node.path);
       if(changed){selection_paths.clear();selection_paths.add(node.path);selected_path=node.path;options.selection?.select(node.path,node.directory);}
       const top=flat_nodes.indexOf(node)*ROW_HEIGHT;
-      const needs_scroll=intent==='center'||top<tree.scrollTop||top+ROW_HEIGHT>tree.scrollTop+tree.clientHeight;
+      const needs_scroll=intent==='center'||!sticky_nodes.has(node)&&(top<tree.scrollTop+sticky_layer.clientHeight||top+ROW_HEIGHT>tree.scrollTop+tree.clientHeight);
       if(status.textContent)set_status("");
       if(needs_scroll){tree.scrollTop=Math.max(0,top-tree.clientHeight/2);render();}
       else if(changed)render();
@@ -563,7 +603,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     resize_observer.disconnect();
     if (root) close_branch(root, true);
     if (render_frame) cancelAnimationFrame(render_frame);
-    row_views.clear(); click_sequence = undefined; clear_edit(); for (const dialog of dialogs) dialog.close(); dialogs.clear();
+    row_views.clear(); display_ranges.clear(); sticky_nodes.clear(); click_sequence = undefined; clear_edit(); for (const dialog of dialogs) dialog.close(); dialogs.clear();
     for (const detach of detachers) detach();
     container.remove();style.remove();
   }

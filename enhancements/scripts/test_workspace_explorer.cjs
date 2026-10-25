@@ -421,6 +421,64 @@ app.whenReady().then(async()=>{
   assert.equal(await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop`),stopped_scroll);
   assert.equal(await evaluate(`document.querySelector('.workspace-explorer-tree').dataset.dropTarget||''`),'');
   console.log('R002.1 drag events: move/copy/collision/self/descendant/cancel/root/20 round trips PASS; no physical OS gesture claim');
+  // R028.3: actual wheel input, nested ancestors and collapse in a large subtree.
+  const sticky_root=path.join(root,'sticky_workspace'), sticky_child=path.join(sticky_root,'parent','child');
+  fs.mkdirSync(sticky_child,{recursive:true});
+  fs.mkdirSync(path.join(sticky_root,'sibling'));
+  for(let index=0;index<1000;index++)fs.writeFileSync(path.join(sticky_child,`file_${String(index).padStart(4,'0')}.txt`),'sticky');
+  for(let index=0;index<40;index++)fs.writeFileSync(path.join(sticky_root,'sibling',`file_${index}.txt`),'sibling');
+  await evaluate(`root_path=${JSON.stringify(sticky_root)};follow_opens=false;instance.refresh()`);
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(sticky_child,'file_0500.txt'))})`);await delay(120);
+  const sticky_selector='.workspace-explorer-sticky .workspace-explorer-row';
+  assert.deepEqual(await evaluate(`[...document.querySelectorAll(${JSON.stringify(sticky_selector)})].map(row=>row.dataset.path).sort()`),[path.join(sticky_root,'parent'),sticky_child].sort());
+  await evaluate(`window.sticky_parent=document.querySelector(${JSON.stringify(sticky_selector)});window.sticky_read_count=reads.length`);
+  const wheel_point=await evaluate(`(()=>{const b=document.querySelector('.workspace-explorer-tree').getBoundingClientRect();return{x:Math.round(b.left+100),y:Math.round(b.top+150)}})()`);
+  const wheel_start=await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop`);
+  const wheel_time=Date.now();
+  test_window.webContents.sendInputEvent({type:'mouseWheel',...wheel_point,deltaY:-300,deltaX:0,canScroll:true});
+  await wait(`document.querySelector('.workspace-explorer-tree').scrollTop!==${wheel_start}`);
+  const wheel_latency=Date.now()-wheel_time;
+  for(let index=0;index<20;index++){
+    await evaluate(`document.querySelector('.workspace-explorer-tree').scrollTop=${3000+index*200}`);await delay(25);
+    assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(sticky_selector)}).length`),2);
+    assert(await evaluate(`sticky_parent.isConnected&&document.querySelectorAll('.workspace-explorer-row').length<60&&reads.length===sticky_read_count`));
+  }
+  for(const theme of ['light','dark']){
+    await apply_theme(theme);
+    for(const zoom of [1,1.25]){
+      test_window.webContents.setZoomFactor(zoom);
+      await evaluate(`document.querySelector('#typora-sidebar').style.width='220px'`);await delay(80);
+      const geometry=await evaluate(`(()=>{const tree=document.querySelector('.workspace-explorer-tree'),layer=document.querySelector('.workspace-explorer-sticky'),rows=[...layer.children];return{top:layer.getBoundingClientRect().top-tree.getBoundingClientRect().top,height:layer.clientHeight,limit:tree.clientHeight*.4,rows:rows.map(row=>({height:row.getBoundingClientRect().height,hit:document.elementFromPoint(row.getBoundingClientRect().left+60,row.getBoundingClientRect().top+13)?.closest('.workspace-explorer-row')===row}))}})()`);
+      assert(Math.abs(geometry.top)<1&&geometry.height<=geometry.limit);
+      assert(geometry.rows.every(row=>row.height===26&&row.hit));
+      fs.writeFileSync(path.join(root,`sticky_${theme}_${zoom}.png`),(await test_window.webContents.capturePage()).toPNG());
+    }
+  }
+  test_window.webContents.setZoomFactor(1);
+  const sticky_child_selector='.workspace-explorer-sticky .workspace-explorer-row[data-path='+JSON.stringify(sticky_child)+']';
+  await click(sticky_child_selector);
+  await wait(`document.querySelector('.workspace-explorer-row[data-path='+${JSON.stringify(JSON.stringify(sticky_child))}+']')?.getAttribute('aria-expanded')==='false'`);
+  assert(await evaluate(`document.querySelectorAll('.workspace-explorer-row[data-directory="false"]').length===0`),'sticky collapse removes descendants without scrolling to the start first');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(sticky_child,'file_0500.txt'))})`);await delay(60);
+  await click(sticky_child_selector,'left',['control']);
+  await evaluate(`document.querySelector('.workspace-explorer-tree').focus()`);
+  test_window.webContents.sendInputEvent({type:'keyDown',keyCode:'Left'});await delay(70);
+  assert.equal(await evaluate(`document.querySelector('.workspace-explorer-row[data-path='+${JSON.stringify(JSON.stringify(sticky_child))}+']').getAttribute('aria-expanded')`),'false');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(sticky_root,'sibling','file_20.txt'))})`);await delay(70);
+  assert(await evaluate(`[...document.querySelectorAll(${JSON.stringify(sticky_selector)})].every(row=>!row.dataset.path.includes('parent'))`),'sibling boundary removes old ancestors');
+  await evaluate('instance.refresh()');await delay(60);
+  let deep=path.join(sticky_root,'deep');
+  for(let index=0;index<10;index++){fs.mkdirSync(deep,{recursive:true});fs.writeFileSync(path.join(deep,'sibling.txt'),'deep');deep=path.join(deep,'next');}
+  fs.mkdirSync(deep,{recursive:true});for(let index=0;index<100;index++)fs.writeFileSync(path.join(deep,`leaf_${String(index).padStart(3,'0')}.txt`),'leaf');
+  await evaluate('instance.refresh()');
+  await evaluate(`instance.reveal(${JSON.stringify(path.join(deep,'leaf_050.txt'))})`);await delay(70);
+  assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(sticky_selector)}).length`),7,'deep ancestry is limited to seven rows');
+  await evaluate(`document.querySelector('#typora-sidebar').style.height='280px'`);await delay(70);
+  assert(await evaluate(`document.querySelector('.workspace-explorer-sticky').clientHeight<=document.querySelector('.workspace-explorer-tree').clientHeight*.4`),'short trees retain room for content');
+  await evaluate(`document.querySelector('#typora-sidebar').style.height=''`);
+  await evaluate(`root_path=${JSON.stringify(workspace)};instance.refresh()`);await delay(70);
+  assert.equal(await evaluate(`document.querySelectorAll(${JSON.stringify(sticky_selector)}).length`),0,'root replacement clears sticky rows');
+  fs.writeFileSync(path.join(root,'sticky_metrics.json'),JSON.stringify({files:1000,scroll_cycles:20,wheel_latency_ms:wheel_latency,theme_zoom_cases:4,status:'PASS'},null,2));
   const before_dispose=await evaluate('({watchers,listeners:get_listeners(),rows:document.querySelectorAll(".workspace-explorer-row").length,reads})');
   await evaluate('instance.dispose()');assert.equal(await evaluate('watchers'),0);assert.equal(await evaluate('get_listeners()'),0);assert.equal(await evaluate('document.querySelector(".linux-note-workspace-explorer")'),null);
   await click('[data-id="core.file-explorer"]');assert.equal(await evaluate('native_clicks'),1,'dispose restores native button handling');

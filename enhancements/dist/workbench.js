@@ -205946,8 +205946,11 @@ https://creativecommons.org/licenses/by/4.0/
     tree.tabIndex = 0;
     tree.setAttribute("role", "tree");
     tree.setAttribute("aria-label", workspace_text("file_tree_files_and_folders"));
+    const sticky_anchor = workspace_element("div", "workspace-explorer-sticky-anchor");
+    const sticky_layer = workspace_element("div", "workspace-explorer-sticky");
+    sticky_anchor.append(sticky_layer);
     const spacer = workspace_element("div", "workspace-explorer-spacer");
-    tree.append(spacer);
+    tree.append(sticky_anchor, spacer);
     const status2 = workspace_element("div", "workspace-explorer-status");
     status2.setAttribute("role", "status");
     status2.hidden = true;
@@ -205955,6 +205958,8 @@ https://creativecommons.org/licenses/by/4.0/
     container.append(toolbar, root_label, tree, status2);
     let root, selected_path = "", visible3 = false, disposed = false, generation = 0, serial2 = 0;
     let flat_nodes = [], render_frame = 0, reveal_request = 0;
+    const display_ranges = /* @__PURE__ */ new Map();
+    let sticky_nodes = /* @__PURE__ */ new Map();
     let edit_dismissal;
     let rename_state;
     let compact_folders = false;
@@ -206012,10 +206017,12 @@ https://creativecommons.org/licenses/by/4.0/
     });
     function keep_row_visible(node = rename_state?.node || nodes.get(selected_path)) {
       if (!node || !tree.clientHeight) return;
+      if (sticky_nodes.has(node) && rename_state?.node !== node) return;
       const index = flat_nodes.indexOf(node);
       if (index < 0) return;
       const top = index * ROW_HEIGHT, before = tree.scrollTop;
-      if (top < before) tree.scrollTop = top;
+      const padding = Math.min(7, Math.floor(tree.clientHeight * 0.4 / ROW_HEIGHT), node.display_depth ?? node.depth) * ROW_HEIGHT;
+      if (top < before + padding) tree.scrollTop = Math.max(0, top - padding);
       else if (top + ROW_HEIGHT > before + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
       if (tree.scrollTop !== before) render();
     }
@@ -206083,6 +206090,8 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     function collapse(node) {
+      const sticky_position = sticky_nodes.get(node), range2 = display_ranges.get(node);
+      if (sticky_position !== void 0 && range2) tree.scrollTop = Math.max(0, range2.index * ROW_HEIGHT - Math.max(0, sticky_position));
       node.expanded = false;
       close_branch(node);
     }
@@ -206093,8 +206102,9 @@ https://creativecommons.org/licenses/by/4.0/
     }
     function rebuild() {
       flat_nodes = [];
+      display_ranges.clear();
       for (const node of nodes.values()) node.compact_parent = false;
-      const append4 = (node, depth = 0) => {
+      const append4 = (node, depth = 0, parent) => {
         let current2 = node;
         const names = [node.name];
         if (compact_folders && !rename_state) while (current2.directory && current2.children?.length === 1 && current2.children[0].directory && !current2.children[0].link) {
@@ -206105,12 +206115,37 @@ https://creativecommons.org/licenses/by/4.0/
         }
         current2.display_name = names.join(" / ");
         current2.display_depth = depth;
+        const range2 = { index: flat_nodes.length, end: 0, parent };
+        display_ranges.set(current2, range2);
         flat_nodes.push(current2);
-        if (current2.expanded) for (const child of current2.children || []) append4(child, depth + 1);
+        if (current2.expanded) for (const child of current2.children || []) append4(child, depth + 1, current2);
+        range2.end = flat_nodes.length;
       };
       if (root) for (const child of root.children || []) append4(child);
       spacer.style.height = flat_nodes.length * ROW_HEIGHT + "px";
       render();
+    }
+    function compute_sticky_nodes() {
+      const result = /* @__PURE__ */ new Map();
+      if (search_projection || !visible3 || tree.scrollTop <= 0) return result;
+      const limit = Math.min(7, Math.floor(tree.clientHeight * 0.4 / ROW_HEIGHT));
+      let previous;
+      for (let slot = 0; slot < limit; slot++) {
+        const offset = slot * ROW_HEIGHT;
+        let node = flat_nodes[Math.floor((tree.scrollTop + offset) / ROW_HEIGHT)];
+        if (!node) break;
+        let range2 = display_ranges.get(node);
+        while (range2.parent && range2.parent !== previous) {
+          node = range2.parent;
+          range2 = display_ranges.get(node);
+        }
+        if (range2.parent !== previous || !node.expanded || range2.end <= range2.index + 1 || range2.index * ROW_HEIGHT >= tree.scrollTop + offset) break;
+        const position2 = Math.min(offset, range2.end * ROW_HEIGHT - tree.scrollTop - ROW_HEIGHT);
+        result.set(node, position2);
+        previous = node;
+        if (position2 < offset) break;
+      }
+      return result;
     }
     function render() {
       if (disposed || render_frame) return;
@@ -206118,15 +206153,18 @@ https://creativecommons.org/licenses/by/4.0/
         render_frame = 0;
         const start = Math.max(0, Math.floor(tree.scrollTop / ROW_HEIGHT) - 5);
         const end = Math.min(flat_nodes.length, start + Math.ceil((tree.clientHeight || 500) / ROW_HEIGHT) + 12);
-        const shown = new Set(flat_nodes.slice(start, end));
+        sticky_nodes = compute_sticky_nodes();
+        const shown = /* @__PURE__ */ new Set([...sticky_nodes.keys(), ...flat_nodes.slice(start, end)]);
+        sticky_layer.style.height = (sticky_nodes.size ? Math.max(...sticky_nodes.values()) + ROW_HEIGHT : 0) + "px";
         const focused_input = rename_state && document.activeElement === rename_state.input ? rename_state.input : void 0;
         const selection = focused_input ? [focused_input.selectionStart, focused_input.selectionEnd] : void 0;
         for (const [node, view] of row_views) if (!shown.has(node) && !drag.retains(view.row)) {
           view.row.remove();
           row_views.delete(node);
         }
-        for (let index = start; index < end; index++) {
-          const node = flat_nodes[index];
+        let normal_index = 0, sticky_index = 0;
+        for (const node of shown) {
+          const index = display_ranges.get(node).index;
           let view = row_views.get(node);
           if (!view) {
             const row2 = workspace_element("div", "workspace-explorer-row"), chevron2 = workspace_element("span", "workspace-explorer-chevron");
@@ -206200,6 +206238,14 @@ https://creativecommons.org/licenses/by/4.0/
           row.setAttribute("aria-busy", String(Boolean(node.loading)));
           row.style.top = index * ROW_HEIGHT + "px";
           row.style.setProperty("--workspace-tree-depth", String(node.display_depth ?? node.depth));
+          const sticky_position = sticky_nodes.get(node);
+          row.classList.toggle("is-sticky", sticky_position !== void 0);
+          row.style.clipPath = "";
+          if (sticky_position !== void 0) {
+            row.style.top = sticky_position + "px";
+            const slot = [...sticky_nodes.keys()].indexOf(node);
+            row.style.clipPath = "inset(".concat(Math.max(0, slot * ROW_HEIGHT - sticky_position), "px 0 0)");
+          }
           row.title = (options2.selection?.label(node.path) || node.path) + (node.error ? "\n" + node.error : "");
           const state = node.directory ? String(node.expanded) : "file";
           if (chevron.dataset.state !== state) {
@@ -206214,7 +206260,9 @@ https://creativecommons.org/licenses/by/4.0/
           const children = [chevron, ...node.directory ? [] : [file_icon], rename_state?.node === node ? rename_state.input : label, ...message ? [note] : []];
           for (const child of [...row.children]) if (!children.includes(child)) child.remove();
           for (let part = 0; part < children.length; part++) if (row.children[part] !== children[part]) row.insertBefore(children[part], row.children[part] || null);
-          if (spacer.children[index - start] !== row) spacer.insertBefore(row, spacer.children[index - start] || null);
+          const parent = sticky_position === void 0 ? spacer : sticky_layer;
+          const position2 = sticky_position === void 0 ? normal_index++ : sticky_index++;
+          if (parent.children[position2] !== row) parent.insertBefore(row, parent.children[position2] || null);
         }
         if (focused_input?.isConnected && document.activeElement !== focused_input) {
           focused_input.focus({ preventScroll: true });
@@ -206240,11 +206288,7 @@ https://creativecommons.org/licenses/by/4.0/
       options2.selection?.select(node.path, node.directory);
       set_status("");
       tree.focus({ preventScroll: true });
-      if (scroll) {
-        const index = flat_nodes.indexOf(node), top = index * ROW_HEIGHT;
-        if (top < tree.scrollTop) tree.scrollTop = top;
-        else if (top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
-      }
+      if (scroll) keep_row_visible(node);
       if (preserve_dom) {
         selection_model.focused_key = selected_path;
         for (const row of tree.querySelectorAll(".workspace-explorer-row")) {
@@ -206641,7 +206685,7 @@ https://creativecommons.org/licenses/by/4.0/
           options2.selection?.select(node2.path, node2.directory);
         }
         const top = flat_nodes.indexOf(node2) * ROW_HEIGHT;
-        const needs_scroll = intent === "center" || top < tree.scrollTop || top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight;
+        const needs_scroll = intent === "center" || !sticky_nodes.has(node2) && (top < tree.scrollTop + sticky_layer.clientHeight || top + ROW_HEIGHT > tree.scrollTop + tree.clientHeight);
         if (status2.textContent) set_status("");
         if (needs_scroll) {
           tree.scrollTop = Math.max(0, top - tree.clientHeight / 2);
@@ -206832,6 +206876,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (root) close_branch(root, true);
       if (render_frame) cancelAnimationFrame(render_frame);
       row_views.clear();
+      display_ranges.clear();
+      sticky_nodes.clear();
       click_sequence = void 0;
       clear_edit();
       for (const dialog2 of dialogs) dialog2.close();
@@ -254424,6 +254470,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026102501,
+        version: "2026.10.25.1",
+        date: "2026-10-25",
+        notes: [
+          "\u8D44\u6E90\u7BA1\u7406\u5668\u6EDA\u52A8\u5927\u91CF\u5B50\u6587\u4EF6\u65F6\uFF0C\u7236\u76EE\u5F55\u56FA\u5B9A\u5728\u9876\u90E8\uFF0C\u53EF\u76F4\u63A5\u5355\u51FB\u6298\u53E0\uFF1B\u591A\u7EA7\u76EE\u5F55\u6309\u53EF\u7528\u9AD8\u5EA6\u663E\u793A\u3002"
+        ],
+        notes_en: [
+          "Keep expanded parent folders visible at the top while scrolling large directories, with direct collapse and bounded nested rows."
+        ]
+      },
       {
         sequence: 2026102301,
         version: "2026.10.23.1",

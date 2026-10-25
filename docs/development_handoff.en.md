@@ -1,5 +1,7 @@
 [Chinese](development_handoff.md)
 
+2026-10-25 R028.3 / 2026.10.25.1: Expanded ancestors remain visible while scrolling and collapse directly, limited to seven rows and 40% of the viewport. Existing 26px geometry, selection, menus and drag ownership are retained. The final build, complete core checks, three UI suites and 327 isolated Typora 1.14.15 assertions passed, including 1000 children and 20 trusted collapse clicks. Both uninstall/reinstall paths and 65 failure/cancel/rollback assertions passed; payloads were cleaned. Local verification matched 73 workspace assets, 24 terminal assets and five theme files; four protected items and startup settings were unchanged. Standard checks and read-only uninstall preflight passed. The outer installer preserved an existing Directory-menu ownership conflict after installing the workbench. Save and normally restart all user windows to load it. No push. Full native theme/zoom coverage, physical user-desktop gestures, inactive compact folders and other platforms remain unverified; prior open issues remain. See [evidence](../enhancements/tests/evidence/explorer_sticky_20261025.json).
+
 <a id="section_ddfea55b21d8"></a>
 # TyporaCode Development Handover
 

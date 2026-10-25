@@ -23,9 +23,14 @@ try:
     host = case / 'host'
     digest = lambda file: hashlib.sha256(file.read_bytes()).hexdigest()
     asar = host_root / 'resources/app.asar'
-    # The verified original host; other versions must re-verify the port, cannot silently reuse the conclusion.
+    # New host versions are admitted only for fixtures whose ports are checked.
     expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
-    assert digest(asar) == expected_asar, 'Native fixture requires verified original Typora 1.14.10'
+    host_version = '1.14.10'
+    if fixture_path.name == 'explorer_stable_native.js' and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
+        expected_asar = digest(asar)
+        host_version = '1.14.15'
+        assert json.loads((host_root / 'resources/package.json').read_text(encoding='utf-8'))['version'] == host_version
+    assert digest(asar) == expected_asar, 'Native fixture requires a verified host version for its specific ports'
     assert (host_root / 'Typora.exe').is_file()
     shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
     if fixture_path.name in ('network_settings_native.js', 'web_preview_browser_native.js'):
@@ -124,7 +129,7 @@ try:
     html = html.replace('</head>', head + '<script>window.addEventListener("DOMContentLoaded",()=>{' + runner + '});</script></head>')
     (host / 'resources/window.html').write_text(html, encoding='utf-8')
     assert digest(asar) == expected_asar == digest(host / 'resources/app.asar')
-    (case / 'setup.json').write_text(json.dumps({'host_version': '1.14.10', 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'terminal_manifest_sha256': digest(terminal_release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
+    (case / 'setup.json').write_text(json.dumps({'host_version': host_version, 'asar_sha256': expected_asar, 'asset_manifest_sha256': digest(release / 'SHA256SUMS'), 'terminal_manifest_sha256': digest(terminal_release / 'SHA256SUMS'), 'fixture_sha256': digest(fixture_path), 'early_fixture_sha256': early_digest, 'front_sha256': digest(workspace / 'front.md')}, indent=2), encoding='utf-8')
     print(case)
 except BaseException:
     finish(case, 'prepare_failed', os.getppid())

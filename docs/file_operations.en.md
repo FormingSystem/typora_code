@@ -148,3 +148,16 @@ The file service owns at most 100 in-memory batches for the current window/works
 A new move clears redo. Workspace switches, disposal and unsupported disk mutations clear history. Undo for copies, creation, trash deletion and cross-window/restart history is outside this change and must not be presented as supported. Empty history reports a status instead of undoing the background editor. Busy/repeated requests cannot race filesystem writes.
 
 Use isolated directories for single/multiple files, folders, drag/cut/rename, repeated undo/redo, collisions/missing paths/links, execution and rollback failures, workspace/disposal invalidation, new-edit branching and 20/100/1000 transactions. Verify native Markdown/source drafts and subsequent saves. Distinguish trusted Electron input from native DOM events and record local install, isolated uninstall and loaded-window status separately.
+
+## R028.3 Sticky parent folders (2026-10-25)
+
+Expanded ancestors remain at the top of a scrolled file tree so users can collapse them directly. Each ancestor leaves when its subtree ends. Unrelated siblings and flat search results are excluded; existing sections and activation semantics remain unchanged.
+
+The reference is VS Code commit `68070681e87284e2f22728f15fe3f3651fbf932b`, `listService.ts` and `abstractTree.ts`: enabled by default, at most seven rows and 40% of the viewport. Keep the established 26px project row height, indentation and shared colors. Move each original row between the normal and sticky layers, preserving identity, selection, context actions and drag behavior without duplicating business state.
+
+The shared file tree owns expansion and nodes. Model rebuilding caches display parents and subtree bounds; scrolling examines only the visible ancestor chain within the existing animation frame. Compact folders use display ancestry. Keyboard/reveal account for occlusion and collapsed sticky folders stay visible. Loading failures, cancellation, root changes, hiding and disposal retain existing ownership without new reads or observers.
+
+Extend Explorer checks for nested/sibling boundaries, direct collapse, keyboard, light/dark, zoom/narrow layouts, 1000 children, repeated scrolling, refresh/root changes, compact folders and the shared selector. Record native host acceptance separately. Use standard isolated install/uninstall/rollback tests and read-only user uninstall preflight. Other platforms and user windows awaiting restart remain explicit limits.
+
+
+Environment boundary: compact folders are currently inactive in the runtime; this change does not enable them or claim compact-mode acceptance. Ancestors use display hierarchy. The native runner admits the pinned 1.14.15 ASAR only for this Explorer fixture; other fixtures retain their original host gate.

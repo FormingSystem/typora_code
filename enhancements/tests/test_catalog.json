@@ -2381,7 +2381,8 @@
         "R028.1",
         "R028.2",
         "R002.1",
-        "R002.2"
+        "R002.2",
+        "R028.3"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
@@ -2413,10 +2414,12 @@
         "新建/改名/复制/剪切/粘贴，按Delete取消与确认，关闭原生确认选项后直接回收",
         "2000行虚拟文件树，展开/根切换/迟到读取及销毁",
         "Use trusted clicks on a non-focusing outline control and the document to cancel rename without writes or swallowing the destination click; retain inside clicks and remove pending create/hide state.",
-        "Exercise production drag events against real temporary files: move/copy, invalid targets, cancellation and 20 round trips; native fixture explorer_drag_native.js separately checks source/Markdown drafts and subsequent saves."
+        "Exercise production drag events against real temporary files: move/copy, invalid targets, cancellation and 20 round trips; native fixture explorer_drag_native.js separately checks source/Markdown drafts and subsequent saves.",
+        "R028.3: nested sticky ancestors in 1000-child folders; direct collapse, bounded DOM and repeated scrolling; native suite uses 20 trusted collapse clicks."
       ],
       "expected": [
-        "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果"
+        "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果",
+        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows."
       ],
       "timeout_ms": 240000
     },
@@ -9588,12 +9591,14 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R028.2"
+        "R028.2",
+        "R028.3"
       ],
       "design": "docs/file_operations.md#r0282-相邻文件切换保持资源树位置2026-10-03",
       "implementation": [
         "enhancements/src/workspace_file_tree.ts",
-        "enhancements/src/workspace_explorer.ts"
+        "enhancements/src/workspace_explorer.ts",
+        "enhancements/scripts/prepare_stability_native.py"
       ],
       "related_modules": [
         "explorer",
@@ -9602,16 +9607,18 @@
       ],
       "script": "enhancements/fixtures/explorer_stable_native.js",
       "environment": [
-        "Windows Typora 1.14.10"
+        "Windows Typora 1.14.10 or explicitly pinned 1.14.15"
       ],
       "preconditions": [
         "独立测试目录及最终构建"
       ],
       "steps": [
-        "20 trusted adjacent file clicks; framewise scroll and row identity; explicit and offscreen automatic reveal."
+        "20 trusted adjacent file clicks; framewise scroll and row identity; explicit and offscreen automatic reveal.",
+        "R028.3: nested sticky ancestors in 1000-child folders; direct collapse, bounded DOM and repeated scrolling; native suite uses 20 trusted collapse clicks."
       ],
       "expected": [
-        "Stable visible rows; correct open target; original files unchanged."
+        "Stable visible rows; correct open target; original files unchanged.",
+        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows."
       ],
       "timeout_ms": 180000
     },

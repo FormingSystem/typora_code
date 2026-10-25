@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102501,
+      "version": "2026.10.25.1",
+      "date": "2026-10-25",
+      "notes": [
+        "资源管理器滚动大量子文件时，父目录固定在顶部，可直接单击折叠；多级目录按可用高度显示。"
+      ],
+      "notes_en": [
+        "Keep expanded parent folders visible at the top while scrolling large directories, with direct collapse and bounded nested rows."
+      ]
+    },
+    {
       "sequence": 2026102301,
       "version": "2026.10.23.1",
       "date": "2026-10-23",
