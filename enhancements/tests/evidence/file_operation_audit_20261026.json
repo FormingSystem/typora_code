@@ -1,0 +1,67 @@
+{
+  "date": "2026-10-26",
+  "requirements": ["R041"],
+  "issues": ["BUG-files-002"],
+  "kind": "architecture_audit_not_product_acceptance",
+  "baseline": "06ba786c70efd159b45b7fe587194af2e40e5fc9",
+  "installed_release": "2026.10.25.2",
+  "upstream_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "upstream_files": [
+    "src/vs/workbench/contrib/files/browser/fileActions.ts",
+    "src/vs/workbench/contrib/files/browser/explorerService.ts",
+    "src/vs/platform/files/electron-main/diskFileSystemProviderServer.ts"
+  ],
+  "source_findings": [
+    "Deletion acceptance sets a tree-local busy flag without publishing progress.",
+    "Operation errors share the tree loading/selection status line; reveal clears it.",
+    "The file service has write exclusion and draft checks but no subscribable operation phase/outcome contract.",
+    "Native trash validates the bridge result and path disappearance; a pending reply has no explicit unknown-outcome state.",
+    "Git already has token-based operation progress, so domain execution contracts are inconsistent rather than entirely absent.",
+    "VS Code also uses Electron shell.trashItem; service orchestration and observable outcomes are material differences."
+  ],
+  "functional_probe": {
+    "run_id": "8aaddd6ea9b8488cb4cbf72b3ed99438",
+    "layer": "isolated hidden Electron with controlled provider",
+    "input": "sendInputEvent Delete key and confirmation mouse gesture",
+    "fixture": ".cache/issue_tracking/delete_audit_20261026.cjs",
+    "base_fixture": "enhancements/scripts/test_workspace_explorer.cjs",
+    "steps": [
+      "Replace the trash callback with a controlled pending Promise and select a new temporary file.",
+      "Press Delete, click accept, wait 1200ms after callback entry, and capture status and busy/progress roles.",
+      "Press Delete again while pending; count provider calls and dialogs.",
+      "Reject the callback with a marked error and verify the visible tree status.",
+      "Reveal the same file and inspect whether the error remains."
+    ],
+    "observations": {
+      "pending_provider_calls": 1,
+      "pending_status": "",
+      "pending_status_hidden": true,
+      "pending_dialog_count": 0,
+      "pending_busy_or_progress_nodes": 0,
+      "target_still_exists": true,
+      "repeat_provider_calls_total": 1,
+      "repeat_dialog_count": 0,
+      "repeat_status": "",
+      "rejection_visible": true,
+      "after_reveal_status": "",
+      "after_reveal_status_hidden": true
+    },
+    "result": "Feedback gaps reproduced, not fixed",
+    "cleanup": "managed runner completed and removed work payload"
+  },
+  "retained_fixture_failures": [
+    {"run_id": "1d323e8f17924b1986f32e6a199108af", "cause": "Copied fixture still resolved a CSS path relative to the cache; corrected fixture path only."},
+    {"run_id": "07d71757f0b44d3d9c1fb36e09ec63e9", "cause": "executeJavaScript returned a function that cannot be cloned; added void result in the probe only."}
+  ],
+  "installed_check": "Public check_windows.ps1 exit 0; shell ownership/candidate hashes and startup/CSS/release/migration/terminal checks OK",
+  "user_data": "Only target-directory metadata inspected; no deletion, edit, window injection or process termination",
+  "product_changes": false,
+  "build": "Not run; documentation and audit evidence only",
+  "installation": "Not performed; no product changes",
+  "unresolved": [
+    "Direct cause of the user's build-folder deletion failure and exact running-window version.",
+    "Native pending/error behavior, occupied/large/long-path build directories and cross-platform verification.",
+    "Implementation and native delivery of the proposed operation lifecycle contract.",
+    "Other icon actions have not all been dynamically audited; shared symptoms do not prove one common defect."
+  ]
+}

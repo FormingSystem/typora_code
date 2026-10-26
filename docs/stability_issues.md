@@ -1,5 +1,7 @@
 [English](stability_issues.en.md)
 
+2026-10-26 R041 / BUG-files-002 再次打开：用户报告工程 build 目录确认删除后无反馈且仍存在。隔离 Electron 真实确认输入配受控回收端口，复现未决请求没有进度、第二次操作静默返回，以及失败提示被普通定位清空；这些是反馈契约缺口，现场主进程/系统回收直接根因尚未确认。删除入口与服务状态所有者审计、待实施契约及验收边界见[设计](file_operations.md#r041-operation-audit)和[本次证据](../enhancements/tests/evidence/file_operation_audit_20261026.json)。本轮只交付审计，未修改或安装产品，不以旧回收成功记录关闭问题。
+
 2026-10-25 R028.3：BUG-files-sticky-001（呈现/P2）——虚拟文件树回收屏外父目录，导致用户必须回滚才能折叠。缓存展示祖先/子树边界并在同一渲染帧固定原行，折叠/定位考虑遮挡；目录业务状态没有副本。原生1.14.15、1000子项、20轮折叠及最终交付见[证据](../enhancements/tests/evidence/explorer_sticky_20261025.json)。
 
 2026-10-15 R084.3：BUG-shell-directory-intent / BUG-shell-directory-quote / BUG-shell-background-site，分类startup/intent、shell/arguments及shell/COM。传统目录入口使用单次--new绕过宿主旧文档恢复，初始目录窗口展示文件树；尾反斜杠参数红测后改为等价目录后缀。现代入口独立补调用方文件夹视图，不能把现代问题当成本机传统入口的根因。原始宿主Downloads冷启动、9个子项和偏好保持通过；完整旧现场未在隔离配置重现，物理右键待现场复核。TEST-git-startup-sync-20261015两次等待网络调用超时、TEST-terminal-special-path-20261015的PTY特殊字符回显失败保持开放；BUG-session-outside-root-20261015已独立复现目标会话的根外活动文档改挂载目录，非本次Downloads现场，待会话所有者处理。中途夹具重复点击收起侧栏、旧主题夹具CRLF摘要和默认目录junction清理问题已纠正，不记为产品修复。详见[本轮证据](../enhancements/tests/evidence/shell_background_20261015.json)。

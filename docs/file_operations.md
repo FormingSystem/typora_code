@@ -64,6 +64,29 @@ VS Code 的多根工作区、`.code-workspace` 导入／保存、配置新窗口
 
 2026-09-12 另在隔离的原生 Typora 1.14.9 中确认系统文件和文件夹选择窗口实际出现，取消后原文档与挂载目录不变。系统窗口选取结果的路由由上述生产绑定夹具覆盖；该记录不代表已逐项完成物理鼠标验收。
 
+<a id="r041-operation-audit"></a>
+## R041 操作执行可靠性审计（2026-10-26）
+
+用户再次报告删除工程 `build` 目录时，确认后无反馈且目录仍在，并指出多个图标存在类似问题。本次沿用 R041 / BUG-files-002 重新打开可靠性验收；不能仅凭相似症状认定与此前 Git 问题同根因。目标是核对执行架构、失败证据和修复契约，不改布局、不扩展功能，不删除用户真实目录。
+
+当前工作台由 Typora 启动时加载静态样式和常驻 renderer 脚本，自建 UI 与业务服务经宿主适配调用原生能力。它没有运行 VS Code 的工作台文件服务；相同图标、Monaco 和上游设计参考不会自动提供其执行保障。
+
+| 阶段 | 当前所有者与事实 | 缺口 |
+| --- | --- | --- |
+| 选择、确认、忙碌、结果与刷新 | `workspace_file_tree.confirm_trash/run/reveal` | 接受后设置局部忙碌，没有发布删除进度；错误只写树底部状态，定位会清空；过期分支可直接返回，无结构化取消结果 |
+| 互斥与草稿保护 | `workspace_files.file_operation/trash_entries` 已有文件领域互斥、草稿检查和模型清理 | 计数没有可订阅的操作身份、目标、阶段或终态；删除入口未像 transfer 复查当前工作区身份，须在服务边界补验 |
+| 路径与批量执行 | `trash_workspace_entries` 校验边界、条目身份、父子去重，逐项回收，失败携带已完成列表 | 没有贯穿阶段的取消/进度契约；磁盘成功后编辑器清理失败需区别报告 |
+| 主进程回收 | `trash_native_path` 调用 `JSBridge.invoke("shell.trashItem")`，拒绝 false/异常并核实路径消失 | 桥接未回执时没有阶段通知或结果未知状态；不能把 Promise 超时当成系统操作已取消 |
+| 跨领域反馈 | Git 已有令牌化 `git_operation_progress`，更新也有任务反馈 | 文件删除仍使用局部布尔值和文本；模块分层存在，执行结果与可观察性契约不一致 |
+
+对照固定开发快照 `68070681e87284e2f22728f15fe3f3651fbf932b` 的 [fileActions.ts](https://github.com/microsoft/vscode/blob/68070681e87284e2f22728f15fe3f3651fbf932b/src/vs/workbench/contrib/files/browser/fileActions.ts)、[explorerService.ts](https://github.com/microsoft/vscode/blob/68070681e87284e2f22728f15fe3f3651fbf932b/src/vs/workbench/contrib/files/browser/explorerService.ts) 和 [diskFileSystemProviderServer.ts](https://github.com/microsoft/vscode/blob/68070681e87284e2f22728f15fe3f3651fbf932b/src/vs/platform/files/electron-main/diskFileSystemProviderServer.ts)：VS Code 把目标/草稿/只读确认、批量编辑、进度、取消 token 与错误处理串联；Explorer 进度延迟 500ms，多项编辑可请求取消。它的主进程也调用 Electron `shell.trashItem`，不是另一种不会失败的删除 API；多项取消不证明单个系统回收可随时中止。
+
+待实施契约：文件服务持有操作身份、工作区/提供者身份、目标快照、准备/执行/核实/刷新阶段与最终结果，UI 只发起和订阅。隐藏面板不能丢业务状态。共用反馈接口，保留文件/Git/更新的领域所有者，不增加全工作台忙锁。操作错误与目录加载提示分离，后台定位不能清除；拒绝、取消、部分完成和结果未知分别记录，刷新失败不能覆盖原执行错误。异步确认后和执行前复查所有者；取消不再启动下一项。宿主不能取消时持续核实未决结果，不能超时释放锁再重复删除。进度只展示真实阶段/已知总量，不自动升级永久删除，不丢草稿或关闭用户窗口。以上是设计，尚未完成接线。
+
+验收复用 Explorer、文件服务和原生稳定性夹具，贯穿真实确认输入→宿主调用→磁盘核实→刷新→再次操作；覆盖慢/未决回执、失败、重复接受、取消、部分成功、切目录/隐藏/销毁、错误保留与编辑器清理失败。临时构建目录按20/100/1000子项、占用、中文/长路径和慢提供者验证；区分文件量、迭代数及断言数。已有立即成功 rename 替身与原生短路径测试不证明大型目录稳定。
+
+本次证据见[架构审计](../enhancements/tests/evidence/file_operation_audit_20261026.json)。受控提供者只能证明反馈缺口，不能替代用户现场系统回收证据。现场直接根因、产品修复和原生安装交付仍未完成；旧 R041 通过记录不关闭本次复现。
+
 ## R009 系统文件剪贴板
 
 2026-09-13，接通系统文件列表与资源管理器复制/粘贴，保留原有工作区内剪切和文档事务。Windows通过原生 `CF_HDROP` 交换多文件/文件夹，Linux通过文件URI列表交换，正文路径文字与文件列表分开。Windows采用系统PowerShell的STA剪贴板适配器，固定程序通过标准输入接收JSON，路径不进入可执行命令；不依赖额外安装的PowerShell7。Linux由宿主Electron提供剪贴板，原生桌面互通仍需对应平台实测。
