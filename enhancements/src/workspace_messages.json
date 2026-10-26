@@ -8058,5 +8058,69 @@
   "preview_find_failed": {
     "zh_cn": "查找失败：",
     "en": "Find failed: "
+  },
+  "file_task_busy": {
+    "zh_cn": "已有文件操作正在进行：{value_0}",
+    "en": "A file operation is in progress: {value_0}"
+  },
+  "file_task_stopping": {
+    "zh_cn": "正在停止后续项目；等待当前系统操作返回",
+    "en": "Stopping subsequent items; waiting for the current system operation"
+  },
+  "file_task_cancelled": {
+    "zh_cn": "已停止后续文件操作",
+    "en": "Subsequent file operations stopped"
+  },
+  "file_task_waiting": {
+    "zh_cn": "仍在等待系统回执，结果尚未确定：{value_0}",
+    "en": "Waiting for the system; outcome not yet known: {value_0}"
+  },
+  "file_task_refreshing": {
+    "zh_cn": "正在刷新文件操作结果",
+    "en": "Refreshing file operation results"
+  },
+  "file_task_refresh_failed": {
+    "zh_cn": "文件视图刷新失败：{value_0}",
+    "en": "File view refresh failed: {value_0}"
+  },
+  "file_task_failed": {
+    "zh_cn": "文件操作未完整完成",
+    "en": "File operation did not complete"
+  },
+  "file_task_finished": {
+    "zh_cn": "文件操作已完成",
+    "en": "File operation completed"
+  },
+  "file_task_working": {
+    "zh_cn": "正在处理文件操作",
+    "en": "Processing file operation"
+  },
+  "file_task_preparing": {
+    "zh_cn": "正在检查待回收项目",
+    "en": "Checking items before recycling"
+  },
+  "file_task_recycling": {
+    "zh_cn": "正在移到回收站：{value_0}",
+    "en": "Moving to recycle bin: {value_0}"
+  },
+  "file_task_verifying": {
+    "zh_cn": "正在核实回收结果：{value_0}",
+    "en": "Verifying recycle result: {value_0}"
+  },
+  "file_task_cleanup": {
+    "zh_cn": "已回收，正在清理编辑器：{value_0}",
+    "en": "Recycled; updating editors: {value_0}"
+  },
+  "file_task_completed_paths": {
+    "zh_cn": "已回收的项目：{value_0}",
+    "en": "Items already recycled: {value_0}"
+  },
+  "file_task_cancel": {
+    "zh_cn": "停止后续项目",
+    "en": "Stop subsequent items"
+  },
+  "file_task_stale_confirmation": {
+    "zh_cn": "工作区已变化，未执行删除；请重新选择目标",
+    "en": "Workspace changed; nothing was deleted. Select the target again."
   }
 }

@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102601,
+      "version": "2026.10.26.1",
+      "date": "2026-10-26",
+      "notes": [
+        "文件操作统一由文件服务管理任务状态；删除显示准备、系统回收、结果核实与刷新阶段，长时间未回执明确提示结果尚未确定。",
+        "删除失败信息不再被定位或刷新清空；保留已回收项目，阻止重复执行和过期工作区操作，批量停止不再启动后续项目。"
+      ],
+      "notes_en": [
+        "File operations now share service-owned task state. Deletion reports preparation, recycling, verification and refresh; delayed system replies show an explicitly unknown outcome.",
+        "Deletion failures survive navigation and refresh. Completed items remain recorded, duplicate/stale operations are rejected, and stopping a batch prevents subsequent items."
+      ]
+    },
+    {
       "sequence": 2026102502,
       "version": "2026.10.25.2",
       "date": "2026-10-25",

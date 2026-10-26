@@ -6,8 +6,8 @@ import path from "node:path";
 import os from "node:os";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
-const bundle = await build({entryPoints:[fileURLToPath(new URL("../src/workspace_file_operations.ts",import.meta.url))],bundle:true,platform:"node",format:"esm",write:false});
-const {create_workspace_entry:create,transfer_workspace_entries:transfer,trash_workspace_entries:trash}=await import("data:text/javascript;base64,"+Buffer.from(bundle.outputFiles[0].text).toString("base64"));
+const bundle = await build({stdin:{contents:'export * from "./src/workspace_file_operations";export * from "./src/workspace_file_operation";',resolveDir:path.dirname(path.dirname(fileURLToPath(import.meta.url)))},bundle:true,platform:"node",format:"esm",write:false});
+const {create_workspace_file_operation,create_workspace_entry:create,transfer_workspace_entries:transfer,trash_workspace_entries:trash}=await import("data:text/javascript;base64,"+Buffer.from(bundle.outputFiles[0].text).toString("base64"));
 const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"typora_file_operations_")),root=path.join(temporary,"root"),recycle=path.join(temporary,"recycle");fs.mkdirSync(root);fs.mkdirSync(recycle);
 const modules={fs,path_api:path};
 try {
@@ -64,6 +64,42 @@ try {
   await history.record(root,move=>move(root,a,ta));current_root=temporary;assert(!history.can());current_root=root;assert(!history.can());await raw_move(root,ta,a);
   let release;const pending=history.record(root,async move=>{await new Promise(resolve=>release=resolve);return move(root,a,ta);});await assert.rejects(history.replay(root),/正在进行/);release();await pending;await history.replay(root);
   await history.record(root,move=>transfer(modules,root,[a,b],target,move));fail_source=ta;fail_rollback=true;await assert.rejects(history.replay(root));assert(!history.can()&&!history.can(true));fail_source='';fail_rollback=false;
+  // Pending native work retains exclusion; timeout observation never claims cancellation.
+  let task_epoch=0,task_calls=0,release_task,previous_task;
+  const tasks=create_workspace_file_operation((expected,epoch)=>{assert.equal(expected,root);if(epoch!==task_epoch)throw Error('stale owner');},()=>task_epoch);
+  const states=[],stop_states=tasks.subscribe(state=>states.push(state));
+  const pending_task=tasks.run(root,[a],'prepare',async context=>{previous_task=context;task_calls++;context.phase('executing','native pending');await new Promise(resolve=>release_task=resolve);context.phase('verifying','verify');});
+  assert.equal(tasks.state.busy,true);assert.equal(tasks.state.phase,'executing');
+  await assert.rejects(tasks.run(root,[a],'duplicate',async()=>{task_calls++;}),/正在进行/);
+  assert.throws(()=>tasks.dispose(),/正在进行/);
+  await new Promise(resolve=>setTimeout(resolve,5100));assert.equal(tasks.state.phase,'waiting');assert.equal(tasks.state.busy,true);assert.equal(task_calls,1);
+  release_task();await pending_task;assert.equal(tasks.state.phase,'succeeded');
+  let release_refresh;const stop_refresh=tasks.on_refresh(()=>new Promise(resolve=>release_refresh=resolve));
+  const task_failure=tasks.run(root,[a],'prepare',async()=>{throw Error('provider failed');},{refresh:true});
+  const current_task_id=tasks.state.id;previous_task.phase('executing','obsolete');previous_task.completed(b);assert.equal(tasks.state.id,current_task_id);assert.notEqual(tasks.state.label,'obsolete');assert.deepEqual(tasks.state.completed_paths,[]);assert.throws(()=>previous_task.checkpoint(),error=>error.name==='AbortError');
+  const rejected=assert.rejects(task_failure,/provider failed/);
+  await new Promise(resolve=>setTimeout(resolve,0));assert.equal(tasks.state.phase,'refreshing');assert.equal(tasks.state.error,'provider failed');assert(tasks.state.busy);
+  release_refresh();await rejected;stop_refresh();assert.equal(tasks.state.error,'provider failed');
+  let release_batch;const batch=tasks.run(root,[a,b],'batch',async context=>{context.phase('executing','first');await new Promise(resolve=>release_batch=resolve);context.completed(a);context.checkpoint();assert.fail('cancelled batch must not start next item');},{cancelable:true});
+  const batch_rejected=assert.rejects(batch,error=>error.name==='AbortError'&&error.trashed_paths[0]===a);
+  tasks.cancel();assert(tasks.state.busy&&tasks.state.cancel_requested);release_batch();await batch_rejected;
+  assert.equal(tasks.state.phase,'cancelled');assert.deepEqual(tasks.state.completed_paths,[a]);
+  const cancel_first=path.join(root,'cancel_first.txt'),cancel_second=path.join(root,'cancel_second.txt');
+  fs.writeFileSync(cancel_first,'first');fs.writeFileSync(cancel_second,'second');
+  await assert.rejects(tasks.run(root,[cancel_first,cancel_second],'real batch adapter',context=>trash(modules,root,[cancel_first,cancel_second],async file=>{
+    context.checkpoint();await fs.promises.rename(file,path.join(recycle,path.basename(file)));context.completed(file);tasks.cancel();
+  }),{cancelable:true}),error=>error.name==='AbortError'&&error.trashed_paths[0]===cancel_first);
+  assert.equal(tasks.state.phase,'cancelled');assert.deepEqual(tasks.state.completed_paths,[cancel_first]);
+  assert.equal(fs.readFileSync(cancel_second,'utf8'),'second');assert(!fs.existsSync(cancel_first));
+  await assert.rejects(tasks.run(root,[a],'stale',async context=>{task_epoch++;context.checkpoint();}),/stale owner/);
+  const stop_bad_refresh=tasks.on_refresh(async()=>{throw Error('refresh failed');});
+  await assert.rejects(tasks.run(root,[a],'partial',async context=>{context.completed(a);throw Error('editor cleanup failed');},{refresh:true}),error=>error.message.includes('editor cleanup failed')&&error.message.includes('refresh failed')&&error.message.includes(a));stop_bad_refresh();
+  for(const iterations of [20,100,1000])for(let index=0;index<iterations;index++){
+    await tasks.run(root,[a],'cycle',async context=>{context.phase('executing','cycle');context.completed(a);});
+    assert.equal(tasks.state.busy,false);assert.equal(tasks.state.error,'');assert.equal(tasks.state.completed_paths.length,1);
+  }
+  assert(states.some(state=>state.phase==='waiting'));stop_states();tasks.dispose();
+  console.log('PASS file tasks: pending feedback/exclusion, late settlement, failure before refresh, partial cancellation, stale owner, cleanup/refresh errors and 1120 state cycles');
   console.log('PASS file history: batch/rename/folder, conflict, edited content, rollback, root/busy/redo guards and 1120 undo/redo cycles');
   console.log(JSON.stringify({status:"PASS",checks:["exclusive creation and workspace boundary","recursive binary copy","collision preserves target","copy into self rejected","copy failure rollback","concurrent external file retained during rollback","move callback and batch rollback","recycle partial completion report","root protection","symlink rejection","external Unicode folder and binary copy","external source survives failures","separate source and destination boundaries","external move and ancestor symlink rejected"],link_supported}));
 } finally { fs.rmSync(temporary,{recursive:true,force:true}); }

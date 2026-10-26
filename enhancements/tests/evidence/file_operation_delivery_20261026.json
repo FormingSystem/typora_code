@@ -1,0 +1,173 @@
+{
+  "date": "2026-10-26",
+  "requirements": [
+    "R041"
+  ],
+  "issues": [
+    "BUG-files-002"
+  ],
+  "version": "2026.10.26.1",
+  "sequence": 2026102601,
+  "base_commit": "8e753a0f6b2f64818a7073b9982bf753476d6046",
+  "scope": "File-domain task lifecycle and deletion outcome feedback; the original user incident and all-icon acceptance remain open.",
+  "upstream_commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+  "design": "docs/file_operations.md#r041-operation-audit",
+  "implementation": [
+    "workspace_file_operation.ts",
+    "workspace_files.ts",
+    "workspace_file_tree.ts",
+    "workspace_native_trash.ts",
+    "workspace_file_operations.ts"
+  ],
+  "behavior": [
+    "One file-domain task owner holds exclusion, root/generation, target snapshots, phases and terminal outcomes.",
+    "Pending native recycling displays progress, then an unknown-outcome label after five seconds without releasing exclusion or retrying.",
+    "Errors survive reveal, refresh and panel reopening; completed paths remain visible after partial failure or cancellation.",
+    "Multi-item cancellation stops the next item after the current native call settles; single native recycling cannot be interrupted.",
+    "Successful native recycling invalidates shared directory state before editor cleanup and final refresh.",
+    "Native false responses, exceptions and remaining paths fail; there is no permanent-delete fallback."
+  ],
+  "build": {
+    "status": "PASS",
+    "log": ".cache/issue_tracking/file_task_build_v4_20261026.log",
+    "candidate": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "1d7e2372b9e4f786b80bd0cfacb9baa9d46d4738c4df8779447beae04af7dc59",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "641eeeaeaf54508beb970bccf032cd2d3e97c259808a2d93d001c4a18bf41659",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    }
+  },
+  "core": {
+    "status": "PASS",
+    "run_id": "e8544227e3864081a73f2b0c03ff735a",
+    "command": "npm run check",
+    "file_task_state_cycles": 1120,
+    "file_history_undo_redo_cycles": 1120,
+    "cases": [
+      "pending/late reply",
+      "duplicate exclusion",
+      "failure before refresh",
+      "partial cancellation",
+      "stale owner",
+      "cleanup and refresh failures",
+      "completed context cannot mutate a later task",
+      "actual trash batch adapter preserves AbortError; first item moved, second item and bytes retained"
+    ]
+  },
+  "ui": {
+    "status": "PASS",
+    "command": "npm run check:ui -- test_workspace_explorer.cjs test_workspace_file_editing.cjs test_workspace_explorer_history.cjs test_workspace_startup.cjs",
+    "runs": {
+      "explorer": "9a258296e9634599bf787f2557f3d992",
+      "file_editing": "470329ef88e644f0919d7fbb0870701f",
+      "explorer_history": "f1bc49339b4f45999404a4c3ce4f1cd7",
+      "startup": "89a57ffd7dec4a8aa4cad877dbe3c481"
+    },
+    "input": "Electron sendInputEvent plus controlled provider; includes real cancellation button and production startup file services."
+  },
+  "native": {
+    "status": "PASS",
+    "run_id": "43b74ab12e21461e8c1e9c276ccaf9ac",
+    "assertions": 391,
+    "host_version": "1.14.15",
+    "candidate": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "1d7e2372b9e4f786b80bd0cfacb9baa9d46d4738c4df8779447beae04af7dc59",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "641eeeaeaf54508beb970bccf032cd2d3e97c259808a2d93d001c4a18bf41659",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "input": "Isolated native host and trusted keyboard/confirmation mouse input; not the user desktop.",
+    "real_native_cases": [
+      "20/100/1000-child build directories with nested Unicode/spaced paths",
+      "confirmation cancellation leaves bytes",
+      "20 sequential recycling cycles",
+      "exclusive Windows FileShare.None lock refusal and successful retry after release",
+      "disk disappearance and rendered tree removal",
+      "stale root refused before native call",
+      "front document preserved"
+    ],
+    "controlled_cases": [
+      "delayed bridge later releases to real system recycling",
+      "false bridge response followed by real retry"
+    ],
+    "screenshots": [
+      "stage_file_task_waiting_6230258.png",
+      "stage_file_task_failed_6230258.png"
+    ],
+    "cleanup": "cleaned"
+  },
+  "isolated_delivery": {
+    "status": "PASS",
+    "install_run": "62cdf9f18dd94f9fb629aee9469556df",
+    "cycles": [
+      "install/check/restore-uninstall/reinstall/check",
+      "detach-uninstall/reinstall/check"
+    ],
+    "uninstall_failure_run": "d1edd2c3079340c19d9242d2063ffd54",
+    "uninstall_assertions": 65,
+    "protected": "documents, settings, backups and native startup modes 0/1/2/3",
+    "payloads": "cleaned"
+  },
+  "local_delivery": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 4,
+    "asar_unchanged": true,
+    "startup_unchanged": true,
+    "manifest": "1d7e2372b9e4f786b80bd0cfacb9baa9d46d4738c4df8779447beae04af7dc59",
+    "version": "2026.10.26.1",
+    "running_windows": "not restarted",
+    "public_check": "PASS",
+    "uninstall_read_only_preflight": "PASS, detach plan; no user-environment uninstall",
+    "outer_install": "Nonzero: workbench transaction succeeded, then existing externally modified Directory shell-menu ownership conflict was preserved. Public check and independent candidate hashes passed.",
+    "restart": "User windows were not closed or restarted; save and normally restart all Typora windows."
+  },
+  "development_failures": [
+    {
+      "run": "45dc3b1893a4465d9b43187fcf41c3ac",
+      "kind": "test syntax",
+      "resolution": "Renamed a duplicate fixture variable."
+    },
+    {
+      "runs": [
+        "81efbd52249a4d6badf8909eabddb980",
+        "0dfe65e7bd1c4fd7af9d9d1082f34d25"
+      ],
+      "kind": "candidate regression",
+      "resolution": "Ownership checkpoint was consulting the tree switching guard and rejecting its own busy task. Check root/generation/switch state directly; final native and startup reruns pass."
+    },
+    {
+      "run": "1786dc80f92d45e09b88af386728b7dc",
+      "kind": "native render assertion timing",
+      "resolution": "The filesystem had changed before the queued tree frame. Await the actual row disappearance; explicitly invalidate shared directory state after main-process recycling."
+    },
+    {
+      "run": "c305314a157945dda163ef1329ffad7a",
+      "kind": "fixture keyboard focus",
+      "resolution": "The added cancellation click left focus outside the tree. Focus the tree before the next independent Delete test; all four UI suites rerun successfully."
+    },
+    {
+      "kind": "review finding",
+      "resolution": "The batch error wrapper dropped AbortError and classified cancellation as failure. Preserve name/cause, test through the real batch adapter, then rebuild and repeat core/UI/native/install/uninstall/local verification.",
+      "targeted_test_run": "3cde4f3ab73d4977bd24448f3e5e9389"
+    }
+  ],
+  "limits": [
+    "Original build directory was not deleted or modified; its direct native failure cause remains unconfirmed.",
+    "All icons and all domains have not been dynamically revalidated.",
+    "No claim of complete VS Code equivalence or cancellation of an in-flight OS recycle.",
+    "Other platforms, physical user-desktop input, full UI/theme/zoom matrix and cross-machine incident acceptance remain untested.",
+    "Previous unrelated open requirements remain open."
+  ],
+  "publication": "Prepared for the user-authorized normal push; Git commit and remote receipt recorded in the local requirement ledger after publication."
+}

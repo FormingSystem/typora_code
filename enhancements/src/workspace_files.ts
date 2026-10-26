@@ -1,3 +1,4 @@
+import {create_workspace_file_operation,type workspace_file_operation,type workspace_file_operation_context} from './workspace_file_operation';
 import {monaco_line_target} from './workspace_line_target';
 import {workspace_text} from "./workspace_i18n";
 import {monaco_text_input,run_text_input_command} from "./monaco_text_input";
@@ -9,6 +10,7 @@ import {workspace_context_switching,workspace_context_epoch,assert_workspace_con
 import {trash_native_path} from "./workspace_native_trash";
 import {acquire_workspace_style} from "./workspace_styles";
 import {publish_workspace_file_changed} from "./workspace_file_events";
+import {notify_workspace_resource_change} from './workspace_resource_events';
 import {read_workspace_editor_settings,observe_workspace_editor_settings,select_workspace_editor_group,workspace_editor_group_locked} from "./workspace_editor_settings";
 import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {create_resource_file_clipboard} from "./remote_workspace_clipboard";
@@ -56,6 +58,7 @@ export type workspace_file_host = {
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
   file_clipboard:workspace_file_clipboard;
   trash_entries(root:string,paths:string[]):Promise<void>;
+  file_operations:workspace_file_operation;
   keep_open(leaf?:graph_leaf):void;
   editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
   has_editor_errors(leaf:graph_leaf):boolean;
@@ -176,7 +179,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const keep_clicked_tab=(event:MouseEvent)=>{const tab=event.target instanceof Element?event.target.closest<HTMLElement>(".typ-tab[data-id]"):null;if(tab)core.app.workspace.eachLeaves(leaf=>{if(workspace_leaf_tab(leaf)===tab)keep_open(leaf);});};
   const keep_edited_native=(event:Event)=>{if(event.target instanceof Element&&event.target.closest("#write"))keep_open();};
   document.addEventListener("dblclick",keep_clicked_tab,true);document.addEventListener("input",keep_edited_native,true);
-  let renaming = false, file_operation_count = 0;
+  let renaming = false;
   const source_lifecycle = bind_source_lifecycle(core, () => [...views,...document_ports]);
   const editor_status = bind_workspace_editor_status(core);
   const real_path = (leaf: graph_leaf | null): string => {
@@ -187,6 +190,13 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     return "";
   };
   const context_root = () => active_remote_files()?.root || (runtime.File?.getMountFolder?.() ?? core.app.workspace.activeLeaf?.state.git_cwd ?? path_api.dirname(real_path(core.app.workspace.activeLeaf) || core.app.workspace.activeFile || ""));
+  const file_operations=create_workspace_file_operation((root,epoch)=>{
+    // Switching guards include this service's own busy state; only verify ownership here.
+    if(workspace_context_switching()||epoch!==workspace_context_epoch()||file_key(root)!==file_key(context_root()))throw new Error(workspace_text('files_received_edit_group_or_workspace_has_changed_please_drag_aga'));
+  },workspace_context_epoch);
+  const stop_operation_notice=file_operations.subscribe(state=>{
+    if(!state.busy&&state.phase==='failed'&&state.error)new core.Notice(state.error,10000);
+  });
   class source_file_view extends core.WorkspaceView {
     navigation_id = next_navigation_id--;
     containerEl = el("section", "linux-note-source-file"); icon = "fa-file-code-o";
@@ -646,8 +656,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const file_history=create_workspace_file_history({fs,path_api},context_root,relocate_with_editors);
   const clear_file_history=()=>file_history.clear();
   window.addEventListener("linux-note-workspace-context-changed",clear_file_history);
-  const rename_file=(root:string,old_path:string,name:string)=>file_operation(()=>file_history.record(root,async move=>{const plan=await prepare_workspace_rename({fs,path_api},root,old_path,name);return move(root,old_path,plan.new_path);}));
-  const move_file=(root:string,old_path:string,target:string)=>file_operation(()=>file_history.record(root,move=>move(root,old_path,target)));
+  const rename_file=(root:string,old_path:string,name:string)=>file_operation(()=>file_history.record(root,async move=>{const plan=await prepare_workspace_rename({fs,path_api},root,old_path,name);return move(root,old_path,plan.new_path);}),root,[old_path]);
+  const move_file=(root:string,old_path:string,target:string)=>file_operation(()=>file_history.record(root,move=>move(root,old_path,target)),root,[old_path]);
   const replay_file_history=(redo=false)=>file_operation(()=>file_history.replay(context_root(),redo));
   const active_source_view = () => [...views].find(view => view.leaf === core.app.workspace.activeLeaf);
   const native_document_active = () => Boolean(core.app.workspace.activeLeaf)
@@ -769,7 +779,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{leaves.push(leaf);});
     const check=()=>{
       assert_workspace_context_ready();
-      if(!binding.active||renaming||file_operation_count||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error(workspace_text("files_the_file_is_currently_being_read_saved_or_moved_please_compl"));
+      if(!binding.active||renaming||file_operations.state.busy||file_clipboard.is_busy()||runtime.File?.isFileLoading?.()||runtime.File?.inSavingProcess||leaves.some(leaf=>editor_state(leaf).busy))throw new Error(workspace_text("files_the_file_is_currently_being_read_saved_or_moved_please_compl"));
       const current:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{current.push(leaf);});
       if(current.length!==leaves.length||current.some(leaf=>!leaves.includes(leaf)))throw new Error(workspace_text("files_the_open_editor_has_changed_please_switch_the_workspace_agai"));
     };
@@ -1150,7 +1160,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   let binding: workspace_files_binding;
   const assert_can_dispose = () => {
     if([...document_ports].some(port=>!port.disposed&&(port.busy()||port.dirty())))throw new Error(workspace_text("files_the_remote_document_is_being_operated_on_or_has_unsaved_chan"));
-    if(file_operation_count||file_clipboard.is_busy())throw new Error(workspace_text("files_file_operations_are_in_progress_please_complete_them_before"));
+    if(file_operations.state.busy||file_clipboard.is_busy())throw new Error(workspace_text("files_file_operations_are_in_progress_please_complete_them_before"));
     if (renaming || [...views].some(view => view.saving)) throw new Error(workspace_text("files_the_file_is_being_saved_or_renamed_please_complete_the_opera"));
     if ([...views].some(view => !view.disposed && view.dirty())) throw new Error(workspace_text("files_source_code_tab_has_unsaved_changes_please_save_first_or_clo"));
   };
@@ -1158,6 +1168,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
   const dispose = () => {
     if (!binding.active) return;
     assert_can_dispose();
+    stop_operation_notice();file_operations.dispose();
     binding.active = false;file_history.clear();window.removeEventListener("linux-note-workspace-context-changed",clear_file_history);window.removeEventListener("linux-note-workspace-context-changed",refresh_source_analysis);source_navigation?.dispose();source_navigation_language?.dispose();if(analysis_model&&!analysis_model.isDisposed())monaco.editor.setModelMarkers(analysis_model,"typora_code_lsp",[]);release_analysis_active();release_analysis_open();analysis_binding?.dispose();file_clipboard.dispose();release_navigation();
     for(const cancel of [...pending_native_saves])cancel();release_save_active();release_save_open();
     window.removeEventListener("pagehide", dispose);
@@ -1190,40 +1201,44 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     binding.active = true;
     window.addEventListener("pagehide", dispose, {once: true});
   };
-  const file_operation=async<T>(action:()=>Promise<T>):Promise<T>=>{
-    if(!binding.active)throw new Error(workspace_text("git_graph_host_typora_code_is_disabled"));if(file_operation_count)throw new Error(workspace_text("file_history_busy"));file_operation_count++;
-    try{return await action();}finally{file_operation_count--;}
+  const file_operation=<T>(action:(context:workspace_file_operation_context)=>Promise<T>,root=context_root(),paths:string[]=[],label=workspace_text('file_task_working'),options:{refresh?:boolean;cancelable?:boolean}={}):Promise<T>=>{
+    if(!binding.active)return Promise.reject(new Error(workspace_text('git_graph_host_typora_code_is_disabled')));
+    return file_operations.run(root,paths,label,action,options);
   };
-  const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(async()=>{const result=await create_workspace_entry({fs,path_api},root,parent,name,directory);file_history.clear();return result;});
+  const create_entry=(root:string,parent:string,name:string,directory:boolean)=>file_operation(async()=>{const result=await create_workspace_entry({fs,path_api},root,parent,name,directory);file_history.clear();return result;},root,[parent]);
   const transfer_entries=(root:string,paths:string[],target:string,copy:boolean)=>file_operation(async()=>{
     if(file_key(root)!==file_key(context_root())||workspace_context_switching())throw new Error(workspace_text('files_received_edit_group_or_workspace_has_changed_please_drag_aga'));
     return transfer_with_history(root,paths,target,!copy);
-  });
+  },root,paths);
   const transfer_with_history=async(root:string,paths:string[],target:string,move:boolean,external=false)=>{
     if(move)return file_history.record(root,relocate=>transfer_workspace_entries({fs,path_api},root,paths,target,relocate,external));
     try{return await transfer_workspace_entries({fs,path_api},root,paths,target,undefined,external);}finally{file_history.clear();}
   };
   const file_clipboard=create_workspace_file_clipboard(create_resource_file_clipboard(name=>runtime.reqnode(name)),{
-    validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths)),
-    transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_with_history(root,paths,target,move,external))
+    validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths),root,paths),
+    transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_with_history(root,paths,target,move,external),root,paths)
   });
-  const trash_entries=(root:string,paths:string[])=>file_operation(async()=>{
+  const trash_entries=(root:string,selected:string[])=>{const paths=[...selected];return file_operation(async operation=>{
     const includes=(candidate:string)=>paths.some(path=>renamed_workspace_path(path_api,candidate,path,path,true)!==undefined);
     const affected=[...views].filter(view=>includes(view.file_path));
     if(renaming||affected.some(view=>view.dirty()||view.saving))throw new Error(workspace_text("files_the_project_to_be_deleted_contains_source_code_with_unsaved"));
     if(includes(runtime.File?.bundle?.filePath||"")&&runtime.File?.changeCounter?.isDocumentEdited())throw new Error(workspace_text("files_the_project_to_be_deleted_contains_unsaved_markdown_please_s"));
     file_history.clear();
     await trash_workspace_entries({fs,path_api},root,paths,async(target:string)=>{
+      operation.checkpoint();
       // Before each file write to disk, recheck the draft; during batch editing, edits cannot be swallowed by subsequent deletions.
       if([...views].some(view=>includes(view.file_path)&&(view.dirty()||view.saving)))throw new Error(workspace_text("files_source_code_was_modified_during_deletion_the_subsequent_dele"));
       const release_native=prepare_deleted_native_document(runtime,candidate=>renamed_workspace_path(path_api,candidate,target,target,true)!==undefined,native_transfer_text);
-      await trash_native_path(runtime,target);
+      await trash_native_path(runtime,target,phase=>operation.phase(phase,workspace_text(phase==='executing'?'file_task_recycling':'file_task_verifying',{value_0:target})));
+      operation.completed(target);
+      notify_workspace_resource_change({fs,paths:[target]});
+      operation.phase('cleanup',workspace_text('file_task_cleanup',{value_0:target}));
       if(release_native)await release_native();
       const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(renamed_workspace_path(path_api,real_path(leaf),target,target,true)!==undefined)leaves.push(leaf);});
       for(const view of [...views])if(renamed_workspace_path(path_api,view.file_path,target,target,true)!==undefined)view.release_source();
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
-  });
+  },root,paths,workspace_text('file_task_preparing'),{refresh:true,cancelable:paths.length>1});};
   // A native command-line launch can precede our open-file adapter. Adopt its clean source document once.
   const adopt_startup_source=async(signal:AbortSignal)=>{
     const leaf=core.app.workspace.activeLeaf,file_path=real_path(leaf);
@@ -1237,7 +1252,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
     await close_leaf(leaf);
   };
-  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, file_history, replay_file_history, transfer_entries, create_entry, file_clipboard, trash_entries, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, file_history, replay_file_history, transfer_entries, create_entry, file_clipboard, trash_entries, file_operations, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

@@ -3,7 +3,8 @@ import {remote_files_for} from './remote_workspace_files';
 type trash_runtime = {JSBridge?: {invoke(command: string, ...args: unknown[]): Promise<unknown>}; reqnode(name: string): any};
 
 /** The recycling station of Typora is executed in the main process; the rejection of recycling cannot be degenerated into permanent deletion. */
-export async function trash_native_path(runtime: trash_runtime, target: string): Promise<void> {
+export async function trash_native_path(runtime: trash_runtime, target: string, phase?:(phase:'executing'|'verifying')=>void): Promise<void> {
+  phase?.('executing');
   const remote=remote_files_for(target);if(remote){await remote.trash(target);return;}
   const fs = runtime.reqnode("fs").promises;
   if (runtime.JSBridge?.invoke) {
@@ -15,6 +16,7 @@ export async function trash_native_path(runtime: trash_runtime, target: string):
     if (typeof shell?.trashItem !== "function") throw new Error(workspace_text("native_trash_the_current_host_does_not_provide_a_recycle_bin_interface_th"));
     await shell.trashItem(target);
   }
+  phase?.('verifying');
   try { await fs.lstat(target); }
   catch (error) { if ((error as {code?: string}).code === "ENOENT") return; throw error; }
   throw new Error(workspace_text("native_trash_the_recycle_bin_operation_returned_but_the_project_still_exi") + target + workspace_text("native_trash_please_refresh_and_verify_permanent_deletion_was_not_execute"));

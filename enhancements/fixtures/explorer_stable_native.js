@@ -61,6 +61,75 @@
    assert(File.editor.getMarkdown().trim()==='# Nested 500','collapse preserves editor '+i);
   }
   assert(input_events.filter(event=>event.trusted&&event.path===child).length===20,'20 trusted sticky collapse clicks');
+  // R041: production file service, actual main-process recycling and trusted confirmation.
+  await files.open_file(path.join(directory,'front.md'));await pause(300);
+  const native_key=async key=>{const id=++input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind:'key',key,width:innerWidth,height:innerHeight,x:20,y:100}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id;}catch{return false}},'key delivered');};
+  const task_states=[],stop_tasks=files.file_operations.subscribe(state=>task_states.push({id:state.id,phase:state.phase,busy:state.busy,label:state.label,error:state.error}));
+  const original_invoke=JSBridge.invoke,trash_calls=[];
+  let delayed_target='',release_native,refused_target='';
+  JSBridge.invoke=async function(command,target,...args){
+   if(command==='shell.trashItem'){
+    trash_calls.push(target);
+    if(target===refused_target)return false;
+    if(target===delayed_target)await new Promise(resolve=>release_native=resolve);
+   }
+   return original_invoke.call(this,command,target,...args);
+  };
+  const select_delete=async target=>{
+   document.querySelector('.workspace-explorer-root [data-git-icon="refresh"]').closest('button').click();tree().scrollTop=0;
+   await wait(()=>[...tree().querySelectorAll('.workspace-explorer-row')].some(row=>row.dataset.path===target),'delete target visible');
+   await click([...tree().querySelectorAll('.workspace-explorer-row')].find(row=>row.dataset.path===target));tree().focus();await native_key(46);
+   await wait(()=>document.querySelector('[role=dialog] .git-graph-dialog-footer button:last-child'),'delete dialog visible');
+  };
+  const accept_delete=()=>click(document.querySelector('[role=dialog] .git-graph-dialog-footer button:last-child'));
+  try{
+   for(const count of [20,100,1000]){
+    const target=path.join(directory,'build_recycle_'+String(count).padStart(4,'0'));fs.mkdirSync(target);
+    for(let index=0;index<count;index++)fs.writeFileSync(path.join(target,'object_'+index+'.o'),'temporary build object '+index);
+    const nested=path.join(target,'目录 space','nested_a','nested_b','nested_c');fs.mkdirSync(nested,{recursive:true});fs.writeFileSync(path.join(nested,'中文 name.o'),'nested object');
+    await select_delete(target);
+    if(count===20){await click(document.querySelector('[role=dialog] .git-graph-dialog-footer button:first-child'));assert(fs.existsSync(target)&&!trash_calls.includes(target),'cancel leaves build directory untouched');await select_delete(target);}
+    const before=files.file_operations.state.id;await accept_delete();await wait(()=>files.file_operations.state.id>before&&!files.file_operations.state.busy,'native recycle completed');
+    assert(files.file_operations.state.phase==='succeeded'&&!fs.existsSync(target),'real build directory recycled '+count);
+    assert(trash_calls.filter(item=>item===target).length===1,'one native call '+count);
+    await wait(()=>![...tree().querySelectorAll('.workspace-explorer-row')].some(row=>row.dataset.path===target),'deleted row rendered '+count);
+    assert(![...tree().querySelectorAll('.workspace-explorer-row')].some(row=>row.dataset.path===target),'deleted row refreshed '+count);
+   }
+   const slow=path.join(directory,'build_waiting');fs.mkdirSync(slow);fs.writeFileSync(path.join(slow,'keep.txt'),'waiting bytes');delayed_target=slow;
+   await select_delete(slow);await accept_delete();await wait(()=>!!release_native,'native call captured');
+   await wait(()=>files.file_operations.state.phase==='waiting','pending outcome is visible');
+   assert(document.querySelector('.workspace-progress')?.hidden===false,'pending native progress visible');
+   assert(document.querySelector('.workspace-explorer-status')?.textContent.includes('结果尚未确定'),'pending outcome text visible');
+   tree().focus();await native_key(46);assert(trash_calls.filter(item=>item===slow).length===1,'repeated delete does not retry pending call');
+   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'file_task_waiting'}));await pause(500);
+   release_native();await wait(()=>!files.file_operations.state.busy,'late native result settled');assert(!fs.existsSync(slow)&&files.file_operations.state.phase==='succeeded','late success verified');delayed_target='';
+   const refused=path.join(directory,'build_refused');fs.mkdirSync(refused);fs.writeFileSync(path.join(refused,'keep.txt'),'retained bytes');refused_target=refused;
+   await select_delete(refused);await accept_delete();await wait(()=>files.file_operations.state.phase==='failed','native refusal reported');
+   assert(fs.readFileSync(path.join(refused,'keep.txt'),'utf8')==='retained bytes','refusal never permanently deletes');
+   await click(document.querySelector('.workspace-explorer-toolbar [data-git-icon="target"]').closest('button'));await pause(150);
+   assert(document.querySelector('.workspace-explorer-status')?.textContent.includes('回收站'),'navigation retains error');
+   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'file_task_failed'}));await pause(500);
+   refused_target='';await select_delete(refused);await accept_delete();await wait(()=>files.file_operations.state.phase==='succeeded','explicit retry succeeds');assert(!fs.existsSync(refused),'retry used native recycle');
+   const locked=path.join(directory,'build_locked');fs.mkdirSync(locked);const locked_file=path.join(locked,'occupied.o');fs.writeFileSync(locked_file,'locked bytes');
+   const locker=reqnode('child_process').spawn('powershell.exe',['-NoProfile','-NonInteractive','-Command','$file_path=[Console]::In.ReadLine(); $stream=[IO.File]::Open($file_path,[IO.FileMode]::Open,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None); try {[Console]::Out.WriteLine("LOCKED"); [Console]::Out.Flush(); [Console]::In.ReadLine() | Out-Null} finally {$stream.Dispose()}'],{windowsHide:true,stdio:['pipe','pipe','pipe']});
+   let lock_ready=false,lock_error='',lock_exit=false;locker.stdout.on('data',chunk=>{if(String(chunk).includes('LOCKED'))lock_ready=true;});locker.stderr.on('data',chunk=>lock_error+=String(chunk));locker.on('exit',()=>lock_exit=true);locker.on('error',error=>lock_error+=String(error));locker.stdin.write(locked_file+'\n');
+   try{
+    await wait(()=>lock_ready||lock_exit||lock_error,'exclusive lock ready');assert(lock_ready,'exclusive Windows lock acquired '+lock_error);
+    await select_delete(locked);await accept_delete();await wait(()=>!files.file_operations.state.busy,'occupied directory returned');
+    assert(files.file_operations.state.phase==='failed'&&fs.existsSync(locked_file),'occupied build returns a visible failure');
+    assert(document.querySelector('.workspace-explorer-status')?.textContent.includes('回收站'),'real occupied failure remains visible');
+   }finally{locker.stdin.end('\n');await wait(()=>lock_exit,'lock helper exited');}
+   assert(fs.readFileSync(locked_file,'utf8')==='locked bytes','locked contents retained');await select_delete(locked);await accept_delete();await wait(()=>!files.file_operations.state.busy,'unlocked retry ended');assert(!fs.existsSync(locked)&&files.file_operations.state.phase==='succeeded','unlocked native retry succeeds');
+   for(let index=0;index<20;index++){
+    const target=path.join(directory,'cycle_'+index+'.txt');fs.writeFileSync(target,'temporary cycle');await files.trash_entries(directory,[target]);assert(!fs.existsSync(target)&&!files.file_operations.state.busy,'native sequential cycle '+index);
+   }
+   let stale_rejected=false;const protected_file=path.join(directory,'front.md');
+   try{await files.trash_entries(base,[protected_file]);}catch{stale_rejected=true;}
+   assert(stale_rejected&&fs.existsSync(protected_file),'service rejects stale root before native invocation');
+   assert(File.editor.getMarkdown().includes('原文必须保持'),'native document preserved');
+   assert(task_states.some(state=>state.phase==='verifying')&&task_states.some(state=>state.phase==='cleanup')&&task_states.some(state=>state.phase==='refreshing'),'production phases observed');
+   fs.writeFileSync(path.join(base,'file_task_results.json'),JSON.stringify({status:'PASS',trash_calls:trash_calls.map(item=>path.relative(directory,item)),task_states,native_build_children:[20,100,1000],native_sequential_cycles:20,controlled:['delayed bridge with real eventual recycle','false bridge response']},null,2));
+  }finally{JSBridge.invoke=original_invoke;stop_tasks();}
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'explorer_stable'}));await pause(500);
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples,frames:frames.length,trusted,scroll:top,max_scroll_deviation:Math.max(...frames.map(frame=>Math.abs(frame.scroll-top)))},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples,input_events,diagnostic:{root:files.context_root(),tree:document.querySelector('.workspace-explorer-tree')?.outerHTML.slice(0,9000),panel:core.app.workspace.sidebar.activePanel?.ribbonButton?.id}},null,2));}

@@ -1,4 +1,6 @@
 import {register_workspace_dismissal,type workspace_dismiss_layer} from './workspace_focus';
+import type {workspace_file_operation,workspace_file_operation_state} from './workspace_file_operation';
+import {create_workspace_progress_view} from './workspace_progress_view';
 import {workspace_text} from "./workspace_i18n";
 import {bind_workspace_file_drag} from './workspace_file_drag';
 import {acquire_workspace_directories} from './workspace_directory_service';
@@ -35,6 +37,7 @@ export type workspace_file_tree_options = {
   replay_file_history?(redo?:boolean):Promise<string[]>;
   file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
+  file_operations?:workspace_file_operation;
   confirm_delete?(): boolean;
   compact_folders?: boolean;
   extra_menu?(path: string, is_directory: boolean): workspace_menu_entry[];
@@ -65,7 +68,12 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   const sticky_layer = el("div", "workspace-explorer-sticky"); sticky_anchor.append(sticky_layer);
   const spacer = el("div", "workspace-explorer-spacer"); tree.append(sticky_anchor, spacer);
   const status = el("div", "workspace-explorer-status"); status.setAttribute("role", "status"); status.hidden=true;
-  toolbar.append(title, actions); container.append(toolbar, root_label, tree, status);
+  const progress=create_workspace_progress_view();
+  const status_text=el('span'),cancel_operation=el('button','',workspace_text('file_task_cancel'));
+  cancel_operation.type='button';cancel_operation.onclick=()=>options.file_operations?.cancel();
+  status.append(status_text);
+  toolbar.append(title, actions); container.append(toolbar, root_label, tree, progress.root, status);
+  let task_state:workspace_file_operation_state|undefined,view_status='',operation_error='';
   let root: explorer_node | undefined, selected_path = "", visible = false, disposed = false, generation = 0, serial = 0;
   let flat_nodes: explorer_node[] = [], render_frame = 0, reveal_request = 0;
   const display_ranges = new Map<explorer_node, {index:number; end:number; parent?:explorer_node}>();
@@ -76,28 +84,29 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
   let search_projection = false;
   const selection_model = new workspace_list_selection(tree);
   const selection_paths = selection_model.keys;
-  let operation_busy = false, compare_path = "";
+  let local_operation_busy = false, compare_path = "";
+  const operation_busy=()=>local_operation_busy||Boolean(options.file_operations?.state.busy);
   const dialogs = new Set<{close(): void}>();
   const nodes = new Map<string, explorer_node>(); const detachers: (() => void)[] = [];
   const row_views = new Map<explorer_node, {row: HTMLDivElement; chevron: HTMLSpanElement; label: HTMLSpanElement; note: HTMLSpanElement; file_icon: HTMLElement}>();
   let click_sequence: {node: explorer_node; selected: boolean} | undefined;
   const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: "base"});
   const drag = bind_workspace_file_drag({tree, root_label, path_api,
-    root: () => root?.path || '', enabled: () => Boolean(options.transfer && !options.selection && visible && !disposed && !operation_busy && !rename_state && root && path_api.normalize(options.context_root()) === root.path),
+    root: () => root?.path || '', enabled: () => Boolean(options.transfer && !options.selection && visible && !disposed && !operation_busy() && !rename_state && root && path_api.normalize(options.context_root()) === root.path),
     entry: path => nodes.get(path), selection: () => [...selection_paths], select: path => { const node = nodes.get(path); if (node) select(node, false, true); click_sequence = undefined; },
     expand: async path => { const node = nodes.get(path); if (node?.directory && !node.expanded) { node.expanded = true; await load_children(node); rebuild(); } },
     error: error => set_status(String(error)),
     transfer: async (root_path, paths, target, copy) => {
       const captured = root;
-      if (!captured || captured.path !== root_path || operation_busy || disposed || path_api.normalize(options.context_root()) !== root_path) return;
-      operation_busy = true;
+      if (!captured || captured.path !== root_path || operation_busy() || disposed || path_api.normalize(options.context_root()) !== root_path) return;
+      local_operation_busy=true;
       try {
         const results = await options.transfer!(root_path, paths, target, copy);
         if (!disposed && root === captured) {
           await refresh(); if (results[0]) await reveal(results[0]);
           selection_paths.clear(); for (const path of results) selection_paths.add(path); render(); tree.focus({preventScroll:true});
         }
-      } finally { operation_busy = false; if (!disposed && root === captured) await refresh(); }
+      } finally { local_operation_busy=false; if (!disposed && root === captured) await refresh(); }
     }
   });
 
@@ -111,13 +120,21 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     else if (top + ROW_HEIGHT > before + tree.clientHeight) tree.scrollTop = top + ROW_HEIGHT - tree.clientHeight;
     if (tree.scrollTop !== before) render();
   }
-  const set_status = (message: string) => {
+  const render_status = () => {
     if (disposed) return;
-    status.textContent = message; status.hidden = !message;
+    const task=task_state&&path_api.normalize(task_state.root)===path_api.normalize(options.context_root())?task_state:undefined;
+    const message=task?.error||(task?.busy?task.label:operation_error||view_status);
+    status_text.textContent=message;status.hidden=!message;
+    if(task?.busy){progress.update(task.label);container.setAttribute('aria-busy','true');}
+    else{progress.hide();container.removeAttribute('aria-busy');}
+    if(task?.busy&&task.cancelable){if(cancel_operation.parentNode!==status)status.append(cancel_operation);cancel_operation.disabled=task.cancel_requested;}
+    else cancel_operation.remove();
     // When the available tree height changes, first scroll then render, ensuring that the selected line remains fully visible even after errors or cancellation.
     keep_row_visible();
   };
-  const run = (operation: () => unknown) => { void Promise.resolve().then(operation).catch(error => set_status(String(error))); };
+  const set_status = (message: string) => {view_status=message;render_status();};
+  const report_error=(error:unknown)=>{operation_error=String(error instanceof Error?error.message:error);render_status();};
+  const run = (operation: () => unknown) => { void Promise.resolve().then(operation).catch(report_error); };
   const file_icon_style=acquire_workspace_file_icons();
   const icon = (name: git_icon_name) => git_icon(name, "workspace-explorer-icon");
   const icon_button = (name: git_icon_name, label: string, action: () => unknown) => {
@@ -233,7 +250,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
             if (event.target === rename_state?.input) return;
             event.preventDefault(); event.stopPropagation();
             if(options.selection){if(event.button===0&&!event.altKey&&!event.ctrlKey&&!event.metaKey&&!event.shiftKey){select(node);run(()=>options.selection!.enter(node.path,node.directory));}return;}
-            if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy || disposed || nodes.get(node.path) !== node) return;
+            if (node.directory || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey || rename_state || operation_busy() || disposed || nodes.get(node.path) !== node) return;
             const sequence = click_sequence; click_sequence = undefined;
             if (sequence?.node === node && sequence.selected) begin_rename(node);
           };
@@ -241,7 +258,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
         }
         const {row, chevron, label, note, file_icon} = view;
         row.className = "workspace-explorer-row" + (selection_paths.has(node.path) ? " is-selected" : "") + (options.file_clipboard?.is_cut(node.path) ? " is-cut" : "");
-        row.draggable = Boolean(options.transfer && !options.selection && !node.link && !rename_state && !operation_busy);
+        row.draggable = Boolean(options.transfer && !options.selection && !node.link && !rename_state && !operation_busy());
         row.classList.toggle('is-drop-target', tree.dataset.dropTarget === node.path);
         row.id = node.id; row.dataset.path = node.path; row.dataset.directory = String(node.directory); row.setAttribute("role", "treeitem");
         row.setAttribute("aria-level", String((node.display_depth ?? node.depth) + 1)); selection_model.focused_key=selected_path;selection_model.bind(row,node.path);
@@ -366,16 +383,16 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       if(compare_path&&compare_path!==node.path)entries.push({title:workspace_text("file_tree_compare_with_selected_item"),action:()=>run(()=>options.compare!(compare_path,node.path))});
       if(selected_files.length===2)entries.push({title:workspace_text("file_tree_compare_selected_file"),action:()=>run(()=>options.compare!(selected_files[0],selected_files[1]))});
     }
-    if (node !== root && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_cut"),shortcut:"Ctrl+X",separator: true, disabled:operation_busy,action: () => run(() => set_clipboard(true))}, {title: workspace_text("monaco_text_input_copy"),shortcut:"Ctrl+C", disabled:operation_busy, action: () => run(() => set_clipboard(false))});
-    if (node.directory && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_paste"),shortcut:"Ctrl+V", disabled: operation_busy, action: () => run(() => paste(node))});
+    if (node !== root && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_cut"),shortcut:"Ctrl+X",separator: true, disabled:operation_busy(),action: () => run(() => set_clipboard(true))}, {title: workspace_text("monaco_text_input_copy"),shortcut:"Ctrl+C", disabled:operation_busy(), action: () => run(() => set_clipboard(false))});
+    if (node.directory && options.file_clipboard) entries.push({title: workspace_text("git_diff_editor_paste"),shortcut:"Ctrl+V", disabled: operation_busy(), action: () => run(() => paste(node))});
     entries.push({title: workspace_text("editor_actions_copy_path"),shortcut:"Shift+Alt+C",separator: true, action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, false) || node.path))},
       {title: workspace_text("file_path_actions_copy_relative_path"),shortcut:"Alt+K Alt+Shift+C", action: () => run(() => options.copy(format_file_path(path_api, node.path, root?.path, true) || node.name))});
-    if (node !== root) entries.push({title: workspace_text("file_tree_rename"),shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy, action: () => begin_rename(node)});
-    if (node !== root && options.trash) entries.push({title: workspace_text("file_tree_delete"),shortcut:"Del",disabled:operation_busy, action: () => confirm_trash()});
+    if (node !== root) entries.push({title: workspace_text("file_tree_rename"),shortcut:"F2",separator: true, disabled: Boolean(rename_state?.busy)||operation_busy(), action: () => begin_rename(node)});
+    if (node !== root && options.trash) entries.push({title: workspace_text("file_tree_delete"),shortcut:"Del",disabled:operation_busy(), action: () => confirm_trash()});
     if (node.directory) entries.push({title: workspace_text("file_tree_refresh_folder"),separator:true, action: () => run(() => load_children(node, true))});
     if(options.replay_file_history)entries.push(
-      {title:workspace_text('file_history_undo'),shortcut:'Ctrl+Z',separator:true,disabled:operation_busy||!options.file_history?.can(),action:()=>run(()=>replay_history(false))},
-      {title:workspace_text('file_history_redo'),shortcut:'Ctrl+Y',disabled:operation_busy||!options.file_history?.can(true),action:()=>run(()=>replay_history(true))});
+      {title:workspace_text('file_history_undo'),shortcut:'Ctrl+Z',separator:true,disabled:operation_busy()||!options.file_history?.can(),action:()=>run(()=>replay_history(false))},
+      {title:workspace_text('file_history_redo'),shortcut:'Ctrl+Y',disabled:operation_busy()||!options.file_history?.can(true),action:()=>run(()=>replay_history(true))});
     entries.push(...options.extra_menu?.(node.path, node.directory) || []);
     container.dispatchEvent(new CustomEvent("typora-code:explorer-file-menu",{detail:{path:node.path,directory:node.directory,entries}}));
     // When the root directory has switched or the target node has disappeared, the old menu cannot be operated again on the old selection.
@@ -430,7 +447,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (edit?.creating) { const parent = edit.node.parent!; parent.children = parent.children?.filter(child => child !== edit.node); nodes.delete(edit.node.path); rebuild(); }
   }
   async function begin_create(directory: boolean, parent = nodes.get(selected_path) || root) {
-    if (!root || !parent || !options.create || rename_state?.busy || operation_busy) return;
+    if (!root || !parent || !options.create || rename_state?.busy || operation_busy()) return;
     if (!parent.directory) parent = parent.parent || root;
     cancel_edit(); parent.expanded = true; await load_children(parent);
     if (disposed) return;
@@ -438,37 +455,44 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     parent.children = [node, ...parent.children || []]; rebuild(); begin_rename(node); if (rename_state) { rename_state.creating = true; rebuild(); }
   }
   async function set_clipboard(move: boolean) {
-    if (!root || !options.file_clipboard || operation_busy) return;
+    if (!root || !options.file_clipboard || operation_busy()) return;
     const current_root=root, paths=selection_paths.size?[...selection_paths]:selected_path?[selected_path]:[];
-    if(!paths.length)return;operation_busy=true;set_status(workspace_text("file_tree_writing_to_system_clipboard"));
+    if(!paths.length)return;local_operation_busy=true;set_status(workspace_text("file_tree_writing_to_system_clipboard"));
     try { await options.file_clipboard.copy(current_root.path,paths,move,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path);
       if(!disposed&&root===current_root)set_status(move?workspace_text("file_tree_cut_select_target_folder_to_paste"):workspace_text("file_tree_copied_to_system_clipboard"));
-    } finally { operation_busy=false;if(!disposed)render(); }
+    } finally { local_operation_busy=false;if(!disposed)render(); }
   }
   async function paste(target = nodes.get(selected_path) || root) {
-    if (!root || !target || !options.file_clipboard || operation_busy) return;
+    if (!root || !target || !options.file_clipboard || operation_busy()) return;
     const current_root=root;if(!target.directory)target=target.parent||root;
-    const destination=target;operation_busy=true;set_status(workspace_text("file_tree_pasting_file"));
+    const destination=target;local_operation_busy=true;set_status(workspace_text("file_tree_pasting_file"));
     try { const result=await options.file_clipboard.paste(current_root.path,destination.path,()=>!disposed&&root===current_root&&path_api.normalize(options.context_root())===current_root.path&&nodes.get(destination.path)===destination);
       if(!disposed&&root===current_root){await refresh();if(result.paths[0])await reveal(result.paths[0]);set_status(result.message);}
-    } finally { operation_busy=false;if(!disposed)await refresh(); }
+    } finally { local_operation_busy=false;if(!disposed)await refresh(); }
   }
   let trash_confirmation: ReturnType<typeof workspace_dialog>|undefined;
   function confirm_trash() {
-    if (!root || !options.trash || operation_busy || trash_confirmation) return;
+    if (!root || !options.trash || trash_confirmation) return;
+    if(operation_busy()||options.file_operations?.state.busy){set_status(workspace_text('file_task_busy',{value_0:options.file_operations?.state.label||workspace_text('file_task_working')}));return;}
     const current_root = root, paths = selection_paths.size ? [...selection_paths] : selected_path ? [selected_path] : []; if (!paths.length) return;
     let accepted=false;
     const execute=()=>{
-      if(accepted||operation_busy||disposed||root!==current_root)return;
-      accepted=true;operation_busy=true;
-      run(async()=>{try{if(disposed||root!==current_root)return;await options.trash!(current_root.path,paths);selection_paths.clear();selected_path="";set_status(workspace_text("file_tree_moved_to_recycle_bin"));}finally{operation_busy=false;if(!disposed)await refresh();}});
+      if(accepted)return;
+      if(disposed||root!==current_root||path_api.normalize(options.context_root())!==current_root.path){report_error(workspace_text('file_task_stale_confirmation'));return;}
+      if(operation_busy()||options.file_operations?.state.busy){set_status(workspace_text('file_task_busy',{value_0:options.file_operations?.state.label||workspace_text('file_task_working')}));return;}
+      accepted=true;operation_error='';local_operation_busy=true;set_status(workspace_text('file_task_preparing'));
+      run(async()=>{
+        try{await options.trash!(current_root.path,paths);if(!disposed&&root===current_root){selection_paths.clear();selected_path="";set_status(workspace_text("file_tree_moved_to_recycle_bin"));}}
+        catch(error){report_error(error);}
+        finally{local_operation_busy=false;if(!disposed&&root===current_root&&!options.file_operations)void refresh().catch(report_error);}
+      });
     };
     if(options.confirm_delete?.()===false){execute();return;}
     const dialog=workspace_dialog(workspace_text("file_tree_delete"),workspace_text("language_service_settings_view_cancel"),()=>{trash_confirmation=undefined;dialogs.delete(dialog);});
     dialogs.add(dialog);trash_confirmation=dialog;
     dialog.content.append(el("p","",paths.length===1?workspace_text("file_tree_are_you_sure_you_want_to_move_to_the_recycle_bin", {value_0: String(path_api.basename(paths[0]))}):workspace_text("file_tree_are_you_sure_you_want_to_move_items_to_the_recycle_bin", {value_0: String(paths.length)})));
     const cancel=el("button","",workspace_text("language_service_settings_view_cancel")),accept=el("button","",workspace_text("file_tree_move_to_recycle_bin"));
-    cancel.onclick=()=>dialog.close();accept.onclick=()=>{dialog.close();execute();};
+    cancel.onclick=()=>dialog.close();accept.onclick=()=>{execute();dialog.close();};
     dialog.footer.replaceChildren(cancel,accept);cancel.focus();
   }
   async function sync_root(force = false) {
@@ -482,7 +506,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     }
     const file_path = path_api.normalize(requested);
     if (root?.path === file_path) { if (force) {set_status("");await load_children(root, true);} return; }
-    generation++;
+    generation++;operation_error='';
     drag.reset();
     clear_edit(); selection_paths.clear();compare_path="";
     if (root) close_branch(root, true);
@@ -538,16 +562,16 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     await sync_root();if(root)watch_visible(root);
   }
   async function replay_history(redo:boolean){
-    if(!root||operation_busy||rename_state||!options.replay_file_history)return;
+    if(!root||operation_busy()||rename_state||!options.replay_file_history)return;
     if(!options.file_history?.can(redo)){set_status(workspace_text('file_history_empty'));return;}
-    const captured=root;operation_busy=true;
+    const captured=root;local_operation_busy=true;
     try{
       const paths=await options.replay_file_history(redo);
       if(disposed||root!==captured)return;
       await refresh();if(paths[0])await reveal(paths[0]);
       selection_paths.clear();for(const path of paths)selection_paths.add(path);render();
       set_status(workspace_text(redo?'file_history_redone':'file_history_undone'));
-    }finally{operation_busy=false;if(!disposed&&root===captured){await refresh();tree.focus({preventScroll:true});}}
+    }finally{local_operation_busy=false;if(!disposed&&root===captured){await refresh();tree.focus({preventScroll:true});}}
   }
   const history_key=(event:KeyboardEvent)=>{
     if(event.target!==tree||options.selection||!options.replay_file_history||event.isComposing||event.altKey||!(event.ctrlKey||event.metaKey))return;
@@ -591,11 +615,20 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       event.preventDefault(); const bounds = tree.getBoundingClientRect(); context_menu(new MouseEvent("contextmenu", {clientX: bounds.left + 24, clientY: bounds.top + 30}), node);
     }
   });
-  detachers.push(register_workspace_context_guard(()=>operation_busy||rename_state?.busy?workspace_text("file_tree_file_operations_are_in_progress_please_complete_them_before"):undefined));
+  detachers.push(register_workspace_context_guard(()=>operation_busy()||rename_state?.busy?workspace_text("file_tree_file_operations_are_in_progress_please_complete_them_before"):undefined));
   root_label.oncontextmenu=event=>{if(root)context_menu(event,root);};
   tree.oncontextmenu = event => { if (event.target instanceof Element && event.target.closest(".workspace-explorer-row")) return; if (root) context_menu(event, root); };
   const resize_observer = new ResizeObserver(() => { if (rename_state) keep_row_visible(); render(); }); resize_observer.observe(tree);
   if(options.file_clipboard)detachers.push(options.file_clipboard.subscribe(()=>{if(!disposed)render();}));
+  if(options.file_operations){
+    detachers.push(options.file_operations.subscribe(state=>{
+      if(state.id!==task_state?.id)operation_error='';
+      task_state=state;render_status();
+    }));
+    detachers.push(options.file_operations.on_refresh(async expected_root=>{
+      if(!disposed&&visible&&root?.path===expected_root&&path_api.normalize(options.context_root())===expected_root)await refresh();
+    }));
+  }
   function dispose() {
     drag.dispose();
     file_icon_style.remove();selection_model.dispose();
@@ -605,7 +638,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     if (render_frame) cancelAnimationFrame(render_frame);
     row_views.clear(); display_ranges.clear(); sticky_nodes.clear(); click_sequence = undefined; clear_edit(); for (const dialog of dialogs) dialog.close(); dialogs.clear();
     for (const detach of detachers) detach();
-    container.remove();style.remove();
+    progress.dispose();container.remove();style.remove();
   }
   if(options.selection){toolbar.remove();root_label.remove();}
   function show_results(entries:workspace_path_result[]){

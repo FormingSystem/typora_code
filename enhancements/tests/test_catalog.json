@@ -2398,7 +2398,8 @@
         "enhancements/src/workspace_file_tree.ts",
         "enhancements/src/workspace_focus.ts",
         "enhancements/src/workspace_file_drag.ts",
-        "enhancements/src/workspace_file_history.ts"
+        "enhancements/src/workspace_file_history.ts",
+        "enhancements/src/workspace_file_operation.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2419,7 +2420,8 @@
       ],
       "expected": [
         "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果",
-        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows."
+        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows.",
+        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录"
       ],
       "timeout_ms": 240000
     },
@@ -2614,12 +2616,14 @@
       "requirements": [
         "R002",
         "R042",
-        "R002.2"
+        "R002.2",
+        "R041"
       ],
       "design": "docs/file_operations.md",
       "implementation": [
         "enhancements/src/workspace_file_operations.ts",
-        "enhancements/src/workspace_file_history.ts"
+        "enhancements/src/workspace_file_history.ts",
+        "enhancements/src/workspace_file_operation.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2635,7 +2639,8 @@
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
       ],
       "expected": [
-        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
+        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录"
       ],
       "timeout_ms": 240000
     },
@@ -9596,13 +9601,15 @@
       "purpose": "implementation",
       "requirements": [
         "R028.2",
-        "R028.3"
+        "R028.3",
+        "R041"
       ],
       "design": "docs/file_operations.md#r0282-相邻文件切换保持资源树位置2026-10-03",
       "implementation": [
         "enhancements/src/workspace_file_tree.ts",
         "enhancements/src/workspace_explorer.ts",
-        "enhancements/scripts/prepare_stability_native.py"
+        "enhancements/scripts/prepare_stability_native.py",
+        "enhancements/src/workspace_file_operation.ts"
       ],
       "related_modules": [
         "explorer",
@@ -9618,11 +9625,13 @@
       ],
       "steps": [
         "20 trusted adjacent file clicks; framewise scroll and row identity; explicit and offscreen automatic reveal.",
-        "R028.3: nested sticky ancestors in 1000-child folders; direct collapse, bounded DOM and repeated scrolling; native suite uses 20 trusted collapse clicks."
+        "R028.3: nested sticky ancestors in 1000-child folders; direct collapse, bounded DOM and repeated scrolling; native suite uses 20 trusted collapse clicks.",
+        "R041: recycle 20/100/1000-child temporary directories through trusted confirmation; delay/refuse bridge replies, hold a real Windows exclusive file lock, retry and run 20 native cycles."
       ],
       "expected": [
         "Stable visible rows; correct open target; original files unchanged.",
-        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows."
+        "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows.",
+        "Accurate task outcomes, one native call, retained failures and bytes, stale-root refusal, and editor preservation; controlled replies remain distinguished from native recycling."
       ],
       "timeout_ms": 180000
     },

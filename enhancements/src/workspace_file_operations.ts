@@ -140,5 +140,5 @@ export async function trash_workspace_entries(modules: workspace_file_modules, r
       if (entry_identity(current.stat) !== entry_identity(entry.stat)) throw new Error(workspace_text("file_operations_the_project_has_changed_please_refresh_and_retry"));
       await trash(entry.path); completed.push(entry.path);
     }
-  } catch (error) { throw Object.assign(new Error(String(error) + (completed.length ? workspace_text("file_operations_has_been_moved_to_the_recycle_bin") + completed.join("、") : "")), {trashed_paths: completed}); }
+  } catch (error) { throw Object.assign(new Error(String(error) + (completed.length ? workspace_text("file_operations_has_been_moved_to_the_recycle_bin") + completed.join("、") : "")), {name:error instanceof Error?error.name:'Error',cause:error,trashed_paths: completed}); }
 }
