@@ -54,7 +54,7 @@ export function create_workspace_file_operation(assert_current:(root:string,epoc
       finally{clear_timer();}
       if(failed&&state.completed_paths.length){
         const detail=workspace_text('file_task_completed_paths',{value_0:state.completed_paths.join('\n')});
-        failure=Object.assign(new Error(message(failure)+'\n'+detail),{name:(failure as {name?:string})?.name||'Error',cause:failure,trashed_paths:[...state.completed_paths]});
+        failure=Object.assign(new Error(message(failure)+'\n'+detail),{name:(failure as {name?:string})?.name||'Error',cause:failure,removed_paths:[...state.completed_paths]});
         publish({error:message(failure)});
       }
       if(options.refresh){

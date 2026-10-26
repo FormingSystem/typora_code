@@ -16,7 +16,7 @@ import {workspace_leaf_tab} from "./workspace_leaf_tab";
 import {create_resource_file_clipboard} from "./remote_workspace_clipboard";
 import {create_workspace_file_clipboard,type workspace_file_clipboard} from "./workspace_file_clipboard";
 import {create_workspace_file_history} from './workspace_file_history';
-import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, trash_workspace_entries } from "./workspace_file_operations";
+import { validate_workspace_entries, create_workspace_entry, transfer_workspace_entries, prepare_workspace_removal, permanently_remove_path, type workspace_removal_plan } from "./workspace_file_operations";
 import type { graph_core, graph_leaf } from "./git_graph_host";
 import { git_diff_editor } from "./git_diff_editor";
 import { workspace_element as el, workspace_button as button, workspace_menu, workspace_dialog,dispose_workspace_widgets } from "./workspace_widgets";
@@ -58,6 +58,7 @@ export type workspace_file_host = {
   create_entry(root:string,parent:string,name:string,directory:boolean):Promise<string>;
   file_clipboard:workspace_file_clipboard;
   trash_entries(root:string,paths:string[]):Promise<void>;
+  prepare_permanent_delete(root:string,paths:string[]):Promise<()=>Promise<void>>;
   file_operations:workspace_file_operation;
   keep_open(leaf?:graph_leaf):void;
   editor_state(leaf:graph_leaf):{file_path:string; kind:"source"|"markdown"|"other"; dirty:boolean; busy:boolean};
@@ -1218,27 +1219,41 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     validate:(root,paths)=>file_operation(()=>validate_workspace_entries({fs,path_api},root,paths),root,paths),
     transfer:(root,paths,target,move,external)=>file_operation(()=>transfer_with_history(root,paths,target,move,external),root,paths)
   });
-  const trash_entries=(root:string,selected:string[])=>{const paths=[...selected];return file_operation(async operation=>{
+  const remove_entries=(root:string,selected:string[],permanent=false,prepared?:workspace_removal_plan)=>{const paths=[...selected];return file_operation(async operation=>{
     const includes=(candidate:string)=>paths.some(path=>renamed_workspace_path(path_api,candidate,path,path,true)!==undefined);
     const affected=[...views].filter(view=>includes(view.file_path));
     if(renaming||affected.some(view=>view.dirty()||view.saving))throw new Error(workspace_text("files_the_project_to_be_deleted_contains_source_code_with_unsaved"));
     if(includes(runtime.File?.bundle?.filePath||"")&&runtime.File?.changeCounter?.isDocumentEdited())throw new Error(workspace_text("files_the_project_to_be_deleted_contains_unsaved_markdown_please_s"));
     file_history.clear();
-    await trash_workspace_entries({fs,path_api},root,paths,async(target:string)=>{
+    const plan=prepared||await prepare_workspace_removal({fs,path_api},root,paths);
+    await plan(async(target:string)=>{
       operation.checkpoint();
       // Before each file write to disk, recheck the draft; during batch editing, edits cannot be swallowed by subsequent deletions.
       if([...views].some(view=>includes(view.file_path)&&(view.dirty()||view.saving)))throw new Error(workspace_text("files_source_code_was_modified_during_deletion_the_subsequent_dele"));
       const release_native=prepare_deleted_native_document(runtime,candidate=>renamed_workspace_path(path_api,candidate,target,target,true)!==undefined,native_transfer_text);
-      await trash_native_path(runtime,target,phase=>operation.phase(phase,workspace_text(phase==='executing'?'file_task_recycling':'file_task_verifying',{value_0:target})));
+      if(permanent){operation.phase('executing',workspace_text('file_delete_working',{value_0:target}));await permanently_remove_path({fs,path_api},target);}
+      else await trash_native_path(runtime,target,phase=>operation.phase(phase,workspace_text(phase==='executing'?'file_task_recycling':'file_task_verifying',{value_0:target})));
       operation.completed(target);
-      notify_workspace_resource_change({fs,paths:[target]});
-      operation.phase('cleanup',workspace_text('file_task_cleanup',{value_0:target}));
+      if(!permanent)notify_workspace_resource_change({fs,paths:[target]});
+      operation.phase('cleanup',workspace_text(permanent?'file_delete_cleanup':'file_task_cleanup',{value_0:target}));
       if(release_native)await release_native();
       const leaves:graph_leaf[]=[];core.app.workspace.eachLeaves(leaf=>{if(renamed_workspace_path(path_api,real_path(leaf),target,target,true)!==undefined)leaves.push(leaf);});
       for(const view of [...views])if(renamed_workspace_path(path_api,view.file_path,target,target,true)!==undefined)view.release_source();
       for(const leaf of leaves)leaf.parent.removeTab?.(leaf.state.path);
     });
   },root,paths,workspace_text('file_task_preparing'),{refresh:true,cancelable:paths.length>1});};
+  const trash_entries=(root:string,paths:string[])=>remove_entries(root,paths);
+  const prepare_permanent_delete=async(root:string,selected:string[])=>{
+    if(active_remote_files())throw new Error(workspace_text('file_delete_local_only'));
+    const paths=[...selected],epoch=workspace_context_epoch();
+    const plan=await prepare_workspace_removal({fs,path_api},root,paths);
+    let used=false;
+    return async()=>{
+      if(used)throw new Error(workspace_text('file_delete_request_used'));used=true;
+      if(epoch!==workspace_context_epoch())throw new Error(workspace_text('file_task_stale_confirmation'));
+      await remove_entries(root,paths,true,plan);
+    };
+  };
   // A native command-line launch can precede our open-file adapter. Adopt its clean source document once.
   const adopt_startup_source=async(signal:AbortSignal)=>{
     const leaf=core.app.workspace.activeLeaf,file_path=real_path(leaf);
@@ -1252,7 +1267,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;
     await close_leaf(leaf);
   };
-  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, file_history, replay_file_history, transfer_entries, create_entry, file_clipboard, trash_entries, file_operations, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
+  const host = {fs, path_api, core, open_file, restore_files,adopt_startup_source, context_root, file_menu, copy, rename_file, move_file, file_history, replay_file_history, transfer_entries, create_entry, file_clipboard, trash_entries, prepare_permanent_delete, file_operations, keep_open, editor_state, close_leaf, prepare_workspace_switch, duplicate_leaf, reopen_leaf, source_editor_active, run_editor_command, navigation_entries:()=>source_navigation?.entries()||[], can_save_active, save_active, save_as_active, reload_active, save_leaf, auto_save_leaf, save_all,capture_transfer,receive_transfer,release_transfer,
     register_document:(port:workspace_document_port)=>{document_ports.add(port);source_lifecycle.guard(port);return()=>{document_ports.delete(port);};},
     has_editor_errors:(leaf:graph_leaf)=>{const model=[...views].find(view=>view.leaf===leaf&&!view.disposed)?.editor?.models[0];return Boolean(model&&monaco.editor.getModelMarkers({resource:model.uri}).some(marker=>marker.severity===monaco.MarkerSeverity.Error));},
     read_text:async(file_path:string)=>{

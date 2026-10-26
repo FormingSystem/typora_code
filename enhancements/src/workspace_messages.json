@@ -5268,8 +5268,8 @@
     "zh_cn": "未能移到回收站："
   },
   "native_trash_please_check_file_locking_directory_permissions_and_recycle": {
-    "en": "Please check file locking, directory permissions, and Recycle Bin support; permanent deletion was not executed.",
-    "zh_cn": "。请检查文件占用、目录权限及回收站支持；未执行永久删除。"
+    "zh_cn": "。系统回收接口未提供详细原因；未执行永久删除。",
+    "en": ". The system recycle interface did not provide a detailed cause; permanent deletion was not performed."
   },
   "native_trash_the_current_host_does_not_provide_a_recycle_bin_interface_th": {
     "en": "The current host does not provide a Recycle Bin interface. The file has been retained.",
@@ -8112,8 +8112,8 @@
     "en": "Recycled; updating editors: {value_0}"
   },
   "file_task_completed_paths": {
-    "zh_cn": "已回收的项目：{value_0}",
-    "en": "Items already recycled: {value_0}"
+    "zh_cn": "已完成删除的项目：{value_0}",
+    "en": "Items already removed: {value_0}"
   },
   "file_task_cancel": {
     "zh_cn": "停止后续项目",
@@ -8122,5 +8122,41 @@
   "file_task_stale_confirmation": {
     "zh_cn": "工作区已变化，未执行删除；请重新选择目标",
     "en": "Workspace changed; nothing was deleted. Select the target again."
+  },
+  "file_delete_permanent": {
+    "zh_cn": "永久删除",
+    "en": "Delete Permanently"
+  },
+  "file_delete_warning": {
+    "zh_cn": "无法移到回收站。是否永久删除以下项目？此操作无法从回收站恢复；取消会保留当前项目。",
+    "en": "Unable to move these items to the recycle bin. Permanently delete them? They cannot be restored from the recycle bin. Cancel keeps the remaining items."
+  },
+  "file_delete_request_used": {
+    "zh_cn": "此删除请求已处理，请重新选择目标",
+    "en": "This deletion request was already handled. Select the targets again."
+  },
+  "file_delete_remaining": {
+    "zh_cn": "删除返回后目标仍存在，请核对：{value_0}",
+    "en": "The target still exists after deletion: {value_0}"
+  },
+  "file_delete_working": {
+    "zh_cn": "正在永久删除：{value_0}",
+    "en": "Permanently deleting: {value_0}"
+  },
+  "file_delete_cleanup": {
+    "zh_cn": "已永久删除，正在清理编辑器：{value_0}",
+    "en": "Permanently deleted; updating editors: {value_0}"
+  },
+  "file_delete_finished": {
+    "zh_cn": "已永久删除",
+    "en": "Permanently deleted"
+  },
+  "file_delete_partial": {
+    "zh_cn": "永久删除未完成，目录内容可能已部分删除，请核对：{value_0}。原因：{value_1}",
+    "en": "Permanent deletion did not complete; some contents may already be removed. Check {value_0}. Cause: {value_1}"
+  },
+  "file_delete_local_only": {
+    "zh_cn": "此操作仅适用于本地文件",
+    "en": "This operation is only available for local files"
   }
 }

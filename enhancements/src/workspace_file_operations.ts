@@ -129,16 +129,31 @@ export async function transfer_workspace_entries(modules: workspace_file_modules
   }
 }
 
-/** Recycle bin is provided by the host system; it does not support atomic rollback of multiple items. On failure, it explicitly reports the items already sent to the recycle bin. */
-export async function trash_workspace_entries(modules: workspace_file_modules, root: string, sources: string[], trash: (path: string) => Promise<void>): Promise<void> {
+/** Removal is not atomic across items; retain identities and completed paths for both modes. */
+export type workspace_removal_plan = (remove:(path:string)=>Promise<void>)=>Promise<void>;
+/** Capture identities before confirmation; execution cannot silently select replacement entries. */
+export async function prepare_workspace_removal(modules:workspace_file_modules,root:string,sources:readonly string[]):Promise<workspace_removal_plan> {
   if (sources.some(source => !modules.path_api.isAbsolute(source))) throw new Error(workspace_text("file_operations_the_source_item_must_have_an_absolute_path"));
   const selected = [...new Set(sources.map(source => modules.path_api.resolve(source)))].filter((source, _index, all) => !all.some(parent => parent !== source && within(modules.path_api, parent, source, false)));
-  const entries = await Promise.all(selected.map(source => check_entry(modules, root, source, false))), completed: string[] = [];
-  try {
-    for (const entry of entries) {
-      const current = await check_entry(modules, root, entry.path, false);
-      if (entry_identity(current.stat) !== entry_identity(entry.stat)) throw new Error(workspace_text("file_operations_the_project_has_changed_please_refresh_and_retry"));
-      await trash(entry.path); completed.push(entry.path);
-    }
-  } catch (error) { throw Object.assign(new Error(String(error) + (completed.length ? workspace_text("file_operations_has_been_moved_to_the_recycle_bin") + completed.join("、") : "")), {name:error instanceof Error?error.name:'Error',cause:error,trashed_paths: completed}); }
+  const entries = await Promise.all(selected.map(source => check_entry(modules, root, source, false)));
+  let used=false;
+  return async remove=>{
+    if(used)throw new Error(workspace_text('file_delete_request_used'));used=true;
+    const completed:string[]=[];
+    const verify=async(entry:typeof entries[number])=>{const current=await check_entry(modules,root,entry.path,false);if(entry_identity(current.stat)!==entry_identity(entry.stat))throw new Error(workspace_text('file_operations_the_project_has_changed_please_refresh_and_retry'));};
+    try {
+      for(const entry of entries)await verify(entry);
+      for(const entry of entries){await verify(entry);await remove(entry.path);completed.push(entry.path);}
+    }catch(error){throw Object.assign(new Error(String(error)+(completed.length?'\n'+workspace_text('file_task_completed_paths',{value_0:completed.join('\n')}):'')),{name:error instanceof Error?error.name:'Error',cause:error,removed_paths:completed});}
+  };
+}
+export async function trash_workspace_entries(modules:workspace_file_modules,root:string,sources:string[],trash:(path:string)=>Promise<void>):Promise<void>{
+  await (await prepare_workspace_removal(modules,root,sources))(trash);
+}
+/** Called only by a confirmed, identity-checked removal plan; never follows nested link targets. */
+export async function permanently_remove_path(modules:workspace_file_modules,target:string):Promise<void>{
+  try{await modules.fs.promises.rm(target,{recursive:true,force:false,maxRetries:3,retryDelay:100});}
+  catch(error){throw Object.assign(new Error(workspace_text('file_delete_partial',{value_0:target,value_1:error instanceof Error?error.message:String(error)})),{cause:error});}
+  try{await modules.fs.promises.lstat(target);}catch(error){if((error as {code?:string}).code==='ENOENT')return;throw error;}
+  throw new Error(workspace_text('file_delete_remaining',{value_0:target}));
 }

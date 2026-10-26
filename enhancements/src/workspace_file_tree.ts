@@ -1,5 +1,6 @@
 import {register_workspace_dismissal,type workspace_dismiss_layer} from './workspace_focus';
 import type {workspace_file_operation,workspace_file_operation_state} from './workspace_file_operation';
+import {is_native_trash_error} from './workspace_native_trash';
 import {create_workspace_progress_view} from './workspace_progress_view';
 import {workspace_text} from "./workspace_i18n";
 import {bind_workspace_file_drag} from './workspace_file_drag';
@@ -37,6 +38,7 @@ export type workspace_file_tree_options = {
   replay_file_history?(redo?:boolean):Promise<string[]>;
   file_clipboard?:workspace_file_clipboard;
   trash?(root: string, paths: string[]): Promise<void>;
+  prepare_permanent_delete?(root:string,paths:string[]):Promise<()=>Promise<void>>;
   file_operations?:workspace_file_operation;
   confirm_delete?(): boolean;
   compact_folders?: boolean;
@@ -471,6 +473,28 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
     } finally { local_operation_busy=false;if(!disposed)await refresh(); }
   }
   let trash_confirmation: ReturnType<typeof workspace_dialog>|undefined;
+  async function offer_permanent_delete(current_root:explorer_node,paths:string[],error:unknown){
+    if(!options.prepare_permanent_delete||!is_native_trash_error(error)||remote_files_for(current_root.path)||disposed||root!==current_root||trash_confirmation)return;
+    const completed=options.file_operations?.state.completed_paths||[];
+    const remaining=paths.filter(path=>!completed.includes(path));if(!remaining.length)return;
+    const generation_before=generation;
+    const execute=await options.prepare_permanent_delete(current_root.path,remaining);
+    if(disposed||root!==current_root||generation!==generation_before||trash_confirmation||operation_busy())return;
+    const dialog=workspace_dialog(workspace_text('file_delete_permanent'),workspace_text('language_service_settings_view_cancel'),()=>{trash_confirmation=undefined;dialogs.delete(dialog);});
+    dialogs.add(dialog);trash_confirmation=dialog;
+    dialog.content.append(el('p','',workspace_text('file_delete_warning')),el('p','',remaining.join('\n')));
+    const cancel=el('button','',workspace_text('language_service_settings_view_cancel')),accept=el('button','',workspace_text('file_delete_permanent'));
+    let accepted=false;cancel.onclick=()=>dialog.close();
+    accept.onclick=()=>{
+      if(accepted)return;accepted=true;
+      if(disposed||root!==current_root||generation!==generation_before||path_api.normalize(options.context_root())!==current_root.path){dialog.close();report_error(workspace_text('file_task_stale_confirmation'));return;}
+      if(operation_busy()){dialog.close();report_error(workspace_text('file_history_busy'));return;}
+      local_operation_busy=true;operation_error='';set_status(workspace_text('file_task_preparing'));
+      run(async()=>{try{await execute();if(!disposed&&root===current_root){selection_paths.clear();selected_path='';set_status(workspace_text('file_delete_finished'));}}catch(failure){report_error(failure);}finally{local_operation_busy=false;}});
+      dialog.close();
+    };
+    dialog.footer.replaceChildren(cancel,accept);cancel.focus();
+  }
   function confirm_trash() {
     if (!root || !options.trash || trash_confirmation) return;
     if(operation_busy()||options.file_operations?.state.busy){set_status(workspace_text('file_task_busy',{value_0:options.file_operations?.state.label||workspace_text('file_task_working')}));return;}
@@ -483,7 +507,7 @@ export function create_workspace_file_tree(options: workspace_file_tree_options)
       accepted=true;operation_error='';local_operation_busy=true;set_status(workspace_text('file_task_preparing'));
       run(async()=>{
         try{await options.trash!(current_root.path,paths);if(!disposed&&root===current_root){selection_paths.clear();selected_path="";set_status(workspace_text("file_tree_moved_to_recycle_bin"));}}
-        catch(error){report_error(error);}
+        catch(error){report_error(error);local_operation_busy=false;await offer_permanent_delete(current_root,paths,error);}
         finally{local_operation_busy=false;if(!disposed&&root===current_root&&!options.file_operations)void refresh().catch(report_error);}
       });
     };

@@ -2399,7 +2399,8 @@
         "enhancements/src/workspace_focus.ts",
         "enhancements/src/workspace_file_drag.ts",
         "enhancements/src/workspace_file_history.ts",
-        "enhancements/src/workspace_file_operation.ts"
+        "enhancements/src/workspace_file_operation.ts",
+        "enhancements/src/workspace_native_trash.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2421,7 +2422,8 @@
       "expected": [
         "取消不写入；回收成功后刷新；配置关闭时无确认框；无重复监听或过期结果",
         "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows.",
-        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录"
+        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录",
+        "R041: recycle failure offers a separate permanent-delete confirmation; cancel and draft/stale/identity guards preserve files, explicit acceptance handles long paths and preserves linked targets."
       ],
       "timeout_ms": 240000
     },
@@ -2623,7 +2625,8 @@
       "implementation": [
         "enhancements/src/workspace_file_operations.ts",
         "enhancements/src/workspace_file_history.ts",
-        "enhancements/src/workspace_file_operation.ts"
+        "enhancements/src/workspace_file_operation.ts",
+        "enhancements/src/workspace_native_trash.ts"
       ],
       "related_modules": [
         "explorer",
@@ -2640,7 +2643,8 @@
       ],
       "expected": [
         "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留",
-        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录"
+        "R041：未决调用保留互斥及阶段反馈，错误不被定位/刷新清除，取消不启动后续项目；现场根因与替身边界分别记录",
+        "R041: recycle failure offers a separate permanent-delete confirmation; cancel and draft/stale/identity guards preserve files, explicit acceptance handles long paths and preserves linked targets."
       ],
       "timeout_ms": 240000
     },
@@ -9609,7 +9613,9 @@
         "enhancements/src/workspace_file_tree.ts",
         "enhancements/src/workspace_explorer.ts",
         "enhancements/scripts/prepare_stability_native.py",
-        "enhancements/src/workspace_file_operation.ts"
+        "enhancements/src/workspace_file_operation.ts",
+        "enhancements/src/workspace_file_operations.ts",
+        "enhancements/src/workspace_native_trash.ts"
       ],
       "related_modules": [
         "explorer",
@@ -9631,7 +9637,8 @@
       "expected": [
         "Stable visible rows; correct open target; original files unchanged.",
         "Sticky parents remain actionable, collapse preserves the editor, root changes and disposal clear old rows.",
-        "Accurate task outcomes, one native call, retained failures and bytes, stale-root refusal, and editor preservation; controlled replies remain distinguished from native recycling."
+        "Accurate task outcomes, one native call, retained failures and bytes, stale-root refusal, and editor preservation; controlled replies remain distinguished from native recycling.",
+        "R041: recycle failure offers a separate permanent-delete confirmation; cancel and draft/stale/identity guards preserve files, explicit acceptance handles long paths and preserves linked targets."
       ],
       "timeout_ms": 180000
     },

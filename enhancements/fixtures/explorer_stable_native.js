@@ -9,6 +9,24 @@
  const click=async node=>{const r=node.getBoundingClientRect(),id=++input_id;assert(r.width>0&&r.height>0,'visible target');fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind:'click',width:innerWidth,height:innerHeight,x:r.left+Math.min(r.width/2,120),y:r.top+r.height/2}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id;}catch{return false}},'click delivered');};
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
+  // R041: isolate the reported tree features without touching the user's tree.
+  const recycle_matrix=[];
+  for(const shape of ['short','readonly','dangling_junction','long_path','combined']){
+   for(const provider of ['bridge','electron','bridge_extended','electron_extended']){
+    const target=path.join(base,'workspace','recycle_matrix_'+shape+'_'+provider);fs.mkdirSync(target);
+    fs.writeFileSync(path.join(target,'keep.txt'),'matrix sentinel');
+    if(shape==='readonly'||shape==='combined')fs.chmodSync(path.join(target,'keep.txt'),0o444);
+    if(shape==='dangling_junction'||shape==='combined')fs.symlinkSync(path.join(base,'absent_target'),path.join(target,'old_link'),'junction');
+    let deepest=target;
+    if(shape==='long_path'||shape==='combined'){while(deepest.length<310)deepest=path.join(deepest,'nested_segment_0123456789');fs.mkdirSync(deepest,{recursive:true});fs.writeFileSync(path.join(deepest,'object.o'),'long object');}
+    const row={shape,provider,max_length:deepest.length+9};
+    const argument=provider.endsWith('_extended')?path.toNamespacedPath(target):target;
+    try{row.result=provider.startsWith('bridge')?await JSBridge.invoke('shell.trashItem',argument):await reqnode('electron').shell.trashItem(argument);}catch(error){row.error={message:String(error),code:error.code};}
+    row.exists=fs.existsSync(target);recycle_matrix.push(row);
+    fs.writeFileSync(path.join(base,'recycle_matrix.json'),JSON.stringify(recycle_matrix,null,2));
+   }
+  }
+  for(const row of recycle_matrix){const target=path.join(base,'workspace','recycle_matrix_'+row.shape+'_'+row.provider);if(row.exists&&!(row.shape==='combined'&&row.provider==='bridge'))await fs.promises.rm(target,{recursive:true,force:true,maxRetries:3});}
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>undefined;
   document.addEventListener('click',event=>input_events.push({trusted:event.isTrusted,ctrl:event.ctrlKey,shift:event.shiftKey,alt:event.altKey,path:event.target.closest?.('[data-path]')?.dataset.path,x:event.clientX,y:event.clientY}),true);
   ClientCommand.setTheme('vscode_default_dark.css','vscode_default_dark.css');await wait(()=>document.documentElement.dataset.workspaceColors==='dark','dark theme applied');
@@ -82,7 +100,14 @@
    await wait(()=>document.querySelector('[role=dialog] .git-graph-dialog-footer button:last-child'),'delete dialog visible');
   };
   const accept_delete=()=>click(document.querySelector('[role=dialog] .git-graph-dialog-footer button:last-child'));
+  const permanent_dialog=()=>document.querySelector('[role=dialog] .git-graph-dialog-footer')?.closest('[role=dialog]');
+  const cancel_permanent=async()=>{await wait(()=>permanent_dialog()?.textContent.includes('永久删除'),'permanent confirmation visible');await click(document.querySelector('[role=dialog] .git-graph-dialog-footer button:first-child'));};
   try{
+   const long_target=path.join(directory,'recycle_matrix_combined_bridge'),external_target=path.join(directory,'protected_link_target');fs.mkdirSync(external_target);fs.writeFileSync(path.join(external_target,'keep.txt'),'external target bytes');fs.symlinkSync(external_target,path.join(long_target,'live_link'),'junction');
+   await select_delete(long_target);await accept_delete();await wait(()=>files.file_operations.state.phase==='failed','long-path recycle failed');await cancel_permanent();assert(fs.existsSync(long_target),'cancel retains long-path directory');
+   await select_delete(long_target);await accept_delete();await wait(()=>permanent_dialog()?.textContent.includes('永久删除'),'second permanent confirmation visible');assert(fs.existsSync(long_target),'no permanent deletion before separate acceptance');
+   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'permanent_confirmation'}));await pause(500);
+   await accept_delete();await wait(()=>!fs.existsSync(long_target)&&!files.file_operations.state.busy,'confirmed permanent deletion completed');assert(files.file_operations.state.phase==='succeeded','permanent task succeeded');assert(fs.readFileSync(path.join(external_target,'keep.txt'),'utf8')==='external target bytes','permanent deletion preserves linked target');
    for(const count of [20,100,1000]){
     const target=path.join(directory,'build_recycle_'+String(count).padStart(4,'0'));fs.mkdirSync(target);
     for(let index=0;index<count;index++)fs.writeFileSync(path.join(target,'object_'+index+'.o'),'temporary build object '+index);
@@ -105,6 +130,7 @@
    release_native();await wait(()=>!files.file_operations.state.busy,'late native result settled');assert(!fs.existsSync(slow)&&files.file_operations.state.phase==='succeeded','late success verified');delayed_target='';
    const refused=path.join(directory,'build_refused');fs.mkdirSync(refused);fs.writeFileSync(path.join(refused,'keep.txt'),'retained bytes');refused_target=refused;
    await select_delete(refused);await accept_delete();await wait(()=>files.file_operations.state.phase==='failed','native refusal reported');
+   await cancel_permanent();
    assert(fs.readFileSync(path.join(refused,'keep.txt'),'utf8')==='retained bytes','refusal never permanently deletes');
    await click(document.querySelector('.workspace-explorer-toolbar [data-git-icon="target"]').closest('button'));await pause(150);
    assert(document.querySelector('.workspace-explorer-status')?.textContent.includes('回收站'),'navigation retains error');
@@ -116,6 +142,7 @@
    try{
     await wait(()=>lock_ready||lock_exit||lock_error,'exclusive lock ready');assert(lock_ready,'exclusive Windows lock acquired '+lock_error);
     await select_delete(locked);await accept_delete();await wait(()=>!files.file_operations.state.busy,'occupied directory returned');
+    await cancel_permanent();
     assert(files.file_operations.state.phase==='failed'&&fs.existsSync(locked_file),'occupied build returns a visible failure');
     assert(document.querySelector('.workspace-explorer-status')?.textContent.includes('回收站'),'real occupied failure remains visible');
    }finally{locker.stdin.end('\n');await wait(()=>lock_exit,'lock helper exited');}

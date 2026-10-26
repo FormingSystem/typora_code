@@ -1,0 +1,382 @@
+{
+  "date": "2026-10-26",
+  "requirements": [
+    "R041"
+  ],
+  "issues": [
+    "BUG-files-002"
+  ],
+  "version": "2026.10.26.2",
+  "sequence": 2026102602,
+  "base_commit": "bb3a9826204f94c4bc4b6cd1815562019dc672fa",
+  "scope": "Explicit local Explorer permanent deletion after a classified recycle failure; no automatic fallback and no deletion of the original user build.",
+  "design": "docs/file_operations.md#r041-permanent-delete",
+  "upstream": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "sources": [
+      "src/vs/workbench/contrib/files/browser/fileActions.ts:226-250",
+      "src/vs/platform/files/electron-main/diskFileSystemProviderServer.ts:42-55",
+      "src/vs/base/node/pfs.ts:45-85"
+    ],
+    "adoption": "Recycle first; change mode only after separate confirmation. Await bounded-retry filesystem removal instead of upstream detached rename-and-remove cleanup."
+  },
+  "readonly_incident_diagnosis": {
+    "entries_including_root": 173961,
+    "reparse_points_not_followed": 47,
+    "dangling_junctions": 8,
+    "paths_over_260": 587,
+    "max_path": 304,
+    "readonly_entries": 1546,
+    "delete_access_open_failures": 0,
+    "deletion_disposition_set": false,
+    "actual_build_deleted": false,
+    "interpretation": "Permission denial was not observed. Long paths reproduce a recycle failure in isolated comparisons; capacity and other original-directory factors have not been excluded."
+  },
+  "vscode_comparison": {
+    "run_id": "021e9897bea9413a898b9c5e7789a245",
+    "version": "1.141.0",
+    "electron": "43.7.7",
+    "api": "workspace.fs.delete(uri, {recursive:true, useTrash:true})",
+    "rows": [
+      {
+        "shape": "short",
+        "length": 106,
+        "result": "success",
+        "exists": false
+      },
+      {
+        "shape": "readonly",
+        "length": 109,
+        "result": "success",
+        "exists": false
+      },
+      {
+        "shape": "dangling",
+        "length": 109,
+        "result": "success",
+        "exists": false
+      },
+      {
+        "shape": "long",
+        "length": 339,
+        "error": "Unknown (FileSystemError) (FileSystemError): Failed to move 'long' to the recycle bin (Failed to perform delete operation)",
+        "exists": true
+      },
+      {
+        "shape": "combined",
+        "length": 343,
+        "error": "Unknown (FileSystemError) (FileSystemError): Failed to move 'combined' to the recycle bin (Failed to perform delete operation)",
+        "exists": true
+      }
+    ],
+    "scope": "Real installed VS Code in an isolated extension host; permanent confirmation behavior is verified in pinned source, not clicked in VS Code.",
+    "cleanup": "cleaned after repairing the temporary harness finish call"
+  },
+  "recycle_matrix": [
+    {
+      "shape": "short",
+      "provider": "bridge",
+      "max_length": 135,
+      "result": true,
+      "exists": false
+    },
+    {
+      "shape": "short",
+      "provider": "electron",
+      "max_length": 137,
+      "exists": false
+    },
+    {
+      "shape": "short",
+      "provider": "bridge_extended",
+      "max_length": 144,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "short",
+      "provider": "electron_extended",
+      "max_length": 146,
+      "error": {
+        "message": "Error: Failed to parse path"
+      },
+      "exists": true
+    },
+    {
+      "shape": "readonly",
+      "provider": "bridge",
+      "max_length": 138,
+      "result": true,
+      "exists": false
+    },
+    {
+      "shape": "readonly",
+      "provider": "electron",
+      "max_length": 140,
+      "exists": false
+    },
+    {
+      "shape": "readonly",
+      "provider": "bridge_extended",
+      "max_length": 147,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "readonly",
+      "provider": "electron_extended",
+      "max_length": 149,
+      "error": {
+        "message": "Error: Failed to parse path"
+      },
+      "exists": true
+    },
+    {
+      "shape": "dangling_junction",
+      "provider": "bridge",
+      "max_length": 147,
+      "result": true,
+      "exists": false
+    },
+    {
+      "shape": "dangling_junction",
+      "provider": "electron",
+      "max_length": 149,
+      "exists": false
+    },
+    {
+      "shape": "dangling_junction",
+      "provider": "bridge_extended",
+      "max_length": 156,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "dangling_junction",
+      "provider": "electron_extended",
+      "max_length": 158,
+      "error": {
+        "message": "Error: Failed to parse path"
+      },
+      "exists": true
+    },
+    {
+      "shape": "long_path",
+      "provider": "bridge",
+      "max_length": 321,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "long_path",
+      "provider": "electron",
+      "max_length": 323,
+      "error": {
+        "message": "Error: Failed to perform delete operation"
+      },
+      "exists": true
+    },
+    {
+      "shape": "long_path",
+      "provider": "bridge_extended",
+      "max_length": 330,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "long_path",
+      "provider": "electron_extended",
+      "max_length": 332,
+      "error": {
+        "message": "Error: Failed to parse path"
+      },
+      "exists": true
+    },
+    {
+      "shape": "combined",
+      "provider": "bridge",
+      "max_length": 320,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "combined",
+      "provider": "electron",
+      "max_length": 322,
+      "error": {
+        "message": "Error: Failed to perform delete operation"
+      },
+      "exists": true
+    },
+    {
+      "shape": "combined",
+      "provider": "bridge_extended",
+      "max_length": 329,
+      "result": false,
+      "exists": true
+    },
+    {
+      "shape": "combined",
+      "provider": "electron_extended",
+      "max_length": 331,
+      "error": {
+        "message": "Error: Failed to parse path"
+      },
+      "exists": true
+    }
+  ],
+  "behavior": [
+    "Only classified local native recycle failure offers a second dialog; validation, drafts, pending outcomes and cleanup/refresh errors do not.",
+    "Cancel initially receives focus; Escape/close preserves targets. The ordinary no-warning setting cannot bypass permanent confirmation.",
+    "The file service snapshots workspace generation and entry identities before confirmation and revalidates them in a single-use request.",
+    "Both removal modes share exclusion, deduplication, boundary checks, draft protection, completed paths, editor cleanup and directory refresh.",
+    "Permanent deletion awaits fs.promises.rm with maxRetries 3 and retryDelay 100; nested junction targets are preserved. Partial failures explicitly warn about irreversible partial deletion.",
+    "Git and remote provider behavior is unchanged; no system policy or host ASAR modification."
+  ],
+  "build": {
+    "status": "PASS",
+    "log": ".cache/issue_tracking/permanent_build_final_20261026.log",
+    "candidate": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "b4e6a78b9ead33d076d589c59ddb496302c466be1ec93f89f13423d0de2b2ccd",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "a2e6195c35cbc81897e38269e828f4afbf4bf7fb07d58cd3673c86f8fb39764f",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    }
+  },
+  "core": {
+    "status": "PASS",
+    "run_id": "14f55f5280114723b7627f1d3251f01e",
+    "command": "npm run check",
+    "file_task_cycles": 1120,
+    "file_history_cycles": 1120,
+    "permanent_cases": [
+      "long paths",
+      "readonly files",
+      "dangling and live junctions",
+      "external target bytes preserved",
+      "preparation performs no removal",
+      "single-use request",
+      "replacement rejected",
+      "partial error detail"
+    ],
+    "boundary": "Complete core check preceded the final duplicate-invalidation removal. Final assets were rebuilt and verified by four UI suites, native tests, deployment/catalog checks and installation."
+  },
+  "ui": {
+    "status": "PASS",
+    "suites": 4,
+    "runs": {
+      "explorer": "8aef7c569ed3490a82bfa48ab0f22a95",
+      "file_editing": "6927276fe9a7456cb3b80cefa03897d3",
+      "explorer_history": "f160ebde2eb447a5b8673a5750fcbc14",
+      "startup": "91b625d756994084911ddf77c4500d66"
+    },
+    "new_cases": [
+      "separate permanent confirmation",
+      "Cancel default focus",
+      "Escape preserves bytes",
+      "no-warning does not bypass",
+      "double acceptance executes once"
+    ],
+    "input": "Electron trusted keyboard/mouse plus controlled providers and DOM double-click injection"
+  },
+  "native": {
+    "status": "PASS",
+    "run_id": "02bd78c150a343da8058c1cd9b9fd1d4",
+    "assertions": 403,
+    "candidate": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "b4e6a78b9ead33d076d589c59ddb496302c466be1ec93f89f13423d0de2b2ccd",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "a2e6195c35cbc81897e38269e828f4afbf4bf7fb07d58cd3673c86f8fb39764f",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "cases": [
+      "real long/readonly/junction combined recycle refusal",
+      "cancel preserves the combined tree",
+      "explicit permanent acceptance removes the tree",
+      "external live-junction target bytes preserved",
+      "real Windows exclusive lock and retry",
+      "20/100/1000-child recycling",
+      "retained failures and pending feedback"
+    ],
+    "input": "Trusted input in an isolated Typora 1.14.15 private desktop; not the user desktop.",
+    "screenshot": "stage_permanent_confirmation_525290.png",
+    "cleanup": "cleaned"
+  },
+  "isolated_delivery": {
+    "status": "PASS",
+    "install_run": "08c22346e60140d8b78b30f806cb43d1",
+    "cycles": [
+      "install/check/restore-uninstall/reinstall/check",
+      "detach-uninstall/reinstall/check"
+    ],
+    "startup_modes": [
+      0,
+      1,
+      2,
+      3
+    ],
+    "uninstall_failure_run": "946f0050b485411186bced061442d25f",
+    "uninstall_assertions": 65,
+    "payloads": "cleaned"
+  },
+  "local_delivery": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 4,
+    "asar_unchanged": true,
+    "startup_unchanged": true,
+    "manifest": "b4e6a78b9ead33d076d589c59ddb496302c466be1ec93f89f13423d0de2b2ccd",
+    "version": "2026.10.26.2",
+    "running_windows": "not restarted",
+    "public_check": "PASS",
+    "read_only_uninstall_preflight": "PASS",
+    "workbench_install": "PASS",
+    "outer_installer_exit": 1,
+    "outer_installer_limitation": "Existing externally modified Directory shell-menu ownership conflict was preserved; no override attempted."
+  },
+  "final_checks": {
+    "deployment_assets": 73,
+    "terminal_assets": 24,
+    "catalog_suites": 296,
+    "documents": {"status": "PASS", "pairs": 72, "links": 2936}
+  },
+  "development_failures": [
+    {
+      "run": "dddf676a76324fb89b9b3892039b6335",
+      "reason": "Test expected a different translated word; assertion corrected and rerun."
+    },
+    {
+      "run": "ef8e4a9ee3fb4d0094bba3ee97ab664c",
+      "reason": "Fixture synchronous cleanup failed on readonly long-path payload; changed fixture cleanup to asynchronous bounded-retry removal, like the product."
+    },
+    {
+      "run": "4f2c4acb07484231b387ddbcdb5f2262",
+      "reason": "Fixture selected an unrelated hidden native role=dialog; scoped it to the shared dialog footer and reran."
+    },
+    {
+      "runs": [
+        "67c2464729ad47f488c3a4c7b3391efd",
+        "ef51be30cb1c4a8393564ee8b71aa076"
+      ],
+      "reason": "Supplementary stability-contract harness failed bundling worker/CSS imports, then data-URI ESM external imports. Experimental harness edits reverted; this supplementary suite remains unverified."
+    }
+  ],
+  "limitations": [
+    "Original build and all user files were not deleted or changed for testing.",
+    "No claim that recycling now supports arbitrary long paths or all recycle-bin capacities.",
+    "No all-icon/all-entry or non-Windows/remote acceptance; historical unrelated issues remain open.",
+    "Permanent deletion is irreversible and can partially complete before an error.",
+    "User windows were not restarted; the installed candidate must be loaded by a normal restart.",
+    "Publication receipts belong to Git history and the local ledger."
+  ]
+}

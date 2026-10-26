@@ -7,7 +7,7 @@ import os from "node:os";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 const bundle = await build({stdin:{contents:'export * from "./src/workspace_file_operations";export * from "./src/workspace_file_operation";',resolveDir:path.dirname(path.dirname(fileURLToPath(import.meta.url)))},bundle:true,platform:"node",format:"esm",write:false});
-const {create_workspace_file_operation,create_workspace_entry:create,transfer_workspace_entries:transfer,trash_workspace_entries:trash}=await import("data:text/javascript;base64,"+Buffer.from(bundle.outputFiles[0].text).toString("base64"));
+const {prepare_workspace_removal,permanently_remove_path,create_workspace_file_operation,create_workspace_entry:create,transfer_workspace_entries:transfer,trash_workspace_entries:trash}=await import("data:text/javascript;base64,"+Buffer.from(bundle.outputFiles[0].text).toString("base64"));
 const temporary=fs.mkdtempSync(path.join(os.tmpdir(),"typora_file_operations_")),root=path.join(temporary,"root"),recycle=path.join(temporary,"recycle");fs.mkdirSync(root);fs.mkdirSync(recycle);
 const modules={fs,path_api:path};
 try {
@@ -24,7 +24,7 @@ try {
   await assert.rejects(transfer({fs:concurrent,path_api:path},root,[source],retained),error=>error.remaining_paths.includes(path.join(retained,"source")));assert.equal(fs.readFileSync(path.join(retained,"source","external.txt"),"utf8"),"another writer");
   let move_count=0;const move=async(_root,from,to)=>{move_count++;if(from===path.join(root,"empty.txt"))throw new Error("injected move failure");await fs.promises.rename(from,to);return to};
   await assert.rejects(transfer(modules,root,[source,path.join(root,"empty.txt")],failure,move),/injected move/);assert.equal(move_count,3);assert(fs.existsSync(source));assert.deepEqual(fs.readdirSync(failure),[]);
-  let trash_count=0;await assert.rejects(trash(modules,root,[path.join(root,"empty.txt"),source],async file=>{if(++trash_count===2)throw new Error("injected recycle failure");await fs.promises.rename(file,path.join(recycle,path.basename(file)))}),error=>error.trashed_paths.length===1);assert(fs.existsSync(path.join(recycle,"empty.txt")));assert(fs.existsSync(source));
+  let trash_count=0;await assert.rejects(trash(modules,root,[path.join(root,"empty.txt"),source],async file=>{if(++trash_count===2)throw new Error("injected recycle failure");await fs.promises.rename(file,path.join(recycle,path.basename(file)))}),error=>error.removed_paths.length===1);assert(fs.existsSync(path.join(recycle,"empty.txt")));assert(fs.existsSync(source));
   await assert.rejects(trash(modules,root,[root],async()=>assert.fail("root never reaches recycle")));
   const link=path.join(root,"link");let link_supported=true;try{fs.symlinkSync(source,link,process.platform==="win32"?"junction":"dir")}catch{link_supported=false}
   if(link_supported){await assert.rejects(create(modules,root,link,"escape.txt",false),/符号链接/);await assert.rejects(transfer(modules,root,[link],failure),/符号链接/);}
@@ -81,16 +81,24 @@ try {
   await new Promise(resolve=>setTimeout(resolve,0));assert.equal(tasks.state.phase,'refreshing');assert.equal(tasks.state.error,'provider failed');assert(tasks.state.busy);
   release_refresh();await rejected;stop_refresh();assert.equal(tasks.state.error,'provider failed');
   let release_batch;const batch=tasks.run(root,[a,b],'batch',async context=>{context.phase('executing','first');await new Promise(resolve=>release_batch=resolve);context.completed(a);context.checkpoint();assert.fail('cancelled batch must not start next item');},{cancelable:true});
-  const batch_rejected=assert.rejects(batch,error=>error.name==='AbortError'&&error.trashed_paths[0]===a);
+  const batch_rejected=assert.rejects(batch,error=>error.name==='AbortError'&&error.removed_paths[0]===a);
   tasks.cancel();assert(tasks.state.busy&&tasks.state.cancel_requested);release_batch();await batch_rejected;
   assert.equal(tasks.state.phase,'cancelled');assert.deepEqual(tasks.state.completed_paths,[a]);
   const cancel_first=path.join(root,'cancel_first.txt'),cancel_second=path.join(root,'cancel_second.txt');
   fs.writeFileSync(cancel_first,'first');fs.writeFileSync(cancel_second,'second');
   await assert.rejects(tasks.run(root,[cancel_first,cancel_second],'real batch adapter',context=>trash(modules,root,[cancel_first,cancel_second],async file=>{
     context.checkpoint();await fs.promises.rename(file,path.join(recycle,path.basename(file)));context.completed(file);tasks.cancel();
-  }),{cancelable:true}),error=>error.name==='AbortError'&&error.trashed_paths[0]===cancel_first);
+  }),{cancelable:true}),error=>error.name==='AbortError'&&error.removed_paths[0]===cancel_first);
   assert.equal(tasks.state.phase,'cancelled');assert.deepEqual(tasks.state.completed_paths,[cancel_first]);
   assert.equal(fs.readFileSync(cancel_second,'utf8'),'second');assert(!fs.existsSync(cancel_first));
+  const permanent=path.join(root,'permanent'),external_keep=path.join(temporary,'external_keep');fs.mkdirSync(permanent);fs.mkdirSync(external_keep);fs.writeFileSync(path.join(external_keep,'keep.txt'),'external');
+  let deep=permanent;while(deep.length<320)deep=path.join(deep,'nested_segment_0123456789');fs.mkdirSync(deep,{recursive:true});fs.writeFileSync(path.join(deep,'object.o'),'long');fs.writeFileSync(path.join(permanent,'readonly.txt'),'readonly');fs.chmodSync(path.join(permanent,'readonly.txt'),0o444);
+  if(link_supported){fs.symlinkSync(external_keep,path.join(permanent,'live_link'),process.platform==='win32'?'junction':'dir');fs.symlinkSync(path.join(temporary,'missing'),path.join(permanent,'broken_link'),process.platform==='win32'?'junction':'dir');}
+  const delete_plan=await prepare_workspace_removal(modules,root,[permanent]);assert(fs.existsSync(permanent),'preparation never deletes');
+  await delete_plan(file=>permanently_remove_path(modules,file));assert(!fs.existsSync(permanent));assert.equal(fs.readFileSync(path.join(external_keep,'keep.txt'),'utf8'),'external');await assert.rejects(delete_plan(()=>assert.fail('single use')));
+  const replacement=path.join(root,'replacement');fs.mkdirSync(replacement);const stale_plan=await prepare_workspace_removal(modules,root,[replacement]);fs.renameSync(replacement,replacement+'_old');fs.mkdirSync(replacement);fs.writeFileSync(path.join(replacement,'keep'),'new');
+  await assert.rejects(stale_plan(file=>permanently_remove_path(modules,file)),/变化/);assert.equal(fs.readFileSync(path.join(replacement,'keep'),'utf8'),'new');
+  await assert.rejects(permanently_remove_path({fs:{promises:{rm:async()=>{throw Error('controlled disk failure');}}},path_api:path},replacement),error=>error.message.includes('部分删除')&&error.message.includes('controlled disk failure'));assert(fs.existsSync(replacement));
   await assert.rejects(tasks.run(root,[a],'stale',async context=>{task_epoch++;context.checkpoint();}),/stale owner/);
   const stop_bad_refresh=tasks.on_refresh(async()=>{throw Error('refresh failed');});
   await assert.rejects(tasks.run(root,[a],'partial',async context=>{context.completed(a);throw Error('editor cleanup failed');},{refresh:true}),error=>error.message.includes('editor cleanup failed')&&error.message.includes('refresh failed')&&error.message.includes(a));stop_bad_refresh();

@@ -2,11 +2,18 @@ import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 type trash_runtime = {JSBridge?: {invoke(command: string, ...args: unknown[]): Promise<unknown>}; reqnode(name: string): any};
 
+export function is_native_trash_error(error:unknown):boolean {
+  for(let depth=0;error&&typeof error==='object'&&depth<8;depth++,error=(error as {cause?:unknown}).cause)if((error as {recycle_failed?:boolean}).recycle_failed===true)return true;
+  return false;
+}
+const recycle_error=(error:unknown)=>Object.assign(new Error(error instanceof Error?error.message:String(error)),{recycle_failed:true,cause:error});
+
 /** The recycling station of Typora is executed in the main process; the rejection of recycling cannot be degenerated into permanent deletion. */
 export async function trash_native_path(runtime: trash_runtime, target: string, phase?:(phase:'executing'|'verifying')=>void): Promise<void> {
   phase?.('executing');
   const remote=remote_files_for(target);if(remote){await remote.trash(target);return;}
   const fs = runtime.reqnode("fs").promises;
+  try {
   if (runtime.JSBridge?.invoke) {
     if (await runtime.JSBridge.invoke("shell.trashItem", target) !== true) {
       throw new Error(workspace_text("native_trash_failed_to_move_to_the_recycle_bin") + target + workspace_text("native_trash_please_check_file_locking_directory_permissions_and_recycle"));
@@ -16,8 +23,9 @@ export async function trash_native_path(runtime: trash_runtime, target: string, 
     if (typeof shell?.trashItem !== "function") throw new Error(workspace_text("native_trash_the_current_host_does_not_provide_a_recycle_bin_interface_th"));
     await shell.trashItem(target);
   }
+  }catch(error){throw recycle_error(error);}
   phase?.('verifying');
   try { await fs.lstat(target); }
   catch (error) { if ((error as {code?: string}).code === "ENOENT") return; throw error; }
-  throw new Error(workspace_text("native_trash_the_recycle_bin_operation_returned_but_the_project_still_exi") + target + workspace_text("native_trash_please_refresh_and_verify_permanent_deletion_was_not_execute"));
+  throw recycle_error(new Error(workspace_text("native_trash_the_recycle_bin_operation_returned_but_the_project_still_exi") + target + workspace_text("native_trash_please_refresh_and_verify_permanent_deletion_was_not_execute")));
 }

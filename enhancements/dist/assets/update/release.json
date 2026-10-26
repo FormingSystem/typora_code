@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102602,
+      "version": "2026.10.26.2",
+      "date": "2026-10-26",
+      "notes": [
+        "资源管理器回收失败后提供独立的永久删除确认；取消保留剩余项目，只有明确确认才执行，支持包含长路径的本地目录。",
+        "永久删除复用文件任务、草稿保护、目标身份核对与刷新；不遍历内部目录链接的目标，回收失败不再笼统暗示没有权限。"
+      ],
+      "notes_en": [
+        "Explorer now offers a separate permanent-delete confirmation after recycling fails. Cancellation preserves remaining items; explicit acceptance supports local folders containing long paths.",
+        "Permanent deletion shares task state, draft protection, target identity checks and refresh. Nested directory-link targets are preserved; generic recycling failures no longer imply a permission diagnosis."
+      ]
+    },
+    {
       "sequence": 2026102601,
       "version": "2026.10.26.1",
       "date": "2026-10-26",
