@@ -12,6 +12,19 @@ app.whenReady().then(async()=>{
   const values=new Map();let writes=0,failed=false;window[Symbol.for('typora-code:workspace')]={app:{settings:{get:k=>values.get(k),set_and_save(k,v){if(failed)throw Error('disk');values.set(k,v);writes++;}}}};
   const article=document.querySelector('article'),image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(image);await image.decode();
   const html=article.innerHTML,binding=qa.bind_reading_images(article);await pause(120);
+  const more=document.querySelector('.reading-image-more'),panel=document.querySelector('.reading-image-panel');
+  assert(panel.hidden&&more.getAttribute('aria-expanded')==='false','image controls initially collapsed without selection');
+  assert(more.closest('.reading-media-entry').getBoundingClientRect().width===56,'collapsed toolbar only 56 CSS pixels');
+  more.click();await pause(40);assert(!panel.hidden&&more.getAttribute('aria-expanded')==='true','More expands controls');
+  assert(panel.getBoundingClientRect().width<=340&&panel.querySelectorAll('.reading-image-control-row').length===3,'controls grouped in bounded rows');
+  for(const type of ['keydown','keyup'])more.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));
+  assert(panel.hidden&&document.activeElement===more,'Escape closes disclosure and restores trigger focus');
+  more.click();await pause(40);
+  document.body.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));document.body.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));document.body.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  assert(panel.hidden,'outside click closes disclosure');more.click();await pause(40);
+  const draft_field=panel.querySelector('input');draft_field.focus();draft_field.value='125';draft_field.dispatchEvent(new Event('input'));
+  document.body.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));document.body.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));document.body.dispatchEvent(new MouseEvent('click',{bubbles:true}));
+  assert(panel.hidden,'outside click closes disclosure with active numeric draft');more.click();await pause(40);
   assert(image.getBoundingClientRect().width===64,'natural small image overrides theme stretching');
   qa.write_reading_image_setting('size_mode','fit_width');assert(image.getBoundingClientRect().width===400,'fit width explicit');
   const before=writes,gesture=qa.begin_reading_image_scale();for(let n=0;n<100;n++)gesture.update(150+n);
@@ -46,8 +59,8 @@ app.whenReady().then(async()=>{
   large_field.parentElement.querySelector('[data-image-scale-action=decrease]').click();assert(large_field.value==='95'&&qa.read_reading_image_settings().scale===95,'minus moves five percent below fitted limit');
   article.style.width='100px';qa.write_reading_image_setting('scale',200);await pause(100);assert(field.max==='156.25'&&field.value==='156.25'&&up.disabled,'small image limit follows resized container');
   const toolbar=field.closest('.reading-media-entry');toolbar.classList.add('is-revealed');
-  for(const theme of ['light','dark']){document.documentElement.dataset.workspaceFileIconTheme=theme;const surface=getComputedStyle(toolbar),input_style=getComputedStyle(field);assert(!surface.backgroundColor.startsWith('rgba')&&!input_style.backgroundColor.startsWith('rgba')&&surface.borderTopStyle==='solid','opaque toolbar, input and border '+theme);}
-  toolbar.classList.remove('is-revealed');assert(getComputedStyle(toolbar).backgroundColor==='rgba(0, 0, 0, 0)','idle toolbar leaves no empty surface');
+  for(const theme of ['light','dark']){document.documentElement.dataset.workspaceFileIconTheme=theme;const surface=getComputedStyle(panel),input_style=getComputedStyle(field);assert(!surface.backgroundColor.startsWith('rgba')&&!input_style.backgroundColor.startsWith('rgba')&&surface.borderTopStyle==='solid','opaque toolbar, input and border '+theme);}
+  if(!panel.hidden)more.click();document.activeElement.blur();toolbar.classList.remove('is-revealed');assert(getComputedStyle(toolbar).backgroundColor==='rgba(0, 0, 0, 0)','idle toolbar leaves no empty surface');
   qa.write_reading_image_setting('scale',50);article.style.width='300px';assert(Math.abs(large.getBoundingClientRect().width-150)<1,'container resize updates percentage base');article.style.width='400px';large.remove();
   binding.dispose();assert(!document.querySelector('.reading-media-entries'),'dispose removes controls');
   const loads=[];for(const count of [20,100,1000]){article.replaceChildren(...Array.from({length:count},()=>image.cloneNode()));const started=performance.now(),bound=qa.bind_reading_images(article);await pause(250);assert(document.querySelectorAll('.reading-image-open').length===count,'controls created '+count);bound.dispose();assert(!document.querySelector('.reading-media-entries'),'controls disposed '+count);loads.push({count,elapsed_ms:performance.now()-started});}
@@ -58,6 +71,9 @@ app.whenReady().then(async()=>{
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));await pause(120);
  const point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('article img').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+20)}})()`);
  win.webContents.sendInputEvent({type:'mouseMove',...point});await pause(60);
+ const more_point=await win.webContents.executeJavaScript(`(()=>{const b=document.querySelector('.reading-image-more'),r=b.getBoundingClientRect();if(getComputedStyle(b).opacity!=='1')throw Error('hover did not reveal unselected image');return{x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
+ win.webContents.sendInputEvent({type:'mouseMove',...more_point});
+ for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,...more_point,button:'left',clickCount:1});await pause(80);
  const button_point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect();return{x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
  win.webContents.sendInputEvent({type:'mouseMove',...button_point});await pause(40);
  for(let i=1;i<=10;i++){
@@ -66,13 +82,14 @@ app.whenReady().then(async()=>{
   if(sample.x!==button_point.x||sample.y!==button_point.y||sample.scale!==100-i*5)throw Error('stationary repeated image scale click '+JSON.stringify({i,button_point,sample}));
  }
  result.checks.push('ten trusted clicks at fixed coordinates keep toolbar and change percentage each time');
+ await win.webContents.executeJavaScript(`document.activeElement.blur()`);
  win.webContents.sendInputEvent({type:'mouseMove',x:1500,y:800});await pause(100);
  const released=await win.webContents.executeJavaScript(`document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect().left`);
  if(Math.abs(released-(button_point.x-16))<5)throw Error('toolbar did not re-anchor after leaving');result.checks.push('leaving toolbar reanchors to resized image');
  const extra=await win.webContents.executeJavaScript(`(async()=>{
   const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
   const article=document.querySelector('article'),toolbar=document.querySelector('.reading-media-entry'),field=toolbar.querySelector('input'),rect=()=>toolbar.getBoundingClientRect();
-  field.focus();field.dispatchEvent(new FocusEvent('focusin',{bubbles:true}));const pinned=rect();qa.write_reading_image_setting('scale',100);await pause(100);
+  if(toolbar.querySelector('.reading-image-panel').hidden)toolbar.querySelector('.reading-image-more').click();await pause(40);field.focus();field.dispatchEvent(new FocusEvent('focusin',{bubbles:true}));const pinned=rect();qa.write_reading_image_setting('scale',100);await pause(100);
   assert(rect().left===pinned.left&&rect().top===pinned.top,'focus event holds position across scale changes');
   article.style.cssText='width:1200px;height:400px;overflow:auto';article.style.paddingTop='120px';article.append(Object.assign(document.createElement('div'),{style:'height:1000px'}));await pause(100);
   article.dispatchEvent(new WheelEvent('wheel',{bubbles:true,deltaY:40}));article.scrollTop=40;await pause(100);
@@ -124,6 +141,20 @@ app.whenReady().then(async()=>{
   return checks;
  })()`);
  result.checks.push(...density_checks);result.density_samples=density_samples;
+ await win.webContents.debugger.sendCommand('Emulation.clearDeviceMetricsOverride');win.webContents.setZoomFactor(1);
+ for(const width of [280,440])for(const locale of ['zh-cn','en']){
+  win.setSize(width,540);await pause(80);
+  const bounds=await win.webContents.executeJavaScript(`(async()=>{
+   window[Symbol.for('typora-code:workspace')].app.i18n={locale:${JSON.stringify(locale)}};
+   const article=document.querySelector('article');article.style.cssText='width:100%;padding-top:80px';article.replaceChildren();const image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(image);await image.decode();const bound=qa.bind_reading_images(article);await new Promise(r=>setTimeout(r,100));
+   const toolbar=document.querySelector('.reading-media-entry'),more=toolbar.querySelector('.reading-image-more'),panel=toolbar.querySelector('.reading-image-panel');more.click();await new Promise(r=>setTimeout(r,60));
+   const r=panel.getBoundingClientRect(),controls=[...panel.querySelectorAll('button,input')].map(n=>n.getBoundingClientRect());
+   const result={width:innerWidth,left:r.left,right:r.right,top:r.top,bottom:r.bottom,scroll:panel.scrollWidth,client:panel.clientWidth,visible:controls.every(c=>c.left>=r.left&&c.right<=r.right),label:more.getAttribute('aria-label')};
+   image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"/>');await image.decode();await new Promise(r=>setTimeout(r,80));result.closed=panel.hidden;bound.dispose();result.cleaned=!document.querySelector('[data-workspace-dismissal-active]');return result;
+  })()`);
+  if(bounds.left<0||bounds.right>bounds.width+1||bounds.top<0||bounds.bottom>540||!bounds.visible||!bounds.closed||!bounds.cleaned)throw Error('narrow localized disclosure '+JSON.stringify(bounds));
+  result.checks.push('bounded '+locale+' panel, source replacement and dismissal cleanup at '+width);
+ }
  fs.writeFileSync(path.join(app.getPath('userData'),'image_density_metrics.json'),JSON.stringify({status:'PASS',density_samples},null,2));
  win.webContents.debugger.detach();console.log(JSON.stringify(result));
 }).catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

@@ -35,12 +35,15 @@
   assert(!images()[0].style.margin,'global alignment does not add document style');
   await files.save_active();assert(fs.readFileSync(file,'utf8')===source,'global preferences do not modify source');
   const slider=document.querySelector('.reading-image-scale input');
+  const disclosure=slider.closest('.reading-media-entry'),panel=disclosure.querySelector('.reading-image-panel'),more=disclosure.querySelector('.reading-image-more');
+  assert(panel.hidden&&disclosure.getBoundingClientRect().width===56,'native default compact collapsed image controls');
+  more.click();await pause(80);assert(!panel.hidden&&panel.getBoundingClientRect().width<=340,'native More reveals bounded image panel');
   assert(slider.type==='number'&&!document.querySelector('.reading-image-scale input[type=range]'),'numeric image scale replaces slider');
   let native_input_id=0,trusted_numeric_inputs=0;
   slider.addEventListener('input',event=>{if(event.isTrusted)trusted_numeric_inputs++;});
   const send_numeric=async(kind,value)=>{const id=++native_input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind,width:innerWidth,height:innerHeight,x:100,y:200,...value}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id}catch{return false}},'numeric input delivered');await pause(80);};
   document.querySelector('[data-image-align-scope=global][data-image-align=center]').click();
-  images()[0].scrollIntoView({block:'center'});await pause(100);slider.focus();slider.select();const numeric_anchor=slider.getBoundingClientRect();await send_numeric('text',{text:'125'});await send_numeric('key',{key:13});
+  images()[0].scrollIntoView({block:'center'});await pause(100);if(panel.hidden)more.click();await pause(80);slider.focus();slider.select();const numeric_anchor=slider.getBoundingClientRect();await send_numeric('text',{text:'125'});await send_numeric('key',{key:13});
   assert(Math.abs(slider.getBoundingClientRect().left-numeric_anchor.left)<1&&Math.abs(slider.getBoundingClientRect().top-numeric_anchor.top)<1,'native focused numeric input retains toolbar position');
   assert(trusted_numeric_inputs>0&&core.app.settings.get('reading_images').scale===125,'trusted numeric typing and Enter commit');
   fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'numeric_scale'}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='numeric_scale'}catch{return false}},'numeric controls captured');
@@ -65,14 +68,14 @@
   const large_toolbar=()=>[...document.querySelectorAll('.reading-image-open')].find(button=>button.title.includes('Large')).closest('.reading-media-entry');
   const big_field=large_toolbar().querySelector('input'),big_plus=large_toolbar().querySelector('[data-image-scale-action=increase]');
   assert(big_field.value==='100'&&big_field.max==='100'&&big_plus.disabled,'native large image percentage and plus stop at fitted width');
-  big_field.focus();big_field.blur();assert(core.app.settings.get('reading_images').scale===150,'native focusing capped field preserves shared scale');
+  large_toolbar().querySelector('.reading-image-more').click();await pause(80);big_field.focus();big_field.blur();assert(core.app.settings.get('reading_images').scale===150,'native focusing capped field preserves shared scale');
   big_field.value='200';big_field.dispatchEvent(new Event('input'));big_field.dispatchEvent(new KeyboardEvent('keydown',{key:'Enter'}));await pause(100);
   assert(big_field.value==='100'&&core.app.settings.get('reading_images').scale===100,'native excessive numeric input clamps to fitted width');
-  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){ClientCommand.setTheme(theme,theme);await pause(400);images()[0].scrollIntoView({block:'center'});await pause(100);image_toolbar().querySelector('input').focus();await pause(80);const toolbar_style=getComputedStyle(image_toolbar()),field_style=getComputedStyle(image_toolbar().querySelector('input'));assert(!toolbar_style.backgroundColor.startsWith('rgba')&&!field_style.backgroundColor.startsWith('rgba')&&toolbar_style.borderTopStyle==='solid','native opaque toolbar and numeric field '+theme);samples.push({stage:'opaque_'+theme,background:toolbar_style.backgroundColor,border:toolbar_style.borderTopColor,foreground:toolbar_style.color,input:field_style.backgroundColor});}
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){ClientCommand.setTheme(theme,theme);await pause(400);images()[0].scrollIntoView({block:'center'});await pause(100);if(image_toolbar().querySelector('.reading-image-panel').hidden)image_toolbar().querySelector('.reading-image-more').click();await pause(80);image_toolbar().querySelector('input').focus();await pause(80);const toolbar_style=getComputedStyle(image_toolbar().querySelector('.reading-image-panel')),field_style=getComputedStyle(image_toolbar().querySelector('input'));assert(!toolbar_style.backgroundColor.startsWith('rgba')&&!field_style.backgroundColor.startsWith('rgba')&&toolbar_style.borderTopStyle==='solid','native opaque toolbar and numeric field '+theme);samples.push({stage:'opaque_'+theme,background:toolbar_style.backgroundColor,border:toolbar_style.borderTopColor,foreground:toolbar_style.color,input:field_style.backgroundColor});}
   image_toolbar().querySelector('[data-image-align-scope="global"][data-image-align="center"]').click();
   document.activeElement?.blur();images()[1].scrollIntoView({block:'center'});await pause(150);
   const stationary_minus=large_toolbar().querySelector('[data-image-scale-action=decrease]');
-  large_toolbar().querySelector('input').focus();await pause(100);
+  if(large_toolbar().querySelector('.reading-image-panel').hidden)large_toolbar().querySelector('.reading-image-more').click();await pause(80);large_toolbar().querySelector('input').focus();await pause(100);
   const stationary_rect=stationary_minus.getBoundingClientRect(),stationary_point={x:stationary_rect.left+stationary_rect.width/2,y:stationary_rect.top+stationary_rect.height/2};
   for(let step=1;step<=10;step++){
    await send_numeric('click',stationary_point);const rect=stationary_minus.getBoundingClientRect();

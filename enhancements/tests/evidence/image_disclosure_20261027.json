@@ -1,0 +1,98 @@
+{
+  "date": "2026-10-27",
+  "requirements": [
+    "R031.4"
+  ],
+  "release": "2026.10.27.1",
+  "baseline": "f47a287 / 2026.10.26.2",
+  "manifest": "05d4cf21fb5e0dfb71e43efaae640d869705430be5d1db868eb40f8012438791",
+  "behavior": "Unselected image hover reveals only compact More and Full Screen. More opens existing numeric scale, Fit Width and global/individual alignment in three bounded rows. Native table selection trigger is unchanged.",
+  "ownership": "Media entry owns disclosure/dismissal and anchoring. Image settings/native adapter retain preferences and document undo/save. Numeric drafts are cancelled by the disclosure owner on dismissal; Escape cancels a draft before closing the panel.",
+  "upstream": "docs/vscode_design_sources.json#reading_image_disclosure_20261027",
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "run_id": "3af66ca1ff784c31a56fbd11daa3bf5d",
+    "scope": "Complete npm run check against final product candidate"
+  },
+  "ui": {
+    "status": "PASS",
+    "runs": {
+      "image_layout": "a59e4cb8b7314ceaa40df91a059c631b",
+      "media_viewer": "d80675480f4c47f3816aec9a65d90b58",
+      "code_copy": "033f4664055b49239b567a976042a22f",
+      "animated_images": "c75d387344f544aa80d04ecfeae40bac"
+    },
+    "image_checks": 76,
+    "media_checks": 47,
+    "animated_checks": 39,
+    "scope": "Real Chromium hover without selection, compact width, disclosure, numeric-draft outside click and Escape, ten stationary scale clicks, 280/440px Chinese/English bounds, source replacement, light/dark hover and focus, image viewer, Mermaid, code copy, animated images, Shadow readers, 20/100/1000 image lifecycle and 12 density/zoom combinations."
+  },
+  "native": {
+    "status": "PASS",
+    "run_id": "f5225e62601740f8a1c6edd0cbb632ad",
+    "host": "1.14.15",
+    "checks": 57,
+    "candidate": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "05d4cf21fb5e0dfb71e43efaae640d869705430be5d1db868eb40f8012438791",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "60a7b85ef2720a0bca6aff1a5361d8fd772ce8983efff5433100ae8d0664e87d",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "scope": "Original host on private desktop: compact initial controls, grouped panel, trusted numeric input and ten fixed-coordinate clicks, light/dark controls, native alignment undo/save/reopen and bitmap scaling.",
+    "screenshot_reviewed": "stage_numeric_scale_2101012.png",
+    "cleanup": "cleaned"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "install_run": "92143110abc64ceaa753a4d87396809f",
+    "uninstall_failure_run": "251623b45a1a45a58d2a88613df7666c",
+    "exception_checks": 65,
+    "scope": "Same candidate install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check plus failure/cancellation/rollback and preservation checks.",
+    "cleanup": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 4,
+    "asar_unchanged": true,
+    "startup_unchanged": true,
+    "manifest": "05d4cf21fb5e0dfb71e43efaae640d869705430be5d1db868eb40f8012438791",
+    "version": "2026.10.27.1",
+    "running_windows": "not restarted",
+    "standard_check": "PASS",
+    "uninstall_preflight": "PASS; read-only",
+    "shell_integration": "Workbench transaction installed; outer installer preserved existing Directory shell-menu ownership conflict and returned failure for that shell refresh. No override.",
+    "user_windows": "Not restarted; save and normally exit all Typora windows before reopening."
+  },
+  "development_failures": [
+    {
+      "run": "046221a8f7544ff5b4219b6fbc29d187",
+      "issue": "A nested numeric dismissal owner suppressed outer clicks. Reproduced before fixing the owner contract; final regression passes."
+    },
+    {
+      "runs": [
+        "0726c4c4071742379bd91f95b3fc3ee8",
+        "53078f3dd044482a83782b31e372d267"
+      ],
+      "issue": "Old media assertions included hidden controls and required matching 32px image/Mermaid geometry. Updated only the superseded image geometry/visibility expectations; final media suite passes."
+    },
+    {
+      "issue": "Initial preflight included an unsupported user_data option; rejected before any action. Correct public check_only command passed."
+    }
+  ],
+  "limits": [
+    "No full UI suite or non-Windows acceptance.",
+    "User desktop windows not restarted; no claim that existing windows loaded the candidate.",
+    "Native table implementation was left unchanged; no new complete table-editing suite.",
+    "R041 original incident, navigation/rendering/PPT and other historical open work remain open.",
+    "Committed locally; no push authorized for this request."
+  ]
+}

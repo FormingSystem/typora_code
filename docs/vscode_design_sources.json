@@ -803,5 +803,22 @@
       }
     ],
     "adopted": "Markdown content-width cap and separate explicit preview zoom. Bitmap naturalWidth/devicePixelRatio is a product-specific physical-pixel policy, not an upstream equivalence claim. Vector and authored responsive-image dimensions stay browser-owned."
+  },
+  "reading_image_disclosure_20261027": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "requirement": "R031.4",
+    "files": [
+      {
+        "path": "src/vs/base/browser/ui/actionbar/actionbar.css",
+        "sha256": "660989eb15cc525bfb75101ac3b578c5308d1a6ebc38c91b7985ee790de08974"
+      }
+    ],
+    "native": {
+      "version": "1.14.15",
+      "path": "resources/style/base-control.css",
+      "sha256": "7638d470fbccdd928dfd2608b5e4dcc87dd9789c09e6aee60f779999d8ad250c",
+      "rule": ".ty-table-edit button: 12px/1.5, 1px 5px padding, transparent idle border/background"
+    },
+    "adopted": "User-requested native table-like compact image controls: 24px targets, 16px official glyphs, shared 4px radius and hover/focus. More and Full Screen remain on hover; existing controls grouped in a bounded disclosure."
   }
 }

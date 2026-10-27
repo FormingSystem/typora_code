@@ -4,7 +4,7 @@ import {create_reading_image_controls} from "./reading_image_controls";
 import {open_reading_media} from "./reading_media_viewer";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
 
-type image_entry={control:reading_media_entry;extras:ReturnType<typeof create_reading_image_controls>};
+type image_entry={control:reading_media_entry;extras:ReturnType<typeof create_reading_image_controls>;url:string};
 /** Only adapt to the original image source; hover positioning and input are managed by the shared entry, and the original image and its parent nodes are preserved. */
 export function bind_reading_images(root:HTMLElement,selector="img"){
   const layout=bind_reading_image_layout(root,selector);
@@ -14,7 +14,7 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
   const source_url=(image:HTMLImageElement)=>image.complete&&image.naturalWidth&&image.naturalHeight?(image.currentSrc||image.src):"";
   const close_session=()=>{session?.close(false);session=undefined;};
   const open=(image:HTMLImageElement,entry:image_entry,from_image=false)=>{
-    const url=source_url(image);if(!url)return;close_session();
+    const url=source_url(image);if(!url)return;entry.control.collapse();close_session();
     const copy=new Image();copy.alt=image.alt;copy.draggable=false;
     const close=open_reading_media({content:copy,source:image,width:image.naturalWidth,height:image.naturalHeight,label:image.alt||workspace_text("reading_image_viewer_view_image_in_full_screen"),origin:from_image?undefined:entry.control.button,initial_fit:true});
     session={image,url,close};copy.src=url;
@@ -29,10 +29,11 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
       let entry=entries.get(image);
       if(!entry){
         const extras=create_reading_image_controls(image);
-        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",controls:extras.controls,refresh_controls:extras.refresh,open:()=>open(image,entries.get(image)!)});
-        entry={control,extras};entries.set(image,entry);
+        const control=controls.add({source:image,host:image,label:image.alt?workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", {value_0: String(image.alt)}):workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"),button_class:"reading-image-open",controls:extras.controls,refresh_controls:extras.refresh,cancel_controls:extras.cancel,open:()=>open(image,entries.get(image)!)});
+        entry={control,extras,url:source_url(image)};entries.set(image,entry);
       }
-      entry.control.set_enabled(Boolean(source_url(image)));entry.extras.refresh();
+      const url=source_url(image);if(entry.url!==url){entry.control.collapse();entry.url=url;}
+      entry.control.set_enabled(Boolean(url));entry.extras.refresh();
     }
     if(session&&(!entries.has(session.image)||source_url(session.image)!==session.url))close_session();
   }

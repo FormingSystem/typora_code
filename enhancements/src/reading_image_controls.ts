@@ -1,4 +1,3 @@
-import {register_workspace_dismissal,type workspace_dismiss_layer} from "./workspace_focus";
 import {workspace_element as el,workspace_button} from "./workspace_widgets";
 import {workspace_text} from "./workspace_i18n";
 import {git_icon} from "./git_icons";
@@ -22,7 +21,7 @@ function image_scale_limit(image:HTMLImageElement){
 export function create_reading_image_controls(image:HTMLImageElement){
   const group=el('div','reading-image-scale'),input=el('input'),suffix=el('span','','%');
   input.type='number';input.min='20';input.max='600';input.step='any';input.setAttribute('aria-label',workspace_text('image_layout_scale'));input.title=workspace_text('image_layout_scale_description');
-  let dismissal:workspace_dismiss_layer|undefined,editing=false;
+  let editing=false;
   let gesture:ReturnType<typeof begin_reading_image_scale>|undefined;
   const fail=(error:unknown)=>{const core=(window as any)[Symbol.for('typora-code:workspace')];if(core?.Notice)new core.Notice(String(error instanceof Error?error.message:error),3500);else console.error(error);};
   const run=(action:()=>void)=>{try{action();}catch(error){fail(error);}};
@@ -32,10 +31,10 @@ export function create_reading_image_controls(image:HTMLImageElement){
   fit.title=workspace_text('image_layout_fit');
   const reset=workspace_button('100%',()=>{cancel();run(()=>write_reading_image_setting('scale',100));},'reading-media-open');reset.title=workspace_text('image_layout_natural');reset.setAttribute('aria-label',reset.title);
   const sync=()=>{const settings=read_reading_image_settings(),limit=image_scale_limit(image),value=settings.size_mode==='fit_width'?limit:Math.min(limit,settings.scale);input.max=String(limit);if(!editing)input.value=String(value);decrease.disabled=value<=20;increase.disabled=value>=limit;fit.setAttribute('aria-pressed',String(settings.size_mode==='fit_width'));reset.setAttribute('aria-pressed',String(settings.size_mode==='natural'&&settings.scale===100));refresh_alignment();};
-  const cancel=()=>{editing=false;dismissal?.dispose();dismissal=undefined;gesture?.cancel();gesture=undefined;sync();};
+  const cancel=()=>{const active=editing||!!gesture;editing=false;gesture?.cancel();gesture=undefined;sync();return active;};
   const commit=(value=draft())=>{
     if(value===undefined){cancel();return;}
-    editing=false;const current=gesture;gesture=undefined;dismissal?.dispose();dismissal=undefined;
+    editing=false;const current=gesture;gesture=undefined;
     run(()=>{if(current)current.commit(value);else{const saved=read_reading_image_settings();if(saved.scale!==value||saved.size_mode!=='natural')write_reading_image_setting('scale',value);}});sync();
   };
   const step=(direction:number)=>commit(Math.max(20,Math.min(image_scale_limit(image),(draft()??read_reading_image_settings().scale)+direction*5)));
@@ -56,10 +55,12 @@ export function create_reading_image_controls(image:HTMLImageElement){
     for(const {button,scope,value}of alignment_buttons){button.disabled=scope==='global'?!get_workspace_app():!editable;const selected=String((scope==='global'?global:local)===value);if(button.getAttribute('aria-pressed')!==selected)button.setAttribute('aria-pressed',selected);}
   }
   const events=new AbortController(),{signal}=events;
-  input.addEventListener('input',()=>{editing=true;const value=draft();if(value===undefined)return;if(!gesture){gesture=begin_reading_image_scale();dismissal=register_workspace_dismissal(()=>[group],cancel,{outside:false,focus_out:false});}gesture.update(value);},{signal});
+  input.addEventListener('input',()=>{editing=true;const value=draft();if(value===undefined)return;if(!gesture)gesture=begin_reading_image_scale();gesture.update(value);},{signal});
   const finish_input=()=>{if(editing||gesture)commit();};
   input.addEventListener('change',finish_input,{signal});input.addEventListener('blur',finish_input,{signal});
   input.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();cancel();}else if(event.key==='Enter'){event.preventDefault();commit();}else if(event.key==='ArrowUp'||event.key==='ArrowDown'){event.preventDefault();step(event.key==='ArrowUp'?1:-1);}},{signal});
   const release=observe_reading_image_settings(sync);sync();
-  return {controls:[group,reset,fit,global_caption,...global_buttons,single_caption,...single_buttons],refresh:sync,dispose(){events.abort();release();dismissal?.dispose();gesture?.cancel();}};
+  const scale_row=el('div','reading-image-control-row'),global_row=el('div','reading-image-control-row'),single_row=el('div','reading-image-control-row');
+  scale_row.append(group,reset,fit);global_row.append(global_caption,...global_buttons);single_row.append(single_caption,...single_buttons);
+  return {controls:[scale_row,global_row,single_row],refresh:sync,cancel,dispose(){events.abort();release();gesture?.cancel();}};
 }

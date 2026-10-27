@@ -1032,22 +1032,29 @@ body.reading-media-viewer-open .reading-media-entries{visibility:hidden}
 .reading-media-entry.is-compact .reading-copy-feedback{position:absolute;right:32px;top:0;width:max-content;max-width:min(240px,calc(100vw - 64px));padding:3px 6px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px/18px "Segoe UI","Microsoft YaHei UI",sans-serif;white-space:normal;pointer-events:none}
 .reading-media-entry.is-feedback .reading-media-open{opacity:1;pointer-events:auto}
 .reading-copy-feedback:empty{display:none}
-.reading-media-entry.has-controls{height:auto;min-height:40px;align-items:center;gap:4px;flex-wrap:wrap}
-.reading-media-entry.has-controls{padding:4px 8px 8px;border:1px solid transparent;border-radius:4px}
-.reading-media-entry.has-controls.is-revealed,.reading-media-entry.has-controls:focus-within{background:var(--bg-color);color:var(--text-color);border-color:var(--window-border-color);box-shadow:0 2px 8px rgb(0 0 0 / 25%)}
+.reading-media-entry.has-controls{height:28px;align-items:flex-start;gap:0;padding:0 4px 4px}
+.reading-media-entry.has-controls .reading-media-open{--workspace-interaction-hover:var(--vscode-toolbar-hoverBackground);min-width:24px;height:24px;padding:1px 5px;border:1px solid transparent;box-shadow:none;font:400 12px/1.5 var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
+.reading-media-entry.has-controls>.reading-media-open{width:24px;padding:3px}
+.reading-media-entry.has-controls.is-revealed,.reading-media-entry.has-controls:focus-within,.reading-media-entry.has-controls.is-expanded{background:var(--bg-color)}
+.reading-image-more>svg{transform:rotate(90deg)}
+.reading-media-entry.is-expanded{z-index:1;pointer-events:auto}
+.reading-media-entry.is-expanded .reading-media-open,.reading-media-entry.is-expanded .reading-media-extra{opacity:1;pointer-events:auto}
+.reading-image-panel{position:absolute;box-sizing:border-box;padding:6px;background:var(--bg-color);color:var(--text-color);border:1px solid var(--window-border-color);border-radius:4px;box-shadow:0 2px 8px rgb(0 0 0 / 25%);overflow:auto}
+.reading-image-control-row{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.reading-image-control-row+.reading-image-control-row{margin-top:4px}
 .reading-media-entry.is-offscreen{visibility:hidden}
 .reading-media-extra[hidden]{display:none!important}
 .reading-media-extra{flex:none}
 .reading-media-entry .reading-media-extra{opacity:0;pointer-events:none}
 .reading-media-entry.is-revealed .reading-media-extra,.reading-media-entry:focus-within .reading-media-extra{opacity:1;pointer-events:auto}
-.reading-image-scale{display:inline-flex;align-items:center;gap:4px;height:32px;padding:0 4px;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);border:1px solid var(--window-border-color,#d0d7de);box-sizing:border-box}
+.reading-image-scale{display:inline-flex;align-items:center;gap:4px;height:24px;padding:0;background:var(--bg-color,#fff);color:var(--text-color,#24292f);font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);box-sizing:border-box}
 .reading-image-scale input{width:7ch;max-width:100%;margin:0;padding:4px 6px;box-sizing:border-box;font:inherit;color:inherit;background:var(--bg-color,#fff);border:1px solid var(--window-border-color,#d0d7de);appearance:textfield}
 .reading-image-scale input::-webkit-inner-spin-button,.reading-image-scale input::-webkit-outer-spin-button{appearance:none;margin:0}
 .reading-image-scale>span{flex:none}
 .reading-media-entry .reading-media-open[aria-pressed=true]{border-color:var(--vscode-focusBorder,#0069cc)}
 .reading-media-open[hidden]~.reading-copy-feedback{display:none}
 
-.reading-image-scope{display:inline-flex;align-items:center;height:32px;padding:0 4px;font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:var(--text-color,#24292f);background:var(--bg-color,#fff)}
+.reading-image-scope{display:inline-flex;align-items:center;height:24px;padding:0 4px;font:12px var(--linux-note-ui-font-family,"Segoe UI",sans-serif);color:var(--text-color,#24292f);background:var(--bg-color,#fff)}
 
 :root[data-workspace-file-icon-theme="dark"] .reading-media-entries{--bg-color:var(--vscode-editorWidget-background,#252526);--text-color:var(--workspace-ui-foreground,#ccc);--window-border-color:var(--vscode-editorWidget-border,#454545)}
 

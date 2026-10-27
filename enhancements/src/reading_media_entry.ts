@@ -1,15 +1,16 @@
 import {workspace_text} from "./workspace_i18n";
-import {workspace_element as el} from "./workspace_widgets";
+import {workspace_element as el,workspace_button} from "./workspace_widgets";
+import {register_workspace_dismissal,type workspace_dismiss_layer} from "./workspace_focus";
 import {acquire_workspace_style} from "./workspace_styles";
 import {acquire_workspace_interaction} from "./workspace_interaction";
 import {reading_viewport_bounds} from "./reading_viewport";
 import {git_icon,type git_icon_name} from "./git_icons";
 import css from "./reading_media_entry.css";
 
-type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[];refresh_controls?:()=>void};
+type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[];refresh_controls?:()=>void;cancel_controls?:()=>boolean};
 type entry_anchor={left:number;top:number};
-type entry_state={options:entry_options;toolbar:HTMLElement;enabled:boolean;events:AbortController;anchor?:entry_anchor};
-export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;dispose():void};
+type entry_state={options:entry_options;toolbar:HTMLElement;enabled:boolean;events:AbortController;anchor?:entry_anchor;panel?:HTMLElement;close_controls?:()=>void};
+export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;collapse():void;dispose():void};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 
 /** Images and charts share the hover entry outside of the document content, do not insert placeholders, and do not change the document layout. */
@@ -47,7 +48,7 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       }
       const x=Math.max(left,rect.left),end=Math.min(right,rect.right);
       const controls=entry.options.controls;
-      const preferred=controls?Math.ceil(18+button.getBoundingClientRect().width+controls.reduce((sum,node)=>sum+node.getBoundingClientRect().width+4,0)):button.offsetWidth+16;
+      const preferred=controls?56:button.offsetWidth+16;
       const entry_width=Math.min(Math.max(0,controls?right-left:end-x),preferred);
       entry.toolbar.style.width=`${entry_width}px`;
       const height=entry.toolbar.offsetHeight;
@@ -57,10 +58,17 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       shown=shown&&rect.bottom>top&&rect.top<bottom&&entry_top>=top&&entry_top+height<=bottom&&end-x>=(controls?1:48);
       button.hidden=!shown;
       entry.toolbar.classList.toggle('is-offscreen',!shown);
-      if(!shown)entry.anchor=undefined;
-      if(controls)for(const node of controls)node.hidden=!shown;
+      if(!shown){entry.anchor=undefined;entry.close_controls?.();}
       // Hit bridge only follows the button width, does not turn the entire image and text gap into an unselectable operational area.
       entry.toolbar.style.left=`${entry_left}px`;entry.toolbar.style.top=`${entry_top}px`;
+      if(entry.panel&&!entry.panel.hidden){
+        const panel=entry.panel;
+        panel.style.width=`${Math.min(340,right-left)}px`;
+        panel.style.maxHeight=`${Math.max(0,bottom-top-height)}px`;
+        const panel_height=panel.offsetHeight,panel_width=panel.offsetWidth;
+        panel.style.left=`${Math.max(left,Math.min(entry_left+entry_width-panel_width,right-panel_width))-entry_left}px`;
+        panel.style.top=`${entry_top+height+panel_height<=bottom?height:Math.max(top-entry_top,-panel_height)}px`;
+      }
     }
   }
   const observer=new MutationObserver(changes=>{
@@ -85,20 +93,33 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
     if(event instanceof KeyboardEvent){
       if(event.key!=="Enter"&&event.key!==" ")return;
       event.preventDefault();event.stopPropagation();
-      if(!event.repeat&&((event.key==="Enter"&&event.type==="keydown")||(event.key===" "&&event.type==="keyup")))entry.options.open();return;
+      if(!event.repeat&&((event.key==="Enter"&&event.type==="keydown")||(event.key===" "&&event.type==="keyup"))){entry.close_controls?.();entry.options.open();}return;
     }
     event.stopPropagation();if(event.type==="mousedown"||event.type==="click")event.preventDefault();
-    if(event.type==="click")entry.options.open();
+    if(event.type==="click"){entry.close_controls?.();entry.options.open();}
   };
   for(const name of ["pointerdown","pointerup","mousedown","mouseup","click","dblclick","keydown","keypress","keyup"])document.addEventListener(name,activate,{capture:true,signal});
   return {
     add(options:entry_options):reading_media_entry{
       const toolbar=el("div","reading-media-entry"+(options.compact?" is-compact":"")),button=el("button",`reading-media-open ${options.button_class}`);
       button.type="button";button.hidden=true;button.title=options.label;button.setAttribute("aria-label",options.label);button.append(git_icon(options.icon||"screen-full"));if(!options.compact)button.append(el("span","",workspace_text("reading_media_entry_view_in_full_screen")));toolbar.append(button);layer.append(toolbar);
-      if(options.controls){toolbar.classList.add('has-controls');for(const control of options.controls){control.classList.add('reading-media-extra');toolbar.insertBefore(control,button);}}
       const entry_events=new AbortController();
       const state:entry_state={options,toolbar,enabled:true,events:entry_events};
       if(options.controls){
+        toolbar.classList.add('has-controls');
+        const panel=el('div','reading-image-panel reading-media-extra');panel.hidden=true;panel.setAttribute('role','group');panel.setAttribute('aria-label',workspace_text('image_layout_menu'));
+        panel.append(...options.controls);state.panel=panel;
+        let dismissal:workspace_dismiss_layer|undefined;
+        const close=()=>{if(panel.hidden)return;options.cancel_controls?.();dismissal?.dispose();dismissal=undefined;panel.hidden=true;more.setAttribute('aria-expanded','false');toolbar.classList.remove('is-expanded');schedule();};
+        const more=workspace_button(workspace_text('image_layout_menu'),()=>{
+          if(!panel.hidden){close();return;}
+          panel.hidden=false;more.setAttribute('aria-expanded','true');toolbar.classList.add('is-expanded');
+          dismissal=register_workspace_dismissal(()=>[toolbar],reason=>{if(reason==='escape'&&options.cancel_controls?.())return;close();if(reason==='escape')more.focus({preventScroll:true});},{window_blur:true});
+          // Keep keyboard access local without moving the native document selection.
+          more.focus({preventScroll:true});schedule();
+        },'reading-media-open reading-image-more reading-media-extra');
+        more.replaceChildren(git_icon('more'));more.setAttribute('aria-expanded','false');
+        state.close_controls=close;toolbar.prepend(more);toolbar.append(panel);
         const pin=()=>{if(state.anchor||button.hidden)return;const rect=toolbar.getBoundingClientRect();state.anchor={left:rect.left,top:rect.top};};
         const release=()=>{if(!toolbar.matches(':hover')&&!toolbar.contains(document.activeElement)){state.anchor=undefined;schedule();}};
         toolbar.addEventListener('pointerenter',pin,{signal:entry_events.signal});
@@ -114,8 +135,8 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       if(options.host.matches(':hover'))toolbar.classList.add('is-revealed');
       entries.set(button,state);resize.observe(options.source);resize.observe(toolbar);schedule();
       let removed=false;
-      return {button,source:options.source,set_enabled(value){if(state.enabled!==value){state.enabled=value;schedule();}},dispose(){if(removed)return;removed=true;entry_events.abort();entries.delete(button);resize.unobserve(options.source);resize.unobserve(toolbar);toolbar.remove();}};
+      return {button,source:options.source,collapse(){state.close_controls?.();},set_enabled(value){if(state.enabled!==value){state.enabled=value;schedule();}},dispose(){if(removed)return;removed=true;state.close_controls?.();entry_events.abort();entries.delete(button);resize.unobserve(options.source);resize.unobserve(toolbar);toolbar.remove();}};
     },
-    dispose(){if(disposed)return;disposed=true;controller.abort();cancelAnimationFrame(frame);observer.disconnect();resize.disconnect();for(const entry of entries.values()){entry.events.abort();}entries.clear();layer.remove();interaction.remove();style.remove();}
+    dispose(){if(disposed)return;disposed=true;controller.abort();cancelAnimationFrame(frame);observer.disconnect();resize.disconnect();for(const entry of entries.values()){entry.close_controls?.();entry.events.abort();}entries.clear();layer.remove();interaction.remove();style.remove();}
   };
 }

@@ -169995,7 +169995,7 @@ https://creativecommons.org/licenses/by/4.0/
         }
         const x = Math.max(left, rect.left), end = Math.min(right, rect.right);
         const controls = entry.options.controls;
-        const preferred = controls ? Math.ceil(18 + button.getBoundingClientRect().width + controls.reduce((sum, node) => sum + node.getBoundingClientRect().width + 4, 0)) : button.offsetWidth + 16;
+        const preferred = controls ? 56 : button.offsetWidth + 16;
         const entry_width = Math.min(Math.max(0, controls ? right - left : end - x), preferred);
         entry.toolbar.style.width = "".concat(entry_width, "px");
         const height = entry.toolbar.offsetHeight;
@@ -170004,10 +170004,20 @@ https://creativecommons.org/licenses/by/4.0/
         shown = shown && rect.bottom > top && rect.top < bottom && entry_top >= top && entry_top + height <= bottom && end - x >= (controls ? 1 : 48);
         button.hidden = !shown;
         entry.toolbar.classList.toggle("is-offscreen", !shown);
-        if (!shown) entry.anchor = void 0;
-        if (controls) for (const node of controls) node.hidden = !shown;
+        if (!shown) {
+          entry.anchor = void 0;
+          entry.close_controls?.();
+        }
         entry.toolbar.style.left = "".concat(entry_left, "px");
         entry.toolbar.style.top = "".concat(entry_top, "px");
+        if (entry.panel && !entry.panel.hidden) {
+          const panel = entry.panel;
+          panel.style.width = "".concat(Math.min(340, right - left), "px");
+          panel.style.maxHeight = "".concat(Math.max(0, bottom - top - height), "px");
+          const panel_height = panel.offsetHeight, panel_width = panel.offsetWidth;
+          panel.style.left = "".concat(Math.max(left, Math.min(entry_left + entry_width - panel_width, right - panel_width)) - entry_left, "px");
+          panel.style.top = "".concat(entry_top + height + panel_height <= bottom ? height : Math.max(top - entry_top, -panel_height), "px");
+        }
       }
     }
     const observer3 = new MutationObserver((changes) => {
@@ -170040,12 +170050,18 @@ https://creativecommons.org/licenses/by/4.0/
         if (event.key !== "Enter" && event.key !== " ") return;
         event.preventDefault();
         event.stopPropagation();
-        if (!event.repeat && (event.key === "Enter" && event.type === "keydown" || event.key === " " && event.type === "keyup")) entry.options.open();
+        if (!event.repeat && (event.key === "Enter" && event.type === "keydown" || event.key === " " && event.type === "keyup")) {
+          entry.close_controls?.();
+          entry.options.open();
+        }
         return;
       }
       event.stopPropagation();
       if (event.type === "mousedown" || event.type === "click") event.preventDefault();
-      if (event.type === "click") entry.options.open();
+      if (event.type === "click") {
+        entry.close_controls?.();
+        entry.options.open();
+      }
     };
     for (const name of ["pointerdown", "pointerup", "mousedown", "mouseup", "click", "dblclick", "keydown", "keypress", "keyup"]) document.addEventListener(name, activate, { capture: true, signal });
     return {
@@ -170059,16 +170075,48 @@ https://creativecommons.org/licenses/by/4.0/
         if (!options2.compact) button.append(workspace_element("span", "", workspace_text("reading_media_entry_view_in_full_screen")));
         toolbar.append(button);
         layer.append(toolbar);
-        if (options2.controls) {
-          toolbar.classList.add("has-controls");
-          for (const control of options2.controls) {
-            control.classList.add("reading-media-extra");
-            toolbar.insertBefore(control, button);
-          }
-        }
         const entry_events = new AbortController();
         const state = { options: options2, toolbar, enabled: true, events: entry_events };
         if (options2.controls) {
+          toolbar.classList.add("has-controls");
+          const panel = workspace_element("div", "reading-image-panel reading-media-extra");
+          panel.hidden = true;
+          panel.setAttribute("role", "group");
+          panel.setAttribute("aria-label", workspace_text("image_layout_menu"));
+          panel.append(...options2.controls);
+          state.panel = panel;
+          let dismissal;
+          const close = () => {
+            if (panel.hidden) return;
+            options2.cancel_controls?.();
+            dismissal?.dispose();
+            dismissal = void 0;
+            panel.hidden = true;
+            more.setAttribute("aria-expanded", "false");
+            toolbar.classList.remove("is-expanded");
+            schedule();
+          };
+          const more = workspace_button(workspace_text("image_layout_menu"), () => {
+            if (!panel.hidden) {
+              close();
+              return;
+            }
+            panel.hidden = false;
+            more.setAttribute("aria-expanded", "true");
+            toolbar.classList.add("is-expanded");
+            dismissal = register_workspace_dismissal(() => [toolbar], (reason) => {
+              if (reason === "escape" && options2.cancel_controls?.()) return;
+              close();
+              if (reason === "escape") more.focus({ preventScroll: true });
+            }, { window_blur: true });
+            more.focus({ preventScroll: true });
+            schedule();
+          }, "reading-media-open reading-image-more reading-media-extra");
+          more.replaceChildren(git_icon("more"));
+          more.setAttribute("aria-expanded", "false");
+          state.close_controls = close;
+          toolbar.prepend(more);
+          toolbar.append(panel);
           const pin = () => {
             if (state.anchor || button.hidden) return;
             const rect = toolbar.getBoundingClientRect();
@@ -170108,7 +170156,9 @@ https://creativecommons.org/licenses/by/4.0/
         resize.observe(toolbar);
         schedule();
         let removed = false;
-        return { button, source: options2.source, set_enabled(value) {
+        return { button, source: options2.source, collapse() {
+          state.close_controls?.();
+        }, set_enabled(value) {
           if (state.enabled !== value) {
             state.enabled = value;
             schedule();
@@ -170116,6 +170166,7 @@ https://creativecommons.org/licenses/by/4.0/
         }, dispose() {
           if (removed) return;
           removed = true;
+          state.close_controls?.();
           entry_events.abort();
           entries3.delete(button);
           resize.unobserve(options2.source);
@@ -170131,6 +170182,7 @@ https://creativecommons.org/licenses/by/4.0/
         observer3.disconnect();
         resize.disconnect();
         for (const entry of entries3.values()) {
+          entry.close_controls?.();
           entry.events.abort();
         }
         entries3.clear();
@@ -174195,7 +174247,7 @@ https://creativecommons.org/licenses/by/4.0/
     input.step = "any";
     input.setAttribute("aria-label", workspace_text("image_layout_scale"));
     input.title = workspace_text("image_layout_scale_description");
-    let dismissal, editing = false;
+    let editing = false;
     let gesture;
     const fail = (error) => {
       const core = window[Symbol.for("typora-code:workspace")];
@@ -174235,12 +174287,12 @@ https://creativecommons.org/licenses/by/4.0/
       refresh_alignment();
     };
     const cancel = () => {
+      const active2 = editing || !!gesture;
       editing = false;
-      dismissal?.dispose();
-      dismissal = void 0;
       gesture?.cancel();
       gesture = void 0;
       sync();
+      return active2;
     };
     const commit = (value = draft()) => {
       if (value === void 0) {
@@ -174250,8 +174302,6 @@ https://creativecommons.org/licenses/by/4.0/
       editing = false;
       const current2 = gesture;
       gesture = void 0;
-      dismissal?.dispose();
-      dismissal = void 0;
       run(() => {
         if (current2) current2.commit(value);
         else {
@@ -174305,10 +174355,7 @@ https://creativecommons.org/licenses/by/4.0/
       editing = true;
       const value = draft();
       if (value === void 0) return;
-      if (!gesture) {
-        gesture = begin_reading_image_scale();
-        dismissal = register_workspace_dismissal(() => [group], cancel, { outside: false, focus_out: false });
-      }
+      if (!gesture) gesture = begin_reading_image_scale();
       gesture.update(value);
     }, { signal });
     const finish_input = () => {
@@ -174330,10 +174377,13 @@ https://creativecommons.org/licenses/by/4.0/
     }, { signal });
     const release = observe_reading_image_settings(sync);
     sync();
-    return { controls: [group, reset2, fit, global_caption, ...global_buttons, single_caption, ...single_buttons], refresh: sync, dispose() {
+    const scale_row = workspace_element("div", "reading-image-control-row"), global_row = workspace_element("div", "reading-image-control-row"), single_row = workspace_element("div", "reading-image-control-row");
+    scale_row.append(group, reset2, fit);
+    global_row.append(global_caption, ...global_buttons);
+    single_row.append(single_caption, ...single_buttons);
+    return { controls: [scale_row, global_row, single_row], refresh: sync, cancel, dispose() {
       events.abort();
       release();
-      dismissal?.dispose();
       gesture?.cancel();
     } };
   }
@@ -174353,6 +174403,7 @@ https://creativecommons.org/licenses/by/4.0/
     const open = (image, entry, from_image = false) => {
       const url = source_url(image);
       if (!url) return;
+      entry.control.collapse();
       close_session();
       const copy = new Image();
       copy.alt = image.alt;
@@ -174378,11 +174429,16 @@ https://creativecommons.org/licenses/by/4.0/
         let entry = entries3.get(image);
         if (!entry) {
           const extras = create_reading_image_controls(image);
-          const control = controls.add({ source: image, host: image, label: image.alt ? workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", { value_0: String(image.alt) }) : workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"), button_class: "reading-image-open", controls: extras.controls, refresh_controls: extras.refresh, open: () => open(image, entries3.get(image)) });
-          entry = { control, extras };
+          const control = controls.add({ source: image, host: image, label: image.alt ? workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", { value_0: String(image.alt) }) : workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"), button_class: "reading-image-open", controls: extras.controls, refresh_controls: extras.refresh, cancel_controls: extras.cancel, open: () => open(image, entries3.get(image)) });
+          entry = { control, extras, url: source_url(image) };
           entries3.set(image, entry);
         }
-        entry.control.set_enabled(Boolean(source_url(image)));
+        const url = source_url(image);
+        if (entry.url !== url) {
+          entry.control.collapse();
+          entry.url = url;
+        }
+        entry.control.set_enabled(Boolean(url));
         entry.extras.refresh();
       }
       if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
@@ -254888,6 +254944,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026102701,
+        version: "2026.10.27.1",
+        date: "2026-10-27",
+        notes: [
+          "\u56FE\u7247\u60AC\u505C\u53EA\u663E\u793A\u7D27\u51D1\u7684\u66F4\u591A\u548C\u653E\u5927\u6309\u94AE\uFF0C\u7F29\u653E\u3001\u9002\u5E94\u5BBD\u5EA6\u53CA\u5168\u5C40/\u5355\u56FE\u5BF9\u9F50\u6536\u7EB3\u5230\u53EF\u5C55\u5F00\u6D6E\u5C42\uFF0C\u51CF\u5C11\u9605\u8BFB\u906E\u6321\uFF1B\u65E0\u9700\u9009\u4E2D\u56FE\u7247\u3002"
+        ],
+        notes_en: [
+          "Image hover now shows compact More and Full Screen buttons. Scaling, Fit Width and global/individual alignment move into an expandable panel, without requiring image selection."
+        ]
+      },
       {
         sequence: 2026102602,
         version: "2026.10.26.2",
