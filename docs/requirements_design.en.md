@@ -81,6 +81,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R006.9 | Terminal bottom line and status bar boundary | [Design section](terminal_operations.en.md#section_ae510fd04fd8) | Unified surface inner padding and line number calculation, covers zooming/split view/status bar |
 | R006.10 | Win10 PowerShell history scrolling (Git Bash sub-item has been revoked) | [Win10 root cause and fix](terminal_operations.en.md#section_4b8b0223d559) | Continuous prompt SU retains history; scroll/wheel/drag/up/down key regression with buffer boundary |
 | R006.11 | Terminal quick close/open response and lifecycle | [Design](terminal_operations.en.md#section_636e50959926) | Distinguish panel visibility and session termination, merge layout, cancel stale tasks, and verify real host |
+| R006.12 | Terminal snapshot and continuous logging | [Design](terminal_operations.en.md#r00612-terminal-log) | 2026-10-29 |
 | R007 | Retain native capability and supplement file menu | [Design section](file_operations.en.md#section_f2a513a39c41) | Existing file command design; complete workspace see also R010 |
 | R008 | Abstraction and unified management of all functions | [Design chapter](workspace_architecture.en.md#section_dbc9507a1fa6) | Existing global responsibilities and ownership design |
 | R008.3 | Expand floating layer refresh stability | [Design](workspace_interaction.en.md#section_f42f0a0f4c13) | Shared scheduling and feedback isolation, native menu and own hover retain node/focus/scroll, continuous frame inspection convergence |

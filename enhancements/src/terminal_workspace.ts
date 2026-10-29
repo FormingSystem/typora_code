@@ -62,6 +62,18 @@ export function bind_terminal_workspace(host:graph_host){
   const overlays=new Set<()=>void>();lifetime.add(()=>{for(const close of [...overlays])close();overlays.clear();});
   const dialog=(title:string)=>{const result=workspace_dialog(title,workspace_text("community_plugin_settings_close"),()=>overlays.delete(result.close));overlays.add(result.close);return result;};
   const fail=(error:unknown)=>{if(lifetime.disposed)return;dialog(workspace_text("terminal_panel_terminal")).content.textContent=String(error instanceof Error?error.message:error);};
+  const log_dialogs=new Set<string>();
+  const save_log=async(continuous:boolean,id=active_id)=>{
+    const entry=sessions.get(id);if(!entry||log_dialogs.has(id)||(continuous&&entry.session.log.target))return;
+    log_dialogs.add(id);
+    try{
+      const native=window as any;
+      const result=await native.JSBridge.invoke("dialog.showSaveDialog",{title:workspace_text(continuous?"terminal_log_start":"terminal_log_save"),defaultPath:entry.session.log.target||"terminal-"+new Date().toISOString().replace(/[:.]/g,"-")+".log",properties:["showOverwriteConfirmation","createDirectory"],filters:[{name:workspace_text("terminal_log_file"),extensions:["log","txt"]},{name:workspace_text("files_all_files"),extensions:["*"]}]});
+      if(lifetime.disposed||sessions.get(id)!==entry||result?.canceled||!result?.filePath)return;
+      await entry.session.log.save(result.filePath,continuous);schedule();
+    }catch(error){fail(error);}finally{log_dialogs.delete(id);}
+  };
+  const stop_log=(id=active_id)=>{const entry=sessions.get(id);if(entry)void entry.session.log.stop().then(schedule).catch(fail);};
   const configure=()=>{
     if(lifetime.disposed)return;const popup=dialog(workspace_text("terminal_workspace_terminal_settings"));popup.content.textContent=workspace_text("terminal_workspace_checking_installed_shell");
     void settings.ready().then(()=>{if(lifetime.disposed||!popup.root.isConnected)return;popup.content.replaceChildren();show_terminal_settings(settings,popup);})
@@ -130,6 +142,9 @@ export function bind_terminal_workspace(host:graph_host){
       {id:"terminal_paste",title:workspace_text("git_diff_editor_paste"),shortcut:"Ctrl+Shift+V",action:()=>void surface.paste()},
       {title:workspace_text("monaco_text_input_select_all"),action:()=>surface.term.selectAll()},{id:"terminal_find",title:workspace_text("terminal_surface_find"),shortcut:"Ctrl+Shift+F",action:()=>surface.find()},
       {title:workspace_text("terminal_workspace_clear_screen"),action:()=>surface.term.clear()},
+      {id:"terminal_log_save",title:workspace_text("terminal_log_save"),disabled:log_dialogs.has(id),action:()=>void save_log(false,id)},
+      {id:"terminal_log_start",title:workspace_text("terminal_log_start"),disabled:log_dialogs.has(id)||Boolean(session.log.target),action:()=>void save_log(true,id)},
+      {id:"terminal_log_stop",title:workspace_text("terminal_log_stop"),disabled:!session.log.target,action:()=>stop_log(id)},
       {title:workspace_text("terminal_workspace_split_terminal"),separator:true,action:()=>split(id)},
       {title:workspace_text("terminal_workspace_cancel_split"),disabled:![...sessions.values()].some(item=>item!==entry&&item.session.group===session.group),action:()=>detach(id)},
       {title:workspace_text("terminal_workspace_merge_to"),disabled:join_targets.length===0,children:join_targets.map(item=>({title:item.session.title,action:()=>join(item.session.id,id)})),action:()=>{}},
@@ -149,7 +164,7 @@ export function bind_terminal_workspace(host:graph_host){
     panel.body.dataset.tabsLocation=config.tabs_location;
     panel.tabs.hidden=config.tabs_hide==="single_terminal"?entries.length<2:config.tabs_hide==="single_group"?group_ids.size<2:false;
     const panel_active=entries.find(item=>item.session.id===active_id)||entries[0];
-    panel.tabs.replaceChildren();panel.title.textContent=panel.tabs.hidden&&panel_active?workspace_text("terminal_workspace_terminal")+panel_active.session.title:workspace_text("terminal_panel_terminal");
+    panel.tabs.replaceChildren();panel.title.title=panel_active?.session.log.target||"";panel.title.textContent=panel.tabs.hidden&&panel_active?workspace_text("terminal_workspace_terminal")+panel_active.session.title:workspace_text("terminal_panel_terminal");
     for(const [id,node]of groups)if(!group_ids.has(id)){node.remove();groups.delete(id);}
     for(const entry of entries){
       const {session,surface}=entry;let group=groups.get(session.group);
@@ -209,6 +224,9 @@ export function bind_terminal_workspace(host:graph_host){
   action("close",workspace_text("terminal_workspace_hide_panel_keep_process"),()=>panel.hide());
   lifetime.add(core.app.viewManager.registerView(TERMINAL_TYPE,leaf=>new terminal_editor_view(leaf)));
   const commands:[string,string,()=>void][]=[
+    ["terminal_log_save",workspace_text("terminal_log_save"),()=>void save_log(false)],
+    ["terminal_log_start",workspace_text("terminal_log_start"),()=>void save_log(true)],
+    ["terminal_log_stop",workspace_text("terminal_log_stop"),()=>stop_log()],
     ["terminal",workspace_text("terminal_workspace_terminal_new_terminal"),()=>launch()],["terminal_toggle",workspace_text("terminal_workspace_terminal_switch_panel"),toggle],["terminal_admin",workspace_text("terminal_workspace_terminal_admin_terminal"),()=>launch(true)],
     ["terminal_settings",workspace_text("terminal_workspace_terminal_settings_daa84bab"),configure],["terminal_split",workspace_text("terminal_workspace_terminal_split"),()=>split()],["terminal_kill",workspace_text("terminal_workspace_terminal_terminate"),()=>kill()],
     ["terminal_restart",workspace_text("terminal_workspace_terminal_restart"),()=>{void active()?.session.start();}],["terminal_find",workspace_text("terminal_workspace_terminal_find"),()=>active()?.surface.find()],

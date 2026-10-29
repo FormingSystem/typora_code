@@ -8158,5 +8158,25 @@
   "file_delete_local_only": {
     "zh_cn": "此操作仅适用于本地文件",
     "en": "This operation is only available for local files"
+  },
+  "terminal_log_save": {
+    "zh_cn": "保存当前日志…",
+    "en": "Save Current Log…"
+  },
+  "terminal_log_start": {
+    "zh_cn": "持续落盘…",
+    "en": "Start Continuous Logging…"
+  },
+  "terminal_log_stop": {
+    "zh_cn": "停止持续落盘",
+    "en": "Stop Continuous Logging"
+  },
+  "terminal_log_file": {
+    "zh_cn": "终端日志",
+    "en": "Terminal Log"
+  },
+  "terminal_log_failed": {
+    "zh_cn": "日志写入失败：{value_0}",
+    "en": "Log write failed: {value_0}"
   }
 }

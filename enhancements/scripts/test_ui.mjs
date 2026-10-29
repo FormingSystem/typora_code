@@ -86,6 +86,7 @@ const ui_tests = Object.freeze([
   "test_scm_sidebar_layout.cjs",
   "test_scm_vscode_geometry.cjs",
   "test_markdown_color.cjs",
+  "test_terminal_interaction.cjs",
   "test_terminal_theme.cjs",
   "test_terminal_panel.cjs",
   "test_terminal_visibility.cjs",
@@ -144,7 +145,6 @@ const excluded_ui_tests = new Map([
   ["test_remote_ssh_live.cjs", "requires explicitly authorized SSH target and transient authentication"],
   ["test_workspace_clangd_outline.cjs", "requires installed clangd; run npm run check:clangd-ui"],
   ["test_terminal_shells.cjs", "requires installed terminal runtime; exercises every detected real Shell"],
-  ["test_terminal_interaction.cjs", "requires an installed terminal runtime and starts a real shell"],
 ]);
 
 function classify_test_files() {

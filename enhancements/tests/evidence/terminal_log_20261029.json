@@ -1,0 +1,64 @@
+{
+  "date": "2026-10-29",
+  "requirements": [
+    "R006.12"
+  ],
+  "release": "2026.10.29.1",
+  "baseline": "3a11fa52 / 2026.10.27.1",
+  "manifest": "2eea20094cf8d0a4a65ad8b0366c95439cde87eeeea5c988c664c76d1be7003c",
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "run_id": "a812b8bcd76f4804bea8408f83f8ee9f"
+  },
+  "transcript": {
+    "status": "PASS",
+    "run_id": "253897bcc33f4974aa0fe1a008bad732",
+    "scope": "1000 blocks with over 400000 line breaks, UTF-8 surrogate pairs and ANSI/OSC split across chunks, snapshot/append ordering, stop, session target exclusion, disk-full error and owned cleanup"
+  },
+  "ui": {
+    "status": "PASS",
+    "runs": [
+      "81dbaf52cf6c4b78b3819ff7a1cce245",
+      "df3733ffc479443892945f3f09048fd1",
+      "34faf22082754d4d8e2c842071161de4"
+    ],
+    "scope": "Hidden real Chromium and real ConPTY with isolated system Node runtime: input/history/interrupt/copy/find, context menu start/stop/current save, clear preserves transcript, cancel adapter; existing panel and visibility regression"
+  },
+  "install_uninstall": {
+    "status": "PASS",
+    "runs": [
+      "29853a16a127404daa6b09956cff092a",
+      "42865d64d758456a9f0e57fe8207e6da"
+    ],
+    "exceptions": 65
+  },
+  "local": {
+    "status": "PASS",
+    "assets": {
+      "workspace": 73,
+      "terminal": 24
+    },
+    "themes": 5,
+    "protected_unchanged": 4,
+    "asar_unchanged": true,
+    "startup_unchanged": true,
+    "manifest": "2eea20094cf8d0a4a65ad8b0366c95439cde87eeeea5c988c664c76d1be7003c",
+    "version": "2026.10.29.1",
+    "running_windows": "not restarted"
+  },
+  "limits": [
+    "Native Typora Save As dialog physical folder creation/rename and full light/dark bilingual geometry matrix not exercised this turn; dialog API reuses verified existing save adapter contract.",
+    "Other platforms and original host input-to-frame performance not measured.",
+    "Crash or forced termination can leave owned temporary transcripts; normal session disposal cleans them.",
+    "Old discarded scrollback cannot be recovered; start new terminal sessions after restart.",
+    "Existing Directory shell menu ownership conflict preserved; standard workbench check and asset validation pass."
+  ],
+  "failed_attempts": [
+    "Initial standalone test invoked from repository root instead of enhancements; rerun passed.",
+    "Legacy UI harness initially excluded, then argv evidence path, missing isolated node.exe and uncloneable function evaluation corrected.",
+    "Snapshot poll raced Windows copyFile exclusive lock; poll now tolerates only ENOENT/EBUSY.",
+    "Pre-install candidate checker expectedly rejected installed previous release hashes."
+  ],
+  "push": "not requested; not performed"
+}

@@ -1,3 +1,4 @@
+import {terminal_log} from "./terminal_log";
 import {workspace_text} from "./workspace_i18n";
 import {prepare_ssh_terminal_auth} from './remote_ssh_auth_context';
 import node_release from "../node_runtime.json";
@@ -7,6 +8,7 @@ import type {graph_host} from "./git_graph_host";
 
 /** Only manage the process and its lifecycle. Hiding, moving, and splitting views do not have the authority to terminate processes. */
 export class terminal_session {
+  readonly log:terminal_log;
   state:"starting"|"running"|"exited"|"error"="exited";
   status="";launch_pending=false;pid=0;title:string;icon="terminal";color="";group:string;root:string;
   private ssh_auth?:{dispose:()=>void};
@@ -14,6 +16,8 @@ export class terminal_session {
   private cols=80;private rows=24;private launch_root:string;
   constructor(readonly id:string,root:string,public profile:terminal_profile_config,private host:graph_host,private settings:terminal_settings_store,
     private output:(data:string,done:()=>void)=>void,private changed:()=>void,private explicit_cwd=false,private resolve_cwd?:()=>Promise<string>,private is_current=()=>true,readonly launch_profile?:terminal_profile_config){
+    const runtime=window as any;
+    this.log=new terminal_log(host.fs,host.path_api,host.path_api.join(runtime._options.userDataPath,"typora_code","terminal_logs"),error=>{this.status=workspace_text("terminal_log_failed",{value_0:String(error)});this.changed();});
     this.title=profile.title;this.root=root;this.launch_root=root;this.icon=profile.icon||"terminal";this.color=profile.color||"";this.group=id;
   }
   async start(){
@@ -43,7 +47,7 @@ export class terminal_session {
       const pty=await start_terminal_pty({signal:startup.signal,child_process:runtime.reqnode("child_process"),process_api:this.host.process_api,
         broker:this.host.path_api.join(base,"1.1.0","terminal_broker.cjs"),executable:this.host.path_api.join(base,"node",node_release.version,"node.exe")},
         {executable:launch.executable,args:launch.args,options:{name:"xterm-256color",cols:start_cols,rows:start_rows,cwd:launch.cwd,env:launch.env,useConpty:true,useConptyDll:true}}, {
-          data:data=>{if(!current())return;if(data.length){received_output=true;if(this.state==="running"&&this.launch_pending){this.launch_pending=false;this.status="";this.changed();}}this.output(data,()=>{if(generation===this.generation)this.pty?.acknowledge(data.length);});},
+          data:data=>{if(!current())return;if(data.length){received_output=true;if(this.state==="running"&&this.launch_pending){this.launch_pending=false;this.status="";this.changed();}}const recorded=this.log.append(data);this.output(data,()=>{void recorded.then(()=>{if(generation===this.generation)this.pty?.acknowledge(data.length);});});},
           exit:code=>{if(generation!==this.generation||this.disposed)return;this.ssh_auth?.dispose();this.ssh_auth=undefined;this.pty=undefined;this.pid=0;this.state="exited";this.launch_pending=false;this.status=workspace_text("terminal_session_shell_has_exited", {value_0: String(code)});this.changed();},
           error:message=>{if(generation!==this.generation||this.disposed)return;this.ssh_auth?.dispose();this.ssh_auth=undefined;this.state="error";this.launch_pending=false;this.status=message;this.changed();},
         });
@@ -55,5 +59,5 @@ export class terminal_session {
   write(data:string){this.pty?.write(data);}
   resize(cols:number,rows:number){if(cols===this.cols&&rows===this.rows)return;this.cols=cols;this.rows=rows;this.pty?.resize(cols,rows);}
   stop(){this.generation++;this.ssh_auth?.dispose();this.ssh_auth=undefined;this.startup?.abort();this.startup=undefined;const pty=this.pty;this.pty=undefined;pty?.kill();this.pid=0;this.state="exited";this.launch_pending=false;this.status=workspace_text("terminal_session_shell_has_terminated");}
-  dispose(){if(this.disposed)return;this.disposed=true;this.stop();}
+  dispose(){if(this.disposed)return;this.disposed=true;this.stop();void this.log.dispose();}
 }

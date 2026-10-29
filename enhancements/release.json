@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026102901,
+      "version": "2026.10.29.1",
+      "date": "2026-10-29",
+      "notes": [
+        "终端支持保存当前完整会话日志及持续落盘，使用系统另存为选择目录和文件；UTF-8日志独立于滚动缓存，不设软件容量上限，支持停止持续记录。"
+      ],
+      "notes_en": [
+        "Save the complete current terminal transcript or continuously record to a file selected with the native Save As dialog. UTF-8 logs are independent of scrollback, without an application size limit; continuous recording can be stopped."
+      ]
+    },
+    {
       "sequence": 2026102701,
       "version": "2026.10.27.1",
       "date": "2026-10-27",

@@ -1661,7 +1661,8 @@
       "purpose": "implementation",
       "requirements": [
         "R006",
-        "R006.7"
+        "R006.7",
+        "R006.12"
       ],
       "design": "docs/terminal_operations.md",
       "implementation": [
@@ -1675,7 +1676,7 @@
         "panel"
       ],
       "script": "enhancements/scripts/test_terminal_interaction.cjs",
-      "environment": "隐藏Electron与宿主端口夹具",
+      "environment": "Isolated hidden Electron, real ConPTY, copied system Node runtime, native save dialog adapter fixture",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
         "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
@@ -10438,6 +10439,35 @@
         "Both sides wrap; confirmed writes and subsequent state agree."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-terminal-log-001",
+      "domain": "terminal",
+      "level": "functional",
+      "purpose": "implementation",
+      "requirements": [
+        "R006.12"
+      ],
+      "design": "docs/terminal_operations.md",
+      "implementation": [
+        "enhancements/src/terminal_log.ts",
+        "enhancements/src/terminal_session.ts",
+        "enhancements/src/terminal_workspace.ts"
+      ],
+      "related_modules": [
+        "terminal",
+        "native-dialog"
+      ],
+      "script": "enhancements/scripts/test_terminal_log.mjs",
+      "environment": "Node with real isolated filesystem",
+      "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
+      "steps": [
+        "执行脚本内隔离夹具与断言；精确场景由脚本维护，不复制第二份容易过期的断言清单"
+      ],
+      "expected": [
+        "脚本全部断言通过且退出码为0；失败日志和环境限制必须保留"
+      ],
+      "timeout_ms": 240000
     }
   ]
 }

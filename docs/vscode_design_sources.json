@@ -820,5 +820,11 @@
       "rule": ".ty-table-edit button: 12px/1.5, 1px 5px padding, transparent idle border/background"
     },
     "adopted": "User-requested native table-like compact image controls: 24px targets, 16px official glyphs, shared 4px radius and hover/focus. More and Full Screen remain on hover; existing controls grouped in a bounded disclosure."
+  },
+  "terminal_log_20261029": {
+    "commit": "68070681e87284e2f22728f15fe3f3651fbf932b",
+    "source": "src/vs/base/browser/ui/menu/menu.ts",
+    "sha256": "40e1efbc8ed2d4204818f2a25167de3830bc34fb009a1840b1c72396be4ab91b",
+    "adoption": "Existing shared workspace menu text, disabled states and geometry retained. No CSS, icons or spacing values added; output logging is a product-specific command/service."
   }
 }

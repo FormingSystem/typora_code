@@ -276,3 +276,15 @@ This confirmation has three gaps: when hidden, container height returns to zero,
 In the original Typora same viewport 100 rounds comparison, when reopening commands, the zero height drops from 100 times to 0; the median delay of the next frame is 7.85ms for the old version and 7.15ms for the candidate, with maximum values of 10.2/11.3ms. The local machine does not reproduce the common long pause, cannot promote this set of numbers as overall significant speedup; the fixed is definite middle blank, repeated scheduling and active identity error. Real Shell, 1000 lines of history, second session 20 rounds, start cancellation 20 rounds finally total 262 assertions passed; controlled Chromium also tests 20/100/1000 rounds and trusted mouse/shortcut, physical input, other devices and long-term running continue to keep the boundary.
 
 2026-09-29 R079.2: When the terminal gains focus, Ctrl+P opens the common file selector, Ctrl+Shift+P opens the command panel; Esc cancels the file selection and returns to the original terminal, and can continue input. The bottom and editing group terminal behavior is the same, commands are not sent to Shell; other terminal key positions are not changed due to this modification. Common routing and verification boundary see [shortcut design](workspace_shortcuts.en.md#section_ea58d88bfd2d).
+
+<a id="r00612-terminal-log"></a>
+
+## R006.12 Terminal log files (2026-10-29)
+
+Save Current Log exports the session transcript; Start Continuous Logging exports existing output and appends future output until stopped. The verified host dialog.showSaveDialog provides native folder/file selection and overwrite confirmation. Cancel leaves files untouched. Each new session spools UTF-8 output independently of xterm scrollback, with no application size or line limit. Previously discarded output cannot be recovered.
+
+Clear only affects the screen. Hiding and moving retain recording; restarting the same session retains its transcript. Natural exit keeps the transcript available. Closing drains received output, stops recording and removes only owned temporary files; exported files remain. Recording does not automatically resume after reopening the application.
+
+This is an output transcript, not a screen recording: streaming ANSI/OSC controls are removed; carriage returns, newlines and tabs remain. Progress updates may appear repeatedly. Un-echoed input is not recorded. The service owns ordered disk writes and destinations; PTY acknowledgement waits for disk and display consumption to bound memory. Disk-full and permission failures are reported and incomplete transcripts cannot be exported as complete. Operations are serialized and active destinations cannot be reused by another session in the same window.
+
+Existing shared menu geometry from fixed VS Code 6807068 is reused. Validate large output, snapshot ordering, start/stop, cancellation, stale dialogs, disk failure, session isolation, split control sequences and cleanup. Record native dialog and installation coverage separately from controlled tests.
