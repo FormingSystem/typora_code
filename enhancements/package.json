@@ -18,20 +18,38 @@
     "check:core": "node scripts/check_test_catalog.mjs && node scripts/check_workspace_core.mjs && node scripts/check.mjs && node scripts/check_deployment.mjs && node scripts/test_workspace_network.mjs && node scripts/test_textmate.mjs && node scripts/test_workspace_context.mjs && node scripts/test_workspace_session_store.mjs && node scripts/test_workspace_session_restore.mjs && node scripts/test_reading_history.mjs && node scripts/test_reading_positions.mjs && node scripts/test_file_paths.mjs && node scripts/test_workspace_file_uri.mjs && node scripts/test_workspace_native_document.mjs && node scripts/test_markdown_text_color.mjs && node scripts/test_git_graph.mjs && node scripts/test_git_graph_full.mjs && node scripts/test_git_lifecycle.mjs && node scripts/test_git_scale.mjs && node scripts/test_workspace_localization.mjs && python -X utf8 scripts/test_document_languages.py && node scripts/test_git_graph_actions_settings_i18n.mjs && node scripts/test_git_sync.mjs && node scripts/test_git_scm_actions.mjs && node scripts/test_git_discard_changes.mjs && node scripts/test_git_quick_actions.mjs && node scripts/test_git_operation_progress.mjs && node scripts/test_git_refresh_scheduler.mjs && node scripts/test_git_diff_ranges.mjs && node scripts/test_terminal_log.mjs && node scripts/test_terminal.mjs && node scripts/test_terminal_settings.mjs && node scripts/test_terminal_profiles.mjs && node scripts/test_file_language.mjs && node scripts/test_workspace_search.mjs && node scripts/test_workspace_search_worker.mjs && node scripts/test_workspace_search_performance.mjs && node scripts/test_workspace_text_document.mjs && node scripts/test_workspace_rename.mjs && node scripts/test_workspace_file_operations.mjs && node scripts/test_workspace_file_clipboard.mjs && node scripts/test_file_clipboard_platform.mjs && node scripts/test_sidebar_transitions.mjs && node scripts/test_scrollbar_visibility.mjs && node scripts/test_community_plugin_service.mjs && node scripts/test_language_environments.mjs && node scripts/test_cmake_navigation.mjs && node scripts/test_language_auto_prepare.mjs && node scripts/test_language_support_registry.mjs && node scripts/test_workspace_quick_open_matcher.mjs && node scripts/test_workspace_recent_service.mjs && node scripts/test_remote_workspace.mjs && node scripts/test_remote_ssh_service.cjs && python -X utf8 scripts/test_remote_ssh_agent.py && node scripts/test_remote_ssh_accounts.cjs && npm run check:artifacts && node scripts/test_workspace_vscode.mjs && node scripts/test_workspace_onboarding.mjs && node scripts/test_workspace_directory_service.mjs && node scripts/test_reading_code_fold_state.mjs"
   },
   "dependencies": {
+    "@babel/standalone": "8.1.1",
+    "@plantuml/core": "1.2026.9",
+    "@viz-js/viz": "3.31.0",
     "@xterm/addon-fit": "0.11.0",
     "@xterm/addon-search": "0.16.0",
     "@xterm/xterm": "6.0.0",
-    "dompurify": "3.4.14",
+    "dompurify": "3.4.17",
+    "echarts": "6.1.0",
+    "flowchart.js": "1.18.1",
     "http-proxy-agent": "7.0.2",
     "https-proxy-agent": "7.0.6",
+    "json5": "2.2.3",
+    "katex": "0.18.0",
     "marked": "14.0.0",
+    "marked-katex-extension": "5.1.13",
+    "mermaid": "12.2.0",
     "monaco-editor": "0.56.0",
     "node-pty": "1.1.0",
     "proxy-from-env": "1.1.0",
+    "react": "19.3.1",
+    "react-dom": "19.3.1",
+    "snapsvg": "0.5.1",
     "tar": "7.5.22",
+    "underscore": "1.13.8",
+    "vega": "6.4.0",
+    "vega-embed": "7.3.0",
+    "vega-lite": "6.5.0",
     "vscode-oniguruma": "1.7.0",
     "vscode-textmate": "9.3.2",
-    "web-tree-sitter": "0.25.10"
+    "wavedrom": "3.8.0",
+    "web-tree-sitter": "0.25.10",
+    "webfontloader": "1.6.28"
   },
   "devDependencies": {
     "@plylrnsdy/decorate.js": "1.0.4",
@@ -41,6 +59,6 @@
     "sass": "1.104.0"
   },
   "overrides": {
-    "dompurify": "3.4.14"
+    "dompurify": "3.4.17"
   }
 }

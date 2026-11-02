@@ -1,7 +1,9 @@
+import {visual_marked as marked,render_visual_math} from './visual_markdown_math';
+import {visual_code_format,visual_code_language} from './visual_code_formats';
 import {workspace_text} from "./workspace_i18n";
 import {bind_reading_font_zoom} from './reading_font_zoom';
 import {refine_markdown_change} from './git_markdown_semantics';
-import {marked,type TokensList} from 'marked';
+import {type TokensList} from 'marked';
 import DOMPurify from 'dompurify';
 import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {create_preview_diagrams,highlight_preview_code} from './workspace_markdown_preview_render';
@@ -114,9 +116,10 @@ export function create_git_markdown_diff(){
           }row.append(cell);
         }if(pair.changed)targets.push(...refine_markdown_change(row));fragment.append(row);if(i%24===23)await git_yield();
       }
-      if(!current())return;const top=scroll.scrollTop;reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';font?.refresh();
+      if(!current())return;const top=scroll.scrollTop;diagrams.clear();reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';font?.refresh();
+      await render_visual_math(reader,current);
       // Highlighting and charts are progressively completed after the current document is published; old versions cannot replace nodes.
-      for(const code of code_tasks){if(!current())return;if(code.classList.contains('language-mermaid'))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
+      for(const code of code_tasks){if(!current())return;if(visual_code_format(visual_code_language(code)))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
     },
     invalidate(){generation++;container.dataset.ready='false';overview.suspend();},
     dispose(){disposed=true;generation++;observer();font?.dispose();overview.dispose();diagrams.dispose();container.remove();}

@@ -26,7 +26,7 @@ try:
     # New host versions are admitted only for fixtures whose ports are checked.
     expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
     host_version = '1.14.10'
-    if fixture_path.name in ('explorer_stable_native.js', 'image_layout_native.js') and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
+    if fixture_path.name in ('explorer_stable_native.js', 'image_layout_native.js', 'visual_code_native.js') and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
         expected_asar = digest(asar)
         host_version = '1.14.15'
         assert json.loads((host_root / 'resources/package.json').read_text(encoding='utf-8'))['version'] == host_version
@@ -35,6 +35,8 @@ try:
     shutil.copytree(host_root, host, ignore=shutil.ignore_patterns('cache', 'Cache'))
     if fixture_path.name in ('network_settings_native.js', 'web_preview_browser_native.js'):
         shutil.copytree(fixture_directory / 'network_tls', case / 'network_tls')
+    if fixture_path.name == 'visual_code_native.js':
+        shutil.copyfile(fixture_directory / 'visual_code_samples.json', case / 'visual_code_samples.json')
     workspace = case / 'workspace'
     workspace.mkdir()
     if fixture_path.name == 'image_layout_native.js' and os.environ.get('TYPORA_IMAGE_SAMPLE'):

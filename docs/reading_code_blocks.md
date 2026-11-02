@@ -5,9 +5,9 @@
 <a id="visual-code-blocks"></a>
 ## R087 图形代码块能力清单与分期设计
 
-2026-11-02：用户希望直接阅读 AI 生成的架构图、组成图和 SVG，要求先列缺口，再逐项实现。本节是候选清单与接入原则，尚无新增运行时能力。格式选择依据表达用途，不把清单宣称为 Codex/ChatGPT 的完整内置格式或可直接移植的渲染器。
+2026-11-02：用户希望直接阅读 AI 生成的架构图、组成图和 SVG，要求先列缺口，再逐项实现。以下清单保留实施前盘点，后续全量授权与当前实现见本节后文及使用指南。格式选择依据表达用途，不把清单宣称为 Codex/ChatGPT 的完整内置格式或可直接移植的渲染器。
 
-### 当前证据与候选
+### 实施前证据与候选
 
 当前源码：`workspace_markdown_preview_render.ts` 的 `create_preview_diagrams` 加载宿主 Mermaid；`workspace_lookup_preview.ts`、`workspace_split_markdown.ts` 和 `git_markdown_diff.ts` 仅对 `language-mermaid` 分派图表渲染，其余围栏走高亮。`workspace_preview_image.ts` 识别 SVG 图片，不等于支持 SVG 围栏。`typora_enhancements.ts` 的图表排除列表含 PlantUML，但这只是折叠豁免，不能证明存在渲染器。Git Markdown 清洗还明确排除原始 SVG/Math 元素。此次为源码盘点，未操作用户窗口，未逐项执行宿主样本。
 
@@ -28,6 +28,8 @@ Mermaid 优先验证 flowchart/subgraph、sequenceDiagram、classDiagram、state
 
 ### 接入边界与职责
 
+2026-11-02追加授权替代分批等待约定：本次接入清单全部格式，优先浏览器原生SVG/HTML与随包本地开源库，不自研绘图或布局引擎。共享渲染适配在无同源权限的iframe中运行本地预编译库，不开放Node、宿主DOM或自动联网。普通JavaScript示例保持源码，仅显式的交互围栏或JSX/TSX点击运行后执行。依赖固定版本和许可证随构建交付；不从CDN实时拉取。正文复用原生围栏模型和变更通知，绘图区与源码分离，按可见性创建/回收；现有Mermaid原生行为保留，新增语法及其他阅读视图复用共同适配。每种格式提供真实库冒烟、错误/取消、离线和隔离验证；不以渲染器名字注册代替功能完成。
+
 保留 Markdown 原文与宿主编辑/撤销所有权。拟由共同渲染服务负责语言分派、依赖加载、结果清洗、版本及取消；正文、搜索/链接预览、只读分栏、Git 历史/比较各自拥有布局和资源版本。复用现有主题通知、按需可见区域调度及媒体查看器，不以全局重绘刷新全部图。具体宿主围栏接入端口须在第一项实现前核实。
 
 SVG 首批采用静态子集，保留必要的局部 ID/引用和图形样式，隔离重复 ID；不执行作者脚本或直接把作者 HTML 注入工作台。交互 HTML/React 另行设计无宿主权限的隔离运行、依赖、网络及资源预算。渲染失败保留可复制源码并显示原因；切换、编辑、关闭后取消旧请求并丢弃迟到结果。源码/图形切换、放大、复制及导出为共同交互候选，具体入口沿既有 UI 设计核对，不在本阶段改变布局。
@@ -36,7 +38,7 @@ SVG 首批采用静态子集，保留必要的局部 ID/引用和图形样式，
 
 每种格式需样本覆盖原生正文、搜索/链接预览、只读分栏、Git 历史和比较；分别核对主题、中文长标签、窄宽度、缩放、重复图、编辑撤销保存、错误回退、离线、迟到取消和销毁。覆盖实际滚轮/输入响应及长文后台组合；导出单独验证 HTML/PDF，不把屏幕显示成功等同导出成功。
 
-本轮仅完成源码清单及方案建议，不做构建、安装或发行递增。下一步建议先实现 SVG，再核对 Mermaid 图种。各功能实施需补充版本、许可、宿主端口和分类用例，并按标准候选安装/卸载流程交付；历史未决需求继续保留。
+盘点阶段只提交清单；用户随后明确授权全部实现，现已接入本地引擎并递增发行版本，逐格式验证与标准候选安装/卸载结果另行记录。历史未决需求继续保留。
 
 参考：[Typora 图表](https://support.typora.io/Draw-Diagrams-With-Markdown/)、[Mermaid 图种](https://mermaid.js.org/intro/)、[SVG](https://developer.mozilla.org/en-US/docs/Web/SVG)、[Graphviz](https://graphviz.org/)、[WaveDrom](https://wavedrom.com/)、[Vega-Lite](https://vega.github.io/vega-lite/)、[ECharts](https://echarts.apache.org/en/index.html)、[PlantUML](https://plantuml.com/)。[OpenAI 官方更新记录](https://learn.chatgpt.com/docs/changelog)确认部分客户端的 Mermaid/公式能力，但不提供可据此声称所有客户端一致的完整格式表。
 
@@ -170,3 +172,9 @@ R068.12实现核对：原始Typora 1.14.10的`window/frame.js`中，围栏使用
 固定VS Code 6807068的`src/vs/editor/contrib/folding/browser/folding.ts`中`saveViewState`/`restoreViewState`将折叠状态从呈现对象中保存并恢复。本工程借用状态独立于DOM的契约，保留Typora围栏高度折叠方式，不引入Monaco行折叠或更改原生参数。恢复通过原折叠/几何入口，只在新节点初始化时执行，普通同文跳转不重复折叠或清内部滚动。
 
 验收：旧候选原生展开→换文→返回应失败；最终以真实宿主20轮往返、同文定位、单块选择、同内容重复块、文件隔离、明确收起、内容修改和节点重建检查，确认磁盘正文不变。UI覆盖延迟/未就绪、编辑后恢复、工作区清理与销毁，回归高度、滚轮、复制和导航。按最终候选执行构建、检查、隔离安装卸载重装和本机检查，记录其他平台及未覆盖边界。
+
+### R087 实现与使用入口
+
+[使用说明与可运行示例](visual_code_blocks.md)。追加授权已进入实现：复用随包渲染库与共享无同源权限视图，原生已验证图种保留宿主所有者。按钮内边距采用固定VS Code button.css的4px/8px，圆角/颜色复用共同交互规则并覆盖Shadow DOM；原生编辑刷新采用preview.ts的300ms合并窗口，首次立即呈现，离屏释放。实际验证与安装状态单独记录；整篇导出和任意npm导入不属于此次实现。
+
+R087控件接入：图形工具栏显式登记`data-workspace-reader-controls`，共享交互规则只对这个自有控件范围开放正文/Shadow适配；普通正文、CodeMirror和第三方内容仍排除。共同圆角、悬停和键盘焦点不在图形模块复制，禁用态沿现有按钮半透明约定；原生及Shadow控件状态和既有交互测试分别回归。

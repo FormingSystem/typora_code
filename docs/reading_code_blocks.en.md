@@ -151,7 +151,7 @@ Validate an old-candidate native red case, then 20 native round trips, same-file
 <a id="visual-code-blocks"></a>
 ## R087 Visual code blocks: inventory and phased design
 
-2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. This is a proposal, not new runtime support or a complete list of OpenAI built-in renderers.
+2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. The inventory below records the pre-implementation state; subsequent all-format authorization and current integration follow. It is not a complete list of OpenAI built-in renderers.
 
 ### Evidence and candidates
 
@@ -174,6 +174,8 @@ Prioritize Mermaid flowchart/subgraph, sequenceDiagram, classDiagram, stateDiagr
 
 ### Ownership and behavior
 
+2026-11-02 authorization supersedes waiting between phases: implement every listed format using browser SVG/HTML and bundled local open-source engines, not custom drawing/layout engines. A shared adapter runs prebuilt libraries in an opaque-origin iframe without Node, host DOM access, or automatic network access. Ordinary JavaScript examples remain source; only explicit interactive fences or JSX/TSX execute after clicking Run. Pin dependencies and ship licenses without runtime CDN downloads. Native fences retain their model/change ownership, with separate output and visible-region lifetime. Preserve existing native Mermaid behavior while sharing the new adapters across readers. Validate real-library rendering, errors/cancellation, offline operation, and isolation for each format; registration alone does not establish support.
+
 Keep Markdown source, editing, and undo under their existing owners. A proposed shared renderer owns dispatch, dependency loading, sanitation, revision checks, and cancellation. Native content, search/link previews, read-only splits, and Git history/diffs own layout and resource identity. Reuse theme notifications, visible-region scheduling, and media viewing instead of global redraws. Verify the actual host fence integration port before implementing the first format.
 
 Start SVG with a static subset, preserve required local references and graphic styling, and isolate duplicate IDs. Do not execute author scripts or inject author HTML directly into the workbench. Interactive HTML/React needs a separate design for host isolation, dependencies, networking, and resource budgets. Failure retains copyable source and explains the error; editing, switching, or closing cancels old work and rejects late results. Source/graphic switching, enlargement, copying, and export are shared interaction candidates; verify existing UI conventions before selecting entry points.
@@ -182,6 +184,12 @@ Start SVG with a static subset, preserve required local references and graphic s
 
 Each format needs samples across native content, search/link previews, read-only splits, and Git history/diffs. Cover themes, long multilingual labels, narrow layouts, zoom, repeated diagrams, editing/undo/save, fallback, offline use, cancellation, and disposal. Measure real wheel/input response with long documents and background work. Verify HTML/PDF export independently from on-screen rendering.
 
-This phase only inventories source and proposes sequencing. No runtime build, installation, or release increment is required. Recommend SVG first, followed by Mermaid family verification. Each implementation must establish versions, licenses, native ports, classified tests, and standard installation/uninstallation validation. Existing unresolved requirements remain open.
+The inventory stage only committed the proposal. Subsequent authorization covers all listed formats; local engines and a release increment are now implemented, with per-format validation and standard installation/uninstallation evidence recorded separately. Existing unresolved requirements remain open.
 
 References: [Typora diagrams](https://support.typora.io/Draw-Diagrams-With-Markdown/), [Mermaid](https://mermaid.js.org/intro/), [SVG](https://developer.mozilla.org/en-US/docs/Web/SVG), [Graphviz](https://graphviz.org/), [WaveDrom](https://wavedrom.com/), [Vega-Lite](https://vega.github.io/vega-lite/), [ECharts](https://echarts.apache.org/en/index.html), [PlantUML](https://plantuml.com/). The [OpenAI changelog](https://learn.chatgpt.com/docs/changelog) confirms Mermaid/math capabilities in some clients, not a universal cross-client format inventory.
+
+### R087 implementation and usage
+
+[Usage and executable examples](visual_code_blocks.en.md). The authorized implementation uses bundled engines and shared opaque-origin views. Native verified diagram families retain their owner. Button padding uses the fixed VS Code button.css 4px/8px values; control rounding/colors inherit shared interaction rules, including Shadow DOM. Native edit updates use the preview.ts 300ms coalescing interval, with immediate first rendering and offscreen disposal. Current evidence and installation status are recorded separately; whole-document export and arbitrary npm imports are outside this implementation.
+
+R087 controls: visual toolbars explicitly register `data-workspace-reader-controls`. Shared interaction rules adapt only this owned control boundary within readers and Shadow roots; ordinary document content, CodeMirror, and third-party content remain excluded. Rounding, hover, and keyboard focus stay shared; disabled controls reuse the existing half-opacity convention. Native/Shadow states and existing interaction tests are validated separately.

@@ -1,0 +1,17 @@
+{
+  "source": "https://api.github.com/repos/mdaines/viz-js/git/blobs/214cfc3c0a6f378ba60b5b83669be9b36dd68e0a",
+  "files": {
+    "LICENSE": "f1fb91bf7cbcb42b2af56949e4fa909e1979d5b57c2826cabacdb4b631457720"
+  },
+  "components": {
+    "graphviz.txt": {
+      "url": "https://gitlab.com/api/v4/projects/4207231/repository/files/COPYING/raw?ref=16.1.0",
+      "sha256": "0becf16567beb77fa252b7664631dd177c8f9a1889e48995b45379c7130e5303"
+    },
+    "expat.txt": {
+      "url": "https://api.github.com/repos/libexpat/libexpat/contents/expat/COPYING?ref=R_2_8_5",
+      "sha256": "31b15de82aa19a845156169a17a5488bf597e561b2c318d159ed583139b25e87"
+    }
+  },
+  "build_source": "https://github.com/mdaines/viz-js/blob/v3/packages/viz/backend/Dockerfile"
+}

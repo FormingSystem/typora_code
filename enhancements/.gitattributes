@@ -11,3 +11,8 @@ vendor/vscode_seti/ThirdPartyNotices.txt -text whitespace=cr-at-eol
 vendor/vscode_seti/seti.woff -text
 
 vendor/fontawesome/** -text
+# Upstream strings, embedded WASM and notices retain significant whitespace.
+dist/assets/visual/** -text -whitespace
+dist/licenses/visual/** -text -whitespace
+vendor/js_sequence/** -text -whitespace
+vendor/viz_licenses/** -text -whitespace

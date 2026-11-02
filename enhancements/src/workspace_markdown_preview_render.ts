@@ -1,3 +1,5 @@
+import {create_visual_code_previews} from './visual_code_view';
+import {visual_code_language} from './visual_code_formats';
 import {workspace_text} from "./workspace_i18n";
 import {mermaid_theme_options,observe_mermaid_theme} from './reading_mermaid_theme';
 import {load_code_themes,initial_code_stack,normalize_code_language} from './reading_code_theme';
@@ -45,6 +47,7 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
 
 /** Each preview has an isolated Mermaid instance to avoid chart instructions polluting the currently rendering central document configuration. */
 export function create_preview_diagrams() {
+  const visuals=create_visual_code_previews();
   let frame:HTMLIFrameElement|undefined, loading:Promise<diagram_api>|undefined;
   const entries=new Set<{element:HTMLElement;source:string;width:number;current:()=>boolean;revision:number}>();
   let theme_fingerprint=JSON.stringify(mermaid_theme_options());
@@ -77,6 +80,7 @@ export function create_preview_diagrams() {
     return undefined;
   };
   const render=async(code:HTMLElement,width:number,show_source:boolean,current:()=>boolean):Promise<boolean>=>{
+    if(visual_code_language(code)&&visual_code_language(code)!=="mermaid")return visuals.render(code,width,show_source,current);
     const task=queued.then(async()=>{
       if(disposed||!current())return false;
       const api=await load();if(disposed||!current()||!frame)return false;
@@ -91,7 +95,7 @@ export function create_preview_diagrams() {
       if(show_source){pre?.before(diagram);const label=document.createElement("div");label.className="lookup-diagram-source-label";label.textContent=workspace_text("markdown_preview_render_matching_source");pre?.before(label);}
       else pre?.replaceWith(diagram);
       return true;
-    }).catch(()=>false);
+    }).catch(()=>!disposed&&current()?visuals.render(code,width,show_source,current):false);
     queued=task;return task;
   };
   const unwatch=observe_mermaid_theme(()=>{
@@ -108,5 +112,5 @@ export function create_preview_diagrams() {
       }).catch(()=>{ /* Failure retains the previously readable SVG; subsequent theme events can be retried. */ });
     }
   });
-  return {render,dispose(){disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};
+  return {render,clear(){visuals.clear();entries.clear();},dispose(){visuals.dispose();disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};
 }

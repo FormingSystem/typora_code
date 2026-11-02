@@ -1,0 +1,97 @@
+{
+  "date": "2026-11-03",
+  "requirements": [
+    "R087"
+  ],
+  "release": "2026.11.02.1",
+  "baseline": "b2b01c3; installed 2026.10.29.1",
+  "manifest": "5b95570c9076005b46bb656edb997b4fddbf0bc1faeb9f6f46a857b9c231ab66",
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "run_id": "70f564be5a254189bd2a21581c2dfe1c"
+  },
+  "ui": {
+    "status": "PASS",
+    "runs": [
+      {
+        "script": "test_git_markdown_diff.cjs",
+        "run_id": "4804175848af4119af765935b11e76ad"
+      },
+      {
+        "script": "test_workspace_link_preview.cjs",
+        "run_id": "2e18fc1a43494599a30a22e683f82097"
+      },
+      {
+        "script": "test_mermaid_theme.cjs",
+        "run_id": "77f3965ce6214daca60c33d63323ee7d"
+      },
+      {
+        "script": "test_reading_code_copy.cjs",
+        "run_id": "56109cf7b3ef4bf8ada8b309bbe42441"
+      },
+      {
+        "script": "test_visual_code.cjs",
+        "run_id": "a826dc115d8047a8afbb08485e135f27"
+      },
+      {
+        "script": "test_workspace_interaction_defaults.cjs",
+        "run_id": "a6daa65c97eb4312923b2b9b3d622867"
+      },
+      {
+        "script": "test_workspace_interaction.cjs",
+        "run_id": "19451f75978144f99bf92d5393fef151"
+      }
+    ],
+    "scope": "15 real bundled engines; interactive clicks; SVG sanitation; errors, cancellation and 20 disposal cycles; Git/lookup/split actual consumers and math; native/Shadow control states; SVG save/cancel; existing copy and interaction regressions",
+    "paint": "Offscreen Chromium screenshot inspected; hidden-window capture did not paint child frames and was not counted as visual acceptance"
+  },
+  "native": {
+    "status": "PASS",
+    "run_id": "254dd71a98404da48ed0a4807f888882",
+    "host": "Typora 1.14.15 Windows x64",
+    "checks": 59,
+    "scope": "15 format families using real native fences; source model ownership; edit/undo/save; controls and disposal",
+    "screenshot_limit": "Private-desktop PrintWindow captures were stale initial frames; excluded from visual acceptance",
+    "asset_manifest": "21d87f40b13f1893401668c80fdf1a850759735823d6455262d1e4b9a7f6e16e",
+    "final_runtime": "All JS/CSS hashes identical after EPL-2.0 metadata correction; deployment check repeated"
+  },
+  "installation": {
+    "status": "PASS",
+    "final_candidate_cycle": "61df07d93de2464f8254d2661674190d",
+    "broader_earlier_candidate_cycle": "c5d5918103274bfaa99f97d971320db7",
+    "exception_run": "3892b8bdb73c4c7686c8ae04610e6cda",
+    "exception_assertions": 65,
+    "scope": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document, settings, storage and backups preserved; managed payload cleanup",
+    "runtime_candidate_cycle": "d6db2cfc352e4954958d3c8c5f59febb"
+  },
+  "local": {
+    "status": "PASS",
+    "version": "2026.11.02.1",
+    "workspace_assets": 215,
+    "terminal_assets": 24,
+    "manifest": "5b95570c9076005b46bb656edb997b4fddbf0bc1faeb9f6f46a857b9c231ab66",
+    "protected_paths": 15,
+    "protected_existing": 13,
+    "protected_changed": [],
+    "running_windows": "not restarted",
+    "shell_integration": "existing Directory menu ownership conflict preserved; workbench install succeeded"
+  },
+  "limits": [
+    "Native Mermaid/flow/sequence retain host renderer/version; other libraries follow bundled versions and optional plugins/icons are not universal.",
+    "Whole-document Typora HTML/PDF export does not automatically convert all added fences; individual SVG export is supported.",
+    "Opaque iframe has no Node/host DOM/file API; CSP blocks resource requests but this is not OS-process CPU isolation or a guarantee to preempt arbitrary infinite loops.",
+    "Native physical input latency, full light/dark bilingual geometry matrix, long-duration stress, Linux and ARM64 were not verified.",
+    "Local disk install verified; existing user windows were not restarted. Existing Directory shell integration ownership conflict preserved."
+  ],
+  "failed_attempts": [
+    "Early tests corrected data-URL randomUUID availability, uncloneable return values, KaTeX quirks-mode fixture and missing editor bundle plugin.",
+    "PlantUML TeaVM broke with esbuild minification; its bundle now retains upstream unminified output.",
+    "Sequence required the upstream WebFont loader; bundled it locally.",
+    "Real cross-view tests found Marked custom defaults missing and lookup math hydration before mounting; both corrected and actual KaTeX output assertions passed.",
+    "Hidden and private-desktop screenshot captures were stale; offscreen Chromium capture successfully painted the SVG.",
+    "Local extra terminal hash check initially used the product directory; repeated against the established terminal runtime owner and all 24 assets matched."
+  ],
+  "push": "not requested; not performed",
+  "provenance": "All staged upstream source hashes and 215 staged release asset hashes verified; upstream embedded WASM/text strings and notices retain exact whitespace"
+}

@@ -3,7 +3,7 @@
 <a id="section_85a563fb275c"></a>
 # Requirement Design Index and Maintenance Process
 
-- R087 (2026-11-02): [Visual code block inventory and phased design](reading_code_blocks.en.md#visual-code-blocks). Source inspection and candidates are documented; SVG, Mermaid coverage, and other formats await phased implementation. No new runtime capability is delivered.
+- R087 (2026-11-02): [Local visual code block integration](reading_code_blocks.en.md#visual-code-blocks). Follow-up authorization replaces phased waiting: all listed formats use bundled local engines. [Usage examples](visual_code_blocks.en.md) cover language tags, interactive execution, and export limits; the ledger and delivery evidence record current validation and installation.
 
 Each requirement has a stable number and a traceable design entry. Formal design is maintained with the repository version; local session logs save execution progress and evidence. Related requirements can share the same domain document, and minor fixes update the original design section, avoiding redundant maintenance of the main content. Global constraints see [AGENTS.md](../AGENTS.en.md#section_9ff23a26bc07).
 
@@ -44,6 +44,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 
 | Number | Requirement | Authoritative Design Entry Point | Design Coverage and Pending Content |
 | --- | --- | --- | --- |
+| R087 | Local visual code block rendering | [Shared integration](reading_code_blocks.en.md#visual-code-blocks) | All formats authorized; local engines, per-format implementation and validation; ledger owns delivery status |
 | R071.6 | Slow adjacent pane resizing with rendered text | [Container layout](workspace_responsiveness.en.md#r0716-adjacent-pane-dragging-and-document-layout) | Local layout and content/geometry ownership; current evidence reported separately |
 | R071.5 | Passive native focus must preserve the reading viewport | [Response ownership](workspace_responsiveness.en.md#r0715-old-cursor-overrides-the-reading-viewport) | Verified native boundaries; platform validation reported separately |
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |

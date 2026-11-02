@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026110201,
+      "version": "2026.11.02.1",
+      "date": "2026-11-02",
+      "notes": [
+        "代码块新增本地SVG、HTML、Graphviz、WaveDrom、Vega/Vega-Lite、ECharts、PlantUML与公式呈现；共享正文与只读阅读接入，失败保留源码。",
+        "显式HTML/JavaScript与React JSX/TSX支持隔离交互预览，使用随包离线渲染库；图形提供复制源码、放大与SVG导出。"
+      ],
+      "notes_en": [
+        "Code blocks gain local SVG, HTML, Graphviz, WaveDrom, Vega/Vega-Lite, ECharts, PlantUML and math rendering across native and read-only readers, retaining source on failure.",
+        "Explicit HTML/JavaScript and React JSX/TSX support isolated interactive previews using bundled offline engines, with source copying, enlargement and SVG export."
+      ]
+    },
+    {
       "sequence": 2026102901,
       "version": "2026.10.29.1",
       "date": "2026-10-29",

@@ -1,3 +1,4 @@
+import {visual_code_format,visual_code_language} from './visual_code_formats';
 import {markdown_scoped_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {highlight_preview_code,create_preview_diagrams} from './workspace_markdown_preview_render';
 import {bind_reading_images} from './reading_image_viewer';
@@ -16,7 +17,7 @@ export function bind_workspace_split_markdown(files:workspace_file_host){
     const reader=String(++next_reader);root.dataset.splitReader=reader;
     const images=bind_reading_images(root,'[data-split-reader="'+reader+'"] img'),copy=bind_reading_code_copy(root,text=>files.copy(text)),diagrams=create_preview_diagrams();
     let disposed=false;
-    const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){observer.unobserve(entry.target);const code=entry.target as HTMLElement;if(code.classList.contains('language-mermaid'))void diagrams.render(code,root.clientWidth,false,()=>!disposed);else void highlight_preview_code(code).catch(()=>{});}}, {root:root.parentElement});
+    const observer=new IntersectionObserver(entries=>{for(const entry of entries)if(entry.isIntersecting){observer.unobserve(entry.target);const code=entry.target as HTMLElement;if(visual_code_format(visual_code_language(code)))void diagrams.render(code,root.clientWidth,false,()=>!disposed);else void highlight_preview_code(code).catch(()=>{});}}, {root:root.parentElement});
     for(const code of root.querySelectorAll<HTMLElement>('pre > code'))observer.observe(code);
     const dispose=()=>{if(disposed)return;disposed=true;observer.disconnect();images.dispose();copy.dispose();diagrams.dispose();signal?.removeEventListener('abort',dispose);if(root.dataset.splitReader===reader)delete root.dataset.splitReader;sessions.delete(root);};
     sessions.set(root,dispose);signal?.addEventListener('abort',dispose,{once:true});

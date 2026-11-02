@@ -1,0 +1,17 @@
+{
+  "svg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 240 80\"><rect width=\"240\" height=\"80\" fill=\"lightblue\"/><text x=\"10\" y=\"40\">架构 SVG</text></svg>",
+  "html": "<style>.card{color:red;padding:12px}</style><div class=\"card\">HTML 组成</div>",
+  "mermaid": "flowchart LR\n A[设备] --> B[驱动]",
+  "graphviz": "digraph { A -> B }",
+  "wavedrom": "{signal:[{name:'clk',wave:'p.....'},{name:'data',wave:'x.345x',data:['A','B','C']}]}",
+  "vega": "{\"$schema\":\"https://vega.github.io/schema/vega/v6.json\",\"width\":200,\"height\":100,\"data\":[{\"name\":\"table\",\"values\":[{\"x\":10,\"y\":20}]}],\"marks\":[{\"type\":\"rect\",\"from\":{\"data\":\"table\"},\"encode\":{\"enter\":{\"x\":{\"field\":\"x\"},\"y\":{\"field\":\"y\"},\"width\":{\"value\":80},\"height\":{\"value\":40},\"fill\":{\"value\":\"steelblue\"}}}}]}",
+  "vega_lite": "{\"data\":{\"values\":[{\"a\":\"A\",\"b\":3},{\"a\":\"B\",\"b\":5}]},\"mark\":\"bar\",\"encoding\":{\"x\":{\"field\":\"a\",\"type\":\"nominal\"},\"y\":{\"field\":\"b\",\"type\":\"quantitative\"}}}",
+  "echarts": "{\"animation\":false,\"xAxis\":{\"data\":[\"A\",\"B\"]},\"yAxis\":{},\"series\":[{\"type\":\"bar\",\"data\":[2,3]}]}",
+  "plantuml": "@startuml\nAlice -> Bob : hello\n@enduml",
+  "math": "E=mc^2",
+  "flow": "st=>start: Start\ne=>end: End\nst->e",
+  "sequence": "Alice->Bob: hello",
+  "react": "import React, {useState} from \"react\"; export default function App(){const [n,set_n]=useState(0);return <button onClick={()=>set_n(n+1)}>Count {n}</button>}",
+  "html_live": "<button id=\"count\">0</button><script>document.getElementById(\"count\").onclick=e=>e.target.textContent=Number(e.target.textContent)+1;</script>",
+  "javascript_live": "root.textContent=\"isolated=\"+(typeof require)+\",\"+(typeof process);try{parent.document.body.dataset.compromised=\"yes\"}catch{root.dataset.isolated=\"yes\"}"
+}

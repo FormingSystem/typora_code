@@ -104,3 +104,7 @@ SSH 远程从远程入口连接，工作区文件、搜索和终端使用对应�
 ## 语言支持
 
 扩展侧栏默认显示 TyporaCode 自有语言支持。点击“安装”即启用并自动下载需要的私有工具，系统无需预装 Node、Python、JDK 或 .NET；解析和首次定义跳转会等待环境就绪。已安装条目的齿轮菜单提供设置、启停、重试和卸载，设置可选择工具目录、清除环境或填写可选的外部工具及语言参数。清除或取消后不会自行重新下载，需要时再次开启自动使用。旧版语言插件和配置首次启动自动迁移，第三方社区插件从独立入口进入。当前受管下载支持 Windows x64，能力边界见[语言支持说明](language_environment_plugins.md)。
+
+## 图形代码块
+
+使用 `svg`、`mermaid`、`dot`、`wavedrom`、`vega-lite`、`vega`、`echarts`、`plantuml`、`html`、`math`、`flow`、`sequence` 编写图形；`html-live`、`javascript-live`、`jsx`/`tsx` 支持点击运行交互内容。引擎随包本地提供，无须配置在线服务。完整可复制样例、源码/放大/导出操作及限制见[图形代码块使用指南](visual_code_blocks.md)。

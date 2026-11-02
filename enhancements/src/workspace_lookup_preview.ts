@@ -1,10 +1,12 @@
+import {visual_marked as marked,render_visual_math} from './visual_markdown_math';
+import {visual_code_format,visual_code_language} from './visual_code_formats';
 import {workspace_text} from "./workspace_i18n";
 import {create_preview_document_find} from './workspace_preview_document_find';
 import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {bind_reading_reflow,capture_reflow_anchor,restore_reflow_anchor} from "./reading_reflow";
 import {bind_reading_code_copy} from "./reading_code_copy";
 import {acquire_workspace_style} from "./workspace_styles";
-import { marked, type TokensList } from "marked";
+import { type TokensList } from "marked";
 import DOMPurify from "dompurify";
 import type { workspace_file_host } from "./workspace_files";
 import type { workspace_search_file, workspace_search_match } from "./workspace_search_engine";
@@ -182,7 +184,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
       if (start>=safe_start&&start<safe_start+token.raw.length) target_block=block;
       for(const code of block.querySelectorAll<HTMLElement>("pre code")){
         rendering.push((async()=>{
-          if(code.classList.contains("language-mermaid"))await diagrams.render(code,body.clientWidth,target,()=>!disposed&&request===generation);
+          if(visual_code_format(visual_code_language(code)))await diagrams.render(code,body.clientWidth,target,()=>!disposed&&request===generation);
           if(code.parentElement&&!disposed&&request===generation)await highlight_preview_code(code);
         })());
       }
@@ -220,6 +222,8 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     reader.replaceChildren(content);selected_block=target_block;targets=render_targets;
     code_copy.reconcile([...reader.querySelectorAll<HTMLElement>("pre > code")].map(code=>({element:code.parentElement!,read_text:()=>code.textContent||""})));
     body.replaceChildren(markdown_host); paint_anchor(); apply_scale();
+    await render_visual_math(reader,()=>!disposed&&request===generation);
+    if(disposed||request!==generation)return;
     if(position)restore_position(position);else {reveal();reflow.capture();}
   };
   const show = async (file: workspace_search_file, match: workspace_search_match, hash = "", live = false) => {
@@ -233,7 +237,7 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
     ready=false;visible_id="";targets.clear();positions=[];geometry_dirty=true;source_scroll?.dispose();source_scroll=undefined;source_decorations=[];
     const request = ++generation; selected = {file, match}; body.setAttribute("aria-label",workspace_text("lookup_preview_hit_content_preview_line_column", {value_0: String(file.relative_path), value_1: String(match.line), value_2: String(match.column)}));
     for (const key of ["previewPath","previewKind","previewLine","previewColumn","previewEndLine","previewEndColumn","previewText"]) delete body.dataset[key];
-    code_copy.reconcile([]);
+    code_copy.reconcile([]);diagrams.clear();
     editor?.dispose(); editor = undefined; selected_block = undefined; body.replaceChildren(el("p", "workspace-lookup-preview-message", workspace_text("lookup_preview_reading_preview")));
     try {
       let text:string;
@@ -319,6 +323,6 @@ export function create_lookup_preview(files: workspace_file_host, read_content?:
   const theme_observer = observe_markdown_theme(() => {if (selected && is_markdown_file(selected.file.file_path)) update_theme(); else apply_scale();});
   const resize_observer = new ResizeObserver(()=>{const view=editor?.focused_editor();if(view){const state=view.saveViewState();view.layout();if(state)view.restoreViewState(state);retain_visible_code_selection();}}); resize_observer.observe(body);
   apply_scale();
-  const clear=()=>{find_target.clear();ready=false;visible_id="";targets.clear();positions=[];source_scroll?.dispose();source_scroll=undefined;close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
+  const clear=()=>{diagrams.clear();find_target.clear();ready=false;visible_id="";targets.clear();positions=[];source_scroll?.dispose();source_scroll=undefined;close_menu?.();generation++;code_copy.reconcile([]);selected=undefined;selected_block=undefined;editor?.dispose();editor=undefined;body.replaceChildren();};
   return {container, find_target, show, clear, update_matches, reveal_match, capture_position, restore_position, focus:()=>body.focus({preventScroll:true}), get_scale:()=>scale, set_scale, dispose() {find_target.dispose();disposed = true;cancelAnimationFrame(scroll_frame);body.removeEventListener("scroll",schedule_position);match_resize.disconnect();source_scroll?.dispose();targets.clear(); close_menu?.();reader.removeEventListener("contextmenu",context_link); reader.removeEventListener("click",follow_link);reader.removeEventListener("keydown",follow_link);code_copy.dispose(); reflow.dispose(); generation++; body.removeEventListener("wheel", wheel, true); editor?.dispose(); diagrams.dispose(); theme_observer(); resize_observer.disconnect(); style.remove(); container.remove();}};
 }

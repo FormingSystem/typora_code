@@ -1,3 +1,5 @@
+import {visual_code_format} from './visual_code_formats';
+import {bind_reading_visual_code} from './reading_visual_code';
 import {workspace_text} from "./workspace_i18n";
 import {bind_native_mermaid_theme} from './reading_mermaid_theme';
 import {bind_reading_code_geometry} from "./reading_code_geometry";
@@ -92,6 +94,7 @@ let code_geometry:ReturnType<typeof bind_reading_code_geometry>|undefined;
 const code_fold_state=create_reading_code_fold_state();
 let code_copy:ReturnType<typeof bind_reading_code_copy>|undefined;
 let runtime_observer: MutationObserver | null = null;
+let visual_code:ReturnType<typeof bind_reading_visual_code>|undefined;
 let dispose_reading_action_events: (() => void) | null = null;
 
 let extension_style:workspace_style_handle|undefined;
@@ -179,7 +182,7 @@ function collapsed_code_height(): number {
 
 function code_fence_is_diagram(fence: Element): boolean {
   const language = (fence.getAttribute("lang") ?? "").trim().toLowerCase();
-  return ["flow", "flowchart", "mermaid", "plantuml", "sequence"].includes(language)
+  return Boolean(visual_code_format(language))
     || Boolean(fence.querySelector(".md-diagram-panel-preview"));
 }
 
@@ -311,6 +314,7 @@ function scan_document(): void {
   if (!reading_binding && document.documentElement.getAttribute("data-linux-note-workspace") !== "loading") reading_binding=runtime_lifetime.own(bind_reading_navigation());
   document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
   const fences=[...document.querySelectorAll<HTMLElement>(".md-fences")];
+  visual_code?.reconcile(fences);
   code_geometry?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)));
   code_copy?.reconcile(fences.filter(fence=>!code_fence_is_diagram(fence)&&Boolean(code_mirror_for_fence(fence))).map(element=>({element,read_text:()=>{
     const editor=code_mirror_for_fence(element);if(!editor)throw new Error(workspace_text("typora_enhancements_the_code_block_is_reloading"));return editor.getValue();
@@ -482,6 +486,7 @@ async function initialize(controller: AbortController, lifetime: ReturnType<type
   await grammar_loading;
   if(!current())return;
   lifetime.add(await bind_code_theme());
+  visual_code=bind_reading_visual_code();lifetime.add(()=>{visual_code?.dispose();visual_code=undefined;});
   mermaid_theme=bind_native_mermaid_theme();lifetime.add(()=>{mermaid_theme?.dispose();mermaid_theme=undefined;});
   if(!current())return;
   performance.measure("typora-code:grammar","typora-code:grammar:start");

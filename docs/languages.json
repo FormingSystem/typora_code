@@ -288,6 +288,10 @@
     {
       "zh_cn": "docs/go_navigation.md",
       "en": "docs/go_navigation.en.md"
+    },
+    {
+      "zh_cn": "docs/visual_code_blocks.md",
+      "en": "docs/visual_code_blocks.en.md"
     }
   ]
 }

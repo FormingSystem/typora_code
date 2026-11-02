@@ -8178,5 +8178,25 @@
   "terminal_log_failed": {
     "zh_cn": "日志写入失败：{value_0}",
     "en": "Log write failed: {value_0}"
+  },
+  "visual_code_source": {
+    "zh_cn": "源码",
+    "en": "Source"
+  },
+  "visual_code_run": {
+    "zh_cn": "运行 / 刷新",
+    "en": "Run / Refresh"
+  },
+  "visual_code_enlarge": {
+    "zh_cn": "放大图形",
+    "en": "Enlarge diagram"
+  },
+  "visual_code_failed": {
+    "zh_cn": "图形渲染失败：{value_0}",
+    "en": "Diagram rendering failed: {value_0}"
+  },
+  "visual_code_export": {
+    "zh_cn": "导出 SVG",
+    "en": "Export SVG"
   }
 }

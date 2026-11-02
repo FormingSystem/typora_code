@@ -116,3 +116,7 @@ Check for updates and view this tool's repository through the help menu. The nat
 ## Language support
 
 Extensions defaults to TyporaCode language support. Install enables a language and automatically prepares private tools without global Node, Python, JDK or .NET; analysis and initial definition navigation await readiness. The installed entry's gear menu offers settings, enable/disable, retry and uninstall. Settings allow a tool location, clear operation and optional external tools or language arguments. Clear or cancel preserves the choice not to download again until automatic use is enabled. Existing language plugins and preferences migrate on first startup; third-party community plugins keep a separate entry. Managed downloads support Windows x64; see [language support](language_environment_plugins.en.md) for capability limits.
+
+## Visual code blocks
+
+Use `svg`, `mermaid`, `dot`, `wavedrom`, `vega-lite`, `vega`, `echarts`, `plantuml`, `html`, `math`, `flow`, and `sequence` for visual content. Click Run for interactive `html-live`, `javascript-live`, and `jsx`/`tsx` blocks. Engines are bundled locally without an online service. See [Visual code blocks](visual_code_blocks.en.md) for copyable examples, source/enlarge/export actions, and limits.

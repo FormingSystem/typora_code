@@ -1,0 +1,741 @@
+[
+  {
+    "name": "@babel/standalone",
+    "version": "8.1.1",
+    "license": "MIT",
+    "notice": "babel_standalone.txt"
+  },
+  {
+    "name": "@braintree/sanitize-url",
+    "version": "7.1.2",
+    "license": "MIT",
+    "notice": "braintree_sanitize-url.txt"
+  },
+  {
+    "name": "@chevrotain/cst-dts-gen",
+    "version": "13.2.0",
+    "license": "Apache-2.0",
+    "notice": "chevrotain_cst-dts-gen.txt"
+  },
+  {
+    "name": "@chevrotain/gast",
+    "version": "13.2.0",
+    "license": "Apache-2.0",
+    "notice": "chevrotain_gast.txt"
+  },
+  {
+    "name": "@chevrotain/regexp-to-ast",
+    "version": "13.2.0",
+    "license": "Apache-2.0",
+    "notice": "chevrotain_regexp-to-ast.txt"
+  },
+  {
+    "name": "@chevrotain/utils",
+    "version": "13.2.0",
+    "license": "Apache-2.0",
+    "notice": "chevrotain_utils.txt"
+  },
+  {
+    "name": "@iconify/utils",
+    "version": "3.1.7",
+    "license": "MIT",
+    "notice": "iconify_utils.txt"
+  },
+  {
+    "name": "@mermaid-js/parser",
+    "version": "2.0.1",
+    "license": "MIT",
+    "notice": "mermaid-js_parser.txt"
+  },
+  {
+    "name": "@plantuml/core",
+    "version": "1.2026.9",
+    "license": "MIT",
+    "notice": "plantuml_core.txt"
+  },
+  {
+    "name": "@upsetjs/venn.js",
+    "version": "2.0.0",
+    "license": "MIT",
+    "notice": "upsetjs_venn.js.txt"
+  },
+  {
+    "name": "@viz-js/viz",
+    "version": "3.31.0",
+    "license": "MIT",
+    "notice": "viz-js_viz.txt"
+  },
+  {
+    "name": "bit-field",
+    "version": "1.11.0",
+    "license": "MIT",
+    "notice": "bit-field.txt"
+  },
+  {
+    "name": "chevrotain",
+    "version": "13.2.0",
+    "license": "Apache-2.0",
+    "notice": "chevrotain.txt"
+  },
+  {
+    "name": "cose-base",
+    "version": "1.0.3",
+    "license": "MIT",
+    "notice": "cose-base.txt"
+  },
+  {
+    "name": "cytoscape",
+    "version": "3.34.4",
+    "license": "MIT",
+    "notice": "cytoscape.txt"
+  },
+  {
+    "name": "cytoscape-cose-bilkent",
+    "version": "4.1.0",
+    "license": "MIT",
+    "notice": "cytoscape-cose-bilkent.txt"
+  },
+  {
+    "name": "cytoscape-fcose",
+    "version": "2.2.0",
+    "license": "MIT",
+    "notice": "cytoscape-fcose.txt"
+  },
+  {
+    "name": "d3",
+    "version": "7.9.0",
+    "license": "ISC",
+    "notice": "d3.txt"
+  },
+  {
+    "name": "d3-array",
+    "version": "3.2.4",
+    "license": "ISC",
+    "notice": "d3-array.txt"
+  },
+  {
+    "name": "d3-axis",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-axis.txt"
+  },
+  {
+    "name": "d3-brush",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-brush.txt"
+  },
+  {
+    "name": "d3-chord",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-chord.txt"
+  },
+  {
+    "name": "d3-color",
+    "version": "3.1.0",
+    "license": "ISC",
+    "notice": "d3-color.txt"
+  },
+  {
+    "name": "d3-contour",
+    "version": "4.0.2",
+    "license": "ISC",
+    "notice": "d3-contour.txt"
+  },
+  {
+    "name": "d3-delaunay",
+    "version": "6.0.4",
+    "license": "ISC",
+    "notice": "d3-delaunay.txt"
+  },
+  {
+    "name": "d3-dispatch",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-dispatch.txt"
+  },
+  {
+    "name": "d3-drag",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-drag.txt"
+  },
+  {
+    "name": "d3-dsv",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-dsv.txt"
+  },
+  {
+    "name": "d3-ease",
+    "version": "3.0.1",
+    "license": "BSD-3-Clause",
+    "notice": "d3-ease.txt"
+  },
+  {
+    "name": "d3-fetch",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-fetch.txt"
+  },
+  {
+    "name": "d3-force",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-force.txt"
+  },
+  {
+    "name": "d3-format",
+    "version": "3.1.2",
+    "license": "ISC",
+    "notice": "d3-format.txt"
+  },
+  {
+    "name": "d3-geo",
+    "version": "3.1.1",
+    "license": "ISC",
+    "notice": "d3-geo.txt"
+  },
+  {
+    "name": "d3-geo-projection",
+    "version": "4.0.0",
+    "license": "ISC",
+    "notice": "d3-geo-projection.txt"
+  },
+  {
+    "name": "d3-hierarchy",
+    "version": "3.1.2",
+    "license": "ISC",
+    "notice": "d3-hierarchy.txt"
+  },
+  {
+    "name": "d3-interpolate",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-interpolate.txt"
+  },
+  {
+    "name": "d3-path",
+    "version": "3.1.0",
+    "license": "ISC",
+    "notice": "d3-path.txt"
+  },
+  {
+    "name": "d3-polygon",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-polygon.txt"
+  },
+  {
+    "name": "d3-quadtree",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-quadtree.txt"
+  },
+  {
+    "name": "d3-random",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-random.txt"
+  },
+  {
+    "name": "d3-sankey",
+    "version": "0.12.3",
+    "license": "BSD-3-Clause",
+    "notice": "d3-sankey.txt"
+  },
+  {
+    "name": "d3-scale",
+    "version": "4.0.2",
+    "license": "ISC",
+    "notice": "d3-scale.txt"
+  },
+  {
+    "name": "d3-scale-chromatic",
+    "version": "3.1.0",
+    "license": "ISC",
+    "notice": "d3-scale-chromatic.txt"
+  },
+  {
+    "name": "d3-selection",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-selection.txt"
+  },
+  {
+    "name": "d3-shape",
+    "version": "3.2.0",
+    "license": "ISC",
+    "notice": "d3-shape.txt"
+  },
+  {
+    "name": "d3-time",
+    "version": "3.1.0",
+    "license": "ISC",
+    "notice": "d3-time.txt"
+  },
+  {
+    "name": "d3-time-format",
+    "version": "4.1.0",
+    "license": "ISC",
+    "notice": "d3-time-format.txt"
+  },
+  {
+    "name": "d3-timer",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-timer.txt"
+  },
+  {
+    "name": "d3-transition",
+    "version": "3.0.1",
+    "license": "ISC",
+    "notice": "d3-transition.txt"
+  },
+  {
+    "name": "d3-zoom",
+    "version": "3.0.0",
+    "license": "ISC",
+    "notice": "d3-zoom.txt"
+  },
+  {
+    "name": "dagre-d3-es",
+    "version": "7.0.14",
+    "license": "MIT",
+    "notice": "dagre-d3-es.txt"
+  },
+  {
+    "name": "dayjs",
+    "version": "1.11.23",
+    "license": "MIT",
+    "notice": "dayjs.txt"
+  },
+  {
+    "name": "delaunator",
+    "version": "5.1.0",
+    "license": "ISC",
+    "notice": "delaunator.txt"
+  },
+  {
+    "name": "dompurify",
+    "version": "3.4.17",
+    "license": "(MPL-2.0 OR Apache-2.0)",
+    "notice": "dompurify.txt"
+  },
+  {
+    "name": "echarts",
+    "version": "6.1.0",
+    "license": "Apache-2.0",
+    "notice": "echarts.txt"
+  },
+  {
+    "name": "elkjs",
+    "version": "0.9.3",
+    "license": "EPL-2.0",
+    "notice": "elkjs.txt"
+  },
+  {
+    "name": "es-toolkit",
+    "version": "1.53.1",
+    "license": "MIT",
+    "notice": "es-toolkit.txt"
+  },
+  {
+    "name": "flowchart.js",
+    "version": "1.18.1",
+    "license": "MIT",
+    "notice": "flowchart.js.txt"
+  },
+  {
+    "name": "internmap",
+    "version": "2.0.3",
+    "license": "ISC",
+    "notice": "internmap.txt"
+  },
+  {
+    "name": "json-stringify-pretty-compact",
+    "version": "4.0.0",
+    "license": "MIT",
+    "notice": "json-stringify-pretty-compact.txt"
+  },
+  {
+    "name": "json5",
+    "version": "2.2.3",
+    "license": "MIT",
+    "notice": "json5.txt"
+  },
+  {
+    "name": "katex",
+    "version": "0.18.0",
+    "license": "MIT",
+    "notice": "katex.txt"
+  },
+  {
+    "name": "khroma",
+    "version": "2.1.0",
+    "notice": "khroma.txt"
+  },
+  {
+    "name": "layout-base",
+    "version": "1.0.2",
+    "license": "MIT",
+    "notice": "layout-base.txt"
+  },
+  {
+    "name": "lodash-es",
+    "version": "4.18.1",
+    "license": "MIT",
+    "notice": "lodash-es.txt"
+  },
+  {
+    "name": "logidrom",
+    "version": "1.2.1",
+    "license": "MIT",
+    "notice": "logidrom.txt"
+  },
+  {
+    "name": "mermaid",
+    "version": "12.2.0",
+    "license": "MIT",
+    "notice": "mermaid.txt"
+  },
+  {
+    "name": "onml",
+    "version": "2.3.0",
+    "license": "MIT",
+    "notice": "onml.txt"
+  },
+  {
+    "name": "raphael",
+    "version": "2.3.0",
+    "license": "MIT",
+    "notice": "raphael.txt"
+  },
+  {
+    "name": "react",
+    "version": "19.3.1",
+    "license": "MIT",
+    "notice": "react.txt"
+  },
+  {
+    "name": "react-dom",
+    "version": "19.3.1",
+    "license": "MIT",
+    "notice": "react-dom.txt"
+  },
+  {
+    "name": "robust-predicates",
+    "version": "3.0.3",
+    "license": "Unlicense",
+    "notice": "robust-predicates.txt"
+  },
+  {
+    "name": "roughjs",
+    "version": "4.6.6",
+    "license": "MIT",
+    "notice": "roughjs.txt"
+  },
+  {
+    "name": "scheduler",
+    "version": "0.28.0",
+    "license": "MIT",
+    "notice": "scheduler.txt"
+  },
+  {
+    "name": "snapsvg",
+    "version": "0.5.1",
+    "license": "Apache-2.0",
+    "notice": "snapsvg.txt"
+  },
+  {
+    "name": "stylis",
+    "version": "4.4.0",
+    "license": "MIT",
+    "notice": "stylis.txt"
+  },
+  {
+    "name": "topojson-client",
+    "version": "3.1.0",
+    "license": "ISC",
+    "notice": "topojson-client.txt"
+  },
+  {
+    "name": "ts-dedent",
+    "version": "2.3.0",
+    "license": "MIT",
+    "notice": "ts-dedent.txt"
+  },
+  {
+    "name": "tslib",
+    "version": "2.3.0",
+    "license": "0BSD",
+    "notice": "tslib.txt"
+  },
+  {
+    "name": "tspan",
+    "version": "0.4.0",
+    "license": "MIT",
+    "notice": "tspan.txt"
+  },
+  {
+    "name": "underscore",
+    "version": "1.13.8",
+    "license": "MIT",
+    "notice": "underscore.txt"
+  },
+  {
+    "name": "uuid",
+    "version": "14.0.3",
+    "license": "MIT",
+    "notice": "uuid.txt"
+  },
+  {
+    "name": "vega",
+    "version": "6.4.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega.txt"
+  },
+  {
+    "name": "vega-canvas",
+    "version": "2.0.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-canvas.txt"
+  },
+  {
+    "name": "vega-crossfilter",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-crossfilter.txt"
+  },
+  {
+    "name": "vega-dataflow",
+    "version": "6.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-dataflow.txt"
+  },
+  {
+    "name": "vega-embed",
+    "version": "7.3.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-embed.txt"
+  },
+  {
+    "name": "vega-encode",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-encode.txt"
+  },
+  {
+    "name": "vega-event-selector",
+    "version": "4.0.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-event-selector.txt"
+  },
+  {
+    "name": "vega-expression",
+    "version": "6.2.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-expression.txt"
+  },
+  {
+    "name": "vega-force",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-force.txt"
+  },
+  {
+    "name": "vega-format",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-format.txt"
+  },
+  {
+    "name": "vega-functions",
+    "version": "6.2.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-functions.txt"
+  },
+  {
+    "name": "vega-geo",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-geo.txt"
+  },
+  {
+    "name": "vega-hierarchy",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-hierarchy.txt"
+  },
+  {
+    "name": "vega-interpreter",
+    "version": "2.3.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-interpreter.txt"
+  },
+  {
+    "name": "vega-label",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-label.txt"
+  },
+  {
+    "name": "vega-lite",
+    "version": "6.5.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-lite.txt"
+  },
+  {
+    "name": "vega-loader",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-loader.txt"
+  },
+  {
+    "name": "vega-parser",
+    "version": "7.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-parser.txt"
+  },
+  {
+    "name": "vega-projection",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-projection.txt"
+  },
+  {
+    "name": "vega-regression",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-regression.txt"
+  },
+  {
+    "name": "vega-runtime",
+    "version": "7.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-runtime.txt"
+  },
+  {
+    "name": "vega-scale",
+    "version": "8.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-scale.txt"
+  },
+  {
+    "name": "vega-scenegraph",
+    "version": "5.3.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-scenegraph.txt"
+  },
+  {
+    "name": "vega-schema-url-parser",
+    "version": "3.0.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-schema-url-parser.txt"
+  },
+  {
+    "name": "vega-selections",
+    "version": "6.1.5",
+    "license": "BSD-3-Clause",
+    "notice": "vega-selections.txt"
+  },
+  {
+    "name": "vega-statistics",
+    "version": "2.0.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-statistics.txt"
+  },
+  {
+    "name": "vega-themes",
+    "version": "3.0.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-themes.txt"
+  },
+  {
+    "name": "vega-time",
+    "version": "3.3.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-time.txt"
+  },
+  {
+    "name": "vega-tooltip",
+    "version": "1.1.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-tooltip.txt"
+  },
+  {
+    "name": "vega-transforms",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-transforms.txt"
+  },
+  {
+    "name": "vega-util",
+    "version": "2.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-util.txt"
+  },
+  {
+    "name": "vega-view",
+    "version": "6.2.0",
+    "license": "BSD-3-Clause",
+    "notice": "vega-view.txt"
+  },
+  {
+    "name": "vega-view-transforms",
+    "version": "5.2.2",
+    "license": "BSD-3-Clause",
+    "notice": "vega-view-transforms.txt"
+  },
+  {
+    "name": "vega-voronoi",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-voronoi.txt"
+  },
+  {
+    "name": "vega-wordcloud",
+    "version": "5.1.3",
+    "license": "BSD-3-Clause",
+    "notice": "vega-wordcloud.txt"
+  },
+  {
+    "name": "wavedrom",
+    "version": "3.8.0",
+    "license": "MIT",
+    "notice": "wavedrom.txt"
+  },
+  {
+    "name": "webfontloader",
+    "version": "1.6.28",
+    "license": "Apache-2.0",
+    "notice": "webfontloader.txt"
+  },
+  {
+    "name": "zrender",
+    "version": "6.1.0",
+    "license": "BSD-3-Clause",
+    "notice": "zrender.txt"
+  },
+  {
+    "name": "js-sequence-diagrams",
+    "version": "2.0.1",
+    "license": "BSD-2-Clause",
+    "notice": "js_sequence.txt"
+  },
+  {
+    "name": "graphviz",
+    "version": "16.1.0",
+    "license": "EPL-2.0",
+    "notice": "graphviz.txt",
+    "source": "https://gitlab.com/api/v4/projects/4207231/packages/generic/graphviz-releases/16.1.0/graphviz-16.1.0.tar.gz"
+  },
+  {
+    "name": "expat",
+    "version": "2.8.5",
+    "license": "MIT",
+    "notice": "expat.txt",
+    "source": "https://github.com/libexpat/libexpat/releases/tag/R_2_8_5"
+  }
+]

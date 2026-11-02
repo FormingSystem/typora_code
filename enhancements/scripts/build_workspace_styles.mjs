@@ -17,8 +17,9 @@ export async function collect_workspace_styles({entry_points=[path.join(root,'sr
  if(active_inputs.some(name=>name.replaceAll('\\','/').includes('node_modules/monaco-editor/')))files.unshift(path.join(root,'node_modules/monaco-editor/min/vs/editor/editor.main.css'));
  return [...new Set(files)];
 }
-function inline_css_assets(file) {
- return normalize(fs.readFileSync(file,'utf8')).replace(/url\(["']?([^)'" ]+)["']?\)/gu,(match,value)=>{
+export function inline_css_assets(file) {
+ const source=normalize(fs.readFileSync(file,'utf8')).replace(/@import\s+["'](\.\.?\/[^"']+)["'];/gu,(_match,relative)=>inline_css_assets(path.resolve(path.dirname(file),relative)));
+ return source.replace(/url\(["']?([^)'" ]+)["']?\)/gu,(match,value)=>{
   if(value.startsWith('data:')||value.startsWith('#'))return match;
   if(/^[a-z]+:/i.test(value))throw new Error('Network CSS asset is not permitted: '+value);
   const asset=path.resolve(path.dirname(file),value);const mime=value.endsWith('.ttf')?'font/ttf':value.endsWith('.woff')?'font/woff':value.endsWith('.svg')?'image/svg+xml':'application/octet-stream';

@@ -1,0 +1,7 @@
+{
+  "source": "https://github.com/bramp/js-sequence-diagrams/tree/v2.0.1",
+  "files": {
+    "LICENSE": "02f2ac1a6842a1739a645cdcf4bd1cebe5afd9f85f17cf9044b46b72354d2579",
+    "sequence-diagram-min.js": "0d4a8864fa0ff8c5c081c0759507453e0b0d39279db0c0b62c9d9a7e8ebebc15"
+  }
+}

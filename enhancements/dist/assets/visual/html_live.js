@@ -1,0 +1,1 @@
+(()=>{globalThis.render_visual=async(c,e)=>{e.innerHTML=c.source;for(let t of[...e.querySelectorAll("script")]){let n=document.createElement("script");n.textContent=t.textContent,t.replaceWith(n)}};})();

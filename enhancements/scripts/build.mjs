@@ -1,4 +1,5 @@
 import "./build_terminal_assets.mjs";
+import {build_visual_assets} from "./build_visual_assets.mjs";
 import {build_source_symbol_assets} from "./build_source_symbol_assets.mjs";
 import { build } from "esbuild";
 import fs from "node:fs";
@@ -18,6 +19,7 @@ fs.rmSync('dist/workspace_main.cjs',{force:true});
 await build_workspace_core({outdir: path.resolve("dist")});
 await build_workspace_styles({outdir: path.resolve("dist")});
 await build_source_symbol_assets(path.resolve("dist"));
+await build_visual_assets();
 fs.mkdirSync("dist/licenses",{recursive:true});
 fs.copyFileSync("vendor/vscode_themes/LICENSE.txt","dist/licenses/vscode_themes.txt");
 fs.copyFileSync("vendor/vscode_languages/LICENSE.txt","dist/licenses/vscode_languages.txt");
@@ -32,7 +34,7 @@ fs.copyFileSync("vendor/xterm/LICENSE","dist/licenses/xterm.txt");
 fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
 // Announcements and background auxiliary programs are installed along with an asset list; ordinary users do not depend on the source code repository or global Node.
 fs.mkdirSync("dist/assets/help",{recursive:true});
-for(const name of ["user_guide.md","user_guide.en.md"])fs.writeFileSync("dist/assets/help/"+name,fs.readFileSync("../docs/"+name,"utf8").replace(/\r\n?/gu,"\n"));
+for(const name of ["user_guide.md","user_guide.en.md","visual_code_blocks.md","visual_code_blocks.en.md"])fs.writeFileSync("dist/assets/help/"+name,fs.readFileSync("../docs/"+name,"utf8").replace(/\r\n?/gu,"\n"));
 const shell_metadata=JSON.parse(fs.readFileSync('native/windows_x64/build.json','utf8'));
 const {createHash:shell_hash}=await import('node:crypto');
 if(shell_hash('sha256').update(fs.readFileSync('../scripts/native/typora_shell.cpp','utf8').replace(/\r\n/gu,'\n')).digest('hex')!==shell_metadata.source_sha256)throw Error('Rebuild the Windows native shell adapter before packaging.');
@@ -77,7 +79,7 @@ const bundle_result=await build({
   outfile: "dist/workbench.js",
   write: false,
   legalComments: "inline",
-  banner: { js: "/*! Marked 14.0.0 (MIT)\n" + fs.readFileSync("node_modules/marked/LICENSE.md", "utf8") + "\n*/\n" + "/*! DOMPurify 3.4.14 (Apache-2.0 or MPL-2.0)\n" + fs.readFileSync("node_modules/dompurify/LICENSE", "utf8") + "\n*/\n" + "/*! Monaco Editor 0.56.0 (MIT)\n" + fs.readFileSync("node_modules/monaco-editor/LICENSE", "utf8") + "\n*/\n" + "/*! xterm.js 6.0.0, FitAddon 0.11.0, SearchAddon 0.16.0 (MIT)\n" + fs.readFileSync("node_modules/@xterm/xterm/LICENSE", "utf8") + "\n*/\n" + "/*! gemoji 4.1.0 Unicode data\n" + fs.readFileSync("vendor/gemoji/LICENSE", "utf8") + "\n*/\n" + "/*! Microsoft VS Code Codicons - https://github.com/microsoft/vscode-codicons\nCommit 1c47ab36a4bb845c437866405c2fa67b8ca0fe36; graphics licensed CC BY 4.0, code MIT.\nOriginal SVG paths preserved; display dimensions and fill inherit the current interface theme.\nhttps://creativecommons.org/licenses/by/4.0/\n" + fs.readFileSync("vendor/codicons/LICENSE_CODE", "utf8") + "\n*/" },
+  banner: { js: "/*! Marked 14.0.0 (MIT)\n" + fs.readFileSync("node_modules/marked/LICENSE.md", "utf8") + "\n*/\n" + "/*! DOMPurify 3.4.17 (Apache-2.0 or MPL-2.0)\n" + fs.readFileSync("node_modules/dompurify/LICENSE", "utf8") + "\n*/\n" + "/*! Monaco Editor 0.56.0 (MIT)\n" + fs.readFileSync("node_modules/monaco-editor/LICENSE", "utf8") + "\n*/\n" + "/*! xterm.js 6.0.0, FitAddon 0.11.0, SearchAddon 0.16.0 (MIT)\n" + fs.readFileSync("node_modules/@xterm/xterm/LICENSE", "utf8") + "\n*/\n" + "/*! gemoji 4.1.0 Unicode data\n" + fs.readFileSync("vendor/gemoji/LICENSE", "utf8") + "\n*/\n" + "/*! Microsoft VS Code Codicons - https://github.com/microsoft/vscode-codicons\nCommit 1c47ab36a4bb845c437866405c2fa67b8ca0fe36; graphics licensed CC BY 4.0, code MIT.\nOriginal SVG paths preserved; display dimensions and fill inherit the current interface theme.\nhttps://creativecommons.org/licenses/by/4.0/\n" + fs.readFileSync("vendor/codicons/LICENSE_CODE", "utf8") + "\n*/" },
   loader: {
     ".css": "text",
     ".wasm": "binary"
