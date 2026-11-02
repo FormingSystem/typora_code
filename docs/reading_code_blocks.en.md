@@ -146,3 +146,42 @@ The reading state service owns explicit choices; native CodeMirror owns content 
 Pinned VS Code 6807068 `src/vs/editor/contrib/folding/browser/folding.ts` saves and restores folding through `saveViewState`/`restoreViewState`. Adopt state independence from DOM while retaining Typora height folding. Restore through the existing folding/geometry entry only for new nodes; ordinary in-document navigation must not reset folding or internal scroll.
 
 Validate an old-candidate native red case, then 20 native round trips, same-file locations, independent and duplicate fences, explicit collapse, edits and node reconstruction with unchanged disk content. UI covers transitional loads, cleanup, edits and disposal; regress geometry, wheel, copy and navigation. Build, checks, isolated install/uninstall/reinstall and local installation use the final candidate; untested platforms remain explicit.
+[Chinese](reading_code_blocks.md#visual-code-blocks)
+
+<a id="visual-code-blocks"></a>
+## R087 Visual code blocks: inventory and phased design
+
+2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. This is a proposal, not new runtime support or a complete list of OpenAI built-in renderers.
+
+### Evidence and candidates
+
+`create_preview_diagrams` in `workspace_markdown_preview_render.ts` loads the host Mermaid library. The lookup, split Markdown, and Git Markdown diff consumers dispatch only `language-mermaid` to diagram rendering; other fences receive syntax highlighting. SVG image MIME handling in `workspace_preview_image.ts` does not render SVG fences. The PlantUML entry in `typora_enhancements.ts` only exempts diagrams from code folding. Git Markdown sanitation explicitly excludes raw SVG/Math elements. This inspection did not run native samples or inspect the user's active window or third-party plugin state.
+
+| Format | Purpose | Current finding | Suggested phase |
+| --- | --- | --- | --- |
+| SVG fences | Custom architecture, composition, memory, and protocol illustrations | No dedicated fence renderer; image support exists | First |
+| Mermaid | Flow, sequence, state, class, ER, mindmap, and block diagrams | Native/preview integration exists; newer families require host-library verification | First, extend coverage |
+| Static HTML/CSS | Layered cards, layout explanations, combined text/graphics | HTML fences remain source; native HTML blocks are a separate path | Second |
+| Graphviz `dot` / `graphviz` | Dependencies, calls, topology with automatic layout | No dedicated integration found | Second |
+| WaveDrom | Digital signals and bus timing | No dedicated integration found | Second |
+| Vega-Lite / Vega | Proportions, trends, distributions, interactive statistics | No dedicated integration found; prefer evaluating Vega-Lite first | Third |
+| ECharts | Gauges, relationships, interactive data charts | No dedicated integration found; choose based on needs alongside Vega-Lite | Third candidate |
+| PlantUML | UML, components, deployment, complex sequences | No actual owned rendering pipeline found; plugins unverified | On demand |
+| HTML/JavaScript and React JSX/TSX | Interactive controls, animation, simulation | Requires isolated execution and dependencies | Separate later design |
+| Math, `flow`, `sequence` | Equations and legacy diagrams | Native Typora capabilities exist; shared previews lack equivalent complete integration | Compatibility work |
+
+Prioritize Mermaid flowchart/subgraph, sequenceDiagram, classDiagram, stateDiagram, erDiagram, mindmap, block, architecture, C4, packet, and pie samples. Check exact syntax, stability, and availability against the selected library version; this is not a host support claim. Native math syntax does not imply arbitrary `latex` fences or TikZ execution.
+
+### Ownership and behavior
+
+Keep Markdown source, editing, and undo under their existing owners. A proposed shared renderer owns dispatch, dependency loading, sanitation, revision checks, and cancellation. Native content, search/link previews, read-only splits, and Git history/diffs own layout and resource identity. Reuse theme notifications, visible-region scheduling, and media viewing instead of global redraws. Verify the actual host fence integration port before implementing the first format.
+
+Start SVG with a static subset, preserve required local references and graphic styling, and isolate duplicate IDs. Do not execute author scripts or inject author HTML directly into the workbench. Interactive HTML/React needs a separate design for host isolation, dependencies, networking, and resource budgets. Failure retains copyable source and explains the error; editing, switching, or closing cancels old work and rejects late results. Source/graphic switching, enlargement, copying, and export are shared interaction candidates; verify existing UI conventions before selecting entry points.
+
+### Acceptance and delivery
+
+Each format needs samples across native content, search/link previews, read-only splits, and Git history/diffs. Cover themes, long multilingual labels, narrow layouts, zoom, repeated diagrams, editing/undo/save, fallback, offline use, cancellation, and disposal. Measure real wheel/input response with long documents and background work. Verify HTML/PDF export independently from on-screen rendering.
+
+This phase only inventories source and proposes sequencing. No runtime build, installation, or release increment is required. Recommend SVG first, followed by Mermaid family verification. Each implementation must establish versions, licenses, native ports, classified tests, and standard installation/uninstallation validation. Existing unresolved requirements remain open.
+
+References: [Typora diagrams](https://support.typora.io/Draw-Diagrams-With-Markdown/), [Mermaid](https://mermaid.js.org/intro/), [SVG](https://developer.mozilla.org/en-US/docs/Web/SVG), [Graphviz](https://graphviz.org/), [WaveDrom](https://wavedrom.com/), [Vega-Lite](https://vega.github.io/vega-lite/), [ECharts](https://echarts.apache.org/en/index.html), [PlantUML](https://plantuml.com/). The [OpenAI changelog](https://learn.chatgpt.com/docs/changelog) confirms Mermaid/math capabilities in some clients, not a universal cross-client format inventory.

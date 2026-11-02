@@ -2,6 +2,44 @@
 
 # R068 代码块展开与高度隔离
 
+<a id="visual-code-blocks"></a>
+## R087 图形代码块能力清单与分期设计
+
+2026-11-02：用户希望直接阅读 AI 生成的架构图、组成图和 SVG，要求先列缺口，再逐项实现。本节是候选清单与接入原则，尚无新增运行时能力。格式选择依据表达用途，不把清单宣称为 Codex/ChatGPT 的完整内置格式或可直接移植的渲染器。
+
+### 当前证据与候选
+
+当前源码：`workspace_markdown_preview_render.ts` 的 `create_preview_diagrams` 加载宿主 Mermaid；`workspace_lookup_preview.ts`、`workspace_split_markdown.ts` 和 `git_markdown_diff.ts` 仅对 `language-mermaid` 分派图表渲染，其余围栏走高亮。`workspace_preview_image.ts` 识别 SVG 图片，不等于支持 SVG 围栏。`typora_enhancements.ts` 的图表排除列表含 PlantUML，但这只是折叠豁免，不能证明存在渲染器。Git Markdown 清洗还明确排除原始 SVG/Math 元素。此次为源码盘点，未操作用户窗口，未逐项执行宿主样本。
+
+| 格式或能力 | 适用表达 | 当前结论 | 建议阶段 |
+| --- | --- | --- | --- |
+| SVG 围栏 `svg` | 自由布局的架构、组成、内存与协议示意图 | 缺少专用围栏渲染；图片链路已有基础 | 第一批 |
+| Mermaid `mermaid` | 流程、时序、状态、类、ER、思维导图、组成图 | 已有正文与预览接线；新版图种须按宿主实际库逐项验证 | 第一批补齐 |
+| HTML/CSS 静态图 | 卡片分层、布局说明、图文组合 | HTML 围栏当前仍为源码；原生 HTML 块是另一入口 | 第二批 |
+| Graphviz `dot` / `graphviz` | 依赖、调用、拓扑等自动布局图 | 未发现专用接线 | 第二批 |
+| WaveDrom `wavedrom` | 数字信号、总线与硬件时序 | 未发现专用接线 | 第二批 |
+| Vega-Lite `vega-lite` / Vega | 比例、趋势、分布及交互统计图 | 未发现专用接线；建议先选 Vega-Lite | 第三批 |
+| ECharts `echarts` | 仪表、关系和交互数据图 | 未发现专用接线；与 Vega-Lite 按需求取舍 | 第三批候选 |
+| PlantUML `plantuml` | UML、组件、部署及复杂时序 | 未找到实际自有渲染链路，第三方安装状态未验 | 按需 |
+| HTML/JavaScript、React JSX/TSX | 可点击、调参、动画和仿真 | 需要隔离运行与依赖管理，不能当普通静态围栏渲染 | 后续独立设计 |
+| 数学公式、`flow`、`sequence` | 公式、传统流程和时序 | Typora 有相应原生能力；共享只读预览未见同等完整接线 | 补齐兼容性 |
+
+Mermaid 优先验证 flowchart/subgraph、sequenceDiagram、classDiagram、stateDiagram、erDiagram、mindmap、block、architecture、C4、packet 及 pie。图种名称、语法与稳定性按选定版本核对；此列表不是当前宿主支持声明。原生公式使用数学语法，不意味着任意 `latex` 围栏或 TikZ 程序都能执行。
+
+### 接入边界与职责
+
+保留 Markdown 原文与宿主编辑/撤销所有权。拟由共同渲染服务负责语言分派、依赖加载、结果清洗、版本及取消；正文、搜索/链接预览、只读分栏、Git 历史/比较各自拥有布局和资源版本。复用现有主题通知、按需可见区域调度及媒体查看器，不以全局重绘刷新全部图。具体宿主围栏接入端口须在第一项实现前核实。
+
+SVG 首批采用静态子集，保留必要的局部 ID/引用和图形样式，隔离重复 ID；不执行作者脚本或直接把作者 HTML 注入工作台。交互 HTML/React 另行设计无宿主权限的隔离运行、依赖、网络及资源预算。渲染失败保留可复制源码并显示原因；切换、编辑、关闭后取消旧请求并丢弃迟到结果。源码/图形切换、放大、复制及导出为共同交互候选，具体入口沿既有 UI 设计核对，不在本阶段改变布局。
+
+### 验收与分期状态
+
+每种格式需样本覆盖原生正文、搜索/链接预览、只读分栏、Git 历史和比较；分别核对主题、中文长标签、窄宽度、缩放、重复图、编辑撤销保存、错误回退、离线、迟到取消和销毁。覆盖实际滚轮/输入响应及长文后台组合；导出单独验证 HTML/PDF，不把屏幕显示成功等同导出成功。
+
+本轮仅完成源码清单及方案建议，不做构建、安装或发行递增。下一步建议先实现 SVG，再核对 Mermaid 图种。各功能实施需补充版本、许可、宿主端口和分类用例，并按标准候选安装/卸载流程交付；历史未决需求继续保留。
+
+参考：[Typora 图表](https://support.typora.io/Draw-Diagrams-With-Markdown/)、[Mermaid 图种](https://mermaid.js.org/intro/)、[SVG](https://developer.mozilla.org/en-US/docs/Web/SVG)、[Graphviz](https://graphviz.org/)、[WaveDrom](https://wavedrom.com/)、[Vega-Lite](https://vega.github.io/vega-lite/)、[ECharts](https://echarts.apache.org/en/index.html)、[PlantUML](https://plantuml.com/)。[OpenAI 官方更新记录](https://learn.chatgpt.com/docs/changelog)确认部分客户端的 Mermaid/公式能力，但不提供可据此声称所有客户端一致的完整格式表。
+
 ## R068.9 收起代码的滚轮归属
 
 2026-09-27：用户反馈收起代码尚未完整进入屏幕、底部“展开全部代码”不可见时，滚轮已经被内部代码截获。目标是先让读者看到整个收起区域与展开入口，再允许块内阅读；不要求用户移开鼠标才能继续正文。

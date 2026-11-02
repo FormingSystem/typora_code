@@ -3,6 +3,8 @@
 <a id="section_85a563fb275c"></a>
 # Requirement Design Index and Maintenance Process
 
+- R087 (2026-11-02): [Visual code block inventory and phased design](reading_code_blocks.en.md#visual-code-blocks). Source inspection and candidates are documented; SVG, Mermaid coverage, and other formats await phased implementation. No new runtime capability is delivered.
+
 Each requirement has a stable number and a traceable design entry. Formal design is maintained with the repository version; local session logs save execution progress and evidence. Related requirements can share the same domain document, and minor fixes update the original design section, avoiding redundant maintenance of the main content. Global constraints see [AGENTS.md](../AGENTS.en.md#section_9ff23a26bc07).
 
 <a id="section_d9308715f332"></a>
