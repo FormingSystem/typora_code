@@ -14,6 +14,8 @@ domains:
 
 # 第1章\_Typora\_工作区、阅读导航与代码增强
 
+2026.11.03.2补充：静态图形和图片默认保持自然尺寸，超宽等比缩小、完整展开高度，细节用已有放大查看。SVG跨平台分享优先采用独立资源与相对图片引用；围栏编辑复用原生模型和共享几何失效，避免每次点击重复刷新。用法与边界见[图形说明](../docs/visual_code_blocks.md)。
+
 2026.11.02.1：图形围栏复用随包本地渲染器，正文与共享预览接入SVG、HTML、DOT、WaveDrom、Vega/Vega-Lite、ECharts、PlantUML、公式及传统图表；显式HTML/JS和React JSX/TSX点击运行。入口、完整样例、源码/放大/逐图SVG导出及整篇导出限制见[使用指南](../docs/visual_code_blocks.md)，当前职责与生命周期见[R087设计](../docs/reading_code_blocks.md#visual-code-blocks)。构建由`build_visual_assets.mjs`生成独立资源，版本及许可证清单为`dist/assets/visual/libraries.json`，原始声明在`dist/licenses/visual/`；不运行时请求CDN，保留原生Mermaid/flow/sequence所有者。
 
 2026.09.27.20：编程源码支持Ctrl+左键/F12转到定义，无定义时查声明；右键可转到声明、实现及查找引用，多目标通过选择器定位。当前内存诊断与符号/语义共享LSP，C/C++工程后台索引可在原语言服务配置中开关。继续支持系统环境检测、手动路径、Python venv及Rust；入口为设置 → 语言服务 → 选择语言服务与环境，详见[操作与实测范围](../docs/code_analysis_colors.md)。

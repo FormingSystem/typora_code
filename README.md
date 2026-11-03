@@ -54,6 +54,8 @@ The authoritative version and release notes are in [release.json](enhancements/r
 
 Use the corresponding fenced-code language for static diagrams. Renderers are bundled locally, with no online drawing service to configure. Click Run / Refresh for `html-live`, `javascript-live`, and `jsx`/`tsx`; ordinary JavaScript examples do not execute automatically. Native and shared reading previews support the new formats; native Mermaid/flow/sequence retain the host renderer.
 
+For portable documents, prefer separate SVG assets with relative image references, native Mermaid fences and math syntax. Identify TyporaCode for tool-specific fences. Small media retains natural size; wide media shrinks proportionally and hover enlargement provides detail.
+
 Open **Help → Operation Guide and Shortcuts → Visual code blocks** for offline examples, or read [Visual code blocks](docs/visual_code_blocks.en.md). Actions include source visibility, copying, refresh, and enlargement/per-diagram export for SVG output. Whole-document HTML/PDF export does not automatically convert every new fence. External data, fonts, icons, and arbitrary npm dependencies are not downloaded automatically. The guide records host-version and library-extension limits.
 
 ## Development
