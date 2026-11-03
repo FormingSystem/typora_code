@@ -1,0 +1,27 @@
+{
+  "requirement": "R087.6",
+  "release": "2026.11.03.4",
+  "core": "673b51cf30d1482db4d4a976ec2fa369",
+  "electron_ui": "9345e2622bf241cbb852a4b563e3805f",
+  "native_host": {
+    "run": "e9b16d25d8e24369a0e1ee33d34d5e0c",
+    "checks": 72,
+    "scroll_return": "no iframe, same height, unchanged Markdown"
+  },
+  "isolated_cycle": "ac23bba061744764b65f223f19c65fbd",
+  "uninstall": {
+    "run": "d84465e3c7ca4a5ba677a80b9961e62d",
+    "assertions": 65
+  },
+  "installed": {
+    "sequence": 2026110304,
+    "verified_assets": 216,
+    "verified_terminal_assets": 24,
+    "preserved_files": 13,
+    "standard_check": "passed",
+    "uninstall_preflight": "passed",
+    "shell_menu": "existing Directory ownership conflict preserved",
+    "running_user_windows": "not restarted"
+  },
+  "limits": "4 MiB serialized offscreen payloads, up to 128 entries per binding; process memory and remote desktop latency not measured"
+}

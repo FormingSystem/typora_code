@@ -46,6 +46,7 @@
 | R087.3 | 跨平台图形写法与全局编辑约定 | [图形代码块](reading_code_blocks.md#r087-portable-authoring) |
 | R087.4 | 点击图形编辑性能评估 | [图形代码块](reading_code_blocks.md#r087-edit-performance) |
 | R087.5 | 图形与图片自然尺寸及宽度适配 | [图形代码块](reading_code_blocks.md#r087-natural-media) |
+| R087.6 | 正文 SVG 翻页缓存 | [设计](reading_code_blocks.md#r087-svg-cache) | 2026-11-03 |
 | R071.5 | 被动原生布局覆盖阅读视口 | [阅读位置与取消](workspace_responsiveness.md#r0715-阅读视口被旧光标覆盖) | 已核对性能模式和源码同值配置边界；当次验证见证据 |
 | R071.6 | 有正文时拖动相邻区域卡顿 | [局部布局与正文重排](workspace_responsiveness.md#r0716-相邻区域拖动与正文重排) | 局部布局与源码几何统一；当次测量和平台边界见交付证据 |
 | R083 | 编辑器呈现与共同工作台边界 | [共享编辑框架](editor_presentation.md) | 共同布局、内存/大纲/导航适配及取消清理设计 |

@@ -50,6 +50,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R087.3 | Portable diagrams and global authoring guidance | [Visual fences](reading_code_blocks.en.md#r087-portable-authoring) |
 | R087.4 | Diagram editing latency | [Visual fences](reading_code_blocks.en.md#r087-edit-performance) |
 | R087.5 | Natural diagram/image sizing and width fitting | [Visual fences](reading_code_blocks.en.md#r087-natural-media) |
+| R087.6 | Caching SVG fences while scrolling | [Design](reading_code_blocks.en.md#r087-svg-cache) | 2026-11-03 |
 | R071.6 | Slow adjacent pane resizing with rendered text | [Container layout](workspace_responsiveness.en.md#r0716-adjacent-pane-dragging-and-document-layout) | Local layout and content/geometry ownership; current evidence reported separately |
 | R071.5 | Passive native focus must preserve the reading viewport | [Response ownership](workspace_responsiveness.en.md#r0715-old-cursor-overrides-the-reading-viewport) | Verified native boundaries; platform validation reported separately |
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |
