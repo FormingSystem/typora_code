@@ -67,6 +67,8 @@ A regular installation does not require pre-launching with administrator privile
 <a id="section_ac2c0ff8053d"></a>
 ## View installation progress and logs
 
+The independent setup window displays emitted logs while the operation is running. Transient read failures retain existing text, and completion drains the final output. An active progress bar means the transaction is running; no new output does not imply invented progress. If an old setup window is already open, wait for its operation to finish, then close it and reopen setup from the updated package. Restarting Typora does not replace an already-open setup window.
+
 The installation window displays timestamps, current operations, and actual duration by stage, for example:
 
 ```text

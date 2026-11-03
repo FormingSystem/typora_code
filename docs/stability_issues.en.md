@@ -1,5 +1,7 @@
 [Chinese](stability_issues.md)
 
+2026-11-03 R084.4 / BUG-setup-live-log-001 (delivery/P2): File.ReadAllText conflicts with the redirected writer sharing mode; caught read failures appear empty until child exit. Read-only snapshots now permit shared writing, retain cached content on transient failures and read once more after final drain. See [live setup logs](installation_design.en.md#r0844-live-setup-log) for design and acceptance.
+
 2026-11-03 R087.4/R087.5 / BUG-reading-visual-layout-001 (presentation and responsiveness/P2): internal SVG scrolling and the 8192px height cap disrupt reading; explicit activation refresh adds to native source expansion. Diagrams now retain natural size, fit excessive width and show full height. Activation reuses the native model, with known geometry invalidation handled by the shared visibility queue. Ordinary images keep existing natural sizing and explicit manual settings. See [sizing](reading_code_blocks.en.md#r087-natural-media) and [response](reading_code_blocks.en.md#r087-edit-performance) for design and acceptance scope.
 
 2026-11-03 R087.2 / BUG-reading-visual-state-001 (presentation/P2): visual source and toolbars stayed visible while reading. Native focus now controls source, actions use the shared external hover layer, and offscreen placeholders retain height. Shadow scrolling is observed by its owning root. See [evidence](../enhancements/tests/evidence/visual_reading_20261103.json) and [design](reading_code_blocks.en.md#r087-reading-state).

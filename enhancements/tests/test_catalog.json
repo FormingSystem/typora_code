@@ -9798,7 +9798,8 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R084"
+        "R084",
+        "R084.4"
       ],
       "design": "docs/installation_design.md",
       "implementation": [
@@ -9818,7 +9819,8 @@
         "Windows PowerShell 5.1"
       ],
       "steps": [
-        "Render bilingual WPF layouts; run public GUI install/check, public uninstall, GUI reinstall/check in isolated directories."
+        "Render bilingual WPF layouts; run public GUI install/check, public uninstall, GUI reinstall/check in isolated directories.",
+        "Real PowerShell 5.1 child emits gated UTF-8 stdout/stderr while WPF dispatch polls; assert text before exit, 20 shared reads, transient unreadable-file retention, nonzero final tail and restored controls. Public installs must show multiple changing snapshots before exit."
       ],
       "expected": [
         "No external files removed; selected operations work and cleanup retains evidence."

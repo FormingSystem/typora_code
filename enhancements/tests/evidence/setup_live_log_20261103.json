@@ -1,0 +1,99 @@
+{
+  "date": "2026-11-03",
+  "requirements": [
+    "R084.4"
+  ],
+  "release": "2026.11.03.3",
+  "baseline": "fc9ad4d / 2026.11.03.2",
+  "manifest": "1b9e438d15d26a56a8f2dd557243b84ac83df4af33631c2dc6a11966a7be53b1",
+  "setup_sha256": "52ebd9f04449f40d304e8b2a09eecf41e8b74e7a09b706f9b685d1b5183bd0e5",
+  "fixture_sha256": "5a8ab07059c3b50aa7e353f2bfb2205b9fcd592538a7287ee22bae89510db0a2",
+  "build": "PASS",
+  "root_cause": {
+    "environment": "Windows PowerShell 5.1 redirected process",
+    "reproduced": "Active child had already written 37 bytes. File.ReadAllText returned a sharing-violation exception while a read-only FileStream sharing ReadWrite returned the UTF-8 output before exit.",
+    "fix": "Read-only shared file snapshots, per-stream cache retention on read failure, changed-text-only UI updates and final read after redirected output drains. Existing 250ms timer and transactions retained."
+  },
+  "setup_ui": {
+    "status": "PASS",
+    "run_id": "f2fb1a950f8845d0aa6eb247b151d386",
+    "scope": "Real PowerShell 5.1 delayed stdout/stderr through actual WPF DispatcherTimer; Chinese output, second phase before exit, 20 reads while writer is active, missing-stream retention, nonzero exit, unterminated final output, controls/progress restoration. Bilingual 560/720px WPF layouts and public GUI install/check, logged public-wrapper uninstall, reinstall/check in isolated directories.",
+    "live_samples": [
+      {
+        "text": "phase_one 中文日志\nstderr_one 错误流\r\n",
+        "before_exit": true,
+        "stage": "first",
+        "ms": 365
+      },
+      {
+        "text": "phase_one 中文日志\nphase_two 继续安装\nstderr_one 错误流\r\n",
+        "before_exit": true,
+        "stage": "second",
+        "ms": 595
+      },
+      {
+        "text": "phase_one 中文日志\nphase_two 继续安装\nstdout_tail 最后一行stderr_one 错误流\r\nstderr_tail 最后错误",
+        "stage": "complete",
+        "ms": 898
+      }
+    ],
+    "install_snapshots_before_exit": [
+      7,
+      6
+    ],
+    "check_snapshots_before_exit": [
+      0,
+      0
+    ],
+    "check_limit": "Checks emit final results and complete before the next live poll; final output/status verified. No synthetic ongoing check messages are added.",
+    "uninstall_output_before_exit": true,
+    "limit": "Real WPF control values and dispatcher behavior, with layout bitmap rendering; no physical-user desktop interaction claim."
+  },
+  "logging": {
+    "status": "PASS",
+    "run_id": "ccf9fc4a27784c008e839cfe5c3a8bb6",
+    "scope": "Per-run UTF-8 logs, function output isolation, file-lock/storage fallback, local ZIP download/cache progress and digest failure."
+  },
+  "core": {
+    "status": "PASS",
+    "run_id": "dd9e3ec1d87a45a2a27a801944ba6068",
+    "scope": "Full npm run check."
+  },
+  "installation": {
+    "status": "PASS",
+    "cycle": "ccb3e3a1886142cdb346020e28fb2261",
+    "exception_run": "c363d3c42f774ba1b23aeb1848ff6a66",
+    "exception_assertions": 65,
+    "scope": "Same candidate public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check, document/settings/storage/backups preserved and managed payload cleaned."
+  },
+  "local": {
+    "status": "PASS",
+    "version": "2026.11.03.3",
+    "sequence": 2026110303,
+    "manifest": "1b9e438d15d26a56a8f2dd557243b84ac83df4af33631c2dc6a11966a7be53b1",
+    "workspace_assets": 216,
+    "terminal_assets": 24,
+    "protected_existing": 13,
+    "protected_paths": 15,
+    "protected_changed": [],
+    "standard_check": "PASS",
+    "uninstall_read_only_preflight": "PASS",
+    "running_windows": "not restarted",
+    "setup_delivery": "Updated repository/package setup_windows.ps1, verified through real WPF polling tests; not an installed renderer component. Reopen the updated package installer to load the fix.",
+    "shell_integration": "Existing Directory shell-menu ownership conflict preserved; outer installer exit 1 after successful workbench installation. Independent asset check passed."
+  },
+  "failed_attempts": [
+    "Nested PowerShell here-string in a temporary editing command did not parse; no source changes occurred. Applied the test patch directly instead.",
+    "The new non-ASCII test fixture initially lacked the UTF-8 BOM required by Windows PowerShell 5.1; corrected encoding and verified real 5.1 runs.",
+    "A build command initially used the repository root; rerun in enhancements succeeded.",
+    "Existing log regression lacked explicit Microsoft.PowerShell.Utility import in this environment (run 16b96ef863454688841f1720b7975ab6). Added the same explicit module import used by public scripts; final regression passed."
+  ],
+  "limits": [
+    "Setup remains package-owned. Already-open setup windows retain old code; wait for the current transaction, then reopen setup from the updated package.",
+    "The workbench updater does not contain this WPF log textbox and is not redesigned.",
+    "stdout/stderr retain existing grouping, not global chronological merging.",
+    "No forced installer cancellation, user-window restart or real-environment uninstall was performed.",
+    "Prior UAC/other-platform and historical unresolved requirements remain open."
+  ],
+  "publication": "Commit and normal-push receipts are maintained in Git history and the local requirement ledger."
+}

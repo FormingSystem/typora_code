@@ -270184,6 +270184,19 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026110303,
+        version: "2026.11.03.3",
+        date: "2026-11-03",
+        notes: [
+          "\u4FEE\u590D\u72EC\u7ACB\u5B89\u88C5\u7A97\u53E3\u65E5\u5FD7\u5230\u7ED3\u675F\u624D\u51FA\u73B0\u7684\u95EE\u9898\uFF1A\u8FD0\u884C\u8FC7\u7A0B\u4E2D\u5171\u4EAB\u8BFB\u53D6\u8F93\u51FA\uFF0C\u4E34\u65F6\u8BFB\u53D6\u5931\u8D25\u4FDD\u7559\u5DF2\u663E\u793A\u5185\u5BB9\uFF0C\u7ED3\u675F\u65F6\u8865\u9F50\u672B\u5C3E\u65E5\u5FD7\u3002",
+          "\u5B89\u88C5\u3001\u68C0\u67E5\u4E0E\u5378\u8F7D\u7EE7\u7EED\u4F7F\u7528\u539F\u4E8B\u52A1\u548C\u8FDB\u5EA6\u72B6\u6001\uFF1B\u8BF7\u4ECE\u65B0\u7248\u4E0B\u8F7D\u5305\u91CD\u65B0\u6253\u5F00\u5B89\u88C5\u7A97\u53E3\u4F7F\u7528\u672C\u6B21\u4FEE\u590D\u3002"
+        ],
+        notes_en: [
+          "Fix setup-window logs appearing only at completion: read redirected output while the child is running, retain displayed text on transient read failures and drain final output on exit.",
+          "Installation, checking and uninstallation retain their existing transactions and progress state. Reopen setup from the updated package to use this fix."
+        ]
+      },
+      {
         sequence: 2026110302,
         version: "2026.11.03.2",
         date: "2026-11-03",

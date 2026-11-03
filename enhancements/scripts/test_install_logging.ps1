@@ -1,5 +1,6 @@
 ﻿# Log and runtime messages for regression are written only to the temporary directory, and downloads are provided by the local ZIP. Typora is not started.
 $ErrorActionPreference='Stop'
+Import-Module (Join-Path $PSHOME 'Modules/Microsoft.PowerShell.Utility/Microsoft.PowerShell.Utility.psd1') -ErrorAction Stop
 $previous_language=$env:TYPORA_CODE_LANGUAGE
 $env:TYPORA_CODE_LANGUAGE='zh-cn'
 $tools_root=Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

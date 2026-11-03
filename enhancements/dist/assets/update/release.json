@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026110303,
+      "version": "2026.11.03.3",
+      "date": "2026-11-03",
+      "notes": [
+        "修复独立安装窗口日志到结束才出现的问题：运行过程中共享读取输出，临时读取失败保留已显示内容，结束时补齐末尾日志。",
+        "安装、检查与卸载继续使用原事务和进度状态；请从新版下载包重新打开安装窗口使用本次修复。"
+      ],
+      "notes_en": [
+        "Fix setup-window logs appearing only at completion: read redirected output while the child is running, retain displayed text on transient read failures and drain final output on exit.",
+        "Installation, checking and uninstallation retain their existing transactions and progress state. Reopen setup from the updated package to use this fix."
+      ]
+    },
+    {
       "sequence": 2026110302,
       "version": "2026.11.03.2",
       "date": "2026-11-03",

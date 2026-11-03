@@ -40,14 +40,34 @@ $user_data=get_typora_windows_user_data
 try {$state=get_typora_shell_state $user_data; foreach ($name in @('add_path','file_menu','folder_menu')) {$controls[$name].IsChecked=[bool]$state.$name}} catch {$controls.log.Text=$_.Exception.Message}
 $script:setup_process=$null
 $script:setup_stdout=''; $script:setup_stderr=''
+$script:setup_log_cache=@{stdout='';stderr=''}
 $timer=[Windows.Threading.DispatcherTimer]::new(); $timer.Interval=[TimeSpan]::FromMilliseconds(250)
-$read_log={param($file) if (!$file -or !(Test-Path -LiteralPath $file)) {return ''}; try {[IO.File]::ReadAllText($file,[Text.Encoding]::UTF8)} catch {return ''}}
+$read_log={
+    param($file)
+    if (!$file -or !(Test-Path -LiteralPath $file)) {return $null}
+    $stream=$null; $reader=$null
+    try {
+        # Redirected output remains open for writing until the child exits.
+        $stream=[IO.File]::Open($file,[IO.FileMode]::Open,[IO.FileAccess]::Read,([IO.FileShare]::ReadWrite -bor [IO.FileShare]::Delete))
+        $reader=[IO.StreamReader]::new($stream,[Text.Encoding]::UTF8)
+        return $reader.ReadToEnd()
+    } catch {return $null}
+    finally {if ($reader) {$reader.Dispose()} elseif ($stream) {$stream.Dispose()}}
+}
+$update_log={
+    foreach ($entry in @(@('stdout',$script:setup_stdout),@('stderr',$script:setup_stderr))) {
+        $text=& $read_log $entry[1]
+        if ($null -ne $text) {$script:setup_log_cache[$entry[0]]=$text}
+    }
+    $text=$script:setup_log_cache.stdout+$script:setup_log_cache.stderr
+    if ($controls.log.Text -cne $text) {$controls.log.Text=$text;$controls.log.ScrollToEnd()}
+}
 $timer.Add_Tick({
     if (!$script:setup_process) {return}
-    $controls.log.Text=(& $read_log $script:setup_stdout)+(& $read_log $script:setup_stderr)
-    $controls.log.ScrollToEnd()
+    & $update_log
     if ($script:setup_process.HasExited) {
         $script:setup_process.WaitForExit()
+        & $update_log
         $controls.status.Text=if ($script:setup_process.ExitCode -eq 0) {$messages.success} else {$messages.failure}
         $script:setup_process.Dispose(); $script:setup_process=$null
         $controls.progress.Visibility='Collapsed'; $controls.progress.IsIndeterminate=$false
@@ -67,6 +87,7 @@ $start_operation={param([string]$operation)
         $wrapper=Join-Path $PSScriptRoot 'scripts/setup_operation_windows.ps1'
         $log_root=Join-Path $user_data 'logs/setup'; [IO.Directory]::CreateDirectory($log_root)|Out-Null
         $log_id=[Guid]::NewGuid().ToString('N');$script:setup_stdout=Join-Path $log_root ($log_id+'.out.log');$script:setup_stderr=Join-Path $log_root ($log_id+'.err.log')
+        $script:setup_log_cache=@{stdout='';stderr=''};$controls.log.Clear()
         $script:setup_process=Start-Process -FilePath (Join-Path $PSHOME 'powershell.exe') -ArgumentList @('-NoProfile','-NonInteractive','-OutputFormat','Text','-ExecutionPolicy','Bypass','-File',('"'+$wrapper+'"'),'-operation',$operation,'-parameters_base64',$encoded_request) -WindowStyle Hidden -RedirectStandardOutput $script:setup_stdout -RedirectStandardError $script:setup_stderr -PassThru
         $null=$script:setup_process.Handle
         foreach ($name in @('host_path','browse','add_path','file_menu','folder_menu','install','check','uninstall','close')) {$controls[$name].IsEnabled=$false}
