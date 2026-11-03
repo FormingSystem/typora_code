@@ -38,10 +38,22 @@ app.whenReady().then(async()=>{
   if(!['html','math','react','html_live','javascript_live'].includes(format))assert(result.svg?.includes('<svg'),format+' SVG');
   const frame=win.webContents.mainFrame.frames.find(frame=>frame.url==='about:srcdoc');assert(frame,format+' iframe');
   assert.equal(await frame.executeJavaScript('typeof require'),'undefined',format+' Node isolation');
+
   assert.equal(await ev('document.body.dataset.compromised'),undefined,'parent intact');
   if(format==='react'||format==='html_live'){await pause(100);await frame.executeJavaScript('document.querySelector("button").click()');await pause(80);assert.match(await frame.executeJavaScript('document.querySelector("button").textContent'),/1/);}
   checks.push(format);console.log('PASS '+format);
  }
+ const sizing=[];
+ for(const sample of [{name:'natural',width:240,height:80,attributes:''},{name:'explicit',width:240,height:80,attributes:'width="240" height="80"'},{name:'wide',width:1120,height:730,attributes:''},{name:'tall',width:120,height:10000,attributes:''}]){
+  for(const zoom of [1,1.25]){
+   win.webContents.setZoomFactor(zoom);await render('svg',`<svg xmlns="http://www.w3.org/2000/svg" ${sample.attributes} viewBox="0 0 ${sample.width} ${sample.height}"><rect width="${sample.width}" height="${sample.height}"/><text x="2" y="${sample.height-2}">bottom</text></svg>`);await pause(100);
+   const frame=win.webContents.mainFrame.frames.find(frame=>frame.url==='about:srcdoc');const size=await frame.executeJavaScript('(()=>{const svg=document.querySelector("svg"),root=document.getElementById("root"),rect=svg.getBoundingClientRect();return {width:rect.width,height:rect.height,bottom:rect.bottom,available:root.clientWidth,viewport:innerHeight,scroll:document.documentElement.scrollHeight,client:document.documentElement.clientHeight,root_scroll:root.scrollHeight,root_client:root.clientHeight};})()');
+   assert(Math.abs(size.width-Math.min(sample.width,size.available))<1,sample.name+' natural/fit width');assert(Math.abs(size.height-size.width*sample.height/sample.width)<1,sample.name+' aspect');assert(size.bottom<=size.viewport+1,sample.name+' full height');assert(size.scroll<=size.client+1&&size.root_scroll<=size.root_client+1,sample.name+' no internal scroll range');sizing.push({sample:sample.name,zoom,...size});
+  }
+ }
+ win.webContents.setZoomFactor(1);checks.push('natural-wide-tall-svg-no-scroll-and-zoom');fs.writeFileSync(path.join(root,'sizing.json'),JSON.stringify(sizing,null,2));
+ await render('html_live','<div id="scrollable" style="height:40px;overflow:auto"><div style="height:200px">Author content</div></div>');await pause(80);
+ const live_frame=win.webContents.mainFrame.frames.find(frame=>frame.url==='about:srcdoc');assert(await live_frame.executeJavaScript('document.querySelector("#scrollable").scrollHeight>document.querySelector("#scrollable").clientHeight'),'author scrolling preserved');checks.push('interactive-author-scroll-preserved');
  let result=await render('graphviz','not a graph');assert(result.error,'syntax failure');checks.push('syntax-error');
  result=await render('svg','<svg xmlns="http://www.w3.org/2000/svg"><script>parent.document.body.dataset.compromised="yes"</script><rect width="20" height="20"/></svg>');assert(!result.error);assert(!result.svg.includes('<script'));checks.push('svg-script-stripped');
  await ev('window.binding.dispose();window.result=null;window.binding=qa.create_visual_sandbox(document.getElementById("out"),"plantuml","@startuml\\nA->B:x\\n@enduml",v=>window.result=v);window.binding.dispose();');await pause(500);assert.equal(await ev('window.result'),null);assert.equal(await ev('document.querySelectorAll("iframe").length'),0);checks.push('cancel-cleanup');

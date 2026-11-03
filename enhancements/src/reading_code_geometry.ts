@@ -26,7 +26,7 @@ export function bind_reading_code_geometry() {
   });
   const resize=new ResizeObserver(records=>{
     for(const record of records){const fence=wrappers.get(record.target),entry=fence&&entries.get(fence);if(!entry||!fence)continue;
-      const width=record.contentRect.width;if(width>0&&width!==entry.width){entry.width=width;enqueue(fence);}
+      const width=record.contentRect.width;if(width>0&&(width!==entry.width||entry.pending)){entry.width=width;enqueue(fence);}
     }
   });
   const invalidate=()=>{for(const fence of entries.keys())enqueue(fence);};

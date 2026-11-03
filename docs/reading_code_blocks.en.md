@@ -151,7 +151,7 @@ Validate an old-candidate native red case, then 20 native round trips, same-file
 <a id="visual-code-blocks"></a>
 ## R087 Local visual code blocks: implementation and historical inventory
 
-The current reading-state fix is 2026.11.03.1, installed; see [R087.2](#r087-reading-state) and [current evidence](../enhancements/tests/evidence/visual_reading_20261103.json). The initial engine delivery 2026.11.02.1 was pushed in `e206efe`. Listed formats use existing local engines; [the usage guide](visual_code_blocks.en.md) owns language tags, click-to-run behavior, per-diagram export, and host-version limits. Existing core/UI/native evidence is recorded in [delivery evidence](../enhancements/tests/evidence/visual_code_20261102.json); it does not establish whole-document HTML/PDF export or acceptance of every diagram family/platform.
+The current sizing and editing-response fix is 2026.11.03.2, installed; see [R087.3–R087.5](#r087-portable-authoring) and [current evidence](../enhancements/tests/evidence/visual_portable_20261103.json). Save and restart all windows normally to load it. The initial engine delivery 2026.11.02.1 was pushed in `e206efe`. Listed formats use existing local engines; [the usage guide](visual_code_blocks.en.md) owns language tags, click-to-run behavior, per-diagram export, and host-version limits. Existing core/UI/native evidence is recorded in [delivery evidence](../enhancements/tests/evidence/visual_code_20261102.json); it does not establish whole-document HTML/PDF export or acceptance of every diagram family/platform.
 
 2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. The inventory below records the pre-implementation state; subsequent all-format authorization and current integration follow. It is not a complete list of OpenAI built-in renderers.
 
@@ -219,3 +219,27 @@ Problem: new visual fences leave CodeMirror and a permanent text toolbar visible
 The native adapter follows Typora 1.14.15 `resources/style/base.css` and `.md-fences-advanced:not(.md-focus) .CodeMirror` as evidence for host editing state. It adapts only the new formats without impersonating a native advanced-diagram language or replacing models. Outside-document controls reuse `reading_media_entry` More/enlarge, shared interaction, bounds/dismissal and disposal. The domain supplies source/run/copy/export actions. Geometry/colors retain R031.4 and fixed VSCode6807068 sources; no permanent toolbar height. Static diagrams enter native editing on click; interactive content still requires explicit Run and retains internal input.
 
 Native selection/CodeMirror own editing state; read-only source visibility belongs to its view and search-hit source remains available. Errors retain recoverable source. Offscreen disposal retains a placeholder at the measured height until rendering resumes, avoiding source reappearance and layout collapse. Outside-document menus observe scrolling in their owning Document or ShadowRoot; replacement and shutdown release menus/listeners/iframes. Validate native select/leave/edit/undo/save, light/dark, previews, multiple instances and 20 transitions using real engines, then validate candidate install/uninstall and installed hashes; previous results do not establish acceptance.
+
+<a id="r087-portable-authoring"></a>
+## R087.3 Portable authoring (2026-11-03)
+
+Prefer native platform syntax so supported readers render diagrams and unsupported readers still distinguish source from prose. Publish SVG as a separate resource with a relative Markdown image reference; single-file source demonstrations retain an explicit svg fence and a TyporaCode viewing note. Use verified native Mermaid/math notation; other engines declare their language and reader, with a static export when portable viewing is required. Opening raw md in a browser is not Markdown rendering; HTML and GitHub support are assessed separately.
+
+Scope: bilingual help, usable examples and the user-authorized global memory supplement. Existing renderers retain language dispatch; authors own assets and references. No repository-wide note migration or online renderer is introduced. Verify official documentation, local links, SVG resources and browser/current-preview output. Unverified platform behavior and formats not implemented by the tool stay explicit; memory writes use the authorized incremental-note mechanism.
+
+<a id="r087-edit-performance"></a>
+## R087.4 Editing latency (2026-11-03)
+
+The user reports latency when entering diagram source over a remote session; causation is not yet established. Measure trusted window input arrival at the renderer to usable CodeMirror/next frame in isolated Typora, recording refresh calls/duration, diagram recreation and long tasks across short/long source and background diagrams. Separate filesystem loading from network requests; remote-desktop encoding/transport is outside renderer timing.
+
+CodeMirror owns models, selection, undo and save. The diagram adapter owns visibility, source changes and the existing 300ms update window; menus do not introduce another editor. Inspect fixed VSCode6807068 preview scheduling and local CodeMirror lifecycle before choosing measured refresh coalescing or deferred drawing. Preserve input and visible failure feedback; cancellation, file changes and disposal cancel pending work, and latest source wins. Use the same baseline/final fixture with percentiles/maxima and limitations; do not add speculative throttling when no significant cost is found.
+
+
+R087.4 implementation decision: the 400-line baseline spent about 452ms handling activation, including about 236ms in the explicit refresh. Activation now focuses the existing model; initial reveal and width/font invalidation use reading_code_geometry visibility/rAF coalescing. Visual fences join that shared geometry owner, retaining pending invalidation while hidden and applying it even when revealed at the same width. No fixed input delay or change to the 300ms diagram-content update interval is introduced. Current evidence records remaining native expansion cost.
+
+<a id="r087-natural-media"></a>
+## R087.5 Natural inline diagram and image sizing (2026-11-03)
+
+The reported internal scrollbar disrupts document reading. Static diagrams retain their natural size, scale down proportionally only when wider than the text column, and contribute their full height to document flow. Detail zoom belongs to the enlarged viewer. Prefer valid absolute SVG dimensions; otherwise derive aspect ratio and a natural width from viewBox, without stretching small diagrams. Existing image ownership distinguishes bitmap screen pixels from SVG layout units; retain that contract and explicit manual sizing without rewriting document attributes or persisted preferences.
+
+The sandbox measures content and notifies its parent, which lays out the measured full height. Static sizing must not interfere with author-designed scrolling inside interactive HTML. Validate natural/wide/tall SVGs, ordinary images, container changes, enlargement and offscreen restoration. Check actual scroll/client dimensions and bottom content, not just overflow CSS. Reuse R031.3 sizing, R031.4 hover behavior and browser SVG intrinsic sizing without adding independent zoom settings.

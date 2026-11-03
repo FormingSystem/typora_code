@@ -2,6 +2,21 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026110302,
+      "version": "2026.11.03.2",
+      "date": "2026-11-03",
+      "notes": [
+        "静态图形按自然尺寸平铺，超宽等比适配，完整高度随正文展开；取消图内滚动和8192像素高度截断，图片默认尺寸规则保持一致。",
+        "进入图形源码编辑不再额外同步刷新整个CodeMirror；尺寸失效复用共享可见性调度，保留编辑、撤销和保存。",
+        "帮助增加SVG图片引用、GitHub与浏览器语法边界及随包SVG示例，明确用TyporaCode查看工具图形围栏。"
+      ],
+      "notes_en": [
+        "Static diagrams retain natural size, shrink proportionally to the text column and use their full height. Remove inner scrolling and the 8192px height cutoff; retain the consistent default image sizing contract.",
+        "Entering diagram source no longer performs an extra synchronous CodeMirror refresh. Geometry invalidation uses shared visibility scheduling while preserving editing, undo and save.",
+        "Help adds SVG image references, GitHub/browser syntax boundaries and a bundled SVG example, explaining how to view tool-specific fences in TyporaCode."
+      ]
+    },
+    {
       "sequence": 2026110301,
       "version": "2026.11.03.1",
       "date": "2026-11-03",

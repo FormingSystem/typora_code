@@ -47,6 +47,9 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R087 | Local visual code block rendering | [Shared integration](reading_code_blocks.en.md#visual-code-blocks) | All formats authorized; local engines, per-format implementation and validation; ledger owns delivery status |
 | R087.1 | Current capabilities and help synchronization | [Scope and acceptance](reading_code_blocks.en.md#r087-document-sync) | Consistent bilingual entry points, help/offline copies, scope, and delivery identity |
 | R087.2 | Diagram reading state and hover actions | [State and shared entry](reading_code_blocks.en.md#r087-reading-state) | Hide non-editing source; reuse media controls; verify native editing and lifetime |
+| R087.3 | Portable diagrams and global authoring guidance | [Visual fences](reading_code_blocks.en.md#r087-portable-authoring) |
+| R087.4 | Diagram editing latency | [Visual fences](reading_code_blocks.en.md#r087-edit-performance) |
+| R087.5 | Natural diagram/image sizing and width fitting | [Visual fences](reading_code_blocks.en.md#r087-natural-media) |
 | R071.6 | Slow adjacent pane resizing with rendered text | [Container layout](workspace_responsiveness.en.md#r0716-adjacent-pane-dragging-and-document-layout) | Local layout and content/geometry ownership; current evidence reported separately |
 | R071.5 | Passive native focus must preserve the reading viewport | [Response ownership](workspace_responsiveness.en.md#r0715-old-cursor-overrides-the-reading-viewport) | Verified native boundaries; platform validation reported separately |
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |

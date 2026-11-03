@@ -3804,7 +3804,10 @@
         "R072.4",
         "R072.5",
         "R087",
-        "R087.2"
+        "R087.2",
+        "R087.3",
+        "R087.4",
+        "R087.5"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3854,7 +3857,8 @@
         "R020.2使用同一入口 -fixture button_boundary_native.js，核对三暗主题实际按钮和文字几何、切换及截图",
         "R072.4：右侧设置操作保持边线，资源管理器、设置左侧分类及其他面板没有新增轮廓；焦点、明暗及销毁回归",
         "R072.5使用同一入口 -fixture native_preferences_theme.js，核对五种主题、20次打开中明暗切换、原生与统一设置入口、实际内容背景和原生节点清理",
-        "R087/R087.2 use -fixture visual_code_native.js: 15 real native fence formats, isolation, source preservation, trusted window clicks to leave/open SVG source, edit/undo/save and disposal."
+        "R087/R087.2 use -fixture visual_code_native.js: 15 real native fence formats, isolation, source preservation, trusted window clicks to leave/open SVG source, edit/undo/save and disposal.",
+        "R087.3–R087.5 visual fixture verifies the bundled relative SVG image and records 20 trusted source activations each for short/400-line/background scenarios, handler/next-frame latency, refresh calls and long tasks."
       ],
       "expected": [
         "原生操作成功，源文档字节保持，标题可见，图标及文字对齐，原ASAR不变；checks.json=PASS"
@@ -5860,7 +5864,8 @@
       "level": "functional",
       "purpose": "implementation",
       "requirements": [
-        "R068"
+        "R068",
+        "R087.4"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [
@@ -5877,7 +5882,8 @@
       "environment": "隐藏Electron与宿主端口夹具",
       "preconditions": "使用包内固定依赖，临时工作区，禁止操作用户文档或真实远端",
       "steps": [
-        "运行围栏可见性、宽度变化、20次批次与替换/清理用例"
+        "运行围栏可见性、宽度变化、20次批次与替换/清理用例",
+        "Reveal a hidden visual CodeMirror at the same width; apply pending invalidation once and reuse unchanged geometry on the next reveal."
       ],
       "expected": [
         "每块独立测量，离屏延后，无高度反馈循环，正文焦点保持"
@@ -9367,7 +9373,8 @@
       "purpose": "implementation",
       "requirements": [
         "R031.2",
-        "R031.4"
+        "R031.4",
+        "R087.5"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [
@@ -10480,7 +10487,9 @@
       "purpose": "implementation",
       "requirements": [
         "R087",
-        "R087.2"
+        "R087.2",
+        "R087.4",
+        "R087.5"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [
@@ -10498,7 +10507,8 @@
       "preconditions": "Isolated temporary assets; no user documents",
       "steps": [
         "Render each engine offline, exercise React/HTML clicks, errors, isolation, cancellation and cleanup",
-        "Check reading/edit source visibility, hover More actions, offscreen height reservation and cleanup"
+        "Check reading/edit source visibility, hover More actions, offscreen height reservation and cleanup",
+        "Check natural/wide/10000px-tall SVG full height and scroll ranges at two zoom levels; preserve author-defined interactive scrolling."
       ],
       "expected": [
         "All assertions pass; source retained on failure"

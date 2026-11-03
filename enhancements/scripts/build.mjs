@@ -35,6 +35,8 @@ fs.copyFileSync("vendor/xterm/SOURCE.json","dist/licenses/xterm_source.json");
 // Announcements and background auxiliary programs are installed along with an asset list; ordinary users do not depend on the source code repository or global Node.
 fs.mkdirSync("dist/assets/help",{recursive:true});
 for(const name of ["user_guide.md","user_guide.en.md","visual_code_blocks.md","visual_code_blocks.en.md"])fs.writeFileSync("dist/assets/help/"+name,fs.readFileSync("../docs/"+name,"utf8").replace(/\r\n?/gu,"\n"));
+fs.mkdirSync("dist/assets/help/assets",{recursive:true});
+fs.copyFileSync("../docs/assets/visual_pipeline.svg","dist/assets/help/assets/visual_pipeline.svg");
 const shell_metadata=JSON.parse(fs.readFileSync('native/windows_x64/build.json','utf8'));
 const {createHash:shell_hash}=await import('node:crypto');
 if(shell_hash('sha256').update(fs.readFileSync('../scripts/native/typora_shell.cpp','utf8').replace(/\r\n/gu,'\n')).digest('hex')!==shell_metadata.source_sha256)throw Error('Rebuild the Windows native shell adapter before packaging.');

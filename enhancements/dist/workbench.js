@@ -213563,10 +213563,11 @@ https://creativecommons.org/licenses/by/4.0/
     if (assets.size > 4) assets.delete(assets.keys().next().value);
     return loading3;
   }
-  function visual_document(script2, css, payload, token) {
+  function visual_document(script2, css, payload, token, format3) {
     const encoded = JSON.stringify(payload).replace(/</gu, "\\u003c");
-    const bootstrap = "(()=>{const token=".concat(JSON.stringify(token), ";const send=value=>parent.postMessage({visual_code:token,...value},'*');const root=document.getElementById('root');const snapshot=()=>root.querySelector('svg')?new XMLSerializer().serializeToString(root.querySelector('svg')):undefined;addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});let last=0;const measure=()=>{const height=Math.min(8192,Math.max(64,Math.ceil(root.getBoundingClientRect().height)));if(height!==last){last=height;send({height});}};addEventListener('error',event=>send({error:event.message}));addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));new ResizeObserver(measure).observe(root);Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));})();");
-    return "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\"><style>html,body{margin:0;padding:0;background:transparent;color:".concat(payload.foreground, ";font:14px system-ui}#root{box-sizing:border-box;padding:8px;min-height:64px;overflow:auto}svg{max-width:100%;height:auto}img{max-width:100%}").concat(css, '</style><div id="root"></div><script>').concat(script2.replace(/<\/script/giu, "<\\/script"), "<\/script><script>").concat(bootstrap, "<\/script>");
+    const vector = ["svg", "mermaid", "graphviz", "wavedrom", "vega", "vega_lite", "echarts", "plantuml", "flow", "sequence"].includes(format3);
+    const bootstrap = "(()=>{\n  const token=".concat(JSON.stringify(token), ",send=value=>parent.postMessage({visual_code:token,...value},'*');\n  const root=document.getElementById('root');\n  const snapshot=()=>root.querySelector('svg')?new XMLSerializer().serializeToString(root.querySelector('svg')):undefined;\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});\n  const fit=()=>{if(!").concat(vector, ")return;for(const svg of root.querySelectorAll('svg')){\n   if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;\n   const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;\n   if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';\n   svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';\n  }};\n  let last=0;\n  const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};\n  addEventListener('error',event=>send({error:event.message}));\n  addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));\n  new ResizeObserver(measure).observe(root);\n  Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{fit();measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));\n })();");
+    return "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\"><style>html,body{margin:0;padding:0;overflow:".concat(vector ? "hidden" : "auto", ";background:transparent;color:").concat(payload.foreground, ";font:14px system-ui}#root{display:flow-root;box-sizing:border-box;padding:").concat(vector ? 0 : 8, "px;min-height:").concat(vector ? 0 : 64, "px;overflow:").concat(vector ? "visible" : "auto", "}svg{max-width:100%;height:auto}img{max-width:100%}").concat(css, '</style><div id="root"></div><script>').concat(script2.replace(/<\/script/giu, "<\\/script"), "<\/script><script>").concat(bootstrap, "<\/script>");
   }
   function create_visual_sandbox(container, format3, source, on_result) {
     const frame3 = document.createElement("iframe");
@@ -213588,7 +213589,7 @@ https://creativecommons.org/licenses/by/4.0/
         return;
       }
       if (value.ready || value.error) clearTimeout(timer);
-      if (typeof value.height === "number" && Number.isFinite(value.height)) frame3.style.height = "".concat(Math.max(64, Math.min(8192, value.height)), "px");
+      if (typeof value.height === "number" && Number.isFinite(value.height)) frame3.style.height = "".concat(Math.max(1, Math.ceil(value.height)), "px");
       on_result({ ready: value.ready === true, svg: typeof value.svg === "string" && value.svg.length < 8e6 ? value.svg : void 0, error: typeof value.error === "string" ? value.error.slice(0, 1e3) : void 0 });
     };
     window.addEventListener("message", receive);
@@ -213602,7 +213603,7 @@ https://creativecommons.org/licenses/by/4.0/
           on_result({ error: "Rendering timed out" });
         }
       }, 3e4);
-      frame3.srcdoc = visual_document(script2, css, { source, theme: theme2, dark: theme2.theme === "dark", foreground: style.color, background: style.backgroundColor }, token);
+      frame3.srcdoc = visual_document(script2, css, { source, theme: theme2, dark: theme2.theme === "dark", foreground: style.color, background: style.backgroundColor }, token, format3);
     }).catch((error) => {
       if (!disposed) on_result({ error: String(error.message || error) });
     });
@@ -223775,7 +223776,6 @@ https://creativecommons.org/licenses/by/4.0/
       entry.source = source;
       entry.view = create_visual_code_view(visual_code_format(entry.language), source, { media, edit_source: () => {
         fence.classList.add("visual-code-opening");
-        entry.model.refresh?.();
         entry.model.focus?.();
         queueMicrotask(() => fence.classList.remove("visual-code-opening"));
       } });
@@ -223879,7 +223879,7 @@ https://creativecommons.org/licenses/by/4.0/
         const fence = wrappers.get(record.target), entry = fence && entries3.get(fence);
         if (!entry || !fence) continue;
         const width2 = record.contentRect.width;
-        if (width2 > 0 && width2 !== entry.width) {
+        if (width2 > 0 && (width2 !== entry.width || entry.pending)) {
           entry.width = width2;
           enqueue(fence);
         }
@@ -270184,6 +270184,21 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026110302,
+        version: "2026.11.03.2",
+        date: "2026-11-03",
+        notes: [
+          "\u9759\u6001\u56FE\u5F62\u6309\u81EA\u7136\u5C3A\u5BF8\u5E73\u94FA\uFF0C\u8D85\u5BBD\u7B49\u6BD4\u9002\u914D\uFF0C\u5B8C\u6574\u9AD8\u5EA6\u968F\u6B63\u6587\u5C55\u5F00\uFF1B\u53D6\u6D88\u56FE\u5185\u6EDA\u52A8\u548C8192\u50CF\u7D20\u9AD8\u5EA6\u622A\u65AD\uFF0C\u56FE\u7247\u9ED8\u8BA4\u5C3A\u5BF8\u89C4\u5219\u4FDD\u6301\u4E00\u81F4\u3002",
+          "\u8FDB\u5165\u56FE\u5F62\u6E90\u7801\u7F16\u8F91\u4E0D\u518D\u989D\u5916\u540C\u6B65\u5237\u65B0\u6574\u4E2ACodeMirror\uFF1B\u5C3A\u5BF8\u5931\u6548\u590D\u7528\u5171\u4EAB\u53EF\u89C1\u6027\u8C03\u5EA6\uFF0C\u4FDD\u7559\u7F16\u8F91\u3001\u64A4\u9500\u548C\u4FDD\u5B58\u3002",
+          "\u5E2E\u52A9\u589E\u52A0SVG\u56FE\u7247\u5F15\u7528\u3001GitHub\u4E0E\u6D4F\u89C8\u5668\u8BED\u6CD5\u8FB9\u754C\u53CA\u968F\u5305SVG\u793A\u4F8B\uFF0C\u660E\u786E\u7528TyporaCode\u67E5\u770B\u5DE5\u5177\u56FE\u5F62\u56F4\u680F\u3002"
+        ],
+        notes_en: [
+          "Static diagrams retain natural size, shrink proportionally to the text column and use their full height. Remove inner scrolling and the 8192px height cutoff; retain the consistent default image sizing contract.",
+          "Entering diagram source no longer performs an extra synchronous CodeMirror refresh. Geometry invalidation uses shared visibility scheduling while preserving editing, undo and save.",
+          "Help adds SVG image references, GitHub/browser syntax boundaries and a bundled SVG example, explaining how to view tool-specific fences in TyporaCode."
+        ]
+      },
+      {
         sequence: 2026110301,
         version: "2026.11.03.1",
         date: "2026-11-03",
@@ -286890,7 +286905,7 @@ https://creativecommons.org/licenses/by/4.0/
     document.querySelectorAll(".md-fences[lang]").forEach(apply_textmate_mode);
     const fences3 = [...document.querySelectorAll(".md-fences")];
     visual_code?.reconcile(fences3);
-    code_geometry?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence)));
+    code_geometry?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence) || fence.classList.contains("visual-code-native")));
     code_copy?.reconcile(fences3.filter((fence) => !code_fence_is_diagram(fence) && Boolean(code_mirror_for_fence(fence))).map((element) => ({ element, read_text: () => {
       const editor2 = code_mirror_for_fence(element);
       if (!editor2) throw new Error(workspace_text("typora_enhancements_the_code_block_is_reloading"));

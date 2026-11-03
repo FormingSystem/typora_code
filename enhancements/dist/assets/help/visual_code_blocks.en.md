@@ -14,6 +14,45 @@ Interactive execution uses an opaque-origin iframe without Node, host DOM or fil
 
 Copy the following examples into a note. The delivery covers on-screen rendering and individual SVG export. Whole-document Typora HTML/PDF export does not automatically replace every added fence with a diagram; export SVG and insert it as an image for sharing. Other platforms, full physical keyboard/wheel and prolonged stress validation remain separately documented.
 
+## Inline size and enlarged viewing
+
+Static diagrams and ordinary images use their natural size by default, scaling down proportionally only when wider than the text column. Their full height participates in document layout without an internal scrollbar. Small media is not stretched to fill the column; use hover enlargement for detail. SVG fences prefer a valid absolute width, falling back to viewBox width. For predictable portable SVG sizing, specify `width`, `height` and `viewBox` together. Bitmaps retain the existing screen-pixel/DPI contract; SVG uses vector layout units.
+
+This describes default reading. Explicit image scale, Fit Width and native authored dimensions remain owned by existing settings/documents and are not rewritten during upgrade. Author-designed scrolling inside interactive pages remains intact; the enlarged viewer owns its independent zoom, pan and fit actions.
+
+## Prefer portable syntax before tool-specific fences
+
+Across Markdown projects, prefer forms natively supported by the target reader. Store SVG as a separate `.svg` with a relative image reference; use `mermaid` fences for suitable flow, sequence and structure diagrams. Use explicit language fences when keeping diagram source in a single file or when the target reader lacks an engine, and state: "Open this Markdown in TyporaCode to view the diagram." Keep raw SVG/HTML and drawing scripts out of prose. Changing only a language label does not convert between diagram syntaxes.
+
+| Content | Preferred form | GitHub and ordinary browsers | TyporaCode |
+| --- | --- | --- | --- |
+| Static SVG | `.svg` file + `![description](relative/path.svg)` | GitHub displays SVG images; HTML uses `<img src="...svg" alt="...">`, and browsers can open SVG directly | Standard Markdown image with existing hover actions; edit the corresponding SVG file to change it |
+| Single-file SVG source demonstration | `svg` fence | Do not assume the language label enables GitHub rendering; readers without an engine show code | Diagram while reading; click to edit the fence |
+| Flow/structure/sequence diagrams | `mermaid` fence | Native GitHub support; ordinary HTML needs Mermaid or a static export | Existing native/shared-preview diagrams |
+| Math | `$...$`, separate `$$...$$` | GitHub supports mathematical expressions; ordinary HTML needs typesetting or a static result | Existing native or KaTeX rendering |
+| DOT, WaveDrom, Vega/Vega-Lite, ECharts, PlantUML, flow, sequence | Explicit language fence; include static SVG/PNG for portable publication | Do not assume GitHub or ordinary HTML provides the engine; retain the source boundary | Local rendering using the language examples below |
+| HTML/CSS, HTML/JS, React | Fences for source; standalone HTML/built pages for web output | Browsers parse HTML/SVG; GitHub sanitizes Markdown HTML and does not execute arbitrary scripts or JSX | Static `html`; explicit interactive tags run on demand in isolation |
+
+GitHub also natively supports `geojson`, `topojson` and ASCII `stl` fences, which are not in this tool's current diagram renderer list. Platform support does not establish tool implementation.
+
+Opening a raw `.md` in an ordinary browser generally does not parse Markdown. Use a Markdown reader, GitHub's rendered view or generated HTML. Browser SVG support does not automatically render Markdown `svg` fences. HTML may use native `<svg>` or `<img>`; prefer image references for documents also read on GitHub.
+
+### A working SVG image reference
+
+```markdown
+![Application accesses the device through a driver](assets/visual_pipeline.svg)
+```
+
+![Application accesses the device through a driver](assets/visual_pipeline.svg)
+
+The resource ships with both the repository and offline help. Copy the SVG alongside an example moved to another project, adjusting the path relative to its Markdown file. Keep one authoritative SVG resource rather than independently maintained copies of its contents.
+
+### View tool-specific fences in TyporaCode
+
+Install and restart TyporaCode normally, then open the `.md` containing the fenced diagram. Match the language labels in the examples below. Static diagrams render automatically; click one to edit its native fence source, then click other prose to collapse it. Hover for More, copy, refresh, enlarge and export. Interactive examples require Run first. For readers without the engine, export SVG from the hover menu and publish a standard image reference. Interactive content without SVG output needs a static screenshot or a standalone page, with source kept in an explicit fence.
+
+References: [GitHub images and relative paths](https://docs.github.com/en/get-started/writing-on-github/getting-started-with-writing-and-formatting-on-github/basic-writing-and-formatting-syntax#images), [GitHub diagram syntax](https://docs.github.com/en/get-started/writing-on-github/working-with-advanced-formatting/creating-diagrams), [GitHub SVG limits](https://docs.github.com/en/repositories/working-with-files/using-files/working-with-non-code-files), and [SVG in browsers](https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/Structuring_content/Including_vector_graphics_in_HTML). Checked 2026-11-03. GitHub notes that some Firefox contexts may not display SVG; provide a PNG fallback where needed. Static image support does not promise scripts or animation.
+
 ## Svg
 
 ```svg

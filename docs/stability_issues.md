@@ -1,5 +1,7 @@
 [English](stability_issues.en.md)
 
+2026-11-03 R087.4/R087.5 / BUG-reading-visual-layout-001（呈现与响应/P2）：SVG隔离容器的内部滚动及8192px高度封顶影响正文阅读；点击编辑主动刷新与原生展开叠加。改为自然尺寸、超宽等比缩小、完整高度，点击复用原生模型，已知几何失效由共享可见性队列处理。普通图片沿已有自然尺寸及显式手动配置；设计与验收范围见[尺寸](reading_code_blocks.md#r087-natural-media)和[响应](reading_code_blocks.md#r087-edit-performance)。
+
 2026-11-03 R087.2 / BUG-reading-visual-state-001（呈现/P2）：新增图形块源码和工具栏常驻，偏离既有阅读交互。已改为原生焦点控制源码、正文外共享悬停操作及离屏占位；Shadow滚动由所属根监听。验证与边界见[证据](../enhancements/tests/evidence/visual_reading_20261103.json)，设计见[阅读态](reading_code_blocks.md#r087-reading-state)。
 
 2026-10-27 R031.4 / BUG-reading-image-toolbar-001（呈现/P2）：平铺图片操作遮挡阅读。采用表格式紧凑更多入口，全部设置保留于有边界的展开浮层；数字草稿与浮层退出由同一层协调。设计见[图片收纳](reading_media_viewer.md#r0314-image-disclosure)，本次验证与边界见[证据](../enhancements/tests/evidence/image_disclosure_20261027.json)。

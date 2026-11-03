@@ -14,7 +14,7 @@ export function bind_reading_visual_code(){
  const render=(fence:HTMLElement,entry:entry)=>{
   if(disposed||!entry.visible)return;entry.view?.dispose();entry.placeholder.hidden=true;
   const source=entry.model.getValue();entry.source=source;
-  entry.view=create_visual_code_view(visual_code_format(entry.language)!,source,{media,edit_source:()=>{fence.classList.add('visual-code-opening');entry.model.refresh?.();entry.model.focus?.();queueMicrotask(()=>fence.classList.remove('visual-code-opening'));}});
+  entry.view=create_visual_code_view(visual_code_format(entry.language)!,source,{media,edit_source:()=>{fence.classList.add('visual-code-opening');entry.model.focus?.();queueMicrotask(()=>fence.classList.remove('visual-code-opening'));}});
   fence.append(entry.view.root);entry.view.start();
  };
  const observer=new IntersectionObserver(items=>{for(const item of items){const fence=item.target as HTMLElement,entry=entries.get(fence);if(!entry)continue;entry.visible=item.isIntersecting;if(entry.visible&&!entry.view)render(fence,entry);else if(!entry.visible){if(entry.view)entry.placeholder.style.height=entry.view.root.getBoundingClientRect().height+'px';entry.placeholder.hidden=false;entry.view?.dispose();entry.view=undefined;}}},{rootMargin:'300px'});

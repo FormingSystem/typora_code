@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="640" height="140" viewBox="0 0 640 140" role="img" aria-labelledby="title desc">
+  <title id="title">Application, driver and device</title>
+  <desc id="desc">Application calls the driver, which controls the device.</desc>
+  <defs><marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto"><path d="M0 0L10 5L0 10Z" fill="#334155"/></marker></defs>
+  <rect width="640" height="140" rx="12" fill="#f8fafc"/>
+  <g fill="#dbeafe" stroke="#2563eb" stroke-width="2"><rect x="24" y="40" width="160" height="60" rx="8"/><rect x="240" y="40" width="160" height="60" rx="8"/><rect x="456" y="40" width="160" height="60" rx="8"/></g>
+  <g stroke="#334155" stroke-width="2" marker-end="url(#arrow)"><path d="M184 70H232"/><path d="M400 70H448"/></g>
+  <g fill="#0f172a" font-family="sans-serif" font-size="20" text-anchor="middle"><text x="104" y="77">Application</text><text x="320" y="77">Driver</text><text x="536" y="77">Device</text></g>
+</svg>
