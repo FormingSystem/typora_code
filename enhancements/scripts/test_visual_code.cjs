@@ -58,9 +58,40 @@ app.whenReady().then(async()=>{
  fs.writeFileSync(path.join(root,'visual-toolbar.png'),(await win.webContents.capturePage()).toPNG());
  checks.push('20-preview-render-dispose');await ev('preview.dispose();');assert.equal(await ev('document.querySelectorAll("iframe").length'),0);
  await ev(`window.control_view=qa.create_visual_code_view('react',${JSON.stringify(samples.react)});document.getElementById('out').id='write';document.getElementById('write').append(control_view.root);control_view.start();control_view.root.querySelector('button').focus();`);
- assert.equal(await ev('getComputedStyle(control_view.root.querySelector("button")).borderRadius'),'4px');assert.equal(await ev('getComputedStyle(control_view.root.querySelector("button:disabled")).opacity'),'0.5');
+ assert.equal(await ev('getComputedStyle(control_view.root.querySelector("button")).borderRadius'),'4px');assert.equal(await ev('document.querySelector(".visual-code-enlarge").disabled'),true);
  await ev(`control_view.dispose();document.getElementById('write').id='out';const host=document.createElement('div');document.getElementById('out').append(host);const shadow=host.attachShadow({mode:'open'});const article=document.createElement('article');article.id='write';shadow.append(article);window.control_view=qa.create_visual_code_view('react',${JSON.stringify(samples.react)});article.append(control_view.root);control_view.start();`);
  assert.equal(await ev('getComputedStyle(control_view.root.querySelector("button")).borderRadius'),'4px');await ev('control_view.dispose();document.getElementById("out").replaceChildren()');checks.push('native-and-shadow-control-states');
+ await ev(`window.native=document.createElement('pre');native.className='md-fences';native.setAttribute('lang','svg');const cm=document.createElement('div');cm.className='CodeMirror';cm.innerHTML='<textarea></textarea>';cm.CodeMirror={getValue:()=>${JSON.stringify(samples.svg)},focus(){cm.querySelector('textarea').focus();},refresh(){},on(){},off(){}};native.append(cm);document.getElementById('out').append(native);window.native_binding=qa.bind_reading_visual_code();native_binding.reconcile([native]);`);
+ for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(10);
+ assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','source hidden in reading state');
+ assert.equal(await ev('native.querySelectorAll(".visual-code-toolbar").length'),0);
+ assert.equal(await ev('document.querySelector(".visual-code-enlarge").closest(".reading-media-entry").classList.contains("is-revealed")'),false,'controls hidden until hover');
+ await ev('native.querySelector(".visual-code-view").dispatchEvent(new PointerEvent("pointerenter"));');await pause(80);
+ assert.equal(await ev('document.querySelector(".visual-code-enlarge").closest(".reading-media-entry").classList.contains("is-revealed")'),true,'shared hover entry revealed');
+ await ev('document.querySelector(".visual-code-enlarge").closest(".reading-media-entry").querySelector(".reading-image-more").click()');
+ assert.equal(await ev('document.querySelector(".reading-image-panel").hidden'),false,'more opens shared panel');
+ assert(await ev('[...document.querySelectorAll(".reading-image-panel button")].every(b=>b.getBoundingClientRect().height===24&&b.scrollWidth<=b.clientWidth+1)'), 'shared controls use complete text and 24px height');
+ await pause(100);fs.writeFileSync(path.join(root,'visual-hover.png'),(await win.webContents.capturePage()).toPNG());
+
+ await ev('document.querySelector(".reading-image-panel button").click()');
+ assert.notEqual(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','source action focuses original editor');
+ await ev('document.activeElement.blur();native.classList.add("md-focus")');assert.notEqual(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','native selection shows source');
+ await ev('native.classList.remove("md-focus")');assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','leaving selection hides source');
+ await ev('native.style.marginTop="2500px"');await pause(200);
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),0,'offscreen releases iframe');
+ assert(await ev('native.getBoundingClientRect().height>50'),'offscreen placeholder preserves height');
+ assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','offscreen source stays hidden');
+ await ev('native.style.marginTop="0"');for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(10);
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),1);
+ await ev('native_binding.dispose();native.remove()');assert.equal(await ev('document.querySelectorAll(".visual-code-enlarge").length'),0,'media entries cleaned');checks.push('native-reading-focus-hover-offscreen-cleanup');
+ await ev(`window.shadow_host=document.createElement('div');document.getElementById('out').append(shadow_host);window.qa_shadow_root=shadow_host.attachShadow({mode:'open'});qa_shadow_root.innerHTML='<div id="scroll" style="height:220px;width:400px;overflow:auto"><div style="height:120px"></div><pre><code class="language-svg"></code></pre><div style="height:600px"></div></div>';qa_shadow_root.querySelector('code').textContent=${JSON.stringify(samples.svg)};window.shadow_preview=qa.create_visual_code_previews();shadow_preview.render(qa_shadow_root.querySelector('code'),400,false,()=>true);`);
+ for(let n=0;n<200&&await ev('!qa_shadow_root.querySelector("[data-visual-state=ready]")');n++)await pause(10);
+ await pause(100);const overlay_top=await ev('document.querySelector(".visual-code-enlarge").parentElement.getBoundingClientRect().top');
+ await ev('qa_shadow_root.getElementById("scroll").scrollTop=60');await pause(100);
+ assert.equal(await ev('document.querySelector(".visual-code-enlarge").parentElement.getBoundingClientRect().top'),overlay_top-60,'Shadow scroll moves external menu with diagram');
+ await ev('shadow_preview.dispose();shadow_host.remove()');checks.push('shadow-scroll-hover-position');
+
+
  const markdown='# Diagram\n\n```svg\n'+samples.svg+'\n```\n\nInline $x^2$ .';
  await ev(`window.diff=qa.create_git_markdown_diff();document.getElementById('out').append(diff.container);diff.render(${JSON.stringify(markdown)},${JSON.stringify(markdown)},[],['old','new']);void 0;`);
  for(let n=0;n<400&&await ev('diff.shadow.querySelectorAll("[data-visual-state=ready]").length!==2');n++)await pause(25);

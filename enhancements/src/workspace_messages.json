@@ -8179,6 +8179,10 @@
     "zh_cn": "日志写入失败：{value_0}",
     "en": "Log write failed: {value_0}"
   },
+  "visual_code_actions": {
+    "zh_cn": "图形操作",
+    "en": "Diagram actions"
+  },
   "visual_code_source": {
     "zh_cn": "源码",
     "en": "Source"

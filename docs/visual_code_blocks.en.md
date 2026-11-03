@@ -2,7 +2,7 @@
 
 # Visual code blocks
 
-Put a language name on the opening Markdown fence to select its bundled local renderer. No online drawing service is required. Native editing and undo remain owned by Typora. Source toggles source visibility, Copy Code copies the original text, and Run / Refresh recreates the diagram. SVG-producing renderers support enlargement and SVG export using a fresh snapshot at the time of the operation.
+Put a language name on the opening Markdown fence to select its bundled local renderer. No online drawing service is required. Native source is hidden while reading. Click a static diagram or choose Source in its hover menu to edit; moving into other content hides source again. Typora retains editing and undo. Hover reveals the existing More/Enlarge buttons; More opens source, copy, run and export actions without a permanent toolbar. Source in read-only previews toggles the original text. Copy Code copies the original text, and Run / Refresh recreates the diagram. SVG-producing renderers support enlargement and SVG export using a fresh snapshot at the time of the operation.
 
 Static formats render automatically. `html` presents static HTML/CSS; use `html-live` for scripts. `html-live`, `javascript-live`, `jsx`, `tsx`, and `react` execute after Run / Refresh. Ordinary `js`, `javascript`, and `ts` remain non-executing examples. JavaScript demos receive a `root` container; React examples export a default component or define `App`.
 

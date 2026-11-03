@@ -3,6 +3,7 @@
  const fs=reqnode('fs'),path=reqnode('path'),base=__CASE_ROOT__,checks=[],timings=[];
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));
  const wait=async(test,label)=>{for(let i=0;i<1000;i++){if(await test())return;await pause(25);}throw Error(label);};
+ let input_id=0;const click=async(node)=>{node.scrollIntoView({block:'center'});await pause(150);const r=node.getBoundingClientRect(),id=++input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind:'click',width:innerWidth,height:innerHeight,x:r.left+Math.min(20,r.width/2),y:r.top+Math.min(12,r.height/2)}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id}catch{return false}},'trusted click');await pause(250);};
  const assert=(value,label)=>{if(!value)throw Error(label);checks.push(label);};
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
@@ -18,8 +19,8 @@
    const fence=document.querySelector('#write .md-fences');fence.scrollIntoView({block:'center'});const start=performance.now();
    if(['mermaid','flow','sequence'].includes(format)){await wait(()=>fence.querySelector('svg'),'native '+format);checks.push(format+' native rendered');continue;}
    await wait(()=>fence.querySelector('.visual-code-view'),'adapter '+format);
-   if(['react','html_live','javascript_live'].includes(format))fence.querySelectorAll('.visual-code-toolbar button')[2].click();
-   await wait(()=>fence.querySelector('[data-visual-state]'),'result '+format);
+   if(['react','html_live','javascript_live'].includes(format))fence.querySelector('.visual-code-view>button').click();
+   await wait(()=>['ready','error'].includes(fence.querySelector('.visual-code-view')?.dataset.visualState),'result '+format);
    const view=fence.querySelector('.visual-code-view');assert(view.dataset.visualState==='ready',format+': '+view.querySelector('.visual-code-error').textContent);
    assert(fence.querySelector('iframe').getAttribute('sandbox')==='allow-scripts',format+' isolated');
    assert(fs.readFileSync(file,'utf8')===text,format+' disk preserved');
@@ -28,7 +29,13 @@
    if(format==='svg'||format==='graphviz'){await pause(300);fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'visual_'+format}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='visual_'+format}catch{return false}},'capture '+format);}
    if(format==='svg'){
     const original=model.getValue();model.focus();model.setCursor({line:0,ch:0});model.replaceRange(' ',{line:0,ch:0});await pause(400);assert(model.getValue()!==original,'native edit');await files.save_active();assert(fs.readFileSync(file,'utf8').includes(' '+source),'native save includes edit');assert(!fs.readFileSync(file,'utf8').includes('visual-code'),'render UI excluded from saved source');ClientCommand.undo();await pause(400);assert(model.getValue()===original,'native undo');await files.save_active();assert(fs.readFileSync(file,'utf8').includes(source),'undo save preserves source');
-    fence.querySelector('.visual-code-view button').click();assert(fence.classList.contains('visual-code-source-hidden'),'source toggle');fence.querySelector('.visual-code-view button').click();assert(!fence.classList.contains('visual-code-source-hidden'),'source restored');
+    const cm=fence.querySelector('.CodeMirror');
+    await click(document.querySelector('#write>p:last-child'));
+    assert(!fence.classList.contains('md-focus'),'native selection leaves SVG');assert(getComputedStyle(cm).display==='none','native reading source hidden');
+    await click(fence.querySelector('.visual-code-view'));
+    assert(getComputedStyle(cm).display!=='none','diagram click opens native source');assert(cm.contains(document.activeElement),'diagram click focuses original model');
+    assert(!fence.querySelector('.visual-code-toolbar'),'no permanent toolbar');assert(!!document.querySelector('.visual-code-enlarge'),'shared hover actions outside document');
+
    }
   }
   await files.open_file(path.join(base,'workspace','front.md'));await pause(500);assert(!document.querySelector('#write .visual-code-frame'),'native disposal');

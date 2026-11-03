@@ -1,5 +1,7 @@
 [English](stability_issues.en.md)
 
+2026-11-03 R087.2 / BUG-reading-visual-state-001（呈现/P2）：新增图形块源码和工具栏常驻，偏离既有阅读交互。已改为原生焦点控制源码、正文外共享悬停操作及离屏占位；Shadow滚动由所属根监听。验证与边界见[证据](../enhancements/tests/evidence/visual_reading_20261103.json)，设计见[阅读态](reading_code_blocks.md#r087-reading-state)。
+
 2026-10-27 R031.4 / BUG-reading-image-toolbar-001（呈现/P2）：平铺图片操作遮挡阅读。采用表格式紧凑更多入口，全部设置保留于有边界的展开浮层；数字草稿与浮层退出由同一层协调。设计见[图片收纳](reading_media_viewer.md#r0314-image-disclosure)，本次验证与边界见[证据](../enhancements/tests/evidence/image_disclosure_20261027.json)。
 
 2026-10-26 R041交付2026.10.26.2：按固定VS Code源码补齐“默认回收 → 失败后另行确认永久删除”。取消为默认焦点，关闭/取消不写入；确认前捕获目标身份，执行前重验工作区、身份与草稿，复用文件任务、清理及刷新。独立Typora和已安装VS Code均复现长子路径回收失败；现场只读检查未发现删除访问拒绝，真实build未删除，其他现场因素未排除。完整core通过后最后仅去除重复失效通知；最终构建、4组UI、原生403项、部署/296套目录检查及两类隔离卸载重装、65项卸载异常通过。本机73+24资产及5主题一致，4保护项、ASAR与启动设置保持，公开check及卸载只读预检通过；外层安装器保留既有Directory菜单所有权冲突。工作台已安装，保存后正常重启全部Typora窗口加载。补充稳定性契约脚本因旧打包入口问题未通过，未计入通过范围；全部图标、其他平台及历史未决保持开放。见[本轮证据](../enhancements/tests/evidence/file_permanent_delete_20261026.json)，提交/推送回执见Git历史及本地台账。

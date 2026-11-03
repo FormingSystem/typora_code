@@ -107,4 +107,4 @@ SSH 远程从远程入口连接，工作区文件、搜索和终端使用对应�
 
 ## 图形代码块
 
-使用 `svg`、`mermaid`、`dot`、`wavedrom`、`vega-lite`、`vega`、`echarts`、`plantuml`、`html`、`math`、`flow`、`sequence` 编写图形；`html-live`、`javascript-live`、`jsx`/`tsx` 支持点击运行交互内容。引擎随包本地提供，无须配置在线服务。完整可复制样例、源码/放大/导出操作及限制见[图形代码块使用指南](visual_code_blocks.md)。
+使用 `svg`、`mermaid`、`dot`、`wavedrom`、`vega-lite`、`vega`、`echarts`、`plantuml`、`html`、`math`、`flow`、`sequence` 编写图形；`html-live`、`javascript-live`、`jsx`/`tsx` 支持点击运行交互内容。引擎随包本地提供，无须配置在线服务。阅读时只显示图，点静态图编辑源码，离开后收起；操作从悬停的更多/放大入口进入。完整可复制样例及限制见[图形代码块使用指南](visual_code_blocks.md)。

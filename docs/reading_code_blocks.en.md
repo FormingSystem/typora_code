@@ -151,7 +151,7 @@ Validate an old-candidate native red case, then 20 native round trips, same-file
 <a id="visual-code-blocks"></a>
 ## R087 Local visual code blocks: implementation and historical inventory
 
-Current delivery is 2026.11.02.1, installed and pushed in `e206efe`. Listed formats use existing local engines; [the usage guide](visual_code_blocks.en.md) owns language tags, click-to-run behavior, per-diagram export, and host-version limits. Existing core/UI/native evidence is recorded in [delivery evidence](../enhancements/tests/evidence/visual_code_20261102.json); it does not establish whole-document HTML/PDF export or acceptance of every diagram family/platform.
+The current reading-state fix is 2026.11.03.1, installed; see [R087.2](#r087-reading-state) and [current evidence](../enhancements/tests/evidence/visual_reading_20261103.json). The initial engine delivery 2026.11.02.1 was pushed in `e206efe`. Listed formats use existing local engines; [the usage guide](visual_code_blocks.en.md) owns language tags, click-to-run behavior, per-diagram export, and host-version limits. Existing core/UI/native evidence is recorded in [delivery evidence](../enhancements/tests/evidence/visual_code_20261102.json); it does not establish whole-document HTML/PDF export or acceptance of every diagram family/platform.
 
 2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. The inventory below records the pre-implementation state; subsequent all-format authorization and current integration follow. It is not a complete list of OpenAI built-in renderers.
 
@@ -194,7 +194,7 @@ References: [Typora diagrams](https://support.typora.io/Draw-Diagrams-With-Markd
 
 [Usage and executable examples](visual_code_blocks.en.md). The authorized implementation uses bundled engines and shared opaque-origin views. Native verified diagram families retain their owner. Button padding uses the fixed VS Code button.css 4px/8px values; control rounding/colors inherit shared interaction rules, including Shadow DOM. Native edit updates use the preview.ts 300ms coalescing interval, with immediate first rendering and offscreen disposal. Current evidence and installation status are recorded separately; whole-document export and arbitrary npm imports are outside this implementation.
 
-R087 controls: visual toolbars explicitly register `data-workspace-reader-controls`. Shared interaction rules adapt only this owned control boundary within readers and Shadow roots; ordinary document content, CodeMirror, and third-party content remain excluded. Rounding, hover, and keyboard focus stay shared; disabled controls reuse the existing half-opacity convention. Native/Shadow states and existing interaction tests are validated separately.
+Historical R087 controls (superseded by outside-document hover actions in R087.2): visual toolbars explicitly register `data-workspace-reader-controls`. Shared interaction rules adapt only this owned control boundary within readers and Shadow roots; ordinary document content, CodeMirror, and third-party content remain excluded. Rounding, hover, and keyboard focus stay shared; disabled controls reuse the existing half-opacity convention. Native/Shadow states and existing interaction tests are validated separately.
 
 <a id="r087-document-sync"></a>
 ## R087.1 Documentation synchronization (2026-11-03)
@@ -210,3 +210,12 @@ Acceptance and delivery: check same-language routes from home to help/examples a
 ---
 
 English · [Simplified Chinese](reading_code_blocks.md)
+
+<a id="r087-reading-state"></a>
+## R087.2 Reading state and hover actions (2026-11-03)
+
+Problem: new visual fences leave CodeMirror and a permanent text toolbar visible, unlike existing Mermaid/images. Reading should show the diagram; editing restores its current source and actions use the existing hover entry.
+
+The native adapter follows Typora 1.14.15 `resources/style/base.css` and `.md-fences-advanced:not(.md-focus) .CodeMirror` as evidence for host editing state. It adapts only the new formats without impersonating a native advanced-diagram language or replacing models. Outside-document controls reuse `reading_media_entry` More/enlarge, shared interaction, bounds/dismissal and disposal. The domain supplies source/run/copy/export actions. Geometry/colors retain R031.4 and fixed VSCode6807068 sources; no permanent toolbar height. Static diagrams enter native editing on click; interactive content still requires explicit Run and retains internal input.
+
+Native selection/CodeMirror own editing state; read-only source visibility belongs to its view and search-hit source remains available. Errors retain recoverable source. Offscreen disposal retains a placeholder at the measured height until rendering resumes, avoiding source reappearance and layout collapse. Outside-document menus observe scrolling in their owning Document or ShadowRoot; replacement and shutdown release menus/listeners/iframes. Validate native select/leave/edit/undo/save, light/dark, previews, multiple instances and 20 transitions using real engines, then validate candidate install/uninstall and installed hashes; previous results do not establish acceptance.

@@ -1,0 +1,4 @@
+.visual-code-native:not(.md-focus):not(:has(>.CodeMirror:focus-within)):not(.visual-code-opening)>.CodeMirror{display:none!important}
+.visual-code-native:not(.md-focus):not(:has(>.CodeMirror:focus-within)):not(.visual-code-opening){padding:0!important;border:0!important;background:transparent!important}
+.visual-code-placeholder{height:160px}
+.visual-code-placeholder[hidden]{display:none!important}

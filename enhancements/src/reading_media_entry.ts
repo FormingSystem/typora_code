@@ -7,14 +7,14 @@ import {reading_viewport_bounds} from "./reading_viewport";
 import {git_icon,type git_icon_name} from "./git_icons";
 import css from "./reading_media_entry.css";
 
-type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[];refresh_controls?:()=>void;cancel_controls?:()=>boolean};
+type entry_options={source:HTMLElement|SVGSVGElement;host:Element;label:string;button_class:string;open:()=>void;icon?:git_icon_name;compact?:boolean;controls?:HTMLElement[];controls_label?:string;refresh_controls?:()=>void;cancel_controls?:()=>boolean};
 type entry_anchor={left:number;top:number};
 type entry_state={options:entry_options;toolbar:HTMLElement;enabled:boolean;events:AbortController;anchor?:entry_anchor;panel?:HTMLElement;close_controls?:()=>void};
 export type reading_media_entry={button:HTMLButtonElement;source:Element;set_enabled(value:boolean):void;collapse():void;dispose():void};
 const parent_element=(node:Element):Element|null=>node.parentElement||(node.getRootNode() instanceof ShadowRoot?(node.getRootNode() as ShadowRoot).host:null);
 
 /** Images and charts share the hover entry outside of the document content, do not insert placeholders, and do not change the document layout. */
-export function bind_reading_media_entries(root:HTMLElement=document.body){
+export function bind_reading_media_entries(root:HTMLElement|ShadowRoot=document.body){
   const layer=el("div","reading-media-entries"),style=acquire_workspace_style("typora-code-style:reading_media_entry",css),interaction=acquire_workspace_interaction(layer);
   layer.contentEditable="false";document.body.append(layer);
   const controller=new AbortController(),{signal}=controller;
@@ -107,11 +107,11 @@ export function bind_reading_media_entries(root:HTMLElement=document.body){
       const state:entry_state={options,toolbar,enabled:true,events:entry_events};
       if(options.controls){
         toolbar.classList.add('has-controls');
-        const panel=el('div','reading-image-panel reading-media-extra');panel.hidden=true;panel.setAttribute('role','group');panel.setAttribute('aria-label',workspace_text('image_layout_menu'));
+        const panel=el('div','reading-image-panel reading-media-extra');panel.hidden=true;panel.setAttribute('role','group');panel.setAttribute('aria-label',options.controls_label||workspace_text('image_layout_menu'));
         panel.append(...options.controls);state.panel=panel;
         let dismissal:workspace_dismiss_layer|undefined;
         const close=()=>{if(panel.hidden)return;options.cancel_controls?.();dismissal?.dispose();dismissal=undefined;panel.hidden=true;more.setAttribute('aria-expanded','false');toolbar.classList.remove('is-expanded');schedule();};
-        const more=workspace_button(workspace_text('image_layout_menu'),()=>{
+        const more=workspace_button(options.controls_label||workspace_text('image_layout_menu'),()=>{
           if(!panel.hidden){close();return;}
           panel.hidden=false;more.setAttribute('aria-expanded','true');toolbar.classList.add('is-expanded');
           dismissal=register_workspace_dismissal(()=>[toolbar],reason=>{if(reason==='escape'&&options.cancel_controls?.())return;close();if(reason==='escape')more.focus({preventScroll:true});},{window_blur:true});

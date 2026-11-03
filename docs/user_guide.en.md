@@ -119,4 +119,4 @@ Extensions defaults to TyporaCode language support. Install enables a language a
 
 ## Visual code blocks
 
-Use `svg`, `mermaid`, `dot`, `wavedrom`, `vega-lite`, `vega`, `echarts`, `plantuml`, `html`, `math`, `flow`, and `sequence` for visual content. Click Run for interactive `html-live`, `javascript-live`, and `jsx`/`tsx` blocks. Engines are bundled locally without an online service. See [Visual code blocks](visual_code_blocks.en.md) for copyable examples, source/enlarge/export actions, and limits.
+Use `svg`, `mermaid`, `dot`, `wavedrom`, `vega-lite`, `vega`, `echarts`, `plantuml`, `html`, `math`, `flow`, and `sequence` for visual content. Click Run for interactive `html-live`, `javascript-live`, and `jsx`/`tsx` blocks. Engines are bundled locally without an online service. Reading hides source; click a static diagram to edit and move to other content to collapse it. Actions are in the hover More/Enlarge controls. See [Visual code blocks](visual_code_blocks.en.md) for copyable examples, source/enlarge/export actions, and limits.

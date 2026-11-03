@@ -1112,6 +1112,12 @@ content[data-linux-note-minimap-owner],
 content.typ-deactive .linux-note-reading-minimap,
 .linux-note-reading-minimap[hidden] { display:none!important; }
 
+/* reading_visual_code.css */
+.visual-code-native:not(.md-focus):not(:has(>.CodeMirror:focus-within)):not(.visual-code-opening)>.CodeMirror{display:none!important}
+.visual-code-native:not(.md-focus):not(:has(>.CodeMirror:focus-within)):not(.visual-code-opening){padding:0!important;border:0!important;background:transparent!important}
+.visual-code-placeholder{height:160px}
+.visual-code-placeholder[hidden]{display:none!important}
+
 /* remote_workspace_picker.css */
 .workspace-resource-picker-modes button[aria-pressed=true] {background:var(--linux-note-shell-inactive-selection-background);color:var(--linux-note-shell-inactive-selection-foreground);border-color:var(--workspace-focus-border);}
 .workspace-resource-picker-identity {min-width:0;overflow-wrap:anywhere;font:inherit;color:var(--workspace-ui-foreground,var(--text-color,#333));}

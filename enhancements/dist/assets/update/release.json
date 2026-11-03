@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026110301,
+      "version": "2026.11.03.1",
+      "date": "2026-11-03",
+      "notes": [
+        "SVG等新增图形块阅读时隐藏源码，点图或从源码操作进入原生编辑，离开后收起；保留原生保存和撤销。",
+        "图形操作改用已有悬停更多/放大入口，正文不再常驻工具栏；离屏回收保留图形占位。"
+      ],
+      "notes_en": [
+        "New visual fences such as SVG hide source while reading. Click a static diagram or choose Source to edit in the native model; leaving the block hides source again, retaining save and undo.",
+        "Diagram actions use the existing hover More/Enlarge controls without a permanent toolbar. Offscreen disposal retains diagram space."
+      ]
+    },
+    {
       "sequence": 2026110201,
       "version": "2026.11.02.1",
       "date": "2026-11-02",

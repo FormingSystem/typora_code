@@ -1,0 +1,69 @@
+{
+  "date": "2026-11-03",
+  "requirements": [
+    "R087.2"
+  ],
+  "release": "2026.11.03.1",
+  "baseline": "f6519f6; installed 2026.11.02.1",
+  "manifest": "e4843055c963aaa43892c3edfe2ffd5afd997893202a396c4d1bd95310def99b",
+  "build": "PASS",
+  "core": {
+    "status": "PASS",
+    "run_id": "5544618ff87940b986b68d1cf1d6e318",
+    "scope": "Full npm run check before final ShadowRoot owner adjustment; final deployment, localization, catalog and affected UI checks repeated."
+  },
+  "ui": {
+    "status": "PASS",
+    "runs": {
+      "test_visual_code.cjs": "4cc1d6b388384982a0d6e80d9c527b2d",
+      "test_reading_image_layout.cjs": "37b1d8d9a58647faa08636a5a6d6116f",
+      "test_reading_code_copy.cjs": "67d93ba9508c4badb50d4e2a672a7a1b",
+      "test_workspace_interaction.cjs": "0baa70d5a2ca44c39dbb36c8e846c9d8"
+    },
+    "scope": "15 real engines, 20 renderer replacement cycles, reading/edit source state, shared hover/menu geometry, Shadow scroll positioning, offscreen reservation/cleanup, Git/lookup/split, export save/cancel; shared image light/dark, narrow bilingual geometry and 20/100/1000 lifecycle regressions.",
+    "visual_review": "Offscreen Chromium hover screenshot inspected: diagram only with outside-document More/Enlarge icons and expanded shared action panel."
+  },
+  "native": {
+    "status": "PASS",
+    "run_id": "ec274bc3a16345d5bc4614291ca56b6e",
+    "host": "Typora 1.14.15 Windows x64",
+    "checks": 63,
+    "manifest": "e4843055c963aaa43892c3edfe2ffd5afd997893202a396c4d1bd95310def99b",
+    "scope": "15 formats, actual host editor/save/undo and trusted private-window clicks to leave SVG source and re-enter the original CodeMirror; UI not saved into Markdown; disposal.",
+    "limit": "Private-desktop captures can retain stale frames; not used as visual acceptance or physical user-desktop latency evidence."
+  },
+  "installation": {
+    "status": "PASS",
+    "cycle": "728685a79dbf4143b70e075656c84a3b",
+    "manifest": "e4843055c963aaa43892c3edfe2ffd5afd997893202a396c4d1bd95310def99b",
+    "scope": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/storage/backups preserved and temporary payload cleaned.",
+    "exception_run": "1c9748d7211447938033a338a9d302a1",
+    "exception_assertions": 65
+  },
+  "local": {
+    "status": "PASS",
+    "sequence": 2026110301,
+    "manifest": "e4843055c963aaa43892c3edfe2ffd5afd997893202a396c4d1bd95310def99b",
+    "workspace_assets": 215,
+    "terminal_assets": 24,
+    "protected_existing": 13,
+    "protected_paths": 15,
+    "protected_changed": [],
+    "version": "2026.11.03.1",
+    "standard_check": "PASS",
+    "uninstall_read_only_preflight": "PASS",
+    "running_windows": "not restarted",
+    "shell_integration": "Existing Directory menu ownership conflict preserved; outer installer exit 1 after successful workbench installation. Standard asset check passed."
+  },
+  "limits": [
+    "Existing user windows need normal restart; not closed by the agent.",
+    "Full physical input latency, complete native theme/zoom matrix, prolonged stress and other platforms remain unverified.",
+    "Whole-document export, native diagram version limits and iframe execution boundaries retain R087 scope."
+  ],
+  "failed_attempts": [
+    "Synthetic DOM selection did not invoke native focus transfer; replaced fixture action with trusted private-window clicks, which passed.",
+    "Shadow scroll fixture initially reused an old global lexical variable and targeted a detached root; uniquely named attached-root fixture passed.",
+    "Two build/test commands initially used the repository root without package.json; repeated in enhancements successfully."
+  ],
+  "publication": "Commit and normal-push receipts are recorded in Git history and the local requirement ledger."
+}
