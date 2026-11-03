@@ -213566,7 +213566,7 @@ https://creativecommons.org/licenses/by/4.0/
   function visual_document(script2, css, payload, token, format3) {
     const encoded = JSON.stringify(payload).replace(/</gu, "\\u003c");
     const vector = ["svg", "mermaid", "graphviz", "wavedrom", "vega", "vega_lite", "echarts", "plantuml", "flow", "sequence"].includes(format3);
-    const bootstrap = "(()=>{\n  const token=".concat(JSON.stringify(token), ",send=value=>parent.postMessage({visual_code:token,...value},'*');\n  const root=document.getElementById('root');\n  const snapshot=()=>root.querySelector('svg')?new XMLSerializer().serializeToString(root.querySelector('svg')):undefined;\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});\n  const fit=()=>{if(!").concat(vector, ")return;for(const svg of root.querySelectorAll('svg')){\n   if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;\n   const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;\n   if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';\n   svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';\n  }};\n  let last=0;\n  const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};\n  addEventListener('error',event=>send({error:event.message}));\n  addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));\n  new ResizeObserver(measure).observe(root);\n  Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{fit();measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));\n })();");
+    const bootstrap = "(()=>{\n  const token=".concat(JSON.stringify(token), ",send=value=>parent.postMessage({visual_code:token,...value},'*');\n  const root=document.getElementById('root');\n  const snapshot=()=>{const original=root.querySelector('svg');if(!original)return;\n   const result=").concat(format3 === "svg", "?original.cloneNode(true):original;if(").concat(format3 === "svg", "){const style=getComputedStyle(original);result.style.color=style.color;result.style.font=style.font;\n    const rect=original.getBoundingClientRect(),width=parseFloat(original.style.width);if(original.style.width.endsWith('px')&&width>0&&rect.width>0){result.setAttribute('width',String(width));result.setAttribute('height',String(width*rect.height/rect.width));}}\n   return new XMLSerializer().serializeToString(result);};\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});\n  const fit=()=>{if(!").concat(vector, ")return;for(const svg of root.querySelectorAll('svg')){\n   if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;\n   const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;\n   if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';\n   svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';\n  }};\n  let last=0;\n  const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};\n  addEventListener('error',event=>send({error:event.message}));\n  addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));\n  new ResizeObserver(measure).observe(root);\n  Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{fit();measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));\n })();");
     return "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\"><style>html,body{margin:0;padding:0;overflow:".concat(vector ? "hidden" : "auto", ";background:transparent;color:").concat(payload.foreground, ";font:14px system-ui}#root{display:flow-root;box-sizing:border-box;padding:").concat(vector ? 0 : 8, "px;min-height:").concat(vector ? 0 : 64, "px;overflow:").concat(vector ? "visible" : "auto", "}svg{max-width:100%;height:auto}img{max-width:100%}").concat(css, '</style><div id="root"></div><script>').concat(script2.replace(/<\/script/giu, "<\\/script"), "<\/script><script>").concat(bootstrap, "<\/script>");
   }
   function create_visual_sandbox(container, format3, source, on_result) {
@@ -223614,6 +223614,17 @@ https://creativecommons.org/licenses/by/4.0/
     root.append(style, output, error, source_view);
     const owned_media = options2.media ? void 0 : bind_reading_media_entries(root), media = options2.media || owned_media;
     let sandbox, disposed = false, revision = 0, svg4 = "", url = "", close2;
+    let cached_blob, cached_url = "", rendered_theme = "";
+    const theme_key = () => {
+      const style2 = getComputedStyle(output);
+      return JSON.stringify([style2.color, style2.backgroundColor, mermaid_theme_options()]);
+    };
+    const release_cached = () => {
+      if (cached_url) URL.revokeObjectURL(cached_url);
+      cached_url = "";
+      cached_blob = void 0;
+    };
+    const capture = () => sandbox ? sandbox.capture() : cached_blob?.text();
     const show_source = () => {
       entry.collapse();
       if (options2.edit_source) options2.edit_source();
@@ -223621,9 +223632,13 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const run = () => {
       if (disposed) return;
+      if (format3 === "svg") rendered_theme = theme_key();
       entry.collapse();
       const current2 = ++revision;
       sandbox?.dispose();
+      sandbox = void 0;
+      release_cached();
+      output.replaceChildren();
       svg4 = "";
       error.textContent = "";
       root.dataset.visualState = "loading";
@@ -223662,10 +223677,10 @@ https://creativecommons.org/licenses/by/4.0/
     const enlarge = () => {
       void (async () => {
         const current2 = revision;
-        svg4 = await sandbox?.capture() || "";
-        if (disposed || current2 !== revision || !svg4) return;
+        const captured = await capture();
+        if (disposed || current2 !== revision || !captured) return;
         if (url) URL.revokeObjectURL(url);
-        url = URL.createObjectURL(new Blob([svg4], { type: "image/svg+xml" }));
+        url = URL.createObjectURL(new Blob([captured], { type: "image/svg+xml" }));
         const image = new Image();
         image.src = url;
         image.onload = () => {
@@ -223676,7 +223691,7 @@ https://creativecommons.org/licenses/by/4.0/
     const save2 = workspace_button(workspace_text("visual_code_export"), () => {
       const current2 = revision;
       void (async () => {
-        const snapshot = await sandbox?.capture();
+        const snapshot = await capture();
         if (snapshot && current2 === revision && !disposed) await export_visual_svg(snapshot, () => !disposed && current2 === revision);
       })().catch((failure2) => {
         error.textContent = workspace_text("visual_code_failed", { value_0: String(failure2.message || failure2) });
@@ -223697,10 +223712,36 @@ https://creativecommons.org/licenses/by/4.0/
     };
     root.addEventListener("mousedown", activate);
     const unwatch = observe_mermaid_theme(() => {
-      if (!interactive_visual(format3)) run();
+      if (!interactive_visual(format3) && (format3 !== "svg" || rendered_theme !== theme_key())) run();
     });
-    return { root, start() {
-      if (!interactive_visual(format3)) run();
+    return { root, snapshot() {
+      if (format3 !== "svg" || root.dataset.visualState !== "ready") return;
+      const blob = cached_blob || (svg4 ? new Blob([svg4], { type: "image/svg+xml" }) : void 0);
+      return blob ? { blob, theme: rendered_theme } : void 0;
+    }, start(snapshot) {
+      if (snapshot && format3 === "svg" && snapshot.theme === theme_key()) {
+        const blob = snapshot.blob;
+        rendered_theme = snapshot.theme;
+        cached_blob = blob;
+        cached_url = URL.createObjectURL(blob);
+        const current2 = revision, image = new Image(), host = workspace_element("div");
+        host.attachShadow({ mode: "closed" }).append(image);
+        image.alt = format3;
+        image.style.cssText = "display:block;max-width:100%;height:auto";
+        output.append(host);
+        root.dataset.visualState = "loading";
+        image.onload = () => {
+          if (!disposed && current2 === revision) {
+            root.dataset.visualState = "ready";
+            entry.button.disabled = false;
+            save2.disabled = false;
+          }
+        };
+        image.onerror = () => {
+          if (!disposed && current2 === revision) run();
+        };
+        image.src = cached_url;
+      } else if (!interactive_visual(format3)) run();
       else {
         root.dataset.visualState = "idle";
         launch.hidden = false;
@@ -223709,6 +223750,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed) return;
       disposed = true;
       ++revision;
+      release_cached();
       unwatch();
       sandbox?.dispose();
       entry.dispose();
@@ -223757,7 +223799,25 @@ https://creativecommons.org/licenses/by/4.0/
   function bind_reading_visual_code() {
     const entries3 = /* @__PURE__ */ new Map(), media = bind_reading_media_entries(), style = acquire_workspace_style("typora-code-style:reading_visual_code", reading_visual_code_default);
     let disposed = false;
+    const cache = /* @__PURE__ */ new Map();
+    let bytes = 0;
+    const take = (fence) => {
+      const blob = cache.get(fence);
+      if (blob) {
+        cache.delete(fence);
+        bytes -= blob.blob.size;
+      }
+      return blob;
+    };
+    const remember = (fence, blob) => {
+      take(fence);
+      if (!blob || blob.blob.size > 4 * 1024 * 1024) return;
+      cache.set(fence, blob);
+      bytes += blob.blob.size;
+      while (cache.size > 128 || bytes > 4 * 1024 * 1024) take(cache.keys().next().value);
+    };
     const remove = (fence) => {
+      take(fence);
       const entry = entries3.get(fence);
       if (!entry) return;
       clearTimeout(entry.timer);
@@ -223772,7 +223832,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (disposed || !entry.visible) return;
       entry.view?.dispose();
       entry.placeholder.hidden = true;
-      const source = entry.model.getValue();
+      const source = entry.model.getValue(), previous = take(fence), cached = entry.source === source ? previous : void 0;
       entry.source = source;
       entry.view = create_visual_code_view(visual_code_format(entry.language), source, { media, edit_source: () => {
         fence.classList.add("visual-code-opening");
@@ -223780,7 +223840,7 @@ https://creativecommons.org/licenses/by/4.0/
         queueMicrotask(() => fence.classList.remove("visual-code-opening"));
       } });
       fence.append(entry.view.root);
-      entry.view.start();
+      entry.view.start(cached);
     };
     const observer3 = new IntersectionObserver((items) => {
       for (const item of items) {
@@ -223789,7 +223849,10 @@ https://creativecommons.org/licenses/by/4.0/
         entry.visible = item.isIntersecting;
         if (entry.visible && !entry.view) render3(fence, entry);
         else if (!entry.visible) {
-          if (entry.view) entry.placeholder.style.height = entry.view.root.getBoundingClientRect().height + "px";
+          if (entry.view) {
+            entry.placeholder.style.height = entry.view.root.getBoundingClientRect().height + "px";
+            remember(fence, entry.view.snapshot());
+          }
           entry.placeholder.hidden = false;
           entry.view?.dispose();
           entry.view = void 0;
@@ -223818,6 +223881,7 @@ https://creativecommons.org/licenses/by/4.0/
         placeholder.contentEditable = "false";
         fence.append(placeholder);
         entry = { source: "", language: language44, model, visible: false, timer: 0, placeholder, change: () => {
+          take(fence);
           const current2 = entries3.get(fence);
           if (!current2 || current2.timer) return;
           current2.timer = window.setTimeout(() => {
@@ -270183,6 +270247,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026110304,
+        version: "2026.11.03.4",
+        date: "2026-11-03",
+        notes: [
+          "\u6B63\u6587\u4E2D\u7684\u9759\u6001SVG\u7FFB\u9875\u8FD4\u56DE\u65F6\u590D\u7528\u6700\u8FD1\u7684\u7ED8\u56FE\u7ED3\u679C\uFF0C\u4E0D\u5FC5\u91CD\u65B0\u542F\u52A8\u6E32\u67D3\u5668\u3002"
+        ],
+        notes_en: [
+          "Recent unchanged static SVG fences reappear without restarting their renderer when scrolling back."
+        ]
+      },
       {
         sequence: 2026110303,
         version: "2026.11.03.3",

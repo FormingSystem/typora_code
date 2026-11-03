@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026110304,
+      "version": "2026.11.03.4",
+      "date": "2026-11-03",
+      "notes": [
+        "正文中的静态SVG翻页返回时复用最近的绘图结果，不必重新启动渲染器。"
+      ],
+      "notes_en": [
+        "Recent unchanged static SVG fences reappear without restarting their renderer when scrolling back."
+      ]
+    },
+    {
       "sequence": 2026110303,
       "version": "2026.11.03.3",
       "date": "2026-11-03",

@@ -26,7 +26,10 @@ function visual_document(script:string,css:string,payload:visual_payload,token:s
  const bootstrap=`(()=>{
   const token=${JSON.stringify(token)},send=value=>parent.postMessage({visual_code:token,...value},'*');
   const root=document.getElementById('root');
-  const snapshot=()=>root.querySelector('svg')?new XMLSerializer().serializeToString(root.querySelector('svg')):undefined;
+  const snapshot=()=>{const original=root.querySelector('svg');if(!original)return;
+   const result=${format==='svg'}?original.cloneNode(true):original;if(${format==='svg'}){const style=getComputedStyle(original);result.style.color=style.color;result.style.font=style.font;
+    const rect=original.getBoundingClientRect(),width=parseFloat(original.style.width);if(original.style.width.endsWith('px')&&width>0&&rect.width>0){result.setAttribute('width',String(width));result.setAttribute('height',String(width*rect.height/rect.width));}}
+   return new XMLSerializer().serializeToString(result);};
   addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});
   const fit=()=>{if(!${vector})return;for(const svg of root.querySelectorAll('svg')){
    if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;

@@ -33,6 +33,23 @@ app.whenReady().then(async()=>{
  const {inline_css_assets}=await import('./build_workspace_styles.mjs');
  const bundle=await build({plugins:[{name:'shadow-style-fixture',setup(context){context.onLoad({filter:/_shadow\.css$/},args=>({contents:inline_css_assets(args.path),loader:'text'}));}},...require('./editor_bundle.cjs').editor_plugins()],stdin:{contents:"export {create_visual_sandbox} from './src/visual_code_sandbox';export {create_visual_code_view,create_visual_code_previews} from './src/visual_code_view';export {bind_reading_visual_code} from './src/reading_visual_code';export {visual_marked,render_visual_math} from './src/visual_markdown_math';export {export_visual_svg} from './src/visual_code_export';export {create_git_markdown_diff} from './src/git_markdown_diff';export {create_lookup_preview} from './src/workspace_lookup_preview';export {bind_workspace_split_markdown} from './src/workspace_split_markdown';",resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
  await ev(bundle.outputFiles[0].text);
+ // Exercise the production viewport owner with deterministic visibility and real Blob sizes.
+ const cache_module=await build({entryPoints:[path.join(__dirname,'../src/reading_visual_code.ts')],bundle:true,write:false,format:'iife',globalName:'cache_qa',plugins:[{name:'cache-test-ports',setup(context){
+  context.onResolve({filter:/^\.\//},args=>({path:args.path,namespace:'cache-test'}));
+  context.onLoad({filter:/.*/,namespace:'cache-test'},({path:name})=>({contents:name.endsWith('.css')?"export default ''":name.endsWith('workspace_styles')?"export const acquire_workspace_style=()=>({remove(){}})":name.endsWith('reading_media_entry')?"export const bind_reading_media_entries=()=>({dispose(){}})":name.endsWith('visual_code_formats')?"export const visual_code_format=()=> 'svg'":"export const create_visual_code_view=(_,source)=>({root:document.createElement('div'),start(value){window.cache_hit=!!value},snapshot(){return {blob:new Blob([new Uint8Array(Number(source))]),theme:'test'}},dispose(){this.root.remove()}})"}));
+ }}]});
+ await ev(cache_module.outputFiles[0].text);
+ assert(await ev(`(()=>{
+  const original=window.IntersectionObserver;let notify;
+  window.IntersectionObserver=class{constructor(cb){notify=cb}observe(){}unobserve(){}disconnect(){}};
+  const binding=cache_qa.bind_reading_visual_code(),nodes=[];
+  try{for(let i=0;i<133;i++){const node=document.createElement('div'),cm=document.createElement('i');node.setAttribute('lang','svg');cm.className='CodeMirror';cm.CodeMirror={getValue:()=>String(i<130?4:i===132?4194305:2097152)};node.append(cm);nodes.push(node);document.body.append(node);}
+   binding.reconcile(nodes);const visit=i=>{notify([{target:nodes[i],isIntersecting:true}]);const hit=window.cache_hit;notify([{target:nodes[i],isIntersecting:false}]);return hit;};
+   for(let i=0;i<128;i++)visit(i);if(!visit(0)||visit(128)||!visit(0)||visit(1))return false;
+   visit(130);visit(131);if(!visit(130)||!visit(131)||visit(0))return false;
+   return !visit(132)&&!visit(132);
+  }finally{binding.dispose();nodes.forEach(node=>node.remove());window.IntersectionObserver=original;}
+ })()`),'count limit, promotion, byte limit and oversized snapshot fallback');checks.push('bounded-offscreen-svg-cache');
  for(const [format,source] of Object.entries(samples)){
   const result=await render(format,source);assert(!result.error,format+': '+result.error);assert(result.ready,format);
   if(!['html','math','react','html_live','javascript_live'].includes(format))assert(result.svg?.includes('<svg'),format+' SVG');
@@ -94,7 +111,15 @@ app.whenReady().then(async()=>{
  assert(await ev('native.getBoundingClientRect().height>50'),'offscreen placeholder preserves height');
  assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','offscreen source stays hidden');
  await ev('native.style.marginTop="0"');for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(10);
- assert.equal(await ev('native.querySelectorAll("iframe").length'),1);
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),0,'scroll return reuses the static SVG without a renderer');
+ assert.equal(await ev('Math.round(native.querySelector(".visual-code-output").getBoundingClientRect().height)'),80,'cached image retains natural aspect and size');
+ await ev('native.querySelector(".visual-code-view").dispatchEvent(new PointerEvent("pointerenter"));document.querySelector(".visual-code-enlarge").closest(".reading-media-entry").querySelectorAll(".reading-image-panel button")[2].click()');await pause(120);
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),1,'manual refresh renders afresh');
+ const cycle_native=async change=>{await ev('native.style.marginTop="2500px"');await pause(180);await ev(change+';void 0');await ev('native.style.marginTop="0"');for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(15);assert(await ev('!!native.querySelector("[data-visual-state=ready]")'));};
+ await cycle_native(`native.querySelector(".CodeMirror").CodeMirror.getValue=()=>'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 40"><rect width="100" height="40"/></svg>'`);
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),1,'changed source cannot use the old snapshot');
+ await cycle_native('document.body.style.color="rgb(55,33,11)"');
+ assert.equal(await ev('native.querySelectorAll("iframe").length'),1,'changed rendering color invalidates the snapshot');
  await ev('native_binding.dispose();native.remove()');assert.equal(await ev('document.querySelectorAll(".visual-code-enlarge").length'),0,'media entries cleaned');checks.push('native-reading-focus-hover-offscreen-cleanup');
  await ev(`window.shadow_host=document.createElement('div');document.getElementById('out').append(shadow_host);window.qa_shadow_root=shadow_host.attachShadow({mode:'open'});qa_shadow_root.innerHTML='<div id="scroll" style="height:220px;width:400px;overflow:auto"><div style="height:120px"></div><pre><code class="language-svg"></code></pre><div style="height:600px"></div></div>';qa_shadow_root.querySelector('code').textContent=${JSON.stringify(samples.svg)};window.shadow_preview=qa.create_visual_code_previews();shadow_preview.render(qa_shadow_root.querySelector('code'),400,false,()=>true);`);
  for(let n=0;n<200&&await ev('!qa_shadow_root.querySelector("[data-visual-state=ready]")');n++)await pause(10);

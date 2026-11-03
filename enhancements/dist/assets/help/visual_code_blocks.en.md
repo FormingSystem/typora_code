@@ -14,6 +14,8 @@ Interactive execution uses an opaque-origin iframe without Node, host DOM or fil
 
 Copy the following examples into a note. The delivery covers on-screen rendering and individual SVG export. Whole-document Typora HTML/PDF export does not automatically replace every added fence with a diagram; export SVG and insert it as an image for sharing. Other platforms, full physical keyboard/wheel and prolonged stress validation remain separately documented.
 
+Recent unchanged static SVG fences reappear from cache when scrolling back in the native document. Eviction, source edits, theme changes or manual refresh trigger rendering again.
+
 ## Inline size and enlarged viewing
 
 Static diagrams and ordinary images use their natural size by default, scaling down proportionally only when wider than the text column. Their full height participates in document layout without an internal scrollbar. Small media is not stretched to fill the column; use hover enlargement for detail. SVG fences prefer a valid absolute width, falling back to viewBox width. For predictable portable SVG sizing, specify `width`, `height` and `viewBox` together. Bitmaps retain the existing screen-pixel/DPI contract; SVG uses vector layout units.

@@ -3807,7 +3807,8 @@
         "R087.2",
         "R087.3",
         "R087.4",
-        "R087.5"
+        "R087.5",
+        "R087.6"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -10491,7 +10492,8 @@
         "R087",
         "R087.2",
         "R087.4",
-        "R087.5"
+        "R087.5",
+        "R087.6"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [

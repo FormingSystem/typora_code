@@ -47,6 +47,16 @@
   const portable_style=getComputedStyle(portable_image),portable_border=['borderLeftWidth','borderRightWidth','paddingLeft','paddingRight'].reduce((sum,key)=>sum+(parseFloat(portable_style[key])||0),0);
   fs.writeFileSync(path.join(base,'portable-image.json'),JSON.stringify({natural:portable_image.naturalWidth,rect:portable_image.getBoundingClientRect().toJSON(),border:portable_border,settings:core.app.settings.get('reading_images')},null,2));
   assert(portable_image.getBoundingClientRect().width-portable_border<=640.5,'linked SVG does not stretch');assert(fs.readFileSync(portable_doc,'utf8')===portable_text,'portable image keeps Markdown reference');
+  const cache_file=path.join(base,'workspace','scroll-cache.md'),cache_text='# Cache\n\n```svg\n'+samples.svg+'\n```\n\n'+Array.from({length:150},(_,i)=>'Paragraph '+i+'.\n\n').join('');
+  fs.writeFileSync(cache_file,cache_text,'utf8');await files.open_file(cache_file);
+  await wait(()=>File.bundle.filePath===cache_file&&!File.isFileLoading(),'cache document');
+  const cache_fence=document.querySelector('#write .md-fences');cache_fence.scrollIntoView();
+  const cache_ready=()=>cache_fence.querySelector('[data-visual-state="ready"]');
+  await wait(cache_ready,'cache first render');assert(!!cache_fence.querySelector('iframe'),'first render creates sandbox');
+  const height=cache_ready().getBoundingClientRect().height;
+  document.querySelector('#write>p:last-child').scrollIntoView();await wait(()=>!cache_fence.querySelector('.visual-code-view'),'offscreen release');
+  cache_fence.scrollIntoView();await wait(cache_ready,'return to cached SVG');
+  assert(!cache_fence.querySelector('iframe'),'scroll return skips sandbox');assert(Math.abs(cache_ready().getBoundingClientRect().height-height)<1,'scroll return retains size');assert(fs.readFileSync(cache_file,'utf8')===cache_text,'scroll return preserves Markdown');
   // R087.4: time renderer input independently from remote-desktop delivery and fixture polling.
   const percentile=(values,p)=>[...values].sort((a,b)=>a-b)[Math.min(values.length-1,Math.ceil(values.length*p)-1)];
   for(const scenario of [{name:'short',nodes:1,background:0},{name:'long',nodes:400,background:0},{name:'long_background',nodes:400,background:20}]){
