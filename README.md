@@ -15,9 +15,10 @@ This is an independently maintained community project. It is not an official Typ
 | Source editing | Monaco editing, encoding and line endings, language services, symbol outlines, and source navigation; external language servers are configured separately |
 | Search | Filename/path search and workspace content search; click a result to preview it, double-click or press Enter to open it |
 | Markdown | Native Typora editing, heading outlines, a minimap, code copying and folding, and image/Mermaid viewers |
+| Visual code blocks | Local SVG/HTML, DOT, WaveDrom, Vega/Vega-Lite, ECharts, PlantUML, math, and flow/sequence; explicit HTML/JS and React JSX/TSX execution |
 | Link previews | Independent reading history, pinning, resizing, zoom, and read-only split previews; local content follows the active theme |
 | Git | Changes, staging, commits, branch history, a commit graph, file history, and source/rendered Markdown comparisons |
-| Terminals | Windows shells, multiple sessions, split terminals, search, and terminal settings |
+| Terminals | Windows shells, multiple sessions, split terminals, search, complete-session log saving and continuous recording, and terminal settings |
 | SSH | One local workspace or one SSH connection per window, shared by files, search, Git, and the default terminal |
 | Settings and extensions | Searchable settings, native preferences, and supported community plugins with their original settings owners |
 | Updates | ZIP updates with installation checks and backups; install immediately, then restart manually |
@@ -49,6 +50,12 @@ Use **File → Open Folder** to select a project. Use the lower-left gear or `Ct
 
 The authoritative version and release notes are in [release.json](enhancements/release.json). An installed version takes effect after all Typora windows are restarted. Unpublished local candidates are not available from GitHub.
 
+## Diagrams and interactive content
+
+Use the corresponding fenced-code language for static diagrams. Renderers are bundled locally, with no online drawing service to configure. Click Run / Refresh for `html-live`, `javascript-live`, and `jsx`/`tsx`; ordinary JavaScript examples do not execute automatically. Native and shared reading previews support the new formats; native Mermaid/flow/sequence retain the host renderer.
+
+Open **Help → Operation Guide and Shortcuts → Visual code blocks** for offline examples, or read [Visual code blocks](docs/visual_code_blocks.en.md). Actions include source visibility, copying, refresh, and enlargement/per-diagram export for SVG output. Whole-document HTML/PDF export does not automatically convert every new fence. External data, fonts, icons, and arbitrary npm dependencies are not downloaded automatically. The guide records host-version and library-extension limits.
+
 ## Development
 
 ```powershell
@@ -70,3 +77,7 @@ Original project code, UI, documentation, themes, and installation scripts are r
 Maintainer: **FormingSystem** · Contact: `lizhaojun97@qq.com` · [Project repository](https://github.com/FormingSystem/typora_code).
 
 See the [copyright and contribution statement](COPYRIGHT.en.md). Your documents and other user files retain their own ownership and licenses.
+
+---
+
+English · [Simplified Chinese](README.zh-CN.md)

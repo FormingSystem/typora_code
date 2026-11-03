@@ -149,15 +149,17 @@ Validate an old-candidate native red case, then 20 native round trips, same-file
 [Chinese](reading_code_blocks.md#visual-code-blocks)
 
 <a id="visual-code-blocks"></a>
-## R087 Visual code blocks: inventory and phased design
+## R087 Local visual code blocks: implementation and historical inventory
+
+Current delivery is 2026.11.02.1, installed and pushed in `e206efe`. Listed formats use existing local engines; [the usage guide](visual_code_blocks.en.md) owns language tags, click-to-run behavior, per-diagram export, and host-version limits. Existing core/UI/native evidence is recorded in [delivery evidence](../enhancements/tests/evidence/visual_code_20261102.json); it does not establish whole-document HTML/PDF export or acceptance of every diagram family/platform.
 
 2026-11-02: The user requests an inventory before implementing richer AI-authored architecture, composition, and SVG diagrams one format at a time. The inventory below records the pre-implementation state; subsequent all-format authorization and current integration follow. It is not a complete list of OpenAI built-in renderers.
 
-### Evidence and candidates
+### Pre-implementation evidence and candidates
 
 `create_preview_diagrams` in `workspace_markdown_preview_render.ts` loads the host Mermaid library. The lookup, split Markdown, and Git Markdown diff consumers dispatch only `language-mermaid` to diagram rendering; other fences receive syntax highlighting. SVG image MIME handling in `workspace_preview_image.ts` does not render SVG fences. The PlantUML entry in `typora_enhancements.ts` only exempts diagrams from code folding. Git Markdown sanitation explicitly excludes raw SVG/Math elements. This inspection did not run native samples or inspect the user's active window or third-party plugin state.
 
-| Format | Purpose | Current finding | Suggested phase |
+| Format | Purpose | Pre-implementation finding | Original suggested phase |
 | --- | --- | --- | --- |
 | SVG fences | Custom architecture, composition, memory, and protocol illustrations | No dedicated fence renderer; image support exists | First |
 | Mermaid | Flow, sequence, state, class, ER, mindmap, and block diagrams | Native/preview integration exists; newer families require host-library verification | First, extend coverage |
@@ -193,3 +195,18 @@ References: [Typora diagrams](https://support.typora.io/Draw-Diagrams-With-Markd
 [Usage and executable examples](visual_code_blocks.en.md). The authorized implementation uses bundled engines and shared opaque-origin views. Native verified diagram families retain their owner. Button padding uses the fixed VS Code button.css 4px/8px values; control rounding/colors inherit shared interaction rules, including Shadow DOM. Native edit updates use the preview.ts 300ms coalescing interval, with immediate first rendering and offscreen disposal. Current evidence and installation status are recorded separately; whole-document export and arbitrary npm imports are outside this implementation.
 
 R087 controls: visual toolbars explicitly register `data-workspace-reader-controls`. Shared interaction rules adapt only this owned control boundary within readers and Shadow roots; ordinary document content, CodeMirror, and third-party content remain excluded. Rounding, hover, and keyboard focus stay shared; disabled controls reuse the existing half-opacity convention. Native/Shadow states and existing interaction tests are validated separately.
+
+<a id="r087-document-sync"></a>
+## R087.1 Documentation synchronization (2026-11-03)
+
+Problem and goal: the feature and offline examples are delivered, but the repository entry pages and feature matrix omit visual code blocks, while handoff introductions retain the earlier unpushed status. Every current capability entry should lead to the same usage guide and describe the formats, execution model, and limits consistently.
+
+Scope and ownership: [Visual code blocks](visual_code_blocks.en.md) owns syntax and examples. Repository/module introductions summarize and link, the matrix records scope and remaining limits, design retains the explicitly historical inventory, and delivery records append the push receipt. Keep Chinese/English counterparts aligned without another independent capability checklist. Compare the four bundled help files with their sources and installed copies; leave matching files unchanged. This pass changes no runtime behavior, release sequence, installed assets, or historical test results.
+
+Implementation and failure behavior: synchronize verified formats, explicit execution, export, and offline limits. Correct stale preview-tab and unified-settings descriptions in the same matrix against existing authorizations. Preserve unresolved work and untested platforms; do not label uncertain capabilities complete. Repair validation failures before publication rather than shipping broken links.
+
+Acceptance and delivery: check same-language routes from home to help/examples and development entry to design/evidence, plus reciprocal language navigation. Run the existing bilingual, diff, and commit-message checks. Compare installed offline help bytes; documentation validation does not represent a new runtime test run. Commit reviewable documentation results, push normally, and verify the remote SHA.
+
+---
+
+English · [Simplified Chinese](reading_code_blocks.md)

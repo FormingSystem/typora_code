@@ -3,15 +3,17 @@
 # R068 代码块展开与高度隔离
 
 <a id="visual-code-blocks"></a>
-## R087 图形代码块能力清单与分期设计
+## R087 本地图形代码块：当前实现与历史盘点
 
 2026-11-02：用户希望直接阅读 AI 生成的架构图、组成图和 SVG，要求先列缺口，再逐项实现。以下清单保留实施前盘点，后续全量授权与当前实现见本节后文及使用指南。格式选择依据表达用途，不把清单宣称为 Codex/ChatGPT 的完整内置格式或可直接移植的渲染器。
 
+当前交付为2026.11.02.1，已安装并随`e206efe`推送。清单格式已接入现成本地引擎；实际语言标签、点击运行、逐图导出和宿主版本限制以[使用指南](visual_code_blocks.md)为准。完整核心检查、相关UI及原生样本的既有证据见[交付记录](../enhancements/tests/evidence/visual_code_20261102.json)，不表示整篇HTML/PDF导出或所有图种/平台均已验收。
+
 ### 实施前证据与候选
 
-当前源码：`workspace_markdown_preview_render.ts` 的 `create_preview_diagrams` 加载宿主 Mermaid；`workspace_lookup_preview.ts`、`workspace_split_markdown.ts` 和 `git_markdown_diff.ts` 仅对 `language-mermaid` 分派图表渲染，其余围栏走高亮。`workspace_preview_image.ts` 识别 SVG 图片，不等于支持 SVG 围栏。`typora_enhancements.ts` 的图表排除列表含 PlantUML，但这只是折叠豁免，不能证明存在渲染器。Git Markdown 清洗还明确排除原始 SVG/Math 元素。此次为源码盘点，未操作用户窗口，未逐项执行宿主样本。
+实施前源码：`workspace_markdown_preview_render.ts` 的 `create_preview_diagrams` 加载宿主 Mermaid；`workspace_lookup_preview.ts`、`workspace_split_markdown.ts` 和 `git_markdown_diff.ts` 仅对 `language-mermaid` 分派图表渲染，其余围栏走高亮。`workspace_preview_image.ts` 识别 SVG 图片，不等于支持 SVG 围栏。`typora_enhancements.ts` 的图表排除列表含 PlantUML，但这只是折叠豁免，不能证明存在渲染器。Git Markdown 清洗还明确排除原始 SVG/Math 元素。此次为源码盘点，未操作用户窗口，未逐项执行宿主样本。
 
-| 格式或能力 | 适用表达 | 当前结论 | 建议阶段 |
+| 格式或能力 | 适用表达 | 实施前结论 | 当时建议阶段 |
 | --- | --- | --- | --- |
 | SVG 围栏 `svg` | 自由布局的架构、组成、内存与协议示意图 | 缺少专用围栏渲染；图片链路已有基础 | 第一批 |
 | Mermaid `mermaid` | 流程、时序、状态、类、ER、思维导图、组成图 | 已有正文与预览接线；新版图种须按宿主实际库逐项验证 | 第一批补齐 |
@@ -178,3 +180,18 @@ R068.12实现核对：原始Typora 1.14.10的`window/frame.js`中，围栏使用
 [使用说明与可运行示例](visual_code_blocks.md)。追加授权已进入实现：复用随包渲染库与共享无同源权限视图，原生已验证图种保留宿主所有者。按钮内边距采用固定VS Code button.css的4px/8px，圆角/颜色复用共同交互规则并覆盖Shadow DOM；原生编辑刷新采用preview.ts的300ms合并窗口，首次立即呈现，离屏释放。实际验证与安装状态单独记录；整篇导出和任意npm导入不属于此次实现。
 
 R087控件接入：图形工具栏显式登记`data-workspace-reader-controls`，共享交互规则只对这个自有控件范围开放正文/Shadow适配；普通正文、CodeMirror和第三方内容仍排除。共同圆角、悬停和键盘焦点不在图形模块复制，禁用态沿现有按钮半透明约定；原生及Shadow控件状态和既有交互测试分别回归。
+
+<a id="r087-document-sync"></a>
+## R087.1 文档信息同步（2026-11-03）
+
+问题与目标：功能及离线样例已经交付，但首页、增强模块入口和功能矩阵仍缺少图形代码块说明，交接首页保留交付时的“未推送”状态。读者应能从任何当前功能入口找到同一份使用指南，并理解格式、运行方式和限制。
+
+范围与职责：使用语法及样例以[图形代码块指南](visual_code_blocks.md)为权威；首页和增强说明只摘要并链接，矩阵记录范围与未完成边界，领域设计保留实施前盘点并明确其历史身份，交付记录追加推送回执。中英文逐页对应，不维护另一套能力清单。核对四份随包帮助与源码及本机安装副本；已一致的文件保持不变。此次不改变运行逻辑、版本序号、已安装资产或历史实测结果。
+
+方案与失败行为：同步已核对的格式、手动运行、导出与离线限制，修正同一矩阵中与已授权预览标签及统一设置相矛盾的旧描述。历史未决和未测平台继续保留；发现无法确认的能力不标为完成。校验失败时保留差量并修正，不发布失效链接。
+
+验收与交付：检查首页→使用帮助→格式样例、开发入口→设计→证据的同语言链接及反向语言切换；运行现有双语检查、差量检查和提交消息检查。逐字节核对已安装离线帮助；不以文档检查冒充重新执行运行时测试。按可独立审查的文档结果提交，正常推送并核对远端SHA。
+
+---
+
+简体中文 · [English](reading_code_blocks.en.md)

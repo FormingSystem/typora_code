@@ -15,9 +15,10 @@ Typora Code 为 Typora 增加工程工作台：多文档标签、分栏、源码
 | 源码编辑 | Monaco 编辑、编码和换行、语言服务、符号大纲与源码导航；外部语言服务另行配置 |
 | 搜索 | 文件名和路径搜索、工作区内容搜索；单击预览，双击或按回车打开 |
 | Markdown | Typora 原生编辑、标题大纲、缩略图、代码复制与折叠、图片和 Mermaid 查看器 |
+| 图形代码块 | 本地 SVG/HTML、DOT、WaveDrom、Vega/Vega-Lite、ECharts、PlantUML、公式及 flow/sequence；显式 HTML/JS 和 React JSX/TSX 交互运行 |
 | 链接预览 | 独立阅读历史、固定、尺寸调整、缩放与只读分栏；本地内容跟随当前主题 |
 | Git | 改动、暂存、提交、分支历史、提交图、文件历史、源码和 Markdown 渲染比较 |
-| 终端 | Windows 本机命令解释器、多会话、分栏、查找及终端配置 |
+| 终端 | Windows 本机命令解释器、多会话、分栏、查找、完整会话日志保存与持续落盘及终端配置 |
 | SSH | 每个窗口服务一个本地工作区或一个远程连接，文件、搜索、Git 和默认终端共用身份 |
 | 设置与扩展 | 可搜索设置、原生偏好、支持的社区插件；配置保留各自原始所有者 |
 | 更新 | 带校验和备份的压缩包更新；立即安装，手动重启 |
@@ -49,6 +50,12 @@ Windows 卸载时，保存文档并退出 Typora，运行 `uninstall_windows.cmd
 
 当前版本与公告以[发行清单](enhancements/release.json)为准。安装后重启全部 Typora 窗口才会生效。尚未推送的本地候选不能从 GitHub 获取。
 
+## 图形与交互表达
+
+在代码围栏中填写对应语言名即可显示静态图形，渲染器随包本地提供，无须配置在线绘图服务。`html-live`、`javascript-live`、`jsx`/`tsx` 点击“运行 / 刷新”后执行；普通 JavaScript 示例不会自动执行。正文和共享阅读预览支持新格式，原生 Mermaid/flow/sequence 保留宿主渲染器。
+
+从 **帮助 → 操作说明与快捷键 → 图形代码块** 查看离线样例，或直接阅读[图形代码块指南](docs/visual_code_blocks.md)。支持源码切换、复制、刷新，以及能生成 SVG 的图形放大和逐图导出。整篇 HTML/PDF 尚不会自动转换全部新增围栏；外部数据、字体、图标和任意 npm 依赖不会自动下载。宿主版本和库扩展的边界以指南为准。
+
 ## 开发
 
 ```powershell
@@ -70,3 +77,7 @@ npm run check:ui
 维护者：**FormingSystem** · 联系邮箱：`lizhaojun97@qq.com` · [项目仓库](https://github.com/FormingSystem/typora_code)。
 
 [版权与贡献声明](COPYRIGHT.md)目前以中文原文提供。用户文档和其他个人文件保留原有权利与许可。
+
+---
+
+简体中文 · [English](README.md)

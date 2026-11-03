@@ -45,6 +45,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | Number | Requirement | Authoritative Design Entry Point | Design Coverage and Pending Content |
 | --- | --- | --- | --- |
 | R087 | Local visual code block rendering | [Shared integration](reading_code_blocks.en.md#visual-code-blocks) | All formats authorized; local engines, per-format implementation and validation; ledger owns delivery status |
+| R087.1 | Current capabilities and help synchronization | [Scope and acceptance](reading_code_blocks.en.md#r087-document-sync) | Consistent bilingual entry points, help/offline copies, scope, and delivery identity |
 | R071.6 | Slow adjacent pane resizing with rendered text | [Container layout](workspace_responsiveness.en.md#r0716-adjacent-pane-dragging-and-document-layout) | Local layout and content/geometry ownership; current evidence reported separately |
 | R071.5 | Passive native focus must preserve the reading viewport | [Response ownership](workspace_responsiveness.en.md#r0715-old-cursor-overrides-the-reading-viewport) | Verified native boundaries; platform validation reported separately |
 | R083 | Shared source/rendered frame, sidebar and visible position | [Editor presentation](editor_presentation.en.md) | Shared layout and native content adapters |
@@ -317,3 +318,7 @@ R034.9: Markdown rendering differences in visual hierarchy and inline refinement
 ## R081 Post-installation operation guide (2026-09-27)
 
 Step-by-step identification of functional bars, re-examination of the help menu, and offline operation instructions, including changes in keyboard shortcuts and dynamic illustrations. Authoritative design: [Operation Guide Design](onboarding.en.md); User instructions: [Operation Instructions and Keyboard Shortcuts](user_guide.en.md).
+
+---
+
+English · [Simplified Chinese](requirements_design.md)

@@ -14,6 +14,8 @@ domains:
 
 # 第1章\_Typora\_工作区、阅读导航与代码增强
 
+2026.11.02.1：图形围栏复用随包本地渲染器，正文与共享预览接入SVG、HTML、DOT、WaveDrom、Vega/Vega-Lite、ECharts、PlantUML、公式及传统图表；显式HTML/JS和React JSX/TSX点击运行。入口、完整样例、源码/放大/逐图SVG导出及整篇导出限制见[使用指南](../docs/visual_code_blocks.md)，当前职责与生命周期见[R087设计](../docs/reading_code_blocks.md#visual-code-blocks)。构建由`build_visual_assets.mjs`生成独立资源，版本及许可证清单为`dist/assets/visual/libraries.json`，原始声明在`dist/licenses/visual/`；不运行时请求CDN，保留原生Mermaid/flow/sequence所有者。
+
 2026.09.27.20：编程源码支持Ctrl+左键/F12转到定义，无定义时查声明；右键可转到声明、实现及查找引用，多目标通过选择器定位。当前内存诊断与符号/语义共享LSP，C/C++工程后台索引可在原语言服务配置中开关。继续支持系统环境检测、手动路径、Python venv及Rust；入口为设置 → 语言服务 → 选择语言服务与环境，详见[操作与实测范围](../docs/code_analysis_colors.md)。
 
 2026.09.23.17：远端选择器与资源管理器共用可展开文件树；路径输入和面包屑合为单行地址栏，长路径横向浏览，Ctrl+L编辑完整路径。远程选中状态、SSH身份及上级/刷新图标常驻；预览增加独立前后跳转图标。见[R070.8设计](../docs/remote_ssh.md#r0708-远端资源选择器树形展开)和[R069.9设计](../docs/link_preview.md#r0699-预览工具栏前进后退)。
@@ -552,3 +554,7 @@ Git命令执行只占用所属仓库，确认后局部反馈进度与结果；SC
 ## 操作指导
 
 安装后正常重启即可进入可跳过的逐步教学；“帮助 → 操作指导”可重看，“帮助 → 操作说明与快捷键”打开安装包内的离线说明。预览/常驻标签、内容缩放、Git、终端及默认键位见[操作说明与快捷键](../docs/user_guide.md)。
+
+---
+
+简体中文 · [English](README.en.md)
