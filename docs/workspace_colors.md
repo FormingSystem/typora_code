@@ -221,3 +221,16 @@ JSON格式为`{"schema":1,"themes":{"light":{},"dark":{"markdown_link":"#5CA4DF"
 验收使用四份固定主题原件比对背景、前景、链接、语法、终端与控件状态；同明暗切换和四种设置预览必须有独立结果，原生Markdown代码排版/模型身份保留。标准安装检查、隔离恢复与撤销卸载重装、用户环境卸载只读预检及最终安装分别记录。
 
 2026-10-05追加：用户明确保留旧Markdown标题颜色，覆盖上文标题继承正文的约定。核对671f175父提交原主题：浅色六级标题#0066CC，深色#CE9178；四主题正文和共享阅读预览一致，用户自定义标题色仍优先。代码高亮与工作台继续采用各自官方配色。
+
+<a id="r07410-github-reading"></a>
+## R074.10 GitHub正文字号与代码框（2026-11-14）
+
+用户反馈正文与文件名字号比例别扭，并要求采用GitHub代码框外观；后续明确取消引用块修改。本次仅将四个自有主题的正文基准字号改为16px、普通代码框改为GitHub背景与6px圆角/16px内边距/无外边框。保留现有正文字体族、行高、标题颜色、引用块、文件名/UI、代码语法高亮、模型、编辑、折叠、工具栏和换行所有者，不迁移用户已保存的字号调整或窗口比例，不把取消的引用框需求实施进去。
+
+来源固定为Primer CSS `d0cdad70d6c936501e9f8520212e00d0c4589f69`：`src/markdown/markdown-body.scss`使用h4-size，`src/support/variables/typography.scss`定义16px；`src/markdown/code.scss`定义代码框16px内边距、bgColor-muted及border-radius，`src/support/variables/misc.scss`定义6px。颜色固定Primer Primitives `47736486bf67b2a14ba1ada61fa0f57af29bb875`的`src/tokens/functional/color/bgColor.json5`：浅色neutral.1、深色neutral.2，对照`src/tokens/base/color/{light/light,dark/dark}.json5`为#F6F8FA/#151B23。只采用这些事实，不把整个GitHub网站排版移植进来。
+
+四个主题继续共享`vscode_default/base.css`；明暗CSS声明代码框底色，代码服务只在普通围栏表面使用主题的框底色，内部CodeMirror/pre code透明以避免矩形内层盖住圆角，token及独立源码编辑器沿原配色。共享Markdown主题提取负责预览/历史/比较的同源外观，不另建皮肤或状态。图表阅读态沿已有透明背景与R087.8字号比例规则；取消、失败和回滚仍由原安装事务/主题加载所有者负责。
+
+验收四主题正文16px、引用块前后几何/颜色不变、普通代码框6px/16px与真实明暗底色，包含真实TextMate服务加载后的内层、嵌套引用、长代码、窄栏、选区/折叠/复制和字号变更；主文与Shadow预览对照，代码token不变。原生Typora检查保存/撤销、代码框与图形、文档身份及布局；安装卸载和本机核对分别记证据，未测矩阵如实保留。
+
+2026-11-14补充：标题大小同样采用[固定Primer headings.scss](https://github.com/primer/css/blob/d0cdad70d6c936501e9f8520212e00d0c4589f69/src/markdown/headings.scss)。h1至h6分别为2/1.5/1.25/1/.875/.85em；已有比例相同，正文基准16px后为32/24/20/16/14/13.6px。保持相对单位，随正文有效字号同比调整；原生及共享预览逐级验收，标题颜色和引用块不变。

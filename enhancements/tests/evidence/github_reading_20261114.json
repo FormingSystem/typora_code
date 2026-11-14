@@ -1,0 +1,185 @@
+{
+  "requirements": [
+    "R074.10"
+  ],
+  "date": "2026-11-15",
+  "release": "2026.11.14.3",
+  "sources": {
+    "primer_css": "d0cdad70d6c936501e9f8520212e00d0c4589f69",
+    "primer_primitives": "47736486bf67b2a14ba1ada61fa0f57af29bb875"
+  },
+  "scope": "16px body; six relative heading sizes; ordinary code surface only; quotations and syntax owners retained.",
+  "core": {
+    "status": "PASS",
+    "run": "a5d1ae26c2c04bd48e3ed90ab1a8bd98",
+    "final_rebuild": "Only release wording changed after full core; deployment/bundle/document checks repeated."
+  },
+  "ui": {
+    "status": "PASS",
+    "theme_run": "4034b0f5e0ff4af5846a3d49470819fe",
+    "visual_run": "2a64cb983f2e4410b247ef14c230f194",
+    "visual_qa": "Light/dark Chromium screenshots inspected; all four theme geometry and native/Shadow equality asserted."
+  },
+  "native": {
+    "run": "4115c2b448ce4437bcce37a2e4882c02",
+    "setup": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "d66731b17ea84950fb3833eff9433239569377d1f5450f41bddba157c7f34c18",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "458a0a4fecb4b916ae6fa0fc06a77bb31f7d2012f54ee4d5b9da74361f300046",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "results": {
+      "status": "PASS",
+      "checks": [
+        "vscode_default_light.css body 16px",
+        "vscode_default_light.css quote border unchanged at host DPI",
+        "vscode_default_light.css heading 1 GitHub size",
+        "vscode_default_light.css heading 2 GitHub size",
+        "vscode_default_light.css heading 3 GitHub size",
+        "vscode_default_light.css heading 4 GitHub size",
+        "vscode_default_light.css heading 5 GitHub size",
+        "vscode_default_light.css heading 6 GitHub size",
+        "vscode_default_light.css GitHub code surface",
+        "vscode_default_light.css inner editor transparent",
+        "vscode_default_light.css gutter follows surface",
+        "vscode_default_light.css model and code preserved",
+        "vscode_default_light.css edit undo",
+        "vscode_2026_default_light.css body 16px",
+        "vscode_2026_default_light.css quote border unchanged at host DPI",
+        "vscode_2026_default_light.css heading 1 GitHub size",
+        "vscode_2026_default_light.css heading 2 GitHub size",
+        "vscode_2026_default_light.css heading 3 GitHub size",
+        "vscode_2026_default_light.css heading 4 GitHub size",
+        "vscode_2026_default_light.css heading 5 GitHub size",
+        "vscode_2026_default_light.css heading 6 GitHub size",
+        "vscode_2026_default_light.css GitHub code surface",
+        "vscode_2026_default_light.css inner editor transparent",
+        "vscode_2026_default_light.css gutter follows surface",
+        "vscode_2026_default_light.css model and code preserved",
+        "vscode_2026_default_light.css edit undo",
+        "vscode_default_dark.css body 16px",
+        "vscode_default_dark.css quote border unchanged at host DPI",
+        "vscode_default_dark.css heading 1 GitHub size",
+        "vscode_default_dark.css heading 2 GitHub size",
+        "vscode_default_dark.css heading 3 GitHub size",
+        "vscode_default_dark.css heading 4 GitHub size",
+        "vscode_default_dark.css heading 5 GitHub size",
+        "vscode_default_dark.css heading 6 GitHub size",
+        "vscode_default_dark.css GitHub code surface",
+        "vscode_default_dark.css inner editor transparent",
+        "vscode_default_dark.css gutter follows surface",
+        "vscode_default_dark.css model and code preserved",
+        "vscode_default_dark.css edit undo",
+        "vscode_2026_default_dark.css body 16px",
+        "vscode_2026_default_dark.css quote border unchanged at host DPI",
+        "vscode_2026_default_dark.css heading 1 GitHub size",
+        "vscode_2026_default_dark.css heading 2 GitHub size",
+        "vscode_2026_default_dark.css heading 3 GitHub size",
+        "vscode_2026_default_dark.css heading 4 GitHub size",
+        "vscode_2026_default_dark.css heading 5 GitHub size",
+        "vscode_2026_default_dark.css heading 6 GitHub size",
+        "vscode_2026_default_dark.css GitHub code surface",
+        "vscode_2026_default_dark.css inner editor transparent",
+        "vscode_2026_default_dark.css gutter follows surface",
+        "vscode_2026_default_dark.css model and code preserved",
+        "vscode_2026_default_dark.css edit undo",
+        "saved content font owner still handles changes",
+        "heading 1 follows body size",
+        "heading 2 follows body size",
+        "heading 3 follows body size",
+        "heading 4 follows body size",
+        "heading 5 follows body size",
+        "heading 6 follows body size",
+        "source bytes preserved"
+      ],
+      "samples": [
+        {
+          "theme": "vscode_default_light.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(248, 248, 248)",
+          "background": "rgb(246, 248, 250)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_2026_default_light.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(234, 234, 234)",
+          "background": "rgb(246, 248, 250)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_default_dark.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(43, 43, 43)",
+          "background": "rgb(21, 27, 35)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_2026_default_dark.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(36, 37, 38)",
+          "background": "rgb(21, 27, 35)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    }
+  },
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "4906760de5344409b33ca9b60cfe4336",
+    "scope": "Public install/check/restore uninstall/reinstall/check/detach uninstall/reinstall/check; original backups, settings, document and storage preserved; owned payload cleaned."
+  },
+  "uninstall": {
+    "status": "PASS",
+    "assertions": 65,
+    "run": "e5e981ded5f841239feb7b46afc25de9"
+  },
+  "local_install": {
+    "status": "PASS",
+    "sequence": 2026111403,
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected_files": 9,
+    "candidate_manifest": "d66731b17ea84950fb3833eff9433239569377d1f5450f41bddba157c7f34c18"
+  },
+  "local_check": "PASS; public check and read-only uninstall preflight before/after installation; running user windows not restarted.",
+  "earlier_failed_attempts": [
+    {
+      "run": "0427615ef2cc4712a9598103721e894f",
+      "cause": "Catalog validator recognizes generated heading anchors only; corrected catalog link to authoritative document."
+    },
+    {
+      "run": "567eb13b799d4b4a9acb4303feea29d6",
+      "cause": "Fixture assumed computed 5px border; host DPI rounds to 4.57143px. Now compares same-DPI 5px probe; stylesheet unchanged."
+    },
+    {
+      "run": "39caf41d4f9b4d389cfe9098fcd8dd43",
+      "cause": "Fixture used CodeMirror undo instead of native ClientCommand.undo; final fixture uses existing host owner and waits for document update."
+    }
+  ],
+  "limits": [
+    "Native font wheel is a dispatched renderer event, not physical mouse input.",
+    "No new complete folding/selection/long-document/platform matrix; full core and visual regression scopes recorded above.",
+    "User saved font offsets and theme overrides remain authoritative; base sizes assume default content scale.",
+    "Earlier R087.8 pressure timeout and unrelated historical pending items remain open."
+  ],
+  "commit": "Local delivery; associated source commit is recorded by Git history. No push."
+}

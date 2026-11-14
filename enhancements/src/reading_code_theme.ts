@@ -45,6 +45,8 @@ export function load_code_themes(){return loading ||= (async()=>{
  modes.forEach((mode,index)=>{
   const prefix=`:root[data-workspace-code-theme=${mode}] #write`,colors=themes[mode].colors;
   css.push(`${prefix} :is(.md-fences:not(.md-diagram),.CodeMirror,pre:not(.md-diagram),pre code){color:${colors['editor.foreground']}!important;background-color:${colors['editor.background']}!important}`,`${prefix} .CodeMirror-linenumber{color:${colors['editorLineNumber.foreground']}!important}`);
+  // Markdown surfaces follow the reader theme; tokens and standalone source editors keep their palette.
+  css.push(`${prefix} :is(.md-fences:not(.md-diagram),pre:not(.md-diagram,.CodeMirror-line,.CodeMirror-line-like)){background-color:var(--theme-code,${colors['editor.background']})!important}`,`${prefix} :is(.md-fences:not(.md-diagram) .CodeMirror,pre:not(.md-diagram) code){background-color:transparent!important}`);
   css.push(`${prefix} :where(.CodeMirror-line span,pre code span){color:${colors['editor.foreground']}!important}`);
   // Map the host fallback token first; the precise metadata rules of real TextMate are arranged after that.
   for(const key of Object.keys(fallback_scopes)){

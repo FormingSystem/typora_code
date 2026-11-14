@@ -3,9 +3,10 @@
 :root { --monospace: Consolas, "Courier New", monospace; }
 html { font-size: 14px; }
 body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(--text-color); background: var(--bg-color); }
-#write { max-width: none; margin: 0 auto; padding: 16px 26px 40px; font-size: 14px; line-height: 22px; word-wrap: break-word; }
+#write { max-width: none; margin: 0 auto; padding: 16px 26px 40px; font-size: 16px; line-height: 22px; word-wrap: break-word; }
 #write :is(h1,h2,h3,h4,h5,h6,p,ol,ul,pre:not(.CodeMirror-line,.CodeMirror-line-like)) { margin-top: 0; }
 #write :is(h1,h2,h3,h4,h5,h6) { color: var(--theme-heading); font-weight: 600; margin-top: 24px; margin-bottom: 16px; line-height: 1.25; }
+/* Heading ratios match Primer CSS d0cdad7 src/markdown/headings.scss. */
 #write h1 { font-size: 2em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
 #write h2 { font-size: 1.5em; padding-bottom: .3em; border-bottom: 1px solid var(--theme-border); }
 #write h3 { font-size: 1.25em; }
@@ -27,7 +28,8 @@ body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(-
 #write th { background: var(--theme-table); }
 #write :is(code,tt,kbd), .md-fences, .CodeMirror { font-family: var(--monospace); }
 #write :is(code,tt) { color: var(--theme-inline-text); background: var(--theme-inline); padding: .2em .4em; border-radius: 3px; }
-#write .md-fences { margin: 16px 0; padding: 16px; border-radius: 3px; color: var(--text-color); background: var(--theme-code); }
+/* R074.10: Primer CSS d0cdad7 code surface; syntax and wrapping remain editor-owned. */
+#write :is(.md-fences,pre:not(.CodeMirror-line,.CodeMirror-line-like)) { margin: 0 0 16px; padding: 16px; border: 0; border-radius: 6px; color: var(--text-color); background: var(--theme-code); }
 #write pre code { padding: 0; background: transparent; }
 #write img { max-width: 100%; }
 #write mark { color: var(--text-color); background: var(--search-select-bg-color); }

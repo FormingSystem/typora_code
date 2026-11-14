@@ -7752,7 +7752,8 @@
         "R074.5",
         "R065.2",
         "R074.7",
-        "R074.9"
+        "R074.9",
+        "R074.10"
       ],
       "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
@@ -10527,6 +10528,42 @@
         "All assertions pass; source retained on failure"
       ],
       "timeout_ms": 240000
+    },
+    {
+      "id": "TC-reading-github-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R074.10"
+      ],
+      "design": "docs/workspace_colors.md",
+      "implementation": [
+        "vscode_default/base.css",
+        "enhancements/src/reading_code_theme.ts",
+        "enhancements/src/reading_code_editor_colors.ts",
+        "enhancements/fixtures/github_reading_native.js"
+      ],
+      "related_modules": [
+        "reading",
+        "theme",
+        "preview",
+        "code",
+        "zoom"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "fixture": "enhancements/fixtures/github_reading_native.js",
+      "environment": "Windows private desktop, verified Typora 1.14.15",
+      "preconditions": "Isolated host and profile, preserve user windows.",
+      "steps": [
+        "Load four owned themes and inspect body, all six heading sizes, unchanged quotation border, CodeMirror and gutter geometry and colors.",
+        "Use native CodeMirror to edit, undo and save; verify Markdown identity and content font adjustment."
+      ],
+      "expected": [
+        "16px body and GitHub relative heading ratios, preserved quotation border at actual host DPI, 6px code corners, 16px padding and GitHub light/dark backgrounds.",
+        "CodeMirror model and source text survive theme changes; all headings follow content font gestures; native edit/undo/save retain source bytes."
+      ],
+      "timeout_ms": 180000
     }
   ]
 }

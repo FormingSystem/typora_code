@@ -17,7 +17,7 @@ export function code_editor_state_css(mode:'light'|'dark'|'dark_2026'|'light_202
  rule('.CodeMirror-focused .CodeMirror-selected',`background-color:${color('editor.selectionBackground','#ADD6FF','#264F78')}!important`);
  rule(' .CodeMirror-selectedtext','background-color:transparent!important;text-shadow:none!important');
  rule(' ::selection',`background-color:${color('editor.selectionBackground','#ADD6FF','#264F78')}!important`);
- rule(' :is(.CodeMirror-gutters,.CodeMirror-gutter-filler,.CodeMirror-scrollbar-filler)',`background-color:${background}!important;border-color:transparent!important`);
+ rule(' :is(.CodeMirror-gutters,.CodeMirror-gutter-filler,.CodeMirror-scrollbar-filler)',`background-color:var(--theme-code,${background})!important;border-color:transparent!important`);
  rule(' .CodeMirror-activeline-gutter .CodeMirror-linenumber',`color:${colors['editorLineNumber.activeForeground']}!important`);
  rule(' .CodeMirror-activeline-background',`background-color:${color('editor.lineHighlightBackground','transparent')}!important;box-shadow:inset 0 0 0 1px ${color('editor.lineHighlightBorder','#EEEEEE','#282828')}`);
  rule(' .CodeMirror-matchingbracket',`background-color:${color('editorBracketMatch.background','#0064001A')}!important;outline:1px solid ${color('editorBracketMatch.border','#B9B9B9','#888888')};outline-offset:-1px`);

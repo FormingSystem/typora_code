@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111403,
+      "version": "2026.11.14.3",
+      "date": "2026-11-14",
+      "notes": [
+        "四个自有主题采用GitHub的16px正文字号及六级标题比例，代码框采用GitHub明暗背景、6px圆角和16px内边距；保留引用块、文件名字号与代码高亮。"
+      ],
+      "notes_en": [
+        "The four owned themes use GitHub’s 16px body size and six heading ratios, plus code-box backgrounds, 6px corners and 16px padding; quotations, filename typography and syntax highlighting are preserved."
+      ]
+    },
+    {
       "sequence": 2026111402,
       "version": "2026.11.14.2",
       "date": "2026-11-14",

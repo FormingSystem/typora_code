@@ -187436,7 +187436,7 @@ https://creativecommons.org/licenses/by/4.0/
     rule(".CodeMirror-focused .CodeMirror-selected", "background-color:".concat(color("editor.selectionBackground", "#ADD6FF", "#264F78"), "!important"));
     rule(" .CodeMirror-selectedtext", "background-color:transparent!important;text-shadow:none!important");
     rule(" ::selection", "background-color:".concat(color("editor.selectionBackground", "#ADD6FF", "#264F78"), "!important"));
-    rule(" :is(.CodeMirror-gutters,.CodeMirror-gutter-filler,.CodeMirror-scrollbar-filler)", "background-color:".concat(background, "!important;border-color:transparent!important"));
+    rule(" :is(.CodeMirror-gutters,.CodeMirror-gutter-filler,.CodeMirror-scrollbar-filler)", "background-color:var(--theme-code,".concat(background, ")!important;border-color:transparent!important"));
     rule(" .CodeMirror-activeline-gutter .CodeMirror-linenumber", "color:".concat(colors["editorLineNumber.activeForeground"], "!important"));
     rule(" .CodeMirror-activeline-background", "background-color:".concat(color("editor.lineHighlightBackground", "transparent"), "!important;box-shadow:inset 0 0 0 1px ").concat(color("editor.lineHighlightBorder", "#EEEEEE", "#282828")));
     rule(" .CodeMirror-matchingbracket", "background-color:".concat(color("editorBracketMatch.background", "#0064001A"), "!important;outline:1px solid ").concat(color("editorBracketMatch.border", "#B9B9B9", "#888888"), ";outline-offset:-1px"));
@@ -187481,6 +187481,7 @@ https://creativecommons.org/licenses/by/4.0/
       modes.forEach((mode, index) => {
         const prefix = ":root[data-workspace-code-theme=".concat(mode, "] #write"), colors = resolved_default[mode].colors;
         css.push("".concat(prefix, " :is(.md-fences:not(.md-diagram),.CodeMirror,pre:not(.md-diagram),pre code){color:").concat(colors["editor.foreground"], "!important;background-color:").concat(colors["editor.background"], "!important}"), "".concat(prefix, " .CodeMirror-linenumber{color:").concat(colors["editorLineNumber.foreground"], "!important}"));
+        css.push("".concat(prefix, " :is(.md-fences:not(.md-diagram),pre:not(.md-diagram,.CodeMirror-line,.CodeMirror-line-like)){background-color:var(--theme-code,").concat(colors["editor.background"], ")!important}"), "".concat(prefix, " :is(.md-fences:not(.md-diagram) .CodeMirror,pre:not(.md-diagram) code){background-color:transparent!important}"));
         css.push("".concat(prefix, " :where(.CodeMirror-line span,pre code span){color:").concat(colors["editor.foreground"], "!important}"));
         for (const key4 of Object.keys(fallback_scopes)) {
           const aliases2 = { variable: ["variable-2"], type: ["variable-3", "qualifier"], string: ["string-2"], meta: ["metatag"], def: ["function"] };
@@ -270556,6 +270557,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026111403,
+        version: "2026.11.14.3",
+        date: "2026-11-14",
+        notes: [
+          "\u56DB\u4E2A\u81EA\u6709\u4E3B\u9898\u91C7\u7528GitHub\u768416px\u6B63\u6587\u5B57\u53F7\u53CA\u516D\u7EA7\u6807\u9898\u6BD4\u4F8B\uFF0C\u4EE3\u7801\u6846\u91C7\u7528GitHub\u660E\u6697\u80CC\u666F\u30016px\u5706\u89D2\u548C16px\u5185\u8FB9\u8DDD\uFF1B\u4FDD\u7559\u5F15\u7528\u5757\u3001\u6587\u4EF6\u540D\u5B57\u53F7\u4E0E\u4EE3\u7801\u9AD8\u4EAE\u3002"
+        ],
+        notes_en: [
+          "The four owned themes use GitHub\u2019s 16px body size and six heading ratios, plus code-box backgrounds, 6px corners and 16px padding; quotations, filename typography and syntax highlighting are preserved."
+        ]
+      },
       {
         sequence: 2026111402,
         version: "2026.11.14.2",
