@@ -10493,13 +10493,16 @@
         "R087.2",
         "R087.4",
         "R087.5",
-        "R087.6"
+        "R087.6",
+        "R087.7"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [
         "enhancements/src/visual_code_sandbox.ts",
         "enhancements/src/visual_code_view.ts",
-        "enhancements/src/reading_visual_code.ts"
+        "enhancements/src/reading_visual_code.ts",
+        "enhancements/src/reading_svg_source.ts",
+        "enhancements/src/visual_code_export.ts"
       ],
       "related_modules": [
         "reading",

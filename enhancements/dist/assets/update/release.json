@@ -2,6 +2,19 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111401,
+      "version": "2026.11.14.1",
+      "date": "2026-11-14",
+      "notes": [
+        "标准Markdown引用的本地SVG可从悬停菜单打开源文件编辑，保存后更新图形；支持保留源文件的SVG及PNG导出。",
+        "SVG代码块继续支持源码编辑，并新增PNG导出。"
+      ],
+      "notes_en": [
+        "Open linked local SVG source files from the image hover menu; saving refreshes the diagram. Export SVG or PNG while protecting the source file.",
+        "SVG fences retain source editing and now also export PNG."
+      ]
+    },
+    {
       "sequence": 2026110304,
       "version": "2026.11.03.4",
       "date": "2026-11-03",

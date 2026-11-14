@@ -6,6 +6,7 @@ import {capture_image_alignment,read_image_alignment} from "./reading_image_nati
 import {IMAGE_ALIGNMENT_VALUES,reading_image_alignment_labels,type image_alignment} from "./reading_image_settings";
 import {get_workspace_app} from "./workspace_bootstrap";
 import {reading_image_natural_width} from './reading_image_dimensions';
+import {create_reading_svg_controls} from './reading_svg_source';
 
 /** Match the containing content box used by percentage image widths. */
 function image_scale_limit(image:HTMLImageElement){
@@ -19,6 +20,7 @@ function image_scale_limit(image:HTMLImageElement){
 }
 
 export function create_reading_image_controls(image:HTMLImageElement){
+  const svg=create_reading_svg_controls(image);
   const group=el('div','reading-image-scale'),input=el('input'),suffix=el('span','','%');
   input.type='number';input.min='20';input.max='600';input.step='any';input.setAttribute('aria-label',workspace_text('image_layout_scale'));input.title=workspace_text('image_layout_scale_description');
   let editing=false;
@@ -62,5 +64,6 @@ export function create_reading_image_controls(image:HTMLImageElement){
   const release=observe_reading_image_settings(sync);sync();
   const scale_row=el('div','reading-image-control-row'),global_row=el('div','reading-image-control-row'),single_row=el('div','reading-image-control-row');
   scale_row.append(group,reset,fit);global_row.append(global_caption,...global_buttons);single_row.append(single_caption,...single_buttons);
-  return {controls:[scale_row,global_row,single_row],refresh:sync,cancel,dispose(){events.abort();release();gesture?.cancel();}};
+  svg.refresh();
+  return {controls:[scale_row,global_row,single_row,svg.row],refresh(){sync();svg.refresh();},cancel,dispose(){events.abort();release();gesture?.cancel();svg.dispose();}};
 }

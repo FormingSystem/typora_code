@@ -248,3 +248,15 @@ The sandbox measures content and notifies its parent, which lays out the measure
 ## R087.6 Caching SVG fences while scrolling
 
 Native static SVG fences release the renderer offscreen and cache the sanitized vector result. Returning shows the natural-size diagram with editing, enlargement and export available. The offscreen cache evicts least recently used entries above 4 MiB or 128 diagrams. Source, model, language, theme changes and manual refresh invalidate old results. Disposal clears ownership. Pending, failed and oversized diagrams render normally; other engines and interactive content retain existing behavior. Verify scroll round trips, geometry and invalidation.
+
+<a id="r087-linked-svg"></a>
+
+## R087.7 Linked SVG source and image export
+
+2026-11-14
+
+Standard Markdown image references retain native image rendering without inserting SVG text or introducing custom reference syntax. The SVG file is the authoritative source. Hover actions open that resource through the shared file service, preserving dirty-document protection and saving. Only SVGs with a resolved local file identity offer source editing and export; historical, remote URL and anonymous snapshots must not infer a current workspace path.
+
+Saved-file notifications decode the same displayed resource again. Changed sources, document switches and disposal invalidate late results and release object URLs without changing the Markdown model. Existing natural sizing, zoom and enlargement remain. PNG export uses passive browser image decoding and a bounded canvas with explicit failures; SVG export preserves the source and cannot overwrite it. Native Save As cancellation or stale owners do not write. SVG fences retain their editor and share PNG export.
+
+Validate resolved Unicode/space paths, real source open/save/return, transparent PNG pixels and dimensions, original SVG export, cancellation/errors/stale results/cleanup, dynamic images and ordinary image/fence regressions. Record native and Electron stub boundaries separately; scripted or externally dependent SVGs are not guaranteed export fidelity.

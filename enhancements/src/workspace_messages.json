@@ -8202,5 +8202,21 @@
   "visual_code_export": {
     "zh_cn": "导出 SVG",
     "en": "Export SVG"
+  },
+  "svg_source_edit": {
+    "zh_cn": "编辑 SVG 源文件",
+    "en": "Edit SVG source file"
+  },
+  "visual_code_export_png": {
+    "zh_cn": "导出 PNG",
+    "en": "Export PNG"
+  },
+  "svg_export_source_protected": {
+    "zh_cn": "请选择其他文件，导出不能覆盖 SVG 源文件。",
+    "en": "Choose another file; export cannot overwrite the SVG source."
+  },
+  "svg_export_size_limit": {
+    "zh_cn": "无法导出此尺寸的图片；每边最多16384像素，总计最多32兆像素。",
+    "en": "Cannot export this image size; maximum 16384 pixels per side and 32 megapixels total."
   }
 }

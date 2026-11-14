@@ -1,4 +1,4 @@
-import {export_visual_svg} from './visual_code_export';
+import {export_visual_svg,export_visual_png} from './visual_code_export';
 import {get_workspace_files} from './workspace_files';
 import {create_visual_sandbox} from './visual_code_sandbox';
 import {interactive_visual,visual_code_format,visual_code_language} from './visual_code_formats';
@@ -26,8 +26,8 @@ export function create_visual_code_view(format:string,source:string,options:visu
  const capture=()=>sandbox?sandbox.capture():cached_blob?.text();
  const show_source=()=>{entry.collapse();if(options.edit_source)options.edit_source();else source_view.hidden=!source_view.hidden;};
  const run=()=>{
-  if(disposed)return;if(format==='svg')rendered_theme=theme_key();entry.collapse();const current=++revision;sandbox?.dispose();sandbox=undefined;release_cached();output.replaceChildren();svg='';error.textContent='';root.dataset.visualState='loading';launch.hidden=true;entry.button.disabled=true;save.disabled=true;
-  sandbox=create_visual_sandbox(output,format,source,value=>{if(disposed||current!==revision)return;if(value.error){sandbox?.dispose();error.textContent=workspace_text('visual_code_failed',{value_0:value.error});if(!options.edit_source)source_view.hidden=false;root.dataset.visualState='error';}if(value.svg)svg=value.svg;if(value.ready)root.dataset.visualState='ready';entry.button.disabled=!svg;save.disabled=!svg;});
+  if(disposed)return;if(format==='svg')rendered_theme=theme_key();entry.collapse();const current=++revision;sandbox?.dispose();sandbox=undefined;release_cached();output.replaceChildren();svg='';error.textContent='';root.dataset.visualState='loading';launch.hidden=true;entry.button.disabled=true;save.disabled=true;save_png.disabled=true;
+  sandbox=create_visual_sandbox(output,format,source,value=>{if(disposed||current!==revision)return;if(value.error){sandbox?.dispose();error.textContent=workspace_text('visual_code_failed',{value_0:value.error});if(!options.edit_source)source_view.hidden=false;root.dataset.visualState='error';}if(value.svg)svg=value.svg;if(value.ready)root.dataset.visualState='ready';entry.button.disabled=!svg;save.disabled=!svg;save_png.disabled=!svg;});
   sandbox.frame.style.pointerEvents=interactive_visual(format)?'auto':'none';
  };
  const launch=workspace_button(workspace_text('visual_code_run'),run);launch.hidden=true;root.append(launch);
@@ -37,7 +37,8 @@ export function create_visual_code_view(format:string,source:string,options:visu
  const enlarge=()=>{void (async()=>{const current=revision;const captured=await capture();if(disposed||current!==revision||!captured)return;if(url)URL.revokeObjectURL(url);url=URL.createObjectURL(new Blob([captured],{type:'image/svg+xml'}));
   const image=new Image();image.src=url;image.onload=()=>{if(!disposed&&current===revision)close=open_reading_media({content:image,source:root,width:image.naturalWidth,height:image.naturalHeight,label:format,initial_fit:true});};})();};
  const save=workspace_button(workspace_text('visual_code_export'),()=>{const current=revision;void (async()=>{const snapshot=await capture();if(snapshot&&current===revision&&!disposed)await export_visual_svg(snapshot,()=>!disposed&&current===revision);})().catch(failure=>{error.textContent=workspace_text('visual_code_failed',{value_0:String(failure.message||failure)});});});
- const controls=el('div','reading-image-control-row');for(const button of [source_button,copy,run_button,save])button.classList.add('reading-media-open');controls.append(source_button,copy,run_button,save);save.disabled=true;
+ const save_png=workspace_button(workspace_text('visual_code_export_png'),()=>{const current=revision;void (async()=>{const snapshot=await capture();if(snapshot&&current===revision&&!disposed)await export_visual_png(snapshot,()=>!disposed&&current===revision);})().catch(failure=>{error.textContent=workspace_text('visual_code_failed',{value_0:String(failure.message||failure)});});});
+ const controls=el('div','reading-image-control-row');for(const button of [source_button,copy,run_button,save,save_png])button.classList.add('reading-media-open');controls.append(source_button,copy,run_button,save,save_png);save.disabled=true;save_png.disabled=true;
  const entry=media.add({source:root,host:root,label:workspace_text('visual_code_enlarge'),controls_label:workspace_text('visual_code_actions'),button_class:'visual-code-enlarge',controls:[controls],open:enlarge});entry.button.disabled=true;
  const activate=(event:MouseEvent)=>{if(!interactive_visual(format)&&options.edit_source&&event.button===0){event.preventDefault();event.stopPropagation();options.edit_source();}};
  root.addEventListener('mousedown',activate);
@@ -47,7 +48,7 @@ export function create_visual_code_view(format:string,source:string,options:visu
    const blob=snapshot.blob;rendered_theme=snapshot.theme;
    cached_blob=blob;cached_url=URL.createObjectURL(blob);const current=revision,image=new Image(),host=el('div');host.attachShadow({mode:'closed'}).append(image);
    image.alt=format;image.style.cssText='display:block;max-width:100%;height:auto';output.append(host);root.dataset.visualState='loading';
-   image.onload=()=>{if(!disposed&&current===revision){root.dataset.visualState='ready';entry.button.disabled=false;save.disabled=false;}};
+   image.onload=()=>{if(!disposed&&current===revision){root.dataset.visualState='ready';entry.button.disabled=false;save.disabled=false;save_png.disabled=false;}};
    image.onerror=()=>{if(!disposed&&current===revision)run();};image.src=cached_url;
   }else if(!interactive_visual(format))run();else{root.dataset.visualState='idle';launch.hidden=false;}},dispose(){if(disposed)return;disposed=true;++revision;release_cached();unwatch();sandbox?.dispose();entry.dispose();owned_media?.dispose();interaction.remove();root.removeEventListener('mousedown',activate);close?.();if(url)URL.revokeObjectURL(url);style.remove();root.remove();}};
 }

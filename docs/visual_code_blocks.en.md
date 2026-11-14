@@ -152,3 +152,9 @@ button.textContent = 'Click';
 button.onclick = () => button.textContent = 'Done';
 root.append(button);
 ```
+
+### Edit linked SVG source and export PNG
+
+Use `![Description](assets/diagram.svg)` to keep only a reference in Markdown. Hover the diagram, expand More and choose Edit SVG source file. Edit and save its source tab, then return to Markdown to see the result. Displayed references also refresh on this window's saved-file notifications. Relative paths remain relative to the Markdown file.
+
+The same menu offers Export SVG and Export PNG. SVG preserves the original source; PNG is a static image retaining transparency. Export cannot overwrite the source SVG. Fence menus also offer Export PNG while retaining source editing. Cancellation writes nothing. Export reports failure above 16384 pixels per side or 32 megapixels total; external fonts/images and scripts are not guaranteed to rasterize completely. Network images and historical snapshots without a local file identity do not offer source editing.

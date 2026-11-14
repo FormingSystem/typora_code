@@ -45,8 +45,28 @@
   await wait(()=>document.querySelector('#write img')?.naturalWidth===640,'relative SVG image decoded');await pause(200);
   const portable_image=document.querySelector('#write img');await wait(()=>getComputedStyle(portable_image).getPropertyValue('--reading-image-natural-width').trim()==='640px','portable image dimensions applied');
   const portable_style=getComputedStyle(portable_image),portable_border=['borderLeftWidth','borderRightWidth','paddingLeft','paddingRight'].reduce((sum,key)=>sum+(parseFloat(portable_style[key])||0),0);
-  fs.writeFileSync(path.join(base,'portable-image.json'),JSON.stringify({natural:portable_image.naturalWidth,rect:portable_image.getBoundingClientRect().toJSON(),border:portable_border,settings:core.app.settings.get('reading_images')},null,2));
+  fs.writeFileSync(path.join(base,'portable-image.json'),JSON.stringify({source:portable_image.src,current:portable_image.currentSrc,html:portable_image.outerHTML,wrapper:portable_image.parentElement.outerHTML,natural:portable_image.naturalWidth,rect:portable_image.getBoundingClientRect().toJSON(),border:portable_border,settings:core.app.settings.get('reading_images')},null,2));
   assert(portable_image.getBoundingClientRect().width-portable_border<=640.5,'linked SVG does not stretch');assert(fs.readFileSync(portable_doc,'utf8')===portable_text,'portable image keeps Markdown reference');
+  portable_image.dispatchEvent(new PointerEvent('pointerenter'));await pause(300);
+  const svg_action=label=>[...document.querySelectorAll('.reading-image-panel button')].find(button=>button.textContent===label);
+  await wait(()=>svg_action('编辑 SVG 源文件'),'linked source action');
+  assert(!svg_action('编辑 SVG 源文件').parentElement.hidden,'SVG source row visible');
+  const exported_svg=path.join(base,'linked-export.svg'),exported_png=path.join(base,'linked-export.png'),invoke=JSBridge.invoke;
+  try{
+   JSBridge.invoke=async function(command,...args){if(command==='dialog.showSaveDialog')return {filePath:args[0].defaultPath.endsWith('.png')?exported_png:exported_svg};return invoke.call(this,command,...args);};
+   svg_action('导出 SVG').click();await wait(()=>fs.existsSync(exported_svg),'linked SVG export');assert(fs.readFileSync(exported_svg,'utf8')===fs.readFileSync(portable_svg,'utf8'),'linked export preserves SVG source');
+   svg_action('导出 PNG').click();await wait(()=>fs.existsSync(exported_png),'linked PNG export');assert(fs.readFileSync(exported_png).subarray(0,8).toString('hex')==='89504e470d0a1a0a','linked PNG signature');
+  }finally{JSBridge.invoke=invoke;}
+  svg_action('编辑 SVG 源文件').click();await wait(()=>files.current_file()===portable_svg,'linked source editor opened');
+  await wait(()=>core.app.workspace.activeLeaf?.view?.editor?.focused_editor()?.getModel(),'SVG source model ready');
+  const source_leaf=core.app.workspace.activeLeaf,source_view=source_leaf.view;
+  fs.writeFileSync(path.join(base,'svg-source-view.json'),JSON.stringify({keys:Object.keys(source_view),source:portable_image.src}));
+  const source_editor=source_view.editor?.focused_editor();assert(!!source_editor?.getModel(),'SVG opens editable source model');
+  source_editor.getModel().setValue('<svg xmlns="http://www.w3.org/2000/svg" width="123" height="45"><rect width="20" height="20" fill="red"/></svg>');
+  await files.save_active();assert(fs.readFileSync(portable_svg,'utf8').includes('width="123"'),'SVG source save writes referenced resource');
+  await files.open_file(portable_doc);await wait(()=>File.bundle.filePath===portable_doc&&!File.isFileLoading(),'return to linked Markdown');
+  await wait(()=>document.querySelector('#write img')?.naturalWidth===123,'saved SVG redecoded on return');
+  await files.save_active();assert(fs.readFileSync(portable_doc,'utf8')===portable_text,'source edit/export do not expand Markdown reference');
   const cache_file=path.join(base,'workspace','scroll-cache.md'),cache_text='# Cache\n\n```svg\n'+samples.svg+'\n```\n\n'+Array.from({length:150},(_,i)=>'Paragraph '+i+'.\n\n').join('');
   fs.writeFileSync(cache_file,cache_text,'utf8');await files.open_file(cache_file);
   await wait(()=>File.bundle.filePath===cache_file&&!File.isFileLoading(),'cache document');

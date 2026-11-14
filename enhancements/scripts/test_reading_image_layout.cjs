@@ -16,7 +16,7 @@ app.whenReady().then(async()=>{
   assert(panel.hidden&&more.getAttribute('aria-expanded')==='false','image controls initially collapsed without selection');
   assert(more.closest('.reading-media-entry').getBoundingClientRect().width===56,'collapsed toolbar only 56 CSS pixels');
   more.click();await pause(40);assert(!panel.hidden&&more.getAttribute('aria-expanded')==='true','More expands controls');
-  assert(panel.getBoundingClientRect().width<=340&&panel.querySelectorAll('.reading-image-control-row').length===3,'controls grouped in bounded rows');
+  assert(panel.getBoundingClientRect().width<=340&&[...panel.querySelectorAll('.reading-image-control-row')].filter(row=>!row.hidden).length===3,'controls grouped in bounded rows');
   for(const type of ['keydown','keyup'])more.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));
   assert(panel.hidden&&document.activeElement===more,'Escape closes disclosure and restores trigger focus');
   more.click();await pause(40);

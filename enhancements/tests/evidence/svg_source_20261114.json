@@ -1,0 +1,83 @@
+{
+  "requirements": [
+    "R087.7"
+  ],
+  "release": "2026.11.14.1",
+  "date": "2026-11-14",
+  "manifest_sha256": "8d437c7727f7da2a86e8647bf40cda2a8cf52a787cbb36e60289156eb235327f",
+  "core": {
+    "status": "PASS",
+    "run": "7cc2c661cf69425cbd9d3203bca897e4",
+    "scope": "Full core checks; final local-image URL identity adjustment subsequently covered by targeted UI and native checks."
+  },
+  "ui": {
+    "status": "PASS",
+    "visual_run": "19697a2db7e14e4b9587c61dbf519340",
+    "image_run": "c37d76fcb34949a9901c76f10a3f7c4f",
+    "scope": "15 engines, native/Shadow controls, linked Unicode file identity, source-open port, same-image saved notification refresh and disposal, PNG dimensions/transparency, cancel, stale owner and source overwrite protection; existing image alignment/density/20-100-1000 lifecycle."
+  },
+  "native": {
+    "status": "PASS",
+    "run": "8bcdafc6273f4f39a901947c7d3996a5",
+    "host": "Typora 1.14.15 Windows x64",
+    "checks": 78,
+    "scope": "Real source editor open/edit/save and Markdown return, updated diagram, unchanged Markdown reference, original SVG export and PNG signature, existing fence edit/save/undo and 60 trusted source activations. Save dialog result is controlled; physical Save As navigation was not tested.",
+    "payload": "cleaned"
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "4b1448da33d44cf6a1f54842a0eec40f",
+    "checks": 65,
+    "payload": "cleaned"
+  },
+  "prior_failed_runs": [
+    {
+      "run": "9556e8de12ff4319bf87c1d54454ea43",
+      "reason": "PNG cancellation assertion compared different encoders; fixed to original bytes."
+    },
+    {
+      "run": "293f1e40a6a24c358a9d072d4f8649e0",
+      "reason": "Data URL test page cannot decode local file; moved fixture to real local HTML."
+    },
+    {
+      "run": "7962311fc6ed49168c84b7fb32326e3c",
+      "reason": "Stale currentSrc after source switch exposed identity bug; use authored resolved src."
+    },
+    {
+      "run": "3d20f7356b95499683fc0d94bbcb3662",
+      "reason": "Native lastModify query prevented source action; verified URL and excluded cache query from identity."
+    },
+    {
+      "run": "632b3e0813b34c19acf28cb7142cbf93",
+      "reason": "Same native identity issue retained for URL evidence."
+    },
+    {
+      "run": "e3825249fca94fd7940cb7a1f09a01c8",
+      "reason": "Fixture inspected editor before asynchronous model load; wait for actual model."
+    }
+  ],
+  "limits": [
+    "Local file-backed SVG references only; historical and anonymous/network images do not infer editable local sources.",
+    "PNG max 16384 pixels per side and 32 megapixels; external SVG dependencies and scripts not guaranteed.",
+    "Windows x64 validated; other platforms and full theme/language/physical Save As interaction matrix not verified.",
+    "User windows are not restarted automatically; historical unrelated open requirements remain open."
+  ],
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "0ccf1f22c1c24d30a671c531ea804722",
+    "payload": "cleaned",
+    "scope": "Final manifest: install/check/backup restore uninstall/reinstall/check/detach uninstall/reinstall/check; document, settings, storage and original backups preserved."
+  },
+  "installed": {
+    "sequence": 2026111401,
+    "asset_counts": [
+      216,
+      24
+    ],
+    "protected_existing_unchanged": 13,
+    "installer_exit": 0,
+    "user_windows_restarted": false,
+    "standard_check": "PASS",
+    "uninstall_readonly_preflight": "PASS"
+  }
+}
