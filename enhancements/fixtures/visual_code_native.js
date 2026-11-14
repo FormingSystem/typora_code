@@ -38,15 +38,30 @@
 
    }
   }
+  const readable_svg=path.join(base,'workspace','readable.svg'),readable_doc=path.join(base,'workspace','readable.md');
+  const readable_source='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 120"><rect width="280" height="120" fill="white"/><g font-size="19"><text x="10" y="40">硬件与驱动</text><text x="10" y="70">第二行保持</text></g></svg>';
+  fs.writeFileSync(readable_svg,readable_source,'utf8');
+  const readable_text='# Readable diagrams\n\nBody text.\n\n![Readable](readable.svg)\n\n```mermaid\nflowchart TD\n A[硬件身份] --> B[应用与驱动]\n```\n';fs.writeFileSync(readable_doc,readable_text,'utf8');await files.open_file(readable_doc);
+  await wait(()=>File.bundle.filePath===readable_doc&&!File.isFileLoading(),'readable document');
+  await wait(()=>document.querySelector('#write img')&&getComputedStyle(document.querySelector('#write img')).getPropertyValue('--reading-image-natural-width').includes('em'),'SVG text metadata');
+  await wait(()=>document.querySelector('#write .mermaid-svg'),'readable native Mermaid');await pause(350);
+  const reading=document.querySelector('#write'),reading_image=reading.querySelector('img'),diagram=reading.querySelector('.mermaid-svg');
+  const sample_readable=()=>{const body_font=parseFloat(getComputedStyle(reading).fontSize),label=diagram.querySelector('.nodeLabel')||diagram.querySelector('text'),owner=label.closest('foreignObject')||label,matrix=owner.getScreenCTM(),label_font=parseFloat(getComputedStyle(label).fontSize)*Math.hypot(matrix.c,matrix.d);return {body_font,label_font,image:reading_image.getBoundingClientRect().width-['borderLeftWidth','borderRightWidth','paddingLeft','paddingRight'].reduce((sum,key)=>sum+(parseFloat(getComputedStyle(reading_image)[key])||0),0),svg:diagram.getBoundingClientRect().width};};
+  const before_readable=sample_readable();fs.writeFileSync(path.join(base,'readable-before.json'),JSON.stringify({sample:before_readable,image_font:getComputedStyle(reading_image).fontSize,image_style:getComputedStyle(reading_image).cssText,natural:getComputedStyle(reading_image).getPropertyValue('--reading-image-natural-width'),html:reading_image.outerHTML,parent:reading_image.parentElement.outerHTML,root:reading.getBoundingClientRect().toJSON(),settings:core.app.settings.get('reading_images')},null,2));assert(Math.abs(before_readable.image-280*before_readable.body_font/19)<3,'native viewBox SVG matches body label size');assert(Math.abs(before_readable.label_font-before_readable.body_font)<1,'native Mermaid label matches body font');
+  const paragraph=reading.querySelector('p');paragraph.dispatchEvent(new WheelEvent('wheel',{deltaY:-100,ctrlKey:true,bubbles:true,cancelable:true}));await pause(350);
+  const after_readable=sample_readable();assert(after_readable.body_font>before_readable.body_font,'shared content font gesture applied');assert(Math.abs(after_readable.image-280*after_readable.body_font/19)<3,'native linked SVG follows content font');assert(Math.abs(after_readable.label_font-after_readable.body_font)<1,'native Mermaid follows content font');
+  assert(diagram===reading.querySelector('.mermaid-svg'),'font gesture preserves Mermaid renderer and node identity');
+  paragraph.dispatchEvent(new WheelEvent('wheel',{deltaY:100,ctrlKey:true,bubbles:true,cancelable:true}));await pause(200);await files.save_active();assert(fs.readFileSync(readable_doc,'utf8')===readable_text,'font fitting leaves Markdown unchanged');
+  fs.writeFileSync(path.join(base,'readable-diagrams.json'),JSON.stringify({before:before_readable,after:after_readable},null,2));
   const portable_svg=path.join(base,'workspace','portable.svg'),portable_doc=path.join(base,'workspace','portable.md');
   fs.copyFileSync(path.join(_options.userDataPath,'typora_code/assets/help/assets/visual_pipeline.svg'),portable_svg);
   const portable_text='# Portable SVG\n\n![Application through driver](portable.svg)\n';fs.writeFileSync(portable_doc,portable_text,'utf8');await files.open_file(portable_doc);
   await wait(()=>File.bundle.filePath===portable_doc&&!File.isFileLoading(),'portable image document');
   await wait(()=>document.querySelector('#write img')?.naturalWidth===640,'relative SVG image decoded');await pause(200);
-  const portable_image=document.querySelector('#write img');await wait(()=>getComputedStyle(portable_image).getPropertyValue('--reading-image-natural-width').trim()==='640px','portable image dimensions applied');
+  const portable_image=document.querySelector('#write img');await wait(()=>getComputedStyle(portable_image).getPropertyValue('--reading-image-natural-width').trim().endsWith('em'),'portable image dimensions applied');
   const portable_style=getComputedStyle(portable_image),portable_border=['borderLeftWidth','borderRightWidth','paddingLeft','paddingRight'].reduce((sum,key)=>sum+(parseFloat(portable_style[key])||0),0);
   fs.writeFileSync(path.join(base,'portable-image.json'),JSON.stringify({source:portable_image.src,current:portable_image.currentSrc,html:portable_image.outerHTML,wrapper:portable_image.parentElement.outerHTML,natural:portable_image.naturalWidth,rect:portable_image.getBoundingClientRect().toJSON(),border:portable_border,settings:core.app.settings.get('reading_images')},null,2));
-  assert(portable_image.getBoundingClientRect().width-portable_border<=640.5,'linked SVG does not stretch');assert(fs.readFileSync(portable_doc,'utf8')===portable_text,'portable image keeps Markdown reference');
+  assert(portable_image.getBoundingClientRect().width-portable_border>300,'linked SVG remains readable');assert(fs.readFileSync(portable_doc,'utf8')===portable_text,'portable image keeps Markdown reference');
   portable_image.dispatchEvent(new PointerEvent('pointerenter'));await pause(300);
   const svg_action=label=>[...document.querySelectorAll('.reading-image-panel button')].find(button=>button.textContent===label);
   await wait(()=>svg_action('编辑 SVG 源文件'),'linked source action');

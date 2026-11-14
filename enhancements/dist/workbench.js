@@ -170028,6 +170028,230 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/workspace_content_zoom.ts
+  var STORAGE_KEY = "typora-code:content-zoom:v1";
+  var listeners = /* @__PURE__ */ new Map();
+  var startup_factor = 1;
+  var window_factor = 1;
+  var owners = 0;
+  var steps = { editor: 0, terminal: 0 };
+  var reset_window;
+  var emit = () => {
+    for (const listener of listeners.keys()) listener();
+  };
+  var persist = () => {
+    if (!owners) return;
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify({ schema: 1, startup_factor, window_factor, ...steps }));
+    } catch (error) {
+      console.warn("Unable to save content appearance", error);
+    }
+  };
+  function prepare_content_zoom() {
+    for (const prepare of listeners.values()) prepare?.();
+  }
+  function content_font_size(base, role = "editor") {
+    return Math.max(6, base + steps[role]) * startup_factor / window_factor;
+  }
+  function change_content_font(role, direction, base = 14) {
+    const next = Math.max(6, Math.min(role === "terminal" ? 100 : 1e3, base + steps[role] + direction)) - base;
+    if (next !== steps[role]) {
+      prepare_content_zoom();
+      steps[role] = next;
+      persist();
+      emit();
+    }
+  }
+  function reset_content_font(role) {
+    if (steps[role]) {
+      prepare_content_zoom();
+      steps[role] = 0;
+      persist();
+      emit();
+    }
+  }
+  function reset_content_appearance() {
+    prepare_content_zoom();
+    reset_window?.();
+    startup_factor = 1;
+    steps.editor = steps.terminal = 0;
+    persist();
+    emit();
+  }
+  function observe_content_zoom(listener, prepare) {
+    listeners.set(listener, prepare);
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+  function bind_content_zoom(runtime3) {
+    const read3 = () => {
+      try {
+        const value = runtime3.reqnode?.("electron")?.webFrame?.getZoomFactor();
+        return Number.isFinite(value) && value > 0 ? value : 1;
+      } catch {
+        return 1;
+      }
+    };
+    if (!owners++) {
+      startup_factor = window_factor = read3();
+      steps.editor = steps.terminal = 0;
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
+        if (saved?.schema === 1 && [saved.startup_factor, saved.window_factor].every((value) => Number.isFinite(value) && value >= 0.1 && value <= 10) && Number.isFinite(saved.editor) && Math.abs(saved.editor) <= 1e3 && Number.isFinite(saved.terminal) && Math.abs(saved.terminal) <= 100) {
+          if (Math.abs(read3() - saved.window_factor) > 1e-6) runtime3.ClientCommand?.setZoomLevel?.(Math.log(saved.window_factor) / Math.log(1.2));
+          startup_factor = saved.startup_factor;
+          window_factor = read3();
+          steps.editor = saved.editor;
+          steps.terminal = saved.terminal;
+        }
+      } catch (error) {
+        console.warn("Unable to restore content appearance", error);
+      }
+      reset_window = () => {
+        runtime3.ClientCommand?.resetZoom?.();
+        window_factor = read3();
+      };
+    }
+    let frame3 = 0, disposed = false;
+    const sync = () => {
+      if (disposed) return;
+      const value = read3();
+      if (value !== window_factor) {
+        window_factor = value;
+        persist();
+        emit();
+      }
+    };
+    const schedule = () => {
+      if (!frame3) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        sync();
+      });
+    };
+    window.addEventListener("resize", schedule);
+    window.addEventListener("focus", schedule);
+    const observer3 = new MutationObserver(schedule), hint = document.querySelector("#zoom-hint-current");
+    if (hint) observer3.observe(hint, { childList: true, subtree: true, characterData: true });
+    return { sync, dispose() {
+      if (disposed) return;
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      observer3.disconnect();
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("focus", schedule);
+      if (!--owners) {
+        reset_window = void 0;
+        startup_factor = window_factor = 1;
+        steps.editor = steps.terminal = 0;
+        emit();
+      }
+    } };
+  }
+
+  // src/reading_vector_size.ts
+  function reading_vector_font(element) {
+    const style = getComputedStyle(element);
+    return parseFloat(style.getPropertyValue("--reading-diagram-font-size")) || parseFloat(style.fontSize) || 16;
+  }
+  function readable_svg_width(svg4, font) {
+    const sizes = [];
+    for (const node of svg4.querySelectorAll("text,foreignObject .nodeLabel,foreignObject .edgeLabel")) {
+      if (!node.textContent?.trim()) continue;
+      const element = node;
+      const matrix = typeof element.getScreenCTM === "function" ? element.getScreenCTM() : node.closest("foreignObject")?.getScreenCTM();
+      const style = getComputedStyle(node), size = parseFloat(style.fontSize) * (matrix ? Math.hypot(matrix.c, matrix.d) : 1);
+      if (style.display !== "none" && style.visibility !== "hidden" && Number.isFinite(size) && size > 0) sizes.push(size);
+    }
+    if (!sizes.length) return;
+    sizes.sort((a, b2) => a - b2);
+    const width2 = svg4.getBoundingClientRect().width * font / sizes[Math.floor(sizes.length / 2)];
+    return Number.isFinite(width2) && width2 > 0 ? width2 : void 0;
+  }
+  function bind_reading_vector_size(root) {
+    let frame3 = 0, disposed = false;
+    const update2 = () => {
+      frame3 = 0;
+      if (disposed) return;
+      const font = reading_vector_font(root);
+      for (const svg4 of root.querySelectorAll(".md-diagram-panel-preview svg,.lookup-diagram svg,:scope.lookup-diagram > svg")) {
+        if (svg4.ownerSVGElement) continue;
+        const width2 = readable_svg_width(svg4, font);
+        if (!width2) continue;
+        const value = width2.toFixed(3) + "px";
+        if (svg4.style.width !== value) svg4.style.width = value;
+        svg4.style.maxWidth = "100%";
+        svg4.style.height = "auto";
+      }
+    };
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
+    };
+    const release = observe_content_zoom(schedule);
+    const observer3 = new MutationObserver(schedule);
+    observer3.observe(root, { childList: true, subtree: true });
+    const resize = new ResizeObserver(schedule);
+    resize.observe(root);
+    schedule();
+    return { update: schedule, dispose() {
+      disposed = true;
+      release();
+      cancelAnimationFrame(frame3);
+      observer3.disconnect();
+      resize.disconnect();
+    } };
+  }
+  async function linked_svg_text_width(source, signal) {
+    let text4;
+    if (/^file:/i.test(source)) {
+      const host = window;
+      if (!host.reqnode) return;
+      const url = new URL(source);
+      url.search = "";
+      url.hash = "";
+      const fs2 = host.reqnode("fs"), path2 = host.reqnode("url").fileURLToPath(url.href);
+      if ((await fs2.promises.stat(path2)).size > 8e6) return;
+      text4 = await fs2.promises.readFile(path2, "utf8");
+    } else if (/^(data:image\/svg\+xml[;,]|blob:)/i.test(source)) {
+      try {
+        text4 = await (await fetch(source, { signal })).text();
+      } catch (error) {
+        if (signal.aborted) return;
+        throw error;
+      }
+    } else return;
+    if (signal.aborted || text4.length > 8e6) return;
+    const document_svg = new DOMParser().parseFromString(text4, "image/svg+xml");
+    if (document_svg.querySelector("parsererror") || document_svg.documentElement.localName !== "svg") return;
+    if (!document_svg.querySelector("text,foreignObject")) return;
+    const frame3 = document.createElement("iframe");
+    frame3.setAttribute("sandbox", "allow-same-origin");
+    frame3.style.cssText = "position:fixed;left:-100000px;top:0;width:1600px;height:1000px;visibility:hidden;pointer-events:none;border:0";
+    return new Promise((resolve3) => {
+      let done = false;
+      const finish = (value) => {
+        if (done) return;
+        done = true;
+        clearTimeout(timer);
+        signal.removeEventListener("abort", abort);
+        frame3.remove();
+        resolve3(value);
+      };
+      const abort = () => finish(), timer = setTimeout(abort, 3e3);
+      signal.addEventListener("abort", abort, { once: true });
+      frame3.onload = () => {
+        try {
+          const svg4 = frame3.contentDocument?.querySelector("svg");
+          finish(svg4 ? readable_svg_width(svg4, 1) : void 0);
+        } catch {
+          finish();
+        }
+      };
+      frame3.srcdoc = '<meta http-equiv="Content-Security-Policy" content="default-src &#39;none&#39;; style-src &#39;unsafe-inline&#39;; base-uri &#39;none&#39;"><style>body{margin:0}svg{max-width:none}</style>' + new XMLSerializer().serializeToString(document_svg.documentElement);
+      document.body.append(frame3);
+    });
+  }
+
   // src/visual_code_export.ts
   async function export_visual_svg(svg4, current2, source_path) {
     await save_visual(svg4, "svg", current2, source_path);
@@ -174891,7 +175115,7 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return Array.from(context.getImageData(0, 0, 1, 1).data).slice(0, 3);
   }
-  var listeners = /* @__PURE__ */ new Set();
+  var listeners2 = /* @__PURE__ */ new Set();
   var palette_listeners = /* @__PURE__ */ new Set();
   var observer;
   var frame = 0;
@@ -174907,11 +175131,11 @@ https://creativecommons.org/licenses/by/4.0/
     frame = requestAnimationFrame(() => {
       frame = 0;
       for (const listener of palette_listeners) listener();
-      for (const listener of listeners) listener();
+      for (const listener of listeners2) listener();
     });
   };
   function observe_workspace_theme(listener, role = "consumer") {
-    const owners4 = role === "palette" ? palette_listeners : listeners;
+    const owners4 = role === "palette" ? palette_listeners : listeners2;
     owners4.add(listener);
     if (!observer) {
       const styles2 = new Map([document.documentElement, document.body].map((element) => [element, theme_style(element)]));
@@ -174938,7 +175162,7 @@ https://creativecommons.org/licenses/by/4.0/
     update();
     return () => {
       owners4.delete(listener);
-      if (!listeners.size && !palette_listeners.size) {
+      if (!listeners2.size && !palette_listeners.size) {
         observer?.disconnect();
         observer = void 0;
         cancelAnimationFrame(frame);
@@ -174958,14 +175182,14 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_resource_events.ts
-  var listeners2 = /* @__PURE__ */ new Set();
+  var listeners3 = /* @__PURE__ */ new Set();
   function notify_workspace_resource_change(change) {
-    for (const listener of [...listeners2]) listener(change);
+    for (const listener of [...listeners3]) listener(change);
   }
   function subscribe_workspace_resource_change(listener) {
-    listeners2.add(listener);
+    listeners3.add(listener);
     return () => {
-      listeners2.delete(listener);
+      listeners3.delete(listener);
     };
   }
 
@@ -175730,7 +175954,7 @@ https://creativecommons.org/licenses/by/4.0/
 
   // src/reading_navigation_ports.ts
   var ports = /* @__PURE__ */ new Map();
-  var listeners3 = /* @__PURE__ */ new Set();
+  var listeners4 = /* @__PURE__ */ new Set();
   function register_navigation_editor(port, kind = "source") {
     ports.set(kind, port);
     return () => {
@@ -175759,11 +175983,11 @@ https://creativecommons.org/licenses/by/4.0/
     return editor_port;
   }
   function notify_navigation_selection(explicit = false) {
-    for (const listener of listeners3) listener(explicit);
+    for (const listener of listeners4) listener(explicit);
   }
   function observe_navigation_selection(listener) {
-    listeners3.add(listener);
-    return () => listeners3.delete(listener);
+    listeners4.add(listener);
+    return () => listeners4.delete(listener);
   }
 
   // src/source_navigation_gesture.ts
@@ -176220,12 +176444,12 @@ https://creativecommons.org/licenses/by/4.0/
   var source_inactive_regions_default = "";
 
   // src/source_inactive_regions.ts
-  var owners = /* @__PURE__ */ new WeakMap();
+  var owners2 = /* @__PURE__ */ new WeakMap();
   function set_source_inactive_regions(model, ranges2 = []) {
-    const previous = owners.get(model);
+    const previous = owners2.get(model);
     if (model.isDisposed()) {
       previous?.style.remove();
-      owners.delete(model);
+      owners2.delete(model);
       return;
     }
     const line_count = model.getLineCount();
@@ -176234,13 +176458,13 @@ https://creativecommons.org/licenses/by/4.0/
       if (previous) {
         model.deltaDecorations(previous.ids, []);
         previous.style.remove();
-        owners.delete(model);
+        owners2.delete(model);
       }
       return;
     }
     const owner3 = previous || { ids: [], style: acquire_workspace_style("typora-code:inactive-regions", source_inactive_regions_default) };
     owner3.ids = model.deltaDecorations(owner3.ids, valid.map((range2) => ({ range: { startLineNumber: range2.start.line + 1, startColumn: range2.start.character + 1, endLineNumber: range2.end.line + 1, endColumn: range2.end.character + 1 }, options: { description: "clangd inactive region", inlineClassName: "source-inactive-region" } })));
-    owners.set(model, owner3);
+    owners2.set(model, owner3);
   }
 
   // src/workspace_keyboard.ts
@@ -176253,127 +176477,6 @@ https://creativecommons.org/licenses/by/4.0/
   }
   function workspace_alt_modifier(event) {
     return event.altKey && !event.ctrlKey && !event.metaKey && !event.getModifierState("AltGraph") && !is_composing_key(event);
-  }
-
-  // src/workspace_content_zoom.ts
-  var STORAGE_KEY = "typora-code:content-zoom:v1";
-  var listeners4 = /* @__PURE__ */ new Map();
-  var startup_factor = 1;
-  var window_factor = 1;
-  var owners2 = 0;
-  var steps = { editor: 0, terminal: 0 };
-  var reset_window;
-  var emit = () => {
-    for (const listener of listeners4.keys()) listener();
-  };
-  var persist = () => {
-    if (!owners2) return;
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ schema: 1, startup_factor, window_factor, ...steps }));
-    } catch (error) {
-      console.warn("Unable to save content appearance", error);
-    }
-  };
-  function prepare_content_zoom() {
-    for (const prepare of listeners4.values()) prepare?.();
-  }
-  function content_font_size(base, role = "editor") {
-    return Math.max(6, base + steps[role]) * startup_factor / window_factor;
-  }
-  function change_content_font(role, direction, base = 14) {
-    const next = Math.max(6, Math.min(role === "terminal" ? 100 : 1e3, base + steps[role] + direction)) - base;
-    if (next !== steps[role]) {
-      prepare_content_zoom();
-      steps[role] = next;
-      persist();
-      emit();
-    }
-  }
-  function reset_content_font(role) {
-    if (steps[role]) {
-      prepare_content_zoom();
-      steps[role] = 0;
-      persist();
-      emit();
-    }
-  }
-  function reset_content_appearance() {
-    prepare_content_zoom();
-    reset_window?.();
-    startup_factor = 1;
-    steps.editor = steps.terminal = 0;
-    persist();
-    emit();
-  }
-  function observe_content_zoom(listener, prepare) {
-    listeners4.set(listener, prepare);
-    return () => {
-      listeners4.delete(listener);
-    };
-  }
-  function bind_content_zoom(runtime3) {
-    const read3 = () => {
-      try {
-        const value = runtime3.reqnode?.("electron")?.webFrame?.getZoomFactor();
-        return Number.isFinite(value) && value > 0 ? value : 1;
-      } catch {
-        return 1;
-      }
-    };
-    if (!owners2++) {
-      startup_factor = window_factor = read3();
-      steps.editor = steps.terminal = 0;
-      try {
-        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null");
-        if (saved?.schema === 1 && [saved.startup_factor, saved.window_factor].every((value) => Number.isFinite(value) && value >= 0.1 && value <= 10) && Number.isFinite(saved.editor) && Math.abs(saved.editor) <= 1e3 && Number.isFinite(saved.terminal) && Math.abs(saved.terminal) <= 100) {
-          if (Math.abs(read3() - saved.window_factor) > 1e-6) runtime3.ClientCommand?.setZoomLevel?.(Math.log(saved.window_factor) / Math.log(1.2));
-          startup_factor = saved.startup_factor;
-          window_factor = read3();
-          steps.editor = saved.editor;
-          steps.terminal = saved.terminal;
-        }
-      } catch (error) {
-        console.warn("Unable to restore content appearance", error);
-      }
-      reset_window = () => {
-        runtime3.ClientCommand?.resetZoom?.();
-        window_factor = read3();
-      };
-    }
-    let frame3 = 0, disposed = false;
-    const sync = () => {
-      if (disposed) return;
-      const value = read3();
-      if (value !== window_factor) {
-        window_factor = value;
-        persist();
-        emit();
-      }
-    };
-    const schedule = () => {
-      if (!frame3) frame3 = requestAnimationFrame(() => {
-        frame3 = 0;
-        sync();
-      });
-    };
-    window.addEventListener("resize", schedule);
-    window.addEventListener("focus", schedule);
-    const observer3 = new MutationObserver(schedule), hint = document.querySelector("#zoom-hint-current");
-    if (hint) observer3.observe(hint, { childList: true, subtree: true, characterData: true });
-    return { sync, dispose() {
-      if (disposed) return;
-      disposed = true;
-      cancelAnimationFrame(frame3);
-      observer3.disconnect();
-      window.removeEventListener("resize", schedule);
-      window.removeEventListener("focus", schedule);
-      if (!--owners2) {
-        reset_window = void 0;
-        startup_factor = window_factor = 1;
-        steps.editor = steps.terminal = 0;
-        emit();
-      }
-    } };
   }
 
   // src/workspace_lifetime.ts
@@ -213617,7 +213720,7 @@ https://creativecommons.org/licenses/by/4.0/
   function visual_document(script2, css, payload, token, format3) {
     const encoded = JSON.stringify(payload).replace(/</gu, "\\u003c");
     const vector = ["svg", "mermaid", "graphviz", "wavedrom", "vega", "vega_lite", "echarts", "plantuml", "flow", "sequence"].includes(format3);
-    const bootstrap = "(()=>{\n  const token=".concat(JSON.stringify(token), ",send=value=>parent.postMessage({visual_code:token,...value},'*');\n  const root=document.getElementById('root');\n  const snapshot=()=>{const original=root.querySelector('svg');if(!original)return;\n   const result=").concat(format3 === "svg", "?original.cloneNode(true):original;if(").concat(format3 === "svg", "){const style=getComputedStyle(original);result.style.color=style.color;result.style.font=style.font;\n    const rect=original.getBoundingClientRect(),width=parseFloat(original.style.width);if(original.style.width.endsWith('px')&&width>0&&rect.width>0){result.setAttribute('width',String(width));result.setAttribute('height',String(width*rect.height/rect.width));}}\n   return new XMLSerializer().serializeToString(result);};\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});\n  const fit=()=>{if(!").concat(vector, ")return;for(const svg of root.querySelectorAll('svg')){\n   if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;\n   const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;\n   if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';\n   svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';\n  }};\n  let last=0;\n  const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};\n  addEventListener('error',event=>send({error:event.message}));\n  addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));\n  new ResizeObserver(measure).observe(root);\n  Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{fit();measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));\n })();");
+    const bootstrap = "(()=>{\n  const token=".concat(JSON.stringify(token), ",send=value=>parent.postMessage({visual_code:token,...value},'*');\n  const root=document.getElementById('root'),readable_width=").concat(readable_svg_width.toString(), ";let font=").concat(payload.font, ";\n  const snapshot=()=>{const original=root.querySelector('svg');if(!original)return;\n   const result=").concat(format3 === "svg", "?original.cloneNode(true):original;if(").concat(format3 === "svg", "){const style=getComputedStyle(original);result.style.color=style.color;result.style.font=style.font;\n    const rect=original.getBoundingClientRect(),width=parseFloat(original.style.width);if(original.style.width.endsWith('px')&&width>0&&rect.width>0){result.setAttribute('width',String(width));result.setAttribute('height',String(width*rect.height/rect.width));}}\n   return new XMLSerializer().serializeToString(result);};\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&event.data.capture)send({capture:event.data.capture,svg:snapshot()});});\n  const fit=()=>{if(!").concat(vector, ")return;for(const svg of root.querySelectorAll('svg')){\n   if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;\n   const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;\n   if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';\n   const readable=readable_width(svg,font);if(readable)svg.style.width=readable+'px';\n   svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';\n  }};\n  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&Number.isFinite(event.data.font)&&event.data.font>0){font=event.data.font;fit();measure();}});\n  let last=0;\n  const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};\n  addEventListener('error',event=>send({error:event.message}));\n  addEventListener('unhandledrejection',event=>send({error:String(event.reason)}));\n  new ResizeObserver(measure).observe(root);\n  Promise.resolve().then(()=>globalThis.render_visual(").concat(encoded, ",root)).then(()=>{fit();measure();send({ready:true,svg:snapshot()});}).catch(error=>send({error:String(error.message||error)}));\n })();");
     return "<!doctype html><meta charset=\"utf-8\"><meta http-equiv=\"Content-Security-Policy\" content=\"default-src 'none'; script-src 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval'; style-src 'unsafe-inline'; img-src data: blob:; font-src data:; connect-src 'none'; frame-src 'none'; object-src 'none'; base-uri 'none'; form-action 'none'\"><style>html,body{margin:0;padding:0;overflow:".concat(vector ? "hidden" : "auto", ";background:transparent;color:").concat(payload.foreground, ";font:14px system-ui}#root{display:flow-root;box-sizing:border-box;padding:").concat(vector ? 0 : 8, "px;min-height:").concat(vector ? 0 : 64, "px;overflow:").concat(vector ? "visible" : "auto", "}svg{max-width:100%;height:auto}img{max-width:100%}").concat(css, '</style><div id="root"></div><script>').concat(script2.replace(/<\/script/giu, "<\\/script"), "<\/script><script>").concat(bootstrap, "<\/script>");
   }
   function create_visual_sandbox(container, format3, source, on_result) {
@@ -213654,10 +213757,19 @@ https://creativecommons.org/licenses/by/4.0/
           on_result({ error: "Rendering timed out" });
         }
       }, 3e4);
-      frame3.srcdoc = visual_document(script2, css, { source, theme: theme2, dark: theme2.theme === "dark", foreground: style.color, background: style.backgroundColor }, token, format3);
+      frame3.srcdoc = visual_document(script2, css, { source, theme: theme2, dark: theme2.theme === "dark", foreground: style.color, background: style.backgroundColor, font: reading_vector_font(container) }, token, format3);
     }).catch((error) => {
       if (!disposed) on_result({ error: String(error.message || error) });
     });
+    let font_frame = 0;
+    const sync_font = () => {
+      if (!font_frame) font_frame = requestAnimationFrame(() => {
+        font_frame = 0;
+        if (!disposed) frame3.contentWindow?.postMessage({ visual_code: token, font: reading_vector_font(container) }, "*");
+      });
+    };
+    const release_font = observe_content_zoom(sync_font), resize = new ResizeObserver(sync_font);
+    resize.observe(container);
     return { frame: frame3, capture() {
       if (disposed) return Promise.resolve(void 0);
       const id = ++serial2;
@@ -213675,6 +213787,9 @@ https://creativecommons.org/licenses/by/4.0/
     }, dispose() {
       if (disposed) return;
       disposed = true;
+      release_font();
+      cancelAnimationFrame(font_frame);
+      resize.disconnect();
       for (const resolve3 of captures.values()) resolve3(void 0);
       captures.clear();
       clearTimeout(timer);
@@ -214184,7 +214299,8 @@ https://creativecommons.org/licenses/by/4.0/
     return fonts.get(root);
   }
   function bind_reading_font_zoom(scroller, root) {
-    const original = ["font-size", "line-height"].map((name) => [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)]);
+    const original = ["font-size", "line-height", "--reading-diagram-font-size"].map((name) => [name, root.style.getPropertyValue(name), root.style.getPropertyPriority(name)]);
+    const vectors = bind_reading_vector_size(root);
     let base = 16, line = "normal", disposed = false, retained;
     const restore = () => {
       for (const [name, value, priority] of original) if (value) root.style.setProperty(name, value, priority);
@@ -214192,14 +214308,16 @@ https://creativecommons.org/licenses/by/4.0/
     };
     const apply4 = () => {
       const size = content_font_size(base), height = line === "normal" ? line : String(Number.parseFloat(line) / base);
-      if (root.style.fontSize === size + "px" && root.style.lineHeight === height) {
+      if (root.style.fontSize === size + "px" && root.style.lineHeight === height && root.style.getPropertyValue("--reading-diagram-font-size") === size + "px") {
         retained = void 0;
         return;
       }
       change_reading_geometry(scroller, root, () => {
+        root.style.setProperty("--reading-diagram-font-size", size + "px");
         root.style.setProperty("font-size", size + "px", "important");
         root.style.setProperty("line-height", height, "important");
       }, retained);
+      vectors.update();
       retained = void 0;
     };
     const refresh = () => {
@@ -214221,6 +214339,7 @@ https://creativecommons.org/licenses/by/4.0/
     refresh();
     return { refresh, dispose() {
       disposed = true;
+      vectors.dispose();
       stop();
       theme2();
       fonts.delete(root);
@@ -216591,6 +216710,7 @@ https://creativecommons.org/licenses/by/4.0/
   function create_preview_diagrams() {
     const visuals = create_visual_code_previews();
     let frame3, loading3;
+    const vector_sizes = /* @__PURE__ */ new Map();
     const entries3 = /* @__PURE__ */ new Set();
     let theme_fingerprint = JSON.stringify(mermaid_theme_options());
     let disposed = false, queued = Promise.resolve(), cancel_load;
@@ -216651,6 +216771,7 @@ https://creativecommons.org/licenses/by/4.0/
           label.textContent = workspace_text("markdown_preview_render_matching_source");
           pre?.before(label);
         } else pre?.replaceWith(diagram);
+        vector_sizes.set(diagram, bind_reading_vector_size(diagram));
         return true;
       }).catch(() => !disposed && current2() ? visuals.render(code, width2, show_source, current2) : false);
       queued = task;
@@ -216663,6 +216784,8 @@ https://creativecommons.org/licenses/by/4.0/
       for (const entry of entries3) {
         if (!entry.element.isConnected || !entry.current()) {
           entries3.delete(entry);
+          vector_sizes.get(entry.element)?.dispose();
+          vector_sizes.delete(entry.element);
           continue;
         }
         const revision = ++entry.revision;
@@ -216681,7 +216804,11 @@ https://creativecommons.org/licenses/by/4.0/
     return { render: render3, clear() {
       visuals.clear();
       entries3.clear();
+      for (const size of vector_sizes.values()) size.dispose();
+      vector_sizes.clear();
     }, dispose() {
+      for (const size of vector_sizes.values()) size.dispose();
+      vector_sizes.clear();
       visuals.dispose();
       disposed = true;
       unwatch();
@@ -223665,12 +223792,15 @@ https://creativecommons.org/licenses/by/4.0/
     root.append(style, output, error, source_view);
     const owned_media = options2.media ? void 0 : bind_reading_media_entries(root), media = options2.media || owned_media;
     let sandbox, disposed = false, revision = 0, svg4 = "", url = "", close2;
+    let cached_measure;
     let cached_blob, cached_url = "", rendered_theme = "";
     const theme_key = () => {
       const style2 = getComputedStyle(output);
       return JSON.stringify([style2.color, style2.backgroundColor, mermaid_theme_options()]);
     };
     const release_cached = () => {
+      cached_measure?.abort();
+      cached_measure = void 0;
       if (cached_url) URL.revokeObjectURL(cached_url);
       cached_url = "";
       cached_blob = void 0;
@@ -223805,6 +223935,11 @@ https://creativecommons.org/licenses/by/4.0/
           if (!disposed && current2 === revision) run();
         };
         image.src = cached_url;
+        cached_measure = new AbortController();
+        void linked_svg_text_width(cached_url, cached_measure.signal).then((ratio) => {
+          if (!disposed && current2 === revision && image.isConnected && ratio) image.style.width = "calc(" + ratio + " * var(--reading-diagram-font-size, 1em))";
+        }).catch(() => {
+        });
       } else if (!interactive_visual(format3)) run();
       else {
         root.dataset.visualState = "idle";
@@ -224219,6 +224354,11 @@ https://creativecommons.org/licenses/by/4.0/
     return !image.srcset && !image.closest("picture")?.querySelector("source[srcset]") && !/^data:image\/svg\+xml[;,]/i.test(source) && !/\.svgz?(?:[?#]|$)/i.test(source);
   }
   function reading_image_natural_width(image) {
+    const style = getComputedStyle(image), readable = style.getPropertyValue("--reading-image-natural-width").trim();
+    if (readable.endsWith("em")) {
+      const width2 = parseFloat(readable) * parseFloat(style.fontSize);
+      if (Number.isFinite(width2) && width2 > 0) return width2;
+    }
     return image.naturalWidth / (reading_image_uses_screen_pixels(image) ? reading_image_screen_density() : 1);
   }
 
@@ -224230,6 +224370,9 @@ https://creativecommons.org/licenses/by/4.0/
     (owner3 instanceof ShadowRoot ? owner3 : document.head).append(style);
     (owner3 instanceof ShadowRoot ? owner3 : document.head).append(dimensions);
     const scope = ":is(".concat(selector, "):not(.md-diagram-panel-preview img,.reading-media-viewer img,.CodeMirror img,.md-emoji,.md-emoji img)");
+    const vectors = /* @__PURE__ */ new Map();
+    let images_current = [];
+    let disposed = false;
     let density = reading_image_screen_density(), resolution;
     const update2 = () => {
       const { alignment, scale, size_mode } = read_reading_image_settings();
@@ -224251,18 +224394,40 @@ https://creativecommons.org/licenses/by/4.0/
     window.addEventListener("resize", density_changed);
     const release = observe_reading_image_settings(update2);
     update2();
-    return { update(images) {
+    const measure = (images) => {
+      images_current = [...images];
+      const sources = new Set(images_current.map((image) => image.currentSrc || image.src));
+      for (const [source, entry] of vectors) if (!sources.has(source)) {
+        entry.controller.abort();
+        vectors.delete(source);
+      }
       const rules = /* @__PURE__ */ new Set();
       for (const image of images) {
         if (!image.naturalWidth) continue;
         const source = image.getAttribute("src");
         if (!source) continue;
         const computed = getComputedStyle(image), border = computed.boxSizing === "border-box" ? ["borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight"].reduce((sum, key4) => sum + (parseFloat(computed[key4]) || 0), 0) : 0;
-        rules.add("".concat(scope, '[src="').concat(CSS.escape(source), '"]{--reading-image-natural-width:').concat(image.naturalWidth, "px;--reading-image-density:").concat(reading_image_uses_screen_pixels(image) ? "var(--reading-image-screen-density)" : "1", ";--reading-image-border:").concat(border, "px}"));
+        const resolved = image.currentSrc || image.src;
+        if (!reading_image_uses_screen_pixels(image) && !vectors.has(resolved)) {
+          const entry = { controller: new AbortController(), ratio: void 0 };
+          vectors.set(resolved, entry);
+          void linked_svg_text_width(resolved, entry.controller.signal).then((ratio2) => {
+            if (disposed || vectors.get(resolved) !== entry) return;
+            entry.ratio = ratio2;
+            if (ratio2) measure(images_current);
+          }).catch(() => {
+          });
+        }
+        const ratio = vectors.get(resolved)?.ratio;
+        rules.add("".concat(scope, '[src="').concat(CSS.escape(source), '"]{--reading-image-natural-width:').concat(ratio ? ratio + "em" : image.naturalWidth + "px", ";--reading-image-density:").concat(reading_image_uses_screen_pixels(image) ? "var(--reading-image-screen-density)" : "1", ";--reading-image-border:").concat(border, "px}"));
       }
       const text4 = [...rules].join("\n");
       if (dimensions.textContent !== text4) dimensions.textContent = text4;
-    }, dispose() {
+    };
+    return { update: measure, dispose() {
+      disposed = true;
+      for (const entry of vectors.values()) entry.controller.abort();
+      vectors.clear();
       release();
       window.removeEventListener("resize", density_changed);
       resolution.removeEventListener("change", density_changed);
@@ -270391,6 +270556,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026111402,
+        version: "2026.11.14.2",
+        date: "2026-11-14",
+        notes: [
+          "SVG\u56FE\u7247\u3001SVG\u56F4\u680F\u548CMermaid\u6309\u56FE\u5185\u5B9E\u9645\u6587\u5B57\u4E0E\u6B63\u6587\u5B57\u53F7\u7B49\u6BD4\u9002\u914D\uFF0C\u8C03\u6574\u5B57\u53F7\u540E\u540C\u6B65\uFF1B\u4FDD\u7559\u539F\u6709\u5206\u884C\u3001\u8FDE\u7EBF\u3001\u624B\u52A8\u7F29\u653E\u53CA\u7A84\u680F\u5B8C\u6574\u663E\u793A\u3002"
+        ],
+        notes_en: [
+          "SVG images, SVG fences and Mermaid scale rendered labels to the reader font and follow font changes, preserving authored line breaks, edges, manual scaling and column fitting."
+        ]
+      },
       {
         sequence: 2026111401,
         version: "2026.11.14.1",

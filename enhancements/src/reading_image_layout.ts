@@ -1,3 +1,4 @@
+import {linked_svg_text_width} from './reading_vector_size';
 import {observe_reading_image_settings,read_reading_image_settings} from "./reading_image_settings";
 import {reading_image_screen_density,reading_image_uses_screen_pixels} from './reading_image_dimensions';
 
@@ -9,6 +10,7 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   (owner instanceof ShadowRoot?owner:document.head).append(style);
   (owner instanceof ShadowRoot?owner:document.head).append(dimensions);
   const scope=`:is(${selector}):not(.md-diagram-panel-preview img,.reading-media-viewer img,.CodeMirror img,.md-emoji,.md-emoji img)`;
+  const vectors=new Map<string,{controller:AbortController;ratio?:number}>();let images_current:HTMLImageElement[]=[];let disposed=false;
   let density=reading_image_screen_density(),resolution:MediaQueryList;
   const update=()=>{
     const {alignment,scale,size_mode}=read_reading_image_settings();
@@ -22,11 +24,20 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   const density_changed=()=>{const next=reading_image_screen_density();if(next===density)return;density=next;watch_density();update();};
   watch_density();window.addEventListener('resize',density_changed);
   const release=observe_reading_image_settings(update);update();
-  return {update(images:Iterable<HTMLImageElement>){
+  const measure=(images:Iterable<HTMLImageElement>)=>{
+    images_current=[...images];const sources=new Set(images_current.map(image=>image.currentSrc||image.src));
+    for(const [source,entry]of vectors)if(!sources.has(source)){entry.controller.abort();vectors.delete(source);}
     const rules=new Set<string>();
     for(const image of images){if(!image.naturalWidth)continue;const source=image.getAttribute("src");if(!source)continue;const computed=getComputedStyle(image),border=computed.boxSizing==="border-box"?["borderLeftWidth","borderRightWidth","paddingLeft","paddingRight"].reduce((sum,key)=>sum+(parseFloat((computed as any)[key])||0),0):0;
-      rules.add(`${scope}[src="${CSS.escape(source)}"]{--reading-image-natural-width:${image.naturalWidth}px;--reading-image-density:${reading_image_uses_screen_pixels(image)?'var(--reading-image-screen-density)':'1'};--reading-image-border:${border}px}`);
+      const resolved=image.currentSrc||image.src;
+      if(!reading_image_uses_screen_pixels(image)&&!vectors.has(resolved)){
+        const entry={controller:new AbortController(),ratio:undefined as number|undefined};vectors.set(resolved,entry);
+        void linked_svg_text_width(resolved,entry.controller.signal).then(ratio=>{if(disposed||vectors.get(resolved)!==entry)return;entry.ratio=ratio;if(ratio)measure(images_current);}).catch(()=>{});
+      }
+      const ratio=vectors.get(resolved)?.ratio;
+      rules.add(`${scope}[src="${CSS.escape(source)}"]{--reading-image-natural-width:${ratio?ratio+'em':image.naturalWidth+'px'};--reading-image-density:${reading_image_uses_screen_pixels(image)?'var(--reading-image-screen-density)':'1'};--reading-image-border:${border}px}`);
     }
     const text=[...rules].join("\n");if(dimensions.textContent!==text)dimensions.textContent=text;
-  },dispose(){release();window.removeEventListener('resize',density_changed);resolution.removeEventListener('change',density_changed);style.remove();dimensions.remove();}};
+  };
+  return {update:measure,dispose(){disposed=true;for(const entry of vectors.values())entry.controller.abort();vectors.clear();release();window.removeEventListener('resize',density_changed);resolution.removeEventListener('change',density_changed);style.remove();dimensions.remove();}};
 }

@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111402,
+      "version": "2026.11.14.2",
+      "date": "2026-11-14",
+      "notes": [
+        "SVG图片、SVG围栏和Mermaid按图内实际文字与正文字号等比适配，调整字号后同步；保留原有分行、连线、手动缩放及窄栏完整显示。"
+      ],
+      "notes_en": [
+        "SVG images, SVG fences and Mermaid scale rendered labels to the reader font and follow font changes, preserving authored line breaks, edges, manual scaling and column fitting."
+      ]
+    },
+    {
       "sequence": 2026111401,
       "version": "2026.11.14.1",
       "date": "2026-11-14",

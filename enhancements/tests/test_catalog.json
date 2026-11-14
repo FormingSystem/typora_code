@@ -3808,7 +3808,8 @@
         "R087.3",
         "R087.4",
         "R087.5",
-        "R087.6"
+        "R087.6",
+        "R087.8"
       ],
       "design": "docs/stability_testing.md#原生验收",
       "implementation": [
@@ -3835,7 +3836,8 @@
         "enhancements/src/workspace_settings_view.css",
         "vscode_default_light.css",
         "enhancements/fixtures/native_preferences_theme.js",
-        "enhancements/fixtures/visual_code_native.js"
+        "enhancements/fixtures/visual_code_native.js",
+        "enhancements/src/reading_vector_size.ts"
       ],
       "related_modules": [
         "files",
@@ -9375,7 +9377,8 @@
       "requirements": [
         "R031.2",
         "R031.4",
-        "R087.5"
+        "R087.5",
+        "R087.8"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [
@@ -9385,7 +9388,8 @@
         "enhancements/src/reading_image_controls.ts",
         "enhancements/src/reading_image_menu.ts",
         "enhancements/src/reading_media_entry.ts",
-        "enhancements/src/reading_image_dimensions.ts"
+        "enhancements/src/reading_image_dimensions.ts",
+        "enhancements/src/reading_vector_size.ts"
       ],
       "related_modules": [
         "images",
@@ -10494,7 +10498,8 @@
         "R087.4",
         "R087.5",
         "R087.6",
-        "R087.7"
+        "R087.7",
+        "R087.8"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [
@@ -10502,7 +10507,8 @@
         "enhancements/src/visual_code_view.ts",
         "enhancements/src/reading_visual_code.ts",
         "enhancements/src/reading_svg_source.ts",
-        "enhancements/src/visual_code_export.ts"
+        "enhancements/src/visual_code_export.ts",
+        "enhancements/src/reading_vector_size.ts"
       ],
       "related_modules": [
         "reading",

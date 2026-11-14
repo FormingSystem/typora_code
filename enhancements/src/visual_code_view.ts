@@ -1,3 +1,4 @@
+import {linked_svg_text_width} from './reading_vector_size';
 import {export_visual_svg,export_visual_png} from './visual_code_export';
 import {get_workspace_files} from './workspace_files';
 import {create_visual_sandbox} from './visual_code_sandbox';
@@ -20,9 +21,10 @@ export function create_visual_code_view(format:string,source:string,options:visu
  const style=el('style');style.textContent=css;root.append(style,output,error,source_view);
  const owned_media=options.media?undefined:bind_reading_media_entries(root),media=options.media||owned_media!;
  let sandbox:ReturnType<typeof create_visual_sandbox>|undefined,disposed=false,revision=0,svg='',url='',close:(()=>void)|undefined;
+ let cached_measure:AbortController|undefined;
  let cached_blob:Blob|undefined,cached_url='',rendered_theme='';
  const theme_key=()=>{const style=getComputedStyle(output);return JSON.stringify([style.color,style.backgroundColor,mermaid_theme_options()]);};
- const release_cached=()=>{if(cached_url)URL.revokeObjectURL(cached_url);cached_url='';cached_blob=undefined;};
+ const release_cached=()=>{cached_measure?.abort();cached_measure=undefined;if(cached_url)URL.revokeObjectURL(cached_url);cached_url='';cached_blob=undefined;};
  const capture=()=>sandbox?sandbox.capture():cached_blob?.text();
  const show_source=()=>{entry.collapse();if(options.edit_source)options.edit_source();else source_view.hidden=!source_view.hidden;};
  const run=()=>{
@@ -50,6 +52,7 @@ export function create_visual_code_view(format:string,source:string,options:visu
    image.alt=format;image.style.cssText='display:block;max-width:100%;height:auto';output.append(host);root.dataset.visualState='loading';
    image.onload=()=>{if(!disposed&&current===revision){root.dataset.visualState='ready';entry.button.disabled=false;save.disabled=false;save_png.disabled=false;}};
    image.onerror=()=>{if(!disposed&&current===revision)run();};image.src=cached_url;
+   cached_measure=new AbortController();void linked_svg_text_width(cached_url,cached_measure.signal).then(ratio=>{if(!disposed&&current===revision&&image.isConnected&&ratio)image.style.width='calc('+ratio+' * var(--reading-diagram-font-size, 1em))';}).catch(()=>{});
   }else if(!interactive_visual(format))run();else{root.dataset.visualState='idle';launch.hidden=false;}},dispose(){if(disposed)return;disposed=true;++revision;release_cached();unwatch();sandbox?.dispose();entry.dispose();owned_media?.dispose();interaction.remove();root.removeEventListener('mousedown',activate);close?.();if(url)URL.revokeObjectURL(url);style.remove();root.remove();}};
 }
 

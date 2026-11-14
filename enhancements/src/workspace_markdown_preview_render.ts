@@ -1,3 +1,4 @@
+import {bind_reading_vector_size} from './reading_vector_size';
 import {create_visual_code_previews} from './visual_code_view';
 import {visual_code_language} from './visual_code_formats';
 import {workspace_text} from "./workspace_i18n";
@@ -49,6 +50,7 @@ export async function highlight_preview_code(code: HTMLElement): Promise<void> {
 export function create_preview_diagrams() {
   const visuals=create_visual_code_previews();
   let frame:HTMLIFrameElement|undefined, loading:Promise<diagram_api>|undefined;
+  const vector_sizes=new Map<HTMLElement,ReturnType<typeof bind_reading_vector_size>>();
   const entries=new Set<{element:HTMLElement;source:string;width:number;current:()=>boolean;revision:number}>();
   let theme_fingerprint=JSON.stringify(mermaid_theme_options());
   let disposed=false, queued:Promise<unknown>=Promise.resolve(), cancel_load:(()=>void)|undefined;
@@ -94,6 +96,7 @@ export function create_preview_diagrams() {
       const pre=code.closest("pre");
       if(show_source){pre?.before(diagram);const label=document.createElement("div");label.className="lookup-diagram-source-label";label.textContent=workspace_text("markdown_preview_render_matching_source");pre?.before(label);}
       else pre?.replaceWith(diagram);
+      vector_sizes.set(diagram,bind_reading_vector_size(diagram));
       return true;
     }).catch(()=>!disposed&&current()?visuals.render(code,width,show_source,current):false);
     queued=task;return task;
@@ -101,7 +104,7 @@ export function create_preview_diagrams() {
   const unwatch=observe_mermaid_theme(()=>{
     const fingerprint=JSON.stringify(mermaid_theme_options());if(fingerprint===theme_fingerprint)return;theme_fingerprint=fingerprint;
     for(const entry of entries){
-      if(!entry.element.isConnected||!entry.current()){entries.delete(entry);continue;}
+      if(!entry.element.isConnected||!entry.current()){entries.delete(entry);vector_sizes.get(entry.element)?.dispose();vector_sizes.delete(entry.element);continue;}
       const revision=++entry.revision;
       queued=queued.then(async()=>{
         if(disposed||revision!==entry.revision||!entry.element.isConnected||!entry.current())return;
@@ -112,5 +115,5 @@ export function create_preview_diagrams() {
       }).catch(()=>{ /* Failure retains the previously readable SVG; subsequent theme events can be retried. */ });
     }
   });
-  return {render,clear(){visuals.clear();entries.clear();},dispose(){visuals.dispose();disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};
+  return {render,clear(){visuals.clear();entries.clear();for(const size of vector_sizes.values())size.dispose();vector_sizes.clear();},dispose(){for(const size of vector_sizes.values())size.dispose();vector_sizes.clear();visuals.dispose();disposed=true;unwatch();entries.clear();cancel_load?.();frame?.remove();frame=undefined;}};
 }

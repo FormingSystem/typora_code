@@ -607,3 +607,5 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 2026-10-23 R034.11/R027.3：BUG-diff-original-wrap（editor/config）、BUG-discard-stat-cache（git/state）、BUG-operation-error-cleared（git/feedback）。真实宽度转换遗留Monaco二级覆盖；CRLF恢复成功但状态缓存未更新；后台读取清空操作错误。旧整索引字节不变断言属于test/invariant，初始CRLF文本断言属于test/fixture，焦点竞争未复现，不混为产品根因。安装另发现现有目录菜单与所有权记录不同，保护性保留，未覆盖注册表。红绿及最终交付见[证据](../enhancements/tests/evidence/git_interactions_20261023.json)，其他未决不变。
 
 2026-10-25 R031.2：BUG-image-density-upscale，分类reading/layout。naturalWidth被直接当CSS像素，默认100%在DPI/窗口缩放下再次放大；旧版在实际Chromium DPR约1.2红测复现，现以普通位图像素/DPR适配并保持内容盒封顶。原生夹具最初误计透明边框、未保存临时单图缩放分别归test/geometry与test/state，不修改产品保护。12组密度/缩放与原生175%显示比例通过，物理跨屏未验。交付见[当次证据](../enhancements/tests/evidence/image_density_20261025.json)，其他未决不随本项关闭。
+
+2026-11-14 R087.8：BUG-reading-vector-font（reading/geometry），viewBox固有尺寸与固定图内字号未接入正文字号；以实际文字变换后的字号等比适配，保留作者分行。原生夹具最初把图片透明边框计入图内比例，属于test/geometry，修正为内容盒核对。正文16→17px时Mermaid实际标签16→17px，SVG同步增长；当次完整交付证据另记。其他历史未决不关闭。

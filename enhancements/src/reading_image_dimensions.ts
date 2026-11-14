@@ -12,5 +12,10 @@ export function reading_image_uses_screen_pixels(image:HTMLImageElement) {
 }
 
 export function reading_image_natural_width(image:HTMLImageElement) {
+  const style=getComputedStyle(image),readable=style.getPropertyValue('--reading-image-natural-width').trim();
+  if(readable.endsWith('em')){
+    const width=parseFloat(readable)*parseFloat(style.fontSize);
+    if(Number.isFinite(width)&&width>0)return width;
+  }
   return image.naturalWidth / (reading_image_uses_screen_pixels(image) ? reading_image_screen_density() : 1);
 }

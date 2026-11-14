@@ -63,7 +63,7 @@ app.whenReady().then(async()=>{
  const sizing=[];
  for(const sample of [{name:'natural',width:240,height:80,attributes:''},{name:'explicit',width:240,height:80,attributes:'width="240" height="80"'},{name:'wide',width:1120,height:730,attributes:''},{name:'tall',width:120,height:10000,attributes:''}]){
   for(const zoom of [1,1.25]){
-   win.webContents.setZoomFactor(zoom);await render('svg',`<svg xmlns="http://www.w3.org/2000/svg" ${sample.attributes} viewBox="0 0 ${sample.width} ${sample.height}"><rect width="${sample.width}" height="${sample.height}"/><text x="2" y="${sample.height-2}">bottom</text></svg>`);await pause(100);
+   win.webContents.setZoomFactor(zoom);await render('svg',`<svg xmlns="http://www.w3.org/2000/svg" ${sample.attributes} viewBox="0 0 ${sample.width} ${sample.height}"><rect width="${sample.width}" height="${sample.height}"/><text font-size="16" x="2" y="${sample.height-2}">bottom</text></svg>`);await pause(100);
    const frame=win.webContents.mainFrame.frames.find(frame=>frame.url==='about:srcdoc');const size=await frame.executeJavaScript('(()=>{const svg=document.querySelector("svg"),root=document.getElementById("root"),rect=svg.getBoundingClientRect();return {width:rect.width,height:rect.height,bottom:rect.bottom,available:root.clientWidth,viewport:innerHeight,scroll:document.documentElement.scrollHeight,client:document.documentElement.clientHeight,root_scroll:root.scrollHeight,root_client:root.clientHeight};})()');
    assert(Math.abs(size.width-Math.min(sample.width,size.available))<1,sample.name+' natural/fit width');assert(Math.abs(size.height-size.width*sample.height/sample.width)<1,sample.name+' aspect');assert(size.bottom<=size.viewport+1,sample.name+' full height');assert(size.scroll<=size.client+1&&size.root_scroll<=size.root_client+1,sample.name+' no internal scroll range');sizing.push({sample:sample.name,zoom,...size});
   }
@@ -106,13 +106,14 @@ app.whenReady().then(async()=>{
  assert.notEqual(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','source action focuses original editor');
  await ev('document.activeElement.blur();native.classList.add("md-focus")');assert.notEqual(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','native selection shows source');
  await ev('native.classList.remove("md-focus")');assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','leaving selection hides source');
+ const readable_height=await ev('native.querySelector(".visual-code-output").getBoundingClientRect().height');
  await ev('native.style.marginTop="2500px"');await pause(200);
  assert.equal(await ev('native.querySelectorAll("iframe").length'),0,'offscreen releases iframe');
  assert(await ev('native.getBoundingClientRect().height>50'),'offscreen placeholder preserves height');
  assert.equal(await ev('getComputedStyle(native.querySelector(".CodeMirror")).display'),'none','offscreen source stays hidden');
  await ev('native.style.marginTop="0"');for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(10);
  assert.equal(await ev('native.querySelectorAll("iframe").length'),0,'scroll return reuses the static SVG without a renderer');
- assert.equal(await ev('Math.round(native.querySelector(".visual-code-output").getBoundingClientRect().height)'),80,'cached image retains natural aspect and size');
+ await pause(150);assert(Math.abs(await ev('native.querySelector(".visual-code-output").getBoundingClientRect().height')-readable_height)<1,'cached image retains readable aspect and size');
  await ev('native.querySelector(".visual-code-view").dispatchEvent(new PointerEvent("pointerenter"));document.querySelector(".visual-code-enlarge").closest(".reading-media-entry").querySelectorAll(".reading-image-panel button")[2].click()');await pause(120);
  assert.equal(await ev('native.querySelectorAll("iframe").length'),1,'manual refresh renders afresh');
  const cycle_native=async change=>{await ev('native.style.marginTop="2500px"');await pause(180);await ev(change+';void 0');await ev('native.style.marginTop="0"');for(let n=0;n<200&&await ev('!native.querySelector("[data-visual-state=ready]")');n++)await pause(15);assert(await ev('!!native.querySelector("[data-visual-state=ready]")'));};

@@ -18,7 +18,7 @@ Recent unchanged static SVG fences reappear from cache when scrolling back in th
 
 ## Inline size and enlarged viewing
 
-Static diagrams and ordinary images use their natural size by default, scaling down proportionally only when wider than the text column. Their full height participates in document layout without an internal scrollbar. Small media is not stretched to fill the column; use hover enlargement for detail. SVG fences prefer a valid absolute width, falling back to viewBox width. For predictable portable SVG sizing, specify `width`, `height` and `viewBox` together. Bitmaps retain the existing screen-pixel/DPI contract; SVG uses vector layout units.
+Text-bearing SVG images, SVG fences and Mermaid diagrams scale their main labels to the reader font and follow font changes, preserving nodes, edges and authored line breaks. Diagrams wider than the column still fit proportionally; use hover enlargement for detail. Labels are not enlarged independently of their nodes. Bitmaps and text-free diagrams keep natural sizing, full height and no inner scrollbar. Manual scaling remains available. For portable SVG dimensions, specify `width`, `height` and `viewBox` together. Remote SVGs, outlined text and external fonts may not provide measurable label proportions and retain their original sizing.
 
 This describes default reading. Explicit image scale, Fit Width and native authored dimensions remain owned by existing settings/documents and are not rewritten during upgrade. Author-designed scrolling inside interactive pages remains intact; the enlarged viewer owns its independent zoom, pan and fit actions.
 

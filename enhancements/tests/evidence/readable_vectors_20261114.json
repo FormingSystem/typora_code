@@ -1,0 +1,98 @@
+{
+  "requirements": [
+    "R087.8"
+  ],
+  "date": "2026-11-14",
+  "release": "2026.11.14.2",
+  "core": {
+    "status": "PASS",
+    "run": "27f0169f89d04636b89c87e988a12ca1",
+    "scope": "Full core; final typography-variable restoration and preview cleanup subsequently covered by target UI/native tests."
+  },
+  "ui": {
+    "status": "PASS",
+    "image_run": "3f95366b04ba462cb98a4d9a8b977898",
+    "visual_run": "a4a042bd52c847d0b7714a4234316a4c",
+    "theme_run": "ddd4c0c0e7b0429f8a282b3c33f076a1",
+    "visual_qa": "22px body and actual SVG labels checked in retained Chromium screenshot; no claim of a complete theme matrix."
+  },
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "5c759d64ccd6455fbfb60f481e89b362",
+    "scope": "Restore uninstall and no-compatible-backup detach, reinstall/check, protected document/settings/storage/backups.",
+    "payload": "cleaned"
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "dae0a2687a9847cb8faa477647e1608a",
+    "assertions": 65,
+    "payload": "cleaned"
+  },
+  "prior_runs": [
+    {
+      "run": "6c85b64f3b8945e7b55ff4e6891806ee",
+      "status": "FAIL",
+      "reason": "Native fixture included transparent image border in label-scale assertion."
+    },
+    {
+      "run": "0c1c8caac01e41319f462e27b2f5c4d0",
+      "status": "FAIL",
+      "reason": "Same border mismatch retained for measurement diagnosis."
+    },
+    {
+      "run": "7f873aafc31644219a8b5f557b7112f6",
+      "status": "PASS",
+      "checks": 85,
+      "reason": "Before final typography-variable restoration and preview cleanup."
+    },
+    {
+      "run": "8fd282586bba4966ac5c171e2ac974aa",
+      "status": "FAIL",
+      "checks": 83,
+      "reason": "Final candidate: proportions, save and cache passed; long source with 20 background diagrams timed out waiting for visibility during concurrent isolated deployment. Same candidate isolated retry passed all 85 checks; timeout cause not proven."
+    }
+  ],
+  "limits": [
+    "Static SVG line breaks are preserved, not reflowed. Wide diagrams remain column-limited and have an enlarged viewer.",
+    "External SVG URLs, external fonts and text converted to paths may not provide measurable label proportions.",
+    "Full theme/language/DPI/physical-input matrix and other platforms not verified; native font gesture is a dispatched WheelEvent.",
+    "User windows are not automatically restarted; historical unrelated issues remain open.",
+    "One final-candidate background visibility stress timeout remains recorded; isolated rerun passed, root cause not established."
+  ],
+  "native": {
+    "status": "PASS",
+    "run": "03476e0931a048b29537ac4bd0dafa21",
+    "checks": 85,
+    "host": "Typora 1.14.15 Windows x64",
+    "payload": "cleaned",
+    "metrics": {
+      "before": {
+        "body_font": 16,
+        "label_font": 16.000000715255737,
+        "image": 235.78572525878906,
+        "svg": 160
+      },
+      "after": {
+        "body_font": 17,
+        "label_font": 17.00000075995922,
+        "image": 250.51785721679687,
+        "svg": 170
+      }
+    },
+    "scope": "Native linked SVG, native Mermaid 16-to-17px content-font gesture, same SVG identity and Markdown bytes, SVG cache/scroll, source edit/save/undo, 60 trusted source activations over three workloads."
+  },
+  "manifest_sha256": "8db87853b327e98781cc39f5b7fc08a821037cb565edde9067ef304303e6882a",
+  "installed": {
+    "sequence": 2026111402,
+    "assets": {
+      "workspace": 216,
+      "terminal": 24
+    },
+    "protected_unchanged": 13,
+    "user_windows_restarted": false,
+    "native_candidate_matches": true,
+    "standard_check": "PASS",
+    "uninstall_readonly_preflight": "PASS",
+    "installer_exit": 0
+  }
+}

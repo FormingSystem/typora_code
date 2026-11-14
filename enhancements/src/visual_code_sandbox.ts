@@ -1,6 +1,8 @@
+import {observe_content_zoom} from './workspace_content_zoom';
+import {readable_svg_width,reading_vector_font} from './reading_vector_size';
 import {mermaid_theme_options} from './reading_mermaid_theme';
 
-type visual_payload={source:string;theme:Record<string,unknown>;dark:boolean;foreground:string;background:string};
+type visual_payload={source:string;theme:Record<string,unknown>;dark:boolean;foreground:string;background:string;font:number};
 type visual_result={height?:number;svg?:string;error?:string;ready?:boolean;capture?:number};
 const assets=new Map<string,Promise<string>>();
 
@@ -25,7 +27,7 @@ function visual_document(script:string,css:string,payload:visual_payload,token:s
  const vector=['svg','mermaid','graphviz','wavedrom','vega','vega_lite','echarts','plantuml','flow','sequence'].includes(format);
  const bootstrap=`(()=>{
   const token=${JSON.stringify(token)},send=value=>parent.postMessage({visual_code:token,...value},'*');
-  const root=document.getElementById('root');
+  const root=document.getElementById('root'),readable_width=${readable_svg_width.toString()};let font=${payload.font};
   const snapshot=()=>{const original=root.querySelector('svg');if(!original)return;
    const result=${format==='svg'}?original.cloneNode(true):original;if(${format==='svg'}){const style=getComputedStyle(original);result.style.color=style.color;result.style.font=style.font;
     const rect=original.getBoundingClientRect(),width=parseFloat(original.style.width);if(original.style.width.endsWith('px')&&width>0&&rect.width>0){result.setAttribute('width',String(width));result.setAttribute('height',String(width*rect.height/rect.width));}}
@@ -35,8 +37,10 @@ function visual_document(script:string,css:string,payload:visual_payload,token:s
    if(svg.ownerSVGElement)continue;const width=svg.width.baseVal,box=svg.viewBox.baseVal;
    const natural=svg.hasAttribute('width')&&width.unitType!==2&&width.value>0?width.value:box.width;
    if(Number.isFinite(natural)&&natural>0)svg.style.width=natural+'px';
+   const readable=readable_width(svg,font);if(readable)svg.style.width=readable+'px';
    svg.style.maxWidth='100%';svg.style.height='auto';svg.style.display='block';
   }};
+  addEventListener('message',event=>{if(event.source===parent&&event.data?.visual_code===token&&Number.isFinite(event.data.font)&&event.data.font>0){font=event.data.font;fit();measure();}});
   let last=0;
   const measure=()=>{const height=Math.max(1,Math.ceil(Math.max(root.getBoundingClientRect().height,root.scrollHeight)));if(height!==last){last=height;send({height});}};
   addEventListener('error',event=>send({error:event.message}));
@@ -66,7 +70,9 @@ export function create_visual_sandbox(container:HTMLElement,format:string,source
  void Promise.all([read_visual_asset(format+'.js'),format==='math'?read_visual_asset('math.css'):Promise.resolve('')]).then(([script,css])=>{
   if(disposed)return;
   timer=window.setTimeout(()=>{if(!disposed){frame.remove();on_result({error:'Rendering timed out'});}},30000);
-  frame.srcdoc=visual_document(script,css,{source,theme,dark:theme.theme==='dark',foreground:style.color,background:style.backgroundColor},token,format);
+  frame.srcdoc=visual_document(script,css,{source,theme,dark:theme.theme==='dark',foreground:style.color,background:style.backgroundColor,font:reading_vector_font(container)},token,format);
  }).catch(error=>{if(!disposed)on_result({error:String(error.message||error)});});
- return {frame,capture():Promise<string|undefined>{if(disposed)return Promise.resolve(undefined);const id=++serial;return new Promise(resolve=>{const timeout=setTimeout(()=>{captures.delete(id);resolve(undefined);},2000);captures.set(id,value=>{clearTimeout(timeout);resolve(value);});frame.contentWindow?.postMessage({visual_code:token,capture:id},'*');});},dispose(){if(disposed)return;disposed=true;for(const resolve of captures.values())resolve(undefined);captures.clear();clearTimeout(timer);window.removeEventListener('message',receive);frame.remove();}};
+ let font_frame=0;const sync_font=()=>{if(!font_frame)font_frame=requestAnimationFrame(()=>{font_frame=0;if(!disposed)frame.contentWindow?.postMessage({visual_code:token,font:reading_vector_font(container)},'*');});};
+ const release_font=observe_content_zoom(sync_font),resize=new ResizeObserver(sync_font);resize.observe(container);
+ return {frame,capture():Promise<string|undefined>{if(disposed)return Promise.resolve(undefined);const id=++serial;return new Promise(resolve=>{const timeout=setTimeout(()=>{captures.delete(id);resolve(undefined);},2000);captures.set(id,value=>{clearTimeout(timeout);resolve(value);});frame.contentWindow?.postMessage({visual_code:token,capture:id},'*');});},dispose(){if(disposed)return;disposed=true;release_font();cancelAnimationFrame(font_frame);resize.disconnect();for(const resolve of captures.values())resolve(undefined);captures.clear();clearTimeout(timer);window.removeEventListener('message',receive);frame.remove();}};
 }

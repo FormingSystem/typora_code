@@ -1,17 +1,19 @@
+import {bind_reading_vector_size} from './reading_vector_size';
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {change_reading_geometry,capture_reflow_anchor} from './reading_reflow';
 import {observe_workspace_theme} from './workspace_theme';
 const fonts=new WeakMap<HTMLElement,{font:number;line:string}>();
 export function reading_base_font(root:HTMLElement){return fonts.get(root);}
-/** Only modify the font size for layout, keep the native editing, media size, and toolbar owner unchanged. */
+/** Publish reader typography while preserving native editing and media ownership. */
 export function bind_reading_font_zoom(scroller:HTMLElement,root:HTMLElement){
-  const original=['font-size','line-height'].map(name=>[name,root.style.getPropertyValue(name),root.style.getPropertyPriority(name)]);
+  const original=['font-size','line-height','--reading-diagram-font-size'].map(name=>[name,root.style.getPropertyValue(name),root.style.getPropertyPriority(name)]);
+  const vectors=bind_reading_vector_size(root);
   let base=16,line='normal',disposed=false,retained:ReturnType<typeof capture_reflow_anchor>;
   const restore=()=>{for(const [name,value,priority]of original)if(value)root.style.setProperty(name,value,priority);else root.style.removeProperty(name);};
   const apply=()=>{
     const size=content_font_size(base),height=line==='normal'?line:String(Number.parseFloat(line)/base);
-    if(root.style.fontSize===size+'px'&&root.style.lineHeight===height){retained=undefined;return;}
-    change_reading_geometry(scroller,root,()=>{root.style.setProperty('font-size',size+'px','important');root.style.setProperty('line-height',height,'important');},retained);retained=undefined;
+    if(root.style.fontSize===size+'px'&&root.style.lineHeight===height&&root.style.getPropertyValue('--reading-diagram-font-size')===size+'px'){retained=undefined;return;}
+    change_reading_geometry(scroller,root,()=>{root.style.setProperty('--reading-diagram-font-size',size+'px');root.style.setProperty('font-size',size+'px','important');root.style.setProperty('line-height',height,'important');},retained);vectors.update();retained=undefined;
   };
   const refresh=()=>{
     if(disposed)return;
@@ -22,5 +24,5 @@ export function bind_reading_font_zoom(scroller:HTMLElement,root:HTMLElement){
     base=next;line=next_line;apply();
   };
   const stop=observe_content_zoom(apply,()=>{retained=capture_reflow_anchor(scroller,root);}),theme=observe_workspace_theme(refresh);refresh();
-  return {refresh,dispose(){disposed=true;stop();theme();fonts.delete(root);restore();}};
+  return {refresh,dispose(){disposed=true;vectors.dispose();stop();theme();fonts.delete(root);restore();}};
 }

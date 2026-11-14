@@ -4,8 +4,9 @@ app.setPath('userData',fs.mkdtempSync(path.join(os.tmpdir(),'typora-image-layout
 let win;
 app.whenReady().then(async()=>{
  win=new BrowserWindow({show:false,width:1600,height:900,webPreferences:{offscreen:true,contextIsolation:false,backgroundThrottling:false}});
+ win.webContents.on('console-message',(_e,_l,message)=>console.error(message));
  await win.loadURL('data:text/html,<style>article{width:400px}img{width:100%}</style><article></article>');
- const built=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:`export * from './src/reading_image_settings';export * from './src/reading_image_viewer';export * from './src/reading_image_controls';`,resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
+ const built=await require('esbuild').build({plugins:require('./editor_bundle.cjs').editor_plugins(),stdin:{contents:`export * from './src/reading_vector_size';export * from './src/reading_image_settings';export * from './src/reading_image_viewer';export * from './src/reading_image_controls';`,resolveDir:path.join(__dirname,'..')},bundle:true,write:false,format:'iife',globalName:'qa',loader:{'.css':'text'}});
  await win.webContents.executeJavaScript(built.outputFiles[0].text);
  const result=await win.webContents.executeJavaScript(`(async()=>{
   const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
@@ -66,7 +67,7 @@ app.whenReady().then(async()=>{
   const loads=[];for(const count of [20,100,1000]){article.replaceChildren(...Array.from({length:count},()=>image.cloneNode()));const started=performance.now(),bound=qa.bind_reading_images(article);await pause(250);assert(document.querySelectorAll('.reading-image-open').length===count,'controls created '+count);bound.dispose();assert(!document.querySelector('.reading-media-entries'),'controls disposed '+count);loads.push({count,elapsed_ms:performance.now()-started});}
   assert(!document.querySelector('style[data-reading-image-layout]'),'layout stylesheet ownership cleaned');
   return {status:'PASS',checks,loads};
- })()`);
+ })().catch(error=>{console.error(error.stack||String(error));throw error;})`);
  await win.webContents.executeJavaScript(`(async()=>{const article=document.querySelector('article');article.style.width='1200px';article.replaceChildren();const image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="2000" height="400"/>');article.append(image);await image.decode();qa.write_reading_image_setting('alignment','center');qa.write_reading_image_setting('scale',100);window.motion_binding=qa.bind_reading_images(article);})()`);
  const pause=ms=>new Promise(resolve=>setTimeout(resolve,ms));await pause(120);
  const point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('article img').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+20)}})()`);
@@ -102,14 +103,14 @@ app.whenReady().then(async()=>{
   field.blur();article.hidden=false;await pause(100);assert(!toolbar.classList.contains('is-offscreen'),'shown source restores controls');
   motion_binding.dispose();assert(!document.querySelector('.reading-media-entries'),'disposing pinned controls removes their overlay');
   return checks;
- })()`);result.checks.push(...extra);
+ })().catch(error=>{console.error(error.stack||String(error));throw error;})`);result.checks.push(...extra);
  // Ordinary raster 100% is pixel-for-pixel across real Chromium DPR and zoom.
  await win.webContents.executeJavaScript(`(async()=>{
   const article=document.querySelector('article');article.style.cssText='width:1000px';article.replaceChildren();
   for(const width of [64,894,3840]){const canvas=document.createElement('canvas');canvas.width=width;canvas.height=80;const image=new Image();image.alt='raster '+width;image.src=canvas.toDataURL('image/png');article.append(image);await image.decode();}
   const vector=new Image();vector.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(vector);await vector.decode();
   window.raster_html=article.innerHTML;qa.write_reading_image_setting('scale',100);window.raster_binding=qa.bind_reading_images(article);
- })()`);
+ })().catch(error=>{console.error(error.stack||String(error));throw error;})`);
  win.webContents.debugger.attach('1.3');
  const density_samples=[];
  for(const density of [1,1.25,1.75,2])for(const zoom of [1,1.2,1.5]){
@@ -139,7 +140,7 @@ app.whenReady().then(async()=>{
   assert(Math.abs(images[0].getBoundingClientRect().width*devicePixelRatio-894)<2,'dynamic raster source uses refreshed natural dimensions');
   raster_binding.dispose();assert(!document.querySelector('style[data-reading-image-layout]'),'density listener owner disposes its stylesheet');
   return checks;
- })()`);
+ })().catch(error=>{console.error(error.stack||String(error));throw error;})`);
  result.checks.push(...density_checks);result.density_samples=density_samples;
  await win.webContents.debugger.sendCommand('Emulation.clearDeviceMetricsOverride');win.webContents.setZoomFactor(1);
  for(const width of [280,440])for(const locale of ['zh-cn','en']){
@@ -151,10 +152,29 @@ app.whenReady().then(async()=>{
    const r=panel.getBoundingClientRect(),controls=[...panel.querySelectorAll('button,input')].map(n=>n.getBoundingClientRect());
    const result={width:innerWidth,left:r.left,right:r.right,top:r.top,bottom:r.bottom,scroll:panel.scrollWidth,client:panel.clientWidth,visible:controls.every(c=>c.left>=r.left&&c.right<=r.right),label:more.getAttribute('aria-label')};
    image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="80" height="40"/>');await image.decode();await new Promise(r=>setTimeout(r,80));result.closed=panel.hidden;bound.dispose();result.cleaned=!document.querySelector('[data-workspace-dismissal-active]');return result;
-  })()`);
+  })().catch(error=>{console.error(error.stack||String(error));throw error;})`);
   if(bounds.left<0||bounds.right>bounds.width+1||bounds.top<0||bounds.bottom>540||!bounds.visible||!bounds.closed||!bounds.cleaned)throw Error('narrow localized disclosure '+JSON.stringify(bounds));
   result.checks.push('bounded '+locale+' panel, source replacement and dismissal cleanup at '+width);
  }
+ win.setSize(1600,900);
+ const vector_checks=await win.webContents.executeJavaScript(`(async()=>{
+  const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
+  const article=document.querySelector('article');article.style.cssText='width:1400px;font-size:20px';article.replaceChildren();qa.write_reading_image_setting('scale',100);
+  const source='<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1120 730"><rect width="1120" height="730" fill="white"/><g font-size="19"><text x="40" y="80">中文硬件身份</text><text x="40" y="110">第二行</text></g></svg>';
+  const img=new Image();img.src='data:image/svg+xml,'+encodeURIComponent(source);article.append(img);await img.decode();const original=article.innerHTML,bound=qa.bind_reading_images(article);
+  await pause(300);assert(Math.abs(img.getBoundingClientRect().width-1120*20/19)<2,'viewBox-only SVG label matches 20px body');
+  article.style.fontSize='22px';await pause(80);assert(Math.abs(img.getBoundingClientRect().width-1120*22/19)<2,'linked SVG follows body font without reloading');
+  article.style.width='400px';await pause(80);assert(Math.abs(img.getBoundingClientRect().width-400)<2,'narrow column bounds full diagram');
+  assert(article.innerHTML===original,'SVG sizing does not modify Markdown image attributes');bound.dispose();article.replaceChildren();article.style.cssText='width:1400px;font-size:20px';
+  const preview=document.createElement('div');preview.className='lookup-diagram';preview.innerHTML=source;article.append(preview);const inline=qa.bind_reading_vector_size(article);await pause(80);
+  const svg=preview.querySelector('svg');assert(Math.abs(svg.getBoundingClientRect().width-1120*20/19)<2,'inline Mermaid-shaped SVG uses actual label scale');
+  article.style.fontSize='22px';inline.update();await pause(80);assert(Math.abs(svg.getBoundingClientRect().width-1120*22/19)<2,'inline diagram follows font changes');
+  for(let i=0;i<20;i++){inline.update();await pause(20);}assert(Math.abs(svg.getBoundingClientRect().width-1120*22/19)<2,'20 updates do not compound scaling');
+  const caption=document.createElement('p');caption.textContent='正文 22px：中文硬件身份，与下图文字保持比例';article.prepend(caption);
+  inline.dispose();const controller=new AbortController();const pending=qa.linked_svg_text_width('data:image/svg+xml,'+encodeURIComponent(source),controller.signal);controller.abort();assert(await pending===undefined,'cancelled vector measure does not survive owner');
+  assert(!document.querySelector('iframe'),'temporary vector measurement frames cleaned');return checks;
+ })().catch(error=>{console.error(error.stack||String(error));throw error;})`);result.checks.push(...vector_checks);
+ fs.writeFileSync(path.join(app.getPath('userData'),'readable_vectors.png'),(await win.webContents.capturePage()).toPNG());
  fs.writeFileSync(path.join(app.getPath('userData'),'image_density_metrics.json'),JSON.stringify({status:'PASS',density_samples},null,2));
  win.webContents.debugger.detach();console.log(JSON.stringify(result));
 }).catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});
