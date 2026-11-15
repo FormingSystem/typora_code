@@ -31,7 +31,9 @@ File switching retains individual reading positions. The top back/forward and Al
 
 The document content is still the native Markdown editor of Typora. Paragraphs, formatting, importing, exporting, printing, etc., are used from the corresponding native menus; do not treat the workbench as another set of document formats. Use the ordinary left click to edit link text, avoiding accidental jumps when editing links; link reading and preview are used from the corresponding preview entry.
 
-The copy button above the code block copies the code. Long code can be expanded/collapsed; folding only changes the display height, not the content. The language tag determines the highlighting, and the logical line numbers in the source code do not increase due to display line breaks. Mermaid is still rendered by Typora, and the independent viewing entry for charts can be used to zoom in and drag for viewing.
+The copy button above the code block copies the code. Long code can be expanded/collapsed. The control floats at the bottom right, appears on hover or keyboard focus, and hides after leaving without occupying a separate row. Folding only changes the display height, not the content. The language tag determines the highlighting, and the logical line numbers in the source code do not increase due to display line breaks. Mermaid is still rendered by Typora, and the independent viewing entry for charts can be used to zoom in and drag for viewing.
+
+Images show thin borders that follow the reading theme by default. Toggle Settings > Images > Show image borders, or use Image layout… in the image context menu. Clicking an image shows a selection outline; click elsewhere or press Escape to clear it. Selection remains visible when ordinary borders are disabled. Outlines do not change image dimensions or document content.
 
 <a id="section_78a56b60b46d"></a>
 ### Content font size and interface size
