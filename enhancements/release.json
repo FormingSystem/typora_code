@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111506,
+      "version": "2026.11.15.6",
+      "date": "2026-11-15",
+      "notes": [
+        "修复代码块行首选区背景错位：代码框样式不再干扰原生编辑器的隐藏测量，保留正文同步字号和GitHub外框。"
+      ],
+      "notes_en": [
+        "Fix code selection highlights missing the first character by isolating native editor measurement from code surface styles. Synchronized font sizing and GitHub code surfaces remain unchanged."
+      ]
+    },
+    {
       "sequence": 2026111505,
       "version": "2026.11.15.5",
       "date": "2026-11-15",

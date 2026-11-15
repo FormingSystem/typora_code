@@ -1,0 +1,93 @@
+{
+  "schema": 1,
+  "date": "2026-11-15",
+  "requirements": [
+    "R074.13"
+  ],
+  "version": "2026.11.15.6",
+  "design": "docs/workspace_colors.md#r07413-code-selection",
+  "cause": "GitHub block styles matched unclassed native CodeMirror measurement pre elements. Cached 16px padding differed from the visible 4px line padding, displacing selection paint by 12px; vertical text-height probes were also affected.",
+  "fix": "Exclude all CodeMirror descendants from block spacing, surface and font selectors. Keep native editing, measuring and outer GitHub surface ownership.",
+  "build": {
+    "status": "PASS",
+    "manifest_sha256": "ee10ae19ae941f241d7165eea4f9688efe4f6ef25b26d2fc122cdc37e380c178",
+    "theme_sha256": "1d90f1e08727ba13b3ca57504c66bf7f0434a0ac5ccfd88eafb719c25f289173"
+  },
+  "red": {
+    "run": "a6211fa69e684d528394fb56b6aeccdd",
+    "selected": "set -e",
+    "paint_offset_css_px": 12,
+    "result": "FAIL: native selection highlight covers first character at 16px",
+    "initial_probe": "55f9be3935b145bf82fd95e4c4d9ee1d: text-only assertions passed, motivating actual highlight geometry assertions."
+  },
+  "core": {
+    "status": "PASS",
+    "run": "4b3c6505e55c42259c70684c94f21720"
+  },
+  "ui": {
+    "status": "PASS",
+    "theme_run": "73630865579a4c1bb3ff91408ccb9fdd",
+    "theme_assertions": 25,
+    "geometry_run": "c0e18ea274d146938853cb63449d01c6",
+    "geometry_cycles": 20,
+    "scope": "Four themes, native-style unclassed measurement probes, Shadow inheritance, existing code geometry lifecycle."
+  },
+  "native": {
+    "status": "PASS",
+    "run": "a71e98fce0b44b9e95aa54bf2a2edbcd",
+    "previous_green": "0b5cfc48e4a24d98a99d1f75a6de354a",
+    "setup": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "ee10ae19ae941f241d7165eea4f9688efe4f6ef25b26d2fc122cdc37e380c178",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "a8ebeb819efd230372b5830b3199d68cd0b1e54aba05f1c766e1bf2fee8c5001",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "assertions": 214,
+    "drag_samples": 24,
+    "font_theme_cycles": 20,
+    "max_selection_offset_css_px": 0.0,
+    "fonts": [
+      "13.3333px",
+      "16px",
+      "17px",
+      "18px"
+    ],
+    "window_zoom_factors": [
+      1,
+      1.2
+    ],
+    "scope": "Trusted isolated HWND mouse drags/clicks, Latin and Chinese first glyphs, both drag directions, multi-line selections, gutter off, wrapping option, fold/expand, four themes, body font changes, window zoom, model identity, edit/undo/save, existing GitHub typography regression. Four theme selection screenshots captured; light and dark screenshots visually reviewed.",
+    "measurement": "CodeMirror native padding cache is 4px; default text height matches visible line height within 0.1px."
+  },
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "92e235da7c594ff1aae6be220ba9aef1",
+    "scope": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check. Document/settings/storage/backups preserved."
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "d8695e5051314f92bc8b9a455d1d93f8",
+    "assertions": 65
+  },
+  "local": {
+    "status": "PASS",
+    "version": "2026.11.15.6",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected_files": 9,
+    "public_check": "PASS",
+    "uninstall_read_only_preflight": "PASS before and after install",
+    "loaded": "User windows preserved; manual restart required."
+  },
+  "limits": [
+    "Native input is posted to the isolated Windows host HWND, not the physical user desktop.",
+    "Native scenarios use the host 175% display scaling; other DPI, remote desktop and other platforms are not newly verified.",
+    "Historical unrelated navigation, editing stability and preview issues remain open."
+  ]
+}

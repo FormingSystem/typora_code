@@ -7760,7 +7760,8 @@
         "R074.9",
         "R074.10",
         "R074.11",
-        "R074.12"
+        "R074.12",
+        "R074.13"
       ],
       "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
@@ -7789,7 +7790,8 @@
         "Verify official code/workbench colors, preserved blue/brown headings and menu glyph bounds at 100% and 125% zoom."
       ],
       "expected": [
-        "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切"
+        "三主题排版一致、Dark配色独立、预览导入正确且无菜单文字裁切",
+        "Unclassed CodeMirror measurement probes keep the native internal line geometry in document and Shadow styles."
       ],
       "timeout_ms": 180000,
       "runner": "enhancements/scripts/test_ui.mjs"
@@ -10549,7 +10551,8 @@
         "R087.9",
         "R074.11",
         "R074.12",
-        "R068.14"
+        "R068.14",
+        "R074.13"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [
@@ -10571,11 +10574,13 @@
       "preconditions": "Isolated host and profile, preserve user windows.",
       "steps": [
         "Load four owned themes and inspect body, all six heading sizes, unchanged quotation border, CodeMirror and gutter geometry and colors.",
-        "Use native CodeMirror to edit, undo and save; verify Markdown identity and content font adjustment."
+        "Use native CodeMirror to edit, undo and save; verify Markdown identity and content font adjustment.",
+        "Use isolated HWND mouse drags/clicks and compare selected text, glyph bounds and painted highlights after font, theme, gutter, wrap and zoom changes."
       ],
       "expected": [
         "16px body and GitHub relative heading ratios, preserved quotation border at actual host DPI, 6px code corners, 16px padding and GitHub light/dark backgrounds.",
-        "CodeMirror model and source text survive theme changes; all headings follow content font gestures; native edit/undo/save retain source bytes."
+        "CodeMirror model and source text survive theme changes; all headings follow content font gestures; native edit/undo/save retain source bytes.",
+        "The first glyph is covered by selection; unclassed measurement probes retain native padding and line height; editing and saving preserve bytes."
       ],
       "timeout_ms": 180000
     }

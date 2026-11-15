@@ -609,3 +609,6 @@ R071.7复发补充：BUG-split-black-screen-unconfirmed的稳定编号保留，�
 2026-10-25 R031.2：BUG-image-density-upscale，分类reading/layout。naturalWidth被直接当CSS像素，默认100%在DPI/窗口缩放下再次放大；旧版在实际Chromium DPR约1.2红测复现，现以普通位图像素/DPR适配并保持内容盒封顶。原生夹具最初误计透明边框、未保存临时单图缩放分别归test/geometry与test/state，不修改产品保护。12组密度/缩放与原生175%显示比例通过，物理跨屏未验。交付见[当次证据](../enhancements/tests/evidence/image_density_20261025.json)，其他未决不随本项关闭。
 
 2026-11-14 R087.8：BUG-reading-vector-font（reading/geometry），viewBox固有尺寸与固定图内字号未接入正文字号；以实际文字变换后的字号等比适配，保留作者分行。原生夹具最初把图片透明边框计入图内比例，属于test/geometry，修正为内容盒核对。正文16→17px时Mermaid实际标签16→17px，SVG同步增长；当次完整交付证据另记。其他历史未决不关闭。
+
+
+2026-11-15 R074.13：BUG-reading-code-selection-padding（reading/geometry）。无class的CodeMirror隐藏pre误继承代码框16px内边距，实际行仍为4px，导致蓝色选区右移12px；原生拖选文本完整，绘制红测失败。内部测量范围与正文表面隔离，补验实际选区矩形、行高与鼠标手势；交付证据另记，其他未决不变。

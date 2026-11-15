@@ -7,6 +7,45 @@
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
   const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
+  const selection_text='# Selection\n\n```bash\n# Windows UCRT64\n(\nset -e\n中文开头 abc\n'+Array.from({length:60},(_,i)=>'echo line_'+i).join('\n')+'\n```\n';
+  const selection_file=path.join(base,'workspace','selection.md');fs.writeFileSync(selection_file,selection_text,'utf8');await files.open_file(selection_file);
+  await wait(()=>File.bundle.filePath===selection_file&&!File.isFileLoading()&&document.querySelector('#write .CodeMirror')?.CodeMirror,'selection document loaded');
+  await JSBridge.invoke('setting.setCurTheme','vscode_default_light.css','vscode_default_light.css');File.setTheme('vscode_default_light.css');await pause(650);
+  const selection_fence=document.querySelector('#write .md-fences'),selection_cm=selection_fence.querySelector('.CodeMirror').CodeMirror;
+  selection_cm.setOption('lineNumbers',true);selection_fence.scrollIntoView({block:'start'});await pause(500);
+  let input_id=0;
+  const input=async(kind,value)=>{const id=++input_id;fs.writeFileSync(path.join(base,'native_input_request.json'),JSON.stringify({id,kind,width:innerWidth,height:innerHeight,x:100,y:200,...value}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'native_input_result.json'),'utf8').replace(/^\uFEFF/,'')).id===id}catch{return false}},'selection input delivered');await pause(120);};
+  const glyph=(line,ch)=>{const node=selection_fence.querySelectorAll('.CodeMirror-code .CodeMirror-line')[line],walk=document.createTreeWalker(node,NodeFilter.SHOW_TEXT);let text,offset=ch;while(text=walk.nextNode()){if(offset<text.length){const range=document.createRange();range.setStart(text,offset);range.setEnd(text,offset+1);return range.getBoundingClientRect();}offset-=text.length;}throw Error('glyph missing '+line+':'+ch);};
+  const measurements=[];let trusted_drags=0;
+  selection_fence.addEventListener('mousedown',event=>{if(event.isTrusted)trusted_drags++;});
+  const inspect_selection=async(line,reverse,label)=>{
+   const value=selection_cm.getLine(line),first=glyph(line,0),last=glyph(line,value.length-1),y=(first.top+first.bottom)/2;
+   const from=reverse?last.right-1:first.left+1,to=reverse?first.left+1:last.right-1;
+   await input('drag',{x:from,y,dx:to-from,dy:0,steps:20,interval:8});
+   const entry={label,font:getComputedStyle(selection_fence).fontSize,zoom:reqnode('electron').webFrame.getZoomFactor(),first:first.toJSON(),cm:selection_cm.charCoords({line,ch:0},'window'),selected:selection_cm.getSelection(),highlight:[...selection_fence.querySelectorAll('.CodeMirror-selected')].map(n=>n.getBoundingClientRect().toJSON()),padding:selection_cm.display.cachedPaddingH};measurements.push(entry);
+   fs.writeFileSync(path.join(base,'selection-measurements.json'),JSON.stringify(measurements,null,2));
+   assert(entry.selected===value,label+' native drag includes first character');
+   assert(entry.highlight.some(box=>box.left<=first.left+1&&box.right>=first.right-1&&box.top<=y&&box.bottom>=y),label+' highlight covers first glyph');
+   assert(entry.padding.left===4&&entry.padding.right===4,label+' native measurement padding');
+   assert(Math.abs(selection_cm.defaultTextHeight()-parseFloat(getComputedStyle(selection_fence.querySelector('.CodeMirror-line')).lineHeight))<.1,label+' native line-height probe');
+  };
+  for(const theme of ['vscode_default_light.css','vscode_2026_default_light.css','vscode_default_dark.css','vscode_2026_default_dark.css']){
+   await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(450);
+   for(const [i,delta]of [0,1,1,-1,-1].entries()){
+    if(delta)document.querySelector('#write h1').dispatchEvent(new WheelEvent('wheel',{deltaY:delta>0?-100:100,ctrlKey:true,bubbles:true,cancelable:true}));await pause(180);
+    await inspect_selection(i%2?3:2,i%2===0,theme+' step '+i);
+    if(i===0){const stage=theme.replaceAll('.','_');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage===stage}catch{return false}},'selection screenshot');}
+
+   }
+  }
+  ClientCommand.zoomIn();await pause(250);selection_fence.scrollIntoView({block:'start'});await pause(150);await inspect_selection(2,true,'window zoom');ClientCommand.zoomOut();await pause(250);
+  selection_cm.setOption('lineNumbers',false);selection_cm.setOption('lineWrapping',true);await pause(200);await inspect_selection(2,false,'no gutter wrapped');
+  const first=glyph(2,0),y=(first.top+first.bottom)/2;await input('click',{x:first.left+1,y});assert(selection_cm.getCursor().line===2&&selection_cm.getCursor().ch===0,'native first-character click');
+  const end=glyph(3,7);await input('drag',{x:first.left+1,y,dx:end.right-first.left-2,dy:(end.top+end.bottom)/2-y,steps:20,interval:8});assert(selection_cm.getSelection()==='set -e\n中文开头 abc','native multi-line drag includes both line starts');
+  const boxes=[...selection_fence.querySelectorAll('.CodeMirror-selected')].map(n=>n.getBoundingClientRect());for(const line of [2,3]){const r=glyph(line,0);assert(boxes.some(b=>b.left<=r.left+1&&b.right>=r.right-1&&b.top<r.bottom&&b.bottom>r.top),'multi-line highlight covers line '+line);}
+  const fold_button=selection_fence.querySelector('.linux-note-code-toggle');fold_button.click();await pause(150);await inspect_selection(2,true,'expanded');fold_button.click();await pause(150);await inspect_selection(2,false,'collapsed');
+  assert(trusted_drags>=26,'trusted native mouse events observed');assert(selection_fence.querySelector('.CodeMirror').CodeMirror===selection_cm,'selection preserves editor identity');
+  selection_cm.replaceRange('x',{line:2,ch:0});ClientCommand.undo();await pause(200);await files.save_active();assert(fs.readFileSync(selection_file,'utf8')===selection_text,'selection edit undo save bytes');
   fs.writeFileSync(path.join(base,'workspace','media.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#ff0000"/></svg>','utf8');
   const text='# GitHub reading\n\n## Heading two\n\n### Heading three\n\n#### Heading four\n\n##### Heading five\n\n###### Heading six\n\n正文大小与代码框。Inline `value`.\n\n> 引用保持原样。\n\n```cpp\n// comment long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word \nint main() {\n  const char *name = "hello";\n  return 42;\n}\n```\n\n![media](media.svg)\n\n```mermaid\ngraph TD\n A[Diagram] --> B[Target]\n style A fill:#00ff00,stroke:#00ff00\n```\n\nTail.\n';
   const file=path.join(base,'workspace','github-reading.md');fs.writeFileSync(file,text,'utf8');await files.open_file(file);

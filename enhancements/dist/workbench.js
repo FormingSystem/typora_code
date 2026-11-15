@@ -270615,6 +270615,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026111506,
+        version: "2026.11.15.6",
+        date: "2026-11-15",
+        notes: [
+          "\u4FEE\u590D\u4EE3\u7801\u5757\u884C\u9996\u9009\u533A\u80CC\u666F\u9519\u4F4D\uFF1A\u4EE3\u7801\u6846\u6837\u5F0F\u4E0D\u518D\u5E72\u6270\u539F\u751F\u7F16\u8F91\u5668\u7684\u9690\u85CF\u6D4B\u91CF\uFF0C\u4FDD\u7559\u6B63\u6587\u540C\u6B65\u5B57\u53F7\u548CGitHub\u5916\u6846\u3002"
+        ],
+        notes_en: [
+          "Fix code selection highlights missing the first character by isolating native editor measurement from code surface styles. Synchronized font sizing and GitHub code surfaces remain unchanged."
+        ]
+      },
+      {
         sequence: 2026111505,
         version: "2026.11.15.5",
         date: "2026-11-15",
