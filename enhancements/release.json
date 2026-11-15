@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111602,
+      "version": "2026.11.16.2",
+      "date": "2026-11-16",
+      "notes": [
+        "图片悬浮面板可直接调整边框、主题颜色、圆角和阴影；支持正文等宽或贴合图片，以及数值/拖动调整内边距和透明度，保留完整图片。"
+      ],
+      "notes_en": [
+        "Adjust image borders, theme colors, corners and shadows directly in the floating panel. Choose text-column or image-fit framing and type or drag padding and opacity without cropping the image."
+      ]
+    },
+    {
       "sequence": 2026111601,
       "version": "2026.11.16.1",
       "date": "2026-11-16",

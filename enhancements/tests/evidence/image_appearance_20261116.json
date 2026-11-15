@@ -1,0 +1,80 @@
+{
+  "schema": 1,
+  "date": "2026-11-16",
+  "requirements": [
+    "R031.7"
+  ],
+  "version": "2026.11.16.2",
+  "design": "docs/reading_media_viewer.md#r0317-image-appearance-controls",
+  "behavior": "Global appearance controls in the image More panel; text-column or image-fit frame, default 8px horizontal/vertical padding, 4px corners, numeric and slider padding/opacity. Live drag is transient and release saves once. Image source and saved Markdown remain unchanged; frame geometry intentionally changes.",
+  "build": {
+    "status": "PASS",
+    "manifest_sha256": "88712a419b6bceb29f64a682074f544b7e295fef8f12ecdb134c4b788aaf8f9f"
+  },
+  "core": {
+    "status": "PASS",
+    "run": "fae1f50a52cc416d80f094c01f5031fa"
+  },
+  "ui": {
+    "status": "PASS",
+    "image_run": "0739fe0729e042e798a0404363e319fc",
+    "image_assertions": 145,
+    "settings_run": "d3fb6809b59643bab957a6d43b4779ea",
+    "settings_assertions": 320,
+    "trusted_padding_drag": {
+      "events": 19,
+      "max_next_frame_ms": 0.4000000059604645,
+      "scope": "Electron sendInputEvent; callback latency, not physical display latency"
+    }
+  },
+  "native": {
+    "status": "PASS",
+    "run": "65166b52c1ab4b1f8af021973ee50143",
+    "assertions": 107,
+    "fixture_sha256": "a3dffd5cd5df712ea6c371f2ee0383ffc8cf4cc1ccce698cf3faa9809e085bb0",
+    "host": "Typora 1.14.15 / Windows",
+    "visual_review": "Reviewed final light/dark appearance-panel captures: complete centered image, rounded column-width frame, readable 100 input and hidden SVG actions for PNG.",
+    "source_saved_unchanged": true
+  },
+  "lifecycle": {
+    "status": "PASS",
+    "run": "1943e74608d445d1bd47d06ac9e44fc8",
+    "paths": [
+      "compatible backup restore",
+      "no compatible backup detach"
+    ],
+    "payload": "cleaned"
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "20be0e3eb96546c49781d940ff17c549",
+    "assertions": 65,
+    "payload": "cleaned"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected": 9,
+    "manifest_sha256": "88712a419b6bceb29f64a682074f544b7e295fef8f12ecdb134c4b788aaf8f9f",
+    "version": "2026.11.16.2",
+    "sequence": 2026111602,
+    "public_check": "PASS",
+    "uninstall_read_only_preflight": "PASS before and after",
+    "loaded": "Existing user windows retained; manual restart required."
+  },
+  "retained_findings": [
+    "Initial native height assertion reused an authored zoom:50% image. Author zoom is intentionally retained; a fresh image fixture verifies column framing. Failed runs a4244cbd3ee74a90bdb9597c22e86383 and e311a25e36c342d9960d5bca404b76a1 remain in local evidence.",
+    "Native screenshot review found flex CSS displaying a hidden SVG action row for PNG, and number spinners clipping 100. Added an explicit hidden rule and widened spinner-free number inputs; final captures were reviewed.",
+    "Initial trusted slider test omitted leftButtonDown on move events. Corrected the input fixture; final drag generated 19 trusted input events and committed after release.",
+    "Initial core run 35bdc7bf063b465e83295f16018b665e failed in the unrelated text-document permission/file-occupation path. The unchanged core rerun passed; exact transient cause was not established."
+  ],
+  "limits": [
+    "Physical system color-picker dialog and user desktop gestures were not newly tested.",
+    "Other DPI configurations and non-Windows platforms are not newly verified.",
+    "Historical unrelated pending issues remain open; graph fences and fullscreen viewers are outside the appearance scope."
+  ]
+}

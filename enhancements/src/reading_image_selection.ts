@@ -1,3 +1,4 @@
+import {reading_image_selector} from './reading_image_selector';
 /** Keep transient selection outside serialized image markup and native editor state. */
 export function bind_reading_image_selection(root:HTMLElement,selector:string){
   const owner=root.getRootNode(),style=document.createElement('style');
@@ -9,13 +10,8 @@ export function bind_reading_image_selection(root:HTMLElement,selector:string){
   const update=()=>{
     if(!selected)return;
     if(!root.contains(selected)||!selected.isConnected||selected.getAttribute('src')!==source){clear();return;}
-    const path:string[]=[];
-    for(let node:Element|null=selected;node;node=node.parentElement){
-      path.unshift(`${node.localName}:nth-child(${Array.prototype.indexOf.call(node.parentNode!.children,node)+1})`);
-      if(node.parentNode===owner)break;
-    }
     const width='max(3px,calc(var(--reading-image-decoration-width,0px) + 1px))';
-    const rule=`${path.join(' > ')}{outline:${width} solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:calc(-1 * ${width})!important}`;
+    const rule=`${reading_image_selector(selected)}{outline:${width} solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:calc(-1 * ${width})!important}`;
     if(style.textContent!==rule)style.textContent=rule;
   };
   const is_control=(path:EventTarget[])=>path.some(node=>node instanceof Element&&node.matches('.reading-media-entries,.reading-media-viewer'));

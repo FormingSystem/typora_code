@@ -35,6 +35,8 @@ The copy button above the code block copies the code. Long code can be expanded/
 
 Images default to a 2px border that follows the reading theme. In Settings > Images, configure width (0.5–8px), separate light/dark colors and shadow strength (off/soft/medium/strong). Leave colors blank or reset them to restore automatic theme colors; custom values support #RRGGBB and #RRGGBBAA. The image context menu opens these settings through Image layout… > Image border and shadow settings…. Clicking uses a stronger focus-color outline; outside clicks or Escape clear it, even when ordinary borders are disabled. Decoration does not resize images or change document content.
 
+The image More panel includes Global image appearance: border width, current-theme color, corners, shadow and frame width. Defaults use text-column width, 8px padding and 4px corners; Fit image is also available. Type or drag padding and border opacity, release to save, or press Esc to cancel the current drag. These controls do not crop the image.
+
 <a id="section_78a56b60b46d"></a>
 ### Content font size and interface size
 

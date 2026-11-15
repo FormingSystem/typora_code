@@ -7,6 +7,7 @@
  try{
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
   const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
+  core.app.settings.set_and_save('reading_images',{frame_width:'content',padding_x:0,padding_y:0});
   reqnode(path.join(_options.userDataPath,'typora_code/assets/update/workspace_update_service.cjs')).check_update=async()=>undefined;
   for(const [name,width,height]of [['small',64,40],['large',4800,1800]]){
    const canvas=document.createElement('canvas');canvas.width=width;canvas.height=height;const context=canvas.getContext('2d');context.fillStyle='#369';context.fillRect(0,0,width,height);
@@ -178,6 +179,19 @@
   document.querySelector('.workspace-settings-modal .workspace-dialog-close').click();await pause(100);
   assert(getComputedStyle(target).outlineColor==='rgb(140, 140, 140)'&&getComputedStyle(target).boxShadow==='none','native reset follows current 2026 dark theme');
   await files.save_active();assert(fs.readFileSync(reported_file,'utf8')===reported_source,'native selection and borders do not alter saved Markdown');
+  const appearance_source='# Appearance\n\n![Small](small.png)\n\nTail.\n',appearance_file=path.join(base,'workspace/appearance.md');fs.writeFileSync(appearance_file,appearance_source,'utf8');await files.open_file(appearance_file);await wait(()=>images().length===1&&images().every(image=>image.complete&&image.naturalWidth),'appearance fixtures');
+  const appearance_target=images()[0];appearance_target.scrollIntoView({block:'center'});await pause(150);
+  const appearance_entry=[...document.querySelectorAll('.reading-image-more')].find(button=>!button.hidden&&!button.closest('.reading-media-entry').classList.contains('is-offscreen'));appearance_entry.click();await pause(100);
+  const appearance_panel=appearance_entry.closest('.reading-media-entry').querySelector('.reading-image-panel');
+  const control=key=>appearance_panel.querySelector('[data-image-appearance="'+key+'"]');
+  const change_control=(key,value)=>{const node=control(key);node.value=String(value);node.dispatchEvent(new Event('input'));node.dispatchEvent(new Event('change'));};
+  appearance_panel.querySelector('[data-image-align-scope=global][data-image-align=center]').click();change_control('frame_width','column');change_control('padding_x',8);change_control('padding_y',8);change_control('border_radius',12);change_control('shadow','soft');await pause(120);
+  assert(core.app.settings.get('reading_images').border_radius===12&&getComputedStyle(appearance_target).borderRadius==='12px','native floating radius updates owner and drawing');
+  assert(appearance_target.getBoundingClientRect().width>500&&appearance_target.getBoundingClientRect().height<100,'native column frame preserves small image content height '+JSON.stringify({rect:appearance_target.getBoundingClientRect().toJSON(),settings:core.app.settings.get('reading_images'),parent:appearance_target.parentElement.outerHTML,style:getComputedStyle(appearance_target).cssText}));
+  const range=control('padding_y_range');range.focus();range.value='20';range.dispatchEvent(new Event('input'));assert(core.app.settings.get('reading_images').padding_y===8,'native padding drag is transient');range.dispatchEvent(new Event('change'));assert(core.app.settings.get('reading_images').padding_y===20,'native padding drag commits');
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){ClientCommand.setTheme(theme,theme);await pause(300);appearance_target.scrollIntoView({block:'center'});await pause(80);if(appearance_panel.hidden)appearance_entry.click();await pause(80);const stage='appearance_panel_'+(theme.includes('_dark')?'dark':'light');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage===stage}catch{return false}},'appearance panel screenshot');assert(appearance_panel.scrollWidth<=appearance_panel.clientWidth+1,'native appearance panel has no horizontal overflow '+theme);}
+  change_control('border_opacity',0);assert(getComputedStyle(appearance_target).opacity==='1','native border opacity does not fade image');change_control('border_opacity',100);
+  await files.save_active();assert(fs.readFileSync(appearance_file,'utf8')===appearance_source,'native floating appearance leaves Markdown unchanged');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
 })();

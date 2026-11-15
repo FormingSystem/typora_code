@@ -8233,5 +8233,22 @@
   "svg_export_size_limit": {
     "zh_cn": "无法导出此尺寸的图片；每边最多16384像素，总计最多32兆像素。",
     "en": "Cannot export this image size; maximum 16384 pixels per side and 32 megapixels total."
-  }
+  },
+  "image_appearance_global": {"zh_cn": "全局图片外观", "en": "Global image appearance"},
+  "image_border_width_short": {"zh_cn": "粗细", "en": "Width"},
+  "image_border_radius": {"zh_cn": "图片圆角", "en": "Image corner radius"},
+  "image_border_radius_short": {"zh_cn": "圆角", "en": "Corners"},
+  "image_border_radius_description": {"zh_cn": "0–32 px，默认4 px；设为0使用直角，不改变图片尺寸。", "en": "0–32 px, default 4 px. Set 0 for square corners without changing image dimensions."},
+  "image_border_color_short": {"zh_cn": "边框颜色", "en": "Border color"},
+  "image_border_color_light_short": {"zh_cn": "浅色边线", "en": "Light border"},
+  "image_border_color_dark_short": {"zh_cn": "深色边线", "en": "Dark border"},
+  "image_border_color_auto_short": {"zh_cn": "自动", "en": "Auto"},
+  "image_padding_x": {"zh_cn": "左右留白", "en": "Horizontal padding"},
+  "image_padding_y": {"zh_cn": "上下留白", "en": "Vertical padding"},
+  "image_border_opacity": {"zh_cn": "边框不透明度", "en": "Border opacity"},
+  "image_frame_width": {"zh_cn": "边框范围", "en": "Frame width"},
+  "image_frame_content": {"zh_cn": "贴合图片", "en": "Fit image"},
+  "image_frame_column": {"zh_cn": "正文等宽", "en": "Text column"},
+  "image_padding_description": {"zh_cn": "0–48 px，可输入或拖动；仅调整边框内留白，保留完整图片。", "en": "0–48 px; type or drag to adjust space inside the frame while keeping the full image."},
+  "image_opacity_description": {"zh_cn": "0为完全透明，100为不透明；只影响边框，不影响图片内容。", "en": "0 is fully transparent and 100 opaque; affects the border, not image content."}
 }

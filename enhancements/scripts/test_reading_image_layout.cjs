@@ -11,6 +11,7 @@ app.whenReady().then(async()=>{
  const result=await win.webContents.executeJavaScript(`(async()=>{
   const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
   const values=new Map();let writes=0,failed=false;window[Symbol.for('typora-code:workspace')]={app:{settings:{get:k=>values.get(k),set_and_save(k,v){if(failed)throw Error('disk');values.set(k,v);writes++;}}}};
+  assert(qa.read_reading_image_settings().padding_x===8&&qa.read_reading_image_settings().padding_y===8&&qa.read_reading_image_settings().frame_width==='column'&&qa.read_reading_image_settings().border_radius===4,'frame defaults provide column width, padding and rounded corners');values.set('reading_images',{frame_width:'content',padding_x:0,padding_y:0});
   const article=document.querySelector('article'),image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(image);await image.decode();
   const html=article.innerHTML,binding=qa.bind_reading_images(article);await pause(120);
   const outline=()=>getComputedStyle(image).outlineStyle==='none'?'0px':getComputedStyle(image).outlineWidth;
@@ -48,7 +49,7 @@ app.whenReady().then(async()=>{
   assert(panel.hidden&&more.getAttribute('aria-expanded')==='false','image controls initially collapsed without selection');
   assert(more.closest('.reading-media-entry').getBoundingClientRect().width===56,'collapsed toolbar only 56 CSS pixels');
   more.click();await pause(40);assert(!panel.hidden&&more.getAttribute('aria-expanded')==='true','More expands controls');
-  assert(panel.getBoundingClientRect().width<=340&&[...panel.querySelectorAll('.reading-image-control-row')].filter(row=>!row.hidden).length===3,'controls grouped in bounded rows');
+  assert(panel.getBoundingClientRect().width<=340&&[...panel.querySelectorAll('.reading-image-control-row')].filter(row=>!row.hidden).length===11,'controls grouped in bounded rows');
   for(const type of ['keydown','keyup'])more.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));
   assert(panel.hidden&&document.activeElement===more,'Escape closes disclosure and restores trigger focus');
   more.click();await pause(40);
@@ -72,8 +73,25 @@ app.whenReady().then(async()=>{
   assert(article.innerHTML===html,'global shortcut does not modify document');alignment_button('global','right').click();
   image.style.margin='0 auto 0 0';qa.write_reading_image_setting('alignment','right');assert(image.getBoundingClientRect().left===article.getBoundingClientRect().left,'individual alignment wins');image.removeAttribute('style');
   assert(article.innerHTML===html,'global presentation leaves source DOM unchanged');
+  const appearance=key=>panel.querySelector('[data-image-appearance="'+key+'"]');
+  const appearance_change=(key,value)=>{const input=appearance(key);input.value=String(value);input.dispatchEvent(new Event('input'));input.dispatchEvent(new Event('change'));};
+  qa.write_reading_image_setting('scale',100);appearance_change('frame_width','column');appearance_change('padding_x',8);appearance_change('padding_y',8);
+  assert(image.getBoundingClientRect().width===400&&image.getBoundingClientRect().height===56,'column frame keeps complete image height plus padding');
+  assert(getComputedStyle(image).objectFit==='contain','column frame never crops image content');
+  for(const radius of [0,4,32]){appearance_change('border_radius',radius);assert(getComputedStyle(image).borderRadius===radius+'px','live corner setting '+radius);}
+  appearance_change('border_radius',33);assert(qa.read_reading_image_settings().border_radius===32,'invalid radius retains saved setting');
+  const count_before_drag=writes,range=appearance('padding_y_range');for(let n=0;n<20;n++){range.value=String(n);range.dispatchEvent(new Event('input'));}
+  assert(writes===count_before_drag&&image.getBoundingClientRect().height===78,'padding drag previews without writing');range.dispatchEvent(new Event('change'));assert(writes===count_before_drag+1&&qa.read_reading_image_settings().padding_y===19,'padding release writes once');
+  range.value='30';range.dispatchEvent(new Event('input'));for(const type of ['keydown','keyup'])range.dispatchEvent(new KeyboardEvent(type,{key:'Escape',bubbles:true}));assert(qa.read_reading_image_settings().padding_y===19&&writes===count_before_drag+1,'Escape cancels padding drag');
+  appearance_change('border_opacity',0);assert(/(?:rgba|color)/.test(getComputedStyle(image).outlineColor)&&getComputedStyle(image).opacity==='1','transparent border preserves opaque image');
+  failed=true;appearance_change('border_width',6);failed=false;assert(appearance('border_width').value==='2','failed toolbar save restores persisted value');
+  appearance_change('color','#12345680');const saved_light=qa.read_reading_image_settings().border_color_light;appearance('picker').value='#abcdef';appearance('picker').dispatchEvent(new Event('change'));assert(qa.read_reading_image_settings().border_color_light==='#abcdef80','toolbar picker preserves alpha');
+  appearance('color').value='#999999';appearance('color').dispatchEvent(new Event('input'));document.body.style.backgroundColor='#121314';await pause(80);appearance_change('color','#fedcba');assert(qa.read_reading_image_settings().border_color_light==='#abcdef80'&&qa.read_reading_image_settings().border_color_dark==='#fedcba','toolbar switches independent color owner');
+  appearance('automatic').click();assert(qa.read_reading_image_settings().border_color_dark==='','auto clears only current color override');document.body.style.backgroundColor='#ffffff';await pause(80);
+  for(const [key,value]of Object.entries({frame_width:'content',padding_x:0,padding_y:0,border_radius:4,border_opacity:100,border_color_light:'',border_color_dark:''}))qa.write_reading_image_setting(key,value);
+  assert(article.innerHTML===html,'appearance controls do not serialize metadata');
   const field=document.querySelector('.reading-image-scale input'),down=document.querySelector('[data-image-scale-action="decrease"]'),up=document.querySelector('[data-image-scale-action="increase"]');
-  assert(field.type==='number'&&!document.querySelector('input[type="range"]'),'numeric field replaces slider');
+  assert(field.type==='number'&&!document.querySelector('.reading-image-scale input[type="range"]'),'numeric field replaces slider');
   const enter=(value,key='Enter')=>{field.value=value;field.dispatchEvent(new Event('input'));field.dispatchEvent(new KeyboardEvent('keydown',{key,bubbles:true}));field.dispatchEvent(new KeyboardEvent('keyup',{key,bubbles:true}));};
   enter('125');assert(qa.read_reading_image_settings().scale===125&&image.getBoundingClientRect().width===80,'numeric Enter commits proportion');
   const stepped=writes;down.click();assert(qa.read_reading_image_settings().scale===120,'minus steps 5');up.click();assert(qa.read_reading_image_settings().scale===125&&writes===stepped+2,'plus steps 5 with one write per click');
@@ -125,6 +143,15 @@ app.whenReady().then(async()=>{
  win.webContents.sendInputEvent({type:'mouseMove',x:1500,y:800});await pause(100);
  const released=await win.webContents.executeJavaScript(`document.querySelector('[data-image-scale-action=decrease]').getBoundingClientRect().left`);
  if(Math.abs(released-(button_point.x-16))<5)throw Error('toolbar did not re-anchor after leaving');result.checks.push('leaving toolbar reanchors to resized image');
+ const range_point=await win.webContents.executeJavaScript(`(()=>{const panel=document.querySelector('.reading-image-panel');if(panel.hidden)document.querySelector('.reading-image-more').click();const range=panel.querySelector('[data-image-appearance=padding_y_range]');range.scrollIntoView({block:'nearest'});window.padding_samples=[];range.addEventListener('input',event=>{if(!event.isTrusted)return;const start=performance.now();requestAnimationFrame(()=>padding_samples.push(performance.now()-start));});const r=range.getBoundingClientRect();return{x:Math.round(r.left+7),y:Math.round(r.top+r.height/2),end:Math.round(r.right-7)}})()`);
+ win.webContents.sendInputEvent({type:'mouseMove',x:range_point.x,y:range_point.y});win.webContents.sendInputEvent({type:'mouseDown',x:range_point.x,y:range_point.y,button:'left',clickCount:1});
+ for(let i=1;i<=20;i++){win.webContents.sendInputEvent({type:'mouseMove',x:Math.round(range_point.x+(range_point.end-range_point.x)*i/20),y:range_point.y,modifiers:['leftButtonDown']});await pause(12);}
+ const previewed=await win.webContents.executeJavaScript(`({saved:window[Symbol.for('typora-code:workspace')].app.settings.get('reading_images').padding_y,preview:qa.read_reading_image_settings().padding_y})`);
+ if(previewed.saved!==0||previewed.preview<=0)throw Error('trusted padding drag did not remain transient '+JSON.stringify(previewed));
+ win.webContents.sendInputEvent({type:'mouseUp',x:range_point.end,y:range_point.y,button:'left',clickCount:1});await pause(60);
+ const drag=await win.webContents.executeJavaScript(`({saved:window[Symbol.for('typora-code:workspace')].app.settings.get('reading_images').padding_y,samples:padding_samples})`);
+ if(drag.saved<=0||drag.samples.length<2)throw Error('trusted padding release failed '+JSON.stringify(drag));result.padding_drag={events:drag.samples.length,max_next_frame_ms:Math.max(...drag.samples)};result.checks.push('trusted range drag previews then commits with measured next-frame latency');
+ await win.webContents.executeJavaScript(`qa.write_reading_image_setting('padding_y',0);document.activeElement.blur()`);
  const extra=await win.webContents.executeJavaScript(`(async()=>{
   const checks=[],assert=(v,m)=>{if(!v)throw Error(m);checks.push(m)},pause=ms=>new Promise(r=>setTimeout(r,ms));
   const article=document.querySelector('article'),toolbar=document.querySelector('.reading-media-entry'),field=toolbar.querySelector('input'),rect=()=>toolbar.getBoundingClientRect();

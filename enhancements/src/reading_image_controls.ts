@@ -1,3 +1,4 @@
+import {create_reading_image_appearance_controls} from './reading_image_appearance_controls';
 import {workspace_element as el,workspace_button} from "./workspace_widgets";
 import {workspace_text} from "./workspace_i18n";
 import {git_icon} from "./git_icons";
@@ -26,13 +27,14 @@ export function create_reading_image_controls(image:HTMLImageElement){
   let editing=false;
   let gesture:ReturnType<typeof begin_reading_image_scale>|undefined;
   const fail=(error:unknown)=>{const core=(window as any)[Symbol.for('typora-code:workspace')];if(core?.Notice)new core.Notice(String(error instanceof Error?error.message:error),3500);else console.error(error);};
+  const appearance=create_reading_image_appearance_controls(image,fail);
   const run=(action:()=>void)=>{try{action();}catch(error){fail(error);}};
   const draft=()=>{const value=input.valueAsNumber;return input.value.trim()!==''&&Number.isFinite(value)&&value>=20?Math.min(image_scale_limit(image),value):undefined;};
 
   const fit=workspace_button(workspace_text('image_layout_fit_short'),()=>{cancel();run(()=>write_reading_image_setting('size_mode','fit_width'));},'reading-media-open');
   fit.title=workspace_text('image_layout_fit');
   const reset=workspace_button('100%',()=>{cancel();run(()=>write_reading_image_setting('scale',100));},'reading-media-open');reset.title=workspace_text('image_layout_natural');reset.setAttribute('aria-label',reset.title);
-  const sync=()=>{const settings=read_reading_image_settings(),limit=image_scale_limit(image),value=settings.size_mode==='fit_width'?limit:Math.min(limit,settings.scale);input.max=String(limit);if(!editing)input.value=String(value);decrease.disabled=value<=20;increase.disabled=value>=limit;fit.setAttribute('aria-pressed',String(settings.size_mode==='fit_width'));reset.setAttribute('aria-pressed',String(settings.size_mode==='natural'&&settings.scale===100));refresh_alignment();};
+  const sync=()=>{const settings=read_reading_image_settings(),limit=image_scale_limit(image),value=settings.size_mode==='fit_width'?limit:Math.min(limit,settings.scale);input.max=String(limit);if(!editing)input.value=String(value);decrease.disabled=value<=20;increase.disabled=value>=limit;fit.setAttribute('aria-pressed',String(settings.size_mode==='fit_width'));reset.setAttribute('aria-pressed',String(settings.size_mode==='natural'&&settings.scale===100));refresh_alignment();appearance.sync();};
   const cancel=()=>{const active=editing||!!gesture;editing=false;gesture?.cancel();gesture=undefined;sync();return active;};
   const commit=(value=draft())=>{
     if(value===undefined){cancel();return;}
@@ -65,5 +67,5 @@ export function create_reading_image_controls(image:HTMLImageElement){
   const scale_row=el('div','reading-image-control-row'),global_row=el('div','reading-image-control-row'),single_row=el('div','reading-image-control-row');
   scale_row.append(group,reset,fit);global_row.append(global_caption,...global_buttons);single_row.append(single_caption,...single_buttons);
   svg.refresh();
-  return {controls:[scale_row,global_row,single_row,svg.row],refresh(){sync();svg.refresh();},cancel,dispose(){events.abort();release();gesture?.cancel();svg.dispose();}};
+  return {controls:[scale_row,global_row,single_row,...appearance.rows,svg.row],refresh(){sync();svg.refresh();},cancel(){const changed=appearance.cancel();return cancel()||changed;},dispose(){appearance.dispose();events.abort();release();gesture?.cancel();svg.dispose();}};
 }
