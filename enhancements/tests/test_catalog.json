@@ -5870,7 +5870,8 @@
       "purpose": "implementation",
       "requirements": [
         "R068",
-        "R087.4"
+        "R087.4",
+        "R074.12"
       ],
       "design": "docs/reading_code_blocks.md",
       "implementation": [
@@ -7756,7 +7757,8 @@
         "R074.7",
         "R074.9",
         "R074.10",
-        "R074.11"
+        "R074.11",
+        "R074.12"
       ],
       "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
@@ -10540,7 +10542,8 @@
       "requirements": [
         "R074.10",
         "R087.9",
-        "R074.11"
+        "R074.11",
+        "R074.12"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [

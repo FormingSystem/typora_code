@@ -228,6 +228,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R074.10 | GitHub body/heading sizes and code surfaces | [R074.10](workspace_colors.en.md#r07410-github-reading) | 2026-11-14 |
 | R087.9 | Reading minimap media | [Design](reading_minimap.en.md) | 2026-11-15 |
 | R074.11 | Quotation vertical padding | [Design](reading_minimap.en.md) | 2026-11-15 |
+| R074.12 | Code font synchronization | [Design](workspace_colors.en.md#r07412-code-font) | 2026-11-15 |
 | R074.5 | CppGithubConsoles use paired Light/Dark, font and layout share (color updated by R074.7) | [Authoritative design](workspace_colors.en.md#section_18e10828d9b5) | Fonts, line spacing, borders, and shared preview are consistent, independent theme installation/uninstallation |
 | R077 | Test temporary products automatically clean up | [Lifecycle](test_artifacts.en.md) | Ownership, end cleanup, evidence retention, and crash recovery; exclude real backup |
 | R047.9 | Upgrade disk lifecycle | [Upgrade products and backup retention](workspace_update.en.md#section_9dee1836ad70) | Temporary payload recovery, crash recovery, backup rotation, logs and user data boundaries |

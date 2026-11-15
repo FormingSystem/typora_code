@@ -225,6 +225,7 @@
 | R074.10 | GitHub正文/标题字号与代码框外观 | [R074.10](workspace_colors.md#r07410-github-reading) | 2026-11-14 |
 | R087.9 | 阅读缩略图媒体 | [Design](reading_minimap.md) | 2026-11-15 |
 | R074.11 | 引用上下留白 | [Design](reading_minimap.md) | 2026-11-15 |
+| R074.12 | 代码字号同步 | [Design](workspace_colors.md#r07412-code-font) | 2026-11-15 |
 | R074.5 | CppGithubConsoles成对Light/Dark，字体/排版共用（颜色由R074.7更新） | [权威设计](workspace_colors.md#r0745-成对明暗主题与字体一致性) | 字体、行距、边线与共享预览一致，独立主题安装/卸载 |
 | R077 | 测试临时产物自动清理 | [生命周期](test_artifacts.md) | 所有权、结束清理、证据保留和崩溃回收；排除真实备份 |
 | R047.9 | 升级磁盘生命周期 | [升级产物与备份保留](workspace_update.md#r0479-升级磁盘生命周期2026-09-27) | 临时载荷回收、崩溃恢复、备份轮换、日志与用户数据边界 |

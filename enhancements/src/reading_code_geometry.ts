@@ -1,3 +1,5 @@
+import {observe_content_zoom} from './workspace_content_zoom';
+import {observe_workspace_theme} from './workspace_theme';
 /** The layout measurement of native fences belongs to their respective CodeMirror; off-screen rendering is deferred, and merged refresh is performed when visible. */
 type fence_editor = {refresh():void};
 type fence_measurement = {wrapper:HTMLElement;editor:fence_editor;visible:boolean;width:number;pending:boolean};
@@ -30,6 +32,7 @@ export function bind_reading_code_geometry() {
     }
   });
   const invalidate=()=>{for(const fence of entries.keys())enqueue(fence);};
+  const stop_zoom=observe_content_zoom(invalidate),stop_theme=observe_workspace_theme(invalidate);
   window.addEventListener('resize',invalidate,{passive:true});document.fonts?.addEventListener('loadingdone',invalidate);
   const remove=(fence:HTMLElement,entry:fence_measurement)=>{intersection.unobserve(fence);resize.unobserve(entry.wrapper);wrappers.delete(entry.wrapper);entries.delete(fence);queued.delete(fence);};
   return {
@@ -47,6 +50,6 @@ export function bind_reading_code_geometry() {
       }
     },
     refresh:enqueue,
-    dispose(){if(disposed)return;disposed=true;cancelAnimationFrame(frame);frame=0;intersection.disconnect();resize.disconnect();queued.clear();entries.clear();wrappers.clear();window.removeEventListener('resize',invalidate);document.fonts?.removeEventListener('loadingdone',invalidate);}
+    dispose(){if(disposed)return;disposed=true;stop_zoom();stop_theme();cancelAnimationFrame(frame);frame=0;intersection.disconnect();resize.disconnect();queued.clear();entries.clear();wrappers.clear();window.removeEventListener('resize',invalidate);document.fonts?.removeEventListener('loadingdone',invalidate);}
   };
 }

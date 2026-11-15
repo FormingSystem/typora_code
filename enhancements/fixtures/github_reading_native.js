@@ -8,11 +8,12 @@
   await wait(()=>fs.existsSync(path.join(base,'window_bounds_ready.json')),'window ready');
   const core=window[Symbol.for('typora-code:workspace')],files=core.app[Symbol.for('linux-note.workspace-files@v1')].host;
   fs.writeFileSync(path.join(base,'workspace','media.svg'),'<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#ff0000"/></svg>','utf8');
-  const text='# GitHub reading\n\n## Heading two\n\n### Heading three\n\n#### Heading four\n\n##### Heading five\n\n###### Heading six\n\n正文大小与代码框。Inline `value`.\n\n> 引用保持原样。\n\n```cpp\n// comment\nint main() {\n  const char *name = "hello";\n  return 42;\n}\n```\n\n![media](media.svg)\n\n```mermaid\ngraph TD\n A[Diagram] --> B[Target]\n style A fill:#00ff00,stroke:#00ff00\n```\n\nTail.\n';
+  const text='# GitHub reading\n\n## Heading two\n\n### Heading three\n\n#### Heading four\n\n##### Heading five\n\n###### Heading six\n\n正文大小与代码框。Inline `value`.\n\n> 引用保持原样。\n\n```cpp\n// comment long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word long_code_word \nint main() {\n  const char *name = "hello";\n  return 42;\n}\n```\n\n![media](media.svg)\n\n```mermaid\ngraph TD\n A[Diagram] --> B[Target]\n style A fill:#00ff00,stroke:#00ff00\n```\n\nTail.\n';
   const file=path.join(base,'workspace','github-reading.md');fs.writeFileSync(file,text,'utf8');await files.open_file(file);
   await wait(()=>File.bundle.filePath===file&&!File.isFileLoading(),'document loaded');
   await wait(()=>document.querySelector('#write .CodeMirror')?.CodeMirror,'code editor');
   const model=document.querySelector('#write .CodeMirror').CodeMirror,source=model.getValue();
+  model.setOption('lineNumbers',true);model.setOption('lineWrapping',true);
   for(const theme of ['vscode_default_light.css','vscode_2026_default_light.css','vscode_default_dark.css','vscode_2026_default_dark.css']){
    await JSBridge.invoke('setting.setCurTheme',theme,theme);File.setTheme(theme);await pause(650);
    const root=document.querySelector('#write'),fence=root.querySelector('.md-fences'),cm=fence.querySelector('.CodeMirror'),quote=root.querySelector('blockquote');
@@ -20,7 +21,8 @@
    const sample={theme,font:getComputedStyle(root).fontSize,quote_border:getComputedStyle(quote).borderLeftWidth,quote_background:getComputedStyle(quote).backgroundColor,background:style.backgroundColor,radius:style.borderRadius,padding:style.padding,inner:getComputedStyle(cm).backgroundColor};samples.push(sample);
    fs.writeFileSync(path.join(base,'github-samples.json'),JSON.stringify(samples,null,2));
    assert(Math.abs(parseFloat(getComputedStyle(quote).paddingTop)-5.6)<.01,theme+' quotation vertical breathing room');
-   assert(sample.font==='16px',theme+' body 16px');const probe=document.createElement('div');probe.style.borderLeft='5px solid';root.append(probe);assert(sample.quote_border===getComputedStyle(probe).borderLeftWidth,theme+' quote border unchanged at host DPI');probe.remove();
+   assert(sample.font==='16px',theme+' body 16px');assert(getComputedStyle(cm).fontSize===sample.font,theme+' code matches body');
+   const number=cm.querySelector('.CodeMirror-linenumber');if(number)assert(getComputedStyle(number).fontSize===sample.font,theme+' gutter matches body');const probe=document.createElement('div');probe.style.borderLeft='5px solid';root.append(probe);assert(sample.quote_border===getComputedStyle(probe).borderLeftWidth,theme+' quote border unchanged at host DPI');probe.remove();
    for(const [i,size] of [32,24,20,16,14,13.6].entries())assert(Math.abs(parseFloat(getComputedStyle(root.querySelector('h'+(i+1))).fontSize)-size)<0.01,theme+' heading '+(i+1)+' GitHub size');
    assert(sample.background===bg&&sample.radius==='6px'&&style.paddingLeft==='16px',theme+' GitHub code surface');
    assert(sample.inner==='rgba(0, 0, 0, 0)',theme+' inner editor transparent');
@@ -35,6 +37,15 @@
   assert(parseFloat(getComputedStyle(root).fontSize)>16,'saved content font owner still handles changes');
   for(const [i,ratio] of [2,1.5,1.25,1,.875,.85].entries())assert(Math.abs(parseFloat(getComputedStyle(root.querySelector('h'+(i+1))).fontSize)-parseFloat(getComputedStyle(root).fontSize)*ratio)<0.01,'heading '+(i+1)+' follows body size');
   paragraph.dispatchEvent(new WheelEvent('wheel',{deltaY:100,ctrlKey:true,bubbles:true,cancelable:true}));await pause(150);
+  for(const direction of [-1,-1,1,1,1,1,-1,-1]) {
+   paragraph.dispatchEvent(new WheelEvent('wheel',{deltaY:direction<0?100:-100,ctrlKey:true,bubbles:true,cancelable:true}));await pause(200);
+   const cm=root.querySelector('.CodeMirror'),size=getComputedStyle(root).fontSize;
+   assert(getComputedStyle(cm).fontSize===size,'code tracks font '+size);
+   const number=cm.querySelector('.CodeMirror-linenumber');if(number)assert(getComputedStyle(number).fontSize===size,'gutter tracks font '+size);
+   assert(cm.CodeMirror===model&&model.getValue()===source,'font adjustment preserves model/source');
+   const last=cm.querySelector('.CodeMirror-code')?.lastElementChild,box=cm.getBoundingClientRect();
+   if(last)assert(last.getBoundingClientRect().bottom<=box.bottom+1,'final code line fits after font adjustment');
+  }
   await files.save_active();assert(fs.readFileSync(file,'utf8')===text,'source bytes preserved');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'FAIL',checks,samples,error:String(error.stack||error)},null,2));}

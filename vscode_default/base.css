@@ -35,3 +35,7 @@ body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(-
 #write mark { color: var(--text-color); background: var(--search-select-bg-color); }
 #write .md-toc { color: var(--text-color); }
 ::selection { background: var(--select-text-bg-color); }
+
+/* R074.12: override host .9rem fences; inherit the effective reader size. */
+#write :is(.md-fences,pre:not(.CodeMirror-line,.CodeMirror-line-like)),
+#write .md-fences .CodeMirror, #write pre code { font-size: inherit; }

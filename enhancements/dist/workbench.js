@@ -224152,6 +224152,7 @@ https://creativecommons.org/licenses/by/4.0/
     const invalidate2 = () => {
       for (const fence of entries3.keys()) enqueue(fence);
     };
+    const stop_zoom = observe_content_zoom(invalidate2), stop_theme = observe_workspace_theme(invalidate2);
     window.addEventListener("resize", invalidate2, { passive: true });
     document.fonts?.addEventListener("loadingdone", invalidate2);
     const remove = (fence, entry) => {
@@ -224183,6 +224184,8 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         if (disposed) return;
         disposed = true;
+        stop_zoom();
+        stop_theme();
         cancelAnimationFrame(frame3);
         frame3 = 0;
         intersection2.disconnect();
@@ -270557,6 +270560,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026111502,
+        version: "2026.11.15.2",
+        date: "2026-11-15",
+        notes: [
+          "\u4EE3\u7801\u5757\u53CA\u884C\u53F7\u8DDF\u968F\u6B63\u6587\u589E\u51CF\u5B57\u53F7\uFF0C\u5E76\u66F4\u65B0\u6362\u884C\u4E0E\u9AD8\u5EA6\uFF0C\u4FDD\u7559\u9AD8\u4EAE\u548C\u7F16\u8F91\u6A21\u578B\u3002"
+        ],
+        notes_en: [
+          "Code blocks and line numbers follow body font adjustments, refreshing wrapping and height while preserving syntax and editor models."
+        ]
+      },
       {
         sequence: 2026111501,
         version: "2026.11.15.1",
