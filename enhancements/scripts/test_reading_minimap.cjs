@@ -158,6 +158,21 @@ app.whenReady().then(async () => {
   await evaluate(`File.editor.sourceView.inSourceMode=false;document.querySelector('#source').style.display='none';document.querySelector('content').style.display='block';`);
   await wait('!!document.querySelector("content .linux-note-reading-minimap[data-ready=true]")');
   assert(await evaluate('source_handlers.size===0 && !document.querySelector(".CodeMirror .linux-note-reading-minimap")'));
+  // Colored image and SVG pixels must occupy their actual document coordinates.
+  await evaluate(`(() => {
+    document.querySelector('content').scrollTop=0;
+    const svg='<svg xmlns="http://www.w3.org/2000/svg" width="300" height="300"><rect width="300" height="300" fill="#ff0000"/></svg>';
+    document.querySelector('#write').innerHTML='<p>Media test</p><img width="300" height="300" src="data:image/svg+xml,'+encodeURIComponent(svg)+'"><div style="height:300px"></div>'+svg.replace('#ff0000','#0000ff')+'<div style="height:800px"></div>';
+    window.media_pixels=()=>{const c=document.querySelector('content .linux-note-reading-minimap canvas'),d=c.getContext('2d').getImageData(0,0,c.width,c.height).data;let red=0,blue=0,green=0;for(let i=0;i<d.length;i+=4){if(d[i]>200&&d[i+1]<40&&d[i+2]<40)red++;if(d[i+2]>200&&d[i]<40&&d[i+1]<40)blue++;if(d[i+1]>200&&d[i]<40&&d[i+2]<40)green++;}return {red,blue,green};};
+  })()`);
+  await wait('media_pixels().red>50&&media_pixels().blue>50');
+  const media_point=await evaluate(`(() => {const root=document.querySelector('#write'),scroller=document.querySelector('content'),rail=scroller.querySelector('.linux-note-reading-minimap'),svg=root.querySelector('svg'),b=svg.getBoundingClientRect(),r=rail.getBoundingClientRect(),scale=Math.min(88/root.clientWidth,r.height/scroller.scrollHeight);return {x:Math.round(r.left+30),y:Math.round(r.top+(b.top-scroller.getBoundingClientRect().top+scroller.scrollTop+b.height/2)*scale)};})()`);
+  for(const type of ['mouseMove','mouseDown','mouseUp'])test_window.webContents.sendInputEvent({type,...media_point,button:'left',clickCount:1});
+  await delay(150);
+  assert(await evaluate(`(() => {const b=document.querySelector('#write svg').getBoundingClientRect(),s=document.querySelector('content').getBoundingClientRect();return b.bottom>s.top&&b.top<s.bottom;})()`),'media click reveals matching SVG');
+  await evaluate(`document.querySelector('#write svg rect').setAttribute('fill','#00ff00')`);
+  await wait('media_pixels().blue===0&&media_pixels().red>50&&media_pixels().green>50');
+  fs.writeFileSync(path.join(root,'media_minimap.png'),(await test_window.webContents.capturePage()).toPNG());
   await evaluate('window.dispatchEvent(new Event("pagehide"))');
   assert(await evaluate('document.querySelectorAll(".linux-note-reading-minimap").length===0 && !document.querySelector("[data-linux-note-minimap-owner]")'));
   console.log(JSON.stringify({status:'PASS',checks:['Markdown and real Monaco txt/ts switches hide inactive minimaps synchronously, retain full-size reading canvas and restore bounded source minimaps','actual rendered text pixels in both panes','different documents produce different thumbnails','real click and drag scroll only targeted pane','pure rendered-document scrolling updates only the viewport','sidebar class and DOM churn with stable geometry commits zero frames','content mutation keeps one nonempty foreground canvas until one atomic commit','continuous resize events merge into one final commit','visible overlapping footer owns word-count hit target and mouse click without document scrolling','hidden and transparent footers restore the full reading viewport','footer position and horizontal intersection control native and preview bounds independently','CodeMirror source minimap also reserves the visible footer','minimap rendering does not mutate document content','closed pane removes minimap','inner scroll buffer lines do not paint over following text','source mode uses complete CodeMirror lines and scroll API','CodeMirror virtual DOM churn during pure scroll commits zero frames','source mode retains independent preview minimaps','mode switch releases source listeners','pagehide disposes maps and ownership'],atomic_update,clip_evidence,footer_position,screenshot:path.join(root,'clipped_minimap.png')},null,2));

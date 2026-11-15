@@ -1,3 +1,4 @@
+import {create_minimap_media} from "./reading_minimap_media";
 import {workspace_text} from "./workspace_i18n";
 import {acquire_workspace_style} from "./workspace_styles";
 import minimap_css from "./reading_minimap.css";
@@ -140,13 +141,15 @@ function create_minimap(target: minimap_target) {
     }
   }
   function* rendered_rows(context: CanvasRenderingContext2D, scale_x: number, scale_y: number): Generator<void> {
+    context.save(); context.scale(scale_x, scale_y);
+    yield* media.draw(context, target.root, target.scroller); context.restore();
     const walker = document.createTreeWalker(target.root, NodeFilter.SHOW_TEXT);
     const range = document.createRange();
     context.scale(scale_x, scale_y);
     try {
       for (let node = walker.nextNode(); node; node = walker.nextNode()) {
         const parent = node.parentElement;
-        if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
+        if (!parent || !node.textContent?.trim() || parent.closest("svg,script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
         range.selectNodeContents(node);
         const boxes = Array.from(range.getClientRects()).filter(box => box.width > 0 && box.height > 0);
         if (!boxes.length) continue;
@@ -263,12 +266,14 @@ function create_minimap(target: minimap_target) {
     paint_timer = window.setTimeout(paint, 160);
   };
   const refresh = () => schedule_render(true);
+  const media = create_minimap_media(refresh);
+  target.root.addEventListener("load", refresh, true);
   const reconcile = () => schedule_render(false);
   const observer = new MutationObserver(records => {
     if (records.some(record => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) refresh();
   });
   // The CodeMirror changes event is the authoritative signal for source code content; do not observe its virtual line DOM, to avoid misjudging the document content change during scrolling.
-  if (!target.source) observer.observe(target.root, { subtree: true, childList: true, characterData: true });
+  if (!target.source) observer.observe(target.root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["src", "srcset", "href", "d", "fill", "viewBox"] });
   const inner_scroll = (event: Event) => { if (event.target !== target.scroller) refresh(); };
   target.root.addEventListener("scroll", inner_scroll, true);
   const resize = new ResizeObserver(reconcile); resize.observe(target.owner);
@@ -298,7 +303,8 @@ function create_minimap(target: minimap_target) {
   schedule_render(false);
   return { target, reconcile, dispose() {
     if (disposed) return;
-    disposed = true; cancel_render(); observer.disconnect(); resize.disconnect();
+    disposed = true; cancel_render(); observer.disconnect(); resize.disconnect(); media.dispose();
+    target.root.removeEventListener("load", refresh, true);
     target.scroller.removeEventListener("scroll", update_viewport); target.source?.off("changes", refresh); target.source?.off("scroll", update_viewport);
     target.root.removeEventListener("scroll", inner_scroll, true);
     rail.remove();

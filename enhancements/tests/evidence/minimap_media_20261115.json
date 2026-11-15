@@ -1,0 +1,173 @@
+{
+  "requirements": [
+    "R087.9",
+    "R074.11"
+  ],
+  "release": "2026.11.15.1",
+  "date": "2026-11-15",
+  "native": {
+    "run": "d693158e59574478b90a5fa041c029a4",
+    "setup": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "b675548247385cf686f940a72aee0bb1a617d45bb19370d87a4dba46bedf0568",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "b40a166538c15a04bcc6fb2fff2dacd69122a3c8d9d33a8a437af3e608b703f4",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "results": {
+      "status": "PASS",
+      "checks": [
+        "vscode_default_light.css quotation vertical breathing room",
+        "vscode_default_light.css body 16px",
+        "vscode_default_light.css quote border unchanged at host DPI",
+        "vscode_default_light.css heading 1 GitHub size",
+        "vscode_default_light.css heading 2 GitHub size",
+        "vscode_default_light.css heading 3 GitHub size",
+        "vscode_default_light.css heading 4 GitHub size",
+        "vscode_default_light.css heading 5 GitHub size",
+        "vscode_default_light.css heading 6 GitHub size",
+        "vscode_default_light.css GitHub code surface",
+        "vscode_default_light.css inner editor transparent",
+        "vscode_default_light.css gutter follows surface",
+        "vscode_default_light.css model and code preserved",
+        "vscode_default_light.css edit undo",
+        "vscode_2026_default_light.css quotation vertical breathing room",
+        "vscode_2026_default_light.css body 16px",
+        "vscode_2026_default_light.css quote border unchanged at host DPI",
+        "vscode_2026_default_light.css heading 1 GitHub size",
+        "vscode_2026_default_light.css heading 2 GitHub size",
+        "vscode_2026_default_light.css heading 3 GitHub size",
+        "vscode_2026_default_light.css heading 4 GitHub size",
+        "vscode_2026_default_light.css heading 5 GitHub size",
+        "vscode_2026_default_light.css heading 6 GitHub size",
+        "vscode_2026_default_light.css GitHub code surface",
+        "vscode_2026_default_light.css inner editor transparent",
+        "vscode_2026_default_light.css gutter follows surface",
+        "vscode_2026_default_light.css model and code preserved",
+        "vscode_2026_default_light.css edit undo",
+        "vscode_default_dark.css quotation vertical breathing room",
+        "vscode_default_dark.css body 16px",
+        "vscode_default_dark.css quote border unchanged at host DPI",
+        "vscode_default_dark.css heading 1 GitHub size",
+        "vscode_default_dark.css heading 2 GitHub size",
+        "vscode_default_dark.css heading 3 GitHub size",
+        "vscode_default_dark.css heading 4 GitHub size",
+        "vscode_default_dark.css heading 5 GitHub size",
+        "vscode_default_dark.css heading 6 GitHub size",
+        "vscode_default_dark.css GitHub code surface",
+        "vscode_default_dark.css inner editor transparent",
+        "vscode_default_dark.css gutter follows surface",
+        "vscode_default_dark.css model and code preserved",
+        "vscode_default_dark.css edit undo",
+        "vscode_2026_default_dark.css quotation vertical breathing room",
+        "vscode_2026_default_dark.css body 16px",
+        "vscode_2026_default_dark.css quote border unchanged at host DPI",
+        "vscode_2026_default_dark.css heading 1 GitHub size",
+        "vscode_2026_default_dark.css heading 2 GitHub size",
+        "vscode_2026_default_dark.css heading 3 GitHub size",
+        "vscode_2026_default_dark.css heading 4 GitHub size",
+        "vscode_2026_default_dark.css heading 5 GitHub size",
+        "vscode_2026_default_dark.css heading 6 GitHub size",
+        "vscode_2026_default_dark.css GitHub code surface",
+        "vscode_2026_default_dark.css inner editor transparent",
+        "vscode_2026_default_dark.css gutter follows surface",
+        "vscode_2026_default_dark.css model and code preserved",
+        "vscode_2026_default_dark.css edit undo",
+        "native image and Mermaid painted in minimap",
+        "saved content font owner still handles changes",
+        "heading 1 follows body size",
+        "heading 2 follows body size",
+        "heading 3 follows body size",
+        "heading 4 follows body size",
+        "heading 5 follows body size",
+        "heading 6 follows body size",
+        "source bytes preserved"
+      ],
+      "samples": [
+        {
+          "theme": "vscode_default_light.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(248, 248, 248)",
+          "background": "rgb(246, 248, 250)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_2026_default_light.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(234, 234, 234)",
+          "background": "rgb(246, 248, 250)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_default_dark.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(43, 43, 43)",
+          "background": "rgb(21, 27, 35)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        },
+        {
+          "theme": "vscode_2026_default_dark.css",
+          "font": "16px",
+          "quote_border": "4.57143px",
+          "quote_background": "rgb(36, 37, 38)",
+          "background": "rgb(21, 27, 35)",
+          "radius": "6px",
+          "padding": "16px",
+          "inner": "rgba(0, 0, 0, 0)"
+        }
+      ]
+    }
+  },
+  "core": {
+    "status": "PASS",
+    "run": "c546b12edd8940f29354346a21911aef",
+    "scope": "Full core; subsequent Blob-to-data SVG decoding covered by final UI/native and deployment checks."
+  },
+  "ui": {
+    "status": "PASS",
+    "minimap_run": "b03d1299dc874e14a107caa5da2d9e85",
+    "theme_run": "234808aeccbb4680b64d3142c41b8374",
+    "scope": "Actual image/SVG pixels, changed fill, real mouse click/drag, 800-section text, source/multi-pane disposal, four-theme shared geometry; media screenshot inspected."
+  },
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "7b8d14e798954e129c57b3ad9d400c72",
+    "scope": "Public install/check/restore uninstall/reinstall/check/detach uninstall/reinstall/check, protected files retained; payload cleaned."
+  },
+  "uninstall": {
+    "status": "PASS",
+    "assertions": 65,
+    "run": "2cf52fedf80e4e49b24857f12d294fd3"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected_files": 9,
+    "check": "Public check and read-only uninstall preflight passed. User windows not restarted."
+  },
+  "failed_attempts": [
+    "e94e023857424590a427219d8781d16a: native media pixel timeout",
+    "0d6897d5fd7e46ebb6b923994aecda46: diagnosed Blob SVG foreignObject canvas taint; corrected to data image"
+  ],
+  "limits": [
+    "Other platforms and physical user-desktop input not newly verified.",
+    "Remote unavailable images, external SVG dependencies and continuously animated canvases are not guaranteed snapshots.",
+    "Iframe-only interactive visuals are outside img/canvas/inline-SVG scope.",
+    "Historical unresolved items remain open."
+  ]
+}

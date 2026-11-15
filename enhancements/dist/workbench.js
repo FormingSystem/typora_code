@@ -270558,6 +270558,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026111501,
+        version: "2026.11.15.1",
+        date: "2026-11-15",
+        notes: [
+          "\u9605\u8BFB\u7F29\u7565\u56FE\u8865\u9F50\u56FE\u7247\u53CA\u5185\u8054SVG/Mermaid\uFF0C\u6CBF\u6B63\u6587\u4F4D\u7F6E\u5BFC\u822A\uFF1B\u5F15\u7528\u6846\u589E\u52A0\u5C11\u91CF\u4E0A\u4E0B\u7559\u767D\u3002"
+        ],
+        notes_en: [
+          "Reading minimaps include images and inline SVG/Mermaid at document positions; quotations gain modest vertical padding."
+        ]
+      },
+      {
         sequence: 2026111403,
         version: "2026.11.14.3",
         date: "2026-11-14",
@@ -286410,6 +286421,77 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
+  // src/reading_minimap_media.ts
+  function create_minimap_media(refresh) {
+    const cache = /* @__PURE__ */ new Map();
+    let disposed = false;
+    const release = (entry) => {
+      entry.image.onload = entry.image.onerror = null;
+      entry.image.src = "";
+    };
+    const snapshot = (svg4) => {
+      const clone4 = svg4.cloneNode(true);
+      const originals = [svg4, ...svg4.querySelectorAll("*")], copies = [clone4, ...clone4.querySelectorAll("*")];
+      originals.forEach((node, index) => {
+        const style = getComputedStyle(node);
+        for (const key4 of ["color", "fill", "stroke", "stroke-width", "font-family", "font-size", "font-weight", "font-style", "opacity", "text-anchor", "dominant-baseline", "background-color"])
+          copies[index].style.setProperty(key4, style.getPropertyValue(key4));
+      });
+      const bounds = svg4.getBoundingClientRect();
+      clone4.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+      clone4.setAttribute("width", String(bounds.width));
+      clone4.setAttribute("height", String(bounds.height));
+      return new XMLSerializer().serializeToString(clone4);
+    };
+    return {
+      *draw(context, root, scroller) {
+        for (const [node, entry] of cache) if (!root.contains(node)) {
+          release(entry);
+          cache.delete(node);
+        }
+        for (const node of root.querySelectorAll("img,canvas,svg")) {
+          if (node.closest(".linux-note-reading-minimap") || node.parentElement?.closest("svg")) continue;
+          const bounds = node.getBoundingClientRect(), style = getComputedStyle(node);
+          if (!bounds.width || !bounds.height || style.visibility === "hidden" || style.display === "none") continue;
+          let source = node;
+          if (node instanceof SVGSVGElement) {
+            const key4 = snapshot(node);
+            let entry = cache.get(node);
+            if (!entry || entry.key !== key4) {
+              if (entry) release(entry);
+              const image = new Image(), url = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(key4);
+              entry = { key: key4, image, url };
+              cache.set(node, entry);
+              image.onload = () => {
+                if (!disposed && cache.get(node)?.image === image) refresh();
+              };
+              image.onerror = () => {
+                image.onload = image.onerror = null;
+              };
+              image.src = url;
+            }
+            source = entry.image;
+          }
+          if (source instanceof HTMLImageElement && (!source.complete || !source.naturalWidth)) {
+            yield;
+            continue;
+          }
+          const root_bounds = root.getBoundingClientRect(), scroll_bounds = scroller.getBoundingClientRect();
+          try {
+            context.drawImage(source, bounds.left - root_bounds.left, bounds.top - scroll_bounds.top + scroller.scrollTop, bounds.width, bounds.height);
+          } catch {
+          }
+          yield;
+        }
+      },
+      dispose() {
+        disposed = true;
+        for (const entry of cache.values()) release(entry);
+        cache.clear();
+      }
+    };
+  }
+
   // src/reading_minimap.css
   var reading_minimap_default = "";
 
@@ -286542,13 +286624,17 @@ https://creativecommons.org/licenses/by/4.0/
       }
     }
     function* rendered_rows(context, scale_x, scale_y) {
+      context.save();
+      context.scale(scale_x, scale_y);
+      yield* media.draw(context, target.root, target.scroller);
+      context.restore();
       const walker = document.createTreeWalker(target.root, NodeFilter.SHOW_TEXT);
       const range2 = document.createRange();
       context.scale(scale_x, scale_y);
       try {
         for (let node = walker.nextNode(); node; node = walker.nextNode()) {
           const parent = node.parentElement;
-          if (!parent || !node.textContent?.trim() || parent.closest("script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
+          if (!parent || !node.textContent?.trim() || parent.closest("svg,script,style,button,textarea,.CodeMirror-linenumbers,.linux-note-code-toolbar")) continue;
           range2.selectNodeContents(node);
           const boxes = Array.from(range2.getClientRects()).filter((box) => box.width > 0 && box.height > 0);
           if (!boxes.length) continue;
@@ -286719,11 +286805,13 @@ https://creativecommons.org/licenses/by/4.0/
       paint_timer = window.setTimeout(paint, 160);
     };
     const refresh = () => schedule_render(true);
+    const media = create_minimap_media(refresh);
+    target.root.addEventListener("load", refresh, true);
     const reconcile = () => schedule_render(false);
     const observer3 = new MutationObserver((records) => {
       if (records.some((record) => !(record.target instanceof Element ? record.target : record.target.parentElement)?.closest(".linux-note-reading-minimap"))) refresh();
     });
-    if (!target.source) observer3.observe(target.root, { subtree: true, childList: true, characterData: true });
+    if (!target.source) observer3.observe(target.root, { subtree: true, childList: true, characterData: true, attributes: true, attributeFilter: ["src", "srcset", "href", "d", "fill", "viewBox"] });
     const inner_scroll = (event) => {
       if (event.target !== target.scroller) refresh();
     };
@@ -286778,6 +286866,8 @@ https://creativecommons.org/licenses/by/4.0/
       cancel_render();
       observer3.disconnect();
       resize.disconnect();
+      media.dispose();
+      target.root.removeEventListener("load", refresh, true);
       target.scroller.removeEventListener("scroll", update_viewport);
       target.source?.off("changes", refresh);
       target.source?.off("scroll", update_viewport);

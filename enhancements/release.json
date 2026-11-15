@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111501,
+      "version": "2026.11.15.1",
+      "date": "2026-11-15",
+      "notes": [
+        "阅读缩略图补齐图片及内联SVG/Mermaid，沿正文位置导航；引用框增加少量上下留白。"
+      ],
+      "notes_en": [
+        "Reading minimaps include images and inline SVG/Mermaid at document positions; quotations gain modest vertical padding."
+      ]
+    },
+    {
       "sequence": 2026111403,
       "version": "2026.11.14.3",
       "date": "2026-11-14",

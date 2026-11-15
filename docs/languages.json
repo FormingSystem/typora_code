@@ -292,6 +292,10 @@
     {
       "zh_cn": "docs/visual_code_blocks.md",
       "en": "docs/visual_code_blocks.en.md"
+    },
+    {
+      "zh_cn": "docs/reading_minimap.md",
+      "en": "docs/reading_minimap.en.md"
     }
   ]
 }

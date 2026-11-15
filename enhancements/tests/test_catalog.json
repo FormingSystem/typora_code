@@ -1265,12 +1265,14 @@
       "purpose": "implementation",
       "requirements": [
         "R043",
-        "H008"
+        "H008",
+        "R087.9"
       ],
       "design": "docs/editor_header.md",
       "implementation": [
         "enhancements/src/git_diff_editor.ts",
-        "enhancements/src/reading_minimap.ts"
+        "enhancements/src/reading_minimap.ts",
+        "enhancements/src/reading_minimap_media.ts"
       ],
       "related_modules": [
         "outline",
@@ -7753,7 +7755,8 @@
         "R065.2",
         "R074.7",
         "R074.9",
-        "R074.10"
+        "R074.10",
+        "R074.11"
       ],
       "design": "docs/workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04",
       "implementation": [
@@ -10535,7 +10538,9 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R074.10"
+        "R074.10",
+        "R087.9",
+        "R074.11"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [

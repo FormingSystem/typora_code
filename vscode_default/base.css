@@ -20,7 +20,7 @@ body { font-family: "Segoe WPC", "Segoe UI", system-ui, sans-serif; color: var(-
 #write a { color: var(--theme-link); text-decoration: none; }
 #write a:hover { color: var(--theme-link-active); text-decoration: underline; }
 #write :is(strong,b,th) { font-weight: 600; }
-#write blockquote { margin-left: 0; margin-right: 0; padding: 0 16px; color: var(--theme-muted); background: var(--theme-quote); border-left: 5px solid var(--theme-quote-border); }
+#write blockquote { margin-left: 0; margin-right: 0; padding: .35em 16px; color: var(--theme-muted); background: var(--theme-quote); border-left: 5px solid var(--theme-quote-border); }
 #write blockquote>:last-child { margin-bottom: 0; }
 #write hr { height: 0; border: 0; border-top: 1px solid var(--theme-border); margin: 24px 0; }
 #write table { border-collapse: collapse; border-spacing: 0; }
