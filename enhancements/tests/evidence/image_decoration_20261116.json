@@ -1,0 +1,76 @@
+{
+  "schema": 1,
+  "date": "2026-11-16",
+  "requirements": [
+    "R031.6"
+  ],
+  "version": "2026.11.16.1",
+  "design": "docs/reading_media_viewer.md#r0316-image-decoration",
+  "behavior": "2px adaptive default outline; 0.5–8px width; independent light/dark hex and alpha overrides; off/soft/medium/strong shadows; selection remains wider and uses focus color. Shared settings and external styles preserve image boxes and source markup.",
+  "build": {
+    "status": "PASS",
+    "manifest_sha256": "2126b82b3c1b367b163acfecb32a03ea92d0b62216da30650853d3ae7919b388"
+  },
+  "core": {
+    "status": "PASS",
+    "run": "c5805db3dbdf4c76a0f98b5b22dff110"
+  },
+  "ui": {
+    "status": "PASS",
+    "image_run": "060668240b6f4a778ae662682ccdb664",
+    "settings_run": "1c2e70e16c054170953b13e51f9e1890",
+    "settings_assertions": 320
+  },
+  "native": {
+    "status": "PASS",
+    "run": "54a84c964157453aa5cc4fcfb80bcc02",
+    "assertions": 99,
+    "fixture_sha256": "d3ead9cba2e130e9c33c9655d499ed1a711056a8d3740d0c0ca50075e5686482",
+    "host": "Typora 1.14.15 / Windows",
+    "theme_matrix": [
+      "vscode_default_light",
+      "vscode_default_dark",
+      "vscode_2026_default_light",
+      "vscode_2026_default_dark"
+    ],
+    "visual_review": "Inspected custom-border light/dark captures and final compact color-picker settings capture. Measurements verify dimensions and selected outline.",
+    "source_saved_unchanged": true
+  },
+  "lifecycle": {
+    "status": "PASS",
+    "run": "f029a76793ea49e982406734d016e7c1",
+    "paths": [
+      "compatible backup restore",
+      "no compatible backup detach"
+    ],
+    "payload": "cleaned"
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "65e381167d994bd096b1a9efc551ecff",
+    "assertions": 65
+  },
+  "local": {
+    "status": "PASS",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected": 9,
+    "manifest_sha256": "2126b82b3c1b367b163acfecb32a03ea92d0b62216da30650853d3ae7919b388",
+    "version": "2026.11.16.1",
+    "public_check": "PASS",
+    "uninstall_read_only_preflight": "PASS before and after",
+    "loaded": "Existing windows retained; manual restart required."
+  },
+  "retained_findings": [
+    "Initial image UI run 60c7869775ed4370b753b3c288c2a8c2 failed a subpixel outline assertion; corrected the test to use a same-browser probe rather than assume device-pixel rounding.",
+    "Initial native run 61f73f42d7e6421c9d2c901613ac515d passed functional checks, but screenshot review revealed the generic dialog width overriding the color swatch. Increased scoped selector specificity and added compact geometry assertions; final UI/native passed."
+  ],
+  "limits": [
+    "Physical color-picker dialog and physical user desktop gestures were not tested; native host settings use DOM events and image clicks use posted HWND input.",
+    "Other DPI configurations and non-Windows platforms are not newly verified.",
+    "Historical unrelated pending issues remain open."
+  ]
+}

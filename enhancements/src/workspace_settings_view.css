@@ -44,3 +44,5 @@
   outline:1px solid var(--workspace-interaction-border,#707070)!important;
   outline-offset:-1px;
 }
+
+.workspace-settings .workspace-setting-row>input[type=color]{flex:none;width:32px;height:28px;padding:2px;cursor:pointer}

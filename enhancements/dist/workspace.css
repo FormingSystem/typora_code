@@ -2828,6 +2828,8 @@ html:is([data-linux-note-typora-enhancements="loading"],[data-linux-note-typora-
   outline-offset:-1px;
 }
 
+.workspace-settings .workspace-setting-row>input[type=color]{flex:none;width:32px;height:28px;padding:2px;cursor:pointer}
+
 /* workspace_sidebar_sash.css */
 /* The separator line remains permanently between the active bar and the document content, allowing it to be dragged back to the right from the collapsed state; the active bar itself does not participate in the collapse. */
 body.typ-ribbon--enable:not(.megamenu-opened):not(.show-preference-panel) #typora-sidebar-resizer[data-workspace-sidebar-sash=ready] {

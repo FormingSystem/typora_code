@@ -137,7 +137,7 @@
    const image=images()[0];image.scrollIntoView({block:'center'});await pause(80);
    assert(getComputedStyle(image).outlineStyle==='solid','ordinary native image border '+theme);
    const before=image.getBoundingClientRect(),color=getComputedStyle(image).outlineColor;
-   const expected_border=theme.endsWith('_dark.css')?'rgb(43, 43, 43)':'rgb(229, 229, 229)';assert(color===expected_border,'native border follows reading theme '+theme);
+   const expected_border=theme.endsWith('_dark.css')?'rgb(157, 157, 157)':'rgb(59, 59, 59)';assert(color===expected_border,'native border follows reading theme '+theme);
    await toggle_border();assert(core.app.settings.get('reading_images').border===false,'native border off persisted');
    assert(getComputedStyle(image).outlineStyle==='none'&&Math.abs(image.getBoundingClientRect().width-before.width)<.1,'native border off preserves size');
    await toggle_border();assert(core.app.settings.get('reading_images').border===true,'native border on persisted');
@@ -146,8 +146,37 @@
    assert(parseFloat(computed.outlineWidth)>1&&computed.outlineStyle==='solid','trusted native image click highlights '+theme);
    samples.push({stage:'image_border',theme,normal_color:color,selected_color:computed.outlineColor,selected_width:computed.outlineWidth});
    const stage='image_border_'+theme.replace(/[^a-z0-9_]/g,'_');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage===stage}catch{return false}},'selected image capture');
-   await send_numeric('key',{key:27});assert(parseFloat(getComputedStyle(images()[0]).outlineWidth)<=1,'native Escape clears selection');
+   await send_numeric('key',{key:27});assert(parseFloat(getComputedStyle(images()[0]).outlineWidth)<=2.1,'native Escape clears selection');
   }
+  const target=images()[0],size_before=target.getBoundingClientRect();
+  File.editor.contextMenu.show(new MouseEvent('contextmenu',{clientX:200,clientY:300}),target);document.querySelector('[data-key="typora-code-image-alignment"] a').click();
+  const appearance=[...document.querySelectorAll('[data-menu-level="0"] button')].find(node=>node.textContent.trim()==='图片边框与阴影设置…');assert(!!appearance,'image menu opens full decoration settings');appearance.click();
+  await wait(()=>document.querySelector('[data-setting="images.border_width"]'),'image appearance settings');
+  const field=key=>document.querySelector('[data-setting="images.'+key+'"]');
+  const set_field=(key,value)=>{const input=field(key);input.focus();input.value=value;input.dispatchEvent(new Event('change'));};
+  assert(field('border_width').value==='2'&&field('border_color_light').value===''&&field('border_color_dark').value===''&&field('shadow').value==='off','native adaptive decoration defaults');
+  set_field('border_width','4');set_field('border_color_light','#b45309');set_field('border_color_dark','#fbbf24');set_field('shadow','medium');
+  assert(core.app.settings.get('reading_images').border_width===4&&core.app.settings.get('reading_images').shadow==='medium','native appearance settings persisted');
+  assert(document.querySelector('[data-setting-color="images.border_color_light"]').type==='color','native color picker available');
+  const picker_rect=document.querySelector('[data-setting-color="images.border_color_light"]').getBoundingClientRect();assert(picker_rect.width<40&&picker_rect.height<36,'native color picker retains compact geometry');
+  fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'image_settings_dark'}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='image_settings_dark'}catch{return false}},'image settings capture');
+
+  document.querySelector('.workspace-settings-modal .workspace-dialog-close').click();await pause(150);
+  for(const theme of ['vscode_default_light.css','vscode_2026_default_light.css','vscode_default_dark.css','vscode_2026_default_dark.css']){
+   ClientCommand.setTheme(theme,theme);await pause(400);target.scrollIntoView({block:'center'});await pause(100);
+   const dark=theme.endsWith('_dark.css'),style=getComputedStyle(target),box=target.getBoundingClientRect();
+   assert(style.outlineColor===(dark?'rgb(251, 191, 36)':'rgb(180, 83, 9)'),'native custom color follows theme '+theme);
+   assert(Math.abs(parseFloat(style.outlineWidth)-4)<.6&&style.boxShadow.includes(dark?'0.5':'0.2'),'native configured width/shadow '+theme);
+   assert(Math.abs(box.width-size_before.width)<.1&&Math.abs(box.height-size_before.height)<.1,'native decorations preserve content box '+theme);
+   samples.push({stage:'image_decoration',theme,color:style.outlineColor,width:style.outlineWidth,shadow:style.boxShadow,rect:box.toJSON()});
+   const stage='decoration_'+theme.replace(/[^a-z0-9_]/g,'_');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage===stage}catch{return false}},'native decorated image screenshot');
+   await send_numeric('click',{x:box.left+box.width/2,y:Math.max(150,box.top+30)});assert(parseFloat(getComputedStyle(target).outlineWidth)>4,'native selection stronger than configured border');await send_numeric('key',{key:27});
+  }
+  core.app.commands.run('typora_code:image_settings');await wait(()=>field('border_width'),'reopen image settings');
+  for(const key of ['border_width','border_color_light','border_color_dark','shadow'])field(key).closest('.workspace-setting-row').querySelector('button').click();
+  assert(field('border_width').value==='2'&&field('border_color_light').value===''&&field('border_color_dark').value===''&&field('shadow').value==='off','native decoration defaults restored');
+  document.querySelector('.workspace-settings-modal .workspace-dialog-close').click();await pause(100);
+  assert(getComputedStyle(target).outlineColor==='rgb(140, 140, 140)'&&getComputedStyle(target).boxShadow==='none','native reset follows current 2026 dark theme');
   await files.save_active();assert(fs.readFileSync(reported_file,'utf8')===reported_source,'native selection and borders do not alter saved Markdown');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}

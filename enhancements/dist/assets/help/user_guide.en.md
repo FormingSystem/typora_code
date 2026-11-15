@@ -33,7 +33,7 @@ The document content is still the native Markdown editor of Typora. Paragraphs, 
 
 The copy button above the code block copies the code. Long code can be expanded/collapsed. The control floats at the bottom right, appears on hover or keyboard focus, and hides after leaving without occupying a separate row. Folding only changes the display height, not the content. The language tag determines the highlighting, and the logical line numbers in the source code do not increase due to display line breaks. Mermaid is still rendered by Typora, and the independent viewing entry for charts can be used to zoom in and drag for viewing.
 
-Images show thin borders that follow the reading theme by default. Toggle Settings > Images > Show image borders, or use Image layout… in the image context menu. Clicking an image shows a selection outline; click elsewhere or press Escape to clear it. Selection remains visible when ordinary borders are disabled. Outlines do not change image dimensions or document content.
+Images default to a 2px border that follows the reading theme. In Settings > Images, configure width (0.5–8px), separate light/dark colors and shadow strength (off/soft/medium/strong). Leave colors blank or reset them to restore automatic theme colors; custom values support #RRGGBB and #RRGGBBAA. The image context menu opens these settings through Image layout… > Image border and shadow settings…. Clicking uses a stronger focus-color outline; outside clicks or Escape clear it, even when ordinary borders are disabled. Decoration does not resize images or change document content.
 
 <a id="section_78a56b60b46d"></a>
 ### Content font size and interface size

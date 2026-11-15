@@ -14,19 +14,33 @@ app.whenReady().then(async()=>{
   const article=document.querySelector('article'),image=new Image();image.src='data:image/svg+xml,'+encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" width="64" height="40"/>');article.append(image);await image.decode();
   const html=article.innerHTML,binding=qa.bind_reading_images(article);await pause(120);
   const outline=()=>getComputedStyle(image).outlineStyle==='none'?'0px':getComputedStyle(image).outlineWidth;
-  assert(qa.read_reading_image_settings().border&&outline()==='1px','image border defaults on');
+  assert(qa.read_reading_image_settings().border&&outline()==='2px','image border defaults on');
   const natural_rect=image.getBoundingClientRect();qa.write_reading_image_setting('border',false);
   assert(outline()==='0px'&&image.getBoundingClientRect().width===natural_rect.width,'border off keeps geometry');
   failed=true;try{qa.write_reading_image_setting('border',true)}catch{}failed=false;
   assert(!qa.read_reading_image_settings().border&&outline()==='0px','failed border save preserves previous state');
   let invalid=false;try{qa.write_reading_image_setting('border','yes')}catch{invalid=true}assert(invalid,'invalid border values rejected');
-  qa.write_reading_image_setting('border',undefined);assert(outline()==='1px','reset restores default border');
+  qa.write_reading_image_setting('border',undefined);assert(outline()==='2px','reset restores default border');
+  article.style.setProperty('--theme-muted','#606060');assert(getComputedStyle(image).outlineColor==='rgb(96, 96, 96)','default border follows reading palette');
+  const decoration_html=article.innerHTML;
+  for(const width of [.5,2,4,8]){qa.write_reading_image_setting('border_width',width);const probe=document.createElement('div');probe.style.outline=width+'px solid';document.body.append(probe);assert(outline()===getComputedStyle(probe).outlineWidth,'configured border width '+width);probe.remove();assert(image.getBoundingClientRect().width===natural_rect.width,'decoration does not alter content width '+width);}
+  image.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));assert(outline()==='9px','selection remains wider than strongest border');document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+  qa.write_reading_image_setting('border_color_light','#12345680');assert(getComputedStyle(image).outlineColor==='rgba(18, 52, 86, 0.5)','light color supports alpha');
+  qa.write_reading_image_setting('border_color_dark','#abcdef');document.body.style.backgroundColor='#121314';article.style.setProperty('--theme-muted','#8c8c8c');await pause(80);assert(getComputedStyle(image).outlineColor==='rgb(171, 205, 239)','dark custom color selected automatically');
+  const variants=[];for(const shadow of ['soft','medium','strong']){qa.write_reading_image_setting('shadow',shadow);variants.push(getComputedStyle(image).boxShadow);assert(!variants.at(-1).includes('none'),'shadow visible '+shadow);}
+  assert(new Set(variants).size===3,'shadow strengths differ');document.body.style.backgroundColor='#ffffff';await pause(80);assert(getComputedStyle(image).boxShadow!==variants[2],'shadow opacity follows theme');assert(getComputedStyle(image).outlineColor==='rgba(18, 52, 86, 0.5)','light custom color restored');
+  const saved=JSON.stringify(values.get('reading_images'));for(const [key,value] of [['border_width',0],['border_width',9],['border_width',NaN],['border_color_dark','red;outline:0'],['border_color_light','var(--x)'],['shadow','unknown']]){let threw=false;try{qa.write_reading_image_setting(key,value)}catch{threw=true}assert(threw&&JSON.stringify(values.get('reading_images'))===saved,'invalid decoration rejected '+key);}
+  failed=true;try{qa.write_reading_image_setting('border_width',3)}catch{}failed=false;assert(JSON.stringify(values.get('reading_images'))===saved,'failed decoration save is atomic');
+  for(const key of ['border_width','border_color_light','border_color_dark','shadow'])qa.write_reading_image_setting(key,undefined);
+  assert(outline()==='2px'&&getComputedStyle(image).boxShadow==='none'&&getComputedStyle(image).outlineColor==='rgb(140, 140, 140)','reset restores automatic border and no shadow');
+  const styles=[...document.querySelectorAll('style[data-reading-image-layout]')];let mutations=0;const watcher=new MutationObserver(()=>mutations++);for(const style of styles)watcher.observe(style,{childList:true});await pause(150);assert(mutations===0,'theme observer does not loop on unchanged decoration');watcher.disconnect();
+  assert(article.innerHTML===decoration_html,'decoration does not change image markup');
   const duplicate=image.cloneNode();article.append(duplicate);await duplicate.decode();await pause(60);
   const pristine=article.innerHTML;
   duplicate.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));
-  assert(getComputedStyle(duplicate).outlineWidth==='2px'&&outline()==='1px','only clicked duplicate source is selected');
+  assert(getComputedStyle(duplicate).outlineWidth==='3px'&&outline()==='2px','only clicked duplicate source is selected');
   assert(article.innerHTML===pristine,'selection never changes serialized image markup');
-  qa.write_reading_image_setting('border',false);assert(getComputedStyle(duplicate).outlineWidth==='2px','selection remains visible with ordinary borders off');
+  qa.write_reading_image_setting('border',false);assert(getComputedStyle(duplicate).outlineWidth==='3px','selection remains visible with ordinary borders off');
   document.body.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,button:0}));assert(getComputedStyle(duplicate).outlineStyle==='none','outside pointer clears selection');
   image.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));assert(outline()==='0px','Escape clears selection without eating host keys');
   duplicate.remove();qa.write_reading_image_setting('border',true);await pause(60);
@@ -90,10 +104,10 @@ app.whenReady().then(async()=>{
  const point=await win.webContents.executeJavaScript(`(()=>{const r=document.querySelector('article img').getBoundingClientRect();return{x:Math.round(r.left+20),y:Math.round(r.top+20)}})()`);
  win.webContents.sendInputEvent({type:'mouseMove',...point});
  for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,...point,button:'left',clickCount:1});await pause(60);
- if(await win.webContents.executeJavaScript(`getComputedStyle(document.querySelector('article img')).outlineWidth`)!=='2px')throw Error('trusted image click did not select');
+ if(await win.webContents.executeJavaScript(`getComputedStyle(document.querySelector('article img')).outlineWidth`)!=='3px')throw Error('trusted image click did not select');
  result.checks.push('trusted image click selects without changing geometry');
  for(const type of ['mouseDown','mouseUp'])win.webContents.sendInputEvent({type,x:1500,y:800,button:'left',clickCount:1});await pause(40);
- if(await win.webContents.executeJavaScript(`getComputedStyle(document.querySelector('article img')).outlineWidth`)!=='1px')throw Error('trusted outside click did not clear');
+ if(await win.webContents.executeJavaScript(`getComputedStyle(document.querySelector('article img')).outlineWidth`)!=='2px')throw Error('trusted outside click did not clear');
  result.checks.push('trusted outside click restores ordinary border');
  win.webContents.sendInputEvent({type:'mouseMove',...point});await pause(60);
  const more_point=await win.webContents.executeJavaScript(`(()=>{const b=document.querySelector('.reading-image-more'),r=b.getBoundingClientRect();if(getComputedStyle(b).opacity!=='1')throw Error('hover did not reveal unselected image');return{x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);

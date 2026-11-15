@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111601,
+      "version": "2026.11.16.1",
+      "date": "2026-11-16",
+      "notes": [
+        "图片边框默认加粗至2px，支持0.5–8px粗细、明暗独立颜色和可选阴影；默认颜色跟随主题，点击选中提示始终更醒目。"
+      ],
+      "notes_en": [
+        "Image borders default to 2px with configurable 0.5–8px width, separate light/dark colors and optional shadow presets. Defaults follow the theme and selection stays more prominent."
+      ]
+    },
+    {
       "sequence": 2026111506,
       "version": "2026.11.15.6",
       "date": "2026-11-15",

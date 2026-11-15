@@ -1,6 +1,8 @@
 import {linked_svg_text_width} from './reading_vector_size';
 import {observe_reading_image_settings,read_reading_image_settings} from "./reading_image_settings";
 import {reading_image_screen_density,reading_image_uses_screen_pixels} from './reading_image_dimensions';
+import {reading_image_decoration} from './reading_image_decoration';
+import {observe_workspace_theme,workspace_theme_mode} from './workspace_theme';
 
 /** Presentation belongs to the reader stylesheet, never to image attributes serialized into Markdown. */
 export function bind_reading_image_layout(root:HTMLElement,selector:string){
@@ -13,8 +15,9 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   const vectors=new Map<string,{controller:AbortController;ratio?:number}>();let images_current:HTMLImageElement[]=[];let disposed=false;
   let density=reading_image_screen_density(),resolution:MediaQueryList;
   const update=()=>{
-    const {alignment,scale,size_mode,border}=read_reading_image_settings();
-    style.textContent=`${border?`${scope}{outline:1px solid var(--theme-border,var(--table-border-color,#d0d7de));outline-offset:-1px}`:""}${scope}{--reading-image-screen-density:${density};width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ${scale/100} + var(--reading-image-border,0px)),${scale}%)`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
+    const settings=read_reading_image_settings(),{alignment,scale,size_mode}=settings;
+    const css=`${scope}{${reading_image_decoration(settings,workspace_theme_mode()==='dark')}}${scope}{--reading-image-screen-density:${density};width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ${scale/100} + var(--reading-image-border,0px)),${scale}%)`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
+    if(style.textContent!==css)style.textContent=css;
   };
   const watch_density=()=>{
     resolution?.removeEventListener('change',density_changed);
@@ -23,7 +26,7 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   };
   const density_changed=()=>{const next=reading_image_screen_density();if(next===density)return;density=next;watch_density();update();};
   watch_density();window.addEventListener('resize',density_changed);
-  const release=observe_reading_image_settings(update);update();
+  const release=observe_reading_image_settings(update),release_theme=observe_workspace_theme(update);update();
   const measure=(images:Iterable<HTMLImageElement>)=>{
     images_current=[...images];const sources=new Set(images_current.map(image=>image.currentSrc||image.src));
     for(const [source,entry]of vectors)if(!sources.has(source)){entry.controller.abort();vectors.delete(source);}
@@ -39,5 +42,5 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
     }
     const text=[...rules].join("\n");if(dimensions.textContent!==text)dimensions.textContent=text;
   };
-  return {update:measure,dispose(){disposed=true;for(const entry of vectors.values())entry.controller.abort();vectors.clear();release();window.removeEventListener('resize',density_changed);resolution.removeEventListener('change',density_changed);style.remove();dimensions.remove();}};
+  return {update:measure,dispose(){disposed=true;for(const entry of vectors.values())entry.controller.abort();vectors.clear();release();release_theme();window.removeEventListener('resize',density_changed);resolution.removeEventListener('change',density_changed);style.remove();dimensions.remove();}};
 }

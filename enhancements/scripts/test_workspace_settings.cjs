@@ -42,6 +42,13 @@ app.whenReady().then(async()=>{
   window.fail_save=true;change('images.alignment','left');assert(values.get('reading_images').alignment==='right','failed image preference save retains the previous value');window.fail_save=false;
   change('images.scale','0');assert(values.get('reading_images').scale===150,'image scale rejects out-of-range values');
   setting('images.alignment').closest('.workspace-setting-row').querySelector('button').click();assert(values.get('reading_images').alignment==='center','image alignment reset restores the shared default');
+  assert(setting('images.border_width').value==='2'&&setting('images.border_width').min==='0.5'&&setting('images.border_width').max==='8','image width default and native input bounds');
+  change('images.border_width','5');assert(values.get('reading_images').border_width===5,'image thickness saves through shared owner');
+  change('images.border_width','10');assert(values.get('reading_images').border_width===5,'image thickness rejects invalid value');
+  change('images.border_color_light','#12345680');change('images.border_color_dark','#abcdef');assert(values.get('reading_images').border_color_light==='#12345680'&&values.get('reading_images').border_color_dark==='#abcdef','independent theme colors persisted');
+  const image_picker=document.querySelector('[data-setting-color="images.border_color_light"]');assert(image_picker.type==='color','image custom color picker exists');assert(image_picker.getBoundingClientRect().width===32,'image color picker remains compact');image_picker.value='#654321';image_picker.dispatchEvent(new Event('change'));assert(values.get('reading_images').border_color_light==='#65432180','picker preserves explicit alpha');
+  change('images.shadow','strong');assert(values.get('reading_images').shadow==='strong','shadow choice persists');
+  for(const key of ['border_width','border_color_light','border_color_dark','shadow'])setting('images.'+key).closest('.workspace-setting-row').querySelector('button').click();assert(setting('images.border_width').value==='2'&&setting('images.border_color_light').value===''&&setting('images.border_color_dark').value===''&&setting('images.shadow').value==='off','decoration reset returns adaptive defaults');
   change('editor.enable_preview',false);assert(!qa.read_workspace_editor_settings().enable_preview,'修改保存至原所有者');
   setting('editor.enable_preview').closest('.workspace-setting-row').querySelector('button').click();assert(qa.read_workspace_editor_settings().enable_preview,'单项恢复默认');
   window.fail_save=true;change('editor.enable_preview',false);assert(qa.read_workspace_editor_settings().enable_preview&&document.querySelector('.workspace-settings-status').textContent.includes('磁盘'),'保存失败保持配置');window.fail_save=false;

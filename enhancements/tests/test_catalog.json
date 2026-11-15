@@ -6367,7 +6367,8 @@
         "R034.6",
         "R034.7",
         "R072.4",
-        "R040.5"
+        "R040.5",
+        "R031.6"
       ],
       "level": "functional",
       "purpose": "implementation",
@@ -6394,7 +6395,8 @@
       ],
       "expected": [
         "操作隔离且配置唯一所有者，失败不覆盖状态",
-        "R072.3：右侧托管原始设置，20轮切换、节点与样式保留、原生关闭恢复及外部区域点击不关闭设置"
+        "R072.3：右侧托管原始设置，20轮切换、节点与样式保留、原生关闭恢复及外部区域点击不关闭设置",
+        "Configurable image width, independent theme colors, adaptive shadows, selection precedence and default reset preserve image dimensions and saved content."
       ],
       "environment": "Windows Python3/Git；隐藏Electron，Windows协议测试POSIX标志适配，不替代Linux真实SSH",
       "preconditions": "已安装项目测试依赖",
@@ -9389,7 +9391,8 @@
         "R031.4",
         "R087.5",
         "R087.8",
-        "R031.5"
+        "R031.5",
+        "R031.6"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [
@@ -9417,7 +9420,8 @@
         "2026-10-27: verify compact hover disclosure, grouped bounds, numeric-draft dismissal and source/disposal cleanup; see docs/reading_media_viewer.md#r0314-image-disclosure."
       ],
       "expected": [
-        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
+        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings.",
+        "Configurable image width, independent theme colors, adaptive shadows, selection precedence and default reset preserve image dimensions and saved content."
       ],
       "timeout_ms": 240000
     },
@@ -9429,7 +9433,8 @@
       "requirements": [
         "R031.2",
         "R031.4",
-        "R031.5"
+        "R031.5",
+        "R031.6"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [
@@ -9456,7 +9461,8 @@
         "2026-10-27: verify compact hover disclosure, grouped bounds, numeric-draft dismissal and source/disposal cleanup; see docs/reading_media_viewer.md#r0314-image-disclosure."
       ],
       "expected": [
-        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings."
+        "All assertions pass; source changes only for individual alignment; failed writes and cancellation preserve settings.",
+        "Configurable image width, independent theme colors, adaptive shadows, selection precedence and default reset preserve image dimensions and saved content."
       ],
       "timeout_ms": 240000,
       "fixture": "enhancements/fixtures/image_layout_native.js"

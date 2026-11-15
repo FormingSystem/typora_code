@@ -1,6 +1,19 @@
 {
+  "image_border_width": {"zh_cn": "图片边框粗细（px）", "en": "Image border width (px)"},
+  "image_border_width_description": {"zh_cn": "0.5–8 px，默认 2 px；加粗不改变图片尺寸。", "en": "0.5–8 px, default 2 px. Thickness does not change image dimensions."},
+  "image_border_color_light": {"zh_cn": "图片边框颜色（浅色主题）", "en": "Image border color (light theme)"},
+  "image_border_color_dark": {"zh_cn": "图片边框颜色（深色主题）", "en": "Image border color (dark theme)"},
+  "image_border_color_description": {"zh_cn": "留空跟随主题；可选颜色或输入 #RRGGBB / #RRGGBBAA。明暗颜色分别保存，恢复默认后自动适配。", "en": "Leave blank to follow the theme, choose a color or enter #RRGGBB / #RRGGBBAA. Light and dark overrides are separate; reset restores automatic colors."},
+  "image_border_color_auto": {"zh_cn": "自动跟随主题", "en": "Follow theme automatically"},
+  "image_shadow": {"zh_cn": "图片阴影", "en": "Image shadow"},
+  "image_shadow_description": {"zh_cn": "选择阴影强度，默认关闭；明暗主题自动调整投影浓度，不改变图片尺寸。", "en": "Choose shadow strength, off by default. Shadow opacity adapts to light/dark themes without resizing images."},
+  "image_shadow_off": {"zh_cn": "关闭", "en": "Off"},
+  "image_shadow_soft": {"zh_cn": "轻", "en": "Soft"},
+  "image_shadow_medium": {"zh_cn": "中", "en": "Medium"},
+  "image_shadow_strong": {"zh_cn": "强", "en": "Strong"},
+  "image_appearance_settings": {"zh_cn": "图片边框与阴影设置…", "en": "Image border and shadow settings…"},
   "image_border": {"zh_cn": "显示图片边框", "en": "Show image borders"},
-  "image_border_description": {"zh_cn": "为正文和阅读预览中的图片显示细边框；关闭后仍保留点击选中提示，不修改图片或文档。", "en": "Show thin borders around images in documents and reading previews. Click selection stays visible when disabled; images and documents are unchanged."},
+  "image_border_description": {"zh_cn": "为正文和阅读预览中的图片显示可配置边框；关闭后仍保留点击选中提示，不修改图片或文档。", "en": "Show configurable borders around images in documents and reading previews. Click selection stays visible when disabled; images and documents are unchanged."},
   "image_layout_section": {
     "zh_cn": "图片",
     "en": "Images"

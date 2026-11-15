@@ -14,7 +14,8 @@ export function bind_reading_image_selection(root:HTMLElement,selector:string){
       path.unshift(`${node.localName}:nth-child(${Array.prototype.indexOf.call(node.parentNode!.children,node)+1})`);
       if(node.parentNode===owner)break;
     }
-    const rule=`${path.join(' > ')}{outline:2px solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:-2px!important}`;
+    const width='max(3px,calc(var(--reading-image-decoration-width,0px) + 1px))';
+    const rule=`${path.join(' > ')}{outline:${width} solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:calc(-1 * ${width})!important}`;
     if(style.textContent!==rule)style.textContent=rule;
   };
   const is_control=(path:EventTarget[])=>path.some(node=>node instanceof Element&&node.matches('.reading-media-entries,.reading-media-viewer'));
