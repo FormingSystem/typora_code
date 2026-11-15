@@ -16,7 +16,7 @@
   await pause(1600);await files.open_file(source);await wait(()=>document.querySelectorAll('#write a[href]').length===2,'source links');await pause(300);
   const original=fs.readFileSync(source,'utf8');
   const pick=index=>{const link=document.querySelectorAll('#write a[href]')[index];link.dispatchEvent(new PointerEvent('pointerdown',{bubbles:true,composed:true,button:0}));const range=document.createRange();range.selectNodeContents(link);getSelection().removeAllRanges();getSelection().addRange(range);document.dispatchEvent(new Event('selectionchange'));};
-  const dock=()=>document.querySelector('.workspace-link-dock'),panel=()=>dock()?.querySelector('.workspace-link-preview'),guest=()=>panel()?.querySelector('webview');
+  const dock=()=>document.querySelector('.workspace-link-dock'),panel=()=>dock()?.querySelector('.workspace-link-preview:not([style*="display: none"]):not([style*="visibility: hidden"])'),guest=()=>panel()?.querySelector('webview');
   const bar=()=>panel()?.querySelector('.workspace-preview-find'),status=()=>panel()?.querySelector('.workspace-preview-find-status').textContent;
   const icon_geometry=()=>{const button=panel().querySelector('[data-preview-find-open]'),svg=button.querySelector('svg'),b=button.getBoundingClientRect(),s=svg.getBoundingClientRect();return{expanded:button.getAttribute('aria-expanded'),transform:getComputedStyle(svg).transform,dx:s.left+s.width/2-b.left-b.width/2,dy:s.top+s.height/2-b.top-b.height/2};};
   const check_icon=label=>{const geometry=icon_geometry();(live.icon_geometry??=[]).push({label,...geometry});assert(geometry.transform==='none'&&Math.abs(geometry.dx)<1&&Math.abs(geometry.dy)<1,label);};
@@ -57,7 +57,8 @@
   bar().querySelector('[aria-label="关闭查找（Esc）"]').click();check_icon('closed document search icon is upright and centered');
   await capture('document_find_closed');panel().querySelector('[data-preview-find-open]').click();
   await query('中文');await wait(()=>status()==='1/2','local Chinese');assert(true,'local Chinese matching');
-  panel().querySelector('[aria-label="关闭链接预览"]').click();await wait(()=>dock().hidden,'preview close');assert(![...CSS.highlights.keys()].some(name=>name.startsWith('preview-find-')),'closing preview clears all owned highlights');
+  const cached_panel=panel();panel().querySelector('[aria-label="关闭链接预览"]').click();await wait(()=>dock().hidden,'preview close');assert(![...CSS.highlights.keys()].some(name=>name.startsWith('preview-find-')),'closing preview clears all owned highlights');
+  pick(1);await wait(()=>!dock().hidden&&panel()===cached_panel,'same local preview reused after closing');assert(panel()===cached_panel,'native repeated local selection keeps reader');
   assert(fs.readFileSync(source,'utf8')===original&&!File.changeCounter.isDocumentEdited(),'preview search preserves main document');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,live,scope:'Typora 1.14.10 production guest; trusted Chromium key events; no physical OS input'},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,live},null,2));}

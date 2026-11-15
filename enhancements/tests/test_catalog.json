@@ -6042,7 +6042,8 @@
         "R069.10",
         "R023.1",
         "R069.14",
-        "R069.15"
+        "R069.15",
+        "R069.16"
       ],
       "design": "docs/link_preview.md",
       "implementation": [
@@ -10334,7 +10335,8 @@
       "purpose": "implementation",
       "requirements": [
         "R069.14",
-        "R069.15"
+        "R069.15",
+        "R069.16"
       ],
       "design": "docs/link_preview.md",
       "implementation": [

@@ -1,0 +1,122 @@
+{
+  "requirements": [
+    "R069.16"
+  ],
+  "release": "2026.11.15.5",
+  "core": {
+    "status": "PASS",
+    "run": "b0d6ebc34a3d4b29ad5c2131fdf00684"
+  },
+  "ui": {
+    "status": "PASS",
+    "runs": [
+      "75beafa33f2347178aa7520e1d264773",
+      "d71b819ed4044ebeaef1f58300ddebf4"
+    ],
+    "scope": "Five exact-node cache hits, 20 concurrent reselects, close/reopen, sixth-entry LRU eviction, file version invalidation, cancellation, context reset, source editors, find, menus, animated images and disposal."
+  },
+  "native": {
+    "status": "PASS",
+    "run": "cf9def7bc1824a0bb81c99cd203a1500",
+    "checks": [
+      "initial web search icon is upright and centered",
+      "web page has no Node or host bridge",
+      "trusted guest Ctrl F focuses preview input",
+      "native case insensitive find count",
+      "open web search icon is upright and centered",
+      "native next match scrolls guest content",
+      "button wraps search",
+      "trusted guest F3 advances search",
+      "trusted guest Shift F3 searches backwards",
+      "trusted guest reverse wrap",
+      "native Chinese search",
+      "native no results",
+      "F3 with no results remains responsive",
+      "navigation reuses query and recomputes matches",
+      "reload recomputes retained query",
+      "guest Escape closes find without closing preview",
+      "closed search icon keeps official orientation",
+      "web content cannot synthesize privileged find shortcut",
+      "find close cycle 0",
+      "button-closed web icon 0",
+      "find close cycle 1",
+      "button-closed web icon 1",
+      "find close cycle 2",
+      "button-closed web icon 2",
+      "find close cycle 3",
+      "button-closed web icon 3",
+      "find close cycle 4",
+      "button-closed web icon 4",
+      "find close cycle 5",
+      "button-closed web icon 5",
+      "find close cycle 6",
+      "button-closed web icon 6",
+      "find close cycle 7",
+      "button-closed web icon 7",
+      "find close cycle 8",
+      "button-closed web icon 8",
+      "find close cycle 9",
+      "button-closed web icon 9",
+      "find close cycle 10",
+      "button-closed web icon 10",
+      "find close cycle 11",
+      "button-closed web icon 11",
+      "find close cycle 12",
+      "button-closed web icon 12",
+      "find close cycle 13",
+      "button-closed web icon 13",
+      "find close cycle 14",
+      "button-closed web icon 14",
+      "find close cycle 15",
+      "button-closed web icon 15",
+      "find close cycle 16",
+      "button-closed web icon 16",
+      "find close cycle 17",
+      "button-closed web icon 17",
+      "find close cycle 18",
+      "button-closed web icon 18",
+      "find close cycle 19",
+      "button-closed web icon 19",
+      "local reader paints native highlight ranges",
+      "open document search icon is upright and centered",
+      "closed document search icon is upright and centered",
+      "local Chinese matching",
+      "closing preview clears all owned highlights",
+      "native repeated local selection keeps reader",
+      "preview search preserves main document"
+    ],
+    "setup": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "588062465f7deb0f2fe9fac7270a3444c5f1ead2fb7dd0f5e21aca443feb9e90",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "7d21d4b489b98d12614a48b82e916c2d3d4576ccc5fc109f9138921f66c5cfee",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    }
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "ff6c91338787452b9961540656765bc0",
+    "assertions": 65
+  },
+  "limits": [
+    "External link selections cache five sessions including current; internal history retains its existing navigation owner.",
+    "Hidden web sessions may continue site scripts; no background freezing is claimed.",
+    "Trusted guest inputs and private desktop host; physical desktop and other platforms not newly tested."
+  ],
+  "earlier_failures": "Initial wrapper height and hidden menu/find cleanup fixed. Existing tests now select the visible session and explicitly reset before cold-load cancellation checks. Native 1.14.15 admitted for preview_find after checking shared document ports and validating the real guest; earlier host gate rejection retained. Logs and failed runs remain in the local ledger.",
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "39eaf2fa069b4f33a23f3d1510788d5b"
+  },
+  "local": {
+    "status": "PASS",
+    "assets": [
+      216,
+      24
+    ],
+    "protected_files": 9,
+    "checks": "Public check and read-only uninstall preflight passed; user windows not restarted."
+  }
+}

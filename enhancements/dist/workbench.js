@@ -270615,6 +270615,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026111505,
+        version: "2026.11.15.5",
+        date: "2026-11-15",
+        notes: [
+          "\u94FE\u63A5\u9884\u89C8\u590D\u7528\u6700\u8FD15\u4E2A\u4F1A\u8BDD\uFF0C\u91CD\u590D\u70B9\u51FB\u4E0D\u91CD\u5EFA\u5DF2\u5B8C\u6210\u6E32\u67D3\uFF1B\u6587\u4EF6\u7248\u672C\u53D8\u5316\u81EA\u52A8\u5931\u6548\uFF0C\u624B\u52A8\u5237\u65B0\u4FDD\u7559\uFF0C\u5173\u95ED\u540E\u53EF\u590D\u7528\uFF0C\u5207\u6362\u5DE5\u4F5C\u533A\u91CA\u653E\u7F13\u5B58\u3002"
+        ],
+        notes_en: [
+          "Link previews reuse up to five recent sessions without rebuilding repeated selections. File changes invalidate cached sessions; explicit refresh remains available, closing retains the cache, and workspace switches release it."
+        ]
+      },
+      {
         sequence: 2026111504,
         version: "2026.11.15.4",
         date: "2026-11-15",
@@ -277169,7 +277180,7 @@ https://creativecommons.org/licenses/by/4.0/
       editor2 = void 0;
       body.replaceChildren();
     };
-    return { container, find_target, show: show2, clear, update_matches, reveal_match, capture_position: capture_position2, restore_position, focus: () => body.focus({ preventScroll: true }), get_scale: () => scale, set_scale, dispose() {
+    return { container, find_target, show: show2, clear, suspend: () => close_menu?.(), update_matches, reveal_match, capture_position: capture_position2, restore_position, focus: () => body.focus({ preventScroll: true }), get_scale: () => scale, set_scale, dispose() {
       find_target.dispose();
       disposed = true;
       cancelAnimationFrame(scroll_frame);
@@ -284453,8 +284464,8 @@ https://creativecommons.org/licenses/by/4.0/
     } };
   }
 
-  // src/workspace_link_preview.ts
-  function create_link_preview(files2, options2 = {}) {
+  // src/workspace_link_preview_session.ts
+  function create_link_preview_session(files2, options2 = {}) {
     const container = workspace_element("section", "workspace-link-preview"), toolbar = workspace_element("div", "workspace-search-preview-heading"), title2 = workspace_element("span", "workspace-link-preview-title");
     const content = workspace_element("div", "workspace-link-preview-content"), message = workspace_element("p", "workspace-lookup-preview-message");
     message.hidden = true;
@@ -284788,7 +284799,10 @@ https://creativecommons.org/licenses/by/4.0/
       if (!event.repeat) void travel(event.key === "ArrowLeft" ? -1 : 1);
     };
     container.addEventListener("keydown", keydown, true);
-    return { container, show: show2, clear, set_pinned, dispose() {
+    return { container, show: show2, clear, set_pinned, suspend: () => {
+      find.close();
+      reader?.suspend();
+    }, current_request: () => request && { ...request, ...target?.kind === "web" ? { href: web?.current_url() || target.url } : {} }, dispose() {
       release_search();
       if (disposed) return;
       disposed = true;
@@ -284799,6 +284813,102 @@ https://creativecommons.org/licenses/by/4.0/
       scale.dispose();
       interaction.remove();
       style.remove();
+      container.remove();
+    } };
+  }
+
+  // src/workspace_link_preview.ts
+  function create_link_preview(files2, options2 = {}) {
+    const container = workspace_element("div", "workspace-link-preview-cache");
+    container.style.cssText = "position:relative;display:flex;flex:1;width:100%;height:100%;min-height:0;min-width:0";
+    const entries3 = /* @__PURE__ */ new Map();
+    let generation = 0, disposed = false, pinned = false;
+    const identity5 = (value) => JSON.stringify(resolve_preview_link(files2.path_api, value.source, value.href));
+    const drop = (key4, item) => {
+      if (entries3.get(key4) === item) entries3.delete(key4);
+      item.observer.disconnect();
+      item.view.dispose();
+    };
+    const clear = () => {
+      generation++;
+      for (const [key4, item] of entries3) {
+        if (item.view.container.dataset.state === "loading") {
+          drop(key4, item);
+          continue;
+        }
+        item.view.suspend();
+        item.view.container.style.display = "none";
+      }
+      container.dataset.state = "idle";
+    };
+    const show2 = async (value) => {
+      if (disposed) return;
+      const version2 = ++generation;
+      container.dataset.state = "loading";
+      let key4, stamp = "";
+      try {
+        key4 = identity5(value);
+        const target = resolve_preview_link(files2.path_api, value.source, value.href);
+        if (target.kind === "file") {
+          const stat = await files2.fs.promises.stat(target.path);
+          stamp = JSON.stringify([stat.mtimeMs, stat.ctimeMs, stat.size, stat.isDirectory()]);
+        }
+      } catch {
+        key4 = JSON.stringify(value);
+        stamp = "unavailable";
+      }
+      if (disposed || version2 !== generation) return;
+      let item = entries3.get(key4);
+      const current2 = item?.view.current_request();
+      if (item && (item.stamp !== stamp || current2 && identity5(current2) !== key4)) {
+        drop(key4, item);
+        item = void 0;
+      }
+      if (!item) {
+        const view = create_link_preview_session(files2, options2);
+        view.set_pinned(pinned);
+        view.container.style.cssText = "position:absolute;inset:0;visibility:hidden";
+        container.append(view.container);
+        const observer3 = new MutationObserver(() => {
+          if (view.container.style.display !== "none" && view.container.style.visibility !== "hidden") container.dataset.state = view.container.dataset.state || "idle";
+        });
+        observer3.observe(view.container, { attributes: true, attributeFilter: ["data-state"] });
+        item = { view, stamp, ready: Promise.resolve(), observer: observer3 };
+        entries3.set(key4, item);
+        item.ready = view.show(value);
+      } else {
+        entries3.delete(key4);
+        entries3.set(key4, item);
+      }
+      while (entries3.size > 5) {
+        const [old_key, old] = entries3.entries().next().value;
+        drop(old_key, old);
+      }
+      await item.ready;
+      if (disposed || entries3.get(key4) !== item) return;
+      if (version2 !== generation) {
+        item.view.container.style.cssText = "display:none";
+        return;
+      }
+      for (const cached of entries3.values()) {
+        if (cached !== item) cached.view.suspend();
+        cached.view.container.style.cssText = cached === item ? "" : "display:none";
+      }
+      container.dataset.state = item.view.container.dataset.state || "error";
+      if (container.dataset.state !== "ready") item.stamp = "failed";
+    };
+    const reset2 = () => {
+      clear();
+      for (const [key4, item] of entries3) drop(key4, item);
+    };
+    return { container, show: show2, clear, reset: reset2, set_pinned(value) {
+      pinned = value;
+      for (const item of entries3.values()) item.view.set_pinned(value);
+    }, dispose() {
+      if (disposed) return;
+      disposed = true;
+      clear();
+      for (const [key4, item] of entries3) drop(key4, item);
       container.remove();
     } };
   }
@@ -285106,11 +285216,13 @@ https://creativecommons.org/licenses/by/4.0/
     const settings = observe_workspace_editor_settings(() => {
       if (!read_workspace_editor_settings().link_preview_enabled) {
         close2();
+        preview2.reset();
         selection.dismiss();
       }
     });
     const context_changed = () => {
       close2();
+      preview2.reset();
       selection.reset();
     };
     const observer3 = new MutationObserver(schedule_layout);

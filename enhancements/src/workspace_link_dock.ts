@@ -36,8 +36,8 @@ export function bind_workspace_link_dock(core:graph_core,files:workspace_file_ho
   const selection=bind_workspace_link_selection(core,files,()=>read_workspace_editor_settings().link_preview_enabled,request=>{
     dock.hidden=false;body.classList.add('has-workspace-link-preview');layout();void preview.show(request);
   },{root:dock,outside:()=>{if(!pinned&&!dock.hidden)close();}});
-  const settings=observe_workspace_editor_settings(()=>{if(!read_workspace_editor_settings().link_preview_enabled){close();selection.dismiss();}});
-  const context_changed=()=>{close();selection.reset();};
+  const settings=observe_workspace_editor_settings(()=>{if(!read_workspace_editor_settings().link_preview_enabled){close();preview.reset();selection.dismiss();}});
+  const context_changed=()=>{close();preview.reset();selection.reset();};
   const observer=new MutationObserver(schedule_layout);observer.observe(body,{attributes:true,attributeFilter:['class','style']});observer.observe(root,{attributes:true,attributeFilter:['style']});
   window.addEventListener('resize',schedule_layout);window.addEventListener('linux-note-workspace-context-changed',context_changed);
   return {dispose(){if(disposed)return;disposed=true;settings();observer.disconnect();cancelAnimationFrame(frame);resize.dispose();window.removeEventListener('resize',schedule_layout);window.removeEventListener('linux-note-workspace-context-changed',context_changed);selection.dispose();preview.dispose();dock.remove();body.classList.remove('has-workspace-link-preview');restore_heights();}};

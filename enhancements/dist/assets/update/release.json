@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111505,
+      "version": "2026.11.15.5",
+      "date": "2026-11-15",
+      "notes": [
+        "链接预览复用最近5个会话，重复点击不重建已完成渲染；文件版本变化自动失效，手动刷新保留，关闭后可复用，切换工作区释放缓存。"
+      ],
+      "notes_en": [
+        "Link previews reuse up to five recent sessions without rebuilding repeated selections. File changes invalidate cached sessions; explicit refresh remains available, closing retains the cache, and workspace switches release it."
+      ]
+    },
+    {
       "sequence": 2026111504,
       "version": "2026.11.15.4",
       "date": "2026-11-15",
