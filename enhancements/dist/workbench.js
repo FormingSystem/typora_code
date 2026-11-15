@@ -270561,6 +270561,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026111503,
+        version: "2026.11.15.3",
+        date: "2026-11-15",
+        notes: [
+          "\u4EE3\u7801\u5C55\u5F00/\u6536\u8D77\u63A7\u4EF6\u60AC\u6D6E\u5728\u53F3\u4E0B\u89D2\uFF0C\u4E0D\u518D\u72EC\u5360\u4E00\u884C\uFF1B\u60AC\u505C\u4EE3\u7801\u5757\u6216\u952E\u76D8\u805A\u7126\u65F6\u663E\u793A\uFF0C\u79BB\u5F00\u540E\u9690\u85CF\u3002"
+        ],
+        notes_en: [
+          "Code expand/collapse controls float at the bottom right without an extra row, appearing on fence hover or keyboard focus and hiding after leaving."
+        ]
+      },
+      {
         sequence: 2026111502,
         version: "2026.11.15.2",
         date: "2026-11-15",

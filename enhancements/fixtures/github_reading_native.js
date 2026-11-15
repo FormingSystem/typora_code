@@ -47,6 +47,18 @@
    if(last)assert(last.getBoundingClientRect().bottom<=box.bottom+1,'final code line fits after font adjustment');
   }
   await files.save_active();assert(fs.readFileSync(file,'utf8')===text,'source bytes preserved');
+  const fold_text='# Floating control\n\n```bash\n'+Array.from({length:65},(_,i)=>'echo line_'+i).join('\n')+'\n```\n',fold_file=path.join(base,'workspace','floating.md');
+  fs.writeFileSync(fold_file,fold_text,'utf8');await files.open_file(fold_file);
+  await wait(()=>document.querySelector('#write .linux-note-code-toggle'),'native fold control');
+  const fold=document.querySelector('#write .md-fences'),toolbar=fold.querySelector('.linux-note-code-toolbar'),button=toolbar.querySelector('button');
+  fold.scrollIntoView({block:'center'});await pause(200);
+  const h=fold.getBoundingClientRect().height;toolbar.style.display='none';assert(Math.abs(fold.getBoundingClientRect().height-h)<.1,'floating control adds no native row');toolbar.style.removeProperty('display');
+  assert(getComputedStyle(toolbar).position==='absolute','native control floats');
+  const fold_model=fold.querySelector('.CodeMirror').CodeMirror;
+  button.click();await pause(200);assert(fold.classList.contains('is-code-expanded'),'floating control expands');
+  button.click();await pause(200);assert(fold.classList.contains('is-code-collapsed'),'floating control collapses');
+  assert(fold.querySelector('.CodeMirror').CodeMirror===fold_model,'floating control preserves model');
+  await files.save_active();assert(fs.readFileSync(fold_file,'utf8')===fold_text,'floating controls excluded from saved source');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'FAIL',checks,samples,error:String(error.stack||error)},null,2));}
 })();

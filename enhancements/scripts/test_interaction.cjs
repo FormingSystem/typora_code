@@ -62,6 +62,18 @@ app.whenReady().then(async () => {
   await click('#outside');
   const host_events = await evaluate('window.test_host_events');
   assert.ok(host_events > 0, '正文鼠标事件仍然进入宿主');
+  await evaluate(`document.querySelector('.md-fences').scrollIntoView({block:'center'})`);await delay(50);
+  test_window.webContents.sendInputEvent({type:'mouseMove',x:1,y:1});await delay(50);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.linux-note-code-toolbar')).opacity`),'0','outside hides floating control');
+  const hover_point=await evaluate(`(() => {const f=document.querySelector('.md-fences'),t=f.querySelector('.linux-note-code-toolbar'),r=f.getBoundingClientRect(),h=r.height;t.style.display='none';const same=f.getBoundingClientRect().height===h;t.style.removeProperty('display');return {x:Math.round(r.left+20),y:Math.round(Math.max(10,r.top+20)),same,position:getComputedStyle(t).position};})()`);
+  assert(hover_point.same&&hover_point.position==='absolute','toolbar consumes no layout row');
+  test_window.webContents.sendInputEvent({type:'mouseMove',x:hover_point.x,y:hover_point.y});await delay(50);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.linux-note-code-toolbar')).opacity`),'1','fence hover reveals control');
+  for(const theme of ['light','dark']){require('electron').nativeTheme.themeSource=theme;await delay(60);fs.writeFileSync(path.join(fixture_root,'floating-'+theme+'.png'),(await test_window.webContents.capturePage()).toPNG());}
+  require('electron').nativeTheme.themeSource='system';
+  assert(await evaluate(`(() => {const f=document.querySelector('.md-fences'),old=f.style.width;f.style.width='180px';const b=f.querySelector('.linux-note-code-toolbar').getBoundingClientRect(),r=f.getBoundingClientRect();f.style.width=old;return b.left>=r.left&&b.right<=r.right&&b.bottom<=r.bottom;})()`),'narrow fence keeps floating controls inside');
+  test_window.webContents.sendInputEvent({type:'mouseMove',x:1,y:1});await delay(50);
+  assert.equal(await evaluate(`getComputedStyle(document.querySelector('.linux-note-code-toolbar')).pointerEvents`),'none','leaving disables hit testing');
   await click('.linux-note-code-toggle span:last-child', 240);
   assert.equal(await expanded(), true, '正文获焦时首次点击展开');
   assert.equal(await evaluate('window.test_host_events'), host_events, '按钮事件不能进入正文选区处理');

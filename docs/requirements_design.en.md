@@ -270,6 +270,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R068.10 | Expand the first line of the upper half cut | [First line cut](reading_code_blocks.en.md#section_1376feacbb73) | Original text copy verification internal offset, focus and font size geometry; not reenacted cannot claim repair |
 | R068.12 | Shared editor and preview code colors | [Shared colors](reading_code_blocks.en.md#r06812-shared-editor-and-preview-code-colors-2026-10-02) | Shared tokenization, four themes, Shadow and split inheritance |
 | R068.13 | Preserve code expansion across navigation | [Expansion state](reading_code_blocks.en.md#r06813-preserve-code-expansion-across-navigation) | Resource identity, reconstruction and independent fences |
+| R068.14 | Floating code fold controls | [Design](reading_code_blocks.en.md#r06814-floating-fold) | 2026-11-15 |
 | R068.11 | Last-line clipping after content shrink | [Last-line geometry](reading_code_blocks.en.md#r06811-last-line-clipping-after-shrinking-content) | Fold exit, native height handoff, final line and undo regression |
 | R068.2 | Code block adopts VS Code color configuration | [Code color](reading_code_blocks.en.md#section_97650660bfde) | Original theme, default foreground, real TextMate and light/dark/preview consistency; configuration independent holding |
 | R068.3 | Code editing status light adaptation | [Editing status](reading_code_blocks.en.md#section_8cf7a4230228) | Cursor, selection, line number, current line, parentheses, search and combination input; preserve editing owner |

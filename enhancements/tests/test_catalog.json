@@ -1004,7 +1004,8 @@
       "purpose": "implementation",
       "requirements": [
         "R020",
-        "R044"
+        "R044",
+        "R068.14"
       ],
       "design": "docs/workspace_interaction.md",
       "implementation": [
@@ -10543,7 +10544,8 @@
         "R074.10",
         "R087.9",
         "R074.11",
-        "R074.12"
+        "R074.12",
+        "R068.14"
       ],
       "design": "docs/workspace_colors.md",
       "implementation": [

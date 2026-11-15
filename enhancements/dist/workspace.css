@@ -1231,16 +1231,23 @@ content.typ-deactive .linux-note-reading-minimap,
   scrollbar-gutter: stable;
 }
 
+.md-fences.linux-note-code-collapsible { position: relative; }
 .linux-note-code-toolbar {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  z-index: 4;
   display: flex;
   align-items: center;
   justify-content: flex-end;
   box-sizing: border-box;
-  width: 100%;
-  min-height: 34px;
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px solid #d8dee4;
+  max-width: calc(100% - 16px);
+  opacity: 0;
+  pointer-events: none;
+}
+.md-fences:hover > .linux-note-code-toolbar,
+.linux-note-code-toolbar:has(:focus-visible) {
+  opacity: 1;
   pointer-events: auto;
 }
 
@@ -1274,9 +1281,6 @@ content.typ-deactive .linux-note-reading-minimap,
     border-color: #30363d;
   }
 
-  .linux-note-code-toolbar {
-    border-top-color: #30363d;
-  }
 
 
 }
