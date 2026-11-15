@@ -1,0 +1,157 @@
+{
+  "requirements": [
+    "R031.5"
+  ],
+  "release": "2026.11.15.4",
+  "date": "2026-11-15",
+  "upstream": "VS Code 68070681; imagePreview.css 1px border and baseColors.ts focusBorder",
+  "core": {
+    "status": "PASS",
+    "run": "7284c4c81dac466098efb0be3e312920",
+    "scope": "Full core before final reading-theme border variable refinement; final image UI, native and deployment checks rerun."
+  },
+  "ui": {
+    "status": "PASS",
+    "layout_run": "6be6a62606b64ba29ecdfba8d481422c",
+    "viewer_run": "1db6188a51524799919a708112743249",
+    "scope": "Trusted pointer select/outside, duplicate URLs, persistence failure/reset, Shadow, DPI/zoom geometry, controls and disposal."
+  },
+  "native": {
+    "status": "PASS",
+    "run": "e125eb2520aa47d68222c9c687fdf15f",
+    "assertions": 76,
+    "setup": {
+      "host_version": "1.14.15",
+      "asar_sha256": "3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822",
+      "asset_manifest_sha256": "9a82e95662215aad1e2e71a3a2e31a7fc312cea99acd5c27cd8a8d92e596383c",
+      "terminal_manifest_sha256": "0fdc0681f67cfbf10daaeb05785f4d35c77334aa16a9329dbb98dd5f18c0b323",
+      "fixture_sha256": "6909df3341026e16e245b35073db8672a893bdcc641555c140b4ea8990937b72",
+      "early_fixture_sha256": null,
+      "front_sha256": "a9c7b38e2994fc347d0a129a3bd51b9d62d1a2054e198868e46049fe33742c32"
+    },
+    "checks": [
+      "small bitmap stays pixel-for-pixel",
+      "authored full width follows natural default",
+      "large image fits editor",
+      "native image layout entry",
+      "scope exists: 全局图片对齐",
+      "choice exists: 靠右",
+      "global alignment persists",
+      "global alignment does not add document style",
+      "global preferences do not modify source",
+      "native default compact collapsed image controls {\"hidden\":true,\"width\":56.000003814697266}",
+      "native More reveals bounded image panel",
+      "numeric image scale replaces slider",
+      "native focused numeric input retains toolbar position",
+      "trusted numeric typing and Enter commit",
+      "slider preview is not persisted",
+      "slider changes rendered bitmap size",
+      "slider commits",
+      "Escape rolls back uncommitted slider",
+      "large image uses half of live editor width",
+      "large image enlargement remains capped",
+      "decrease button steps five",
+      "increase button steps five",
+      "native large image percentage and plus stop at fitted width",
+      "native focusing capped field preserves shared scale",
+      "native excessive numeric input clamps to fitted width",
+      "native opaque toolbar and numeric field vscode_default_light.css",
+      "native opaque toolbar and numeric field vscode_default_dark.css",
+      "native fixed-coordinate scale click 1",
+      "native fixed-coordinate scale click 2",
+      "native fixed-coordinate scale click 3",
+      "native fixed-coordinate scale click 4",
+      "native fixed-coordinate scale click 5",
+      "native fixed-coordinate scale click 6",
+      "native fixed-coordinate scale click 7",
+      "native fixed-coordinate scale click 8",
+      "native fixed-coordinate scale click 9",
+      "native fixed-coordinate scale click 10",
+      "every image has inline alignment shortcuts",
+      "trusted global alignment click center",
+      "trusted global alignment click right",
+      "global and single shortcut selections remain distinct",
+      "single image uses native style editing",
+      "single override leaves other images and global setting",
+      "document contains portable image alignment",
+      "single native undo removes alignment",
+      "native undo refreshes follow selection",
+      "single native redo restores alignment",
+      "single alignment saves",
+      "single alignment survives reopen",
+      "follow global removes individual override",
+      "follow global saves removal",
+      "native image zoom retained",
+      "reported bitmap uses natural pixels and content width 1",
+      "reported bitmap uses natural pixels and content width 1.2",
+      "reported bitmap uses natural pixels and content width 1.5",
+      "reported PNG bytes unchanged",
+      "reported Markdown unchanged",
+      "ordinary native image border vscode_default_light.css",
+      "native border follows reading theme vscode_default_light.css",
+      "native border setting available",
+      "native border off persisted",
+      "native border off preserves size",
+      "native border setting available",
+      "native border on persisted",
+      "trusted native image click highlights vscode_default_light.css",
+      "native Escape clears selection",
+      "ordinary native image border vscode_default_dark.css",
+      "native border follows reading theme vscode_default_dark.css",
+      "native border setting available",
+      "native border off persisted",
+      "native border off preserves size",
+      "native border setting available",
+      "native border on persisted",
+      "trusted native image click highlights vscode_default_dark.css",
+      "native Escape clears selection",
+      "native selection and borders do not alter saved Markdown"
+    ],
+    "border_samples": [
+      {
+        "stage": "image_border",
+        "theme": "vscode_default_light.css",
+        "normal_color": "rgb(229, 229, 229)",
+        "selected_color": "rgb(0, 95, 184)",
+        "selected_width": "1.71429px"
+      },
+      {
+        "stage": "image_border",
+        "theme": "vscode_default_dark.css",
+        "normal_color": "rgb(43, 43, 43)",
+        "selected_color": "rgb(0, 120, 212)",
+        "selected_width": "1.71429px"
+      }
+    ]
+  },
+  "isolated_cycle": {
+    "status": "PASS",
+    "run": "50539f1f329e433c80109315adac2c34"
+  },
+  "uninstall": {
+    "status": "PASS",
+    "run": "9904b279f6414d639581013613334f5f",
+    "assertions": 65
+  },
+  "earlier_failed_runs": [
+    "e46619b74fe54991a898ae6e9f8c9546",
+    "ee9ade4cdf2245eb8048c5d425835cbc",
+    "4af5b1e224834dd4a95648b38e1003b1",
+    "6e0fa6928e5846b08cca18e4188b225a"
+  ],
+  "failure_notes": "Fixture outlineStyle none can still report width medium; native CSS pixel rounding needs tolerance; capture stages accept only alphanumerics and underscores. Corrected fixture assertions/identifiers; original failures retained. Native color review replaced host constant border with reading theme border before final validation.",
+  "limits": [
+    "Private-desktop native trusted Windows messages and Chromium pointer input; physical user desktop and other operating systems not newly tested.",
+    "Existing historical open requirements retain their status."
+  ],
+  "local": {
+    "status": "PASS",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected_files": 9,
+    "checks": "Public installation check and read-only uninstall preflight passed. Running user windows were not restarted."
+  }
+}

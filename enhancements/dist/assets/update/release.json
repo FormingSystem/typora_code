@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026111504,
+      "version": "2026.11.15.4",
+      "date": "2026-11-15",
+      "notes": [
+        "图片默认显示细边框，可在图片设置或排版菜单关闭；单击图片显示主题色选中边线，点击其他位置或按Esc取消，不改变正文与图片尺寸。"
+      ],
+      "notes_en": [
+        "Images show optional thin borders controlled by image settings or the layout menu. Clicking highlights an image in the theme focus color; outside clicks or Escape clear selection without changing documents or image dimensions."
+      ]
+    },
+    {
       "sequence": 2026111503,
       "version": "2026.11.15.3",
       "date": "2026-11-15",

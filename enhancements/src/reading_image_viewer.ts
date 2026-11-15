@@ -1,5 +1,6 @@
 import {workspace_text} from "./workspace_i18n";
 import {bind_reading_image_layout} from "./reading_image_layout";
+import {bind_reading_image_selection} from "./reading_image_selection";
 import {create_reading_image_controls} from "./reading_image_controls";
 import {open_reading_media} from "./reading_media_viewer";
 import {bind_reading_media_entries,type reading_media_entry} from "./reading_media_entry";
@@ -8,6 +9,7 @@ type image_entry={control:reading_media_entry;extras:ReturnType<typeof create_re
 /** Only adapt to the original image source; hover positioning and input are managed by the shared entry, and the original image and its parent nodes are preserved. */
 export function bind_reading_images(root:HTMLElement,selector="img"){
   const layout=bind_reading_image_layout(root,selector);
+  const selection=bind_reading_image_selection(root,selector);
   const controls=bind_reading_media_entries(root),entries=new Map<HTMLImageElement,image_entry>();
   const controller=new AbortController(),{signal}=controller;let disposed=false,frame=0;
   let session:{image:HTMLImageElement;url:string;close:(restore?:boolean)=>void}|undefined;
@@ -24,6 +26,7 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
     frame=0;if(disposed)return;
     const images=new Set([...root.querySelectorAll<HTMLImageElement>(selector)].filter(image=>!image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
     layout.update(images);
+    selection.update();
     for(const [image,entry]of entries)if(!images.has(image)||!entry.control.button.isConnected){entry.extras.dispose();entry.control.dispose();entries.delete(image);}
     for(const image of images){
       let entry=entries.get(image);
@@ -49,5 +52,5 @@ export function bind_reading_images(root:HTMLElement,selector="img"){
     if(!image||!source_url(image))return;event.preventDefault();event.stopImmediatePropagation();open(image,entries.get(image)!,true);
   },{capture:true,signal});
   schedule();
-  return {dispose(){if(disposed)return;disposed=true;close_session();controller.abort();cancelAnimationFrame(frame);observer.disconnect();for(const [image,entry]of entries){entry.extras.dispose();entry.control.dispose();}entries.clear();controls.dispose();layout.dispose();}};
+  return {dispose(){if(disposed)return;disposed=true;close_session();controller.abort();cancelAnimationFrame(frame);observer.disconnect();for(const [image,entry]of entries){entry.extras.dispose();entry.control.dispose();}entries.clear();controls.dispose();layout.dispose();selection.dispose();}};
 }

@@ -9385,7 +9385,8 @@
         "R031.2",
         "R031.4",
         "R087.5",
-        "R087.8"
+        "R087.8",
+        "R031.5"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [
@@ -9424,7 +9425,8 @@
       "purpose": "implementation",
       "requirements": [
         "R031.2",
-        "R031.4"
+        "R031.4",
+        "R031.5"
       ],
       "design": "docs/reading_media_viewer.md#r0312-图片原始尺寸与全局对齐2026-10-02",
       "implementation": [

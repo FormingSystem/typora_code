@@ -13,8 +13,8 @@ export function bind_reading_image_layout(root:HTMLElement,selector:string){
   const vectors=new Map<string,{controller:AbortController;ratio?:number}>();let images_current:HTMLImageElement[]=[];let disposed=false;
   let density=reading_image_screen_density(),resolution:MediaQueryList;
   const update=()=>{
-    const {alignment,scale,size_mode}=read_reading_image_settings();
-    style.textContent=`${scope}{--reading-image-screen-density:${density};width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ${scale/100} + var(--reading-image-border,0px)),${scale}%)`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
+    const {alignment,scale,size_mode,border}=read_reading_image_settings();
+    style.textContent=`${border?`${scope}{outline:1px solid var(--theme-border,var(--table-border-color,#d0d7de));outline-offset:-1px}`:""}${scope}{--reading-image-screen-density:${density};width:auto!important;max-width:100%!important;height:auto!important}${scope}:not([style*="zoom" i]){width:${size_mode==="fit_width"?"100%":`min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ${scale/100} + var(--reading-image-border,0px)),${scale}%)`}!important}${scope}:not(.md-expand img){display:block}${scope}:not([style*="margin" i]){margin-left:${alignment==="left"?"0":"auto"}!important;margin-right:${alignment==="right"?"0":"auto"}!important}`;
   };
   const watch_density=()=>{
     resolution?.removeEventListener('change',density_changed);

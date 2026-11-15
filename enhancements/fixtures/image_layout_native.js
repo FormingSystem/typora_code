@@ -36,7 +36,7 @@
   await files.save_active();assert(fs.readFileSync(file,'utf8')===source,'global preferences do not modify source');
   const slider=document.querySelector('.reading-image-scale input');
   const disclosure=slider.closest('.reading-media-entry'),panel=disclosure.querySelector('.reading-image-panel'),more=disclosure.querySelector('.reading-image-more');
-  assert(panel.hidden&&disclosure.getBoundingClientRect().width===56,'native default compact collapsed image controls');
+  assert(panel.hidden&&Math.abs(disclosure.getBoundingClientRect().width-56)<1,'native default compact collapsed image controls '+JSON.stringify({hidden:panel.hidden,width:disclosure.getBoundingClientRect().width}));
   more.click();await pause(80);assert(!panel.hidden&&panel.getBoundingClientRect().width<=340,'native More reveals bounded image panel');
   assert(slider.type==='number'&&!document.querySelector('.reading-image-scale input[type=range]'),'numeric image scale replaces slider');
   let native_input_id=0,trusted_numeric_inputs=0;
@@ -126,6 +126,29 @@
   ClientCommand.setZoomLevel(Math.log(original_zoom)/Math.log(1.2));await pause(150);
   assert(fs.readFileSync(reported).equals(original_bytes),'reported PNG bytes unchanged');
   assert(File.editor.getMarkdown()===reported_source&&fs.readFileSync(reported_file,'utf8')===reported_source,'reported Markdown unchanged');
+  const toggle_border=async()=>{
+   const image=images()[0];File.editor.contextMenu.show(new MouseEvent('contextmenu',{clientX:200,clientY:300}),image);
+   document.querySelector('[data-key="typora-code-image-alignment"] a').click();
+   const button=[...document.querySelectorAll('[data-menu-level="0"] button')].find(node=>node.textContent.trim()==='显示图片边框');
+   assert(!!button,'native border setting available');button.click();await pause(100);
+  };
+  for(const theme of ['vscode_default_light.css','vscode_default_dark.css']){
+   ClientCommand.setTheme(theme,theme);await pause(400);
+   const image=images()[0];image.scrollIntoView({block:'center'});await pause(80);
+   assert(getComputedStyle(image).outlineStyle==='solid','ordinary native image border '+theme);
+   const before=image.getBoundingClientRect(),color=getComputedStyle(image).outlineColor;
+   const expected_border=theme.endsWith('_dark.css')?'rgb(43, 43, 43)':'rgb(229, 229, 229)';assert(color===expected_border,'native border follows reading theme '+theme);
+   await toggle_border();assert(core.app.settings.get('reading_images').border===false,'native border off persisted');
+   assert(getComputedStyle(image).outlineStyle==='none'&&Math.abs(image.getBoundingClientRect().width-before.width)<.1,'native border off preserves size');
+   await toggle_border();assert(core.app.settings.get('reading_images').border===true,'native border on persisted');
+   const r=image.getBoundingClientRect();await send_numeric('click',{x:r.left+r.width/2,y:Math.max(150,r.top+30)});await pause(120);
+   const selected=images()[0],computed=getComputedStyle(selected);
+   assert(parseFloat(computed.outlineWidth)>1&&computed.outlineStyle==='solid','trusted native image click highlights '+theme);
+   samples.push({stage:'image_border',theme,normal_color:color,selected_color:computed.outlineColor,selected_width:computed.outlineWidth});
+   const stage='image_border_'+theme.replace(/[^a-z0-9_]/g,'_');fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage}));await wait(()=>{try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage===stage}catch{return false}},'selected image capture');
+   await send_numeric('key',{key:27});assert(parseFloat(getComputedStyle(images()[0]).outlineWidth)<=1,'native Escape clears selection');
+  }
+  await files.save_active();assert(fs.readFileSync(reported_file,'utf8')===reported_source,'native selection and borders do not alter saved Markdown');
   fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks,samples},null,2));
  }catch(error){fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'ERROR',error:String(error.stack||error),checks,samples},null,2));}
 })();

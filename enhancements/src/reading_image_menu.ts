@@ -10,6 +10,7 @@ export function open_image_layout_menu(image:HTMLImageElement,event:MouseEvent){
   const labels=reading_image_alignment_labels(),settings=read_reading_image_settings(),apply=capture_image_alignment(image),local=read_image_alignment(image);
   const run=(action:()=>void)=>()=>{try{action();}catch(error){const core=(window as any)[Symbol.for('typora-code:workspace')];if(core?.Notice)new core.Notice(String(error instanceof Error?error.message:error),3500);else console.error(error);}};
   return workspace_menu(event,[
+    {title:workspace_text('image_border'),checked:settings.border,action:run(()=>write_reading_image_setting('border',!settings.border))},
     {title:workspace_text('image_layout_single'),disabled:!apply,action:()=>{},children:[{title:workspace_text('image_layout_follow'),checked:!local,action:run(()=>apply?.(undefined))},...IMAGE_ALIGNMENT_VALUES.map(value=>({title:labels[value],checked:local===value,action:run(()=>apply?.(value))}))]},
     {title:workspace_text('image_layout_global'),disabled:!get_workspace_app(),action:()=>{},children:IMAGE_ALIGNMENT_VALUES.map(value=>({title:labels[value],checked:settings.alignment===value,action:run(()=>write_reading_image_setting('alignment',value))}))},
     {title:workspace_text('image_layout_natural'),checked:settings.size_mode==='natural'&&settings.scale===100,action:run(()=>write_reading_image_setting('scale',100))},

@@ -1,4 +1,6 @@
 {
+  "image_border": {"zh_cn": "显示图片边框", "en": "Show image borders"},
+  "image_border_description": {"zh_cn": "为正文和阅读预览中的图片显示细边框；关闭后仍保留点击选中提示，不修改图片或文档。", "en": "Show thin borders around images in documents and reading previews. Click selection stays visible when disabled; images and documents are unchanged."},
   "image_layout_section": {
     "zh_cn": "图片",
     "en": "Images"
@@ -84,8 +86,8 @@
     "en": "Right"
   },
   "image_layout_invalid": {
-    "zh_cn": "无效的图片对齐设置",
-    "en": "Invalid image alignment setting"
+    "zh_cn": "无效的图片设置",
+    "en": "Invalid image setting"
   },
   "search_return_preview_anchor": {
     "zh_cn": "返回点击的搜索位置",
