@@ -10641,6 +10641,35 @@
         "git"
       ],
       "fixture": "enhancements/fixtures/git_images_native.js"
+    },
+    {
+      "id": "TC-reading-diagram-controls-native",
+      "domain": "reading",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R087.10"
+      ],
+      "design": "docs/reading_code_blocks.md",
+      "implementation": [
+        "enhancements/src/typora_enhancements.css"
+      ],
+      "related_modules": [
+        "reading",
+        "native",
+        "theme"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Windows Typora 1.14.15 private desktop",
+      "preconditions": "独立宿主副本及测试文档",
+      "steps": [
+        "Open Mermaid, flow and sequence source, focus the language field and return to reading in two widths and themes."
+      ],
+      "expected": [
+        "The language field clears both source and preview, the following paragraph clears the diagram, and leaving edit mode restores reading."
+      ],
+      "timeout_ms": 240000,
+      "fixture": "enhancements/fixtures/diagram_controls_native.js"
     }
   ]
 }

@@ -229,6 +229,7 @@
 | R074.9 | VS Code默认明暗主题与统一代码配色 | [设计](workspace_colors.md#r0749-vs-code默认主题与语法配色2026-10-04) | 2026-10-05纠正为Default与2026四主题；保留彩色Markdown标题；独立配置与安全迁移 |
 | R074.10 | GitHub正文/标题字号与代码框外观 | [R074.10](workspace_colors.md#r07410-github-reading) | 2026-11-14 |
 | R087.9 | 阅读缩略图媒体 | [Design](reading_minimap.md) | 2026-11-15 |
+| R087.10 | 原生图表编辑控件 | [设计](reading_code_blocks.md#r08710-diagram-controls) | 语言输入与图表独立布局 |
 | R074.11 | 引用上下留白 | [Design](reading_minimap.md) | 2026-11-15 |
 | R074.12 | 代码字号同步 | [Design](workspace_colors.md#r07412-code-font) | 2026-11-15 |
 | R074.13 | 代码块行首选区几何 | [Design](workspace_colors.md#r07413-code-selection) | 2026-11-15 |

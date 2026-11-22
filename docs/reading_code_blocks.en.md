@@ -274,3 +274,10 @@ Validate viewBox-only and explicit dimensions, Chinese/multiline labels, font ch
 ## R068.14 Floating fold control
 
 Move the existing expand/collapse toolbar out of document flow and position it at the fence bottom right, retaining existing 8px spacing and button visuals. Default opacity and hit testing are off; fence hover or button focus-visible enables both. Preserve Tab/Enter/Space, aria-expanded and delegated commands; mouse focus must not leave controls permanently visible. Existing fence/fold services own state, with no new listeners or configuration. Leaving/cancelling performs no command; print remains hidden. Verify zero extra row, pointer enter/leave, hit testing, expand/collapse, keyboard, light/dark, narrow fences, reconstruction/disposal and native saved text. This user-requested layout adapts existing spacing, without claiming a new upstream constant.
+
+<a id="r08710-diagram-controls"></a>
+## R087.10 Native diagram editing controls
+
+Typora displays CodeMirror, its language input and a preview while editing a native diagram. In 1.14.15 base-control.css positions the language field below the source with a negative bottom offset. The preview is also absolutely positioned below the editor. Reserve layout space for the input while retaining native focus, language completion and diagram updates. Cover Mermaid, flow and sequence fences sharing the native structure. Verify the source, input and preview rectangles, reading mode restoration, narrow widths and themes.
+
+The native field stays in document flow between CodeMirror and the preview, aligned to the right. The preview retains its existing 10px top margin.

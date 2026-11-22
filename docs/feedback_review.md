@@ -1,5 +1,7 @@
 [English](feedback_review.en.md)
 
+2026-11-22 R087.10 已随 2026.11.22.5 安装。Mermaid 等原生图表进入编辑时，语言输入框在源码与预览之间单独占一行。以用户反馈的 Zephyr 流程图在隔离 Typora 1.14.15 验证进入、语言框焦点、退出和保存。三种图表在浅色宽栏和深色窄栏中均留出 10px 间距。本机检查与两种隔离卸载重装通过。[验证记录](../enhancements/tests/evidence/diagram_edit_controls_20261122.json)。
+
 2026-11-22 R031.8 按用户反馈修正图片滚轮。点过图片后，普通滚轮在正文中上下翻页，在图片标签或全屏中上下查看长图。Ctrl+滚轮围绕指针缩放，Git 两栏可分别阅读。Windows Typora 1.14.15 验证上下边缘、比例和版本隔离，Electron 输入验证单击后的滚轮行为。2026.11.22.4 已安装，本机检查及隔离卸载重装通过。[验证记录](../enhancements/tests/evidence/image_wheel_20261122.json)。
 
 2026-11-22 R031.8 图片缩放已随 2026.11.22.3 安装。图片标签和 Git 比较每栏支持围绕指针缩放、左键拖动、适应宽度或视口，以及恢复 100%。隔离 Typora 1.14.15 验证双栏版本与缩放中心，Electron 输入验证拖动距离、窄栏工具和全屏返回。本机安装检查与隔离卸载重装通过。[验证记录](../enhancements/tests/evidence/image_pane_zoom_20261122.json)。

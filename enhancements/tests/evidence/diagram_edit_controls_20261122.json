@@ -1,0 +1,61 @@
+{
+  "requirement": "R087.10",
+  "version": "2026.11.22.5",
+  "platform": "Windows Typora 1.14.15",
+  "asset_manifest_sha256": "3b9767d304797c5a349b085d3c7ad0c575ceaab598f3bb575e738969a2959123",
+  "baseline_failure": "Error: mermaid language field outside preview",
+  "verification": {
+    "native_run": "721eaff158c045fba52ab49bdd04ba73",
+    "checks": 37,
+    "geometry": [
+      {
+        "diagram": "mermaid",
+        "theme": "vscode_2026_default_light.css",
+        "width_css_px": 780,
+        "field_to_preview_gap_css_px": 10.0
+      },
+      {
+        "diagram": "flow",
+        "theme": "vscode_2026_default_light.css",
+        "width_css_px": 780,
+        "field_to_preview_gap_css_px": 10.0
+      },
+      {
+        "diagram": "sequence",
+        "theme": "vscode_2026_default_light.css",
+        "width_css_px": 780,
+        "field_to_preview_gap_css_px": 10.0
+      },
+      {
+        "diagram": "mermaid",
+        "theme": "vscode_2026_default_dark.css",
+        "width_css_px": 320,
+        "field_to_preview_gap_css_px": 10.0
+      },
+      {
+        "diagram": "flow",
+        "theme": "vscode_2026_default_dark.css",
+        "width_css_px": 320,
+        "field_to_preview_gap_css_px": 10.0
+      },
+      {
+        "diagram": "sequence",
+        "theme": "vscode_2026_default_dark.css",
+        "width_css_px": 320,
+        "field_to_preview_gap_css_px": 10.0
+      }
+    ],
+    "editing": "Native preview click, keyboard focus in the language field, click back to the paragraph, save and compare Markdown.",
+    "image": "stage_mermaid_edit_controls_921496.png",
+    "regression": "Core, reading media viewer UI, test catalog and bilingual link checks passed."
+  },
+  "installation": {
+    "workspace_assets": 216,
+    "terminal_assets": 24,
+    "preserved_user_files": 9,
+    "isolated_cycle": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/storage/backups preserved",
+    "uninstall_assertions": 65,
+    "preflight": "read-only on actual installation"
+  },
+  "limits": "Tested the supplied graph structure in an isolated Windows host. Existing windows require manual restart."
+}

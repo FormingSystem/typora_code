@@ -271275,6 +271275,17 @@ https://creativecommons.org/licenses/by/4.0/
     schema: 1,
     releases: [
       {
+        sequence: 2026112205,
+        version: "2026.11.22.5",
+        date: "2026-11-22",
+        notes: [
+          "\u7F16\u8F91 Mermaid \u7B49\u539F\u751F\u56FE\u8868\u65F6\uFF0C\u8BED\u8A00\u8F93\u5165\u6846\u5355\u72EC\u663E\u793A\u5728\u6E90\u7801\u4E0E\u9884\u89C8\u4E4B\u95F4\uFF0C\u56FE\u8868\u53F3\u4E0A\u89D2\u7684\u8282\u70B9\u4FDD\u6301\u53EF\u89C1\u3002"
+        ],
+        notes_en: [
+          "When editing Mermaid and other native diagrams, the language field has its own row between the source and preview, keeping upper-right diagram nodes visible."
+        ]
+      },
+      {
         sequence: 2026112204,
         version: "2026.11.22.4",
         date: "2026-11-22",

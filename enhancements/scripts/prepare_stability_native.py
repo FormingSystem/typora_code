@@ -26,7 +26,7 @@ try:
     # New host versions are admitted only for fixtures whose ports are checked.
     expected_asar = '4dbee896f9d5a7f393c69611f57bd877a6b9da895f3884028215c2da7894fb53'
     host_version = '1.14.10'
-    if fixture_path.name in ('git_images_native.js', 'explorer_stable_native.js', 'image_layout_native.js', 'visual_code_native.js', 'github_reading_native.js', 'preview_find_native.js') and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
+    if fixture_path.name in ('diagram_controls_native.js', 'git_images_native.js', 'explorer_stable_native.js', 'image_layout_native.js', 'visual_code_native.js', 'github_reading_native.js', 'preview_find_native.js') and digest(asar) == '3fa8667e560dd55a6d98cf2991e3cb5a5137dfa78e99cd5366afe32d30848822':
         expected_asar = digest(asar)
         host_version = '1.14.15'
         assert json.loads((host_root / 'resources/package.json').read_text(encoding='utf-8'))['version'] == host_version

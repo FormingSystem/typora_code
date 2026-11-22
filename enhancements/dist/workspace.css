@@ -1318,6 +1318,16 @@ body:not(.typora-export) content.typ-deactive { visibility:hidden!important;poin
 /* Mermaid canvas belongs to charts, does not inherit the normal source code fence's background color. */
 #write .md-fences.md-diagram[lang="mermaid"] {background-color:transparent!important;}
 
+/* The host inserts the language field between CodeMirror and its absolutely positioned preview. */
+#write .md-fences.md-diagram.md-focus > .code-tooltip:has(> .ty-cm-lang-input) {
+  position: relative;
+  inset: auto;
+  float: none;
+  width: fit-content;
+  max-width: 100%;
+  margin-inline-start: auto;
+}
+
 /* workspace_activity.css */
 .typ-ribbon[data-workspace-activity=ready] > .group.top > .workspace-activity-item {
   box-sizing: border-box;

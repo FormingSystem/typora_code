@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026112205,
+      "version": "2026.11.22.5",
+      "date": "2026-11-22",
+      "notes": [
+        "编辑 Mermaid 等原生图表时，语言输入框单独显示在源码与预览之间，图表右上角的节点保持可见。"
+      ],
+      "notes_en": [
+        "When editing Mermaid and other native diagrams, the language field has its own row between the source and preview, keeping upper-right diagram nodes visible."
+      ]
+    },
+    {
       "sequence": 2026112204,
       "version": "2026.11.22.4",
       "date": "2026-11-22",

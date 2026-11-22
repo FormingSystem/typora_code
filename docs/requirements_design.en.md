@@ -232,6 +232,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R074.9 | VS Code default themes and shared syntax colors | [Design](workspace_colors.en.md#r0749-vs-code-default-themes-and-syntax-colors-2026-10-04) | 2026-10-05: separate Default and 2026 pairs, preserve colored Markdown headings; independent settings and safe migration |
 | R074.10 | GitHub body/heading sizes and code surfaces | [R074.10](workspace_colors.en.md#r07410-github-reading) | 2026-11-14 |
 | R087.9 | Reading minimap media | [Design](reading_minimap.en.md) | 2026-11-15 |
+| R087.10 | Native diagram editing controls | [Design](reading_code_blocks.en.md#r08710-diagram-controls) | Separate language field and diagram geometry |
 | R074.11 | Quotation vertical padding | [Design](reading_minimap.en.md) | 2026-11-15 |
 | R074.12 | Code font synchronization | [Design](workspace_colors.en.md#r07412-code-font) | 2026-11-15 |
 | R074.13 | Code selection geometry | [Design](workspace_colors.en.md#r07413-code-selection) | 2026-11-15 |
