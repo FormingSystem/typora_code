@@ -1,3 +1,5 @@
+import {reading_image_mime} from './reading_image_mime';
+import type {image_file_side} from './workspace_image_document';
 import {workspace_text} from "./workspace_i18n";
 import {is_markdown_file} from './file_language';
 import {bind_git_source_row,sync_git_source_rows,git_diff_source_key,type git_diff_source} from './git_diff_source';
@@ -354,7 +356,8 @@ export class git_source_control {
   /** Default resource click: Only new items in the current comparison do not have old baseline; explicit comparison entry still walks open_file. */
   async open_default_file(file:graph_change,from:string,to:string,files:graph_change[]):Promise<void>{
     if((to===WORKTREE||to===INDEX)&&(file.status==="??"||/^A[0-9]*$/u.test(file.status))){
-      await this.open_current_file(file);
+      if(to===INDEX && reading_image_mime(file.path))await this.open_revision(INDEX,file.path);
+      else await this.open_current_file(file);
       return;
     }
     await this.open_file(file,from,to,files);
@@ -372,7 +375,7 @@ export class git_source_control {
   async open_revision(revision: string, file: string): Promise<void> {
     const epoch = ++this.load_epoch, root = this.panel.root, settings = {...this.panel.settings};
     try {
-      const content = await this.panel.host.revision_text(root, revision, file, settings);
+      const content = reading_image_mime(file) ? "" : await this.panel.host.revision_text(root, revision, file, settings);
       if (this.panel.disposed || epoch !== this.load_epoch || root !== this.panel.root) return;
       this.panel.host.open_revision_document(root, revision, file, content, settings);
     } catch (error) { if (!this.panel.disposed && epoch === this.load_epoch && root === this.panel.root) this.panel.report(error); }
@@ -389,17 +392,24 @@ export class git_source_control {
     this.panel.status.textContent = text("scm.opening_diff");
     try {
       if (file.status === "U") throw new Error(text("scm.unresolved_conflict"));
-      const [left, right] = await Promise.all([
-        file.status.startsWith("A") || file.status === "??" ? "" : this.panel.host.revision_text(root, from, file.old_path || file.path, this.panel.settings),
-        file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings),
-      ]);
+      const old_path=file.old_path||file.path,settings={...this.panel.settings};
+      const has_left=!file.status.startsWith("A") && file.status!=="??" && from!==EMPTY;
+      const has_right=!file.status.startsWith("D") && to!==EMPTY;
+      const sides=[{present:has_left,path:old_path,revision:from},{present:has_right,path:file.path,revision:to}];
+      const label=(path:string,revision:string)=>text("scm.readonly_label",{file:path,revision:short_revision(revision)});
+      const image_compare=sides.filter(side=>side.present).every(side=>reading_image_mime(side.path));
+      const image_sides:image_file_side[]|undefined=image_compare?sides.filter(side=>side.present).map(side=>({
+        label:label(side.path,side.revision),read:signal=>this.panel.host.revision_image(root,side.revision,side.path,settings,signal)
+      })):undefined;
+      const [left,right]=image_sides?["",""]:await Promise.all(sides.map(side=>
+        side.present?this.panel.host.revision_text(root,side.revision,side.path,settings):""));
       if (epoch !== this.load_epoch || root !== this.panel.root) return;
       this.panel.host.open_document({title: `${file.path.split("/").at(-1)!} (${short_revision(from)} ↔ ${short_revision(to)})`, file: file.path, left, right,
         images:is_markdown_file(file.path) ? {
           left:this.panel.host.revision_images(root, from, file.old_path || file.path, this.panel.settings),
           right:this.panel.host.revision_images(root, to, file.path, this.panel.settings)
-        } : undefined, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
-        ...(from===INDEX&&to===WORKTREE&&file.status!=="??"&&!/^[ADRUT]/u.test(file.status)?{
+        } : undefined, left_label:label(old_path,from),right_label:label(file.path,to)}, "active", {image_sides,
+        ...(!image_sides&&from===INDEX&&to===WORKTREE&&file.status!=="??"&&!/^[ADRUT]/u.test(file.status)?{
           range_available:()=>this.repository_action_available(root)&&!this.panel.writing&&!this.panel.pending&&!this.panel.disposed,
           range_action:async(action,snapshot)=>{
             if(!this.repository_action_available(root))return;

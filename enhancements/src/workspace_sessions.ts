@@ -2,7 +2,8 @@ import {workspace_text} from "./workspace_i18n";
 import type {workspace_file_host} from "./workspace_files";
 import {create_workspace_session_store,type workspace_session_file} from "./workspace_session_store";
 import {window_transfer_token} from "./workspace_window_intent";
-import {file_key} from "./workspace_file_uri";
+import {reading_image_mime} from "./reading_image_mime";
+import {file_key,is_svg_source_uri} from "./workspace_file_uri";
 import {workspace_context_epoch,workspace_context_switching} from "./workspace_context";
 
 /** File sessions are independent of the recently opened file; directory switching transactions explicitly pause sampling, avoiding writing the clear process as a target session. */
@@ -29,8 +30,9 @@ export function bind_workspace_sessions(files:workspace_file_host){
     });
     leaves.forEach(leaf=>{
       const state=files.editor_state(leaf);if(!state.file_path||state.kind==="other"||!files.path_api.isAbsolute(state.file_path))return;
-      const identity=file_key(state.file_path)+":"+state.kind;
-      let index=identities.get(identity);if(index===undefined){index=entries.length;identities.set(identity,index);entries.push({path:state.file_path,source:state.kind==="source",pinned:!!leaf.state.workspace_pinned});}
+      const svg_source=is_svg_source_uri(leaf.state.path);
+      const identity=file_key(state.file_path)+":"+state.kind+(svg_source?":text":"");
+      let index=identities.get(identity);if(index===undefined){index=entries.length;identities.set(identity,index);entries.push({path:state.file_path,source:state.kind==="source",...(svg_source?{svg_source:true}:{}),pinned:!!leaf.state.workspace_pinned});}
       if(leaf===workspace.activeLeaf)active=index;
     });
     return {entries,active};
@@ -65,7 +67,7 @@ export function bind_workspace_sessions(files:workspace_file_host){
       let dirty=false;workspace.eachLeaves(leaf=>{if(files.editor_state(leaf).dirty)dirty=true;});
       const preferred=saved.files[saved.active];
       if(dirty||!preferred)return;
-      await files.open_file(preferred.path,{source:preferred.source,preview:false,signal:activation.signal,reason:"restore"});
+      await files.open_file(preferred.path,{source:preferred.source && (reading_image_mime(preferred.path)!=="image/svg+xml" || preferred.svg_source===true),preview:false,signal:activation.signal,reason:"restore"});
       const active=workspace.activeLeaf,started=Date.now();
       while(current()&&!activation.signal.aborted&&workspace.activeLeaf===active&&active&&files.editor_state(active).busy){
         if(Date.now()-started>10000)throw new Error(workspace_text("sessions_timeout_waiting_for_active_file_loading"));

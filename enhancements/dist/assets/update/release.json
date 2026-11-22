@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026112202,
+      "version": "2026.11.22.2",
+      "date": "2026-11-22",
+      "notes": [
+        "直接打开图片可在工作台阅读并双击放大。Git 更改可对照图片的暂存、工作区和历史版本，新增或删除时只显示存在的一侧。"
+      ],
+      "notes_en": [
+        "Open image files in the workbench and double-click to enlarge. Git Changes compares index, worktree and historical images and shows the available side for additions or deletions."
+      ]
+    },
+    {
       "sequence": 2026112201,
       "version": "2026.11.22.1",
       "date": "2026-11-22",

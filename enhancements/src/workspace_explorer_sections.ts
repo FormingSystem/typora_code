@@ -1,3 +1,4 @@
+import {reading_image_mime} from './reading_image_mime';
 import {workspace_text} from "./workspace_i18n";
 import {vscode_resource_entry} from "./workspace_open_vscode";
 import {is_empty_editor_path} from "./workspace_file_uri";
@@ -90,6 +91,14 @@ export function bind_workspace_explorer_sections(files:workspace_file_host,explo
   lifetime.add(workspace.on("file:open",schedule));lifetime.add(saves.subscribe(schedule));lifetime.add(observe_workspace_save_settings(render_layout));
   lifetime.listen(container,"typora-code:explorer-file-menu",((event:CustomEvent<{path:string;directory:boolean;entries:workspace_menu_entry[]}>)=>{
     const {path,directory,entries}=event.detail;if(directory)return;
+    const mime=reading_image_mime(path);
+    if(mime){
+      const children:workspace_menu_entry[]=[{title:workspace_text("image_file_viewer"),action:()=>run(()=>files.open_file(path))}];
+      if(mime==="image/svg+xml")children.push({title:workspace_text("breadcrumbs_text_editor"),action:()=>run(()=>files.open_file(path,{source:true}))});
+      entries.splice(2,0,{title:workspace_text("explorer_sections_open_with"),children,action:()=>{}});
+      entries.push({title:workspace_text("explorer_sections_open_timeline"),separator:true,action:()=>timeline.open(path)});
+      return;
+    }
     const children:workspace_menu_entry[]=[{title:workspace_text("breadcrumbs_text_editor"),action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,true);})}];
     if(is_markdown_file(path))children.unshift({title:workspace_text("breadcrumbs_markdown_editor"),action:()=>run(async()=>{await files.open_file(path);const leaf=workspace.activeLeaf;if(leaf)await files.reopen_leaf(leaf,false);})});
     entries.splice(2,0,{title:workspace_text("explorer_sections_open_with"),children,action:()=>{}},{title:workspace_text("explorer_sections_compare_with_clipboard"),action:()=>run(async()=>{const right=await files.read_text(path),left=(window as any).reqnode("electron").clipboard.readText();viewer.open({title:files.path_api.basename(path)+workspace_text("explorer_sections_compare_with_clipboard_3ecac969"),file:path,left,right,left_label:workspace_text("explorer_sections_clipboard"),right_label:path});})});

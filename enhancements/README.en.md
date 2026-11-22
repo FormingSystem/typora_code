@@ -357,7 +357,8 @@ The identification order is **special filename/prefix → longest composite suff
 | `.v`、`.vh`、`.sv`、`.svh`；`.rst` | Verilog／SystemVerilog；reStructuredText |
 | `LICENSE`、`COPYING`、`README`、`.txt`、`.log`、`.csv`、`.patch`、`.diff` | Plain Text |
 | `.tar.gz`、`.tar.bz2`、`.tar.xz`、`.tar.zst`、`.zip`、`.7z`、`.deb`、`.rpm` | Archive type, file tree preserves project |
-| Images, PDFs, executables, fonts, audio/video, and `.dtb` etc. | Binary type, file tree preserves project |
+| PNG, JPEG, GIF, WebP, BMP, AVIF, ICO, APNG, SVG | Read images directly in a tab. Double-click to enlarge. Local images also offer the system application in their context menu. |
+| PDFs, executables, fonts, audio/video, and `.dtb` etc. | Binary type, file tree preserves project |
 | Scripts without known mappings but with first line as `#!`; other unknown files | Identified by interpreter; fallback to pure text |
 
 Binary judgment also checks actual bytes; archives or binary are not treated as text hard decoding. The upper limit for reading and saving ordinary source code is 16 MiB; if exceeding the limit, unable to decode, or actually binary, the reason is displayed, and **Use system programs to open** is provided. Text is decoded strictly as UTF-8 by default; UTF-8/UTF-16 with BOM are processed according to BOM; writing back supports the aforementioned Unicode encodings. Language coloring does not equal compilation, completion, or language server.

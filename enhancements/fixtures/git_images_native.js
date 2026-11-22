@@ -44,6 +44,40 @@
     await wait('Index SVG and worktree Mermaid render together', () => shadow.querySelector('[data-side=left] img')?.naturalWidth===210 && !!shadow.querySelector('[data-side=right] .lookup-diagram,[data-side=right] [data-visual-state=ready]'));
     fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'git_version_images'}));
     await pause(700);
+    const files=app[Symbol.for('linux-note.workspace-files@v1')].host;
+    const active=()=>app.workspace.activeLeaf.view;
+    const standalone=()=>[...active().containerEl.querySelectorAll('.workspace-image-pane img')];
+    const widths=()=>standalone().map(node=>node.naturalWidth).join(',');
+    await panel.workbench.open_file({path:asset,status:'M'},'INDEX','WORKTREE');
+    await wait('Standalone Git image diff shows the two correct versions',()=>widths()==='210,290');
+    await wait('Both images fit the actual editor viewport',()=>standalone().every(image=>image.clientWidth>0&&image.clientWidth<=image.closest('.workspace-image-pane').clientWidth));
+    fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'standalone_git_images'}));
+    await wait('Captured the standalone side-by-side image view',()=>{
+      try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='standalone_git_images';}catch{return false;}
+    });
+    await panel.workbench.open_file({path:asset,status:'D'},commit,'INDEX');
+    await wait('A deletion displays only the original version',()=>widths()==='170');
+    await panel.workbench.open_default_file({path:asset,status:'A'},commit,'INDEX',[]);
+    await wait('Staged addition opens the index, independently of the worktree',()=>widths()==='210');
+    const canvas=document.createElement('canvas');canvas.width=37;canvas.height=19;
+    const png=reqnode('buffer').Buffer.from(canvas.toDataURL('image/png').split(',')[1],'base64');
+    const untracked='assets/new #图.png';write(untracked,png);
+    await panel.workbench.open_default_file({path:untracked,status:'??'},'INDEX','WORKTREE',[]);
+    await wait('An untracked PNG opens in a document tab',()=>widths()==='37'&&!active().editor);
+    if(!active().menu_entries().some(entry=>entry.title==='使用系统程序打开'||entry.title.toLowerCase().includes('system')))throw Error('System open command missing');
+    if(files.can_save_active())throw Error('Image tab exposed text save');
+    await pause(80);standalone()[0].dispatchEvent(new MouseEvent('dblclick',{button:0,bubbles:true}));
+    await wait('Standalone PNG opens the shared fullscreen viewer',()=>document.querySelector('.reading-media-viewer img')?.naturalWidth===37);
+    document.dispatchEvent(new KeyboardEvent('keydown',{key:'Escape',bubbles:true}));
+    await files.open_file(path.join(root,asset),{preview:true});
+    await wait('Explorer preview decodes SVG',()=>widths()==='290');
+    await files.open_file(path.join(root,asset),{source:true});
+    await wait('Explicit SVG source still opens its original text',()=>active().editor?.models[0].getValue().includes('Version 290'));
+    await files.open_file(path.join(root,asset));
+    await wait('Opening the image after editing source returns to its picture',()=>widths()==='290');
+    write('assets/bad.png','no image data');await files.open_file(path.join(root,'assets/bad.png'));
+    await wait('A broken local image retains its error and system-open action',()=>!!active().containerEl.querySelector('.workspace-image-pane .workspace-file-notice')&&!!active().containerEl.querySelector('.workspace-image-pane button'));
+    if(!fs.readFileSync(path.join(root,untracked)).equals(png))throw Error('PNG bytes changed');
     fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'PASS',checks},null,2));
   } catch (error) {
     fs.writeFileSync(path.join(base,'checks.json'),JSON.stringify({status:'FAIL',checks,error:String(error),stack:error.stack},null,2));

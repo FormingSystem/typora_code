@@ -1,3 +1,5 @@
+import {create_image_document} from './workspace_image_document';
+import {reading_image_mime} from './reading_image_mime';
 import {create_workspace_file_operation,type workspace_file_operation,type workspace_file_operation_context} from './workspace_file_operation';
 import {monaco_line_target} from './workspace_line_target';
 import {workspace_text} from "./workspace_i18n";
@@ -31,7 +33,7 @@ import { navigate_reading_target, rename_reading_paths } from "./reading_navigat
 import {register_navigation_editor, notify_navigation_selection} from "./reading_navigation_ports";
 import { prepare_workspace_rename, prepare_workspace_move, renamed_workspace_path } from "./workspace_rename";
 import { reveal_markdown_location } from "./workspace_markdown_location";
-import { SOURCE_FILE_VIEW_ID, is_empty_editor_path, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
+import { SOURCE_FILE_VIEW_ID, is_svg_source_uri, is_empty_editor_path, file_key, is_source_file_uri, parse_markdown_file_target, resolve_markdown_file_target, resolve_host_open_file_target, resolve_workspace_file, source_file_path, source_file_uri } from "./workspace_file_uri";
 import * as monaco from "monaco-editor/editor/editor.api";
 import {vscode_resource_entry} from "./workspace_open_vscode";
 import files_css from "./workspace_files.css";
@@ -45,7 +47,7 @@ export type workspace_file_host = {
   fs: any; path_api: any; core: graph_core;
   register_document(port:workspace_document_port):()=>void;
   open_file(file_path: string, location?: file_location, group?: string): Promise<void>;
-  restore_files(entries:ReadonlyArray<{path:string;source:boolean;pinned:boolean}>,signal:AbortSignal):Promise<void>;
+  restore_files(entries:ReadonlyArray<{path:string;source:boolean;pinned:boolean;svg_source?:boolean}>,signal:AbortSignal):Promise<void>;
   context_root(): string;
   file_menu(event: MouseEvent, file_path: string): void;
   copy(text: string): unknown;
@@ -211,6 +213,8 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       format?:Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>;
       saved_format:string; saved_version:number; saving:boolean; loading:boolean; loaded:boolean;
     };
+    image?:ReturnType<typeof create_image_document>;
+    get image_mime(){return !is_svg_source_uri(this.leaf.state.path) && !this.editor ? reading_image_mime(this.file_path) : undefined;}
     get file_path(){return this.shared.file_path;} set file_path(value:string){this.shared.file_path=value;}
     get text_document(){return this.shared.text_document;} set text_document(value:ReturnType<typeof create_text_document>){this.shared.text_document=value;}
     get format(){return this.shared.format;} set format(value:Awaited<ReturnType<ReturnType<typeof create_text_document>["load"]>>|undefined){this.shared.format=value;}
@@ -231,7 +235,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     }
     constructor(leaf: graph_leaf) {
       super(leaf); const file_path=real_path(leaf);
-      this.shared=[...views].find(view=>!view.disposed&&file_key(view.file_path)===file_key(file_path))?.shared
+      this.shared=[...views].find(view=>!view.disposed&&!view.image_mime&&is_svg_source_uri(view.leaf.state.path)===is_svg_source_uri(leaf.state.path)&&file_key(view.file_path)===file_key(file_path))?.shared
         ||{file_path,text_document:create_text_document({fs,path_api},file_path),saved_format:"",saved_version:0,saving:false,loading:false,loaded:false};
       leaf.state.git_cwd = path_api.dirname(this.file_path); views.add(this);
       this.target=group_locations.get(leaf.state.path);this.focus_requested=!this.target?.preserve_focus;group_locations.delete(leaf.state.path);
@@ -242,6 +246,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const node of [this.status,this.location_label])node.classList.add("workspace-footer-text");
       for(const node of [this.encoding_button,this.eol_button,this.language_button])node.classList.add("workspace-footer-control");
       this.status_controls.append(this.status, this.location_label, this.encoding_button, this.eol_button, this.language_button);
+      if(this.image_mime)this.status_controls.replaceChildren(this.status);
       this.containerEl.append(this.body);editor_status.register(this.leaf,this.status_controls);
       const save_keydown=(event:KeyboardEvent)=>{
         if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && !event.isComposing && event.key.toLowerCase() === "s") {event.preventDefault();event.stopImmediatePropagation();void this.save();}
@@ -271,6 +276,19 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       this.editor?.focused_editor().updateOptions({readOnly:true});
       for(const control of[this.language_button,this.encoding_button,this.eol_button])control.disabled=true;
       try {
+        this.image?.dispose();this.image=undefined;
+        const mime=this.image_mime;
+        if(mime){
+          const target=this.file_path;
+          const image=create_image_document([{label:path_api.basename(target),read:async signal=>new Blob([await fs.promises.readFile(target,{signal})],{type:mime})}],false);
+          image.container.oncontextmenu=event=>this.menu(event);
+          this.image=image;this.body.replaceChildren(image.container);
+          this.loaded=await image.ready;
+          if(this.disposed)return;
+          this.status.textContent=mime;
+          if(!this.loaded&&!remote_files_for(target))image.container.querySelector('.workspace-image-pane')?.append(button(workspace_text("files_open_with_system_program"),()=>void shell.openPath(this.file_path)));
+          return;
+        }
         const decoded = await candidate.load(); if(this.disposed)return;
         if(this.editor?.models[0].getAlternativeVersionId()!==previous_version||this.format_key()!==previous_format){this.status.textContent=workspace_text("files_content_has_changed_during_reading_unsaved_modifications_hav");return;}
         this.text_document=candidate;
@@ -349,7 +367,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         this.format={...saved.value,encoding:this.format.encoding,bom:this.format.bom,eol:this.format.eol};this.saved_version=version;this.saved_format=format_key;
         for(const view of views)if(view.shared===this.shared){
           const group=view.leaf.parent as typeof parent;
-          group.renameTab(view.leaf.state.path,source_file_uri(target));view.leaf.state.git_cwd=path_api.dirname(target);
+          group.renameTab(view.leaf.state.path,source_file_uri(target,reading_image_mime(target)==="image/svg+xml"));view.leaf.state.git_cwd=path_api.dirname(target);
           if(view.editor){view.editor.data.file=target;view.editor.data.title=path_api.basename(target);view.editor.data.left_label=target;}
           keep_open(view.leaf);const tab=workspace_leaf_tab(view.leaf);if(tab){const label=tab.querySelector(".typ-file-basename");if(label)label.textContent=path_api.basename(target);tab.title=target;}
         }keep_open(this.leaf);
@@ -379,7 +397,13 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       for(const value of["utf-8","utf-16le","utf-16be","gb18030","big5","windows-1252"]){const option=el("option","",value.toUpperCase());option.value=value;select.append(option);}
       dialog.content.append(select);dialog.footer.prepend(button(workspace_text("files_reload"),()=>{if(this.dirty()||this.loading){this.status.textContent=workspace_text("files_please_save_your_modifications_first_before_opening_with_oth");return;}dialog.close();void this.load_file(select.value);}));
     }
-    menu_entries(){return [
+    menu_entries(){
+      if(this.image_mime)return [
+        ...(this.image_mime==='image/svg+xml'?[{title:workspace_text("svg_source_edit"),action:()=>void open_file(this.file_path,{source:true})}]:[]),
+        ...(!remote_files_for(this.file_path)?[{title:workspace_text("files_open_with_system_program"),action:()=>void shell.openPath(this.file_path)}]:[]),
+        {title:workspace_text("file_commands_reload_from_disk"),action:()=>this.confirm_reload()}
+      ];
+      return [
       ...(core.app.workspace.activeLeaf===this.leaf?source_navigation?.entries()||[]:[]),
       vscode_resource_entry(this.file_path),
       {title:workspace_text("files_save_file_ctrl_s"),action:()=>void this.save()},
@@ -392,7 +416,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     confirm_reload(){if(!this.dirty()){void this.load_file();return;}const dialog=workspace_dialog(workspace_text("files_reload_file"));dialog.content.append(el("p","",workspace_text("files_reloading_will_discard_unsaved_modifications_in_this_tab")));dialog.footer.prepend(button(workspace_text("files_discard_modifications_and_reload"),()=>{dialog.close();void this.load_file();}));}
     confirm_close(close:()=>void){source_lifecycle.confirm_close(this,close);}
     guard_close(){source_lifecycle.guard(this);}
-    release_source(){if(this.disposed)return;renamed_markdown_leaves.delete(this.leaf);this.disposed=true;this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
+    release_source(){if(this.disposed)return;renamed_markdown_leaves.delete(this.leaf);this.disposed=true;this.image?.dispose();this.editor?.dispose();views.delete(this);editor_status.release(this.leaf);}
     onClose(){source_lifecycle.schedule_release(this);editor_status.schedule();}
   }
   const unregister_view = core.app.viewManager.registerView(SOURCE_FILE_VIEW_ID, leaf => new source_file_view(leaf));
@@ -427,10 +451,10 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(leaf&&file_key(leaf.state.path)===file_key(file_path)&&(!location.preview||!existing_leaves.has(leaf)||leaf.state.workspace_preview))set_preview(leaf,Boolean(location.preview));
       return;
     }
-    const uri = source_file_uri(file_path);
+    const uri = source_file_uri(file_path,Boolean(location.source && reading_image_mime(file_path)==='image/svg+xml'));
     const parent = group === "active" ? select_workspace_editor_group(core,uri) : undefined;
     let existing: graph_leaf | undefined;
-    core.app.workspace.eachLeaves(leaf => { if (leaf.parent===parent && is_source_file_uri(leaf.state.path) && file_key(real_path(leaf)) === file_key(file_path)) existing = leaf; });
+    core.app.workspace.eachLeaves(leaf => { if (leaf.parent===parent && is_svg_source_uri(leaf.state.path)===is_svg_source_uri(uri) && is_source_file_uri(leaf.state.path) && file_key(real_path(leaf)) === file_key(file_path)) existing = leaf; });
     if (existing && group === "active") { const view=existing.view as source_file_view;view.focus_requested=!location.preserve_focus;if(location.line!=null)view.target=location;core.app.workspace.activeLeaf = existing.parent.toggleTab(existing.state.path);view.reveal();if(!location.preview||existing.state.workspace_preview)set_preview(existing,Boolean(location.preview));return; }
     if (group !== "active") { group_locations.set(uri,location);core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]);set_preview(core.app.workspace.activeLeaf,Boolean(location.preview)); return; }
     if (!parent) throw new Error(workspace_text("files_no_available_editor_group_is_currently_available"));
@@ -458,7 +482,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       if(signal.aborted||!binding.active||epoch!==workspace_context_epoch())return;
       const batch:graph_leaf[]=[];
       for(const entry of entries.slice(offset,offset+20)){
-        const path=entry.source?source_file_uri(entry.path):entry.path;
+        const path=entry.source?source_file_uri(entry.path,entry.svg_source===true):entry.path;
         if(known.has(file_key(path)))continue;known.add(file_key(path));
         const leaf=core.app.workspace.createLeaf({type:entry.source?SOURCE_FILE_VIEW_ID:"core.markdown",state:{path,workspace_pinned:entry.pinned}});
         if(entry.source)(leaf.view as source_file_view).focus_requested=false;
@@ -501,6 +525,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     line_target(){const view=[...views].find(item=>!item.disposed&&item.leaf===core.app.workspace.activeLeaf);if(!view?.loaded||view.loading||!view.editor)return;return monaco_line_target(view.editor.focused_editor(),()=>!view.disposed&&view.leaf===core.app.workspace.activeLeaf);},
     capture() {
       const view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf);
+      if(view?.image && view.loaded && !view.loading)return {kind:"source",file_path:view.file_path,view_id:view.navigation_id,editor_state:{image:true},scroll_top:0,scroll_left:0};
       if (!view?.editor || view.loading || !view.loaded) return null;
       const editor = view.editor.focused_editor(), selection = editor.getSelection();
       return {kind: "source", file_path: view.file_path, view_id: view.navigation_id,
@@ -512,11 +537,12 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
       let view = [...views].find(item => !item.disposed && item.navigation_id === location.view_id && file_key(item.file_path) === file_key(location.file_path));
       if (view) core.app.workspace.activeLeaf = view.leaf.parent.toggleTab(view.leaf.state.path);
       else {
-        await open_file(location.file_path, {source: true, signal});
+        await open_file(location.file_path, {source: !(location.editor_state as {image?:boolean})?.image, signal});
         view = [...views].find(item => !item.disposed && item.leaf === core.app.workspace.activeLeaf && file_key(item.file_path) === file_key(location.file_path));
       }
       const started = Date.now();
       while (view && !view.disposed && (!view.loaded || view.loading) && !signal.aborted && Date.now() - started < 15000) await new Promise(resolve => setTimeout(resolve, 40));
+      if(!signal.aborted && view?.image && view.loaded && !view.disposed && core.app.workspace.activeLeaf===view.leaf)return true;
       if (signal.aborted || !view?.loaded || view.loading || view.disposed || !view.editor || core.app.workspace.activeLeaf !== view.leaf) return false;
       const editor = view.editor.focused_editor();
       if (location.editor_state) editor.restoreViewState(location.editor_state as import("monaco-editor/editor/editor.api").editor.ICodeEditorViewState);
@@ -609,7 +635,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
         const target = map(real_path(leaf)); if (!target) return;
         if (all_leaves.some(other => other !== leaf && !map(real_path(other)) && file_key(real_path(other)) === file_key(target))) throw new Error(workspace_text("files_the_target_name_already_has_an_open_document_tab_please_proc"));
         if (typeof (leaf.parent as unknown as {renameTab?: unknown}).renameTab !== "function") throw new Error(workspace_text("files_the_current_editor_group_does_not_support_updating_the_tab_p"));
-        tabs.push({leaf, target: is_source_file_uri(leaf.state.path) ? source_file_uri(target) : target});
+        tabs.push({leaf, target: is_source_file_uri(leaf.state.path) ? source_file_uri(target,is_svg_source_uri(leaf.state.path)) : target});
       });
       library?.pauseOnChange?.(); paused = true;
       // The native IPC is responsible for pausing file monitoring; do not use the directory:rename prefix match of the community core before a, to avoid abc being mistakenly modified.
@@ -670,7 +696,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     run_monaco_source_command(editor,command);
   };
   const source_editor_active=()=>Boolean(active_source_view()?.editor);
-  const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view()) || native_document_active();
+  const can_save_active = () => Boolean(document_port(core.app.workspace.activeLeaf)) || Boolean(active_source_view() && !active_source_view()?.image_mime) || native_document_active();
   const pending_native_saves=new Set<()=>void>();
   let native_open_pending=false;
   const release_save_active=core.app.workspace.on("active-leaf:change",()=>{
@@ -1261,7 +1287,7 @@ export function bind_workspace_files(core: graph_core): workspace_file_host {
     const current=()=>!signal.aborted&&binding.active&&core.app.workspace.activeLeaf===leaf&&file_key(runtime.File?.bundle?.filePath||'')===file_key(file_path)&&!runtime.File?.changeCounter?.isDocumentEdited();
     if(!current())return;
     await prepare_transfer(current,signal);if(!current())return;
-    await open_file(file_path,{source:true,reason:'restore',signal});
+    await open_file(file_path,{source:!reading_image_mime(file_path),reason:'restore',signal});
     const opened=core.app.workspace.activeLeaf,view=[...views].find(item=>item.leaf===opened);
     await view?.load_task;
     if(!view?.loaded||signal.aborted||!binding.active||core.app.workspace.activeLeaf!==opened||runtime.File?.changeCounter?.isDocumentEdited())return;

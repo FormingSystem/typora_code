@@ -1,5 +1,5 @@
 import {workspace_text} from "./workspace_i18n";
-export type workspace_session_file = {path:string;source:boolean;pinned:boolean};
+export type workspace_session_file = {path:string;source:boolean;pinned:boolean;svg_source?:boolean};
 export type workspace_session = {schema:1;root:string;files:workspace_session_file[];active:number};
 
 /** Each directory has an independent atomic record; only saves identity, not document content or competes with other configurations for writing. */

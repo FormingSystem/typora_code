@@ -10606,13 +10606,16 @@
       "level": "system",
       "purpose": "implementation",
       "requirements": [
-        "R034.12"
+        "R034.12",
+        "R031.8"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
         "enhancements/src/git_markdown_images.ts",
         "enhancements/src/git_graph_host.ts",
-        "enhancements/src/git_source_control.ts"
+        "enhancements/src/git_source_control.ts",
+        "enhancements/src/workspace_image_document.ts",
+        "enhancements/src/workspace_files.ts"
       ],
       "related_modules": [
         "git",
@@ -10624,7 +10627,8 @@
       "environment": "Windows Typora 1.14.15 private desktop",
       "preconditions": "专属临时仓库与独立宿主副本，运行私有桌面，不修改用户文档",
       "steps": [
-        "Open a real Git comparison with different SVG bytes in the commit, index and worktree. Open the image viewer, then compare SVG against Mermaid."
+        "Open a real Git comparison with different SVG bytes in the commit, index and worktree. Open the image viewer, then compare SVG against Mermaid.",
+        "Open standalone PNG and SVG files, compare image revisions, view additions and deletions, switch to SVG source and inspect a corrupt image."
       ],
       "expected": [
         "The decoded dimensions identify each revision and the fullscreen viewer shows its selected side."

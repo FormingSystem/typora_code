@@ -1,3 +1,4 @@
+import {create_image_document,type image_file_side} from './workspace_image_document';
 import {monaco_line_target} from './workspace_line_target';
 import {workspace_text} from "./workspace_i18n";
 import type {git_diff_source} from './git_diff_source';
@@ -55,7 +56,7 @@ export function create_graph_host(core: graph_core) {
   const editor_status=bind_workspace_editor_status(core);
   const file_icon_style=acquire_workspace_file_icons();
   const child_process = runtime.reqnode("child_process"); const crypto = runtime.reqnode("crypto");
-  type document_options = {source?:git_diff_source;range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void;
+  type document_options = {image_sides?:image_file_side[];source?:git_diff_source;range_action?:(action:"stage"|"revert",snapshot:diff_range_snapshot)=>Promise<void>;range_available?:()=>boolean;root?: string; key?: string; file?: string; dispose?: () => void; menu?: () => workspace_menu_entry[]; refresh?: () => void; adjacent?: (direction: number) => void;
     navigation?:{capture:()=>{scroll_top:number;scroll_left:number};restore:(state:{scroll_top:number;scroll_left:number})=>void;reopen:(parent?:graph_leaf['parent'])=>void}};
   const contents = new Map<string, {data?: diff_document; panel?: HTMLElement; options: document_options}>();
   const cache_path = path_api.join(runtime._options.userDataPath, "linux_note_enhancements", "git_graph", "avatars");
@@ -86,6 +87,7 @@ export function create_graph_host(core: graph_core) {
   class graph_document_view extends core.WorkspaceView {
     readonly navigation_id=++view_serial;
     containerEl = workspace_element("section", "git-graph-document"); icon = "fa-code-fork";
+    image?:ReturnType<typeof create_image_document>;
     editor?: git_diff_editor; document?: typeof contents extends Map<string, infer value> ? value : never;
     constructor(leaf: graph_leaf) { super(leaf); views.add(this); try { leaf.state.git_cwd ||= decodeURIComponent(leaf.state.path.split("/")[3]); } catch { /* Invalid URI is handled by the opened entry. */ } }
     // WorkspaceView.open/renameTab Use this upstream hook; custom file icons no longer start the base class delayed font icon writing.
@@ -111,6 +113,14 @@ export function create_graph_host(core: graph_core) {
       this.sync_tab();
       if (!payload) { this.containerEl.textContent = text("host.expired_view"); return; }
       if (payload === this.document) { this.editor?.editor.layout();this.sync_file_action();this.attach_toolbar();editor_status.refresh(); return; }
+      this.image?.dispose();this.image=undefined;
+      if(payload.options.image_sides){
+        if(this.editor){this.editor.dispose();this.editor=undefined;editor_status.release(this.leaf);}
+        this.document=payload;
+        this.image=create_image_document(payload.options.image_sides,true);
+        this.containerEl.replaceChildren(this.image.container);
+        return;
+      }
       if (this.editor && payload.data && this.document?.data) {
         try { this.editor.update(payload.data); this.document = payload;this.sync_file_action();this.attach_toolbar(); }
         catch (error) { this.editor.status.textContent = String(error); }
@@ -150,7 +160,7 @@ export function create_graph_host(core: graph_core) {
     onClose() {
       this.editor?.detach_toolbar();
       editor_status.schedule();
-      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) {views.delete(this);editor_status.release(this.leaf);this.editor?.dispose();} if (!payload_exists) {contents.get(this.leaf.state.path)?.options.dispose?.();contents.delete(this.leaf.state.path);} }, 0);
+      setTimeout(() => { let payload_exists = false; let view_exists = false; core.app.workspace.eachLeaves(leaf => { if (leaf.state.path === this.leaf.state.path) payload_exists = true; if (leaf === this.leaf) view_exists = true; }); if (!view_exists) {views.delete(this);editor_status.release(this.leaf);this.image?.dispose();this.editor?.dispose();} if (!payload_exists) {contents.get(this.leaf.state.path)?.options.dispose?.();contents.delete(this.leaf.state.path);} }, 0);
     }
   }
   const unregister_view=core.app.viewManager.registerView("linux_note.git_document", leaf => new graph_document_view(leaf));
@@ -163,7 +173,7 @@ export function create_graph_host(core: graph_core) {
     dispose(){
       if(disposed)return;disposed=true;unregister_navigation();if(typeof unregister_compare==="function")unregister_compare();file_icon_style.remove();terminal_workspace.dispose();
       for(const runner of runners)runner.cancel();runners.clear();
-      for(const view of views){view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
+      for(const view of views){view.image?.dispose();view.editor?.dispose();editor_status.release(view.leaf);view.leaf.parent.removeTab?.(view.leaf.state.path);view.containerEl.remove();}
       views.clear();for(const payload of contents.values())payload.options.dispose?.();contents.clear();output_lines.clear();if(typeof unregister_view==="function")unregister_view();
     },
     ignore_file(root: string, file: string, settings: graph_settings) { if(get_workspace_files()?.can_write(path_api.join(root,".gitignore"))===false)throw new Error(text("action.error.unsaved_document"));return append_git_ignore({fs, path_api}, this.runner(settings).run, root, file); },
@@ -243,31 +253,31 @@ export function create_graph_host(core: graph_core) {
     reveal_explorer(root:string,file:string){core.app.commands.run("linux_note:reveal_in_explorer",[ensure_file_path(root,file),root]);},
     reveal_file(root: string, file: string) { runtime.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file)); },
     revision_images(root:string, revision:string, file:string, settings:graph_settings):git_image_reader {
+      return (href,signal)=>this.revision_image(root,revision,relative_target(root,file,href),settings,signal);
+    },
+    async revision_image(root:string,revision:string,target:string,settings:graph_settings,signal:AbortSignal):Promise<Blob> {
       const resources = git_workspace_resources(path_api);
-      return async (href, signal) => {
+      signal.throwIfAborted();
+      resources.assert(root);
+      const mime = reading_image_mime(target);
+      if (!mime || revision === EMPTY) throw Error(text("host.historical_image_unsupported"));
+      let bytes:Uint8Array;
+      if (revision === WORKTREE) {
+        const [real_root, real_file] = await Promise.all([fs.promises.realpath(root), fs.promises.realpath(ensure_file_path(root, target))]);
+        const relative = path_api.relative(real_root, real_file);
+        ensure_file_path(real_root, relative);
+        if (relative.split(path_api.sep).some((part:string)=>part.toLowerCase()==='.git') || !(await fs.promises.stat(real_file)).isFile()) throw Error(text("host.outside_repository"));
         signal.throwIfAborted();
-        resources.assert(root);
-        const target = relative_target(root, file, href);
-        const mime = reading_image_mime(target);
-        if (!mime || revision === EMPTY) throw Error(text("host.historical_image_unsupported"));
-        let bytes:Uint8Array;
-        if (revision === WORKTREE) {
-          const [real_root, real_file] = await Promise.all([fs.promises.realpath(root), fs.promises.realpath(ensure_file_path(root, target))]);
-          const relative = path_api.relative(real_root, real_file);
-          ensure_file_path(real_root, relative);
-          if (relative.split(path_api.sep).some((part:string)=>part.toLowerCase()==='.git') || !(await fs.promises.stat(real_file)).isFile()) throw Error(text("host.outside_repository"));
-          signal.throwIfAborted();
-          bytes = await fs.promises.readFile(real_file,{signal});
-        } else {
-          const runner = this.runner(settings);
-          signal.addEventListener('abort', runner.cancel, {once:true});
-          try { bytes = await runner.run_bytes(root, ['show', revision_object(revision, target)]); }
-          finally { signal.removeEventListener('abort', runner.cancel); runner.dispose(); }
-        }
-        signal.throwIfAborted();
-        resources.assert(root);
-        return new Blob([new Uint8Array(bytes)], {type:mime});
-      };
+        bytes = await fs.promises.readFile(real_file,{signal});
+      } else {
+        const runner = this.runner(settings);
+        signal.addEventListener('abort', runner.cancel, {once:true});
+        try { bytes = await runner.run_bytes(root, ['show', revision_object(revision, target)]); }
+        finally { signal.removeEventListener('abort', runner.cancel); runner.dispose(); }
+      }
+      signal.throwIfAborted();
+      resources.assert(root);
+      return new Blob([new Uint8Array(bytes)], {type:mime});
     },
     async revision_text(root: string, revision: string, file: string, settings: graph_settings): Promise<string> {
       if (revision === EMPTY) return "";
@@ -297,11 +307,16 @@ export function create_graph_host(core: graph_core) {
     open_revision_document(root: string, revision: string, file: string, content: string, settings: graph_settings, fragment = "", previous_parent?:graph_leaf['parent']) {
       const group = settings.new_tab_group; let reader_disposed = false;
       const title = `${revision.slice(0, 8)} · ${file}`, label = text("scm.readonly_label", {file, revision: revision.slice(0, 8)});
+      if (reading_image_mime(file)) {
+        this.open_document({title,file,left:""},group,{root,key:JSON.stringify(["revision",revision,file]),
+          image_sides:[{label,read:signal=>this.revision_image(root,revision,file,settings,signal)}]},previous_parent);
+        return;
+      }
       if (!is_markdown_file(file)) { this.open_document({title, file, left: content, left_label: label}, group, {root, key: JSON.stringify(["revision", revision, file])}); return; }
       const reader = create_git_revision_reader(content, label, async href => {
         if (/^https?:\/\//iu.test(href)) { await this.open_url(href); return; }
         const target = relative_target(root, file, href);
-        const value = await this.revision_text(root, revision, target, settings);
+        const value = reading_image_mime(target) ? "" : await this.revision_text(root, revision, target, settings);
         if (!disposed && !reader_disposed) this.open_revision_document(root, revision, target, value, settings, href.includes('#') ? href.slice(href.indexOf('#')) : '');
       }, this.revision_images(root, revision, file, settings),explicit=>{if(core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container))notify_navigation_selection(explicit);});
       this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {file, dispose: () => {reader_disposed = true; reader.dispose();},
@@ -356,7 +371,7 @@ export function create_graph_host(core: graph_core) {
     capture(){
       const view=core.app.workspace.activeLeaf?.view;
       if(!(view instanceof graph_document_view)||!view.document)return null;
-      const position=view.editor?.capture_navigation_state()??view.document.options.navigation?.capture();
+      const position=view.editor?.capture_navigation_state()??view.document.options.navigation?.capture()??(view.image?{scroll_top:0,scroll_left:0}:undefined);
       if(!position)return null;
       const cursor='cursor' in position&&position.cursor?{...position.cursor,rendered_markdown:false}:{rendered_markdown:'rendered_markdown' in position?position.rendered_markdown:true};
       const state:navigation_state={data:view.document.data,options:view.document.data?view.document.options:undefined,reopen:view.document.options.navigation?.reopen,parent:view.leaf.parent,position};
@@ -377,6 +392,7 @@ export function create_graph_host(core: graph_core) {
       }
       if(disposed||signal.aborted||!target)return false;
       core.app.workspace.activeLeaf=target.leaf.parent.toggleTab(target.leaf.state.path);target.onOpen();
+      if(target.image)return true;
       if(target.editor&&'view_state' in state.position)return target.editor.restore_navigation_state(state.position,signal);
       if(target.document?.options.navigation){target.document.options.navigation.restore(state.position);return true;}
       return false;

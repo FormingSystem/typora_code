@@ -32,16 +32,18 @@ export function is_source_file_uri(target: string): boolean {
   return target.startsWith(SOURCE_FILE_URI_PREFIX);
 }
 
+export function is_svg_source_uri(uri:string):boolean { return uri.startsWith(SOURCE_FILE_URI_PREFIX+'text/'); }
+
 /** Source code tags only put absolute file paths into URI's one encoding segment; spaces, #, %, and brackets in the filename do not change URI structure. */
-export function source_file_uri(file_path: string): string {
+export function source_file_uri(file_path: string, svg_source=false): string {
   if (!is_absolute_file(file_path)) throw new Error(workspace_text("file_uri_source_code_uri_requires_an_absolute_file_path"));
-  return SOURCE_FILE_URI_PREFIX + encodeURIComponent(file_path);
+  return SOURCE_FILE_URI_PREFIX + (svg_source ? 'text/' : '') + encodeURIComponent(file_path);
 }
 
 export function source_file_path(target: string, path_api?: path_identity_api): string | undefined {
   if (!is_source_file_uri(target)) return;
   try {
-    const file_path = decodeURIComponent(target.slice(SOURCE_FILE_URI_PREFIX.length));
+    const file_path = decodeURIComponent(target.slice(SOURCE_FILE_URI_PREFIX.length + (is_svg_source_uri(target) ? 5 : 0)));
     return file_path && is_absolute_file(file_path) && (!path_api || is_platform_absolute_file(file_path, path_api)) ? file_path : undefined;
   } catch {
     return;

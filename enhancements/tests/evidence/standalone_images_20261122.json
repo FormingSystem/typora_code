@@ -1,0 +1,51 @@
+{
+  "requirement": "R031.8",
+  "date": "2026-11-22",
+  "version": "2026.11.22.2",
+  "native": {
+    "host": "1.14.15",
+    "run": "6a67b31f3c9945aeb86c63b85a4eaa4b",
+    "checks": [
+      "Opened the real Git panel",
+      "INDEX and WORKTREE decoded their own SVG bytes",
+      "Image fits its own column",
+      "Shared fullscreen viewer opens the index image",
+      "36763815704b13ab60b6ccc93d4b6630f54d6d82 and INDEX decoded their own SVG bytes",
+      "Index SVG and worktree Mermaid render together",
+      "Standalone Git image diff shows the two correct versions",
+      "Both images fit the actual editor viewport",
+      "Captured the standalone side-by-side image view",
+      "A deletion displays only the original version",
+      "Staged addition opens the index, independently of the worktree",
+      "An untracked PNG opens in a document tab",
+      "Standalone PNG opens the shared fullscreen viewer",
+      "Explorer preview decodes SVG",
+      "Explicit SVG source still opens its original text",
+      "Opening the image after editing source returns to its picture",
+      "A broken local image retains its error and system-open action"
+    ],
+    "capture": "stage_standalone_git_images_139104.png"
+  },
+  "tests": [
+    "TC-git-images-native-001",
+    "Core check and four targeted Electron UI suites passed. UI covered the revision reader, animated images, Explorer history, and source tab lifecycle."
+  ],
+  "uninstall": {
+    "isolated_cycle": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/storage/backups preserved",
+    "failure_and_cancel_assertions": 65,
+    "real_environment": "Read-only preflight before and after installation"
+  },
+  "installation": {
+    "assets": [
+      216,
+      24
+    ],
+    "theme_files": 5,
+    "protected_files": 9,
+    "manifest_sha256": "fb34ece73d82d7f527a34a704b03ce65c10e8fe014ca55860f835457ed20857f"
+  },
+  "limits": [
+    "Existing user windows require a manual restart.",
+    "Native scenarios used local Git and isolated Windows Typora. Remote SSH image reading, other platforms and physical desktop gestures were not exercised."
+  ]
+}

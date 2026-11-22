@@ -2283,6 +2283,11 @@ footer.ty-footer .workspace-footer-icon-control.show:not(.hide):not([hidden]) {d
   border-color:var(--vscode-editorHoverWidget-border,#2a2b2c);
 }
 
+/* workspace_image_document.css */
+.workspace-image-document { display:flex; width:100%; height:100%; min-height:0; min-width:0; overflow:hidden; }
+.workspace-image-pane { display:flex; flex:1 1 0; flex-direction:column; min-width:0; min-height:0; }
+.workspace-image-pane + .workspace-image-pane { border-inline-start:1px solid var(--workspace-border); }
+
 /* workspace_inline_layout.css */
 /* Common content line: natural font line box, not based on the content line height, top or single-side padding compensation. */
 :is(footer.ty-footer .workspace-footer-group,footer.ty-footer .workspace-footer-control,.workspace-tab-strip .typ-tab) {
@@ -2400,8 +2405,6 @@ body [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:
 .workspace-lookup-preview-message{padding:10px;font-size:12px}
 .workspace-link-preview,.workspace-link-preview-content{display:flex;flex-direction:column;flex:1;min-width:0;min-height:0;overflow:hidden;height:100%}
 .workspace-link-preview[hidden]{display:none}
-.workspace-preview-image{display:flex;flex:1;min-width:0;min-height:0;overflow:hidden}
-.workspace-preview-image>img{display:block;margin:auto;max-width:100%;max-height:100%;object-fit:contain}
 .workspace-link-preview-title{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .workspace-link-preview [role=toolbar]{flex:none;display:flex;flex-wrap:nowrap;align-items:center;gap:4px;height:26px;min-width:0;padding:0 6px;font:13px var(--linux-note-ui-font-family,"Segoe UI",sans-serif)}
 .workspace-link-preview [role=toolbar]>.git-icon-button{display:flex;align-items:center;justify-content:center;flex:none;width:24px;height:24px;padding:4px;border:0;background:transparent;color:inherit}
@@ -2567,6 +2570,10 @@ html[data-linux-note-workspace-outline="ready"] #typora-sidebar[data-document-ou
   background:transparent;color:var(--control-text-color,#606060);cursor:pointer;
 }
 .typ-ribbon > .group.bottom > .workspace-preferences-trigger svg {width:24px;height:24px;flex:none;}
+
+/* workspace_preview_image.css */
+.workspace-preview-image{display:flex;flex:1;min-width:0;min-height:0;overflow:hidden}
+.workspace-preview-image>img{display:block;margin:auto;max-width:100%;max-height:100%;object-fit:contain}
 
 /* workspace_preview_resize.css */
 /* VS Code 1.137.0 sash.css: 4px boundary, orthogonal corners are twice as large. */
