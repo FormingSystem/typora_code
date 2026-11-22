@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026112203,
+      "version": "2026.11.22.3",
+      "date": "2026-11-22",
+      "notes": [
+        "图片标签和 Git 图片对比支持滚轮缩放、拖动平移、原始大小和适应视口，左右两侧可独立查看细节。"
+      ],
+      "notes_en": [
+        "Zoom with the wheel and drag to pan in image tabs or either side of a Git image comparison. Use actual size or fit to return to an overview."
+      ]
+    },
+    {
       "sequence": 2026112202,
       "version": "2026.11.22.2",
       "date": "2026-11-22",

@@ -23,7 +23,7 @@ export function create_image_document(sides:readonly image_file_side[], show_lab
     try {
       const blob = await side.read(controller.signal);
       controller.signal.throwIfAborted();
-      preview = create_preview_image(blob,blob.type,side.label);
+      preview = create_preview_image(blob,blob.type,side.label,true);
       previews.add(preview);
       cell.append(preview.container);
       await preview.ready;

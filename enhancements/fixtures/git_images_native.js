@@ -51,6 +51,26 @@
     await panel.workbench.open_file({path:asset,status:'M'},'INDEX','WORKTREE');
     await wait('Standalone Git image diff shows the two correct versions',()=>widths()==='210,290');
     await wait('Both images fit the actual editor viewport',()=>standalone().every(image=>image.clientWidth>0&&image.clientWidth<=image.closest('.workspace-image-pane').clientWidth));
+    const [index_image,worktree_image]=standalone();
+    const surface=index_image.closest('.workspace-preview-image');
+    const toolbar=surface.querySelector('.reading-media-toolbar');
+    const action=name=>toolbar.querySelector('[data-action="'+name+'"]').click();
+    const rect=image=>image.getBoundingClientRect();
+    const near=(a,b)=>Math.abs(a-b)<1;
+    action('zoom-in');
+    await wait('Zoom button enlarges only the index image',()=>near(rect(index_image).width,262.5)&&near(rect(worktree_image).width,290));
+    const before=rect(index_image), x=Math.round(before.left+before.width/4), y=Math.round(before.top+before.height/2);
+    index_image.dispatchEvent(new WheelEvent('wheel',{bubbles:true,cancelable:true,deltaY:-160,clientX:x,clientY:y}));
+    await wait('Wheel zoom keeps the detail under the pointer',()=>{
+      const after=rect(index_image);
+      return after.width>before.width && near(after.left+(x-before.left)*after.width/before.width,x) && near(rect(worktree_image).width,290);
+    });
+    action('reset');
+    await wait('Actual size restores source pixels',()=>near(rect(index_image).width,210));
+    action('zoom-out');
+    await wait('Zoom out renders a smaller image',()=>near(rect(index_image).width,168));
+    action('fit');
+    await wait('Fit restores the pane overview',()=>near(rect(index_image).width,210));
     fs.writeFileSync(path.join(base,'capture_request.json'),JSON.stringify({stage:'standalone_git_images'}));
     await wait('Captured the standalone side-by-side image view',()=>{
       try{return JSON.parse(fs.readFileSync(path.join(base,'capture_done.json'),'utf8').replace(/^\uFEFF/,'')).stage==='standalone_git_images';}catch{return false;}

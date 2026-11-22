@@ -8,8 +8,8 @@ export type workspace_zoom_runtime = { ClientCommand?: Record<string, (...args: 
 
 // Menus, command panels, and shortcuts share identity; the ratio and persistence only belong to the host.
 export const WORKSPACE_ZOOM_ACTIONS = [
-  {id: "linux_note:zoom_in", label: workspace_text("reading_media_viewer_zoom_out"), native_command: "zoomIn", shortcut: "Ctrl+="},
-  {id: "linux_note:zoom_out", label: workspace_text("reading_media_viewer_zoom_in"), native_command: "zoomOut", shortcut: "Ctrl+-"},
+  {id: "linux_note:zoom_in", label: workspace_text("reading_media_viewer_zoom_in"), native_command: "zoomIn", shortcut: "Ctrl+="},
+  {id: "linux_note:zoom_out", label: workspace_text("reading_media_viewer_zoom_out"), native_command: "zoomOut", shortcut: "Ctrl+-"},
   {id: "linux_note:zoom_reset", label: workspace_text("zoom_actual_size"), native_command: "resetZoom", shortcut: undefined},
 ] as const;
 

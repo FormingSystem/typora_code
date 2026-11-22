@@ -1304,11 +1304,11 @@
   },
   "reading_media_viewer_zoom_in": {
     "en": "Zoom in",
-    "zh_cn": "缩小"
+    "zh_cn": "放大"
   },
   "reading_media_viewer_zoom_out": {
     "en": "Zoom out",
-    "zh_cn": "放大"
+    "zh_cn": "缩小"
   },
   "reading_media_viewer_fit_width": {
     "en": "Fit width",

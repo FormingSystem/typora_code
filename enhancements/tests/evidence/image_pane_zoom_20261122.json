@@ -1,0 +1,48 @@
+{
+  "requirement": "R031.8",
+  "version": "2026.11.22.3",
+  "manifest_sha256": "ebf158345469d14618d21624e4e4125be3d3468ff3939d640b103e2803e0df67",
+  "native": {
+    "host": "1.14.15",
+    "case": "4215490e82fc491791a5c1290fabb2d0",
+    "checks": [
+      "Opened the real Git panel",
+      "INDEX and WORKTREE decoded their own SVG bytes",
+      "Image fits its own column",
+      "Shared fullscreen viewer opens the index image",
+      "200a7b3359763c77c857da7d8f0f14ffe76cda1b and INDEX decoded their own SVG bytes",
+      "Index SVG and worktree Mermaid render together",
+      "Standalone Git image diff shows the two correct versions",
+      "Both images fit the actual editor viewport",
+      "Zoom button enlarges only the index image",
+      "Wheel zoom keeps the detail under the pointer",
+      "Actual size restores source pixels",
+      "Zoom out renders a smaller image",
+      "Fit restores the pane overview",
+      "Captured the standalone side-by-side image view",
+      "A deletion displays only the original version",
+      "Staged addition opens the index, independently of the worktree",
+      "An untracked PNG opens in a document tab",
+      "Standalone PNG opens the shared fullscreen viewer",
+      "Explorer preview decodes SVG",
+      "Explicit SVG source still opens its original text",
+      "Opening the image after editing source returns to its picture",
+      "A broken local image retains its error and system-open action"
+    ]
+  },
+  "ui": [
+    "Electron input events verified large-image fit, wheel zoom, dragging by 80 CSS pixels, independent panes, double-click to fullscreen and scale restoration on exit.",
+    "Existing animated image and fullscreen tests passed."
+  ],
+  "installation": {
+    "workspace_assets": 216,
+    "terminal_assets": 24,
+    "protected_files_checked": 9,
+    "isolated_lifecycle": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/storage/backups preserved",
+    "uninstall_assertions": 65,
+    "user_installation": "Local install and public check passed. Uninstall preflight only on the user installation."
+  },
+  "limits": [
+    "Tested Windows with isolated native and Electron windows. No physical mouse or touchpad testing. Existing user windows need a manual restart."
+  ]
+}

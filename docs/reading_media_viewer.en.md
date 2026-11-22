@@ -171,3 +171,7 @@ Keep the existing 340px panel limit, 24px controls and 4px spacing, wrapping and
 ## R031.8 Standalone images
 
 Explorer, file open, and untracked images open a read-only image in a document tab. Explicit SVG source editing keeps the text editor. Git comparisons resolve the old and new names against their own commit, index or worktree. Added and deleted files show the existing side. The preview uses the shared image format table, fit-to-viewport layout and fullscreen viewer. Each view cancels pending reads and releases object URLs on replacement or disposal. Verify same-name images with different dimensions, additions, deletions, corrupt images and source reopening in an isolated host.
+
+In an image tab or either Git comparison pane, use the wheel to zoom around the pointer and drag with the left mouse button to pan. Each pane offers zoom controls, actual size and fit. Initial fit keeps small images at natural size. Pan and zoom use the fullscreen viewer geometry with independent state per pane, released on close. Double-click opens fullscreen and closing it returns to the previous pane view. Check rendered bounds, pointer anchoring, independent scales, panning and fit restoration.
+
+The scale and drag controls follow the existing fullscreen viewer. The pinned VS Code implementation in `extensions/media-preview/media/imagePreview.js` provides the reference for fit, manual scale and wheel gestures. Standalone image canvases accept both wheel and Ctrl+wheel.
