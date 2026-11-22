@@ -1,0 +1,54 @@
+{
+  "requirement": "R034.12",
+  "date": "2026-11-22",
+  "release": "2026.11.22.1",
+  "design": "docs/git_markdown_diff.md#r03412-版本图片",
+  "cases": [
+    "TC-git-019",
+    "TC-git-markdown-diff-001",
+    "TC-git-images-native-001"
+  ],
+  "native": {
+    "host": "Typora 1.14.15, Windows private desktop",
+    "run": "62165eb025e4441ab18b8c5c233c11e7",
+    "checks": [
+      "Opened the real Git panel",
+      "INDEX and WORKTREE decoded their own SVG bytes",
+      "Image fits its own column",
+      "Shared fullscreen viewer opens the index image",
+      "559b3608913a0c1e844ebbccc4ee464fdc9424da and INDEX decoded their own SVG bytes",
+      "Index SVG and worktree Mermaid render together"
+    ],
+    "capture": "stage_git_version_images_269064.png"
+  },
+  "ui": [
+    "Real Git blobs, document move between directories, UTF-8 percent-encoded SVG, Markdown and HTML image references, missing and external resources, PNG, stale-image cancellation, and long-document mode switches",
+    "Link preview and animated image suites passed"
+  ],
+  "source_checks": "Build and core suite passed. The final bundle, deployment assets, catalog and targeted UI/native tests were rechecked.",
+  "isolated_uninstall": {
+    "run": "bfaa0dbc8a7c48ba831d160d90f8d1e5",
+    "scope": "Public install/check/restore-uninstall/reinstall/check/detach-uninstall/reinstall/check; document/settings/storage/backups preserved",
+    "failure_and_cancel_assertions": 65
+  },
+  "installation": {
+    "version": "2026.11.22.1",
+    "assets": [
+      216,
+      24
+    ],
+    "themes": 5,
+    "protected": 9,
+    "manifest": "d3b50a861ece5a6538ea790219c82764f6049fee00dc2558a85ad1539383bffc"
+  },
+  "public_install_check": "OK",
+  "user_uninstall": "Read-only detach preflight passed before and after installation.",
+  "test_notes": [
+    "An uninstall test overlapped the private Typora session and detected its process. Repeated after private host exit, 65 assertions passed.",
+    "The cancellation fixture initially set up its request while the diff was showing source. Re-enabled rendered mode and passed on the same final assets."
+  ],
+  "limits": [
+    "The original user window was retained. Native visual validation used an isolated repository and host.",
+    "Physical desktop gestures, SSH transport, and other operating systems were not exercised in this run."
+  ]
+}

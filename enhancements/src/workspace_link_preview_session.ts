@@ -1,7 +1,8 @@
 import {read_search_preview_context,observe_search_preview_context} from "./workspace_search_preview_context";
 import {workspace_text} from "./workspace_i18n";
 import {create_preview_web} from './workspace_preview_web';
-import {create_preview_image,preview_image_mime} from './workspace_preview_image';
+import {reading_image_mime} from './reading_image_mime';
+import {create_preview_image} from './workspace_preview_image';
 import {create_preview_find} from './workspace_preview_find';
 import type {workspace_file_host} from "./workspace_files";
 import {create_lookup_preview} from "./workspace_lookup_preview";
@@ -96,9 +97,9 @@ export function create_link_preview_session(files:workspace_file_host,options:{c
           const entries=await files.fs.promises.readdir(resolved.path,{withFileTypes:true});if(disposed||version!==generation){stage.remove();return false;}
           if(!restore){const index=next_directories.findIndex(item=>item.path===resolved.path);if(index>=0){directory_position=next_directories[index].position;next_directories=next_directories.slice(0,index);}}
           next_directory=create_preview_directory(files,resolved.path,entries,path=>void navigate(path_request(path)));pending_directory=next_directory;stage.append(next_directory.container);
-        }else if(preview_image_mime(resolved.path)){
+        }else if(reading_image_mime(resolved.path)){
           const bytes=await files.fs.promises.readFile(resolved.path);if(disposed||version!==generation){stage.remove();return false;}
-          next_image=create_preview_image(bytes,preview_image_mime(resolved.path)!,files.path_api.basename(resolved.path));pending_image=next_image;stage.append(next_image.container);await next_image.ready;
+          next_image=create_preview_image(bytes,reading_image_mime(resolved.path)!,files.path_api.basename(resolved.path));pending_image=next_image;stage.append(next_image.container);await next_image.ready;
         }else{
         next=create_lookup_preview(files,undefined,{navigate:href=>void follow(href),search_anchor:false,find_changed:()=>find.refresh()});pending_reader=next;stage.append(next.container);
         const ok=await next.show({file_path:resolved.path,relative_path:files.path_api.basename(resolved.path),matches:[]},{id:"link",start:0,end:0,line:1,column:1,end_line:1,end_column:1,text:"",preview:"",preview_ranges:[]},resolved.hash,true);

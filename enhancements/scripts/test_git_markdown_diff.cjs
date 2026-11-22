@@ -50,6 +50,12 @@ app.whenReady().then(async()=>{
   await win.setContentSize(420,700);await pause(100);await check('shadow.querySelector(".markdown-diff-row").children[1].getBoundingClientRect().left>shadow.querySelector(".markdown-diff-row").children[0].getBoundingClientRect().left','窄视口保持左右比较');
   await win.webContents.setZoomFactor(1.25);await pause(100);await check('preview.markdown_preview.scroll.clientHeight>100','窗口放大后比较仍有独立滚动区域');
   await run('preview.set_markdown_mode(false)');await check('!preview.body.hidden&&preview.markdown_preview.container.hidden&&preview.editor.getModel().original.getValue()===left_text','可切回源码差异');
+  await run('window.image_requests=[];window.pending_image=(href,signal)=>new Promise(resolve=>image_requests.push({signal,resolve}));preview.update({...preview.data,left:"![old](same.svg)",right:"",images:{left:pending_image,right:pending_image}});void preview.set_markdown_mode(true)');
+  await wait('image_requests.length>0');
+  await run('preview.update({...preview.data,left:"Current document",right:"Current document"});void 0');
+  await wait('image_requests.every(task=>task.signal.aborted)&&shadow.textContent.includes("Current document")');
+  await run('image_requests.forEach(task=>task.resolve(new Blob(["old"],{type:"image/svg+xml"})));void 0');await pause(50);
+  await check('!shadow.querySelector("img")','A late image read cannot replace refreshed content');
   await run('preview.dispose();window.preview=new qa.git_diff_editor({title:"code.ts",file:"code.ts",left:"a",right:"b"});document.body.append(preview.container)');await check('!preview.markdown_preview&&!preview.body.hidden','非Markdown保持源码比较');
   for(const [before,after,label] of [['','# 新建\n\n内容','纯新增'],['# 删除\n\n内容','','纯删除'],['# 同一\n\n重复\n\n重复\n','# 同一\n\n重复\n\n重复\n','不变'],['[链接][x]\n\n[x]: https://old.invalid\n','[链接][x]\n\n[x]: https://new.invalid\n','引用链接变更'],['<script>window.hacked=true</script>\n','<img src=x onerror="window.hacked=true">\n','不执行历史HTML']]){
     await run(`preview.dispose();window.preview=new qa.git_diff_editor({title:'case.md',file:'case.md',left:${JSON.stringify(before)},right:${JSON.stringify(after)}});document.body.append(preview.container);window.shadow=preview.markdown_preview.shadow;`);await wait('preview.markdown_preview.container.dataset.ready==="true"');

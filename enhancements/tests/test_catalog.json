@@ -760,14 +760,16 @@
         "R045",
         "R034.3",
         "R067.1",
-        "R067.5"
+        "R067.5",
+        "R034.12"
       ],
       "design": "docs/git_scm_actions.md",
       "implementation": [
         "enhancements/src/git_graph_host.ts",
         "enhancements/src/git_source_control.ts",
         "enhancements/src/reading_navigation_ports.ts",
-        "enhancements/src/workspace_markdown_theme.ts"
+        "enhancements/src/workspace_markdown_theme.ts",
+        "enhancements/src/git_markdown_images.ts"
       ],
       "related_modules": [
         "scm",
@@ -7115,7 +7117,8 @@
         "R034.6",
         "R034.7",
         "R034.9",
-        "R075"
+        "R075",
+        "R034.12"
       ],
       "design": "docs/git_markdown_diff.md",
       "implementation": [
@@ -7125,7 +7128,8 @@
         "enhancements/src/git_markdown_overview.ts",
         "enhancements/src/git_graph_host.ts",
         "enhancements/src/reading_navigation_ports.ts",
-        "enhancements/src/git_markdown_inline.ts"
+        "enhancements/src/git_markdown_inline.ts",
+        "enhancements/src/git_markdown_images.ts"
       ],
       "related_modules": [
         "scm",
@@ -10595,6 +10599,41 @@
         "The first glyph is covered by selection; unclassed measurement probes retain native padding and line height; editing and saving preserve bytes."
       ],
       "timeout_ms": 180000
+    },
+    {
+      "id": "TC-git-images-native-001",
+      "domain": "git",
+      "level": "system",
+      "purpose": "implementation",
+      "requirements": [
+        "R034.12"
+      ],
+      "design": "docs/git_markdown_diff.md",
+      "implementation": [
+        "enhancements/src/git_markdown_images.ts",
+        "enhancements/src/git_graph_host.ts",
+        "enhancements/src/git_source_control.ts"
+      ],
+      "related_modules": [
+        "git",
+        "workspace",
+        "settings",
+        "reading"
+      ],
+      "script": "enhancements/scripts/test_stability_native.ps1",
+      "environment": "Windows Typora 1.14.15 private desktop",
+      "preconditions": "专属临时仓库与独立宿主副本，运行私有桌面，不修改用户文档",
+      "steps": [
+        "Open a real Git comparison with different SVG bytes in the commit, index and worktree. Open the image viewer, then compare SVG against Mermaid."
+      ],
+      "expected": [
+        "The decoded dimensions identify each revision and the fullscreen viewer shows its selected side."
+      ],
+      "timeout_ms": 240000,
+      "required_executables": [
+        "git"
+      ],
+      "fixture": "enhancements/fixtures/git_images_native.js"
     }
   ]
 }

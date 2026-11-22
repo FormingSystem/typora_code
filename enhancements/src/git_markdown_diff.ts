@@ -4,7 +4,7 @@ import {workspace_text} from "./workspace_i18n";
 import {bind_reading_font_zoom} from './reading_font_zoom';
 import {refine_markdown_change} from './git_markdown_semantics';
 import {type TokensList} from 'marked';
-import DOMPurify from 'dompurify';
+import {bind_git_markdown_images,sanitize_git_markdown,type git_image_reader} from './git_markdown_images';
 import {markdown_theme_rules,observe_markdown_theme} from './workspace_markdown_theme';
 import {create_preview_diagrams,highlight_preview_code} from './workspace_markdown_preview_render';
 import {git_yield} from './git_status_snapshot';
@@ -22,7 +22,6 @@ async function blocks(source:string,current:()=>boolean):Promise<markdown_block[
   const tokens=marked.lexer(text.slice(front.length),{gfm:true});
   const result:markdown_block[]=[];let offset=0,line=1;
   if(front)tokens.unshift({type:'code',raw:front,text:front,lang:'yaml'});
-  const renderer=new marked.Renderer();renderer.image=token=>`<span class="markdown-diff-attachment">${escape(token.text||workspace_text("git_markdown_diff_image"))} [${escape(token.href)}]</span>`;
   for(const token of tokens){
     if(!current())return [];
     const found=text.indexOf(token.raw,offset),start=found<0?offset:found;
@@ -31,7 +30,7 @@ async function blocks(source:string,current:()=>boolean):Promise<markdown_block[
     line+=gap.split('\n').length-1;
     const end=line+token.raw.replace(/\n+$/u,'').split('\n').length-1;
     const single=Object.assign([token],{links:tokens.links}) as TokensList;
-    let html=DOMPurify.sanitize(marked.parser(single,{gfm:true,renderer}),{FORBID_TAGS:['style','iframe','object','embed','form','img','audio','video','source','svg','math'],FORBID_ATTR:['style','id','name','contenteditable','autofocus'],ALLOW_DATA_ATTR:false});
+    let html=sanitize_git_markdown(marked.parser(single,{gfm:true}),'diff');
     if(!html.trim()&&token.raw.trim())html='<pre><code>'+escape(token.raw)+'</code></pre>';
     if(token.raw.trim())result.push({raw:token.raw,html,start:line,end});
     line+=token.raw.split('\n').length-1;offset=start+token.raw.length;
@@ -67,6 +66,7 @@ export function create_git_markdown_diff(){
   const scroll=document.createElement('div');scroll.className='git-markdown-diff-scroll';container.append(scroll);
   const shadow=scroll.attachShadow({mode:'open'}),style=document.createElement('style'),reader=document.createElement('article');
   scroll.tabIndex=0;reader.id='write';shadow.append(style,reader);
+  const images=bind_git_markdown_images(reader);
   const overview=create_markdown_overview(scroll,reader);container.append(overview.container);
   let last_side:'left'|'right'='right';
   for(const name of ['pointerdown','wheel'])shadow.addEventListener(name,event=>{const side=(event.target as Element)?.closest<HTMLElement>('[data-side]')?.dataset.side;if(side==='left'||side==='right')last_side=side;},{passive:true});
@@ -96,8 +96,9 @@ export function create_git_markdown_diff(){
   };
   return {container,shadow,scroll,navigate,theme,capture,restore,
     set_wrap(value:boolean){const anchor=capture();reader.dataset.wordWrap=String(value);if(anchor)restore(anchor);overview.refresh();},
-    async render(left:string,right:string,changes:readonly git_diff_line_change[],labels:[string,string]):Promise<void>{
+    async render(left:string,right:string,changes:readonly git_diff_line_change[],labels:[string,string],sources?:Record<'left'|'right',git_image_reader>):Promise<void>{
       const request=++generation,current=()=>!disposed&&generation===request;
+      images.clear();
       container.dataset.ready='false';
       const [old_blocks,new_blocks]=await Promise.all([blocks(left,current),blocks(right,current)]);if(!current())return;
       const pairs=pair_blocks(old_blocks,new_blocks,changes),fragment=document.createDocumentFragment(),targets:HTMLElement[]=[],code_tasks:HTMLElement[]=[];
@@ -117,11 +118,13 @@ export function create_git_markdown_diff(){
         }if(pair.changed)targets.push(...refine_markdown_change(row));fragment.append(row);if(i%24===23)await git_yield();
       }
       if(!current())return;const top=scroll.scrollTop;diagrams.clear();reader.replaceChildren(fragment);changed=targets;overview.set_rows(targets);active=-1;scroll.scrollTop=top;container.dataset.ready='true';font?.refresh();
+      const load_images = Promise.all([images.load(sources?.left,'left'),images.load(sources?.right,'right')]);
       await render_visual_math(reader,current);
       // Highlighting and charts are progressively completed after the current document is published; old versions cannot replace nodes.
       for(const code of code_tasks){if(!current())return;if(visual_code_format(visual_code_language(code)))await diagrams.render(code,container.clientWidth/2,false,current);else await highlight_preview_code(code);if(!current())return;await git_yield();}
+      await load_images;
     },
-    invalidate(){generation++;container.dataset.ready='false';overview.suspend();},
-    dispose(){disposed=true;generation++;observer();font?.dispose();overview.dispose();diagrams.dispose();container.remove();}
+    invalidate(){images.clear();generation++;container.dataset.ready='false';overview.suspend();},
+    dispose(){disposed=true;generation++;images.dispose();observer();font?.dispose();overview.dispose();diagrams.dispose();container.remove();}
   };
 }

@@ -1,3 +1,4 @@
+import {reading_image_mime} from './reading_image_mime';
 import {workspace_text} from "./workspace_i18n";
 import {remote_files_for} from './remote_workspace_files';
 
@@ -17,8 +18,7 @@ export function bind_remote_workspace_media(runtime:any=window){
           // Generate display-only objects URL from verified remote materialized resources, avoid failure caching of the host's local protocol.
           let url=urls.get(path);
           if(!url){const bytes=await runtime.reqnode('fs').promises.readFile(path);if(disposed||!image.isConnected)return;
-            const extension=runtime.reqnode('path').extname(path).slice(1).toLowerCase();
-            const mime=({png:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',gif:'image/gif',webp:'image/webp',svg:'image/svg+xml',bmp:'image/bmp',avif:'image/avif'} as Record<string,string>)[extension];
+            const mime=reading_image_mime(path);
             if(!mime)throw Error(workspace_text("remote_workspace_media_the_remote_image_format_is_not_supported"));url=URL.createObjectURL(new Blob([bytes],{type:mime}));urls.set(path,url);
           }
           attempted.set(image,url);image.src=url;

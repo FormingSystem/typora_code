@@ -1,12 +1,11 @@
-import {bind_reading_images} from "./reading_image_viewer";
+import {bind_git_markdown_images,sanitize_git_markdown,type git_image_reader} from "./git_markdown_images";
 import {marked} from "marked";
-import DOMPurify from "dompurify";
 import {workspace_element as el} from "./workspace_widgets";
 import {highlight_preview_code, create_preview_diagrams} from "./workspace_markdown_preview_render";
 import {markdown_theme_rules, observe_markdown_theme} from './workspace_markdown_theme';
 
 /** Historical document content is rendered in an isolated reading container, does not load Typora editable documents, and does not write to the workspace or temporary document content. */
-export function create_git_revision_reader(source: string, label: string, on_link: (href: string) => Promise<void>, on_image: (href: string) => Promise<string>, on_location?:(explicit:boolean)=>void) {
+export function create_git_revision_reader(source: string, label: string, on_link: (href: string) => Promise<void>, on_image: git_image_reader, on_location?:(explicit:boolean)=>void) {
   const container = el("section", "git-revision-reader"), heading = el("div", "git-revision-reader-heading", label);
   heading.title = label;
   const body = el("div", "git-revision-reader-body"), host = el("div", "git-revision-markdown");
@@ -14,7 +13,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
   const shadow = host.attachShadow({mode: "open"}), article = el("article"), style = el("style");
   article.id = "write"; article.contentEditable = "false"; shadow.append(style, article); body.append(host); container.append(heading, body);
   const diagrams = create_preview_diagrams(); let disposed = false;
-  const image_viewer=bind_reading_images(article);
+  const image_viewer=bind_git_markdown_images(article);
   const update_theme = () => {
     const theme = markdown_theme_rules() + `
       :host{display:block}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:18px 24px!important;inset:auto!important;overflow-wrap:anywhere;user-select:text}
@@ -26,13 +25,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
     for (const [name, value] of Object.entries(dark ? {keyword:"#569cd6",string:"#ce9178",comment:"#6a9955",number:"#b5cea8",type:"#4ec9b0"} : {keyword:"#0000ff",string:"#a31515",comment:"#008000",number:"#098658",type:"#267f99"})) article.style.setProperty('--revision-' + name, value);
   };
   const normalized = source.replace(/\r\n?/gu, "\n").replace(/^---\n[\s\S]*?\n---(?:\n|$)/u, "");
-  const fragment = DOMPurify.sanitize(marked.parse(normalized, {gfm: true, async: false}), {
-    FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "audio", "video", "source"],
-    FORBID_ATTR: ["style", "id", "name", "srcset"], ALLOW_DATA_ATTR: false, RETURN_DOM_FRAGMENT: true
-  });
-  // After clearing the original URL of images, they are mounted; historical images are only allowed to be asynchronously Git blob converted data URL.
-  const images = [...fragment.querySelectorAll<HTMLImageElement>('img')].map(image => {const href=image.getAttribute('src')||'';image.removeAttribute('src');return {image,href};});
-  article.append(fragment);
+  article.innerHTML = sanitize_git_markdown(marked.parse(normalized, {gfm:true, async:false}), 'revision');
   const anchors = new Map<string, HTMLElement>();
   for (const node of article.querySelectorAll<HTMLElement>('h1,h2,h3,h4,h5,h6')) {
     const slug = (node.textContent || '').trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, '').replace(/\s+/gu, '-');
@@ -53,7 +46,7 @@ export function create_git_revision_reader(source: string, label: string, on_lin
     void on_link(href).catch(error => {if (!disposed) heading.textContent = `${label} · ${error instanceof Error ? error.message : String(error)}`;});
   });
   update_theme();
-  for (const {image, href} of images) void on_image(href).then(url=>{if(!disposed)image.src=url;}).catch(error=>{if(!disposed){const fallback=el('span','',image.alt||href);fallback.title=error instanceof Error?error.message:String(error);image.replaceWith(fallback);}});
+  void image_viewer.load(on_image);
   const release_theme = observe_markdown_theme(update_theme);
   void (async () => {
     for (const code of article.querySelectorAll<HTMLElement>('pre > code')) {

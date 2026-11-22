@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026112201,
+      "version": "2026.11.22.1",
+      "date": "2026-11-22",
+      "notes": [
+        "Git 排版差异按两侧各自的版本显示 SVG 和位图。暂存区、工作区和历史提交可以对照不同图片，双击可放大。"
+      ],
+      "notes_en": [
+        "Rendered Git comparisons show SVG and raster images from each side, including the index, worktree and historical commits. Double-click an image to enlarge it."
+      ]
+    },
+    {
       "sequence": 2026111602,
       "version": "2026.11.16.2",
       "date": "2026-11-16",

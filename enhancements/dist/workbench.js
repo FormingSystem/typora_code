@@ -1436,8 +1436,8 @@ https://creativecommons.org/licenses/by/4.0/
   function getActualStartIndex(array, start) {
     return start < 0 ? Math.max(start + array.length, 0) : Math.min(start, array.length);
   }
-  function compareBy(selector, comparator) {
-    return (a, b2) => comparator(selector(a), selector(b2));
+  function compareBy(selector2, comparator) {
+    return (a, b2) => comparator(selector2(a), selector2(b2));
   }
   function tieBreakComparators(...comparators) {
     return (item1, item2) => {
@@ -37958,13 +37958,13 @@ https://creativecommons.org/licenses/by/4.0/
     }
     return _sharedStyleSheet;
   }
-  function createCSSRule(selector, cssText, style = getSharedStyleSheet()) {
+  function createCSSRule(selector2, cssText, style = getSharedStyleSheet()) {
     if (!style || !cssText) {
       return;
     }
-    style.sheet?.insertRule("".concat(selector, " {").concat(cssText, "}"), 0);
+    style.sheet?.insertRule("".concat(selector2, " {").concat(cssText, "}"), 0);
     for (const clonedGlobalStylesheet of globalStylesheets.get(style) ?? []) {
-      createCSSRule(selector, cssText, clonedGlobalStylesheet);
+      createCSSRule(selector2, cssText, clonedGlobalStylesheet);
     }
   }
   var globalStylesheets, _sharedStyleSheet;
@@ -66514,10 +66514,10 @@ https://creativecommons.org/licenses/by/4.0/
           if (!this._editContext) {
             return;
           }
-          const formats = e.getTextFormats();
+          const formats2 = e.getTextFormats();
           const editContextStartPosition = this._editContextStartPosition();
           const decorations = [];
-          formats.forEach((f) => {
+          formats2.forEach((f) => {
             const textModel = this._context.viewModel.model;
             const offsetOfEditContextText = textModel.getOffsetAt(editContextStartPosition);
             const startPositionOfDecoration = textModel.getPositionAt(offsetOfEditContextText + f.rangeStart);
@@ -100324,10 +100324,10 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/common/languageSelector.js
-  function score2(selector, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType) {
-    if (Array.isArray(selector)) {
+  function score2(selector2, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType) {
+    if (Array.isArray(selector2)) {
       let ret = 0;
-      for (const filter of selector) {
+      for (const filter of selector2) {
         const value = score2(filter, candidateUri, candidateLanguage, candidateIsSynchronized, candidateNotebookUri, candidateNotebookType);
         if (value === 10) {
           return value;
@@ -100337,19 +100337,19 @@ https://creativecommons.org/licenses/by/4.0/
         }
       }
       return ret;
-    } else if (typeof selector === "string") {
+    } else if (typeof selector2 === "string") {
       if (!candidateIsSynchronized) {
         return 0;
       }
-      if (selector === "*") {
+      if (selector2 === "*") {
         return 5;
-      } else if (selector === candidateLanguage) {
+      } else if (selector2 === candidateLanguage) {
         return 10;
       } else {
         return 0;
       }
-    } else if (selector) {
-      const { language: language44, pattern, scheme: scheme2, hasAccessToAllModels, notebookType } = selector;
+    } else if (selector2) {
+      const { language: language44, pattern, scheme: scheme2, hasAccessToAllModels, notebookType } = selector2;
       if (!candidateIsSynchronized && !hasAccessToAllModels) {
         return 0;
       }
@@ -100410,23 +100410,23 @@ https://creativecommons.org/licenses/by/4.0/
   });
 
   // node_modules/monaco-editor/esm/vs/editor/common/languageFeatureRegistry.js
-  function isExclusive(selector) {
-    if (typeof selector === "string") {
+  function isExclusive(selector2) {
+    if (typeof selector2 === "string") {
       return false;
-    } else if (Array.isArray(selector)) {
-      return selector.every(isExclusive);
+    } else if (Array.isArray(selector2)) {
+      return selector2.every(isExclusive);
     } else {
-      return !!selector.exclusive;
+      return !!selector2.exclusive;
     }
   }
-  function isBuiltinSelector(selector) {
-    if (typeof selector === "string") {
+  function isBuiltinSelector(selector2) {
+    if (typeof selector2 === "string") {
       return false;
     }
-    if (Array.isArray(selector)) {
-      return selector.some(isBuiltinSelector);
+    if (Array.isArray(selector2)) {
+      return selector2.some(isBuiltinSelector);
     }
-    return Boolean(selector.isBuiltin);
+    return Boolean(selector2.isBuiltin);
   }
   var MatchCandidate, LanguageFeatureRegistry;
   var init_languageFeatureRegistry = __esm({
@@ -100457,9 +100457,9 @@ https://creativecommons.org/licenses/by/4.0/
           this._entries = [];
           this._onDidChange = new Emitter();
         }
-        register(selector, provider) {
+        register(selector2, provider) {
           let entry = {
-            selector,
+            selector: selector2,
             provider,
             _score: -1,
             _time: this._clock++
@@ -124000,8 +124000,8 @@ https://creativecommons.org/licenses/by/4.0/
         }
       };
       LanguageSelection = class {
-        constructor(onDidChangeLanguages, selector) {
-          this._value = observableFromEvent(this, onDidChangeLanguages, () => selector());
+        constructor(onDidChangeLanguages, selector2) {
+          this._value = observableFromEvent(this, onDidChangeLanguages, () => selector2());
           this.onDidChange = Event2.fromObservable(this._value);
         }
         get languageId() {
@@ -142666,17 +142666,17 @@ https://creativecommons.org/licenses/by/4.0/
         static {
           this._selectors = new LinkedList();
         }
-        static setFormatterSelector(selector) {
-          const remove = _FormattingConflicts._selectors.unshift(selector);
+        static setFormatterSelector(selector2) {
+          const remove = _FormattingConflicts._selectors.unshift(selector2);
           return { dispose: remove };
         }
         static async select(formatter, document2, mode, kind) {
           if (formatter.length === 0) {
             return void 0;
           }
-          const selector = Iterable.first(_FormattingConflicts._selectors);
-          if (selector) {
-            return await selector(formatter, document2, mode, kind);
+          const selector2 = Iterable.first(_FormattingConflicts._selectors);
+          if (selector2) {
+            return await selector2(formatter, document2, mode, kind);
           }
           return void 0;
         }
@@ -178513,8 +178513,8 @@ https://creativecommons.org/licenses/by/4.0/
   function primary_modifier(event) {
     return (event.ctrlKey || event.metaKey) && !event.altKey && !event.getModifierState("AltGraph");
   }
-  function visible_modal(selector = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]', owned_dialog) {
-    const candidates = document.querySelectorAll(selector);
+  function visible_modal(selector2 = '.reading-media-viewer, .modal.in, [role="dialog"][aria-modal="true"]', owned_dialog) {
+    const candidates = document.querySelectorAll(selector2);
     return Array.from(candidates).some((candidate) => {
       if (candidate === owned_dialog || candidate.hidden || candidate.getAttribute("aria-hidden") === "true") return false;
       const style = getComputedStyle(candidate);
@@ -182225,7 +182225,7 @@ https://creativecommons.org/licenses/by/4.0/
     const version2 = (format3, raw) => crypto2.createHash("sha256").update(format3 + "\0" + raw).digest("hex");
     const read3 = () => {
       if (platform3 !== "linux") throw new Error(workspace_text("file_clipboard_platform_the_system_file_clipboard_is_not_available_on_the_current_pl"));
-      const formats = clipboard.availableFormats(), format3 = formats.includes("x-special/gnome-copied-files") ? "x-special/gnome-copied-files" : "text/uri-list";
+      const formats2 = clipboard.availableFormats(), format3 = formats2.includes("x-special/gnome-copied-files") ? "x-special/gnome-copied-files" : "text/uri-list";
       const raw = clipboard.readBuffer(format3).toString("utf8"), lines = raw.split(/\r?\n/u), moving = format3 !== "text/uri-list" && lines.shift() === "cut";
       const paths = lines.filter((line) => line && !line.startsWith("#")).map((line) => {
         const parsed = new URL(line);
@@ -187458,7 +187458,7 @@ https://creativecommons.org/licenses/by/4.0/
     const prefix = ":root[data-workspace-code-theme=".concat(mode, "] #write .CodeMirror");
     const cursor = color("editorCursor.foreground", "#000000", "#AEAFAD"), background = colors["editor.background"];
     const rules = [];
-    const rule = (selector, body) => rules.push("".concat(prefix).concat(selector, "{").concat(body, "}"));
+    const rule = (selector2, body) => rules.push("".concat(prefix).concat(selector2, "{").concat(body, "}"));
     rule("", "caret-color:".concat(cursor, "!important"));
     rule(" pre:is(.CodeMirror-line,.CodeMirror-line-like)", "background-color:transparent!important");
     rule(" .CodeMirror-cursor", "border-left-color:".concat(cursor, "!important;border-right-color:").concat(cursor, "!important"));
@@ -200368,8 +200368,8 @@ https://creativecommons.org/licenses/by/4.0/
      * all browsers support attributes the same, and having too many custom
      * attributes is probably bad.
      */
-    setAttribute(attribute, value) {
-      this.attributes[attribute] = value;
+    setAttribute(attribute2, value) {
+      this.attributes[attribute2] = value;
     }
     hasClass(className2) {
       return this.classes.includes(className2);
@@ -200394,8 +200394,8 @@ https://creativecommons.org/licenses/by/4.0/
       this.children = children || [];
       this.setAttribute("href", href);
     }
-    setAttribute(attribute, value) {
-      this.attributes[attribute] = value;
+    setAttribute(attribute2, value) {
+      this.attributes[attribute2] = value;
     }
     hasClass(className2) {
       return this.classes.includes(className2);
@@ -214066,7 +214066,7 @@ https://creativecommons.org/licenses/by/4.0/
         if (mutation.takeRecords().length) content_changed();
         return content_revision;
       },
-      read(selector = "") {
+      read(selector2 = "") {
         if (mutation.takeRecords().length) content_changed();
         if (styles2.takeRecords().length) dirty = true;
         const box = root.getBoundingClientRect();
@@ -214076,12 +214076,12 @@ https://creativecommons.org/licenses/by/4.0/
           height = box.height;
           projections.clear();
         }
-        let projection = projections.get(selector);
+        let projection = projections.get(selector2);
         if (!projection) {
           const items = [];
           let ordered = true, previous = -Infinity;
           for (const node of root.children) {
-            if (!(node instanceof HTMLElement) || node.matches("script,style,button") || selector && !node.matches(selector)) continue;
+            if (!(node instanceof HTMLElement) || node.matches("script,style,button") || selector2 && !node.matches(selector2)) continue;
             const rect = node.getBoundingClientRect();
             if (!rect.height) continue;
             const bottom = rect.bottom - box.top;
@@ -214090,7 +214090,7 @@ https://creativecommons.org/licenses/by/4.0/
             items.push({ node, top: rect.top - box.top, bottom });
           }
           projection = { items, ordered };
-          projections.set(selector, projection);
+          projections.set(selector2, projection);
         }
         return { ...projection, top: box.top };
       },
@@ -214143,10 +214143,10 @@ https://creativecommons.org/licenses/by/4.0/
       temporary?.dispose();
     }
   }
-  function reading_block_snapshot(root, selector = "") {
+  function reading_block_snapshot(root, selector2 = "") {
     const owned2 = indexes.get(root)?.index, temporary = owned2 ? void 0 : create_block_index(root);
     try {
-      return (owned2 || temporary).read(selector);
+      return (owned2 || temporary).read(selector2);
     } finally {
       temporary?.dispose();
     }
@@ -215907,9 +215907,9 @@ https://creativecommons.org/licenses/by/4.0/
         if (!getParentNode(node)) throw typeErrorCreate2("a node selected for removal could not be detached from its tree and cannot be safely returned; refusing to sanitize in place");
       }
     };
-    const _stripAttributeNode = function _stripAttributeNode2(element, attribute, name) {
+    const _stripAttributeNode = function _stripAttributeNode2(element, attribute2, name) {
       try {
-        removeAttributeNode(element, attribute);
+        removeAttributeNode(element, attribute2);
       } catch (_2) {
         try {
           element.removeAttribute(name);
@@ -215928,9 +215928,9 @@ https://creativecommons.org/licenses/by/4.0/
       });
       const attributes = _readNodeType(root) === NODE_TYPE2.element ? getAttributes(root) : null;
       if (attributes) for (let i = attributes.length - 1; i >= 0; --i) {
-        const attribute = attributes[i];
-        const name = attribute && attribute.name;
-        if (typeof name === "string") _stripAttributeNode(root, attribute, name);
+        const attribute2 = attributes[i];
+        const name = attribute2 && attribute2.name;
+        if (typeof name === "string") _stripAttributeNode(root, attribute2, name);
       }
     };
     const _removeAttribute = function _removeAttribute2(name, element, attr) {
@@ -215967,10 +215967,10 @@ https://creativecommons.org/licenses/by/4.0/
       const attributes = getAttributes(element);
       if (!attributes) return;
       for (let i = attributes.length - 1; i >= 0; --i) {
-        const attribute = attributes[i];
-        const name = attribute && attribute.name;
+        const attribute2 = attributes[i];
+        const name = attribute2 && attribute2.name;
         if (typeof name !== "string" || ALLOWED_ATTR[transformCaseFunc(name)]) continue;
-        _stripAttributeNode(element, attribute, name);
+        _stripAttributeNode(element, attribute2, name);
       }
     };
     const _walkTree = function _walkTree2(root, visit) {
@@ -216565,6 +216565,1093 @@ https://creativecommons.org/licenses/by/4.0/
   }
   var purify_default = createDOMPurify2();
 
+  // src/reading_image_selector.ts
+  function reading_image_selector(image) {
+    const owner3 = image.getRootNode(), path2 = [];
+    for (let node = image; node; node = node.parentElement) {
+      path2.unshift("".concat(node.localName, ":nth-child(").concat(Array.prototype.indexOf.call(node.parentNode.children, node) + 1, ")"));
+      if (node.parentNode === owner3) break;
+    }
+    return path2.join(" > ");
+  }
+
+  // src/reading_image_settings.ts
+  var IMAGE_ALIGNMENT_VALUES = ["left", "center", "right"];
+  var IMAGE_SHADOW_VALUES = ["off", "soft", "medium", "strong"];
+  var READING_IMAGE_DEFAULTS = Object.freeze({ alignment: "center", scale: 100, size_mode: "natural", border: true, border_width: 2, border_radius: 4, padding_x: 8, padding_y: 8, border_opacity: 100, frame_width: "column", border_color_light: "", border_color_dark: "", shadow: "off" });
+  var KEY2 = "reading_images";
+  var listeners9 = /* @__PURE__ */ new Set();
+  var preview;
+  var appearance_preview;
+  var notify = () => {
+    for (const listener of listeners9) listener();
+  };
+  function valid_image_setting(key4, value) {
+    if (!Object.hasOwn(READING_IMAGE_DEFAULTS, key4)) return false;
+    if (value === void 0) return true;
+    if (key4 === "border") return typeof value === "boolean";
+    if (key4 === "alignment") return IMAGE_ALIGNMENT_VALUES.includes(value);
+    if (key4 === "shadow") return IMAGE_SHADOW_VALUES.includes(value);
+    if (key4.startsWith("border_color_")) return typeof value === "string" && /^(?:#[0-9a-f]{6}(?:[0-9a-f]{2})?)?$/i.test(value.trim());
+    if (key4 === "frame_width") return value === "content" || value === "column";
+    if (key4 === "padding_x" || key4 === "padding_y" || key4 === "border_opacity") return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= (key4 === "border_opacity" ? 100 : 48);
+    if (key4 === "border_radius") return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 32;
+    if (key4 === "scale" || key4 === "border_width") return typeof value === "number" && Number.isFinite(value) && value >= (key4 === "scale" ? 20 : 0.5) && value <= (key4 === "scale" ? 600 : 8);
+    return value === "natural" || value === "fit_width";
+  }
+  function read_reading_image_settings() {
+    const value = get_workspace_app()?.settings.get(KEY2);
+    const current2 = { ...READING_IMAGE_DEFAULTS };
+    for (const key4 of Object.keys(current2)) if (value?.[key4] !== void 0 && valid_image_setting(key4, value[key4])) current2[key4] = typeof value[key4] === "string" ? value[key4].trim() : value[key4];
+    if (appearance_preview) current2[appearance_preview.key] = appearance_preview.value;
+    return { ...current2, scale: preview?.scale ?? current2.scale, size_mode: preview ? "natural" : current2.size_mode };
+  }
+  function write_reading_image_setting(key4, value) {
+    if (!valid_image_setting(key4, value)) throw Error(workspace_text("image_layout_invalid"));
+    const settings = get_workspace_app()?.settings;
+    if (!settings) throw Error(workspace_text("language_service_settings_the_workbench_settings_are_not_ready"));
+    const next = { ...settings.get(KEY2) || {} };
+    if (value === void 0) delete next[key4];
+    else next[key4] = typeof value === "string" ? value.trim() : value;
+    if (key4 === "scale") next.size_mode = "natural";
+    settings.set_and_save(KEY2, next);
+    preview = void 0;
+    appearance_preview = void 0;
+    notify();
+  }
+  function begin_reading_image_scale() {
+    const token = Symbol();
+    return { update(scale) {
+      if (!Number.isFinite(scale) || scale < 20 || scale > 600) return;
+      preview = { token, scale };
+      notify();
+    }, commit(scale) {
+      try {
+        write_reading_image_setting("scale", scale);
+      } finally {
+        if (preview?.token === token) {
+          preview = void 0;
+          notify();
+        }
+      }
+    }, cancel() {
+      if (preview?.token === token) {
+        preview = void 0;
+        notify();
+      }
+    } };
+  }
+  function begin_reading_image_appearance(key4) {
+    const token = Symbol();
+    const cancel = () => {
+      if (appearance_preview?.token === token) {
+        appearance_preview = void 0;
+        notify();
+      }
+    };
+    return { update(value) {
+      if (!valid_image_setting(key4, value)) return;
+      appearance_preview = { token, key: key4, value };
+      notify();
+    }, commit(value) {
+      try {
+        write_reading_image_setting(key4, value);
+      } finally {
+        cancel();
+      }
+    }, cancel };
+  }
+  function observe_reading_image_settings(listener) {
+    listeners9.add(listener);
+    return () => {
+      listeners9.delete(listener);
+    };
+  }
+  function reading_image_alignment_labels() {
+    return { left: workspace_text("image_layout_left"), center: workspace_text("image_layout_center"), right: workspace_text("image_layout_right") };
+  }
+
+  // src/reading_image_dimensions.ts
+  function reading_image_screen_density() {
+    const density = window.devicePixelRatio;
+    return Number.isFinite(density) && density > 0 ? density : 1;
+  }
+  function reading_image_uses_screen_pixels(image) {
+    const source = image.currentSrc || image.src;
+    return !image.srcset && !image.closest("picture")?.querySelector("source[srcset]") && !/^data:image\/svg\+xml[;,]/i.test(source) && !/\.svgz?(?:[?#]|$)/i.test(source);
+  }
+  function reading_image_natural_width(image) {
+    const style = getComputedStyle(image), readable = style.getPropertyValue("--reading-image-natural-width").trim();
+    if (readable.endsWith("em")) {
+      const width2 = parseFloat(readable) * parseFloat(style.fontSize);
+      if (Number.isFinite(width2) && width2 > 0) return width2;
+    }
+    return image.naturalWidth / (reading_image_uses_screen_pixels(image) ? reading_image_screen_density() : 1);
+  }
+
+  // src/reading_image_decoration.ts
+  function reading_image_decoration(settings, dark) {
+    const base_color = (dark ? settings.border_color_dark : settings.border_color_light) || "var(--theme-muted,var(--text-color,".concat(dark ? "#9d9d9d" : "#3b3b3b", "))");
+    const color = settings.border_opacity === 100 ? base_color : "color-mix(in srgb, ".concat(base_color, " ").concat(settings.border_opacity, "%, transparent)");
+    const width2 = settings.border ? settings.border_width : 0;
+    const shadows = { soft: "0 2px 8px rgb(0 0 0 / ".concat(dark ? 0.4 : 0.16, ")"), medium: "0 4px 12px rgb(0 0 0 / ".concat(dark ? 0.5 : 0.2, ")"), strong: "0 8px 24px rgb(0 0 0 / ".concat(dark ? 0.65 : 0.28, ")") };
+    return "box-sizing:border-box;padding:".concat(settings.padding_y, "px ").concat(settings.padding_x, "px;object-fit:contain;object-position:").concat(settings.alignment, ";border-radius:").concat(settings.border_radius, "px;--reading-image-decoration-width:").concat(width2, "px;").concat(settings.border ? "outline:".concat(width2, "px solid ").concat(color, ";outline-offset:-").concat(width2, "px;") : "").concat(shadows[settings.shadow] ? "box-shadow:".concat(shadows[settings.shadow], ";") : "");
+  }
+
+  // src/reading_image_layout.ts
+  function bind_reading_image_layout(root, selector2) {
+    const owner3 = root.getRootNode(), style = document.createElement("style");
+    const dimensions = document.createElement("style");
+    style.dataset.readingImageLayout = "";
+    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(style);
+    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(dimensions);
+    const scope = ":is(".concat(selector2, "):not(.md-diagram-panel-preview img,.reading-media-viewer img,.CodeMirror img,.md-emoji,.md-emoji img)");
+    const vectors = /* @__PURE__ */ new Map();
+    let images_current = [];
+    let disposed = false;
+    let density = reading_image_screen_density(), resolution;
+    let frame3 = 0;
+    const parents = /* @__PURE__ */ new Set();
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(() => {
+        frame3 = 0;
+        measure(images_current);
+      });
+    };
+    const resize = new ResizeObserver(schedule);
+    const update2 = () => {
+      const settings = read_reading_image_settings(), { alignment, scale, size_mode } = settings;
+      const css = "".concat(scope, "{").concat(reading_image_decoration(settings, workspace_theme_mode() === "dark"), "}").concat(scope, "{--reading-image-screen-density:").concat(density, ";width:auto!important;max-width:100%!important;height:auto!important}").concat(scope, ':not([style*="zoom" i]){width:').concat(size_mode === "fit_width" ? "100%" : "min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ".concat(scale / 100, " + var(--reading-image-border,0px)),").concat(scale, "%)"), "!important}").concat(scope, ":not(.md-expand img){display:block}").concat(scope, ':not([style*="margin" i]){margin-left:').concat(alignment === "left" ? "0" : "auto", "!important;margin-right:").concat(alignment === "right" ? "0" : "auto", "!important}");
+      if (style.textContent !== css) style.textContent = css;
+      measure(images_current);
+    };
+    const watch_density = () => {
+      resolution?.removeEventListener("change", density_changed);
+      resolution = window.matchMedia("(resolution: ".concat(density, "dppx)"));
+      resolution.addEventListener("change", density_changed);
+    };
+    const density_changed = () => {
+      const next = reading_image_screen_density();
+      if (next === density) return;
+      density = next;
+      watch_density();
+      update2();
+    };
+    watch_density();
+    window.addEventListener("resize", density_changed);
+    const release = observe_reading_image_settings(update2), release_theme3 = observe_workspace_theme(update2);
+    update2();
+    function measure(images) {
+      images_current = [...images];
+      const sources = new Set(images_current.map((image) => image.currentSrc || image.src));
+      for (const [source, entry] of vectors) if (!sources.has(source)) {
+        entry.controller.abort();
+        vectors.delete(source);
+      }
+      const rules = /* @__PURE__ */ new Set(), next_parents = /* @__PURE__ */ new Set(), settings = read_reading_image_settings();
+      for (const image of images) {
+        if (!image.naturalWidth) continue;
+        const source = image.getAttribute("src");
+        if (!source) continue;
+        const computed = getComputedStyle(image), border = computed.boxSizing === "border-box" ? ["borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight"].reduce((sum, key4) => sum + (parseFloat(computed[key4]) || 0), 0) : 0;
+        const resolved = image.currentSrc || image.src;
+        if (!reading_image_uses_screen_pixels(image) && !vectors.has(resolved)) {
+          const entry = { controller: new AbortController(), ratio: void 0 };
+          vectors.set(resolved, entry);
+          void linked_svg_text_width(resolved, entry.controller.signal).then((ratio2) => {
+            if (disposed || vectors.get(resolved) !== entry) return;
+            entry.ratio = ratio2;
+            if (ratio2) measure(images_current);
+          }).catch(() => {
+          });
+        }
+        const ratio = vectors.get(resolved)?.ratio;
+        rules.add("".concat(scope, '[src="').concat(CSS.escape(source), '"]{--reading-image-natural-width:').concat(ratio ? ratio + "em" : image.naturalWidth + "px", ";--reading-image-density:").concat(reading_image_uses_screen_pixels(image) ? "var(--reading-image-screen-density)" : "1", ";--reading-image-border:").concat(border, "px}"));
+      }
+      for (const image of images_current) {
+        if (!image.naturalWidth) continue;
+        let parent = image.parentElement;
+        while (parent && ["inline", "contents"].includes(getComputedStyle(parent).display)) parent = parent.parentElement;
+        if (!parent) continue;
+        next_parents.add(parent);
+        if (settings.frame_width !== "column" || image.style.zoom) continue;
+        const parent_style = getComputedStyle(parent), available = Math.max(1, parent.clientWidth - (parseFloat(parent_style.paddingLeft) || 0) - (parseFloat(parent_style.paddingRight) || 0) - settings.padding_x * 2);
+        const computed = getComputedStyle(image), vertical_border = (parseFloat(computed.borderTopWidth) || 0) + (parseFloat(computed.borderBottomWidth) || 0);
+        const content = settings.size_mode === "fit_width" ? available + "px" : "min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ".concat(settings.scale / 100, "),").concat(available * Math.min(1, settings.scale / 100), "px)");
+        rules.add("".concat(scope, ":is(").concat(reading_image_selector(image), "){width:100%!important;height:calc(").concat(content, " * ").concat(image.naturalHeight / image.naturalWidth, " + ").concat(settings.padding_y * 2 + vertical_border, "px)!important}"));
+      }
+      for (const parent of parents) if (!next_parents.has(parent)) {
+        resize.unobserve(parent);
+        parents.delete(parent);
+      }
+      for (const parent of next_parents) if (!parents.has(parent)) {
+        parents.add(parent);
+        resize.observe(parent);
+      }
+      const text4 = [...rules].join("\n");
+      if (dimensions.textContent !== text4) dimensions.textContent = text4;
+    }
+    ;
+    return { update: measure, dispose() {
+      disposed = true;
+      cancelAnimationFrame(frame3);
+      resize.disconnect();
+      parents.clear();
+      for (const entry of vectors.values()) entry.controller.abort();
+      vectors.clear();
+      release();
+      release_theme3();
+      window.removeEventListener("resize", density_changed);
+      resolution.removeEventListener("change", density_changed);
+      style.remove();
+      dimensions.remove();
+    } };
+  }
+
+  // src/reading_image_selection.ts
+  function bind_reading_image_selection(root, selector2) {
+    const owner3 = root.getRootNode(), style = document.createElement("style");
+    style.dataset.readingImageSelection = "";
+    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(style);
+    const events = new AbortController(), { signal } = events;
+    let selected, source = "";
+    const clear = () => {
+      selected = void 0;
+      source = "";
+      style.textContent = "";
+    };
+    const update2 = () => {
+      if (!selected) return;
+      if (!root.contains(selected) || !selected.isConnected || selected.getAttribute("src") !== source) {
+        clear();
+        return;
+      }
+      const width2 = "max(3px,calc(var(--reading-image-decoration-width,0px) + 1px))";
+      const rule = "".concat(reading_image_selector(selected), "{outline:").concat(width2, " solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:calc(-1 * ").concat(width2, ")!important}");
+      if (style.textContent !== rule) style.textContent = rule;
+    };
+    const is_control = (path2) => path2.some((node) => node instanceof Element && node.matches(".reading-media-entries,.reading-media-viewer"));
+    document.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || is_control(event.composedPath())) return;
+      const image = event.composedPath().find((node) => node instanceof HTMLImageElement && root.contains(node) && node.matches(selector2) && !node.closest(".md-diagram-panel-preview,.CodeMirror,.reading-media-viewer") && !node.matches(".md-emoji,.md-emoji img"));
+      clear();
+      if (image) {
+        selected = image;
+        source = image.getAttribute("src") || "";
+        update2();
+      }
+    }, { capture: true, signal });
+    document.addEventListener("keydown", (event) => {
+      if (is_control(event.composedPath())) return;
+      if (event.key === "Escape" || !event.ctrlKey && !event.metaKey && !event.altKey && event.key !== "Shift") clear();
+    }, { capture: true, signal });
+    return { update: update2, dispose() {
+      events.abort();
+      clear();
+      style.remove();
+    } };
+  }
+
+  // src/reading_image_appearance_controls.ts
+  function create_reading_image_appearance_controls(image, fail) {
+    const rows = Array.from({ length: 8 }, () => workspace_element("div", "reading-image-control-row reading-image-appearance"));
+    rows[0].append(workspace_element("span", "reading-image-scope", workspace_text("image_appearance_global")));
+    let mode = workspace_theme_mode();
+    const drafts = /* @__PURE__ */ new Set(), events = new AbortController(), { signal } = events;
+    const fields = /* @__PURE__ */ new Map();
+    const ranges2 = /* @__PURE__ */ new Map();
+    let gesture;
+    const color_key = () => mode === "dark" ? "border_color_dark" : "border_color_light";
+    const save2 = (key4, value) => {
+      try {
+        write_reading_image_setting(key4, value);
+      } catch (error) {
+        fail(error);
+      }
+      sync();
+    };
+    const toggle = workspace_button(workspace_text("image_border"), () => save2("border", !read_reading_image_settings().border), "reading-media-open");
+    toggle.dataset.imageAppearance = "border";
+    function field(key4, title2, min, max) {
+      const label = workspace_element("label", "reading-image-appearance-field"), input = workspace_element("input");
+      input.type = min === void 0 ? "text" : "number";
+      input.dataset.imageAppearance = key4;
+      input.setAttribute("aria-label", title2);
+      if (min !== void 0) {
+        input.min = String(min);
+        input.max = String(max);
+        input.step = key4 === "border_width" ? ".5" : "1";
+      } else input.placeholder = workspace_text("image_border_color_auto");
+      label.append(workspace_element("span", "", title2), input);
+      fields.set(key4, input);
+      const commit = () => {
+        if (!drafts.delete(input)) return;
+        if (key4 === "color" && workspace_theme_mode() !== mode) {
+          sync();
+          return;
+        }
+        const value = min === void 0 ? input.value : input.value.trim() ? input.valueAsNumber : NaN;
+        save2(key4 === "color" ? color_key() : key4, value);
+      };
+      input.addEventListener("input", () => drafts.add(input), { signal });
+      input.addEventListener("change", () => {
+        drafts.add(input);
+        commit();
+      }, { signal });
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault();
+          commit();
+        } else if (event.key === "Escape") {
+          event.preventDefault();
+          drafts.delete(input);
+          sync();
+        }
+      }, { signal });
+      return label;
+    }
+    rows[1].append(toggle, field("border_width", workspace_text("image_border_width_short"), 0.5, 8), workspace_element("span", "reading-image-scope", "px"));
+    const shadow = workspace_element("select");
+    shadow.dataset.imageAppearance = "shadow";
+    shadow.setAttribute("aria-label", workspace_text("image_shadow"));
+    for (const value of IMAGE_SHADOW_VALUES) shadow.append(new Option(workspace_text("image_shadow_" + value), value));
+    shadow.addEventListener("change", () => save2("shadow", shadow.value), { signal });
+    rows[2].append(field("border_radius", workspace_text("image_border_radius_short"), 0, 32), workspace_element("span", "reading-image-scope", "px"), workspace_element("span", "reading-image-scope", workspace_text("image_shadow")), shadow);
+    const color = field("color", workspace_text("image_border_color_short")), caption = color.querySelector("span");
+    const picker = workspace_element("input");
+    picker.type = "color";
+    picker.dataset.imageAppearance = "picker";
+    picker.setAttribute("aria-label", workspace_text("image_border_color_short"));
+    picker.addEventListener("change", () => {
+      const current2 = read_reading_image_settings()[color_key()];
+      drafts.delete(fields.get("color"));
+      save2(color_key(), picker.value + (/^#[0-9a-f]{8}$/i.test(current2) ? current2.slice(7) : ""));
+    }, { signal });
+    const automatic = workspace_button(workspace_text("image_border_color_auto_short"), () => {
+      drafts.delete(fields.get("color"));
+      save2(color_key(), "");
+    }, "reading-media-open");
+    automatic.dataset.imageAppearance = "automatic";
+    rows[3].append(color, picker, automatic);
+    const frame3 = workspace_element("select");
+    frame3.dataset.imageAppearance = "frame_width";
+    frame3.setAttribute("aria-label", workspace_text("image_frame_width"));
+    frame3.append(new Option(workspace_text("image_frame_content"), "content"), new Option(workspace_text("image_frame_column"), "column"));
+    frame3.addEventListener("change", () => save2("frame_width", frame3.value), { signal });
+    rows[4].append(workspace_element("span", "reading-image-scope", workspace_text("image_frame_width")), frame3);
+    for (const [index, key4] of ["padding_x", "padding_y", "border_opacity"].entries()) {
+      const title2 = workspace_text(key4 === "border_opacity" ? "image_border_opacity" : key4 === "padding_x" ? "image_padding_x" : "image_padding_y"), max = key4 === "border_opacity" ? 100 : 48;
+      const range2 = workspace_element("input");
+      range2.type = "range";
+      range2.min = "0";
+      range2.max = String(max);
+      range2.step = "1";
+      range2.dataset.imageAppearance = key4 + "_range";
+      range2.setAttribute("aria-label", title2);
+      range2.addEventListener("input", () => {
+        if (!gesture) gesture = begin_reading_image_appearance(key4);
+        gesture.update(range2.valueAsNumber);
+      }, { signal });
+      range2.addEventListener("change", () => {
+        const active2 = gesture;
+        gesture = void 0;
+        try {
+          if (active2) active2.commit(range2.valueAsNumber);
+          else save2(key4, range2.valueAsNumber);
+        } catch (error) {
+          fail(error);
+        }
+        sync();
+      }, { signal });
+      range2.addEventListener("pointercancel", () => {
+        gesture?.cancel();
+        gesture = void 0;
+        sync();
+      }, { signal });
+      ranges2.set(key4, range2);
+      rows[index + 5].append(field(key4, title2, 0, max), range2, workspace_element("span", "reading-image-scope", key4 === "border_opacity" ? "%" : "px"));
+    }
+    function sync() {
+      const next = workspace_theme_mode();
+      if (next !== mode) {
+        mode = next;
+        drafts.delete(fields.get("color"));
+      }
+      const settings = read_reading_image_settings(), disabled = !get_workspace_app();
+      for (const [key4, input] of fields) {
+        if (!drafts.has(input)) input.value = String(key4 === "color" ? settings[color_key()] : settings[key4]);
+        input.disabled = disabled;
+      }
+      for (const [key4, range2] of ranges2) {
+        range2.value = String(settings[key4]);
+        range2.disabled = disabled;
+      }
+      frame3.value = settings.frame_width;
+      frame3.disabled = disabled;
+      toggle.disabled = shadow.disabled = picker.disabled = automatic.disabled = disabled;
+      toggle.setAttribute("aria-pressed", String(settings.border));
+      shadow.value = settings.shadow;
+      const title2 = workspace_text(mode === "dark" ? "image_border_color_dark_short" : "image_border_color_light_short");
+      if (caption.textContent !== title2) caption.textContent = title2;
+      const color2 = settings[color_key()], fallback2 = getComputedStyle(image).getPropertyValue("--theme-muted").trim();
+      picker.value = /^#[0-9a-f]{6}/i.test(color2) ? color2.slice(0, 7) : /^#[0-9a-f]{6}$/i.test(fallback2) ? fallback2 : mode === "dark" ? "#9d9d9d" : "#3b3b3b";
+      automatic.setAttribute("aria-pressed", String(!color2));
+    }
+    sync();
+    return { rows, sync, cancel() {
+      const active2 = drafts.size > 0 || !!gesture;
+      drafts.clear();
+      const current2 = gesture;
+      gesture = void 0;
+      current2?.cancel();
+      sync();
+      return active2;
+    }, dispose() {
+      events.abort();
+      gesture?.cancel();
+      gesture = void 0;
+      drafts.clear();
+    } };
+  }
+
+  // src/reading_image_native.ts
+  function read_image_alignment(image) {
+    const { marginLeft: left, marginRight: right } = image.style;
+    if (left === "auto" && right === "auto") return "center";
+    if (left === "auto" && right && right !== "auto") return "right";
+    if (right === "auto" && left && left !== "auto") return "left";
+  }
+  function capture_image_alignment(image) {
+    const runtime3 = window, file = runtime3.File, editor2 = file?.editor, wrapper = image.closest(".md-image");
+    if (!wrapper || !image.closest("content > #write") || !editor2?.imgEdit?.addStyle || !runtime3.$ || file.isLocked || file.isFileLoading?.() || editor2.sourceView?.inSourceMode) return;
+    const bundle = file.bundle, source = wrapper.textContent;
+    return (alignment) => {
+      if (file.bundle !== bundle || file.editor !== editor2 || !image.isConnected || wrapper.textContent !== source || editor2.sourceView?.inSourceMode || file.isLocked || file.isFileLoading?.()) throw Error(workspace_text("image_layout_stale"));
+      const left = alignment === "left" ? "0px" : "auto", right = alignment === "right" ? "0px" : "auto";
+      const margin = alignment ? "".concat(image.style.marginTop || "0px", " ").concat(right, " ").concat(image.style.marginBottom || "0px", " ").concat(left) : "";
+      editor2.imgEdit.addStyle(runtime3.$(wrapper), "margin", margin);
+    };
+  }
+
+  // src/reading_svg_source.ts
+  function linked_svg_path(image) {
+    const files2 = get_workspace_files(), url = image.src;
+    if (!files2 || image.srcset || !/^file:/i.test(url)) return;
+    const resource = new URL(url);
+    resource.search = "";
+    resource.hash = "";
+    const path2 = resolve_workspace_file(files2.path_api, "", resource.href);
+    return path2 && /\.svg$/i.test(path2) ? path2 : void 0;
+  }
+  function create_reading_svg_controls(image) {
+    const row = workspace_element("div", "reading-image-control-row");
+    let disposed = false, revision = 0, object_url = "", original = "", identity5 = "";
+    const source = () => object_url && image.src === object_url ? identity5 : linked_svg_path(image);
+    const current2 = (path2, version2) => !disposed && image.isConnected && revision === version2 && source() === path2;
+    const fail = (error) => {
+      if (disposed) return;
+      const core = window[Symbol.for("typora-code:workspace")];
+      if (core?.Notice) new core.Notice(String(error instanceof Error ? error.message : error), 3500);
+      else console.error(error);
+    };
+    const run = (action) => {
+      const path2 = source(), version2 = revision;
+      if (path2) void action(path2, () => current2(path2, version2)).catch(fail);
+    };
+    const edit3 = workspace_button(workspace_text("svg_source_edit"), () => run(async (path2, valid) => {
+      const files2 = get_workspace_files();
+      if (files2 && valid()) await files2.open_file(path2, { source: true, preview: false });
+    }), "reading-media-open");
+    const save2 = workspace_button(workspace_text("visual_code_export"), () => run(async (path2, valid) => {
+      const text4 = await get_workspace_files().read_text(path2);
+      if (valid()) await export_visual_svg(text4, valid, path2);
+    }), "reading-media-open");
+    const png = workspace_button(workspace_text("visual_code_export_png"), () => run(async (path2, valid) => {
+      const text4 = await get_workspace_files().read_text(path2);
+      if (valid()) await export_visual_png(text4, valid, path2);
+    }), "reading-media-open");
+    row.append(edit3, save2, png);
+    const release = observe_workspace_file_saved((file) => {
+      const path2 = source();
+      if (!path2 || file_key(path2) !== file_key(file.file_path)) return;
+      const version2 = ++revision;
+      void get_workspace_files().read_text(path2).then((text4) => {
+        if (!current2(path2, version2)) return;
+        if (!object_url) {
+          original = image.getAttribute("src") || "";
+          identity5 = path2;
+        }
+        const previous = object_url;
+        object_url = URL.createObjectURL(new Blob([text4], { type: "image/svg+xml" })) + "#image.svg";
+        image.src = object_url;
+        if (previous) URL.revokeObjectURL(previous);
+      }).catch(fail);
+    });
+    return { row, refresh() {
+      if (object_url && image.src !== object_url) {
+        URL.revokeObjectURL(object_url);
+        object_url = "";
+        identity5 = "";
+        ++revision;
+      }
+      row.hidden = !source();
+    }, dispose() {
+      disposed = true;
+      ++revision;
+      release();
+      if (object_url) {
+        if (image.src === object_url) image.setAttribute("src", original);
+        URL.revokeObjectURL(object_url);
+      }
+      row.remove();
+    } };
+  }
+
+  // src/reading_image_controls.ts
+  function image_scale_limit(image) {
+    let parent = image.parentElement;
+    while (parent && ["inline", "contents"].includes(getComputedStyle(parent).display)) parent = parent.parentElement;
+    if (!parent || !image.naturalWidth) return 100;
+    const style = getComputedStyle(parent), available = parent.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
+    const image_style = getComputedStyle(image), border = image_style.boxSizing === "border-box" ? ["borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight"].reduce((sum, key4) => sum + (parseFloat(image_style[key4]) || 0), 0) : 0;
+    const percent = Math.max(100, 100 * (available - border) / reading_image_natural_width(image));
+    return Math.max(20, Math.min(600, Math.floor(percent * 100) / 100));
+  }
+  function create_reading_image_controls(image) {
+    const svg4 = create_reading_svg_controls(image);
+    const group = workspace_element("div", "reading-image-scale"), input = workspace_element("input"), suffix = workspace_element("span", "", "%");
+    input.type = "number";
+    input.min = "20";
+    input.max = "600";
+    input.step = "any";
+    input.setAttribute("aria-label", workspace_text("image_layout_scale"));
+    input.title = workspace_text("image_layout_scale_description");
+    let editing = false;
+    let gesture;
+    const fail = (error) => {
+      const core = window[Symbol.for("typora-code:workspace")];
+      if (core?.Notice) new core.Notice(String(error instanceof Error ? error.message : error), 3500);
+      else console.error(error);
+    };
+    const appearance = create_reading_image_appearance_controls(image, fail);
+    const run = (action) => {
+      try {
+        action();
+      } catch (error) {
+        fail(error);
+      }
+    };
+    const draft = () => {
+      const value = input.valueAsNumber;
+      return input.value.trim() !== "" && Number.isFinite(value) && value >= 20 ? Math.min(image_scale_limit(image), value) : void 0;
+    };
+    const fit = workspace_button(workspace_text("image_layout_fit_short"), () => {
+      cancel();
+      run(() => write_reading_image_setting("size_mode", "fit_width"));
+    }, "reading-media-open");
+    fit.title = workspace_text("image_layout_fit");
+    const reset2 = workspace_button("100%", () => {
+      cancel();
+      run(() => write_reading_image_setting("scale", 100));
+    }, "reading-media-open");
+    reset2.title = workspace_text("image_layout_natural");
+    reset2.setAttribute("aria-label", reset2.title);
+    const sync = () => {
+      const settings = read_reading_image_settings(), limit = image_scale_limit(image), value = settings.size_mode === "fit_width" ? limit : Math.min(limit, settings.scale);
+      input.max = String(limit);
+      if (!editing) input.value = String(value);
+      decrease.disabled = value <= 20;
+      increase.disabled = value >= limit;
+      fit.setAttribute("aria-pressed", String(settings.size_mode === "fit_width"));
+      reset2.setAttribute("aria-pressed", String(settings.size_mode === "natural" && settings.scale === 100));
+      refresh_alignment();
+      appearance.sync();
+    };
+    const cancel = () => {
+      const active2 = editing || !!gesture;
+      editing = false;
+      gesture?.cancel();
+      gesture = void 0;
+      sync();
+      return active2;
+    };
+    const commit = (value = draft()) => {
+      if (value === void 0) {
+        cancel();
+        return;
+      }
+      editing = false;
+      const current2 = gesture;
+      gesture = void 0;
+      run(() => {
+        if (current2) current2.commit(value);
+        else {
+          const saved = read_reading_image_settings();
+          if (saved.scale !== value || saved.size_mode !== "natural") write_reading_image_setting("scale", value);
+        }
+      });
+      sync();
+    };
+    const step = (direction) => commit(Math.max(20, Math.min(image_scale_limit(image), (draft() ?? read_reading_image_settings().scale) + direction * 5)));
+    const decrease = workspace_button(workspace_text("image_layout_decrease"), () => step(-1), "reading-media-open"), increase = workspace_button(workspace_text("image_layout_increase"), () => step(1), "reading-media-open");
+    decrease.replaceChildren(git_icon("remove"));
+    increase.replaceChildren(git_icon("add"));
+    decrease.dataset.imageScaleAction = "decrease";
+    increase.dataset.imageScaleAction = "increase";
+    group.append(decrease, input, suffix, increase);
+    const labels = reading_image_alignment_labels(), alignment_buttons = [];
+    const make_alignment = (scope, value) => {
+      const label = value ? labels[value] : workspace_text("image_layout_follow");
+      const button = workspace_button(label, () => {
+        cancel();
+        run(() => {
+          if (scope === "global") write_reading_image_setting("alignment", value);
+          else {
+            const apply4 = capture_image_alignment(image);
+            if (!apply4) throw Error(workspace_text("image_layout_stale"));
+            apply4(value);
+          }
+        });
+        refresh_alignment();
+      }, "reading-media-open");
+      button.title = workspace_text(scope === "global" ? "image_layout_global" : "image_layout_single") + ": " + label;
+      button.setAttribute("aria-label", button.title);
+      button.setAttribute("data-image-align-scope", scope);
+      button.setAttribute("data-image-align", value || "follow");
+      alignment_buttons.push({ button, scope, value });
+      return button;
+    };
+    const global_caption = workspace_element("span", "reading-image-scope", workspace_text("image_layout_global_short")), single_caption = workspace_element("span", "reading-image-scope", workspace_text("image_layout_single_short"));
+    const global_buttons = IMAGE_ALIGNMENT_VALUES.map((value) => make_alignment("global", value)), single_buttons = [make_alignment("single", void 0), ...IMAGE_ALIGNMENT_VALUES.map((value) => make_alignment("single", value))];
+    function refresh_alignment() {
+      const global = read_reading_image_settings().alignment, local = read_image_alignment(image), editable = !!capture_image_alignment(image);
+      for (const { button, scope, value } of alignment_buttons) {
+        button.disabled = scope === "global" ? !get_workspace_app() : !editable;
+        const selected = String((scope === "global" ? global : local) === value);
+        if (button.getAttribute("aria-pressed") !== selected) button.setAttribute("aria-pressed", selected);
+      }
+    }
+    const events = new AbortController(), { signal } = events;
+    input.addEventListener("input", () => {
+      editing = true;
+      const value = draft();
+      if (value === void 0) return;
+      if (!gesture) gesture = begin_reading_image_scale();
+      gesture.update(value);
+    }, { signal });
+    const finish_input = () => {
+      if (editing || gesture) commit();
+    };
+    input.addEventListener("change", finish_input, { signal });
+    input.addEventListener("blur", finish_input, { signal });
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cancel();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        commit();
+      } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
+        event.preventDefault();
+        step(event.key === "ArrowUp" ? 1 : -1);
+      }
+    }, { signal });
+    const release = observe_reading_image_settings(sync);
+    sync();
+    const scale_row = workspace_element("div", "reading-image-control-row"), global_row = workspace_element("div", "reading-image-control-row"), single_row = workspace_element("div", "reading-image-control-row");
+    scale_row.append(group, reset2, fit);
+    global_row.append(global_caption, ...global_buttons);
+    single_row.append(single_caption, ...single_buttons);
+    svg4.refresh();
+    return { controls: [scale_row, global_row, single_row, ...appearance.rows, svg4.row], refresh() {
+      sync();
+      svg4.refresh();
+    }, cancel() {
+      const changed2 = appearance.cancel();
+      return cancel() || changed2;
+    }, dispose() {
+      appearance.dispose();
+      events.abort();
+      release();
+      gesture?.cancel();
+      svg4.dispose();
+    } };
+  }
+
+  // src/reading_media_viewer.css
+  var reading_media_viewer_default = "";
+
+  // src/reading_media_viewer.ts
+  var MAXIMUM_ZOOM = 6;
+  var ZOOM_FACTOR = 1.25;
+  var active_close;
+  var media_sources = /* @__PURE__ */ new WeakMap();
+  function reading_media_source_for_event(event) {
+    for (const node of event.composedPath()) if (node instanceof Element) {
+      const source = media_sources.get(node);
+      if (source) return source;
+    }
+  }
+  function close_reading_media() {
+    active_close?.(false);
+  }
+  function open_reading_media(media) {
+    active_close?.(false);
+    const previous = capture_workspace_focus(media.origin);
+    const viewer = workspace_element("section", "reading-media-viewer"), header = workspace_element("div", "reading-media-header"), toolbar = workspace_element("div", "reading-media-toolbar");
+    if (media.source) media_sources.set(viewer, media.source);
+    viewer.setAttribute("role", "dialog");
+    viewer.setAttribute("aria-modal", "true");
+    viewer.setAttribute("aria-label", media.label);
+    toolbar.setAttribute("aria-label", workspace_text("reading_media_viewer_zoom_control"));
+    const output = workspace_element("output"), canvas = workspace_element("div", "reading-media-canvas"), positioner = workspace_element("div", "reading-media-positioner"), content = workspace_element("div", "reading-media-content");
+    const hint = workspace_element("div", "reading-media-hint", workspace_text("reading_media_viewer_ctrl_wheel_zoom_left_click_and_drag_esc_exit"));
+    const button = (action, label, icon) => {
+      const node = workspace_element("button", "", icon ? "" : label);
+      node.type = "button";
+      node.dataset.action = action;
+      node.title = label;
+      node.setAttribute("aria-label", label);
+      if (icon) node.append(git_icon(icon));
+      return node;
+    };
+    const close_button = button("close", workspace_text("reading_media_viewer_exit_full_screen"));
+    close_button.prepend(git_icon("close"));
+    toolbar.append(button("zoom-out", workspace_text("reading_media_viewer_zoom_in"), "remove"), output, button("zoom-in", workspace_text("reading_media_viewer_zoom_out"), "add"), button("fit-width", workspace_text("reading_media_viewer_fit_width")), button("fit", workspace_text("reading_media_viewer_fit_screen")), button("reset", "100%"));
+    header.append(toolbar, close_button);
+    content.append(media.content);
+    positioner.append(content);
+    canvas.append(positioner);
+    viewer.append(header, canvas, hint);
+    const style = acquire_workspace_style("typora-code-style:reading_media_viewer", reading_media_viewer_default), interaction = acquire_workspace_interaction(viewer);
+    document.body.append(viewer);
+    document.body.classList.add("reading-media-viewer-open");
+    let closed = false, ready_frame = 0, failed = false, fit_initial = false, mode = "manual";
+    const controller = new AbortController(), signal = controller.signal;
+    const view = { scale: 1, x: 0, y: 0 };
+    let drag;
+    const controls = () => [...viewer.querySelectorAll("button")].filter((node) => !node.disabled);
+    const apply4 = () => {
+      viewer.style.setProperty("--reading-media-scale", String(view.scale));
+      viewer.style.setProperty("--reading-media-pan-x", "".concat(view.x, "px"));
+      viewer.style.setProperty("--reading-media-pan-y", "".concat(view.y, "px"));
+      output.value = "".concat(Number((view.scale * 100).toFixed(view.scale < 0.1 ? 2 : 0)), "%");
+      output.textContent = output.value;
+    };
+    const fit_scale = () => Math.min(canvas.clientWidth / media.width, canvas.clientHeight / media.height) * 0.88;
+    const zoom = (scale, x = 0, y = 0) => {
+      if (failed) return;
+      mode = "manual";
+      const next = Math.max(Math.min(0.2, fit_scale()), Math.min(MAXIMUM_ZOOM, scale)), ratio = next / view.scale;
+      view.x = x - (x - view.x) * ratio;
+      view.y = y - (y - view.y) * ratio;
+      view.scale = next;
+      apply4();
+    };
+    const fit = (width2 = false, initial = false) => {
+      if (failed || !canvas.clientWidth || !canvas.clientHeight) return;
+      fit_initial = initial;
+      mode = width2 ? "fit-width" : "fit";
+      view.scale = Math.min(initial ? 1 : MAXIMUM_ZOOM, width2 ? canvas.clientWidth / media.width * 0.92 : fit_scale());
+      view.x = view.y = 0;
+      apply4();
+    };
+    const reset2 = () => {
+      if (failed) return;
+      mode = "manual";
+      view.scale = 1;
+      view.x = view.y = 0;
+      apply4();
+    };
+    const dispose_theme = observe_workspace_theme(() => {
+      const background = workspace_surface_background(document.querySelector("content > #write") || document.body);
+      const dark = background[0] * 0.2126 + background[1] * 0.7152 + background[2] * 0.0722 < 128;
+      viewer.style.setProperty("--reading-media-background", "rgb(".concat(background.join(","), ")"));
+      viewer.dataset.theme = dark ? "dark" : "light";
+    });
+    const resize = new ResizeObserver(() => {
+      if (mode !== "manual") fit(mode === "fit-width", fit_initial);
+    });
+    resize.observe(canvas);
+    const close2 = (restore = true) => {
+      if (closed) return;
+      const owns_focus = escape_layer.owns_focus();
+      closed = true;
+      if (active_close === close2) active_close = void 0;
+      escape_layer.dispose();
+      controller.abort();
+      source_observer.disconnect();
+      cancelAnimationFrame(ready_frame);
+      resize.disconnect();
+      dispose_theme();
+      media_sources.delete(viewer);
+      viewer.remove();
+      interaction.remove();
+      style.remove();
+      document.body.classList.remove("reading-media-viewer-open");
+      if (restore && owns_focus) previous.restore();
+    };
+    const escape_layer = register_workspace_dismissal(() => [viewer], () => close2(), { outside: false, focus_out: false });
+    const source_observer = new MutationObserver(() => {
+      if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close2(false);
+    });
+    if (media.source) {
+      source_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+      const root = media.source.getRootNode();
+      if (root instanceof ShadowRoot) source_observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
+    }
+    active_close = close2;
+    const error = () => {
+      if (closed) return;
+      failed = true;
+      content.replaceChildren(workspace_element("p", "reading-media-error", workspace_text("reading_media_viewer_image_cannot_be_loaded_please_close_and_reopen")));
+      content.style.transform = "none";
+      for (const node of toolbar.querySelectorAll("button")) node.disabled = true;
+      output.value = "";
+      output.textContent = "";
+      drag = void 0;
+      viewer.classList.remove("is-dragging");
+    };
+    if (media.content instanceof HTMLImageElement) media.content.addEventListener("error", error, { signal });
+    viewer.addEventListener("click", (event) => {
+      const action = event.target.closest("button[data-action]")?.dataset.action;
+      if (!action) return;
+      event.preventDefault();
+      event.stopPropagation();
+      if (action === "close") close2();
+      else if (action === "zoom-in") zoom(view.scale * ZOOM_FACTOR);
+      else if (action === "zoom-out") zoom(view.scale / ZOOM_FACTOR);
+      else if (action === "fit") fit();
+      else if (action === "fit-width") fit(true);
+      else if (action === "reset") reset2();
+    }, { signal });
+    window.addEventListener("keydown", (event) => {
+      if (closed || !escape_layer.is_top()) return;
+      const primary = (event.ctrlKey || event.metaKey) && !event.altKey;
+      if (event.key === "Tab") {
+        const nodes = controls(), index = nodes.indexOf(document.activeElement);
+        const target = event.shiftKey ? index <= 0 ? nodes.at(-1) : nodes[index - 1] : nodes[(index + 1) % nodes.length];
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        target?.focus({ preventScroll: true });
+        return;
+      }
+      if (primary && ["+", "=", "-", "0"].includes(event.key)) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+        if (event.key === "0") reset2();
+        else zoom(view.scale * (event.key === "-" ? 1 / ZOOM_FACTOR : ZOOM_FACTOR));
+        return;
+      }
+      if (primary) {
+        event.preventDefault();
+        event.stopImmediatePropagation();
+      }
+    }, { capture: true, signal });
+    canvas.addEventListener("wheel", (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const bounds = canvas.getBoundingClientRect();
+      zoom(view.scale * Math.exp(-event.deltaY * 2e-3), event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
+    }, { passive: false, signal });
+    canvas.addEventListener("pointerdown", (event) => {
+      if (event.button !== 0 || failed) return;
+      event.preventDefault();
+      drag = { pointer_id: event.pointerId, x: event.clientX, y: event.clientY, origin_x: view.x, origin_y: view.y };
+      canvas.setPointerCapture(event.pointerId);
+      viewer.classList.add("is-dragging");
+    }, { signal });
+    canvas.addEventListener("pointermove", (event) => {
+      if (!drag || event.pointerId !== drag.pointer_id) return;
+      mode = "manual";
+      view.x = drag.origin_x + event.clientX - drag.x;
+      view.y = drag.origin_y + event.clientY - drag.y;
+      apply4();
+    }, { signal });
+    const end_drag = (event) => {
+      if (drag?.pointer_id !== event.pointerId) return;
+      drag = void 0;
+      viewer.classList.remove("is-dragging");
+      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
+    };
+    canvas.addEventListener("pointerup", end_drag, { signal });
+    canvas.addEventListener("pointercancel", end_drag, { signal });
+    canvas.addEventListener("lostpointercapture", end_drag, { signal });
+    canvas.addEventListener("dblclick", () => fit(), { signal });
+    ready_frame = requestAnimationFrame(() => {
+      if (closed) return;
+      media.initial_fit ? fit(false, true) : reset2();
+      close_button.focus({ preventScroll: true });
+    });
+    return close2;
+  }
+
+  // src/reading_image_viewer.ts
+  function bind_reading_images(root, selector2 = "img") {
+    const layout2 = bind_reading_image_layout(root, selector2);
+    const selection = bind_reading_image_selection(root, selector2);
+    const controls = bind_reading_media_entries(root), entries3 = /* @__PURE__ */ new Map();
+    const controller = new AbortController(), { signal } = controller;
+    let disposed = false, frame3 = 0;
+    let session;
+    const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
+    const close_session = () => {
+      session?.close(false);
+      session = void 0;
+    };
+    const open2 = (image, entry, from_image = false) => {
+      const url = source_url(image);
+      if (!url) return;
+      entry.control.collapse();
+      close_session();
+      const copy = new Image();
+      copy.alt = image.alt;
+      copy.draggable = false;
+      const close2 = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label: image.alt || workspace_text("reading_image_viewer_view_image_in_full_screen"), origin: from_image ? void 0 : entry.control.button, initial_fit: true });
+      session = { image, url, close: close2 };
+      copy.src = url;
+    };
+    const schedule = () => {
+      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
+    };
+    function update2() {
+      frame3 = 0;
+      if (disposed) return;
+      const images = new Set([...root.querySelectorAll(selector2)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
+      layout2.update(images);
+      selection.update();
+      for (const [image, entry] of entries3) if (!images.has(image) || !entry.control.button.isConnected) {
+        entry.extras.dispose();
+        entry.control.dispose();
+        entries3.delete(image);
+      }
+      for (const image of images) {
+        let entry = entries3.get(image);
+        if (!entry) {
+          const extras = create_reading_image_controls(image);
+          const control = controls.add({ source: image, host: image, label: image.alt ? workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", { value_0: String(image.alt) }) : workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"), button_class: "reading-image-open", controls: extras.controls, refresh_controls: extras.refresh, cancel_controls: extras.cancel, open: () => open2(image, entries3.get(image)) });
+          entry = { control, extras, url: source_url(image) };
+          entries3.set(image, entry);
+        }
+        const url = source_url(image);
+        if (entry.url !== url) {
+          entry.control.collapse();
+          entry.url = url;
+        }
+        entry.control.set_enabled(Boolean(url));
+        entry.extras.refresh();
+      }
+      if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
+    }
+    const observer3 = new MutationObserver((changes) => {
+      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
+    });
+    observer3.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
+    root.addEventListener("load", schedule, { capture: true, signal });
+    root.addEventListener("error", schedule, { capture: true, signal });
+    root.addEventListener("dblclick", (event) => {
+      if (!(event instanceof MouseEvent) || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      const image = event.composedPath().find((node) => node instanceof HTMLImageElement && entries3.has(node));
+      if (!image || !source_url(image)) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+      open2(image, entries3.get(image), true);
+    }, { capture: true, signal });
+    schedule();
+    return { dispose() {
+      if (disposed) return;
+      disposed = true;
+      close_session();
+      controller.abort();
+      cancelAnimationFrame(frame3);
+      observer3.disconnect();
+      for (const [image, entry] of entries3) {
+        entry.extras.dispose();
+        entry.control.dispose();
+      }
+      entries3.clear();
+      controls.dispose();
+      layout2.dispose();
+      selection.dispose();
+    } };
+  }
+
+  // src/git_markdown_images.ts
+  var attribute = "data-git-image-path";
+  var selector = "img[" + attribute + "]";
+  function sanitize_git_markdown(html5, view) {
+    if (/<img\b/i.test(html5)) {
+      const template = document.createElement("template");
+      template.innerHTML = html5;
+      for (const image of template.content.querySelectorAll("img")) {
+        image.setAttribute(attribute, image.getAttribute("src") || "");
+        image.removeAttribute("src");
+        image.removeAttribute("srcset");
+      }
+      html5 = template.innerHTML;
+    }
+    const forbidden = ["style", "iframe", "object", "embed", "form", "audio", "video", "source"];
+    if (view === "diff") forbidden.push("svg", "math");
+    return purify_default.sanitize(html5, {
+      FORBID_TAGS: forbidden,
+      FORBID_ATTR: ["src", "srcset", "style", "id", "name", "contenteditable", "autofocus", "background", "poster"],
+      ALLOW_DATA_ATTR: false,
+      ADD_ATTR: [attribute]
+    });
+  }
+  function bind_git_markdown_images(root) {
+    const viewer = bind_reading_images(root, selector);
+    let controller = new AbortController();
+    const urls = /* @__PURE__ */ new Set();
+    function clear() {
+      controller.abort();
+      controller = new AbortController();
+      for (const url of urls) URL.revokeObjectURL(url);
+      urls.clear();
+    }
+    async function load(read3, side) {
+      const { signal } = controller;
+      const sources = /* @__PURE__ */ new Map();
+      const query = side ? "[data-side=" + side + "] " + selector : selector;
+      for (const image of root.querySelectorAll(query)) {
+        if (signal.aborted) return;
+        const href = image.getAttribute(attribute) || "";
+        const fallback2 = (error) => {
+          if (signal.aborted) return;
+          const label = document.createElement("span");
+          label.className = "markdown-diff-attachment";
+          label.textContent = (image.alt || workspace_text("git_markdown_diff_image")) + " [" + href + "]";
+          label.title = error instanceof Error ? error.message : href;
+          image.replaceWith(label);
+        };
+        if (!read3) {
+          fallback2();
+          continue;
+        }
+        try {
+          let url = sources.get(href);
+          if (!url) {
+            const blob = await read3(href, signal);
+            if (signal.aborted) return;
+            const object_url = URL.createObjectURL(blob);
+            urls.add(object_url);
+            url = object_url + (blob.type === "image/svg+xml" ? "#image.svg" : "");
+            sources.set(href, url);
+          }
+          image.onerror = () => fallback2();
+          image.src = url;
+        } catch (error) {
+          fallback2(error);
+        }
+      }
+    }
+    return { load, clear, dispose() {
+      clear();
+      viewer.dispose();
+    } };
+  }
+
   // src/workspace_markdown_theme.ts
   var cached_rules;
   var observer2;
@@ -216613,7 +217700,7 @@ https://creativecommons.org/licenses/by/4.0/
           let text6 = rule.cssText;
           if (rule instanceof CSSStyleRule && /^(?:html|body)(?:[.#:\[]|$)/u.test(rule.selectorText)) {
             const variables = [...rule.style].filter((name) => name.startsWith("--")).map((name) => name + ":" + rule.style.getPropertyValue(name) + (rule.style.getPropertyPriority(name) ? " !important" : "") + ";").join("");
-            if (variables && rule.selectorText.split(",").every((selector) => /^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector.trim()))) text6 = rule.selectorText.split(",").map((selector) => ":host-context(" + selector.trim() + ")").join(",") + "{" + variables + "}";
+            if (variables && rule.selectorText.split(",").every((selector2) => /^(?:html|body)(?:[.#][\w-]+)*$/u.test(selector2.trim()))) text6 = rule.selectorText.split(",").map((selector2) => ":host-context(" + selector2.trim() + ")").join(",") + "{" + variables + "}";
           }
           if (!(text6.includes("#write") || text6.startsWith(":root") || text6.startsWith(":host-context(") || text6.startsWith("@font-face") || /^\.(?:md-fences|cm-s-inner|CodeMirror)(?:[\s.,:#\[]|\s*\{)/u.test(text6) || /^(?:h[1-6]|p|a|ul|ol|li|blockquote|table|thead|tbody|tr|th|td|pre|code|strong|em|img|hr)(?:[\s.,:#\[]|\s*\{)/u.test(text6))) return "";
           if (sheet.href) text6 = text6.replace(/url\((['"]?)([^)'"\s]+)\1\)/gu, (_all, _quote, url) => "url(" + JSON.stringify(new URL(url, sheet.href).href) + ")");
@@ -216634,8 +217721,8 @@ https://creativecommons.org/licenses/by/4.0/
     if (users) cached_rules = text4;
     return inherited + text4;
   }
-  function markdown_scoped_theme_rules(selector) {
-    return "@scope (".concat(selector, ") {").concat(markdown_theme_rules().replace(/:host-context\(([^)]+)\)/gu, "$1").replace(/content\s*>\s*#write/gu, ":scope").replace(/#write\b/gu, ":scope").replace(/:host\b/gu, ":scope"), "}");
+  function markdown_scoped_theme_rules(selector2) {
+    return "@scope (".concat(selector2, ") {").concat(markdown_theme_rules().replace(/:host-context\(([^)]+)\)/gu, "$1").replace(/content\s*>\s*#write/gu, ":scope").replace(/#write\b/gu, ":scope").replace(/:host\b/gu, ":scope"), "}");
   }
 
   // src/reading_native_code.ts
@@ -217110,8 +218197,6 @@ https://creativecommons.org/licenses/by/4.0/
     const result = [];
     let offset = 0, line = 1;
     if (front) tokens.unshift({ type: "code", raw: front, text: front, lang: "yaml" });
-    const renderer = new visual_marked.Renderer();
-    renderer.image = (token) => '<span class="markdown-diff-attachment">'.concat(escape6(token.text || workspace_text("git_markdown_diff_image")), " [").concat(escape6(token.href), "]</span>");
     for (const token of tokens) {
       if (!current2()) return [];
       const found = text4.indexOf(token.raw, offset), start = found < 0 ? offset : found;
@@ -217120,7 +218205,7 @@ https://creativecommons.org/licenses/by/4.0/
       line += gap.split("\n").length - 1;
       const end = line + token.raw.replace(/\n+$/u, "").split("\n").length - 1;
       const single = Object.assign([token], { links: tokens.links });
-      let html5 = purify_default.sanitize(visual_marked.parser(single, { gfm: true, renderer }), { FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "img", "audio", "video", "source", "svg", "math"], FORBID_ATTR: ["style", "id", "name", "contenteditable", "autofocus"], ALLOW_DATA_ATTR: false });
+      let html5 = sanitize_git_markdown(visual_marked.parser(single, { gfm: true }), "diff");
       if (!html5.trim() && token.raw.trim()) html5 = "<pre><code>" + escape6(token.raw) + "</code></pre>";
       if (token.raw.trim()) result.push({ raw: token.raw, html: html5, start: line, end });
       line += token.raw.split("\n").length - 1;
@@ -217166,6 +218251,7 @@ https://creativecommons.org/licenses/by/4.0/
     scroll.tabIndex = 0;
     reader.id = "write";
     shadow.append(style, reader);
+    const images = bind_git_markdown_images(reader);
     const overview = create_markdown_overview(scroll, reader);
     container.append(overview.container);
     let last_side = "right";
@@ -217247,8 +218333,9 @@ https://creativecommons.org/licenses/by/4.0/
         if (anchor) restore(anchor);
         overview.refresh();
       },
-      async render(left, right, changes, labels) {
+      async render(left, right, changes, labels, sources) {
         const request = ++generation, current2 = () => !disposed && generation === request;
+        images.clear();
         container.dataset.ready = "false";
         const [old_blocks, new_blocks] = await Promise.all([blocks(left, current2), blocks(right, current2)]);
         if (!current2()) return;
@@ -217316,6 +218403,7 @@ https://creativecommons.org/licenses/by/4.0/
         scroll.scrollTop = top;
         container.dataset.ready = "true";
         font?.refresh();
+        const load_images = Promise.all([images.load(sources?.left, "left"), images.load(sources?.right, "right")]);
         await render_visual_math(reader, current2);
         for (const code of code_tasks) {
           if (!current2()) return;
@@ -217324,8 +218412,10 @@ https://creativecommons.org/licenses/by/4.0/
           if (!current2()) return;
           await git_yield();
         }
+        await load_images;
       },
       invalidate() {
+        images.clear();
         generation++;
         container.dataset.ready = "false";
         overview.suspend();
@@ -217333,6 +218423,7 @@ https://creativecommons.org/licenses/by/4.0/
       dispose() {
         disposed = true;
         generation++;
+        images.dispose();
         observer3();
         font?.dispose();
         overview.dispose();
@@ -217721,7 +218812,7 @@ https://creativecommons.org/licenses/by/4.0/
       if (anchor) this.pending_anchor = anchor;
       const task = (async () => {
         try {
-          await this.markdown_preview.render(this.models[0].getValue(), this.models[1].getValue(), changes, [this.data.left_label || git_graph_text("diff.original"), this.data.right_label || git_graph_text("diff.modified")]);
+          await this.markdown_preview.render(this.models[0].getValue(), this.models[1].getValue(), changes, [this.data.left_label || git_graph_text("diff.original"), this.data.right_label || git_graph_text("diff.modified")], this.data.images);
           if (!this.disposed && epoch2 === this.markdown_epoch && input_epoch === this.input_epoch && anchor) this.restore_content_anchor(anchor);
           if (epoch2 === this.markdown_epoch) this.pending_anchor = void 0;
         } catch (error) {
@@ -223596,215 +224687,6 @@ https://creativecommons.org/licenses/by/4.0/
     return host;
   }
 
-  // src/reading_media_viewer.css
-  var reading_media_viewer_default = "";
-
-  // src/reading_media_viewer.ts
-  var MAXIMUM_ZOOM = 6;
-  var ZOOM_FACTOR = 1.25;
-  var active_close;
-  var media_sources = /* @__PURE__ */ new WeakMap();
-  function reading_media_source_for_event(event) {
-    for (const node of event.composedPath()) if (node instanceof Element) {
-      const source = media_sources.get(node);
-      if (source) return source;
-    }
-  }
-  function close_reading_media() {
-    active_close?.(false);
-  }
-  function open_reading_media(media) {
-    active_close?.(false);
-    const previous = capture_workspace_focus(media.origin);
-    const viewer = workspace_element("section", "reading-media-viewer"), header = workspace_element("div", "reading-media-header"), toolbar = workspace_element("div", "reading-media-toolbar");
-    if (media.source) media_sources.set(viewer, media.source);
-    viewer.setAttribute("role", "dialog");
-    viewer.setAttribute("aria-modal", "true");
-    viewer.setAttribute("aria-label", media.label);
-    toolbar.setAttribute("aria-label", workspace_text("reading_media_viewer_zoom_control"));
-    const output = workspace_element("output"), canvas = workspace_element("div", "reading-media-canvas"), positioner = workspace_element("div", "reading-media-positioner"), content = workspace_element("div", "reading-media-content");
-    const hint = workspace_element("div", "reading-media-hint", workspace_text("reading_media_viewer_ctrl_wheel_zoom_left_click_and_drag_esc_exit"));
-    const button = (action, label, icon) => {
-      const node = workspace_element("button", "", icon ? "" : label);
-      node.type = "button";
-      node.dataset.action = action;
-      node.title = label;
-      node.setAttribute("aria-label", label);
-      if (icon) node.append(git_icon(icon));
-      return node;
-    };
-    const close_button = button("close", workspace_text("reading_media_viewer_exit_full_screen"));
-    close_button.prepend(git_icon("close"));
-    toolbar.append(button("zoom-out", workspace_text("reading_media_viewer_zoom_in"), "remove"), output, button("zoom-in", workspace_text("reading_media_viewer_zoom_out"), "add"), button("fit-width", workspace_text("reading_media_viewer_fit_width")), button("fit", workspace_text("reading_media_viewer_fit_screen")), button("reset", "100%"));
-    header.append(toolbar, close_button);
-    content.append(media.content);
-    positioner.append(content);
-    canvas.append(positioner);
-    viewer.append(header, canvas, hint);
-    const style = acquire_workspace_style("typora-code-style:reading_media_viewer", reading_media_viewer_default), interaction = acquire_workspace_interaction(viewer);
-    document.body.append(viewer);
-    document.body.classList.add("reading-media-viewer-open");
-    let closed = false, ready_frame = 0, failed = false, fit_initial = false, mode = "manual";
-    const controller = new AbortController(), signal = controller.signal;
-    const view = { scale: 1, x: 0, y: 0 };
-    let drag;
-    const controls = () => [...viewer.querySelectorAll("button")].filter((node) => !node.disabled);
-    const apply4 = () => {
-      viewer.style.setProperty("--reading-media-scale", String(view.scale));
-      viewer.style.setProperty("--reading-media-pan-x", "".concat(view.x, "px"));
-      viewer.style.setProperty("--reading-media-pan-y", "".concat(view.y, "px"));
-      output.value = "".concat(Number((view.scale * 100).toFixed(view.scale < 0.1 ? 2 : 0)), "%");
-      output.textContent = output.value;
-    };
-    const fit_scale = () => Math.min(canvas.clientWidth / media.width, canvas.clientHeight / media.height) * 0.88;
-    const zoom = (scale, x = 0, y = 0) => {
-      if (failed) return;
-      mode = "manual";
-      const next = Math.max(Math.min(0.2, fit_scale()), Math.min(MAXIMUM_ZOOM, scale)), ratio = next / view.scale;
-      view.x = x - (x - view.x) * ratio;
-      view.y = y - (y - view.y) * ratio;
-      view.scale = next;
-      apply4();
-    };
-    const fit = (width2 = false, initial = false) => {
-      if (failed || !canvas.clientWidth || !canvas.clientHeight) return;
-      fit_initial = initial;
-      mode = width2 ? "fit-width" : "fit";
-      view.scale = Math.min(initial ? 1 : MAXIMUM_ZOOM, width2 ? canvas.clientWidth / media.width * 0.92 : fit_scale());
-      view.x = view.y = 0;
-      apply4();
-    };
-    const reset2 = () => {
-      if (failed) return;
-      mode = "manual";
-      view.scale = 1;
-      view.x = view.y = 0;
-      apply4();
-    };
-    const dispose_theme = observe_workspace_theme(() => {
-      const background = workspace_surface_background(document.querySelector("content > #write") || document.body);
-      const dark = background[0] * 0.2126 + background[1] * 0.7152 + background[2] * 0.0722 < 128;
-      viewer.style.setProperty("--reading-media-background", "rgb(".concat(background.join(","), ")"));
-      viewer.dataset.theme = dark ? "dark" : "light";
-    });
-    const resize = new ResizeObserver(() => {
-      if (mode !== "manual") fit(mode === "fit-width", fit_initial);
-    });
-    resize.observe(canvas);
-    const close2 = (restore = true) => {
-      if (closed) return;
-      const owns_focus = escape_layer.owns_focus();
-      closed = true;
-      if (active_close === close2) active_close = void 0;
-      escape_layer.dispose();
-      controller.abort();
-      source_observer.disconnect();
-      cancelAnimationFrame(ready_frame);
-      resize.disconnect();
-      dispose_theme();
-      media_sources.delete(viewer);
-      viewer.remove();
-      interaction.remove();
-      style.remove();
-      document.body.classList.remove("reading-media-viewer-open");
-      if (restore && owns_focus) previous.restore();
-    };
-    const escape_layer = register_workspace_dismissal(() => [viewer], () => close2(), { outside: false, focus_out: false });
-    const source_observer = new MutationObserver(() => {
-      if (media.source && (!media.source.isConnected || !media.source.getClientRects().length || getComputedStyle(media.source).visibility !== "visible")) close2(false);
-    });
-    if (media.source) {
-      source_observer.observe(document.body, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
-      const root = media.source.getRootNode();
-      if (root instanceof ShadowRoot) source_observer.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["hidden", "class", "style"] });
-    }
-    active_close = close2;
-    const error = () => {
-      if (closed) return;
-      failed = true;
-      content.replaceChildren(workspace_element("p", "reading-media-error", workspace_text("reading_media_viewer_image_cannot_be_loaded_please_close_and_reopen")));
-      content.style.transform = "none";
-      for (const node of toolbar.querySelectorAll("button")) node.disabled = true;
-      output.value = "";
-      output.textContent = "";
-      drag = void 0;
-      viewer.classList.remove("is-dragging");
-    };
-    if (media.content instanceof HTMLImageElement) media.content.addEventListener("error", error, { signal });
-    viewer.addEventListener("click", (event) => {
-      const action = event.target.closest("button[data-action]")?.dataset.action;
-      if (!action) return;
-      event.preventDefault();
-      event.stopPropagation();
-      if (action === "close") close2();
-      else if (action === "zoom-in") zoom(view.scale * ZOOM_FACTOR);
-      else if (action === "zoom-out") zoom(view.scale / ZOOM_FACTOR);
-      else if (action === "fit") fit();
-      else if (action === "fit-width") fit(true);
-      else if (action === "reset") reset2();
-    }, { signal });
-    window.addEventListener("keydown", (event) => {
-      if (closed || !escape_layer.is_top()) return;
-      const primary = (event.ctrlKey || event.metaKey) && !event.altKey;
-      if (event.key === "Tab") {
-        const nodes = controls(), index = nodes.indexOf(document.activeElement);
-        const target = event.shiftKey ? index <= 0 ? nodes.at(-1) : nodes[index - 1] : nodes[(index + 1) % nodes.length];
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        target?.focus({ preventScroll: true });
-        return;
-      }
-      if (primary && ["+", "=", "-", "0"].includes(event.key)) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-        if (event.key === "0") reset2();
-        else zoom(view.scale * (event.key === "-" ? 1 / ZOOM_FACTOR : ZOOM_FACTOR));
-        return;
-      }
-      if (primary) {
-        event.preventDefault();
-        event.stopImmediatePropagation();
-      }
-    }, { capture: true, signal });
-    canvas.addEventListener("wheel", (event) => {
-      event.preventDefault();
-      event.stopPropagation();
-      if (!(event.ctrlKey || event.metaKey)) return;
-      const bounds = canvas.getBoundingClientRect();
-      zoom(view.scale * Math.exp(-event.deltaY * 2e-3), event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
-    }, { passive: false, signal });
-    canvas.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 || failed) return;
-      event.preventDefault();
-      drag = { pointer_id: event.pointerId, x: event.clientX, y: event.clientY, origin_x: view.x, origin_y: view.y };
-      canvas.setPointerCapture(event.pointerId);
-      viewer.classList.add("is-dragging");
-    }, { signal });
-    canvas.addEventListener("pointermove", (event) => {
-      if (!drag || event.pointerId !== drag.pointer_id) return;
-      mode = "manual";
-      view.x = drag.origin_x + event.clientX - drag.x;
-      view.y = drag.origin_y + event.clientY - drag.y;
-      apply4();
-    }, { signal });
-    const end_drag = (event) => {
-      if (drag?.pointer_id !== event.pointerId) return;
-      drag = void 0;
-      viewer.classList.remove("is-dragging");
-      if (canvas.hasPointerCapture(event.pointerId)) canvas.releasePointerCapture(event.pointerId);
-    };
-    canvas.addEventListener("pointerup", end_drag, { signal });
-    canvas.addEventListener("pointercancel", end_drag, { signal });
-    canvas.addEventListener("lostpointercapture", end_drag, { signal });
-    canvas.addEventListener("dblclick", () => fit(), { signal });
-    ready_frame = requestAnimationFrame(() => {
-      if (closed) return;
-      media.initial_fit ? fit(false, true) : reset2();
-      close_button.focus({ preventScroll: true });
-    });
-    return close2;
-  }
-
   // src/visual_code_view_shadow.css
   var visual_code_view_shadow_default = '.visual-code-view{display:block;position:relative;clear:both;max-width:100%;white-space:normal;contain:layout style}\n.visual-code-view[data-visual-state="idle"]{min-height:64px}\n.visual-code-frame{display:block;width:100%;height:160px;border:0;background:transparent}\n.visual-code-error{white-space:pre-wrap;overflow-wrap:anywhere;color:var(--vscode-errorForeground,#f14c4c)}\n.visual-code-view [hidden]{display:none!important}\n.visual-code-view pre{white-space:pre-wrap;overflow-wrap:anywhere;max-height:360px;overflow:auto}\n\n.visual-code-view>button{font:inherit;color:inherit;background:transparent;border:0;padding:4px 8px;cursor:pointer}\n/* VS Code 6807068 semantic colors, 4px control rounding: only draw within the declared UI range.\n   Internal variables are used for default/selected priority; public variables are for domain override, avoiding competition for hover selector. */\n:root {\n  /* R061: partition uses existing SCM compact slots; tree slots use 645f29c tree.css, depth defaults to 8px. */\n  --workspace-disclosure-inset:4px;\n  --workspace-disclosure-size:16px;\n  --workspace-disclosure-gap:4px;\n  --workspace-tree-indent:8px;\n  --workspace-tree-twistie-gap:6px;\n  --workspace-tree-twistie-offset:3px;\n  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#00000025);\n  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#202020);\n  --workspace-control-radius:var(--vscode-cornerRadius-small,4px);\n  --workspace-hover-background:var(--vscode-list-hoverBackground,#00000014);\n  --workspace-hover-foreground:var(--vscode-list-hoverForeground,#202020);\n  --workspace-action-hover:var(--vscode-toolbar-hoverBackground,#0000001f);\n  --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#eaeaea);\n  --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#0069cc1a);\n  --workspace-focus-border:var(--vscode-focusBorder,#0069cc);\n  /* 6807068 Light/Dark 2026: selected background and foreground must be toggled in pairs. */\n  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#dadada99);\n  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#202020);\n}\n:root[data-workspace-file-icon-theme="dark"] {\n  --workspace-list-active-background:var(--vscode-list-activeSelectionBackground,#ffffff22);\n  --workspace-list-active-foreground:var(--vscode-list-activeSelectionForeground,#ededed);\n  --workspace-hover-background:var(--vscode-list-hoverBackground,#ffffff14);\n  --workspace-hover-foreground:var(--vscode-list-hoverForeground,#bfbfbf);\n  --workspace-action-hover:var(--vscode-toolbar-hoverBackground,#5a5d5e50);\n  --workspace-menu-hover:var(--vscode-menubar-selectionBackground,#242526);\n  --workspace-menu-item-hover:var(--vscode-menu-selectionBackground,#3994bc26);\n  --workspace-focus-border:var(--vscode-focusBorder,#3994bcb3);\n  --linux-note-shell-inactive-selection-background:var(--vscode-list-inactiveSelectionBackground,#2c2d2e);\n  --linux-note-shell-inactive-selection-foreground:var(--vscode-list-inactiveSelectionForeground,#ededed);\n}\n:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))) { --workspace-default-hover:var(--workspace-action-hover);--workspace-default-foreground:var(--workspace-hover-foreground); }\n:where([data-workspace-interaction="row"],[data-workspace-interaction="tab"],[data-workspace-interaction="activity"],[role="tab"],[role="treeitem"],summary) { --workspace-default-hover:var(--workspace-hover-background); }\n:where([role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]) { --workspace-default-hover:var(--workspace-menu-item-hover);--workspace-default-foreground:var(--vscode-menu-selectionForeground,var(--workspace-hover-foreground)); }\n:where([data-workspace-interaction="menu"],[role="menubar"]>[role="menuitem"]) { --workspace-default-hover:var(--workspace-menu-hover);--workspace-default-foreground:var(--workspace-hover-foreground); }\n/* VS Code button.css theme roles: main operations share colors, domains only retain size and split shape. */\n:is(body,[data-workspace-reader-controls]) [data-workspace-interaction="primary"]:not(:where([data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *)) {\n  background-color:var(--vscode-button-background,#0078d4)!important;\n  color:var(--vscode-button-foreground,#fff)!important;\n  --workspace-interaction-hover:var(--vscode-button-hoverBackground,#006cbe);\n  --workspace-interaction-foreground:var(--vscode-button-foreground,#fff);\n}\n/* Local shapes are not inherited to sub-operations; cross-control defaults are managed by control-radius.\n   Stable rounding overrides default/hover/selected/disabled, without changing the hit box size or content clipping. */\n:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *)) { --workspace-interaction-radius:initial; }\n:is(body,[data-workspace-reader-controls]) :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *)) { border-radius:var(--workspace-interaction-radius,var(--workspace-control-radius))!important; }\n/* The real selected state is maintained by the domain, hover does not clear selected; ordinary menus checked only indicate toggle. */\n:where([role="treeitem"][aria-selected="true"],[role="tab"][aria-selected="true"],button.selected,[role="button"].selected) { --workspace-default-hover:var(--linux-note-shell-inactive-selection-background);--workspace-default-foreground:var(--linux-note-shell-inactive-selection-foreground); }\n:where([data-workspace-interaction="activity"][aria-pressed="true"]) { --workspace-default-hover:var(--workspace-activity-active-background,#dadada99);--workspace-default-foreground:var(--workspace-activity-active-foreground,#202020); }\n/* :where zero state selector weight, avoid :disabled/selected priority being changed by :not quantity. */\n:is(body,[data-workspace-reader-controls]) :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:hover):not(:has(:where(:is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"]))):hover)) {\n  background-color:var(--workspace-interaction-hover,var(--workspace-default-hover))!important;\n  color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;\n}\n:is(body,[data-workspace-reader-controls]) :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where(:focus-visible) { outline:1px solid var(--workspace-focus-border)!important;outline-offset:-1px; }\n:is(body,[data-workspace-reader-controls]) :is([data-workspace-interaction],:where([data-workspace-surface]) :is(button,summary,[role="button"],[role="tab"],[role="treeitem"],[role="menuitem"],[role="menuitemcheckbox"],[role="menuitemradio"])):not(:where([data-workspace-interaction="none"],[data-workspace-interaction="none"] *,.monaco-editor *,.cm-editor *,.CodeMirror *,.xterm *,#write *:not([data-workspace-reader-controls] *),#typora-source *,[inert],[inert] *,:disabled,[aria-disabled="true"],[aria-disabled="true"] *)):where([data-workspace-interaction="menu"][aria-expanded="true"],[role="menuitem"]:focus-visible,[role="menuitemcheckbox"]:focus-visible,[role="menuitemradio"]:focus-visible) {\n  background-color:var(--workspace-interaction-hover,var(--workspace-default-hover))!important;\n  color:var(--workspace-interaction-foreground,var(--workspace-default-foreground))!important;\n}\n\n/* The outer margin and full-line background of the first sidebar partition are unified; each view continues to have height, folding, and tool visibility. */\nbody .workspace-section-header.workspace-section-header {\n  box-sizing:border-box; margin-left:var(--workspace-disclosure-inset);margin-right:var(--workspace-disclosure-inset);\n  padding-left:0;padding-right:0;min-width:0;width:calc(100% - 2 * var(--workspace-disclosure-inset));\n  --workspace-interaction-hover:var(--workspace-hover-background);background-color:transparent;\n  border-radius:var(--workspace-control-radius);\n}\nbody .workspace-section-header.workspace-section-header:hover {background-color:var(--workspace-hover-background)!important;}\nbody .workspace-section-header > .workspace-section-title {--workspace-interaction-hover:transparent;}\nbody .workspace-section-header > .workspace-section-actions {margin-right:0;}\n\n/* R020.1: common full-line state for list/tree. Business modules only project keys, not copy selected background. */\n[data-workspace-list] {--workspace-list-surface:var(--workspace-list-background,var(--vscode-sideBar-background,#fafafd));}\nbody [data-workspace-list] [data-workspace-selected] {\n  --workspace-row-background:transparent;\n  --workspace-row-foreground:inherit;\n  --workspace-interaction-hover:var(--vscode-list-hoverBackground,#00000014);\n  --workspace-interaction-foreground:var(--vscode-list-hoverForeground,inherit);\n  background-color:var(--workspace-row-background)!important;color:var(--workspace-row-foreground)!important;\n}\nbody [data-workspace-list] [data-workspace-selected=false]:hover {--workspace-row-background:var(--workspace-hover-background);--workspace-row-foreground:var(--workspace-hover-foreground);}\nbody [data-workspace-list] [data-workspace-selected=true] {\n  --workspace-row-background:var(--linux-note-shell-inactive-selection-background);\n  --workspace-row-foreground:var(--linux-note-shell-inactive-selection-foreground);\n  --workspace-interaction-hover:var(--workspace-row-background);\n  --workspace-interaction-foreground:var(--workspace-row-foreground);\n}\nbody [data-workspace-list]:focus-within [data-workspace-selected=true] {\n  --workspace-row-background:var(--workspace-list-active-background);\n  --workspace-row-foreground:var(--workspace-list-active-foreground);\n}\nbody [data-workspace-list]:focus-visible [data-workspace-focused=true],\nbody [data-workspace-list] [data-workspace-focused=true]:focus-visible {outline:1px solid var(--vscode-list-focusOutline,var(--workspace-focus-border))!important;outline-offset:-1px;}\n\n';
 
@@ -224322,809 +225204,6 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
-  // src/reading_image_selector.ts
-  function reading_image_selector(image) {
-    const owner3 = image.getRootNode(), path2 = [];
-    for (let node = image; node; node = node.parentElement) {
-      path2.unshift("".concat(node.localName, ":nth-child(").concat(Array.prototype.indexOf.call(node.parentNode.children, node) + 1, ")"));
-      if (node.parentNode === owner3) break;
-    }
-    return path2.join(" > ");
-  }
-
-  // src/reading_image_settings.ts
-  var IMAGE_ALIGNMENT_VALUES = ["left", "center", "right"];
-  var IMAGE_SHADOW_VALUES = ["off", "soft", "medium", "strong"];
-  var READING_IMAGE_DEFAULTS = Object.freeze({ alignment: "center", scale: 100, size_mode: "natural", border: true, border_width: 2, border_radius: 4, padding_x: 8, padding_y: 8, border_opacity: 100, frame_width: "column", border_color_light: "", border_color_dark: "", shadow: "off" });
-  var KEY2 = "reading_images";
-  var listeners9 = /* @__PURE__ */ new Set();
-  var preview;
-  var appearance_preview;
-  var notify = () => {
-    for (const listener of listeners9) listener();
-  };
-  function valid_image_setting(key4, value) {
-    if (!Object.hasOwn(READING_IMAGE_DEFAULTS, key4)) return false;
-    if (value === void 0) return true;
-    if (key4 === "border") return typeof value === "boolean";
-    if (key4 === "alignment") return IMAGE_ALIGNMENT_VALUES.includes(value);
-    if (key4 === "shadow") return IMAGE_SHADOW_VALUES.includes(value);
-    if (key4.startsWith("border_color_")) return typeof value === "string" && /^(?:#[0-9a-f]{6}(?:[0-9a-f]{2})?)?$/i.test(value.trim());
-    if (key4 === "frame_width") return value === "content" || value === "column";
-    if (key4 === "padding_x" || key4 === "padding_y" || key4 === "border_opacity") return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= (key4 === "border_opacity" ? 100 : 48);
-    if (key4 === "border_radius") return typeof value === "number" && Number.isFinite(value) && value >= 0 && value <= 32;
-    if (key4 === "scale" || key4 === "border_width") return typeof value === "number" && Number.isFinite(value) && value >= (key4 === "scale" ? 20 : 0.5) && value <= (key4 === "scale" ? 600 : 8);
-    return value === "natural" || value === "fit_width";
-  }
-  function read_reading_image_settings() {
-    const value = get_workspace_app()?.settings.get(KEY2);
-    const current2 = { ...READING_IMAGE_DEFAULTS };
-    for (const key4 of Object.keys(current2)) if (value?.[key4] !== void 0 && valid_image_setting(key4, value[key4])) current2[key4] = typeof value[key4] === "string" ? value[key4].trim() : value[key4];
-    if (appearance_preview) current2[appearance_preview.key] = appearance_preview.value;
-    return { ...current2, scale: preview?.scale ?? current2.scale, size_mode: preview ? "natural" : current2.size_mode };
-  }
-  function write_reading_image_setting(key4, value) {
-    if (!valid_image_setting(key4, value)) throw Error(workspace_text("image_layout_invalid"));
-    const settings = get_workspace_app()?.settings;
-    if (!settings) throw Error(workspace_text("language_service_settings_the_workbench_settings_are_not_ready"));
-    const next = { ...settings.get(KEY2) || {} };
-    if (value === void 0) delete next[key4];
-    else next[key4] = typeof value === "string" ? value.trim() : value;
-    if (key4 === "scale") next.size_mode = "natural";
-    settings.set_and_save(KEY2, next);
-    preview = void 0;
-    appearance_preview = void 0;
-    notify();
-  }
-  function begin_reading_image_scale() {
-    const token = Symbol();
-    return { update(scale) {
-      if (!Number.isFinite(scale) || scale < 20 || scale > 600) return;
-      preview = { token, scale };
-      notify();
-    }, commit(scale) {
-      try {
-        write_reading_image_setting("scale", scale);
-      } finally {
-        if (preview?.token === token) {
-          preview = void 0;
-          notify();
-        }
-      }
-    }, cancel() {
-      if (preview?.token === token) {
-        preview = void 0;
-        notify();
-      }
-    } };
-  }
-  function begin_reading_image_appearance(key4) {
-    const token = Symbol();
-    const cancel = () => {
-      if (appearance_preview?.token === token) {
-        appearance_preview = void 0;
-        notify();
-      }
-    };
-    return { update(value) {
-      if (!valid_image_setting(key4, value)) return;
-      appearance_preview = { token, key: key4, value };
-      notify();
-    }, commit(value) {
-      try {
-        write_reading_image_setting(key4, value);
-      } finally {
-        cancel();
-      }
-    }, cancel };
-  }
-  function observe_reading_image_settings(listener) {
-    listeners9.add(listener);
-    return () => {
-      listeners9.delete(listener);
-    };
-  }
-  function reading_image_alignment_labels() {
-    return { left: workspace_text("image_layout_left"), center: workspace_text("image_layout_center"), right: workspace_text("image_layout_right") };
-  }
-
-  // src/reading_image_dimensions.ts
-  function reading_image_screen_density() {
-    const density = window.devicePixelRatio;
-    return Number.isFinite(density) && density > 0 ? density : 1;
-  }
-  function reading_image_uses_screen_pixels(image) {
-    const source = image.currentSrc || image.src;
-    return !image.srcset && !image.closest("picture")?.querySelector("source[srcset]") && !/^data:image\/svg\+xml[;,]/i.test(source) && !/\.svgz?(?:[?#]|$)/i.test(source);
-  }
-  function reading_image_natural_width(image) {
-    const style = getComputedStyle(image), readable = style.getPropertyValue("--reading-image-natural-width").trim();
-    if (readable.endsWith("em")) {
-      const width2 = parseFloat(readable) * parseFloat(style.fontSize);
-      if (Number.isFinite(width2) && width2 > 0) return width2;
-    }
-    return image.naturalWidth / (reading_image_uses_screen_pixels(image) ? reading_image_screen_density() : 1);
-  }
-
-  // src/reading_image_decoration.ts
-  function reading_image_decoration(settings, dark) {
-    const base_color = (dark ? settings.border_color_dark : settings.border_color_light) || "var(--theme-muted,var(--text-color,".concat(dark ? "#9d9d9d" : "#3b3b3b", "))");
-    const color = settings.border_opacity === 100 ? base_color : "color-mix(in srgb, ".concat(base_color, " ").concat(settings.border_opacity, "%, transparent)");
-    const width2 = settings.border ? settings.border_width : 0;
-    const shadows = { soft: "0 2px 8px rgb(0 0 0 / ".concat(dark ? 0.4 : 0.16, ")"), medium: "0 4px 12px rgb(0 0 0 / ".concat(dark ? 0.5 : 0.2, ")"), strong: "0 8px 24px rgb(0 0 0 / ".concat(dark ? 0.65 : 0.28, ")") };
-    return "box-sizing:border-box;padding:".concat(settings.padding_y, "px ").concat(settings.padding_x, "px;object-fit:contain;object-position:").concat(settings.alignment, ";border-radius:").concat(settings.border_radius, "px;--reading-image-decoration-width:").concat(width2, "px;").concat(settings.border ? "outline:".concat(width2, "px solid ").concat(color, ";outline-offset:-").concat(width2, "px;") : "").concat(shadows[settings.shadow] ? "box-shadow:".concat(shadows[settings.shadow], ";") : "");
-  }
-
-  // src/reading_image_layout.ts
-  function bind_reading_image_layout(root, selector) {
-    const owner3 = root.getRootNode(), style = document.createElement("style");
-    const dimensions = document.createElement("style");
-    style.dataset.readingImageLayout = "";
-    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(style);
-    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(dimensions);
-    const scope = ":is(".concat(selector, "):not(.md-diagram-panel-preview img,.reading-media-viewer img,.CodeMirror img,.md-emoji,.md-emoji img)");
-    const vectors = /* @__PURE__ */ new Map();
-    let images_current = [];
-    let disposed = false;
-    let density = reading_image_screen_density(), resolution;
-    let frame3 = 0;
-    const parents = /* @__PURE__ */ new Set();
-    const schedule = () => {
-      if (!disposed && !frame3) frame3 = requestAnimationFrame(() => {
-        frame3 = 0;
-        measure(images_current);
-      });
-    };
-    const resize = new ResizeObserver(schedule);
-    const update2 = () => {
-      const settings = read_reading_image_settings(), { alignment, scale, size_mode } = settings;
-      const css = "".concat(scope, "{").concat(reading_image_decoration(settings, workspace_theme_mode() === "dark"), "}").concat(scope, "{--reading-image-screen-density:").concat(density, ";width:auto!important;max-width:100%!important;height:auto!important}").concat(scope, ':not([style*="zoom" i]){width:').concat(size_mode === "fit_width" ? "100%" : "min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ".concat(scale / 100, " + var(--reading-image-border,0px)),").concat(scale, "%)"), "!important}").concat(scope, ":not(.md-expand img){display:block}").concat(scope, ':not([style*="margin" i]){margin-left:').concat(alignment === "left" ? "0" : "auto", "!important;margin-right:").concat(alignment === "right" ? "0" : "auto", "!important}");
-      if (style.textContent !== css) style.textContent = css;
-      measure(images_current);
-    };
-    const watch_density = () => {
-      resolution?.removeEventListener("change", density_changed);
-      resolution = window.matchMedia("(resolution: ".concat(density, "dppx)"));
-      resolution.addEventListener("change", density_changed);
-    };
-    const density_changed = () => {
-      const next = reading_image_screen_density();
-      if (next === density) return;
-      density = next;
-      watch_density();
-      update2();
-    };
-    watch_density();
-    window.addEventListener("resize", density_changed);
-    const release = observe_reading_image_settings(update2), release_theme3 = observe_workspace_theme(update2);
-    update2();
-    function measure(images) {
-      images_current = [...images];
-      const sources = new Set(images_current.map((image) => image.currentSrc || image.src));
-      for (const [source, entry] of vectors) if (!sources.has(source)) {
-        entry.controller.abort();
-        vectors.delete(source);
-      }
-      const rules = /* @__PURE__ */ new Set(), next_parents = /* @__PURE__ */ new Set(), settings = read_reading_image_settings();
-      for (const image of images) {
-        if (!image.naturalWidth) continue;
-        const source = image.getAttribute("src");
-        if (!source) continue;
-        const computed = getComputedStyle(image), border = computed.boxSizing === "border-box" ? ["borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight"].reduce((sum, key4) => sum + (parseFloat(computed[key4]) || 0), 0) : 0;
-        const resolved = image.currentSrc || image.src;
-        if (!reading_image_uses_screen_pixels(image) && !vectors.has(resolved)) {
-          const entry = { controller: new AbortController(), ratio: void 0 };
-          vectors.set(resolved, entry);
-          void linked_svg_text_width(resolved, entry.controller.signal).then((ratio2) => {
-            if (disposed || vectors.get(resolved) !== entry) return;
-            entry.ratio = ratio2;
-            if (ratio2) measure(images_current);
-          }).catch(() => {
-          });
-        }
-        const ratio = vectors.get(resolved)?.ratio;
-        rules.add("".concat(scope, '[src="').concat(CSS.escape(source), '"]{--reading-image-natural-width:').concat(ratio ? ratio + "em" : image.naturalWidth + "px", ";--reading-image-density:").concat(reading_image_uses_screen_pixels(image) ? "var(--reading-image-screen-density)" : "1", ";--reading-image-border:").concat(border, "px}"));
-      }
-      for (const image of images_current) {
-        if (!image.naturalWidth) continue;
-        let parent = image.parentElement;
-        while (parent && ["inline", "contents"].includes(getComputedStyle(parent).display)) parent = parent.parentElement;
-        if (!parent) continue;
-        next_parents.add(parent);
-        if (settings.frame_width !== "column" || image.style.zoom) continue;
-        const parent_style = getComputedStyle(parent), available = Math.max(1, parent.clientWidth - (parseFloat(parent_style.paddingLeft) || 0) - (parseFloat(parent_style.paddingRight) || 0) - settings.padding_x * 2);
-        const computed = getComputedStyle(image), vertical_border = (parseFloat(computed.borderTopWidth) || 0) + (parseFloat(computed.borderBottomWidth) || 0);
-        const content = settings.size_mode === "fit_width" ? available + "px" : "min(calc(var(--reading-image-natural-width) / var(--reading-image-density,1) * ".concat(settings.scale / 100, "),").concat(available * Math.min(1, settings.scale / 100), "px)");
-        rules.add("".concat(scope, ":is(").concat(reading_image_selector(image), "){width:100%!important;height:calc(").concat(content, " * ").concat(image.naturalHeight / image.naturalWidth, " + ").concat(settings.padding_y * 2 + vertical_border, "px)!important}"));
-      }
-      for (const parent of parents) if (!next_parents.has(parent)) {
-        resize.unobserve(parent);
-        parents.delete(parent);
-      }
-      for (const parent of next_parents) if (!parents.has(parent)) {
-        parents.add(parent);
-        resize.observe(parent);
-      }
-      const text4 = [...rules].join("\n");
-      if (dimensions.textContent !== text4) dimensions.textContent = text4;
-    }
-    ;
-    return { update: measure, dispose() {
-      disposed = true;
-      cancelAnimationFrame(frame3);
-      resize.disconnect();
-      parents.clear();
-      for (const entry of vectors.values()) entry.controller.abort();
-      vectors.clear();
-      release();
-      release_theme3();
-      window.removeEventListener("resize", density_changed);
-      resolution.removeEventListener("change", density_changed);
-      style.remove();
-      dimensions.remove();
-    } };
-  }
-
-  // src/reading_image_selection.ts
-  function bind_reading_image_selection(root, selector) {
-    const owner3 = root.getRootNode(), style = document.createElement("style");
-    style.dataset.readingImageSelection = "";
-    (owner3 instanceof ShadowRoot ? owner3 : document.head).append(style);
-    const events = new AbortController(), { signal } = events;
-    let selected, source = "";
-    const clear = () => {
-      selected = void 0;
-      source = "";
-      style.textContent = "";
-    };
-    const update2 = () => {
-      if (!selected) return;
-      if (!root.contains(selected) || !selected.isConnected || selected.getAttribute("src") !== source) {
-        clear();
-        return;
-      }
-      const width2 = "max(3px,calc(var(--reading-image-decoration-width,0px) + 1px))";
-      const rule = "".concat(reading_image_selector(selected), "{outline:").concat(width2, " solid var(--workspace-focus-border,var(--vscode-focusBorder,#0069cc))!important;outline-offset:calc(-1 * ").concat(width2, ")!important}");
-      if (style.textContent !== rule) style.textContent = rule;
-    };
-    const is_control = (path2) => path2.some((node) => node instanceof Element && node.matches(".reading-media-entries,.reading-media-viewer"));
-    document.addEventListener("pointerdown", (event) => {
-      if (event.button !== 0 || is_control(event.composedPath())) return;
-      const image = event.composedPath().find((node) => node instanceof HTMLImageElement && root.contains(node) && node.matches(selector) && !node.closest(".md-diagram-panel-preview,.CodeMirror,.reading-media-viewer") && !node.matches(".md-emoji,.md-emoji img"));
-      clear();
-      if (image) {
-        selected = image;
-        source = image.getAttribute("src") || "";
-        update2();
-      }
-    }, { capture: true, signal });
-    document.addEventListener("keydown", (event) => {
-      if (is_control(event.composedPath())) return;
-      if (event.key === "Escape" || !event.ctrlKey && !event.metaKey && !event.altKey && event.key !== "Shift") clear();
-    }, { capture: true, signal });
-    return { update: update2, dispose() {
-      events.abort();
-      clear();
-      style.remove();
-    } };
-  }
-
-  // src/reading_image_appearance_controls.ts
-  function create_reading_image_appearance_controls(image, fail) {
-    const rows = Array.from({ length: 8 }, () => workspace_element("div", "reading-image-control-row reading-image-appearance"));
-    rows[0].append(workspace_element("span", "reading-image-scope", workspace_text("image_appearance_global")));
-    let mode = workspace_theme_mode();
-    const drafts = /* @__PURE__ */ new Set(), events = new AbortController(), { signal } = events;
-    const fields = /* @__PURE__ */ new Map();
-    const ranges2 = /* @__PURE__ */ new Map();
-    let gesture;
-    const color_key = () => mode === "dark" ? "border_color_dark" : "border_color_light";
-    const save2 = (key4, value) => {
-      try {
-        write_reading_image_setting(key4, value);
-      } catch (error) {
-        fail(error);
-      }
-      sync();
-    };
-    const toggle = workspace_button(workspace_text("image_border"), () => save2("border", !read_reading_image_settings().border), "reading-media-open");
-    toggle.dataset.imageAppearance = "border";
-    function field(key4, title2, min, max) {
-      const label = workspace_element("label", "reading-image-appearance-field"), input = workspace_element("input");
-      input.type = min === void 0 ? "text" : "number";
-      input.dataset.imageAppearance = key4;
-      input.setAttribute("aria-label", title2);
-      if (min !== void 0) {
-        input.min = String(min);
-        input.max = String(max);
-        input.step = key4 === "border_width" ? ".5" : "1";
-      } else input.placeholder = workspace_text("image_border_color_auto");
-      label.append(workspace_element("span", "", title2), input);
-      fields.set(key4, input);
-      const commit = () => {
-        if (!drafts.delete(input)) return;
-        if (key4 === "color" && workspace_theme_mode() !== mode) {
-          sync();
-          return;
-        }
-        const value = min === void 0 ? input.value : input.value.trim() ? input.valueAsNumber : NaN;
-        save2(key4 === "color" ? color_key() : key4, value);
-      };
-      input.addEventListener("input", () => drafts.add(input), { signal });
-      input.addEventListener("change", () => {
-        drafts.add(input);
-        commit();
-      }, { signal });
-      input.addEventListener("keydown", (event) => {
-        if (event.key === "Enter") {
-          event.preventDefault();
-          commit();
-        } else if (event.key === "Escape") {
-          event.preventDefault();
-          drafts.delete(input);
-          sync();
-        }
-      }, { signal });
-      return label;
-    }
-    rows[1].append(toggle, field("border_width", workspace_text("image_border_width_short"), 0.5, 8), workspace_element("span", "reading-image-scope", "px"));
-    const shadow = workspace_element("select");
-    shadow.dataset.imageAppearance = "shadow";
-    shadow.setAttribute("aria-label", workspace_text("image_shadow"));
-    for (const value of IMAGE_SHADOW_VALUES) shadow.append(new Option(workspace_text("image_shadow_" + value), value));
-    shadow.addEventListener("change", () => save2("shadow", shadow.value), { signal });
-    rows[2].append(field("border_radius", workspace_text("image_border_radius_short"), 0, 32), workspace_element("span", "reading-image-scope", "px"), workspace_element("span", "reading-image-scope", workspace_text("image_shadow")), shadow);
-    const color = field("color", workspace_text("image_border_color_short")), caption = color.querySelector("span");
-    const picker = workspace_element("input");
-    picker.type = "color";
-    picker.dataset.imageAppearance = "picker";
-    picker.setAttribute("aria-label", workspace_text("image_border_color_short"));
-    picker.addEventListener("change", () => {
-      const current2 = read_reading_image_settings()[color_key()];
-      drafts.delete(fields.get("color"));
-      save2(color_key(), picker.value + (/^#[0-9a-f]{8}$/i.test(current2) ? current2.slice(7) : ""));
-    }, { signal });
-    const automatic = workspace_button(workspace_text("image_border_color_auto_short"), () => {
-      drafts.delete(fields.get("color"));
-      save2(color_key(), "");
-    }, "reading-media-open");
-    automatic.dataset.imageAppearance = "automatic";
-    rows[3].append(color, picker, automatic);
-    const frame3 = workspace_element("select");
-    frame3.dataset.imageAppearance = "frame_width";
-    frame3.setAttribute("aria-label", workspace_text("image_frame_width"));
-    frame3.append(new Option(workspace_text("image_frame_content"), "content"), new Option(workspace_text("image_frame_column"), "column"));
-    frame3.addEventListener("change", () => save2("frame_width", frame3.value), { signal });
-    rows[4].append(workspace_element("span", "reading-image-scope", workspace_text("image_frame_width")), frame3);
-    for (const [index, key4] of ["padding_x", "padding_y", "border_opacity"].entries()) {
-      const title2 = workspace_text(key4 === "border_opacity" ? "image_border_opacity" : key4 === "padding_x" ? "image_padding_x" : "image_padding_y"), max = key4 === "border_opacity" ? 100 : 48;
-      const range2 = workspace_element("input");
-      range2.type = "range";
-      range2.min = "0";
-      range2.max = String(max);
-      range2.step = "1";
-      range2.dataset.imageAppearance = key4 + "_range";
-      range2.setAttribute("aria-label", title2);
-      range2.addEventListener("input", () => {
-        if (!gesture) gesture = begin_reading_image_appearance(key4);
-        gesture.update(range2.valueAsNumber);
-      }, { signal });
-      range2.addEventListener("change", () => {
-        const active2 = gesture;
-        gesture = void 0;
-        try {
-          if (active2) active2.commit(range2.valueAsNumber);
-          else save2(key4, range2.valueAsNumber);
-        } catch (error) {
-          fail(error);
-        }
-        sync();
-      }, { signal });
-      range2.addEventListener("pointercancel", () => {
-        gesture?.cancel();
-        gesture = void 0;
-        sync();
-      }, { signal });
-      ranges2.set(key4, range2);
-      rows[index + 5].append(field(key4, title2, 0, max), range2, workspace_element("span", "reading-image-scope", key4 === "border_opacity" ? "%" : "px"));
-    }
-    function sync() {
-      const next = workspace_theme_mode();
-      if (next !== mode) {
-        mode = next;
-        drafts.delete(fields.get("color"));
-      }
-      const settings = read_reading_image_settings(), disabled = !get_workspace_app();
-      for (const [key4, input] of fields) {
-        if (!drafts.has(input)) input.value = String(key4 === "color" ? settings[color_key()] : settings[key4]);
-        input.disabled = disabled;
-      }
-      for (const [key4, range2] of ranges2) {
-        range2.value = String(settings[key4]);
-        range2.disabled = disabled;
-      }
-      frame3.value = settings.frame_width;
-      frame3.disabled = disabled;
-      toggle.disabled = shadow.disabled = picker.disabled = automatic.disabled = disabled;
-      toggle.setAttribute("aria-pressed", String(settings.border));
-      shadow.value = settings.shadow;
-      const title2 = workspace_text(mode === "dark" ? "image_border_color_dark_short" : "image_border_color_light_short");
-      if (caption.textContent !== title2) caption.textContent = title2;
-      const color2 = settings[color_key()], fallback2 = getComputedStyle(image).getPropertyValue("--theme-muted").trim();
-      picker.value = /^#[0-9a-f]{6}/i.test(color2) ? color2.slice(0, 7) : /^#[0-9a-f]{6}$/i.test(fallback2) ? fallback2 : mode === "dark" ? "#9d9d9d" : "#3b3b3b";
-      automatic.setAttribute("aria-pressed", String(!color2));
-    }
-    sync();
-    return { rows, sync, cancel() {
-      const active2 = drafts.size > 0 || !!gesture;
-      drafts.clear();
-      const current2 = gesture;
-      gesture = void 0;
-      current2?.cancel();
-      sync();
-      return active2;
-    }, dispose() {
-      events.abort();
-      gesture?.cancel();
-      gesture = void 0;
-      drafts.clear();
-    } };
-  }
-
-  // src/reading_image_native.ts
-  function read_image_alignment(image) {
-    const { marginLeft: left, marginRight: right } = image.style;
-    if (left === "auto" && right === "auto") return "center";
-    if (left === "auto" && right && right !== "auto") return "right";
-    if (right === "auto" && left && left !== "auto") return "left";
-  }
-  function capture_image_alignment(image) {
-    const runtime3 = window, file = runtime3.File, editor2 = file?.editor, wrapper = image.closest(".md-image");
-    if (!wrapper || !image.closest("content > #write") || !editor2?.imgEdit?.addStyle || !runtime3.$ || file.isLocked || file.isFileLoading?.() || editor2.sourceView?.inSourceMode) return;
-    const bundle = file.bundle, source = wrapper.textContent;
-    return (alignment) => {
-      if (file.bundle !== bundle || file.editor !== editor2 || !image.isConnected || wrapper.textContent !== source || editor2.sourceView?.inSourceMode || file.isLocked || file.isFileLoading?.()) throw Error(workspace_text("image_layout_stale"));
-      const left = alignment === "left" ? "0px" : "auto", right = alignment === "right" ? "0px" : "auto";
-      const margin = alignment ? "".concat(image.style.marginTop || "0px", " ").concat(right, " ").concat(image.style.marginBottom || "0px", " ").concat(left) : "";
-      editor2.imgEdit.addStyle(runtime3.$(wrapper), "margin", margin);
-    };
-  }
-
-  // src/reading_svg_source.ts
-  function linked_svg_path(image) {
-    const files2 = get_workspace_files(), url = image.src;
-    if (!files2 || image.srcset || !/^file:/i.test(url)) return;
-    const resource = new URL(url);
-    resource.search = "";
-    resource.hash = "";
-    const path2 = resolve_workspace_file(files2.path_api, "", resource.href);
-    return path2 && /\.svg$/i.test(path2) ? path2 : void 0;
-  }
-  function create_reading_svg_controls(image) {
-    const row = workspace_element("div", "reading-image-control-row");
-    let disposed = false, revision = 0, object_url = "", original = "", identity5 = "";
-    const source = () => object_url && image.src === object_url ? identity5 : linked_svg_path(image);
-    const current2 = (path2, version2) => !disposed && image.isConnected && revision === version2 && source() === path2;
-    const fail = (error) => {
-      if (disposed) return;
-      const core = window[Symbol.for("typora-code:workspace")];
-      if (core?.Notice) new core.Notice(String(error instanceof Error ? error.message : error), 3500);
-      else console.error(error);
-    };
-    const run = (action) => {
-      const path2 = source(), version2 = revision;
-      if (path2) void action(path2, () => current2(path2, version2)).catch(fail);
-    };
-    const edit3 = workspace_button(workspace_text("svg_source_edit"), () => run(async (path2, valid) => {
-      const files2 = get_workspace_files();
-      if (files2 && valid()) await files2.open_file(path2, { source: true, preview: false });
-    }), "reading-media-open");
-    const save2 = workspace_button(workspace_text("visual_code_export"), () => run(async (path2, valid) => {
-      const text4 = await get_workspace_files().read_text(path2);
-      if (valid()) await export_visual_svg(text4, valid, path2);
-    }), "reading-media-open");
-    const png = workspace_button(workspace_text("visual_code_export_png"), () => run(async (path2, valid) => {
-      const text4 = await get_workspace_files().read_text(path2);
-      if (valid()) await export_visual_png(text4, valid, path2);
-    }), "reading-media-open");
-    row.append(edit3, save2, png);
-    const release = observe_workspace_file_saved((file) => {
-      const path2 = source();
-      if (!path2 || file_key(path2) !== file_key(file.file_path)) return;
-      const version2 = ++revision;
-      void get_workspace_files().read_text(path2).then((text4) => {
-        if (!current2(path2, version2)) return;
-        if (!object_url) {
-          original = image.getAttribute("src") || "";
-          identity5 = path2;
-        }
-        const previous = object_url;
-        object_url = URL.createObjectURL(new Blob([text4], { type: "image/svg+xml" })) + "#image.svg";
-        image.src = object_url;
-        if (previous) URL.revokeObjectURL(previous);
-      }).catch(fail);
-    });
-    return { row, refresh() {
-      if (object_url && image.src !== object_url) {
-        URL.revokeObjectURL(object_url);
-        object_url = "";
-        identity5 = "";
-        ++revision;
-      }
-      row.hidden = !source();
-    }, dispose() {
-      disposed = true;
-      ++revision;
-      release();
-      if (object_url) {
-        if (image.src === object_url) image.setAttribute("src", original);
-        URL.revokeObjectURL(object_url);
-      }
-      row.remove();
-    } };
-  }
-
-  // src/reading_image_controls.ts
-  function image_scale_limit(image) {
-    let parent = image.parentElement;
-    while (parent && ["inline", "contents"].includes(getComputedStyle(parent).display)) parent = parent.parentElement;
-    if (!parent || !image.naturalWidth) return 100;
-    const style = getComputedStyle(parent), available = parent.clientWidth - (parseFloat(style.paddingLeft) || 0) - (parseFloat(style.paddingRight) || 0);
-    const image_style = getComputedStyle(image), border = image_style.boxSizing === "border-box" ? ["borderLeftWidth", "borderRightWidth", "paddingLeft", "paddingRight"].reduce((sum, key4) => sum + (parseFloat(image_style[key4]) || 0), 0) : 0;
-    const percent = Math.max(100, 100 * (available - border) / reading_image_natural_width(image));
-    return Math.max(20, Math.min(600, Math.floor(percent * 100) / 100));
-  }
-  function create_reading_image_controls(image) {
-    const svg4 = create_reading_svg_controls(image);
-    const group = workspace_element("div", "reading-image-scale"), input = workspace_element("input"), suffix = workspace_element("span", "", "%");
-    input.type = "number";
-    input.min = "20";
-    input.max = "600";
-    input.step = "any";
-    input.setAttribute("aria-label", workspace_text("image_layout_scale"));
-    input.title = workspace_text("image_layout_scale_description");
-    let editing = false;
-    let gesture;
-    const fail = (error) => {
-      const core = window[Symbol.for("typora-code:workspace")];
-      if (core?.Notice) new core.Notice(String(error instanceof Error ? error.message : error), 3500);
-      else console.error(error);
-    };
-    const appearance = create_reading_image_appearance_controls(image, fail);
-    const run = (action) => {
-      try {
-        action();
-      } catch (error) {
-        fail(error);
-      }
-    };
-    const draft = () => {
-      const value = input.valueAsNumber;
-      return input.value.trim() !== "" && Number.isFinite(value) && value >= 20 ? Math.min(image_scale_limit(image), value) : void 0;
-    };
-    const fit = workspace_button(workspace_text("image_layout_fit_short"), () => {
-      cancel();
-      run(() => write_reading_image_setting("size_mode", "fit_width"));
-    }, "reading-media-open");
-    fit.title = workspace_text("image_layout_fit");
-    const reset2 = workspace_button("100%", () => {
-      cancel();
-      run(() => write_reading_image_setting("scale", 100));
-    }, "reading-media-open");
-    reset2.title = workspace_text("image_layout_natural");
-    reset2.setAttribute("aria-label", reset2.title);
-    const sync = () => {
-      const settings = read_reading_image_settings(), limit = image_scale_limit(image), value = settings.size_mode === "fit_width" ? limit : Math.min(limit, settings.scale);
-      input.max = String(limit);
-      if (!editing) input.value = String(value);
-      decrease.disabled = value <= 20;
-      increase.disabled = value >= limit;
-      fit.setAttribute("aria-pressed", String(settings.size_mode === "fit_width"));
-      reset2.setAttribute("aria-pressed", String(settings.size_mode === "natural" && settings.scale === 100));
-      refresh_alignment();
-      appearance.sync();
-    };
-    const cancel = () => {
-      const active2 = editing || !!gesture;
-      editing = false;
-      gesture?.cancel();
-      gesture = void 0;
-      sync();
-      return active2;
-    };
-    const commit = (value = draft()) => {
-      if (value === void 0) {
-        cancel();
-        return;
-      }
-      editing = false;
-      const current2 = gesture;
-      gesture = void 0;
-      run(() => {
-        if (current2) current2.commit(value);
-        else {
-          const saved = read_reading_image_settings();
-          if (saved.scale !== value || saved.size_mode !== "natural") write_reading_image_setting("scale", value);
-        }
-      });
-      sync();
-    };
-    const step = (direction) => commit(Math.max(20, Math.min(image_scale_limit(image), (draft() ?? read_reading_image_settings().scale) + direction * 5)));
-    const decrease = workspace_button(workspace_text("image_layout_decrease"), () => step(-1), "reading-media-open"), increase = workspace_button(workspace_text("image_layout_increase"), () => step(1), "reading-media-open");
-    decrease.replaceChildren(git_icon("remove"));
-    increase.replaceChildren(git_icon("add"));
-    decrease.dataset.imageScaleAction = "decrease";
-    increase.dataset.imageScaleAction = "increase";
-    group.append(decrease, input, suffix, increase);
-    const labels = reading_image_alignment_labels(), alignment_buttons = [];
-    const make_alignment = (scope, value) => {
-      const label = value ? labels[value] : workspace_text("image_layout_follow");
-      const button = workspace_button(label, () => {
-        cancel();
-        run(() => {
-          if (scope === "global") write_reading_image_setting("alignment", value);
-          else {
-            const apply4 = capture_image_alignment(image);
-            if (!apply4) throw Error(workspace_text("image_layout_stale"));
-            apply4(value);
-          }
-        });
-        refresh_alignment();
-      }, "reading-media-open");
-      button.title = workspace_text(scope === "global" ? "image_layout_global" : "image_layout_single") + ": " + label;
-      button.setAttribute("aria-label", button.title);
-      button.setAttribute("data-image-align-scope", scope);
-      button.setAttribute("data-image-align", value || "follow");
-      alignment_buttons.push({ button, scope, value });
-      return button;
-    };
-    const global_caption = workspace_element("span", "reading-image-scope", workspace_text("image_layout_global_short")), single_caption = workspace_element("span", "reading-image-scope", workspace_text("image_layout_single_short"));
-    const global_buttons = IMAGE_ALIGNMENT_VALUES.map((value) => make_alignment("global", value)), single_buttons = [make_alignment("single", void 0), ...IMAGE_ALIGNMENT_VALUES.map((value) => make_alignment("single", value))];
-    function refresh_alignment() {
-      const global = read_reading_image_settings().alignment, local = read_image_alignment(image), editable = !!capture_image_alignment(image);
-      for (const { button, scope, value } of alignment_buttons) {
-        button.disabled = scope === "global" ? !get_workspace_app() : !editable;
-        const selected = String((scope === "global" ? global : local) === value);
-        if (button.getAttribute("aria-pressed") !== selected) button.setAttribute("aria-pressed", selected);
-      }
-    }
-    const events = new AbortController(), { signal } = events;
-    input.addEventListener("input", () => {
-      editing = true;
-      const value = draft();
-      if (value === void 0) return;
-      if (!gesture) gesture = begin_reading_image_scale();
-      gesture.update(value);
-    }, { signal });
-    const finish_input = () => {
-      if (editing || gesture) commit();
-    };
-    input.addEventListener("change", finish_input, { signal });
-    input.addEventListener("blur", finish_input, { signal });
-    input.addEventListener("keydown", (event) => {
-      if (event.key === "Escape") {
-        event.preventDefault();
-        cancel();
-      } else if (event.key === "Enter") {
-        event.preventDefault();
-        commit();
-      } else if (event.key === "ArrowUp" || event.key === "ArrowDown") {
-        event.preventDefault();
-        step(event.key === "ArrowUp" ? 1 : -1);
-      }
-    }, { signal });
-    const release = observe_reading_image_settings(sync);
-    sync();
-    const scale_row = workspace_element("div", "reading-image-control-row"), global_row = workspace_element("div", "reading-image-control-row"), single_row = workspace_element("div", "reading-image-control-row");
-    scale_row.append(group, reset2, fit);
-    global_row.append(global_caption, ...global_buttons);
-    single_row.append(single_caption, ...single_buttons);
-    svg4.refresh();
-    return { controls: [scale_row, global_row, single_row, ...appearance.rows, svg4.row], refresh() {
-      sync();
-      svg4.refresh();
-    }, cancel() {
-      const changed2 = appearance.cancel();
-      return cancel() || changed2;
-    }, dispose() {
-      appearance.dispose();
-      events.abort();
-      release();
-      gesture?.cancel();
-      svg4.dispose();
-    } };
-  }
-
-  // src/reading_image_viewer.ts
-  function bind_reading_images(root, selector = "img") {
-    const layout2 = bind_reading_image_layout(root, selector);
-    const selection = bind_reading_image_selection(root, selector);
-    const controls = bind_reading_media_entries(root), entries3 = /* @__PURE__ */ new Map();
-    const controller = new AbortController(), { signal } = controller;
-    let disposed = false, frame3 = 0;
-    let session;
-    const source_url = (image) => image.complete && image.naturalWidth && image.naturalHeight ? image.currentSrc || image.src : "";
-    const close_session = () => {
-      session?.close(false);
-      session = void 0;
-    };
-    const open2 = (image, entry, from_image = false) => {
-      const url = source_url(image);
-      if (!url) return;
-      entry.control.collapse();
-      close_session();
-      const copy = new Image();
-      copy.alt = image.alt;
-      copy.draggable = false;
-      const close2 = open_reading_media({ content: copy, source: image, width: image.naturalWidth, height: image.naturalHeight, label: image.alt || workspace_text("reading_image_viewer_view_image_in_full_screen"), origin: from_image ? void 0 : entry.control.button, initial_fit: true });
-      session = { image, url, close: close2 };
-      copy.src = url;
-    };
-    const schedule = () => {
-      if (!disposed && !frame3) frame3 = requestAnimationFrame(update2);
-    };
-    function update2() {
-      frame3 = 0;
-      if (disposed) return;
-      const images = new Set([...root.querySelectorAll(selector)].filter((image) => !image.closest(".md-diagram-panel-preview,.reading-media-viewer,.CodeMirror")));
-      layout2.update(images);
-      selection.update();
-      for (const [image, entry] of entries3) if (!images.has(image) || !entry.control.button.isConnected) {
-        entry.extras.dispose();
-        entry.control.dispose();
-        entries3.delete(image);
-      }
-      for (const image of images) {
-        let entry = entries3.get(image);
-        if (!entry) {
-          const extras = create_reading_image_controls(image);
-          const control = controls.add({ source: image, host: image, label: image.alt ? workspace_text("reading_image_viewer_view_image_in_full_screen_0c6eb1c6", { value_0: String(image.alt) }) : workspace_text("reading_image_viewer_view_image_in_full_screen_376a36ca"), button_class: "reading-image-open", controls: extras.controls, refresh_controls: extras.refresh, cancel_controls: extras.cancel, open: () => open2(image, entries3.get(image)) });
-          entry = { control, extras, url: source_url(image) };
-          entries3.set(image, entry);
-        }
-        const url = source_url(image);
-        if (entry.url !== url) {
-          entry.control.collapse();
-          entry.url = url;
-        }
-        entry.control.set_enabled(Boolean(url));
-        entry.extras.refresh();
-      }
-      if (session && (!entries3.has(session.image) || source_url(session.image) !== session.url)) close_session();
-    }
-    const observer3 = new MutationObserver((changes) => {
-      if (changes.some((change) => !(change.target instanceof Element && change.target.closest(".reading-media-entries,.reading-media-viewer")))) schedule();
-    });
-    observer3.observe(root, { subtree: true, childList: true, attributes: true, attributeFilter: ["src", "srcset", "class", "style", "hidden"] });
-    root.addEventListener("load", schedule, { capture: true, signal });
-    root.addEventListener("error", schedule, { capture: true, signal });
-    root.addEventListener("dblclick", (event) => {
-      if (!(event instanceof MouseEvent) || event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
-      const image = event.composedPath().find((node) => node instanceof HTMLImageElement && entries3.has(node));
-      if (!image || !source_url(image)) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-      open2(image, entries3.get(image), true);
-    }, { capture: true, signal });
-    schedule();
-    return { dispose() {
-      if (disposed) return;
-      disposed = true;
-      close_session();
-      controller.abort();
-      cancelAnimationFrame(frame3);
-      observer3.disconnect();
-      for (const [image, entry] of entries3) {
-        entry.extras.dispose();
-        entry.control.dispose();
-      }
-      entries3.clear();
-      controls.dispose();
-      layout2.dispose();
-      selection.dispose();
-    } };
-  }
-
   // src/reading_image_menu.ts
   function open_image_layout_menu(image, event) {
     const labels = reading_image_alignment_labels(), settings = read_reading_image_settings(), apply4 = capture_image_alignment(image), local = read_image_alignment(image);
@@ -225467,12 +225546,12 @@ https://creativecommons.org/licenses/by/4.0/
         refresh();
       });
     };
-    const selector = "#write,[data-workspace-color-preview]";
+    const selector2 = "#write,[data-workspace-color-preview]";
     const observer3 = new MutationObserver((records) => {
       if (records.some((record) => {
         const target = record.target instanceof Element ? record.target : record.target.parentElement;
-        if (target?.closest(selector)) return true;
-        return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches(selector) || node.querySelector(selector)));
+        if (target?.closest(selector2)) return true;
+        return [...record.addedNodes, ...record.removedNodes].some((node) => node instanceof Element && (node.matches(selector2) || node.querySelector(selector2)));
       })) schedule();
     });
     observer3.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["style"] });
@@ -241369,6 +241448,24 @@ https://creativecommons.org/licenses/by/4.0/
     };
   }
 
+  // src/reading_image_mime.ts
+  var formats = /* @__PURE__ */ new Map([
+    ["gif", "image/gif"],
+    ["png", "image/png"],
+    ["apng", "image/png"],
+    ["jpg", "image/jpeg"],
+    ["jpeg", "image/jpeg"],
+    ["webp", "image/webp"],
+    ["bmp", "image/bmp"],
+    ["avif", "image/avif"],
+    ["svg", "image/svg+xml"],
+    ["ico", "image/x-icon"]
+  ]);
+  function reading_image_mime(path2) {
+    const extension2 = path2.match(/\.([a-z0-9]+)$/i)?.[1].toLowerCase();
+    return extension2 ? formats.get(extension2) : void 0;
+  }
+
   // src/git_revision_reader.ts
   function create_git_revision_reader(source, label, on_link, on_image, on_location) {
     const container = workspace_element("section", "git-revision-reader"), heading3 = workspace_element("div", "git-revision-reader-heading", label);
@@ -241385,7 +241482,7 @@ https://creativecommons.org/licenses/by/4.0/
     container.append(heading3, body);
     const diagrams = create_preview_diagrams();
     let disposed = false;
-    const image_viewer = bind_reading_images(article);
+    const image_viewer = bind_git_markdown_images(article);
     const update_theme = () => {
       const theme2 = markdown_theme_rules() + "\n      :host{display:block}#write{position:static!important;width:auto!important;max-width:none!important;min-width:0!important;margin:0!important;padding:18px 24px!important;inset:auto!important;overflow-wrap:anywhere;user-select:text}\n      #write pre{overflow:auto}#write pre code{white-space:pre}#write input{pointer-events:none}#write img{max-width:100%;height:auto}#write .lookup-diagram svg{max-width:100%;height:auto}\n      #write .lookup-code-keyword,#write .lookup-code-tag,#write .lookup-code-metatag{color:var(--revision-keyword,#0000ff)}#write .lookup-code-string,#write .lookup-code-regexp{color:var(--revision-string,#a31515)}#write .lookup-code-comment{color:var(--revision-comment,#008000)}#write .lookup-code-number{color:var(--revision-number,#098658)}#write .lookup-code-type,#write .lookup-code-attribute{color:var(--revision-type,#267f99)}\n    ";
       if (style.textContent !== theme2) style.textContent = theme2;
@@ -241393,18 +241490,7 @@ https://creativecommons.org/licenses/by/4.0/
       for (const [name, value] of Object.entries(dark ? { keyword: "#569cd6", string: "#ce9178", comment: "#6a9955", number: "#b5cea8", type: "#4ec9b0" } : { keyword: "#0000ff", string: "#a31515", comment: "#008000", number: "#098658", type: "#267f99" })) article.style.setProperty("--revision-" + name, value);
     };
     const normalized2 = source.replace(/\r\n?/gu, "\n").replace(/^---\n[\s\S]*?\n---(?:\n|$)/u, "");
-    const fragment = purify_default.sanitize(marked2.parse(normalized2, { gfm: true, async: false }), {
-      FORBID_TAGS: ["style", "iframe", "object", "embed", "form", "audio", "video", "source"],
-      FORBID_ATTR: ["style", "id", "name", "srcset"],
-      ALLOW_DATA_ATTR: false,
-      RETURN_DOM_FRAGMENT: true
-    });
-    const images = [...fragment.querySelectorAll("img")].map((image) => {
-      const href = image.getAttribute("src") || "";
-      image.removeAttribute("src");
-      return { image, href };
-    });
-    article.append(fragment);
+    article.innerHTML = sanitize_git_markdown(marked2.parse(normalized2, { gfm: true, async: false }), "revision");
     const anchors = /* @__PURE__ */ new Map();
     for (const node of article.querySelectorAll("h1,h2,h3,h4,h5,h6")) {
       const slug = (node.textContent || "").trim().toLowerCase().replace(/[^\p{L}\p{N}_\s-]/gu, "").replace(/\s+/gu, "-");
@@ -241414,11 +241500,11 @@ https://creativecommons.org/licenses/by/4.0/
       anchors.set(id, node);
     }
     for (const input of article.querySelectorAll("input")) input.disabled = true;
-    const reveal_fragment = (fragment2) => {
+    const reveal_fragment = (fragment) => {
       try {
-        const target = anchors.get(decodeURIComponent(fragment2.replace(/^#/u, "")));
+        const target = anchors.get(decodeURIComponent(fragment.replace(/^#/u, "")));
         if (target) body.scrollTop += target.getBoundingClientRect().top - body.getBoundingClientRect().top;
-        else if (!fragment2 || fragment2 === "#") body.scrollTop = 0;
+        else if (!fragment || fragment === "#") body.scrollTop = 0;
       } catch {
       }
     };
@@ -241439,15 +241525,7 @@ https://creativecommons.org/licenses/by/4.0/
       });
     });
     update_theme();
-    for (const { image, href } of images) void on_image(href).then((url) => {
-      if (!disposed) image.src = url;
-    }).catch((error) => {
-      if (!disposed) {
-        const fallback2 = workspace_element("span", "", image.alt || href);
-        fallback2.title = error instanceof Error ? error.message : String(error);
-        image.replaceWith(fallback2);
-      }
-    });
+    void image_viewer.load(on_image);
     const release_theme3 = observe_markdown_theme(update_theme);
     void (async () => {
       for (const code of article.querySelectorAll("pre > code")) {
@@ -241500,6 +241578,14 @@ https://creativecommons.org/licenses/by/4.0/
       if (path_api.isAbsolute(relative2) || relative2 === ".." || relative2.startsWith(".." + path_api.sep)) throw new Error(git_graph_text("host.outside_repository"));
       return absolute;
     };
+    function relative_target(root, file, href) {
+      const relative2 = decodeURIComponent(href.split(/[?#]/u)[0]).replace(/\\/gu, "/");
+      if (!relative2 || /^[a-z][a-z\d+.-]*:|^\/\//iu.test(relative2) || relative2.includes("\0")) throw Error(git_graph_text("host.historical_relative_only"));
+      const target = path_api.posix.normalize(relative2.startsWith("/") ? relative2.slice(1) : path_api.posix.join(path_api.posix.dirname(file), relative2));
+      ensure_file_path(root, target);
+      return target;
+    }
+    const revision_object = (revision, file) => revision === INDEX ? ":" + file : require_revision(revision) + ":" + file;
     const add_tab = (type, uri, group, previous_parent) => {
       if (disposed) return;
       if (group !== "active") {
@@ -241831,6 +241917,37 @@ https://creativecommons.org/licenses/by/4.0/
       reveal_file(root, file) {
         runtime3.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file));
       },
+      revision_images(root, revision, file, settings) {
+        const resources = git_workspace_resources(path_api);
+        return async (href, signal) => {
+          signal.throwIfAborted();
+          resources.assert(root);
+          const target = relative_target(root, file, href);
+          const mime = reading_image_mime(target);
+          if (!mime || revision === EMPTY) throw Error(git_graph_text("host.historical_image_unsupported"));
+          let bytes;
+          if (revision === WORKTREE) {
+            const [real_root, real_file] = await Promise.all([fs2.promises.realpath(root), fs2.promises.realpath(ensure_file_path(root, target))]);
+            const relative2 = path_api.relative(real_root, real_file);
+            ensure_file_path(real_root, relative2);
+            if (relative2.split(path_api.sep).some((part) => part.toLowerCase() === ".git") || !(await fs2.promises.stat(real_file)).isFile()) throw Error(git_graph_text("host.outside_repository"));
+            signal.throwIfAborted();
+            bytes = await fs2.promises.readFile(real_file, { signal });
+          } else {
+            const runner = this.runner(settings);
+            signal.addEventListener("abort", runner.cancel, { once: true });
+            try {
+              bytes = await runner.run_bytes(root, ["show", revision_object(revision, target)]);
+            } finally {
+              signal.removeEventListener("abort", runner.cancel);
+              runner.dispose();
+            }
+          }
+          signal.throwIfAborted();
+          resources.assert(root);
+          return new Blob([new Uint8Array(bytes)], { type: mime });
+        };
+      },
       async revision_text(root, revision, file, settings) {
         if (revision === EMPTY) return "";
         if (revision === WORKTREE) {
@@ -241846,9 +241963,8 @@ https://creativecommons.org/licenses/by/4.0/
           if (!stat.isFile()) throw new Error(git_graph_text("host.non_text_comparison"));
           return new TextDecoder(settings.encoding).decode(await fs2.promises.readFile(target));
         }
-        const object3 = revision === INDEX ? ":".concat(file) : "".concat(require_revision(revision), ":").concat(file);
         const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
-        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object3]));
+        return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", revision_object(revision, file)]));
       },
       open_document(data, group = "active", options2 = {}, previous_parent) {
         notify_navigation_selection();
@@ -241874,28 +241990,15 @@ https://creativecommons.org/licenses/by/4.0/
           this.open_document({ title: title2, file, left: content, left_label: label }, group, { root, key: JSON.stringify(["revision", revision, file]) });
           return;
         }
-        const relative_target = (href) => {
-          if (!href || /^[a-z][a-z\d+.-]*:/iu.test(href) || /^[\\/]{2}/u.test(href)) throw new Error(git_graph_text("host.historical_relative_only"));
-          const relative2 = decodeURIComponent(href.split(/[?#]/u)[0]).replace(/\\/gu, "/");
-          const target = path_api.posix.normalize(relative2.startsWith("/") ? relative2.slice(1) : path_api.posix.join(path_api.posix.dirname(file), relative2));
-          ensure_file_path(root, target);
-          return target;
-        };
         const reader = create_git_revision_reader(content, label, async (href) => {
           if (/^https?:\/\//iu.test(href)) {
             await this.open_url(href);
             return;
           }
-          const target = relative_target(href);
+          const target = relative_target(root, file, href);
           const value = await this.revision_text(root, revision, target, settings);
           if (!disposed && !reader_disposed) this.open_revision_document(root, revision, target, value, settings, href.includes("#") ? href.slice(href.indexOf("#")) : "");
-        }, async (href) => {
-          const target = relative_target(href), extension2 = path_api.posix.extname(target).toLowerCase();
-          const mime = { ".png": "image/png", ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".webp": "image/webp", ".avif": "image/avif", ".bmp": "image/bmp" };
-          if (!mime[extension2]) throw new Error(git_graph_text("host.historical_image_unsupported"));
-          const data = await this.runner(settings).run_bytes(root, ["show", "".concat(require_revision(revision), ":").concat(target)]);
-          return "data:".concat(mime[extension2], ";base64,").concat(runtime3.reqnode("buffer").Buffer.from(data).toString("base64"));
-        }, (explicit) => {
+        }, this.revision_images(root, revision, file, settings), (explicit) => {
           if (core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container)) notify_navigation_selection(explicit);
         });
         this.open_panel(title2, JSON.stringify(["revision", revision, file]), root, reader.container, {
@@ -245781,7 +245884,18 @@ https://creativecommons.org/licenses/by/4.0/
           file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings)
         ]);
         if (epoch2 !== this.load_epoch || root !== this.panel.root) return;
-        this.panel.host.open_document({ title: "".concat(file.path.split("/").at(-1), " (").concat(short_revision(from), " \u2194 ").concat(short_revision(to), ")"), file: file.path, left, right, left_label: git_graph_text("scm.readonly_label", { file: file.old_path || file.path, revision: short_revision(from) }), right_label: git_graph_text("scm.readonly_label", { file: file.path, revision: short_revision(to) }) }, "active", {
+        this.panel.host.open_document({
+          title: "".concat(file.path.split("/").at(-1), " (").concat(short_revision(from), " \u2194 ").concat(short_revision(to), ")"),
+          file: file.path,
+          left,
+          right,
+          images: is_markdown_file(file.path) ? {
+            left: this.panel.host.revision_images(root, from, file.old_path || file.path, this.panel.settings),
+            right: this.panel.host.revision_images(root, to, file.path, this.panel.settings)
+          } : void 0,
+          left_label: git_graph_text("scm.readonly_label", { file: file.old_path || file.path, revision: short_revision(from) }),
+          right_label: git_graph_text("scm.readonly_label", { file: file.path, revision: short_revision(to) })
+        }, "active", {
           ...from === INDEX && to === WORKTREE && file.status !== "??" && !/^[ADRUT]/u.test(file.status) ? {
             range_available: () => this.repository_action_available(root) && !this.panel.writing && !this.panel.pending && !this.panel.disposed,
             range_action: async (action, snapshot) => {
@@ -270484,7 +270598,7 @@ https://creativecommons.org/licenses/by/4.0/
         controllers.clear();
         refresh_schedulers.clear();
         document.querySelectorAll("[data-git-graph-launch]").forEach((item) => item.remove());
-        for (const attribute of ["source-control", "monaco-diff", "git-graph", "git-graph-actions"]) document.documentElement.removeAttribute("data-linux-note-" + attribute);
+        for (const attribute2 of ["source-control", "monaco-diff", "git-graph", "git-graph-actions"]) document.documentElement.removeAttribute("data-linux-note-" + attribute2);
       } };
     } catch (error) {
       lifetime.dispose();
@@ -270801,8 +270915,8 @@ https://creativecommons.org/licenses/by/4.0/
     const position2 = () => {
       frame3 = 0;
       if (lifetime.disposed) return;
-      const selector = steps2[index].target;
-      const found = selector ? selector.split(",").flatMap((part) => [...document.querySelectorAll(part.trim())]).find((node) => {
+      const selector2 = steps2[index].target;
+      const found = selector2 ? selector2.split(",").flatMap((part) => [...document.querySelectorAll(part.trim())]).find((node) => {
         const r5 = node.getBoundingClientRect();
         return r5.width > 0 && r5.height > 0 && r5.bottom > 0 && r5.right > 0 && r5.left < innerWidth && r5.top < innerHeight && getComputedStyle(node).visibility !== "hidden";
       }) : void 0;
@@ -270813,7 +270927,7 @@ https://creativecommons.org/licenses/by/4.0/
       }
       const r4 = target?.getBoundingClientRect();
       highlight.hidden = !r4;
-      hint.hidden = !selector || Boolean(r4);
+      hint.hidden = !selector2 || Boolean(r4);
       hint.textContent = workspace_text("onboarding_view_this_area_is_currently_not_displayed_after_exiting_the_tutor");
       const margin = 16, rect = panel.getBoundingClientRect();
       let x = (innerWidth - rect.width) / 2, y = (innerHeight - rect.height) / 2;
@@ -270902,6 +271016,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026112201,
+        version: "2026.11.22.1",
+        date: "2026-11-22",
+        notes: [
+          "Git \u6392\u7248\u5DEE\u5F02\u6309\u4E24\u4FA7\u5404\u81EA\u7684\u7248\u672C\u663E\u793A SVG \u548C\u4F4D\u56FE\u3002\u6682\u5B58\u533A\u3001\u5DE5\u4F5C\u533A\u548C\u5386\u53F2\u63D0\u4EA4\u53EF\u4EE5\u5BF9\u7167\u4E0D\u540C\u56FE\u7247\uFF0C\u53CC\u51FB\u53EF\u653E\u5927\u3002"
+        ],
+        notes_en: [
+          "Rendered Git comparisons show SVG and raster images from each side, including the index, worktree and historical commits. Double-click an image to enlarge it."
+        ]
+      },
       {
         sequence: 2026111602,
         version: "2026.11.16.2",
@@ -273859,12 +273984,12 @@ https://creativecommons.org/licenses/by/4.0/
     ["markdown_mark_background", workspace_text("color_catalog_highlighted_background"), "#write mark", "background-color"]
   ];
   for (let level = 1; level <= 6; level++) body_roles.push(["markdown_heading_" + level, workspace_text("color_catalog_document_contenth") + level + workspace_text("color_catalog_title"), "#write h" + level]);
-  for (const [key4, title2, selector, property] of body_roles) {
+  for (const [key4, title2, selector2, property] of body_roles) {
     const existing = WORKSPACE_COLOR_ROLES.find((role) => role.key === key4);
-    if (existing) Object.assign(existing, { selector, property });
-    else WORKSPACE_COLOR_ROLES.push({ key: key4, title: title2, selector, property });
+    if (existing) Object.assign(existing, { selector: selector2, property });
+    else WORKSPACE_COLOR_ROLES.push({ key: key4, title: title2, selector: selector2, property });
   }
-  for (const [key4, title2, selector] of [
+  for (const [key4, title2, selector2] of [
     ["comment", workspace_text("color_catalog_comment"), ".cm-tm-comment,.cm-comment,.hljs-comment"],
     ["keyword", workspace_text("color_catalog_keyword"), ".cm-tm-keyword,.cm-tm-control,.cm-keyword,.hljs-keyword"],
     ["string", workspace_text("color_catalog_string"), ".cm-tm-string,.cm-string,.cm-string-2,.hljs-string"],
@@ -273878,7 +274003,7 @@ https://creativecommons.org/licenses/by/4.0/
     ["preprocessor", workspace_text("color_catalog_preprocessor"), ".cm-meta,.cm-tm-preprocessor,.hljs-meta"],
     ["builtin", workspace_text("color_catalog_built_in_symbol"), ".cm-builtin,.hljs-built_in"],
     ["tag", workspace_text("color_catalog_marker"), ".cm-tag,.hljs-tag"]
-  ]) WORKSPACE_COLOR_ROLES.push({ key: "markdown_syntax_" + key4, title: workspace_text("color_catalog_fence_syntax") + title2, selector: selector.split(",").map((part) => "#write " + part).join(",") });
+  ]) WORKSPACE_COLOR_ROLES.push({ key: "markdown_syntax_" + key4, title: workspace_text("color_catalog_fence_syntax") + title2, selector: selector2.split(",").map((part) => "#write " + part).join(",") });
   WORKSPACE_COLOR_ROLES.push(
     { key: "markdown_selection_background", title: workspace_text("color_catalog_selected_text_background_in_document"), variable: "--workspace-markdown-selection-background" },
     { key: "markdown_selection_foreground", title: workspace_text("color_catalog_selected_text_foreground_in_document"), variable: "--workspace-markdown-selection-foreground" }
@@ -279333,7 +279458,7 @@ https://creativecommons.org/licenses/by/4.0/
     const style = acquire_workspace_style("typora-code-style:workspace_control_icons", workspace_control_icons_default, { "data-workspace-control-icons": "ready" });
     const refresh = () => {
       if (disposed) return;
-      for (const [selector, name] of slots) for (const node of root.querySelectorAll(selector)) {
+      for (const [selector2, name] of slots) for (const node of root.querySelectorAll(selector2)) {
         if (!originals.has(node)) originals.set(node, { nodes: [...node.childNodes], marked: node.classList.contains("workspace-official-icon-slot") });
         if (!node.classList.contains("workspace-official-icon-slot")) node.classList.add("workspace-official-icon-slot");
         if (node.childNodes.length !== 1 || node.firstElementChild?.getAttribute("data-git-icon") !== name) node.replaceChildren(git_icon(name));
@@ -279735,12 +279860,12 @@ https://creativecommons.org/licenses/by/4.0/
     const entries3 = definitions.flatMap((definition2) => {
       const menu = document.querySelector(definition2.selector);
       if (!menu) return [];
-      const attribute = menu.getAttribute("data-workspace-footer-popup");
+      const attribute2 = menu.getAttribute("data-workspace-footer-popup");
       const previous = properties2.map((name) => [name, menu.style.getPropertyValue(name), menu.style.getPropertyPriority(name)]);
       menu.setAttribute("data-workspace-footer-popup", "ready");
       lifetime.add(() => {
-        if (attribute === null) menu.removeAttribute("data-workspace-footer-popup");
-        else menu.setAttribute("data-workspace-footer-popup", attribute);
+        if (attribute2 === null) menu.removeAttribute("data-workspace-footer-popup");
+        else menu.setAttribute("data-workspace-footer-popup", attribute2);
         for (const [name, value, priority] of previous) {
           if (value) menu.style.setProperty(name, value, priority);
           else menu.style.removeProperty(name);
@@ -279765,7 +279890,7 @@ https://creativecommons.org/licenses/by/4.0/
       let nested_open = false;
       for (const { menu, anchors } of entries3) {
         if (!footer_visible || !visible3(menu)) continue;
-        const anchor = anchors.map((selector) => footer.querySelector(selector)).find((node) => visible3(node)) || footer;
+        const anchor = anchors.map((selector2) => footer.querySelector(selector2)).find((node) => visible3(node)) || footer;
         const anchor_bounds = anchor.getBoundingClientRect();
         const bottom = Math.min(innerHeight - 4, footer_bounds.top - 3, anchor_bounds.top - 3);
         set_property(menu, "--workspace-popup-max-height", Math.max(0, Math.min(innerHeight * 0.65, bottom - viewport_top)) + "px");
@@ -279786,7 +279911,7 @@ https://creativecommons.org/licenses/by/4.0/
       } else footer.removeAttribute("data-workspace-footer-popup-open");
     };
     const refresh = create_workspace_popup_refresh(layout2), schedule = refresh.schedule;
-    for (const node of [footer, actions, document.querySelector(".typ-workspace-root"), ...entries3.flatMap((entry) => [entry.menu, ...entry.anchors.map((selector) => footer.querySelector(selector))])]) if (node) refresh.observe_size(node);
+    for (const node of [footer, actions, document.querySelector(".typ-workspace-root"), ...entries3.flatMap((entry) => [entry.menu, ...entry.anchors.map((selector2) => footer.querySelector(selector2))])]) if (node) refresh.observe_size(node);
     for (const node of [sidebar, actions, footer, document.body, document.documentElement, document.querySelector(".typ-workspace-root")]) if (node) refresh.observe_mutations(node, { attributes: true, attributeFilter: ["class", "style", "hidden"] });
     for (const { menu } of entries3) refresh.observe_mutations(menu, { attributes: true, attributeFilter: ["class", "style", "hidden"], childList: true, characterData: true, subtree: true });
     lifetime.listen(window, "resize", schedule);
@@ -279818,12 +279943,12 @@ https://creativecommons.org/licenses/by/4.0/
     const layout2 = acquire_workspace_footer_layout();
     const roles = /* @__PURE__ */ new Map();
     const interaction_nodes = /* @__PURE__ */ new Set();
-    for (const [selector, role] of [
+    for (const [selector2, role] of [
       ["#ty-sidebar-footer,#ty-sidebar-footer>div,#sidebar-menu-btn", "group"],
       ["#footer-word-count,#footer-spell-check,#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "control"],
       ["#toggle-sourceview-btn,#sidebar-new-file-btn,#switch-file-list-btn,#sidebar-menu-btn>.sidebar-footer-item", "icon-control"],
       ["#footer-word-count-label,#footer-spell-check-label,.ty-word-count-expand", "text"]
-    ]) for (const node of document.querySelectorAll(selector)) {
+    ]) for (const node of document.querySelectorAll(selector2)) {
       if (role === "control" && !node.hasAttribute("data-workspace-interaction")) {
         workspace_interaction(node);
         interaction_nodes.add(node);
@@ -283432,8 +283557,8 @@ https://creativecommons.org/licenses/by/4.0/
       if (!doc) return "";
       const view = frame3.contentWindow;
       if (role.selector) {
-        const selector = role.selector.replace(/:is\([^)]*\)/gu, "").replace(/:(?:visited|hover|focus|active)/gu, "");
-        const node = doc.querySelector(selector);
+        const selector2 = role.selector.replace(/:is\([^)]*\)/gu, "").replace(/:(?:visited|hover|focus|active)/gu, "");
+        const node = doc.querySelector(selector2);
         if (node) return css_color_hex(view.getComputedStyle(node).getPropertyValue(role.property || "color"));
       }
       if (role.key.startsWith("terminal_")) {
@@ -284565,10 +284690,6 @@ https://creativecommons.org/licenses/by/4.0/
   }
 
   // src/workspace_preview_image.ts
-  function preview_image_mime(path2) {
-    const extension2 = path2.split(".").at(-1)?.toLowerCase();
-    return { gif: "image/gif", png: "image/png", apng: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", webp: "image/webp", bmp: "image/bmp", avif: "image/avif", svg: "image/svg+xml", ico: "image/x-icon" }[extension2 || ""];
-  }
   function create_preview_image(bytes, mime, label) {
     const container = workspace_element("div", "workspace-preview-image"), image = workspace_element("img");
     image.alt = label;
@@ -285008,13 +285129,13 @@ https://creativecommons.org/licenses/by/4.0/
             next_directory = create_preview_directory(files2, resolved.path, entries3, (path2) => void navigate(path_request(path2)));
             pending_directory = next_directory;
             stage.append(next_directory.container);
-          } else if (preview_image_mime(resolved.path)) {
+          } else if (reading_image_mime(resolved.path)) {
             const bytes = await files2.fs.promises.readFile(resolved.path);
             if (disposed || version2 !== generation) {
               stage.remove();
               return false;
             }
-            next_image = create_preview_image(bytes, preview_image_mime(resolved.path), files2.path_api.basename(resolved.path));
+            next_image = create_preview_image(bytes, reading_image_mime(resolved.path), files2.path_api.basename(resolved.path));
             pending_image = next_image;
             stage.append(next_image.container);
             await next_image.ready;
@@ -285622,8 +285743,7 @@ https://creativecommons.org/licenses/by/4.0/
               if (!url) {
                 const bytes = await runtime3.reqnode("fs").promises.readFile(path2);
                 if (disposed || !image.isConnected) return;
-                const extension2 = runtime3.reqnode("path").extname(path2).slice(1).toLowerCase();
-                const mime = { png: "image/png", jpg: "image/jpeg", jpeg: "image/jpeg", gif: "image/gif", webp: "image/webp", svg: "image/svg+xml", bmp: "image/bmp", avif: "image/avif" }[extension2];
+                const mime = reading_image_mime(path2);
                 if (!mime) throw Error(workspace_text("remote_workspace_media_the_remote_image_format_is_not_supported"));
                 url = URL.createObjectURL(new Blob([bytes], { type: mime }));
                 urls.set(path2, url);
@@ -288018,12 +288138,12 @@ https://creativecommons.org/licenses/by/4.0/
       element.id = new_id;
     });
     svg4.querySelectorAll("*").forEach((element) => {
-      for (const attribute of Array.from(element.attributes)) {
-        let value = attribute.value;
+      for (const attribute2 of Array.from(element.attributes)) {
+        let value = attribute2.value;
         for (const [old_id, new_id] of replacements) {
           value = value.replaceAll("url(#".concat(old_id, ")"), "url(#".concat(new_id, ")")).replaceAll("#".concat(old_id), "#".concat(new_id));
         }
-        if (value !== attribute.value) element.setAttribute(attribute.name, value);
+        if (value !== attribute2.value) element.setAttribute(attribute2.name, value);
       }
     });
     svg4.querySelectorAll("style").forEach((style) => {

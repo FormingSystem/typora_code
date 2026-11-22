@@ -21,6 +21,8 @@ import { get_workspace_files } from "./workspace_files";
 import { bind_workspace_editor_status } from "./workspace_editor_status";
 import { git_graph_language_tag, git_graph_text as text } from "./git_graph_i18n";
 import {is_markdown_file} from "./file_language";
+import type {git_image_reader} from './git_markdown_images';
+import {reading_image_mime} from './reading_image_mime';
 import {create_git_revision_reader} from "./git_revision_reader";
 import {create_text_document} from "./workspace_text_document";
 import {register_navigation_editor, notify_navigation_selection} from './reading_navigation_ports';
@@ -67,6 +69,14 @@ export function create_graph_host(core: graph_core) {
     if (path_api.isAbsolute(relative) || relative === ".." || relative.startsWith(".." + path_api.sep)) throw new Error(text("host.outside_repository"));
     return absolute;
   };
+  function relative_target(root:string, file:string, href:string):string {
+    const relative = decodeURIComponent(href.split(/[?#]/u)[0]).replace(/\\/gu,'/');
+    if (!relative || /^[a-z][a-z\d+.-]*:|^\/\//iu.test(relative) || relative.includes('\0')) throw Error(text("host.historical_relative_only"));
+    const target = path_api.posix.normalize(relative.startsWith('/') ? relative.slice(1) : path_api.posix.join(path_api.posix.dirname(file), relative));
+    ensure_file_path(root, target);
+    return target;
+  }
+  const revision_object = (revision:string, file:string) => revision === INDEX ? ':' + file : require_revision(revision) + ':' + file;
   const add_tab = (type: string, uri: string, group: string, previous_parent?:graph_leaf['parent']) => {
     if(disposed)return;
     if (group !== "active") { core.app.commands.run(group === "down" ? "core.workspace:split-down" : "core.workspace:split-right", [uri]); return; }
@@ -232,6 +242,33 @@ export function create_graph_host(core: graph_core) {
     open_folder(path:string,new_window=false){core.app.commands.run(new_window?"linux_note:open_folder_new_window":"linux_note:open_folder_path",[path]);},
     reveal_explorer(root:string,file:string){core.app.commands.run("linux_note:reveal_in_explorer",[ensure_file_path(root,file),root]);},
     reveal_file(root: string, file: string) { runtime.reqnode("electron").shell.showItemInFolder(ensure_file_path(root, file)); },
+    revision_images(root:string, revision:string, file:string, settings:graph_settings):git_image_reader {
+      const resources = git_workspace_resources(path_api);
+      return async (href, signal) => {
+        signal.throwIfAborted();
+        resources.assert(root);
+        const target = relative_target(root, file, href);
+        const mime = reading_image_mime(target);
+        if (!mime || revision === EMPTY) throw Error(text("host.historical_image_unsupported"));
+        let bytes:Uint8Array;
+        if (revision === WORKTREE) {
+          const [real_root, real_file] = await Promise.all([fs.promises.realpath(root), fs.promises.realpath(ensure_file_path(root, target))]);
+          const relative = path_api.relative(real_root, real_file);
+          ensure_file_path(real_root, relative);
+          if (relative.split(path_api.sep).some((part:string)=>part.toLowerCase()==='.git') || !(await fs.promises.stat(real_file)).isFile()) throw Error(text("host.outside_repository"));
+          signal.throwIfAborted();
+          bytes = await fs.promises.readFile(real_file,{signal});
+        } else {
+          const runner = this.runner(settings);
+          signal.addEventListener('abort', runner.cancel, {once:true});
+          try { bytes = await runner.run_bytes(root, ['show', revision_object(revision, target)]); }
+          finally { signal.removeEventListener('abort', runner.cancel); runner.dispose(); }
+        }
+        signal.throwIfAborted();
+        resources.assert(root);
+        return new Blob([new Uint8Array(bytes)], {type:mime});
+      };
+    },
     async revision_text(root: string, revision: string, file: string, settings: graph_settings): Promise<string> {
       if (revision === EMPTY) return "";
       if (revision === WORKTREE) {
@@ -242,9 +279,8 @@ export function create_graph_host(core: graph_core) {
         if (!stat.isFile()) throw new Error(text("host.non_text_comparison"));
         return new TextDecoder(settings.encoding).decode(await fs.promises.readFile(target));
       }
-      const object = revision === INDEX ? `:${file}` : `${require_revision(revision)}:${file}`;
       const reader = create_git_runner({ child_process, process: process_api }, { executable: settings.git_path });
-      return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", object]));
+      return new TextDecoder(settings.encoding).decode(await reader.run_bytes(root, ["show", revision_object(revision, file)]));
     },
     open_document(data: diff_document, group = "active", options: document_options = {}, previous_parent?:graph_leaf['parent']) {
       notify_navigation_selection();
@@ -262,24 +298,12 @@ export function create_graph_host(core: graph_core) {
       const group = settings.new_tab_group; let reader_disposed = false;
       const title = `${revision.slice(0, 8)} · ${file}`, label = text("scm.readonly_label", {file, revision: revision.slice(0, 8)});
       if (!is_markdown_file(file)) { this.open_document({title, file, left: content, left_label: label}, group, {root, key: JSON.stringify(["revision", revision, file])}); return; }
-      const relative_target = (href: string) => {
-        if (!href || /^[a-z][a-z\d+.-]*:/iu.test(href) || /^[\\/]{2}/u.test(href)) throw new Error(text("host.historical_relative_only"));
-        const relative = decodeURIComponent(href.split(/[?#]/u)[0]).replace(/\\/gu, '/');
-        const target = path_api.posix.normalize(relative.startsWith('/') ? relative.slice(1) : path_api.posix.join(path_api.posix.dirname(file), relative));
-        ensure_file_path(root, target); return target;
-      };
       const reader = create_git_revision_reader(content, label, async href => {
         if (/^https?:\/\//iu.test(href)) { await this.open_url(href); return; }
-        const target = relative_target(href);
+        const target = relative_target(root, file, href);
         const value = await this.revision_text(root, revision, target, settings);
         if (!disposed && !reader_disposed) this.open_revision_document(root, revision, target, value, settings, href.includes('#') ? href.slice(href.indexOf('#')) : '');
-      }, async href => {
-        const target = relative_target(href), extension = path_api.posix.extname(target).toLowerCase();
-        const mime: Record<string,string> = {'.png':'image/png','.jpg':'image/jpeg','.jpeg':'image/jpeg','.gif':'image/gif','.webp':'image/webp','.avif':'image/avif','.bmp':'image/bmp'};
-        if (!mime[extension]) throw new Error(text("host.historical_image_unsupported"));
-        const data = await this.runner(settings).run_bytes(root, ['show',`${require_revision(revision)}:${target}`]);
-        return `data:${mime[extension]};base64,${runtime.reqnode('buffer').Buffer.from(data).toString('base64')}`;
-      },explicit=>{if(core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container))notify_navigation_selection(explicit);});
+      }, this.revision_images(root, revision, file, settings),explicit=>{if(core.app.workspace.activeLeaf?.view.containerEl.contains(reader.container))notify_navigation_selection(explicit);});
       this.open_panel(title, JSON.stringify(["revision", revision, file]), root, reader.container, {file, dispose: () => {reader_disposed = true; reader.dispose();},
         navigation:{capture:reader.capture,restore:reader.restore,reopen:parent=>this.open_revision_document(root,revision,file,content,{...settings,new_tab_group:'active'},'',parent)}}, group,previous_parent);
       reader.reveal_fragment(fragment);

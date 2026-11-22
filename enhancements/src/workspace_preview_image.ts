@@ -3,11 +3,6 @@ import {open_reading_media} from './reading_media_viewer';
 import {workspace_text} from './workspace_i18n';
 
 /** Keep original encoded frames; browser image decoding owns animation timing. */
-export function preview_image_mime(path:string):string|undefined {
-  const extension=path.split('.').at(-1)?.toLowerCase();
-  return ({gif:'image/gif',png:'image/png',apng:'image/png',jpg:'image/jpeg',jpeg:'image/jpeg',webp:'image/webp',bmp:'image/bmp',avif:'image/avif',svg:'image/svg+xml',ico:'image/x-icon'} as Record<string,string>)[extension||''];
-}
-
 export function create_preview_image(bytes:Uint8Array,mime:string,label:string) {
   const container=el('div','workspace-preview-image'),image=el('img');
   image.alt=label;image.draggable=false;container.tabIndex=0;container.append(image);

@@ -5,6 +5,7 @@ import {source_navigation_gestures} from "./source_navigation_gesture";
 import {content_font_size,observe_content_zoom} from './workspace_content_zoom';
 import {initialize_monaco_code_theme,sync_monaco_code_theme,acquire_monaco_code_theme} from './monaco_code_theme';
 import {read_text_presentation,update_text_presentation,observe_text_presentation} from './workspace_text_presentation';
+import type {git_image_reader} from './git_markdown_images';
 import type {markdown_view_anchor} from './git_markdown_diff';
 import {StandaloneServices} from "monaco-editor/editor/standalone/browser/standaloneServices.js";
 import {IInstantiationService} from "monaco-editor/platform/instantiation/common/instantiation.js";
@@ -64,7 +65,7 @@ export function initialize_editor(): void {
   void initialize_monaco_code_theme();
   initialized = true;
 }
-export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string};
+export type diff_document = {title: string; file?: string; left: string; right?: string; left_label?: string; right_label?: string; images?:Record<'left'|'right',git_image_reader>};
 export type diff_range_snapshot = {original_text:string;modified_text:string;line_changes:monaco.editor.ILineChange[];selections:monaco.Selection[]};
 export class git_diff_editor {
   container = el("section", "git-graph-document"); toolbar = el("div", "git-diff-toolbar");
@@ -282,7 +283,7 @@ export class git_diff_editor {
     const epoch=++this.markdown_epoch,input_epoch=this.input_epoch,anchor=this.pending_anchor||this.markdown_preview.capture();
     if(anchor)this.pending_anchor=anchor;
     const task=(async()=>{
-      try{await this.markdown_preview!.render(this.models[0].getValue(),this.models[1].getValue(),changes,[this.data.left_label||text('diff.original'),this.data.right_label||text('diff.modified')]);if(!this.disposed&&epoch===this.markdown_epoch&&input_epoch===this.input_epoch&&anchor)this.restore_content_anchor(anchor);if(epoch===this.markdown_epoch)this.pending_anchor=undefined;}
+      try{await this.markdown_preview!.render(this.models[0].getValue(),this.models[1].getValue(),changes,[this.data.left_label||text('diff.original'),this.data.right_label||text('diff.modified')],this.data.images);if(!this.disposed&&epoch===this.markdown_epoch&&input_epoch===this.input_epoch&&anchor)this.restore_content_anchor(anchor);if(epoch===this.markdown_epoch)this.pending_anchor=undefined;}
       catch(error){if(!this.disposed&&epoch===this.markdown_epoch){this.set_markdown_mode(false);this.status.textContent=String(error instanceof Error?error.message:error);this.report_error?.(error);}}
     })();
     this.markdown_render_task=task;

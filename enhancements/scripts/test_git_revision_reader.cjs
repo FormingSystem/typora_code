@@ -8,10 +8,15 @@ const git=args=>cp.execFileSync('git',['-c','user.name=Revision Test','-c','user
 const put=(file,text)=>{fs.mkdirSync(path.dirname(path.join(root,file)),{recursive:true});fs.writeFileSync(path.join(root,file),text);};
 git(['init','-b','main']);put('docs/guide.md','# Old guide\n');put('docs/child.md','# Old child\n');put('deleted.md','# Deleted original\n');put('old_name.md','# Renamed original\n');put('sample.c','int revision = 1;\n');
 const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/l1sAAAAASUVORK5CYII=','base64');put('docs/figure.png',png);
+const svg=width=>'<svg xmlns="http://www.w3.org/2000/svg" width="'+width+'" height="30"><rect width="20" height="20"/></svg>';
+const image_doc='# Version image\n\n![diagram](../assets/%E5%9B%BE.svg)\n\n<img alt="missing" src="../assets/missing.png">\n';
+put('before/ref/moved.md',image_doc);put('before/assets/图.svg',svg(101));
 git(['add','.']);git(['commit','-m','base']);const from=git(['rev-parse','HEAD']).trim();
 put('docs/guide.md','# Selected guide\n\n| Name | Value |\n| --- | --- |\n| revision | selected |\n\n```c\nint chosen = 2;\n```\n\n[Child](child.md#child-section)\n\n[Missing](missing.md)\n\n![Figure](figure.png)\n\n![External image](https://example.invalid/never-load.png)\n\n<script>window.revision_pwned=true</script>\n');
+put('after/ref/moved.md',image_doc);put('after/assets/图.svg',svg(151));git(['rm','before/ref/moved.md']);
 put('docs/child.md','# Selected child\n\n'+Array.from({length:45},()=> 'Historical paragraph.\n\n').join('')+'## Child section\nTarget.\n');git(['mv','old_name.md','renamed.md']);git(['rm','deleted.md']);put('sample.c','int revision = 2;\n');git(['add','.']);git(['commit','-m','selected']);const to=git(['rev-parse','HEAD']).trim();
 put('docs/guide.md','# WORKTREE must never render\n');put('docs/child.md','# WORKTREE child\n');put('docs/figure.png','not the historical PNG');put('sample.c','int revision = 999;\n');
+put('after/assets/图.svg',svg(201));git(['add','after/assets/图.svg']);put('after/assets/图.svg',svg(251));
 const snapshot=()=>({head:git(['rev-parse','HEAD']),status:git(['status','--porcelain=v1']),index:fs.readFileSync(path.join(root,'.git/index')).toString('base64'),files:['docs/guide.md','docs/child.md','docs/figure.png','sample.c'].map(file=>fs.readFileSync(path.join(root,file)).toString('base64'))});const before=snapshot();
 let test_window;const checks=[],external_requests=[],delay=ms=>new Promise(resolve=>setTimeout(resolve,ms));
 const evaluate=source=>test_window.webContents.executeJavaScript(source).catch(error=>{console.error(source.slice(0,600));throw error;});
@@ -32,6 +37,16 @@ app.whenReady().then(async()=>{
     window.host=revision_qa.create_graph_host(core);window.reports=[];window.owner=Object.create(revision_qa.git_source_control.prototype);owner.load_epoch=0;owner.panel={root:${JSON.stringify(root)},settings:{new_tab_group:'active',encoding:'utf-8',git_path:'git'},host,status:document.createElement('div'),report:error=>reports.push(String(error)),mark_reviewed(){}};
     window.from=${JSON.stringify(from)};window.to=${JSON.stringify(to)};window.article=()=>document.querySelector('.git-revision-markdown')?.shadowRoot.querySelector('#write');
   })()`);
+  async function compare_images(change,from_revision,to_revision,left_width,right_width){
+    await evaluate('owner.open_file('+JSON.stringify(change)+','+JSON.stringify(from_revision)+','+JSON.stringify(to_revision)+')');
+    await evaluate("window.image_shadow=core.app.workspace.activeLeaf.view.editor.markdown_preview.shadow;window.side_image=side=>image_shadow.querySelector('[data-side='+side+'] img[alt=diagram]');void 0");
+    await wait('side_image("left")?.naturalWidth==='+left_width+' && side_image("right")?.naturalWidth==='+right_width);
+    await wait('image_shadow.querySelectorAll(".markdown-diff-attachment").length===2');
+  }
+  await compare_images({path:'after/ref/moved.md',old_path:'before/ref/moved.md',status:'R100'},from,to,101,151);
+  await compare_images({path:'after/ref/moved.md',status:'M'},to,'INDEX',151,201);
+  await compare_images({path:'after/ref/moved.md',status:'M'},'INDEX','WORKTREE',201,251);
+  checks.push('Renamed documents resolve SVG against each side directory. Commit, index and worktree decode distinct versions. Missing HTML images keep their path.');
   await evaluate(`owner.open_file({path:'docs/guide.md',status:'M'},from,to,[{path:'docs/guide.md',status:'M'},{path:'sample.c',status:'M'}])`);await wait('!!document.querySelector("[data-diff-ready=true]")');
   assert(await evaluate('core.app.workspace.activeLeaf.view.editor.toolbar.parentElement.classList.contains("workspace-tab-strip")'));
   assert(await evaluate('core.app.workspace.activeLeaf.view.editor.data.title.includes(from.slice(0,8)+" ↔ "+to.slice(0,8))'));checks.push('history diff title identifies both revisions and toolbar mounts in its editor-group tab row');
@@ -40,8 +55,8 @@ app.whenReady().then(async()=>{
   const diff_title=await evaluate('original_diff.view.editor.data.title');assert.equal(detached.connected,false);assert.equal(detached.title,diff_title);assert.equal(detached.tooltip,diff_title);assert.equal(detached.has_file_icon,true);assert.equal(detached.ext,false);assert.equal(detached.icon,'typ-file-icon workspace-file-theme-slot');
   await evaluate("document.body.append(detached_group);const delayed_strip=document.createElement('div');delayed_strip.className='workspace-tab-strip';const delayed_header=detached_group.querySelector('.typ-workspace-tab-header');delayed_header.before(delayed_strip);delayed_strip.append(delayed_header);void 0");await delay(160);assert.deepEqual(await evaluate('({title:detached_tab.querySelector(".typ-file-basename").textContent,icon:detached_tab.querySelector(".typ-file-icon").className,toolbar:copied_diff.view.editor.toolbar.parentElement===detached_group.querySelector(".workspace-tab-strip")})'),{title:diff_title,icon:'typ-file-icon workspace-file-theme-slot',toolbar:true});
   await evaluate('copied_diff.view.onClose();leaves.splice(leaves.indexOf(copied_diff),1);detached_group.remove()');await delay(30);checks.push('split-created detached group receives decoded revision title and shared file icon before DOM mount; later core icon hook does not restore fa-code-fork');
-  await evaluate(`document.querySelector('[data-diff-open-file]').click()`);await wait('article()?.querySelector("h1")?.textContent==="Selected guide"');await wait('article().querySelector("img")?.src.startsWith("data:image/png;base64,")');
-  assert.deepEqual(await evaluate('({head:article().querySelector("h1").textContent,table:!!article().querySelector("table"),code:article().querySelector("code").textContent,editable:article().isContentEditable,pwned:!!window.revision_pwned,image:article().querySelector("img").src})'),{head:'Selected guide',table:true,code:'int chosen = 2;\n',editable:false,pwned:false,image:'data:image/png;base64,'+png.toString('base64')});
+  await evaluate(`document.querySelector('[data-diff-open-file]').click()`);await wait('article()?.querySelector("h1")?.textContent==="Selected guide"');await wait('article().querySelector("img")?.naturalWidth===1');
+  assert.deepEqual(await evaluate('({head:article().querySelector("h1").textContent,table:!!article().querySelector("table"),code:article().querySelector("code").textContent,editable:article().isContentEditable,pwned:!!window.revision_pwned,image:article().querySelector("img").naturalWidth})'),{head:'Selected guide',table:true,code:'int chosen = 2;\n',editable:false,pwned:false,image:1});
   await wait('!!article().querySelector("code span[class*=vsc-light-fg-]")');assert.equal(await evaluate('article().querySelectorAll("img").length'),1);checks.push('history go-to-file renders selected Markdown, table and C highlighting read-only with images from same Git blob; external image and script do not load');await capture('selected_markdown');
   await evaluate(`window.reader_location=revision_qa.navigation_editor().capture();window.theme_style=document.createElement('style');theme_style.textContent='body{font-family:monospace}h1{font-size:2.2em;color:rgb(30,90,120)}table th{background:rgb(20,50,80)}';document.head.append(theme_style);`);
   await wait('getComputedStyle(article()).fontFamily===getComputedStyle(document.querySelector("content > #write")).fontFamily');

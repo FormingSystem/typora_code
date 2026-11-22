@@ -1,4 +1,5 @@
 import {workspace_text} from "./workspace_i18n";
+import {is_markdown_file} from './file_language';
 import {bind_git_source_row,sync_git_source_rows,git_diff_source_key,type git_diff_source} from './git_diff_source';
 import {project_git_changes,same_git_changes,sort_git_changes} from './git_status_snapshot';
 import {workspace_tree_rows} from "./workspace_tree_rows";
@@ -393,7 +394,11 @@ export class git_source_control {
         file.status.startsWith("D") ? "" : this.panel.host.revision_text(root, to, file.path, this.panel.settings),
       ]);
       if (epoch !== this.load_epoch || root !== this.panel.root) return;
-      this.panel.host.open_document({title: `${file.path.split("/").at(-1)!} (${short_revision(from)} ↔ ${short_revision(to)})`, file: file.path, left, right, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
+      this.panel.host.open_document({title: `${file.path.split("/").at(-1)!} (${short_revision(from)} ↔ ${short_revision(to)})`, file: file.path, left, right,
+        images:is_markdown_file(file.path) ? {
+          left:this.panel.host.revision_images(root, from, file.old_path || file.path, this.panel.settings),
+          right:this.panel.host.revision_images(root, to, file.path, this.panel.settings)
+        } : undefined, left_label: text("scm.readonly_label", {file: file.old_path || file.path, revision: short_revision(from)}), right_label: text("scm.readonly_label", {file: file.path, revision: short_revision(to)})}, "active", {
         ...(from===INDEX&&to===WORKTREE&&file.status!=="??"&&!/^[ADRUT]/u.test(file.status)?{
           range_available:()=>this.repository_action_available(root)&&!this.panel.writing&&!this.panel.pending&&!this.panel.disposed,
           range_action:async(action,snapshot)=>{
