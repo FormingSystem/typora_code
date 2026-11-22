@@ -10634,7 +10634,7 @@
         "Open standalone PNG and SVG files, compare image revisions, view additions and deletions, switch to SVG source and inspect a corrupt image."
       ],
       "expected": [
-        "The decoded dimensions identify each revision. Wheel zoom keeps the pointer on the same detail, toolbar scaling affects only its pane, and actual size and fit restore the rendered geometry."
+        "The decoded dimensions identify each revision. Plain wheel scrolls a tall image to its edges without resizing it. Ctrl+wheel zoom keeps the pointer on the same detail, toolbar scaling affects only its pane, and actual size and fit restore the rendered geometry."
       ],
       "timeout_ms": 240000,
       "required_executables": [

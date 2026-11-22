@@ -2,6 +2,17 @@
   "schema": 1,
   "releases": [
     {
+      "sequence": 2026112204,
+      "version": "2026.11.22.4",
+      "date": "2026-11-22",
+      "notes": [
+        "点开图片后，普通滚轮上下阅读，Ctrl+滚轮以指针为中心缩放。图片标签、Git 图片对比和全屏查看使用相同手势。"
+      ],
+      "notes_en": [
+        "Scroll to read an image and hold Ctrl while scrolling to zoom around the pointer. The same gestures work in image tabs, Git comparisons and fullscreen."
+      ]
+    },
+    {
       "sequence": 2026112203,
       "version": "2026.11.22.3",
       "date": "2026-11-22",

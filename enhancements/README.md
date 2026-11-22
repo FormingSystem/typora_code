@@ -349,7 +349,7 @@ Markdown 目录自动选中完整进入可读视口的标题，没有可见标�
 | `.v`、`.vh`、`.sv`、`.svh`；`.rst` | Verilog／SystemVerilog；reStructuredText |
 | `LICENSE`、`COPYING`、`README`、`.txt`、`.log`、`.csv`、`.patch`、`.diff` | 纯文本 |
 | `.tar.gz`、`.tar.bz2`、`.tar.xz`、`.tar.zst`、`.zip`、`.7z`、`.deb`、`.rpm` | 归档类型，文件树保留项目 |
-| PNG、JPEG、GIF、WebP、BMP、AVIF、ICO、APNG、SVG | 点击图片在标签页中查看。滚轮以指针为中心缩放，左键拖动可移动图片，双击进入全屏。Git 图片对比的两侧可独立操作。本地图片右键可选「使用系统程序打开」。 |
+| PNG、JPEG、GIF、WebP、BMP、AVIF、ICO、APNG、SVG | 点击图片在标签页中查看。滚轮上下滚动，Ctrl+滚轮以指针为中心缩放，左键拖动可移动图片，双击进入全屏。Git 图片对比的两侧可独立操作。本地图片右键可选「使用系统程序打开」。 |
 | PDF、可执行文件、字体、音视频及 `.dtb` 等 | 二进制类型，文件树保留项目 |
 | 无已知映射但首行为 `#!` 的脚本；其他未知文件 | 按解释器识别；纯文本回退 |
 

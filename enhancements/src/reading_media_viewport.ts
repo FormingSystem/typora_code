@@ -1,3 +1,4 @@
+import {wheel_zoom_direction} from "./workspace_wheel_zoom";
 import {workspace_text} from "./workspace_i18n";
 import {workspace_element as el} from "./workspace_widgets";
 import {acquire_workspace_interaction} from "./workspace_interaction";
@@ -16,6 +17,13 @@ export const media_button=(action:string,label:string,icon?:Parameters<typeof gi
   if(icon)node.append(git_icon(icon));
   return node;
 };
+
+function scroll_image_axis(offset:number,delta:number,scaled_size:number,visible:number):number {
+  if(!delta)return offset;
+  const limit=Math.max(0,(scaled_size-visible)/2);
+  if(!limit)return offset;
+  return Math.max(-limit,Math.min(limit,offset-delta));
+}
 
 /** Each mounted viewport owns its scale and pan, including each side of a comparison. */
 export function mount_reading_media_viewport(viewer:HTMLElement, media:reading_media, inline:boolean) {
@@ -60,12 +68,24 @@ export function mount_reading_media_viewport(viewer:HTMLElement, media:reading_m
   const reset=()=>{if(failed)return;mode="manual";view.scale=1;view.x=view.y=0;apply();};
   const resize=new ResizeObserver(()=>{if(mode!=="manual")fit(mode==="fit-width",fit_initial);});resize.observe(canvas);
   canvas.addEventListener("wheel",event=>{
+    if(failed || event.defaultPrevented)return;
+    const unit=event.deltaMode===WheelEvent.DOM_DELTA_LINE?16:event.deltaMode===WheelEvent.DOM_DELTA_PAGE?canvas.clientHeight:1;
+    if(wheel_zoom_direction(event)){
+      event.preventDefault();
+      event.stopPropagation();
+      const bounds=canvas.getBoundingClientRect();
+      zoom(view.scale*Math.exp(-event.deltaY*unit*0.002),event.clientX-bounds.left-bounds.width/2,event.clientY-bounds.top-bounds.height/2);
+      return;
+    }
+    if(event.ctrlKey||event.metaKey||event.altKey||event.shiftKey)return;
+    const x=scroll_image_axis(view.x,event.deltaX*unit,media.width*view.scale,canvas.clientWidth);
+    const y=scroll_image_axis(view.y,event.deltaY*unit,media.height*view.scale,canvas.clientHeight);
+    if(x===view.x && y===view.y)return;
     event.preventDefault();
     event.stopPropagation();
-    if(!inline && !(event.ctrlKey||event.metaKey))return;
-    const bounds=canvas.getBoundingClientRect();
-    const unit=event.deltaMode===WheelEvent.DOM_DELTA_LINE?16:event.deltaMode===WheelEvent.DOM_DELTA_PAGE?canvas.clientHeight:1;
-    zoom(view.scale*Math.exp(-event.deltaY*unit*0.002),event.clientX-bounds.left-bounds.width/2,event.clientY-bounds.top-bounds.height/2);
+    view.x=x;
+    view.y=y;
+    apply();
   },{passive:false,signal});
   canvas.addEventListener("pointerdown",event=>{
     if(event.button!==0||failed)return;event.preventDefault();drag={pointer_id:event.pointerId,x:event.clientX,y:event.clientY,origin_x:view.x,origin_y:view.y};canvas.setPointerCapture(event.pointerId);viewer.classList.add("is-dragging");

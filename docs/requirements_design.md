@@ -136,7 +136,7 @@
 | R031.5 | 图片细边框与选中状态 | [R031.5](reading_media_viewer.md#r0315-image-border) | 可选细边线、点击选中、主题与正文保存保持 |
 | R031.6 | 图片边框与阴影配置 | [设计](reading_media_viewer.md#r0316-image-decoration) | 主题自适应默认色、明暗独立颜色、粗细与阴影配置 |
 | R031.7 | 图片悬浮外观与圆角 | [设计](reading_media_viewer.md#r0317-image-appearance-controls) | 面板直接调整全局边框、颜色、圆角及阴影 |
-| R031.8 | 独立图片阅读 | [设计](reading_media_viewer.md#r0318-独立图片阅读) | 资源管理器及 Git 版本，每栏独立缩放与平移 |
+| R031.8 | 独立图片阅读 | [设计](reading_media_viewer.md#r0318-独立图片阅读) | 资源管理器及 Git 版本，普通滚轮阅读、Ctrl+滚轮按栏缩放 |
 | R031.3 | 正文与图片链接动图 | [设计](reading_media_viewer.md#r0313-正文与图片链接动图2026-10-15) | 原始动图播放、图片预览适配、清理及实际多帧验证 |
 | R032 | Esc逐层退出并恢复原操作 | [设计](workspace_interaction.md#r032-esc退出与原操作恢复) | 共同焦点与选区恢复、按下释放配对、来源身份及取消边界 |
 | R033 | 弹窗外部关闭 | [设计](workspace_interaction.md#r033-弹窗外部关闭与焦点转移) | 外部点击与焦点离开取消，Esc恢复；2026-09-27补充顶栏原生拖动区交接与手势结束恢复 |

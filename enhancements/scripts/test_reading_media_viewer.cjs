@@ -34,6 +34,12 @@ app.whenReady().then(async()=>{
  await evaluate(`window.image_clicks=0;large.addEventListener('click',()=>image_clicks++);document.querySelector('a').onclick=e=>e.preventDefault();void 0;`);
  await click('#large');await check(`!document.querySelector('.reading-media-viewer')&&image_clicks===1`,"Single image click stays with native selection");
  const image_point=await evaluate(`(()=>{const b=large.getBoundingClientRect();return{x:Math.round(b.left+b.width/2),y:Math.round(b.top+b.height/2)}})()`);
+ const document_position=await evaluate("document.querySelector('content').scrollTop");
+ const document_width=await evaluate("large.getBoundingClientRect().width");
+ win.webContents.sendInputEvent({type:'mouseWheel',...image_point,deltaY:-120,canScroll:true});
+ await until(`document.querySelector('content').scrollTop>${document_position}`);
+ await check(`large.getBoundingClientRect().width===${document_width}&&!document.querySelector('.reading-media-viewer')`,"Ordinary wheel on a clicked Markdown image scrolls its document at the original scale");
+ await evaluate(`document.querySelector('content').scrollTop=${document_position}`);await delay(100);
  for(const count of [1,2])for(const type of ['mouseDown','mouseUp']){win.webContents.sendInputEvent({type,...image_point,button:'left',clickCount:count});await delay(25)}await delay(100);
  await check(`document.querySelectorAll('.reading-media-viewer').length===1&&document.querySelector('.reading-media-content img').naturalWidth===12000`,"Double image click opens one viewer");await key('Escape');
  await evaluate(`document.querySelector('#focus').focus();getSelection().removeAllRanges();getSelection().addRange(selection)`);
@@ -47,6 +53,9 @@ app.whenReady().then(async()=>{
  const point=await evaluate(`(()=>{const b=document.querySelector('.reading-media-canvas').getBoundingClientRect();return{x:Math.round(b.left+b.width/2),y:Math.round(b.top+b.height/2)}})()`);
  for(const event of [{type:'mouseDown',...point},{type:'mouseMove',x:point.x+75,y:point.y+40},{type:'mouseUp',x:point.x+75,y:point.y+40}]){win.webContents.sendInputEvent({...event,button:'left',clickCount:1});await delay(40);}
  await check(`document.querySelector('.reading-media-viewer').style.getPropertyValue('--reading-media-pan-x')==='75px'`,"Pointer drag pans image");
+ const full_top=await evaluate("document.querySelector('.reading-media-viewer img').getBoundingClientRect().top");
+ win.webContents.sendInputEvent({type:'mouseWheel',...point,deltaY:-90,canScroll:true});await delay(100);
+ await check(`document.querySelector('.reading-media-viewer img').getBoundingClientRect().top<${full_top}-1&&document.querySelector('.reading-media-viewer output').value==='100%'`,"Plain wheel scrolls the enlarged fullscreen image without changing its scale");
  win.webContents.sendInputEvent({type:'mouseWheel',...point,deltaY:50,modifiers:['control'],canScroll:true});await delay(80);
  await check(`parseFloat(document.querySelector('.reading-media-viewer output').value)>100&&window_zoom===0`,"Ctrl wheel zoom does not change window scale");
  await click('[data-action="fit"]');await check(`document.querySelector('.reading-media-viewer').style.getPropertyValue('--reading-media-pan-x')==='0px'`,"Fit resets panning");
@@ -134,9 +143,23 @@ app.whenReady().then(async()=>{
  await until(`parseFloat(document.querySelector('${left_output}').value)<100`);
  const initial=await percent(right_output);
  const point_in_pane=await evaluate(`(()=>{const r=document.querySelector('${canvas}').getBoundingClientRect();return {x:Math.round(r.left+r.width/2),y:Math.round(r.top+r.height/2)}})()`);
- win.webContents.sendInputEvent({type:'mouseMove',...point_in_pane});await delay(100);
- win.webContents.sendInputEvent({type:'mouseWheel',...point_in_pane,deltaY:100,canScroll:true});await delay(100);
- assert(await percent(left_output)>initial,'Wheel over the left pane enlarges its image');
+ await click(canvas);
+ const pane_wheel=async(deltaY,modifiers=[])=>{
+   win.webContents.sendInputEvent({type:'mouseMove',...point_in_pane});await delay(70);
+   win.webContents.sendInputEvent({type:'mouseWheel',...point_in_pane,deltaY,modifiers,canScroll:true});await delay(100);
+ };
+ const top=()=>evaluate(`document.querySelector('${panes} img').getBoundingClientRect().top`);
+ await pane_wheel(-100);
+ assert.equal(await percent(left_output),initial,'A plain wheel after clicking a fitted image preserves the scale');
+ await click(panes+':first-child [data-action="reset"]');
+ const center=await top();
+ await pane_wheel(-100);
+ assert(await top()<center-1,'Scrolling down reveals a lower part of the image');
+ await pane_wheel(100);
+ assert(Math.abs(await top()-center)<1,'Scrolling up returns to the original detail');
+ assert.equal(await percent(left_output),100);
+ await pane_wheel(100,['control']);
+ assert(await percent(left_output)>100,'Ctrl+wheel over the left pane enlarges its image');
  assert.equal(await percent(right_output),initial);
  const pane_x=()=>evaluate(`document.querySelector('${panes} img').getBoundingClientRect().left`);
  const original_x=await pane_x();
@@ -158,7 +181,7 @@ app.whenReady().then(async()=>{
  await check(`document.activeElement.matches('${panes}:first-child [data-action="reset"]')`,'Keyboard focus can reach the actual-size button in a narrow pane');
  await key('Space');
  assert.equal(await percent(left_output),100,'Keyboard can restore actual pixels in a narrow pane');
- await evaluate('panes.dispose()');checks.push('Large images fit, wheel zooms one pane, pointer drag pans rendered pixels and fullscreen returns to its previous scale');
+ await evaluate('panes.dispose()');checks.push('Large images fit, plain wheel scrolls after a click, Ctrl+wheel zooms one pane, pointer drag pans rendered pixels and fullscreen returns to its previous scale');
  await evaluate('theme_binding.remove()');
  console.log(JSON.stringify({status:'PASS',checks:checks.length,details:checks,evidence,hover_evidence,entry_hover_metrics},null,2));
 }).catch(error=>{console.error(error);process.exitCode=1}).finally(()=>{win?.destroy();app.exit(process.exitCode||0)});

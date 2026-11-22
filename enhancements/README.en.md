@@ -357,7 +357,7 @@ The identification order is **special filename/prefix → longest composite suff
 | `.v`、`.vh`、`.sv`、`.svh`；`.rst` | Verilog／SystemVerilog；reStructuredText |
 | `LICENSE`、`COPYING`、`README`、`.txt`、`.log`、`.csv`、`.patch`、`.diff` | Plain Text |
 | `.tar.gz`、`.tar.bz2`、`.tar.xz`、`.tar.zst`、`.zip`、`.7z`、`.deb`、`.rpm` | Archive type, file tree preserves project |
-| PNG, JPEG, GIF, WebP, BMP, AVIF, ICO, APNG, SVG | Open in an image tab. Zoom around the pointer with the wheel, drag to pan, and double-click for fullscreen. Each side of a Git image comparison has its own zoom. Local images also offer Open with System Application. |
+| PNG, JPEG, GIF, WebP, BMP, AVIF, ICO, APNG, SVG | Open in an image tab. Scroll vertically with the wheel, zoom around the pointer with Ctrl+wheel, drag to pan, and double-click for fullscreen. Each side of a Git image comparison has its own zoom. Local images also offer Open with System Application. |
 | PDFs, executables, fonts, audio/video, and `.dtb` etc. | Binary type, file tree preserves project |
 | Scripts without known mappings but with first line as `#!`; other unknown files | Identified by interpreter; fallback to pure text |
 

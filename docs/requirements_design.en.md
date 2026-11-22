@@ -139,7 +139,7 @@ On 2026-09-12, the current requirements ledger was mapped to the existing docume
 | R031.5 | Image borders and selection | [R031.5](reading_media_viewer.en.md#r0315-image-border) | Optional borders, click selection, themes and source preservation |
 | R031.6 | Image border and shadow settings | [Design](reading_media_viewer.en.md#r0316-image-decoration) | Adaptive defaults, independent light/dark colors, width and shadow controls |
 | R031.7 | Floating appearance and corner radius | [Design](reading_media_viewer.en.md#r0317-image-appearance-controls) | Direct global border, color, corner and shadow controls |
-| R031.8 | Standalone images | [Design](reading_media_viewer.en.md#r0318-standalone-images) | Explorer and Git versions, per-pane zoom and pan |
+| R031.8 | Standalone images | [Design](reading_media_viewer.en.md#r0318-standalone-images) | Explorer and Git versions, wheel scrolling and per-pane Ctrl+wheel zoom |
 | R031.3 | Animated document images and linked previews | [Design](reading_media_viewer.en.md#r0313-animated-document-images-and-linked-previews-2026-10-15) | Original animation frames, preview ownership, cleanup and multi-frame verification |
 | R032 | Esc exit layer by layer and restore original operation | [Design](workspace_interaction.en.md#section_6de9c37eb80b) | Common focus and selection recovery, press and release pairing, source identity and cancel boundary |
 | R033 | Popup external close | [Design](workspace_interaction.en.md#section_4231fb82ff25) | External click and focus leave cancel, Esc restore; 2026-09-27 supplement top bar native drag area handover and gesture end restore |

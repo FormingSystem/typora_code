@@ -170336,6 +170336,24 @@ https://creativecommons.org/licenses/by/4.0/
   // src/workspace_preview_image.css
   var workspace_preview_image_default = "";
 
+  // src/workspace_wheel_zoom.ts
+  function wheel_zoom_direction(event) {
+    return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && Number.isFinite(event.deltaY) && event.deltaY !== 0 ? event.deltaY < 0 ? 1 : -1 : 0;
+  }
+  function reading_wheel_root(event) {
+    if (event.defaultPrevented || !wheel_zoom_direction(event)) return;
+    const path2 = event.composedPath();
+    if (path2.some((node) => node instanceof Element && node.matches(".workspace-link-preview,.workspace-lookup-preview"))) return;
+    const target = path2[0];
+    if (!(target instanceof Element)) return;
+    if (target.closest('.md-diagram,.md-math,.md-inline-math,.md-image,.md-video,.md-audio,svg,canvas,img,video,audio,iframe,webview,button,input,select,[role="button"]')) return;
+    const padding_root = target.matches("content") ? target.querySelector(":scope > #write") : target.matches("#typora-source") ? target.querySelector(".CodeMirror") : void 0;
+    const root = target.closest("#write,.typ-markdown-preview,.monaco-editor,#typora-source .CodeMirror") || (padding_root?.getClientRects().length ? padding_root : void 0);
+    if (!root) return;
+    if ([...document.querySelectorAll('.reading-media-viewer,[role="dialog"][aria-modal="true"],.modal.in')].some((node) => !node.hidden && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden")) return;
+    return root;
+  }
+
   // src/reading_media_viewer.css
   var reading_media_viewer_default = "";
 
@@ -170349,6 +170367,12 @@ https://creativecommons.org/licenses/by/4.0/
     if (icon) node.append(git_icon(icon));
     return node;
   };
+  function scroll_image_axis(offset, delta, scaled_size, visible3) {
+    if (!delta) return offset;
+    const limit = Math.max(0, (scaled_size - visible3) / 2);
+    if (!limit) return offset;
+    return Math.max(-limit, Math.min(limit, offset - delta));
+  }
   function mount_reading_media_viewport(viewer, media, inline4) {
     const toolbar = workspace_element("div", "reading-media-toolbar");
     toolbar.setAttribute("aria-label", workspace_text("reading_media_viewer_zoom_control"));
@@ -170410,12 +170434,24 @@ https://creativecommons.org/licenses/by/4.0/
     });
     resize.observe(canvas);
     canvas.addEventListener("wheel", (event) => {
+      if (failed || event.defaultPrevented) return;
+      const unit = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? canvas.clientHeight : 1;
+      if (wheel_zoom_direction(event)) {
+        event.preventDefault();
+        event.stopPropagation();
+        const bounds = canvas.getBoundingClientRect();
+        zoom(view.scale * Math.exp(-event.deltaY * unit * 2e-3), event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
+        return;
+      }
+      if (event.ctrlKey || event.metaKey || event.altKey || event.shiftKey) return;
+      const x = scroll_image_axis(view.x, event.deltaX * unit, media.width * view.scale, canvas.clientWidth);
+      const y = scroll_image_axis(view.y, event.deltaY * unit, media.height * view.scale, canvas.clientHeight);
+      if (x === view.x && y === view.y) return;
       event.preventDefault();
       event.stopPropagation();
-      if (!inline4 && !(event.ctrlKey || event.metaKey)) return;
-      const bounds = canvas.getBoundingClientRect();
-      const unit = event.deltaMode === WheelEvent.DOM_DELTA_LINE ? 16 : event.deltaMode === WheelEvent.DOM_DELTA_PAGE ? canvas.clientHeight : 1;
-      zoom(view.scale * Math.exp(-event.deltaY * unit * 2e-3), event.clientX - bounds.left - bounds.width / 2, event.clientY - bounds.top - bounds.height / 2);
+      view.x = x;
+      view.y = y;
+      apply4();
     }, { passive: false, signal });
     canvas.addEventListener("pointerdown", (event) => {
       if (event.button !== 0 || failed) return;
@@ -176948,24 +176984,6 @@ https://creativecommons.org/licenses/by/4.0/
     return { add, own, listen, dispose: dispose2, get disposed() {
       return disposed;
     } };
-  }
-
-  // src/workspace_wheel_zoom.ts
-  function wheel_zoom_direction(event) {
-    return event.ctrlKey && !event.metaKey && !event.altKey && !event.shiftKey && Number.isFinite(event.deltaY) && event.deltaY !== 0 ? event.deltaY < 0 ? 1 : -1 : 0;
-  }
-  function reading_wheel_root(event) {
-    if (event.defaultPrevented || !wheel_zoom_direction(event)) return;
-    const path2 = event.composedPath();
-    if (path2.some((node) => node instanceof Element && node.matches(".workspace-link-preview,.workspace-lookup-preview"))) return;
-    const target = path2[0];
-    if (!(target instanceof Element)) return;
-    if (target.closest('.md-diagram,.md-math,.md-inline-math,.md-image,.md-video,.md-audio,svg,canvas,img,video,audio,iframe,webview,button,input,select,[role="button"]')) return;
-    const padding_root = target.matches("content") ? target.querySelector(":scope > #write") : target.matches("#typora-source") ? target.querySelector(".CodeMirror") : void 0;
-    const root = target.closest("#write,.typ-markdown-preview,.monaco-editor,#typora-source .CodeMirror") || (padding_root?.getClientRects().length ? padding_root : void 0);
-    if (!root) return;
-    if ([...document.querySelectorAll('.reading-media-viewer,[role="dialog"][aria-modal="true"],.modal.in')].some((node) => !node.hidden && node.getClientRects().length && getComputedStyle(node).visibility !== "hidden")) return;
-    return root;
   }
 
   // src/workspace_zoom.ts
@@ -271256,6 +271274,17 @@ https://creativecommons.org/licenses/by/4.0/
   var release_default = {
     schema: 1,
     releases: [
+      {
+        sequence: 2026112204,
+        version: "2026.11.22.4",
+        date: "2026-11-22",
+        notes: [
+          "\u70B9\u5F00\u56FE\u7247\u540E\uFF0C\u666E\u901A\u6EDA\u8F6E\u4E0A\u4E0B\u9605\u8BFB\uFF0CCtrl+\u6EDA\u8F6E\u4EE5\u6307\u9488\u4E3A\u4E2D\u5FC3\u7F29\u653E\u3002\u56FE\u7247\u6807\u7B7E\u3001Git \u56FE\u7247\u5BF9\u6BD4\u548C\u5168\u5C4F\u67E5\u770B\u4F7F\u7528\u76F8\u540C\u624B\u52BF\u3002"
+        ],
+        notes_en: [
+          "Scroll to read an image and hold Ctrl while scrolling to zoom around the pointer. The same gestures work in image tabs, Git comparisons and fullscreen."
+        ]
+      },
       {
         sequence: 2026112203,
         version: "2026.11.22.3",
